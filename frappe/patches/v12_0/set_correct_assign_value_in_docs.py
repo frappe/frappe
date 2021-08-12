@@ -4,7 +4,7 @@ from frappe.query_builder.functions import GroupConcat, Coalesce
 def execute():
 	frappe.reload_doc("desk", "doctype", "todo")
 
-	ToDo = frappe.qb.Table("ToDo")
+	ToDo = frappe.qb.DocType("ToDo")
 	assignees = GroupConcat("owner").distinct().as_("assignees")
 
 	query = (

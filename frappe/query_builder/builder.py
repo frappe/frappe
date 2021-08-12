@@ -7,9 +7,10 @@ class Base:
 	terms = terms
 	desc = Order.desc
 	Schema = Schema
+	Table = Table
 
 	@staticmethod
-	def Table(table_name: str, *args, **kwargs) -> Table:
+	def DocType(table_name: str, *args, **kwargs) -> Table:
 		table_name = get_table_name(table_name)
 		return Table(table_name, *args, **kwargs)
 
@@ -20,7 +21,7 @@ class MariaDB(Base, MySQLQuery):
 	@classmethod
 	def from_(cls, table, *args, **kwargs):
 		if isinstance(table, str):
-			table = cls.Table(table)
+			table = cls.DocType(table)
 		return super().from_(table, *args, **kwargs)
 
 
@@ -50,6 +51,6 @@ class Postgres(Base, PostgreSQLQuery):
 					table = cls.schema_translation[table._table_name]
 
 		elif isinstance(table, str):
-			table = cls.Table(table)
+			table = cls.DocType(table)
 
 		return super().from_(table, *args, **kwargs)

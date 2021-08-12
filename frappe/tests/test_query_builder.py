@@ -38,8 +38,9 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 
 class TestBuilderBase(object):
 	def test_adding_tabs(self):
-		self.assertEqual("tabNotes", frappe.qb.Table("Notes").get_sql())
-		self.assertEqual("__Auth", frappe.qb.Table("__Auth").get_sql())
+		self.assertEqual("tabNotes", frappe.qb.DocType("Notes").get_sql())
+		self.assertEqual("__Auth", frappe.qb.DocType("__Auth").get_sql())
+		self.assertEqual("Notes", frappe.qb.Table("Notes").get_sql())
 
 
 @run_only_if(db_type_is.MARIADB)
