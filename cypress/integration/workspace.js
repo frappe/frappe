@@ -24,13 +24,14 @@ context('Workspace 2.0', () => {
 		cy.get('.standard-actions .btn-primary[data-label="Save Customizations"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should('have.attr', 'item-public', '0');
-	});
 
-	it('Add New Block', () => {
 		cy.wait(500);
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.standard-actions .btn-secondary[data-label=Customize]').click();
+	});
 
+	it('Add New Block', () => {
+		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Heading').click();
 		cy.get(".ce-block:last").find('h2').type('Header');
