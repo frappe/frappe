@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 
 from typing import Dict, List
 
@@ -10,6 +10,8 @@ from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.email.doctype.email_group.email_group import add_subscribers
+
+from .exceptions import NewsletterAlreadySentError, NoRecipientFoundError, NewsletterNotSavedError
 
 
 class Newsletter(WebsiteGenerator):
@@ -30,17 +32,14 @@ class Newsletter(WebsiteGenerator):
 	@frappe.whitelist()
 	def test_send(self):
 		test_emails = frappe.utils.split_emails(self.test_email_id)
-		self.queue_all(test_email=test_emails)
+		self.queue_all(test_emails=test_emails)
 		frappe.msgprint(_("Test email sent to {0}").format(self.test_email_id))
 
 	@frappe.whitelist()
 	def send_emails(self):
 		"""send emails to leads and customers"""
-		if self.email_sent:
-			frappe.throw(_("Newsletter has already been sent"))
-
-		if not self.newsletter_recipients:
-			frappe.throw(_("Newsletter should have atleast one recipient"))
+		self.validate_newsletter_status()
+		self.validate_newsletter_recipients()
 
 		self.queue_all()
 		frappe.msgprint(_("Email queued to {0} recipients").format(len(self.newsletter_recipients)))
@@ -53,9 +52,28 @@ class Newsletter(WebsiteGenerator):
 				filters={"reference_doctype": self.doctype, "reference_name": self.name},
 				fields=["status", "count(name)"],
 				group_by="status",
+				order_by="status",
 				as_list=True,
 			)
 			self.get("__onload").status_count = dict(status_count)
+
+	def validate_send(self):
+		"""Validate if Newsletter can be sent.
+		"""
+		self.validate_newsletter_status()
+		self.validate_newsletter_recipients()
+
+	def validate_newsletter_status(self):
+		if self.email_sent:
+			frappe.throw(_("Newsletter has already been sent"), exc=NewsletterAlreadySentError)
+
+		if self.get("__islocal"):
+			frappe.throw(_("Please save the Newsletter before sending"), exc=NewsletterNotSavedError)
+
+	def validate_newsletter_recipients(self):
+		if not self.newsletter_recipients:
+			frappe.throw(_("Newsletter should have atleast one recipient"), exc=NoRecipientFoundError)
+		self.validate_recipient_address()
 
 	def validate_sender_address(self):
 		"""Validate self.send_from is a valid email address or not.
@@ -68,15 +86,6 @@ class Newsletter(WebsiteGenerator):
 		"""
 		for recipient in self.newsletter_recipients:
 			frappe.utils.validate_email_address(recipient, throw=True)
-
-	def validate_send(self):
-		"""Validate if Newsletter can be sent.
-		"""
-		if self.get("__islocal"):
-			frappe.throw(_("Please save the Newsletter before sending"))
-
-		if not self.newsletter_recipients:
-			frappe.throw(_("Newsletter should have at least one recipient"))
 
 	def get_linked_email_queue(self) -> List[str]:
 		"""Get list of email queue linked to this newsletter.
@@ -110,23 +119,25 @@ class Newsletter(WebsiteGenerator):
 			x for x in self.newsletter_recipients if x not in self.get_success_recipients()
 		]
 
-	def queue_all(self, test_email: str = None):
+	def queue_all(self, test_emails: List[str] = None):
 		"""Queue Newsletter to all the recipients generated from the `Email Group`
 		table
 
 		Args:
-			test_email (str, optional): Send test Newsletter to set email. Defaults to None.
+			test_email (List[str], optional): Send test Newsletter to the passed set of emails.
+			Defaults to None.
 		"""
-		if test_email:
-			frappe.utils.validate_email_address(test_email, throw=True)
+		if test_emails:
+			for test_email in test_emails:
+				frappe.utils.validate_email_address(test_email, throw=True)
 		else:
 			self.validate()
 			self.validate_send()
 
-		newsletter_recipients = test_email or self.get_pending_recipients()
+		newsletter_recipients = test_emails or self.get_pending_recipients()
 		self.send_newsletter(emails=newsletter_recipients)
 
-		if not test_email:
+		if not test_emails:
 			self.email_sent = True
 			self.schedule_send = frappe.utils.now_datetime()
 			self.scheduled_to_send = len(newsletter_recipients)
