@@ -59,7 +59,7 @@ class WebsiteAnalytics(object):
 		]
 
 	def get_data(self):
-		WebPageView = frappe.qb.Table("Web Page View")
+		WebPageView = frappe.qb.DocType("Web Page View")
 		count_all = Count("*").as_("count")
 		case = frappe.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
 		count_is_unique = Count(case).as_("unique_count")
