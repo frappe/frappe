@@ -445,9 +445,9 @@ frappe.views.Workspace = class Workspace {
 		if (!item.is_editable) {
 			$(`<span class="sidebar-info">${frappe.utils.icon("lock", "sm")}</span>`)
 				.appendTo(sidebar_control);
-			sidebar_control.find('.sidebar-info').click(() => {
+			sidebar_control.parent().click(() => {
 				frappe.show_alert({
-					message: __("Only owner can sort of edit this page"),
+					message: __("Only Workspace Manager can sort or edit this page"),
 					indicator: 'info'
 				}, 5);
 			});
