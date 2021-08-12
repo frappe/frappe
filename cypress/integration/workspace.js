@@ -1,10 +1,12 @@
 context('Workspace 2.0', () => {
 	before(() => {
+		cy.visit('/login');
 		cy.login();
 		cy.visit('/app/website');
 	});
 
 	it('Navigate to page from sidebar', () => {
+		cy.visit('/app/build');
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.sidebar-item-container[item-name="Settings"]').first().click();
 		cy.location('pathname').should('eq', '/app/settings');
