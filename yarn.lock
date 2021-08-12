@@ -3220,6 +3220,11 @@ html-comment-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/html-comment-regex/-/html-comment-regex-1.1.2.tgz#97d4688aeb5c81886a364faa0cad1dda14d433a7"
   integrity sha512-P+M65QY2JQ5Y0G9KKdlDpo0zK+/OHptU5AaBwUfAIDJZk1MYf32Frm84EcOytfJE0t5JvkAnKlmjsXDnWzCJmQ==
 
+html5-qrcode@^2.0.11:
+  version "2.0.11"
+  resolved "https://registry.yarnpkg.com/html5-qrcode/-/html5-qrcode-2.0.11.tgz#2cc5f63e767be53dd6c6d56b6c4f180a12aa8075"
+  integrity sha512-cCrVOK2yJGPGSTjchqRhkBJIrxvojEwF/pDKLNxmTH1wiAsVc61ZnIqyApIVyNfn5dKRFax70Qpr7pZwbUNiUw==
+
 http-cache-semantics@^4.0.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-4.1.0.tgz#49e91c5cbf36c9b94bcfcd71c23d5249ec74e390"
