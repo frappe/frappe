@@ -329,7 +329,9 @@ frappe.views.Workspace = class Workspace {
 
 	add_custom_cards_in_content() {
 		let index = -1;
-		this.content.find((item, i) => { if (item.type == 'card') index = i });
+		this.content.find((item, i) => {
+			if (item.type == 'card') index = i;
+		});
 		if (index !== -1) {
 			this.content.splice(index+1, 0, {"type": "card", "data": {"card_name": "Custom Documents", "col": 4}});
 			this.content.splice(index+2, 0, {"type": "card", "data": {"card_name": "Custom Reports", "col": 4}});
