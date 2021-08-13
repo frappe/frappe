@@ -82,6 +82,7 @@ import "./frappe/ui/toolbar/toolbar.js";
 import "./frappe/views/communication.js";
 import "./frappe/views/translation_manager.js";
 import "./frappe/views/workspace/workspace.js";
+import "./frappe/views/workspace/blocks/index.js";
 
 import "./frappe/widgets/widget_group.js";
 
