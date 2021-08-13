@@ -64,7 +64,7 @@ class WebsiteAnalytics(object):
 		case = frappe.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
 		count_is_unique = Count(case).as_("unique_count")
 
-		query = (
+		return (
 			frappe.qb.from_(WebPageView)
 			.select("path", count_all, count_is_unique)
 			.where(
@@ -72,8 +72,7 @@ class WebsiteAnalytics(object):
 			)
 			.groupby(WebPageView.path)
 			.orderby("count", Order=frappe.qb.desc)
-		)
-		return frappe.db.sql(query)
+		).run()
 
 	def _get_query_for_mariadb(self):
 		filters_range = self.filters.range
