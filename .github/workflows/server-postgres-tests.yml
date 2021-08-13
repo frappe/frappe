@@ -2,6 +2,8 @@ name: Server
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.js'
   workflow_dispatch:
 
 jobs:
