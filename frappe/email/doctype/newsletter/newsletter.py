@@ -204,7 +204,10 @@ class Newsletter(WebsiteGenerator):
 		return list(set(emails))
 
 	def get_email_groups(self) -> List[str]:
-		return frappe.db.get_all(
+		# wondering why the 'or'? i can't figure out why both aren't equivalent - @gavin
+		return [
+			x.email_group for x in self.email_group
+		] or frappe.get_all(
 			"Newsletter Email Group",
 			filters={"parent": self.name, "parenttype": "Newsletter"},
 			pluck="email_group",
@@ -376,4 +379,5 @@ def send_scheduled_email():
 			)
 			frappe.log_error(title="Send Newsletter", message=message)
 
-		frappe.db.commit()
+		if not frappe.flags.in_test:
+			frappe.db.commit()

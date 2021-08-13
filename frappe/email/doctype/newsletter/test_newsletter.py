@@ -40,12 +40,9 @@ def get_dotted_path(obj: type) -> str:
 
 
 class TestNewsletterMixin:
-	@classmethod
-	def setUpClass(cls):
-		cls.setup_email_group()
-
 	def setUp(self):
 		frappe.set_user("Administrator")
+		self.setup_email_group()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -55,6 +52,7 @@ class TestNewsletterMixin:
 				"reference_name": newsletter,
 			})
 			frappe.delete_doc("Newsletter", newsletter)
+			frappe.db.delete("Newsletter Email Group", newsletter)
 			newsletters.remove(newsletter)
 
 	def setup_email_group(self):
@@ -65,13 +63,24 @@ class TestNewsletterMixin:
 			}).insert()
 
 		for email in emails:
-			frappe.get_doc({
-				"doctype": "Email Group Member",
+			doctype = "Email Group Member"
+			email_filters = {
 				"email": email,
 				"email_group": "_Test Email Group"
-			}).insert()
+			}
+			try:
+				frappe.get_doc({
+					"doctype": doctype,
+					**email_filters,
+				}).insert()
+			except Exception:
+				frappe.db.update(doctype, email_filters, "unsubscribed", 0)
 
 	def send_newsletter(self, published=0, schedule_send=None) -> Union[str, None]:
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete("Newsletter")
+
 		newsletter_options = {
 			"published": published,
 			"schedule_sending": bool(schedule_send),
@@ -89,20 +98,23 @@ class TestNewsletterMixin:
 	def get_newsletter(**kwargs) -> "Newsletter":
 		"""Generate and return Newsletter object
 		"""
+		doctype = "Newsletter"
 		newsletter_content = {
-			"doctype": "Newsletter",
 			"subject": "_Test Newsletter",
 			"send_from": "Test Sender <test_sender@example.com>",
 			"content_type": "Rich Text",
 			"message": "Testing my news.",
 		}
-		newsletter = frappe.get_doc({**newsletter_content, **kwargs})
-		newsletter.append("email_group", {"email_group": "_Test Email Group"})
+		similar_newsletters = frappe.db.get_all(doctype, newsletter_content, pluck="name")
 
-		newsletter.insert(ignore_permissions=True)
-		newsletter.save()
+		for similar_newsletter in similar_newsletters:
+			frappe.delete_doc(doctype, similar_newsletter)
+
+		newsletter = frappe.get_doc({"doctype": doctype, **newsletter_content, **kwargs})
+		newsletter.append("email_group", {"email_group": "_Test Email Group"})
+		newsletter.save(ignore_permissions=True)
 		newsletter.reload()
-		newsletters.add(newsletter.name)
+		newsletters.append(newsletter.name)
 
 		attached_files = frappe.get_all("File", {
 				"attached_to_doctype": newsletter.doctype,
@@ -148,8 +160,8 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 	def test_portal(self):
 		self.send_newsletter(published=1)
 		frappe.set_user("test1@example.com")
-		newsletters = get_newsletter_list("Newsletter", None, None, 0)
-		self.assertEqual(len(newsletters), 1)
+		newsletter_list = get_newsletter_list("Newsletter", None, None, 0)
+		self.assertEqual(len(newsletter_list), 1)
 
 	def test_newsletter_context(self):
 		context = frappe._dict()
