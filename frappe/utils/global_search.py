@@ -442,10 +442,10 @@ def search(text, start=0, limit=20, doctype=""):
 		elif allowed_doctypes:
 			query = query.where(global_search.doctype.isin(allowed_doctypes))
 
-		if start > 0:
+		if cint(start) > 0:
 			query = query.offset(start)
 
-		result = frappe.db.sql(query, as_dict=True)
+		result = query.run(as_dict=True)
 
 		results.extend(result)
 
