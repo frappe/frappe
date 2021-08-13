@@ -34,6 +34,8 @@ emails = [
 	"test_subscriber3@example.com",
 	"test1@example.com",
 ]
+newsletters = []
+
 
 def get_dotted_path(obj: type) -> str:
 	klass = obj.__class__
@@ -52,7 +54,14 @@ class TestNewsletterMixin:
 		frappe.set_user("Administrator")
 
 	def tearDown(self):
-		frappe.db.delete("Newsletter")
+		frappe.set_user("Administrator")
+		for newsletter in newsletters:
+			frappe.db.delete("Email Queue", {
+				"reference_doctype": "Newsletter",
+				"reference_name": newsletter,
+			})
+			frappe.delete_doc("Newsletter", newsletter)
+			newsletters.remove(newsletter)
 
 	def setup_email_group(self):
 		if not frappe.db.exists("Email Group", "_Test Email Group"):
@@ -69,9 +78,6 @@ class TestNewsletterMixin:
 			}).insert()
 
 	def send_newsletter(self, published=0, schedule_send=None) -> Union[str, None]:
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
-		frappe.db.delete("Newsletter")
 		newsletter_options = {
 			"published": published,
 			"schedule_sending": bool(schedule_send),
@@ -102,6 +108,7 @@ class TestNewsletterMixin:
 		newsletter.insert(ignore_permissions=True)
 		newsletter.save()
 		newsletter.reload()
+		newsletters.add(newsletter.name)
 
 		attached_files = frappe.get_all("File", {
 				"attached_to_doctype": newsletter.doctype,
