@@ -24,6 +24,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		this.editor = ace.edit(this.ace_editor_target.get(0));
 		this.editor.setTheme('ace/theme/tomorrow');
 		this.editor.setOption("showPrintMargin", false);
+		this.editor.setOption("wrap", this.df.wrap);
 		this.set_language();
 
 		// events

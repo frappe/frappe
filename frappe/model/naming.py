@@ -1,3 +1,14 @@
+"""utilities to generate a document name based on various rules defined.
+
+NOTE:
+Till version 13, whenever a submittable document is amended it's name is set to orig_name-X,
+where X is a counter and it increments when amended again and so on.
+
+From Version 14, The naming pattern is changed in a way that amended documents will
+have the original name `orig_name` instead of `orig_name-X`. To make this happen
+the cancelled document naming pattern is changed to 'orig_name-CANC-X'.
+"""
+
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -222,13 +233,16 @@ def revert_series_if_last(key, name, doc=None):
 			* will search hash in key then accordingly get prefix = ""
 	"""
 	if hasattr(doc, 'amended_from'):
-		# do not revert if doc is amended, since cancelled docs still exist
-		if doc.docstatus != 2 and doc.amended_from:
+		# Do not revert the series if the document is amended.
+		if doc.amended_from:
 			return
 
-		# for first cancelled doc
+		# Get document name by parsing incase of fist cancelled document
 		if doc.docstatus == 2 and not doc.amended_from:
-			name, _ = NameParser.parse_docname(doc.name, sep='-CAN-')
+			if doc.name.endswith('-CANC'):
+				name, _ = NameParser.parse_docname(doc.name, sep='-CANC')
+			else:
+				name, _ = NameParser.parse_docname(doc.name, sep='-CANC-')
 
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
@@ -357,26 +371,48 @@ def _format_autoname(autoname, doc):
 	return name
 
 class NameParser:
-	"""Parse document name and return all the parts of it.
+	"""Parse document name and return parts of it.
 
 	NOTE: It handles cancellend and amended doc parsing for now. It can be expanded.
 	"""
 	def __init__(self, doc):
 		self.doc = doc
 
-	def parse_name(self):
-		if not hasattr(self.doc, "amended_from"):
-			return (self.doc.name, None, None)
-
-		#If document is cancelled document
-		if hasattr(self.doc, "amended_from") and self.doc.docstatus == 2:
-			return self.parse_docname(self.doc.name, sep='-CAN-')
-		return self.parse_docname(self.doc.name)
-
 	def parse_amended_from(self):
+		"""
+		Cancelled document naming will be in one of these formats
+
+		* original_name-X-CANC - This is introduced to migrate old style naming to new style
+		* original_name-CANC - This is introduced to migrate old style naming to new style
+		* original_name-CANC-X - This is the new style naming
+
+		New style naming: In new style naming amended documents will have original name. That says,
+		when a document gets cancelled we need rename the document by adding `-CANC-X` to the end
+		so that amended documents can use the original name.
+
+		Old style naming: cancelled documents stay with original name and when amended, amended one
+		gets a new name as `original_name-X`. To bring new style naming we had to change the existing
+		cancelled document names and that is done by adding `-CANC` to cancelled documents through patch.
+		"""
 		if not getattr(self.doc, 'amended_from', None):
 			return (None, None)
-		return self.parse_docname(self.doc.amended_from, '-CAN-')
+
+		# Handle old style cancelled documents (original_name-X-CANC, original_name-CANC)
+		if self.doc.amended_from.endswith('-CANC'):
+			name, _ = self.parse_docname(self.doc.amended_from, '-CANC')
+			amended_from_doc = frappe.get_all(
+				self.doc.doctype,
+				filters = {'name': self.doc.amended_from},
+				fields = ['amended_from'],
+				limit=1)
+
+			# Handle format original_name-X-CANC.
+			if amended_from_doc and amended_from_doc[0].amended_from:
+				return self.parse_docname(name, '-')
+			return name, None
+
+		# Handle new style cancelled documents
+		return self.parse_docname(self.doc.amended_from, '-CANC-')
 
 	@classmethod
 	def parse_docname(cls, name, sep='-'):
@@ -389,7 +425,7 @@ class NameParser:
 def get_cancelled_doc_latest_counter(tname, docname):
 	"""Get the latest counter used for cancelled docs of given docname.
 	"""
-	name_prefix = f'{docname}-CAN-'
+	name_prefix = f'{docname}-CANC-'
 
 	rows = frappe.db.sql("""
 		select
@@ -412,4 +448,4 @@ def gen_new_name_for_cancelled_doc(doc):
 		name = doc.name
 
 	counter = get_cancelled_doc_latest_counter(doc.doctype, name)
-	return f'{name}-CAN-{counter+1}'
+	return f'{name}-CANC-{counter+1}'

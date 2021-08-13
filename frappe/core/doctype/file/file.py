@@ -28,7 +28,7 @@ import frappe
 from frappe import _, conf
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
-from frappe.utils.image import strip_exif_data
+from frappe.utils.image import strip_exif_data, optimize_image
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -703,7 +703,10 @@ def get_web_image(file_url):
 			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
-	image = Image.open(StringIO(frappe.safe_decode(r.content)))
+	try:
+		image = Image.open(StringIO(frappe.safe_decode(r.content)))
+	except Exception as e:
+		frappe.msgprint(_("Image link '{0}' is not valid").format(file_url), raise_exception=e)
 
 	try:
 		filename, extn = file_url.rsplit("/", 1)[1].rsplit(".", 1)
@@ -876,6 +879,15 @@ def extract_images_from_html(doc, content):
 		data = match.group(1)
 		data = data.split("data:")[1]
 		headers, content = data.split(",")
+		mtype = headers.split(";")[0]
+
+		if isinstance(content, str):
+			content = content.encode("utf-8")
+		if b"," in content:
+			content = content.split(b",")[1]
+		content = base64.b64decode(content)
+		
+		content = optimize_image(content, mtype)
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
@@ -884,7 +896,6 @@ def extract_images_from_html(doc, content):
 			if not isinstance(filename, str):
 				filename = str(filename, 'utf-8')
 		else:
-			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
 		doctype = doc.parenttype if doc.parent else doc.doctype
@@ -896,7 +907,7 @@ def extract_images_from_html(doc, content):
 			"attached_to_doctype": doctype,
 			"attached_to_name": name,
 			"content": content,
-			"decode": True
+			"decode": False
 		})
 		_file.save(ignore_permissions=True)
 		file_url = _file.file_url
@@ -929,6 +940,22 @@ def unzip_file(name):
 	files = file_obj.unzip()
 	return len(files)
 
+@frappe.whitelist()
+def optimize_saved_image(doc_name):
+	file_doc = frappe.get_doc('File', doc_name)
+	content = file_doc.get_content()
+	content_type = mimetypes.guess_type(file_doc.file_name)[0]
+
+	optimized_content = optimize_image(content, content_type)
+
+	file_path = get_files_path(is_private=file_doc.is_private)
+	file_path = os.path.join(file_path.encode('utf-8'), file_doc.file_name.encode('utf-8'))
+	with open(file_path, 'wb+') as f:
+		f.write(optimized_content)
+
+	file_doc.file_size = len(optimized_content)
+	file_doc.content_hash = get_content_hash(optimized_content)
+	file_doc.save()
 
 @frappe.whitelist()
 def get_attached_images(doctype, names):
