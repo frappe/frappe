@@ -38,10 +38,12 @@ def get_dotted_path(obj: type) -> str:
 
 
 class TestNewsletterMixin:
+	@classmethod
+	def setUpClass(cls):
+		cls.setup_email_group()
+
 	def setUp(self):
 		frappe.set_user("Administrator")
-		frappe.db.delete("Email Group Member")
-		self.setup_email_group()
 
 	def tearDown(self):
 		frappe.db.delete("Newsletter")
