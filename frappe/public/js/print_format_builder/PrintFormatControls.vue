@@ -14,7 +14,7 @@
 									type="number"
 									class="form-control form-control-sm"
 									:value="print_format[df.fieldname]"
-									@change="(e) => update_margin(df.fieldname, e.target.value)"
+									@change="e => update_margin(df.fieldname, e.target.value)"
 								/>
 							</div>
 						</div>
@@ -24,7 +24,7 @@
 			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Fields") }}</div>
 				<input
-					class="form-control form-control-sm mb-2"
+					class="mb-2 form-control form-control-sm"
 					type="text"
 					:placeholder="__('Search fields')"
 					v-model="search_text"
@@ -34,8 +34,14 @@
 					:list="fields"
 					:group="{ name: 'fields', pull: 'clone', put: false }"
 					:sort="false"
+					:clone="clone_field"
 				>
-					<div class="field" v-for="df in fields" :key="df.fieldname">
+					<div
+						class="field"
+						v-for="df in fields"
+						:key="df.fieldname"
+						:title="df.fieldname"
+					>
 						{{ df.label }}
 					</div>
 				</draggable>
@@ -46,18 +52,19 @@
 
 <script>
 import draggable from "vuedraggable";
-import { get_table_columns } from "./utils";
+import { get_table_columns, pluck } from "./utils";
+import { storeMixin } from "./store";
 
 export default {
 	name: "PrintFormatControls",
-	props: ["print_format", "meta"],
+	mixins: [storeMixin],
 	data() {
 		return {
-			search_text: "",
+			search_text: ""
 		};
 	},
 	components: {
-		draggable,
+		draggable
 	},
 	methods: {
 		update_margin(fieldname, value) {
@@ -67,6 +74,19 @@ export default {
 			}
 			this.$emit("update", { fieldname, value });
 		},
+		clone_field(df) {
+			let cloned = pluck(df, [
+				"label",
+				"fieldname",
+				"fieldtype",
+				"options",
+				"table_columns"
+			]);
+			if (cloned.fieldname == "custom_html") {
+				cloned.fieldname += "_" + frappe.utils.get_random(8);
+			}
+			return cloned;
+		}
 	},
 	computed: {
 		margins() {
@@ -74,12 +94,12 @@ export default {
 				{ label: __("Top"), fieldname: "margin_top" },
 				{ label: __("Bottom"), fieldname: "margin_bottom" },
 				{ label: __("Left"), fieldname: "margin_left" },
-				{ label: __("Right"), fieldname: "margin_right" },
+				{ label: __("Right"), fieldname: "margin_right" }
 			];
 		},
 		fields() {
 			let fields = this.meta.fields
-				.filter((df) => {
+				.filter(df => {
 					if (["Section Break", "Column Break"].includes(df.fieldtype)) {
 						return false;
 					}
@@ -95,12 +115,12 @@ export default {
 						return true;
 					}
 				})
-				.map((df) => {
+				.map(df => {
 					let out = {
 						label: df.label,
 						fieldname: df.fieldname,
-						options: df.options,
-						reqd: df.reqd,
+						fieldtype: df.fieldtype,
+						options: df.options
 					};
 					if (df.fieldtype == "Table") {
 						out.table_columns = get_table_columns(df);
@@ -110,15 +130,20 @@ export default {
 
 			return [
 				{
-					label: "Custom HTML",
+					label: __("Custom HTML"),
 					fieldname: "custom_html",
 					fieldtype: "HTML",
-					html: "",
+					html: ""
 				},
-				...fields,
+				{
+					label: __("ID (name)"),
+					fieldname: "name",
+					fieldtype: "Data"
+				},
+				...fields
 			];
-		},
-	},
+		}
+	}
 };
 </script>
 

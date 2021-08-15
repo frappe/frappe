@@ -49,23 +49,11 @@
 					group="fields"
 					:animation="150"
 				>
-					<button
-						class="field"
+					<Field
 						v-for="df in get_fields(column)"
 						:key="df.fieldname"
-					>
-						<div>
-							{{ df.label }}
-						</div>
-						<button
-							class="btn btn-xs btn-remove-field"
-							@click="$set(df, 'remove', true)"
-						>
-							<svg class="icon icon-sm">
-								<use xlink:href="#icon-close"></use>
-							</svg>
-						</button>
-					</button>
+						:df="df"
+					/>
 				</draggable>
 			</div>
 		</div>
@@ -74,19 +62,23 @@
 
 <script>
 import draggable from "vuedraggable";
+import Field from "./Field.vue";
+import { storeMixin } from "./store";
 
 export default {
 	name: "PrintFormatSection",
+	mixins: [storeMixin],
 	props: ["section"],
 	components: {
 		draggable,
+		Field
 	},
 	methods: {
 		add_column() {
 			if (this.section.columns.length < 4) {
 				this.section.columns.push({
 					label: "",
-					fields: [],
+					fields: []
 				});
 			}
 		},
@@ -103,9 +95,9 @@ export default {
 			this.$set(this.section, "columns", columns);
 		},
 		get_fields(column) {
-			return column.fields.filter((df) => !df.remove);
-		},
-	},
+			return column.fields.filter(df => !df.remove);
+		}
+	}
 };
 </script>
 
@@ -164,36 +156,6 @@ export default {
 .column {
 	padding-left: 8px;
 	padding-right: 8px;
-}
-
-.field {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: 100%;
-	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius);
-	border: 1px dashed var(--gray-400);
-	padding: 0.5rem 0.75rem;
-	font-size: var(--text-sm);
-}
-
-.field:not(:first-child) {
-	margin-top: 0.5rem;
-}
-
-.btn-remove-field {
-	opacity: 0;
-	padding: 2px;
-	box-shadow: none;
-}
-
-.btn-remove-field:hover {
-	background-color: white;
-}
-
-.field:hover .btn-remove-field {
-	opacity: 1;
 }
 
 .drag-container {

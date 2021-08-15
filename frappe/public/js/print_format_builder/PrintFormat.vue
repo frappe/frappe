@@ -19,13 +19,14 @@
 <script>
 import draggable from "vuedraggable";
 import PrintFormatSection from "./PrintFormatSection.vue";
+import { storeMixin } from "./store";
 
 export default {
 	name: "PrintFormat",
-	props: ["print_format", "meta", "layout"],
+	mixins: [storeMixin],
 	components: {
 		draggable,
-		PrintFormatSection,
+		PrintFormatSection
 	},
 	computed: {
 		rootStyles() {
@@ -33,14 +34,14 @@ export default {
 				margin_top = 0,
 				margin_bottom = 0,
 				margin_left = 0,
-				margin_right = 0,
+				margin_right = 0
 			} = this.print_format;
 			return {
 				padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
 				width: "210mm",
-				minHeight: "297mm",
+				minHeight: "297mm"
 			};
-		},
+		}
 	},
 	methods: {
 		add_section_above(section) {
@@ -51,15 +52,15 @@ export default {
 						label: "",
 						columns: [
 							{ label: "", fields: [] },
-							{ label: "", fields: [] },
-						],
+							{ label: "", fields: [] }
+						]
 					});
 				}
 				sections.push(_section);
 			}
 			this.$set(this.layout, "sections", sections);
-		},
-	},
+		}
+	}
 };
 </script>
 

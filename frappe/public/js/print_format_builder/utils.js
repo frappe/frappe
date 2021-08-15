@@ -59,6 +59,7 @@ export function create_default_layout(meta) {
 				let field = {
 					label: df.label,
 					fieldname: df.fieldname,
+					fieldtype: df.fieldtype,
 					options: df.options
 				};
 
@@ -81,20 +82,35 @@ export function create_default_layout(meta) {
 export function get_table_columns(df) {
 	let table_columns = [];
 	let table_fields = frappe.get_meta(df.options).fields;
-
+	let total_columns = 0;
 	for (let tf of table_fields) {
 		if (
 			!in_list(["Section Break", "Column Break"], tf.fieldtype) &&
 			!tf.print_hide &&
-			df.label
+			df.label &&
+			total_columns < 12
 		) {
+			let columns =
+				typeof tf.width == "number" && tf.width < 12 ? tf.width : 2;
 			table_columns.push({
 				label: tf.label,
 				fieldname: tf.fieldname,
+				fieldtype: tf.fieldtype,
 				options: tf.options,
-				width: tf.width || 0
+				width: columns
 			});
+			total_columns += columns;
 		}
 	}
 	return table_columns;
+}
+
+export function pluck(object, keys) {
+	let out = {};
+	for (let key of keys) {
+		if (key in object) {
+			out[key] = object[key];
+		}
+	}
+	return out;
 }
