@@ -270,16 +270,9 @@ class NestedSet(Document):
 
 	def get_children(self):
 		"""Return a list of child Documents."""
-		return [
-			frappe.get_doc(self.doctype, name)
-			for name in frappe.get_list(
-				self.doctype,
-				filters={
-					self.nsm_parent_field: self.name
-				},
-				pluck="name"
-			)
-		]
+		child_names = frappe.get_list(self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name")
+		for name in child_names:
+			yield frappe.get_doc(self.doctype, name)
 
 
 def get_root_of(doctype):
