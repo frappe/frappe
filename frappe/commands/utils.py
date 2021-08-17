@@ -512,6 +512,29 @@ def console(context):
 	IPython.embed(display_banner="", header="", colors="neutral")
 
 
+@click.command('convert-database')
+@pass_context
+def convert_database(context):
+	"convert row_formats to DNAMIC from older formats -- innodb mariadb v10.6.3"
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+
+	information_schema = frappe.qb.Schema("information_schema")
+	queried_tables = frappe.qb.from_(
+		information_schema.tables
+	).select("table_name").where(
+		information_schema.tables.row_format=="Compressed"
+	).run()
+	tables = [x[0] for x in queried_tables]
+
+	for table in tables:
+		frappe.db.sql(f"ALTER TABLE `{table}` ROW_FORMAT=DYNAMIC")
+
+	frappe.db.commit()
+	frappe.destroy()
+
+
 @click.command('run-tests')
 @click.option('--app', help="For App")
 @click.option('--doctype', help="For DocType")
@@ -796,6 +819,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	convert_database,
 	jupyter,
 	console,
 	destroy_all_sessions,
