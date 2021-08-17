@@ -724,7 +724,7 @@ def get_max_email_uid(email_account):
 
 def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing):
 	""" setup email inbox for user """
-	from frappe.core.doctype.user import ask_pass_update
+	from frappe.core.doctype.user.user import ask_pass_update
 	def add_user_email(user):
 		user = frappe.get_doc("User", user)
 		row = user.append("user_emails", {})
