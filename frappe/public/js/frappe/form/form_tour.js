@@ -82,10 +82,16 @@ frappe.ui.form.FormTour = class FormTour {
 
 	get_step(step_info, on_next) {
 		const { name, fieldname, title, description, position, is_table_field } = step_info;
+		let element = `.frappe-control[data-fieldname='${fieldname}']`;
+
 		const field = this.frm.get_field(fieldname);
-		let element = field ? field.wrapper : `.frappe-control[data-fieldname='${fieldname}']`;
+		if (field) {
+			// wrapper for section breaks returns in a list
+			element = field.wrapper[0] ? field.wrapper[0] : field.wrapper;
+		}
 
 		if (is_table_field) {
+			// TODO: fix wrapper for grid sections
 			element = `.grid-row-open .frappe-control[data-fieldname='${fieldname}']`;
 		}
 
