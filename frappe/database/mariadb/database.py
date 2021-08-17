@@ -135,8 +135,8 @@ class MariaDBDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"DESC `{table_name}`")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
-		table_name = get_table_name(table)
+	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
 		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
 
 	# exception types

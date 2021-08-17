@@ -738,6 +738,31 @@ def build_search_index(context):
 	finally:
 		frappe.destroy()
 
+@click.command('trim-tables')
+@click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
+@click.option('--format', default='table', type=click.Choice(['json', 'table']), help='Output format')
+@pass_context
+def trim_tables(context, dry_run, format):
+	from frappe.model.meta import trim_tables
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			trimmed_data = trim_tables(dry_run=dry_run)
+			handle_data(trimmed_data, format=format)
+		finally:
+			frappe.destroy()
+
+def handle_data(data: dict, format='json'):
+	if format == 'json':
+		import json
+		print(json.dumps({frappe.local.site: data}, indent=1, sort_keys=True))
+	else:
+		click.secho(f"Site {frappe.local.site}", fg='green')
+		for table, columns in data.items():
+			print(f"{table}: {', '.join(columns)}")
+
 commands = [
 	add_system_manager,
 	backup,
@@ -766,5 +791,6 @@ commands = [
 	add_to_hosts,
 	start_ngrok,
 	build_search_index,
-	partial_restore
+	partial_restore,
+	trim_tables,
 ]
