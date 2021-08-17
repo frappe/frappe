@@ -10,7 +10,7 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 			number_format = this.get_number_format();
 		}
 		var formatted_value = format_number(value, number_format, this.get_precision());
-		return isNaN(Number(value)) ? "" : formatted_value;
+		return (isNaN(Number(value)) || value === null) ? "" : formatted_value;
 	}
 
 	get_number_format() {
