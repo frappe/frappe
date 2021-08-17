@@ -65,6 +65,10 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		if (this.df.options == 'URL') {
 			this.setup_url_field();
 		}
+
+		if (this.df.options == 'Barcode') {
+			this.setup_barcode_field();
+		}
 	},
 	setup_url_field: function() {
 		this.$wrapper.find('.control-input').append(
@@ -107,6 +111,42 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			// does not register, hence timeout
 			setTimeout(() => {
 				this.$link.toggle(false);
+			}, 500);
+		});
+	},
+	setup_barcode_field: function() {
+		this.$wrapper.find('.control-input').append(
+			`<span class="link-btn">
+				<a class="btn-open no-decoration" title="${__("Scan")}">
+					${frappe.utils.icon('scan', 'sm')}
+				</a>
+			</span>`
+		);
+
+		this.$scan_btn = this.$wrapper.find('.link-btn');
+
+		this.$input.on("focus", () => {
+			setTimeout(() => {
+				this.$scan_btn.toggle(true);
+			}, 500);
+		});
+
+		const me = this;
+		this.$scan_btn.on('click', 'a', () => {
+			new frappe.ui.Scanner({
+				dialog: true,
+				multiple: false,
+				on_scan(data) {
+					if (data && data.result && data.result.text) {
+						me.set_value(data.result.text);
+					}
+				}
+			});
+		});
+
+		this.$input.on("blur", () => {
+			setTimeout(() => {
+				this.$scan_btn.toggle(false);
 			}, 500);
 		});
 	},

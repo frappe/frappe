@@ -17,7 +17,6 @@ from frappe import _
 class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
-		self.validate_script()
 		self.sync_scheduled_jobs()
 		self.clear_scheduled_events()
 
@@ -38,10 +37,6 @@ class ServerScript(Document):
 			fields=["name", "stopped"],
 		)
 
-	def validate_script(self):
-		"""Utilizes the ast module to check for syntax errors
-		"""
-		ast.parse(self.script)
 
 	def sync_scheduled_jobs(self):
 		"""Sync Scheduled Job Type statuses if Server Script's disabled status is changed

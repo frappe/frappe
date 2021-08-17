@@ -250,6 +250,14 @@ frappe.ui.form.Layout = Class.extend({
 			// collapse sections
 			this.refresh_section_collapse();
 		}
+
+		if (document.activeElement) {
+			document.activeElement.focus();
+	
+			if (document.activeElement.tagName == 'INPUT') {
+				document.activeElement.select();
+			}
+		}
 	},
 
 	refresh_sections: function() {
@@ -540,7 +548,7 @@ frappe.ui.form.Layout = Class.extend({
 
 		} else if (expression.substr(0, 5)=='eval:') {
 			try {
-				out = eval(expression.substr(5));
+				out = frappe.utils.eval(expression.substr(5), { doc, parent });
 				if (parent && parent.istable && expression.includes('is_submittable')) {
 					out = true;
 				}
