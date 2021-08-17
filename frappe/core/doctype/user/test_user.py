@@ -10,11 +10,14 @@ import frappe, unittest
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils import get_url
-from frappe.core.doctype.user.user import test_password_strength, extract_mentions, sign_up
+from frappe.core.doctype.user.user import (test_password_strength,
+	extract_mentions, sign_up, update_password, verify_password)
 from frappe.frappeclient import FrappeClient
 
 from unittest.mock import patch
+import frappe.exceptions
 
+user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records('User')
 
 class TestUser(unittest.TestCase):
@@ -27,7 +30,7 @@ class TestUser(unittest.TestCase):
 
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
-			first_name='Tester')).insert()
+			first_name='Tester')).insert(ignore_if_duplicate=True)
 		self.assertEqual(new_user.user_type, 'Website User')
 
 		# social login userid for frappe
@@ -125,7 +128,7 @@ class TestUser(unittest.TestCase):
 
 	def test_delete_user(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
-			first_name='Tester Delete User')).insert()
+			first_name='Tester Delete User')).insert(ignore_if_duplicate=True)
 		self.assertEqual(new_user.user_type, 'Website User')
 
 		# role with desk access
@@ -266,11 +269,10 @@ class TestUser(unittest.TestCase):
 
 	def test_signup(self):
 		import frappe.website.utils
-		import frappe.exceptions
 		random_user = frappe.mock('email')
 		random_user_name = frappe.mock('name')
 		# disabled signup
-		with patch.object(frappe.core.doctype.user.user, "is_signup_disabled", return_value=True):
+		with patch.object(user_module, "is_signup_disabled", return_value=True):
 			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Sign Up is disabled",
 				sign_up, random_user, random_user_name, "/signup")
 
@@ -288,8 +290,51 @@ class TestUser(unittest.TestCase):
 		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Registered but disabled"))
 
 
-	def test_password_update(self):
-		pass
+	def test_reset_password(self):
+		from frappe.utils import set_request
+		from frappe.auth import CookieManager
+		from frappe.auth import LoginManager
+		old_password = "Eastern_43A1W"
+		new_password = "easy_password"
+
+		set_request(path="/random")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		frappe.set_user("test@example.com")
+		test_user = frappe.get_doc("User", "test@example.com")
+		test_user.reset_password()
+		frappe.cache().hset('redirect_after_login', test_user.email, "/some_portal_page")
+		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/app")
+		self.assertEqual(update_password(new_password, key="wrong_key"), "The Link specified has either been used before or Invalid")
+
+		# password verification should fail with old password
+		self.assertRaises(frappe.exceptions.AuthenticationError, verify_password, old_password)
+		verify_password(new_password)
+
+		# reset password
+		update_password(old_password, old_password=new_password)
+
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1, ['like', '%'])
+
+		password_strength_response = {
+			"feedback": {
+				"password_policy_validation_passed": False,
+				"suggestions": ["Fix password"]
+			}
+		}
+
+		# password strength failure test
+		with patch.object(user_module, "test_password_strength", return_value=password_strength_response):
+			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Fix password", update_password, new_password, 0, test_user.reset_password_key)
+
+
+		# test redirect URL for website users
+		frappe.set_user("test2@example.com")
+		self.assertEqual(update_password(new_password, old_password=old_password), "/")
+		# reset password
+		update_password(old_password, old_password=new_password)
+
 
 	def test_password_verification(self):
 		pass
