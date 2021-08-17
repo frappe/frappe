@@ -1,13 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-import frappe, unittest, uuid
+import frappe, unittest
 
 from frappe.model.delete_doc import delete_doc
-from frappe.utils.data import today, add_to_date
-from frappe import _dict
 from frappe.utils import get_url
-from frappe.core.doctype.user.user import get_total_users
-from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
+from frappe.core.doctype.user.user import test_password_strength
 from frappe.core.doctype.user.user import extract_mentions
 from frappe.frappeclient import FrappeClient
 
@@ -119,37 +116,6 @@ class TestUser(unittest.TestCase):
 		# system manager now added by Administrator
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
-	# def test_deny_multiple_sessions(self):
-	#	from frappe.installer import update_site_config
-	# 	clear_limit('users')
-	#
-	# 	# allow one session
-	# 	user = frappe.get_doc('User', 'test@example.com')
-	# 	user.simultaneous_sessions = 1
-	# 	user.new_password = 'Eastern_43A1W'
-	# 	user.save()
-	#
-	# 	def test_request(conn):
-	# 		value = conn.get_value('User', 'first_name', {'name': 'test@example.com'})
-	# 		self.assertTrue('first_name' in value)
-	#
-	# 	from frappe.frappeclient import FrappeClient
-	# 	update_site_config('deny_multiple_sessions', 0)
-	#
-	# 	conn1 = FrappeClient(get_url(), "test@example.com", "Eastern_43A1W", verify=False)
-	# 	test_request(conn1)
-	#
-	# 	conn2 = FrappeClient(get_url(), "test@example.com", "Eastern_43A1W", verify=False)
-	# 	test_request(conn2)
-	#
-	# 	update_site_config('deny_multiple_sessions', 1)
-	# 	conn3 = FrappeClient(get_url(), "test@example.com", "Eastern_43A1W", verify=False)
-	# 	test_request(conn3)
-	#
-	# 	# first connection should fail
-	# 	test_request(conn1)
-
-
 	def test_delete_user(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
 			first_name='Tester Delete User')).insert()
@@ -227,6 +193,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(comment)[0], "test_user@example.com")
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
+		frappe.delete_doc("User Group", "Team")
 		doc = frappe.get_doc({
 			'doctype': 'User Group',
 			'name': 'Team',
@@ -236,7 +203,8 @@ class TestUser(unittest.TestCase):
 				'user': 'test1@example.com'
 			}]
 		})
-		doc.insert(ignore_if_duplicate=True)
+
+		doc.insert()
 
 		comment = '''
 			<div>
@@ -267,31 +235,36 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(res1.status_code, 200)
 		self.assertEqual(res2.status_code, 417)
 
-	# def test_user_rollback(self):
-	# 	"""
-	#	FIXME: This is failing with PR #12693 as Rollback can't happen if notifications sent on user creation.
-	#	Make sure that notifications disabled.
-	# 	"""
-	# 	frappe.db.commit()
-	# 	frappe.db.begin()
-	# 	user_id = str(uuid.uuid4())
-	# 	email = f'{user_id}@example.com'
-	# 	try:
-	# 		frappe.flags.in_import = True  # disable throttling
-	# 		frappe.get_doc(dict(
-	# 			doctype='User',
-	# 			email=email,
-	# 			first_name=user_id,
-	# 		)).insert()
-	# 	finally:
-	# 		frappe.flags.in_import = False
+	def test_user_rename(self):
+		old_name = "test_user_rename@example.com"
+		new_name = "test_user_rename_new@example.com"
+		user = frappe.get_doc({
+			"doctype": "User",
+			"email": old_name,
+			"enabled": 1,
+			"first_name": "_Test",
+			"new_password": "Eastern_43A1W",
+			"roles": [
+				{
+					"doctype": "Has Role",
+					"parentfield": "roles",
+					"role": "System Manager"
+				}]
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-	# 	# Check user has been added
-	# 	self.assertIsNotNone(frappe.db.get("User", {"email": email}))
+		frappe.rename_doc('User', user.name, new_name)
+		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
-	# 	# Check that rollback works
-	# 	frappe.db.rollback()
-	# 	self.assertIsNone(frappe.db.get("User", {"email": email}))
+		frappe.delete_doc("User", new_name)
+
+	def test_signup(self):
+		pass
+
+	def test_password_update(self):
+		pass
+
+	def test_password_verification(self):
+		pass
 
 def delete_contact(user):
 	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)
