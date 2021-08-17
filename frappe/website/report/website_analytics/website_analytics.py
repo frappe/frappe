@@ -1,11 +1,7 @@
 # Copyright (c) 2013, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-<<<<<<< HEAD
 from __future__ import unicode_literals
-import frappe
-=======
->>>>>>> 7671e78487 (style: minor fixes and improvements)
 from datetime import datetime
 
 import frappe

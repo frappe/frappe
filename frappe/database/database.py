@@ -961,17 +961,6 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-<<<<<<< HEAD
-	def delete(self, doctype, conditions, debug=False):
-		if conditions:
-			conditions, values = self.build_conditions(conditions)
-			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
-				doctype=doctype,
-				conditions=conditions
-			), values, debug=debug)
-		else:
-			frappe.throw(_('No conditions provided'))
-=======
 	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
@@ -1003,7 +992,6 @@ class Database(object):
 
 	def clear_table(self, doctype):
 		return self.truncate(doctype)
->>>>>>> 42dc8a180f (refactor: get_table_name, run_only_if)
 
 	def get_last_created(self, doctype):
 		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')

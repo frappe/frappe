@@ -3,11 +3,7 @@ from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
-<<<<<<< HEAD
 from six import string_types
-from frappe.utils import cstr
-=======
->>>>>>> 45d1afe739 (refactor: move rename, change_column_type, DESC to db)
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import frappe
