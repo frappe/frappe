@@ -55,8 +55,6 @@ class User(Document):
 		frappe.cache().delete_key('enabled_users')
 
 	def validate(self):
-		self.check_demo()
-
 		# clear new password
 		self.__new_password = self.new_password
 		self.new_password = ""
@@ -135,10 +133,6 @@ class User(Document):
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
 		return self.name == frappe.session.user
-
-	def check_demo(self):
-		if frappe.session.user == 'demo@erpnext.com':
-			frappe.throw(_('Cannot change user details in demo. Please signup for a new account at https://erpnext.com'), title=_('Not Allowed'))
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
@@ -399,7 +393,6 @@ class User(Document):
 
 
 	def before_rename(self, old_name, new_name, merge=False):
-		self.check_demo()
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 
@@ -731,24 +724,19 @@ def ask_pass_update():
 
 def _get_user_for_update_password(key, old_password):
 	# verify old password
+	result = frappe._dict()
 	if key:
-		user = frappe.db.get_value("User", {"reset_password_key": key})
-		if not user:
-			return {
-				'message': _("The Link specified has either been used before or Invalid")
-			}
+		result.user = frappe.db.get_value("User", {"reset_password_key": key})
+		if not result.user:
+			result.message = _("The Link specified has either been used before or Invalid")
 
 	elif old_password:
 		# verify old password
 		frappe.local.login_manager.check_password(frappe.session.user, old_password)
 		user = frappe.session.user
+		result.user = user
 
-	else:
-		return
-
-	return {
-		'user': user
-	}
+	return result
 
 def reset_user_data(user):
 	user_doc = frappe.get_doc("User", user)
@@ -1054,18 +1042,18 @@ def generate_keys(user):
 
 	:param user: str
 	"""
-	if "System Manager" in frappe.get_roles():
-		user_details = frappe.get_doc("User", user)
-		api_secret = frappe.generate_hash(length=15)
-		# if api key is not set generate api key
-		if not user_details.api_key:
-			api_key = frappe.generate_hash(length=15)
-			user_details.api_key = api_key
-		user_details.api_secret = api_secret
-		user_details.save()
+	frappe.only_for("System Manager")
+	user_details = frappe.get_doc("User", user)
+	api_secret = frappe.generate_hash(length=15)
+	# if api key is not set generate api key
+	if not user_details.api_key:
+		api_key = frappe.generate_hash(length=15)
+		user_details.api_key = api_key
+	user_details.api_secret = api_secret
+	user_details.save()
 
-		return {"api_secret": api_secret}
-	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+	return {"api_secret": api_secret}
+
 
 @frappe.whitelist()
 def switch_theme(theme):
