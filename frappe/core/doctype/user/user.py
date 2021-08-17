@@ -21,11 +21,6 @@ from frappe.core.doctype.user_type.user_type import user_linked_with_permission_
 
 STANDARD_USERS = ("Guest", "Administrator")
 
-
-class MaxUsersReachedError(frappe.ValidationError):
-	pass
-
-
 class User(Document):
 	__new_password = None
 
@@ -731,72 +726,6 @@ def set_email_password(email_account, user, password):
 			return False
 
 	return True
-
-def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing):
-	""" setup email inbox for user """
-	def add_user_email(user):
-		user = frappe.get_doc("User", user)
-		row = user.append("user_emails", {})
-
-		row.email_id = email_id
-		row.email_account = email_account
-		row.awaiting_password = awaiting_password or 0
-		row.enable_outgoing = enable_outgoing or 0
-
-		user.save(ignore_permissions=True)
-
-	udpate_user_email_settings = False
-	if not all([email_account, email_id]):
-		return
-
-	user_names = frappe.db.get_values("User", { "email": email_id }, as_dict=True)
-	if not user_names:
-		return
-
-	for user in user_names:
-		user_name = user.get("name")
-
-		# check if inbox is alreay configured
-		user_inbox = frappe.db.get_value("User Email", {
-			"email_account": email_account,
-			"parent": user_name
-		}, ["name"]) or None
-
-		if not user_inbox:
-			add_user_email(user_name)
-		else:
-			# update awaiting password for email account
-			udpate_user_email_settings = True
-
-	if udpate_user_email_settings:
-		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s,
-			enable_outgoing = %(enable_outgoing)s WHERE email_account = %(email_account)s""", {
-				"email_account": email_account,
-				"enable_outgoing": enable_outgoing,
-				"awaiting_password": awaiting_password or 0
-			})
-	else:
-		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
-		frappe.msgprint(_("Enabled email inbox for user {0}").format(users))
-
-	ask_pass_update()
-
-def remove_user_email_inbox(email_account):
-	""" remove user email inbox settings if email account is deleted """
-	if not email_account:
-		return
-
-	users = frappe.get_all("User Email", filters={
-		"email_account": email_account
-	}, fields=["parent as name"])
-
-	for user in users:
-		doc = frappe.get_doc("User", user.get("name"))
-		to_remove = [ row for row in doc.user_emails if row.email_account == email_account ]
-		[ doc.remove(row) for row in to_remove ]
-
-		doc.save(ignore_permissions=True)
-
 def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
