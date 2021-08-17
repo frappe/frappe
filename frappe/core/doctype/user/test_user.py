@@ -289,6 +289,11 @@ class TestUser(unittest.TestCase):
 
 		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Registered but disabled"))
 
+		# throttle user creation
+		with patch.object(user_module.frappe.db, "get_creation_count", return_value=301):
+			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Throttled",
+				sign_up, frappe.mock('email'), random_user_name, "/signup")
+
 
 	def test_reset_password(self):
 		from frappe.utils import set_request
