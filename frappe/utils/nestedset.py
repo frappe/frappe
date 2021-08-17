@@ -59,7 +59,7 @@ def update_add_node(doc, parent, parent_field):
 
 	# get the last sibling of the parent
 	if parent:
-		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s"
+		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s for update"
 			.format(doctype), parent)[0]
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
@@ -91,7 +91,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab{0}`
-			where name = %s""".format(doc.doctype), parent, as_dict=1)[0]
+			where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
 
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
@@ -110,7 +110,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
-			where name = %s""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
+			where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
 
 
 		# set parent lft, rgt

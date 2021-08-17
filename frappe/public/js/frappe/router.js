@@ -51,7 +51,7 @@ $('body').on('click', 'a', function(e) {
 		return override('/app');
 	}
 
-	if (href.startsWith('#')) {
+	if (href && href.startsWith('#')) {
 		// target startswith "#", this is a v1 style route, so remake it.
 		return override(e.currentTarget.hash);
 	}

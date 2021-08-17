@@ -123,6 +123,16 @@ class TestWorkflow(unittest.TestCase):
 		self.workflow.states[1].doc_status = 0
 		self.workflow.save()
 
+	def test_syntax_error_in_transition_rule(self):
+		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
+
+		with self.assertRaises(frappe.ValidationError) as se:
+			self.workflow.save()
+
+		self.assertTrue("invalid python code" in str(se.exception).lower(),
+				msg="Python code validation not working")
+
+
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
 		frappe.delete_doc('Workflow', 'Test ToDo')
