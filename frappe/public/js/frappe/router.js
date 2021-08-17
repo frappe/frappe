@@ -118,6 +118,7 @@ frappe.router = {
 
 	convert_to_standard_route(route) {
 		// /app/settings = ["Workspaces", "Settings"]
+		// /app/private/settings = ["Workspaces", "private", "Settings"]
 		// /app/user = ["List", "User"]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
@@ -126,14 +127,22 @@ frappe.router = {
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 
 		if (frappe.workspaces[route[0]]) {
-			// workspace
-			route = ['Workspaces', frappe.workspaces[route[0]].name];
+			// public workspace
+			route = ['Workspaces', frappe.workspaces[route[0]].title];
+		} else if (frappe.workspaces[route[1]]) {
+			// private workspace
+			route = ['Workspaces', 'private', frappe.workspaces[route[1]].title];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = this.set_doctype_route(route);
 		}
 
 		return route;
+	},
+
+	doctype_route_exist(route) {
+		route = this.get_sub_path_string(route).split('/');
+		return this.routes[route[0]];
 	},
 
 	set_doctype_route(route) {

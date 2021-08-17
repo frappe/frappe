@@ -28,7 +28,7 @@ from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
 
-from frappe.query_builder import get_query_builder
+from frappe.query_builder import get_query_builder, patch_query_execute
 
 # Lazy imports
 faker = lazy_import('faker')
@@ -208,6 +208,7 @@ def init(site, sites_path=None, new_site=False):
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
+	patch_query_execute()
 
 	local.initialised = True
 

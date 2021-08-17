@@ -124,6 +124,116 @@ class ChartDialog extends WidgetDialog {
 	}
 }
 
+class OnboardingDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "onboarding_name",
+				label: "Onboarding Name",
+				options: "Module Onboarding",
+				reqd: 1,
+			}
+		];
+	}
+}
+
+class CardDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		let me = this;
+		return [
+			{
+				fieldtype: "Data",
+				fieldname: "label",
+				label: "Label",
+			},
+			{
+				fieldname: 'links',
+				fieldtype: 'Table',
+				label: __('Card Links'),
+				editable_grid: 1,
+				data: me.values ? JSON.parse(me.values.links) : [],
+				get_data: () => {
+					return me.values ? JSON.parse(me.values.links) : [];
+				},
+				fields: [
+					{
+						fieldname: "label",
+						fieldtype: "Data",
+						in_list_view: 1,
+						label: "Label"
+					},
+					{
+						fieldname: "icon",
+						fieldtype: "Data",
+						label: "Icon"
+					},
+					{
+						fieldname: "link_type",
+						fieldtype: "Select",
+						in_list_view: 1,
+						label: "Link Type",
+						options: ["DocType", "Page", "Report"],
+						onchange: (e) => {
+							me.link_to = e.currentTarget.value;
+						}
+					},
+					{
+						fieldname: "link_to",
+						fieldtype: "Dynamic Link",
+						in_list_view: 1,
+						label: "Link To",
+						options: "link_type",
+						get_options: () => {
+							return me.link_to;
+						}
+					},
+					{
+						fieldname: "column_break_7",
+						fieldtype: "Column Break"
+					},
+					{
+						fieldname: "dependencies",
+						fieldtype: "Data",
+						label: "Dependencies"
+					},
+					{
+						fieldname: "only_for",
+						fieldtype: "Link",
+						label: "Only for ",
+						options: "Country"
+					},
+					{
+						default: "0",
+						fieldname: "onboard",
+						fieldtype: "Check",
+						label: "Onboard"
+					},
+					{
+						default: "0",
+						fieldname: "is_query_report",
+						fieldtype: "Check",
+						label: "Is Query Report"
+					}
+				],
+			},
+		];
+	}
+
+	process_data(data) {
+		data.label = data.label ? data.label : data.chart_name;
+		return data;
+	}
+}
+
 class ShortcutDialog extends WidgetDialog {
 	constructor(opts) {
 		super(opts);
@@ -438,6 +548,8 @@ export default function get_dialog_constructor(type) {
 		chart: ChartDialog,
 		shortcut: ShortcutDialog,
 		number_card: NumberCardDialog,
+		links: CardDialog,
+		onboarding: OnboardingDialog
 	};
 
 	return widget_map[type] || WidgetDialog;
