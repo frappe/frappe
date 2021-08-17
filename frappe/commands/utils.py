@@ -597,16 +597,18 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = "{0}/cypress".format(node_bin)
 	plugin_path = "{0}/../cypress-file-upload".format(node_bin)
+	testing_library_path = f"{node_bin}/../@testing-library"
 
 	# check if cypress in path...if not, install it.
 	if not (
 		os.path.exists(cypress_path)
 		and os.path.exists(plugin_path)
+		and os.path.exists(testing_library_path)
 		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
+		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 --no-lockfile")
 
 	# run for headless mode
 	run_or_open = 'run --browser firefox --record' if headless else 'open'
