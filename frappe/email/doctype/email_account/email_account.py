@@ -786,3 +786,17 @@ def remove_user_email_inbox(email_account):
 		[ doc.remove(row) for row in to_remove ]
 
 		doc.save(ignore_permissions=True)
+
+@frappe.whitelist(allow_guest=False)
+def set_email_password(email_account, user, password):
+	account = frappe.get_doc("Email Account", email_account)
+	if account.awaiting_password:
+		account.awaiting_password = 0
+		account.password = password
+		try:
+			account.save(ignore_permissions=True)
+		except Exception:
+			frappe.db.rollback()
+			return False
+
+	return True
