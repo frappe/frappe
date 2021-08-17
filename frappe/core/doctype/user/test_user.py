@@ -4,9 +4,10 @@ import frappe, unittest
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils import get_url
-from frappe.core.doctype.user.user import test_password_strength
-from frappe.core.doctype.user.user import extract_mentions
+from frappe.core.doctype.user.user import test_password_strength, extract_mentions, sign_up
 from frappe.frappeclient import FrappeClient
+
+from unittest.mock import patch
 
 test_records = frappe.get_test_records('User')
 
@@ -258,7 +259,28 @@ class TestUser(unittest.TestCase):
 		frappe.delete_doc("User", new_name)
 
 	def test_signup(self):
-		pass
+		import frappe.website.utils
+		import frappe.exceptions
+		random_user = frappe.mock('email')
+		random_user_name = frappe.mock('name')
+		# disabled signup
+		with patch.object(frappe.core.doctype.user.user, "is_signup_disabled", return_value=True):
+			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Sign Up is disabled",
+				sign_up, random_user, random_user_name, "/signup")
+
+		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (1, "Please check your email for verification"))
+		self.assertEqual(frappe.cache().hget('redirect_after_login', random_user), "/welcome")
+
+		# re-register
+		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
+
+		# disabled user
+		user = frappe.get_doc("User", random_user)
+		user.enabled = 0
+		user.save()
+
+		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Registered but disabled"))
+
 
 	def test_password_update(self):
 		pass
