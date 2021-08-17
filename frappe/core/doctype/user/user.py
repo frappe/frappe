@@ -1054,24 +1054,6 @@ def update_gravatar(name):
 	if gravatar:
 		frappe.db.set_value('User', name, 'user_image', gravatar)
 
-@frappe.whitelist(allow_guest=True)
-def reset_otp_secret(user):
-	otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
-	user_email = frappe.db.get_value('User',user, 'email')
-	if frappe.session.user in ["Administrator", user] :
-		frappe.defaults.clear_default(user + '_otplogin')
-		frappe.defaults.clear_default(user + '_otpsecret')
-		email_args = {
-			'recipients':user_email, 'sender':None, 'subject':'OTP Secret Reset - {}'.format(otp_issuer or "Frappe Framework"),
-			'message':'<p>Your OTP secret on {} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>'.format(otp_issuer or "Frappe Framework"),
-			'delayed':False,
-			'retry':3
-		}
-		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, is_async=True, job_name=None, now=False, **email_args)
-		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
-	else:
-		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
-
 def throttle_user_creation():
 	if frappe.flags.in_import:
 		return
