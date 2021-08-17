@@ -764,10 +764,10 @@ def sign_up(email, full_name, redirect_to):
 
 	user = frappe.db.get("User", {"email": email})
 	if user:
-		if user.disabled:
-			return 0, _("Registered but disabled")
-		else:
+		if user.enabled:
 			return 0, _("Already Registered")
+		else:
+			return 0, _("Registered but disabled")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
