@@ -19,7 +19,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import crea
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_enabled
 from frappe.rate_limiter import rate_limit
-from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 
 
@@ -763,9 +762,7 @@ def sign_up(email, full_name, redirect_to):
 		else:
 			return 0, _("Registered but disabled")
 	else:
-		if frappe.db.sql("""select count(*) from tabUser where
-			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
-
+		if frappe.db.get_creation_count('User', 60) > 300:
 			frappe.respond_as_web_page(_('Temporarily Disabled'),
 				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
 				http_status_code=429)
