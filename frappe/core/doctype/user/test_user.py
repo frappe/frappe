@@ -323,8 +323,9 @@ class TestUser(unittest.TestCase):
 		frappe.set_user("test@example.com")
 		test_user = frappe.get_doc("User", "test@example.com")
 		test_user.reset_password()
-		frappe.cache().hset('redirect_after_login', test_user.email, "/some_portal_page")
-		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/app")
+		pwd_key = test_user.reset_password_key
+		test_user.reload()
+		self.assertEqual(update_password(new_password, key=pwd_key), "/app")
 		self.assertEqual(update_password(new_password, key="wrong_key"), "The Link specified has either been used before or Invalid")
 
 		# password verification should fail with old password
@@ -353,6 +354,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(update_password(new_password, old_password=old_password), "/")
 		# reset password
 		update_password(old_password, old_password=new_password)
+		frappe.set_user("Administrator")
 
 
 	def test_password_verification(self):
