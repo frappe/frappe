@@ -150,7 +150,7 @@ class TestUser(unittest.TestCase):
 		self.assertFalse(frappe.db.exists('User', new_user.name))
 
 	def test_password_strength(self):
-		# Test Password without Password Strenth Policy
+		# Test Password without Password Strength Policy
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
 
 		# password policy is disabled, test_password_strength should be ignored
@@ -168,6 +168,17 @@ class TestUser(unittest.TestCase):
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
 		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
+
+
+		# test password strength while saving user with new password
+		user = frappe.get_doc("User", "test@example.com")
+		frappe.flags.in_test = False
+		user.new_password = "password"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid Password", user.save)
+		user.reload()
+		user.new_password = "Eastern_43A1W"
+		user.save()
+		frappe.flags.in_test = True
 
 	def test_comment_mentions(self):
 		comment = '''
@@ -221,7 +232,10 @@ class TestUser(unittest.TestCase):
 				Testing comment for
 				<span class="mention" data-id="Team" data-value="Team" data-is-group="true" data-denotation-char="@">
 					<span><span class="ql-mention-denotation-char">@</span>Team</span>
-				</span>
+				</span> and
+				<span class="mention" data-id="Unknown Team" data-value="Unknown Team" data-is-group="true" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Unknown Team</span>
+				</span><!-- this should be ignored-->
 				please check
 			</div>
 		'''
