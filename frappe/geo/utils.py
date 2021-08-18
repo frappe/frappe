@@ -23,6 +23,17 @@ def get_coords(doctype, filters, type):
 	out = convert_to_geojson(type, coords)
 	return out
 
+@frappe.whitelist()
+def get_google_coords(doctype, filters, type):
+	'''Get a google coords json dict representing a doctype.'''
+	filters_sql = get_coords_conditions(doctype, filters)[4:]
+
+	google_coords = None
+	if type == 'googlemaps_coordinates':
+		google_coords = return_google_coordinates(doctype, filters_sql)
+
+	return google_coords
+
 def convert_to_geojson(type, coords):
 	'''Converts GPS coordinates to geoJSON string.'''
 	geojson = {"type": "FeatureCollection", "features": None}
@@ -86,6 +97,17 @@ def return_coordinates(doctype, filters_sql):
 		coords = frappe.get_all(doctype, fields=['name', 'latitude', 'longitude'])
 	return coords
 
+def return_google_coordinates(doctype, filters_sql):
+	'''Get name and googlemaps fields for Doctype.'''
+	if filters_sql:
+		try:
+			g_coords = frappe.db.sql('''SELECT name, google_maps_location FROM `tab{}` WHERE {}'''.format(doctype, filters_sql), as_dict=True)
+		except InternalError:
+			frappe.msgprint(frappe._('This Doctype does not contain latitude and longitude fields'), raise_exception=True)
+			return
+	else:
+		g_coords = frappe.get_all(doctype, fields=['name', 'google_maps_location'])
+	return g_coords
 
 def get_coords_conditions(doctype, filters=None):
 	'''Returns SQL conditions with user permissions and filters for event queries.'''

@@ -35,6 +35,7 @@ data_fieldtypes = (
 	'Color',
 	'Barcode',
 	'Geolocation',
+	'Googlemaps',
 	'Duration'
 )
 
