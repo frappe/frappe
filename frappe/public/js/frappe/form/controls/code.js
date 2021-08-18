@@ -18,7 +18,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		const ace = window.ace;
 		this.editor = ace.edit(this.ace_editor_target.get(0));
 
-		if (this.df.maxLines)
+		if (this.df.max_lines)
 			this.editor.setOption("maxLines", this.df.max_lines);
 		else {
 			this.expanded = false;
