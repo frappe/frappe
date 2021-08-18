@@ -320,12 +320,10 @@ class TestUser(unittest.TestCase):
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
 
-		frappe.set_user("test@example.com")
-		test_user = frappe.get_doc("User", "test@example.com")
+		frappe.set_user("testpassword@example.com")
+		test_user = frappe.get_doc("User", "testpassword@example.com")
 		test_user.reset_password()
-		pwd_key = test_user.reset_password_key
-		test_user.reload()
-		self.assertEqual(update_password(new_password, key=pwd_key), "/app")
+		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/app")
 		self.assertEqual(update_password(new_password, key="wrong_key"), "The Link specified has either been used before or Invalid")
 
 		# password verification should fail with old password
