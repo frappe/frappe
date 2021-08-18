@@ -11,7 +11,7 @@ context('Awesome Bar', () => {
 
 	it('navigates to doctype list', () => {
 		cy.findByPlaceholderText('Search or type a command (Ctrl + G)').type('todo', { delay: 200 });
-		cy.findByRole('listbox').should('be.visible');
+		cy.get('.awesomplete').findByRole('listbox').should('be.visible');
 		cy.findByPlaceholderText('Search or type a command (Ctrl + G)').type('{downarrow}{enter}', { delay: 100 });
 
 		cy.get('.title-text').should('contain', 'To Do');
