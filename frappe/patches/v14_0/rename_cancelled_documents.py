@@ -129,9 +129,9 @@ def update_linked_doctypes(doctype, cancelled_doc_names):
 				update
 					`tab{linked_dt}`
 				set
-					{column}=CONCAT({column}, '-CANC')
+					`{column}`=CONCAT(`{column}`, '-CANC')
 				where
-					{column} in %(cancelled_doc_names)s;
+					`{column}` in %(cancelled_doc_names)s;
 			""".format(linked_dt=linked_dt, column=field),
 				{'cancelled_doc_names': cancelled_doc_names})
 		else:
@@ -151,9 +151,9 @@ def update_dynamic_linked_doctypes(doctype, cancelled_doc_names):
 				update
 					`tab{linked_dt}`
 				set
-					{column}=CONCAT({column}, '-CANC')
+					`{column}`=CONCAT(`{column}`, '-CANC')
 				where
-					{column} in %(cancelled_doc_names)s and {doctype_fieldname}=%(dt)s;
+					`{column}` in %(cancelled_doc_names)s and {doctype_fieldname}=%(dt)s;
 			""".format(linked_dt=linked_dt, column=fieldname, doctype_fieldname=doctype_fieldname),
 				{'cancelled_doc_names': cancelled_doc_names, 'dt': doctype})
 		else:
