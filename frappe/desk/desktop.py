@@ -368,7 +368,7 @@ def get_desktop_page(page):
 	on desk.
 
 	Args:
-		page (string): page name
+		page (json): page data
 
 	Returns:
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
