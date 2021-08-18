@@ -20,7 +20,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 		if (this.df.maxLines)
 			this.editor.setOption("maxLines", this.df.maxLines);
-		else{
+		else {
 			this.expanded = false;
 			this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).click(() => {
 				this.expanded = !this.expanded;
