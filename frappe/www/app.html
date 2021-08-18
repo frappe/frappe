@@ -15,6 +15,8 @@
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="white">
 		<meta name="mobile-web-app-capable" content="yes">
+		<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
 		<title>Frappe</title>
 		<link rel="shortcut icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
@@ -63,5 +65,11 @@
 			<source src="{{ sound.src }}"></source>
 		</audio>
 		{% endfor %}
+
+		<script
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzohjFMFhN0UvCtciHQ8BDxCxiyocT7K8&callback=initMap&libraries=&v=weekly&channel=2" 
+		async
+    	></script>
+		<script type="text/javascript" src='/assets/js/googlemaps.js'></script>
 	</body>
 </html>

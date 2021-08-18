@@ -1,0 +1,90 @@
+frappe.provide('frappe.utils.utils');
+ frappe.provide("frappe.views");
+
+ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView {
+     get view_name() {
+         return 'Googlemaps';
+     }
+
+     setup_defaults() {
+         super.setup_defaults();
+         this.page_title = __('{0} Googlemaps', [this.page_title]);
+     }
+
+     setup_view() {
+     }
+
+     on_filter_change() {
+         this.get_google_coords();
+     }
+
+     render() {
+         this.get_google_coords()
+             .then(() => {
+                 this.render_map_view();
+             });
+         this.$paging_area.find('.level-left').append('<div></div>');
+     }
+
+     render_map_view() {
+        self = this;
+		this.map_id = 'map';
+        this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
+
+		const icon = {
+			url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
+			scaledSize: new google.maps.Size(15, 15)
+		};
+
+        this.map = new google.maps.Map(document.getElementById("map"), {
+            center: {lat:0.21901832756664624, lng:119.1115301972551},
+            mapTypeId: "terrain",
+            zoom: 5,
+        });
+
+        let i;
+        let z;
+
+        if (this.coords && this.coords.length > 0) {
+            for (i = 0; i < this.coords.length; i++) {
+                if (this.coords[i].google_maps_location !== null) {
+                    this.name = this.coords[i].name;
+
+                    this.coorData = JSON.parse(this.coords[i].google_maps_location)
+                    this.markers = this.coorData.features
+
+                    for (z = 0; z < this.markers.length; z++) {
+                        if (Object.keys(this.markers[z].properties).length === 0){
+                            this.marker = new google.maps.Marker({
+                                position: new google.maps.LatLng(this.markers[z].geometry.coordinates[1], this.markers[z].geometry.coordinates[0]),
+                                map: this.map,
+                                icon: icon,
+                            });
+                        }   
+                    }
+                } 
+            }
+        }
+     }
+
+     get_google_coords() {
+         let get_google_coords_method = this.settings && this.settings.get_google_coords_method || 'frappe.geo.utils.get_google_coords';
+
+         if (cur_list.meta.fields.find(i => i.fieldtype === 'Googlemaps')) {
+            this.type = 'googlemaps_coordinates';
+         }
+
+
+         return frappe.call({
+             method: get_google_coords_method,
+             args: {
+                 doctype: this.doctype,
+                 filters: cur_list.filter_area.get(),
+                 type: this.type
+             }
+         }).then(r => {
+             this.coords = r.message;
+
+         });
+     }
+ };

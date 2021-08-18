@@ -66,7 +66,7 @@ frappe.router = {
 	current_route: null,
 	routes: {},
 	factory_views: ['form', 'list', 'report', 'tree', 'print', 'dashboard'],
-	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard', 'image', 'inbox'],
+	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard', 'image', 'inbox', 'googlemaps'],
 	layout_mapped: {},
 
 	is_app_route(path) {
