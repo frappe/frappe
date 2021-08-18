@@ -131,6 +131,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
 				action: () => this.set_route("map")
 			},
+			Googlemaps: {
+				condition: this.list_view.settings.get_google_coords_method ||
+						   (this.list_view.meta.fields.find(i => i.fieldtype == 'Googlemaps')),
+				action: () => this.set_route("googlemaps")
+			},
 		};
 
 		frappe.views.view_modes.forEach(view => {

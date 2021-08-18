@@ -181,6 +181,7 @@ frappe.views.BaseList = class BaseList {
 			'Kanban': 'kanban',
 			'Dashboard': 'dashboard',
 			'Map': 'map',
+			'Googlemaps': 'map',
 		};
 
 		if (frappe.boot.desk_settings.view_switcher) {
@@ -825,6 +826,7 @@ frappe.views.view_modes = [
 	"Inbox",
 	"Tree",
 	"Map",
+	"Googlemaps",
 ];
 frappe.views.is_valid = (view_mode) =>
 	frappe.views.view_modes.includes(view_mode);
