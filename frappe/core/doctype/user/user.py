@@ -966,15 +966,6 @@ def get_module_profile(module_profile):
 	module_profile = frappe.get_doc('Module Profile', {'module_profile_name': module_profile})
 	return module_profile.get('block_modules')
 
-def update_roles(role_profile):
-	users = frappe.get_all('User', filters={'role_profile_name': role_profile})
-	role_profile = frappe.get_doc('Role Profile', role_profile)
-	roles = [role.role for role in role_profile.roles]
-	for d in users:
-		user = frappe.get_doc('User', d)
-		user.set('roles', [])
-		user.add_roles(*roles)
-
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 	if user.name in ["Administrator", "Guest"]: return
