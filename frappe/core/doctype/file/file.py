@@ -319,12 +319,10 @@ class File(Document):
 
 	def unzip(self):
 		'''Unzip current file and replace it by its children'''
-		if not ".zip" in self.file_name:
-			frappe.msgprint(_("Not a zip file"))
-			return
+		if not ".zip" in self.file_url:
+			frappe.throw(_("{0} is not a zip file").format(self.file_name))
 
-		zip_path = frappe.get_site_path(self.file_url.strip('/'))
-		base_url = os.path.dirname(self.file_url)
+		zip_path = self.get_full_path()
 
 		files = []
 		with zipfile.ZipFile(zip_path) as z:
@@ -837,7 +835,7 @@ def unzip_file(name):
 	'''Unzip the given file and make file records for each of the extracted files'''
 	file_obj = frappe.get_doc('File', name)
 	files = file_obj.unzip()
-	return len(files)
+	return files
 
 @frappe.whitelist()
 def optimize_saved_image(doc_name):
