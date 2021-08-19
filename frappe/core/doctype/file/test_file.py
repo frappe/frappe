@@ -534,7 +534,7 @@ class TestFileUtils(unittest.TestCase):
 		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name}))
 		self.assertIn('<img src="/files/pix.png">', todo.description)
 
-		# withot filename in data URI
+		# without filename in data URI
 		todo = frappe.get_doc({
 			"doctype": "ToDo",
 			"description": 'Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'

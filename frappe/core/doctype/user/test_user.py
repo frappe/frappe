@@ -346,7 +346,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(update_password(new_password, old_password=old_password), "/")
 		# reset password
 		update_password(old_password, old_password=new_password)
-		frappe.set_user("Administrator")
+
 
 
 	def test_password_verification(self):

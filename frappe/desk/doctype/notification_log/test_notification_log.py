@@ -55,6 +55,6 @@ def get_todo():
 
 def get_user():
 	users = frappe.db.get_all('User',
-		filters={'name': ('not in', ['Administrator', 'Guest'])},
+		filters={'name': ('not in', ['Administrator', 'Guest']), 'enabled': 1},
 		fields='name', limit=1)
 	return users[0].name
