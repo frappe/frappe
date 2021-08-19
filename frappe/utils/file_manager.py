@@ -372,6 +372,7 @@ def download_file(file_url):
 	frappe.local.response.type = "download"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def extract_images_from_doc(doc, fieldname):
 	content = doc.get(fieldname)
 	content = extract_images_from_html(doc, content)
@@ -436,6 +437,8 @@ def validate_filename(filename):
 	fname = get_file_name(filename, timestamp)
 	return fname
 
+=======
+>>>>>>> 44c82276e8 (refactor: Remove unused methods)
 @frappe.whitelist()
 def add_attachments(doctype, name, attachments):
 	'''Add attachments to the given DocType'''
