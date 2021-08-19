@@ -365,23 +365,6 @@ def download_file(file_url):
 	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
 
-def get_random_filename(extn=None, content_type=None):
-	if extn:
-		if not extn.startswith("."):
-			extn = "." + extn
-
-	elif content_type:
-		extn = mimetypes.guess_extension(content_type)
-
-	return random_string(7) + (extn or "")
-
-@frappe.whitelist(allow_guest=True)
-def validate_filename(filename):
-	from frappe.utils import now_datetime
-	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
-	fname = get_file_name(filename, timestamp)
-	return fname
-
 @frappe.whitelist()
 def add_attachments(doctype, name, attachments):
 	'''Add attachments to the given DocType'''
