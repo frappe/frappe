@@ -46,6 +46,7 @@
    "fieldname": "label",
    "fieldtype": "Data",
    "label": "Name",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -232,7 +233,8 @@
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Title"
+   "label": "Title",
+   "reqd": 1
   },
   {
    "fieldname": "parent_page",
@@ -263,7 +265,7 @@
   }
  ],
  "links": [],
- "modified": "2021-08-19 12:36:29.825169",
+ "modified": "2021-08-19 12:51:00.233017",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
