@@ -174,10 +174,6 @@ frappe.views.Workspace = class Workspace {
 			$(e.target).parent().find('.sidebar-item-container').toggleClass('hidden');
 		});
 
-		if (!this.current_page.name) {
-			$title.trigger("click");
-		}
-
 		if (Object.keys(root_pages).length === 0) {
 			sidebar_section.addClass('hidden');
 		}
