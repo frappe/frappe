@@ -4,9 +4,14 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
+import datetime
 import unittest
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.utils.testutils import clear_custom_fields
+
 
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
@@ -26,11 +31,35 @@ class TestDB(unittest.TestCase):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
 	def test_get_single_value(self):
-		frappe.db.set_value('System Settings', 'System Settings', 'backup_limit', 5)
-		frappe.db.commit()
+		#setup
+		values_dict = {
+			"Float": 1.5,
+			"Int": 1,
+			"Percent": 55.5,
+			"Currency": 12.5,
+			"Data": "Test",
+			"Date": datetime.datetime.now().date(),
+			"Datetime": datetime.datetime.now(),
+			"Time": datetime.timedelta(hours=9, minutes=45, seconds=10)
+		}
+		test_inputs = [{
+			"fieldtype": fieldtype,
+			"value": value} for fieldtype, value in values_dict.items()]
+		for fieldtype in values_dict.keys():
+			create_custom_field("Print Settings", {
+				"fieldname": "test_{0}".format(fieldtype.lower()),
+				"label": "Test {0}".format(fieldtype),
+				"fieldtype": fieldtype,
+			})
 
-		limit = frappe.db.get_single_value('System Settings', 'backup_limit')
-		self.assertEqual(limit, 5)
+		#test
+		for inp in test_inputs:
+			fieldname = "test_{0}".format(inp["fieldtype"].lower())
+			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
+			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
+
+		#teardown
+		clear_custom_fields("Print Settings")
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True

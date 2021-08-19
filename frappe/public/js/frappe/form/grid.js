@@ -140,10 +140,10 @@ export default class Grid {
 						me.df.data = me.get_data();
 						me.df.data = me.df.data.filter((row)=> row.idx != doc.idx);
 					}
-					me.grid_rows_by_docname[doc.name].remove();
 					dirty = true;
+					return me.grid_rows_by_docname[doc.name] && me.grid_rows_by_docname[doc.name].remove();
 				});
-				tasks.push(() => frappe.timeout(0.1));
+				tasks.push(() => frappe.timeout(0));
 			});
 
 			if (!me.frm) {
