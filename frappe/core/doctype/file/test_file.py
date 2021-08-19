@@ -420,6 +420,29 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(json.loads(frappe.message_log[0]), {"message": f"File '{frappe.utils.get_url('unknown.jpg')}' not found"})
 		self.assertEquals(test_file.thumbnail_url, None)
 
+	def test_file_unzip(self):
+		file_path = frappe.get_app_path('frappe', 'www/_test/assets/file.zip')
+		public_file_path = frappe.get_site_path('public', 'files')
+		try:
+			import shutil
+			shutil.copy(file_path, public_file_path)
+		except Exception as e:
+			print(e)
+
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": '/files/file.zip',
+		}).insert(ignore_permissions=True)
+
+		self.assertListEqual([file.file_name for file in unzip_file(test_file.name)],
+			['css_asset.css', 'image.jpg', 'js_asset.min.js'])
+
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
+		}).insert(ignore_permissions=True)
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, 'not a zip file', test_file.unzip)
+
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'
 
