@@ -359,10 +359,6 @@ class File(Document):
 		return files
 
 
-	def get_file_url(self):
-		data = frappe.db.get_value("File", self.file_data_name, ["file_name", "file_url"], as_dict=True)
-		return data.file_url or data.file_name
-
 	def exists_on_disk(self):
 		exists = os.path.exists(self.get_full_path())
 		return exists
@@ -435,33 +431,6 @@ class File(Document):
 
 		return get_files_path(self.file_name, is_private=self.is_private)
 
-	def get_file_doc(self):
-		'''returns File object (Document) from given parameters or form_dict'''
-		r = frappe.form_dict
-
-		if self.file_url is None: self.file_url = r.file_url
-		if self.file_name is None: self.file_name = r.file_name
-		if self.attached_to_doctype is None: self.attached_to_doctype = r.doctype
-		if self.attached_to_name is None: self.attached_to_name = r.docname
-		if self.attached_to_field is None: self.attached_to_field = r.docfield
-		if self.folder is None: self.folder = r.folder
-		if self.is_private is None: self.is_private = r.is_private
-
-		if r.filedata:
-			file_doc = self.save_uploaded()
-
-		elif r.file_url:
-			file_doc = self.save()
-
-		return file_doc
-
-
-	def save_uploaded(self):
-		self.content = self.get_uploaded_content()
-		if self.content:
-			return self.save()
-		else:
-			raise Exception
 
 	def get_uploaded_content(self):
 		# should not be unicode when reading a file, hence using frappe.form
@@ -542,14 +511,6 @@ class File(Document):
 			'file_name': os.path.basename(fpath),
 			'file_url': self.file_url
 		}
-
-	def get_file_data_from_hash(self):
-		for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s",
-			(self.content_hash, self.is_private)):
-			b = frappe.get_doc('File', name)
-			return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
-		return False
-
 
 	def check_max_file_size(self):
 		max_file_size = get_max_file_size()
@@ -744,47 +705,11 @@ def delete_file(path):
 			os.remove(path)
 
 
-def remove_file(fid=None, attached_to_doctype=None, attached_to_name=None, from_delete=False, delete_permanently=False):
-	"""Remove file and File entry"""
-	file_name = None
-	if not (attached_to_doctype and attached_to_name):
-		attached = frappe.db.get_value("File", fid,
-			["attached_to_doctype", "attached_to_name", "file_name"])
-		if attached:
-			attached_to_doctype, attached_to_name, file_name = attached
-
-	ignore_permissions, comment = False, None
-	if attached_to_doctype and attached_to_name and not from_delete:
-		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		ignore_permissions = doc.has_permission("write") or False
-		if frappe.flags.in_web_form:
-			ignore_permissions = True
-		if not file_name:
-			file_name = frappe.db.get_value("File", fid, "file_name")
-		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
-		frappe.delete_doc("File", fid, ignore_permissions=ignore_permissions, delete_permanently=delete_permanently)
-
-	return comment
 
 
 def get_max_file_size():
 	return cint(conf.get('max_file_size')) or 10485760
 
-
-def remove_all(dt, dn, from_delete=False, delete_permanently=False):
-	"""remove all files in a transaction"""
-	try:
-		for fid in frappe.db.sql_list("""select name from `tabFile` where
-			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			if from_delete:
-				# If deleting a doc, directly delete files
-				frappe.delete_doc("File", fid, ignore_permissions=True, delete_permanently=delete_permanently)
-			else:
-				# Removes file and adds a comment in the document it is attached to
-				remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn,
-					from_delete=from_delete, delete_permanently=delete_permanently)
-	except Exception as e:
-		if e.args[0]!=1054: raise # (temp till for patched)
 
 
 def has_permission(doc, ptype=None, user=None):
