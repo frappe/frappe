@@ -104,7 +104,7 @@ class TestToDo(unittest.TestCase):
 		clear_permissions_cache('ToDo')
 		frappe.db.rollback()
 
-def test_fetch_if_empty(self):
+	def test_fetch_if_empty(self):
 		frappe.db.delete("ToDo")
 
 		# Allow user changes
