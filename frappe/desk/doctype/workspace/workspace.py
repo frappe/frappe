@@ -20,7 +20,7 @@ class Workspace(Document):
 		try:
 			if not isinstance(loads(self.content), list):
 				raise
-		except:
+		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
 
 		duplicate_exists = frappe.db.exists("Workspace", {
