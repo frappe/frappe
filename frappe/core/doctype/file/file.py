@@ -257,7 +257,7 @@ class File(Document):
 			with open(get_files_path(file_name, is_private=self.is_private), "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
-			frappe.msgprint(_("File {0} does not exist").format(self.file_url))
+			frappe.throw(_("File {0} does not exist").format(self.file_url))
 			raise
 
 	def on_trash(self):
@@ -559,7 +559,8 @@ def create_new_folder(file_name, folder):
 	file.file_name = file_name
 	file.is_folder = 1
 	file.folder = folder
-	file.insert()
+	file.insert(ignore_if_duplicate=True)
+	return file
 
 @frappe.whitelist()
 def move_file(file_list, new_parent, old_parent):
@@ -610,7 +611,7 @@ def get_local_image(file_url):
 	try:
 		image = Image.open(file_path)
 	except IOError:
-		frappe.msgprint(_("Unable to read file format for {0}").format(file_url), raise_exception=True)
+		frappe.throw(_("Unable to read file format for {0}").format(file_url))
 
 	content = None
 
