@@ -399,7 +399,7 @@ class TestFile(unittest.TestCase):
 			"file_name": 'logo',
 			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
 			"docstatus": 0
-		}).insert()
+		}).insert(ignore_permissions=True)
 
 		test_file.make_thumbnail()
 		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
