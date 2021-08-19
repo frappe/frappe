@@ -354,8 +354,8 @@ frappe.router = {
 				return a;
 			}
 		}).join('/');
-
-		return '/app/' + (path_string || 'home');
+		let default_page = frappe.workspaces['home'] ? 'home' : Object.keys(frappe.workspaces)[0];
+		return '/app/' + (path_string || default_page);
 	},
 
 	push_state(url) {
