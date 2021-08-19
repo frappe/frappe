@@ -28,7 +28,6 @@
   "pin_to_bottom",
   "hide_custom",
   "public",
-  "content_section",
   "content",
   "section_break_2",
   "charts_label",
@@ -39,6 +38,7 @@
   "section_break_18",
   "cards_label",
   "links",
+  "roles_section",
   "roles"
  ],
  "fields": [
@@ -240,13 +240,9 @@
    "label": "Parent Page"
   },
   {
-   "fieldname": "content_section",
-   "fieldtype": "Section Break",
-   "label": "Content"
-  },
-  {
    "fieldname": "content",
    "fieldtype": "Long Text",
+   "hidden": 1,
    "label": "Content"
   },
   {
@@ -259,10 +255,15 @@
    "fieldtype": "Table",
    "label": "Roles",
    "options": "Has Role"
+  },
+  {
+   "fieldname": "roles_section",
+   "fieldtype": "Section Break",
+   "label": "Roles"
   }
  ],
  "links": [],
- "modified": "2021-08-05 11:49:09.028243",
+ "modified": "2021-08-19 12:36:29.825169",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
