@@ -34,6 +34,17 @@ def get_google_coords(doctype, filters, type):
 
 	return google_coords
 
+@frappe.whitelist()
+def get_google_icons(doctype, filters, type):
+	'''Get a google icons json dict from digital asset doctype.'''
+	filters_sql = "type='googlemaps'"
+
+	google_icons = None
+	if type == 'googlemaps_icons':
+		google_icons = return_google_icons(doctype, filters_sql)
+
+	return google_icons
+
 def convert_to_geojson(type, coords):
 	'''Converts GPS coordinates to geoJSON string.'''
 	geojson = {"type": "FeatureCollection", "features": None}
@@ -109,6 +120,18 @@ def return_google_coordinates(doctype, filters_sql):
 		g_coords = frappe.get_all(doctype, fields=['name', 'google_maps_location'])
 	return g_coords
 
+def return_google_icons(doctype, filters_sql):
+	'''Get digital asset name and icon locatio fields.'''
+	if filters_sql:
+		try:
+			g_icons = frappe.db.sql('''SELECT name1, icon_image FROM `tab{}` WHERE {}'''.format(doctype, filters_sql), as_dict=True)
+		except InternalError:
+			frappe.msgprint(frappe._('This Doctype does not contain latitude and longitude fields'), raise_exception=True)
+			return
+	else:
+		g_icons = frappe.get_all(doctype, fields=['name1', 'icon_image'])
+	return g_icons
+
 def get_coords_conditions(doctype, filters=None):
 	'''Returns SQL conditions with user permissions and filters for event queries.'''
 	from frappe.desk.reportview import get_filters_cond
@@ -116,3 +139,4 @@ def get_coords_conditions(doctype, filters=None):
 		frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
 
 	return get_filters_cond(doctype, filters, [], with_match_conditions=True)
+
