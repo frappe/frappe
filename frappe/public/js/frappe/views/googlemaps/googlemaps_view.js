@@ -54,7 +54,8 @@ frappe.provide('frappe.utils.utils');
                     this.markers = this.coorData.features
 
                     for (z = 0; z < this.markers.length; z++) {
-                        if (Object.keys(this.markers[z].properties).length === 0){
+
+                        if (this.markers[z].properties.point_type === 'marker'){
                             this.marker = new google.maps.Marker({
                                 position: new google.maps.LatLng(this.markers[z].geometry.coordinates[1], this.markers[z].geometry.coordinates[0]),
                                 map: this.map,
