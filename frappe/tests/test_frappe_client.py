@@ -82,7 +82,7 @@ class TestFrappeClient(unittest.TestCase):
 
 	def test_update_doc(self):
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
-		frappe.db.delete("Note", {"title": ("in" ("Sing", "sing"))})
+		frappe.db.delete("Note", {"title": ("in", ("Sing", "sing"))})
 		frappe.db.commit()
 
 		server.insert({"doctype":"Note", "public": True, "title": "Sing"})
