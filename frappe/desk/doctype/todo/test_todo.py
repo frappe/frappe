@@ -122,9 +122,8 @@ class TestToDo(unittest.TestCase):
 		self.assertEqual(todo.assigned_by_full_name, 'Admin')
 
 		# Overwrite user changes
-		todo_meta = frappe.get_doc('DocType', 'ToDo')
-		todo_meta.get('fields', dict(fieldname='assigned_by_full_name'))[0].fetch_if_empty = 0
-		todo_meta.save()
+		todo.meta.get('fields', dict(fieldname='assigned_by_full_name'))[0].fetch_if_empty = 0
+		todo.meta.save()
 
 		todo.reload()
 		todo.save()
