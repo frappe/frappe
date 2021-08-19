@@ -17,7 +17,10 @@ class Workspace(Document):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
 		validate_route_conflict(self.doctype, self.name)
 
-		if isinstance(self.content, list):
+		try:
+			if not isinstance(loads(self.content), list):
+				raise
+		except:
 			frappe.throw(_("Content data shoud be a list"))
 
 		duplicate_exists = frappe.db.exists("Workspace", {
