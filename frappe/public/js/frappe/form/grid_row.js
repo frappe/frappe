@@ -65,7 +65,7 @@ export default class GridRow {
 					this.hide_form();
 				}
 
-				frappe.run_serially([
+				return frappe.run_serially([
 					() => {
 						return this.frm.script_manager.trigger("before_" + this.grid.df.fieldname + "_remove",
 							this.doc.doctype, this.doc.name);
@@ -73,8 +73,10 @@ export default class GridRow {
 					() => {
 						frappe.model.clear_doc(this.doc.doctype, this.doc.name);
 
-						this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
+						return this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
 							this.doc.doctype, this.doc.name);
+					},
+					() => {
 						this.frm.dirty();
 						this.grid.refresh();
 					},
