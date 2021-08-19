@@ -23,8 +23,13 @@ import zipfile
 import requests
 import requests.exceptions
 from PIL import Image, ImageFile, ImageOps
+<<<<<<< HEAD
 from six import PY2, StringIO, string_types, text_type
 from six.moves.urllib.parse import quote, unquote
+=======
+from io import BytesIO
+from urllib.parse import quote, unquote
+>>>>>>> c681b1af27 (fix: Make thumbnail function)
 
 import frappe
 from frappe import _, conf
@@ -272,16 +277,12 @@ class File(Document):
 
 	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small", crop=False):
 		if self.file_url:
-			if self.file_url.startswith("/files"):
-				try:
+			try:
+				if self.file_url.startswith(("/files", "/private/files")):
 					image, filename, extn = get_local_image(self.file_url)
-				except IOError:
-					return
-
-			else:
-				try:
+				else:
 					image, filename, extn = get_web_image(self.file_url)
-				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError, TypeError):
+			except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError, TypeError):
 					return
 
 			size = width, height
@@ -291,16 +292,13 @@ class File(Document):
 				image.thumbnail(size, Image.ANTIALIAS)
 
 			thumbnail_url = filename + "_" + suffix + "." + extn
-
 			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
 				image.save(path)
-
 				if set_as_thumbnail:
 					self.db_set("thumbnail_url", thumbnail_url)
 
-				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
 				frappe.msgprint(_("Unable to write file format for {0}").format(path))
 				return
@@ -710,7 +708,7 @@ def get_web_image(file_url):
 		raise
 
 	try:
-		image = Image.open(StringIO(frappe.safe_decode(r.content)))
+		image = Image.open(BytesIO(r.content))
 	except Exception as e:
 		frappe.msgprint(_("Image link '{0}' is not valid").format(file_url), raise_exception=e)
 
@@ -885,6 +883,18 @@ def extract_images_from_html(doc, content):
 		data = match.group(1)
 		data = data.split("data:")[1]
 		headers, content = data.split(",")
+<<<<<<< HEAD
+=======
+		mtype = headers.split(";")[0]
+
+		if isinstance(content, str):
+			content = content.encode("utf-8")
+		if b"," in content:
+			content = content.split(b",")[1]
+		content = base64.b64decode(content)
+
+		content = optimize_image(content, mtype)
+>>>>>>> c681b1af27 (fix: Make thumbnail function)
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
