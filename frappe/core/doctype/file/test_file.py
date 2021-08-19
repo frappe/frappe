@@ -9,7 +9,7 @@ import frappe
 import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file, get_files_in_folder
+from frappe.core.doctype.file.file import get_attached_images, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
 # test_records = frappe.get_test_records('File')
 
@@ -399,7 +399,6 @@ class TestFile(unittest.TestCase):
 			"doctype": "File",
 			"file_name": 'logo',
 			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
-			"docstatus": 0
 		}).insert(ignore_permissions=True)
 
 		test_file.make_thumbnail()
@@ -409,7 +408,7 @@ class TestFile(unittest.TestCase):
 		test_file.db_set('thumbnail_url', None)
 		test_file.reload()
 		test_file.file_url = "/files/image_small.jpg"
-		test_file.make_thumbnail(suffix="xs")
+		test_file.make_thumbnail(suffix="xs", crop=True)
 		self.assertEquals(test_file.thumbnail_url, '/files/image_small_xs.jpg')
 
 		frappe.clear_messages()
@@ -558,6 +557,7 @@ class TestFileUtils(unittest.TestCase):
 		}).insert()
 		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name}))
 		self.assertIn('<img src="/files/pix.png">', todo.description)
+		self.assertListEqual(get_attached_images('ToDo', [todo.name])[todo.name], ['/files/pix.png'])
 
 		# without filename in data URI
 		todo = frappe.get_doc({
@@ -566,3 +566,8 @@ class TestFileUtils(unittest.TestCase):
 		}).insert()
 		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
 		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
+
+	def test_create_new_folder(self):
+		from frappe.core.doctype.file.file import create_new_folder
+		folder = create_new_folder('test_folder', 'home')
+		self.assertTrue(folder.is_folder)
