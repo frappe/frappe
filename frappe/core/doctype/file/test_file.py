@@ -365,6 +365,58 @@ class TestFile(unittest.TestCase):
 		file1.file_url = '/private/files/parent_dir2.txt'
 		file1.save()
 
+	def test_file_url_validation(self):
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": 'https://frappe.io/files/frappe.png'
+		})
+
+		self.assertIsNone(test_file.validate())
+
+		# bad path
+		test_file.file_url = "/usr/bin/man"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "URL must start with http:// or https://", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "/usr/bin/man"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "There is some problem with the file url", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "_file"
+		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "/private/files/_file"
+		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+
+	def test_make_thumbnail(self):
+		# test web image
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
+			"docstatus": 0
+		}).insert()
+
+		test_file.make_thumbnail()
+		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+
+		# test local image
+		test_file.db_set('thumbnail_url', None)
+		test_file.reload()
+		test_file.file_url = "/files/image_small.jpg"
+		test_file.make_thumbnail(suffix="xs")
+		self.assertEquals(test_file.thumbnail_url, '/files/image_small_xs.jpg')
+
+		frappe.clear_messages()
+		test_file.db_set('thumbnail_url', None)
+		test_file.reload()
+		test_file.file_url = frappe.utils.get_url('unknown.jpg')
+		test_file.make_thumbnail(suffix="xs")
+		self.assertEqual(frappe.message_log[0], '{"message": "File \'http://test-site:8000/unknown.jpg\' not found"}')
+		self.assertEquals(test_file.thumbnail_url, None)
+
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'
 
