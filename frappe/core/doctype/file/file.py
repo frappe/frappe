@@ -32,7 +32,7 @@ from urllib.parse import quote, unquote
 >>>>>>> c681b1af27 (fix: Make thumbnail function)
 
 import frappe
-from frappe import _, conf
+from frappe import _, conf, safe_decode
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 from frappe.utils.image import strip_exif_data
@@ -823,10 +823,14 @@ def extract_images_from_html(doc, content):
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
+			filename = safe_decode(filename).split(";")[0]
 
+<<<<<<< HEAD
 			# decode filename
 			if not isinstance(filename, text_type):
 				filename = text_type(filename, 'utf-8')
+=======
+>>>>>>> ebc9d35da1 (fix: File name from data URI headers)
 		else:
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
@@ -855,12 +859,9 @@ def extract_images_from_html(doc, content):
 	return content
 
 
-def get_random_filename(extn=None, content_type=None):
-	if extn:
-		if not extn.startswith("."):
-			extn = "." + extn
-
-	elif content_type:
+def get_random_filename(content_type=None):
+	extn = None
+	if content_type:
 		extn = mimetypes.guess_extension(content_type)
 
 	return random_string(7) + (extn or "")
@@ -895,13 +896,6 @@ def get_attached_images(doctype, names):
 
 	return out
 
-
-@frappe.whitelist()
-def validate_filename(filename):
-	from frappe.utils import now_datetime
-	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
-	fname = get_file_name(filename, timestamp)
-	return fname
 
 @frappe.whitelist()
 def get_files_in_folder(folder, start=0, page_length=20):
