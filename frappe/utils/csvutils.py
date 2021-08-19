@@ -8,6 +8,7 @@ import json
 import csv
 import six
 import requests
+<<<<<<< HEAD
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
@@ -19,6 +20,10 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 		_file = frappe.new_doc("File")
 		fcontent = _file.get_uploaded_content()
 	return read_csv_content(fcontent, ignore_encoding)
+=======
+from io import StringIO
+from frappe.utils import cstr, cint, flt, comma_or
+>>>>>>> 1cf1bc1e06 (refactor: Remove unused functions)
 
 def read_csv_content_from_attached_file(doc):
 	fileid = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": doc.doctype,
