@@ -1325,6 +1325,19 @@ Object.assign(frappe.utils, {
 		return clipboard_data.getData('Text');
 	},
 
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper, prepend) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action(event);
+		});
+		!prepend && button.appendTo(wrapper);
+		prepend && wrapper.prepend(button);
+	},
+
 	sleep(time) {
 		return new Promise((resolve) => setTimeout(resolve, time));
 	}

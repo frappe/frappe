@@ -8,9 +8,6 @@
 				<fieldset>
 					<div class="row" style="margin-bottom: 15px;">
 						<div class="col-sm-6">
-							<input class="form-control feedback_email" name="feedback_email" placeholder="{{ _("Your Email Address") }}" type="email">
-						</div>
-						<div class="col-sm-6">
 							<div class="rating">
 								{% for rating in [1, 2, 3, 4, 5 ,6, 7, 8, 9, 10] %}
 									<div class="icon rating-box" data-rating="{{ rating }}">{{ rating }}</div>
@@ -41,7 +38,6 @@
 		feedback && $("#submit-feedback").html(__("Update"));
 
 		if (frappe.is_user_logged_in()) {
-			$(".feedback_email").parent().toggleClass("hidden");
 			if (feedback) {
 				$("[name='feedback']").val(feedback);
 				toggle_feedback();
@@ -83,12 +79,12 @@
 
 		$('#submit-feedback').click((ev) => {
 			let update = ev.target.innerText !== __("Submit");
+			let rating = $('.rating').find('.rating-click').length;
 			let args = {
 				reference_doctype: "{{ reference_doctype or doctype }}",
 				reference_name: "{{ reference_name or name }}",
 				rating: rating,
-				feedback: $("[name='feedback']").val(),
-				feedback_email: $("[name='feedback_email']").val() || frappe.user_id
+				feedback: $("[name='feedback']").val()
 			}
 
 			if (args.rating == 0) {
@@ -101,16 +97,14 @@
 				return false;
 			}
 
-			if (args.feedback_email!=='Administrator' && !validate_email(args.feedback_email)) {
-				frappe.msgprint("{{ _("Please enter a valid email address.") }}");
-				return false;
-			}
-
 			if (!update) {
 				frappe.call({
 					method: "frappe.templates.includes.feedback.feedback.add_feedback",
 					args: args,
 					callback: function(r) {
+						if (!r.message) {
+							return
+						}
 						toggle_feedback();
 						if (!frappe.is_user_logged_in()) {
 							$("[name='feedback']").val('');

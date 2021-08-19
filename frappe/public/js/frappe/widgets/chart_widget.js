@@ -349,6 +349,8 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_filter_button() {
+		if (this.in_customize_mode) return;
+
 		this.is_document_type =
 			this.chart_doc.chart_type !== "Report" &&
 			this.chart_doc.chart_type !== "Custom";

@@ -8,8 +8,8 @@
   "reference_doctype",
   "reference_name",
   "column_break_3",
-  "email",
   "rating",
+  "ip_address",
   "section_break_6",
   "feedback"
  ],
@@ -17,12 +17,6 @@
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "label": "Email",
-   "reqd": 1
   },
   {
    "fieldname": "rating",
@@ -56,11 +50,18 @@
    "label": "Reference Name",
    "options": "reference_doctype",
    "reqd": 1
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "IP Address",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-06-14 15:11:26.005805",
+ "modified": "2021-06-23 12:45:42.045696",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Feedback",
