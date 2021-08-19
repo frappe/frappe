@@ -2,6 +2,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 import base64
+import json
 import frappe
 import os
 import unittest
@@ -414,7 +415,7 @@ class TestFile(unittest.TestCase):
 		test_file.reload()
 		test_file.file_url = frappe.utils.get_url('unknown.jpg')
 		test_file.make_thumbnail(suffix="xs")
-		self.assertEqual(frappe.message_log[0], '{"message": "File \'http://test-site:8000/unknown.jpg\' not found"}')
+		self.assertEqual(json.loads(frappe.message_log[0]), {"message": f"File '{frappe.utils.get_url('unknown.jpg')}' not found"})
 		self.assertEquals(test_file.thumbnail_url, None)
 
 class TestAttachment(unittest.TestCase):
