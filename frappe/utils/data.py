@@ -199,9 +199,9 @@ def nowtime():
 
 def get_first_day(date=None, d_years=0, d_months=0, as_str=False, dt=None):
 	"""
-	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
-	 Returns the first day of the month for the date specified by date object
-	 Also adds `d_years` and `d_months` if specified
+	WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	Returns the first day of the month for the date specified by date object
+	Also adds `d_years` and `d_months` if specified
 	"""
 	date = date or dt
 	date = getdate(date)
@@ -214,7 +214,7 @@ def get_first_day(date=None, d_years=0, d_months=0, as_str=False, dt=None):
 
 def get_quarter_start(date=None, as_str=False, dt=None):
 	"""
-	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	WARNING: argument `dt` will be deprecated in v14, use `date` instead
 	"""
 	date = date or dt
 	date = getdate(date)
@@ -224,7 +224,7 @@ def get_quarter_start(date=None, as_str=False, dt=None):
 
 def get_first_day_of_week(date=None, as_str=False, dt=None):
 	"""
-	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	WARNING: argument `dt` will be deprecated in v14, use `date` instead
 	"""
 	date = date or dt
 	date = getdate(date)
@@ -233,7 +233,7 @@ def get_first_day_of_week(date=None, as_str=False, dt=None):
 
 def get_year_start(date=None, as_str=False, dt=None):
 	"""
-	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	WARNING: argument `dt` will be deprecated in v14, use `date` instead
 	"""
 	date = date or dt
 	date = getdate(date)
@@ -242,7 +242,7 @@ def get_year_start(date=None, as_str=False, dt=None):
 
 def get_last_day_of_week(date=None, as_str=False, dt=None):
 	"""
-	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	WARNING: argument `dt` will be deprecated in v14, use `date` instead
 	"""
 	date = date or dt
 	date = get_first_day_of_week(date)
@@ -251,9 +251,9 @@ def get_last_day_of_week(date=None, as_str=False, dt=None):
 
 def get_last_day(date=None, as_str=False, dt=None):
 	"""
-	 WARNING: argument `dt` will be deprecated in v14, use `date` instead
-	 Returns last day of the month using:
-	 `get_first_day(date, 0, 1) + datetime.timedelta(-1)`
+	WARNING: argument `dt` will be deprecated in v14, use `date` instead
+	Returns last day of the month using:
+	`get_first_day(date, 0, 1) + datetime.timedelta(-1)`
 	"""
 	date = date or dt
 	date = get_first_day(date, 0, 1) + datetime.timedelta(-1)
