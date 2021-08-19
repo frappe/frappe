@@ -1,11 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
-<<<<<<< HEAD
 from __future__ import unicode_literals
-=======
 from typing import Dict, List
->>>>>>> 46c6b6621e (refactor: Newsletter)
 
 import frappe
 import frappe.utils
@@ -13,7 +10,6 @@ import frappe.utils
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.verified_command import get_signed_params, verify_request
-from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 
 from .exceptions import NewsletterAlreadySentError, NoRecipientFoundError, NewsletterNotSavedError

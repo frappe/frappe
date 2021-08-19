@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
-from __future__ import unicode_literals
-=======
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
->>>>>>> a5010af92a (test: Update tests for Newsletter)
 
 import unittest
 from random import choice
