@@ -420,20 +420,6 @@ class File(Document):
 
 		return get_files_path(self.file_name, is_private=self.is_private)
 
-
-	def get_uploaded_content(self):
-		# should not be unicode when reading a file, hence using frappe.form
-		if 'filedata' in frappe.form_dict:
-			if "," in frappe.form_dict.filedata:
-				frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
-			frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
-			return frappe.uploaded_content
-		elif self.content:
-			return self.content
-		frappe.msgprint(_('No file attached'))
-		return None
-
-
 	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
 		self.content = content
