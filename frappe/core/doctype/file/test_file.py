@@ -522,3 +522,22 @@ class TestAttachmentsAccess(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 		frappe.db.rollback()
+
+
+class TestFileUtils(unittest.TestCase):
+	def test_extract_images_from_doc(self):
+		# with filename in data URI
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": 'Test <img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'
+		}).insert()
+		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name}))
+		self.assertIn('<img src="/files/pix.png">', todo.description)
+
+		# withot filename in data URI
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": 'Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'
+		}).insert()
+		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
+		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
