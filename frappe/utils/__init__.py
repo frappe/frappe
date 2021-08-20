@@ -166,7 +166,7 @@ def validate_url(txt, throw=False, valid_schemes=None):
 
 		Parameters:
 			throw (`bool`): throws a validationError if URL is not valid
-			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this 
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
 
 		Returns:
 			bool: if `txt` represents a valid URL

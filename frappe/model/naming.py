@@ -1,3 +1,15 @@
+"""utilities to generate a document name based on various rules defined.
+
+NOTE:
+From Version 14, The naming pattern is changed in a way that amended documents will
+have the original name `orig_name` instead of `orig_name-X`. To make this happen
+the cancelled document naming pattern is changed to 'orig_name-CANC-X'.
+
+In version 13, whenever a submittable document is amended it's name is set to orig_name-X,
+where X is a counter and it increments when amended again and so on. We are backporting
+the version-14 styled naming into version-13 and will be available through system settings.
+"""
+
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -30,7 +42,7 @@ def set_new_name(doc):
 		doc.name = None
 
 	if getattr(doc, "amended_from", None):
-		_set_amended_name(doc)
+		doc.name = _get_amended_name(doc)
 		return
 
 	elif getattr(doc.meta, "issingle", False):
@@ -199,6 +211,19 @@ def getseries(key, digits):
 
 
 def revert_series_if_last(key, name, doc=None):
+	if frappe.get_system_settings('use_original_name_for_amended_document',
+			ignore_if_not_exists=True) and hasattr(doc, 'amended_from'):
+		# Do not revert the series if the document is amended.
+		if doc.amended_from:
+			return
+
+		# Get document name by parsing incase of fist cancelled document
+		if doc.docstatus == 2 and not doc.amended_from:
+			if doc.name.endswith('-CANC'):
+				name, _ = NameParser.parse_docname(doc.name, sep='-CANC')
+			else:
+				name, _ = NameParser.parse_docname(doc.name, sep='-CANC-')
+
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
@@ -276,16 +301,18 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	return value
 
 
-def _set_amended_name(doc):
-	am_id = 1
-	am_prefix = doc.amended_from
-	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
-		am_id = cint(doc.amended_from.split("-")[-1]) + 1
-		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
+def _get_amended_name(doc):
+	if frappe.get_system_settings('use_original_name_for_amended_document', ignore_if_not_exists=True):
+		name, _ = NameParser(doc).parse_amended_from()
+	else:
+		am_id = 1
+		am_prefix = doc.amended_from
+		if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
+			am_id = cint(doc.amended_from.split("-")[-1]) + 1
+			am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
 
-	doc.name = am_prefix + "-" + str(am_id)
-	return doc.name
-
+		name = am_prefix + "-" + str(am_id)
+	return name
 
 def _field_autoname(autoname, doc, skip_slicing=None):
 	"""
@@ -295,7 +322,6 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	fieldname = autoname if skip_slicing else autoname[6:]
 	name = (cstr(doc.get(fieldname)) or "").strip()
 	return name
-
 
 def _prompt_autoname(autoname, doc):
 	"""
@@ -327,3 +353,78 @@ def _format_autoname(autoname, doc):
 	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
 
 	return name
+
+class NameParser:
+	"""Parse document name and return parts of it.
+
+	NOTE: It handles cancellend and amended doc parsing for now. It can be expanded.
+	"""
+	def __init__(self, doc):
+		self.doc = doc
+
+	def parse_amended_from(self):
+		"""
+		Cancelled document naming will be in one of these formats
+
+		* original_name-X-CANC - This is introduced to migrate old style naming to new style
+		* original_name-CANC - This is introduced to migrate old style naming to new style
+		* original_name-CANC-X - This is the new style naming
+
+		New style naming: In new style naming amended documents will have original name. That says,
+		when a document gets cancelled we need rename the document by adding `-CANC-X` to the end
+		so that amended documents can use the original name.
+
+		Old style naming: cancelled documents stay with original name and when amended, amended one
+		gets a new name as `original_name-X`. To bring new style naming we had to change the existing
+		cancelled document names and that is done by adding `-CANC` to cancelled documents through patch.
+		"""
+		if not getattr(self.doc, 'amended_from', None):
+			return (None, None)
+
+		# Handle old style cancelled documents (original_name-X-CANC, original_name-CANC)
+		if self.doc.amended_from.endswith('-CANC'):
+			name, _ = self.parse_docname(self.doc.amended_from, '-CANC')
+
+			# Handle format original_name-X-CANC.
+			if frappe.db.get_value(self.doc.doctype, self.doc.amended_from, "amended_from"):
+				return self.parse_docname(name, '-')
+			return name, None
+
+		# Handle new style cancelled documents
+		return self.parse_docname(self.doc.amended_from, '-CANC-')
+
+	@classmethod
+	def parse_docname(cls, name, sep='-'):
+		split_list = name.rsplit(sep, 1)
+
+		if len(split_list) == 1:
+			return (name, None)
+		return (split_list[0], split_list[1])
+
+def get_cancelled_doc_latest_counter(tname, docname):
+	"""Get the latest counter used for cancelled docs of given docname.
+	"""
+	name_prefix = f'{docname}-CANC-'
+
+	rows = frappe.db.sql("""
+		select
+			name
+		from `tab{tname}`
+		where
+			name like %(name_prefix)s and docstatus=2
+	""".format(tname=tname), {'name_prefix': name_prefix+'%'}, as_dict=1)
+
+	if not rows:
+		return -1
+	return max([int(row.name.replace(name_prefix, '') or -1) for row in rows])
+
+def gen_new_name_for_cancelled_doc(doc):
+	"""Generate a new name for cancelled document.
+	"""
+	if getattr(doc, "amended_from", None):
+		name, _ = NameParser(doc).parse_amended_from()
+	else:
+		name = doc.name
+
+	counter = get_cancelled_doc_latest_counter(doc.doctype, name)
+	return f'{name}-CANC-{counter+1}'
