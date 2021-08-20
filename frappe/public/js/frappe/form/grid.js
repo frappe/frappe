@@ -38,7 +38,7 @@ export default class Grid {
 
 		this.is_grid = true;
 		this.debounced_refresh = this.refresh.bind(this);
-		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 500);
+		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
 	}
 
 	allow_on_grid_editing() {
