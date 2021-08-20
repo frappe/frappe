@@ -256,7 +256,7 @@ frappe.ui.form.Layout = class Layout {
 		if (document.activeElement.tagName == 'INPUT') {
 			document.activeElement.select();
 		}
-	}
+	},
 
 	refresh_sections() {
 		// hide invisible sections
