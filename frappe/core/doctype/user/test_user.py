@@ -374,9 +374,6 @@ class TestUser(unittest.TestCase):
 			[m.get("module_name") for m in get_modules_from_all_apps()])
 
 
-	def test_password_verification(self):
-		pass
-
 def delete_contact(user):
 	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)
 	frappe.db.sql("DELETE FROM `tabContact Email` WHERE `email_id`= %s", user)
