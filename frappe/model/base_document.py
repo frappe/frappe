@@ -11,10 +11,16 @@ from frappe.model import default_fields, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
+<<<<<<< HEAD
 from frappe.model import display_fieldtypes, data_fieldtypes
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
 	sanitize_html, sanitize_email, cast_fieldtype)
+=======
+from frappe.model import display_fieldtypes
+from frappe.utils import (cint, flt, now, cstr, strip_html,
+	sanitize_html, sanitize_email, cast)
+>>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {
@@ -830,7 +836,7 @@ class BaseDocument(object):
 		return self.cast(val, df)
 
 	def cast(self, value, df):
-		return cast_fieldtype(df.fieldtype, value)
+		return cast(df.fieldtype, value)
 
 	def _extract_images_from_text_editor(self):
 		from frappe.core.doctype.file.file import extract_images_from_doc

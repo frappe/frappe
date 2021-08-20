@@ -19,7 +19,11 @@ from __future__ import unicode_literals, print_function
 from datetime import datetime
 from six.moves import range
 import frappe, json, os
+<<<<<<< HEAD
 from frappe.utils import cstr, cint
+=======
+from frappe.utils import cstr, cint, cast
+>>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
 from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
@@ -310,6 +314,7 @@ class Meta(Document):
 
 		for ps in property_setters:
 			if ps.doctype_or_field=='DocType':
+<<<<<<< HEAD
 				if ps.property_type in ('Int', 'Check'):
 					ps.value = cint(ps.value)
 
@@ -325,6 +330,52 @@ class Meta(Document):
 					ps.value = cint(ps.value)
 
 				docfield.set(ps.property, ps.value)
+=======
+				self.set(ps.property, cast(ps.property_type, ps.value))
+
+			elif ps.doctype_or_field=='DocField':
+				for d in self.fields:
+					if d.fieldname == ps.field_name:
+						d.set(ps.property, cast(ps.property_type, ps.value))
+						break
+
+			elif ps.doctype_or_field=='DocType Link':
+				for d in self.links:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast(ps.property_type, ps.value))
+						break
+
+			elif ps.doctype_or_field=='DocType Action':
+				for d in self.actions:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast(ps.property_type, ps.value))
+						break
+
+	def add_custom_links_and_actions(self):
+		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions')):
+			# ignore_ddl because the `custom` column was added later via a patch
+			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1), ignore_ddl=True):
+				self.append(fieldname, d)
+
+			# set the fields in order if specified
+			# order is saved as `links_order`
+			order = json.loads(self.get('{}_order'.format(fieldname)) or '[]')
+			if order:
+				name_map = {d.name:d for d in self.get(fieldname)}
+				new_list = []
+				for name in order:
+					if name in name_map:
+						new_list.append(name_map[name])
+
+				# add the missing items that have not be added
+				# maybe these items were added to the standard product
+				# after the customization was done
+				for d in self.get(fieldname):
+					if d not in new_list:
+						new_list.append(d)
+
+				self.set(fieldname, new_list)
+>>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
@@ -429,6 +480,61 @@ class Meta(Document):
 
 		return data
 
+<<<<<<< HEAD
+=======
+	def add_doctype_links(self, data):
+		'''add `links` child table in standard link dashboard format'''
+		dashboard_links = []
+
+		if hasattr(self, 'links') and self.links:
+			dashboard_links.extend(self.links)
+
+		if not data.transactions:
+			# init groups
+			data.transactions = []
+
+		if not data.non_standard_fieldnames:
+			data.non_standard_fieldnames = {}
+
+		if not data.internal_links:
+			data.internal_links = {}
+
+		for link in dashboard_links:
+			link.added = False
+			if link.hidden:
+				continue
+
+			for group in data.transactions:
+				group = frappe._dict(group)
+
+				# For internal links parent doctype will be the key
+				doctype = link.parent_doctype or link.link_doctype
+				# group found
+				if link.group and group.label == link.group:
+					if doctype not in group.get('items'):
+						group.get('items').append(doctype)
+					link.added = True
+
+			if not link.added:
+				# group not found, make a new group
+				data.transactions.append(dict(
+					label = link.group,
+					items = [link.parent_doctype or link.link_doctype]
+				))
+
+			if not link.is_child_table:
+				if link.link_fieldname != data.fieldname:
+					if data.fieldname:
+						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
+					else:
+						data.fieldname = link.link_fieldname
+			elif link.is_child_table:
+				if not data.fieldname:
+					data.fieldname = link.link_fieldname
+				data.internal_links[link.parent_doctype] = [link.table_fieldname, link.link_fieldname]
+
+
+>>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')
 

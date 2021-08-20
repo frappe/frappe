@@ -15,8 +15,12 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
+<<<<<<< HEAD
 from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
+=======
+from frappe.utils import now, getdate, cast, get_datetime, get_table_name
+>>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
 from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports
@@ -516,7 +520,6 @@ class Database(object):
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		# result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
@@ -557,7 +560,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		val = cast_fieldtype(df.fieldtype, val)
+		val = cast(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -996,19 +999,3 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
-
-# Helpers
-def _cast_result(doctype, result):
-	batch = [ ]
-
-	try:
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-	except frappe.exceptions.DoesNotExistError:
-		return result
-
-	return tuple(batch)
