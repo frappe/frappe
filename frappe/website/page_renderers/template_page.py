@@ -204,7 +204,12 @@ class TemplatePage(BaseTemplatePage):
 		if self.template_path.endswith('min.js'):
 			html = self.source # static
 		else:
-			html = frappe.render_template(self.source, self.context)
+			if self.context.safe_render is not None:
+				safe_render = self.context.safe_render
+			else:
+				safe_render = True
+
+			html = frappe.render_template(self.source, self.context, safe_render=safe_render)
 
 		return html
 

@@ -37,6 +37,8 @@ export default class Grid {
 		}
 
 		this.is_grid = true;
+		this.debounced_refresh = this.refresh.bind(this);
+		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 500);
 	}
 
 	allow_on_grid_editing() {
@@ -264,15 +266,16 @@ export default class Grid {
 
 	make_head() {
 		// labels
-		if (!this.header_row) {
-			this.header_row = new GridRow({
-				parent: $(this.parent).find(".grid-heading-row"),
-				parent_df: this.df,
-				docfields: this.docfields,
-				frm: this.frm,
-				grid: this
-			});
+		if (this.header_row) {
+			$(this.parent).find(".grid-heading-row .grid-row").remove();
 		}
+		this.header_row = new GridRow({
+			parent: $(this.parent).find(".grid-heading-row"),
+			parent_df: this.df,
+			docfields: this.docfields,
+			frm: this.frm,
+			grid: this
+		});
 	}
 
 	refresh(force) {
@@ -499,7 +502,7 @@ export default class Grid {
 			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
-		this.refresh(true);
+		this.debounced_refresh();
 	}
 
 	set_editable_grid_column_disp(fieldname, show) {
@@ -543,17 +546,17 @@ export default class Grid {
 
 	toggle_reqd(fieldname, reqd) {
 		this.get_docfield(fieldname).reqd = reqd;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_enable(fieldname, enable) {
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_display(fieldname, show) {
 		this.get_docfield(fieldname).hidden = show ? 0 : 1;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_checkboxes(enable) {
@@ -674,6 +677,7 @@ export default class Grid {
 		if (!idx) {
 			idx = this.grid_rows.length - 1;
 		}
+
 		setTimeout(() => {
 			this.grid_rows[idx].row
 				.find('input[type="Text"],textarea,select').filter(':visible:first').focus();
@@ -933,6 +937,6 @@ export default class Grid {
 		// update the parent too (for new rows)
 		this.docfields.find(d => d.fieldname === fieldname)[property] = value;
 
-		this.refresh();
+		this.debounced_refresh();
 	}
 }

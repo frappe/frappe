@@ -23,8 +23,7 @@ def reset():
 	Deletes all data in __global_search
 	:return:
 	"""
-	frappe.db.sql('DELETE FROM `__global_search`')
-
+	frappe.db.delete("__global_search")
 
 def get_doctypes_with_global_search(with_child_tables=True):
 	"""
@@ -146,10 +145,9 @@ def rebuild_for_doctype(doctype):
 
 
 def delete_global_search_records_for_doctype(doctype):
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s''', doctype, as_dict=True)
-
+	frappe.db.delete("__global_search", {
+		"doctype": doctype
+	})
 
 def get_selected_fields(meta, global_search_fields):
 	fieldnames = [df.fieldname for df in global_search_fields]
@@ -399,12 +397,10 @@ def delete_for_document(doc):
 	been deleted
 	:param doc: Deleted document
 	"""
-
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s
-		AND name = %s''', (doc.doctype, doc.name), as_dict=True)
-
+	frappe.db.delete("__global_search", {
+		"doctype": doc.doctype,
+		"name": doc.name
+	})
 
 @frappe.whitelist()
 def search(text, start=0, limit=20, doctype=""):
@@ -415,51 +411,41 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
+	from frappe.desk.doctype.global_search_settings.global_search_settings import (
+		get_doctypes_for_global_search,
+	)
+	from frappe.query_builder.functions import Match
 
 	results = []
 	sorted_results = []
 
 	allowed_doctypes = get_doctypes_for_global_search()
 
-	for text in set(text.split('&')):
+	for text in set(text.split("&")):
 		text = text.strip()
 		if not text:
 			continue
 
-		conditions = '1=1'
-		offset = ''
-
-		mariadb_text = frappe.db.escape('+' + text + '*')
-
-		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
-		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(text))
-
-		values = {}
+		global_search = frappe.qb.Table("__global_search")
+		rank = Match(global_search.content).Against(text).as_("rank")
+		query = (
+			frappe.qb.from_(global_search)
+			.select(
+				global_search.doctype, global_search.name, global_search.content, rank
+			)
+			.orderby("rank", order=frappe.qb.desc)
+			.limit(limit)
+		)
 
 		if doctype:
-			conditions = '`doctype` = %(doctype)s'
-			values['doctype'] = doctype
+			query = query.where(global_search.doctype == doctype)
 		elif allowed_doctypes:
-			conditions = '`doctype` IN %(allowed_doctypes)s'
-			values['allowed_doctypes'] = tuple(allowed_doctypes)
+			query = query.where(global_search.doctype.isin(allowed_doctypes))
 
-		if int(start) > 0:
-			offset = 'OFFSET {}'.format(start)
+		if cint(start) > 0:
+			query = query.offset(start)
 
-		common_query = """
-				SELECT {fields}
-				FROM `__global_search`
-				WHERE {conditions}
-				ORDER BY rank DESC
-				LIMIT {limit}
-				{offset}
-			"""
-
-		result = frappe.db.multisql({
-				'mariadb': common_query.format(fields=mariadb_fields, conditions=conditions, limit=limit, offset=offset),
-				'postgres': common_query.format(fields=postgres_fields, conditions=conditions, limit=limit, offset=offset)
-			}, values=values, as_dict=True)
+		result = query.run(as_dict=True)
 
 		results.extend(result)
 
@@ -470,7 +456,9 @@ def search(text, start=0, limit=20, doctype=""):
 				try:
 					meta = frappe.get_meta(r.doctype)
 					if meta.image_field:
-						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+						r.image = frappe.db.get_value(
+							r.doctype, r.name, meta.image_field
+						)
 				except Exception:
 					frappe.clear_messages()
 

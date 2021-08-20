@@ -51,7 +51,7 @@ $('body').on('click', 'a', function(e) {
 		return override('/app');
 	}
 
-	if (href.startsWith('#')) {
+	if (href && href.startsWith('#')) {
 		// target startswith "#", this is a v1 style route, so remake it.
 		return override(e.currentTarget.hash);
 	}
@@ -118,6 +118,7 @@ frappe.router = {
 
 	convert_to_standard_route(route) {
 		// /app/settings = ["Workspaces", "Settings"]
+		// /app/private/settings = ["Workspaces", "private", "Settings"]
 		// /app/user = ["List", "User"]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
@@ -126,14 +127,22 @@ frappe.router = {
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 
 		if (frappe.workspaces[route[0]]) {
-			// workspace
-			route = ['Workspaces', frappe.workspaces[route[0]].name];
+			// public workspace
+			route = ['Workspaces', frappe.workspaces[route[0]].title];
+		} else if (frappe.workspaces[route[1]]) {
+			// private workspace
+			route = ['Workspaces', 'private', frappe.workspaces[route[1]].title];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = this.set_doctype_route(route);
 		}
 
 		return route;
+	},
+
+	doctype_route_exist(route) {
+		route = this.get_sub_path_string(route).split('/');
+		return this.routes[route[0]];
 	},
 
 	set_doctype_route(route) {
@@ -169,10 +178,8 @@ frappe.router = {
 			standard_route = ['Tree', doctype_route.doctype];
 		} else {
 			standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
-			if (route[3]) {
-				// calendar / kanban / dashboard / folder name
-				standard_route.push([...route].splice(3, route.length));
-			}
+			// calendar / kanban / dashboard / folder
+			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}
 		return standard_route;
 	},
@@ -251,7 +258,7 @@ frappe.router = {
 		// example 1: frappe.set_route('a', 'b', 'c');
 		// example 2: frappe.set_route(['a', 'b', 'c']);
 		// example 3: frappe.set_route('a/b/c');
-		let route = arguments;
+		let route = Array.from(arguments);
 
 		return new Promise(resolve => {
 			route = this.get_route_from_arguments(route);
@@ -303,7 +310,7 @@ frappe.router = {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
 				// calendar / inbox / file folder
-				if (route[3]) new_route.push([...route].slice(3, route.length));
+				if (route[3]) new_route.push(...route.slice(3, route.length));
 			} else {
 				if ($.isPlainObject(route[2])) {
 					frappe.route_options = route[2];
