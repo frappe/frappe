@@ -571,9 +571,3 @@ class TestFileUtils(unittest.TestCase):
 		from frappe.core.doctype.file.file import create_new_folder
 		folder = create_new_folder('test_folder', 'Home')
 		self.assertTrue(folder.is_folder)
-
-# def get_files_by_search_text(text):
-# def optimize_saved_image(doc_name):
-# def download_file(file_url):
-# def remove_file_by_url(file_url, doctype=None, name=None):
-# def on_doctype_update():
