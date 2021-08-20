@@ -8,7 +8,7 @@ from frappe import _
 
 class TestTranslation(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql('delete from tabTranslation')
+		frappe.db.delete("Translation")
 
 	def tearDown(self):
 		frappe.local.lang = 'en'
