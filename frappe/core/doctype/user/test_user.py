@@ -6,12 +6,16 @@ from __future__ import unicode_literals
 import frappe, unittest, uuid
 =======
 import frappe, unittest
+<<<<<<< HEAD
 >>>>>>> f6a757be50 (test: Add test case for user rename)
+=======
+import json
+>>>>>>> 6f72e79f1a (test: Add more assertions for reset password)
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import (test_password_strength,
-	extract_mentions, sign_up, update_password, verify_password)
+	extract_mentions, sign_up, update_password, verify_password, reset_password)
 from frappe.frappeclient import FrappeClient
 
 from unittest.mock import patch
@@ -353,6 +357,30 @@ class TestUser(unittest.TestCase):
 		# reset password
 		update_password(old_password, old_password=new_password)
 
+		# test API endpoint
+		with patch.object(user_module.frappe, 'sendmail') as sendmail:
+			frappe.clear_messages()
+			test_user = frappe.get_doc("User", "test2@example.com")
+			self.assertEqual(reset_password(user="test2@example.com"), None)
+			test_user.reload()
+			self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/")
+			update_password(old_password, old_password=new_password)
+			self.assertEqual(json.loads(frappe.message_log[0]), {"message": "Password reset instructions have been sent to your email"})
+		sendmail.assert_called_once()
+		self.assertEqual(sendmail.call_args[1]["recipients"], "test2@example.com")
+
+		self.assertEqual(reset_password(user="test2@example.com"), None)
+		self.assertEqual(reset_password(user="Administrator"), "not allowed")
+		self.assertEqual(reset_password(user="random"), "not found")
+
+	def test_user_onload_modules(self):
+		from frappe.desk.form.load import getdoc
+		from frappe.config import get_modules_from_all_apps
+		frappe.response.docs = []
+		getdoc("User", "Administrator")
+		doc = frappe.response.docs[0]
+		self.assertListEqual(doc.get("__onload").get('all_modules', []),
+			[m.get("module_name") for m in get_modules_from_all_apps()])
 
 
 	def test_password_verification(self):
