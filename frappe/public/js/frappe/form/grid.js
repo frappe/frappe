@@ -502,7 +502,7 @@ export default class Grid {
 			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
-		this.debounced_refresh();
+		this.refresh(true);
 	}
 
 	set_editable_grid_column_disp(fieldname, show) {
@@ -546,17 +546,17 @@ export default class Grid {
 
 	toggle_reqd(fieldname, reqd) {
 		this.get_docfield(fieldname).reqd = reqd;
-		this.debounced_refresh();
+		this.refresh();
 	}
 
 	toggle_enable(fieldname, enable) {
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;
-		this.debounced_refresh();
+		this.refresh();
 	}
 
 	toggle_display(fieldname, show) {
 		this.get_docfield(fieldname).hidden = show ? 0 : 1;
-		this.debounced_refresh();
+		this.refresh();
 	}
 
 	toggle_checkboxes(enable) {
