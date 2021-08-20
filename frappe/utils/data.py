@@ -7,6 +7,7 @@ import frappe
 from dateutil.parser._parser import ParserError
 import operator
 import re, datetime, math, time
+<<<<<<< HEAD
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -16,6 +17,12 @@ from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
 from markdown2 import markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
+=======
+from code import compile_command
+from urllib.parse import quote, urljoin
+from frappe.desk.utils import slug
+from click import secho
+>>>>>>> a2cb9be7a4 (feat: frappe.utils.data.cast)
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -327,8 +334,41 @@ def has_common(l1, l2):
 	return set(l1) & set(l2)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 def cast_fieldtype(fieldtype, value=None):
+=======
+def cast_fieldtype(fieldtype, value):
+	# TODO: Add DeprecationWarning for this util
+	message = (
+		"Function `frappe.utils.data.cast` has been deprecated in favour"
+		" of `frappe.utils.data.cast`. Use the newer util for safer type casting. "
+	)
+	secho(message, fg="yellow")
+
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		value = getdate(value)
+
+	elif fieldtype == "Datetime":
+		value = get_datetime(value)
+
+	elif fieldtype == "Time":
+		value = to_timedelta(value)
+
+	return value
+
+def cast(fieldtype, value=None):
+>>>>>>> a2cb9be7a4 (feat: frappe.utils.data.cast)
 	"""Cast the value to the Python native object of the Frappe fieldtype provided.
 	If value is None, the first/lowest value of the `fieldtype` will be returned.
 
@@ -949,6 +989,11 @@ def evaluate_filters(doc, filters):
 
 def compare(val1, condition, val2):
 	ret = False
+<<<<<<< HEAD
+=======
+	if fieldtype:
+		val2 = cast(fieldtype, val2)
+>>>>>>> a2cb9be7a4 (feat: frappe.utils.data.cast)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
 
