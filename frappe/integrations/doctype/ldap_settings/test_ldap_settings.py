@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # See license.txt
-<<<<<<< HEAD
-from __future__ import unicode_literals
-
-# import frappe
-=======
 import frappe
->>>>>>> 172d1b31e8 (test: LDAP unit-tests)
 import unittest
 import functools
 import ldap3
