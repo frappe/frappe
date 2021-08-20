@@ -557,7 +557,10 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		val = cast_fieldtype(df.fieldtype, val)
+		# cast only if value is "set" or is truthy?
+		# cast_fieldtype returns currnt TS value for Datetime, Date fields
+		if val:
+			val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
