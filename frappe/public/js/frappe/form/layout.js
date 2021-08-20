@@ -260,7 +260,7 @@ frappe.ui.form.Layout = class Layout {
 
 	is_numeric_field_active() {
 		const control = $(document.activeElement).closest(".frappe-control");
-		const fieldtype = control.data().fieldtype;
+		const fieldtype = (control.data() || {}).fieldtype;
 		return frappe.model.numeric_fieldtypes.includes(fieldtype);
 	}
 
