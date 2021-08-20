@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 <<<<<<< HEAD
+<<<<<<< HEAD
 from __future__ import unicode_literals
 
 import frappe, unittest, uuid
@@ -11,15 +12,19 @@ import frappe, unittest
 =======
 import json
 >>>>>>> 6f72e79f1a (test: Add more assertions for reset password)
+=======
+import json
+import unittest
+from unittest.mock import patch
+>>>>>>> 5587ab5a91 (style: Fix liinter warnings)
 
+import frappe
+import frappe.exceptions
+from frappe.core.doctype.user.user import (extract_mentions, reset_password,
+	sign_up, test_password_strength, update_password, verify_password)
+from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.utils import get_url
-from frappe.core.doctype.user.user import (test_password_strength,
-	extract_mentions, sign_up, update_password, verify_password, reset_password)
-from frappe.frappeclient import FrappeClient
-
-from unittest.mock import patch
-import frappe.exceptions
 
 user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records('User')
@@ -314,9 +319,8 @@ class TestUser(unittest.TestCase):
 
 
 	def test_reset_password(self):
+		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
-		from frappe.auth import CookieManager
-		from frappe.auth import LoginManager
 		old_password = "Eastern_43A1W"
 		new_password = "easy_password"
 
@@ -374,8 +378,8 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(reset_password(user="random"), "not found")
 
 	def test_user_onload_modules(self):
-		from frappe.desk.form.load import getdoc
 		from frappe.config import get_modules_from_all_apps
+		from frappe.desk.form.load import getdoc
 		frappe.response.docs = []
 		getdoc("User", "Administrator")
 		doc = frappe.response.docs[0]

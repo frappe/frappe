@@ -326,7 +326,7 @@ class File(Document):
 
 	def unzip(self):
 		'''Unzip current file and replace it by its children'''
-		if not ".zip" in self.file_url:
+		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
 
 		zip_path = self.get_full_path()
