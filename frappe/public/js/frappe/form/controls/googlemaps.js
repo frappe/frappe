@@ -1,18 +1,27 @@
 frappe.provide('frappe.utils.utils');
 let marker;
 let i;
+let z;
+let default_icon_url = "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png";
 
 frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 	horizontal: false,
 
 	format_for_input(value) {
+		this.get_google_icons()
+            .then(() => {
+                this.render_map(value)
+            });
+	},
+
+	render_map(value) {
 		var bounds = new google.maps.LatLngBounds();
 
 		if (value) {
 			this.objValue;
 			this.objValue = JSON.parse(value);
-			var icon = {
-				url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
+			var default_icon = {
+				url: default_icon_url,
 				scaledSize: new google.maps.Size(20, 20)
 			};
 
@@ -27,33 +36,42 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			if (points.length > 0) {
 				let map = new google.maps.Map(document.getElementById("map"), {
 					zoom: 10,
-					// center: { lat: center[1], lng: center[0] },
 					mapTypeId: "terrain",
 				});
 
+				map.setOptions({
+					maxZoom: 15
+				})
+
 				for (i = 0; i < points.length; i++) {
-					if (points[i].properties.icon) {
-						icon = points[i].properties.icon;
+					for (z = 0; z < this.icons.length; z++) {
+						if (points[i].properties.icon === this.icons[z].name1) {
+							this.icon_url = this.icons[z].icon_image;
+						} else {
+							this.icon_url = default_icon_url;
+						}
 					}
+
+					const icon = {
+						url: this.icon_url,
+						scaledSize: new google.maps.Size(15, 15)
+					};
 
 					var marker = new google.maps.Marker({
 						position: new google.maps.LatLng(points[i].geometry.coordinates[1], points[i].geometry.coordinates[0]),
 						map: map,
 						icon: icon
 					});
+
+					var infowindow = new google.maps.InfoWindow();
+					var markerLabel = points[i].properties.name;
+					google.maps.event.addListener(marker,'click', (function(marker,markerLabel,infowindow){ 
+						return function() {
+							infowindow.setContent(markerLabel);
+							infowindow.open(map,marker);
+						};
+					})(marker,markerLabel,infowindow)); 
 					bounds.extend(marker.position);
-
-					// if (points[i].properties.name) {
-					// 	google.maps.event.addListener(marker, 'click', (function(marker, i) {
-					// 		return function() {
-					// 		  infowindow.setContent(points[i].properties.name);
-					// 		  infowindow.open(map, marker);
-					// 		}
-					// 	})(marker, i));
-					// }
-
-
-
 				}
 				map.fitBounds(bounds);
 
@@ -88,7 +106,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 					  ],
 					},
 					markerOptions: {
-					  icon: icon,
+					  icon: default_icon_url,
 					},
 					circleOptions: {
 						fillColor: "rgb(51, 136, 255)",
@@ -248,7 +266,21 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 				}
 			});
 		}
+
 	},
+
+	get_google_icons() {
+        return frappe.call({
+            method: 'frappe.geo.utils.get_google_icons',
+            args: {
+                doctype: "Digital Asset",
+                filters: 'googlemaps',
+                type: 'googlemaps_icons'
+            }
+        }).then(r => {
+            this.icons = r.message;
+        });
+    },
 
 	custom_control(controlDiv, map) {
 
@@ -262,7 +294,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		controlUI.style.marginLeft = '-6px';
 		controlUI.style.cursor = 'pointer';
 		controlUI.style.textAlign = 'center';
-		controlUI.title = 'Click to set the map to Home';
+		controlUI.title = 'Click to clear map drawer';
 		controlDiv.appendChild(controlUI);
 
 		// Set CSS for the control interior
@@ -273,7 +305,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		controlText.style.paddingRight = '4px';
 		controlText.style.paddingTop = '7px';
 		controlText.style.paddingBottom = '7px';
-		controlText.innerHTML = '<img src="https://icons-for-free.com/iconfiles/png/512/delete+remove+trash+trash+bin+trash+can+icon-1320073117929397588.png" width="14">';
+		controlText.innerHTML = '<img src="https://cdn3.iconfinder.com/data/icons/linecons-free-vector-icons-pack/32/trash-512.png" width="14">';
 		controlUI.appendChild(controlText);
 
 		// Setup the click event listeners

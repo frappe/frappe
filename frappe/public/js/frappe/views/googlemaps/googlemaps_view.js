@@ -115,6 +115,7 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
     }
 
     get_google_icons() {
+        debugger;
         let get_google_icons_method = this.settings && this.settings.get_google_icons_method || 'frappe.geo.utils.get_google_icons';
 
         if (cur_list.meta.fields.find(i => i.fieldtype === 'Googlemaps')) {
