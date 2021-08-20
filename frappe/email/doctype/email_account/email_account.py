@@ -725,6 +725,7 @@ def get_max_email_uid(email_account):
 def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing):
 	""" setup email inbox for user """
 	from frappe.core.doctype.user.user import ask_pass_update
+
 	def add_user_email(user):
 		user = frappe.get_doc("User", user)
 		row = user.append("user_emails", {})
@@ -736,11 +737,11 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 
 		user.save(ignore_permissions=True)
 
-	udpate_user_email_settings = False
+	update_user_email_settings = False
 	if not all([email_account, email_id]):
 		return
 
-	user_names = frappe.db.get_values("User", { "email": email_id }, as_dict=True)
+	user_names = frappe.db.get_values("User", {"email": email_id}, as_dict=True)
 	if not user_names:
 		return
 
@@ -757,9 +758,9 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 			add_user_email(user_name)
 		else:
 			# update awaiting password for email account
-			udpate_user_email_settings = True
+			update_user_email_settings = True
 
-	if udpate_user_email_settings:
+	if update_user_email_settings:
 		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s,
 			enable_outgoing = %(enable_outgoing)s WHERE email_account = %(email_account)s""", {
 				"email_account": email_account,
@@ -782,8 +783,8 @@ def remove_user_email_inbox(email_account):
 
 	for user in users:
 		doc = frappe.get_doc("User", user.get("name"))
-		to_remove = [ row for row in doc.user_emails if row.email_account == email_account ]
-		[ doc.remove(row) for row in to_remove ]
+		to_remove = [row for row in doc.user_emails if row.email_account == email_account]
+		[doc.remove(row) for row in to_remove]
 
 		doc.save(ignore_permissions=True)
 
