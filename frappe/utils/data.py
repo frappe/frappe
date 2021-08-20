@@ -326,6 +326,47 @@ def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
 	return set(l1) & set(l2)
 
+<<<<<<< HEAD
+=======
+def cast_fieldtype(fieldtype, value=None):
+	"""Cast the value to the Python native object of the Frappe fieldtype provided.
+	If value is None, the first/lowest value of the `fieldtype` will be returned.
+
+	Mapping of Python types => Frappe types:
+		* float => ("Currency", "Float", "Percent")
+		* int => ("Int", "Check")
+		* datetime.datetime => ("Datetime",)
+		* datetime.date => ("Date",)
+		* datetime.time => ("Time",)
+	"""
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		if value is None:
+			value = datetime.datetime(1, 1, 1).date()
+		value = getdate(value)
+
+	elif fieldtype == "Datetime":
+		if value is None:
+			value = datetime.datetime(1, 1, 1)
+		value = get_datetime(value)
+
+	elif fieldtype == "Time":
+		if value is None:
+			value = "0:0:0"
+		value = to_timedelta(value)
+
+	return value
+
+>>>>>>> cb034e4c52 (fix: Consistent return types in cast_fieldtype)
 def flt(s, precision=None):
 	"""Convert to float (ignore commas)"""
 	if isinstance(s, string_types):
