@@ -116,7 +116,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 				me.parent_doctype : me.doctype;
 			
 			// show fields where user has read access and if report hide flag is not set
-			if(frappe.perm.has_perm(doctype, df.permlevel, "read"))
+			if (frappe.perm.has_perm(doctype, df.permlevel, "read"))
 				me.add_field_option(df);
 		});
 
@@ -136,7 +136,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 						me.parent_doctype : me.doctype;
 					
 					// show fields where user has read access and if report hide flag is not set
-					if(frappe.perm.has_perm(doctype, df.permlevel, "read"))
+					if (frappe.perm.has_perm(doctype, df.permlevel, "read"))
 						me.add_field_option(df);
 				});
 			}

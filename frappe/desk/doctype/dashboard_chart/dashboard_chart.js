@@ -512,7 +512,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					},
 					fields: ['parent']
 				});
-				parent && frm.set_query('parent_document_type', function(doc) {
+				parent && frm.set_query('parent_document_type', function() {
 					return {
 						filters: {
 							"name": ['in', parent.map(({ parent }) => parent)]
