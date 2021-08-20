@@ -252,15 +252,23 @@ frappe.ui.form.Layout = Class.extend({
 		}
 
 		if (document.activeElement) {
-			document.activeElement.focus();
-	
-			if (document.activeElement.tagName == 'INPUT') {
+			if (document.activeElement.tagName == 'INPUT' && this.is_numeric_field_active()) {
 				document.activeElement.select();
 			}
 		}
 	},
 
+<<<<<<< HEAD
 	refresh_sections: function() {
+=======
+	is_numeric_field_active() {
+		const control = $(document.activeElement).closest(".frappe-control")
+		const fieldtype = control.data().fieldtype;
+		return frappe.model.numeric_fieldtypes.includes(fieldtype)
+	}
+
+	refresh_sections() {
+>>>>>>> 228253289f (fix: Only select active numeric field after layout refresh)
 		// hide invisible sections
 		this.wrapper.find(".form-section:not(.hide-control)").each(function() {
 			const section = $(this).removeClass("empty-section visible-section");
