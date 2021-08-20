@@ -262,9 +262,9 @@ frappe.ui.form.Layout = Class.extend({
 	refresh_sections: function() {
 =======
 	is_numeric_field_active() {
-		const control = $(document.activeElement).closest(".frappe-control")
+		const control = $(document.activeElement).closest(".frappe-control");
 		const fieldtype = control.data().fieldtype;
-		return frappe.model.numeric_fieldtypes.includes(fieldtype)
+		return frappe.model.numeric_fieldtypes.includes(fieldtype);
 	}
 
 	refresh_sections() {
