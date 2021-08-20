@@ -13,8 +13,8 @@ context('Dashboard links', () => {
 
 		//Adding a new contact
 		cy.get('.btn[data-doctype="Contact"]').click();
-		cy.get('.has-error > .form-group > .control-input-wrapper > .control-input > .input-with-feedback').type('Admin');
-		cy.get('#page-Contact > .page-head > .container > .row > .col > .standard-actions > .primary-action').click();
+		cy.get('[data-doctype="Contact"][data-fieldname="first_name"]').type('Admin');
+		cy.findByRole('button', {name: 'Save'}).click();
 		cy.visit('/app/user');
 		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
 
@@ -25,14 +25,14 @@ context('Dashboard links', () => {
 		//Deleting the newly created contact
 		cy.visit('/app/contact');
 		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
-		cy.get('.actions-btn-group > .btn').contains('Actions').click();
-		cy.get('.actions-btn-group > .dropdown-menu > li > .grey-link').eq(5).click();
-		cy.get('.modal-footer > .standard-actions > .btn-primary').contains('Yes').click({delay: 700});
+		cy.findByRole('button', {name: 'Actions'}).click();
+		cy.get('.actions-btn-group [data-label="Delete"]').click();
+		cy.findByRole('button', {name: 'Yes'}).click({delay: 700});
 
 
 		//To check if the counter from the "Contact" doc link is removed
-		cy.visit('/app/user');
 		cy.wait(700);
+		cy.visit('/app/user');
 		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 	});
