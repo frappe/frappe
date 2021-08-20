@@ -486,8 +486,13 @@ frappe.db.connect()
 
 
 @click.command('console')
+@click.option(
+	'--autoreload',
+	is_flag=True,
+	help="Reload changes to code automatically"
+)
 @pass_context
-def console(context):
+def console(context, autoreload=False):
 	"Start ipython console for a site"
 	site = get_site(context)
 	frappe.init(site=site)
@@ -497,7 +502,7 @@ def console(context):
 	from IPython.terminal.embed import InteractiveShellEmbed
 
 	terminal = InteractiveShellEmbed()
-	if frappe.conf.developer_mode:
+	if autoreload:
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")
 
