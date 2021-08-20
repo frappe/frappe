@@ -19,6 +19,12 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger('show_filters');
 	},
 
+	onload: function(frm) {
+		if (frm.doc.parent_document_type) {
+			frm.set_df_property('parent_document_type', 'hidden', false);
+		}
+	},
+
 	refresh: function(frm) {
 		frm.chart_filters = null;
 		frm.is_disabled = !frappe.boot.developer_mode && frm.doc.is_standard;
@@ -110,9 +116,11 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('source', '');
 		frm.set_value('based_on', '');
 		frm.set_value('value_based_on', '');
+		frm.set_value('parent_document_type', '');
 		frm.set_value('filters_json', '[]');
 		frm.set_value('dynamic_filters_json', '[]');
 		frm.trigger('update_options');
+		frm.trigger('set_parent_document_type');
 	},
 
 	report_name: function(frm) {
@@ -148,6 +156,10 @@ frappe.ui.form.on('Dashboard Chart', {
 		}
 	},
 
+	use_report_chart: function(frm) {
+		!frm.doc.use_report_chart && frm.trigger('set_chart_field_options');
+	},
+
 	set_chart_field_options: function(frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
 		if (frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2) {
@@ -179,6 +191,9 @@ frappe.ui.form.on('Dashboard Chart', {
 				} else {
 					frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
 				}
+			} else {
+				frm.set_value('use_report_chart', 1);
+				frm.set_df_property('use_report_chart', 'hidden', false);
 			}
 		});
 	},
@@ -365,6 +380,7 @@ frappe.ui.form.on('Dashboard Chart', {
 				frm.filter_group = new frappe.ui.FilterGroup({
 					parent: dialog.get_field('filter_area').$wrapper,
 					doctype: frm.doc.document_type,
+					parent_doctype: frm.doc.parent_document_type,
 					on_change: () => {},
 				});
 
@@ -480,6 +496,34 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 
 			frm.dynamic_filter_table.find('tbody').html(filter_rows);
+		}
+	},
+
+	set_parent_document_type: async function(frm) {
+		let document_type = frm.doc.document_type;
+		if (document_type) {
+			let doc = await frappe.db.get_doc('DocType', document_type);
+			if (doc.istable) {
+				frm.set_df_property('parent_document_type', 'hidden', false);
+				let parent = await frappe.db.get_list('DocField', {
+					filters: {
+						'fieldtype': 'Table',
+						'options': document_type
+					},
+					fields: ['parent']
+				});
+				parent && frm.set_query('parent_document_type', function(doc) {
+					return {
+						filters: {
+							"name": ['in', parent.map(({ parent }) => parent)]
+						}
+					};
+				});
+			} else {
+				frm.set_df_property('parent_document_type', 'hidden', true);
+			}
+		} else {
+			frm.set_df_property('parent_document_type', 'hidden', true);
 		}
 	}
 
