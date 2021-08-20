@@ -567,7 +567,7 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	('Data', 'Select'),
 	('Text', 'Small Text'),
 	('Text', 'Data', 'Barcode'),
-	('Code', 'Geolocation'),
+	('Code', 'Geolocation', 'Googlemaps'),
 	('Table', 'Table MultiSelect'))
 
 ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')

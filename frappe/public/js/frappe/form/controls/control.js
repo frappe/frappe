@@ -32,6 +32,7 @@ import './heading';
 import './autocomplete';
 import './barcode';
 import './geolocation';
+import './googlemaps';
 import './multiselect';
 import './multicheck';
 import './table_multiselect';
