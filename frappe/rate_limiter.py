@@ -105,7 +105,7 @@ def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
 			if methods != 'ALL' and frappe.request.method.upper() not in methods:
-				return frappe.call(fun, **frappe.form_dict)
+				return frappe.call(fun, **frappe.form_dict or kwargs)
 
 			_limit = limit() if callable(limit) else limit
 
@@ -120,6 +120,6 @@ def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60
 			if value > _limit:
 				frappe.throw(_("You hit the rate limit because of too many requests. Please try after sometime."))
 
-			return frappe.call(fun, **frappe.form_dict)
+			return frappe.call(fun, **frappe.form_dict or kwargs)
 		return wrapper
 	return ratelimit_decorator
