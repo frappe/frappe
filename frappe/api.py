@@ -83,7 +83,7 @@ def handle():
 				if frappe.local.request.method=="PUT":
 					data = get_request_form_data()
 
-					doc = frappe.get_doc(doctype, name)
+					doc = frappe.get_doc(doctype, name, for_update=True)
 
 					if "flags" in data:
 						del data["flags"]
