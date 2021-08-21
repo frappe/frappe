@@ -34,7 +34,7 @@
 				</button>
 				<button
 					v-if="df.fieldtype == 'Table'"
-					class="btn btn-xs"
+					class="btn btn-xs btn-default"
 					@click="configure_columns"
 				>
 					Configure columns
@@ -52,7 +52,8 @@
 			:style="{ opacity: 1 }"
 		>
 			<div
-				:class="`col-${tf.width} table-column`"
+				class="table-column"
+				:style="{ width: tf.width + '%' }"
 				v-for="(tf, i) in df.table_columns"
 				:key="tf.fieldname"
 			>
@@ -188,9 +189,9 @@ export default {
 			let standard_columns = {
 				idx: {
 					label: __("Sr No."),
-					fieldname: "Data",
+					fieldtype: "Data",
 					fieldname: "idx",
-					width: 1
+					width: 10
 				}
 			};
 
@@ -200,20 +201,20 @@ export default {
 
 			return {
 				...frappe.meta.get_docfield(this.df.options, fieldname),
-				width: 1
+				width: 10
 			};
 		},
 		validate_table_columns() {
 			if (this.df.fieldtype != "Table") return;
 
 			let columns = this.df.table_columns;
-			let total_columns = 0;
+			let total_width = 0;
 			for (let column of columns) {
 				if (!column.width) {
-					column.width = 1;
+					column.width = 10;
 				}
-				total_columns += column.width;
-				if (total_columns > 12) {
+				total_width += column.width;
+				if (total_width > 100) {
 					column.invalid_width = true;
 				} else {
 					column.invalid_width = false;
@@ -307,6 +308,7 @@ export default {
 	font-size: var(--text-sm);
 	user-select: none;
 	white-space: nowrap;
+	overflow: hidden;
 }
 
 .column-resize {

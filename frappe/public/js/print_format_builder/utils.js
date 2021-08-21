@@ -82,24 +82,28 @@ export function create_default_layout(meta) {
 export function get_table_columns(df) {
 	let table_columns = [];
 	let table_fields = frappe.get_meta(df.options).fields;
-	let total_columns = 0;
+	let total_width = 0;
 	for (let tf of table_fields) {
 		if (
 			!in_list(["Section Break", "Column Break"], tf.fieldtype) &&
 			!tf.print_hide &&
 			df.label &&
-			total_columns < 12
+			total_width < 100
 		) {
-			let columns =
-				typeof tf.width == "number" && tf.width < 12 ? tf.width : 2;
+			let width =
+				typeof tf.width == "number" && tf.width < 100
+					? tf.width
+					: tf.width
+						? 20
+						: 10;
 			table_columns.push({
 				label: tf.label,
 				fieldname: tf.fieldname,
 				fieldtype: tf.fieldtype,
 				options: tf.options,
-				width: columns
+				width
 			});
-			total_columns += columns;
+			total_width += width;
 		}
 	}
 	return table_columns;
