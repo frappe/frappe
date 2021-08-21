@@ -29,6 +29,7 @@
   "absolute_value",
   "column_break_11",
   "font",
+  "font_size",
   "css_section",
   "css",
   "custom_html_help",
@@ -240,13 +241,19 @@
    "fieldname": "margin_right",
    "fieldtype": "Float",
    "label": "Margin Right"
+  },
+  {
+   "default": "14",
+   "fieldname": "font_size",
+   "fieldtype": "Int",
+   "label": "Font Size"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-07-11 11:53:52.028982",
+ "modified": "2021-08-15 22:55:13.548182",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

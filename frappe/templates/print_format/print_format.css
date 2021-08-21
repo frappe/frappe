@@ -1,0 +1,62 @@
+@page {
+	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
+	margin-top: {{ print_format.margin_top | int }}mm;
+	margin-bottom: {{ print_format.margin_bottom | int }}mm;
+	margin-left: {{ print_format.margin_left | int }}mm;
+	margin-right: {{ print_format.margin_right | int }}mm;
+}
+
+body {
+	font-size: {{ print_format.font_size }}px;
+	min-width: {{ body_width | int }}mm !important;
+	max-width: {{ body_width | int }}mm !important;
+}
+
+@media screen {
+	html {
+		background-color: var(--gray-300);
+	}
+	body {
+		background-color: white;
+		box-shadow: var(--shadow-md);
+		margin: 2rem auto;
+		min-height: 297mm;
+		min-width: {{ body_width | int }}mm !important;
+		max-width: {{ body_width | int }}mm !important;
+		padding-top: {{ print_format.margin_top | int }}mm;
+		padding-right: {{ print_format.margin_right | int }}mm;
+		padding-left: {{ print_format.margin_left | int }}mm;
+		padding-bottom: {{ print_format.margin_bottom | int }}mm;
+	}
+}
+
+.section:not(:first-child) {
+	margin-top: 1rem;
+}
+
+.section-label {
+	font-size: var(--text-lg);
+	font-weight: 600;
+}
+
+.field + .field {
+	margin-top: 0.5rem;
+}
+
+.field .label {
+	font-weight: bold;
+}
+
+.child-table [data-fieldtype="Currency"] {
+	text-align: right;
+}
+
+.table-row td, .table-row th {
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: var(--gray-300);
+}
+
+.page-break {
+	page-break-after: always;
+}

@@ -259,7 +259,7 @@ frappe.ui.form.PrintView = class {
 					default: print_format.name || 'Standard',
 				},
 				{
-					label: __('Use the new Print Format Builder Beta'),
+					label: __('Use the new Print Format Builder'),
 					fieldname: 'beta',
 					fieldtype: 'Check'
 				},
