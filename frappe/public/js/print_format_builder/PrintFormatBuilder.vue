@@ -4,13 +4,17 @@
 			<PrintFormatControls />
 		</div>
 		<div class="print-format-container col-9">
-			<PrintFormat />
+			<keep-alive>
+				<Preview v-if="show_preview" />
+				<PrintFormat v-else />
+			</keep-alive>
 		</div>
 	</div>
 </template>
 
 <script>
 import PrintFormat from "./PrintFormat.vue";
+import Preview from "./Preview.vue";
 import PrintFormatControls from "./PrintFormatControls.vue";
 import { getStore } from "./store";
 
@@ -19,7 +23,13 @@ export default {
 	props: ["print_format_name"],
 	components: {
 		PrintFormat,
-		PrintFormatControls
+		PrintFormatControls,
+		Preview
+	},
+	data() {
+		return {
+			show_preview: false
+		};
 	},
 	provide() {
 		return {
@@ -28,6 +38,11 @@ export default {
 	},
 	mounted() {
 		this.$store.fetch();
+	},
+	methods: {
+		toggle_preview() {
+			this.show_preview = !this.show_preview;
+		}
 	},
 	computed: {
 		$store() {
