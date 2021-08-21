@@ -20,6 +20,7 @@
 	<a href="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml">
 		<img src="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml/badge.svg?branch=develop">
 	</a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Ffrappe%2Ffrappe?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffrappe%2Ffrappe.svg?type=shield"/></a>
 	<a href='https://frappeframework.com/docs'>
 		<img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
 	</a>
@@ -57,3 +58,6 @@ For details and documentation, see the website
 
 ### License
 This repository has been released under the [MIT License](LICENSE).
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffrappe%2Ffrappe.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffrappe%2Ffrappe?ref=badge_large)
