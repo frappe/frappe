@@ -72,7 +72,7 @@ export default {
 			if (value < 0) {
 				value = 0;
 			}
-			this.$emit("update", { fieldname, value });
+			this.$store.print_format[fieldname] = value;
 		},
 		clone_field(df) {
 			let cloned = pluck(df, [
@@ -80,9 +80,11 @@ export default {
 				"fieldname",
 				"fieldtype",
 				"options",
-				"table_columns"
+				"table_columns",
+				"html"
 			]);
-			if (cloned.fieldname == "custom_html") {
+			if (cloned.custom) {
+				// generate unique fieldnames for custom blocks
 				cloned.fieldname += "_" + frappe.utils.get_random(8);
 			}
 			return cloned;
@@ -133,7 +135,8 @@ export default {
 					label: __("Custom HTML"),
 					fieldname: "custom_html",
 					fieldtype: "HTML",
-					html: ""
+					html: "",
+					custom: 1
 				},
 				{
 					label: __("ID (name)"),

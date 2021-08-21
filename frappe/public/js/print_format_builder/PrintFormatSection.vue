@@ -1,61 +1,82 @@
 <template>
-	<div class="print-format-section" v-if="!section.remove">
-		<div class="section-header">
-			<input
-				class="input-section-label w-50"
-				type="text"
-				:placeholder="__('Section Title')"
-				v-model="section.label"
-			/>
-
-			<div class="dropdown">
-				<button
-					class="btn btn-xs btn-section dropdown-button"
-					data-toggle="dropdown"
-				>
-					<svg class="icon icon-sm">
-						<use xlink:href="#icon-dot-horizontal"></use>
-					</svg>
-				</button>
-				<div class="dropdown-menu dropdown-menu-right" role="menu">
+	<div class="print-format-section-container" v-if="!section.remove">
+		<div class="print-format-section">
+			<div class="section-header">
+				<input
+					class="input-section-label w-50"
+					type="text"
+					:placeholder="__('Section Title')"
+					v-model="section.label"
+				/>
+				<div class="dropdown">
 					<button
-						class="dropdown-item"
-						@click="add_column"
-						v-if="section.columns.length < 4"
+						class="btn btn-xs btn-section dropdown-button"
+						data-toggle="dropdown"
 					>
-						{{ __("Add column") }}
+						<svg class="icon icon-sm">
+							<use xlink:href="#icon-dot-horizontal"></use>
+						</svg>
 					</button>
-					<button
-						class="dropdown-item"
-						@click="remove_column"
-						v-if="section.columns.length > 1"
+					<div class="dropdown-menu dropdown-menu-right" role="menu">
+						<button class="dropdown-item" @click="$emit('add_section_above')">
+							{{ __("Add section above") }}
+						</button>
+						<button
+							class="dropdown-item"
+							@click="add_column"
+							v-if="section.columns.length < 4"
+						>
+							{{ __("Add column") }}
+						</button>
+						<button
+							class="dropdown-item"
+							@click="add_page_break"
+							v-if="!section.page_break"
+						>
+							{{ __("Add page break") }}
+						</button>
+						<button
+							class="dropdown-item"
+							@click="remove_page_break"
+							v-if="section.page_break"
+						>
+							{{ __("Remove page break") }}
+						</button>
+						<button
+							class="dropdown-item"
+							@click="remove_column"
+							v-if="section.columns.length > 1"
+						>
+							{{ __("Remove column") }}
+						</button>
+						<button
+							class="dropdown-item"
+							@click="$set(section, 'remove', true)"
+						>
+							{{ __("Remove section") }}
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="row section-columns">
+				<div class="column col" v-for="(column, i) in section.columns" :key="i">
+					<draggable
+						class="drag-container"
+						v-model="column.fields"
+						group="fields"
+						:animation="150"
 					>
-						{{ __("Remove column") }}
-					</button>
-					<button class="dropdown-item" @click="$emit('add_section_above')">
-						{{ __("Add section above") }}
-					</button>
-					<button class="dropdown-item" @click="$set(section, 'remove', true)">
-						{{ __("Remove section") }}
-					</button>
+						<Field
+							v-for="df in get_fields(column)"
+							:key="df.fieldname"
+							:df="df"
+						/>
+					</draggable>
 				</div>
 			</div>
 		</div>
-		<div class="row section-columns">
-			<div class="column col" v-for="(column, i) in section.columns" :key="i">
-				<draggable
-					class="drag-container"
-					v-model="column.fields"
-					group="fields"
-					:animation="150"
-				>
-					<Field
-						v-for="df in get_fields(column)"
-						:key="df.fieldname"
-						:df="df"
-					/>
-				</draggable>
-			</div>
+		<div class="my-4 text-muted text-center font-italic" v-if="section.page_break">
+			{{ __("Page Break") }}
 		</div>
 	</div>
 </template>
@@ -94,6 +115,12 @@ export default {
 
 			this.$set(this.section, "columns", columns);
 		},
+		add_page_break() {
+			this.$set(this.section, "page_break", true);
+		},
+		remove_page_break() {
+			this.$set(this.section, "page_break", false);
+		},
 		get_fields(column) {
 			return column.fields.filter(df => !df.remove);
 		}
@@ -102,6 +129,10 @@ export default {
 </script>
 
 <style scoped>
+.print-format-section-container:not(:last-child) {
+	margin-bottom: 1rem;
+}
+
 .print-format-section {
 	background-color: white;
 	border: 1px solid var(--dark-border-color);

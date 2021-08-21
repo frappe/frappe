@@ -71,7 +71,8 @@ export function getStore(print_format_name) {
 										"fieldname",
 										"fieldtype",
 										"options",
-										"table_columns"
+										"table_columns",
+										"html"
 									]);
 								});
 							return column;
