@@ -367,7 +367,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			!this.settings.hide_name_column &&
-			this.meta.title_field !== 'name'
+			this.meta.title_field !== "name" &&
+			this.meta.title_field !== undefined
 		) {
 			this.columns.push({
 				type: "Field",
@@ -377,6 +378,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 			});
 		}
+	
 	}
 
 	reorder_listview_fields() {
