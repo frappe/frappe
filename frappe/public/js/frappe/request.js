@@ -220,6 +220,11 @@ frappe.request.call = function(opts) {
 		cache: false
 	};
 
+	if (opts.type == 'POST' || opts.type == 'PUT' || opts.type == 'PATCH') {
+		ajax_args.data = JSON.stringify(opts.args);
+		ajax_args.contentType = "application/json; charset=utf-8";
+	}
+
 	if (opts.args && opts.args.doctype) {
 		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
