@@ -24,8 +24,10 @@ context('Control Select', () => {
 		cy.get('@control').get('.select-icon').should('exist');
 		cy.get('@control').get('.placeholder').should('have.css', 'display', 'block');
 		cy.get('@select').select('Option 1');
+		cy.findByDisplayValue('Option 1').should('exist');
 		cy.get('@control').get('.placeholder').should('have.css', 'display', 'none');
 		cy.get('@select').invoke('val', '');
+		cy.findByDisplayValue('Option 1').should('not.exist');
 		cy.get('@control').get('.placeholder').should('have.css', 'display', 'block');
 
 
