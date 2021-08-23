@@ -190,7 +190,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 	# delete from child tables
 	for t in list(set(tables)):
 		if t not in ignore_doctypes:
-			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (doctype, name))
+			frappe.db.delete(t, {"parenttype": doctype, "parent": name})
 
 def update_flags(doc, flags=None, ignore_permissions=False):
 	if ignore_permissions:
@@ -323,9 +323,10 @@ def delete_dynamic_links(doctype, name):
 
 def delete_references(doctype, reference_doctype, reference_name,
 		reference_doctype_field = 'reference_doctype', reference_name_field = 'reference_name'):
-	frappe.db.sql('''delete from `tab{0}`
-		where {1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field), # nosec
-		(reference_doctype, reference_name))
+	frappe.db.delete(doctype, {
+		reference_doctype_field: reference_doctype,
+		reference_name_field: reference_name
+	})
 
 def clear_references(doctype, reference_doctype, reference_name,
 		reference_doctype_field = 'reference_doctype', reference_name_field = 'reference_name'):

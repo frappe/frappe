@@ -14,7 +14,7 @@ context('Workspace 2.0', () => {
 
 	it('Create Private Page', () => {
 		cy.get('.codex-editor__redactor .ce-block');
-		cy.get('.custom-actions button[data-label="Create%20Page"]').click();
+		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field('title', 'Test Private Page', 'Data');
 		cy.fill_field('icon', 'edit', 'Icon');
 		cy.get_open_dialog().find('.modal-header').click();
@@ -29,7 +29,7 @@ context('Workspace 2.0', () => {
 
 		cy.wait(500);
 		cy.get('.codex-editor__redactor .ce-block');
-		cy.get('.standard-actions .btn-secondary[data-label=Customize]').click();
+		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 	});
 
 	it('Add New Block', () => {
@@ -77,7 +77,7 @@ context('Workspace 2.0', () => {
 
 	it('Delete Private Page', () => {
 		cy.get('.codex-editor__redactor .ce-block');
-		cy.get('.standard-actions .btn-secondary[data-label=Customize]').click();
+		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').find('.sidebar-item-control .delete-page').click();
 		cy.wait(300);
