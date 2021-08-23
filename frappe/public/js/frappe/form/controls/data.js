@@ -159,7 +159,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			}
 		};
 		this.$input.on("change", change_handler);
-		if (this.trigger_change_on_input_event) {
+		if (this.trigger_change_on_input_event && !this.in_grid()) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
@@ -262,5 +262,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	toggle_container_scroll: function(el_class, scroll_class, add=false) {
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
+	},
+	
+	in_grid() {
+		return this.grid || this.layout && this.layout.grid;
 	}
 });
