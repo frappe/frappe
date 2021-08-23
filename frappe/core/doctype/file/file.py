@@ -594,6 +594,31 @@ class File(Document):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith('/private'))
 
+	@frappe.whitelist()
+	def optimize_file(self):
+		if self.is_folder:
+			raise TypeError('Folders cannot be optimized')
+
+		content_type = mimetypes.guess_type(self.file_name)[0]
+		is_local_image = content_type.startswith('image/') and self.file_size > 0
+		is_svg = content_type == 'image/svg+xml'
+		if is_local_image and not is_svg:
+			content = self.get_content()
+			optimized_content = optimize_image(content, content_type)
+
+			file_path = get_files_path(is_private=self.is_private)
+			file_path = os.path.join(file_path.encode('utf-8'), self.file_name.encode('utf-8'))
+			with open(file_path, 'wb+') as f:
+				f.write(optimized_content)
+
+			self.file_size = len(optimized_content)
+			self.content_hash = get_content_hash(optimized_content)
+			self.save()
+		elif is_svg:
+			raise TypeError('Optimization of SVG images is not supported')
+		else:
+			raise NotImplementedError('Only local image files can be optimized')
+
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
@@ -886,7 +911,7 @@ def extract_images_from_html(doc, content):
 		if b"," in content:
 			content = content.split(b",")[1]
 		content = base64.b64decode(content)
-		
+
 		content = optimize_image(content, mtype)
 
 		if "filename=" in headers:
@@ -943,19 +968,7 @@ def unzip_file(name):
 @frappe.whitelist()
 def optimize_saved_image(doc_name):
 	file_doc = frappe.get_doc('File', doc_name)
-	content = file_doc.get_content()
-	content_type = mimetypes.guess_type(file_doc.file_name)[0]
-
-	optimized_content = optimize_image(content, content_type)
-
-	file_path = get_files_path(is_private=file_doc.is_private)
-	file_path = os.path.join(file_path.encode('utf-8'), file_doc.file_name.encode('utf-8'))
-	with open(file_path, 'wb+') as f:
-		f.write(optimized_content)
-
-	file_doc.file_size = len(optimized_content)
-	file_doc.content_hash = get_content_hash(optimized_content)
-	file_doc.save()
+	file_doc.optimize_file()
 
 @frappe.whitelist()
 def get_attached_images(doctype, names):

@@ -393,7 +393,7 @@ def extract_images_from_html(doc, content):
 		if b"," in content:
 			content = content.split(b",")[1]
 		content = base64.b64decode(content)
-		
+
 		content = optimize_image(content, mtype)
 
 		if "filename=" in headers:

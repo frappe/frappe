@@ -567,7 +567,7 @@
 		<path d="M6.45466 8.81824L4.47873 10.7942C3.85205 11.4211 3.5 12.2713 3.5 13.1577C3.5 14.0442 3.85205 14.8943 4.47873 15.5213V15.5213C5.10568 16.148 5.95584 16.5 6.84229 16.5C7.72874 16.5 8.5789 16.148 9.20584 15.5213L11.1818 13.5453" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 	<symbol viewBox="0 0 24 24" fill="none" id="icon-scan" xmlns="http://www.w3.org/2000/svg">
-		<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" 
+		<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
 			stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
 	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-dashboard">
