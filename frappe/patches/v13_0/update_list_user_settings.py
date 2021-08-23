@@ -1,4 +1,5 @@
-import frappe, json
+import frappe
+import json
 from frappe.model.utils.user_settings import update_user_settings, sync_user_settings
 
 def execute():
