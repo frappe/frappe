@@ -303,7 +303,7 @@ def has_controller_permissions(doc, ptype, user=None):
 	if not methods:
 		return None
 
-	for method in methods:
+	for method in reversed(methods):
 		controller_permission = frappe.call(frappe.get_attr(method), doc=doc, ptype=ptype, user=user)
 		if controller_permission is not None:
 			return controller_permission
