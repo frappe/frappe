@@ -165,6 +165,7 @@ class Newsletter(WebsiteGenerator):
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
 		args = {"message": message, "name": self.name}
 
+		is_auto_commit_set = bool(frappe.db.auto_commit_on_many_writes)
 		frappe.db.auto_commit_on_many_writes = not frappe.flags.in_test
 
 		frappe.sendmail(
@@ -184,7 +185,7 @@ class Newsletter(WebsiteGenerator):
 			args=args,
 		)
 
-		frappe.db.auto_commit_on_many_writes = not frappe.flags.in_test
+		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
 
 	def get_message(self) -> str:
 		if self.content_type == "HTML":

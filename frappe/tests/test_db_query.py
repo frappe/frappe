@@ -105,7 +105,7 @@ class TestReportview(unittest.TestCase):
 
 	def test_between_filters(self):
 		""" test case to check between filter for date fields """
-		frappe.db.sql("delete from tabEvent")
+		frappe.db.delete("Event")
 
 		# create events to test the between operator filter
 		todays_event = create_event()
