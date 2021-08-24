@@ -13,8 +13,8 @@ class TestEnergyPointLog(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Log`')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Rule`')
+		frappe.db.delete("Energy Point Log")
+		frappe.db.delete("Energy Point Rule")
 		frappe.cache().delete_value('energy_point_rule_map')
 
 	def test_user_energy_point(self):

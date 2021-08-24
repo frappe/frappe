@@ -38,7 +38,7 @@ export default class Grid {
 
 		this.is_grid = true;
 		this.debounced_refresh = this.refresh.bind(this);
-		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 500);
+		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
 	}
 
 	allow_on_grid_editing() {
@@ -502,7 +502,7 @@ export default class Grid {
 			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
-		this.refresh(true);
+		this.debounced_refresh();
 	}
 
 	set_editable_grid_column_disp(fieldname, show) {
@@ -546,17 +546,17 @@ export default class Grid {
 
 	toggle_reqd(fieldname, reqd) {
 		this.get_docfield(fieldname).reqd = reqd;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_enable(fieldname, enable) {
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_display(fieldname, show) {
 		this.get_docfield(fieldname).hidden = show ? 0 : 1;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_checkboxes(enable) {

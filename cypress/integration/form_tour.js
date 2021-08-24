@@ -9,7 +9,7 @@ context('Form Tour', () => {
 
 	const open_test_form_tour = () => {
 		cy.visit('/app/form-tour/Test Form Tour');
-		cy.get('button[data-label="Show%20Tour"]').should('be.visible').and('contain', 'Show Tour').as('show_tour');
+		cy.findByRole('button', {name: 'Show Tour'}).should('be.visible').as('show_tour');
 		cy.get('@show_tour').click();
 		cy.wait(500);
 		cy.url().should('include', '/app/contact');
@@ -23,7 +23,7 @@ context('Form Tour', () => {
 		cy.get('#driver-popover-item').should('be.visible');
 		cy.get('.frappe-control[data-fieldname="first_name"]').as('first_name');
 		cy.get('@first_name').should('have.class', 'driver-highlighted-element');
-		cy.get('.driver-next-btn').as('next_btn');
+		cy.get('#driver-popover-item').findByRole('button', {name: 'Next'}).as('next_btn');
 
 		// next btn shouldn't move to next step, if first name is not entered
 		cy.get('@next_btn').click();
@@ -39,7 +39,7 @@ context('Form Tour', () => {
 		// assert field is highlighted
 		cy.get('.frappe-control[data-fieldname="last_name"]').as('last_name');
 		cy.get('@last_name').should('have.class', 'driver-highlighted-element');
-		
+
 		// after filling the field, next step should be highlighted
 		cy.fill_field('last_name', 'Test Last Name', 'Data');
 		cy.wait(500);
@@ -49,12 +49,12 @@ context('Form Tour', () => {
 		// assert field is highlighted
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('phone_nos');
 		cy.get('@phone_nos').should('have.class', 'driver-highlighted-element');
-		
+
 		// move to next step
 		cy.wait(500);
 		cy.get('@next_btn').click();
 		cy.wait(500);
-		
+
 		// assert add row btn is highlighted
 		cy.get('@phone_nos').find('.grid-add-row').as('add_row');
 		cy.get('@add_row').should('have.class', 'driver-highlighted-element');
@@ -78,11 +78,11 @@ context('Form Tour', () => {
 		// collapse row
 		cy.get('.grid-row-open .grid-collapse-row').click();
 		cy.wait(500);
-		
+
 		// assert save btn is highlighted
 		cy.get('.primary-action').should('have.class', 'driver-highlighted-element');
-		cy.get('@next_btn').should('contain', 'Save');
+		cy.wait(500);
+		cy.get('#driver-popover-item').findByRole('button', {name: 'Save'}).should('be.visible');
 
 	});
 });
-	
