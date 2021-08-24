@@ -656,7 +656,7 @@ class Database(object):
 				self.sql("""update `tab{0}`
 					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
 					values, debug=debug)
-		else:
+		elif frappe.get_meta(dt).issingle:
 			# for singles
 			keys = list(to_update)
 			self.sql('''
@@ -667,6 +667,8 @@ class Database(object):
 			for key, value in to_update.items():
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
+		else:
+			return
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
