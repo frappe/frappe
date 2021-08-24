@@ -729,6 +729,7 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 		fid = frappe.db.get_value("File", {"file_url": file_url})
 
 	if fid:
+		from frappe.utils.file_manager import remove_file
 		return remove_file(fid=fid)
 
 
