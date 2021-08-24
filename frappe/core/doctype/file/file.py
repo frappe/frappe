@@ -258,7 +258,6 @@ class File(Document):
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
 			frappe.throw(_("File {0} does not exist").format(self.file_url))
-			raise
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
