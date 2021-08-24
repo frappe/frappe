@@ -269,7 +269,7 @@ class NestedSet(Document):
 			return frappe.get_doc(self.doctype, parent_name)
 
 	def get_children(self):
-		"""Return a list of child Documents."""
+		"""Return a generator that yields child Documents."""
 		child_names = frappe.get_list(self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name")
 		for name in child_names:
 			yield frappe.get_doc(self.doctype, name)
