@@ -262,13 +262,13 @@ class NestedSet(Document):
 	def get_ancestors(self):
 		return get_ancestors_of(self.doctype, self.name)
 
-	def get_parent(self):
+	def get_parent(self) -> NestedSet:
 		"""Return the parent Document."""
 		parent_name = self.get(self.nsm_parent_field)
 		if parent_name:
 			return frappe.get_doc(self.doctype, parent_name)
 
-	def get_children(self):
+	def get_children(self) -> Iterator[NestedSet]:
 		"""Return a generator that yields child Documents."""
 		child_names = frappe.get_list(self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name")
 		for name in child_names:
