@@ -30,7 +30,7 @@ frappe.ui.form.on('Auto Repeat', {
 	refresh: function(frm) {
 		// auto repeat message
 		if (frm.is_new()) {
-			let customize_form_link = `<a href="/app/customize form">${__('Customize Form')}</a>`;
+			let customize_form_link = `<a href="/app/customize-form">${__('Customize Form')}</a>`;
 			frm.dashboard.set_headline(__('To configure Auto Repeat, enable "Allow Auto Repeat" from {0}.', [customize_form_link]));
 		}
 

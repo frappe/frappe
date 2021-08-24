@@ -486,15 +486,26 @@ frappe.db.connect()
 
 
 @click.command('console')
+@click.option(
+	'--autoreload',
+	is_flag=True,
+	help="Reload changes to code automatically"
+)
 @pass_context
-def console(context):
+def console(context, autoreload=False):
 	"Start ipython console for a site"
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 
-	import IPython
+	from IPython.terminal.embed import InteractiveShellEmbed
+
+	terminal = InteractiveShellEmbed()
+	if autoreload:
+		terminal.extension_manager.load_extension("autoreload")
+		terminal.run_line_magic("autoreload", "2")
+
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
 
@@ -509,7 +520,9 @@ def console(context):
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
 
-	IPython.embed(display_banner="", header="", colors="neutral")
+	terminal.colors = "neutral"
+	terminal.display_banner = False
+	terminal()
 
 
 @click.command('run-tests')
@@ -589,24 +602,26 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	admin_password = frappe.get_conf(site).admin_password
 
 	# override baseUrl using env variable
-	site_env = 'CYPRESS_baseUrl={}'.format(site_url)
-	password_env = 'CYPRESS_adminPassword={}'.format(admin_password) if admin_password else ''
+	site_env = f'CYPRESS_baseUrl={site_url}'
+	password_env = f'CYPRESS_adminPassword={admin_password}' if admin_password else ''
 
 	os.chdir(app_base_path)
 
 	node_bin = subprocess.getoutput("npm bin")
-	cypress_path = "{0}/cypress".format(node_bin)
-	plugin_path = "{0}/../cypress-file-upload".format(node_bin)
+	cypress_path = f"{node_bin}/cypress"
+	plugin_path = f"{node_bin}/../cypress-file-upload"
+	testing_library_path = f"{node_bin}/../@testing-library"
 
 	# check if cypress in path...if not, install it.
 	if not (
 		os.path.exists(cypress_path)
 		and os.path.exists(plugin_path)
+		and os.path.exists(testing_library_path)
 		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 --no-lockfile")
+		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 --no-lockfile")
 
 	# run for headless mode
 	run_or_open = 'run --browser firefox --record' if headless else 'open'
@@ -617,7 +632,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		formatted_command += ' --parallel'
 
 	if ci_build_id:
-		formatted_command += ' --ci-build-id {}'.format(ci_build_id)
+		formatted_command += f' --ci-build-id {ci_build_id}'
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)

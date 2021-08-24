@@ -166,7 +166,7 @@ frappe.ui.form.on('User', {
 
 			frm.add_custom_button(__("Reset OTP Secret"), function() {
 				frappe.call({
-					method: "frappe.core.doctype.user.user.reset_otp_secret",
+					method: "frappe.twofactor.reset_otp_secret",
 					args: {
 						"user": frm.doc.name
 					}
