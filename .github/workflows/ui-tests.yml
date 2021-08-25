@@ -40,6 +40,7 @@ jobs:
         env:
           TYPE: "ui"
           PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
 
       - uses: actions/setup-node@v2
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}

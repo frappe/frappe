@@ -33,6 +33,7 @@ jobs:
         env:
           TYPE: "server"
           PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
 
       - name: Add to Hosts
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
