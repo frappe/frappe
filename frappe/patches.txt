@@ -182,4 +182,4 @@ frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.rename_cancelled_documents
-frappe.patches.v14_0.update_workspace2
+frappe.patches.v14_0.update_workspace2 # 25.08.2021
