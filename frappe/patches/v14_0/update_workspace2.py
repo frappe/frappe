@@ -54,7 +54,7 @@ def update_wspace(doc, seq, content):
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
 		doc.public = 0
-		doc.title = doc.extends
+		doc.title = doc.extends or doc.label
 		doc.extends = ''
 		doc.category = ''
 		doc.onboarding = ''
