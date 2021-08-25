@@ -50,7 +50,7 @@ def create_content(doc):
 	return content
 
 def update_wspace(doc, seq, content):
-	if not doc.title and not content and not doc.is_standard and not doc.public:
+	if not doc.title and not doc.content and not doc.is_standard and not doc.public:
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
 		doc.public = 0
