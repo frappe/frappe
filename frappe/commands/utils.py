@@ -539,7 +539,7 @@ def console(context):
 @click.option('--skip-test-records', is_flag=True, default=False, help="Don't create test records")
 @click.option('--skip-before-tests', is_flag=True, default=False, help="Don't run before tests hook")
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
-@click.option('--failfast', is_flag=True, default=False)
+@click.option('--failfast', is_flag=True, default=False, help="Stop the test run on the first error or failure")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), profile=False,
 		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,
