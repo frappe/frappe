@@ -169,17 +169,7 @@ def delete_fields(args_dict, delete=0):
 				WHERE doctype='%s' AND field IN (%s)
 			""" % (dt, ", ".join(["'{}'".format(f) for f in fields])))
 		else:
-			existing_fields = frappe.db.multisql({
-					"mariadb": "DESC `tab%s`" % dt,
-					"postgres": """
-						SELECT
- 							COLUMN_NAME
-						FROM
- 							information_schema.COLUMNS
-						WHERE
- 							TABLE_NAME = 'tab%s';
-					""" % dt,
-				})
+			existing_fields = frappe.db.describe(dt)
 			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
 			fields_need_to_delete = set(fields) & set(existing_fields)
 			if not fields_need_to_delete:
