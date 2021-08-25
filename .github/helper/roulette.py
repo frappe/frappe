@@ -53,15 +53,15 @@ if __name__ == "__main__":
 	if ci_files_changed:
 		print("CI related files were updated, running all build processes.")
 
-	if only_docs_changed:
+	elif only_docs_changed:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
 
-	if only_frontend_code_changed and build_type == "server":
+	elif only_frontend_code_changed and build_type == "server":
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 
-	if only_py_changed and build_type == "ui":
+	elif only_py_changed and build_type == "ui":
 		print("Only Python code was updated, stopping Cypress build process.")
 		sys.exit(0)
 
