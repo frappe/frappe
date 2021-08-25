@@ -563,12 +563,10 @@ class File(Document):
 
 		self.file_size = len(optimized_content)
 		self.content_hash = get_content_hash(optimized_content)
-		self.save()
-
 		# if rolledback, revert back to original
 		self.flags.original_content = content
 		frappe.local.rollback_observers.append(self)
-
+		self.save()
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
