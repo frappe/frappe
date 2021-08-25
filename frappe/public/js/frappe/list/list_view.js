@@ -367,6 +367,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			!this.settings.hide_name_column &&
+			this.meta.title_field &&
 			this.meta.title_field !== 'name'
 		) {
 			this.columns.push({
