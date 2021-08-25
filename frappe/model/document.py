@@ -469,7 +469,7 @@ class Document(BaseDocument):
 		if not self.creation:
 			self.creation = self.modified
 		if not self.owner:
-			self.owner = self.modified_by
+			self.owner = self.flags.owner or self.modified_by
 
 		for d in self.get_all_children():
 			d.modified = self.modified
