@@ -440,6 +440,69 @@ class TestFile(unittest.TestCase):
 		}).insert(ignore_permissions=True)
 		self.assertRaisesRegex(frappe.exceptions.ValidationError, 'not a zip file', test_file.unzip)
 
+	def test_optimize_file(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content
+		}).insert()
+		original_size = test_file.file_size
+		original_content_hash = test_file.content_hash
+
+		test_file.optimize_file()
+		optimized_size = test_file.file_size
+		updated_content_hash = test_file.content_hash
+
+		self.assertLess(optimized_size, original_size)
+		self.assertNotEqual(original_content_hash, updated_content_hash)
+		test_file.delete()
+
+	def test_optimize_svg(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_svg.svg",
+			"content": file_content
+		}).insert()
+		self.assertRaises(TypeError, test_file.optimize_file)
+		test_file.delete()
+
+	def test_optimize_textfile(self):
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_text.txt",
+			"content": "Text files cannot be optimized"
+		}).insert()
+		self.assertRaises(NotImplementedError, test_file.optimize_file)
+		test_file.delete()
+
+	def test_optimize_folder(self):
+		test_folder = frappe.get_doc("File", "Home/Attachments")
+		self.assertRaises(TypeError, test_folder.optimize_file)
+
+	def test_revert_optimized_file_on_rollback(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content
+		}).insert()
+		image_path = test_file.get_full_path()
+		size_before_optimization = os.stat(image_path).st_size
+
+		test_file.optimize_file()
+		frappe.db.rollback()
+		size_after_rollback = os.stat(image_path).st_size
+		self.assertEqual(size_before_optimization, size_after_rollback)
+		test_file.delete()
+
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'
 
