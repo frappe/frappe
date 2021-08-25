@@ -7,8 +7,8 @@ import sys
 import urllib.request
 
 
-def get_files_list(pr_number):
-	req = urllib.request.Request(f"https://api.github.com/repos/frappe/frappe/pulls/{pr_number}/files")
+def get_files_list(pr_number, repo="frappe/frappe"):
+	req = urllib.request.Request(f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files")
 	res = urllib.request.urlopen(req)
 	dump = json.loads(res.read().decode('utf8'))
 	return [change["filename"] for change in dump]
@@ -36,9 +36,10 @@ if __name__ == "__main__":
 	files_list = sys.argv[1:]
 	build_type = os.environ.get("TYPE")
 	pr_number = os.environ.get("PR_NUMBER")
+	repo = os.environ.get("REPO_NAME")
 
 	if not files_list and pr_number:
-		files_list = get_files_list(pr_number=pr_number)
+		files_list = get_files_list(pr_number=pr_number, repo=repo)
 
 	if not files_list:
 		print("No files' changes detected. Build is shutting")
