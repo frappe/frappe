@@ -11,9 +11,9 @@ class TestWebhook(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		# delete any existing webhooks
-		frappe.db.sql("DELETE FROM tabWebhook")
+		frappe.db.delete("Webhook")
 		# Delete existing logs if any
-		frappe.db.sql("DELETE FROM `tabWebhook Request Log`")
+		frappe.db.delete("Webhook Request Log")
 		# create test webhooks
 		cls.create_sample_webhooks()
 
@@ -46,7 +46,7 @@ class TestWebhook(unittest.TestCase):
 	@classmethod
 	def tearDownClass(cls):
 		# delete any existing webhooks
-		frappe.db.sql("DELETE FROM tabWebhook")
+		frappe.db.delete("Webhook")
 
 	def setUp(self):
 		# retrieve or create a User webhook for `after_insert`
@@ -168,7 +168,7 @@ class TestWebhook(unittest.TestCase):
 	def test_webhook_req_log_creation(self):
 		if not frappe.db.get_value('User', 'user2@integration.webhooks.test.com'):
 			user = frappe.get_doc({
-				'doctype': 'User', 
+				'doctype': 'User',
 				'email': 'user2@integration.webhooks.test.com',
 				'first_name': 'user2'
 			}).insert()
