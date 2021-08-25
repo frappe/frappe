@@ -114,8 +114,7 @@ def sync_customizations_for_doctype(data, folder):
 					doc.db_insert()
 
 			if custom_doctype != 'Custom Field':
-				frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
-					custom_doctype, doctype_fieldname), doc_type)
+				frappe.db.delete(custom_doctype, {doctype_fieldname: doc_type})
 
 				for d in data[key]:
 					_insert(d)
