@@ -854,6 +854,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			};
 
+			if (this.raw_data.add_total_row) {
+				this.page.body[0].style.setProperty('--report-total-height', '310px');
+			}
+
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
