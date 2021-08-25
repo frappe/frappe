@@ -1,10 +1,17 @@
+import json
 import os
 import re
-import requests
 import shlex
 import subprocess
 import sys
+import urllib.request
 
+
+def get_files_list(pr_number):
+	req = urllib.request.Request(f"https://api.github.com/repos/frappe/frappe/pulls/{pr_number}/files")
+	res = urllib.request.urlopen(req)
+	dump = json.loads(res.read().decode('utf8'))
+	return [change["filename"] for change in dump]
 
 def get_output(command, shell=True):
 	print(command)
@@ -31,8 +38,7 @@ if __name__ == "__main__":
 	pr_number = os.environ.get("PR_NUMBER")
 
 	if not files_list and pr_number:
-		res = requests.get(f"https://api.github.com/repos/frappe/frappe/pulls/{pr_number}/files")
-		files_list = [f["filename"] for f in res.json()]
+		files_list = get_files_list(pr_number=pr_number)
 
 	if not files_list:
 		print("No files' changes detected. Build is shutting")
