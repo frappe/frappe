@@ -25,7 +25,7 @@ def is_ci(file):
 	return ".github" in file
 
 def is_frontend_code(file):
-	return file.endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts"))
+	return file.endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
 
 def is_docs(file):
 	regex = re.compile(r'\.(md|png|jpg|jpeg|csv)$|^.github|LICENSE')
