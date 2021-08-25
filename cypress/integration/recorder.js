@@ -50,13 +50,8 @@ context('Recorder', () => {
 		cy.get('.result-list').should('contain', '/api/method/frappe.desk.reportview.get');
 	});
 
-<<<<<<< HEAD
-	it.only('Recorder View Request', () => {
-		cy.get('.primary-action').should('contain', 'Start').click();
-=======
 	it('Recorder View Request', () => {
 		cy.findByRole('button', {name: 'Start'}).click();
->>>>>>> 93198b7123 (test: Replace existing queries with Testing-Library queries)
 
 		cy.visit('/app/List/DocType/List');
 		cy.intercept('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
