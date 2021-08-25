@@ -31,7 +31,6 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 			frappe.show_alert(__("Optimizing image..."));
 			frm.call("optimize_file").then(() => {
 				frappe.show_alert(__("Image optimized"));
-				frappe.set_route("List", "File");
 			});
 		});
 	}
