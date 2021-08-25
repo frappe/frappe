@@ -9,6 +9,6 @@ trim_trailing_whitespace = true
 charset = utf-8
 
 # python, js indentation settings
-[{*.py,*.js}]
+[{*.py,*.js,*.vue}]
 indent_style = tab
 indent_size = 4
