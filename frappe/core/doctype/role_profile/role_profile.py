@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from frappe.model.document import Document
+import frappe
 
 class RoleProfile(Document):
 	def autoname(self):
@@ -11,5 +12,9 @@ class RoleProfile(Document):
 
 	def on_update(self):
 		""" Changes in role_profile reflected across all its user """
-		from frappe.core.doctype.user.user import update_roles
-		update_roles(self.name)
+		users = frappe.get_all('User', filters={'role_profile_name': self.name})
+		roles = [role.role for role in self.roles]
+		for d in users:
+			user = frappe.get_doc('User', d)
+			user.set('roles', [])
+			user.add_roles(*roles)

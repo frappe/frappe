@@ -20,10 +20,10 @@ context('Form Tour', () => {
 	it('navigates a form tour', () => {
 		open_test_form_tour();
 
-		cy.get('#driver-popover-item').should('be.visible');
+		cy.get('.frappe-driver').should('be.visible');
 		cy.get('.frappe-control[data-fieldname="first_name"]').as('first_name');
 		cy.get('@first_name').should('have.class', 'driver-highlighted-element');
-		cy.get('#driver-popover-item').findByRole('button', {name: 'Next'}).as('next_btn');
+		cy.get('.frappe-driver').findByRole('button', {name: 'Next'}).as('next_btn');
 
 		// next btn shouldn't move to next step, if first name is not entered
 		cy.get('@next_btn').click();
@@ -68,13 +68,13 @@ context('Form Tour', () => {
 		cy.get('.grid-row-open .frappe-control[data-fieldname="phone"]').as('phone');
 		cy.get('@phone').should('have.class', 'driver-highlighted-element');
 		// enter value in a table field
-		cy.fill_table_field('phone_nos', '1', 'phone', '1234567890');
+		let field = cy.fill_table_field('phone_nos', '1', 'phone', '1234567890');
+		field.blur();
 
 		// move to collapse row step
 		cy.wait(500);
-		cy.get('@next_btn').click();
+		cy.get('.driver-popover-title').contains('Test Title 4').siblings().get('@next_btn').click();
 		cy.wait(500);
-
 		// collapse row
 		cy.get('.grid-row-open .grid-collapse-row').click();
 		cy.wait(500);
@@ -82,7 +82,7 @@ context('Form Tour', () => {
 		// assert save btn is highlighted
 		cy.get('.primary-action').should('have.class', 'driver-highlighted-element');
 		cy.wait(500);
-		cy.get('#driver-popover-item').findByRole('button', {name: 'Save'}).should('be.visible');
+		cy.get('.frappe-driver').findByRole('button', {name: 'Save'}).should('be.visible');
 
 	});
 });
