@@ -33,15 +33,13 @@ jobs:
         with:
           python-version: 3.7
 
-      - uses: jitterbit/get-changed-files@v1
-        id: files
-
       - name: Check if build should be run
         id: check-build
         run: |
-          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py" ${{ steps.files.outputs.all }}
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
           TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
 
       - uses: actions/setup-node@v2
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
