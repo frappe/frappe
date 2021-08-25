@@ -602,22 +602,24 @@ class File(Document):
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith('image/') and self.file_size > 0
 		is_svg = content_type == 'image/svg+xml'
-		if is_local_image and not is_svg:
-			content = self.get_content()
-			optimized_content = optimize_image(content, content_type)
 
-			file_path = get_files_path(is_private=self.is_private)
-			file_path = os.path.join(file_path.encode('utf-8'), self.file_name.encode('utf-8'))
-			with open(file_path, 'wb+') as f:
-				f.write(optimized_content)
-
-			self.file_size = len(optimized_content)
-			self.content_hash = get_content_hash(optimized_content)
-			self.save()
-		elif is_svg:
-			raise TypeError('Optimization of SVG images is not supported')
-		else:
+		if not is_local_image:
 			raise NotImplementedError('Only local image files can be optimized')
+
+		if is_svg:
+			raise TypeError('Optimization of SVG images is not supported')
+
+		content = self.get_content()
+		optimized_content = optimize_image(content, content_type)
+		file_path = get_files_path(self.file_name, is_private=self.is_private)
+
+		with open(file_path, 'wb+') as f:
+			f.write(optimized_content)
+
+		self.file_size = len(optimized_content)
+		self.content_hash = get_content_hash(optimized_content)
+		self.save()
+
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
@@ -967,8 +969,7 @@ def unzip_file(name):
 
 @frappe.whitelist()
 def optimize_saved_image(doc_name):
-	file_doc = frappe.get_doc('File', doc_name)
-	file_doc.optimize_file()
+	frappe.get_doc('File', doc_name).optimize_file()
 
 @frappe.whitelist()
 def get_attached_images(doctype, names):
