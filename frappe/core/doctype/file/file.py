@@ -979,9 +979,6 @@ def unzip_file(name):
 	files = file_obj.unzip()
 	return len(files)
 
-@frappe.whitelist()
-def optimize_saved_image(doc_name):
-	frappe.get_doc('File', doc_name).optimize_file()
 
 @frappe.whitelist()
 def get_attached_images(doctype, names):
