@@ -321,8 +321,16 @@ class File(Document):
 			self.delete_file_data_content(only_thumbnail=True)
 
 	def on_rollback(self):
-		self.flags.on_rollback = True
-		self.on_trash()
+		# if original_content flag is set, this rollback should revert the file to its original state
+		if self.flags.original_content:
+			file_path = self.get_full_path()
+			with open(file_path, "wb+") as f:
+				f.write(self.flags.original_content)
+
+		# following condition is only executed when an insert has been rolledback
+		else:
+			self.flags.on_rollback = True
+			self.on_trash()
 
 	def unzip(self):
 		'''Unzip current file and replace it by its children'''
@@ -610,8 +618,8 @@ class File(Document):
 			raise TypeError('Optimization of SVG images is not supported')
 
 		content = self.get_content()
+		file_path = self.get_full_path()
 		optimized_content = optimize_image(content, content_type)
-		file_path = get_files_path(self.file_name, is_private=self.is_private)
 
 		with open(file_path, 'wb+') as f:
 			f.write(optimized_content)
@@ -619,6 +627,10 @@ class File(Document):
 		self.file_size = len(optimized_content)
 		self.content_hash = get_content_hash(optimized_content)
 		self.save()
+
+		# if rolledback, revert back to original
+		self.flags.original_content = content
+		frappe.local.rollback_observers.append(self)
 
 
 def on_doctype_update():
