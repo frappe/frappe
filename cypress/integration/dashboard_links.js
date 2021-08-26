@@ -57,6 +57,7 @@ context('Dashboard links', () => {
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 	});
 
+<<<<<<< HEAD
 	it('check if child table is populated with linked field on creation from dashboard link', () => {
 		cy.new_form(doctype_to_link_name);
 		cy.fill_field("title", "Test Linking");
@@ -65,5 +66,25 @@ context('Dashboard links', () => {
 		cy.get('.document-link .btn-new').click();
 		cy.get('.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]')
 			.should('contain.text', 'Test Linking');
+=======
+	it('Report link in dashboard', () => {
+		cy.visit('/app/user/Administrator');
+		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
+		cy.findByText('Connections');
+		cy.window()
+			.its('cur_frm')
+			.then(cur_frm => {
+				cur_frm.dashboard.data.reports = [
+					{
+						'label': 'Reports',
+						'items': ['Permitted Documents For User']
+					}
+				];
+				cur_frm.dashboard.render_report_links();
+				cy.get('[data-report="Permitted Documents For User"]').contains('Permitted Documents For User').click();
+				cy.findByText('Permitted Documents For User');
+				cy.findByPlaceholderText('User').should("have.value", "Administrator");
+			});
+>>>>>>> ce0022d347 (test: Add UI test to check report link in dashboard)
 	});
 });
