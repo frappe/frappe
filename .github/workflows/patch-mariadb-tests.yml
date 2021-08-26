@@ -26,10 +26,21 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+
       - name: Add to Hosts
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
@@ -39,6 +50,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cache node modules
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -51,10 +63,12 @@ jobs:
             ${{ runner.os }}-
 
       - name: Get yarn cache directory path
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -63,6 +77,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -70,12 +85,14 @@ jobs:
           TYPE: server
 
       - name: Install
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
 
       - name: Run Patch Tests
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/
           wget https://frappeframework.com/files/v10-frappe.sql.gz
