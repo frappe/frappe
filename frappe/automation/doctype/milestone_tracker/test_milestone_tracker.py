@@ -7,7 +7,7 @@ import unittest
 
 class TestMilestoneTracker(unittest.TestCase):
 	def test_milestone(self):
-		frappe.db.sql('delete from `tabMilestone Tracker`')
+		frappe.db.delete("Milestone Tracker")
 
 		frappe.cache().delete_key('milestone_tracker_map')
 
@@ -44,5 +44,5 @@ class TestMilestoneTracker(unittest.TestCase):
 		self.assertEqual(milestones[0].value, 'Closed')
 
 		# cleanup
-		frappe.db.sql('delete from tabMilestone')
+		frappe.db.delete("Milestone")
 		milestone_tracker.delete()

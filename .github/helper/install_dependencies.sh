@@ -2,11 +2,6 @@
 
 set -e
 
-# python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
-# if [[ $? != 2 ]];then
-#   exit;
-# fi
-
  # install wkhtmltopdf
 wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
 tar -xf /tmp/wkhtmltox.tar.xz -C /tmp

@@ -9,7 +9,7 @@ test_dependencies = ["User", "Notification"]
 
 class TestNotification(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
 
 		if not frappe.db.exists('Notification', {'name': 'ToDo Status Update'}, 'name'):
@@ -50,7 +50,7 @@ class TestNotification(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Communication",
 			"reference_name": communication.name, "status":"Not Sent"}))
-		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.delete("Email Queue")
 
 		communication.reload()
 		communication.content = "test 2"
@@ -189,9 +189,9 @@ class TestNotification(unittest.TestCase):
 
 	def test_cc_jinja(self):
 
-		frappe.db.sql("""delete from `tabUser` where email='test_jinja@example.com'""")
-		frappe.db.sql("""delete from `tabEmail Queue`""")
-		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
+		frappe.db.delete("User", {"email": "test_jinja@example.com"})
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
 
 		test_user = frappe.new_doc("User")
 		test_user.name = 'test_jinja'
@@ -205,9 +205,9 @@ class TestNotification(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"}))
 
-		frappe.db.sql("""delete from `tabUser` where email='test_jinja@example.com'""")
-		frappe.db.sql("""delete from `tabEmail Queue`""")
-		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
+		frappe.db.delete("User", {"email": "test_jinja@example.com"})
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
 
 	def test_notification_to_assignee(self):
 		todo = frappe.new_doc('ToDo')
