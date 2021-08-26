@@ -20,7 +20,7 @@ context('Dashboard links', () => {
 
 		//To check if the counter for contact doc is "1" after adding the contact
 		cy.get('[data-doctype="Contact"] > .count').should('contain', '1');
-		cy.get('[data-doctype="Contact"]').contains('Contact').click(); 
+		cy.get('[data-doctype="Contact"]').contains('Contact').click();
 
 		//Deleting the newly created contact
 		cy.visit('/app/contact');
@@ -35,5 +35,25 @@ context('Dashboard links', () => {
 		cy.visit('/app/user');
 		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
+	});
+
+	it('Report link in dashboard', () => {
+		cy.visit('/app/user/Administrator');
+		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
+		cy.findByText('Connections');
+		cy.window()
+			.its('cur_frm')
+			.then(cur_frm => {
+				cur_frm.dashboard.data.reports = [
+					{
+						'label': 'Reports',
+						'items': ['Permitted Documents For User']
+					}
+				];
+				cur_frm.dashboard.render_report_links();
+				cy.get('[data-report="Permitted Documents For User"]').contains('Permitted Documents For User').click();
+				cy.findByText('Permitted Documents For User');
+				cy.findByPlaceholderText('User').should("have.value", "Administrator");
+			});
 	});
 });
