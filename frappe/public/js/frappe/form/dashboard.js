@@ -318,6 +318,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			? (this.data.non_standard_fieldnames[report] || this.data.fieldname)
 			: this.data.fieldname;
 
+		frappe.provide('frappe.route_options');
 		frappe.route_options[fieldname] = this.frm.doc.name;
 		frappe.set_route("query-report", report);
 	}
