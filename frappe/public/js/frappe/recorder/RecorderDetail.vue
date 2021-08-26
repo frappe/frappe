@@ -71,15 +71,16 @@
 			</div>
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
 				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
-					<p>{{ __("Recorder is Inactive") }}</p>
 					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="start()">{{ __("Start Recording") }}</button></p>
+					<p>{{ __("Recorder is Inactive.") }}</p>
+					<p>{{ __("Start recording or drag & drop a previously exported data file to view it.") }}</p>
 				</div>
 				<div class="msg-box no-border" v-if="status.status == 'Active'" >
 					<p>{{ __("No Requests found") }}</p>
 					<p>{{ __("Go make some noise") }}</p>
 				</div>
 			</div>
-			<div v-if="requests.length != 0" class="list-paging-area">
+			<div v-else class="list-paging-area">
 				<div class="row">
 					<div class="col-xs-6">
 						<div class="btn-group btn-group-paging">
