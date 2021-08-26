@@ -56,12 +56,14 @@
 {{ include_style('login.bundle.css') }}
 {% endblock %}
 
+
 {% macro logo_section() %}
 <div class="page-card-head">
 	<img class="app-logo" src="{{ logo }}">
-	<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
+	<h4>{{ _('Login to MainPro').format(app_name or _("MainPro")) }}</h4>
 </div>
 {% endmacro %}
+
 
 {% block page_content %}
 <!-- {{ for_test }} -->
