@@ -51,14 +51,14 @@ class TestSearch(unittest.TestCase):
 		frappe.delete_doc('User', email)
 		if not frappe.db.exists('User', email):
 			user = frappe.new_doc('User')
-			user.update( {
-			'email' : email,
-			'first_name' : email.split("@")[0],
-			'enabled' : False,
-			'allowed_in_mentions' : True,
+			user.update({
+				'email' : email,
+				'first_name' : email.split("@")[0],
+				'enabled' : False,
+				'allowed_in_mentions' : True,
 			})
 			# saved when roles are added
-			user.add_roles(('System Manager',))
+			user.add_roles('System Manager',)
 
 		names_for_mention = [user.get('id') for user in get_names_for_mentions('')]
 		self.assertNotIn(email,  names_for_mention)
