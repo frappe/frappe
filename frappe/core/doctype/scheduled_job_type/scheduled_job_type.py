@@ -10,9 +10,7 @@ from croniter import croniter
 import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
-from frappe.utils.background_jobs import enqueue, get_jobs
-
-
+from frappe.utils.background_jobs import enqueue, get_jobs, get_total_jobs
 class ScheduledJobType(Document):
 	def autoname(self):
 		self.name = ".".join(self.method.split(".")[-2:])
@@ -41,7 +39,15 @@ class ScheduledJobType(Document):
 	def is_event_due(self, current_time = None):
 		'''Return true if event is due based on time lapsed since last execution'''
 		# if the next scheduled event is before NOW, then its due!
-		return self.get_next_execution() <= (current_time or now_datetime())
+		return self.get_next_execution() <= (current_time or now_datetime()) and self.allow_jobs()
+
+	def allow_jobs(self):
+		'''check if jobs of a type are limited'''
+		if self.frequency == 'Daily' and frappe.get_conf().limit_jobs:
+			if get_total_jobs() > frappe.get_conf().limit_jobs:
+				return False
+
+		return True
 
 	def is_job_in_queue(self):
 		queued_jobs = get_jobs(site=frappe.local.site, key='job_type')[frappe.local.site]

@@ -194,6 +194,13 @@ def get_jobs(site=None, queue=None, key='method'):
 
 	return jobs_per_site
 
+def get_total_jobs():
+	total_jobs = 0
+	for queue in get_queue_list():
+		total_jobs += len(get_queue(queue).jobs)
+
+	return total_jobs
+
 def get_queue_list(queue_list=None, build_queue_name=False):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
 	default_queue_list = list(queue_timeout)
