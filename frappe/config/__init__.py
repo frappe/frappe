@@ -42,18 +42,17 @@ def get_modules_from_app(app):
 	)
 
 def get_all_empty_tables_by_module():
-	empty_tables = set(r[0] for r in frappe.db.multisql({
-		"mariadb": """
-			SELECT table_name
-			FROM information_schema.tables
-			WHERE table_rows = 0 and table_schema = "{}"
-			""".format(frappe.conf.db_name),
-		"postgres": """
-			SELECT "relname" as "table_name"
-			FROM "pg_stat_all_tables"
-			WHERE n_tup_ins = 0
-		"""
-	}))
+	table_rows = frappe.qb.Field("table_rows")
+	table_name = frappe.qb.Field("table_name")
+	information_schema = frappe.qb.Schema("information_schema")
+
+	empty_tables = (
+		frappe.qb.from_(information_schema.tables)
+		.select(table_name)
+		.where(table_rows == 0)
+	).run()
+
+	empty_tables = {r[0] for r in empty_tables}
 
 	results = frappe.get_all("DocType", fields=["name", "module"])
 	empty_tables_by_module = {}
