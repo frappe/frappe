@@ -950,9 +950,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_indicator_html(doc) {
 		const indicator = frappe.get_indicator(doc, this.doctype);
+		const icon = doc.docstatus == 1 ? 'submitted' : doc.docstatus == 2 ? 'cancelled' : 'dot';
 		if (indicator) {
-			return `<span class="indicator-pill ${indicator[1]} filterable ellipsis"
+			return `<span class="list-indicator-pill indicator-pill ${indicator[1]} filterable ellipsis"
 				data-filter='${indicator[2]}'>
+				<span class="indicator-pill-icon">${frappe.utils.icon(icon, 'xs', '', indicator[1])}</span>
 				<span class="ellipsis"> ${__(indicator[0])}</span>
 			<span>`;
 		}

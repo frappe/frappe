@@ -709,4 +709,14 @@
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-crop">
 		<path d="M14.88,11.63H4.33V1.12m7.34,10.51v3.25M6,4.37h5.64V10M1.13,4.37h3.2" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
+	<symbol viewBox="0 0 16 16" id="icon-dot">
+		<circle cx="8" cy="8" r="1.5" stroke-width="3"/>
+	</symbol>
+	<symbol viewBox="0 0 16 16" id="icon-submitted">
+		<path d="M3 9.037L6.03 12 13 4" stroke-width="2.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+	<symbol viewBox="0 0 16 16" id="icon-cancelled">
+		<path d="M4 4l8 8M4 12l8-8" stroke-width="2.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
 </svg>
