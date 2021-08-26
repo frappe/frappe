@@ -1,4 +1,5 @@
 from pypika.functions import *
+from pypika import Interval, Index
 from frappe.query_builder.utils import ImportMapper, db_type_is
 from frappe.query_builder.custom import GROUP_CONCAT, STRING_AGG, MATCH, TO_TSVECTOR
 
