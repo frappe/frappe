@@ -2,10 +2,13 @@ context('Dashboard links', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/app/user');
 	});
 
 	it('Adding a new contact, checking for the counter on the dashboard and deleting the created contact', () => {
+		cy.visit('/app/contact');
+		cy.clear_filters();
+
+		cy.visit('/app/user');
 		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
@@ -38,6 +41,7 @@ context('Dashboard links', () => {
 	});
 
 	it('Report link in dashboard', () => {
+		cy.visit('/app/user');
 		cy.visit('/app/user/Administrator');
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 		cy.findByText('Connections');
