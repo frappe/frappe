@@ -8,6 +8,7 @@ context('Dashboard links', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
+<<<<<<< HEAD
 		cy.insert_doc('DocType', child_table_doctype, true);
 		cy.insert_doc('DocType', doctype_with_child_table, true);
 		cy.insert_doc('DocType', doctype_to_link, true);
@@ -16,6 +17,8 @@ context('Dashboard links', () => {
 				name: child_table_doctype_name
 			});
 		});
+=======
+>>>>>>> d123d24d9f (test: Clear filters after visiting contact list)
 	});
 
 	it('Adding a new contact, checking for the counter on the dashboard and deleting the created contact', () => {
@@ -23,7 +26,11 @@ context('Dashboard links', () => {
 		cy.clear_filters();
 
 		cy.visit('/app/user');
+<<<<<<< HEAD
 		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click({ force: true });
+=======
+		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
+>>>>>>> d123d24d9f (test: Clear filters after visiting contact list)
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
@@ -68,6 +75,7 @@ context('Dashboard links', () => {
 			.should('contain.text', 'Test Linking');
 =======
 	it('Report link in dashboard', () => {
+		cy.visit('/app/user');
 		cy.visit('/app/user/Administrator');
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 		cy.findByText('Connections');
