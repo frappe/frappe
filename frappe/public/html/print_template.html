@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}" dir="{{ layout_direction }}">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,7 +7,7 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 	<title>{{ title }}</title>
-	<link href="{{ base_url }}/assets/css/printview.css" rel="stylesheet">
+	{{ frappe.assets.include_style("printview.css", base_url, frappe.utils.is_rtl(lang)) }}
 	<style>
 		{{ print_css }}
 	</style>
