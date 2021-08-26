@@ -67,7 +67,9 @@
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
   "chat",
-  "enable_chat"
+  "enable_chat",
+  "document_naming_section",
+  "use_original_name_for_amended_document"
  ],
  "fields": [
   {
@@ -469,12 +471,25 @@
    "fieldname": "strip_exif_metadata_from_uploaded_images",
    "fieldtype": "Check",
    "label": "Strip EXIF tags from uploaded images"
+  },
+  {
+   "fieldname": "document_naming_section",
+   "fieldtype": "Section Break",
+   "label": "Document Naming"
+  },
+  {
+   "default": "0",
+   "description": "Amended document gets the name of the original document if enabled and will be applicable to all submittable doctypes. This is a nonreversible operation. ",
+   "fieldname": "use_original_name_for_amended_document",
+   "fieldtype": "Check",
+   "label": "Use original name for amended document",
+   "read_only_depends_on": "eval:doc.use_original_name_for_amended_document==1"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-03-30 11:47:47.330437",
+ "modified": "2021-08-11 09:04:43.856970",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

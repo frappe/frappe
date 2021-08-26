@@ -53,7 +53,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			frappe.connect()
 
 		# if not frappe.conf.get("db_name").startswith("test_"):
-		# 	raise Exception, 'db_name must start with "test_"'
+		#	raise Exception, 'db_name must start with "test_"'
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
@@ -67,9 +67,9 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 				frappe.get_attr(fn)()
 
 		if doctype:
-			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, junit_xml_output=junit_xml_output)
+			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		elif module:
-			ret = run_tests_for_module(module, verbose, tests, profile, junit_xml_output=junit_xml_output)
+			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
 
@@ -152,7 +152,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 
 	return out
 
-def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False, junit_xml_output=False):
+def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False, failfast=False, junit_xml_output=False):
 	modules = []
 	if not isinstance(doctypes, (list, tuple)):
 		doctypes = [doctypes]
@@ -170,18 +170,18 @@ def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profil
 		make_test_records(doctype, verbose=verbose, force=force)
 		modules.append(importlib.import_module(test_module))
 
-	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
+	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
-def run_tests_for_module(module, verbose=False, tests=(), profile=False, junit_xml_output=False):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
 	frappe.db.commit()
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
-def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_output=False):
+def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
 	frappe.db.begin()
 
 	test_suite = unittest.TestSuite()
@@ -200,9 +200,9 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_out
 			test_suite.addTest(module_test_cases)
 
 	if junit_xml_output:
-		runner = unittest_runner(verbosity=1+(verbose and 1 or 0))
+		runner = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast)
 	else:
-		runner = unittest_runner(resultclass=TimeLoggingTestResult, verbosity=1+(verbose and 1 or 0))
+		runner = unittest_runner(resultclass=TimeLoggingTestResult, verbosity=1+(verbose and 1 or 0), failfast=failfast)
 
 	if profile:
 		pr = cProfile.Profile()
