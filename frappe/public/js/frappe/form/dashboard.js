@@ -283,19 +283,11 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		$(frappe.render_template('form_links', this.data))
 			.appendTo(transactions_area_body);
 
-		if (this.data.reports && this.data.reports.length) {
-			$(frappe.render_template('report_links', this.data))
-				.appendTo(transactions_area_body);
-		}
+		this.render_report_links();
 
 		// bind links
 		transactions_area_body.find(".badge-link").on('click', function() {
 			me.open_document_list($(this).closest('.document-link'));
-		});
-
-		// bind reports
-		transactions_area_body.find(".report-link").on('click', function() {
-			me.open_report($(this).parent());
 		});
 
 		// bind open notifications
@@ -309,6 +301,18 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 
 		this.data_rendered = true;
+	}
+
+	render_report_links() {
+		let parent = this.transactions_area;
+		if (this.data.reports && this.data.reports.length) {
+			$(frappe.render_template('report_links', this.data))
+				.appendTo(parent);
+			// bind reports
+			parent.find(".report-link").on('click', (e) => {
+				this.open_report($(e.target).parent());
+			});
+		}
 	}
 
 	open_report($link) {
