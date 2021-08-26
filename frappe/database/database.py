@@ -16,6 +16,7 @@ from frappe import _
 from time import time
 from frappe.utils import now, getdate, cast_fieldtype, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
+from .query import Query
 
 
 class Database(object):
@@ -55,6 +56,7 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.query = Query()
 
 	def setup_type_map(self):
 		pass
@@ -961,9 +963,7 @@ class Database(object):
 		"""
 		values = ()
 		filters = filters or kwargs.get("conditions")
-		table = get_table_name(doctype)
-		query = f"DELETE FROM `{table}`"
-
+		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 
