@@ -79,7 +79,7 @@ class Database(object):
 		pass
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False):
+		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False, return_query=False):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -92,7 +92,7 @@ class Database(object):
 		:param as_utf8: Encode values as UTF 8.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-
+		:param return_query: Returns query with out executing it.
 		Examples:
 
 			# return customer names as dicts
@@ -107,6 +107,8 @@ class Database(object):
 
 		"""
 		query = str(query)
+		if return_query:
+			return query
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -426,9 +428,8 @@ class Database(object):
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
-		if not order_by: order_by = 'modified desc'
-
 		if isinstance(filters, list):
+			if not order_by: order_by = 'modified desc'
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 
 		else:
@@ -441,6 +442,7 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
+					if not order_by: order_by = 'modified'
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -569,32 +571,14 @@ class Database(object):
 		return self.get_single_value(*args, **kwargs)
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
-		fl = []
 		if isinstance(fields, (list, tuple)):
-			for f in fields:
-				if "(" in f or " as " in f: # function
-					fl.append(f)
-				else:
-					fl.append("`" + f + "`")
-			fl = ", ".join(fl)
+			query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(*fields)
 		else:
-			fl = fields
 			if fields=="*":
+				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(fields)
 				as_dict = True
-
-		conditions, values = self.build_conditions(filters)
-
-		order_by = ("order by " + order_by) if order_by else ""
-
-		r = self.sql("select {fields} from `tab{doctype}` {where} {conditions} {order_by} {for_update}"
-			.format(
-				for_update = 'for update' if for_update else '',
-				fields = fl,
-				doctype = doctype,
-				where = "where" if conditions else "",
-				conditions = conditions,
-				order_by = order_by),
-			values, as_dict=as_dict, debug=debug, update=update)
+		print(query)
+		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
