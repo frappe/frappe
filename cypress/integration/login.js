@@ -11,13 +11,13 @@ context('Login', () => {
 
 	it('validates password', () => {
 		cy.get('#login_email').type('Administrator');
-		cy.get('.btn-login:visible').click();
+		cy.findByRole('button', {name: 'Login'}).click();
 		cy.location('pathname').should('eq', '/login');
 	});
 
 	it('validates email', () => {
 		cy.get('#login_password').type('qwe');
-		cy.get('.btn-login:visible').click();
+		cy.findByRole('button', {name: 'Login'}).click();
 		cy.location('pathname').should('eq', '/login');
 	});
 
@@ -25,8 +25,8 @@ context('Login', () => {
 		cy.get('#login_email').type('Administrator');
 		cy.get('#login_password').type('qwer');
 
-		cy.get('.btn-login:visible').click();
-		cy.get('.btn-login:visible').contains('Invalid Login. Try again.');
+		cy.findByRole('button', {name: 'Login'}).click();
+		cy.findByRole('button', {name: 'Invalid Login. Try again.'}).should('exist');
 		cy.location('pathname').should('eq', '/login');
 	});
 
@@ -34,7 +34,7 @@ context('Login', () => {
 		cy.get('#login_email').type('Administrator');
 		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
-		cy.get('.btn-login:visible').click();
+		cy.findByRole('button', {name: 'Login'}).click();
 		cy.location('pathname').should('eq', '/app');
 		cy.window().its('frappe.session.user').should('eq', 'Administrator');
 	});
@@ -60,7 +60,7 @@ context('Login', () => {
 		cy.get('#login_email').type('Administrator');
 		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
-		cy.get('.btn-login:visible').click();
+		cy.findByRole('button', {name: 'Login'}).click();
 
 		// verify redirected location and url params after login
 		cy.url().should('include', '/me?' + payload.toString().replace('+', '%20'));

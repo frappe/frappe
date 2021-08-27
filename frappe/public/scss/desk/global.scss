@@ -126,6 +126,12 @@ pre {
 	}
 }
 
+.hidden-xl {
+	@include media-breakpoint-up(lg) {
+		display: none !important;
+	}
+}
+
 .visible-xs {
 	@include media-breakpoint-up(sm) {
 		display: none !important;

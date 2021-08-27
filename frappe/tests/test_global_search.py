@@ -24,15 +24,15 @@ class TestGlobalSearch(unittest.TestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 
 	def tearDown(self):
-		frappe.db.sql("DELETE FROM `tabProperty Setter` WHERE `doc_type`='Event'")
+		frappe.db.delete("Property Setter", {"doc_type": "Event"})
 		frappe.clear_cache(doctype='Event')
-		frappe.db.sql('DELETE FROM `tabEvent`')
-		frappe.db.sql('DELETE FROM `__global_search`')
+		frappe.db.delete("Event")
+		frappe.db.delete("__global_search")
 		make_test_objects('Event')
 		frappe.db.commit()
 
 	def insert_test_events(self):
-		frappe.db.sql('DELETE FROM `tabEvent`')
+		frappe.db.delete("Event")
 		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
 		'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
 		'Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.']
@@ -97,7 +97,7 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertEqual(len(results), 0)
 
 	def test_insert_child_table(self):
-		frappe.db.sql('delete from tabEvent')
+		frappe.db.delete("Event")
 		phrases = ['Hydrus is a small constellation in the deep southern sky. ',
 		'It was first depicted on a celestial atlas by Johann Bayer in his 1603 Uranometria. ',
 		'The French explorer and astronomer Nicolas Louis de Lacaille charted the brighter stars and gave their Bayer designations in 1756. ',

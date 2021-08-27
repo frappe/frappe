@@ -6,10 +6,12 @@ import frappe
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import validate_url, validate_email_address
 from frappe.utils import ceil, floor
+from frappe.utils.data import validate_python_code
 
 from PIL import Image
-from frappe.utils.image import strip_exif_data
+from frappe.utils.image import strip_exif_data, optimize_image
 import io
+from mimetypes import guess_type
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -188,3 +190,43 @@ class TestImage(unittest.TestCase):
 
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
+
+	def test_optimize_image(self):
+		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
+		content_type = guess_type(image_file_path)[0]
+		original_content = io.open(image_file_path, mode='rb').read()
+
+		optimized_content = optimize_image(original_content, content_type, max_width=500, max_height=500)
+		optimized_image = Image.open(io.BytesIO(optimized_content))
+		width, height = optimized_image.size
+
+		self.assertLessEqual(width, 500)
+		self.assertLessEqual(height, 500)
+		self.assertLess(len(optimized_content), len(original_content))
+
+class TestPythonExpressions(unittest.TestCase):
+
+	def test_validation_for_good_python_expression(self):
+		valid_expressions = [
+			"foo == bar",
+			"foo == 42",
+			"password != 'hunter2'",
+			"complex != comparison and more_complex == condition",
+			"escaped_values == 'str with newline\\n'",
+			"check_box_field",
+		]
+		for expr in valid_expressions:
+			try:
+				validate_python_code(expr)
+			except Exception as e:
+				self.fail(f"Invalid error thrown for valid expression: {expr}: {str(e)}")
+
+	def test_validation_for_bad_python_expression(self):
+		invalid_expressions = [
+			"these_are && js_conditions",
+			"more || js_conditions",
+			"curly_quotes_bad == “const”",
+			"oops = forgot_equals",
+		]
+		for expr in invalid_expressions:
+			self.assertRaises(frappe.ValidationError, validate_python_code, expr)

@@ -348,6 +348,7 @@ class TestDocType(unittest.TestCase):
 		dump_docs = json.dumps(docs.get('docs'))
 		cancel_all_linked_docs(dump_docs)
 		data_link_doc.cancel()
+		data_doc.name = '{}-CANC-0'.format(data_doc.name)
 		data_doc.load_from_db()
 		self.assertEqual(data_link_doc.docstatus, 2)
 		self.assertEqual(data_doc.docstatus, 2)
@@ -371,7 +372,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		link_doc.insert()
+		link_doc.insert(ignore_if_duplicate=True)
 
 		#create first parent doctype
 		test_doc_1 = new_doctype('Test Doctype 1')
@@ -386,7 +387,7 @@ class TestDocType(unittest.TestCase):
 		for data in test_doc_1.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		test_doc_1.insert()
+		test_doc_1.insert(ignore_if_duplicate=True)
 
 		#crete second parent doctype
 		doc = new_doctype('Test Doctype 2')
@@ -401,7 +402,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		doc.insert()
+		doc.insert(ignore_if_duplicate=True)
 
 		# create doctype data
 		data_link_doc_1 = frappe.new_doc('Test Linked Doctype 1')
@@ -432,6 +433,7 @@ class TestDocType(unittest.TestCase):
 		# checking that doc for Test Doctype 2 is not canceled
 		self.assertRaises(frappe.LinkExistsError, data_link_doc_1.cancel)
 
+		data_doc_2.name = '{}-CANC-0'.format(data_doc_2.name)
 		data_doc.load_from_db()
 		data_doc_2.load_from_db()
 		self.assertEqual(data_link_doc_1.docstatus, 2)
