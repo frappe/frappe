@@ -629,44 +629,41 @@ class Database(object):
 		:param debug: Print the query in the developer / js console.
 		:param for_update: Will add a row-level lock to the value that is being set so that it can be released on commit.
 		"""
-		if not modified:
-			modified = now()
-		if not modified_by:
-			modified_by = frappe.session.user
+		is_single_doctype = not (dn and dt != dn)
+		to_update = field if isinstance(field, dict) else {field: val}
 
-		to_update = {}
 		if update_modified:
-			to_update = {"modified": modified, "modified_by": modified_by}
+			modified = modified or now()
+			modified_by = modified_by or frappe.session.user
+			to_update.update({"modified": modified, "modified_by": modified_by})
 
-		if isinstance(field, dict):
-			to_update.update(field)
+		if not is_single_doctype:
+			docnames = tuple(x[0] for x in self.get_values(dt, dn, 'name', debug=debug, for_update=for_update))
+			if not docnames:
+				if debug:
+					print("Matched with no rows...exitting")
+				return
+
+			table = frappe.qb.DocType(dt)
+
+			query = frappe.qb.update(table)
+			for column, value in to_update.items():
+				query = query.set(column, value)
+			query = query.where(table.name.isin(docnames))
+			query.run(debug=debug)
+
 		else:
-			to_update.update({field: val})
+			frappe.db.delete(
+				"Singles",
+				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
+			)
 
-		if dn and dt!=dn:
-			# with table
-			set_values = []
-			for key in to_update:
-				set_values.append('`{0}`=%({0})s'.format(key))
-
-			for name in self.get_values(dt, dn, 'name', for_update=for_update):
-				values = dict(name=name[0])
-				values.update(to_update)
-
-				self.sql("""update `tab{0}`
-					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
-					values, debug=debug)
-		else:
-			# for singles
-			keys = list(to_update)
-			self.sql('''
-				delete from `tabSingles`
-				where field in ({0}) and
-					doctype=%s'''.format(', '.join(['%s']*len(keys))),
-					list(keys) + [dt], debug=debug)
-			for key, value in to_update.items():
-				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
-					(dt, key, value), debug=debug)
+			singles_data = tuple((dt, key, value) for key, value in to_update.items())
+			query = (
+				frappe.qb.into("Singles")
+					.columns("doctype", "field", "value")
+					.insert(singles_data)
+			).run(debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
