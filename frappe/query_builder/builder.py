@@ -14,6 +14,17 @@ class Base:
 		table_name = get_table_name(table_name)
 		return Table(table_name, *args, **kwargs)
 
+	@classmethod
+	def into(cls, table, *args, **kwargs):
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().into(table, *args, **kwargs)
+
+	@classmethod
+	def update(cls, table, *args, **kwargs):
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().update(table, *args, **kwargs)
 
 class MariaDB(Base, MySQLQuery):
 	Field = terms.Field
