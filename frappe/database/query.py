@@ -142,7 +142,7 @@ class Query:
 				conditions = conditions.where(_operator(frappe.qb.Field(key), value))
 		if orderby:
 			order = order if order else Order.desc
-			return conditions.orderby(orderby, order)
+			return conditions.orderby(orderby, order=order)
 		return conditions
 
 	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None,
