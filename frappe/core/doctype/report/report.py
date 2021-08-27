@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import unicode_literals
 import frappe
 import json, datetime
 from frappe import _, scrub
@@ -13,7 +11,6 @@ from frappe.modules import make_boilerplate
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.reportview import append_totals_row
-from six import iteritems
 from frappe.utils.safe_exec import safe_exec
 
 
@@ -238,7 +235,7 @@ class Report(Document):
 		_filters = params.get('filters') or []
 
 		if filters:
-			for key, value in iteritems(filters):
+			for key, value in filters.items():
 				condition, _value = '=', value
 				if isinstance(value, (list, tuple)):
 					condition, _value = value

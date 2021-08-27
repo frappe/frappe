@@ -91,7 +91,7 @@ frappe.ui.form.on('Data Import', {
 
 		if (frm.doc.status.includes('Success')) {
 			frm.add_custom_button(
-				__('Go to {0} List', [frm.doc.reference_doctype]),
+				__('Go to {0} List', [__(frm.doc.reference_doctype)]),
 				() => frappe.set_route('List', frm.doc.reference_doctype)
 			);
 		}

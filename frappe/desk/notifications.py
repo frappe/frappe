@@ -1,11 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 from frappe.desk.doctype.notification_settings.notification_settings import get_subscribed_documents
-from six import string_types
 import json
 
 @frappe.whitelist()
@@ -149,7 +146,7 @@ def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
 	if not config:
 		return
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doctype = doc # assuming doctype name was passed directly
 	else:
 		doctype = doc.doctype
@@ -213,7 +210,7 @@ def get_filters_for(doctype):
 	'''get open filters for doctype'''
 	config = get_notification_config()
 	doctype_config = config.get("for_doctype").get(doctype, {})
-	filters = doctype_config if not isinstance(doctype_config, string_types) else None
+	filters = doctype_config if not isinstance(doctype_config, str) else None
 
 	return filters
 

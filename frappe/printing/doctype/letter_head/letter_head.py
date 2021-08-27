@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe.utils import is_image
 from frappe.model.document import Document
@@ -19,7 +18,7 @@ class LetterHead(Document):
 	def validate_disabled_and_default(self):
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
-		
+
 		if not self.is_default and not self.disabled:
 			if not frappe.db.exists('Letter Head', dict(is_default=1)):
 				self.is_default = 1

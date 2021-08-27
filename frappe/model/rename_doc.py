@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
-from __future__ import print_function, unicode_literals
-
 import frappe
 from frappe import _, bold
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -144,7 +141,7 @@ def update_user_settings(old, new, link_fields):
 	if not link_fields: return
 
 	# find the user settings for the linked doctypes
-	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
+	linked_doctypes = {d.parent for d in link_fields if not d.issingle}
 	user_settings_details = frappe.db.sql('''SELECT `user`, `doctype`, `data`
 			FROM `__UserSettings`
 			WHERE `data` like %s

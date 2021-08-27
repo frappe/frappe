@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 from frappe import _
 from frappe.utils import get_fullname, now
 from frappe.model.document import Document

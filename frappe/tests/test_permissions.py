@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
-
 """Use blog post test to test user permissions logic"""
 
 import frappe
@@ -40,7 +38,7 @@ class TestPermissions(unittest.TestCase):
 		reset('Blogger')
 		reset('Blog Post')
 
-		frappe.db.sql('delete from `tabUser Permission`')
+		frappe.db.delete("User Permission")
 
 		frappe.set_user("test1@example.com")
 
@@ -336,9 +334,9 @@ class TestPermissions(unittest.TestCase):
 			doctype"""
 
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabContact`')
-		frappe.db.sql('DELETE FROM `tabContact Email`')
-		frappe.db.sql('DELETE FROM `tabContact Phone`')
+		frappe.db.delete("Contact")
+		frappe.db.delete("Contact Email")
+		frappe.db.delete("Contact Phone")
 
 		reset('Salutation')
 		reset('Contact')

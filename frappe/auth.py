@@ -1,35 +1,58 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
+from urllib.parse import quote
 
-from __future__ import unicode_literals
-import datetime
-
-from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint, flt, get_datetime, datetime, date_diff, today
 import frappe.utils.user
-from frappe import conf
-from frappe.sessions import Session, clear_sessions, delete_session
-from frappe.modules.patch_handler import check_session_stopped
-from frappe.translate import get_lang_code
-from frappe.utils.password import check_password, delete_login_failed_cache
+from frappe import _, conf
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
-	confirm_otp_token, get_cached_user_pass)
+from frappe.modules.patch_handler import check_session_stopped
+from frappe.sessions import Session, clear_sessions, delete_session
+from frappe.translate import get_language
+from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, get_cached_user_pass, should_run_2fa
+from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils.password import check_password
 from frappe.website.utils import get_home_page
-
-from six.moves.urllib.parse import quote
 
 
 class HTTPRequest:
 	def __init__(self):
-		# Get Environment variables
-		self.domain = frappe.request.host
-		if self.domain and self.domain.startswith('www.'):
-			self.domain = self.domain[4:]
+		# set frappe.local.request_ip
+		self.set_request_ip()
 
+		# load cookies
+		self.set_cookies()
+
+		# set frappe.local.db
+		self.connect()
+
+		# login and start/resume user session
+		self.set_session()
+
+		# set request language
+		self.set_lang()
+
+		# match csrf token from current session
+		self.validate_csrf_token()
+
+		# write out latest cookies
+		frappe.local.cookie_manager.init_cookies()
+
+		# check session status
+		check_session_stopped()
+
+	@property
+	def domain(self):
+		if not getattr(self, "_domain", None):
+			self._domain = frappe.request.host
+			if self._domain and self._domain.startswith('www.'):
+				self._domain = self._domain[4:]
+
+		return self._domain
+
+	def set_request_ip(self):
 		if frappe.get_request_header('X-Forwarded-For'):
 			frappe.local.request_ip = (frappe.get_request_header('X-Forwarded-For').split(",")[0]).strip()
 
@@ -39,37 +62,21 @@ class HTTPRequest:
 		else:
 			frappe.local.request_ip = '127.0.0.1'
 
-		# language
-		self.set_lang()
-
-		# load cookies
+	def set_cookies(self):
 		frappe.local.cookie_manager = CookieManager()
 
-		# set db
-		self.connect()
-
-		# login
+	def set_session(self):
 		frappe.local.login_manager = LoginManager()
-
-		if frappe.form_dict._lang:
-			lang = get_lang_code(frappe.form_dict._lang)
-			if lang:
-				frappe.local.lang = lang
-
-		self.validate_csrf_token()
-
-		# write out latest cookies
-		frappe.local.cookie_manager.init_cookies()
-
-		# check status
-		check_session_stopped()
 
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method in ("POST", "PUT", "DELETE"):
-			if not frappe.local.session: return
-			if not frappe.local.session.data.csrf_token \
-				or frappe.local.session.data.device=="mobile" \
-				or frappe.conf.get('ignore_csrf', None):
+			if not frappe.local.session:
+				return
+			if (
+				not frappe.local.session.data.csrf_token
+				or frappe.local.session.data.device == "mobile"
+				or frappe.conf.get('ignore_csrf', None)
+			):
 				# not via boot
 				return
 
@@ -83,17 +90,18 @@ class HTTPRequest:
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
 	def set_lang(self):
-		from frappe.translate import guess_language
-		frappe.local.lang = guess_language()
+		frappe.local.lang = get_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""
 		return conf.db_name
 
-	def connect(self, ac_name = None):
+	def connect(self):
 		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.get_db(user = self.get_db_name(), \
-			password = getattr(conf, 'db_password', ''))
+		frappe.local.db = frappe.database.get_db(
+			user=self.get_db_name(),
+			password=getattr(conf, 'db_password', '')
+		)
 
 class LoginManager:
 	def __init__(self):
@@ -147,7 +155,7 @@ class LoginManager:
 		self.setup_boot_cache()
 		self.set_user_info()
 
-	def get_user_info(self, resume=False):
+	def get_user_info(self):
 		self.info = frappe.db.get_value("User", self.user,
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 
@@ -185,10 +193,12 @@ class LoginManager:
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache().hdel('redirect_after_login', self.user)
 
-
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
+
+	def clear_preferred_language(self):
+		frappe.local.cookie_manager.delete_cookie("preferred_language")
 
 	def make_session(self, resume=False):
 		# start session

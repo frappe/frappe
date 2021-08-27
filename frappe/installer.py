@@ -282,10 +282,10 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 
 def post_install(rebuild_website=False):
-	from frappe.website import render
+	from frappe.website.utils import clear_website_cache
 
 	if rebuild_website:
-		render.clear_cache()
+		clear_website_cache()
 
 	init_singles()
 	frappe.db.commit()
@@ -537,7 +537,7 @@ def is_downgrade(sql_file_path, verbose=False):
 
 def is_partial(sql_file_path):
 	with open(sql_file_path) as f:
-		header = " ".join([f.readline() for _ in range(5)])
+		header = " ".join(f.readline() for _ in range(5))
 		if "Partial Backup" in header:
 			return True
 	return False

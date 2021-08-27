@@ -8,6 +8,7 @@ let yargs = require("yargs");
 let cliui = require("cliui")();
 let chalk = require("chalk");
 let html_plugin = require("./frappe-html");
+let rtlcss = require('rtlcss');
 let postCssPlugin = require("esbuild-plugin-postcss2").default;
 let ignore_assets = require("./ignore-assets");
 let sass_options = require("./sass_options");
@@ -96,9 +97,9 @@ async function execute() {
 		await clean_dist_folders(APPS);
 	}
 
-	let result;
+	let results;
 	try {
-		result = await build_assets_for_apps(APPS, FILES_TO_BUILD);
+		results = await build_assets_for_apps(APPS, FILES_TO_BUILD);
 	} catch (e) {
 		log_error("There were some problems during build");
 		log();
@@ -107,13 +108,15 @@ async function execute() {
 	}
 
 	if (!WATCH_MODE) {
-		log_built_assets(result.metafile);
+		log_built_assets(results);
 		console.timeEnd(TOTAL_BUILD_TIME);
 		log();
 	} else {
 		log("Watching for changes...");
 	}
-	return await write_assets_json(result.metafile);
+	for (const result of results) {
+		await write_assets_json(result.metafile);
+	}
 }
 
 function build_assets_for_apps(apps, files) {
@@ -125,6 +128,8 @@ function build_assets_for_apps(apps, files) {
 		let output_path = assets_path;
 
 		let file_map = {};
+		let style_file_map = {};
+		let rtl_style_file_map = {};
 		for (let file of files) {
 			let relative_app_path = path.relative(apps_path, file);
 			let app = relative_app_path.split(path.sep)[0];
@@ -140,19 +145,32 @@ function build_assets_for_apps(apps, files) {
 			}
 			output_name = path.join(app, "dist", output_name);
 
-			if (Object.keys(file_map).includes(output_name)) {
+			if (Object.keys(file_map).includes(output_name) || Object.keys(style_file_map).includes(output_name)) {
 				log_warn(
 					`Duplicate output file ${output_name} generated from ${file}`
 				);
 			}
-
-			file_map[output_name] = file;
+			if ([".css", ".scss", ".less", ".sass", ".styl"].includes(extension)) {
+				style_file_map[output_name] = file;
+				rtl_style_file_map[output_name.replace('/css/', '/css-rtl/')] = file;
+			} else {
+				file_map[output_name] = file;
+			}
 		}
-
-		return build_files({
+		let build = build_files({
 			files: file_map,
 			outdir: output_path
 		});
+		let style_build = build_style_files({
+			files: style_file_map,
+			outdir: output_path
+		});
+		let rtl_style_build = build_style_files({
+			files: rtl_style_file_map,
+			outdir: output_path,
+			rtl_style: true
+		});
+		return Promise.all([build, style_build, rtl_style_build]);
 	});
 }
 
@@ -203,7 +221,33 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	return esbuild.build({
+	let build_plugins = [
+		html_plugin,
+		vue(),
+	];
+	return esbuild.build(get_build_options(files, outdir, build_plugins));
+}
+
+function build_style_files({ files, outdir, rtl_style=false }) {
+	let plugins = [];
+	if (rtl_style) {
+		plugins.push(rtlcss);
+	}
+
+	let build_plugins = [
+		ignore_assets,
+		postCssPlugin({
+			plugins: plugins,
+			sassOptions: sass_options
+		})
+	];
+
+	plugins.push(require("autoprefixer"));
+	return esbuild.build(get_build_options(files, outdir, build_plugins));
+}
+
+function get_build_options(files, outdir, plugins) {
+	return {
 		entryPoints: files,
 		entryNames: "[dir]/[name].[hash]",
 		outdir,
@@ -217,17 +261,9 @@ function build_files({ files, outdir }) {
 				PRODUCTION ? "production" : "development"
 			)
 		},
-		plugins: [
-			html_plugin,
-			ignore_assets,
-			vue(),
-			postCssPlugin({
-				plugins: [require("autoprefixer")],
-				sassOptions: sass_options
-			})
-		],
+		plugins: plugins,
 		watch: get_watch_config()
-	});
+	};
 }
 
 function get_watch_config() {
@@ -258,16 +294,26 @@ function get_watch_config() {
 async function clean_dist_folders(apps) {
 	for (let app of apps) {
 		let public_path = get_public_path(app);
-		await fs.promises.rmdir(path.resolve(public_path, "dist", "js"), {
-			recursive: true
-		});
-		await fs.promises.rmdir(path.resolve(public_path, "dist", "css"), {
-			recursive: true
-		});
+		let paths = [
+			path.resolve(public_path, "dist", "js"),
+			path.resolve(public_path, "dist", "css"),
+			path.resolve(public_path, "dist", "css-rtl")
+		];
+		for (let target of paths) {
+			if (fs.existsSync(target)) {
+				// rmdir is deprecated in node 16, this will work in both node 14 and 16
+				let rmdir = fs.promises.rm || fs.promises.rmdir;
+				await rmdir(target, { recursive: true });
+			}
+		}
 	}
 }
 
-function log_built_assets(metafile) {
+function log_built_assets(results) {
+	let outputs = {};
+	for (const result of results) {
+		outputs = Object.assign(outputs, result.metafile.outputs);
+	}
 	let column_widths = [60, 20];
 	cliui.div(
 		{
@@ -282,9 +328,9 @@ function log_built_assets(metafile) {
 	cliui.div("");
 
 	let output_by_dist_path = {};
-	for (let outfile in metafile.outputs) {
+	for (let outfile in outputs) {
 		if (outfile.endsWith(".map")) continue;
-		let data = metafile.outputs[outfile];
+		let data = outputs[outfile];
 		outfile = path.resolve(outfile);
 		outfile = path.relative(assets_path, outfile);
 		let filename = path.basename(outfile);
@@ -339,16 +385,15 @@ async function write_assets_json(metafile) {
 		let info = metafile.outputs[output];
 		let asset_path = "/" + path.relative(sites_path, output);
 		if (info.entryPoint) {
-			out[path.basename(info.entryPoint)] = asset_path;
+			let key = path.basename(info.entryPoint);
+			if (key.endsWith('.css') && asset_path.includes('/css-rtl/')) {
+				key = `rtl_${key}`;
+			}
+			out[key] = asset_path;
 		}
 	}
 
-	let assets_json_path = path.resolve(
-		assets_path,
-		"frappe",
-		"dist",
-		"assets.json"
-	);
+	let assets_json_path = path.resolve(assets_path, "assets.json");
 	let assets_json;
 	try {
 		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");

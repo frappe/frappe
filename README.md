@@ -14,18 +14,21 @@
 </div>
 
 <div align="center">
-    <a href="https://github.com/frappe/frappe/actions/workflows/ci-tests.yml">
-        <img src="https://github.com/frappe/frappe/actions/workflows/ci-tests.yml/badge.svg?branch=develop">
-    </a>
-    <a href='https://frappeframework.com/docs'>
-        <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
-    </a>
+	<a href="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml">
+		<img src="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml/badge.svg">
+	</a>
+	<a href="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml">
+		<img src="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml/badge.svg?branch=develop">
+	</a>
+	<a href='https://frappeframework.com/docs'>
+		<img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
+	</a>
 	<a href='https://www.codetriage.com/frappe/frappe'>
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
 	</a>
-    <a href='https://coveralls.io/github/frappe/frappe?branch=develop'>
-        <img src='https://coveralls.io/repos/github/frappe/frappe/badge.svg?branch=develop'>
-    </a>
+	<a href='https://coveralls.io/github/frappe/frappe?branch=develop'>
+		<img src='https://coveralls.io/repos/github/frappe/frappe/badge.svg?branch=develop'>
+	</a>
 </div>
 
 

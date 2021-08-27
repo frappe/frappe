@@ -1,0 +1,160 @@
+<div class="add-feedback-section">
+	<div class="feedback-form-wrapper">
+		<a class="give-feedback btn btn-light btn-sm">{{ _("How would you rate the blog?") }}</a>
+		<div style="display: none;" id="feedback-form">
+			<p>{{ _("How would you rate the blog?") }}</p>
+			<div class="alert" style="display:none;"></div>
+			<form>
+				<fieldset>
+					<div class="row" style="margin-bottom: 15px;">
+						<div class="col-sm-6">
+							<div class="rating">
+								{% for rating in [1, 2, 3, 4, 5 ,6, 7, 8, 9, 10] %}
+									<div class="icon rating-box" data-rating="{{ rating }}">{{ rating }}</div>
+								{% endfor %}
+							</div>
+						</div>
+					</div>
+					<p>
+						<textarea class="form-control" name="feedback" rows=10 placeholder="{{ _("Feedback") }}"></textarea>
+					</p>
+					<button class="btn btn-sm" id="toggle-feedback" style="margin-top:10px; margin-right:2px;">
+						{{ _("Back") }}
+					</button>
+					<button class="btn btn-primary btn-sm" id="submit-feedback" style="margin-top:10px">
+						{{ _("Submit") }}
+					</button>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	frappe.ready(() => {
+		let feedback = "{{ user_feedback.feedback or ''}}"
+		let user_rating = parseInt("{{ user_feedback.rating or 0 }}")
+		let rating = user_rating;
+		feedback && $("#submit-feedback").html(__("Update"));
+
+		if (frappe.is_user_logged_in()) {
+			if (feedback) {
+				$("[name='feedback']").val(feedback);
+				toggle_feedback();
+				set_rating(rating);
+			}
+		}
+
+		$('.give-feedback').click(() => toggle_feedback());
+
+
+		$('.rating').find('.rating-box').hover((ev) => {
+			const el = $(ev.currentTarget);
+			rating = el.data('rating');
+			el.parent().children('.rating-box').each( function(e) {
+				if (e < rating) {
+					$(this).addClass('rating-hover');
+				} else {
+					$(this).removeClass('rating-hover');
+				}
+			});
+		}, (ev) => {
+			const el = $(ev.currentTarget);
+			el.parent().children('.rating-box').each( function() {
+				$(this).removeClass('rating-hover');
+			});
+		});
+
+		$('.rating').find('.rating-box').click((ev) => {
+			const el = $(ev.currentTarget);
+			rating = el.data('rating');
+			el.parent().children('.rating-box').each( function(e) {
+				if (e < rating) {
+					$(this).addClass('rating-click');
+				} else {
+					$(this).removeClass('rating-click');
+				}
+			});
+		});
+
+		$('#submit-feedback').click((ev) => {
+			let update = ev.target.innerText !== __("Submit");
+			let rating = $('.rating').find('.rating-click').length;
+			let args = {
+				reference_doctype: "{{ reference_doctype or doctype }}",
+				reference_name: "{{ reference_name or name }}",
+				rating: rating,
+				feedback: $("[name='feedback']").val()
+			}
+
+			if (args.rating == 0) {
+				frappe.msgprint("{{ _("Rating is required!") }}");
+				return false;
+			}
+
+			if (!args.feedback || !args.feedback.trim()) {
+				frappe.msgprint("{{ _("Please add a valid feedback.") }}");
+				return false;
+			}
+
+			if (!update) {
+				frappe.call({
+					method: "frappe.templates.includes.feedback.feedback.add_feedback",
+					args: args,
+					callback: function(r) {
+						if (!r.message) {
+							return
+						}
+						toggle_feedback();
+						if (!frappe.is_user_logged_in()) {
+							$("[name='feedback']").val('');
+							set_rating(0);
+						} else {
+							feedback = $("[name='feedback']").val();
+							user_rating = rating;
+							$("#submit-feedback").html(__("Update"));
+						}
+						frappe.msgprint({message:__("Thank you for your valuable feedback!"), indicator:'green'});
+					}
+				})
+			} else {
+				if (feedback == $("[name='feedback']").val() && rating == user_rating) {
+					frappe.msgprint({message:__("Please update rating or feedback before saving."), indicator:'red'});
+					return false;
+				}
+				frappe.call({
+					method: "frappe.templates.includes.feedback.feedback.update_feedback",
+					args: args,
+					callback: function(r) {
+						toggle_feedback();
+						feedback = $("[name='feedback']").val();
+						user_rating = rating;
+						frappe.msgprint({message:__("Feedback updated successfully!"), indicator:'green'});
+					}
+				})
+			}
+			return false;
+		})
+
+		$('#toggle-feedback').click(() => {
+			toggle_feedback();
+			return false;
+		})
+
+		function set_rating(rating) {
+			let el = $('.rating').find('.rating-box');
+			el.children('.rating-box').prevObject.each( function(e) {
+				if (e < rating) {
+					$(this).addClass('rating-click');
+				} else {
+					$(this).removeClass('rating-click');
+				}
+			});
+		}
+
+		function toggle_feedback() {
+			$(".give-feedback").toggle();
+			$("#feedback-form").toggle();
+		}
+	});
+</script>

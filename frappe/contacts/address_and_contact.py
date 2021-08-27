@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 
 from frappe import _
@@ -154,7 +153,7 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
 		distinct=True, as_list=True)
 
-	doctypes = tuple([d for d in doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
+	doctypes = tuple(d for d in doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE))
 
 	filters.update({
 		"dt": ("not in", [d[0] for d in doctypes])

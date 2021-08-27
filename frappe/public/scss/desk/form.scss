@@ -1,4 +1,5 @@
 @import "../common/form.scss";
+@import '~cropperjs/dist/cropper.min';
 
 .form-section, .form-dashboard-section {
 	margin: 0px;
@@ -114,7 +115,7 @@
 		margin-bottom: var(--margin-sm);
 		font-weight: var(--text-bold);
 	}
-	.row:first-child {
+	.form-documents:first-of-type .row:first-child {
 		.form-link-title {
 			margin-top: 0;
 		}

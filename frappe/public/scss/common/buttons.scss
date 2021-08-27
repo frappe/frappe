@@ -48,13 +48,13 @@
 		$active-border: darken($primary-light, 12.5%)
 	);
 
-	color: var(--blue-500);
+	color: var(--primary);
 	&:hover, &:active {
-		color: var(--blue-500);
+		color: var(--primary);
 	}
 
 	&:focus {
-		box-shadow: 0 0 0 0.2rem var(--blue-50)
+		box-shadow: 0 0 0 0.2rem var(--primary-light);
 	}
 }
 
@@ -77,11 +77,11 @@
 }
 
 .btn.btn-primary {
-	background-color: var(--primary-color);
+	background-color: var(--primary);
 	color: var(--white);
 	white-space: nowrap;
 	--icon-stroke: currentColor;
-	--icon-fill-bg: var(--primary-color);
+	--icon-fill-bg: var(--primary);
 }
 
 .btn.btn-danger {

@@ -1,7 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.utils import now_datetime
@@ -73,7 +72,7 @@ class TestNaming(unittest.TestCase):
 		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
 		self.assertEqual(current_index.get('current'), 0)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
+		frappe.db.delete("Series", {"name": series})
 
 		series = 'TEST-{}-'.format(year)
 		key = 'TEST-.YYYY.-.#####'
@@ -83,37 +82,71 @@ class TestNaming(unittest.TestCase):
 		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
 		self.assertEqual(current_index.get('current'), 1)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
+		frappe.db.delete("Series", {"name": series})
 
 		series = 'TEST-'
 		key = 'TEST-'
 		name = 'TEST-00003'
-		frappe.db.sql("DELETE FROM `tabSeries` WHERE `name`=%s", series)
+		frappe.db.delete("Series", {"name": series})
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
 		self.assertEqual(current_index.get('current'), 2)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
+		frappe.db.delete("Series", {"name": series})
 
 		series = 'TEST1-'
 		key = 'TEST1-.#####.-2021-22'
 		name = 'TEST1-00003-2021-22'
-		frappe.db.sql("DELETE FROM `tabSeries` WHERE `name`=%s", series)
+		frappe.db.delete("Series", {"name": series})
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
 		self.assertEqual(current_index.get('current'), 2)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
+		frappe.db.delete("Series", {"name": series})
 
 		series = ''
 		key = '.#####.-2021-22'
 		name = '00003-2021-22'
-		frappe.db.sql("DELETE FROM `tabSeries` WHERE `name`=%s", series)
+		frappe.db.delete("Series", {"name": series})
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
 		self.assertEqual(current_index.get('current'), 2)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
+		frappe.db.delete("Series", {"name": series})
+
+	def test_naming_for_cancelled_and_amended_doc(self):
+		submittable_doctype = frappe.get_doc({
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"is_submittable": 1,
+			"permissions": [{
+				"role": "System Manager",
+				"read": 1
+			}],
+			"name": 'Submittable Doctype'
+		}).insert(ignore_if_duplicate=True)
+
+		doc = frappe.new_doc('Submittable Doctype')
+		doc.save()
+		original_name = doc.name
+
+		doc.submit()
+		doc.cancel()
+		cancelled_name = doc.name
+		self.assertEqual(cancelled_name, "{}-CANC-0".format(original_name))
+
+		amended_doc = frappe.copy_doc(doc)
+		amended_doc.docstatus = 0
+		amended_doc.amended_from = doc.name
+		amended_doc.save()
+		self.assertEqual(amended_doc.name, original_name)
+
+		amended_doc.submit()
+		amended_doc.cancel()
+		self.assertEqual(amended_doc.name, "{}-CANC-1".format(original_name))
+
+		submittable_doctype.delete()

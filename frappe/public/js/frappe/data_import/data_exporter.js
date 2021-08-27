@@ -72,8 +72,8 @@ frappe.data_import.DataExporter = class DataExporter {
 					let child_fieldname = df.fieldname;
 					let label = df.reqd
 						? // prettier-ignore
-						  __('{0} ({1}) (1 row mandatory)', [df.label || df.fieldname, doctype])
-						: __('{0} ({1})', [df.label || df.fieldname, doctype]);
+						  __('{0} ({1}) (1 row mandatory)', [__(df.label || df.fieldname), __(doctype)])
+						: __('{0} ({1})', [__(df.label || df.fieldname), __(doctype)]);
 					return {
 						label,
 						fieldname: child_fieldname,

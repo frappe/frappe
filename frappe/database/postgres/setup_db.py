@@ -83,7 +83,6 @@ def get_root_connection(root_login=None, root_password=None):
 			root_login = frappe.conf.get("root_login") or None
 
 		if not root_login:
-			from six.moves import input
 			root_login = input("Enter postgres super user: ")
 
 		if not root_password:

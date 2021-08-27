@@ -60,14 +60,13 @@ For razorpay payment status is Authorized
 
 """
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import json
 import hmac
 import razorpay
 import hashlib
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint, get_timestamp
 from frappe.integrations.utils import (make_get_request, make_post_request, create_request_log,

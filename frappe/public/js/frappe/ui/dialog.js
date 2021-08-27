@@ -98,6 +98,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.focus_on_first_input();
 				me.on_page_show && me.on_page_show();
 				$(document).trigger('frappe.ui.Dialog:shown');
+				$(document).off('focusin.modal');
 			})
 			.on('scroll', function() {
 				var $input = $('input:focus');

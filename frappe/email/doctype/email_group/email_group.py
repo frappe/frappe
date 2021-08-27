@@ -2,7 +2,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import validate_email_address
@@ -105,6 +104,6 @@ def send_welcome_email(welcome_email, email, email_group):
 		email=email,
 		email_group=email_group
 	)
-
-	message = frappe.render_template(welcome_email.response, args)
+	email_message = welcome_email.response or welcome_email.response_html
+	message = frappe.render_template(email_message, args)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)

@@ -76,6 +76,7 @@
   "index_web_pages_for_search",
   "route",
   "is_published_field",
+  "website_search_field",
   "advanced",
   "engine"
  ],
@@ -547,6 +548,12 @@
   {
    "fieldname": "column_break_51",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "has_web_view",
+   "fieldname": "website_search_field",
+   "fieldtype": "Data",
+   "label": "Website Search Field"
   }
  ],
  "icon": "fa fa-bolt",
@@ -628,7 +635,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-04-16 12:26:41.031135",
+ "modified": "2021-06-17 23:31:44.974199",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

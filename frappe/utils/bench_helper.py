@@ -1,4 +1,3 @@
-from __future__ import unicode_literals, print_function
 import click
 import frappe
 import os
@@ -101,4 +100,5 @@ def get_apps():
 if __name__ == "__main__":
 	if not frappe._dev_server:
 		warnings.simplefilter('ignore')
+
 	main()

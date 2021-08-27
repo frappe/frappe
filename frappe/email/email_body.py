@@ -1,14 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe, re, os
 from frappe.utils.pdf import get_pdf
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
 	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
-from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email import policy
@@ -55,7 +53,7 @@ class EMail:
 		from email import charset as Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
-		if isinstance(recipients, string_types):
+		if isinstance(recipients, str):
 			recipients = recipients.replace(';', ',').replace('\n', '')
 			recipients = split_emails(recipients)
 
@@ -225,7 +223,7 @@ class EMail:
 		}
 
 		# reset headers as values may be changed.
-		for key, val in iteritems(headers):
+		for key, val in headers.items():
 			if val:
 				self.set_header(key, val)
 
@@ -328,7 +326,7 @@ def add_attachment(fname, fcontent, content_type=None,
 	maintype, subtype = content_type.split('/', 1)
 	if maintype == 'text':
 		# Note: we should handle calculating the charset
-		if isinstance(fcontent, text_type):
+		if isinstance(fcontent, str):
 			fcontent = fcontent.encode("utf-8")
 		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
 	elif maintype == 'image':
@@ -345,7 +343,7 @@ def add_attachment(fname, fcontent, content_type=None,
 	# Set the filename parameter
 	if fname:
 		attachment_type = 'inline' if inline else 'attachment'
-		part.add_header('Content-Disposition', attachment_type, filename=text_type(fname))
+		part.add_header('Content-Disposition', attachment_type, filename=str(fname))
 	if content_id:
 		part.add_header('Content-ID', '<{0}>'.format(content_id))
 
@@ -353,9 +351,7 @@ def add_attachment(fname, fcontent, content_type=None,
 
 def get_message_id():
 	'''Returns Message ID created from doctype and name'''
-	return "<{unique}@{site}>".format(
-			site=frappe.local.site,
-			unique=email.utils.make_msgid(random_string(10)).split('@')[0].split('<')[1])
+	return email.utils.make_msgid(domain=frappe.local.site)
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:
@@ -452,7 +448,7 @@ def get_header(header=None):
 
 	if not header: return None
 
-	if isinstance(header, string_types):
+	if isinstance(header, str):
 		# header = 'My Title'
 		header = [header, None]
 	if len(header) == 1:

@@ -2,7 +2,6 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe, os
 from frappe.model.document import Document
 from frappe import _
@@ -76,8 +75,7 @@ def get_connection_class(python_module):
 
 	return _class
 
-connection_boilerplate = """from __future__ import unicode_literals
-from frappe.data_migration.doctype.data_migration_connector.connectors.base import BaseConnection
+connection_boilerplate = """from frappe.data_migration.doctype.data_migration_connector.connectors.base import BaseConnection
 
 class {connection_class}(BaseConnection):
 	def __init__(self, connector):

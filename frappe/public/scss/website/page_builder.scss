@@ -145,20 +145,21 @@
 
 .section-with-cards .card {
 	@include transition();
+	border: none;
+
+	.card-body {
+		padding: 0 1.5rem 2rem 0;
+	}
 
 	&:hover {
 		border-color: $gray-500;
 	}
 
 	.card-title {
-		line-height: 1;
+		line-height: 1.3;
 	}
 
 	&.card-sm {
-		.card-body {
-			padding: 1.5rem;
-		}
-
 		.card-title {
 			font-size: $font-size-base;
 			font-weight: 600;
@@ -169,10 +170,6 @@
 		}
 	}
 	&.card-md {
-		.card-body {
-			padding: 1.75rem;
-		}
-
 		.card-title {
 			font-size: $font-size-lg;
 			font-weight: 600;
@@ -186,10 +183,6 @@
 		}
 	}
 	&.card-lg {
-		.card-body {
-			padding: 2rem;
-		}
-
 		.card-title {
 			font-size: $font-size-xl;
 			font-weight: bold;

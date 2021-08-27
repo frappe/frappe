@@ -37,6 +37,8 @@ export default class Grid {
 		}
 
 		this.is_grid = true;
+		this.debounced_refresh = this.refresh.bind(this);
+		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
 	}
 
 	allow_on_grid_editing() {
@@ -196,7 +198,7 @@ export default class Grid {
 		tasks.push(() => {
 			if (dirty) {
 				this.refresh();
-				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
+				this.frm && this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 			}
 		});
 
@@ -210,9 +212,9 @@ export default class Grid {
 
 	delete_all_rows() {
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
-			this.frm.doc[this.df.fieldname] = [];
-			$(this.parent).find('.rows').empty();
-			this.grid_rows = [];
+			this.grid_rows.forEach(row => {
+				row.remove();
+			});
 			this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
@@ -236,6 +238,10 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
+		if (this.df.cannot_delete_rows) {
+			return;
+		}
+
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 		this.remove_all_rows_button.toggleClass('hidden',
@@ -260,15 +266,16 @@ export default class Grid {
 
 	make_head() {
 		// labels
-		if (!this.header_row) {
-			this.header_row = new GridRow({
-				parent: $(this.parent).find(".grid-heading-row"),
-				parent_df: this.df,
-				docfields: this.docfields,
-				frm: this.frm,
-				grid: this
-			});
+		if (this.header_row) {
+			$(this.parent).find(".grid-heading-row .grid-row").remove();
 		}
+		this.header_row = new GridRow({
+			parent: $(this.parent).find(".grid-heading-row"),
+			parent_df: this.df,
+			docfields: this.docfields,
+			frm: this.frm,
+			grid: this
+		});
 	}
 
 	refresh(force) {
@@ -344,6 +351,9 @@ export default class Grid {
 			}
 			if (d.idx === undefined) {
 				d.idx = ri + 1;
+			}
+			if (d.name === undefined) {
+				d.name = "row " + d.idx;
 			}
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
@@ -492,7 +502,7 @@ export default class Grid {
 			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
-		this.refresh(true);
+		this.debounced_refresh();
 	}
 
 	set_editable_grid_column_disp(fieldname, show) {
@@ -536,17 +546,17 @@ export default class Grid {
 
 	toggle_reqd(fieldname, reqd) {
 		this.get_docfield(fieldname).reqd = reqd;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_enable(fieldname, enable) {
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_display(fieldname, show) {
 		this.get_docfield(fieldname).hidden = show ? 0 : 1;
-		this.refresh();
+		this.debounced_refresh();
 	}
 
 	toggle_checkboxes(enable) {
@@ -667,6 +677,7 @@ export default class Grid {
 		if (!idx) {
 			idx = this.grid_rows.length - 1;
 		}
+
 		setTimeout(() => {
 			this.grid_rows[idx].row
 				.find('input[type="Text"],textarea,select').filter(':visible:first').focus();
@@ -926,6 +937,6 @@ export default class Grid {
 		// update the parent too (for new rows)
 		this.docfields.find(d => d.fieldname === fieldname)[property] = value;
 
-		this.refresh();
+		this.debounced_refresh();
 	}
 }

@@ -7,8 +7,6 @@ Events:
 	monthly
 	weekly
 """
-# imports - compatibility imports
-from __future__ import print_function, unicode_literals
 
 # imports - standard imports
 import os

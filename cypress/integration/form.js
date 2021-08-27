@@ -18,6 +18,7 @@ context('Form', () => {
 		cy.get('.primary-action').click();
 		cy.wait('@form_save').its('response.statusCode').should('eq', 200);
 		cy.visit('/app/todo');
+		cy.wait(300);
 		cy.get('.title-text').should('be.visible').and('contain', 'To Do');
 		cy.get('.list-row').should('contain', 'this is a test todo');
 	});
@@ -25,7 +26,7 @@ context('Form', () => {
 		cy.visit('/app/contact');
 		cy.add_filter();
 		cy.get('.filter-field .input-with-feedback.form-control').type('123', { force: true });
-		cy.get('.filter-popover .apply-filters').click({ force: true });
+		cy.findByRole('button', {name: 'Apply Filters'}).click({ force: true });
 		cy.visit('/app/contact/Test Form Contact 3');
 		cy.get('.prev-doc').should('be.visible').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');

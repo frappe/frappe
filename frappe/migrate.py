@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import json
 import os
 import sys
@@ -15,7 +13,7 @@ from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
 from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
-from frappe.website import render
+from frappe.website.utils import clear_website_cache
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
@@ -78,7 +76,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
 		# syncs statics
-		render.clear_cache()
+		clear_website_cache()
 
 		# updating installed applications data
 		frappe.get_single('Installed Applications').update_versions()

@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 import frappe
 import smtplib
 import email.utils
@@ -85,18 +84,19 @@ class SMTPServer:
 		SMTP = smtplib.SMTP_SSL if self.use_ssl else smtplib.SMTP
 
 		try:
-			self._session = SMTP(self.server, self.port)
-			if not self._session:
+			_session = SMTP(self.server, self.port)
+			if not _session:
 				frappe.msgprint(CONNECTION_FAILED, raise_exception=frappe.OutgoingEmailError)
 
-			self.secure_session(self._session)
+			self.secure_session(_session)
 			if self.login and self.password:
-				res = self._session.login(str(self.login or ""), str(self.password or ""))
+				res = _session.login(str(self.login or ""), str(self.password or ""))
 
 				# check if logged correctly
 				if res[0]!=235:
 					frappe.msgprint(res[1], raise_exception=frappe.OutgoingEmailError)
 
+			self._session = _session
 			return self._session
 
 		except smtplib.SMTPAuthenticationError as e:

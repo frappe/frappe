@@ -302,7 +302,7 @@ class TestOAuth20(unittest.TestCase):
 			id_token,
 			audience=client.client_id,
 			key=client.client_secret,
-			algorithm="HS256",
+			algorithms=["HS256"],
 		)
 
 		self.assertTrue(payload.get("nonce") == nonce)

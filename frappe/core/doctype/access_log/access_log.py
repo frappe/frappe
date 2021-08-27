@@ -1,11 +1,5 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
-
-# imports - standard imports
-from __future__ import unicode_literals
-
-# imports - module imports
 import frappe
 from frappe.model.document import Document
 
@@ -35,4 +29,5 @@ def make_access_log(doctype=None, document=None, method=None, file_type=None,
 	doc.insert(ignore_permissions=True)
 
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
-	frappe.db.commit()
+	if frappe.request and frappe.request.method == 'GET':
+		frappe.db.commit()

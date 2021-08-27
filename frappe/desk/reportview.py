@@ -1,16 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
 """build query for doclistview and return results"""
 
 import frappe, json
-from six.moves import range
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe.model import default_fields, optional_fields
 from frappe import _
-from six import string_types, StringIO
+from io import StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
@@ -171,7 +169,7 @@ def get_meta_and_docfield(fieldname, data):
 	return meta, df
 
 def update_wildcard_field_param(data):
-	if ((isinstance(data.fields, string_types) and data.fields == "*")
+	if ((isinstance(data.fields, str) and data.fields == "*")
 		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
 		data.fields = frappe.db.get_table_columns(data.doctype)
 		return True
@@ -191,15 +189,15 @@ def clean_params(data):
 
 
 def parse_json(data):
-	if isinstance(data.get("filters"), string_types):
+	if isinstance(data.get("filters"), str):
 		data["filters"] = json.loads(data["filters"])
-	if isinstance(data.get("or_filters"), string_types):
+	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
-	if isinstance(data.get("fields"), string_types):
+	if isinstance(data.get("fields"), str):
 		data["fields"] = json.loads(data["fields"])
-	if isinstance(data.get("docstatus"), string_types):
+	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), string_types):
+	if isinstance(data.get("save_user_settings"), str):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
@@ -311,7 +309,7 @@ def export_query():
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
 			writer.writerow([handle_html(frappe.as_unicode(v)) \
-				if isinstance(v, string_types) else v for v in r])
+				if isinstance(v, str) else v for v in r])
 
 		f.seek(0)
 		frappe.response['result'] = cstr(f.read())
@@ -447,24 +445,36 @@ def get_stats(stats, doctype, filters=[]):
 	for tag in tags:
 		if not tag in columns: continue
 		try:
-			tagcount = frappe.get_list(doctype, fields=[tag, "count(*)"],
-				#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
-				filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
+			tag_count = frappe.get_list(doctype,
+				fields=[tag, "count(*)"],
+				filters=filters + [[tag, '!=', '']],
+				group_by=tag,
+				as_list=True,
+				distinct=1,
+			)
 
-			if tag=='_user_tags':
-				stats[tag] = scrub_user_tags(tagcount)
-				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
+			if tag == '_user_tags':
+				stats[tag] = scrub_user_tags(tag_count)
+				no_tag_count = frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
-					filters=filters +["({0} = ',' or {0} = '' or {0} is null)".format(tag)], as_list=True)[0][1]])
+					filters=filters + [[tag, "in", ('', ',')]],
+					as_list=True,
+					group_by=tag,
+					order_by=tag,
+				)
+
+				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+
+				stats[tag].append([_("No Tags"), no_tag_count])
 			else:
-				stats[tag] = tagcount
+				stats[tag] = tag_count
 
 		except frappe.db.SQLError:
-			# does not work for child tables
 			pass
-		except frappe.db.InternalError:
+		except frappe.db.InternalError as e:
 			# raised when _user_tags column is added on the fly
 			pass
+
 	return stats
 
 @frappe.whitelist()
@@ -540,7 +550,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 		return match_conditions
 
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	if filters:
@@ -549,7 +559,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 			filters = filters.items()
 			flt = []
 			for f in filters:
-				if isinstance(f[1], string_types) and f[1][0] == '!':
+				if isinstance(f[1], str) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
 				elif isinstance(f[1], (list, tuple)) and \
 					f[1][0] in (">", "<", ">=", "<=", "!=", "like", "not like", "in", "not in", "between"):

@@ -2,7 +2,6 @@
 # Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json, os
 from frappe import _
@@ -12,7 +11,6 @@ from frappe.utils import validate_email_address, nowdate, parse_val, is_html, ad
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 from frappe.modules.utils import export_module_json, get_doc_module
-from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
@@ -55,9 +53,7 @@ class Notification(Document):
 			# py
 			if not os.path.exists(path + '.py'):
 				with open(path + '.py', 'w') as f:
-					f.write("""from __future__ import unicode_literals
-
-import frappe
+					f.write("""import frappe
 
 def get_context(context):
 	# do your magic here
@@ -397,7 +393,7 @@ def trigger_notifications(doc, method=None):
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
 	try:
-		if isinstance(alert, string_types):
+		if isinstance(alert, str):
 			alert = frappe.get_doc("Notification", alert)
 
 		context = get_context(doc)

@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
 import frappe
 import unittest
 from frappe.utils import random_string
@@ -78,7 +76,7 @@ class TestWorkflow(unittest.TestCase):
 		self.assertListEqual(actions, ['Review'])
 
 	def test_if_workflow_actions_were_processed(self):
-		frappe.db.sql('delete from `tabWorkflow Action`')
+		frappe.db.delete("Workflow Action")
 		user = frappe.get_doc('User', 'test2@example.com')
 		user.add_roles('Test Approver', 'System Manager')
 		frappe.set_user('test2@example.com')
@@ -122,6 +120,16 @@ class TestWorkflow(unittest.TestCase):
 
 		self.workflow.states[1].doc_status = 0
 		self.workflow.save()
+
+	def test_syntax_error_in_transition_rule(self):
+		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
+
+		with self.assertRaises(frappe.ValidationError) as se:
+			self.workflow.save()
+
+		self.assertTrue("invalid python code" in str(se.exception).lower(),
+				msg="Python code validation not working")
+
 
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):

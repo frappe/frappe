@@ -31,7 +31,6 @@
   "default_print_format",
   "column_break_29",
   "show_preview_popup",
-  "image_view",
   "email_settings_section",
   "default_email_template",
   "column_break_26",
@@ -108,13 +107,6 @@
    "fieldname": "track_changes",
    "fieldtype": "Check",
    "label": "Track Changes"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval: doc.image_field",
-   "fieldname": "image_view",
-   "fieldtype": "Check",
-   "label": "Image View"
   },
   {
    "fieldname": "column_break_5",
@@ -288,16 +280,6 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
-  },
-  {
-   "fieldname": "default_email_template",
-   "fieldtype": "Link",
-   "label": "Default Email Template",
-   "options": "Email Template"
-  },
-  {
-   "fieldname": "column_break_26",
-   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -306,7 +288,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-04-29 21:21:06.476372",
+ "modified": "2021-06-21 19:01:06.920663",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

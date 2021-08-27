@@ -1,11 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
+import pickle
+import re
 
-import redis, frappe, re
-from six.moves import cPickle as pickle
+import redis
+
+import frappe
 from frappe.utils import cstr
-from six import iteritems
 
 
 class RedisWrapper(redis.Redis):
@@ -165,8 +166,10 @@ class RedisWrapper(redis.Redis):
 			pass
 
 	def hgetall(self, name):
-		return {key: pickle.loads(value) for key, value in
-			iteritems(super(RedisWrapper, self).hgetall(self.make_key(name)))}
+		value = super(RedisWrapper, self).hgetall(self.make_key(name))
+		return {
+			key: pickle.loads(value) for key, value in value.items()
+		}
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)

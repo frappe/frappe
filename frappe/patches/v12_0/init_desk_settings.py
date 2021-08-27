@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import json
 import frappe
 from frappe.config import get_modules_from_all_apps_for_user

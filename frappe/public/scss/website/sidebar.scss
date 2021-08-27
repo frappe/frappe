@@ -10,7 +10,7 @@
 	margin-top: 0.25rem;
 	border-radius: 0.375rem;
 	font-size: $font-size-sm;
-	color: $gray-600;
+	color: var(--text-color);
 	text-decoration: none;
 	font-weight: 500;
 	@include transition();
@@ -26,8 +26,8 @@
 }
 
 .sidebar-item a.active {
-	color: $primary;
-	background-color: $primary-light;
+	color: var(--primary);
+	background-color: var(--primary-light);
 }
 
 .sidebar-item-icon {

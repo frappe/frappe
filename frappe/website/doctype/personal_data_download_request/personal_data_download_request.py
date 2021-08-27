@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe import _
@@ -29,7 +28,7 @@ class PersonalDataDownloadRequest(Document):
 		})
 		f.save(ignore_permissions=True)
 
-		file_link = frappe.utils.get_url("/api/method/frappe.core.doctype.file.file.download_file") +\
+		file_link = frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file") +\
 			"?" + get_signed_params({"file_url": f.file_url})
 		host_name = frappe.local.site
 		frappe.sendmail(

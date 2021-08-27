@@ -1,6 +1,6 @@
 import socket
 
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from frappe import get_conf
 
 REDIS_KEYS = ('redis_cache', 'redis_queue', 'redis_socketio')

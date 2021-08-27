@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-
 import os
 import re
 import json
 import shutil
 import subprocess
+from io import StringIO
 from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
@@ -50,7 +50,7 @@ def build_missing_files():
 	development = frappe.local.conf.developer_mode or frappe.local.dev_server
 	build_mode = "development" if development else "production"
 
-	assets_json = frappe.read_file(frappe.get_app_path('frappe', 'public', 'dist', 'assets.json'))
+	assets_json = frappe.read_file("assets/assets.json")
 	if assets_json:
 		assets_json = frappe.parse_json(assets_json)
 
@@ -402,8 +402,6 @@ def get_build_maps():
 
 
 def pack(target, sources, no_compress, verbose):
-	from six import StringIO
-
 	outtype, outtxt = target.split(".")[-1], ""
 	jsm = JavascriptMinify()
 
