@@ -12,14 +12,18 @@ export default class LinksWidget extends Widget {
 		return {
 			name: this.name,
 			links: JSON.stringify(this.links),
+			link_count: this.links.length,
 			label: this.label,
 			hidden: this.hidden,
 		};
 	}
 
 	set_body() {
-		this.options = {};
-		this.options.links = this.links;
+
+		if (!this.options) {
+			this.options = {};
+			this.options.links = this.links;
+		}
 		this.widget.addClass("links-widget-box");
 		const is_link_disabled = item => {
 			return item.dependencies && item.incomplete_dependencies;
@@ -64,10 +68,11 @@ export default class LinksWidget extends Widget {
 			const opts = {
 				name: item.link_to,
 				type: item.link_type,
+				doctype: item.doctype,
 				is_query_report: item.is_query_report
 			};
 
-			if (item.link_type == "Report" && !item.is_query_report) {
+			if (item.link_type.toLowerCase() == "report" && !item.is_query_report) {
 				opts.doctype = item.dependencies;
 			}
 
@@ -80,7 +85,9 @@ export default class LinksWidget extends Widget {
 					${get_link_for_item(item)}
 			</a>`);
 		});
-
+		if (this.in_customize_mode) {
+			this.body.empty();
+		}
 		this.link_list.forEach(link => link.appendTo(this.body));
 	}
 

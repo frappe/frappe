@@ -35,6 +35,8 @@ def find_first_image(html):
 		return None
 
 def can_cache(no_cache=False):
+	if frappe.flags.force_website_cache:
+		return True
 	if frappe.conf.disable_website_cache or frappe.conf.developer_mode:
 		return False
 	if getattr(frappe.local, "no_cache", False):
@@ -486,11 +488,12 @@ def set_content_type(response, data, path):
 	return data
 
 def add_preload_headers(response):
-	from bs4 import BeautifulSoup
+	from bs4 import BeautifulSoup, SoupStrainer
 
 	try:
 		preload = []
-		soup = BeautifulSoup(response.data, "lxml")
+		strainer = SoupStrainer(re.compile("script|link"))
+		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
 		for elem in soup.find_all('script', src=re.compile(".*")):
 			preload.append(("script", elem.get("src")))
 

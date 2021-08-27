@@ -65,3 +65,15 @@ div#driver-popover-item {
 input.driver-highlighted-element {
 	background-color: var(--fg-color);
 }
+
+.driver-fix-stacking {
+	z-index: auto !important;
+	position: unset !important;
+	opacity: 1.0 !important;
+	transform: none !important;
+	filter: none !important;
+	perspective: none !important;
+	transform-style: flat !important;
+	transform-box: border-box !important;
+	will-change: unset !important;
+}

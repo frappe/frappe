@@ -83,10 +83,14 @@ class BaseDocument(object):
 
 	@property
 	def meta(self):
-		if not hasattr(self, "_meta"):
+		if not getattr(self, "_meta", None):
 			self._meta = frappe.get_meta(self.doctype)
 
 		return self._meta
+
+	def __getstate__(self):
+		self._meta = None
+		return self.__dict__
 
 	def update(self, d):
 		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -722,6 +726,18 @@ class BaseDocument(object):
 
 				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
+
+	def _validate_code_fields(self):
+		for field in self.meta.get_code_fields():
+			code_string = self.get(field.fieldname)
+			language = field.get("options")
+
+			if language == "Python":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
+
+			elif language == "PythonExpression":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		if self.parentfield and self.idx:

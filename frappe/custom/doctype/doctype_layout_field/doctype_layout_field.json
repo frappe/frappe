@@ -20,14 +20,13 @@
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Label",
-   "reqd": 1
+   "label": "Label"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-11-16 17:13:01.892345",
+ "modified": "2021-05-19 16:27:40.585865",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout Field",

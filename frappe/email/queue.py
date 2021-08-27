@@ -173,13 +173,8 @@ def clear_outbox(days=None):
 		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '{0}' DAY)""".format(days))
 
 	if email_queues:
-		frappe.db.sql("""DELETE FROM `tabEmail Queue` WHERE `name` IN ({0})""".format(
-			','.join(['%s']*len(email_queues)
-		)), tuple(email_queues))
-
-		frappe.db.sql("""DELETE FROM `tabEmail Queue Recipient` WHERE `parent` IN ({0})""".format(
-			','.join(['%s']*len(email_queues)
-		)), tuple(email_queues))
+		frappe.db.delete("Email Queue", {"name": ("in", email_queues)})
+		frappe.db.delete("Email Queue Recipient", {"parent": ("in", email_queues)})
 
 def set_expiry_for_email_queue():
 	''' Mark emails as expire that has not sent for 7 days.

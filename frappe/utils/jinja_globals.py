@@ -73,17 +73,25 @@ def include_script(path):
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
-def include_style(path):
+def include_style(path, rtl=None):
 	path = bundled_asset(path)
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
-def bundled_asset(path):
+def bundled_asset(path, rtl=None):
 	from frappe.utils import get_assets_json
 	from frappe.website.utils import abs_url
 
 	if ".bundle." in path and not path.startswith("/assets"):
 		bundled_assets = get_assets_json()
+		if path.endswith('.css') and is_rtl(rtl):
+			path = f"rtl_{path}"
 		path = bundled_assets.get(path) or path
 
 	return abs_url(path)
+
+def is_rtl(rtl=None):
+	from frappe import local
+	if rtl is None:
+		return local.lang in ["ar", "he", "fa", "ps"]
+	return rtl

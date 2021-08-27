@@ -1,7 +1,7 @@
 import frappe
 from frappe.model.document import get_controller
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
-from frappe.website.utils import build_response
+from frappe.website.utils import cache_html
 from frappe.website.router import (get_doctypes_with_web_view,
 	get_page_info_from_web_page_with_dynamic_routes)
 
@@ -47,14 +47,19 @@ class DocumentPage(BaseTemplatePage):
 			return False
 
 	def render(self):
+		html = self.get_html()
+		html = self.add_csrf_token(html)
+
+		return self.build_response(html)
+
+	@cache_html
+	def get_html(self):
 		self.doc = frappe.get_doc(self.doctype, self.docname)
 		self.init_context()
 		self.update_context()
 		self.post_process_context()
 		html = frappe.get_template(self.template_path).render(self.context)
-		html = self.add_csrf_token(html)
-
-		return build_response(self.path, html, self.http_status_code or 200, self.headers)
+		return html
 
 	def update_context(self):
 		self.context.doc = self.doc

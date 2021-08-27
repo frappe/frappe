@@ -383,6 +383,12 @@ def get_files_path(*path, **kwargs):
 def get_bench_path():
 	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
 
+def get_bench_id():
+	return frappe.get_conf().get('bench_id', get_bench_path().strip('/').replace('/', '-'))
+
+def get_site_id(site=None):
+	return f"{site or frappe.local.site}@{get_bench_id()}"
+
 def get_backups_path():
 	return get_site_path("private", "backups")
 
@@ -843,3 +849,6 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+
+def get_table_name(table_name: str) -> str:
+	return f"tab{table_name}" if not table_name.startswith("__") else table_name

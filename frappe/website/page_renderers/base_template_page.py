@@ -8,6 +8,7 @@ class BaseTemplatePage(BaseRenderer):
 	def __init__(self, path, http_status_code=None):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.template_path = ''
+		self.source = ''
 
 	def init_context(self):
 		self.context = frappe._dict()

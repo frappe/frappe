@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and Contributors
-# See license.txt
+# Copyright (c) 2021, Frappe Technologies and Contributors
+# See LICENSE
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions, remove_applicable
 from frappe.permissions import has_user_permission
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -10,11 +9,14 @@ import unittest
 
 class TestUserPermission(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("""DELETE FROM `tabUser Permission`
-			WHERE `user` in (
-				'test_bulk_creation_update@example.com',
-				'test_user_perm1@example.com',
-				'nested_doc_user@example.com')""")
+		test_users = (
+			"test_bulk_creation_update@example.com",
+			"test_user_perm1@example.com",
+			"nested_doc_user@example.com",
+		)
+		frappe.db.delete("User Permission", {
+			"user": ("in", test_users)
+		})
 		frappe.delete_doc_if_exists("DocType", "Person")
 		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabPerson`")
 		frappe.delete_doc_if_exists("DocType", "Doc A")

@@ -7,8 +7,10 @@ import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
 
+
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
+
 
 def check_admin_or_system_manager(user=None):
 	if not user: user = frappe.session.user
@@ -299,7 +301,7 @@ def has_controller_permissions(doc, ptype, user=None):
 	if not methods:
 		return None
 
-	for method in methods:
+	for method in reversed(methods):
 		controller_permission = frappe.call(frappe.get_attr(method), doc=doc, ptype=ptype, user=user)
 		if controller_permission is not None:
 			return controller_permission
@@ -516,8 +518,7 @@ def reset_perms(doctype):
 	"""Reset permissions for given doctype."""
 	from frappe.desk.notifications import delete_notification_count_for
 	delete_notification_count_for(doctype)
-
-	frappe.db.sql("""delete from `tabCustom DocPerm` where parent=%s""", doctype)
+	frappe.db.delete("Custom DocPerm", {"parent": doctype})
 
 def get_linked_doctypes(dt):
 	return list(set([dt] + [d.options for d in

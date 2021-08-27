@@ -85,8 +85,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	if attachments:
 		add_attachments(comm.name, attachments)
 
-	frappe.db.commit()
-
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():
 			frappe.throw(msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError)
