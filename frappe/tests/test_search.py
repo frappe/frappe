@@ -61,8 +61,7 @@ class TestSearch(unittest.TestCase):
 			user.add_roles('System Manager',)
 
 		names_for_mention = [user.get('id') for user in get_names_for_mentions('')]
-		self.assertNotIn(email,  names_for_mention)
-
+		self.assertNotIn(email, names_for_mention)
 
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
