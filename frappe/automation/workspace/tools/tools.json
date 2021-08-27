@@ -10,6 +10,7 @@
  "hide_custom": 0,
  "icon": "tool",
  "idx": 0,
+ "is_default": 0,
  "is_standard": 1,
  "label": "Tools",
  "links": [
@@ -192,7 +193,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:39.950350",
+ "modified": "2021-08-21 11:21:53.493081",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",

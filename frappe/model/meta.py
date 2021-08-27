@@ -521,8 +521,8 @@ class Meta(Document):
 			for group in data.transactions:
 				group = frappe._dict(group)
 
-				# For internal links parent doctype will be the key
 				doctype = link.parent_doctype or link.link_doctype
+
 				# group found
 				if link.group and group.label == link.group:
 					if doctype not in group.get('items'):
