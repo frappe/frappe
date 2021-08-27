@@ -283,14 +283,21 @@ export default {
 			label: __('Recorder'),
 			route: '/app/recorder'
 		});
-		frappe.call({
-			method: "frappe.recorder.get",
-			args: {
-				uuid: this.$route.params.id
-			}
-		}).then( r => {
-			this.request = r.message
-		});
-	}
+
+		const request = this.$route.params.request;
+		if (request.headers || request.form_dict || request.calls) {
+			// complete request data passed as parameter.
+			this.request = request;
+		} else {
+			frappe.call({
+				method: "frappe.recorder.get",
+				args: {
+					uuid: request.uuid
+				}
+			}).then( r => {
+				this.request = r.message
+			});
+		}
+	},
 };
 </script>
