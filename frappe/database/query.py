@@ -1,6 +1,8 @@
 import operator
 from typing import Any, Dict, List, Tuple, Union
 
+from frappe.query_builder import Order
+
 import frappe
 
 
@@ -105,7 +107,19 @@ class Query:
 	def make_function(self, key: Any, value: Union[int, str]):
 		return self.operator_map[value[0]](key, value[1])
 
-	def dict_query(self, table: str, filters: Dict[str, Union[str, int]]=None):
+	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None,
+				   orderby:str = None, order:Order = None):
+		"""Generate condition object using filters
+
+		Args:
+			table (str): DocType
+			filters (Dict[str, Union[str, int]], optional): Conditions. Defaults to None.
+			orderby (str, optional): field to order by. Defaults to None.
+			order (Order, optional): order. Defaults to None.
+
+		Returns:
+			condition: conditions object
+		"""
 		conditions = frappe.qb.from_(table)
 		if not filters:
 			return conditions
@@ -126,10 +140,13 @@ class Query:
 					conditions = conditions.where(_operator(frappe.qb.Field(key), value[1]))
 			else:
 				conditions = conditions.where(_operator(frappe.qb.Field(key), value))
-
+		if orderby:
+			order = order if order else Order.desc
+			return conditions.orderby(orderby, order)
 		return conditions
 
-	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int]=None) -> frappe.qb:
+	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None,
+						 orderby: str = None, order: Order = None) -> frappe.qb:
 		"""Build conditions for sql query
 
 		Args:
@@ -142,4 +159,4 @@ class Query:
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
 
-		return self.dict_query(filters=filters, table=table)
+		return self.dict_query(filters=filters, table=table, orderby=orderby, order=order)
