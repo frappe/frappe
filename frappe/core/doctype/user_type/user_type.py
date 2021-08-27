@@ -36,8 +36,11 @@ class UserType(Document):
 		if not self.user_doctypes:
 			return
 
-		modules = frappe.get_all('DocType', fields=['distinct module as module'],
-			filters={'name': ('in', [d.document_type for d in self.user_doctypes])})
+		modules = frappe.get_all('DocType',
+								fields=['module'],
+								filters={'name': ('in', [d.document_type for d in self.user_doctypes])},
+								distinct=True
+							)
 
 		self.set('user_type_modules', [])
 		for row in modules:
