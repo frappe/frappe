@@ -7,12 +7,12 @@ context('Folder Navigation', () => {
 
 	it('Adding Folders', () => {
 		//Adding filter to go into the home folder
-		cy.get('.filter-selector > .btn').click();
+		cy.get('.filter-selector > .btn').findByText('1 filter').click();
 		cy.findByRole('button', {name: 'Clear Filters'}).click();
-		cy.get('.filter-action-buttons > .text-muted').click();
+		cy.get('.filter-action-buttons > .text-muted').findByText('+ Add a Filter').click();
 		cy.get('.fieldname-select-area > .awesomplete > .form-control').type('Fol{enter}');
 		cy.get('.filter-field > .form-group > .link-field > .awesomplete > .input-with-feedback').type('Home{enter}');
-		cy.get('.filter-action-buttons > div > .btn-primary').click();
+		cy.get('.filter-action-buttons > div > .btn-primary').findByText('Apply Filters').click();
 
 		//Adding folder (Test Folder)
 		cy.get('.menu-btn-group > .btn').click();
@@ -44,7 +44,7 @@ context('Folder Navigation', () => {
 
 		//Adding a file inside the Test Folder
 		cy.findByRole('button', {name: 'Add File'}).eq(0).click({force: true});
-		cy.get('.mt-2 > .btn > .mt-1').eq(2).click();
+		cy.get('.file-uploader').findByText('Link').click();
 		cy.get('.input-group > .form-control').type('https://wallpaperplay.com/walls/full/8/2/b/72402.jpg');
 		cy.findByRole('button', {name: 'Upload'}).click();
 
