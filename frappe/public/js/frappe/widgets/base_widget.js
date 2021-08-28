@@ -85,9 +85,9 @@ export default class Widget {
 		this.make_widget();
 		this.widget.appendTo(this.container);
 	}
-
+	
 	make_widget() {
-		this.widget = $(`<div class="widget
+		this.widget = $(`<div class="widget ${this.parentfield}-${this.label}
 			${ this.hidden ? "hidden" : " " }
 			${ this.shadow ? "widget-shadow" : " " }
 		" data-widget-name="${this.name ? this.name : ''}">
@@ -103,6 +103,8 @@ export default class Widget {
 		    <div class="widget-footer">
 		    </div>
 		</div>`);
+
+		console.log(this)
 
 		this.title_field = this.widget.find(".widget-title");
 		this.subtitle_field = this.widget.find(".widget-subtitle");
