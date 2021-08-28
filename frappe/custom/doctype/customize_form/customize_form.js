@@ -85,7 +85,6 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	setup_sortable: function(frm) {
-		debugger;
 		frm.page.body.find(".highlight").removeClass("highlight");
 		frm.doc.fields.forEach(function(f, i) {
 			var data_row = frm.page.body.find(
