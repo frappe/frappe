@@ -87,7 +87,7 @@ export default class Widget {
 	}
 	
 	make_widget() {
-		this.widget = $(`<div class="widget ${this.parentfield}-${this.label}
+		this.widget = $(`<div class="widget ${this.parentfield ? this.parentfield : '' } ${this.parentfield ? this.label : ''}
 			${ this.hidden ? "hidden" : " " }
 			${ this.shadow ? "widget-shadow" : " " }
 		" data-widget-name="${this.name ? this.name : ''}">
