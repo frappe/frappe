@@ -31,11 +31,11 @@ class Query:
 		"""Wrapper method for `LIKE`
 
 		Args:
-				key (str): field
-				value (ANy): criterion
+			key (str): field
+			value (ANy): criterion
 
 		Returns:
-				frappe.qb: `frappe.qb object with `LIKE`
+			frappe.qb: `frappe.qb object with `LIKE`
 		"""
 		return frappe.qb.Field(key).like(value)
 
@@ -44,11 +44,11 @@ class Query:
 		"""Wrapper method for `IN`
 
 		Args:
-				key (str): field
-				value (ANy): criterion
+			key (str): field
+			value (ANy): criterion
 
 		Returns:
-				frappe.qb: `frappe.qb object with `IN`
+			frappe.qb: `frappe.qb object with `IN`
 		"""
 		return frappe.qb.Field(key).isin(value)
 
@@ -57,11 +57,11 @@ class Query:
 		"""Wrapper method for `NOT LIKE`
 
 		Args:
-				key (str): field
-				value (ANy): criterion
+			key (str): field
+			value (ANy): criterion
 
 		Returns:
-				frappe.qb: `frappe.qb object with `NOT LIKE`
+			frappe.qb: `frappe.qb object with `NOT LIKE`
 		"""
 		return frappe.qb.Field(key).not_like(value)
 
@@ -70,11 +70,11 @@ class Query:
 		"""Wrapper method for `NOT IN`
 
 		Args:
-				key (str): field
-				value (ANy): criterion
+			key (str): field
+			value (ANy): criterion
 
 		Returns:
-				frappe.qb: `frappe.qb object with `NOT IN`
+			frappe.qb: `frappe.qb object with `NOT IN`
 		"""
 		return frappe.qb.Field(key).notin(value)
 
@@ -83,11 +83,11 @@ class Query:
 		"""Wrapper method for `REGEX`
 
 		Args:
-				key (str): field
-				value (ANy): criterion
+			key (str): field
+			value (ANy): criterion
 
 		Returns:
-				frappe.qb: `frappe.qb object with `REGEX`
+			frappe.qb: `frappe.qb object with `REGEX`
 		"""
 		return frappe.qb.Field(key).regex(value)
 
@@ -96,16 +96,42 @@ class Query:
 		"""Wrapper method for `BETWEEN`
 
 		Args:
-				key (str): field
-				value (ANy): criterion
+			key (str): field
+			value (ANy): criterion
 
 		Returns:
-				frappe.qb: `frappe.qb object with `BETWEEN`
+			frappe.qb: `frappe.qb object with `BETWEEN`
 		"""
 		return frappe.qb.Field(key)[slice(*value)]
 
 	def make_function(self, key: Any, value: Union[int, str]):
+		"""returns fucntion query
+
+		Args:
+			key (Any): field
+			value (Union[int, str]): criterion
+
+		Returns:
+			[type]: [description]
+		"""
 		return self.operator_map[value[0]](key, value[1])
+
+	@staticmethod
+	def change_orderby(order: str):
+		"""Convert orderby to standart Order object
+
+		Args:
+			order (str): Field, order
+
+		Returns:
+			tuple: field, order
+		"""
+		order = order.split()
+		if order[1].lower() == "asc":
+			orderby, order = order[0], Order.asc
+			return orderby, order
+		orderby, order = order[0], Order.desc
+		return orderby, order
 
 	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None,
 				   orderby:str = None, order:Order = None):
@@ -141,6 +167,9 @@ class Query:
 			else:
 				conditions = conditions.where(_operator(frappe.qb.Field(key), value))
 		if orderby:
+			if isinstance(orderby, str) and len(orderby.split()) > 1:
+				orderby, order = self.change_orderby(orderby)
+
 			order = order if order else Order.desc
 			return conditions.orderby(orderby, order=order)
 		return conditions
