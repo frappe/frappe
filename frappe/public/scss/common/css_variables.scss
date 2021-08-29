@@ -36,7 +36,7 @@
 	--blue-100: #D3E9FC;
 	--blue-50 : #F0F8FE;
 
-	--cyan-900: #006464;
+	--cyan-900: #006464; 
 	--cyan-800: #007272;
 	--cyan-700: #008b8b;
 	--cyan-600: #02c5c5;
@@ -138,7 +138,7 @@
 	--margin-xl: 30px;
 	--margin-2xl: 40px;
 
-	--font-stack: "Inter", "-apple-system", "BlinkMacSystemFont","Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+	--font-stack: "Roboto";
 
 	--text-bold: 500;
 
@@ -191,7 +191,6 @@
 	--text-on-pink: var(--pink-500);
 	--text-on-cyan: var(--cyan-600);
 
-	// Layout Colors
 	--bg-color: var(--gray-50);
 	--fg-color: white;
 	--navbar-bg: white;
@@ -235,4 +234,5 @@
 	--checkbox-right-margin: var(--margin-xs);
 	--checkbox-size: 14px;
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
+	
 }
