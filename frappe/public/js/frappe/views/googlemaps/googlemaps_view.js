@@ -2,7 +2,6 @@ frappe.provide('frappe.utils.utils');
 frappe.provide("frappe.views");
 
 let default_icon = "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png";
-let icon_url
 
 frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView {
     get view_name() {
