@@ -84,8 +84,9 @@
 	margin-bottom: 10px;
 }
 
-.layout-main-section .frappe-card {
+.layout-main-section {
 	--report-filter-height: 0px;
+	--report-total-height: 275px;
 }
 
 .report-wrapper {
@@ -95,7 +96,7 @@
 		height: calc(100vh - var(--report-filter-height) - 205px);
 
 		.dt-scrollable {
-			height: calc(100vh - var(--report-filter-height) - 275px);
+			height: calc(100vh - var(--report-filter-height) - var(--report-total-height));
 		}
 	}
 }

@@ -36,12 +36,12 @@ context('Workspace 2.0', () => {
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Heading').click();
-		cy.get(".ce-block:last").find('h2').click({force: true}).type('Header');
+		cy.get(":focus").type('Header');
 		cy.get(".ce-block:last").find('.ce-header').should('exist');
 
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Text').click();
-		cy.get(".ce-block:last").find('.ce-paragraph').click({force: true}).type('Paragraph text');
+		cy.get(":focus").type('Paragraph text');
 		cy.get(".ce-block:last").find('.ce-paragraph').should('exist');
 	});
 
