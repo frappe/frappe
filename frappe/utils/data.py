@@ -564,8 +564,10 @@ def cast_fieldtype(fieldtype, value, show_warning=True):
 def cast(fieldtype, value=None):
 	"""Cast the value to the Python native object of the Frappe fieldtype provided.
 	If value is None, the first/lowest value of the `fieldtype` will be returned.
+	If value can't be cast as fieldtype due to an invalid input, None will be returned.
 
 	Mapping of Python types => Frappe types:
+		* str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
 		* float => ("Currency", "Float", "Percent")
 		* int => ("Int", "Check")
 		* datetime.datetime => ("Datetime",)
