@@ -104,8 +104,6 @@ export default class Widget {
 		    </div>
 		</div>`);
 
-		console.log(this)
-
 		this.title_field = this.widget.find(".widget-title");
 		this.subtitle_field = this.widget.find(".widget-subtitle");
 		this.body = this.widget.find(".widget-body");
@@ -121,7 +119,10 @@ export default class Widget {
 
 		if (this.icon) {
 			let icon = frappe.utils.icon(this.icon);
-			this.title_field[0].innerHTML = `${icon} <span>${title}</span>`;
+			// this.title_field[0].innerHTML = `${icon} <span>${title}</span>`;
+			// custom svg
+			this.title_field[0].innerHTML = `<span>${title}</span>`;
+
 		} else {
 			this.title_field[0].innerHTML = title;
 			if (max_chars) {
