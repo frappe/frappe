@@ -11,6 +11,7 @@
   "section_break_3",
   "email",
   "last_name",
+  "company_name",
   "language",
   "column_break0",
   "first_name",
@@ -173,6 +174,7 @@
   {
    "fieldname": "language",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Language",
    "options": "Language"
   },
@@ -602,6 +604,12 @@
    "fieldtype": "Link",
    "label": "Module Profile",
    "options": "Module Profile"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Link",
+   "label": "Company Name",
+   "options": "Supplier"
   }
  ],
  "icon": "fa fa-user",
@@ -667,10 +675,15 @@
    "group": "Integrations",
    "link_doctype": "Token Cache",
    "link_fieldname": "user"
+  },
+  {
+   "custom": 1,
+   "link_doctype": "Supplier",
+   "link_fieldname": "supplier_name"
   }
  ],
  "max_attachments": 5,
- "modified": "2021-02-02 16:11:06.037543",
+ "modified": "2021-08-11 14:51:32.361929",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
