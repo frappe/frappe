@@ -509,13 +509,13 @@ def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
 	return set(l1) & set(l2)
 
-def cast_fieldtype(fieldtype, value):
-	# TODO: Add DeprecationWarning for this util
-	message = (
-		"Function `frappe.utils.data.cast` has been deprecated in favour"
-		" of `frappe.utils.data.cast`. Use the newer util for safer type casting. "
-	)
-	secho(message, fg="yellow")
+def cast_fieldtype(fieldtype, value, show_warning=True):
+	if show_warning:
+		message = (
+			"Function `frappe.utils.data.cast` has been deprecated in favour"
+			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
+		)
+		secho(message, fg="yellow")
 
 	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
