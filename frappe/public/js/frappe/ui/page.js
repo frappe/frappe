@@ -618,6 +618,23 @@ frappe.ui.Page = class Page {
 		}
 	}
 
+	change_inner_button_type(label, group, type) {
+		let btn;
+
+		if (group) {
+			var $group = this.get_inner_group_button(__(group));
+			if ($group.length) {
+				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`)
+			}
+		} else {
+			btn = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`)
+		}
+
+		if (btn) {
+			btn.removeClass().addClass(`btn btn-${type} ellipsis`);
+		}
+	}
+
 	add_inner_message(message) {
 		let $message = $(`<span class='inner-page-message text-muted small'>${message}</div>`);
 		this.inner_toolbar.find('.inner-page-message').remove();
