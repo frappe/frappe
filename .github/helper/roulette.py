@@ -38,8 +38,12 @@ if __name__ == "__main__":
 	pr_number = os.environ.get("PR_NUMBER")
 	repo = os.environ.get("REPO_NAME")
 
-	if not files_list and pr_number:
-		files_list = get_files_list(pr_number=pr_number, repo=repo)
+	# this is a push build, run all builds
+	if not pr_number:
+		os.system('echo "::set-output name=build::strawberry"')
+		sys.exit(0)
+
+	files_list = files_list or get_files_list(pr_number=pr_number, repo=repo)
 
 	if not files_list:
 		print("No files' changes detected. Build is shutting")
