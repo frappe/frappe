@@ -957,8 +957,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			__('Document is in draft state'),
 			__('Document has been submitted'),
 			__('Document has been cancelled')
-		]
-		const title = docstatus_description[doc.docstatus || 0]
+		];
+		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
 			return `<span class="indicator-pill ${indicator[1]} filterable ellipsis"
 				data-filter='${indicator[2]}' title='${title}'>
