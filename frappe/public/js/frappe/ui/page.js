@@ -624,10 +624,10 @@ frappe.ui.Page = class Page {
 		if (group) {
 			var $group = this.get_inner_group_button(__(group));
 			if ($group.length) {
-				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`)
+				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`);
 			}
 		} else {
-			btn = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`)
+			btn = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
 		}
 
 		if (btn) {
