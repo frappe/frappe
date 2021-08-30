@@ -84,10 +84,6 @@
 	margin-bottom: 10px;
 }
 
-<<<<<<< HEAD
-.report-wrapper {
-	overflow: auto;
-=======
 .layout-main-section {
 	--report-filter-height: 0px;
 	--report-total-height: 275px;
@@ -103,7 +99,6 @@
 			height: calc(100vh - var(--report-filter-height) - var(--report-total-height));
 		}
 	}
->>>>>>> 383c657b9f (fix: Total Row is hidden in Query Report & Script Report)
 }
 
 .report-view {
