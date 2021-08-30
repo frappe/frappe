@@ -6,5 +6,3 @@ def execute():
 	for doctype in custom_doctypes:
 		if doctype.sort_field == 'modified':
 			frappe.db.set_value('DocType', doctype.name, 'sort_field', 'creation', update_modified=False)
-
-	frappe.db.commit()
