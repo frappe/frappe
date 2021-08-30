@@ -142,6 +142,9 @@ def is_signup_enabled():
 
 	return frappe.local.is_signup_enabled
 
+def is_signup_disabled():
+	return frappe.db.get_single_value('Website Settings', 'disable_signup', True)
+
 def cleanup_page_name(title):
 	"""make page name from title"""
 	if not title:
