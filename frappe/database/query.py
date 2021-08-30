@@ -133,19 +133,40 @@ class Query:
 		orderby, order = order[0], Order.desc
 		return orderby, order
 
-	def dict_query(self, table: str, for_update: bool, filters: Dict[str, Union[str, int]] = None,
-				   orderby:str = None, order:Order = None):
-		"""Generate condition object using filters
+	def add_conditions(self, conditions: frappe.qb, *args, **kwargs):
+		"""Add additional conditions
 
 		Args:
-			table (str): DocType
-			filters (Dict[str, Union[str, int]], optional): Conditions. Defaults to None.
-			orderby (str, optional): field to order by. Defaults to None.
-			order (Order, optional): order. Defaults to None.
-			for_update (bool): add `FOR UPDATE`
+			conditions (frappe.qb): built conditions
 
 		Returns:
-			condition: conditions object
+			frappe.qb: modified conditions
+		"""
+		if kwargs.get("orderby"):
+			orderby = kwargs.get("orderby")
+			if isinstance(orderby, str) and len(orderby.split()) > 1:
+				orderby, order = self.change_orderby(orderby)
+
+			order = kwargs.get("order")
+			order = order if order else Order.desc
+			conditions = conditions.orderby(orderby, order=order)
+
+		if kwargs.get("for_update"):
+			conditions =  conditions.for_update()
+
+		if kwargs.get("limit"):
+			conditions = conditions.limit(kwargs.get("limit"))
+		return conditions
+
+	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None, *args, **kwargs):
+		"""Generate condition object using filters and additional conditions
+
+		Args:
+			table (str): [description]
+			filters (Dict[str, Union[str, int]], optional): [description]. Defaults to None.
+
+		Returns:
+			frappe.qb: generated conditions
 		"""
 		conditions = frappe.qb.from_(table)
 		if not filters:
@@ -167,29 +188,20 @@ class Query:
 					conditions = conditions.where(_operator(frappe.qb.Field(key), value[1]))
 			else:
 				conditions = conditions.where(_operator(frappe.qb.Field(key), value))
-		if orderby:
-			if isinstance(orderby, str) and len(orderby.split()) > 1:
-				orderby, order = self.change_orderby(orderby)
-
-			order = order if order else Order.desc
-			return conditions.orderby(orderby, order=order)
-		if for_update:
-			return conditions.for_update()
+		conditions = self.add_conditions(conditions, *args, **kwargs)
 		return conditions
 
-	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None,
-						 orderby: str = None, order: Order = None, for_update: bool = False) -> frappe.qb:
+	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None, *args, **kwargs) -> frappe.qb:
 		"""Build conditions for sql query
 
 		Args:
-			filters (Union[Dict[str, Union[str, int]], str, int]): conditions built from filters provided
-			table (str): DocType
-			for_update (bool): add `FOR UPDATE`
+			table (str): [description]
+			filters (Union[Dict[str, Union[str, int]], str, int], optional): [description]. Defaults to None.
+
 		Returns:
-				frappe.qb: frappe.qb conditions object
+			frappe.qb: conditions
 		"""
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
 
-		return self.dict_query(filters=filters, table=table, orderby=orderby,
-						 	   order=order, for_update=for_update)
+		return self.dict_query(filters=filters, table=table, *args, **kwargs)
