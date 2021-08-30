@@ -445,7 +445,19 @@ def extract_sql_from_archive(sql_file_path):
 	else:
 		decompressed_file_name = sql_file_path
 
+	# convert archive sql to latest compatible
+	convert_archive_content(decompressed_file_name)
+
 	return decompressed_file_name
+
+
+def convert_archive_content(sql_file_path):
+	if frappe.conf.db_type == "mariadb":
+		# ever since mariaDB 10.6, row_format COMPRESSED has been deprecated and removed
+		# this step is added to ease restoring sites depending on older mariaDB servers
+		contents = open(sql_file_path).read()
+		with open(sql_file_path, "w") as f:
+			f.write(contents.replace("ROW_FORMAT=COMPRESSED", "ROW_FORMAT=DYNAMIC"))
 
 
 def extract_sql_gzip(sql_gz_path):
@@ -457,7 +469,7 @@ def extract_sql_gzip(sql_gz_path):
 		decompressed_file = original_file.rstrip(".gz")
 		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
 		subprocess.check_call(cmd, shell=True)
-	except:
+	except Exception:
 		raise
 
 	return decompressed_file
