@@ -23,13 +23,8 @@ import zipfile
 import requests
 import requests.exceptions
 from PIL import Image, ImageFile, ImageOps
-<<<<<<< HEAD
-from six import PY2, StringIO, string_types, text_type
+from six import PY2, BytesIO, string_types, text_type
 from six.moves.urllib.parse import quote, unquote
-=======
-from io import BytesIO
-from urllib.parse import quote, unquote
->>>>>>> c681b1af27 (fix: Make thumbnail function)
 
 import frappe
 from frappe import _, conf, safe_decode
@@ -792,29 +787,14 @@ def extract_images_from_html(doc, content):
 		data = match.group(1)
 		data = data.split("data:")[1]
 		headers, content = data.split(",")
-<<<<<<< HEAD
-=======
-		mtype = headers.split(";")[0]
-
-		if isinstance(content, str):
-			content = content.encode("utf-8")
-		if b"," in content:
-			content = content.split(b",")[1]
-		content = base64.b64decode(content)
-
-		content = optimize_image(content, mtype)
->>>>>>> c681b1af27 (fix: Make thumbnail function)
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
 			filename = safe_decode(filename).split(";")[0]
 
-<<<<<<< HEAD
 			# decode filename
 			if not isinstance(filename, text_type):
 				filename = text_type(filename, 'utf-8')
-=======
->>>>>>> ebc9d35da1 (fix: File name from data URI headers)
 		else:
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)

@@ -1,23 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 from __future__ import unicode_literals
 
-import frappe, unittest, uuid
-=======
-import frappe, unittest
-<<<<<<< HEAD
->>>>>>> f6a757be50 (test: Add test case for user rename)
-=======
-import json
->>>>>>> 6f72e79f1a (test: Add more assertions for reset password)
-=======
 import json
 import unittest
 from unittest.mock import patch
->>>>>>> 5587ab5a91 (style: Fix liinter warnings)
-
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (extract_mentions, reset_password,

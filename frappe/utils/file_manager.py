@@ -371,8 +371,6 @@ def download_file(file_url):
 	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def extract_images_from_doc(doc, fieldname):
 	content = doc.get(fieldname)
 	content = extract_images_from_html(doc, content)
@@ -417,9 +415,6 @@ def extract_images_from_html(doc, content):
 
 	return content
 
-
-=======
->>>>>>> a7fb1816aa (refactor: Remove unused and redundant code)
 def get_random_filename(extn=None, content_type=None):
 	if extn:
 		if not extn.startswith("."):
@@ -437,8 +432,6 @@ def validate_filename(filename):
 	fname = get_file_name(filename, timestamp)
 	return fname
 
-=======
->>>>>>> 44c82276e8 (refactor: Remove unused methods)
 @frappe.whitelist()
 def add_attachments(doctype, name, attachments):
 	'''Add attachments to the given DocType'''
