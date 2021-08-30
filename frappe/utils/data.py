@@ -335,6 +335,7 @@ def has_common(l1, l2):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 def cast_fieldtype(fieldtype, value=None):
 =======
@@ -345,6 +346,15 @@ def cast_fieldtype(fieldtype, value):
 		" of `frappe.utils.data.cast`. Use the newer util for safer type casting. "
 	)
 	secho(message, fg="yellow")
+=======
+def cast_fieldtype(fieldtype, value, show_warning=True):
+	if show_warning:
+		message = (
+			"Function `frappe.utils.data.cast` has been deprecated in favour"
+			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
+		)
+		secho(message, fg="yellow")
+>>>>>>> b8c51b13e2 (fix: Revert to using cast_fieldtype in BaseDocument.cast)
 
 	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
