@@ -388,9 +388,9 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_group_by() {
-		let name_field = this.fields && this.fields.filter(f => f[0] == 'name');
-		if (name_field.length == 1) {
-			return frappe.model.get_full_column_name(name_field[0][0], name_field[0][1]);
+		let name_field = this.fields && this.fields.find(f => f[0] == 'name');
+		if (name_field) {
+			return frappe.model.get_full_column_name(name_field[0], name_field[1]);
 		}
 		return null;
 	}
@@ -472,8 +472,6 @@ frappe.views.BaseList = class BaseList {
 		} else {
 			this.data = this.data.concat(data);
 		}
-
-		this.data = this.data.uniqBy((d) => d.name);
 	}
 
 	freeze() {
