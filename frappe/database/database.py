@@ -515,11 +515,9 @@ class Database(object):
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		result = self.sql("""
-			SELECT field, value
-			FROM   `tabSingles`
-			WHERE  doctype = %s
-		""", doctype)
+		query = frappe.qb.from_("Singles").select("field", "value") \
+			.where(frappe.qb.Field("doctype") == doctype)
+		result = self.sql(query, debug=debug)
 		# result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
@@ -573,12 +571,15 @@ class Database(object):
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		if isinstance(fields, (list, tuple)):
-			query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(*fields)
+			query = str(self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(*fields))
+			if for_update:
+				query += " FOR UPDATE"
 		else:
 			if fields=="*":
-				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(fields)
+				query = str(self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(fields))
+				if for_update:
+					query += " FOR UPDATE"
 				as_dict = True
-		print(query)
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
 
 		return r
