@@ -35,14 +35,9 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 			$tp.$secondsText.css('display', 'none');
 			$tp.$secondsText.prev().css('display', 'none');
 		}
-	}
-<<<<<<< HEAD
-});
-=======
-
+	},
 	get_model_value() {
 		let value = super.get_model_value();
 		return frappe.datetime.get_datetime_as_string(value);
 	}
-};
->>>>>>> d014084ae5 (fix: moved datetime logic to datetime.js)
+});
