@@ -486,15 +486,26 @@ frappe.db.connect()
 
 
 @click.command('console')
+@click.option(
+	'--autoreload',
+	is_flag=True,
+	help="Reload changes to code automatically"
+)
 @pass_context
-def console(context):
+def console(context, autoreload=False):
 	"Start ipython console for a site"
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 
-	import IPython
+	from IPython.terminal.embed import InteractiveShellEmbed
+
+	terminal = InteractiveShellEmbed()
+	if autoreload:
+		terminal.extension_manager.load_extension("autoreload")
+		terminal.run_line_magic("autoreload", "2")
+
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
 
@@ -509,7 +520,9 @@ def console(context):
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
 
-	IPython.embed(display_banner="", header="", colors="neutral")
+	terminal.colors = "neutral"
+	terminal.display_banner = False
+	terminal()
 
 
 @click.command('run-tests')
@@ -524,7 +537,7 @@ def console(context):
 @click.option('--skip-test-records', is_flag=True, default=False, help="Don't create test records")
 @click.option('--skip-before-tests', is_flag=True, default=False, help="Don't run before tests hook")
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
-@click.option('--failfast', is_flag=True, default=False)
+@click.option('--failfast', is_flag=True, default=False, help="Stop the test run on the first error or failure")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), profile=False,
 		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,

@@ -14,7 +14,7 @@ class TestToDo(unittest.TestCase):
 		todo = frappe.get_doc(dict(doctype='ToDo', description='test todo',
 			assigned_by='Administrator')).insert()
 
-		frappe.db.sql('delete from `tabDeleted Document`')
+		frappe.db.delete("Deleted Document")
 		todo.delete()
 
 		deleted = frappe.get_doc('Deleted Document', dict(deleted_doctype=todo.doctype, deleted_name=todo.name))
@@ -27,7 +27,7 @@ class TestToDo(unittest.TestCase):
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
 	def test_fetch_setup(self):
-		frappe.db.sql('delete from tabToDo')
+		frappe.db.delete("ToDo")
 
 		todo_meta = frappe.get_doc('DocType', 'ToDo')
 		todo_meta.get('fields', dict(fieldname='assigned_by_full_name'))[0].fetch_from = ''
@@ -104,8 +104,8 @@ class TestToDo(unittest.TestCase):
 		clear_permissions_cache('ToDo')
 		frappe.db.rollback()
 
-def test_fetch_if_empty(self):
-		frappe.db.sql('delete from tabToDo')
+	def test_fetch_if_empty(self):
+		frappe.db.delete("ToDo")
 
 		# Allow user changes
 		todo_meta = frappe.get_doc('DocType', 'ToDo')
@@ -122,9 +122,8 @@ def test_fetch_if_empty(self):
 		self.assertEqual(todo.assigned_by_full_name, 'Admin')
 
 		# Overwrite user changes
-		todo_meta = frappe.get_doc('DocType', 'ToDo')
-		todo_meta.get('fields', dict(fieldname='assigned_by_full_name'))[0].fetch_if_empty = 0
-		todo_meta.save()
+		todo.meta.get('fields', dict(fieldname='assigned_by_full_name'))[0].fetch_if_empty = 0
+		todo.meta.save()
 
 		todo.reload()
 		todo.save()

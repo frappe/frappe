@@ -29,8 +29,15 @@ class ToDo(Document):
 		else:
 			# NOTE the previous value is only available in validate method
 			if self.get_db_value("status") != self.status:
+				if self.owner == frappe.session.user:
+					removal_message = frappe._("{0} removed their assignment.").format(
+						get_fullname(frappe.session.user))
+				else:
+					removal_message = frappe._("Assignment of {0} removed by {1}").format(
+						get_fullname(self.owner), get_fullname(frappe.session.user))
+
 				self._assignment = {
-					"text": frappe._("Assignment closed by {0}").format(get_fullname(frappe.session.user)),
+					"text": removal_message,
 					"comment_type": "Assignment Completed"
 				}
 

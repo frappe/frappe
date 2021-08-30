@@ -1,9 +1,11 @@
 pull_request_rules:
   - name: Auto-close PRs on stable branch
     conditions:
-      - or:
-        - base=version-13
-        - base=version-12
+      - and:
+        - author!=surajshetty3416
+        - or:
+          - base=version-13
+          - base=version-12
     actions:
       close:
       comment:
