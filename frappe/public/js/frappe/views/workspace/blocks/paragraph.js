@@ -123,10 +123,10 @@ export default class Paragraph extends Block {
 		return true;
 	}
 
-	save(toolsContent) {
+	save() {
 		this.wrapper = this._element;
 		return {
-			text: toolsContent.innerText,
+			text: this.wrapper.innerHTML,
 			col: this.get_col(),
 		};
 	}
@@ -155,6 +155,9 @@ export default class Paragraph extends Block {
 		return {
 			text: {
 				br: true,
+				b: true,
+				i: true,
+				a: true
 			}
 		};
 	}

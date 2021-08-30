@@ -13,7 +13,7 @@ export default class Shortcut extends Block {
 
 	constructor({ data, api, config, readOnly, block }) {
 		super({ data, api, config, readOnly, block });
-		this.col = this.data.col ? this.data.col : "12";
+		this.col = this.data.col ? this.data.col : "4";
 		this.allow_customization = !this.readOnly;
 		this.options = {
 			allow_sorting: this.allow_customization,

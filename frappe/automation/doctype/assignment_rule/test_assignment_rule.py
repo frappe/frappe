@@ -76,7 +76,7 @@ class TestAutoAssign(unittest.TestCase):
 		# clear 5 assignments for first user
 		# can't do a limit in "delete" since postgres does not support it
 		for d in frappe.get_all('ToDo', dict(reference_type = 'Note', owner = 'test@example.com'), limit=5):
-			frappe.db.sql("delete from tabToDo where name = %s", d.name)
+			frappe.db.delete("ToDo", {"name": d.name})
 
 		# add 5 more assignments
 		for i in range(5):
@@ -177,7 +177,7 @@ class TestAutoAssign(unittest.TestCase):
 		), 'owner'), 'test@example.com')
 
 	def check_assignment_rule_scheduling(self):
-		frappe.db.sql("DELETE FROM `tabAssignment Rule`")
+		frappe.db.delete("Assignment Rule")
 
 		days_1 = [dict(day = 'Sunday'), dict(day = 'Monday'), dict(day = 'Tuesday')]
 
@@ -204,7 +204,7 @@ class TestAutoAssign(unittest.TestCase):
 		), 'owner'), ['test3@example.com'])
 
 	def test_assignment_rule_condition(self):
-		frappe.db.sql("DELETE FROM `tabAssignment Rule`")
+		frappe.db.delete("Assignment Rule")
 
 		# Add expiry_date custom field
 		from frappe.custom.doctype.custom_field.custom_field import create_custom_field
@@ -253,7 +253,7 @@ class TestAutoAssign(unittest.TestCase):
 		assignment_rule.delete()
 
 def clear_assignments():
-	frappe.db.sql("delete from tabToDo where reference_type = 'Note'")
+	frappe.db.delete("ToDo", {"reference_type": "Note"})
 
 def get_assignment_rule(days, assign=None):
 	frappe.delete_doc_if_exists('Assignment Rule', 'For Note 1')

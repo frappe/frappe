@@ -17,6 +17,12 @@ class Workspace(Document):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
 		validate_route_conflict(self.doctype, self.name)
 
+		try:
+			if not isinstance(loads(self.content), list):
+				raise
+		except Exception:
+			frappe.throw(_("Content data shoud be a list"))
+
 		duplicate_exists = frappe.db.exists("Workspace", {
 			"name": ["!=", self.name], 'is_default': 1, 'extends': self.extends
 		})
@@ -56,7 +62,7 @@ class Workspace(Document):
 		for link in self.links:
 			link = link.as_dict()
 			if link.type == "Card Break":
-				if card_links and (not current_card.only_for or current_card.only_for == frappe.get_system_settings('country')):
+				if card_links and (not current_card['only_for'] or current_card['only_for'] == frappe.get_system_settings('country')): 
 					current_card['links'] = card_links
 					cards.append(current_card)
 

@@ -17,9 +17,9 @@ class TestDomainification(unittest.TestCase):
 		self.add_active_domain("_Test Domain 1")
 
 	def tearDown(self):
-		frappe.db.sql("delete from tabRole where name='_Test Role'")
-		frappe.db.sql("delete from `tabHas Role` where role='_Test Role'")
-		frappe.db.sql("delete from tabDomain where name in ('_Test Domain 1', '_Test Domain 2')")
+		frappe.db.delete("Role", {"name": "_Test Role"})
+		frappe.db.delete("Has Role", {"role": "_Test Role"})
+		frappe.db.delete("Domain", {"name": ("in", ("_Test Domain 1", "_Test Domain 2"))})
 		frappe.delete_doc('DocType', 'Test Domainification')
 		self.remove_from_active_domains(remove_all=True)
 
