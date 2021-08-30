@@ -13,7 +13,7 @@ class TestGoal(unittest.TestCase):
 		make_test_objects('Event', reset=True)
 
 	def tearDown(self):
-		frappe.db.sql('delete from `tabEvent`')
+		frappe.db.delete("Event")
 		# make_test_objects('Event', reset=True)
 		frappe.db.commit()
 

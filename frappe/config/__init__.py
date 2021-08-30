@@ -43,9 +43,13 @@ def get_all_empty_tables_by_module():
 	table_name = frappe.qb.Field("table_name")
 	information_schema = frappe.qb.Schema("information_schema")
 
-	query = frappe.qb.from_(information_schema.tables).select(table_name).where(table_rows == 0)
+	empty_tables = (
+		frappe.qb.from_(information_schema.tables)
+		.select(table_name)
+		.where(table_rows == 0)
+	).run()
 
-	empty_tables = {r[0] for r in frappe.db.sql(query)}
+	empty_tables = {r[0] for r in empty_tables}
 
 	results = frappe.get_all("DocType", fields=["name", "module"])
 	empty_tables_by_module = {}

@@ -385,8 +385,7 @@ class Document(BaseDocument):
 					[self.name, self.doctype, fieldname] + rows)
 			if len(deleted_rows) > 0:
 				# delete rows that do not match the ones in the document
-				frappe.db.sql("""delete from `tab{0}` where name in ({1})""".format(df.options,
-					','.join(['%s'] * len(deleted_rows))), tuple(row[0] for row in deleted_rows))
+				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
 
 		else:
 			# no rows found, delete all rows

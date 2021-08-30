@@ -82,6 +82,7 @@ import "./frappe/ui/toolbar/toolbar.js";
 import "./frappe/views/communication.js";
 import "./frappe/views/translation_manager.js";
 import "./frappe/views/workspace/workspace.js";
+import "./frappe/views/workspace/blocks/index.js";
 
 import "./frappe/widgets/widget_group.js";
 
@@ -103,3 +104,4 @@ import "./frappe/ui/datatable.js";
 import "./frappe/ui/driver.js";
 import "./frappe/ui/plyr.js";
 import "./frappe/barcode_scanner/index.js";
+import "./frappe/scanner";

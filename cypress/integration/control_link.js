@@ -35,7 +35,7 @@ context('Control Link', () => {
 		cy.wait('@search_link');
 		cy.get('@input').type('todo for link', { delay: 200 });
 		cy.wait('@search_link');
-		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
+		cy.get('.frappe-control[data-fieldname=link]').findByRole('listbox').should('be.visible');
 		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
 		cy.get('.frappe-control[data-fieldname=link] input').blur();
 		cy.get('@dialog').then(dialog => {
@@ -71,7 +71,7 @@ context('Control Link', () => {
 			cy.get('@input').type(todos[0]).blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
-			cy.get('.frappe-control[data-fieldname=link] .link-btn')
+			cy.findByTitle('Open Link')
 				.should('be.visible')
 				.click();
 			cy.location('pathname').should('eq', `/app/todo/${todos[0]}`);
