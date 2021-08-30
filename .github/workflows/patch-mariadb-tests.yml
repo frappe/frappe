@@ -2,6 +2,11 @@ name: Patch
 
 on: [pull_request, workflow_dispatch]
 
+
+concurrency:
+  group: patch-mariadb-develop-${{ github.event.number }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-18.04
