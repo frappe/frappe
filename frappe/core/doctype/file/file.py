@@ -313,8 +313,16 @@ class File(Document):
 			self.delete_file_data_content(only_thumbnail=True)
 
 	def on_rollback(self):
-		self.flags.on_rollback = True
-		self.on_trash()
+		# if original_content flag is set, this rollback should revert the file to its original state
+		if self.flags.original_content:
+			file_path = self.get_full_path()
+			with open(file_path, "wb+") as f:
+				f.write(self.flags.original_content)
+
+		# following condition is only executed when an insert has been rolledback
+		else:
+			self.flags.on_rollback = True
+			self.on_trash()
 
 	def unzip(self):
 		'''Unzip current file and replace it by its children'''
@@ -530,6 +538,35 @@ class File(Document):
 	def set_is_private(self):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith('/private'))
+
+	@frappe.whitelist()
+	def optimize_file(self):
+		if self.is_folder:
+			raise TypeError('Folders cannot be optimized')
+
+		content_type = mimetypes.guess_type(self.file_name)[0]
+		is_local_image = content_type.startswith('image/') and self.file_size > 0
+		is_svg = content_type == 'image/svg+xml'
+
+		if not is_local_image:
+			raise NotImplementedError('Only local image files can be optimized')
+
+		if is_svg:
+			raise TypeError('Optimization of SVG images is not supported')
+
+		content = self.get_content()
+		file_path = self.get_full_path()
+		optimized_content = optimize_image(content, content_type)
+
+		with open(file_path, 'wb+') as f:
+			f.write(optimized_content)
+
+		self.file_size = len(optimized_content)
+		self.content_hash = get_content_hash(optimized_content)
+		# if rolledback, revert back to original
+		self.flags.original_content = content
+		frappe.local.rollback_observers.append(self)
+		self.save()
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
@@ -838,22 +875,6 @@ def unzip_file(name):
 	files = file_obj.unzip()
 	return files
 
-@frappe.whitelist()
-def optimize_saved_image(doc_name):
-	file_doc = frappe.get_doc('File', doc_name)
-	content = file_doc.get_content()
-	content_type = mimetypes.guess_type(file_doc.file_name)[0]
-
-	optimized_content = optimize_image(content, content_type)
-
-	file_path = get_files_path(is_private=file_doc.is_private)
-	file_path = os.path.join(file_path.encode('utf-8'), file_doc.file_name.encode('utf-8'))
-	with open(file_path, 'wb+') as f:
-		f.write(optimized_content)
-
-	file_doc.file_size = len(optimized_content)
-	file_doc.content_hash = get_content_hash(optimized_content)
-	file_doc.save()
 
 @frappe.whitelist()
 def get_attached_images(doctype, names):
