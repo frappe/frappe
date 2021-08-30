@@ -133,7 +133,7 @@ class Query:
 		orderby, order = order[0], Order.desc
 		return orderby, order
 
-	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None,
+	def dict_query(self, table: str, for_update: bool, filters: Dict[str, Union[str, int]] = None,
 				   orderby:str = None, order:Order = None):
 		"""Generate condition object using filters
 
@@ -142,6 +142,7 @@ class Query:
 			filters (Dict[str, Union[str, int]], optional): Conditions. Defaults to None.
 			orderby (str, optional): field to order by. Defaults to None.
 			order (Order, optional): order. Defaults to None.
+			for_update (bool): add `FOR UPDATE`
 
 		Returns:
 			condition: conditions object
@@ -172,20 +173,23 @@ class Query:
 
 			order = order if order else Order.desc
 			return conditions.orderby(orderby, order=order)
+		if for_update:
+			return conditions.for_update()
 		return conditions
 
 	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None,
-						 orderby: str = None, order: Order = None) -> frappe.qb:
+						 orderby: str = None, order: Order = None, for_update: bool = False) -> frappe.qb:
 		"""Build conditions for sql query
 
 		Args:
-				filters (Union[Dict[str, Union[str, int]], str, int]): conditions built from filters provided
-				table (str): DocType
-
+			filters (Union[Dict[str, Union[str, int]], str, int]): conditions built from filters provided
+			table (str): DocType
+			for_update (bool): add `FOR UPDATE`
 		Returns:
 				frappe.qb: frappe.qb conditions object
 		"""
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
 
-		return self.dict_query(filters=filters, table=table, orderby=orderby, order=order)
+		return self.dict_query(filters=filters, table=table, orderby=orderby,
+						 	   order=order, for_update=for_update)

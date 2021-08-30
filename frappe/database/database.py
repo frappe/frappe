@@ -571,14 +571,10 @@ class Database(object):
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		if isinstance(fields, (list, tuple)):
-			query = str(self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(*fields))
-			if for_update:
-				query += " FOR UPDATE"
+			query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(*fields)
 		else:
 			if fields=="*":
-				query = str(self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(fields))
-				if for_update:
-					query += " FOR UPDATE"
+				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(fields)
 				as_dict = True
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
 
