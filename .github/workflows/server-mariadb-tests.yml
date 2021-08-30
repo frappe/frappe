@@ -2,15 +2,9 @@ name: Server
 
 on:
   pull_request:
-    paths-ignore:
-      - '**.js'
-      - '**.md'
   workflow_dispatch:
   push:
     branches: [ develop ]
-    paths-ignore:
-      - '**.js'
-      - '**.md'
 
 jobs:
   test:
@@ -41,17 +35,29 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+
       - uses: actions/setup-node@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         with:
           node-version: 14
           check-latest: true
 
       - name: Add to Hosts
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
           echo "127.0.0.1 test_site_producer" | sudo tee -a /etc/hosts
 
       - name: Cache pip
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
@@ -61,6 +67,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cache node modules
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -73,10 +80,12 @@ jobs:
             ${{ runner.os }}-
 
       - name: Get yarn cache directory path
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -85,6 +94,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -92,18 +102,22 @@ jobs:
           TYPE: server
 
       - name: Install
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
 
       - name: Run Tests
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator --with-coverage
         env:
           CI_BUILD_ID: ${{ github.run_id }}
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
       - name: Upload Coverage Data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        id: upload-coverage-data
         run: |
           cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}
@@ -117,16 +131,29 @@ jobs:
           COVERALLS_SERVICE_NAME: ${{ github.event_name == 'pull_request' && 'github' || 'github-actions' }}
           COVERALLS_PARALLEL: true
 
+      - run: echo ${{ steps.check-build.outputs.build }} > guess-the-fruit.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: fruit
+          path: guess-the-fruit.txt
+
   coveralls:
     name: Coverage Wrap Up
     needs: test
     container: python:3-slim
     runs-on: ubuntu-18.04
     steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: fruit
+      - run: echo "WILDCARD=$(cat fruit/guess-the-fruit.txt)" >> $GITHUB_ENV
+
       - name: Clone
+        if: ${{ env.WILDCARD == 'strawberry' }}
         uses: actions/checkout@v2
 
       - name: Coveralls Finished
+        if: ${{ env.WILDCARD == 'strawberry' }}
         run: |
           cd ${GITHUB_WORKSPACE}
           pip3 install coverage==5.5
