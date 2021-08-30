@@ -515,8 +515,7 @@ class Database(object):
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		query = frappe.qb.from_("Singles").select("field", "value") \
-			.where(frappe.qb.Field("doctype") == doctype)
+		query = self.query.build_conditions("Singles", filters={"doctype": doctype}).select("field", "value")
 		result = self.sql(query, debug=debug)
 		# result = _cast_result(doctype, result)
 
@@ -550,8 +549,8 @@ class Database(object):
 		if fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.sql("""select `value` from
-			`tabSingles` where `doctype`=%s and `field`=%s""", (doctype, fieldname))
+		query = self.query.build_conditions("Singles", filters={"doctype": doctype, "field": fieldname}).select("value")
+		val = self.sql(query)
 		val = val[0][0] if val else None
 
 		df = frappe.get_meta(doctype).get_field(fieldname)
