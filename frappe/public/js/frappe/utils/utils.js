@@ -1114,16 +1114,13 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="", stroke_color="") {
+	icon(icon_name, size="sm", icon_class="") {
 		let size_class = "";
 		let icon_style = "";
 		if (typeof size == "object") {
-			icon_style = `width: ${size.width}; height: ${size.height};`;
+			icon_style = `width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
-		}
-		if (stroke_color) {
-			icon_style += `stroke: ${stroke_color};`;
 		}
 		return `<svg class="icon ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>

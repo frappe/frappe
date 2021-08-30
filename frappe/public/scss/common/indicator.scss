@@ -176,13 +176,3 @@
 @keyframes blink {
 	50% { opacity: 0.5; }
 }
-
-.indicator-pill-icon {
-	margin-right: 3px;
-}
-
-.list-indicator-pill::before {
-	content: '';
-	width: unset;
-	margin-right: unset;
-}
