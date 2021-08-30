@@ -22,7 +22,7 @@ class TestAssign(unittest.TestCase):
 		self.assertEqual(len(assignments), 0)
 
 	def test_assignment_count(self):
-		frappe.db.sql('delete from tabToDo')
+		frappe.db.delete("ToDo")
 
 		if not frappe.db.exists("User", "test_assign1@example.com"):
 			frappe.get_doc({"doctype":"User", "email":"test_assign1@example.com", "first_name":"Test", "roles": [{"role": "System Manager"}]}).insert()

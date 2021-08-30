@@ -34,8 +34,8 @@ class TestEmailAccount(unittest.TestCase):
 	def setUp(self):
 		frappe.flags.mute_emails = False
 		frappe.flags.sent_mail = None
-		frappe.db.sql('delete from `tabEmail Queue`')
-		frappe.db.sql('delete from `tabUnhandled Email`')
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Unhandled Email")
 
 	def get_test_mail(self, fname):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname), "r") as f:
@@ -60,7 +60,7 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
 
-		frappe.db.sql("DELETE FROM `tabEmail Queue`")
+		frappe.db.delete("Email Queue")
 		notify_unreplied()
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
 			"reference_name": comm.reference_name, "status":"Not Sent"}))
@@ -183,7 +183,7 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_threading_by_message_id(self):
 		cleanup()
-		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.delete("Email Queue")
 
 		# reference document for testing
 		event = frappe.get_doc(dict(doctype='Event', subject='test-message')).insert()
@@ -242,8 +242,8 @@ class TestInboundMail(unittest.TestCase):
 
 	def setUp(self):
 		cleanup()
-		frappe.db.sql('delete from `tabEmail Queue`')
-		frappe.db.sql('delete from `tabToDo`')
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("ToDo")
 
 	def get_test_mail(self, fname):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname), "r") as f:

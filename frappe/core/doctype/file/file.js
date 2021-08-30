@@ -23,6 +23,18 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 		wrapper.empty();
 	}
 
+	var is_raster_image = (/\.(gif|jpg|jpeg|tiff|png)$/i).test(frm.doc.file_url);
+	var is_optimizable = !frm.doc.is_folder && is_raster_image && frm.doc.file_size > 0;
+
+	if (is_optimizable) {
+		frm.add_custom_button(__("Optimize"), function() {
+			frappe.show_alert(__("Optimizing image..."));
+			frm.call("optimize_file").then(() => {
+				frappe.show_alert(__("Image optimized"));
+			});
+		});
+	}
+
 	if(frm.doc.file_name && frm.doc.file_name.split('.').splice(-1)[0]==='zip') {
 		frm.add_custom_button(__('Unzip'), function() {
 			frappe.call({

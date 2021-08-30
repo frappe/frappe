@@ -324,7 +324,7 @@ def format_date(string_date=None, format_string=None):
 	date = getdate(string_date)
 	if not format_string:
 		format_string = get_user_date_format()
-	format_string = format_string.replace("mm", "MM")
+	format_string = format_string.replace("mm", "MM").replace("Y", "y")
 	try:
 		formatted_date = babel.dates.format_date(
 			date, format_string,
