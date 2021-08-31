@@ -1,8 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+<<<<<<< HEAD
 from __future__ import unicode_literals
 
+=======
+from typing import Optional
+>>>>>>> 3858e95e80 (feat(utils): Add util get_timedelta)
 import frappe
 from dateutil.parser._parser import ParserError
 import operator
@@ -76,6 +80,31 @@ def get_datetime(datetime_str=None):
 		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
 	except ValueError:
 		return parser.parse(datetime_str)
+
+def get_timedelta(time: str = None) -> Optional[datetime.timedelta]:
+	"""Return `datetime.timedelta` object from string value of a
+	valid time format. Returns None if `time` is not a valid format
+
+	Args:
+		time (str): A valid time representation. This string is parsed
+		using `dateutil.parser.parse`. Examples of valid inputs are:
+		'0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
+		https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
+
+	Returns:
+		datetime.timedelta: Timedelta object equivalent of the passed `time` string
+	"""
+	from dateutil import parser
+
+	time = time or "0:0:0"
+
+	try:
+		t = parser.parse(time)
+		return datetime.timedelta(
+			hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
+		)
+	except Exception:
+		return None
 
 def to_timedelta(time_str):
 	if isinstance(time_str, string_types):
