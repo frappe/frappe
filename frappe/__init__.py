@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
 
