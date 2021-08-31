@@ -107,8 +107,14 @@ def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60
 
 			_limit = limit() if callable(limit) else limit
 
-			identity = frappe.form_dict[key]
-			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
+			cmd = (frappe.form_dict.cmd).split('.')[-1]
+			user_key=frappe.form_dict[key]
+			ip = frappe.local.request_ip
+			
+			# cmd "accept" is used for web-forms only
+			ip_based_key = ":".join([ip, user_key]) if cmd == 'accept' else ip
+
+			cache_key = f"rl:{frappe.form_dict.cmd}:{ip_based_key}"
 
 			value = frappe.cache().get_value(cache_key, expires=True) or 0
 			if not value:
