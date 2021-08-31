@@ -6,6 +6,11 @@ on:
   push:
     branches: [ develop ]
 
+concurrency:
+  group: server-mariadb-develop-${{ github.event.number }}
+  cancel-in-progress: true
+
+
 jobs:
   test:
     runs-on: ubuntu-18.04
