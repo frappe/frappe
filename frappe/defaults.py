@@ -124,11 +124,10 @@ def set_default(key, value, parent, parenttype="__default"):
 		where
 			defkey=%s and parent=%s
 		for update''', (key, parent)):
-		frappe.db.sql("""
-			delete from
-				`tabDefaultValue`
-			where
-				defkey=%s and parent=%s""", (key, parent))
+		frappe.db.delete("DefaultValue", {
+			"defkey": key,
+			"parent": parent
+		})
 	if value != None:
 		add_default(key, value, parent)
 	else:
@@ -155,29 +154,23 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	:param name: Default ID.
 	:param parenttype: Clear defaults table for a particular type e.g. **User**.
 	"""
-	conditions = []
-	values = []
+	filters = {}
 
 	if name:
-		conditions.append("name=%s")
-		values.append(name)
+		filters.update({"name": name})
 
 	else:
 		if key:
-			conditions.append("defkey=%s")
-			values.append(key)
+			filters.update({"defkey": key})
 
 		if value:
-			conditions.append("defvalue=%s")
-			values.append(value)
+			filters.update({"defvalue": value})
 
 		if parent:
-			conditions.append("parent=%s")
-			values.append(parent)
+			filters.update({"parent": parent})
 
 		if parenttype:
-			conditions.append("parenttype=%s")
-			values.append(parenttype)
+			filters.update({"parenttype": parenttype})
 
 	if parent:
 		clear_defaults_cache(parent)
@@ -185,11 +178,10 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		clear_defaults_cache("__default")
 		clear_defaults_cache("__global")
 
-	if not conditions:
+	if not filters:
 		raise Exception("[clear_default] No key specified.")
 
-	frappe.db.sql("""delete from tabDefaultValue where {0}""".format(" and ".join(conditions)),
-		tuple(values))
+	frappe.db.delete("DefaultValue", filters)
 
 	_clear_cache(parent)
 

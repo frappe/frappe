@@ -727,6 +727,18 @@ class BaseDocument(object):
 				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
 
+	def _validate_code_fields(self):
+		for field in self.meta.get_code_fields():
+			code_string = self.get(field.fieldname)
+			language = field.get("options")
+
+			if language == "Python":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
+
+			elif language == "PythonExpression":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
+
 	def throw_length_exceeded_error(self, df, max_length, value):
 		if self.parentfield and self.idx:
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
@@ -862,7 +874,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -886,7 +898,7 @@ class BaseDocument(object):
 		if (absolute_value or doc.get('absolute_value')) and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
 
-		return format_value(val, df=df, doc=doc, currency=currency)
+		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.

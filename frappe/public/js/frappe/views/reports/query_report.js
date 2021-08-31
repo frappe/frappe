@@ -518,6 +518,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.page.show_form();
 		}
+
+		this.page.body[0].style.setProperty('--report-filter-height', this.page.page_form.css('height'));
+		this.page.body.parent().css('margin-bottom', 'unset');
 	}
 
 	set_filters(filters) {
@@ -850,6 +853,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					columnTotal: frappe.utils.report_column_total
 				}
 			};
+
+			if (this.raw_data.add_total_row) {
+				this.$page.find('.layout-main-section').css('--report-total-height', '310px');
+			}
 
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
@@ -1264,7 +1271,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_css: print_css,
 			print_settings: print_settings,
 			landscape: landscape,
-			columns: columns
+			columns: columns,
+			lang: frappe.boot.lang,
+			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr"
 		});
 
 		frappe.render_pdf(html, print_settings);

@@ -179,9 +179,20 @@
 	--text-on-pink: var(--pink-500);
 	--text-on-cyan: var(--cyan-600);
 
+	// Layout Colors
+	--bg-color: var(--gray-50);
+	--fg-color: white;
+	--navbar-bg: white;
+	--fg-hover-color: var(--gray-100);
+	--card-bg: var(--fg-color);
+	--disabled-text-color: var(--gray-700);
 	--disabled-control-bg: var(--gray-50);
 	--control-bg: var(--gray-100);
 	--control-bg-on-gray: var(--gray-200);
+	--awesomebar-focus-bg: var(--fg-color);
+	--modal-bg: white;
+	--toast-bg: var(--modal-bg);
+	--popover-bg: white;
 
 	--awesomplete-hover-bg: var(--control-bg);
 

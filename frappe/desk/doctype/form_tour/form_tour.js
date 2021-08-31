@@ -15,14 +15,14 @@ frappe.ui.form.on('Form Tour', {
 
 		frm.add_custom_button(__('Show Tour'), async () => {
 			const issingle = await check_if_single(frm.doc.reference_doctype);
+			let route_changed = null;
 
 			if (issingle) {
-				frappe.set_route('Form', frm.doc.reference_doctype);
+				route_changed = frappe.set_route('Form', frm.doc.reference_doctype);
 			} else {
-				const new_name =  'new-' + frappe.scrub(frm.doc.reference_doctype) + '-1';
-				frappe.set_route('Form', frm.doc.reference_doctype, new_name);
+				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, 'new');
 			}
-			frappe.utils.sleep(500).then(() => {
+			route_changed.then(() => {
 				const tour_name = frm.doc.name;
 				cur_frm.tour
 					.init({ tour_name })

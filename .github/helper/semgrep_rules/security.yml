@@ -8,10 +8,6 @@ rules:
     dynamic content. Avoid it or use safe_eval().
   languages: [python]
   severity: ERROR
-  paths:
-    exclude:
-      - frappe/__init__.py
-      - frappe/commands/utils.py
 
 - id: frappe-sqli-format-strings
   patterns:

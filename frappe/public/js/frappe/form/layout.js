@@ -250,6 +250,18 @@ frappe.ui.form.Layout = class Layout {
 			// collapse sections
 			this.refresh_section_collapse();
 		}
+
+		if (document.activeElement) {
+			if (document.activeElement.tagName == 'INPUT' && this.is_numeric_field_active()) {
+				document.activeElement.select();
+			}
+		}
+	}
+
+	is_numeric_field_active() {
+		const control = $(document.activeElement).closest(".frappe-control");
+		const fieldtype = (control.data() || {}).fieldtype;
+		return frappe.model.numeric_fieldtypes.includes(fieldtype);
 	}
 
 	refresh_sections() {
@@ -263,9 +275,6 @@ frappe.ui.form.Layout = class Layout {
 				section.addClass("empty-section");
 			}
 		});
-
-		this.frm && this.frm.dashboard.refresh();
-
 	}
 
 	refresh_fields (fields) {

@@ -65,11 +65,11 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 
 
 def remove_encrypted_password(doctype, name, fieldname='password'):
-	frappe.db.sql(
-		'DELETE FROM `__Auth` WHERE doctype = %s and name = %s and fieldname = %s',
-		values=[doctype, name, fieldname]
-	)
-
+	frappe.db.delete("__Auth", {
+		"doctype": doctype,
+		"name": name,
+		"fieldname": fieldname
+	})
 
 def check_password(user, pwd, doctype='User', fieldname='password', delete_tracker_cache=True):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
@@ -131,8 +131,10 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
-			{ 'doctype': doctype, 'name': name })
+		frappe.db.delete("__Auth", {
+			"doctype": doctype,
+			"name": name
+		})
 	except Exception as e:
 		if not frappe.db.is_missing_column(e):
 			raise

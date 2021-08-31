@@ -82,7 +82,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSignature\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSignature\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
    "search_index": 1
   },
@@ -428,7 +428,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-10-29 06:11:57.661039",
+ "modified": "2021-07-10 21:57:24.479749",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
