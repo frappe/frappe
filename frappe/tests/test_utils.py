@@ -95,6 +95,17 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
 class TestFieldCasting(unittest.TestCase):
+	def test_str_types(self):
+		STR_TYPES = (
+			"Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link"
+		)
+		for fieldtype in STR_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), str)
+			self.assertIsInstance(cast(fieldtype, value="12-12-2021"), str)
+			self.assertIsInstance(cast(fieldtype, value=""), str)
+			self.assertIsInstance(cast(fieldtype, value=[]), str)
+			self.assertIsInstance(cast(fieldtype, value=set()), str)
+
 	def test_float_types(self):
 		FLOAT_TYPES = ("Currency", "Float", "Percent")
 		for fieldtype in FLOAT_TYPES:
