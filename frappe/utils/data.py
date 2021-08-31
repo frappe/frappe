@@ -27,7 +27,7 @@ def is_invalid_date_string(date_string):
 	return not isinstance(date_string, str) or ((not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00")))
 
 # datetime functions
-def getdate(string_date: str = None):
+def getdate(string_date: Optional[str] = None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
@@ -75,7 +75,7 @@ def get_datetime(datetime_str=None):
 	except ValueError:
 		return parser.parse(datetime_str)
 
-def get_timedelta(time: str = None) -> Optional[datetime.timedelta]:
+def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 	"""Return `datetime.timedelta` object from string value of a
 	valid time format. Returns None if `time` is not a valid format
 
