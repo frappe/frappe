@@ -552,6 +552,7 @@ def extract_messages_from_code(code, is_py=False):
 
 	:param code: code from which translatable files are to be extracted
 	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
+	from jinja2 import TemplateError
 	try:
 		code = frappe.as_unicode(render_include(code))
 	except (TemplateError, ImportError, InvalidIncludePath, IOError):
