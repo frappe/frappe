@@ -21,7 +21,7 @@ def get_things_todo(as_list=False):
 	data = frappe.get_list("ToDo",
 		fields=["name", "description"] if as_list else "count(*)",
 		filters=[["ToDo", "status", "=", "Open"]],
-		or_filters=[["ToDo", "owner", "=", frappe.session.user],
+		or_filters=[["ToDo", "allocated_to", "=", frappe.session.user],
 			["ToDo", "assigned_by", "=", frappe.session.user]],
 		as_list=True)
 

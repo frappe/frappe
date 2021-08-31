@@ -20,7 +20,7 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	return frappe.get_all('ToDo', fields=['owner', 'name'], filters=dict(
+	return frappe.get_all('ToDo', fields=['allocated_to', 'name'], filters=dict(
 		reference_type = args.get('doctype'),
 		reference_name = args.get('name'),
 		status = ('!=', 'Cancelled')
@@ -49,7 +49,7 @@ def add(args=None):
 			"reference_type": args['doctype'],
 			"reference_name": args['name'],
 			"status": "Open",
-			"owner": assign_to
+			"allocated_to": assign_to
 		}
 
 		if frappe.get_all("ToDo", filters=filters):
@@ -62,7 +62,7 @@ def add(args=None):
 
 			d = frappe.get_doc({
 				"doctype": "ToDo",
-				"owner": assign_to,
+				"allocated_to": assign_to,
 				"reference_type": args['doctype'],
 				"reference_name": args['name'],
 				"description": args.get('description'),
@@ -88,7 +88,7 @@ def add(args=None):
 			follow_document(args['doctype'], args['name'], assign_to)
 
 			# notify
-			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',
+			notify_assignment(d.assigned_by, d.allocated_to, d.reference_type, d.reference_name, action='ASSIGN',
 				description=args.get("description"))
 
 	if shared_with_users:
@@ -113,13 +113,13 @@ def add_multiple(args=None):
 		add(args)
 
 def close_all_assignments(doctype, name):
-	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters =
+	assignments = frappe.db.get_all('ToDo', fields=['allocated_to'], filters =
 		dict(reference_type = doctype, reference_name = name, status=('!=', 'Cancelled')))
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
-		set_status(doctype, name, assign_to.owner, status="Closed")
+		set_status(doctype, name, assign_to.allocated_to, status="Closed")
 
 	return True
 
@@ -131,13 +131,13 @@ def set_status(doctype, name, assign_to, status="Cancelled"):
 	"""remove from todo"""
 	try:
 		todo = frappe.db.get_value("ToDo", {"reference_type":doctype,
-		"reference_name":name, "owner":assign_to, "status": ('!=', status)})
+		"reference_name":name, "allocated_to":assign_to, "status": ('!=', status)})
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
 			todo.status = status
 			todo.save(ignore_permissions=True)
 
-			notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
+			notify_assignment(todo.assigned_by, todo.allocated_to, todo.reference_type, todo.reference_name)
 	except frappe.DoesNotExistError:
 		pass
 
@@ -151,25 +151,25 @@ def clear(doctype, name):
 	'''
 	Clears assignments, return False if not assigned.
 	'''
-	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters =
+	assignments = frappe.db.get_all('ToDo', fields=['allocated_to'], filters =
 		dict(reference_type = doctype, reference_name = name))
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
-		set_status(doctype, name, assign_to.owner, "Cancelled")
+		set_status(doctype, name, assign_to.allocated_to, "Cancelled")
 
 	return True
 
-def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
+def notify_assignment(assigned_by, allocated_to, doc_type, doc_name, action='CLOSE',
 	description=None):
 	"""
 		Notify assignee that there is a change in assignment
 	"""
-	if not (assigned_by and owner and doc_type and doc_name): return
+	if not (assigned_by and allocated_to and doc_type and doc_name): return
 
 	# return if self assigned or user disabled
-	if assigned_by == owner or not frappe.db.get_value('User', owner, 'enabled'):
+	if assigned_by == allocated_to or not frappe.db.get_value('User', allocated_to, 'enabled'):
 		return
 
 	# Search for email address in description -- i.e. assignee
@@ -195,7 +195,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		'email_content': description_html
 	}
 
-	enqueue_create_notification(owner, notification_doc)
+	enqueue_create_notification(allocated_to, notification_doc)
 
 def format_message_for_assign_to(users):
 	return "<br><br>" + "<br>".join(users)

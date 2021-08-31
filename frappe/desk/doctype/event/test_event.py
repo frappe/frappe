@@ -95,7 +95,7 @@ class TestEvent(unittest.TestCase):
 
 		# Remove an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
-			"owner": self.test_user})
+			"allocated_to": self.test_user})
 		todo.status = "Cancelled"
 		todo.save()
 

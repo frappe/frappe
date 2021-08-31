@@ -15,7 +15,7 @@ class TestAssign(unittest.TestCase):
 
 		added = assign(todo, "test@example.com")
 
-		self.assertTrue("test@example.com" in [d.owner for d in added])
+		self.assertTrue("test@example.com" in [d.allocated_to for d in added])
 
 		removed = frappe.desk.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
 

@@ -111,7 +111,7 @@ class AssignmentRule(Document):
 				user = d.user,
 				count = frappe.db.count('ToDo', dict(
 					reference_type = self.document_type,
-					owner = d.user,
+					allocated_to = d.user,
 					status = "Open"))
 			))
 

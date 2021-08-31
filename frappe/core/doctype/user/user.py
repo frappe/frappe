@@ -360,9 +360,19 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# delete todos
+<<<<<<< HEAD
 		frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
+=======
+		frappe.db.delete("ToDo", {"allocated_to": self.name})
+		todo_table = DocType("ToDo")
+		(
+			frappe.qb.update(todo_table)
+			.set(todo_table.assigned_by, None)
+			.where(todo_table.assigned_by == self.name)
+		).run()
+>>>>>>> 6c6ff2c16d (fix: overriding of owner of doc)
 
 		# delete events
 		frappe.db.sql("""delete from `tabEvent` where owner=%s

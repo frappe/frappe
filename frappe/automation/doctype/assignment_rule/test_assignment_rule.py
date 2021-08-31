@@ -32,7 +32,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), 'test@example.com')
+		), 'allocated_to'), 'test@example.com')
 
 		note = make_note(dict(public=1))
 
@@ -41,7 +41,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), 'test1@example.com')
+		), 'allocated_to'), 'test1@example.com')
 
 		clear_assignments()
 
@@ -53,7 +53,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), 'test2@example.com')
+		), 'allocated_to'), 'test2@example.com')
 
 		# check loop back to first user
 		note = make_note(dict(public=1))
@@ -62,7 +62,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), 'test@example.com')
+		), 'allocated_to'), 'test@example.com')
 
 	def test_load_balancing(self):
 		self.assignment_rule.rule = 'Load Balancing'
@@ -73,12 +73,17 @@ class TestAutoAssign(unittest.TestCase):
 
 		# check if each user has 10 assignments (?)
 		for user in ('test@example.com', 'test1@example.com', 'test2@example.com'):
-			self.assertEqual(len(frappe.get_all('ToDo', dict(owner = user, reference_type = 'Note'))), 10)
+			self.assertEqual(len(frappe.get_all('ToDo', dict(allocated_to = user, reference_type = 'Note'))), 10)
 
 		# clear 5 assignments for first user
 		# can't do a limit in "delete" since postgres does not support it
+<<<<<<< HEAD
 		for d in frappe.get_all('ToDo', dict(reference_type = 'Note', owner = 'test@example.com'), limit=5):
 			frappe.db.sql("delete from tabToDo where name = %s", d.name)
+=======
+		for d in frappe.get_all('ToDo', dict(reference_type = 'Note', allocated_to = 'test@example.com'), limit=5):
+			frappe.db.delete("ToDo", {"name": d.name})
+>>>>>>> 6c6ff2c16d (fix: overriding of owner of doc)
 
 		# add 5 more assignments
 		for i in range(5):
@@ -86,7 +91,7 @@ class TestAutoAssign(unittest.TestCase):
 
 		# check if each user still has 10 assignments
 		for user in ('test@example.com', 'test1@example.com', 'test2@example.com'):
-			self.assertEqual(len(frappe.get_all('ToDo', dict(owner = user, reference_type = 'Note'))), 10)
+			self.assertEqual(len(frappe.get_all('ToDo', dict(allocated_to = user, reference_type = 'Note'))), 10)
 
 	def test_based_on_field(self):
 		self.assignment_rule.rule = 'Based on Field'
@@ -121,7 +126,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), None)
+		), 'allocated_to'), None)
 
 	def test_clear_assignment(self):
 		note = make_note(dict(public=1))
@@ -134,7 +139,7 @@ class TestAutoAssign(unittest.TestCase):
 		))[0]
 
 		todo = frappe.get_doc('ToDo', todo['name'])
-		self.assertEqual(todo.owner, 'test@example.com')
+		self.assertEqual(todo.allocated_to, 'test@example.com')
 
 		# test auto unassign
 		note.public = 0
@@ -156,7 +161,7 @@ class TestAutoAssign(unittest.TestCase):
 		))[0]
 
 		todo = frappe.get_doc('ToDo', todo['name'])
-		self.assertEqual(todo.owner, 'test@example.com')
+		self.assertEqual(todo.allocated_to, 'test@example.com')
 
 		note.content="Closed"
 		note.save()
@@ -166,7 +171,7 @@ class TestAutoAssign(unittest.TestCase):
 		# check if todo is closed
 		self.assertEqual(todo.status, 'Closed')
 		# check if closed todo retained assignment
-		self.assertEqual(todo.owner, 'test@example.com')
+		self.assertEqual(todo.allocated_to, 'test@example.com')
 
 	def check_multiple_rules(self):
 		note = make_note(dict(public=1, notify_on_login=1))
@@ -176,7 +181,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), 'test@example.com')
+		), 'allocated_to'), 'test@example.com')
 
 	def check_assignment_rule_scheduling(self):
 		frappe.db.sql("DELETE FROM `tabAssignment Rule`")
@@ -194,7 +199,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), ['test@example.com', 'test1@example.com', 'test2@example.com'])
+		), 'allocated_to'), ['test@example.com', 'test1@example.com', 'test2@example.com'])
 
 		frappe.flags.assignment_day = "Friday"
 		note = make_note(dict(public=1))
@@ -203,7 +208,7 @@ class TestAutoAssign(unittest.TestCase):
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), ['test3@example.com'])
+		), 'allocated_to'), ['test3@example.com'])
 
 	def test_assignment_rule_condition(self):
 		frappe.db.sql("DELETE FROM `tabAssignment Rule`")
