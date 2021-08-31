@@ -117,7 +117,7 @@ def validate_email(doc):
 	# validate sender
 
 def set_incoming_outgoing_accounts(doc):
-	from frappe.email.doctype.email_account.email_account import EmailAccount
+	EmailAccount = frappe.doctypes.EmailAccount
 	incoming_email_account = EmailAccount.find_incoming(
 		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype)
 	doc.incoming_email_account = incoming_email_account.email_id if incoming_email_account else None

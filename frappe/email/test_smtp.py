@@ -4,7 +4,8 @@
 import unittest
 import frappe
 from frappe.email.smtp import SMTPServer
-from frappe.email.doctype.email_account.email_account import EmailAccount
+
+EmailAccount = frappe.doctypes.EmailAccount
 
 class TestSMTP(unittest.TestCase):
 	def test_smtp_ssl_session(self):

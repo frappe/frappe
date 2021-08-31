@@ -22,7 +22,7 @@ class InvalidEmailCredentials(frappe.ValidationError):
 def send(email, append_to=None, retry=1):
 	"""Deprecated: Send the message or add it to Outbox Email"""
 	def _send(retry):
-		from frappe.email.doctype.email_account.email_account import EmailAccount
+		EmailAccount = frappe.doctypes.EmailAccount
 		try:
 			email_account = EmailAccount.find_outgoing(match_by_doctype=append_to)
 			smtpserver = email_account.get_smtp_server()

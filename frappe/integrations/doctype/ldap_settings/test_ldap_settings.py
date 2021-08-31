@@ -9,8 +9,9 @@ import ssl
 import os
 
 from unittest import mock
-from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from ldap3 import Server, Connection, MOCK_SYNC, OFFLINE_SLAPD_2_4, OFFLINE_AD_2012_R2
+
+LDAPSettings = frappe.doctypes.LDAPSettings
 
 
 class LDAP_TestCase():

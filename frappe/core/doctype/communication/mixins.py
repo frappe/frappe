@@ -2,8 +2,9 @@ import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
 from frappe.utils import parse_addr, get_formatted_email, get_url
-from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.desk.doctype.todo.todo import ToDo
+
+EmailAccount = frappe.doctypes.EmailAccount
+ToDo = frappe.doctypes.ToDo
 
 class CommunicationEmailMixin:
 	"""Mixin class to handle communication mails.

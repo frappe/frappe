@@ -19,10 +19,11 @@ from frappe.model.document import Document
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.email_body import add_attachment, get_formatted_html, get_email
 from frappe.utils import cint, split_emails, add_days, nowdate, cstr
-from frappe.email.doctype.email_account.email_account import EmailAccount
 
 
 MAX_RETRY_COUNT = 3
+EmailAccount = frappe.doctypes.EmailAccount
+
 class EmailQueue(Document):
 	DOCTYPE = 'Email Queue'
 

@@ -18,7 +18,6 @@ make_test_records("User")
 make_test_records("Email Account")
 
 
-
 class TestEmailAccount(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
