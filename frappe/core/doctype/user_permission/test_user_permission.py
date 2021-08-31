@@ -31,6 +31,15 @@ class TestUserPermission(unittest.TestCase):
 		param = get_params(user, 'User', perm_user.name, is_default=1)
 		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
 
+	def test_default_user_permission_corectness(self):
+		user = create_user('test_default_corectness_permission_1@example.com')
+		param = get_params(user, 'User', user.name, is_default=1, hide_descendants= 1)
+		add_user_permissions(param)
+		#create a duplicate entry with default
+		perm_user = create_user('test_default_corectness2@example.com')
+		param = get_params(perm_user, 'Blog Post', perm_user.name, is_default=1, hide_descendants= 1)
+		add_user_permissions(param)
+
 	def test_default_user_permission(self):
 		frappe.set_user('Administrator')
 		user = create_user('test_user_perm1@example.com', 'Website Manager')
