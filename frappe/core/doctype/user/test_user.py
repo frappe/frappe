@@ -70,7 +70,7 @@ class TestUser(unittest.TestCase):
 		delete_contact("_test@example.com")
 		delete_doc("User", "_test@example.com")
 
-		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where owner=%s""",
+		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where allocated_to=%s""",
 			("_test@example.com",)))
 
 		from frappe.core.doctype.role.test_role import test_records as role_records

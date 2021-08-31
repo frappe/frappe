@@ -356,7 +356,7 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# delete todos
-		frappe.db.delete("ToDo", {"owner": self.name})
+		frappe.db.delete("ToDo", {"allocated_to": self.name})
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 

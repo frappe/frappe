@@ -29,16 +29,16 @@ def get_group_by_count(doctype, current_filters, field):
 	subquery = frappe.get_all(doctype, filters=current_filters, return_query = True)
 	if field == 'assigned_to':
 		subquery_condition = ' and `tabToDo`.reference_name in ({subquery})'.format(subquery = subquery)
-		return frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
+		return frappe.db.sql("""select `tabToDo`.allocated_to as name, count(*) as count
 			from
 				`tabToDo`, `tabUser`
 			where
 				`tabToDo`.status!='Cancelled' and
-				`tabToDo`.owner = `tabUser`.name and
+				`tabToDo`.allocated_to = `tabUser`.name and
 				`tabUser`.user_type = 'System User'
 				{subquery_condition}
 			group by
-				`tabToDo`.owner
+				`tabToDo`.allocated_to
 			order by
 				count desc
 			limit 50""".format(subquery_condition = subquery_condition), as_dict=True)

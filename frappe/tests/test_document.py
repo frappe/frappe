@@ -252,3 +252,20 @@ class TestDocument(unittest.TestCase):
 			'currency': 100000
 		})
 		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+
+	def test_owner_changed(self):
+		frappe.delete_doc_if_exists("User", "hello@example.com")
+		frappe.set_user("Administrator")
+
+		d = frappe.get_doc({
+			"doctype": "User",
+			"email": "hello@example.com",
+			"first_name": "John"
+		})
+		d.insert()
+		self.assertEqual(frappe.db.get_value("User",d.owner),d.owner)
+		d.set("owner","johndoe@gmail.com")
+		self.assertRaises(frappe.ValidationError, d.save)
+		d.reload()
+		d.save()
+		self.assertEqual(frappe.db.get_value("User",d.owner),d.owner)
