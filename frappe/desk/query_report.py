@@ -177,11 +177,13 @@ def get_script(report_name):
 	if os.path.exists(script_path):
 		with open(script_path, "r") as f:
 			script = f.read()
+			script += f"\n\n//# sourceURL={scrub(report.name)}.js"
 
 	html_format = get_html_format(print_path)
 
 	if not script and report.javascript:
 		script = report.javascript
+		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
 		script = "frappe.query_reports['%s']={}" % report_name
@@ -389,7 +391,7 @@ def handle_duration_fieldtype_values(result, columns):
 	return result
 
 
-def build_xlsx_data(columns, data, visible_idx, include_indentation):
+def build_xlsx_data(columns, data, visible_idx, include_indentation, ignore_visible_idx=False):
 	result = [[]]
 	column_widths = []
 
@@ -405,7 +407,7 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if row_idx in visible_idx:
+		if ignore_visible_idx or row_idx in visible_idx:
 			row_data = []
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):

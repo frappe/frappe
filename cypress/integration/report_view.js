@@ -23,7 +23,7 @@ context('Report View', () => {
 		let cell = cy.get('.dt-row-0 > .dt-cell--col-4');
 		// select the cell
 		cell.dblclick();
-		cell.find('input[data-fieldname="enabled"]').check({ force: true });
+		cell.findByRole('checkbox').check({ force: true });
 		cy.get('.dt-row-0 > .dt-cell--col-5').click();
 		cy.wait('@value-update');
 		cy.get('@doc').then(doc => {
