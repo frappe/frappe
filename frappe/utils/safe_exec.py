@@ -228,6 +228,7 @@ VALID_UTILS = (
 "getdate",
 "get_datetime",
 "to_timedelta",
+"get_timedelta",
 "add_to_date",
 "add_days",
 "add_months",
