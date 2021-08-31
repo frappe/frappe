@@ -164,8 +164,8 @@ def get_list_context(context, doctype, web_form_name=None):
 	# get context for custom webform
 	if meta.custom and web_form_name:
 		webform_list_contexts = frappe.get_hooks('webform_list_context')
-		if list_context_for_custom_webform:
-			out = frappe._dict(frappe.get_attr(list_context_for_custom_webform[0])(meta.module) or {})
+		if webform_list_contexts:
+			out = frappe._dict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
 			if out:
 				list_context = out
 
