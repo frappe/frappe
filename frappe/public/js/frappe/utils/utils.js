@@ -1113,6 +1113,7 @@ Object.assign(frappe.utils, {
 	},
 
 	icon(icon_name, size="sm", icon_class="") {
+		let know_svg_symbols = $(".d-block").find("symbol").map( (a,f) => f.id.replace("icon-", "")).toArray()
 		let size_class = "";
 		let icon_style = "";
 		if (typeof size == "object") {
@@ -1120,9 +1121,15 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${size_class}" style="${icon_style}">
+		if (know_svg_symbols.includes(icon_name)){
+			return `<svg class="icon ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
+		} else {
+			let size_class = size_class ? "fa-" + size_class.replace("icon-", "") : "" ;
+			return `<i class="icon-fa fa ${size_class} fa-${icon_name}" aria-hidden="true"></i>`
+		}
+
 	},
 
 	make_chart(wrapper, custom_options={}) {
