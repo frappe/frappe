@@ -429,19 +429,19 @@ def cast(fieldtype, value=None):
 		value = cstr(value)
 
 	elif fieldtype == "Date":
-		if value is None:
+		if value:
+			value = getdate(value)
+		else:
 			value = datetime.datetime(1, 1, 1).date()
-		value = getdate(value)
 
 	elif fieldtype == "Datetime":
-		if value is None:
+		if value:
+			value = get_datetime(value)
+		else:
 			value = datetime.datetime(1, 1, 1)
-		value = get_datetime(value)
 
 	elif fieldtype == "Time":
-		if value is None:
-			value = "0:0:0"
-		value = to_timedelta(value)
+		value = get_timedelta(value)
 
 	return value
 
