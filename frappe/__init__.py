@@ -28,6 +28,7 @@ from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
 
+from frappe._doctypes import get_doctypes_lazy
 from frappe.query_builder import get_query_builder, patch_query_execute
 
 # Lazy imports
@@ -122,6 +123,7 @@ def set_user_lang(user, user_language=None):
 db = local("db")
 qb = local("qb")
 conf = local("conf")
+doctypes = local("doctypes")
 form = form_dict = local("form_dict")
 request = local("request")
 response = local("response")
@@ -206,6 +208,7 @@ def init(site, sites_path=None, new_site=False):
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
+	local.doctypes = get_doctypes_lazy()
 
 	setup_module_map()
 	patch_query_execute()
