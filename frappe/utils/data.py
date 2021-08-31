@@ -35,10 +35,10 @@ DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
 def is_invalid_date_string(date_string):
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
-	return (not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
+	return not isinstance(date_string, str) or ((not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00")))
 
 # datetime functions
-def getdate(string_date=None):
+def getdate(string_date: str = None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
