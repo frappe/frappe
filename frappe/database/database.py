@@ -946,11 +946,6 @@ class Database(object):
 		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-
-		if filters:
-			conditions, values = self.build_conditions(filters)
-			query = f"{query} WHERE {conditions}"
-
 		return self.sql(query, values, **kwargs)
 
 	def truncate(self, doctype: str):
@@ -959,7 +954,7 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		table = doctype if doctype.startswith("__") else f"tab{doctype}"
+		table = get_table_name(doctype)
 		return self.sql_ddl(f"truncate `{table}`")
 
 	def clear_table(self, doctype):
