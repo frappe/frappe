@@ -314,59 +314,6 @@ class Database(object):
 			nres.append(nr)
 		return nres
 
-	def build_conditions(self, filters):
-		"""Convert filters sent as dict, lists to SQL conditions. filter's key
-		is passed by map function, build conditions like:
-
-		* ifnull(`fieldname`, default_value) = %(fieldname)s
-		* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
-		"""
-		conditions = []
-		values = {}
-		def _build_condition(key):
-			"""
-				filter's key is passed by map function
-				build conditions like:
-					* ifnull(`fieldname`, default_value) = %(fieldname)s
-					* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
-			"""
-			_operator = "="
-			_rhs = " %(" + key + ")s"
-			value = filters.get(key)
-			values[key] = value
-			if isinstance(value, (list, tuple)):
-				# value is a tuple like ("!=", 0)
-				_operator = value[0]
-				values[key] = value[1]
-				if isinstance(value[1], (tuple, list)):
-					# value is a list in tuple ("in", ("A", "B"))
-					_rhs = " ({0})".format(", ".join(self.escape(v) for v in value[1]))
-					del values[key]
-
-			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
-				_operator = "="
-
-			if "[" in key:
-				split_key = key.split("[")
-				condition = "coalesce(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
-					+ _operator + _rhs
-			else:
-				condition = "`" + key + "` " + _operator + _rhs
-
-			conditions.append(condition)
-
-		if isinstance(filters, int):
-			# docname is a number, convert to string
-			filters = str(filters)
-
-		if isinstance(filters, str):
-			filters = { "name": filters }
-
-		for f in filters:
-			_build_condition(f)
-
-		return " and ".join(conditions), values
-
 	def get(self, doctype, filters=None, as_dict=True, cache=False):
 		"""Returns `get_value` with fieldname='*'"""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
@@ -804,18 +751,18 @@ class Database(object):
 
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
+		from frappe.query_builder.functions import Count
 		if cache and not filters:
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
 		if filters:
-			conditions, filters = self.build_conditions(filters)
-			count = self.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+			query = self.query.build_conditions(dt, filters=filters).select(Count("*"))
+			count = self.sql(query, debug=debug)[0][0]
 			return count
 		else:
-			count = self.sql("""select count(*)
-				from `tab%s`""" % (dt,))[0][0]
+			query = self.query.build_conditions(dt).select(Count("*"))
+			count = self.sql(query)[0][0]
 
 			if cache:
 				frappe.cache().set_value('doctype:count:{}'.format(dt), count, expires_in_sec = 86400)
