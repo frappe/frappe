@@ -201,6 +201,13 @@ class TestCustomizeForm(unittest.TestCase):
 
 		self.assertTrue(d.flags.update_db)
 
+		length = frappe.db.sql("""SELECT character_maximum_length
+			FROM information_schema.columns
+			WHERE table_name = 'tabNotification Log'
+			AND column_name = 'document_name'""")[0][0]
+
+		self.assertEqual(length, 255)
+
 	def test_custom_link(self):
 		try:
 			# create a dummy doctype linked to Event
