@@ -14,10 +14,44 @@ class LDAPSettings(Document):
 			return
 
 		if not self.flags.ignore_mandatory:
-			if self.ldap_search_string and self.ldap_search_string.endswith("={0}"):
-				self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
+
+			if self.ldap_search_string.count('(') == self.ldap_search_string.count(')') and \
+				self.ldap_search_string.startswith('(') and \
+				self.ldap_search_string.endswith(')') and \
+				self.ldap_search_string and \
+				"{0}" in self.ldap_search_string:
+
+				conn = self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
+
+				try:
+					if conn.result['type'] == 'bindResponse' and self.base_dn:
+						import ldap3
+
+						conn.search(
+							search_base=self.ldap_search_path_user,
+							search_filter="(objectClass=*)",
+							attributes=self.get_ldap_attributes())
+
+						conn.search(
+							search_base=self.ldap_search_path_group,
+							search_filter="(objectClass=*)",
+							attributes=['cn'])
+
+				except ldap3.core.exceptions.LDAPAttributeError as ex:
+					frappe.throw(_("LDAP settings incorrect. validation response was: {0}").format(ex),
+						title=_("Misconfigured"))
+
+				except ldap3.core.exceptions.LDAPNoSuchObjectResult:
+					frappe.throw(_("Ensure the user and group search paths are correct."),
+						title=_("Misconfigured"))
+
+				if self.ldap_directory_server.lower() == 'custom':
+					if not self.ldap_group_member_attribute or not self.ldap_group_mappings_section:
+						frappe.throw(_("Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'LDAP Group Mappings' are entered"),
+						title=_("Misconfigured"))
+
 			else:
-				frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
+				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
 
 	def connect_to_ldap(self, base_dn, password, read_only=True):
 		try:
@@ -119,8 +153,8 @@ class LDAPSettings(Document):
 			user.insert(ignore_permissions=True)
 		# always add default role.
 		user.add_roles(self.default_role)
-		if self.ldap_group_field:
-			self.sync_roles(user, groups)
+		self.sync_roles(user, groups)
+
 		return user
 
 	def get_ldap_attributes(self):
@@ -143,6 +177,66 @@ class LDAPSettings(Document):
 
 		return ldap_attributes
 
+
+	def fetch_ldap_groups(self, user, conn):
+		import ldap3
+
+		if type(user) is not ldap3.abstract.entry.Entry:
+			raise TypeError("Invalid type, attribute {0} must be of type '{1}'".format('user', 'ldap3.abstract.entry.Entry'))
+
+		if type(conn) is not ldap3.core.connection.Connection:
+			raise TypeError("Invalid type, attribute {0} must be of type '{1}'".format('conn', 'ldap3.Connection'))
+
+		fetch_ldap_groups = None
+
+		ldap_object_class = None
+		ldap_group_members_attribute = None
+
+
+		if self.ldap_directory_server.lower() == 'active directory':
+
+			ldap_object_class = 'Group'
+			ldap_group_members_attribute = 'member'
+			user_search_str = user.entry_dn
+
+
+		elif self.ldap_directory_server.lower() == 'openldap':
+
+			ldap_object_class = 'posixgroup'
+			ldap_group_members_attribute = 'memberuid'
+			user_search_str = getattr(user, self.ldap_username_field).value
+
+		elif self.ldap_directory_server.lower() == 'custom':
+
+			ldap_object_class = self.ldap_group_objectclass
+			ldap_group_members_attribute = self.ldap_group_member_attribute
+			user_search_str = getattr(user, self.ldap_username_field).value
+
+		else:
+			# NOTE: depreciate this else path
+			# this path will be hit for everyone with preconfigured ldap settings. this must be taken into account so as not to break ldap for those users.
+
+			if self.ldap_group_field:
+
+				fetch_ldap_groups = getattr(user, self.ldap_group_field).values
+
+		if ldap_object_class is not None:
+			conn.search(
+				search_base=self.ldap_search_path_group,
+				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user_search_str),
+				attributes=['cn']) # Build search query
+
+		if len(conn.entries) >= 1:
+
+			fetch_ldap_groups = []
+			for group in conn.entries:
+				fetch_ldap_groups.append(group['cn'].value)
+
+		return fetch_ldap_groups
+
+
+
+
 	def authenticate(self, username, password):
 
 		if not self.enabled:
@@ -153,22 +247,32 @@ class LDAPSettings(Document):
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
 
-		conn.search(
-			search_base=self.organizational_unit,
-			search_filter="({0})".format(user_filter),
-			attributes=ldap_attributes)
+		try:
+			import ldap3
 
-		if len(conn.entries) == 1 and conn.entries[0]:
-			user = conn.entries[0]
-			# only try and connect as the user, once we have their fqdn entry.
-			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
+			conn.search(
+				search_base=self.ldap_search_path_user,
+				search_filter="{0}".format(user_filter),
+				attributes=ldap_attributes)
 
-			groups = None
-			if self.ldap_group_field:
-				groups = getattr(user, self.ldap_group_field).values
-			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
-		else:
+			if len(conn.entries) == 1 and conn.entries[0]:
+				user = conn.entries[0]
+
+				groups = self.fetch_ldap_groups(user, conn)
+
+				# only try and connect as the user, once we have their fqdn entry.
+				if user.entry_dn and password and conn.rebind(user=user.entry_dn, password=password):
+
+					return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
+
+			raise ldap3.core.exceptions.LDAPInvalidCredentialsResult # even though nothing foundor failed authentication raise invalid credentials
+
+		except ldap3.core.exceptions.LDAPInvalidFilterError:
+			frappe.throw(_("Please use a valid LDAP search filter"), title=_("Misconfigured"))
+
+		except ldap3.core.exceptions.LDAPInvalidCredentialsResult:
 			frappe.throw(_("Invalid username or password"))
+
 
 	def reset_password(self, user, password, logout_sessions=False):
 		from ldap3 import HASHED_SALTED_SHA, MODIFY_REPLACE
@@ -180,7 +284,7 @@ class LDAPSettings(Document):
 			read_only=False)
 
 		if conn.search(
-			search_base=self.organizational_unit,
+			search_base=self.ldap_search_path_user,
 			search_filter=search_filter,
 			attributes=self.get_ldap_attributes()
 		):

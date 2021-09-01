@@ -154,12 +154,15 @@ class BlogPost(WebsiteGenerator):
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
 	def load_feedback(self, context):
+		user = frappe.session.user
+		if user == 'Guest':
+			user = ''
 		feedback = frappe.get_all('Feedback',
-			fields=['email', 'feedback', 'rating'],
+			fields=['feedback', 'rating'],
 			filters=dict(
 				reference_doctype=self.doctype,
 				reference_name=self.name,
-				email=frappe.session.user
+				owner=user
 			)
 		)
 		context.user_feedback = feedback[0] if feedback else ''

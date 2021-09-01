@@ -30,10 +30,12 @@ from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
 
+from frappe.query_builder import get_query_builder, patch_query_execute
+
 # Lazy imports
 faker = lazy_import('faker')
 
-__version__ = '13.9.1'
+__version__ = '13.10.0'
 
 __title__ = "Frappe Framework"
 
@@ -120,6 +122,7 @@ def set_user_lang(user, user_language=None):
 
 # local-globals
 db = local("db")
+qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
@@ -204,8 +207,10 @@ def init(site, sites_path=None, new_site=False):
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
+	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
+	patch_query_execute()
 
 	local.initialised = True
 
@@ -1714,9 +1719,18 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals.update(whitelisted_globals)
 	return eval(code, eval_globals, eval_locals)
 
-def get_system_settings(key):
+def get_system_settings(key, ignore_if_not_exists=False):
+	"""Get a system setting value.
+
+	:param ignore_if_not_exists: Do not raise error if key does not exists.
+	"""
+	doctype = 'System Settings'
+
+	if ignore_if_not_exists and not get_meta(doctype).get_field(key):
+		return
+
 	if key not in local.system_settings:
-		local.system_settings.update({key: db.get_single_value('System Settings', key)})
+		local.system_settings.update({key: db.get_single_value(doctype, key)})
 	return local.system_settings.get(key)
 
 def get_active_domains():

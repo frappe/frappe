@@ -180,11 +180,13 @@ def get_script(report_name):
 	if os.path.exists(script_path):
 		with open(script_path, "r") as f:
 			script = f.read()
+			script += f"\n\n//# sourceURL={scrub(report.name)}.js"
 
 	html_format = get_html_format(print_path)
 
 	if not script and report.javascript:
 		script = report.javascript
+		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
 		script = "frappe.query_reports['%s']={}" % report_name
