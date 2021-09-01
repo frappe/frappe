@@ -989,11 +989,7 @@ class Database(object):
 		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-
-		if filters:
-			conditions, values = self.build_conditions(filters)
-			query = f"{query} WHERE {conditions}"
-
+			
 		return self.sql(query, values, **kwargs)
 
 	def truncate(self, doctype: str):
