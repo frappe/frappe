@@ -242,6 +242,7 @@
    "label": "Parent Page"
   },
   {
+   "default": "[]",
    "fieldname": "content",
    "fieldtype": "Long Text",
    "hidden": 1,
@@ -265,7 +266,7 @@
   }
  ],
  "links": [],
- "modified": "2021-08-19 12:51:00.233017",
+ "modified": "2021-08-30 18:47:18.227154",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
