@@ -408,20 +408,47 @@ def bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 
+@click.command('db-console')
+@pass_context
+def database(context):
+	"""
+		Enter into the Database console for given site.
+	"""
+	site = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
+	frappe.init(site=site)
+	if not frappe.conf.db_type or frappe.conf.db_type == "mariadb":
+		_mariadb()
+	elif frappe.conf.db_type == "postgres":
+		_psql()
+
+
 @click.command('mariadb')
 @pass_context
 def mariadb(context):
 	"""
 		Enter into mariadb console for a given site.
 	"""
-	import os
-
 	site  = get_site(context)
 	if not site:
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
+	_mariadb()
 
-	# This is assuming you're within the bench instance.
+
+@click.command('postgres')
+@pass_context
+def postgres(context):
+	"""
+		Enter into postgres console for a given site.
+	"""
+	site  = get_site(context)
+	frappe.init(site=site)
+	_psql()
+
+
+def _mariadb():
 	mysql = find_executable('mysql')
 	os.execv(mysql, [
 		mysql,
@@ -434,15 +461,7 @@ def mariadb(context):
 		"-A"])
 
 
-@click.command('postgres')
-@pass_context
-def postgres(context):
-	"""
-		Enter into postgres console for a given site.
-	"""
-	site  = get_site(context)
-	frappe.init(site=site)
-	# This is assuming you're within the bench instance.
+def _psql():
 	psql = find_executable('psql')
 	subprocess.run([ psql, '-d', frappe.conf.db_name])
 
@@ -819,6 +838,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	database,
 	convert_database,
 	jupyter,
 	console,
