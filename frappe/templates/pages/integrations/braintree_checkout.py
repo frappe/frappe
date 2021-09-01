@@ -32,10 +32,23 @@ def get_context(context):
 		frappe.local.flags.redirect_location = frappe.local.response.location
 		raise frappe.Redirect
 
+def validate_payment(reference_doctype, reference_docname):
+	status = frappe.db.get_value(reference_doctype, reference_docname, 'status')
+	if status == 'Paid':
+		frappe.log_error("The Payment Request {0} is already paid, cannot process payment twice".format(reference_docname))
+		return{
+			"redirect_to": frappe.redirect_to_message(_('Server Error'), _("The Payment Request {0} is already paid, cannot process payment twice".format(reference_docname))),
+			"status": 401
+		}
+	else:
+		return
+
 @frappe.whitelist(allow_guest=True)
 def make_payment(payload_nonce, data, reference_doctype, reference_docname):
-	data = json.loads(data)
+	if reference_doctype == 'Payment Request':
+		validate_payment(reference_doctype, reference_docname)
 
+	data = json.loads(data)
 	data.update({
 		"payload_nonce": payload_nonce
 	})
