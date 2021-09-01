@@ -79,3 +79,4 @@ Whoosh~=2.7.4
 wrapt~=1.12.1
 xlrd~=2.0.1
 zxcvbn-python~=4.4.24
+tenacity~=8.0.1
