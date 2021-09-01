@@ -1,3 +1,5 @@
+from typing import List, Tuple, Union
+
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
 from pymysql.converters import conversions, escape_string
@@ -5,7 +7,7 @@ from pymysql.converters import conversions, escape_string
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime
+from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
 
 class MariaDBDatabase(Database):
@@ -122,6 +124,19 @@ class MariaDBDatabase(Database):
 	@staticmethod
 	def is_type_datetime(code):
 		return code in (pymysql.DATE, pymysql.DATETIME)
+
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+		old_name = get_table_name(old_name)
+		new_name = get_table_name(new_name)
+		return self.sql(f"RENAME TABLE `{old_name}` TO `{new_name}`")
+
+	def describe(self, doctype: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		return self.sql(f"DESC `{table_name}`")
+
+	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(table)
+		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
 
 	# exception types
 	@staticmethod

@@ -1,13 +1,15 @@
 import re
-import frappe
+from typing import List, Tuple, Union
+
 import psycopg2
 import psycopg2.extensions
 from six import string_types
-from frappe.utils import cstr
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
+from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
@@ -171,6 +173,19 @@ class PostgresDatabase(Database):
 	def is_data_too_long(e):
 		return e.pgcode == '22001'
 
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+		old_name = get_table_name(old_name)
+		new_name = get_table_name(new_name)
+		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
+
+	def describe(self, doctype: str)-> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
+
+	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(table)
+		return self.sql(f'ALTER TABLE "{table_name}" ALTER COLUMN "{column}" TYPE {type}')
+
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (
 				"doctype" VARCHAR(140) NOT NULL,
@@ -298,6 +313,7 @@ class PostgresDatabase(Database):
 def modify_query(query):
 	""""Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
+	query = str(query)
 	query = query.replace('`', '"')
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
