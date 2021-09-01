@@ -572,10 +572,10 @@ class Database(object):
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		if isinstance(fields, (list, tuple)):
-			query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(*fields)
+			query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(*fields)
 		else:
 			if fields=="*":
-				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by).select(fields)
+				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(fields)
 				as_dict = True
 		print(query)
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
@@ -807,22 +807,19 @@ class Database(object):
 
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
+		from frappe.query_builder.functions import Count
 		if cache and not filters:
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
+		query = self.query.build_conditions(table=dt, filters=filters).select(Count("*"))
 		if filters:
-			conditions, filters = self.build_conditions(filters)
-			count = self.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+			count = self.sql(query, debug=debug)[0][0]
 			return count
 		else:
-			count = self.sql("""select count(*)
-				from `tab%s`""" % (dt,))[0][0]
-
+			count = self.sql(query, debug=debug)[0][0]
 			if cache:
 				frappe.cache().set_value('doctype:count:{}'.format(dt), count, expires_in_sec = 86400)
-
 			return count
 
 	def sum(self, dt, fieldname, filters=None):
