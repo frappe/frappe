@@ -13,7 +13,7 @@ def execute(filters=None):
 
 def get_data(filters=None):
 
-	logs = frappe.db.sql("SELECT * FROM `tabTransaction Log` order by creation desc ", as_dict=1)
+	logs = frappe.get_all("Transaction Log", fields = ["*"], order_by = "creation desc")
 	result = []
 	for l in logs:
 		row_index = int(l.row_index)
