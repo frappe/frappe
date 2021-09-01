@@ -701,13 +701,11 @@ def has_email_account(email):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
-	waiting = frappe.db.sql("""select email_account,email_id
-		from `tabUser Email`
-		where awaiting_password = 1
-		and parent = %(user)s""", {"user":user}, as_dict=1)
+	waiting = frappe.get_all("User Email", fields=["email_account", "email_id"], filters={"awaiting_password": 1, "parent": user})
 	if waiting:
 		return waiting
 	else:
+		# TODO
 		frappe.db.sql("""update `tabUser Email`
 				set awaiting_password =0
 				where parent = %(user)s""",{"user":user})
