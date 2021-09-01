@@ -2,7 +2,7 @@ pull_request_rules:
   - name: Auto-close PRs on stable branch
     conditions:
       - and:
-        - or:
+        - and:
           - author!=surajshetty3416
           - author!=gavindsouza
         - or:
