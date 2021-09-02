@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 from __future__ import unicode_literals
 
 import unittest
@@ -13,11 +13,7 @@ from frappe.utils.data import cast, validate_python_code
 from PIL import Image
 from frappe.utils.image import strip_exif_data
 import io
-<<<<<<< HEAD
-=======
-from mimetypes import guess_type
 from datetime import datetime, timedelta, date
->>>>>>> be72397bca (test: Add tests for frappe.utils.data.cast)
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):

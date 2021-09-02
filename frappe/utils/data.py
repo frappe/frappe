@@ -1,12 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-<<<<<<< HEAD
-from __future__ import unicode_literals
-
-=======
 from typing import Optional
->>>>>>> 3858e95e80 (feat(utils): Add util get_timedelta)
 import frappe
 import operator
 import json
