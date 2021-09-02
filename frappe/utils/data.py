@@ -1,32 +1,27 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-<<<<<<< HEAD
 from __future__ import unicode_literals
 
-=======
-from typing import Optional
->>>>>>> 3858e95e80 (feat(utils): Add util get_timedelta)
-import frappe
-from dateutil.parser._parser import ParserError
+import datetime
+import math
 import operator
-import re, datetime, math, time
-<<<<<<< HEAD
+import re
+import time
+from urllib.parse import quote, urljoin
+
 import babel.dates
+import frappe
 from babel.core import UnknownLocaleError
+from click import secho
 from dateutil import parser
+from dateutil.parser._parser import ParserError
+from html2text import html2text
+from markdown2 import MarkdownError, markdown
 from num2words import num2words
+from six import integer_types, iteritems, string_types, text_type
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote, urljoin
-from html2text import html2text
-from markdown2 import markdown, MarkdownError
-from six import iteritems, text_type, string_types, integer_types
-=======
-from code import compile_command
-from urllib.parse import quote, urljoin
-from frappe.desk.utils import slug
-from click import secho
->>>>>>> a2cb9be7a4 (feat: frappe.utils.data.cast)
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -38,7 +33,7 @@ def is_invalid_date_string(date_string):
 	return not isinstance(date_string, str) or ((not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00")))
 
 # datetime functions
-def getdate(string_date: Optional[str] = None):
+def getdate(string_date):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
@@ -81,7 +76,7 @@ def get_datetime(datetime_str=None):
 	except ValueError:
 		return parser.parse(datetime_str)
 
-def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
+def get_timedelta(time=None):
 	"""Return `datetime.timedelta` object from string value of a
 	valid time format. Returns None if `time` is not a valid format
 
@@ -187,7 +182,7 @@ def get_time_zone():
 	return frappe.cache().get_value("time_zone", _get_time_zone)
 
 def convert_utc_to_user_timezone(utc_timestamp):
-	from pytz import timezone, UnknownTimeZoneError
+	from pytz import UnknownTimeZoneError, timezone
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
 		return utcnow.astimezone(timezone(get_time_zone()))
@@ -362,28 +357,13 @@ def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
 	return set(l1) & set(l2)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-def cast_fieldtype(fieldtype, value=None):
-=======
-def cast_fieldtype(fieldtype, value):
-	# TODO: Add DeprecationWarning for this util
-	message = (
-		"Function `frappe.utils.data.cast` has been deprecated in favour"
-		" of `frappe.utils.data.cast`. Use the newer util for safer type casting. "
-	)
-	secho(message, fg="yellow")
-=======
-def cast_fieldtype(fieldtype, value, show_warning=True):
+def cast_fieldtype(fieldtype, value=None, show_warning=True):
 	if show_warning:
 		message = (
 			"Function `frappe.utils.data.cast` has been deprecated in favour"
 			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
 		)
 		secho(message, fg="yellow")
->>>>>>> b8c51b13e2 (fix: Revert to using cast_fieldtype in BaseDocument.cast)
 
 	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
@@ -407,7 +387,6 @@ def cast_fieldtype(fieldtype, value, show_warning=True):
 	return value
 
 def cast(fieldtype, value=None):
->>>>>>> a2cb9be7a4 (feat: frappe.utils.data.cast)
 	"""Cast the value to the Python native object of the Frappe fieldtype provided.
 	If value is None, the first/lowest value of the `fieldtype` will be returned.
 	If value can't be cast as fieldtype due to an invalid input, None will be returned.
@@ -447,7 +426,6 @@ def cast(fieldtype, value=None):
 
 	return value
 
->>>>>>> cb034e4c52 (fix: Consistent return types in cast_fieldtype)
 def flt(s, precision=None):
 	"""Convert to float (ignore commas)"""
 	if isinstance(s, string_types):
@@ -1030,11 +1008,6 @@ def evaluate_filters(doc, filters):
 
 def compare(val1, condition, val2):
 	ret = False
-<<<<<<< HEAD
-=======
-	if fieldtype:
-		val2 = cast(fieldtype, val2)
->>>>>>> a2cb9be7a4 (feat: frappe.utils.data.cast)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
 

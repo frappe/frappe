@@ -15,12 +15,8 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-<<<<<<< HEAD
-from frappe.utils import now, getdate, cast_fieldtype
+from frappe.utils import now, getdate, cast
 from frappe.utils.background_jobs import execute_job, get_queue
-=======
-from frappe.utils import now, getdate, cast, get_datetime, get_table_name
->>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
 from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports

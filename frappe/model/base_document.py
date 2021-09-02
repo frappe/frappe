@@ -2,30 +2,19 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from six import iteritems, string_types
+
+import datetime
 
 import frappe
-import datetime
 from frappe import _
-from frappe.model import default_fields, table_fields
+from frappe.model import data_fieldtypes, default_fields, display_fieldtypes, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-<<<<<<< HEAD
-from frappe.model import display_fieldtypes, data_fieldtypes
+from frappe.utils import cast_fieldtype, cint, cstr, flt, get_datetime, getdate, now, sanitize_email, sanitize_html, strip_html, to_timedelta
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
-from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
-	sanitize_html, sanitize_email, cast_fieldtype)
-=======
-from frappe.model import display_fieldtypes
-from frappe.utils import (cint, flt, now, cstr, strip_html,
-<<<<<<< HEAD
-	sanitize_html, sanitize_email, cast)
->>>>>>> ed6533f737 (fix: Use cast in favour of cast_fieldtype)
-=======
-	sanitize_html, sanitize_email, cast_fieldtype)
->>>>>>> b8c51b13e2 (fix: Revert to using cast_fieldtype in BaseDocument.cast)
 from frappe.utils.html_utils import unescape_html
+from six import iteritems, string_types
 
 max_positive_value = {
 	'smallint': 2 ** 15,
