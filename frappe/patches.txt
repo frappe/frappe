@@ -184,4 +184,4 @@ frappe.patches.v13_0.update_doctype_default_sort_to_creation
 frappe.patches.v13_0.update_list_user_settings
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.rename_cancelled_documents
-frappe.patches.v14_0.update_workspace2
+frappe.patches.v14_0.update_workspace2 # 25.08.2021

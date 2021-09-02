@@ -28,6 +28,7 @@
   "sb1",
   "autoname",
   "name_case",
+  "allow_rename",
   "column_break_15",
   "description",
   "documentation",
@@ -39,7 +40,6 @@
   "column_break_23",
   "hide_toolbar",
   "allow_copy",
-  "allow_rename",
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
@@ -276,7 +276,7 @@
    "oldfieldtype": "Check"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
