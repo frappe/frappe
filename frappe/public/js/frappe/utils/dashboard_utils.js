@@ -16,7 +16,7 @@ frappe.dashboard_utils = {
 					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<button class="btn btn-secondary btn-xs">
 			 				${icon_html}
-							<span class="filter-label">${filter.label}</span>
+							<span class="filter-label">${__(filter.label)}</span>
 							${frappe.utils.icon('select', 'xs')}
 						</button>
 				</a>`;
@@ -25,10 +25,10 @@ frappe.dashboard_utils = {
 			if (filter.fieldnames) {
 				options_html = filter.options.map((option, i) =>
 					`<li>
-						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}">${option}</a>
+						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}" data-option-value="${option}>${__(option)}</a>
 					</li>`).join('');
 			} else {
-				options_html = filter.options.map( option => `<li><a class="dropdown-item">${option}</a></li>`).join('');
+				options_html = filter.options.map( option => `<li><a class="dropdown-item" data-option-value="${option}">${__(option)}</a></li>`).join('');
 			}
 
 			let dropdown_html = chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
@@ -45,8 +45,9 @@ frappe.dashboard_utils = {
 					fieldname = $el.attr('data-fieldname');
 				}
 
-				let selected_item = $el.text();
-				$el.parents(`.${button_class}`).find('.filter-label').text(selected_item);
+				let selected_item = $el.attr('data-option-value');
+				$el.parents(`.${button_class}`).find('.filter-label').text(__(selected_item));
+				$el.parents(`.${button_class}`).find('.filter-label').attr('data-option-value', selected_item)
 				filter.action(selected_item, fieldname);
 			});
 		});
