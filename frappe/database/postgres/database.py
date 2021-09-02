@@ -263,9 +263,9 @@ class PostgresDatabase(Database):
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
 		table_name = 'tab' + doctype
-
+		fields_str = re.sub(r"\(.*\)", "", '", "'.join(fields))
 		self.commit()
-		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
+		self.sql(f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}`("{fields_str}")')
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
