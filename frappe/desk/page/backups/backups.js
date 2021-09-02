@@ -16,6 +16,14 @@ frappe.pages['backups'].on_page_load = function(wrapper) {
 		});
 	});
 
+	page.add_inner_button(__("Get Encryption Key"), function () {
+		frappe.verify_password(function(){	
+			frappe.call({
+				method:"frappe.utils.backups.get_backup_encryption_key",
+			});
+		});
+	});
+
 	frappe.breadcrumbs.add("Setup");
 
 	$(frappe.render_template("backups")).appendTo(page.body.addClass("no-border"));

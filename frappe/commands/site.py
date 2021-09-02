@@ -47,6 +47,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 
 @click.command('restore')
 @click.argument('sql-file-path')
+@click.option('--backup-encryption-key', help='Backup Encryption Key')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--db-name', help='Database name for site in case it is a new one')
@@ -56,7 +57,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
 @click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
 @pass_context
-def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
+def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
 	from frappe.installer import (
 		_new_site,
@@ -66,20 +67,38 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		is_partial,
 		validate_database_sql
 	)
-
-	force = context.force or force
-	decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-	# check if partial backup
-	if is_partial(decompressed_file_name):
+	from frappe.utils.backups import backup_decryption
+	if backup_encryption_key:
+		backup_decryption(sql_file_path, backup_encryption_key)
+	if not os.path.exists(sql_file_path):
+		print("Invalid path", sql_file_path)
+		return
+	try:
+		force = context.force or force
+		decompressed_file_name = extract_sql_from_archive(sql_file_path)
+		
+		# check if partial backup
+		if is_partial(decompressed_file_name):
+			click.secho(
+				"Partial Backup file detected. You cannot use a partial file to restore a Frappe Site.",
+				fg="red"
+			)
+			click.secho(
+				"Use `backup_encryption_key` to restore a partial backup to an existing site.",
+				fg="yellow"
+			)
+			sys.exit(1)		
+	except:
+		if os.path.exists(decompressed_file_name):
+			os.remove(decompressed_file_name)
 		click.secho(
-			"Partial Backup file detected. You cannot use a partial file to restore a Frappe Site.",
-			fg="red"
-		)
+				"Encrypted Backup file detected. You cannot use a Encrypted file withoy key to restore a Frappe Site.",
+				fg="red"
+			)
 		click.secho(
-			"Use `bench partial-restore` to restore a partial backup to an existing site.",
-			fg="yellow"
-		)
+				"Use `bench partial-restore` to restore a partial backup to an existing site.",
+				fg="yellow"
+			)
 		sys.exit(1)
 
 	# check if valid SQL file
@@ -103,16 +122,31 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
+		if backup_encryption_key and os.path.exists(with_public_files):
+			backup_decryption(with_public_files, backup_encryption_key)
 		public = extract_files(site, with_public_files)
 		os.remove(public)
+		if os.path.exists(with_public_files + ".gpg"):
+			os.remove(with_public_files)
+			os.rename(with_public_files + ".gpg", with_public_files)
+		
 
 	if with_private_files:
+		if backup_encryption_key and os.path.exists(with_private_files):
+			backup_decryption(with_private_files, backup_encryption_key)
 		private = extract_files(site, with_private_files)
 		os.remove(private)
+		if os.path.exists(with_private_files + ".gpg"):
+			os.remove(with_private_files)
+			os.rename(with_private_files + ".gpg", with_private_files)
 
 	# Removing temporarily created file
 	if decompressed_file_name != sql_file_path:
 		os.remove(decompressed_file_name)
+		
+		if os.path.exists(sql_file_path + ".gpg"):
+			os.remove(sql_file_path)
+			os.rename(sql_file_path + ".gpg", sql_file_path)
 
 	success_message = "Site {0} has been restored{1}".format(
 		site,
@@ -446,6 +480,8 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 				print(frappe.get_traceback())
 			exit_code = 1
 			continue
+		if frappe.get_system_settings("encrypt_backup"):
+			click.secho("Backup Encryption is turned on. Please note the Backup Encryption Key", fg="yellow")
 
 		odb.print_summary()
 		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
