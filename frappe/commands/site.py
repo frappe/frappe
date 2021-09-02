@@ -10,6 +10,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
+from sqlparse import sql
 
 
 @click.command('new-site')
@@ -68,11 +69,19 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 		validate_database_sql
 	)
 	from frappe.utils.backups import backup_decryption
-	if backup_encryption_key:
-		backup_decryption(sql_file_path, backup_encryption_key)
+
+	def remove_rename_gpg(file_path):
+		if os.path.exists(file_path + ".gpg"):
+			os.remove(file_path)
+			os.rename(file_path + ".gpg", file_path)
+
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
 		return
+	
+	if backup_encryption_key:
+		backup_decryption(sql_file_path, backup_encryption_key)
+
 	try:
 		force = context.force or force
 		decompressed_file_name = extract_sql_from_archive(sql_file_path)
@@ -84,10 +93,11 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 				fg="red"
 			)
 			click.secho(
-				"Use `backup_encryption_key` to restore a partial backup to an existing site.",
+				"Use `bench partial-restore` to restore a partial backup to an existing site.",
 				fg="yellow"
 			)
-			sys.exit(1)		
+			remove_rename_gpg(sql_file_path)
+			sys.exit(1)	
 	except:
 		if os.path.exists(decompressed_file_name):
 			os.remove(decompressed_file_name)
@@ -96,29 +106,31 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 				fg="red"
 			)
 		click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.",
+				"Use `backup_encryption_key` to restore a partial backup to an existing site.",
 				fg="yellow"
 			)
 		sys.exit(1)
+	try:
+		# check if valid SQL file
+		validate_database_sql(decompressed_file_name, _raise=not force)
 
-	# check if valid SQL file
-	validate_database_sql(decompressed_file_name, _raise=not force)
+		site = get_site(context)
+		frappe.init(site=site)
+		# dont allow downgrading to older versions of frappe without force
+		if not force and is_downgrade(decompressed_file_name, verbose=True):
+			warn_message = (
+				"This is not recommended and may lead to unexpected behaviour. "
+				"Do you want to continue anyway?"
+			)
+			click.confirm(warn_message, abort=True)
 
-	site = get_site(context)
-	frappe.init(site=site)
-
-	# dont allow downgrading to older versions of frappe without force
-	if not force and is_downgrade(decompressed_file_name, verbose=True):
-		warn_message = (
-			"This is not recommended and may lead to unexpected behaviour. "
-			"Do you want to continue anyway?"
-		)
-		click.confirm(warn_message, abort=True)
-
-	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
-		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
-		force=True, db_type=frappe.conf.db_type)
+		_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
+			mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+			verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
+			force=True, db_type=frappe.conf.db_type)
+		
+	except:
+		remove_rename_gpg(sql_file_path)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
@@ -126,9 +138,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			backup_decryption(with_public_files, backup_encryption_key)
 		public = extract_files(site, with_public_files)
 		os.remove(public)
-		if os.path.exists(with_public_files + ".gpg"):
-			os.remove(with_public_files)
-			os.rename(with_public_files + ".gpg", with_public_files)
+		remove_rename_gpg(with_public_files)
 		
 
 	if with_private_files:
@@ -136,18 +146,12 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			backup_decryption(with_private_files, backup_encryption_key)
 		private = extract_files(site, with_private_files)
 		os.remove(private)
-		if os.path.exists(with_private_files + ".gpg"):
-			os.remove(with_private_files)
-			os.rename(with_private_files + ".gpg", with_private_files)
+		remove_rename_gpg(with_private_files)
 
 	# Removing temporarily created file
 	if decompressed_file_name != sql_file_path:
 		os.remove(decompressed_file_name)
-		
-		if os.path.exists(sql_file_path + ".gpg"):
-			os.remove(sql_file_path)
-			os.rename(sql_file_path + ".gpg", sql_file_path)
-
+		remove_rename_gpg(sql_file_path)
 	success_message = "Site {0} has been restored{1}".format(
 		site,
 		" with files" if (with_public_files or with_private_files) else ""
@@ -157,16 +161,37 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 
 @click.command('partial-restore')
 @click.argument('sql-file-path')
+@click.option('--backup-encryption-key', help='Backup Encryption Key')
 @click.option("--verbose", "-v", is_flag=True)
 @pass_context
-def partial_restore(context, sql_file_path, verbose):
+def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None):
 	from frappe.installer import partial_restore
-	verbose = context.verbose or verbose
+	from frappe.utils.backups import backup_decryption
+	
 
-	site = get_site(context)
-	frappe.init(site=site)
-	frappe.connect(site=site)
-	partial_restore(sql_file_path, verbose)
+	if backup_encryption_key:
+		backup_decryption(sql_file_path, backup_encryption_key)
+	try:
+		verbose = context.verbose or verbose
+		site = get_site(context)
+		frappe.init(site=site)
+		frappe.connect(site=site)
+		partial_restore(sql_file_path, verbose)
+	except:
+		click.secho(
+				"Encrypted Backup file detected. You cannot use a Encrypted file withoy key to restore a Frappe Site.",
+				fg="red"
+			)
+		click.secho(
+				"Use `backup_encryption_key` to restore a partial backup to an existing site.",
+				fg="yellow"
+			)
+		sys.exit(1)
+		
+	if os.path.exists(sql_file_path + ".gpg"):
+			os.remove(sql_file_path)
+			os.rename(sql_file_path + ".gpg", sql_file_path)
+
 	frappe.destroy()
 
 
