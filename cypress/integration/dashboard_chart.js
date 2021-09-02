@@ -5,7 +5,7 @@ context('Dashboard Chart', () => {
 	});
 
 	it('Check if parent document type visible', () => {
-		cy.visit('/app/dashboard-chart/new-dashboard-chart-1')
+		cy.visit('/app/dashboard-chart/new-dashboard-chart-1');
 		cy.fill_field('chart_name', 'Test Chart', 'Data');
 		cy.get('[data-fieldname="parent_document_type"]').should('have.css', 'display', 'none');
 
