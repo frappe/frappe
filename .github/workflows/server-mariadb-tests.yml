@@ -120,7 +120,8 @@ jobs:
           CI_BUILD_ID: ${{ github.run_id }}
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
-      - uses: codecov/codecov-action@v2
+      - name: Upload coverage data
+        uses: codecov/codecov-action@v2
         with:
           name: MariaDB
           fail_ci_if_error: true
