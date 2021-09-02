@@ -96,10 +96,10 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 						.attr('data-value', v[0])
 						.click(function () {
 							var value = $(this).attr("data-value");
-							var $link = this;
 							if (me.target.is_grid) {
 								// set in grid
-								me.set_in_grid(value);
+								// call search after value is set to get latest filtered results
+								me.set_in_grid(value).then(() => me.search());
 							} else {
 								if (me.target.doctype)
 									me.target.parse_validate_and_set_in_model(value);
@@ -110,8 +110,8 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 								me.dialog.hide();
 							}
 							return false;
-						})
-				})
+						});
+				});
 			} else {
 				$('<p><br><span class="text-muted">' + __("No Results") + '</span>'
 					+ (frappe.model.can_create(me.doctype) ?
@@ -130,49 +130,56 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 		}, this.dialog.get_primary_btn());
 
 	}
-	set_in_grid (value) {
-		var me = this, updated = false;
-		var d = null;
-		if (this.qty_fieldname) {
-			frappe.prompt({
-				fieldname: "qty", fieldtype: "Float", label: "Qty",
-				"default": 1, reqd: 1
-			}, function (data) {
-				$.each(me.target.frm.doc[me.target.df.fieldname] || [], function (i, d) {
-					if (d[me.fieldname] === value) {
-						frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
-						frappe.show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
-						updated = true;
-						return false;
+	set_in_grid(value) {
+		return new Promise((resolve) => {
+			if (this.qty_fieldname) {
+				frappe.prompt({
+					fieldname: "qty",
+					fieldtype: "Float",
+					label: "Qty",
+					default: 1,
+					reqd: 1
+				}, (data) => {
+					let updated = (this.target.frm.doc[this.target.df.fieldname] || []).some(d => {
+						if (d[this.fieldname] === value) {
+							frappe.model.set_value(d.doctype, d.name, this.qty_fieldname, data.qty).then(() => {
+								frappe.show_alert(__("Added {0} ({1})", [value, d[this.qty_fieldname]]));
+								resolve();
+							});
+							return true;
+						}
+					});
+					if (!updated) {
+						let d = null;
+						frappe.run_serially([
+							() => d = this.target.add_new_row(),
+							() => frappe.timeout(0.1),
+							() => {
+								let args = {};
+								args[this.fieldname] = value;
+								args[this.qty_fieldname] = data.qty;
+								return frappe.model.set_value(d.doctype, d.name, args);
+							},
+							() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty])),
+							() => resolve()
+						]);
 					}
+				}, __("Set Quantity"), __("Set"));
+			} else if (this.dynamic_link_field) {
+				let d = this.target.add_new_row();
+				frappe.model.set_value(d.doctype, d.name, this.dynamic_link_field, this.dynamic_link_reference);
+				frappe.model.set_value(d.doctype, d.name, this.fieldname, value).then(() => {
+					frappe.show_alert(__("{0} {1} added", [this.dynamic_link_reference, value]));
+					resolve();
 				});
-				if (!updated) {
-					frappe.run_serially([
-						() => {
-							d = me.target.add_new_row();
-						},
-						() => frappe.timeout(0.1),
-						() => {
-							let args = {};
-							args[me.fieldname] = value;
-							args[me.qty_fieldname] = data.qty;
-
-							return frappe.model.set_value(d.doctype, d.name, args);
-						},
-						() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty]))
-					]);
-				}
-			}, __("Set Quantity"), __("Set"));
-		} else if (me.dynamic_link_field) {
-			var d = me.target.add_new_row();
-			frappe.model.set_value(d.doctype, d.name, me.dynamic_link_field, me.dynamic_link_reference);
-			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-			frappe.show_alert(__("{0} {1} added", [me.dynamic_link_reference, value]));
-		} else {
-			var d = me.target.add_new_row();
-			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-			frappe.show_alert(__("{0} added", [value]));
-		}
+			} else {
+				let d = this.target.add_new_row();
+				frappe.model.set_value(d.doctype, d.name, this.fieldname, value).then(() => {
+					frappe.show_alert(__("{0} added", [value]));
+					resolve();
+				});
+			}
+		});
 	}
 };
 

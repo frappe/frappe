@@ -4,7 +4,7 @@ import frappe, unittest
 
 class TestDynamicLinks(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql('delete from `tabEmail Unsubscribe`')
+		frappe.db.delete("Email Unsubscribe")
 
 	def test_delete_normal(self):
 		event = frappe.get_doc({
