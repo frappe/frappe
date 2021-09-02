@@ -156,8 +156,8 @@ frappe.views.TreeView = class TreeView {
 						me.root_label = me.doctype;
 						me.root_value = "";
 					} else {
-						me.root_label = r.message[0]["value"];
-						me.root_value = me.root_label;
+						me.root_label = r.message[0]["title"] || r.message[0]["value"];
+						me.root_value = r.message[0]["value"];
 					}
 					me.make_tree();
 				}
