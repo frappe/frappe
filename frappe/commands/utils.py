@@ -583,13 +583,14 @@ def transform_database(context, table, engine, row_format, failfast):
 	total = len(tables)
 
 	for current, table in enumerate(tables):
+		values_to_set = ""
+		if engine:
+			values_to_set += f" ENGINE={engine}"
+		if row_format:
+			values_to_set += f" ROW_FORMAT={row_format}"
+
 		try:
-			if engine:
-				frappe.db.sql(f"ALTER TABLE `{table}` ENGINE={engine}")
-
-			if row_format:
-				frappe.db.sql(f"ALTER TABLE `{table}` ROW_FORMAT={row_format}")
-
+			frappe.db.sql(f"ALTER TABLE `{table}`{values_to_set}")
 			update_progress_bar("Updating table schema", current - skipped, total)
 			add_line = True
 
