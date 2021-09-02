@@ -251,7 +251,6 @@ export default class BulkOperations {
 		dialog.show();
 	}
 
-
 	add_tags (docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __('Add Tags'),
@@ -289,9 +288,8 @@ export default class BulkOperations {
 		});
 		dialog.show();
 	}
-<<<<<<< HEAD
 
-	export(doctype, docnames) {
+	export (doctype, docnames) {
 		frappe.require('data_import_tools.bundle.js', () => {
 			const data_exporter = new frappe.data_import.DataExporter(doctype, 'Insert New Records');
 			data_exporter.dialog.set_value('export_records', 'by_filter');
@@ -301,6 +299,3 @@ export default class BulkOperations {
 		});
 	}
 }
-=======
-}
->>>>>>> 1c6688fd9c (feat: Choose Letter Head when printing multiple documents from List /Report)
