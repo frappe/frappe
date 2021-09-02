@@ -532,11 +532,12 @@ def console(context):
 
 
 @click.command('transform-database')
-@click.option('--table', default="all")
-@click.option('--row_format', default="DYNAMIC", type=click.Choice(["DYNAMIC", "COMPACT", "REDUNDANT", "COMPRESSED"]))
+@click.option('--table', required=True)
+@click.option('--engine', default=None, type=click.Choice(["InnoDB", "MyISAM"]))
+@click.option('--row_format', default=None, type=click.Choice(["DYNAMIC", "COMPACT", "REDUNDANT", "COMPRESSED"]))
 @click.option('--failfast', is_flag=True, default=False)
 @pass_context
-def transform_database(context, table, row_format, failfast):
+def transform_database(context, table, engine, row_format, failfast):
 	"Transform site database through given parameters"
 	site = get_site(context)
 	check_table = []
@@ -546,6 +547,10 @@ def transform_database(context, table, row_format, failfast):
 
 	if frappe.conf.db_type and frappe.conf.db_type != "mariadb":
 		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
+		sys.exit(1)
+
+	if not (engine or row_format):
+		click.secho("Values for `--engine` or `--row_format` must be set")
 		sys.exit(1)
 
 	frappe.connect()
@@ -566,9 +571,15 @@ def transform_database(context, table, row_format, failfast):
 
 	for current, table in enumerate(tables):
 		try:
-			frappe.db.sql(f"ALTER TABLE `{table}` ROW_FORMAT={row_format}")
+			if engine:
+				frappe.db.sql(f"ALTER TABLE `{table}` ENGINE={engine}")
+
+			if row_format:
+				frappe.db.sql(f"ALTER TABLE `{table}` ROW_FORMAT={row_format}")
+
 			update_progress_bar("Updating table schema", current - skipped, total)
 			add_line = True
+
 		except Exception as e:
 			check_table.append([table, e.args])
 			skipped += 1
