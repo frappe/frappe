@@ -327,7 +327,7 @@
    "label": "Default Print Format"
   },
   {
-   "default": "modified",
+   "default": "creation",
    "depends_on": "eval:!doc.istable",
    "fieldname": "sort_field",
    "fieldtype": "Data",
@@ -635,7 +635,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-06-17 23:31:44.974199",
+ "modified": "2021-09-02 16:52:57.409062",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
