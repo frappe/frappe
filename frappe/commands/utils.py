@@ -531,26 +531,59 @@ def console(context):
 	IPython.embed(display_banner="", header="", colors="neutral")
 
 
-@click.command('convert-database')
+@click.command('transform-database')
+@click.option('--table', default="all")
+@click.option('--row_format', default="DYNAMIC", type=click.Choice(["DYNAMIC", "COMPACT", "REDUNDANT", "COMPRESSED"]))
+@click.option('--failfast', is_flag=True, default=False)
 @pass_context
-def convert_database(context):
-	"convert row_formats to DNAMIC from older formats -- innodb mariadb v10.6.3"
+def transform_database(context, table, row_format, failfast):
+	"Transform site database through given parameters"
 	site = get_site(context)
+	check_table = []
+	add_line = False
+	skipped = 0
 	frappe.init(site=site)
+
+	if frappe.conf.db_type and frappe.conf.db_type != "mariadb":
+		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
+		sys.exit(1)
+
 	frappe.connect()
 
-	information_schema = frappe.qb.Schema("information_schema")
-	queried_tables = frappe.qb.from_(
-		information_schema.tables
-	).select("table_name").where(
-		information_schema.tables.row_format=="Compressed"
-	).run()
-	tables = [x[0] for x in queried_tables]
+	if table == "all":
+		information_schema = frappe.qb.Schema("information_schema")
+		queried_tables = frappe.qb.from_(
+			information_schema.tables
+		).select("table_name").where(
+			(information_schema.tables.row_format != row_format)
+			& (information_schema.tables.table_schema == frappe.conf.db_name)
+		).run()
+		tables = [x[0] for x in queried_tables]
+	else:
+		tables = [x.strip() for x in table.split(",")]
 
-	for table in tables:
-		frappe.db.sql(f"ALTER TABLE `{table}` ROW_FORMAT=DYNAMIC")
+	total = len(tables)
 
-	frappe.db.commit()
+	for current, table in enumerate(tables):
+		try:
+			frappe.db.sql(f"ALTER TABLE `{table}` ROW_FORMAT={row_format}")
+			update_progress_bar("Updating table schema", current - skipped, total)
+			add_line = True
+		except Exception as e:
+			check_table.append([table, e.args])
+			skipped += 1
+
+			if failfast:
+				break
+
+	if add_line:
+		print()
+
+	for errored_table in check_table:
+		table, err = errored_table
+		err_msg = f"{table}: ERROR {err[0]}: {err[1]}"
+		click.secho(err_msg, fg="yellow")
+
 	frappe.destroy()
 
 
@@ -839,7 +872,7 @@ commands = [
 	clear_cache,
 	clear_website_cache,
 	database,
-	convert_database,
+	transform_database,
 	jupyter,
 	console,
 	destroy_all_sessions,
