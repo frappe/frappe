@@ -59,3 +59,4 @@ class CodeCoverage():
 		if self.with_coverage:
 			self.coverage.stop()
 			self.coverage.save()
+			self.coverage.xml_report()
