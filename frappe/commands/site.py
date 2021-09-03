@@ -741,13 +741,19 @@ def build_search_index(context):
 @click.command('trim-tables')
 @click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
 @click.option('--format', default='table', type=click.Choice(['json', 'table']), help='Output format')
+@click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
 @pass_context
-def trim_tables(context, dry_run, format):
+def trim_tables(context, dry_run, format, no_backup):
 	from frappe.model.meta import trim_tables
+	from frappe.utils.backups import scheduled_backup
 
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
+
+		if not (no_backup or dry_run):
+			scheduled_backup(ignore_files=False, force=True)
+
 		try:
 			trimmed_data = trim_tables(dry_run=dry_run)
 			handle_data(trimmed_data, format=format)
