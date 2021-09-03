@@ -8,7 +8,6 @@ import math
 import operator
 import re
 import time
-from urllib.parse import quote, urljoin
 
 import babel.dates
 import frappe
@@ -33,7 +32,7 @@ def is_invalid_date_string(date_string):
 	return not isinstance(date_string, str) or ((not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00")))
 
 # datetime functions
-def getdate(string_date):
+def getdate(string_date=None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
