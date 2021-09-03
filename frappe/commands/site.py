@@ -738,6 +738,59 @@ def build_search_index(context):
 	finally:
 		frappe.destroy()
 
+@click.command('trim-database')
+@click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
+@click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
+@pass_context
+def trim_database(context, dry_run, no_backup):
+	from frappe.utils.backups import scheduled_backup
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+
+		TABLES_TO_DROPPED = []
+		STANDARD_TABLES = get_standard_tables()
+		information_schema = frappe.qb.Schema("information_schema")
+		queried_result = frappe.qb.from_(
+			information_schema.tables
+		).select("table_name").where(
+			information_schema.tables.table_schema == frappe.conf.db_name
+		).run()
+		database_tables = [x[0] for x in queried_result]
+		doctype_tables = frappe.get_all("DocType", pluck="name")
+
+		for x in database_tables:
+			doctype = x.lstrip("tab")
+			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
+				TABLES_TO_DROPPED.append(x)
+
+		if not TABLES_TO_DROPPED:
+			click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
+		else:
+			if not (no_backup or dry_run):
+				click.secho(f"Taking backup for {frappe.local.site}", fg="green")
+				odb = scheduled_backup(ignore_files=False, force=True)
+				odb.print_summary()
+
+			for table in TABLES_TO_DROPPED:
+				print(f"* dropping Table '{table}'...")
+				if not dry_run:
+					frappe.db.sql_ddl(f"drop table `{table}`")
+
+		frappe.destroy()
+
+def get_standard_tables():
+	import re
+	tables = []
+	sql_file = os.path.join("..", "apps", "frappe", "frappe", "database", frappe.conf.db_type, f'framework_{frappe.conf.db_type}.sql')
+	content = open(sql_file).read().splitlines()
+	for line in content:
+		beep = re.search("""CREATE TABLE ("|`)(.*)?("|`) \(""", line)
+		if beep:
+			tables.append(beep.group(2))
+	return tables
+
 @click.command('trim-tables')
 @click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
 @click.option('--format', default='table', type=click.Choice(['json', 'table']), help='Output format')
@@ -799,4 +852,5 @@ commands = [
 	build_search_index,
 	partial_restore,
 	trim_tables,
+	trim_database,
 ]
