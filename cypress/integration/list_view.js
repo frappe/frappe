@@ -14,11 +14,11 @@ context('List View', () => {
 		cy.get('.dropdown-menu li:visible .dropdown-item .menu-item-label[data-label="Edit"]').click();
 
 		cy.get('.modal-body .form-control[data-fieldname="field"]').first().select('Due Date').wait(200);
-		cy.get('.modal-body .frappe-control[data-fieldname="value"] input:visible').first().focus()
+		cy.get('.modal-body .frappe-control[data-fieldname="value"] input:visible').first().focus();
 		cy.get('.datepickers-container .datepicker.active').should('be.visible');
 
 		cy.get('.datepickers-container .datepicker.active .datepicker--cell-day.-current-').click({force: true});
-		cy.get('.modal-body .frappe-control[data-fieldname="value"] input:visible').first().focus()
+		cy.get('.modal-body .frappe-control[data-fieldname="value"] input:visible').first().focus();
 		cy.get('.datepickers-container .datepicker.active .datepicker--cell-day.-current-').click({force: true});
 
 		cy.get('.modal-footer .standard-actions .btn-primary').click();
