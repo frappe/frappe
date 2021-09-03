@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe, os, json
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str

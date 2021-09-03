@@ -1,5 +1,5 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe, json
 from frappe.model.document import Document
