@@ -685,6 +685,7 @@ def trim_tables(doctype=None, dry_run=False):
 
 
 def trim_table(doctype, dry_run=True):
+	frappe.cache().hdel('table_columns', f"tab{doctype}")
 	ignore_fields = default_fields + optional_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
@@ -697,6 +698,5 @@ def trim_table(doctype, dry_run=True):
 	if columns_to_remove and not dry_run:
 		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
 		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
-		# frappe.clear_cache(doctype=doctype)
 
 	return DROPPED_COLUMNS
