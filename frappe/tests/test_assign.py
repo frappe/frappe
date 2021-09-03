@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe, unittest
 import frappe.desk.form.assign_to
 from frappe.desk.listview import get_group_by_count
