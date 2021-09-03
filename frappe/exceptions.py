@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
