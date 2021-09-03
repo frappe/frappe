@@ -280,6 +280,16 @@ class TestWebsite(unittest.TestCase):
 
 		frappe.flags.force_website_cache = False
 
+	def test_safe_render(self):
+		content = get_response_content('/_test/_test_safe_render_on')
+		self.assertNotIn("Safe Render On", content)
+		self.assertIn("frappe.exceptions.ValidationError: Illegal template", content)
+
+		content = get_response_content('/_test/_test_safe_render_off')
+		self.assertIn("Safe Render Off", content)
+		self.assertIn("test.__test", content)
+		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks

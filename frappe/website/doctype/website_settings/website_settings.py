@@ -23,7 +23,7 @@ class WebsiteSettings(Document):
 			return
 		from frappe.website.path_resolver import PathResolver
 		if self.home_page and not PathResolver(self.home_page).is_valid_path():
-			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
+			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - home, login, products, blog, about, contact)")
 			self.home_page = ''
 
 	def validate_top_bar_items(self):

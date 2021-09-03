@@ -27,11 +27,12 @@ def get_language(lang_list: List = None) -> str:
 
 	Order of priority for setting language:
 	1. Form Dict => _lang
-	2. Cookie => preferred_language
-	3. Request Header => Accept-Language
+	2. Cookie => preferred_language (Non authorized user)
+	3. Request Header => Accept-Language (Non authorized user)
 	4. User document => language
 	5. System Settings => language
 	"""
+	is_logged_in = frappe.session.user != "Guest"
 
 	# fetch language from form_dict
 	if frappe.form_dict._lang:
@@ -40,6 +41,10 @@ def get_language(lang_list: List = None) -> str:
 		)
 		if language:
 			return language
+
+	# use language set in User or System Settings if user is logged in
+	if is_logged_in:
+		return frappe.local.lang
 
 	lang_set = set(lang_list or get_all_languages() or [])
 

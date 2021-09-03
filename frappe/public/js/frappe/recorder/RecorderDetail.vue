@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div v-cloak @drop.prevent="import_data" @dragover.prevent>
 		<div class="page-form">
 			<div class="filter-list">
 				<div class="tag-filters-area">
@@ -46,7 +46,7 @@
 
 				</div>
 				<div class="result-list">
-					<div class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" @click="route_to_request_detail(request.uuid)">
+					<div class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" @click="route_to_request_detail(request)">
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
@@ -71,15 +71,16 @@
 			</div>
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
 				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
-					<p>{{ __("Recorder is Inactive") }}</p>
 					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="start()">{{ __("Start Recording") }}</button></p>
+					<p>{{ __("Recorder is Inactive.") }}</p>
+					<p>{{ __("Start recording or drag & drop a previously exported data file to view it.") }}</p>
 				</div>
 				<div class="msg-box no-border" v-if="status.status == 'Active'" >
 					<p>{{ __("No Requests found") }}</p>
 					<p>{{ __("Go make some noise") }}</p>
 				</div>
 			</div>
-			<div v-if="requests.length != 0" class="list-paging-area">
+			<div v-else class="list-paging-area">
 				<div class="row">
 					<div class="col-xs-6">
 						<div class="btn-group btn-group-paging">
@@ -144,7 +145,7 @@ export default {
 			frappe.set_route("recorder");
 			this.clear();
 		});
-
+		this.$root.page.add_menu_item("Export data", () => this.export_data());
 	},
 	computed: {
 		pages: function() {
@@ -239,8 +240,36 @@ export default {
 				});
 			}
 		},
-		route_to_request_detail(id) {
-			this.$router.push({name: 'request-detail', params: {id}});
+		route_to_request_detail(request) {
+			this.$router.push({name: 'request-detail', params: {request, id: request.uuid}});
+		},
+		export_data: function() {
+			if (!this.requests) {
+				return;
+			}
+			frappe.call("frappe.recorder.export_data")
+				.then((r) => {
+					const data = r.message;
+					const filename = `${data[0]['uuid']}..${data[data.length -1]['uuid']}.json`
+
+					const el = document.createElement('a');
+					el.setAttribute('href', 'data:application/json,' + encodeURIComponent(JSON.stringify(data)));
+					el.setAttribute('download', filename);
+					el.click();
+				});
+		},
+		import_data: function(e) {
+			if (this.requests.length > 0) {
+				// don't replace existing capture
+				return;
+			}
+			const request_file = e.dataTransfer.files[0];
+
+			const file_reader = new FileReader();
+			file_reader.readAsText(request_file, 'UTF-8');
+			file_reader.onload = ({target: {result}}) => {
+				 this.requests = JSON.parse(result);
+			}
 		}
 	}
 };

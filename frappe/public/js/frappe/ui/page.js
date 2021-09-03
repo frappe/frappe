@@ -251,7 +251,7 @@ frappe.ui.Page = class Page {
 			.prop("disabled", false)
 			.html(opts.label)
 			.on("click", function() {
-				let response = opts.click.apply(this);
+				let response = opts.click.apply(this, [btn]);
 				me.btn_disable_enable(btn, response);
 			});
 
