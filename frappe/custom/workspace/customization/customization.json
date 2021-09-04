@@ -1,23 +1,27 @@
 {
- "category": "Administration",
+ "category": "",
  "charts": [],
+ "content": "[{\"type\": \"header\", \"data\": {\"text\": \"Your Shortcuts\", \"level\": 4, \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Customize Form\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Custom Role\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Client Script\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Server Script\", \"col\": 4}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Dashboards\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Form Customization\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Other\", \"col\": 4}}]",
  "creation": "2020-03-02 15:15:03.839594",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
  "docstatus": 0,
  "doctype": "Workspace",
+ "extends": "",
  "extends_another_page": 0,
+ "for_user": "",
  "hide_custom": 0,
  "icon": "customization",
  "idx": 0,
  "is_default": 0,
- "is_standard": 1,
+ "is_standard": 0,
  "label": "Customization",
  "links": [
   {
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboards",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -26,6 +30,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard",
+   "link_count": 0,
    "link_to": "Dashboard",
    "link_type": "DocType",
    "onboard": 0,
@@ -36,6 +41,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard Chart",
+   "link_count": 0,
    "link_to": "Dashboard Chart",
    "link_type": "DocType",
    "onboard": 0,
@@ -46,6 +52,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard Chart Source",
+   "link_count": 0,
    "link_to": "Dashboard Chart Source",
    "link_type": "DocType",
    "onboard": 0,
@@ -55,6 +62,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Form Customization",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -63,6 +71,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Customize Form",
+   "link_count": 0,
    "link_to": "Customize Form",
    "link_type": "DocType",
    "onboard": 0,
@@ -73,6 +82,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Custom Field",
+   "link_count": 0,
    "link_to": "Custom Field",
    "link_type": "DocType",
    "onboard": 0,
@@ -83,6 +93,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Client Script",
+   "link_count": 0,
    "link_to": "Client Script",
    "link_type": "DocType",
    "onboard": 0,
@@ -93,6 +104,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "DocType",
+   "link_count": 0,
    "link_to": "DocType",
    "link_type": "DocType",
    "onboard": 0,
@@ -102,6 +114,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Other",
+   "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -110,19 +123,26 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Custom Translations",
+   "link_count": 0,
    "link_to": "Translation",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2021-02-04 13:50:35.750463",
+ "modified": "2021-08-05 12:15:57.486112",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",
+ "onboarding": "",
  "owner": "Administrator",
+ "parent_page": "",
  "pin_to_bottom": 0,
  "pin_to_top": 0,
+ "public": 1,
+ "restrict_to_domain": "",
+ "roles": [],
+ "sequence_id": 8,
  "shortcuts": [
   {
    "label": "Customize Form",
@@ -145,5 +165,6 @@
    "link_to": "Server Script",
    "type": "DocType"
   }
- ]
+ ],
+ "title": "Customization"
 }

@@ -42,6 +42,12 @@ class TestBuilderBase(object):
 		self.assertEqual("__Auth", frappe.qb.DocType("__Auth").get_sql())
 		self.assertEqual("Notes", frappe.qb.Table("Notes").get_sql())
 
+	def test_run_patcher(self):
+		query = frappe.qb.from_("ToDo").select("*").limit(1)
+		data = query.run(as_dict=True)
+		self.assertTrue("run" in dir(query))
+		self.assertIsInstance(query.run, Callable)
+		self.assertIsInstance(data, list)
 
 @run_only_if(db_type_is.MARIADB)
 class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
