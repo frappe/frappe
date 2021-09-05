@@ -43,9 +43,14 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value('ToDo', todo1.name, 'description'), 'change 2')
 		self.assertEqual(frappe.db.get_value('ToDo', todo2.name, 'description'), 'change 2')
 
-
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
+
+	def test_aggregation(self):
+		self.assertTrue(type(frappe.db.sum('DocField', 'permlevel')) in (int, float))
+		self.assertTrue(type(frappe.db.avg('DocField', 'permlevel')) in (int, float))
+		self.assertTrue(type(frappe.db.min('DocField', 'permlevel')) in (int, float))
+		self.assertTrue(type(frappe.db.max('DocField', 'permlevel')) in (int, float))
 
 	def test_get_single_value(self):
 		#setup
@@ -286,3 +291,4 @@ class TestDDLCommandsPost(unittest.TestCase):
 		)
 		self.assertGreater(len(check_change), 0)
 		self.assertIn("character varying", check_change[0])
+
