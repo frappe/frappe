@@ -1,7 +1,9 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # See license.txt
 
-import frappe, os, json
+import frappe
+import os
+import json
 import unittest
 
 class TestPackage(unittest.TestCase):

@@ -4,7 +4,8 @@
 import frappe
 from frappe.model.document import Document
 from frappe.modules.export_file import export_doc
-import os, subprocess
+import os
+import subprocess
 
 class PackageRelease(Document):
 	def set_version(self):
@@ -38,7 +39,8 @@ class PackageRelease(Document):
 		for m in frappe.db.get_all('Module Def', dict(package=self.package)):
 			module = frappe.get_doc('Module Def', m.name)
 			for l in module.meta.links:
-				if l.link_doctype == 'Module Def': continue
+				if l.link_doctype == 'Module Def':
+					continue
 				# all documents of the type in the module
 				for d in frappe.get_all(l.link_doctype, dict(module=m.name)):
 					export_doc(frappe.get_doc(l.link_doctype, d.name))

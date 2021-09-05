@@ -100,10 +100,10 @@ frappe.ui.form.on('DocType', {
 			'Expression (old style)': 'Format: <code>EXAMPLE-.#####</code> Series by prefix (separated by a dot)',
 			'Random': '',
 			'By script': ''
-		}
+		};
 
 		if (frm.doc.naming_rule) {
-			frm.get_field('autoname').set_description(naming_rule_description[frm.doc.naming_rule])
+			frm.get_field('autoname').set_description(naming_rule_description[frm.doc.naming_rule]);
 		}
 	},
 

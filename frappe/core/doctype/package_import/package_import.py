@@ -1,7 +1,9 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import frappe, os, json
+import frappe
+import os
+import json
 import subprocess
 from frappe.model.document import Document
 from frappe.desk.form.load import get_attachments
@@ -17,7 +19,7 @@ class PackageImport(Document):
 		attachment = get_attachments(self.doctype, self.name)
 
 		if not attachment:
-			frappe.throw('Please attach the package')
+			frappe.throw(frappe._('Please attach the package'))
 
 		attachment = attachment[0]
 

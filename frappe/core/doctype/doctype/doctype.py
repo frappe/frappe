@@ -1032,7 +1032,7 @@ def validate_fields(meta):
 
 	def check_max_height(docfield):
 		if getattr(docfield, 'max_height', None) and (docfield.max_height[-2:] not in ('px', 'em')):
-			frappe.throw('Max for {1} height must be in px, em, rem'.format(frappe.bold(docfield.fieldname)))
+			frappe.throw('Max for {} height must be in px, em, rem'.format(frappe.bold(docfield.fieldname)))
 
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]

@@ -1,7 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import frappe, os
+import frappe
+import os
 from frappe.model.document import Document
 
 class Package(Document):
