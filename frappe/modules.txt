@@ -13,5 +13,3 @@ Chat
 Social
 Automation
 Event Streaming
-Test Module
-Test Module for Package
