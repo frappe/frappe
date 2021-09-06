@@ -121,6 +121,7 @@ jobs:
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
       - name: Upload coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: codecov/codecov-action@v2
         with:
           name: MariaDB
