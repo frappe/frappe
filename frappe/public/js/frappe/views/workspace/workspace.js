@@ -155,7 +155,7 @@ frappe.views.Workspace = class Workspace {
 		});
 
 		// Scroll sidebar to selected page if it is not in viewport.
-		!frappe.dom.is_element_in_viewport(this.sidebar.find('.selected')) 
+		!frappe.dom.is_element_in_viewport(this.sidebar.find('.selected'))
 			&& this.sidebar.find('.selected')[0].scrollIntoView();
 	}
 
@@ -185,7 +185,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	append_item(item, container) {
-		let is_current_page = frappe.router.slug(item.title) == frappe.router.slug(this.get_page_to_show().name) 
+		let is_current_page = frappe.router.slug(item.title) == frappe.router.slug(this.get_page_to_show().name)
 			&& item.public == this.get_page_to_show().public;
 		if (is_current_page) {
 			item.selected = true;
@@ -253,11 +253,13 @@ frappe.views.Workspace = class Workspace {
 			if (!this.page_data || Object.keys(this.page_data).length === 0) return;
 
 			return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-				let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
-				if (this.page_data.charts && this.page_data.charts.items) {
-					this.page_data.charts.items.map(chart => {
-						chart.chart_settings = chart_config[chart.chart_name] || {};
-					});
+				if (settings) {
+					let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
+					if (this.page_data.charts && this.page_data.charts.items) {
+						this.page_data.charts.items.map(chart => {
+							chart.chart_settings = chart_config[chart.chart_name] || {};
+						});
+					}
 				}
 			});
 		});
@@ -560,7 +562,7 @@ frappe.views.Workspace = class Workspace {
 					fieldname: 'is_public',
 					depends_on: `eval:${this.has_access}`,
 					onchange: function() {
-						d.set_df_property('parent', 'options', 
+						d.set_df_property('parent', 'options',
 							this.get_value() ? me.public_parent_pages : me.private_parent_pages);
 					}
 				},
@@ -704,9 +706,9 @@ frappe.views.Workspace = class Workspace {
 				}
 			});
 
-			let blocks = outputData.blocks.filter( 
-				item => item.type != 'card' || 
-				(item.data.card_name !== 'Custom Documents' && 
+			let blocks = outputData.blocks.filter(
+				item => item.type != 'card' ||
+				(item.data.card_name !== 'Custom Documents' &&
 				item.data.card_name !== 'Custom Reports')
 			);
 
