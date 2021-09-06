@@ -128,6 +128,11 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 		
 	except:
 		decryption_rollback(sql_file_path)
+	
+	# Removing temporarily created file
+	if decompressed_file_name != sql_file_path:
+		os.remove(decompressed_file_name)
+		decryption_rollback(sql_file_path)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
@@ -153,10 +158,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 		os.remove(private)
 		decryption_rollback(with_private_files)
 
-	# Removing temporarily created file
-	if decompressed_file_name != sql_file_path:
-		os.remove(decompressed_file_name)
-		decryption_rollback(sql_file_path)
+	
 	success_message = "Site {0} has been restored{1}".format(
 		site,
 		" with files" if (with_public_files or with_private_files) else ""

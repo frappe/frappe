@@ -228,9 +228,6 @@ class BackupGenerator:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
 	def backup_encryption(self):
-		"""
-		Encrypts backup.
-		"""
 		paths = (self.backup_path_conf, self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
