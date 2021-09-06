@@ -854,7 +854,14 @@ class Database(object):
 	def _get_aggregation(self, function, dt, fieldname, filters=None):
 		if not self.has_column(dt, fieldname):
 			frappe.throw(frappe._('Invalid column'), self.InvalidColumnName)
-		return self.get_all(dt, fields = ['%s(%s) as value' % (function, fieldname)], filters=filters)[0].get('value') or 0
+
+		query = f'SELECT {function}({fieldname}) AS value FROM `tab{dt}`'
+		values = ()
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query = f"{query} WHERE {conditions}"
+
+		return self.sql(query, values)[0][0] or 0
 
 	@staticmethod
 	def format_date(date):
