@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Dict, List, Union
 import frappe, json
 import frappe.utils
 import frappe.share
@@ -138,10 +139,11 @@ def get_communications(doctype, name, start=0, limit=20):
 	return _get_communications(doctype, name, start, limit)
 
 
-def get_comments(doctype, name, comment_type='Comment'):
-	comment_types = [comment_type]
+def get_comments(doctype: str, name: str, comment_type : Union[str, List[str]] = "Comment") -> List[frappe._dict]:
+	if isinstance(comment_type, list):
+		comment_types = comment_type
 
-	if comment_type == 'share':
+	elif comment_type == 'share':
 		comment_types = ['Shared', 'Unshared']
 
 	elif comment_type == 'assignment':
@@ -150,15 +152,21 @@ def get_comments(doctype, name, comment_type='Comment'):
 	elif comment_type == 'attachment':
 		comment_types = ['Attachment', 'Attachment Removed']
 
-	comments = frappe.get_all('Comment', fields = ['name', 'creation', 'content', 'owner', 'comment_type'], filters=dict(
-		reference_doctype = doctype,
-		reference_name = name,
-		comment_type = ['in', comment_types]
-	))
+	else:
+		comment_types = [comment_type]
+
+	comments = frappe.get_all("Comment",
+		fields=["name", "creation", "content", "owner", "comment_type"],
+		filters={
+			"reference_doctype": doctype,
+			"reference_name": name,
+			"comment_type": ['in', comment_types],
+		}
+	)
 
 	# convert to markdown (legacy ?)
-	if comment_type == 'Comment':
-		for c in comments:
+	for c in comments:
+		if c.comment_type == "Comment":
 			c.content = frappe.utils.markdown(c.content)
 
 	return comments
