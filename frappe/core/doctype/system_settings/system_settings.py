@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _

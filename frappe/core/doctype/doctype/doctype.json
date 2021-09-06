@@ -26,6 +26,7 @@
   "fields_section_break",
   "fields",
   "sb1",
+  "naming_rule",
   "autoname",
   "name_case",
   "allow_rename",
@@ -554,6 +555,13 @@
    "fieldname": "website_search_field",
    "fieldtype": "Data",
    "label": "Website Search Field"
+  },
+  {
+   "fieldname": "naming_rule",
+   "fieldtype": "Select",
+   "label": "Naming Rule",
+   "length": 40,
+   "options": "\nSet by user\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nBy script"
   }
  ],
  "icon": "fa fa-bolt",
@@ -635,7 +643,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-09-02 16:52:57.409062",
+ "modified": "2021-09-05 15:39:13.233403",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
