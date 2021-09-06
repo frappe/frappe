@@ -1,5 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
@@ -820,6 +820,9 @@ def update_translations_for_source(source=None, translation_dict=None):
 		return
 
 	translation_dict = json.loads(translation_dict)
+
+	if is_html(source):
+		source = strip_html_tags(source)
 
 	# for existing records
 	translation_records = frappe.db.get_values('Translation', {
