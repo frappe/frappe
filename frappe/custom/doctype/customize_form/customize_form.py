@@ -193,6 +193,16 @@ class CustomizeForm(Document):
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
+		elif prop == "length":
+			old_value_length = cint(meta_df[0].get(prop))
+			new_value_length = cint(df.get(prop))
+
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': meta_df[0].get(prop)})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
+
 		elif prop == "allow_on_submit" and df.get(prop):
 			if not frappe.db.get_value("DocField",
 				{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):

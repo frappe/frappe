@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
 from frappe.desk.form.document_follow import follow_document
-from frappe.utils.file_manager import extract_images_from_html
+from frappe.core.doctype.file.file import extract_images_from_html
 
 from frappe import _
 

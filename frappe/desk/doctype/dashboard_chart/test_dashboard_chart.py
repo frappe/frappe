@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 import unittest, frappe
 from frappe.utils import getdate, formatdate, get_last_day
 from frappe.utils.dateutils import get_period_ending, get_period

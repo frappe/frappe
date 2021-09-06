@@ -230,7 +230,7 @@ frappe.Application = class Application {
 			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
 			s.show();
 			frappe.call({
-				method: 'frappe.core.doctype.user.user.set_email_password',
+				method: 'frappe.email.doctype.email_account.email_account.set_email_password',
 				args: {
 					"email_account": email_account[i]["email_account"],
 					"user": user,
@@ -283,11 +283,7 @@ frappe.Application = class Application {
 		frappe.workspaces = {};
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module]=page;
-			frappe.workspaces[frappe.router.slug(page.name)] = page;
-		}
-		if (!frappe.workspaces['home']) {
-			// default workspace is settings for Frappe
-			frappe.workspaces['home'] = frappe.workspaces[Object.keys(frappe.workspaces)[0]];
+			frappe.workspaces[frappe.router.slug(page.title)] = page;
 		}
 	}
 

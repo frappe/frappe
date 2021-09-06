@@ -9,19 +9,33 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		this.ace_editor_target = $('<div class="ace-editor-target"></div>')
 			.appendTo(this.input_area);
 
-		this.expanded = false;
-		this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).click(() => {
-			this.expanded = !this.expanded;
-			this.refresh_height();
-			this.toggle_label();
-		}).appendTo(this.$input_wrapper);
+
 		// styling
 		this.ace_editor_target.addClass('border rounded');
 		this.ace_editor_target.css('height', 300);
 
+		if (this.df.max_height) {
+			this.ace_editor_target.css('max-height', this.df.max_height);
+		}
+
 		// initialize
 		const ace = window.ace;
 		this.editor = ace.edit(this.ace_editor_target.get(0));
+
+		if (this.df.max_lines || this.df.min_lines || this.df.max_height) {
+			if (this.df.max_lines)
+				this.editor.setOption("maxLines", this.df.max_lines);
+			if (this.df.min_lines)
+				this.editor.setOption("minLines", this.df.min_lines);
+		} else {
+			this.expanded = false;
+			this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).click(() => {
+				this.expanded = !this.expanded;
+				this.refresh_height();
+				this.toggle_label();
+			}).appendTo(this.$input_wrapper);
+		}
+
 		this.editor.setTheme('ace/theme/tomorrow');
 		this.editor.setOption("showPrintMargin", false);
 		this.editor.setOption("wrap", this.df.wrap);
