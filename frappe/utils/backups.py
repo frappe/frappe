@@ -660,10 +660,13 @@ def backup(
 		"backup_path_private_files": odb.backup_path_private_files,
 	}
 
+@frappe.whitelist()
+def get_backup_encryption_key():
+	return frappe.msgprint(backup_encryption_key(),"Backup Encryption Key")
 
 def backup_decryption(path,passphrase):
 	"""
-	Fetches and encrypts backup in public and private folders.
+	Decrypts backup the given path using the passphrase.
 	"""
 	if os.path.exists(path):
 		os.rename(path, path + ".gpg")
@@ -676,20 +679,22 @@ def backup_decryption(path,passphrase):
 		)
 		frappe.utils.execute_in_shell(command)
 
-
 def backup_encryption_key():
+	"""
+	Return Key if already present and generates one if not
+	"""
 	from frappe.installer import update_site_config
-
 	if 'backup_encryption_key' not in frappe.local.conf:
 		backup_encryption_key = Fernet.generate_key().decode()
 		update_site_config('backup_encryption_key', backup_encryption_key)
 		frappe.local.conf.backup_encryption_key = backup_encryption_key
 
 	return frappe.local.conf.backup_encryption_key
-
-@frappe.whitelist()
-def get_backup_encryption_key():
-	return frappe.msgprint(backup_encryption_key(),"Backup Encryption Key")
+	
+def decryption_rollback(file_path):
+	if os.path.exists(file_path + ".gpg"):
+		os.remove(file_path)
+		os.rename(file_path + ".gpg", file_path)
 
 
 if __name__ == "__main__":

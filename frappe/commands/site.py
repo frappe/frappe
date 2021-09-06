@@ -68,12 +68,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 		is_partial,
 		validate_database_sql
 	)
-	from frappe.utils.backups import backup_decryption
-
-	def remove_rename_gpg(file_path):
-		if os.path.exists(file_path + ".gpg"):
-			os.remove(file_path)
-			os.rename(file_path + ".gpg", file_path)
+	from frappe.utils.backups import backup_decryption, decryption_rollback
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
@@ -96,11 +91,13 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 				"Use `bench partial-restore` to restore a partial backup to an existing site.",
 				fg="yellow"
 			)
-			remove_rename_gpg(sql_file_path)
 			sys.exit(1)	
 	except:
+		# Rollback changes after unsuccessful attempt
+		decryption_rollback(sql_file_path)
 		if os.path.exists(decompressed_file_name):
 			os.remove(decompressed_file_name)
+
 		click.secho(
 				"Encrypted Backup file detected. You cannot use a Encrypted file withoy key to restore a Frappe Site.",
 				fg="red"
@@ -130,28 +127,36 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			force=True, db_type=frappe.conf.db_type)
 		
 	except:
-		remove_rename_gpg(sql_file_path)
+		decryption_rollback(sql_file_path)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
+		
+		# Decrypt data if there is a Key
 		if backup_encryption_key and os.path.exists(with_public_files):
 			backup_decryption(with_public_files, backup_encryption_key)
 		public = extract_files(site, with_public_files)
+		
+		# Removing temporarily created file
 		os.remove(public)
-		remove_rename_gpg(with_public_files)
+		decryption_rollback(with_public_files)
 		
 
 	if with_private_files:
+		
+		# Decrypt data if there is a Key
 		if backup_encryption_key and os.path.exists(with_private_files):
 			backup_decryption(with_private_files, backup_encryption_key)
 		private = extract_files(site, with_private_files)
+		
+		# Removing temporarily created file
 		os.remove(private)
-		remove_rename_gpg(with_private_files)
+		decryption_rollback(with_private_files)
 
 	# Removing temporarily created file
 	if decompressed_file_name != sql_file_path:
 		os.remove(decompressed_file_name)
-		remove_rename_gpg(sql_file_path)
+		decryption_rollback(sql_file_path)
 	success_message = "Site {0} has been restored{1}".format(
 		site,
 		" with files" if (with_public_files or with_private_files) else ""
@@ -165,18 +170,19 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 @click.option("--verbose", "-v", is_flag=True)
 @pass_context
 def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None):
-	from frappe.installer import partial_restore
-	from frappe.utils.backups import backup_decryption
+	from frappe.installer import partial_restore, extract_sql_gzip
+	from frappe.utils.backups import backup_decryption, decryption_rollback
 	
 
 	if backup_encryption_key:
 		backup_decryption(sql_file_path, backup_encryption_key)
+	verbose = context.verbose or verbose
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect(site=site)
 	try:
-		verbose = context.verbose or verbose
-		site = get_site(context)
-		frappe.init(site=site)
-		frappe.connect(site=site)
 		partial_restore(sql_file_path, verbose)
+		sql_file = extract_sql_gzip(sql_file_path)
 	except:
 		click.secho(
 				"Encrypted Backup file detected. You cannot use a Encrypted file withoy key to restore a Frappe Site.",
@@ -187,10 +193,8 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 				fg="yellow"
 			)
 		sys.exit(1)
-		
-	if os.path.exists(sql_file_path + ".gpg"):
-			os.remove(sql_file_path)
-			os.rename(sql_file_path + ".gpg", sql_file_path)
+
+	decryption_rollback(sql_file_path)
 
 	frappe.destroy()
 
