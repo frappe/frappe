@@ -13,6 +13,8 @@
   "field_name",
   "row_name",
   "column_break0",
+  "module",
+  "section_break_9",
   "property",
   "property_type",
   "value",
@@ -91,13 +93,23 @@
    "fieldname": "row_name",
    "fieldtype": "Data",
    "label": "Row Name"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-24 14:42:38.599684",
+ "modified": "2021-09-04 12:46:17.860769",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Property Setter",
