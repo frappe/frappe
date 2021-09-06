@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Database Module
 # --------------------
@@ -14,7 +14,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime, get_table_name
+from frappe.utils import now, getdate, cast, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
 
 
@@ -516,7 +516,6 @@ class Database(object):
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		# result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
@@ -557,7 +556,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		val = cast_fieldtype(df.fieldtype, val)
+		val = cast(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -840,6 +839,30 @@ class Database(object):
 
 			return count
 
+	def sum(self, dt, fieldname, filters=None):
+		return self._get_aggregation('SUM', dt, fieldname, filters)
+
+	def avg(self, dt, fieldname, filters=None):
+		return self._get_aggregation('AVG', dt, fieldname, filters)
+
+	def min(self, dt, fieldname, filters=None):
+		return self._get_aggregation('MIN', dt, fieldname, filters)
+
+	def max(self, dt, fieldname, filters=None):
+		return self._get_aggregation('MAX', dt, fieldname, filters)
+
+	def _get_aggregation(self, function, dt, fieldname, filters=None):
+		if not self.has_column(dt, fieldname):
+			frappe.throw(frappe._('Invalid column'), self.InvalidColumnName)
+
+		query = f'SELECT {function}({fieldname}) AS value FROM `tab{dt}`'
+		values = ()
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query = f"{query} WHERE {conditions}"
+
+		return self.sql(query, values)[0][0] or 0
+
 	@staticmethod
 	def format_date(date):
 		return getdate(date).strftime("%Y-%m-%d")
@@ -1052,19 +1075,3 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
-
-# Helpers
-def _cast_result(doctype, result):
-	batch = [ ]
-
-	try:
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-	except frappe.exceptions.DoesNotExistError:
-		return result
-
-	return tuple(batch)

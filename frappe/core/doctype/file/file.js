@@ -29,15 +29,8 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 	if (is_optimizable) {
 		frm.add_custom_button(__("Optimize"), function() {
 			frappe.show_alert(__("Optimizing image..."));
-			frappe.call({
-				method: "frappe.core.doctype.file.file.optimize_saved_image",
-				args: {
-					doc_name: frm.doc.name,
-				},
-				callback: function() {
-					frappe.show_alert(__("Image optimized"));
-					frappe.set_route("List", "File");
-				}
+			frm.call("optimize_file").then(() => {
+				frappe.show_alert(__("Image optimized"));
 			});
 		});
 	}

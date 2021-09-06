@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 import frappe, unittest
 
 class TestAddressTemplate(unittest.TestCase):

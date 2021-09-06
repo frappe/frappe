@@ -261,4 +261,14 @@ export default class BulkOperations {
 		});
 		dialog.show();
 	}
+
+	export(doctype, docnames) {
+		frappe.require('data_import_tools.bundle.js', () => {
+			const data_exporter = new frappe.data_import.DataExporter(doctype, 'Insert New Records');
+			data_exporter.dialog.set_value('export_records', 'by_filter');
+			data_exporter.filter_group.add_filters_to_filter_group(
+				[[doctype, "name", "in", docnames, false]]
+			);
+		});
+	}
 }

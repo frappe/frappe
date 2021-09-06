@@ -151,18 +151,6 @@ frappe.ui.form.on("Email Account", {
 			callback: function (r) {
 				if (r.message) {
 					frm.events.set_domain_fields(frm, r.message);
-				} else {
-					frm.set_value("domain", "");
-					frappe.confirm(__('Email Domain not configured for this account, Create one?'),
-						function () {
-							frappe.model.with_doctype("Email Domain", function() {
-								frappe.route_options = { email_id: frm.doc.email_id };
-								frappe.route_flags.return_to_email_account = 1;
-								var doc = frappe.model.get_new_doc("Email Domain");
-								frappe.set_route("Form", "Email Domain", doc.name);
-							});
-						}
-					);
 				}
 			}
 		});
