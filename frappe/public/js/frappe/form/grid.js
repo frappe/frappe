@@ -38,7 +38,7 @@ export default class Grid {
 
 		this.is_grid = true;
 		this.debounced_refresh = this.refresh.bind(this);
-		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 500);
+		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
 	}
 
 	allow_on_grid_editing() {
@@ -786,6 +786,7 @@ export default class Grid {
 				doctype: link_field.options,
 				fieldname: link,
 				qty_fieldname: qty,
+				get_query: link_field.get_query,
 				target: this,
 				txt: ""
 			});

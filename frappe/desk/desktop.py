@@ -1,5 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 # Author - Shivam Mishra <shivam@frappe.io>
 
 import frappe
@@ -573,7 +573,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	if widgets: 
+	if widgets:
 		clean_up(doc, blocks)
 
 	try:
@@ -597,7 +597,7 @@ def clean_up(original_page, blocks):
 	page_widgets = {}
 
 	for wid in ['shortcut', 'card', 'chart']:
-		# get list of widget's name from blocks 
+		# get list of widget's name from blocks
 		page_widgets[wid] = [x['data'][wid + '_name'] for x in loads(blocks) if x['type'] == wid]
 
 	# shortcut & chart cleanup

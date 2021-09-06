@@ -26,8 +26,10 @@
   "fields_section_break",
   "fields",
   "sb1",
+  "naming_rule",
   "autoname",
   "name_case",
+  "allow_rename",
   "column_break_15",
   "description",
   "documentation",
@@ -39,7 +41,6 @@
   "column_break_23",
   "hide_toolbar",
   "allow_copy",
-  "allow_rename",
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
@@ -276,7 +277,7 @@
    "oldfieldtype": "Check"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -554,6 +555,13 @@
    "fieldname": "website_search_field",
    "fieldtype": "Data",
    "label": "Website Search Field"
+  },
+  {
+   "fieldname": "naming_rule",
+   "fieldtype": "Select",
+   "label": "Naming Rule",
+   "length": 40,
+   "options": "\nSet by user\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nBy script"
   }
  ],
  "icon": "fa fa-bolt",
@@ -635,7 +643,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-06-17 23:31:44.974199",
+ "modified": "2021-09-05 15:39:13.233403",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

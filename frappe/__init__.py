@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
 
@@ -140,7 +140,11 @@ lang = local("lang")
 if typing.TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from pypika import Query
+
 	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+	qb: Query
+
 # end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):

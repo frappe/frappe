@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _
@@ -16,6 +16,12 @@ class Workspace(Document):
 		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
 		validate_route_conflict(self.doctype, self.name)
+
+		try:
+			if not isinstance(loads(self.content), list):
+				raise
+		except Exception:
+			frappe.throw(_("Content data shoud be a list"))
 
 		duplicate_exists = frappe.db.exists("Workspace", {
 			"name": ["!=", self.name], 'is_default': 1, 'extends': self.extends
@@ -56,7 +62,7 @@ class Workspace(Document):
 		for link in self.links:
 			link = link.as_dict()
 			if link.type == "Card Break":
-				if card_links and (not current_card.only_for or current_card.only_for == frappe.get_system_settings('country')):
+				if card_links and (not current_card.get('only_for') or current_card.get('only_for') == frappe.get_system_settings('country')):
 					current_card['links'] = card_links
 					cards.append(current_card)
 
@@ -161,7 +167,7 @@ def get_report_type(report):
 def save_page(title, icon, parent, public, sb_public_items, sb_private_items, deleted_pages, new_widgets, blocks, save):
 	save = frappe.parse_json(save)
 	public = frappe.parse_json(public)
-	if save: 
+	if save:
 		doc = frappe.new_doc('Workspace')
 		doc.title = title
 		doc.icon = icon

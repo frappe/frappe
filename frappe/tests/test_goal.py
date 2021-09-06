@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import unittest
 import frappe
@@ -13,7 +13,7 @@ class TestGoal(unittest.TestCase):
 		make_test_objects('Event', reset=True)
 
 	def tearDown(self):
-		frappe.db.sql('delete from `tabEvent`')
+		frappe.db.delete("Event")
 		# make_test_objects('Event', reset=True)
 		frappe.db.commit()
 
