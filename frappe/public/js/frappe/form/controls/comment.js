@@ -104,8 +104,10 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 		return [
 			['bold', 'italic', 'underline'],
 			['blockquote', 'code-block'],
+			[{ 'direction': "rtl" }],
 			['link', 'image'],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
+			[{ 'align': [] }],
 			['clean']
 		];
 	}
