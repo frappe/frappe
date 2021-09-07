@@ -2,8 +2,7 @@ import operator
 from typing import Any, Dict, List, Tuple, Union
 
 import frappe
-from frappe.query_builder import Criterion, Order
-
+from frappe.query_builder import Criterion, Order, Field
 
 class Query:
 	def __init__(self):
@@ -36,7 +35,7 @@ class Query:
 		Returns:
 				frappe.qb: `frappe.qb object with `LIKE`
 		"""
-		return frappe.qb.Field(key).like(value)
+		return Field(key).like(value)
 
 	@staticmethod
 	def func_in(key: str, value: Union[List, Tuple]) -> frappe.qb:
@@ -49,7 +48,7 @@ class Query:
 		Returns:
 				frappe.qb: `frappe.qb object with `IN`
 		"""
-		return frappe.qb.Field(key).isin(value)
+		return Field(key).isin(value)
 
 	@staticmethod
 	def not_like(key: str, value: str) -> frappe.qb:
@@ -62,7 +61,7 @@ class Query:
 		Returns:
 				frappe.qb: `frappe.qb object with `NOT LIKE`
 		"""
-		return frappe.qb.Field(key).not_like(value)
+		return Field(key).not_like(value)
 
 	@staticmethod
 	def func_not_in(key: str, value: Union[List, Tuple]):
@@ -75,7 +74,7 @@ class Query:
 		Returns:
 				frappe.qb: `frappe.qb object with `NOT IN`
 		"""
-		return frappe.qb.Field(key).notin(value)
+		return Field(key).notin(value)
 
 	@staticmethod
 	def func_regex(key: str, value: str) -> frappe.qb:
@@ -88,7 +87,7 @@ class Query:
 		Returns:
 				frappe.qb: `frappe.qb object with `REGEX`
 		"""
-		return frappe.qb.Field(key).regex(value)
+		return Field(key).regex(value)
 
 	@staticmethod
 	def func_between(key: str, value: Union[List, Tuple]) -> frappe.qb:
@@ -101,7 +100,7 @@ class Query:
 		Returns:
 				frappe.qb: `frappe.qb object with `BETWEEN`
 		"""
-		return frappe.qb.Field(key)[slice(*value)]
+		return Field(key)[slice(*value)]
 
 	def make_function(self, key: Any, value: Union[int, str]):
 		return self.operator_map[value[0]](key, value[1])
@@ -180,8 +179,31 @@ class Query:
 
 		return conditions
 
-	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None, **kwargs):
-		"""Build conditions using the given filters
+	def misc_query(self, table: str, filters: Union[List, Tuple] = None, **kwargs):
+		"""Build conditions using the given Lists or Tuple filters
+
+		Args:
+			table (str): DocType
+			filters (Union[List, Tuple], optional): Filters. Defaults to None.
+		"""
+		conditions = self.get_condition(table, **kwargs)
+		if not filters:
+			return conditions
+		if isinstance(filters, list):
+			for f in filters:
+				if not isinstance(f, (list, tuple)):
+					_operator = self.operator_map[filters[1]]
+					conditions = conditions.where(_operator(Field(filters[0]), Field(filters[2])))
+					break
+				else:
+					_operator = self.operator_map[f[1]]
+					conditions = conditions.where(_operator(Field(f[0]), Field(f[2])))
+
+		conditions = self.add_conditions(conditions, **kwargs)
+		return conditions
+
+	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None, **kwargs) -> frappe.qb:
+		"""Build conditions using the given dictionary filters
 
 		Args:
 			table (str): DocType
@@ -207,9 +229,9 @@ class Query:
 					conditions = conditions.where(_operator(key, value[1]))
 				else:
 					_operator = self.operator_map[value[0]]
-					conditions = conditions.where(_operator(frappe.qb.Field(key), value[1]))
+					conditions = conditions.where(_operator(Field(key), value[1]))
 			else:
-				conditions = conditions.where(_operator(frappe.qb.Field(key), value))
+				conditions = conditions.where(_operator(Field(key), value))
 		conditions = self.add_conditions(conditions, **kwargs)
 		return conditions
 
@@ -228,5 +250,8 @@ class Query:
 
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
+
+		if isinstance(filters, (list, tuple)):
+			return self.misc_query(table, filters, **kwargs)
 
 		return self.dict_query(filters=filters, table=table, **kwargs)
