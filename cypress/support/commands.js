@@ -324,16 +324,14 @@ Cypress.Commands.add('clear_filters', () => {
 	cy.window().its('cur_list').then(cur_list => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
 	});
-
-	
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
 	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).trigger('click', {force: true});
 });
 
-Cypress.Commands.add('click_sidebar_button', (btn_no) => {
-	cy.get('.list-group-by-fields > .group-by-field > .btn').eq(btn_no).click();
+Cypress.Commands.add('click_sidebar_button', (btn_name) => {
+	cy.get('.list-group-by-fields .list-link > a').contains(btn_name).click({force: true});
 });
 
 Cypress.Commands.add('click_listview_row_item', (row_no) => {
@@ -348,6 +346,6 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 	cy.get('.primary-action').contains(btn_name).click({force: true});
 });
 
-Cypress.Commands.add('click_timeline_action_btn', (btn_no) => {
-	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').eq(btn_no).first().click();
+Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
+	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').contains(btn_name).click();
 });
