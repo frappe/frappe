@@ -35,42 +35,6 @@ frappe.views.Workspace = class Workspace {
 			'My Workspaces',
 			'Public'
 		];
-		this.tools = {
-			header: {
-				class: this.blocks['header'],
-				inlineToolbar: true
-			},
-			paragraph: {
-				class: this.blocks['paragraph'],
-				inlineToolbar: true
-			},
-			chart: {
-				class: this.blocks['chart'],
-				config: {
-					page_data: this.page_data || []
-				}
-			},
-			card: {
-				class: this.blocks['card'],
-				config: {
-					page_data: this.page_data || []
-				}
-			},
-			shortcut: {
-				class: this.blocks['shortcut'],
-				config: {
-					page_data: this.page_data || []
-				}
-			},
-			onboarding: {
-				class: this.blocks['onboarding'],
-				config: {
-					page_data: this.page_data || []
-				}
-			},
-			spacer: this.blocks['spacer'],
-			spacingTune: frappe.wspace_block.tunes['spacing_tune'],
-		};
 
 		this.prepare_container();
 		this.setup_pages();
@@ -86,7 +50,7 @@ frappe.views.Workspace = class Workspace {
 		this.body = this.wrapper.find(".layout-main-section");
 	}
 
-	setup_pages() {
+	setup_pages(reload) {
 		this.get_pages().then(pages => {
 			this.all_pages = pages.pages;
 			this.has_access = pages.has_access;
@@ -115,7 +79,7 @@ frappe.views.Workspace = class Workspace {
 					this.new_page = null;
 				}
 				this.make_sidebar();
-				frappe.router.route();
+				reload && this.show();
 			}
 		});
 	}
@@ -236,10 +200,7 @@ frappe.views.Workspace = class Workspace {
 			return;
 		}
 
-		let page = {
-			name: this.get_page_to_show().name,
-			public: this.get_page_to_show().public
-		};
+		let page = this.get_page_to_show();
 		this.page.set_title(`${__(page.name)}`);
 
 		this.show_page(page);
@@ -670,6 +631,42 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	initialize_editorjs(blocks) {
+		this.tools = {
+			header: {
+				class: this.blocks['header'],
+				inlineToolbar: true
+			},
+			paragraph: {
+				class: this.blocks['paragraph'],
+				inlineToolbar: true
+			},
+			chart: {
+				class: this.blocks['chart'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			card: {
+				class: this.blocks['card'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			shortcut: {
+				class: this.blocks['shortcut'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			onboarding: {
+				class: this.blocks['onboarding'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			spacer: this.blocks['spacer'],
+			spacingTune: frappe.wspace_block.tunes['spacing_tune'],
+		};
 		this.editor = new EditorJS({
 			data: {
 				blocks: blocks || []
@@ -751,7 +748,7 @@ frappe.views.Workspace = class Workspace {
 	reload() {
 		this.$page.prepend(frappe.render_template('workspace_loading_skeleton'));
 		this.$page.find('.codex-editor').addClass('hidden');
-		this.setup_pages();
+		this.setup_pages(true);
 		this.undo.readOnly = true;
 	}
 };
