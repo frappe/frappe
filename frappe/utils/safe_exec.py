@@ -112,6 +112,7 @@ def get_safe_globals():
 			get_hooks=frappe.get_hooks,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error
+			cache=frappe.cache 
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(
@@ -142,7 +143,8 @@ def get_safe_globals():
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
 			escape = frappe.db.escape,
-			sql = read_sql
+			sql = read_sql,
+			commit = frappe.db.commit
 		)
 
 	if frappe.response:
