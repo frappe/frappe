@@ -1347,15 +1347,15 @@ class Document(BaseDocument):
 			), frappe.exceptions.InvalidDates)
 
 	def get_assigned_users(self):
-		assignments = frappe.get_all('ToDo',
+		assigned_users = frappe.get_all('ToDo',
 			fields=['allocated_to'],
 			filters={
 				'reference_type': self.doctype,
 				'reference_name': self.name,
 				'status': ('!=', 'Cancelled'),
-			})
+			}, pluck='allocated_to')
 
-		users = set([assignment.owner for assignment in assignments])
+		users = set(assigned_users)
 		return users
 
 	def add_tag(self, tag):
