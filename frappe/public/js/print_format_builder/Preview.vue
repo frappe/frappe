@@ -8,13 +8,26 @@
 				<div ref="preview-type"></div>
 			</div>
 			<div class="col d-flex">
-				<a v-if="url" class="btn btn-default btn-sm btn-new-tab" target="_blank" :href="url">
+				<a
+					v-if="url"
+					class="btn btn-default btn-sm btn-new-tab"
+					target="_blank"
+					:href="url"
+				>
 					{{ __("Open in a new tab") }}
 				</a>
+				<button
+					v-if="url"
+					class="ml-3 btn btn-default btn-sm btn-new-tab"
+					@click="$refs.iframe.contentWindow.location.reload()"
+				>
+					{{ __("Refresh") }}
+				</button>
 			</div>
 		</div>
 		<div v-if="url && !preview_loaded">Generating preview...</div>
 		<iframe
+			ref="iframe"
 			:src="url"
 			v-if="url"
 			v-show="preview_loaded"
@@ -101,7 +114,7 @@ export default {
 	border-radius: var(--border-radius);
 }
 .btn-new-tab {
-    margin-top: auto;
-    margin-bottom: 1.2rem;
+	margin-top: auto;
+	margin-bottom: 1.2rem;
 }
 </style>

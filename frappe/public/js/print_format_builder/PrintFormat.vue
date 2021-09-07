@@ -66,6 +66,7 @@ export default {
 
 <style scoped>
 .print-format-main {
+	margin-right: auto;
 	margin-left: auto;
 	background-color: white;
 	box-shadow: var(--shadow-lg);

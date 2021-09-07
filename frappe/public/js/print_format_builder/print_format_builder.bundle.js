@@ -1,4 +1,5 @@
 import PrintFormatBuilderComponent from "./PrintFormatBuilder.vue";
+import { getStore } from "./store";
 
 class PrintFormatBuilder {
 	constructor({ wrapper, page, print_format }) {
@@ -16,7 +17,7 @@ class PrintFormatBuilder {
 		this.page.set_secondary_action(__("Reset changes"), () => {
 			this.$component.$store.reset_changes();
 		});
-		this.page.add_button(
+		let $toggle_preview_btn = this.page.add_button(
 			__("Toggle Preview"),
 			() => this.$component.toggle_preview(),
 			{ icon: "small-file" }
@@ -32,6 +33,16 @@ class PrintFormatBuilder {
 				})
 		});
 		this.$component = $vm.$children[0];
+		let store = getStore(print_format);
+		store.$watch("dirty", value => {
+			if (value) {
+				this.page.set_indicator("Not Saved", "orange");
+				$toggle_preview_btn.hide();
+			} else {
+				this.page.clear_indicator();
+				$toggle_preview_btn.show();
+			}
+		});
 	}
 }
 

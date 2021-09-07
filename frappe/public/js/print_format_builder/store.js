@@ -14,31 +14,54 @@ export function getStore(print_format_name) {
 				print_format: null,
 				doctype: null,
 				meta: null,
-				layout: null
+				layout: null,
+				dirty: false
 			};
+		},
+		watch: {
+			layout: {
+				deep: true,
+				handler() {
+					this.dirty = true;
+				}
+			},
+			print_format: {
+				deep: true,
+				handler() {
+					this.dirty = true;
+				}
+			}
 		},
 		methods: {
 			fetch() {
-				frappe.model.clear_doc("Print Format", this.print_format_name);
-				frappe.model.with_doc(
-					"Print Format",
-					this.print_format_name,
-					() => {
-						this.print_format = frappe.get_doc(
-							"Print Format",
-							this.print_format_name
-						);
-						frappe.model.with_doctype(
-							this.print_format.doc_type,
-							() => {
-								this.meta = frappe.get_meta(
-									this.print_format.doc_type
-								);
-								this.layout = this.get_layout();
-							}
-						);
-					}
-				);
+				return new Promise(resolve => {
+					frappe.model.clear_doc(
+						"Print Format",
+						this.print_format_name
+					);
+					frappe.model.with_doc(
+						"Print Format",
+						this.print_format_name,
+						() => {
+							let print_format = frappe.get_doc(
+								"Print Format",
+								this.print_format_name
+							);
+							frappe.model.with_doctype(
+								print_format.doc_type,
+								() => {
+									this.meta = frappe.get_meta(
+										print_format.doc_type
+									);
+									this.print_format = print_format;
+									this.layout = this.get_layout();
+									this.$nextTick(() => (this.dirty = false));
+									resolve();
+								}
+							);
+						}
+					);
+				});
 			},
 			update({ fieldname, value }) {
 				this.$set(this.print_format, fieldname, value);
@@ -94,15 +117,18 @@ export function getStore(print_format_name) {
 			},
 			get_layout() {
 				if (this.print_format) {
-					if (!this.print_format.format_data) {
-						return create_default_layout(this.meta);
-					}
+					// if (!this.print_format.format_data) {
+					// 	return create_default_layout(this.meta);
+					// }
 					if (typeof this.print_format.format_data == "string") {
 						return JSON.parse(this.print_format.format_data);
 					}
 					return this.print_format.format_data;
 				}
 				return null;
+			},
+			get_default_layout() {
+				return create_default_layout(this.meta);
 			}
 		}
 	};

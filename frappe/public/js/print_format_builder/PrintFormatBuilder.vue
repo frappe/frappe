@@ -37,7 +37,12 @@ export default {
 		};
 	},
 	mounted() {
-		this.$store.fetch();
+		this.$store.fetch().then(() => {
+			if (!this.$store.layout) {
+				this.$store.layout = this.$store.get_default_layout();
+				this.$store.save_changes();
+			}
+		});
 	},
 	methods: {
 		toggle_preview() {
@@ -50,7 +55,9 @@ export default {
 		},
 		shouldRender() {
 			return Boolean(
-				this.$store.print_format && this.$store.meta && this.$store.layout
+				this.$store.print_format &&
+					this.$store.meta &&
+					this.$store.layout
 			);
 		}
 	}
