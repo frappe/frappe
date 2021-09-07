@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "dt",
+  "module",
   "label",
   "label_help",
   "fieldname",
@@ -411,13 +412,19 @@
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-07-12 05:54:13.042319",
+ "modified": "2021-09-04 12:45:22.810120",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
