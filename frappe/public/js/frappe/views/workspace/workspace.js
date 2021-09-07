@@ -23,6 +23,7 @@ frappe.views.Workspace = class Workspace {
 		this.blocks = frappe.wspace_block.blocks;
 		this.is_read_only = true;
 		this.new_page = null;
+		this.pages = {};
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
 		this.deleted_sidebar_items = [];
@@ -211,6 +212,11 @@ frappe.views.Workspace = class Workspace {
 			page: page
 		}).then(data => {
 			this.page_data = data;
+
+			// caching page data
+			this.pages[page.name] && delete this.pages[page.name];
+			this.pages[page.name] = data;
+
 			if (!this.page_data || Object.keys(this.page_data).length === 0) return;
 
 			return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
@@ -221,6 +227,7 @@ frappe.views.Workspace = class Workspace {
 							chart.chart_settings = chart_config[chart.chart_name] || {};
 						});
 					}
+					this.pages[page.name] = this.page_data;
 				}
 			});
 		});
@@ -242,7 +249,7 @@ frappe.views.Workspace = class Workspace {
 		return { name: page, public: is_public };
 	}
 
-	show_page(page) {
+	async show_page(page) {
 		let section = this.current_page.public ? 'public' : 'private';
 		if (this.sidebar_items && this.sidebar_items[section] && this.sidebar_items[section][this.current_page.name]) {
 			this.sidebar_items[section][this.current_page.name][0].firstElementChild.classList.remove("selected");
@@ -277,12 +284,17 @@ frappe.views.Workspace = class Workspace {
 			this.add_custom_cards_in_content();
 
 			$('.item-anchor').addClass('disable-click');
-			this.get_data(this_page).then(() => {
-				this.prepare_editorjs();
-				$('.item-anchor').removeClass('disable-click');
-				this.$page.find('.codex-editor').removeClass('hidden');
-				this.$page.find('.workspace-skeleton').remove();
-			});
+
+			if (this.pages && this.pages[this_page.name]) {
+				this.page_data = this.pages[this_page.name];
+			} else {
+				await this.get_data(this_page);
+			}
+
+			this.prepare_editorjs();
+			$('.item-anchor').removeClass('disable-click');
+			this.$page.find('.codex-editor').removeClass('hidden');
+			this.$page.find('.workspace-skeleton').remove();
 		}
 	}
 
@@ -727,6 +739,7 @@ frappe.views.Workspace = class Workspace {
 					frappe.dom.unfreeze();
 					if (res.message) {
 						me.new_page = res.message;
+						me.pages[res.message.label] && delete me.pages[res.message.label];
 						me.title = '';
 						me.icon = '';
 						me.parent = '';
