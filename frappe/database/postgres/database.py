@@ -258,7 +258,7 @@ class PostgresDatabase(Database):
 		return self.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
 			and indexname='{index_name}' limit 1""".format(table_name=table_name, index_name=index_name))
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype: str, fields: List, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)
