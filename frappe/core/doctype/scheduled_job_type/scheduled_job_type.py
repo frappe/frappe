@@ -1,5 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import json
 from datetime import datetime

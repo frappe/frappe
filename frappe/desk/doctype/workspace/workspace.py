@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _
@@ -62,7 +62,7 @@ class Workspace(Document):
 		for link in self.links:
 			link = link.as_dict()
 			if link.type == "Card Break":
-				if card_links and (not current_card['only_for'] or current_card['only_for'] == frappe.get_system_settings('country')): 
+				if card_links and (not current_card.get('only_for') or current_card.get('only_for') == frappe.get_system_settings('country')):
 					current_card['links'] = card_links
 					cards.append(current_card)
 
@@ -167,7 +167,7 @@ def get_report_type(report):
 def save_page(title, icon, parent, public, sb_public_items, sb_private_items, deleted_pages, new_widgets, blocks, save):
 	save = frappe.parse_json(save)
 	public = frappe.parse_json(public)
-	if save: 
+	if save:
 		doc = frappe.new_doc('Workspace')
 		doc.title = title
 		doc.icon = icon

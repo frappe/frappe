@@ -1,5 +1,6 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+
 import frappe
 from frappe import _
 from frappe.utils import flt
