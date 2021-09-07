@@ -17,10 +17,10 @@ body {
 	}
 
 	.standard-sidebar-section {
-		margin-top: var(--margin-xl);
+		margin-bottom: var(--margin-xl);
 
-		&:first-of-type {
-			margin-top: var(--margin-sm);
+		&:last-of-type {
+			margin-bottom: var(--margin-sm);
 		}
 	}
 }
@@ -143,7 +143,7 @@ body {
 				font-weight: 500;
 				line-height: 1.3em;
 				color: var(--heading-color);
-	
+
 				svg {
 					flex: none;
 					margin-right: 6px;
@@ -863,7 +863,7 @@ body {
 				.drag-handle {
 					display: inline-block;
 				}
-	
+
 				.delete-page {
 					display: inline-block;
 					margin-right: 8px;
@@ -888,44 +888,44 @@ body {
 
 	.codex-editor {
 		min-height: 630px;
-	
+
 		.codex-editor__redactor{
 			display: flex;
 			flex-wrap: wrap;
 			flex-direction: row;
 			margin: 0px -7px;
 			padding-bottom: 20px !important;
-		
+
 			.ce-block{
 				width: 100%;
 				padding-left: 0;
 				padding-right: 0;
-	
+
 				&.ce-block--selected {
 					.ce-block__content {
 						background-color: inherit;
 					}
 				}
-			
+
 				.ce-block__content {
 					max-width: 100%;
 					height: 100%;
 					padding: 7px;
-				
+
 					&> div {
 						height: 100%;
 					}
-	
+
 					.tune-btn > * {
 						pointer-events: none;
 					}
-	
+
 					.ce-header {
 						padding: 0 !important;
 						margin-bottom: 0 !important;
 						flex: 1;
 					}
-	
+
 					.widget{
 						&.header {
 							display: flex;
@@ -938,15 +938,19 @@ body {
 							background-color: var(--control-bg);
 							color: var(--text-muted);
 						}
-	
+
 						&:focus {
 							outline: none;
 						}
-	
+
 						&.new-widget {
 							align-items: inherit;
 						}
-	
+
+						&.ce-paragraph {
+							display: block;
+						}
+
 						.paragraph-control {
 							display: flex;
 							flex-direction: row-reverse;
@@ -955,7 +959,7 @@ body {
 							gap: 5px;
 							background-color: var(--card-bg);
 							padding-left: 5px;
-					
+
 							.drag-handle {
 								cursor: all-scroll;
 								cursor: -webkit-grabbing;
@@ -965,22 +969,22 @@ body {
 				}
 			}
 		}
-	
+
 		svg {
 			fill: none;
 		}
-	
+
 		.ce-toolbar {
 			svg {
 				fill: currentColor;
 			}
-	
+
 			.icon {
 				stroke: none;
 				width: fit-content;
 				height: fit-content;
 			}
-	
+
 			.ce-settings {
 				width: fit-content;
 
@@ -1007,18 +1011,18 @@ body {
 					border-radius: 0 4px 4px 0;z-index: 0;
 				}
 			}
-	
+
 			.ce-toolbar__settings-btn {
 				display: none;
 			}
 		}
-	
+
 		.ce-inline-tool, .ce-inline-toolbar__dropdown {
 			.icon {
 				fill: currentColor;
 			}
 		}
-	
+
 		@media (min-width: 1199px) {
 			.ce-toolbar__content {
 				max-width: 930px;
@@ -1029,14 +1033,14 @@ body {
 				max-width: 760px;
 			}
 		}
-	
+
 		@media (max-width: 1199px) {
 			.ce-block.col-4 {
 				flex: 0 0 50%;
 				max-width: 50%;
 			}
 		}
-		
+
 		@media (max-width: 750px) {
 			.ce-block.col-4 {
 				flex: 0 0 100%;
@@ -1049,6 +1053,6 @@ body {
 				max-width: 100%;
 			}
 		}
-	
+
 	}
 }

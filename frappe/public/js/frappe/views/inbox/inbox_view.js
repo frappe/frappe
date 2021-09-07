@@ -94,19 +94,20 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		this.render_list();
 		this.on_row_checked();
 		this.render_count();
-		this.render_tags();
 	}
 
 	get_meta_html(email) {
 		const attachment = email.has_attachment ?
 			`<span class="fa fa-paperclip fa-large" title="${__('Has Attachments')}"></span>` : '';
 
-		const form_link = frappe.utils.get_form_link(email.reference_doctype, email.reference_name);
-		const link = email.reference_doctype && email.reference_doctype !== this.doctype ?
-			`<a class="text-muted grey" href="${form_link}"
+		let link = "";
+		if (email.reference_doctype && email.reference_doctype !== this.doctype) {
+			link = `<a class="text-muted grey"
+				href="${frappe.utils.get_form_link(email.reference_doctype, email.reference_name)}"
 				title="${__('Linked with {0}', [email.reference_doctype])}">
 				<i class="fa fa-link fa-large"></i>
-			</a>` : '';
+			</a>`;
+		}
 
 		const communication_date = comment_when(email.communication_date, true);
 		const status =

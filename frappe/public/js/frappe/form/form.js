@@ -339,7 +339,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 		if (action.action_type==='Server Action') {
-			frappe.xcall(action.action, {'doc': this.doc}).then((doc) => {
+			return frappe.xcall(action.action, {'doc': this.doc}).then((doc) => {
 				if (doc.doctype) {
 					// document is returned by the method,
 					// apply the changes locally and refresh
@@ -354,7 +354,7 @@ frappe.ui.form.Form = class FrappeForm {
 				});
 			});
 		} else if (action.action_type==='Route') {
-			frappe.set_route(action.action);
+			return frappe.set_route(action.action);
 		}
 	}
 
@@ -1150,6 +1150,10 @@ frappe.ui.form.Form = class FrappeForm {
 			this.custom_buttons[label] = btn;
 		}
 		return btn;
+	}
+
+	change_custom_button_type(label, group, type) {
+		this.page.change_inner_button_type(label, group, type);
 	}
 
 	clear_custom_buttons() {

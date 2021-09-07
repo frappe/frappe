@@ -1,5 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe.model.document import Document
@@ -25,7 +25,7 @@ class FormTour(Document):
 	def on_update(self):
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files([['Form Tour', self.name]], self.module)
-	
+
 	def before_export(self, doc):
 		for d in doc.steps:
 			d.field = ""

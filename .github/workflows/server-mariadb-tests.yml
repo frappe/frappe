@@ -2,15 +2,14 @@ name: Server
 
 on:
   pull_request:
-    paths-ignore:
-      - '**.js'
-      - '**.md'
   workflow_dispatch:
   push:
     branches: [ develop ]
-    paths-ignore:
-      - '**.js'
-      - '**.md'
+
+concurrency:
+  group: server-mariadb-develop-${{ github.event.number }}
+  cancel-in-progress: true
+
 
 jobs:
   test:
@@ -41,17 +40,29 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+
       - uses: actions/setup-node@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         with:
           node-version: 14
           check-latest: true
 
       - name: Add to Hosts
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
           echo "127.0.0.1 test_site_producer" | sudo tee -a /etc/hosts
 
       - name: Cache pip
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
@@ -61,6 +72,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cache node modules
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -73,10 +85,12 @@ jobs:
             ${{ runner.os }}-
 
       - name: Get yarn cache directory path
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -85,6 +99,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -92,45 +107,24 @@ jobs:
           TYPE: server
 
       - name: Install
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
 
       - name: Run Tests
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator --with-coverage
         env:
           CI_BUILD_ID: ${{ github.run_id }}
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
-      - name: Upload Coverage Data
-        run: |
-          cp ~/frappe-bench/sites/.coverage ${GITHUB_WORKSPACE}
-          cd ${GITHUB_WORKSPACE}
-          pip3 install coverage==5.5
-          pip3 install coveralls==3.0.1
-          coveralls
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          COVERALLS_FLAG_NAME: run-${{ matrix.container }}
-          COVERALLS_SERVICE_NAME: ${{ github.event_name == 'pull_request' && 'github' || 'github-actions' }}
-          COVERALLS_PARALLEL: true
-
-  coveralls:
-    name: Coverage Wrap Up
-    needs: test
-    container: python:3-slim
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Coveralls Finished
-        run: |
-          cd ${GITHUB_WORKSPACE}
-          pip3 install coverage==5.5
-          pip3 install coveralls==3.0.1
-          coveralls --finish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: codecov/codecov-action@v2
+        with:
+          name: MariaDB
+          fail_ci_if_error: true
+          files: /home/runner/frappe-bench/sites/coverage.xml
+          verbose: true
