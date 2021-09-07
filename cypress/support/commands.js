@@ -252,7 +252,8 @@ Cypress.Commands.add('new_form', doctype => {
 });
 
 Cypress.Commands.add('go_to_list', doctype => {
-	cy.visit(`/app/list/${doctype}/list`);
+	let dt_in_route = doctype.toLowerCase().replace(/ /g, '-');
+	cy.visit(`/app/${dt_in_route}`);
 });
 
 Cypress.Commands.add('clear_cache', () => {
