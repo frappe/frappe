@@ -111,33 +111,16 @@ class ParallelTestRunner():
 		if self.with_coverage:
 			from coverage import Coverage
 			from frappe.utils import get_bench_path
+			from frappe.coverage import STANDARD_INCLUSIONS, STANDARD_EXCLUSIONS, FRAPPE_EXCLUSIONS
 
 			# Generate coverage report only for app that is being tested
 			source_path = os.path.join(get_bench_path(), 'apps', self.app)
-			incl = [
-				'*.py',
-			]
-			omit = [
-				'*.js',
-				'*.xml',
-				'*.pyc',
-				'*.css',
-				'*.less',
-				'*.scss',
-				'*.vue',
-				'*.pyc',
-				'*.html',
-				'*/test_*',
-				'*/node_modules/*',
-				'*/doctype/*/*_dashboard.py',
-				'*/patches/*',
-			]
+			omit = STANDARD_EXCLUSIONS[:]
 
 			if self.app == 'frappe':
-				omit.append('*/tests/*')
-				omit.append('*/commands/*')
+				omit.extend(FRAPPE_EXCLUSIONS)
 
-			self.coverage = Coverage(source=[source_path], omit=omit, include=incl)
+			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 			self.coverage.start()
 
 	def save_coverage(self):

@@ -727,6 +727,18 @@ class BaseDocument(object):
 				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
 
+	def _validate_code_fields(self):
+		for field in self.meta.get_code_fields():
+			code_string = self.get(field.fieldname)
+			language = field.get("options")
+
+			if language == "Python":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
+
+			elif language == "PythonExpression":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
+
 	def throw_length_exceeded_error(self, df, max_length, value):
 		if self.parentfield and self.idx:
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
@@ -870,7 +882,7 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		if not currency:
+		if df and not currency:
 			currency = self.get(df.get("options"))
 			if not frappe.db.exists('Currency', currency, cache=True):
 				currency = None

@@ -61,7 +61,6 @@ class Webhook(Document):
 			if self.request_structure == "Form URL-Encoded":
 				self.webhook_json = None
 			elif self.request_structure == "JSON":
-				validate_json(self.webhook_json)
 				validate_template(self.webhook_json)
 				self.webhook_data = []
 
@@ -85,18 +84,32 @@ def enqueue_webhook(doc, webhook):
 
 	for i in range(3):
 		try:
-			r = requests.post(webhook.request_url, data=json.dumps(data, default=str), headers=headers, timeout=5)
+			r = requests.request(method=webhook.request_method, url=webhook.request_url,
+				data=json.dumps(data, default=str), headers=headers, timeout=5)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
+			log_request(webhook.request_url, headers, data, r)
 			break
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+			log_request(webhook.request_url, headers, data, r)
 			sleep(3 * i + 1)
 			if i != 2:
 				continue
 			else:
 				raise e
 
+def log_request(url, headers, data, res):
+	request_log = frappe.get_doc({
+		"doctype": "Webhook Request Log",
+		"user": frappe.session.user if frappe.session.user else None,
+		"url": url,
+		"headers": json.dumps(headers, indent=4) if headers else None,
+		"data": json.dumps(data, indent=4) if isinstance(data, dict) else data,
+		"response": json.dumps(res.json(), indent=4) if res else None
+	})
+
+	request_log.save(ignore_permissions=True)
 
 def get_webhook_headers(doc, webhook):
 	headers = {}
@@ -131,10 +144,3 @@ def get_webhook_data(doc, webhook):
 		data = json.loads(data)
 
 	return data
-
-
-def validate_json(string):
-	try:
-		json.loads(string)
-	except (TypeError, ValueError):
-		frappe.throw(_("Request Body consists of an invalid JSON structure"), title=_("Invalid JSON"))

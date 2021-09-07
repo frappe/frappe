@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}" dir="{{ layout_direction }}">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
-	<link type="text/css" rel="stylesheet" href="/assets/css/printview.css">
-	{%- if has_rtl -%}
-		<link type="text/css" rel="stylesheet" href="assets/css/frappe-rtl.css">
-	{%- endif -%}
+	{{ include_style("printview.css") }}
 	<style>
 	{{ css }}
 	</style>

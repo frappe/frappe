@@ -10,6 +10,7 @@ import os, re
 import frappe
 from frappe import _
 import frappe.sessions
+from frappe.utils.jinja import is_rtl
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -39,11 +40,15 @@ def get_context(context):
 	# TODO: Find better fix
 	boot_json = re.sub(r"</script\>", "", boot_json)
 
+	style_urls = hooks["app_include_css"]
+
 	context.update({
 		"no_cache": 1,
 		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
-		"include_css": hooks["app_include_css"],
+		"include_css": get_rtl_styles(style_urls) if is_rtl() else style_urls,
+		"layout_direction": "rtl" if is_rtl() else "ltr",
+		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
 		"desk_theme": desk_theme or "Light",
@@ -54,6 +59,12 @@ def get_context(context):
 	})
 
 	return context
+
+def get_rtl_styles(style_urls):
+	rtl_style_urls = []
+	for style_url in style_urls:
+		rtl_style_urls.append(style_url.replace('/css/', '/css-rtl/'))
+	return rtl_style_urls
 
 @frappe.whitelist()
 def get_desk_assets(build_version):

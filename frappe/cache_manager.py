@@ -140,18 +140,13 @@ def build_table_count_cache():
 		return
 
 	_cache = frappe.cache()
-	data = frappe.db.multisql({
-		"mariadb": """
-			SELECT 	table_name AS name,
-					table_rows AS count
-			FROM information_schema.tables""",
-		"postgres": """
-			SELECT 	"relname" AS name,
-					"n_tup_ins" AS count
-			FROM "pg_stat_all_tables"
-		"""
-	}, as_dict=1)
+	table_name = frappe.qb.Field("table_name").as_("name")
+	table_rows = frappe.qb.Field("table_rows").as_("count")
+	information_schema = frappe.qb.Schema("information_schema")
 
+	data = (
+		frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+	).run(as_dict=True)
 	counts = {d.get('name').lstrip('tab'): d.get('count', None) for d in data}
 	_cache.set_value("information_schema:counts", counts)
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -7,7 +7,16 @@ import frappe
 from frappe.desk.search import search_link
 from frappe.desk.search import search_widget
 
+
 class TestSearch(unittest.TestCase):
+	def setUp(self):
+		if self._testMethodName == "test_link_field_order":
+			setup_test_link_field_order(self)
+
+	def tearDown(self):
+		if self._testMethodName == "test_link_field_order":
+			teardown_test_link_field_order(self)
+
 	def test_search_field_sanitizer(self):
 		# pass
 		search_link('DocType', 'User', query=None, filters=None, page_length=20, searchfield='name')
@@ -38,6 +47,18 @@ class TestSearch(unittest.TestCase):
 		self.assertRaises(frappe.DataError,
 			search_link, 'DocType', 'Customer', query=None, filters=None,
 			page_length=20, searchfield=';')
+
+	def test_link_field_order(self):
+		# Making a request to the search_link with the tree doctype
+		search_link(doctype=self.tree_doctype_name, txt='all', query=None,
+					filters=None, page_length=20, searchfield=None)
+		result = frappe.response['results']
+
+		# Check whether the result is sorted or not
+		self.assertEquals(self.parent_doctype_name, result[0]['value'])
+
+		# Check whether searching for parent also list out children
+		self.assertEquals(len(result), len(self.child_doctypes_names) + 1)
 
 	#Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
@@ -82,3 +103,57 @@ class TestSearch(unittest.TestCase):
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
 	return [doctype, txt, searchfield, start, page_len, filters]
+
+def setup_test_link_field_order(TestCase):
+	TestCase.tree_doctype_name = 'Test Tree Order'
+	TestCase.child_doctype_list = []
+	TestCase.child_doctypes_names = ['USA', 'India', 'Russia', 'China']
+	TestCase.parent_doctype_name = 'All Territories'
+
+	# Create Tree doctype
+	TestCase.tree_doc = frappe.get_doc({
+		'doctype': 'DocType',
+		'name': TestCase.tree_doctype_name,
+		'module': 'Custom',
+		'custom': 1,
+		'is_tree': 1,
+		'autoname': 'field:random',
+		'fields': [{
+			'fieldname': 'random',
+			'label': 'Random',
+			'fieldtype': 'Data'
+		}]
+	}).insert()
+	TestCase.tree_doc.search_fields = 'parent_test_tree_order'
+	TestCase.tree_doc.save()
+
+	# Create root for the tree doctype
+	frappe.get_doc({
+		"doctype": TestCase.tree_doctype_name,
+		"random": TestCase.parent_doctype_name,
+		"is_group": 1
+	}).insert()
+
+	# Create children for the root
+	for child_name in TestCase.child_doctypes_names:
+		temp = frappe.get_doc({
+			"doctype": TestCase.tree_doctype_name,
+			"random": child_name,
+			"parent_test_tree_order": TestCase.parent_doctype_name
+		}).insert()
+		TestCase.child_doctype_list.append(temp)
+
+def teardown_test_link_field_order(TestCase):
+	# Deleting all the created doctype
+	for child_doctype in TestCase.child_doctype_list:
+		child_doctype.delete()
+
+	frappe.delete_doc(
+		TestCase.tree_doctype_name,
+		TestCase.parent_doctype_name,
+		ignore_permissions=True,
+		force=True,
+		for_reload=True,
+	)
+
+	TestCase.tree_doc.delete()

@@ -426,3 +426,13 @@ class TestCommands(BaseTestCommands):
 		self.assertEquals(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
 
+	def test_version(self):
+		self.execute("bench version")
+		self.assertEqual(self.returncode, 0)
+
+		for output in ["legacy", "plain", "table", "json"]:
+			self.execute(f"bench version -f {output}")
+			self.assertEqual(self.returncode, 0)
+		
+		self.execute("bench version -f invalid")
+		self.assertEqual(self.returncode, 2)

@@ -126,6 +126,12 @@ pre {
 	}
 }
 
+.hidden-xl {
+	@include media-breakpoint-up(lg) {
+		display: none !important;
+	}
+}
+
 .visible-xs {
 	@include media-breakpoint-up(sm) {
 		display: none !important;
@@ -445,19 +451,6 @@ kbd {
 	color: var(--text-muted);
 }
 
-/*rtl styles*/
-
-.frappe-rtl {
-	input, textarea {
-		direction: rtl !important;
-	}
-
-	.checkbox .disp-area {
-		margin-right: -20px;
-		margin-left: 0px;
-	}
-}
-
 /* broken image styling */
 
 img.no-image {
@@ -569,3 +562,15 @@ details > summary:focus {
 // 	font-family: 'Octicons';
 // 	content: "\f00b";
 // }
+
+/*rtl:raw:
+.dropdown-menu {
+	right: auto;
+}
+.popover {
+	right: auto;
+}
+.chart-container {
+	direction: ltr;
+}
+*/

@@ -71,9 +71,6 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
 		f.write(frappe.as_unicode(gitignore_template.format(app_name = hooks.app_name)))
 
-	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(frappe.as_unicode(setup_template.format(**hooks)))
-
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
 
@@ -86,6 +83,14 @@ def make_boilerplate(dest, app_name):
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
+
+	# These values could contain quotes and can break string declarations
+	# So escaping them before setting variables in setup.py and hooks.py
+	for key in ("app_publisher", "app_description", "app_license"):
+		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"")
+
+	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
+		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
@@ -324,18 +329,18 @@ def get_data():
 
 setup_template = """from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
-	install_requires = f.read().strip().split('\\n')
+with open("requirements.txt") as f:
+	install_requires = f.read().strip().split("\\n")
 
 # get version from __version__ variable in {app_name}/__init__.py
 from {app_name} import __version__ as version
 
 setup(
-	name='{app_name}',
+	name="{app_name}",
 	version=version,
-	description='{app_description}',
-	author='{app_publisher}',
-	author_email='{app_email}',
+	description="{app_description}",
+	author="{app_publisher}",
+	author_email="{app_email}",
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,

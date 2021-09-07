@@ -137,7 +137,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 '''
 		transformed_html = '''
 <h3>Hi John</h3>
-<p style="margin:5px 0 !important">This is a test email</p>
+<p style="margin:1em 0 !important">This is a test email</p>
 '''
 		self.assertTrue(transformed_html in inline_style_in_html(html))
 

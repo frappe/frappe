@@ -8,6 +8,7 @@ import frappe
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import validate_url, validate_email_address
 from frappe.utils import ceil, floor
+from frappe.utils.data import validate_python_code
 
 from PIL import Image
 from frappe.utils.image import strip_exif_data
@@ -190,3 +191,30 @@ class TestImage(unittest.TestCase):
 
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
+
+class TestPythonExpressions(unittest.TestCase):
+
+	def test_validation_for_good_python_expression(self):
+		valid_expressions = [
+			"foo == bar",
+			"foo == 42",
+			"password != 'hunter2'",
+			"complex != comparison and more_complex == condition",
+			"escaped_values == 'str with newline\\n'",
+			"check_box_field",
+		]
+		for expr in valid_expressions:
+			try:
+				validate_python_code(expr)
+			except Exception as e:
+				self.fail(f"Invalid error thrown for valid expression: {expr}: {str(e)}")
+
+	def test_validation_for_bad_python_expression(self):
+		invalid_expressions = [
+			"these_are && js_conditions",
+			"more || js_conditions",
+			"curly_quotes_bad == “const”",
+			"oops = forgot_equals",
+		]
+		for expr in invalid_expressions:
+			self.assertRaises(frappe.ValidationError, validate_python_code, expr)

@@ -563,6 +563,10 @@
 		<path d="M8.81836 6.45466L10.7943 4.47873C11.4212 3.85205 12.2714 3.5 13.1578 3.5C14.0443 3.5 14.8945 3.85205 15.5214 4.47873V4.47873C16.1481 5.10568 16.5001 5.95584 16.5001 6.84229C16.5001 7.72873 16.1481 8.5789 15.5214 9.20584L13.5455 11.1818" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M6.45466 8.81824L4.47873 10.7942C3.85205 11.4211 3.5 12.2713 3.5 13.1577C3.5 14.0442 3.85205 14.8943 4.47873 15.5213V15.5213C5.10568 16.148 5.95584 16.5 6.84229 16.5C7.72874 16.5 8.5789 16.148 9.20584 15.5213L11.1818 13.5453" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
+	<symbol viewBox="0 0 24 24" fill="none" id="icon-scan" xmlns="http://www.w3.org/2000/svg">
+		<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" 
+			stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+	</symbol>
 	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-dashboard">
     	<path d="M6.5 3.5v9m-3-9h9a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"></path>
   	</symbol>

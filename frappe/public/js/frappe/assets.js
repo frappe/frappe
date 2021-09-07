@@ -9,7 +9,12 @@ frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
-	frappe.assets.execute(items, callback);
+	return new Promise(resolve => {
+		frappe.assets.execute(items, () => {
+			resolve();
+			callback && callback();
+		});
+	});
 };
 
 frappe.assets = {
@@ -160,4 +165,12 @@ frappe.assets = {
 			frappe.dom.set_style(txt);
 		}
 	},
+
+	include_style(file, base_url, is_rtl=null) {
+		let path = `${base_url}/assets/css/${file}`;
+		if (is_rtl) {
+			path = `${base_url}/assets/css-rtl/${file}`;
+		}
+		return `<link href="${path}" rel="stylesheet">`;
+	}
 };

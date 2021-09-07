@@ -159,6 +159,9 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
+		"on_update_after_submit": [
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"

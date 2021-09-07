@@ -514,7 +514,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	render_skeleton() {
 		const $row = this.get_list_row_html_skeleton(
-			'<div><input type="checkbox" /></div>'
+			'<div><input type="checkbox" class="render-list-checkbox"/></div>'
 		);
 		this.$result.append($row);
 	}
@@ -927,10 +927,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const seen = this.get_seen_class(doc);
 
 		let subject_html = `
-			<input class="level-item list-row-checkbox hidden-xs" type="checkbox"
-				data-name="${escape(doc.name)}">
-			<span class="level-item" style="margin-bottom: 1px;">
-				${this.get_like_html(doc)}
+			<span class="level-item select-like">
+				<input class="list-row-checkbox hidden-xs" type="checkbox"
+					data-name="${escape(doc.name)}">
+				<span class="list-row-like style="margin-bottom: 1px;">
+					${this.get_like_html(doc)}
+				</span>
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
 				<a class="ellipsis"
@@ -1127,7 +1129,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			// don't open form when checkbox, like, filterable are clicked
 			if (
 				$target.hasClass("filterable") ||
-				$target.hasClass("icon-heart") ||
+				$target.hasClass("select-like") ||
+				$target.hasClass("list-row-like") ||
 				$target.is(":checkbox")
 			) {
 				e.stopPropagation();

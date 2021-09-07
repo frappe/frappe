@@ -61,7 +61,7 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 	except frappe.db.DataError as e:
 		if ((frappe.db.db_type == 'mariadb' and e.args[0] == DATA_TOO_LONG) or
 			(frappe.db.db_type == 'postgres' and e.pgcode == STRING_DATA_RIGHT_TRUNCATION)):
-			frappe.throw("Most probably your password is too long.", exc=e)
+			frappe.throw(_("Most probably your password is too long."), exc=e)
 		raise e
 
 

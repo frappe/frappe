@@ -103,3 +103,5 @@ jobs:
 
       - name: UI Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
+        env:
+          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb

@@ -401,10 +401,7 @@ class DocType(Document):
 			frappe.db.sql("""update tabSingles set value=%s
 				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
-			frappe.db.multisql({
-				"mariadb": f"RENAME TABLE `tab{old}` TO `tab{new}`",
-				"postgres": f"ALTER TABLE `tab{old}` RENAME TO `tab{new}`"
-			})
+			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
 		# Do not rename and move files and folders for custom doctype
@@ -734,6 +731,19 @@ def validate_links_table_fieldnames(meta):
 		if not link_meta.get_field(link.link_fieldname):
 			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
+
+		if link.is_child_table and not meta.get_field(link.table_fieldname):
+			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
+
+		if link.is_child_table:
+			if not link.parent_doctype:
+				message = _("Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
+				frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
+
+			if not link.table_fieldname:
+				message = _("Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
+				frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
 def validate_fields_for_doctype(doctype):
 	meta = frappe.get_meta(doctype, cached=False)

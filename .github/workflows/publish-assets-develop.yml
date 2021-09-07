@@ -29,7 +29,7 @@ jobs:
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css
+          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css*
 
       - name: Publish assets to S3
         uses: jakejarvis/s3-sync-action@master

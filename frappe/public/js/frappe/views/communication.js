@@ -143,7 +143,7 @@ frappe.views.CommunicationComposer = class {
 			);
 		});
 
-		if (email_accounts.length > 1) {
+		if (email_accounts.length) {
 			fields.unshift({
 				label: __("From"),
 				fieldtype: "Select",
@@ -726,7 +726,7 @@ frappe.views.CommunicationComposer = class {
 		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
 		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
 			this.message = `
-				<p>${__('Dear')} ${this.real_name},</p>
+				<p>${__('Dear {0},', [this.real_name], 'Salutation in new email')},</p>
 				${SALUTATION_END_COMMENT}<br>
 				${message}
 			`;

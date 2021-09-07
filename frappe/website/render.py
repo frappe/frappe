@@ -20,7 +20,7 @@ from frappe.website.redirect import resolve_redirect
 from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
 from frappe.website.router import clear_sitemap, evaluate_dynamic_routes
-from frappe.translate import guess_language
+from frappe.translate import get_language
 
 class PageNotFoundError(Exception): pass
 
@@ -162,7 +162,7 @@ def add_preload_headers(response):
 
 def render_page_by_language(path):
 	translated_languages = frappe.get_hooks("translated_languages_for_website")
-	user_lang = guess_language(translated_languages)
+	user_lang = get_language(translated_languages)
 	if translated_languages and user_lang in translated_languages:
 		try:
 			if path and path != "index":
