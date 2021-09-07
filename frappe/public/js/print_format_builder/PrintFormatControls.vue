@@ -4,9 +4,15 @@
 			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Page Margins") }}</div>
 				<div class="margin-controls">
-					<div class="form-group" v-for="df in margins" :key="df.fieldname">
+					<div
+						class="form-group"
+						v-for="df in margins"
+						:key="df.fieldname"
+					>
 						<div class="clearfix">
-							<label class="control-label"> {{ df.label }} </label>
+							<label class="control-label">
+								{{ df.label }}
+							</label>
 						</div>
 						<div class="control-input-wrapper">
 							<div class="control-input">
@@ -14,9 +20,33 @@
 									type="number"
 									class="form-control form-control-sm"
 									:value="print_format[df.fieldname]"
-									@change="e => update_margin(df.fieldname, e.target.value)"
+									@change="
+										e =>
+											update_margin(
+												df.fieldname,
+												e.target.value
+											)
+									"
 								/>
 							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="sidebar-menu">
+				<div class="sidebar-label">{{ __("Google Font") }}</div>
+				<div class="form-group">
+					<div class="control-input-wrapper">
+						<div class="control-input">
+							<input
+								type="text"
+								class="form-control form-control-sm"
+								:value="print_format.font"
+								@change="
+									e =>
+										(print_format.font = e.target.value.trim())
+								"
+							/>
 						</div>
 					</div>
 				</div>
@@ -102,7 +132,9 @@ export default {
 		fields() {
 			let fields = this.meta.fields
 				.filter(df => {
-					if (["Section Break", "Column Break"].includes(df.fieldtype)) {
+					if (
+						["Section Break", "Column Break"].includes(df.fieldtype)
+					) {
 						return false;
 					}
 					if (this.search_text) {
@@ -163,6 +195,10 @@ export default {
 	margin-left: 0.5rem;
 }
 
+.margin-controls > .form-group {
+	margin-bottom: 0;
+}
+
 .fields-container {
 	max-height: calc(100vh - 22rem);
 	overflow-y: auto;
@@ -187,5 +223,9 @@ export default {
 
 .sidebar-menu:last-child {
 	margin-bottom: 0;
+}
+
+.control-font >>> .frappe-control[data-fieldname="font"] label {
+	display: none;
 }
 </style>

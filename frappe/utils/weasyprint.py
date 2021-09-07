@@ -36,6 +36,7 @@ def get_html(doctype, name, print_format, letterhead=None):
 		'letterhead': letterhead,
 		'page_width': page_width,
 		'body_width': body_width,
+		'font_family': print_format.font.replace(' ', '+') if print_format.font else None
 	})
 	context.css = frappe.render_template('templates/print_format/print_format.css', context)
 	html = frappe.render_template('templates/print_format/print_format.html', context)

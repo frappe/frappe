@@ -28,8 +28,8 @@
   "line_breaks",
   "absolute_value",
   "column_break_11",
-  "font",
   "font_size",
+  "font",
   "css_section",
   "css",
   "custom_html_help",
@@ -155,12 +155,10 @@
    "options": "Language"
   },
   {
-   "default": "Default",
    "depends_on": "eval:!doc.custom_format",
    "fieldname": "font",
-   "fieldtype": "Select",
-   "label": "Font",
-   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nVerdana\nMonospace"
+   "fieldtype": "Data",
+   "label": "Google Font"
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -253,10 +251,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-08-15 22:55:13.548182",
+ "modified": "2021-09-07 09:47:57.119820",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
