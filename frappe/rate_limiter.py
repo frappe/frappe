@@ -84,19 +84,21 @@ class RateLimiter:
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
 
-def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60, methods: Union[str, list]='ALL'):
+def rate_limit(key: str=None, limit: Union[int, Callable] = 5, seconds: int= 24*60*60, methods: Union[str, list]='ALL', ip_based: bool=True):
 	"""Decorator to rate limit an endpoint.
 
 	This will limit Number of requests per endpoint to `limit` within `seconds`.
 	Uses redis cache to track request counts.
 
-	:param key: Key is used to identify the requests uniqueness
+	:param key: Key is used to identify the requests uniqueness (Optional)
 	:param limit: Maximum number of requests to allow with in window time
 	:type limit: Callable or Integer
 	:param seconds: window time to allow requests
 	:param methods: Limit the validation for these methods.
 		`ALL` is a wildcard that applies rate limit on all methods.
 	:type methods: string or list or tuple
+	:param ip_based: flag to allow ip based rate-limiting
+	:type ip_based: Boolean
 
 	:returns: a decorator function that limit the number of requests per endpoint
 	"""
@@ -109,14 +111,19 @@ def rate_limit(key: str, limit: Union[int, Callable] = 5, seconds: int= 24*60*60
 
 			_limit = limit() if callable(limit) else limit
 
-			cmd = (frappe.form_dict.cmd).split('.')[-1]
-			user_key=frappe.form_dict[key]
 			ip = frappe.local.request_ip
-			
-			# cmd "accept" is used for web-forms only
-			ip_based_key = ":".join([ip, user_key]) if cmd == 'accept' else ip
 
-			cache_key = f"rl:{frappe.form_dict.cmd}:{ip_based_key}"
+			if key == None and ip_based == False:
+				frappe.throw(_('Either key or IP flag is required.'))
+			elif key == None:
+				identity = ip
+			elif ip_based == False:
+				identity = frappe.form_dict[key]
+			else:
+				user_key=frappe.form_dict[key]
+				identity = ":".join([ip, user_key])
+
+			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
 			value = frappe.cache().get_value(cache_key, expires=True) or 0
 			if not value:
