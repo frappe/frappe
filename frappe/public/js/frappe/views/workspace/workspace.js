@@ -625,7 +625,7 @@ frappe.views.Workspace = class Workspace {
 		let $sidebar_section = is_public ? $sidebar[1] : $sidebar[0];
 
 		if (!parent) {
-			!is_public && $sidebar.last().removeClass('hidden');
+			!is_public && $sidebar.first().removeClass('hidden');
 			$sidebar_item.appendTo($sidebar_section);
 		} else {
 			let $item_container = $($sidebar_section).find(`[item-name="${parent}"]`);
