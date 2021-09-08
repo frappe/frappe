@@ -17,6 +17,7 @@ import click
 import frappe
 from frappe import _, conf
 from frappe.share import remove
+from frappe.commands import get_site, pass_context
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 
 # backup variable for backwards compatibility
@@ -211,11 +212,12 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
+		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup.json"
-		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database.sql.gz"
-		for_public_files = f"{self.todays_date}-{self.site_slug}-files.{ext}"
-		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files.{ext}"
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
+		for_public_files = f"{self.todays_date}-{self.site_slug}-files.{enc}{ext}"
+		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
 
 		if not self.backup_path_conf:
@@ -228,7 +230,7 @@ class BackupGenerator:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
 	def backup_encryption(self):
-		paths = (self.backup_path_conf, self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
+		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
 				cmd_string = ("gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}")
@@ -237,6 +239,7 @@ class BackupGenerator:
 						passphrase = backup_encryption_key(),
 						filelocation = path,
 					)
+					
 					frappe.utils.execute_in_shell(command)
 					os.rename(path + ".gpg", path)
 
@@ -252,6 +255,14 @@ class BackupGenerator:
 			"private": "*-{}-private-files.tar",
 			"config": "*-{}-site_config_backup.json",
 		}
+		if frappe.get_system_settings("encrypt_backup"):
+			file_type_slugs = {
+				"database": "*-{{}}-{}database.enc.sql.gz".format('*' if partial else ''),
+				"public": "*-{}-files.enc.tar",
+				"private": "*-{}-private-files.enc.tar",
+				"config": "*-{}-site_config_backup.json",
+			}
+
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
@@ -661,31 +672,30 @@ def backup(
 def get_backup_encryption_key():
 	return frappe.msgprint(backup_encryption_key(),"Backup Encryption Key")
 
-def backup_decryption(path,passphrase):
+def backup_decryption(file_path,passphrase):
 	"""
 	Decrypts backup the given path using the passphrase.
 	"""
-	if os.path.exists(path):
-		os.rename(path, path + ".gpg")
-		path = path + ".gpg"
+	if os.path.exists(file_path):
+
+		os.rename(file_path, file_path + ".gpg")
+		file_path = file_path + ".gpg"
+		
 		cmd_string = ("gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decryptedfile} -d {filelocation}")
 		command = cmd_string.format(
 			passphrase = passphrase,
-			filelocation = path,
-			decryptedfile = path[:-4],
+			filelocation = file_path,
+			decryptedfile = file_path[:-4],
 		)
-		frappe.utils.execute_in_shell(command)
+	frappe.utils.execute_in_shell(command)
 
 def backup_encryption_key():
-	"""
-	Return Key if already present and generates one if not
-	"""
 	from frappe.installer import update_site_config
 	if 'backup_encryption_key' not in frappe.local.conf:
 		backup_encryption_key = Fernet.generate_key().decode()
 		update_site_config('backup_encryption_key', backup_encryption_key)
 		frappe.local.conf.backup_encryption_key = backup_encryption_key
-
+		click.secho("New Backup Encryption Key Generated", fg="yellow")
 	return frappe.local.conf.backup_encryption_key
 	
 def decryption_rollback(file_path):

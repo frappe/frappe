@@ -92,21 +92,27 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 				fg="yellow"
 			)
 			sys.exit(1)	
-	except:
-		# Rollback changes after unsuccessful attempt
-		decryption_rollback(sql_file_path)
-		if os.path.exists(decompressed_file_name):
-			os.remove(decompressed_file_name)
+	except:	
+		click.secho("Encrypted Backup file detected. Decrypting using Config",fg="yellow")
+		site = get_site(context)
+		frappe.init(site)
+		backup_encryption_key = frappe.get_site_config().backup_encryption_key
+		frappe.destroy()
 
-		click.secho(
-				"Encrypted Backup file detected. You cannot use a Encrypted file withoy key to restore a Frappe Site.",
-				fg="red"
-			)
-		click.secho(
-				"Use `backup_encryption_key` to restore a partial backup to an existing site.",
-				fg="yellow"
-			)
-		sys.exit(1)
+		if backup_encryption_key == None:
+			click.secho("No Backup Encryption Key Found. Use `--backup-encrytion key` instead",fg="red")
+			sys.exit(1)
+		else:
+			backup_decryption(sql_file_path, backup_encryption_key)
+			if not os.path.exists(sql_file_path):
+				click.secho("Encryption key not Valid. Use `--backup-encrytion key` instead",fg="red")
+				os.rename(sql_file_path + ".gpg",sql_file_path)
+				sys.exit(1)
+			force = context.force or force
+			decompressed_file_name = extract_sql_from_archive(sql_file_path)
+			
+
+			
 	try:
 		# check if valid SQL file
 		validate_database_sql(decompressed_file_name, _raise=not force)
@@ -126,7 +132,8 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
 			force=True, db_type=frappe.conf.db_type)
 		
-	except:
+	except Exception as err:
+		print(err)
 		decryption_rollback(sql_file_path)
 	
 	# Removing temporarily created file
@@ -135,8 +142,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 		decryption_rollback(sql_file_path)
 
 	# Extract public and/or private files to the restored site, if user has given the path
-	if with_public_files:
-		
+	if with_public_files:		
 		# Decrypt data if there is a Key
 		if backup_encryption_key and os.path.exists(with_public_files):
 			backup_decryption(with_public_files, backup_encryption_key)
@@ -195,8 +201,11 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 				fg="yellow"
 			)
 		sys.exit(1)
-
+	# Removing temporarily created file
 	decryption_rollback(sql_file_path)
+	if os.path.exists(sql_file_path.rstrip(".gz")):
+		os.remove(sql_file_path.rstrip(".gz"))
+	
 
 	frappe.destroy()
 
