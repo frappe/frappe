@@ -623,6 +623,31 @@ def read_only():
 		return wrapper_fn
 	return innfn
 
+def write_only():
+	# if replica connection exists, we have to replace it momentarily with the primary connection
+	def innfn(fn):
+		def wrapper_fn(*args, **kwargs):
+			# switch to primary connection
+			primary_db = getattr(local, "primary_db", None)
+			replica_db = getattr(local, "replica_db", None)
+			in_read_only = getattr(local, "db", None) != primary_db
+
+			if in_read_only and primary_db:
+				local.db = local.primary_db
+
+			try:
+				retval = fn(*args, **get_newargs(fn, kwargs))
+			except:
+				raise
+			finally:
+				# switch back to replica connection
+				if in_read_only and replica_db:
+					local.db = replica_db
+
+			return retval
+		return wrapper_fn
+	return innfn
+
 def only_for(roles, message=False):
 	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
 
