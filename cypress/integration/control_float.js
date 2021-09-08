@@ -3,7 +3,7 @@ context('Control Float', () => {
 		cy.login();
 		cy.visit('/app/website');
 		cy.window().its('frappe').then(frappe => {
-			frappe.boot.sysdefaults.number_format = '#.###,##'
+			frappe.boot.sysdefaults.number_format = '#.###,##';
 		});
 	});
 
