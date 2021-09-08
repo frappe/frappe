@@ -15,6 +15,7 @@ class AccessLog(Document):
 
 
 @frappe.whitelist()
+@frappe.write_only()
 def make_access_log(doctype=None, document=None, method=None, file_type=None,
 		report_name=None, filters=None, page=None, columns=None):
 

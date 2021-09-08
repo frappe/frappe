@@ -627,11 +627,11 @@ def write_only():
 	# if replica connection exists, we have to replace it momentarily with the primary connection
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-			# switch to primary connection
 			primary_db = getattr(local, "primary_db", None)
 			replica_db = getattr(local, "replica_db", None)
 			in_read_only = getattr(local, "db", None) != primary_db
 
+			# switch to primary connection
 			if in_read_only and primary_db:
 				local.db = local.primary_db
 
