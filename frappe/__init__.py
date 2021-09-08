@@ -612,8 +612,6 @@ def read_only():
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
-			except:
-				raise
 			finally:
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
@@ -637,8 +635,6 @@ def write_only():
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
-			except:
-				raise
 			finally:
 				# switch back to replica connection
 				if in_read_only and replica_db:
