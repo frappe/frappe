@@ -207,6 +207,13 @@ body {
 	}
 
 	// listviews
+	.select-like {
+		margin-right: unset !important;
+	}
+
+	.list-count {
+		display: contents;
+	}
 
 	.doclist-row {
 		position: relative;
