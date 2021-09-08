@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import json
 import os
@@ -338,7 +338,7 @@ def get_context(context):
 
 		if missing:
 			frappe.throw(_('Mandatory Information missing:') + '<br><br>'
-				+ '<br>'.join(['{0} ({1})'.format(d.label, d.fieldtype) for d in missing]))
+				+ '<br>'.join('{0} ({1})'.format(d.label, d.fieldtype) for d in missing))
 
 	def allow_website_search_indexing(self):
 		return False
@@ -542,7 +542,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options)
+			field.fields = frappe.get_meta(field.options).fields
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":

@@ -35,13 +35,14 @@
 .ql-container.ql-snow {
 	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
-	overflow: hidden;
 }
 
 .ql-snow {
 	.ql-editor {
 		min-height: 400px;
 		max-height: 600px;
+		border-bottom-left-radius: var(--border-radius);
+		border-bottom-right-radius: var(--border-radius);
 	}
 	.ql-stroke {
 		stroke: var(--icon-stroke);
@@ -176,6 +177,7 @@
 }
 
 .ql-editor.read-mode {
+	height: unset;
 	padding: 0;
 	.mention {
 		--user-mention-bg-color: var(--control-bg);

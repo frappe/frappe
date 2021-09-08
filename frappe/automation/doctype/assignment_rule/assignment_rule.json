@@ -72,6 +72,7 @@
    "fieldtype": "Code",
    "in_list_view": 1,
    "label": "Assign Condition",
+   "options": "PythonExpression",
    "reqd": 1
   },
   {
@@ -82,7 +83,8 @@
    "description": "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")",
    "fieldname": "unassign_condition",
    "fieldtype": "Code",
-   "label": "Unassign Condition"
+   "label": "Unassign Condition",
+   "options": "PythonExpression"
   },
   {
    "fieldname": "assign_to_users_section",
@@ -120,7 +122,8 @@
    "description": "Simple Python Expression, Example: Status in (\"Invalid\")",
    "fieldname": "close_condition",
    "fieldtype": "Code",
-   "label": "Close Condition"
+   "label": "Close Condition",
+   "options": "PythonExpression"
   },
   {
    "fieldname": "sb",
@@ -151,7 +154,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-20 14:47:20.662954",
+ "modified": "2021-07-16 22:51:35.505575",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

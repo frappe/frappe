@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 no_cache = True

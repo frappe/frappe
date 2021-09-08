@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import functools
 import hashlib
@@ -189,7 +189,7 @@ def random_string(length):
 	"""generate a random string"""
 	import string
 	from random import choice
-	return ''.join([choice(string.ascii_letters + string.digits) for i in range(length)])
+	return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
 
 
 def has_gravatar(email):
@@ -311,7 +311,7 @@ def make_esc(esc_chars):
 	"""
 		Function generator for Escaping special characters
 	"""
-	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
+	return lambda s: ''.join('\\' + c if c in esc_chars else c for c in s)
 
 # esc / unescape characters -- used for command line
 def esc(s, esc_chars):
@@ -382,6 +382,12 @@ def get_files_path(*path, **kwargs):
 
 def get_bench_path():
 	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
+
+def get_bench_id():
+	return frappe.get_conf().get('bench_id', get_bench_path().strip('/').replace('/', '-'))
+
+def get_site_id(site=None):
+	return f"{site or frappe.local.site}@{get_bench_id()}"
 
 def get_backups_path():
 	return get_site_path("private", "backups")
@@ -748,9 +754,9 @@ def set_request(**kwargs):
 	frappe.local.request = Request(builder.get_environ())
 
 def get_html_for_route(route):
-	from frappe.website import render
+	from frappe.website.serve import get_response
 	set_request(method='GET', path=route)
-	response = render.render()
+	response = get_response()
 	html = frappe.safe_decode(response.get_data())
 	return html
 
@@ -843,3 +849,6 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+
+def get_table_name(table_name: str) -> str:
+	return f"tab{table_name}" if not table_name.startswith("__") else table_name

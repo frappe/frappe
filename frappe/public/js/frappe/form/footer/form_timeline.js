@@ -136,6 +136,7 @@ class FormTimeline extends BaseTimeline {
 			this.timeline_items.push(...this.get_energy_point_timeline_contents());
 			this.timeline_items.push(...this.get_version_timeline_contents());
 			this.timeline_items.push(...this.get_share_timeline_contents());
+			this.timeline_items.push(...this.get_workflow_timeline_contents());
 			this.timeline_items.push(...this.get_like_timeline_contents());
 			this.timeline_items.push(...this.get_custom_timeline_contents());
 			this.timeline_items.push(...this.get_assignment_timeline_contents());
@@ -190,6 +191,7 @@ class FormTimeline extends BaseTimeline {
 		}
 		doc.owner = doc.sender;
 		doc.user_full_name = doc.sender_full_name;
+		doc.content = frappe.dom.remove_script_and_style(doc.content);
 		let communication_content = $(frappe.render_template('timeline_message_box', { doc }));
 		if (allow_reply) {
 			this.setup_reply(communication_content, doc);
@@ -248,6 +250,7 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_comment_timeline_content(doc) {
+		doc.content = frappe.dom.remove_script_and_style(doc.content);
 		const comment_content = $(frappe.render_template('timeline_message_box', { doc }));
 		this.setup_comment_actions(comment_content, doc);
 		return comment_content;
@@ -337,9 +340,24 @@ class FormTimeline extends BaseTimeline {
 				icon_size: 'sm',
 				creation: like_log.creation,
 				content: __('{0} Liked', [this.get_user_link(like_log.owner)]),
+				title: "Like",
 			});
 		});
 		return like_timeline_contents;
+	}
+
+	get_workflow_timeline_contents() {
+		let workflow_timeline_contents = [];
+		(this.doc_info.workflow_logs || []).forEach(workflow_log => {
+			workflow_timeline_contents.push({
+				icon: 'branch',
+				icon_size: 'sm',
+				creation: workflow_log.creation,
+				content: __(workflow_log.content),
+				title: "Workflow",
+			});
+		});
+		return workflow_timeline_contents;
 	}
 
 	get_custom_timeline_contents() {

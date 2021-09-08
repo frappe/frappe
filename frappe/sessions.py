@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 """
 Boot session from cache or build
 
@@ -84,7 +84,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		if user_details: user = user_details[0].get("user")
 
 	logout_feed(user, reason)
-	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+	frappe.db.delete("Sessions", {"sid": sid})
 	frappe.db.commit()
 
 def clear_all_sessions(reason=None):
@@ -167,7 +167,8 @@ def get_csrf_token():
 
 def generate_csrf_token():
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
-	frappe.local.session_obj.update(force=True)
+	if not frappe.flags.in_test:
+		frappe.local.session_obj.update(force=True)
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
@@ -248,7 +249,6 @@ class Session:
 		data = self.get_session_record()
 
 		if data:
-			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 			self.user = data.user
 			validate_ip_address(self.user)

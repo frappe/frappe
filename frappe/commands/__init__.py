@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import sys
 import click
@@ -102,7 +102,9 @@ def get_commands():
 	from .site import commands as site_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
+	from .redis import commands as redis_commands
 
-	return list(set(scheduler_commands + site_commands + translate_commands + utils_commands))
+	all_commands = scheduler_commands + site_commands + translate_commands + utils_commands + redis_commands
+	return list(set(all_commands))
 
 commands = get_commands()

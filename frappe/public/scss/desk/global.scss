@@ -126,6 +126,12 @@ pre {
 	}
 }
 
+.hidden-xl {
+	@include media-breakpoint-up(lg) {
+		display: none !important;
+	}
+}
+
 .visible-xs {
 	@include media-breakpoint-up(sm) {
 		display: none !important;
@@ -574,3 +580,15 @@ details > summary:focus {
 // 	font-family: 'Octicons';
 // 	content: "\f00b";
 // }
+
+/*rtl:raw:
+.dropdown-menu {
+	right: auto;
+}
+.popover {
+	right: auto;
+}
+.chart-container {
+	direction: ltr;
+}
+*/

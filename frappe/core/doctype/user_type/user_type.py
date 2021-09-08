@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2021, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _
@@ -36,8 +36,11 @@ class UserType(Document):
 		if not self.user_doctypes:
 			return
 
-		modules = frappe.get_all('DocType', fields=['distinct module as module'],
-			filters={'name': ('in', [d.document_type for d in self.user_doctypes])})
+		modules = frappe.get_all("DocType",
+			fields=["module"],
+			filters={"name": ("in", [d.document_type for d in self.user_doctypes])},
+			distinct=True,
+		)
 
 		self.set('user_type_modules', [])
 		for row in modules:
@@ -112,7 +115,7 @@ class UserType(Document):
 		self.select_doctypes = []
 
 		select_doctypes = []
-		user_doctypes = tuple([row.document_type for row in self.user_doctypes])
+		user_doctypes = [row.document_type for row in self.user_doctypes]
 
 		for doctype in user_doctypes:
 			doc = frappe.get_meta(doctype)

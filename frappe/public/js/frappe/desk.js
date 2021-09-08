@@ -64,8 +64,6 @@ frappe.Application = class Application {
 			}
 		});
 
-		this.set_rtl();
-
 		// page container
 		this.make_page_container();
 		this.set_route();
@@ -232,7 +230,7 @@ frappe.Application = class Application {
 			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
 			s.show();
 			frappe.call({
-				method: 'frappe.core.doctype.user.user.set_email_password',
+				method: 'frappe.email.doctype.email_account.email_account.set_email_password',
 				args: {
 					"email_account": email_account[i]["email_account"],
 					"user": user,
@@ -285,11 +283,7 @@ frappe.Application = class Application {
 		frappe.workspaces = {};
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module]=page;
-			frappe.workspaces[frappe.router.slug(page.name)] = page;
-		}
-		if (!frappe.workspaces['home']) {
-			// default workspace is settings for Frappe
-			frappe.workspaces['home'] = frappe.workspaces[Object.keys(frappe.workspaces)[0]];
+			frappe.workspaces[frappe.router.slug(page.title)] = page;
 		}
 	}
 
@@ -489,16 +483,6 @@ frappe.Application = class Application {
 		}, 100);
 	}
 
-	set_rtl() {
-		if (frappe.utils.is_rtl()) {
-			var ls = document.createElement('link');
-			ls.rel="stylesheet";
-			ls.type = "text/css";
-			ls.href= frappe.assets.bundled_asset("frappe-rtl.bundle.css");
-			document.getElementsByTagName('head')[0].appendChild(ls);
-			$('body').addClass('frappe-rtl');
-		}
-	}
 
 	show_change_log() {
 		var me = this;
@@ -607,9 +591,7 @@ frappe.Application = class Application {
 				let doc = JSON.parse(pasted_data);
 				if (doc.doctype) {
 					e.preventDefault();
-					let sleep = (time) => {
-						return new Promise((resolve) => setTimeout(resolve, time));
-					};
+					const sleep = frappe.utils.sleep;
 
 					frappe.dom.freeze(__('Creating {0}', [doc.doctype]) + '...');
 					// to avoid abrupt UX

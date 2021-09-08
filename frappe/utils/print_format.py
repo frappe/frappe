@@ -7,7 +7,7 @@ from PyPDF2 import PdfFileWriter
 
 no_cache = 1
 
-base_template_path = "templates/www/printview.html"
+base_template_path = "www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 @frappe.whitelist()

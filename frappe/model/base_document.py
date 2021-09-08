@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 import datetime
 from frappe import _
@@ -83,10 +83,14 @@ class BaseDocument(object):
 
 	@property
 	def meta(self):
-		if not hasattr(self, "_meta"):
+		if not getattr(self, "_meta", None):
 			self._meta = frappe.get_meta(self.doctype)
 
 		return self._meta
+
+	def __getstate__(self):
+		self._meta = None
+		return self.__dict__
 
 	def update(self, d):
 		""" Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -354,7 +358,7 @@ class BaseDocument(object):
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
 					VALUES ({values})""".format(
 					doctype = self.doctype,
-					columns = ", ".join(["`"+c+"`" for c in columns]),
+					columns = ", ".join("`"+c+"`" for c in columns),
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
 		except Exception as e:
@@ -397,7 +401,7 @@ class BaseDocument(object):
 			frappe.db.sql("""UPDATE `tab{doctype}`
 				SET {values} WHERE `name`=%s""".format(
 					doctype = self.doctype,
-					values = ", ".join(["`"+c+"`=%s" for c in columns])
+					values = ", ".join("`"+c+"`=%s" for c in columns)
 				), list(d.values()) + [name])
 		except Exception as e:
 			if frappe.db.is_unique_key_violation(e):
@@ -723,6 +727,18 @@ class BaseDocument(object):
 				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
 
+	def _validate_code_fields(self):
+		for field in self.meta.get_code_fields():
+			code_string = self.get(field.fieldname)
+			language = field.get("options")
+
+			if language == "Python":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
+
+			elif language == "PythonExpression":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
+
 	def throw_length_exceeded_error(self, df, max_length, value):
 		if self.parentfield and self.idx:
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
@@ -858,7 +874,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -882,7 +898,7 @@ class BaseDocument(object):
 		if (absolute_value or doc.get('absolute_value')) and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
 
-		return format_value(val, df=df, doc=doc, currency=currency)
+		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
@@ -953,7 +969,7 @@ class BaseDocument(object):
 		return self.cast(val, df)
 
 	def cast(self, value, df):
-		return cast_fieldtype(df.fieldtype, value)
+		return cast_fieldtype(df.fieldtype, value, show_warning=False)
 
 	def _extract_images_from_text_editor(self):
 		from frappe.core.doctype.file.file import extract_images_from_doc

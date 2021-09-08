@@ -1,32 +1,25 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-import frappe
+# License: MIT. See LICENSE
+import email.utils
+import functools
 import imaplib
-import re
-import json
 import socket
 import time
-import functools
-
-import email.utils
-
-from frappe import _, are_emails_muted
-from frappe.model.document import Document
-from frappe.utils import (validate_email_address, cint, cstr, get_datetime,
-	DATE_FORMAT, strip, comma_or, sanitize_html, add_days, parse_addr)
-from frappe.utils.user import is_system_user
-from frappe.utils.jinja import render_template
-from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
-from poplib import error_proto
-from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+from poplib import error_proto
+
+import frappe
+from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.form import assign_to
-from frappe.utils.user import get_system_managers
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.html_utils import clean_email_html
-from frappe.utils.error import raise_error_on_no_output
+from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
+from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
+from frappe.model.document import Document
+from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
+from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.error import raise_error_on_no_output
+from frappe.utils.jinja import render_template
+from frappe.utils.user import get_system_managers
 
 OUTGOING_EMAIL_ACCOUNT_MISSING = _("Please setup default Email Account from Setup > Email > Email Account")
 
@@ -144,8 +137,6 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
-		from frappe.core.doctype.user.user import setup_user_email_inbox
-
 		self.check_automatic_linking_email_account()
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
@@ -441,10 +432,7 @@ class EmailAccount(Document):
 					if self.enable_auto_reply:
 						self.send_auto_reply(communication, mail)
 
-					attachments = []
-					if hasattr(communication, '_attachments'):
-						attachments = [d.file_name for d in communication._attachments]
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					communication.send_email(is_inbound_mail_communcation=True)
 			except SentEmailInInboxError:
 				frappe.db.rollback()
 			except Exception:
@@ -453,6 +441,8 @@ class EmailAccount(Document):
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
+			else:
+				frappe.db.commit()
 
 		#notify if user is linked to account
 		if len(inbound_mails)>0 and not frappe.local.flags.in_test:
@@ -540,8 +530,6 @@ class EmailAccount(Document):
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
-		from frappe.core.doctype.user.user import remove_user_email_inbox
-
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
 		remove_user_email_inbox(email_account=self.name)
 
@@ -578,8 +566,8 @@ class EmailAccount(Document):
 			email_server.update_flag(uid_list=uid_list)
 
 			# mark communication as read
-			docnames =  ",".join([ "'%s'"%flag.get("communication") for flag in flags \
-				if flag.get("action") == "Read" ])
+			docnames =  ",".join("'%s'"%flag.get("communication") for flag in flags \
+				if flag.get("action") == "Read")
 			self.set_communication_seen_status(docnames, seen=1)
 
 			# mark communication as unread
@@ -609,7 +597,6 @@ class EmailAccount(Document):
 
 
 	def append_email_to_sent_folder(self, message):
-
 		email_server = None
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
@@ -623,7 +610,8 @@ class EmailAccount(Document):
 
 		if email_server.imap:
 			try:
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message.encode())
+				message = safe_encode(message)
+				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
 				frappe.log_error()
 
@@ -732,3 +720,84 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
+
+
+def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing):
+	""" setup email inbox for user """
+	from frappe.core.doctype.user.user import ask_pass_update
+
+	def add_user_email(user):
+		user = frappe.get_doc("User", user)
+		row = user.append("user_emails", {})
+
+		row.email_id = email_id
+		row.email_account = email_account
+		row.awaiting_password = awaiting_password or 0
+		row.enable_outgoing = enable_outgoing or 0
+
+		user.save(ignore_permissions=True)
+
+	update_user_email_settings = False
+	if not all([email_account, email_id]):
+		return
+
+	user_names = frappe.db.get_values("User", {"email": email_id}, as_dict=True)
+	if not user_names:
+		return
+
+	for user in user_names:
+		user_name = user.get("name")
+
+		# check if inbox is alreay configured
+		user_inbox = frappe.db.get_value("User Email", {
+			"email_account": email_account,
+			"parent": user_name
+		}, ["name"]) or None
+
+		if not user_inbox:
+			add_user_email(user_name)
+		else:
+			# update awaiting password for email account
+			update_user_email_settings = True
+
+	if update_user_email_settings:
+		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s,
+			enable_outgoing = %(enable_outgoing)s WHERE email_account = %(email_account)s""", {
+				"email_account": email_account,
+				"enable_outgoing": enable_outgoing,
+				"awaiting_password": awaiting_password or 0
+			})
+	else:
+		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
+		frappe.msgprint(_("Enabled email inbox for user {0}").format(users))
+	ask_pass_update()
+
+def remove_user_email_inbox(email_account):
+	""" remove user email inbox settings if email account is deleted """
+	if not email_account:
+		return
+
+	users = frappe.get_all("User Email", filters={
+		"email_account": email_account
+	}, fields=["parent as name"])
+
+	for user in users:
+		doc = frappe.get_doc("User", user.get("name"))
+		to_remove = [row for row in doc.user_emails if row.email_account == email_account]
+		[doc.remove(row) for row in to_remove]
+
+		doc.save(ignore_permissions=True)
+
+@frappe.whitelist(allow_guest=False)
+def set_email_password(email_account, user, password):
+	account = frappe.get_doc("Email Account", email_account)
+	if account.awaiting_password:
+		account.awaiting_password = 0
+		account.password = password
+		try:
+			account.save(ignore_permissions=True)
+		except Exception:
+			frappe.db.rollback()
+			return False
+
+	return True

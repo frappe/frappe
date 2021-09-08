@@ -13,6 +13,7 @@
   "api_method",
   "allow_guest",
   "column_break_3",
+  "module",
   "disabled",
   "section_break_8",
   "script",
@@ -93,6 +94,12 @@
    "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
    "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -102,7 +109,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2021-02-18 12:36:19.803425",
+ "modified": "2021-09-04 12:02:43.671240",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

@@ -367,6 +367,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			!this.settings.hide_name_column &&
+			this.meta.title_field &&
 			this.meta.title_field !== 'name'
 		) {
 			this.columns.push({
@@ -514,7 +515,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	render_skeleton() {
 		const $row = this.get_list_row_html_skeleton(
-			'<div><input type="checkbox" /></div>'
+			'<div><input type="checkbox" class="render-list-checkbox"/></div>'
 		);
 		this.$result.append($row);
 	}
@@ -867,8 +868,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			filters: this.get_filters_for_args()
 		}).then(total_count => {
 			this.total_count = total_count || current_count;
+			this.count_without_children = count_without_children !== current_count ? count_without_children : undefined;
 			let str = __('{0} of {1}', [current_count, this.total_count]);
-			if (count_without_children !== current_count) {
+			if (this.count_without_children) {
 				str = __('{0} of {1} ({2} rows with children)', [count_without_children, this.total_count, current_count]);
 			}
 			return str;
@@ -927,10 +929,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const seen = this.get_seen_class(doc);
 
 		let subject_html = `
-			<input class="level-item list-row-checkbox hidden-xs" type="checkbox"
-				data-name="${escape(doc.name)}">
-			<span class="level-item" style="margin-bottom: 1px;">
-				${this.get_like_html(doc)}
+			<span class="level-item select-like">
+				<input class="list-row-checkbox hidden-xs" type="checkbox"
+					data-name="${escape(doc.name)}">
+				<span class="list-row-like style="margin-bottom: 1px;">
+					${this.get_like_html(doc)}
+				</span>
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
 				<a class="ellipsis"
@@ -948,9 +952,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_indicator_html(doc) {
 		const indicator = frappe.get_indicator(doc, this.doctype);
+		// sequence is important
+		const docstatus_description = [
+			__('Document is in draft state'),
+			__('Document has been submitted'),
+			__('Document has been cancelled')
+		];
+		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
 			return `<span class="indicator-pill ${indicator[1]} filterable ellipsis"
-				data-filter='${indicator[2]}'>
+				data-filter='${indicator[2]}' title='${title}'>
 				<span class="ellipsis"> ${__(indicator[0])}</span>
 			<span>`;
 		}
@@ -1127,7 +1138,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			// don't open form when checkbox, like, filterable are clicked
 			if (
 				$target.hasClass("filterable") ||
-				$target.hasClass("icon-heart") ||
+				$target.hasClass("select-like") ||
+				$target.hasClass("list-row-like") ||
 				$target.is(":checkbox")
 			) {
 				e.stopPropagation();
@@ -1727,10 +1739,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_export = () => {
+			return {
+				label: __("Export"),
+				action: () => {
+					const docnames = this.get_checked_items(true);
+
+					bulk_operations.export(doctype, docnames);
+				},
+				standard: true
+			};
+		};
+
 		// bulk edit
 		if (has_editable_fields(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
+
+		actions_menu_items.push(bulk_export());
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
