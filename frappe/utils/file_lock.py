@@ -7,7 +7,9 @@ File based locking utility
 
 import os
 from time import time
+
 from frappe.utils import get_site_path, touch_file
+
 
 class LockTimeoutError(Exception):
     pass

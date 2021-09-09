@@ -1,14 +1,17 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-import re
-import redis
 import json
 import os
+import re
+
+import redis
+
+import frappe
+from frappe.model.base_document import get_controller
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.html_utils import unescape_html
-from frappe.model.base_document import get_controller
+
 
 def setup_global_search_table():
 	"""
@@ -302,8 +305,9 @@ def get_routes_to_index():
 
 def add_route_to_global_search(route):
 	from bs4 import BeautifulSoup
-	from frappe.website.serve import get_response_content
+
 	from frappe.utils import set_request
+	from frappe.website.serve import get_response_content
 	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 
@@ -411,9 +415,8 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-	from frappe.desk.doctype.global_search_settings.global_search_settings import (
-		get_doctypes_for_global_search,
-	)
+	from frappe.desk.doctype.global_search_settings.global_search_settings import \
+	    get_doctypes_for_global_search
 	from frappe.query_builder.functions import Match
 
 	results = []

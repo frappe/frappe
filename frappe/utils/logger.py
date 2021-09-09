@@ -1,14 +1,9 @@
-# imports - standard imports
 import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-# imports - third party imports
-
-# imports - module imports
 import frappe
 from frappe.utils import get_sites
-
 
 default_log_level = logging.DEBUG
 

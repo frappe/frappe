@@ -2,19 +2,19 @@
 # Copyright (c) 2015, Maxwell Morais and contributors
 # License: MIT. See LICENSE
 
+import cgitb
+import datetime
+import functools
+import inspect
+import json
+import linecache
 import os
+import pydoc
 import sys
 import traceback
-import functools
 
 import frappe
 from frappe.utils import cstr, encode
-import inspect
-import linecache
-import pydoc
-import cgitb
-import datetime
-import json
 
 
 def make_error_snapshot(exception):

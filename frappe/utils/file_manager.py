@@ -1,17 +1,22 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-import os, base64, re, json
+import base64
 import hashlib
-import mimetypes
 import io
-from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
-from frappe import _
-from frappe import conf
+import json
+import mimetypes
+import os
+import re
 from copy import copy
 from urllib.parse import unquote
+
+import frappe
+from frappe import _, conf
+from frappe.utils import (call_hook_method, cint, cstr, encode, get_files_path,
+                          get_hook_method, random_string)
 from frappe.utils.image import optimize_image
+
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass

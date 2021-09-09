@@ -1,7 +1,14 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe, os, re, git
-from frappe.utils import touch_file, cstr
+
+import os
+import re
+
+import git
+
+import frappe
+from frappe.utils import cstr, touch_file
+
 
 def make_boilerplate(dest, app_name):
 	if not os.path.exists(dest):

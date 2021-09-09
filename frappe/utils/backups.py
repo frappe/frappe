@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-# imports - standard imports
 import gzip
 import os
 from calendar import timegm
@@ -9,13 +8,11 @@ from datetime import datetime
 from glob import glob
 from shutil import which
 
-# imports - third party imports
 import click
 
-# imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.utils import get_file_size, get_url, now, now_datetime, cint
+from frappe.utils import cint, get_file_size, get_url, now, now_datetime
 
 # backup variable for backwards compatibility
 verbose = False

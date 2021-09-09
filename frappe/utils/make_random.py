@@ -1,5 +1,5 @@
-
-import frappe, random
+import random
+import frappe
 
 settings = frappe._dict(
 	prob = {

@@ -1,24 +1,23 @@
 import os
 import socket
 import time
-from uuid import uuid4
 from collections import defaultdict
 from typing import List
-
+from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
+                      wait_fixed)
 
 import frappe
-from frappe import _
 import frappe.monitor
+from frappe import _
 from frappe.utils import cstr, get_bench_id
-from frappe.utils.rq import RedisQueue
 from frappe.utils.commands import log
-
+from frappe.utils.rq import RedisQueue
 
 default_timeout = 300
 queue_timeout = {

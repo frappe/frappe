@@ -1,8 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import os
-from PIL import Image
 import io
+import os
+
+from PIL import Image
+
 
 def resize_images(path, maxdim=700):
 	from PIL import Image

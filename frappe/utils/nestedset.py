@@ -15,6 +15,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now
 
+
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
 class NestedSetChildExistsError(frappe.ValidationError): pass

@@ -1,12 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe import msgprint, _
-import json
+
 import csv
-import requests
+import json
 from io import StringIO
-from frappe.utils import cstr, cint, flt, comma_or
+
+import requests
+
+import frappe
+from frappe import _, msgprint
+from frappe.utils import cint, comma_or, cstr, flt
+
 
 def read_csv_content_from_attached_file(doc):
 	fileid = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": doc.doctype,

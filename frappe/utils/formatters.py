@@ -1,11 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
 import datetime
-from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time, format_duration
-from frappe.model.meta import get_field_currency, get_field_precision
 import re
+
+import frappe
+from frappe.model.meta import get_field_currency, get_field_precision
+from frappe.utils import (cint, cstr, flt, fmt_money, format_datetime,
+                          format_duration, format_time, formatdate)
+
 
 def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
 	'''Format value based on given fieldtype, document reference, currency reference.

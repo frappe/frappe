@@ -1,15 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Optional
-import frappe
-import operator
+import datetime
 import json
-import re, datetime, math, time
+import math
+import operator
+import re
+import time
 from code import compile_command
+from typing import Optional
 from urllib.parse import quote, urljoin
-from frappe.desk.utils import slug
+
 from click import secho
+
+import frappe
+from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -182,7 +187,7 @@ def get_time_zone():
 	return frappe.cache().get_value("time_zone", _get_time_zone)
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
-	from pytz import timezone, UnknownTimeZoneError
+	from pytz import UnknownTimeZoneError, timezone
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
 		return utcnow.astimezone(timezone(time_zone))
@@ -976,9 +981,11 @@ def is_image(filepath):
 
 def get_thumbnail_base64_for_image(src):
 	from os.path import exists as file_exists
+
 	from PIL import Image
+
+	from frappe import cache, safe_decode
 	from frappe.core.doctype.file.file import get_local_image
-	from frappe import safe_decode, cache
 
 	if not src:
 		frappe.throw('Invalid source for image: {0}'.format(src))
@@ -1369,8 +1376,9 @@ def make_filter_dict(filters):
 	return _filter
 
 def sanitize_column(column_name):
-	from frappe import _
 	import sqlparse
+
+	from frappe import _
 	regex = re.compile("^.*[,'();].*")
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
 	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
@@ -1446,8 +1454,9 @@ def strip(val, chars=None):
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
 def to_markdown(html):
-	from html2text import html2text
 	from html.parser import HTMLParser
+
+	from html2text import html2text
 
 	text = None
 	try:
@@ -1458,7 +1467,8 @@ def to_markdown(html):
 	return text
 
 def md_to_html(markdown_text):
-	from markdown2 import markdown as _markdown, MarkdownError
+	from markdown2 import MarkdownError
+	from markdown2 import markdown as _markdown
 
 	extras = {
 		'fenced-code-blocks': None,

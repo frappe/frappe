@@ -1,8 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
+
 import getpass
+
+import frappe
 from frappe.utils.password import update_password
+
 
 def before_install():
 	frappe.reload_doc("core", "doctype", "docfield")

@@ -1,9 +1,10 @@
 
-from PIL import Image, ImageDraw
-from hashlib import md5
 import base64
 import random
+from hashlib import md5
 from io import StringIO
+
+from PIL import Image, ImageDraw
 
 GRID_SIZE = 5
 BORDER_SIZE = 20
