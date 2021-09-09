@@ -12,11 +12,11 @@
 	}
 
 	.success {
-		background-color: #dff0d8 !important;
+		background-color: var(--green-100) !important;
 	}
 
 	.danger {
-		background-color: #f2dede !important;
+		background-color: var(--red-100) !important;
 	}
 }
 
