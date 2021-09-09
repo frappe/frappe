@@ -1,13 +1,17 @@
+import json
+import os
+from urllib.request import urlopen
 
 import frappe
-import json, os
-from frappe.modules import scrub, get_module_path, utils
-from frappe.custom.doctype.customize_form.customize_form import doctype_properties, docfield_properties
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.core.page.permission_manager.permission_manager import \
+    get_standard_permissions
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.core.page.permission_manager.permission_manager import get_standard_permissions
+from frappe.custom.doctype.customize_form.customize_form import (
+    docfield_properties, doctype_properties)
+from frappe.custom.doctype.property_setter.property_setter import \
+    make_property_setter
+from frappe.modules import get_module_path, scrub, utils
 from frappe.permissions import setup_custom_perms
-from urllib.request import urlopen
 
 branch = 'develop'
 
