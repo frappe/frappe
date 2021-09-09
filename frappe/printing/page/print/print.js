@@ -113,6 +113,17 @@ frappe.ui.form.PrintView = class {
 			},
 		).$input;
 
+		if(cint(this.print_settings.enable_print_server)) {
+			this.printer_sel = this.add_sidebar_item({
+				fieldtype:'Link',
+				fieldname: 'printer',
+				placeholder: __('Printer'),
+				options:'Printer Settings',
+				default: this.printer_setting
+			}).$input;
+			this.get_printer_settings();
+		}
+
 		this.letterhead_selector_df = this.add_sidebar_item(
 			{
 				fieldtype: 'Autocomplete',
@@ -150,6 +161,26 @@ frappe.ui.form.PrintView = class {
 		return field;
 	}
 
+	get_printer_settings() {
+		let route = frappe.get_route();
+		let doctype = route[1];
+		let me = this
+		frappe.call({
+			method: 'frappe.printing.doctype.printer_settings.printer_settings.get_printer_setting',
+			args: {
+				doctype: doctype,
+			},
+			callback: function(r) {
+				if (r.message) {
+					me.printer_setting = r.message;
+				}
+				else {
+					me.printer_setting = me.print_settings.default_printer_setting;
+				}
+				me.printer_sel.val(me.printer_setting);
+			},
+		});
+	}
 	get_default_option_for_select(value) {
 		return {
 			label: value,
@@ -470,9 +501,10 @@ frappe.ui.form.PrintView = class {
 						args: {
 							doctype: me.frm.doc.doctype,
 							name: me.frm.doc.name,
+							printer_setting: me.printer_sel.val(),
 							print_format: me.selected_format(),
 							no_letterhead: me.with_letterhead(),
-							letterhead: this.get_letterhead(),
+							letterhead: me.get_letterhead(),
 						},
 						callback: function() {},
 					});
