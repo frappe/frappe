@@ -3,8 +3,8 @@
 import io
 import os
 import re
-from distutils.version import LooseVersion
 import subprocess
+from distutils.version import LooseVersion
 
 import pdfkit
 from bs4 import BeautifulSoup
