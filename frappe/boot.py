@@ -7,16 +7,21 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.core.doctype.navbar_settings.navbar_settings import (
+    get_app_logo, get_navbar_settings)
 from frappe.desk.form.load import get_meta_bundle
-from frappe.utils.change_log import get_versions
-from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
-from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
-from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
-from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
+from frappe.social.doctype.energy_point_log.energy_point_log import \
+    get_energy_points
+from frappe.social.doctype.energy_point_settings.energy_point_settings import \
+    is_energy_point_enabled
 from frappe.social.doctype.post.post import frequently_visited_links
-from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
+from frappe.translate import get_lang_dict
+from frappe.utils.change_log import get_versions
+from frappe.website.doctype.web_page_view.web_page_view import \
+    is_tracking_enabled
+
 
 def get_bootinfo():
 	"""build and return boot info"""
