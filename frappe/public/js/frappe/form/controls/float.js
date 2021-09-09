@@ -1,5 +1,23 @@
+<<<<<<< HEAD
 frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 	parse: function(value) {
+=======
+frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlInt {
+
+	make_input() {
+		super.make_input()
+		const change_handler = e => {
+			if (this.change) this.change(e);
+			else {
+				let value = this.get_input_value();
+				this.parse_validate_and_set_in_model(value, e);
+			}
+		};
+		// convert to number format on focusout since focus converts it to flt.
+		this.$input.on("focusout", change_handler);
+	}
+	parse(value) {
+>>>>>>> f29138d6f8 (fix: convert back to number_format on change)
 		value = this.eval_expression(value);
 		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
 	},
@@ -25,3 +43,5 @@ frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 });
 
 frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
+
+34.4534,45
