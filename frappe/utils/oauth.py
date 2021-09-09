@@ -1,12 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import base64
+import json
+
+import jwt
+
 import frappe
 import frappe.utils
-import json, jwt
-import base64
 from frappe import _
 from frappe.utils.password import get_decrypted_password
+
 
 class SignupDisabledError(frappe.PermissionError): pass
 
