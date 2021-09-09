@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import Any, Callable, Dict, get_type_hints
 from importlib import import_module
+from typing import Any, Callable, Dict, get_type_hints
 
 from pypika import Query
 
 import frappe
+
 from .builder import MariaDB, Postgres
 
 
