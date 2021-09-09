@@ -3,6 +3,7 @@ import redis
 import frappe
 from frappe.utils import get_bench_id, random_string
 
+
 class RedisQueue:
 	def __init__(self, conn):
 		self.conn = conn
