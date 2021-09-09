@@ -2,15 +2,18 @@
 # License: MIT. See LICENSE
 
 import string
+
+from cryptography.fernet import Fernet, InvalidToken
+from passlib.context import CryptContext
+from passlib.hash import mysql41, pbkdf2_sha256
+from passlib.registry import register_crypt_handler
+from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
+from pymysql.constants.ER import DATA_TOO_LONG
+
 import frappe
 from frappe import _
 from frappe.utils import cstr, encode
-from cryptography.fernet import Fernet, InvalidToken
-from passlib.hash import pbkdf2_sha256, mysql41
-from passlib.registry import register_crypt_handler
-from passlib.context import CryptContext
-from pymysql.constants.ER import DATA_TOO_LONG
-from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
+
 
 class LegacyPassword(pbkdf2_sha256):
 	name = "frappe_legacy"
