@@ -1,19 +1,23 @@
-
-import os, json, inspect
+import inspect
+import json
 import mimetypes
+import os
+
+import RestrictedPython.Guards
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
-import RestrictedPython.Guards
+
 import frappe
-from frappe import _
-import frappe.utils
-import frappe.utils.data
-from frappe.website.utils import (get_shade, get_toc, get_next_link)
-from frappe.modules import scrub
-from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 import frappe.integrations.utils
+import frappe.utils
+import frappe.utils.data
+from frappe import _
 from frappe.frappeclient import FrappeClient
+from frappe.modules import scrub
+from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.www.printview import get_visible_columns
+
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
