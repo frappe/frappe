@@ -123,9 +123,9 @@ def rate_limit(key: str=None, limit: Union[int, Callable] = 5, seconds: int= 24*
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
-			value = frappe.cache().get_value(cache_key, expires=True) or 0
+			value = frappe.cache().get(cache_key) or 0
 			if not value:
-				frappe.cache().set_value(cache_key, 0, expires_in_sec=seconds)
+				frappe.cache().setex(cache_key, seconds, 0)
 
 			value = frappe.cache().incrby(cache_key, 1)
 			if value > _limit:
