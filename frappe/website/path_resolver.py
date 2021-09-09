@@ -1,6 +1,6 @@
 import re
-import click
 
+import click
 from werkzeug.routing import Rule
 
 import frappe
