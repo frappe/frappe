@@ -1,13 +1,17 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import os
+from base64 import b32encode, b64encode
+from io import BytesIO
+
+import pyotp
+from pyqrcode import create as qrcreate
+
 import frappe
 from frappe import _
-import pyotp, os
+from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
-from pyqrcode import create as qrcreate
-from io import BytesIO
-from base64 import b64encode, b32encode
-from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
+
 
 class ExpiredLoginException(Exception): pass
 

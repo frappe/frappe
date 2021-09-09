@@ -1,6 +1,6 @@
 import json
-import frappe
 
+import frappe
 from frappe.utils import cstr
 
 queue_prefix = 'insert_queue_for_'

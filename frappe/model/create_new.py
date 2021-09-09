@@ -6,12 +6,15 @@ Create a new document with defaults set
 """
 
 import copy
+
 import frappe
 import frappe.defaults
+from frappe.core.doctype.user_permission.user_permission import \
+    get_user_permissions
 from frappe.model import data_fieldtypes
-from frappe.utils import nowdate, nowtime, now_datetime, cstr
-from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 from frappe.permissions import filter_allowed_docs_for_doctype
+from frappe.utils import cstr, now_datetime, nowdate, nowtime
+
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
 	if doctype not in frappe.local.new_doc_templates:

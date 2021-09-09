@@ -1,15 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-	Execute Patch Files
+Execute Patch Files
 
-	To run directly
+To run directly
 
-	python lib/wnf.py patch patch1, patch2 etc
-	python lib/wnf.py patch -f patch1, patch2 etc
+python lib/wnf.py patch patch1, patch2 etc
+python lib/wnf.py patch -f patch1, patch2 etc
 
-	where patch1, patch2 is module name
+where patch1, patch2 is module name
 """
+
 import frappe, frappe.permissions, time
 
 class PatchError(Exception): pass

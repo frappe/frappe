@@ -1,14 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
 """
-	Sync's doctype and docfields from txt files to database
-	perms will get synced only if none exist
+Sync's doctype and docfields from txt files to database
+perms will get synced only if none exist
 """
-import frappe
+
 import os
+
+import frappe
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import block_user
 from frappe.utils import update_progress_bar
+
 
 def sync_all(force=0, verbose=False, reset_permissions=False):
 	block_user(True)

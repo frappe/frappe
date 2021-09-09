@@ -1,14 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
+import json
+import os
+
 import frappe
-from frappe import _
 import frappe.model
 import frappe.utils
-import json, os
-from frappe.utils import get_safe_filters
+from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
-
+from frappe.utils import get_safe_filters
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.

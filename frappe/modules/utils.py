@@ -1,12 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
 """
-	Utilities for using modules
+Utilities for using modules
 """
-import frappe, os, json
+
+import json
+import os
+
+import frappe
 import frappe.utils
 from frappe import _
 from frappe.utils import cint
+
 
 def export_module_json(doc, is_standard, module):
 	"""Make a folder for the given doc and add its json file (make it a standard

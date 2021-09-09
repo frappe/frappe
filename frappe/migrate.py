@@ -4,20 +4,21 @@
 import json
 import os
 import sys
+
 import frappe
-import frappe.translate
-import frappe.modules.patch_handler
 import frappe.model.sync
-from frappe.utils.fixtures import sync_fixtures
+import frappe.modules.patch_handler
+import frappe.translate
+from frappe.cache_manager import clear_global_cache
+from frappe.core.doctype.language.language import sync_languages
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+from frappe.desk.notifications import clear_notifications
+from frappe.modules.utils import sync_customizations
+from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
-from frappe.cache_manager import clear_global_cache
-from frappe.desk.notifications import clear_notifications
+from frappe.utils.fixtures import sync_fixtures
 from frappe.website.utils import clear_website_cache
-from frappe.core.doctype.language.language import sync_languages
-from frappe.modules.utils import sync_customizations
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.search.website_search import build_index_for_all_routes
 
 
 def migrate(verbose=True, skip_failing=False, skip_search_index=False):

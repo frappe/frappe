@@ -4,11 +4,14 @@ import re
 import sys
 import time
 import unittest
+
 import click
-import frappe
 import requests
 
-from .test_runner import (SLOW_TEST_THRESHOLD, make_test_records, set_test_email_config)
+import frappe
+
+from .test_runner import (SLOW_TEST_THRESHOLD, make_test_records,
+                          set_test_email_config)
 
 click_ctx = click.get_current_context(True)
 if click_ctx:

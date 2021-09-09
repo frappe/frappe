@@ -1,23 +1,23 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
+import json
 import os
 import re
-import json
 import shutil
 import subprocess
+from distutils.spawn import find_executable
 from io import StringIO
 from tempfile import mkdtemp, mktemp
-from distutils.spawn import find_executable
-
-import frappe
-from frappe.utils.minify import JavascriptMinify
+from urllib.parse import urlparse
 
 import click
 import psutil
-from urllib.parse import urlparse
-from simple_chalk import green
 from semantic_version import Version
+from simple_chalk import green
 
+import frappe
+from frappe.utils.minify import JavascriptMinify
 
 timestamps = {}
 app_paths = None
@@ -72,6 +72,7 @@ def build_missing_files():
 
 def get_assets_link(frappe_head):
 	from subprocess import getoutput
+
 	from requests import head
 
 	tag = getoutput(

@@ -2,18 +2,26 @@
 # License: MIT. See LICENSE
 """build query for doclistview and return results"""
 
+import copy
+import json
+import re
+from datetime import datetime
 from typing import List
+
+import frappe
 import frappe.defaults
+import frappe.permissions
 import frappe.share
 from frappe import _
-import frappe.permissions
-from datetime import datetime
-import frappe, json, copy, re
+from frappe.core.doctype.server_script.server_script_utils import \
+    get_server_script_map
 from frappe.model import optional_fields
-from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
-from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.model.utils.user_settings import (get_user_settings,
+                                              update_user_settings)
+from frappe.utils import (add_to_date, cint, cstr, flt, get_filter, get_time,
+                          get_timespan_date_range, make_filter_tuple)
+
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):

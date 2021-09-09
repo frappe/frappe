@@ -1,10 +1,12 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe, json
+import json
+
+import frappe
+from frappe.desk.notifications import (clear_notifications,
+                                       delete_notification_count_for)
 from frappe.model.document import Document
-from frappe.desk.notifications import (delete_notification_count_for,
-	clear_notifications)
 
 common_default_keys = ["__default", "__global"]
 

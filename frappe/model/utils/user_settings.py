@@ -2,7 +2,9 @@
 # Settings saved per user basis
 # such as page_limit, filters, last_view
 
-import frappe, json
+import json
+
+import frappe
 from frappe import safe_decode
 
 # dict for mapping the index and index type for the filters of different views

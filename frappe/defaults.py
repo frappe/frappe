@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.notifications import clear_notifications
 from frappe.cache_manager import clear_defaults_cache, common_default_keys
+from frappe.desk.notifications import clear_notifications
 
 # Note: DefaultValue records are identified by parenttype
 # __default, __global or 'User Permission'
@@ -67,8 +67,8 @@ def not_in_user_permission(key, value, user=None):
 	return True if user_permission else False
 
 def get_user_permissions(user=None):
-	from frappe.core.doctype.user_permission.user_permission \
-		import get_user_permissions as _get_user_permissions
+	from frappe.core.doctype.user_permission.user_permission import \
+	    get_user_permissions as _get_user_permissions
 	'''Return frappe.core.doctype.user_permissions.user_permissions._get_user_permissions (kept for backward compatibility)'''
 	return _get_user_permissions(user)
 

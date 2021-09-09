@@ -12,11 +12,12 @@ the cancelled document naming pattern is changed to 'orig_name-CANC-X'.
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
+
 import frappe
 from frappe import _
-from frappe.utils import now_datetime, cint, cstr
-import re
 from frappe.model import log_types
+from frappe.utils import cint, cstr, now_datetime
 
 
 def set_new_name(doc):

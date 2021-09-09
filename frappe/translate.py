@@ -1,21 +1,21 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-	frappe.translate
-	~~~~~~~~~~~~~~~~
+frappe.translate
+~~~~~~~~~~~~~~~~
 
-	Translation tools for frappe
+Translation tools for frappe
 """
 
+import functools
 import io
 import itertools
 import json
 import operator
-import functools
 import os
 import re
 from csv import reader
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include

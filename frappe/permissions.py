@@ -7,7 +7,6 @@ import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
 
-
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
@@ -204,12 +203,14 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 	return frappe.local.role_permissions[cache_key]
 
 def get_user_permissions(user):
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from frappe.core.doctype.user_permission.user_permission import \
+	    get_user_permissions
 	return get_user_permissions(user)
 
 def has_user_permission(doc, user=None):
 	'''Returns True if User is allowed to view considering User Permissions'''
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from frappe.core.doctype.user_permission.user_permission import \
+	    get_user_permissions
 	user_permissions = get_user_permissions(user)
 
 	if not user_permissions:
@@ -408,7 +409,8 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None,
 	is_default=0, hide_descendants=0):
 	'''Add user permission'''
-	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
+	from frappe.core.doctype.user_permission.user_permission import \
+	    user_permission_exists
 
 	if not user_permission_exists(user, doctype, name, applicable_for):
 		if not frappe.db.exists(doctype, name):
@@ -458,7 +460,8 @@ def can_export(doctype, raise_exception=False):
 
 def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
 	'''Update a property in Custom Perm'''
-	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+	from frappe.core.doctype.doctype.doctype import \
+	    validate_permissions_for_doctype
 	out = setup_custom_perms(doctype)
 
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
@@ -481,7 +484,8 @@ def setup_custom_perms(parent):
 def add_permission(doctype, role, permlevel=0, ptype=None):
 	'''Add a new permission rule to the given doctype
 		for the given Role and Permission Level'''
-	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+	from frappe.core.doctype.doctype.doctype import \
+	    validate_permissions_for_doctype
 	setup_custom_perms(doctype)
 
 	if frappe.db.get_value('Custom DocPerm', dict(parent=doctype, role=role,

@@ -1,9 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import frappe
 import os
+
 import redis
+
+import frappe
 
 redis_server = None
 
@@ -101,8 +103,8 @@ def can_subscribe_doc(doctype, docname):
 	if os.environ.get('CI'):
 		return True
 
-	from frappe.sessions import Session
 	from frappe.exceptions import PermissionError
+	from frappe.sessions import Session
 	session = Session(None, resume=True).get_session_data()
 	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype='read'):
 		raise PermissionError()

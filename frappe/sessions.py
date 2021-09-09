@@ -6,16 +6,20 @@ Boot session from cache or build
 Session bootstraps info needed by common client side activities including
 permission, homepage, default variables, system defaults etc
 """
-import frappe, json
-from frappe import _
-import frappe.utils
-from frappe.utils import cint, cstr, get_assets_json
-import frappe.model.meta
-import frappe.defaults
-import frappe.translate
-import redis
+import json
 from urllib.parse import unquote
+
+import redis
+
+import frappe
+import frappe.defaults
+import frappe.model.meta
+import frappe.translate
+import frappe.utils
+from frappe import _
 from frappe.cache_manager import clear_user_cache
+from frappe.utils import cint, cstr, get_assets_json
+
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):

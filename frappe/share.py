@@ -3,10 +3,11 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.notification_log.notification_log import (
+    enqueue_create_notification, get_title, get_title_html)
 from frappe.desk.form.document_follow import follow_document
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
-	get_title, get_title_html
 from frappe.utils import cint
+
 
 @frappe.whitelist()
 def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0):

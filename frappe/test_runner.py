@@ -1,16 +1,22 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-import unittest, json, sys, os
-import time
-import xmlrunner
+import cProfile
 import importlib
-from frappe.modules import load_doctype_module, get_module_name
-import frappe.utils.scheduler
-import cProfile, pstats
-from io import StringIO
+import json
+import os
+import pstats
+import sys
+import time
+import unittest
 from importlib import reload
+from io import StringIO
+
+import xmlrunner
+
+import frappe
+import frappe.utils.scheduler
 from frappe.model.naming import revert_series_if_last
+from frappe.modules import get_module_name, load_doctype_module
 
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2

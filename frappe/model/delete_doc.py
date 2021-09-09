@@ -7,15 +7,13 @@ import shutil
 import frappe
 import frappe.defaults
 import frappe.model.meta
-from frappe import _
-from frappe import get_module_path
-from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.utils.file_manager import remove_all
-from frappe.utils.password import delete_all_passwords_for
-from frappe.model.naming import revert_series_if_last
-from frappe.utils.global_search import delete_for_document
+from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
-
+from frappe.model.dynamic_links import get_dynamic_link_map
+from frappe.model.naming import revert_series_if_last
+from frappe.utils.file_manager import remove_all
+from frappe.utils.global_search import delete_for_document
+from frappe.utils.password import delete_all_passwords_for
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
 	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")

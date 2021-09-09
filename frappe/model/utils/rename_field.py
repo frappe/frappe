@@ -1,10 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
+
 import json
+
+import frappe
 from frappe.model import no_value_fields, table_fields
+from frappe.model.utils.user_settings import (sync_user_settings,
+                                              update_user_settings_data)
 from frappe.utils.password import rename_password_field
-from frappe.model.utils.user_settings import update_user_settings_data, sync_user_settings
 
 
 def rename_field(doctype, old_fieldname, new_fieldname):

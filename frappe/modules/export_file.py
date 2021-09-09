@@ -1,9 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe, os
+import os
+
+import frappe
 import frappe.model
-from frappe.modules import scrub, get_module_path, scrub_dt_dn
+from frappe.modules import get_module_path, scrub, scrub_dt_dn
+
 
 def export_doc(doc):
 	write_document_file(doc)

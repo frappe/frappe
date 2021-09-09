@@ -1,7 +1,9 @@
-import requests
-import json
-import frappe
 import base64
+import json
+
+import requests
+
+import frappe
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems

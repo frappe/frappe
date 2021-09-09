@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from collections import Counter
 import datetime
 import inspect
 import json
 import re
 import time
-import frappe
+from collections import Counter
+
 import sqlparse
 
+import frappe
 from frappe import _
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"

@@ -1,11 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
 import os
+
 from werkzeug.exceptions import NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
-from frappe.utils import get_site_name, cstr
+
+import frappe
+from frappe.utils import cstr, get_site_name
 
 
 class StaticDataMiddleware(SharedDataMiddleware):

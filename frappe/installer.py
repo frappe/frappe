@@ -117,7 +117,8 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 
 def install_app(name, verbose=False, set_as_patched=True):
-	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import \
+	    sync_jobs
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
 	from frappe.utils.fixtures import sync_fixtures
@@ -466,6 +467,7 @@ def extract_sql_gzip(sql_gz_path):
 def extract_files(site_name, file_path):
 	import shutil
 	import subprocess
+
 	from frappe.utils import get_bench_relative_path
 
 	file_path = get_bench_relative_path(file_path)
@@ -549,9 +551,11 @@ def partial_restore(sql_file_path, verbose=False):
 	if frappe.conf.db_type in (None, "mariadb"):
 		from frappe.database.mariadb.setup_db import import_db_from_sql
 	elif frappe.conf.db_type == "postgres":
-		from frappe.database.postgres.setup_db import import_db_from_sql
 		import warnings
+
 		from click import style
+
+		from frappe.database.postgres.setup_db import import_db_from_sql
 		warn = style(
 			"Delete the tables you want to restore manually before attempting"
 			" partial restore operation for PostreSQL databases",

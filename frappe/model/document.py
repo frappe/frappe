@@ -1,21 +1,26 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
+
+import hashlib
+import json
 import time
-from frappe import _, msgprint, is_whitelisted
-from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
-from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
-from werkzeug.exceptions import NotFound, Forbidden
-import hashlib, json
-from frappe.model import optional_fields, table_fields
-from frappe.model.workflow import validate_workflow
-from frappe.model.workflow import set_workflow_state_on_action
-from frappe.utils.global_search import update_global_search
-from frappe.integrations.doctype.webhook import run_webhooks
+
+from werkzeug.exceptions import Forbidden, NotFound
+
+import frappe
+from frappe import _, is_whitelisted, msgprint
+from frappe.core.doctype.server_script.server_script_utils import \
+    run_server_script_for_doc_event
 from frappe.desk.form.document_follow import follow_document
-from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.model import optional_fields, table_fields
+from frappe.model.base_document import BaseDocument, get_controller
+from frappe.model.naming import gen_new_name_for_cancelled_doc, set_new_name
+from frappe.model.workflow import (set_workflow_state_on_action,
+                                   validate_workflow)
+from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
+from frappe.utils.global_search import update_global_search
 
 # once_only validation
 # methods
@@ -1092,7 +1097,8 @@ class Document(BaseDocument):
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
-		from frappe.model.delete_doc import check_if_doc_is_linked, check_if_doc_is_dynamically_linked
+		from frappe.model.delete_doc import (check_if_doc_is_dynamically_linked,
+		                                     check_if_doc_is_linked)
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
 			check_if_doc_is_dynamically_linked(self, method="Cancel")
