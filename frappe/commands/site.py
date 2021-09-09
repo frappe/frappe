@@ -743,6 +743,9 @@ def build_search_index(context):
 @click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
 @pass_context
 def trim_database(context, dry_run, no_backup):
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	from frappe.utils.backups import scheduled_backup
 
 	for site in context.sites:
@@ -752,11 +755,14 @@ def trim_database(context, dry_run, no_backup):
 		TABLES_TO_DROPPED = []
 		STANDARD_TABLES = get_standard_tables()
 		information_schema = frappe.qb.Schema("information_schema")
+		table_name = frappe.qb.Field("table_name").as_("name")
+
 		queried_result = frappe.qb.from_(
 			information_schema.tables
-		).select("table_name").where(
+		).select(table_name).where(
 			information_schema.tables.table_schema == frappe.conf.db_name
 		).run()
+
 		database_tables = [x[0] for x in queried_result]
 		doctype_tables = frappe.get_all("DocType", pluck="name")
 
@@ -797,6 +803,9 @@ def get_standard_tables():
 @click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
 @pass_context
 def trim_tables(context, dry_run, format, no_backup):
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	from frappe.model.meta import trim_tables
 	from frappe.utils.backups import scheduled_backup
 
