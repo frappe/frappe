@@ -5,9 +5,11 @@ import io
 import os
 import re
 
+from werkzeug.routing import Map, NotFound, Rule
+
 import frappe
 from frappe.website.utils import extract_title
-from werkzeug.routing import Map, Rule, NotFound
+
 
 def get_page_info_from_web_page_with_dynamic_routes(path):
 	'''
