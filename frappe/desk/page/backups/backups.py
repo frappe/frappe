@@ -11,12 +11,18 @@ def get_context(context):
 		dt = os.path.getmtime(path)
 		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime('%a %b %d %H:%M %Y')
 
+	def get_encrytion_status(path):
+		if "-enc" in path:
+			return True
+
 	def get_size(path):
 		size = os.path.getsize(path)
 		if size > 1048576:
 			return "{0:.1f}M".format(float(size) / 1048576)
 		else:
 			return "{0:.1f}K".format(float(size) / 1024)
+	
+	
 
 	path = get_site_path('private', 'backups')
 	files = [x for x in os.listdir(path) if os.path.isfile(os.path.join(path, x))]
@@ -27,7 +33,10 @@ def get_context(context):
 
 	files = [('/backups/' + _file,
 		get_time(os.path.join(path, _file)),
-		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
+		get_encrytion_status(os.path.join(path, _file)),
+		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')
+		
+		]
 	files.sort(key=lambda x: x[1], reverse=True)
 
 	return {"files": files[:backup_limit]}

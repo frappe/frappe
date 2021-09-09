@@ -212,11 +212,11 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
-		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
+		enc = "-enc" if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().backup_encryption_key else ""
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup.json"
 		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
-		for_public_files = f"{self.todays_date}-{self.site_slug}-files.{enc}{ext}"
+		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
 		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
 
@@ -244,9 +244,10 @@ class BackupGenerator:
 					os.rename(path + ".gpg", path)
 
 				except:
-					print("Error occuredd during Encryption. Files are stored without Encryption")
+					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="yellow")
 
 	def get_recent_backup(self, older_than, partial=False):
+		print("get_recent_backup")
 		backup_path = get_backup_path()
 
 		file_type_slugs = {
@@ -670,7 +671,11 @@ def backup(
 
 @frappe.whitelist()
 def get_backup_encryption_key():
-	return frappe.msgprint(backup_encryption_key(),"Backup Encryption Key")
+	if 'backup_encryption_key' in frappe.local.conf:
+		message = frappe.local.conf.backup_encryption_key
+	else:
+		message = "No key found"
+	return frappe.msgprint(message)
 
 def backup_decryption(file_path,passphrase):
 	"""
@@ -687,20 +692,27 @@ def backup_decryption(file_path,passphrase):
 			filelocation = file_path,
 			decryptedfile = file_path[:-4],
 		)
+
 	frappe.utils.execute_in_shell(command)
+
 
 def backup_encryption_key():
 	from frappe.installer import update_site_config
 	if 'backup_encryption_key' not in frappe.local.conf:
+		confirm = click.confirm(
+			"Do you want to Create a New key?"
+		)
+		if not confirm:
+			sys.exit(1)
 		backup_encryption_key = Fernet.generate_key().decode()
 		update_site_config('backup_encryption_key', backup_encryption_key)
 		frappe.local.conf.backup_encryption_key = backup_encryption_key
-		click.secho("New Backup Encryption Key Generated", fg="yellow")
 	return frappe.local.conf.backup_encryption_key
 	
 def decryption_rollback(file_path):
 	if os.path.exists(file_path + ".gpg"):
-		os.remove(file_path)
+		if os.path.exists(file_path):
+			os.remove(file_path)
 		os.rename(file_path + ".gpg", file_path)
 
 
