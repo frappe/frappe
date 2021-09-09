@@ -1,7 +1,7 @@
 frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlInt {
 
 	make_input() {
-		super.make_input()
+		super.make_input();
 		const change_handler = e => {
 			if (this.change) this.change(e);
 			else {
@@ -38,5 +38,3 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 };
 
 frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
-
-34.4534,45

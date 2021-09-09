@@ -8,7 +8,7 @@ if (!window.frappe) window.frappe = {};
 function flt(v, decimals, number_format) {
 	if (v == null || v == '') return 0;
 
-	if (! (typeof v === "number" || String(parseFloat(v)) == v)){
+	if (!(typeof v === "number" || String(parseFloat(v)) == v)) {
 		// cases in which this block should not run
 		// 1. 'v' is already a number
 		// 2. v is already parsed but in string form
