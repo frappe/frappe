@@ -1,13 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe, json
-from frappe import _dict
+import json
+
+import frappe
 import frappe.share
-from frappe.utils import cint
+from frappe import _dict
 from frappe.boot import get_allowed_reports
+from frappe.core.doctype.domain_settings.domain_settings import \
+    get_active_modules
 from frappe.permissions import get_roles, get_valid_perms
-from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe.utils import cint
+
 
 class UserPermissions:
 	"""
@@ -223,6 +227,7 @@ def get_fullname_and_avatar(user):
 def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils
+
 	from frappe.core.doctype.user.user import STANDARD_USERS
 	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
 		CONCAT_WS(' ',
