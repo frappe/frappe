@@ -305,6 +305,7 @@ $.extend(frappe.model, {
 
 	copy_doc: function(doc, from_amend, parent_doc, parentfield) {
 		var no_copy_list = [
+			"wop_id",
 			"shop_id",
 			"name",
 			"amended_from",
