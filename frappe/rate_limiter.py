@@ -4,7 +4,7 @@
 
 from datetime import datetime
 from functools import wraps
-from typing import Union, Callable
+from typing import Callable, Union
 
 from werkzeug.wrappers import Response
 
