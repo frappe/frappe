@@ -113,12 +113,12 @@ frappe.ui.form.PrintView = class {
 			},
 		).$input;
 
-		if(cint(this.print_settings.enable_print_server)) {
+		if (cint(this.print_settings.enable_print_server)) {
 			this.printer_sel = this.add_sidebar_item({
-				fieldtype:'Link',
+				fieldtype: 'Link',
 				fieldname: 'printer',
 				placeholder: __('Printer'),
-				options:'Printer Settings',
+				options: 'Printer Settings',
 				default: this.printer_setting
 			}).$input;
 			this.get_printer_settings();
@@ -164,7 +164,7 @@ frappe.ui.form.PrintView = class {
 	get_printer_settings() {
 		let route = frappe.get_route();
 		let doctype = route[1];
-		let me = this
+		let me = this;
 		frappe.call({
 			method: 'frappe.printing.doctype.printer_settings.printer_settings.get_printer_setting',
 			args: {
@@ -173,8 +173,7 @@ frappe.ui.form.PrintView = class {
 			callback: function(r) {
 				if (r.message) {
 					me.printer_setting = r.message;
-				}
-				else {
+				} else {
 					me.printer_setting = me.print_settings.default_printer_setting;
 				}
 				me.printer_sel.val(me.printer_setting);
