@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Printer Settings', {
 	onload (frm) {
-		if(!frm.is_new()) {
+		if (!frm.is_new()) {
 			frm.trigger("connect_print_server");
 		}
 	},
@@ -14,7 +14,7 @@ frappe.ui.form.on('Printer Settings', {
 		frm.trigger("connect_print_server");
 	},
 	connect_print_server (frm) {
-		if(frm.doc.server_ip && frm.doc.port){
+		if (frm.doc.server_ip && frm.doc.port) {
 			frappe.call({
 				"doc": frm.doc,
 				"method": "get_printers_list",
@@ -23,7 +23,6 @@ frappe.ui.form.on('Printer Settings', {
 					port: frm.doc.port
 				},
 				callback: function(data) {
-					console.log(data.message);
 					frm.set_df_property('printer_name', 'options', [""].concat(data.message));
 				}
 			});
