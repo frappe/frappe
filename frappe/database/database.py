@@ -429,7 +429,7 @@ class Database(object):
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if isinstance(filters, list):
-			if not order_by: order_by = 'modified desc'
+			order_by = order_by or "modified desc"
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 
 		else:
@@ -442,7 +442,7 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					if not order_by: order_by = 'modified'
+					order_by = order_by or "modified desc"
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):

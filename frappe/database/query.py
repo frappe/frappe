@@ -193,11 +193,14 @@ class Query:
 			for f in filters:
 				if not isinstance(f, (list, tuple)):
 					_operator = self.operator_map[filters[1]]
-					conditions = conditions.where(_operator(Field(filters[0]), Field(filters[2])))
+					if not isinstance(filters[0], str):
+						conditions = self.make_function(filters[0], filters[2])
+						break
+					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
 					break
 				else:
 					_operator = self.operator_map[f[1]]
-					conditions = conditions.where(_operator(Field(f[0]), Field(f[2])))
+					conditions = conditions.where(_operator(Field(f[0]), f[2]))
 
 		conditions = self.add_conditions(conditions, **kwargs)
 		return conditions
