@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "autoname": "format:{server_ip}-{printer_name}",
+ "creation": "2021-09-07 11:13:57.724404",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "server_ip",
+  "printer_name",
+  "port",
+  "column_break_4",
+  "reference_doctype"
+ ],
+ "fields": [
+  {
+   "default": "localhost",
+   "fieldname": "server_ip",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Server IP",
+   "reqd": 1
+  },
+  {
+   "fieldname": "printer_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Printer Name",
+   "reqd": 1
+  },
+  {
+   "default": "631",
+   "fieldname": "port",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Port",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-09-07 13:17:26.978129",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "Printer Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
