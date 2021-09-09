@@ -1139,6 +1139,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (
 				$target.hasClass("filterable") ||
 				$target.hasClass("select-like") ||
+				$target.hasClass("file-select") ||
 				$target.hasClass("list-row-like") ||
 				$target.is(":checkbox")
 			) {
