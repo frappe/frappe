@@ -17,14 +17,14 @@ if (!Array.prototype.uniqBy) {
 		}
 	});
 	Object.defineProperty(Array.prototype, 'move', {
-		value: function(from, to) {
+		value: function (from, to) {
 			this.splice(to, 0, this.splice(from, 1)[0]);
 		}
 	});
 }
 
 // Pluralize
-String.prototype.plural = function(revert) {
+String.prototype.plural = function (revert) {
 	const plural = {
 		"(quiz)$": "$1zes",
 		"^(ox)$": "$1en",
@@ -136,50 +136,50 @@ String.prototype.plural = function(revert) {
 };
 
 Object.assign(frappe.utils, {
-	get_random: function(len) {
+	get_random: function (len) {
 		var text = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-		for ( var i=0; i < len; i++ )
+		for (var i = 0; i < len; i++)
 			text += possible.charAt(Math.floor(Math.random() * possible.length));
 
 		return text;
 	},
-	get_file_link: function(filename) {
+	get_file_link: function (filename) {
 		filename = cstr(filename);
 		if (frappe.utils.is_url(filename)) {
 			return filename;
-		} else if (filename.indexOf("/")===-1) {
+		} else if (filename.indexOf("/") === -1) {
 			return "files/" + filename;
 		} else {
 			return filename;
 		}
 	},
 	replace_newlines(t) {
-		return t?t.replace(/\n/g, '<br>'):'';
+		return t ? t.replace(/\n/g, '<br>') : '';
 	},
-	is_html: function(txt) {
+	is_html: function (txt) {
 		if (!txt) return false;
 
-		if (txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
-			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1 && !txt.includes('<span')) {
+		if (txt.indexOf("<br>") == -1 && txt.indexOf("<p") == -1
+			&& txt.indexOf("<img") == -1 && txt.indexOf("<div") == -1 && !txt.includes('<span')) {
 			return false;
 		}
 		return true;
 	},
-	is_mac: function() {
+	is_mac: function () {
 		return window.navigator.platform === 'MacIntel';
 	},
-	is_xs: function() {
+	is_xs: function () {
 		return $(document).width() < 768;
 	},
-	is_sm: function() {
+	is_sm: function () {
 		return $(document).width() < 991 && $(document).width() >= 768;
 	},
-	is_md: function() {
+	is_md: function () {
 		return $(document).width() < 1199 && $(document).width() >= 991;
 	},
-	is_json: function(str) {
+	is_json: function (str) {
 		try {
 			JSON.parse(str);
 		} catch (e) {
@@ -187,10 +187,10 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
-	strip_whitespace: function(html) {
+	strip_whitespace: function (html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},
-	encode_tags: function(html) {
+	encode_tags: function (html) {
 		var tagsToReplace = {
 			'&': '&amp;',
 			'<': '&lt;',
@@ -203,14 +203,14 @@ Object.assign(frappe.utils, {
 
 		return html.replace(/[&<>]/g, replaceTag);
 	},
-	strip_original_content: function(txt) {
+	strip_original_content: function (txt) {
 		var out = [],
 			part = [],
-			newline = txt.indexOf("<br>")===-1 ? "\n" : "<br>";
+			newline = txt.indexOf("<br>") === -1 ? "\n" : "<br>";
 
-		$.each(txt.split(newline), function(i, t) {
+		$.each(txt.split(newline), function (i, t) {
 			var tt = strip(t);
-			if (tt && (tt.substr(0, 1)===">" || tt.substr(0, 4)==="&gt;")) {
+			if (tt && (tt.substr(0, 1) === ">" || tt.substr(0, 4) === "&gt;")) {
 				part.push(t);
 			} else {
 				out.concat(part);
@@ -222,7 +222,7 @@ Object.assign(frappe.utils, {
 	},
 
 
-	escape_html: function(txt) {
+	escape_html: function (txt) {
 		let escape_html_mapping = {
 			'&': '&amp;',
 			'<': '&lt;',
@@ -234,23 +234,23 @@ Object.assign(frappe.utils, {
 			'=': '&#x3D;'
 		};
 
-		return String(txt).replace(/[&<>"'`=/]/g, function(char) {
+		return String(txt).replace(/[&<>"'`=/]/g, function (char) {
 			return escape_html_mapping[char];
 		});
 	},
 
-	html2text: function(html) {
+	html2text: function (html) {
 		let d = document.createElement('div');
 		d.innerHTML = html;
 		return d.textContent;
 	},
 
-	is_url: function(txt) {
-		return txt.toLowerCase().substr(0, 7)=='http://'
-			|| txt.toLowerCase().substr(0, 8)=='https://';
+	is_url: function (txt) {
+		return txt.toLowerCase().substr(0, 7) == 'http://'
+			|| txt.toLowerCase().substr(0, 8) == 'https://';
 	},
-	to_title_case: function(string, with_space=false) {
-		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function(match) {
+	to_title_case: function (string, with_space = false) {
+		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function (match) {
 			return match.toUpperCase();
 		});
 
@@ -258,7 +258,7 @@ Object.assign(frappe.utils, {
 
 		return titlecased_string.replace(/-|_/g, replace_with);
 	},
-	toggle_blockquote: function(txt) {
+	toggle_blockquote: function (txt) {
 		if (!txt) return txt;
 
 		var content = $("<div></div>").html(txt);
@@ -268,7 +268,7 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled, callback) {
+	scroll_to: function (element, animate = true, additional_offset, element_to_be_scrolled, callback) {
 		if (frappe.flags.disable_auto_scroll) return;
 
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
@@ -291,68 +291,68 @@ Object.assign(frappe.utils, {
 		}
 
 		if (animate) {
-			element_to_be_scrolled.animate({ scrollTop: scroll_top }).promise().then(callback);
+			element_to_be_scrolled.animate({scrollTop: scroll_top}).promise().then(callback);
 		} else {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
 
 	},
-	get_scroll_position: function(element, additional_offset) {
+	get_scroll_position: function (element, additional_offset) {
 		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
 		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
 		return scroll_top;
 	},
-	filter_dict: function(dict, filters) {
+	filter_dict: function (dict, filters) {
 		var ret = [];
-		if (typeof filters=='string') {
+		if (typeof filters == 'string') {
 			return [dict[filters]];
 		}
-		$.each(dict, function(i, d) {
+		$.each(dict, function (i, d) {
 			for (var key in filters) {
 				if ($.isArray(filters[key])) {
-					if (filters[key][0]=="in") {
-						if (filters[key][1].indexOf(d[key])==-1)
+					if (filters[key][0] == "in") {
+						if (filters[key][1].indexOf(d[key]) == -1)
 							return;
-					} else if (filters[key][0]=="not in") {
-						if (filters[key][1].indexOf(d[key])!=-1)
+					} else if (filters[key][0] == "not in") {
+						if (filters[key][1].indexOf(d[key]) != -1)
 							return;
-					} else if (filters[key][0]=="<") {
+					} else if (filters[key][0] == "<") {
 						if (!(d[key] < filters[key])) return;
-					} else if (filters[key][0]=="<=") {
+					} else if (filters[key][0] == "<=") {
 						if (!(d[key] <= filters[key])) return;
-					} else if (filters[key][0]==">") {
+					} else if (filters[key][0] == ">") {
 						if (!(d[key] > filters[key])) return;
-					} else if (filters[key][0]==">=") {
+					} else if (filters[key][0] == ">=") {
 						if (!(d[key] >= filters[key])) return;
 					}
 				} else {
-					if (d[key]!=filters[key]) return;
+					if (d[key] != filters[key]) return;
 				}
 			}
 			ret.push(d);
 		});
 		return ret;
 	},
-	comma_or: function(list) {
+	comma_or: function (list) {
 		return frappe.utils.comma_sep(list, " " + __("or") + " ");
 	},
-	comma_and: function(list) {
+	comma_and: function (list) {
 		return frappe.utils.comma_sep(list, " " + __("and") + " ");
 	},
-	comma_sep: function(list, sep) {
+	comma_sep: function (list, sep) {
 		if (list instanceof Array) {
-			if (list.length==0) {
+			if (list.length == 0) {
 				return "";
-			} else if (list.length==1) {
+			} else if (list.length == 1) {
 				return list[0];
 			} else {
-				return list.slice(0, list.length-1).join(", ") + sep + list.slice(-1)[0];
+				return list.slice(0, list.length - 1).join(", ") + sep + list.slice(-1)[0];
 			}
 		} else {
 			return list;
 		}
 	},
-	set_footnote: function(footnote_area, wrapper, txt) {
+	set_footnote: function (footnote_area, wrapper, txt) {
 		if (!footnote_area) {
 			footnote_area = $('<div class="text-muted footnote-area level">')
 				.appendTo(wrapper);
@@ -366,27 +366,27 @@ Object.assign(frappe.utils, {
 		}
 		return footnote_area;
 	},
-	get_args_dict_from_url: function(txt) {
+	get_args_dict_from_url: function (txt) {
 		var args = {};
-		$.each(decodeURIComponent(txt).split("&"), function(i, arg) {
+		$.each(decodeURIComponent(txt).split("&"), function (i, arg) {
 			arg = arg.split("=");
 			args[arg[0]] = arg[1];
 		});
 		return args;
 	},
-	get_url_from_dict: function(args) {
-		return $.map(args, function(val, key) {
-			if (val!==null)
-				return encodeURIComponent(key)+"="+encodeURIComponent(val);
+	get_url_from_dict: function (args) {
+		return $.map(args, function (val, key) {
+			if (val !== null)
+				return encodeURIComponent(key) + "=" + encodeURIComponent(val);
 			else
 				return null;
 		}).join("&") || "";
 	},
-	validate_type: function ( val, type ) {
+	validate_type: function (val, type) {
 		// from https://github.com/guillaumepotier/Parsley.js/blob/master/parsley.js#L81
 		var regExp;
 
-		switch ( type ) {
+		switch (type) {
 			case "phone":
 				regExp = /^([0-9 +_\-,.*#()]){1,20}$/;
 				break;
@@ -417,9 +417,9 @@ Object.assign(frappe.utils, {
 		}
 
 		// test regExp if not null
-		return '' !== val ? regExp.test( val ) : false;
+		return '' !== val ? regExp.test(val) : false;
 	},
-	guess_style: function(text, default_style, _colour) {
+	guess_style: function (text, default_style, _colour) {
 		var style = default_style || "default";
 		var colour = "gray";
 		if (text) {
@@ -441,11 +441,11 @@ Object.assign(frappe.utils, {
 		return _colour ? colour : style;
 	},
 
-	guess_colour: function(text) {
+	guess_colour: function (text) {
 		return frappe.utils.guess_style(text, null, true);
 	},
 
-	get_indicator_color: function(state) {
+	get_indicator_color: function (state) {
 		return frappe.db.get_list('Workflow State', {filters: {name: state}, fields: ['name', 'style']}).then(res => {
 			const state = res[0];
 			if (!state.style) {
@@ -464,21 +464,21 @@ Object.assign(frappe.utils, {
 
 	},
 
-	sort: function(list, key, compare_type, reverse) {
+	sort: function (list, key, compare_type, reverse) {
 		if (!list || list.length < 2)
 			return list || [];
 
 		var sort_fn = {
-			"string": function(a, b) {
+			"string": function (a, b) {
 				return cstr(a[key]).localeCompare(cstr(b[key]));
 			},
-			"number": function(a, b) {
+			"number": function (a, b) {
 				return flt(a[key]) - flt(b[key]);
 			}
 		};
 
 		if (!compare_type)
-			compare_type = typeof list[0][key]==="string" ? "string" : "number";
+			compare_type = typeof list[0][key] === "string" ? "string" : "number";
 
 		list.sort(sort_fn[compare_type]);
 
@@ -489,10 +489,10 @@ Object.assign(frappe.utils, {
 		return list;
 	},
 
-	unique: function(list) {
+	unique: function (list) {
 		var dict = {},
 			arr = [];
-		for (var i=0, l=list.length; i < l; i++) {
+		for (var i = 0, l = list.length; i < l; i++) {
 			if (!(list[i] in dict)) {
 				dict[list[i]] = null;
 				arr.push(list[i]);
@@ -501,9 +501,9 @@ Object.assign(frappe.utils, {
 		return arr;
 	},
 
-	remove_nulls: function(list) {
+	remove_nulls: function (list) {
 		var new_list = [];
-		for (var i=0, l=list.length; i < l; i++) {
+		for (var i = 0, l = list.length; i < l; i++) {
 			if (!is_null(list[i])) {
 				new_list.push(list[i]);
 			}
@@ -511,8 +511,8 @@ Object.assign(frappe.utils, {
 		return new_list;
 	},
 
-	all: function(lst) {
-		for (var i=0, l=lst.length; i<l; i++) {
+	all: function (lst) {
+		for (var i = 0, l = lst.length; i < l; i++) {
 			if (!lst[i]) {
 				return false;
 			}
@@ -520,12 +520,12 @@ Object.assign(frappe.utils, {
 		return true;
 	},
 
-	dict: function(keys, values) {
+	dict: function (keys, values) {
 		// make dictionaries from keys and values
 		var out = [];
-		$.each(values, function(row_idx, row) {
+		$.each(values, function (row_idx, row) {
 			var new_row = {};
-			$.each(keys, function(key_idx, key) {
+			$.each(keys, function (key_idx, key) {
 				new_row[key] = row[key_idx];
 			});
 			out.push(new_row);
@@ -533,13 +533,13 @@ Object.assign(frappe.utils, {
 		return out;
 	},
 
-	sum: function(list) {
-		return list.reduce(function(previous_value, current_value) {
+	sum: function (list) {
+		return list.reduce(function (previous_value, current_value) {
 			return flt(previous_value) + flt(current_value);
 		}, 0.0);
 	},
 
-	arrays_equal: function(arr1, arr2) {
+	arrays_equal: function (arr1, arr2) {
 		if (!arr1 || !arr2) {
 			return false;
 		}
@@ -558,7 +558,7 @@ Object.assign(frappe.utils, {
 		return true;
 	},
 
-	intersection: function(a, b) {
+	intersection: function (a, b) {
 		// from stackoverflow: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
 		/* finds the intersection of
 		 * two arrays in a simple fashion.
@@ -572,17 +572,17 @@ Object.assign(frappe.utils, {
 		 *  Should have O(n) operations, where n is
 		 *    n = MIN(a.length(), b.length())
 		 */
-		var ai=0, bi=0;
+		var ai = 0, bi = 0;
 		var result = new Array();
 
 		// sorted copies
 		a = ([].concat(a)).sort();
 		b = ([].concat(b)).sort();
 
-		while ( ai < a.length && bi < b.length ) {
-			if (a[ai] < b[bi] ) {
+		while (ai < a.length && bi < b.length) {
+			if (a[ai] < b[bi]) {
 				ai++;
-			} else if (a[ai] > b[bi] ) {
+			} else if (a[ai] > b[bi]) {
 				bi++;
 			} else {
 				/* they're equal */
@@ -595,13 +595,13 @@ Object.assign(frappe.utils, {
 		return result;
 	},
 
-	resize_image: function(reader, callback, max_width, max_height) {
+	resize_image: function (reader, callback, max_width, max_height) {
 		var tempImg = new Image();
 		if (!max_width) max_width = 600;
 		if (!max_height) max_height = 400;
 		tempImg.src = reader.result;
 
-		tempImg.onload = function() {
+		tempImg.onload = function () {
 			var tempW = tempImg.width;
 			var tempH = tempImg.height;
 			if (tempW > tempH) {
@@ -622,9 +622,9 @@ Object.assign(frappe.utils, {
 			var ctx = canvas.getContext("2d");
 			ctx.drawImage(this, 0, 0, tempW, tempH);
 			var dataURL = canvas.toDataURL("image/jpeg");
-			setTimeout(function() {
+			setTimeout(function () {
 				callback(dataURL);
-			}, 10 );
+			}, 10);
 		};
 	},
 
@@ -660,10 +660,10 @@ Object.assign(frappe.utils, {
 
 		// Keep looping over the regular expression matches
 		// until we can no longer find a match.
-		while ((arrMatches = objPattern.exec( strData ))) {
+		while ((arrMatches = objPattern.exec(strData))) {
 
 			// Get the delimiter that was found.
-			var strMatchedDelimiter = arrMatches[ 1 ];
+			var strMatchedDelimiter = arrMatches[1];
 
 			// Check to see if the given delimiter has a length
 			// (is not the start of string) and if it matches
@@ -676,7 +676,7 @@ Object.assign(frappe.utils, {
 
 				// Since we have reached a new row of data,
 				// add an empty row to our data array.
-				arrData.push( [] );
+				arrData.push([]);
 
 			}
 
@@ -685,41 +685,41 @@ Object.assign(frappe.utils, {
 			// Now that we have our delimiter out of the way,
 			// let's check to see which kind of value we
 			// captured (quoted or unquoted).
-			if (arrMatches[ 2 ]) {
+			if (arrMatches[2]) {
 
 				// We found a quoted value. When we capture
 				// this value, unescape any double quotes.
-				strMatchedValue = arrMatches[ 2 ].replace(
-					new RegExp( "\"\"", "g" ),
+				strMatchedValue = arrMatches[2].replace(
+					new RegExp("\"\"", "g"),
 					"\""
 				);
 
 			} else {
 
 				// We found a non-quoted value.
-				strMatchedValue = arrMatches[ 3 ];
+				strMatchedValue = arrMatches[3];
 
 			}
 
 
 			// Now that we have our value string, let's add
 			// it to the data array.
-			arrData[ arrData.length - 1 ].push( strMatchedValue );
+			arrData[arrData.length - 1].push(strMatchedValue);
 		}
 
 		// Return the parsed data.
-		return ( arrData );
+		return (arrData);
 	},
 
-	warn_page_name_change: function() {
+	warn_page_name_change: function () {
 		frappe.msgprint(__("Note: Changing the Page Name will break previous URL to this page."));
 	},
 
-	notify: function(subject, body, route, onclick) {
+	notify: function (subject, body, route, onclick) {
 		console.log('push notifications are evil and deprecated');
 	},
 
-	set_title: function(title) {
+	set_title: function (title) {
 		frappe._original_title = title;
 		if (frappe._title_prefix) {
 			title = frappe._title_prefix + " " + title.replace(/<[^>]*>/g, "");
@@ -731,21 +731,21 @@ Object.assign(frappe.utils, {
 		frappe.route_titles[sub_path] = title;
 	},
 
-	set_title_prefix: function(prefix) {
+	set_title_prefix: function (prefix) {
 		frappe._title_prefix = prefix;
 
 		// reset the original title
 		frappe.utils.set_title(frappe._original_title);
 	},
 
-	is_image_file: function(filename) {
+	is_image_file: function (filename) {
 		if (!filename) return false;
 		// url can have query params
 		filename = filename.split('?')[0];
 		return (/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(filename);
 	},
 
-	play_sound: function(name) {
+	play_sound: function (name) {
 		try {
 			if (frappe.boot.user.mute_sounds) {
 				return;
@@ -761,7 +761,7 @@ Object.assign(frappe.utils, {
 		}
 
 	},
-	split_emails: function(txt) {
+	split_emails: function (txt) {
 		var email_list = [];
 
 		if (!txt) {
@@ -769,7 +769,7 @@ Object.assign(frappe.utils, {
 		}
 
 		// emails can be separated by comma or newline
-		txt.split(/[,\n](?=(?:[^"]|"[^"]*")*$)/g).forEach(function(email) {
+		txt.split(/[,\n](?=(?:[^"]|"[^"]*")*$)/g).forEach(function (email) {
 			email = email.trim();
 			if (email) {
 				email_list.push(email);
@@ -778,7 +778,7 @@ Object.assign(frappe.utils, {
 
 		return email_list;
 	},
-	supportsES6: function() {
+	supportsES6: function () {
 		try {
 			new Function("(a = 0) => a");
 			return true;
@@ -819,11 +819,11 @@ Object.assign(frappe.utils, {
 			return result;
 		};
 	},
-	debounce: function(func, wait, immediate) {
+	debounce: function (func, wait, immediate) {
 		var timeout;
-		return function() {
+		return function () {
 			var context = this, args = arguments;
-			var later = function() {
+			var later = function () {
 				timeout = null;
 				if (!immediate) func.apply(context, args);
 			};
@@ -833,7 +833,7 @@ Object.assign(frappe.utils, {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	get_form_link: function(doctype, name, html=false, display_text=null, query_params_obj=null) {
+	get_form_link: function (doctype, name, html = false, display_text = null, query_params_obj = null) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
 		let route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
@@ -862,7 +862,7 @@ Object.assign(frappe.utils, {
 		}
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
-	report_column_total: function(values, column, type) {
+	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
 			return '';
 		} else if (values.length > 0) {
@@ -942,7 +942,7 @@ Object.assign(frappe.utils, {
 			message: __('Copied to clipboard.')
 		});
 	},
-	is_rtl(lang=null) {
+	is_rtl(lang = null) {
 		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
 	},
 	bind_actions_with_object($el, object) {
@@ -959,7 +959,7 @@ Object.assign(frappe.utils, {
 		return $el;
 	},
 
-	eval(code, context={}) {
+	eval(code, context = {}) {
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
 		code = `let out = ${code}; return out`;
@@ -980,12 +980,12 @@ Object.assign(frappe.utils, {
 
 		if (/trident/i.test(M[1])) {
 			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-			return { name: "IE", version: tem[1] || "" };
+			return {name: "IE", version: tem[1] || ""};
 		}
 		if (M[1] === "Chrome") {
 			tem = ua.match(/\bOPR|Edge\/(\d+)/);
 			if (tem != null) {
-				return { name: "Opera", version: tem[1] };
+				return {name: "Opera", version: tem[1]};
 			}
 		}
 		M = M[2]
@@ -1000,7 +1000,7 @@ Object.assign(frappe.utils, {
 		};
 	},
 
-	get_formatted_duration(value, duration_options=null) {
+	get_formatted_duration(value, duration_options = null) {
 		let duration = '';
 		if (!duration_options) {
 			duration_options = {
@@ -1045,7 +1045,7 @@ Object.assign(frappe.utils, {
 		return total_duration;
 	},
 
-	duration_to_seconds(days=0, hours=0, minutes=0, seconds=0) {
+	duration_to_seconds(days = 0, hours = 0, minutes = 0, seconds = 0) {
 		let value = 0;
 		if (days) {
 			value += days * 24 * 60 * 60;
@@ -1062,7 +1062,7 @@ Object.assign(frappe.utils, {
 		return value;
 	},
 
-	get_duration_options: function(docfield) {
+	get_duration_options: function (docfield) {
 		let duration_options = {
 			hide_days: docfield.hide_days,
 			hide_seconds: docfield.hide_seconds
@@ -1077,27 +1077,27 @@ Object.assign(frappe.utils, {
 					divisor: 1.0e+7,
 					symbol: 'Cr'
 				},
-				{
-					divisor: 1.0e+5,
-					symbol: 'Lakh'
-				}],
+					{
+						divisor: 1.0e+5,
+						symbol: 'Lakh'
+					}],
 			'':
 				[{
 					divisor: 1.0e+12,
 					symbol: 'T'
 				},
-				{
-					divisor: 1.0e+9,
-					symbol: 'B'
-				},
-				{
-					divisor: 1.0e+6,
-					symbol: 'M'
-				},
-				{
-					divisor: 1.0e+3,
-					symbol: 'K',
-				}]
+					{
+						divisor: 1.0e+9,
+						symbol: 'B'
+					},
+					{
+						divisor: 1.0e+6,
+						symbol: 'M'
+					},
+					{
+						divisor: 1.0e+3,
+						symbol: 'K',
+					}]
 		};
 
 		if (!Object.keys(number_system_map).includes(country)) country = '';
@@ -1114,20 +1114,27 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="") {
+	icon(icon_name, size = "sm", icon_class = "", icon_color= "") {
 		let size_class = "";
 		let icon_style = "";
+
 		if (typeof size == "object") {
 			icon_style = `width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${size_class}" style="${icon_style}">
+
+		if (size && size.includes('rem')) {
+			return `<i class="${icon_name}" style="font-size: ${size}; font-style: normal; color: ${icon_color}; margin: 1rem"></i>`;
+		}
+
+		return `<svg class="icon  ${icon_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	},
 
-	make_chart(wrapper, custom_options={}) {
+
+	make_chart(wrapper, custom_options = {}) {
 		let chart_args = {
 			type: 'bar',
 			colors: ['light-blue'],
@@ -1195,7 +1202,7 @@ Object.assign(frappe.utils, {
 							route = `${doctype_slug}/view/calendar/default`;
 							break;
 						default:
-							frappe.throw({ message: __("Not a valid view:") + item.doc_view, title: __("Unknown View") });
+							frappe.throw({message: __("Not a valid view:") + item.doc_view, title: __("Unknown View")});
 							route = "";
 					}
 				}
@@ -1234,7 +1241,7 @@ Object.assign(frappe.utils, {
 		return `/app/${route}`;
 	},
 
-	shorten_number: function (number, country, min_length=4, max_no_of_decimals=2) {
+	shorten_number: function (number, country, min_length = 4, max_no_of_decimals = 2) {
 		/* returns the number as an abbreviated string
 		 * PARAMS
 		 *  number - number to be shortened
@@ -1251,7 +1258,7 @@ Object.assign(frappe.utils, {
 		let x = Math.abs(Math.round(number));
 		for (const map of number_system) {
 			if (x >= map.divisor) {
-				let result = number/map.divisor;
+				let result = number / map.divisor;
 				const no_of_decimals = this.get_number_of_decimals(result);
 				/*
 					If no_of_decimals is greater than max_no_of_decimals,
@@ -1278,14 +1285,14 @@ Object.assign(frappe.utils, {
 				<div class="summary-value ${summary.color ? summary.color.toLowerCase() : 'text-muted'}">${summary.value}</div>
 			</div>`);
 		}
-		let df = { fieldtype: summary.datatype };
+		let df = {fieldtype: summary.datatype};
 		let doc = null;
 		if (summary.datatype == "Currency") {
 			df.options = "currency";
-			doc = { currency: summary.currency };
+			doc = {currency: summary.currency};
 		}
 
-		let value = frappe.format(summary.value, df, { only_value: true }, doc);
+		let value = frappe.format(summary.value, df, {only_value: true}, doc);
 		let color = summary.indicator ? summary.indicator.toLowerCase()
 			: summary.color ? summary.color.toLowerCase() : '';
 
@@ -1325,7 +1332,7 @@ Object.assign(frappe.utils, {
 		return clipboard_data.getData('Text');
 	},
 
-	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper, prepend) {
+	add_custom_button(html, action, class_name = "", title = "", btn_type, wrapper, prepend) {
 		if (!btn_type) btn_type = 'btn-secondary';
 		let button = $(
 			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`

@@ -3,6 +3,11 @@ body {
 	background-color: var(--bg-color);
 }
 
+
+.remove_left_padding {
+	margin-right: auto !important;
+}
+
 .desk-sidebar {
 	@extend .standard-sidebar;
 
@@ -1043,13 +1048,13 @@ body {
 
 		@media (max-width: 750px) {
 			.ce-block.col-4 {
-				flex: 0 0 100%;
+				flex: 0 0 50%;
 				max-width: 100%;
 			}
 		}
 		@media (max-width: 750px) {
 			.ce-block.col-6 {
-				flex: 0 0 100%;
+				flex: 0 0 50%;
 				max-width: 100%;
 			}
 		}

@@ -1,7 +1,7 @@
 {
  "category": "",
  "charts": [],
- "content": "[{\"type\": \"header\", \"data\": {\"text\": \"Your Shortcuts\", \"level\": 4, \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Customize Form\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Custom Role\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Client Script\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Server Script\", \"col\": 4}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Dashboards\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Form Customization\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Other\", \"col\": 4}}]",
+ "content": "[{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quick inspection\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"D\u00e9clarer  une accident\",\"col\":4}}]",
  "creation": "2020-03-02 15:15:03.839594",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
@@ -17,14 +17,6 @@
  "is_standard": 0,
  "label": "Customization",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dashboards",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "dependencies": "",
    "hidden": 0,
@@ -57,14 +49,6 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Form Customization",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "dependencies": "",
@@ -111,14 +95,6 @@
    "type": "Link"
   },
   {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Other",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -130,7 +106,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-08-05 12:15:57.486112",
+ "modified": "2021-09-09 15:19:37.874746",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",
@@ -145,24 +121,29 @@
  "sequence_id": 8,
  "shortcuts": [
   {
-   "label": "Customize Form",
-   "link_to": "Customize Form",
+   "bg_color": "#F1F1F1",
+   "color": "Grey",
+   "doc_view": "List",
+   "icon": "fa fa-search",
+   "icon_color": "#1E3A8D",
+   "icon_height": "60px",
+   "icon_size": "3rem",
+   "icon_width": "5 rem",
+   "label": "Quick inspection",
+   "link_to": "User",
    "type": "DocType"
   },
   {
-   "label": "Custom Role",
-   "link_to": "Custom Role",
-   "type": "DocType"
-  },
-  {
-   "label": "Client Script",
-   "link_to": "Client Script",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Server Script",
-   "link_to": "Server Script",
+   "bg_color": "#F1F1F1",
+   "color": "Grey",
+   "doc_view": "List",
+   "icon": "fa fa-exclamation",
+   "icon_color": "#1E3A8D",
+   "icon_height": "60px",
+   "icon_size": "3rem",
+   "icon_width": "5 rem",
+   "label": "D\u00e9clarer  une accident",
+   "link_to": "Role Profile",
    "type": "DocType"
   }
  ],

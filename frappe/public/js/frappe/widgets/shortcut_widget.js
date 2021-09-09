@@ -20,6 +20,9 @@ export default class ShortcutWidget extends Widget {
 			restrict_to_domain: this.restrict_to_domain,
 			stats_filter: this.stats_filter,
 			type: this.type,
+			bg_color: this.bg_color,
+			icon_size: this.icon_size,
+			icon_color: this.icon_color
 		};
 	}
 
@@ -48,6 +51,20 @@ export default class ShortcutWidget extends Widget {
 		if (this.in_customize_mode) return;
 
 		this.widget.addClass("shortcut-widget-box");
+
+		console.log(this);
+
+		// this.widget[0].parentElement.parentElement.parentElement.style.flex = '0 0 50%';
+
+		// console.log(this.widget[0].parentElement.parentElement.parentElement);
+
+		if (this.bg_color) {
+			this.widget.css('background', this.bg_color);
+			this.head[0].style.justifyContent = 'center';
+			this.title_field[0].style.flexDirection = 'column';
+			this.title_field[0].style.fontSize = 'var(--text-base)';
+			console.log(this);
+		}
 
 		let filters = this.get_doctype_filter();
 		if (this.type == "DocType" && filters) {

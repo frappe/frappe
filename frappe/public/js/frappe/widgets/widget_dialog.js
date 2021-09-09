@@ -278,6 +278,11 @@ class ShortcutDialog extends WidgetDialog {
 				label: "Label",
 			},
 			{
+				fieldtype: "Data",
+				fieldname: "icon",
+				label: "Icon",
+			},
+			{
 				fieldtype: "Column Break",
 				fieldname: "column_break_4",
 			},
@@ -371,6 +376,27 @@ class ShortcutDialog extends WidgetDialog {
 				label: __("Format"),
 				description: __("For Example: {} Open"),
 			},
+			{
+				fieldtype: "Color",
+				fieldname: "bg_color",
+				label: __("Background Color"),
+			},
+			{
+				fieldtype: "Color",
+				fieldname: "icon_color",
+				label: __("Icon Color"),
+			},
+			{
+				fieldtype: "Text",
+				fieldname: "icon_size",
+				label: __("Icon size"),
+			}
+			,
+			{
+				fieldtype: "Text",
+				fieldname: "title_color",
+				label: __("Title Color"),
+			}
 		];
 	}
 

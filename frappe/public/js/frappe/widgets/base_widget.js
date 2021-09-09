@@ -1,6 +1,7 @@
 import get_dialog_constructor from './widget_dialog.js';
 
 export default class Widget {
+
 	constructor(opts) {
 		Object.assign(this, opts);
 		this.make();
@@ -25,24 +26,24 @@ export default class Widget {
 		this.action_area.empty();
 
 		options.allow_sorting &&
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('drag', 'xs'),
-				null,
-				"drag-handle",
-				`${__('Drag')}`,
-				null,
-				this.action_area
-			);
+		frappe.utils.add_custom_button(
+			frappe.utils.icon('drag', 'xs'),
+			null,
+			"drag-handle",
+			`${__('Drag')}`,
+			null,
+			this.action_area
+		);
 
 		options.allow_delete &&
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
-				() => this.delete(),
-				"",
-				`${__('Delete')}`,
-				null,
-				this.action_area
-			);
+		frappe.utils.add_custom_button(
+			frappe.utils.icon('delete', 'xs'),
+			() => this.delete(),
+			"",
+			`${__('Delete')}`,
+			null,
+			this.action_area
+		);
 
 		if (options.allow_hiding) {
 			if (this.hidden) {
@@ -68,17 +69,17 @@ export default class Widget {
 		}
 
 		options.allow_edit &&
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("edit", "xs"),
-				() => this.edit(),
-				null,
-				`${__('Edit')}`,
-				null,
-				this.action_area
-			);
+		frappe.utils.add_custom_button(
+			frappe.utils.icon("edit", "xs"),
+			() => this.edit(),
+			null,
+			`${__('Edit')}`,
+			null,
+			this.action_area
+		);
 
 		if (options.allow_resize) {
-			const title = this.width == 'Full'? `${__('Collapse')}` : `${__('Expand')}`;
+			const title = this.width == 'Full' ? `${__('Collapse')}` : `${__('Expand')}`;
 			frappe.utils.add_custom_button(
 				'<i class="fa fa-expand" aria-hidden="true"></i>',
 				() => this.toggle_width(),
@@ -101,7 +102,7 @@ export default class Widget {
 
 	make_widget() {
 		this.widget = $(`<div class="widget
-			${ this.shadow ? "widget-shadow" : " " }
+			${this.shadow ? "widget-shadow" : " "}
 		" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
 				<div class="widget-label">
@@ -122,16 +123,22 @@ export default class Widget {
 		this.action_area = this.widget.find(".widget-control");
 		this.head = this.widget.find(".widget-head");
 		this.footer = this.widget.find(".widget-footer");
+
 		this.refresh();
 	}
 
 	set_title(max_chars) {
 		let base = this.title || this.label || this.name;
 		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
-
+		let color =  this.color ? this.color.toLowerCase() : 'white';
+		let icon_size;
+		let icon_color = this ? this.icon_color  : "";
+		if (this && this.icon_size) {
+			icon_size = this.icon_size;
+		}
 		if (this.icon) {
-			let icon = frappe.utils.icon(this.icon);
-			this.title_field[0].innerHTML = `${icon} <span class="ellipsis" title="${title}">${title}</span>`;
+			let icon = frappe.utils.icon(this.icon, icon_size, null, icon_color);
+			this.title_field[0].innerHTML = `${icon} <span class="ellipsis" style="color: ${icon_color}" title="${title}">${title}</span>`;
 		} else {
 			this.title_field[0].innerHTML = `<span class="ellipsis" title="${title}">${title}</span>`;
 			if (max_chars) {
@@ -141,7 +148,7 @@ export default class Widget {
 		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
-	delete(animate=true, dismissed=false) {
+	delete(animate = true, dismissed = false) {
 		let remove_widget = (setup_new) => {
 			this.widget.remove();
 			!dismissed && this.options.on_delete && this.options.on_delete(this.name, setup_new);
@@ -217,10 +224,17 @@ export default class Widget {
 
 	setup_events() {
 		//
+		console.log('set setup_events', this.head);
+
+		this.head.css('justify-content', 'center !important');
 	}
 
 	set_actions() {
 		//
+		console.log('set action', this.head);
+
+		this.head.css('justify-content', 'center !important');
+
 	}
 
 	set_body() {
