@@ -1,13 +1,14 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from whoosh.fields import ID, TEXT, Schema
+from whoosh.index import EmptyIndexError, create_in, open_dir
+from whoosh.qparser import FieldsPlugin, MultifieldParser, WildcardPlugin
+from whoosh.query import Prefix
+
 import frappe
 from frappe.utils import update_progress_bar
 
-from whoosh.index import create_in, open_dir, EmptyIndexError
-from whoosh.fields import TEXT, ID, Schema
-from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
-from whoosh.query import Prefix
 
 class FullTextSearch:
 	""" Frappe Wrapper for Whoosh """
