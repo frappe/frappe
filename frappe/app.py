@@ -2,29 +2,30 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import os
 import logging
+import os
 
-from werkzeug.local import LocalManager
-from werkzeug.wrappers import Request, Response
 from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.local import LocalManager
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.shared_data import SharedDataMiddleware
+from werkzeug.wrappers import Request, Response
 
 import frappe
-import frappe.handler
-import frappe.auth
 import frappe.api
-import frappe.utils.response
-from frappe.utils import get_site_name, sanitize_html
-from frappe.middlewares import StaticDataMiddleware
-from frappe.website.serve import get_response
-from frappe.utils.error import make_error_snapshot
-from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
-from frappe import _
-import frappe.recorder
+import frappe.auth
+import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
+import frappe.recorder
+import frappe.utils.response
+from frappe import _
+from frappe.core.doctype.comment.comment import \
+    update_comments_in_parent_after_request
+from frappe.middlewares import StaticDataMiddleware
+from frappe.utils import get_site_name, sanitize_html
+from frappe.utils.error import make_error_snapshot
+from frappe.website.serve import get_response
 
 local_manager = LocalManager([frappe.local])
 
