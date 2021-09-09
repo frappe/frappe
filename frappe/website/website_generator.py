@@ -3,10 +3,11 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.website.utils import cleanup_page_name
-from frappe.website.utils import clear_cache
 from frappe.modules import get_module_name
-from frappe.search.website_search import update_index_for_path, remove_document_from_index
+from frappe.search.website_search import (remove_document_from_index,
+                                          update_index_for_path)
+from frappe.website.utils import cleanup_page_name, clear_cache
+
 
 class WebsiteGenerator(Document):
 	website = frappe._dict()
