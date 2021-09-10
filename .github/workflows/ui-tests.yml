@@ -33,17 +33,29 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "ui"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+
       - uses: actions/setup-node@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         with:
           node-version: '12'
           check-latest: true
 
       - name: Add to Hosts
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
           echo "127.0.0.1 test_site_producer" | sudo tee -a /etc/hosts
 
       - name: Cache pip
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
@@ -53,6 +65,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Cache node modules
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -65,10 +78,12 @@ jobs:
             ${{ runner.os }}-
 
       - name: Get yarn cache directory path
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -77,6 +92,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Cache cypress binary
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v2
         with:
           path: ~/.cache
@@ -86,6 +102,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install Dependencies
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -93,15 +110,18 @@ jobs:
           TYPE: ui
 
       - name: Install
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: ui
 
       - name: Site Setup
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
 
       - name: UI Tests
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
