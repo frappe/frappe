@@ -38,4 +38,4 @@ def execute_code(doc):
 @frappe.whitelist()
 def show_processlist():
 	frappe.only_for('System Manager')
-	return frappe.db.sql('show processlist', as_dict=1)
+	return frappe.db.sql('show full processlist', as_dict=1)
