@@ -4,11 +4,12 @@
 from __future__ import unicode_literals
 
 import base64
+import json
 import frappe
 import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file, get_files_in_folder
+from frappe.core.doctype.file.file import get_attached_images, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
 # test_records = frappe.get_test_records('File')
 
@@ -367,6 +368,80 @@ class TestFile(unittest.TestCase):
 		file1.file_url = '/private/files/parent_dir2.txt'
 		file1.save()
 
+	def test_file_url_validation(self):
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": 'https://frappe.io/files/frappe.png'
+		})
+
+		self.assertIsNone(test_file.validate())
+
+		# bad path
+		test_file.file_url = "/usr/bin/man"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "URL must start with http:// or https://", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "/usr/bin/man"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "There is some problem with the file url", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "_file"
+		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "/private/files/_file"
+		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+
+	def test_make_thumbnail(self):
+		# test web image
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
+		}).insert(ignore_permissions=True)
+
+		test_file.make_thumbnail()
+		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+
+		# test local image
+		test_file.db_set('thumbnail_url', None)
+		test_file.reload()
+		test_file.file_url = "/files/image_small.jpg"
+		test_file.make_thumbnail(suffix="xs", crop=True)
+		self.assertEquals(test_file.thumbnail_url, '/files/image_small_xs.jpg')
+
+		frappe.clear_messages()
+		test_file.db_set('thumbnail_url', None)
+		test_file.reload()
+		test_file.file_url = frappe.utils.get_url('unknown.jpg')
+		test_file.make_thumbnail(suffix="xs")
+		self.assertEqual(json.loads(frappe.message_log[0]), {"message": f"File '{frappe.utils.get_url('unknown.jpg')}' not found"})
+		self.assertEquals(test_file.thumbnail_url, None)
+
+	def test_file_unzip(self):
+		file_path = frappe.get_app_path('frappe', 'www/_test/assets/file.zip')
+		public_file_path = frappe.get_site_path('public', 'files')
+		try:
+			import shutil
+			shutil.copy(file_path, public_file_path)
+		except Exception:
+			pass
+
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": '/files/file.zip',
+		}).insert(ignore_permissions=True)
+
+		self.assertListEqual([file.file_name for file in unzip_file(test_file.name)],
+			['css_asset.css', 'image.jpg', 'js_asset.min.js'])
+
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
+		}).insert(ignore_permissions=True)
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, 'not a zip file', test_file.unzip)
+
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'
 
@@ -471,3 +546,28 @@ class TestAttachmentsAccess(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 		frappe.db.rollback()
+
+
+class TestFileUtils(unittest.TestCase):
+	def test_extract_images_from_doc(self):
+		# with filename in data URI
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": 'Test <img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'
+		}).insert()
+		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name}))
+		self.assertIn('<img src="/files/pix.png">', todo.description)
+		self.assertListEqual(get_attached_images('ToDo', [todo.name])[todo.name], ['/files/pix.png'])
+
+		# without filename in data URI
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": 'Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'
+		}).insert()
+		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
+		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
+
+	def test_create_new_folder(self):
+		from frappe.core.doctype.file.file import create_new_folder
+		folder = create_new_folder('test_folder', 'Home')
+		self.assertTrue(folder.is_folder)

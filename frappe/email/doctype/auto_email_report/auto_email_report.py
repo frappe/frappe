@@ -15,6 +15,7 @@ from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
+from frappe.desk.query_report import build_xlsx_data
 
 max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
 
@@ -101,13 +102,21 @@ class AutoEmailReport(Document):
 			return self.get_html_table(columns, data)
 
 		elif self.format == 'XLSX':
-			spreadsheet_data = self.get_spreadsheet_data(columns, data)
-			xlsx_file = make_xlsx(spreadsheet_data, "Auto Email Report")
+			report_data = frappe._dict()
+			report_data['columns'] = columns
+			report_data['result'] = data
+
+			xlsx_data, column_widths = build_xlsx_data(columns, report_data, [], 1, ignore_visible_idx=True)
+			xlsx_file = make_xlsx(xlsx_data, "Auto Email Report", column_widths=column_widths)
 			return xlsx_file.getvalue()
 
 		elif self.format == 'CSV':
-			spreadsheet_data = self.get_spreadsheet_data(columns, data)
-			return to_csv(spreadsheet_data)
+			report_data = frappe._dict()
+			report_data['columns'] = columns
+			report_data['result'] = data
+
+			xlsx_data, column_widths = build_xlsx_data(columns, report_data, [], 1, ignore_visible_idx=True)
+			return to_csv(xlsx_data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
@@ -127,18 +136,6 @@ class AutoEmailReport(Document):
 			'report_name': self.report,
 			'edit_report_settings': get_link_to_form('Auto Email Report', self.name)
 		})
-
-	@staticmethod
-	def get_spreadsheet_data(columns, data):
-		out = [[_(df.label) for df in columns], ]
-		for row in data:
-			new_row = []
-			out.append(new_row)
-			for df in columns:
-				if df.fieldname not in row: continue
-				new_row.append(frappe.format(row[df.fieldname], df, row))
-
-		return out
 
 	def get_file_name(self):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())

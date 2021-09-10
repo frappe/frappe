@@ -215,28 +215,22 @@ def write_file(content, fname, is_private=0):
 	return get_files_path(fname, is_private=is_private)
 
 
-def remove_all(dt, dn, from_delete=False):
+def remove_all(dt, dn, from_delete=False, delete_permanently=False):
 	"""remove all files in a transaction"""
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid, dt, dn, from_delete)
+			if from_delete:
+				# If deleting a doc, directly delete files
+				frappe.delete_doc("File", fid, ignore_permissions=True, delete_permanently=delete_permanently)
+			else:
+				# Removes file and adds a comment in the document it is attached to
+				remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn,
+					from_delete=from_delete, delete_permanently=delete_permanently)
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
-
-def remove_file_by_url(file_url, doctype=None, name=None):
-	if doctype and name:
-		fid = frappe.db.get_value("File", {"file_url": file_url,
-			"attached_to_doctype": doctype, "attached_to_name": name})
-	else:
-		fid = frappe.db.get_value("File", {"file_url": file_url})
-
-	if fid:
-		return remove_file(fid)
-
-
-def remove_file(fid, attached_to_doctype=None, attached_to_name=None, from_delete=False):
+def remove_file(fid=None, attached_to_doctype=None, attached_to_name=None, from_delete=False, delete_permanently=False):
 	"""Remove file and File entry"""
 	file_name = None
 	if not (attached_to_doctype and attached_to_name):
@@ -254,8 +248,7 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None, from_delet
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
-
-	frappe.delete_doc("File", fid, ignore_permissions=ignore_permissions)
+		frappe.delete_doc("File", fid, ignore_permissions=ignore_permissions, delete_permanently=delete_permanently)
 
 	return comment
 
@@ -421,7 +414,6 @@ def extract_images_from_html(doc, content):
 		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content
-
 
 def get_random_filename(extn=None, content_type=None):
 	if extn:
