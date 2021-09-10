@@ -28,7 +28,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			// set default icon
 			var default_icon = {
 				url: default_icon_url,
-				scaledSize: new google.maps.Size(20, 20)
+				scaledSize: new google.maps.Size(25, 25)
 			};
 
 			// list of markers
@@ -51,24 +51,19 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 				});
 
-				// map.setOptions({
-				// 	maxZoom: 10
-				// });
 
 				for (i = 0; i < points.length; i++) {
+					this.icon_url = default_icon_url;
 					for (z = 0; z < this.icons.length; z++) {
-						// set icons get from json or default icon url if icon in json
 						if (points[i].properties.icon === this.icons[z].name1) {
 							this.icon_url = this.icons[z].icon_image;
-						} else {
-							this.icon_url = default_icon_url;
-						}
+						} 
 					}
 					
 					// set icon for gmaps
 					const icon = {
 						url: this.icon_url,
-						scaledSize: new google.maps.Size(15, 15)
+						scaledSize: new google.maps.Size(25, 25)
 					};
 					
 					// draw markers on gmaps
@@ -215,7 +210,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		} else if (value===undefined || value === "") {
 			const icon = {
 				url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-				scaledSize: new google.maps.Size(20, 20)
+				scaledSize: new google.maps.Size(25, 25)
 			};
 
 			let map = new google.maps.Map(document.getElementById("map"), {
@@ -458,7 +453,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 		const icon = {
 			url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-			scaledSize: new google.maps.Size(15, 15)
+			scaledSize: new google.maps.Size(25, 25)
 		};
 	}
 }); 

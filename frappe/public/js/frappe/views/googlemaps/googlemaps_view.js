@@ -58,15 +58,14 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
                         if (this.markers[z].properties.point_type === 'marker'){
                             for (y = 0; y < this.icons.length; y++) {
+                                this.icon_url = default_icon;
                                 if (this.icons[y].name1 === this.markers[z].properties.icon) {
                                     this.icon_url = this.icons[y].icon_image;
-                                } else {
-                                    this.icon_url = default_icon;
                                 }
                             }
                             const icon = {
                                 url: this.icon_url,
-                                scaledSize: new google.maps.Size(15, 15)
+                                scaledSize: new google.maps.Size(25, 25)
                             };
 
                             this.marker = new google.maps.Marker({
