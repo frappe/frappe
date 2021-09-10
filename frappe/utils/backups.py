@@ -243,7 +243,7 @@ class BackupGenerator:
 					frappe.utils.execute_in_shell(command)
 					os.rename(path + ".gpg", path)
 
-				except:
+				except Exception as err:
 					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="yellow")
 
 	def get_recent_backup(self, older_than, partial=False):
@@ -700,7 +700,7 @@ def backup_encryption_key():
 	from frappe.installer import update_site_config
 	if 'backup_encryption_key' not in frappe.local.conf:
 		confirm = click.confirm(
-			"Do you want to Create a New key?"
+			"No encrytion key found. Generate new Key?"
 		)
 		if not confirm:
 			sys.exit(1)

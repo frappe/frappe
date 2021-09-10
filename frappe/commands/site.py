@@ -86,7 +86,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 				
 
 		else:
-			click.secho("Encrypted Backup file detected. Decrypting using Config", fg="yellow")
+			click.secho("Encrypted backup file detected. Decrypting using Site config", fg="yellow")
 
 			site = get_site(context)
 			frappe.init(site)
@@ -98,8 +98,8 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 
 			if not os.path.exists(sql_file_path):
 				click.secho(
-				"Decryption Failed. Please provide a valid Key and Try again.",
-				fg="red"
+					"Decryption Failed. Please provide a valid key and Try again.",
+					fg="red"
 				)
 				decryption_rollback(sql_file_path)
 				sys.exit(1)
@@ -142,7 +142,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			force=True, db_type=frappe.conf.db_type)
 		
 	except Exception as err:
-		print(err)
+		print(err.args[1])
 		decryption_rollback(sql_file_path)
 	
 	# Removing temporarily created file
@@ -202,15 +202,15 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 			
 			if not os.path.exists(sql_file_path):
 				click.secho(
-				"Decryption Failed. Please provide a valid Key and Try again.",
-				fg="red"
+					"Decryption Failed. Please provide a valid Key and Try again.",
+					fg="red"
 				)
 				decryption_rollback(sql_file_path)
 				sys.exit(1)
 				
 
 		else:
-			click.secho("Encrypted Backup file detected. Decrypting using Config", fg="yellow")
+			click.secho("Encrypted backup file detected. Decrypting using Site config", fg="yellow")
 
 			site = get_site(context)
 			frappe.init(site)
@@ -222,8 +222,8 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 
 			if not os.path.exists(sql_file_path):
 				click.secho(
-				"Decryption Failed. Please provide a valid Key and Try again.",
-				fg="red"
+					"Decryption Failed. Please provide a valid Key and Try again.",
+					fg="red"
 				)
 				decryption_rollback(sql_file_path)
 				sys.exit(1)
@@ -554,7 +554,7 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 			exit_code = 1
 			continue
 		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().backup_encryption_key:
-			click.secho("Backup encryption is turned on. Please note the Backup encryption Key.", fg="yellow")
+			click.secho("Backup encryption is turned on. Please note the Backup encryption key.", fg="yellow")
 
 		odb.print_summary()
 		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
