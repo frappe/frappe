@@ -285,9 +285,10 @@ export default class GridRow {
 		});
 
 		this.grid_settings_dialog.set_primary_action(__('Update'), () => {
+			this.validate_column_width();
 			this.columns = {};
-			this.grid_settings_dialog.hide();
 			this.update_user_settings_for_grid();
+			this.grid_settings_dialog.hide();
 		});
 
 	}
@@ -413,9 +414,7 @@ export default class GridRow {
 			});
 		}
 
-		if (fields) {
-			$(this.fields_html_wrapper).find('.selected-fields').html(fields);
-		}
+		$(this.fields_html_wrapper).find('.selected-fields').html(fields);
 
 		this.prepare_handler_for_sort();
 		this.select_on_focus();
@@ -453,7 +452,10 @@ export default class GridRow {
 
 	update_column_width() {
 		$(this.fields_html_wrapper).find('.column-width').change((event) => {
-			this.validate_column_width(event);
+			if (cint(event.target.value) === 0) {
+				event.target.value = cint(event.target.defaultValue);
+				frappe.throw(__('Column width cannot be zero.'));
+			}
 
 			this.selected_columns_for_grid.forEach(row => {
 				if (row.fieldname === event.target.dataset.fieldname) {
@@ -464,25 +466,17 @@ export default class GridRow {
 		});
 	}
 
-	validate_column_width(event) {
-		if (cint(event.target.value) === 0) {
-			event.target.value = cint(event.target.defaultValue);
-			frappe.throw(__('Column width cannot be zero.'));
-		} else {
-			let fieldname = event.target.dataset.fieldname;
-			let total_column_width = 0.0;
+	validate_column_width() {
+		let total_column_width = 0.0;
 
-			this.selected_columns_for_grid.forEach(row => {
-				if (row.columns && row.columns > 0) {
-					total_column_width += (fieldname === row.fieldname
-						? cint(event.target.value) : row.columns);
-				}
-			});
-
-			if (total_column_width && total_column_width > 10) {
-				event.target.value = cint(event.target.defaultValue);
-				frappe.throw(__('The total column width cannot be more than 10.'));
+		this.selected_columns_for_grid.forEach(row => {
+			if (row.columns && row.columns > 0) {
+				total_column_width += cint(row.columns);
 			}
+		});
+
+		if (total_column_width && total_column_width > 10) {
+			frappe.throw(__('The total column width cannot be more than 10.'));
 		}
 	}
 
