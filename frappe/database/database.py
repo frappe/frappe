@@ -839,6 +839,30 @@ class Database(object):
 
 			return count
 
+	def sum(self, dt, fieldname, filters=None):
+		return self._get_aggregation('SUM', dt, fieldname, filters)
+
+	def avg(self, dt, fieldname, filters=None):
+		return self._get_aggregation('AVG', dt, fieldname, filters)
+
+	def min(self, dt, fieldname, filters=None):
+		return self._get_aggregation('MIN', dt, fieldname, filters)
+
+	def max(self, dt, fieldname, filters=None):
+		return self._get_aggregation('MAX', dt, fieldname, filters)
+
+	def _get_aggregation(self, function, dt, fieldname, filters=None):
+		if not self.has_column(dt, fieldname):
+			frappe.throw(frappe._('Invalid column'), self.InvalidColumnName)
+
+		query = f'SELECT {function}({fieldname}) AS value FROM `tab{dt}`'
+		values = ()
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query = f"{query} WHERE {conditions}"
+
+		return self.sql(query, values)[0][0] or 0
+
 	@staticmethod
 	def format_date(date):
 		return getdate(date).strftime("%Y-%m-%d")
