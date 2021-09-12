@@ -86,7 +86,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				print("Decryption Failed. Please provide a valid Key and Try Again")
-				decryption_rollback()
+				decryption_rollback(sql_file_path)
 				sys.exit(1)
 				
 		# Decrypt using the key from site config if key not provided
