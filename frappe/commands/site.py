@@ -79,13 +79,16 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 
 		# Decrypt using the provided key
 		if backup_encryption_key:
-			click.secho("Encrypted Backup file detected. Decrypting using Provided Key", fg="yellow")
+			click.secho("Encrypted Backup file detected. Decrypting using provided Key.", fg="yellow")
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 			
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
-				print("Decryption Failed. Please provide a valid Key and Try Again")
+				click.secho(
+					"Decryption Failed. Please provide a valid key and Try again.",
+					fg="red"
+				)
 				decryption_rollback(sql_file_path)
 				sys.exit(1)
 				
@@ -206,14 +209,14 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 		
 		# Decrypt using the provided key
 		if backup_encryption_key:
-			click.secho("Encrypted Backup file detected. Decrypting using Provided Key", fg="yellow")
+			click.secho("Encrypted Backup file detected. Decrypting using provided Key.", fg="yellow")
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 			
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
-					"Decryption Failed. Please provide a valid Key and Try again.",
+					"Decryption Failed. Please provide a valid key and Try again.",
 					fg="red"
 				)
 				decryption_rollback(sql_file_path)
@@ -234,7 +237,7 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
-					"Decryption Failed. Please provide a valid Key and Try again.",
+					"Decryption Failed. Please provide a valid key and Try again.",
 					fg="red"
 				)
 				decryption_rollback(sql_file_path)
