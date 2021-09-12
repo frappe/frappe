@@ -64,7 +64,7 @@ def clean(value):
 
 
 def missing_in_backup(doctypes, file):
-	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
+	"""Returns list of missing doctypes in the backup.
 
 	Args:
 		doctypes (list): List of DocTypes to be checked
