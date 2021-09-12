@@ -230,6 +230,9 @@ class BackupGenerator:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
 	def backup_encryption(self):
+		"""
+		Encryt all the backups created using gpg.
+		"""
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
@@ -247,16 +250,16 @@ class BackupGenerator:
 					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="yellow")
 
 	def get_recent_backup(self, older_than, partial=False):
-		print("get_recent_backup")
 		backup_path = get_backup_path()
 
-		file_type_slugs = {
-			"database": "*-{{}}-{}database.sql.gz".format('*' if partial else ''),
-			"public": "*-{}-files.tar",
-			"private": "*-{}-private-files.tar",
-			"config": "*-{}-site_config_backup.json",
-		}
-		if frappe.get_system_settings("encrypt_backup"):
+		if not frappe.get_system_settings("encrypt_backup"):
+			file_type_slugs = {
+				"database": "*-{{}}-{}database.sql.gz".format('*' if partial else ''),
+				"public": "*-{}-files.tar",
+				"private": "*-{}-private-files.tar",
+				"config": "*-{}-site_config_backup.json",
+			}
+		else:
 			file_type_slugs = {
 				"database": "*-{{}}-{}database.enc.sql.gz".format('*' if partial else ''),
 				"public": "*-{}-files.enc.tar",
@@ -674,12 +677,12 @@ def get_backup_encryption_key():
 	if 'backup_encryption_key' in frappe.local.conf:
 		message = frappe.local.conf.backup_encryption_key
 	else:
-		message = "No key found"
+		message = "No key found."
 	return frappe.msgprint(message)
 
 def backup_decryption(file_path,passphrase):
 	"""
-	Decrypts backup the given path using the passphrase.
+	Decrypts backup at the given path using the passphrase.
 	"""
 	if os.path.exists(file_path):
 
@@ -697,6 +700,12 @@ def backup_decryption(file_path,passphrase):
 
 
 def backup_encryption_key():
+	"""
+	Checks if backup encryption key exists
+		else create one
+	Return:
+		Backup encryption key 
+	"""
 	from frappe.installer import update_site_config
 	if 'backup_encryption_key' not in frappe.local.conf:
 		confirm = click.confirm(
@@ -710,6 +719,9 @@ def backup_encryption_key():
 	return frappe.local.conf.backup_encryption_key
 	
 def decryption_rollback(file_path):
+	"""
+	Rollback if the decrypted file exist.
+	"""
 	if os.path.exists(file_path + ".gpg"):
 		if os.path.exists(file_path):
 			os.remove(file_path)

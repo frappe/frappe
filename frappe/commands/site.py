@@ -73,21 +73,27 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
 		sys.exit(1)
+
+	# Check if file is encrypted 
 	if "enc" in sql_file_path:
+
+		# Decrypt using the provided key
 		if backup_encryption_key:
 			click.secho("Encrypted Backup file detected. Decrypting using Provided Key", fg="yellow")
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 			
+			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				print("Decryption Failed. Please provide a valid Key and Try Again")
 				decryption_rollback()
 				sys.exit(1)
 				
-
+		# Decrypt using the key from site config if key not provided
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using Site config", fg="yellow")
 
+			#Get the key from site config
 			site = get_site(context)
 			frappe.init(site)
 			backup_encryption_key = frappe.get_site_config().backup_encryption_key
@@ -95,7 +101,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 
 			backup_decryption(sql_file_path, backup_encryption_key)
 
-
+			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
 					"Decryption Failed. Please provide a valid key and Try again.",
@@ -128,6 +134,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 
 		site = get_site(context)
 		frappe.init(site=site)
+
 		# dont allow downgrading to older versions of frappe without force
 		if not force and is_downgrade(decompressed_file_name, verbose=True):
 			warn_message = (
@@ -193,13 +200,17 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
 		sys.exit(1)
-	print(sql_file_path)
+
+	# Check if file is encrypted 
 	if "enc" in sql_file_path:
+		
+		# Decrypt using the provided key
 		if backup_encryption_key:
 			click.secho("Encrypted Backup file detected. Decrypting using Provided Key", fg="yellow")
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 			
+			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
 					"Decryption Failed. Please provide a valid Key and Try again.",
@@ -208,10 +219,11 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 				decryption_rollback(sql_file_path)
 				sys.exit(1)
 				
-
+		# Decrypt using the key from site config if key not provided
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using Site config", fg="yellow")
 
+			#Get the key from site config
 			site = get_site(context)
 			frappe.init(site)
 			backup_encryption_key = frappe.get_site_config().backup_encryption_key
@@ -219,7 +231,7 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 
-
+			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
 					"Decryption Failed. Please provide a valid Key and Try again.",
