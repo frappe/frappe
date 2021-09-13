@@ -34,8 +34,7 @@ def get_context(context):
 	files = [('/backups/' + _file,
 		get_time(os.path.join(path, _file)),
 		get_encrytion_status(os.path.join(path, _file)),
-		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')
-		]
+		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
 	files.sort(key=lambda x: x[1], reverse=True)
 
 	return {"files": files[:backup_limit]}
