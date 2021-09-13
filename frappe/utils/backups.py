@@ -16,7 +16,6 @@ import click
 # imports - module imports
 import frappe
 from frappe import _, conf
-from frappe.share import remove
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 
 # backup variable for backwards compatibility
