@@ -285,7 +285,7 @@ export default class GridRow {
 		});
 
 		this.grid_settings_dialog.set_primary_action(__('Update'), () => {
-			this.validate_column_width();
+			this.validate_columns_width();
 			this.columns = {};
 			this.update_user_settings_for_grid();
 			this.grid_settings_dialog.hide();
@@ -466,7 +466,7 @@ export default class GridRow {
 		});
 	}
 
-	validate_column_width() {
+	validate_columns_width() {
 		let total_column_width = 0.0;
 
 		this.selected_columns_for_grid.forEach(row => {
