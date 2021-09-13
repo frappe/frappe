@@ -49,6 +49,7 @@
     "node-sass": "^4.14.1",
     "plyr": "^3.6.2",
     "popper.js": "^1.16.0",
+    "pug": "3.0.1",
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.4",
     "quill-image-resize": "^3.0.9",
