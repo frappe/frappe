@@ -130,20 +130,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.$results.append(this.make_list_row());
 	}
 
-	get_child_result() {
-		return frappe.call({
-			method: "frappe.client.get_list",
-			args: {
-				doctype: this.child_doctype,
-				filters: [
-					["parentfield", "=", this.child_fieldname]
-				],
-				fields: ['name', 'parent', ...this.child_columns],
-				parent: this.doctype
-			}
-		});
-	}
-
 	toggle_child_selection() {
 		if (this.dialog.fields_dict['allow_child_item_selection'].get_value()) {
 			this.get_child_result().then(r => {
@@ -152,6 +138,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	
 				this.$wrapper.addClass('hidden');
 				this.$child_wrapper.removeClass('hidden');
+				this.dialog.fields_dict.more_btn.$wrapper.hide();
 			});
 		} else {
 			this.child_results = [];
@@ -458,7 +445,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.render_result_list(checked, 0, false);
 	}
 
-	get_results() {
+	get_filters_from_setters() {
 		let me = this;
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
@@ -482,12 +469,18 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			});
 		}
 
-		let filter_group = this.get_custom_filters();
-		Object.assign(filters, filter_group);
+		return [filters, filter_fields];
+	}
 
-		let args = {
-			doctype: me.doctype,
-			txt: me.dialog.fields_dict["search_term"].get_value(),
+	get_args_for_search() {
+		let [filters, filter_fields] = this.get_filters_from_setters();
+
+		let custom_filters = this.get_custom_filters();
+		Object.assign(filters, custom_filters);
+
+		return {
+			doctype: this.doctype,
+			txt: this.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: filter_fields,
 			start: this.start,
@@ -495,25 +488,82 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
 		};
-		frappe.call({
+	}
+
+	async perform_search(args) {
+		const res = await frappe.call({
 			type: "GET",
 			method: 'frappe.desk.search.search_widget',
 			no_spinner: true,
 			args: args,
-			callback: function (r) {
-				let more = 0;
-				me.results = [];
-				if (r.values.length) {
-					if (r.values.length > me.page_length) {
-						r.values.pop();
-						more = 1;
-					}
-					r.values.forEach(function (result) {
-						result.checked = 0;
-						me.results.push(result);
-					});
+		});
+		const more = res.values.length && res.values.length > this.page_length ? 1 : 0;
+		if (more) {
+			res.values.pop();
+		}
+
+		return [res, more];
+	}
+
+	async get_results() {
+		const args = this.get_args_for_search();
+		const [res, more] = await this.perform_search(args);
+
+		this.results = [];
+		if (res.values.length) {
+			res.values.forEach(result => {
+				result.checked = 0;
+				this.results.push(result);
+			});
+		}
+		this.render_result_list(this.results, more);
+	}
+
+	async get_filtered_parents_for_child_search() {
+		const parent_search_args = this.get_args_for_search();
+		parent_search_args.filter_fields = ['name']
+		const [response, _] = await this.perform_search(parent_search_args);
+
+		let parent_names = []
+		if (response.values.length) {
+			parent_names = response.values.map(v => v.name);
+		}
+		return parent_names;
+	}
+
+	async add_parent_filters(filters) {
+		const parent_names = await this.get_filtered_parents_for_child_search();
+		if (parent_names.length) {
+			filters.push([ "parent", "in", parent_names ]);
+		}
+	}
+
+	add_custom_child_filters(filters) {
+		if (this.add_filters_group && this.filter_group) {
+			this.filter_group.get_filters().forEach(filter => {
+				if (filter[0] == this.child_doctype) {
+					filters.push([filter[1], filter[2], filter[3]]);
 				}
-				me.render_result_list(me.results, more);
+			});
+		}
+	}
+
+	async get_child_result() {
+		let filters = [
+			["parentfield", "=", this.child_fieldname]
+		]
+
+		await this.add_parent_filters(filters);
+		this.add_custom_child_filters(filters);
+
+		return frappe.call({
+			method: "frappe.client.get_list",
+			args: {
+				doctype: this.child_doctype,
+				filters: filters,
+				fields: ['name', 'parent', ...this.child_columns],
+				parent: this.doctype,
+				order_by: 'parent'
 			}
 		});
 	}
