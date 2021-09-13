@@ -15,11 +15,11 @@ class PackageRelease(Document):
 		from frappe.query_builder import Field
 
 		if not self.major:
-			self.major = frappe.qb.from_("Package Release").where(Field(self.package) == "package").select(Max("major")).run()[0][0] or 0
+			self.major = frappe.qb.from_("Package Release").where(Field("package") == self.package).select(Max("major")).run()[0][0] or 0
 		if not self.minor:
-			self.minor = frappe.qb.from_("Package Release").where(Field(self.package) == "package").select(Max("minor")).run()[0][0] or 0
+			self.minor = frappe.qb.from_("Package Release").where(Field("package") == self.package).select(Max("minor")).run()[0][0] or 0
 		if not self.patch:
-			self.patch = frappe.qb.from_("Package Release").where(Field(self.package) == "package").select(Max("patch")).run()[0][0] or 1
+			self.patch = frappe.qb.from_("Package Release").where(Field("package") == self.package).select(Max("patch")).run()[0][0] or 1
 
 	def autoname(self):
 		self.set_version()
