@@ -148,7 +148,7 @@ class FormTimeline extends BaseTimeline {
 
 	get_user_link(user) {
 		const user_display_text = (
-			(frappe.session.user == user ? "You" : frappe.user_info(user).fullname) || ''
+			(frappe.session.user == user ? __("You") : frappe.user_info(user).fullname) || ''
 		).bold();
 		return frappe.utils.get_form_link('User', user, true, user_display_text);
 	}
