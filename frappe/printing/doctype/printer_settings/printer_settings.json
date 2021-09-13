@@ -10,7 +10,8 @@
   "printer_name",
   "port",
   "column_break_4",
-  "reference_doctype"
+  "reference_doctype",
+  "reference_name"
  ],
  "fields": [
   {
@@ -45,11 +46,17 @@
    "fieldtype": "Link",
    "label": "Reference DocType",
    "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-07 13:17:26.978129",
+ "modified": "2021-09-13 17:19:30.713385",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printer Settings",
