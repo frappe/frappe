@@ -332,7 +332,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_parent_name_of_selected_children() {
-		if (!this.child_datatable.datamanager.rows.length) return [];
+		if (!this.child_datatable || !this.child_datatable.datamanager.rows.length) return [];
 
 		let parent_names = this.child_datatable.rowmanager.checkMap.reduce((parent_names, checked, index) => {
 			if (checked == 1) {
@@ -346,7 +346,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_selected_child_names() {
-		if (!this.child_datatable.datamanager.rows.length) return [];
+		if (!this.child_datatable || !this.child_datatable.datamanager.rows.length) return [];
 
 		let checked_names = this.child_datatable.rowmanager.checkMap.reduce((checked_names, checked, index) => {
 			if (checked == 1) {
