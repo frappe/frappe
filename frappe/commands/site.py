@@ -10,7 +10,6 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from sqlparse import sql
 
 
 @click.command('new-site')
@@ -79,14 +78,17 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 
 		# Decrypt using the provided key
 		if backup_encryption_key:
-			click.secho("Encrypted Backup file detected. Decrypting using provided Key.", fg="yellow")
+			click.secho(
+				"Encrypted backup file detected. Decrypting using provided key.", 
+				fg="yellow"
+			)
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 			
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
-					"Decryption Failed. Please provide a valid key and Try again.",
+					"Decryption failed. Please provide a valid key and try again.",
 					fg="red"
 				)
 				decryption_rollback(sql_file_path)
@@ -94,7 +96,10 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 				
 		# Decrypt using the key from site config if key not provided
 		else:
-			click.secho("Encrypted backup file detected. Decrypting using Site config", fg="yellow")
+			click.secho(
+				"Encrypted backup file detected. Decrypting using site config", 
+				fg="yellow"
+			)
 
 			#Get the key from site config
 			site = get_site(context)
@@ -107,7 +112,7 @@ def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_use
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
-					"Decryption Failed. Please provide a valid key and Try again.",
+					"Decryption failed. Please provide a valid key and try again.",
 					fg="red"
 				)
 				decryption_rollback(sql_file_path)
@@ -209,14 +214,17 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 		
 		# Decrypt using the provided key
 		if backup_encryption_key:
-			click.secho("Encrypted Backup file detected. Decrypting using provided Key.", fg="yellow")
+			click.secho(
+				"Encrypted Backup file detected. Decrypting using provided key.", 
+				fg="yellow"
+			)
 			
 			backup_decryption(sql_file_path, backup_encryption_key)
 			
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
-					"Decryption Failed. Please provide a valid key and Try again.",
+					"Decryption failed. Please provide a valid key and try again.",
 					fg="red"
 				)
 				decryption_rollback(sql_file_path)
@@ -224,7 +232,10 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 				
 		# Decrypt using the key from site config if key not provided
 		else:
-			click.secho("Encrypted backup file detected. Decrypting using Site config", fg="yellow")
+			click.secho(
+				"Encrypted backup file detected. Decrypting using site config", 
+				fg="yellow"
+			)
 
 			#Get the key from site config
 			site = get_site(context)
@@ -237,7 +248,7 @@ def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None
 			# Rollback on unsucessful decryrption
 			if not os.path.exists(sql_file_path):
 				click.secho(
-					"Decryption Failed. Please provide a valid key and Try again.",
+					"Decryption failed. Please provide a valid key and try again.",
 					fg="red"
 				)
 				decryption_rollback(sql_file_path)
@@ -563,16 +574,25 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 				force=True
 			)
 		except Exception:
-			click.secho("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
+			click.secho(
+				"Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), 
+				fg="red"
+			)
 			if verbose:
 				print(frappe.get_traceback())
 			exit_code = 1
 			continue
 		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().backup_encryption_key:
-			click.secho("Backup encryption is turned on. Please note the Backup encryption key.", fg="yellow")
+			click.secho(
+				"Backup encryption is turned on. Please note the backup encryption key.", 
+				fg="yellow"
+			)
 
 		odb.print_summary()
-		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
+		click.secho(
+			"Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), 
+			fg="green"
+		)
 		frappe.destroy()
 
 	if not context.sites:

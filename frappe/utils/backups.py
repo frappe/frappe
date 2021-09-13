@@ -17,7 +17,6 @@ import click
 import frappe
 from frappe import _, conf
 from frappe.share import remove
-from frappe.commands import get_site, pass_context
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 
 # backup variable for backwards compatibility
@@ -247,6 +246,7 @@ class BackupGenerator:
 					os.rename(path + ".gpg", path)
 
 				except Exception as err:
+					print(err)
 					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="yellow")
 
 	def get_recent_backup(self, older_than, partial=False):
