@@ -1,0 +1,33 @@
+.version-info {
+	overflow: auto;
+
+	pre {
+		border: 0px;
+		margin: 0px;
+		background-color: inherit;
+	}
+
+	.table {
+		background-color: inherit;
+	}
+
+	.success {
+		background-color: var(--green-100) !important;
+	}
+
+	.danger {
+		background-color: var(--red-100) !important;
+	}
+}
+
+[data-theme="dark"] {
+	.version-info {
+		.danger, .success {
+			color: var(--gray-900);
+
+			td {
+				color: var(--gray-900);
+			}
+		}
+	}
+}

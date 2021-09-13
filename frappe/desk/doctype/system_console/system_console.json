@@ -17,9 +17,13 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "execute_section",
   "console",
   "commit",
-  "output"
+  "output",
+  "database_processes_section",
+  "show_processlist",
+  "processlist"
  ],
  "fields": [
   {
@@ -40,13 +44,34 @@
    "fieldname": "commit",
    "fieldtype": "Check",
    "label": "Commit"
+  },
+  {
+   "fieldname": "execute_section",
+   "fieldtype": "Section Break",
+   "label": "Execute"
+  },
+  {
+   "fieldname": "database_processes_section",
+   "fieldtype": "Section Break",
+   "label": "Database Processes"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_processlist",
+   "fieldtype": "Check",
+   "label": "Show Processlist"
+  },
+  {
+   "fieldname": "processlist",
+   "fieldtype": "HTML",
+   "label": "processlist"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-08-21 14:44:35.296877",
+ "modified": "2021-09-09 13:10:14.237113",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Console",
