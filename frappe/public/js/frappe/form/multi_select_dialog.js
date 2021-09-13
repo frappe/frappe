@@ -521,10 +521,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	async get_filtered_parents_for_child_search() {
 		const parent_search_args = this.get_args_for_search();
-		parent_search_args.filter_fields = ['name']
+		parent_search_args.filter_fields = ['name'];
+		// eslint-disable-next-line no-unused-vars
 		const [response, _] = await this.perform_search(parent_search_args);
 
-		let parent_names = []
+		let parent_names = [];
 		if (response.values.length) {
 			parent_names = response.values.map(v => v.name);
 		}
@@ -549,9 +550,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	async get_child_result() {
-		let filters = [
-			["parentfield", "=", this.child_fieldname]
-		]
+		let filters = [["parentfield", "=", this.child_fieldname]];
 
 		await this.add_parent_filters(filters);
 		this.add_custom_child_filters(filters);
