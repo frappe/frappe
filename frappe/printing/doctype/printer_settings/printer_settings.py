@@ -8,9 +8,6 @@ from frappe import _
 class PrinterSettings(Document):
 	@frappe.whitelist()
 	def get_printers_list(self,ip="localhost",port=631):
-		print("``````````````````````````````````")
-		print(ip)
-		print(port)
 		printer_list = []
 		try:
 			import cups
@@ -27,8 +24,7 @@ class PrinterSettings(Document):
 					'value': printer_id,
 					'label': printer['printer-make-and-model']
 				})
-			print(printer_list)
-			print("``````````````````````````````````")
+
 		except RuntimeError:
 			frappe.throw(_("Failed to connect to server"))
 		except frappe.ValidationError:
