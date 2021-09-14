@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe, os, json
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
@@ -54,29 +54,24 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			docs = [docs]
 
 		for doc in docs:
-			if not force:
-				# check if timestamps match
-				db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
-				if db_modified and doc.get('modified')==get_datetime_str(db_modified):
-					return False
+			if not force and not is_changed(doc):
+				return False
 
 			original_modified = doc.get("modified")
 
-			frappe.flags.in_import = True
 			import_doc(doc, force=force, data_import=data_import, pre_process=pre_process,
-				ignore_version=ignore_version, reset_permissions=reset_permissions)
-			frappe.flags.in_import = False
+				ignore_version=ignore_version, reset_permissions=reset_permissions, path=path)
 
 			if original_modified:
-				# since there is a new timestamp on the file, update timestamp in
-				if doc["doctype"] == doc["name"] and doc["name"]!="DocType":
-					frappe.db.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""",
-						(original_modified, doc["name"]))
-				else:
-					frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
-						(doc['doctype'], '%s', '%s'),
-						(original_modified, doc['name']))
+				update_modified(original_modified, doc)
 
+	return True
+
+def is_changed(doc):
+	# check if timestamps match
+	db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
+	if db_modified and doc.get('modified')==get_datetime_str(db_modified):
+		return False
 	return True
 
 def read_doc_from_file(path):
@@ -93,8 +88,17 @@ def read_doc_from_file(path):
 
 	return doc
 
+def update_modified(original_modified, doc):
+	# since there is a new timestamp on the file, update timestamp in
+	if doc["doctype"] == doc["name"] and doc["name"]!="DocType":
+		frappe.db.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""",
+			(original_modified, doc["name"]))
+	else:
+		frappe.db.sql("update `tab%s` set modified=%s where name=%s" % (doc['doctype'],
+			'%s', '%s'), (original_modified, doc['name']))
+
 def import_doc(docdict, force=False, data_import=False, pre_process=None,
-		ignore_version=None, reset_permissions=False):
+		ignore_version=None, reset_permissions=False, path=None):
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 
@@ -104,14 +108,8 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 
 	doc = frappe.get_doc(docdict)
 
-	# Note on Tree DocTypes:
-	# The tree structure is maintained in the database via the fields "lft" and
-	# "rgt". They are automatically set and kept up-to-date. Importing them
-	# would destroy any existing tree structure.
-	if getattr(doc.meta, 'is_tree', None) and any([doc.lft, doc.rgt]):
-		print('Ignoring values of `lft` and `rgt` for {} "{}"'.format(doc.doctype, doc.name))
-		doc.lft = None
-		doc.rgt = None
+	reset_tree_properties(doc)
+	load_code_properties(doc, path)
 
 	doc.run_method("before_import")
 
@@ -119,27 +117,9 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	if pre_process:
 		pre_process(doc)
 
-	ignore = []
-
 	if frappe.db.exists(doc.doctype, doc.name):
+		delete_old_doc(doc, reset_permissions)
 
-		old_doc = frappe.get_doc(doc.doctype, doc.name)
-
-		if doc.doctype in ignore_values:
-			# update ignore values
-			for key in ignore_values.get(doc.doctype) or []:
-				doc.set(key, old_doc.get(key))
-
-		# update ignored docs into new doc
-		for df in doc.meta.get_table_fields():
-			if df.options in ignore_doctypes and not reset_permissions:
-				doc.set(df.fieldname, [])
-				ignore.append(df.options)
-
-		# delete old
-		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
-
-	doc.flags.ignore_children_type = ignore
 	doc.flags.ignore_links = True
 	if not data_import:
 		doc.flags.ignore_validate = True
@@ -149,3 +129,47 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	doc.insert()
 
 	frappe.flags.in_import = False
+
+	return doc
+
+def load_code_properties(doc, path):
+	'''Load code files stored in separate files with extensions'''
+	if path:
+		if hasattr(doc, 'get_code_fields'):
+			dirname, filename = os.path.split(path)
+			for key, extn in doc.get_code_fields().items():
+				codefile = os.path.join(dirname, filename.split('.')[0]+'.'+extn)
+				if os.path.exists(codefile):
+					with open(codefile,'r') as txtfile:
+						doc.set(key, txtfile.read())
+
+
+def delete_old_doc(doc, reset_permissions):
+	ignore = []
+	old_doc = frappe.get_doc(doc.doctype, doc.name)
+
+	if doc.doctype in ignore_values:
+		# update ignore values
+		for key in ignore_values.get(doc.doctype) or []:
+			doc.set(key, old_doc.get(key))
+
+	# update ignored docs into new doc
+	for df in doc.meta.get_table_fields():
+		if df.options in ignore_doctypes and not reset_permissions:
+			doc.set(df.fieldname, [])
+			ignore.append(df.options)
+
+	# delete old
+	frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
+
+	doc.flags.ignore_children_type = ignore
+
+def reset_tree_properties(doc):
+	# Note on Tree DocTypes:
+	# The tree structure is maintained in the database via the fields "lft" and
+	# "rgt". They are automatically set and kept up-to-date. Importing them
+	# would destroy any existing tree structure.
+	if getattr(doc.meta, 'is_tree', None) and any([doc.lft, doc.rgt]):
+		print('Ignoring values of `lft` and `rgt` for {} "{}"'.format(doc.doctype, doc.name))
+		doc.lft = None
+		doc.rgt = None

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -124,6 +124,7 @@ jobs:
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
       - name: Upload coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: codecov/codecov-action@v2
         with:
           name: Postgres

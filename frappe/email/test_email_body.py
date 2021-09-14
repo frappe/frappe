@@ -1,5 +1,6 @@
-# Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+
 import unittest, os, base64
 from frappe import safe_decode
 from frappe.email.receive import Email
