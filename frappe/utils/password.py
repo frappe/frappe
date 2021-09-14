@@ -208,18 +208,27 @@ def decrypt(pwd):
 		return plain_text
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
+<<<<<<< HEAD
 		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
+=======
+		frappe.throw(
+			_("Encryption key is invalid") + "!"
+			if encryption_key
+			else _(", please check site_config.json.")
+		)
+>>>>>>> f1c29a16eb (fix: Invalid translation string)
 
 
 def get_encryption_key():
 	from frappe.installer import update_site_config
 
-	if 'encryption_key' not in frappe.local.conf:
+	if "encryption_key" not in frappe.local.conf:
 		encryption_key = Fernet.generate_key().decode()
-		update_site_config('encryption_key', encryption_key)
+		update_site_config("encryption_key", encryption_key)
 		frappe.local.conf.encryption_key = encryption_key
 
 	return frappe.local.conf.encryption_key
+
 
 def get_password_reset_limit():
 	return frappe.db.get_single_value("System Settings", "password_reset_limit") or 0
