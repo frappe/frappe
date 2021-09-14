@@ -258,14 +258,14 @@ class PostgresDatabase(Database):
 		return self.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
 			and indexname='{index_name}' limit 1""".format(table_name=table_name, index_name=index_name))
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype: str, fields: List, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
+		table_name = get_table_name(doctype)
 		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
 
-		self.commit()
-		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
+		self.sql_ddl(f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}` ("{fields_str}")')
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):

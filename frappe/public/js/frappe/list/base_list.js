@@ -3,9 +3,15 @@ frappe.provide("frappe.views");
 frappe.views.BaseList = class BaseList {
 	constructor(opts) {
 		Object.assign(this, opts);
+		this.init_page()
 	}
 
 	show() {
+		this.meta = frappe.get_meta(this.doctype);
+		this.set_title();
+		// in loading state?
+		if (!this.meta) return;
+
 		frappe.run_serially([
 			() => this.init(),
 			() => this.before_refresh(),
@@ -34,8 +40,6 @@ frappe.views.BaseList = class BaseList {
 
 	setup_defaults() {
 		this.page_name = frappe.get_route_str();
-		this.page_title = this.page_title || frappe.router.doctype_layout || __(this.doctype);
-		this.meta = frappe.get_meta(this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		this.user_settings = frappe.get_user_settings(this.doctype);
 
@@ -150,13 +154,21 @@ frappe.views.BaseList = class BaseList {
 		}
 	}
 
-	setup_page() {
+	init_page() {
 		this.page = this.parent.page;
+		this.make_skeleton();
 		this.$page = $(this.parent);
 		!this.hide_card_layout && this.page.main.addClass('frappe-card');
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.hide_page_form && this.page.page_form.hide();
 		this.hide_sidebar && this.$page.addClass('no-list-sidebar');
+	}
+
+	make_skeleton() {
+		this.skeleton = $(`<div class='skeleton-bg' style='min-height: 400px'></div>`).prependTo(this.page.main.parent());
+	}
+
+	setup_page() {
 		this.setup_page_head();
 	}
 
@@ -167,6 +179,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_title() {
+		this.page_title = this.page_title || frappe.router.doctype_layout || __(this.doctype);
 		this.page.set_title(this.page_title);
 	}
 
@@ -280,6 +293,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_list_wrapper() {
+		this.skeleton.remove(); // clear skeleton
 		this.$frappe_list = $('<div class="frappe-list">').appendTo(
 			this.page.main
 		);
