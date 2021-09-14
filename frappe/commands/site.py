@@ -740,13 +740,16 @@ def build_search_index(context):
 
 @click.command('trim-database')
 @click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
+@click.option('--format', '-f', default='text', type=click.Choice(['json', 'text']), help='Output format')
 @click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
 @pass_context
-def trim_database(context, dry_run, no_backup):
+def trim_database(context, dry_run, format, no_backup):
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
 	from frappe.utils.backups import scheduled_backup
+
+	ALL_DATA = {}
 
 	for site in context.sites:
 		frappe.init(site=site)
@@ -772,19 +775,30 @@ def trim_database(context, dry_run, no_backup):
 				TABLES_TO_DROPPED.append(x)
 
 		if not TABLES_TO_DROPPED:
-			click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
+			if format == "text":
+				click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
 		else:
 			if not (no_backup or dry_run):
-				click.secho(f"Taking backup for {frappe.local.site}", fg="green")
+				if format == "text":
+					click.secho(f"Taking backup for {frappe.local.site}", fg="green")
 				odb = scheduled_backup(ignore_files=False, force=True)
-				odb.print_summary()
+				if format == "text":
+					odb.print_summary()
 
 			for table in TABLES_TO_DROPPED:
-				print(f"* dropping Table '{table}'...")
+				if format == "text":
+					print(f"* dropping Table '{table}'...")
 				if not dry_run:
 					frappe.db.sql_ddl(f"drop table `{table}`")
 
+			ALL_DATA[frappe.local.site] = TABLES_TO_DROPPED
+
 		frappe.destroy()
+
+	if format == "json":
+		import json
+		print(json.dumps(ALL_DATA, indent=1))
+
 
 def get_standard_tables():
 	import re
