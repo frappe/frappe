@@ -142,17 +142,27 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param logout_all_session: delete all other session
 	'''
 	hashPwd = passlibctx.hash(pwd)
-	frappe.db.multisql({
-		"mariadb": """INSERT INTO `__Auth`
-			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
-			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
-			ON DUPLICATE key UPDATE `password`=%(pwd)s, encrypted=0""",
-		"postgres": """INSERT INTO `__Auth`
-			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
-			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
-			ON CONFLICT("name", "doctype", "fieldname") DO UPDATE
-			SET `password`=%(pwd)s, encrypted=0""",
-	}, {'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
+
+	query = (
+		frappe.qb.into(Auth)
+		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
+		.insert(doctype, user, fieldname, hashPwd, 0)
+	)
+
+	# TODO: Simplify this via aliasing methods in `frappe.qb`
+	if frappe.db.db_type == "mariadb":
+		query = (
+			query.on_duplicate_key_update(Auth.password, hashPwd)
+			.on_duplicate_key_update(Auth.encrypted, 0)
+		)
+	elif frappe.db.db_type == "postgres":
+		query = (
+			query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
+			.do_update(Auth.password, hashPwd)
+			.do_update(Auth.encrypted, 0)
+		)
+
+	query.run()
 
 	# clear all the sessions except current
 	if logout_all_sessions:
@@ -173,15 +183,17 @@ def delete_all_passwords_for(doctype, name):
 
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
-	frappe.db.sql("""update `__Auth` set name=%(new_name)s
-		where doctype=%(doctype)s and name=%(old_name)s""",
-		{ 'doctype': doctype, 'new_name': new_name, 'old_name': old_name })
+	frappe.qb.update(Auth).set(Auth.name, new_name).where(
+		(Auth.doctype == doctype)
+		& (Auth.name == old_name)
+	).run()
 
 
 def rename_password_field(doctype, old_fieldname, new_fieldname):
-	frappe.db.sql('''update `__Auth` set fieldname=%(new_fieldname)s
-		where doctype=%(doctype)s and fieldname=%(old_fieldname)s''',
-		{ 'doctype': doctype, 'old_fieldname': old_fieldname, 'new_fieldname': new_fieldname })
+	frappe.qb.update(Auth).set(Auth.fieldname, new_fieldname).where(
+		(Auth.doctype == doctype)
+		& (Auth.fieldname == old_fieldname)
+	).run()
 
 
 def create_auth_table():
