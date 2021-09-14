@@ -544,11 +544,11 @@ def console(context, autoreload=False):
 	terminal()
 
 
-@click.command('transform-database')
-@click.option('--table', required=True)
-@click.option('--engine', default=None, type=click.Choice(["InnoDB", "MyISAM"]))
-@click.option('--row_format', default=None, type=click.Choice(["DYNAMIC", "COMPACT", "REDUNDANT", "COMPRESSED"]))
-@click.option('--failfast', is_flag=True, default=False)
+@click.command('transform-database', help="Change tables' internal settings changing engine and row formats")
+@click.option('--table', required=True, help="Comma separated name of tables to convert. To convert all tables, pass 'all'")
+@click.option('--engine', default=None, type=click.Choice(["InnoDB", "MyISAM"]), help="Choice of storage engine for said table(s)")
+@click.option('--row_format', default=None, type=click.Choice(["DYNAMIC", "COMPACT", "REDUNDANT", "COMPRESSED"]), help="Set ROW_FORMAT parameter for said table(s)")
+@click.option('--failfast', is_flag=True, default=False, help="Exit on first failure occurred")
 @pass_context
 def transform_database(context, table, engine, row_format, failfast):
 	"Transform site database through given parameters"
