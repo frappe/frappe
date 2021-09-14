@@ -813,7 +813,7 @@ def get_standard_tables():
 
 @click.command('trim-tables')
 @click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
-@click.option('--format', default='table', type=click.Choice(['json', 'table']), help='Output format')
+@click.option('--format', '-f', default='table', type=click.Choice(['json', 'table']), help='Output format')
 @click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
 @pass_context
 def trim_tables(context, dry_run, format, no_backup):
@@ -833,7 +833,11 @@ def trim_tables(context, dry_run, format, no_backup):
 			odb.print_summary()
 
 		try:
-			trimmed_data = trim_tables(dry_run=dry_run)
+			trimmed_data = trim_tables(dry_run=dry_run, quiet=format == 'json')
+
+			if format == 'table' and not dry_run:
+				click.secho(f"The following data have been removed from {frappe.local.site}", fg='green')
+
 			handle_data(trimmed_data, format=format)
 		finally:
 			frappe.destroy()
@@ -843,9 +847,10 @@ def handle_data(data: dict, format='json'):
 		import json
 		print(json.dumps({frappe.local.site: data}, indent=1, sort_keys=True))
 	else:
-		click.secho(f"Site {frappe.local.site}", fg='green')
-		for table, columns in data.items():
-			print(f"{table}: {', '.join(columns)}")
+		from frappe.utils.commands import render_table
+		data = [["DocType", "Fields"]] + [[table, ", ".join(columns)] for table, columns in data.items()]
+		render_table(data)
+
 
 commands = [
 	add_system_manager,

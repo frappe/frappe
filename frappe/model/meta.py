@@ -659,7 +659,7 @@ def get_default_df(fieldname):
 				fieldtype = "Data"
 			)
 
-def trim_tables(doctype=None, dry_run=False):
+def trim_tables(doctype=None, dry_run=False, quiet=False):
 	"""
 	Removes database fields that don't exist in the doctype (json or custom field). This may be needed
 	as maintenance since removing a field in a DocType doesn't automatically
@@ -676,9 +676,13 @@ def trim_tables(doctype=None, dry_run=False):
 			if dropped_columns:
 				UPDATED_TABLES[doctype] = dropped_columns
 		except frappe.db.TableMissingError:
+			if quiet:
+				continue
 			click.secho(f"Ignoring missing table for DocType: {doctype}", fg="yellow", err=True)
 			click.secho(f"Consider removing record in the DocType table for {doctype}", fg="yellow", err=True)
 		except Exception as e:
+			if quiet:
+				continue
 			click.echo(e, err=True)
 
 	return UPDATED_TABLES
