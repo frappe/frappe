@@ -10,6 +10,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from passlib.hash import pbkdf2_sha256, mysql41
 from passlib.registry import register_crypt_handler
 from passlib.context import CryptContext
+from pypika.terms import Values
 
 Auth = Table("__Auth")
 
@@ -51,8 +52,7 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 			& (Auth.encrypted == 1)
 		)
 		.limit(1)
-		.run()
-	)
+	).run()
 
 	if result and result[0][0]:
 		return decrypt(result[0][0])
@@ -70,17 +70,10 @@ def set_encrypted_password(doctype, name, pwd, fieldname="password"):
 
 	# TODO: Simplify this via aliasing methods in `frappe.qb`
 	if frappe.db.db_type == "mariadb":
-		query = (
-			query.on_duplicate_key_update(Auth.doctype, doctype)
-			.on_duplicate_key_update(Auth.name, name)
-			.on_duplicate_key_update(Auth.fieldname, fieldname)
-		)
+		query = query.on_duplicate_key_update(Auth.password, Values(Auth.password))
 	elif frappe.db.db_type == "postgres":
 		query = (
-			query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
-			.do_update(Auth.doctype, doctype)
-			.do_update(Auth.name, name)
-			.do_update(Auth.fieldname, fieldname)
+			query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname).do_update(Auth.password)
 		)
 
 	try:
