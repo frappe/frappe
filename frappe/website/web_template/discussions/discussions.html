@@ -1,0 +1,3 @@
+{% set docname = frappe.db.get_value("Web Page", {"route": ""}, ["name"])%}
+{% include "frappe/templates/discussions/discussions_section.html" %}
+
