@@ -256,11 +256,11 @@ class MariaDBDatabase(Database):
 				index_name=index_name
 			))
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype: str, fields: List, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
 			self.commit()
 			self.sql("""ALTER TABLE `%s`
