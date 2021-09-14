@@ -135,11 +135,13 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Check" and doc[df.fieldname] %}
 		<!-- <i class="{{ 'fa fa-check' }}"></i> -->
 		<svg viewBox="0 0 16 16"
-			fill="transparent" stroke="var(--icon-stroke)" stroke-width="2"
+			fill="transparent" stroke="#1F272E" stroke-width="2"
 			xmlns="http://www.w3.org/2000/svg" id="icon-tick"
 			style="width: 12px; height: 12px; margin-top: 5px;">
 			<path d="M2 9.66667L5.33333 13L14 3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		</svg>
+	{% elif df.fieldtype=="Check" and not doc[df.fieldname] %}
+		<!-- empty -->
 	{% elif df.fieldtype in ("Image", "Attach Image") and frappe.utils.is_image(doc[doc.meta.get_field(df.fieldname).options]) %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
@@ -178,7 +180,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {% macro get_align_class(df, no_of_cols=2) %}
 	{% if no_of_cols >= 3 %}{{ "" }}
 	{%- elif df.align -%}{{ "text-" + df.align }}
-	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Check", "Percent") -%}{{ "text-right" }}
+	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Percent") -%}{{ "text-right" }}
+	{%- elif df.fieldtype in ("Check") -%}{{ "text-center" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}
 {% endmacro %}
