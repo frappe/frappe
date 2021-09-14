@@ -34,3 +34,8 @@ def execute_code(doc):
 	console = frappe.get_doc(json.loads(doc))
 	console.run()
 	return console.as_dict()
+
+@frappe.whitelist()
+def show_processlist():
+	frappe.only_for('System Manager')
+	return frappe.db.sql('show full processlist', as_dict=1)
