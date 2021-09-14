@@ -33,14 +33,38 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show() {
 		this.parent.disable_scroll_to_top = true;
+		super.show();
+	}
 
+	check_permissions() {
 		if (!this.has_permissions()) {
 			frappe.set_route('');
-			frappe.msgprint(__("Not permitted to view {0}", [this.doctype]));
-			return;
+			frappe.throw(__("Not permitted to view {0}", [this.doctype]));
 		}
+	}
 
-		super.show();
+	show_skeleton() {
+		this.$list_skeleton = this.parent.page.container.find('.list-skeleton');
+		if (!this.$list_skeleton.length) {
+			this.$list_skeleton = $(`
+				<div class="row list-skeleton">
+					<div class="col-lg-2">
+						<div class="list-skeleton-box"></div>
+					</div>
+					<div class="col">
+						<div class="list-skeleton-box"></div>
+					</div>
+				</div>
+			`);
+			this.parent.page.container.find('.page-content').append(this.$list_skeleton);
+		}
+		this.parent.page.container.find('.layout-main').hide();
+		this.$list_skeleton.show();
+	}
+
+	hide_skeleton() {
+		this.$list_skeleton?.hide();
+		this.parent.page.container.find('.layout-main').show();
 	}
 
 	get view_name() {
