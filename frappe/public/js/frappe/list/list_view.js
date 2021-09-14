@@ -63,7 +63,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	hide_skeleton() {
-		this.$list_skeleton?.hide();
+		this.$list_skeleton && this.$list_skeleton.hide();
 		this.parent.page.container.find('.layout-main').show();
 	}
 
