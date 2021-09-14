@@ -10,8 +10,6 @@ from cryptography.fernet import Fernet, InvalidToken
 from passlib.hash import pbkdf2_sha256, mysql41
 from passlib.registry import register_crypt_handler
 from passlib.context import CryptContext
-from pymysql.constants.ER import DATA_TOO_LONG
-from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 class LegacyPassword(pbkdf2_sha256):
 	name = "frappe_legacy"
@@ -59,8 +57,7 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 				on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
 			), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
 	except frappe.db.DataError as e:
-		if ((frappe.db.db_type == 'mariadb' and e.args[0] == DATA_TOO_LONG) or
-			(frappe.db.db_type == 'postgres' and e.pgcode == STRING_DATA_RIGHT_TRUNCATION)):
+		if frappe.db.is_data_too_long(e):
 			frappe.throw(_("Most probably your password is too long."), exc=e)
 		raise e
 
