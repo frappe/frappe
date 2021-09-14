@@ -197,6 +197,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			callback: (r) => {
 				if (r.message.status === 'ok') {
 					this.post_setup_success();
+				} else if (r.message.status === 'registered') {
+					this.update_setup_message(__("starting the setup..."));
 				} else if (r.message.fail !== undefined) {
 					this.abort_setup(r.message.fail);
 				}
@@ -237,6 +239,9 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			}
 			if (data.fail_msg) {
 				this.abort_setup(data.fail_msg);
+			}
+			if (data.status === 'ok') {
+				this.post_setup_success();
 			}
 		})
 	}
