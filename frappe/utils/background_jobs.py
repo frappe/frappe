@@ -1,17 +1,22 @@
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
+
+import os
+import socket
+import time
+from collections import defaultdict
+from uuid import uuid4
+
 import redis
+from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
-from frappe.utils import cstr
-from collections import defaultdict
-import frappe
-import os, socket, time
-from frappe import _
 from six import string_types
-from uuid import uuid4
-import frappe.monitor
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-# imports - third-party imports
+import frappe
+import frappe.monitor
+from frappe import _
+from frappe.utils import cstr
 
 default_timeout = 300
 queue_timeout = {
@@ -229,6 +234,11 @@ def validate_queue(queue, default_queue_list=None):
 	if queue not in default_queue_list:
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
 
+@retry(
+	retry=retry_if_exception_type(BusyLoadingError) | retry_if_exception_type(ConnectionError),
+	stop=stop_after_attempt(10),
+	wait=wait_fixed(1)
+)
 def get_redis_conn():
 	if not hasattr(frappe.local, 'conf'):
 		raise Exception('You need to call frappe.init')

@@ -15,6 +15,7 @@ class AccessLog(Document):
 
 
 @frappe.whitelist()
+@frappe.write_only()
 def make_access_log(doctype=None, document=None, method=None, file_type=None,
 		report_name=None, filters=None, page=None, columns=None):
 
@@ -35,4 +36,5 @@ def make_access_log(doctype=None, document=None, method=None, file_type=None,
 	doc.insert(ignore_permissions=True)
 
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
-	frappe.db.commit()
+	if frappe.request and frappe.request.method == 'GET':
+		frappe.db.commit()

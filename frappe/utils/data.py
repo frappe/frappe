@@ -1,8 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
+from typing import Optional
 import frappe
 import operator
 import json
@@ -11,6 +10,7 @@ from six.moves.urllib.parse import quote, urljoin
 from six import iteritems, text_type, string_types, integer_types
 from code import compile_command
 from frappe.desk.utils import slug
+from click import secho
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -19,10 +19,10 @@ DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
 def is_invalid_date_string(date_string):
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
-	return (not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
+	return not isinstance(date_string, str) or ((not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00")))
 
 # datetime functions
-def getdate(string_date=None):
+def getdate(string_date: Optional[str] = None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
@@ -69,6 +69,31 @@ def get_datetime(datetime_str=None):
 		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
 	except ValueError:
 		return parser.parse(datetime_str)
+
+def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
+	"""Return `datetime.timedelta` object from string value of a
+	valid time format. Returns None if `time` is not a valid format
+
+	Args:
+		time (str): A valid time representation. This string is parsed
+		using `dateutil.parser.parse`. Examples of valid inputs are:
+		'0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
+		https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
+
+	Returns:
+		datetime.timedelta: Timedelta object equivalent of the passed `time` string
+	"""
+	from dateutil import parser
+
+	time = time or "0:0:0"
+
+	try:
+		t = parser.parse(time)
+		return datetime.timedelta(
+			hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
+		)
+	except Exception:
+		return None
 
 def to_timedelta(time_str):
 	from dateutil import parser
@@ -508,7 +533,14 @@ def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
 	return set(l1) & set(l2)
 
-def cast_fieldtype(fieldtype, value):
+def cast_fieldtype(fieldtype, value, show_warning=True):
+	if show_warning:
+		message = (
+			"Function `frappe.utils.data.cast` has been deprecated in favour"
+			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
+		)
+		secho(message, fg="yellow")
+
 	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
 
@@ -527,6 +559,46 @@ def cast_fieldtype(fieldtype, value):
 
 	elif fieldtype == "Time":
 		value = to_timedelta(value)
+
+	return value
+
+def cast(fieldtype, value=None):
+	"""Cast the value to the Python native object of the Frappe fieldtype provided.
+	If value is None, the first/lowest value of the `fieldtype` will be returned.
+	If value can't be cast as fieldtype due to an invalid input, None will be returned.
+
+	Mapping of Python types => Frappe types:
+		* str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
+		* float => ("Currency", "Float", "Percent")
+		* int => ("Int", "Check")
+		* datetime.datetime => ("Datetime",)
+		* datetime.date => ("Date",)
+		* datetime.time => ("Time",)
+	"""
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		if value:
+			value = getdate(value)
+		else:
+			value = datetime.datetime(1, 1, 1).date()
+
+	elif fieldtype == "Datetime":
+		if value:
+			value = get_datetime(value)
+		else:
+			value = datetime.datetime(1, 1, 1)
+
+	elif fieldtype == "Time":
+		value = get_timedelta(value)
 
 	return value
 
@@ -727,11 +799,11 @@ def parse_val(v):
 		v = int(v)
 	return v
 
-def fmt_money(amount, precision=None, currency=None):
+def fmt_money(amount, precision=None, currency=None, format=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
 	if precision is None:
 		precision = cint(frappe.db.get_default('currency_precision')) or None
 
@@ -1205,7 +1277,7 @@ def evaluate_filters(doc, filters):
 def compare(val1, condition, val2, fieldtype=None):
 	ret = False
 	if fieldtype:
-		val2 = cast_fieldtype(fieldtype, val2)
+		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
 
