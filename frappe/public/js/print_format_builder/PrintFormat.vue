@@ -1,6 +1,20 @@
 <template>
 	<div class="print-format-main" :style="rootStyles">
+		<MarginText position="top_left" />
+		<MarginText position="top_center" />
+		<MarginText position="top_right" />
+		<MarginText position="bottom_left" />
+		<MarginText position="bottom_center" />
+		<MarginText position="bottom_right" />
+
+		<LetterHeadEditor type="Header" />
+		<HTMLEditor
+			:value="layout.header"
+			@change="$set(layout, 'header', $event)"
+			:button-label="__('Edit Header')"
+		/>
 		<draggable
+			class="mb-4"
 			v-model="layout.sections"
 			group="sections"
 			filter=".section-columns, .column, .field"
@@ -13,11 +27,20 @@
 				@add_section_above="add_section_above(section)"
 			/>
 		</draggable>
+		<HTMLEditor
+			:value="layout.footer"
+			@change="$set(layout, 'footer', $event)"
+			:button-label="__('Edit Footer')"
+		/>
+		<LetterHeadEditor type="Footer" />
 	</div>
 </template>
 
 <script>
 import draggable from "vuedraggable";
+import HTMLEditor from "./HTMLEditor.vue";
+import LetterHeadEditor from "./LetterHeadEditor.vue";
+import MarginText from "./MarginText.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import { storeMixin } from "./store";
 
@@ -26,7 +49,10 @@ export default {
 	mixins: [storeMixin],
 	components: {
 		draggable,
-		PrintFormatSection
+		PrintFormatSection,
+		LetterHeadEditor,
+		HTMLEditor,
+		MarginText
 	},
 	computed: {
 		rootStyles() {
@@ -66,6 +92,7 @@ export default {
 
 <style scoped>
 .print-format-main {
+	position: relative;
 	margin-right: auto;
 	margin-left: auto;
 	background-color: white;

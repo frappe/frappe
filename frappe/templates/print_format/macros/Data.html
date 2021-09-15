@@ -1,0 +1,10 @@
+{% if doc.get(fieldname) %}
+<div class="field">
+	<div class="label" {{ field_attributes(df) }}>
+		{{ df.label }}
+	</div>
+	<div class="value" {{ field_attributes(df) }}>
+		{{ doc.get_formatted(df.fieldname) }}
+	</div>
+</div>
+{% endif %}

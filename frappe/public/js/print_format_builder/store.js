@@ -11,11 +11,14 @@ export function getStore(print_format_name) {
 		data() {
 			return {
 				print_format_name,
+				letterhead_name: null,
 				print_format: null,
+				letterhead: null,
 				doctype: null,
 				meta: null,
 				layout: null,
-				dirty: false
+				dirty: false,
+				edit_letterhead: false
 			};
 		},
 		watch: {
@@ -56,6 +59,7 @@ export function getStore(print_format_name) {
 									this.print_format = print_format;
 									this.layout = this.get_layout();
 									this.$nextTick(() => (this.dirty = false));
+									this.edit_letterhead = false;
 									resolve();
 								}
 							);
@@ -109,11 +113,19 @@ export function getStore(print_format_name) {
 					.call("frappe.client.save", {
 						doc: this.print_format
 					})
+					.then(() => {
+						if (this.letterhead && this.letterhead._dirty) {
+							return frappe.call("frappe.client.save", {
+								doc: this.letterhead
+							});
+						}
+					})
 					.then(() => this.fetch())
 					.always(() => frappe.dom.unfreeze());
 			},
 			reset_changes() {
 				this.fetch();
+
 			},
 			get_layout() {
 				if (this.print_format) {
@@ -129,6 +141,11 @@ export function getStore(print_format_name) {
 			},
 			get_default_layout() {
 				return create_default_layout(this.meta);
+			},
+			change_letterhead(letterhead) {
+				frappe.db.get_doc("Letter Head", letterhead).then(doc => {
+					this.letterhead = doc;
+				});
 			}
 		}
 	};
@@ -144,6 +161,9 @@ export let storeMixin = {
 		},
 		layout() {
 			return this.$store.layout;
+		},
+		letterhead() {
+			return this.$store.letterhead;
 		},
 		meta() {
 			return this.$store.meta;

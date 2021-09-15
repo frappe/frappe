@@ -97,6 +97,9 @@ export default {
 			params.append("doctype", this.doctype);
 			params.append("name", this.docname);
 			params.append("print_format", this.print_format.name);
+			if (this.$store.letterhead) {
+				params.append("letterhead", this.$store.letterhead.name);
+			}
 			let url =
 				this.type == "PDF"
 					? `/api/method/frappe.utils.weasyprint.download_pdf`

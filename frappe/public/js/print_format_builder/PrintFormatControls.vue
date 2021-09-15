@@ -20,6 +20,7 @@
 									type="number"
 									class="form-control form-control-sm"
 									:value="print_format[df.fieldname]"
+									min="0"
 									@change="
 										e =>
 											update_margin(

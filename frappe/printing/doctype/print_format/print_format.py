@@ -7,10 +7,16 @@ import frappe.utils
 import json
 from frappe import _
 from frappe.utils.jinja import validate_template
-
+from frappe.utils.weasyprint import get_html, download_pdf
 from frappe.model.document import Document
 
 class PrintFormat(Document):
+	def get_html(self, docname, letterhead=None):
+		return get_html(self.doc_type, docname, self.name, letterhead)
+
+	def download_pdf(self, docname, letterhead=None):
+		return download_pdf(self.doc_type, docname, self.name, letterhead)
+
 	def validate(self):
 		if (self.standard=="Yes"
 			and not frappe.local.conf.get("developer_mode")

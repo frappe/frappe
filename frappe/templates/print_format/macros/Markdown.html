@@ -1,0 +1,3 @@
+<div class="value" {{ field_attributes(df) }}>
+	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
+</div>
