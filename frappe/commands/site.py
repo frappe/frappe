@@ -474,7 +474,7 @@ def remove_from_installed_apps(context, app):
 
 @click.command('uninstall-app')
 @click.argument('app')
-@click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
+@click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
 @click.option('--force', help='Force remove app from site', is_flag=True, default=False)
