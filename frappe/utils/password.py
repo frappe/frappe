@@ -213,15 +213,7 @@ def decrypt(pwd):
 		return plain_text
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
-<<<<<<< HEAD
 		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
-=======
-		frappe.throw(
-			_("Encryption key is invalid") + "!"
-			if encryption_key
-			else _(", please check site_config.json.")
-		)
->>>>>>> f1c29a16eb (fix: Invalid translation string)
 
 
 def get_encryption_key():
