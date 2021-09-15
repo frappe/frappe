@@ -19,7 +19,7 @@ from __future__ import unicode_literals, print_function
 from datetime import datetime
 from six.moves import range
 import frappe, json, os
-from frappe.utils import cstr, cint, cast_fieldtype
+from frappe.utils import cstr, cint, cast
 from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
@@ -325,24 +325,24 @@ class Meta(Document):
 
 		for ps in property_setters:
 			if ps.doctype_or_field=='DocType':
-				self.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+				self.set(ps.property, cast(ps.property_type, ps.value))
 
 			elif ps.doctype_or_field=='DocField':
 				for d in self.fields:
 					if d.fieldname == ps.field_name:
-						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						d.set(ps.property, cast(ps.property_type, ps.value))
 						break
 
 			elif ps.doctype_or_field=='DocType Link':
 				for d in self.links:
 					if d.name == ps.row_name:
-						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						d.set(ps.property, cast(ps.property_type, ps.value))
 						break
 
 			elif ps.doctype_or_field=='DocType Action':
 				for d in self.actions:
 					if d.name == ps.row_name:
-						d.set(ps.property, cast_fieldtype(ps.property_type, ps.value))
+						d.set(ps.property, cast(ps.property_type, ps.value))
 						break
 
 	def add_custom_links_and_actions(self):
@@ -535,7 +535,7 @@ class Meta(Document):
 					label = link.group,
 					items = [link.parent_doctype or link.link_doctype]
 				))
-			
+
 			if not link.is_child_table:
 				if link.link_fieldname != data.fieldname:
 					if data.fieldname:

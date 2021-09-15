@@ -12,7 +12,7 @@ import frappe.model.meta
 from frappe import _
 from frappe import get_module_path
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.core.doctype.file.file import remove_all
+from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
