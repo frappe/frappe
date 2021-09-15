@@ -109,17 +109,19 @@ def rate_limit(key: str = None, limit: Union[int, Callable] = 5, seconds: int = 
 
 			_limit = limit() if callable(limit) else limit
 
-			ip = frappe.local.request_ip
+			ip = frappe.local.request_ip if ip_based is True else None
 
-			if key is None and ip_based is False:
-				frappe.throw(_('Either key or IP flag is required.'))
-			elif key is None:
-				identity = ip
-			elif ip_based is False:
-				identity = frappe.form_dict[key]
-			else:
-				user_key=frappe.form_dict[key]
+			user_key = frappe.form_dict[key] if key else None
+
+			identity = None
+
+			if key and ip_based:
 				identity = ":".join([ip, user_key])
+
+			identity = identity or ip or user_key
+
+			if not identity:
+				frappe.throw(_('Either key or IP flag is required.'))
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
