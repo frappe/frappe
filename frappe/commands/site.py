@@ -755,7 +755,7 @@ def trim_database(context, dry_run, format, no_backup):
 		frappe.init(site=site)
 		frappe.connect()
 
-		TABLES_TO_DROPPED = []
+		TABLES_TO_DROP = []
 		STANDARD_TABLES = get_standard_tables()
 		information_schema = frappe.qb.Schema("information_schema")
 		table_name = frappe.qb.Field("table_name").as_("name")
@@ -772,27 +772,33 @@ def trim_database(context, dry_run, format, no_backup):
 		for x in database_tables:
 			doctype = x.lstrip("tab")
 			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
-				TABLES_TO_DROPPED.append(x)
+				TABLES_TO_DROP.append(x)
 
-		if not TABLES_TO_DROPPED:
+		if not TABLES_TO_DROP:
 			if format == "text":
 				click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
 		else:
 			if not (no_backup or dry_run):
 				if format == "text":
-					click.secho(f"Taking backup for {frappe.local.site}", fg="green")
-				odb = scheduled_backup(ignore_files=False, force=True)
+					print(f"Backing Up Tables: {', '.join(TABLES_TO_DROP)}")
+
+				odb = scheduled_backup(
+					ignore_conf=False,
+					include_doctypes=",".join(x.lstrip("tab") for x in TABLES_TO_DROP),
+					ignore_files=True,
+					force=True,
+				)
 				if format == "text":
 					odb.print_summary()
+					print("\nTrimming Database")
 
-			for table in TABLES_TO_DROPPED:
+			for table in TABLES_TO_DROP:
 				if format == "text":
-					print(f"* dropping Table '{table}'...")
+					print(f"* Dropping Table '{table}'...")
 				if not dry_run:
 					frappe.db.sql_ddl(f"drop table `{table}`")
 
-			ALL_DATA[frappe.local.site] = TABLES_TO_DROPPED
-
+			ALL_DATA[frappe.local.site] = TABLES_TO_DROP
 		frappe.destroy()
 
 	if format == "json":
@@ -802,13 +808,18 @@ def trim_database(context, dry_run, format, no_backup):
 
 def get_standard_tables():
 	import re
+
 	tables = []
-	sql_file = os.path.join("..", "apps", "frappe", "frappe", "database", frappe.conf.db_type, f'framework_{frappe.conf.db_type}.sql')
+	sql_file = os.path.join(
+		"..", "apps", "frappe", "frappe", "database", frappe.conf.db_type, f'framework_{frappe.conf.db_type}.sql'
+	)
 	content = open(sql_file).read().splitlines()
+
 	for line in content:
-		beep = re.search("""CREATE TABLE ("|`)(.*)?("|`) \(""", line)
-		if beep:
-			tables.append(beep.group(2))
+		table_found = re.search(r"""CREATE TABLE ("|`)(.*)?("|`) \(""", line)
+		if table_found:
+			tables.append(table_found.group(2))
+
 	return tables
 
 @click.command('trim-tables')
