@@ -12,11 +12,11 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
-develop_version = '13.x.x-develop'
+develop_version = '14.x.x-develop'
 
-app_email = "info@frappe.io"
+app_email = "developers@frappe.io"
 
-docs_app = "frappe_io"
+docs_app = "frappe_docs"
 
 translator_url = "https://translate.erpnext.com"
 

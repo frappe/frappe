@@ -183,8 +183,8 @@ class PostgresDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
-		table_name = get_table_name(table)
+	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
 		return self.sql(f'ALTER TABLE "{table_name}" ALTER COLUMN "{column}" TYPE {type}')
 
 	def create_auth_table(self):
