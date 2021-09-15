@@ -4,6 +4,7 @@ from typing import List, Tuple, Union
 import psycopg2
 import psycopg2.extensions
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 import frappe
 from frappe.database.database import Database
@@ -171,7 +172,7 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_data_too_long(e):
-		return e.pgcode == '22001'
+		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
 
 	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
 		old_name = get_table_name(old_name)
