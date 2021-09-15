@@ -67,6 +67,9 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		validate_database_sql
 	)
 
+	site = get_site(context)
+	frappe.init(site=site)
+
 	force = context.force or force
 	decompressed_file_name = extract_sql_from_archive(sql_file_path)
 
@@ -84,9 +87,6 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	# check if valid SQL file
 	validate_database_sql(decompressed_file_name, _raise=not force)
-
-	site = get_site(context)
-	frappe.init(site=site)
 
 	# dont allow downgrading to older versions of frappe without force
 	if not force and is_downgrade(decompressed_file_name, verbose=True):
