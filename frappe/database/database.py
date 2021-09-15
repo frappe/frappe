@@ -79,7 +79,7 @@ class Database(object):
 		pass
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False, return_query=False):
+		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False, run=True):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -92,7 +92,7 @@ class Database(object):
 		:param as_utf8: Encode values as UTF 8.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-		:param return_query: Returns query with out executing it.
+		:param run: Returns query without excuting it if False.
 		Examples:
 
 			# return customer names as dicts
@@ -107,7 +107,7 @@ class Database(object):
 
 		"""
 		query = str(query)
-		if return_query:
+		if not run:
 			return query
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
