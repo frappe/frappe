@@ -84,7 +84,7 @@ class RateLimiter:
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
 
-def rate_limit(key: str=None, limit: Union[int, Callable] = 5, seconds: int= 24*60*60, methods: Union[str, list]='ALL', ip_based: bool=True):
+def rate_limit(key: str = None, limit: Union[int, Callable] = 5, seconds: int = 24*60*60, methods: Union[str, list] = 'ALL', ip_based: bool = True):
 	"""Decorator to rate limit an endpoint.
 
 	This will limit Number of requests per endpoint to `limit` within `seconds`.
@@ -113,11 +113,11 @@ def rate_limit(key: str=None, limit: Union[int, Callable] = 5, seconds: int= 24*
 
 			ip = frappe.local.request_ip
 
-			if key == None and ip_based == False:
+			if key is None and ip_based is False:
 				frappe.throw(_('Either key or IP flag is required.'))
-			elif key == None:
+			elif key is None:
 				identity = ip
-			elif ip_based == False:
+			elif ip_based is False:
 				identity = frappe.form_dict[key]
 			else:
 				user_key=frappe.form_dict[key]
