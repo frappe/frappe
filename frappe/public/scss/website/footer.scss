@@ -86,3 +86,14 @@
 	border: none;
 	font-size: var(--text-md);
 }
+
+.footer-logo-extension {
+	.input-group {
+		justify-content: flex-end;
+		#footer-subscribe-email, #footer-subscribe-button {
+			max-width: 300px;
+			border: 1px solid var(--dark-border-color);
+			box-shadow: none;
+		}
+	}
+}
