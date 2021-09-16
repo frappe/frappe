@@ -215,7 +215,6 @@ def today():
 	return nowdate()
 
 def get_abbr(string, max_len=2):
-	print(string)
 	abbr=''
 	for part in string.split(' '):
 		if len(abbr) < max_len and part:
