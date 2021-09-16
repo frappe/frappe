@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 from __future__ import unicode_literals
 
 import unittest
@@ -8,11 +8,12 @@ import frappe
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import validate_url, validate_email_address
 from frappe.utils import ceil, floor
-from frappe.utils.data import validate_python_code
+from frappe.utils.data import cast, validate_python_code
 
 from PIL import Image
 from frappe.utils.image import strip_exif_data
 import io
+from datetime import datetime, timedelta, date
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -57,14 +58,14 @@ class TestMoney(unittest.TestCase):
 
 		for num in nums_bhd:
 			self.assertEqual(
-				money_in_words(num[0], "BHD"), 
-				num[1], 
+				money_in_words(num[0], "BHD"),
+				num[1],
 				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1])
 			)
 
 		for num in nums_ngn:
 			self.assertEqual(
-				money_in_words(num[0], "NGN"), num[1], 
+				money_in_words(num[0], "NGN"), num[1],
 				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1])
 			)
 
@@ -93,6 +94,45 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
 		self.assertTrue('style="background-image: url(\'{0}/assets/frappe/bg.jpg\') !important"'.format(url) in html)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
+
+class TestFieldCasting(unittest.TestCase):
+	def test_str_types(self):
+		STR_TYPES = (
+			"Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link"
+		)
+		for fieldtype in STR_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), str)
+			self.assertIsInstance(cast(fieldtype, value="12-12-2021"), str)
+			self.assertIsInstance(cast(fieldtype, value=""), str)
+			self.assertIsInstance(cast(fieldtype, value=[]), str)
+			self.assertIsInstance(cast(fieldtype, value=set()), str)
+
+	def test_float_types(self):
+		FLOAT_TYPES = ("Currency", "Float", "Percent")
+		for fieldtype in FLOAT_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), float)
+			self.assertIsInstance(cast(fieldtype, value=1.12), float)
+			self.assertIsInstance(cast(fieldtype, value=112), float)
+
+	def test_int_types(self):
+		INT_TYPES = ("Int", "Check")
+
+		for fieldtype in INT_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), int)
+			self.assertIsInstance(cast(fieldtype, value=1.12), int)
+			self.assertIsInstance(cast(fieldtype, value=112), int)
+
+	def test_datetime_types(self):
+		self.assertIsInstance(cast("Datetime", value=None), datetime)
+		self.assertIsInstance(cast("Datetime", value="12-2-22"), datetime)
+
+	def test_date_types(self):
+		self.assertIsInstance(cast("Date", value=None), date)
+		self.assertIsInstance(cast("Date", value="12-12-2021"), date)
+
+	def test_time_types(self):
+		self.assertIsInstance(cast("Time", value=None), timedelta)
+		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
 class TestMathUtils(unittest.TestCase):
 	def test_floor(self):
@@ -140,7 +180,7 @@ class TestValidationUtils(unittest.TestCase):
 		# Valid URLs
 		self.assertTrue(validate_url('https://google.com'))
 		self.assertTrue(validate_url('http://frappe.io', throw=True))
-		
+
 		# Invalid URLs without throw
 		self.assertFalse(validate_url('google.io'))
 		self.assertFalse(validate_url('google.io'))
@@ -153,9 +193,9 @@ class TestValidationUtils(unittest.TestCase):
 		self.assertTrue(validate_url('ftp://frappe.cloud', valid_schemes=['https', 'ftp']))
 		self.assertFalse(validate_url('bolo://frappe.io', valid_schemes=("http", "https", "ftp", "ftps")))
 		self.assertRaises(
-			frappe.ValidationError, 
-			validate_url, 
-			'gopher://frappe.io', 
+			frappe.ValidationError,
+			validate_url,
+			'gopher://frappe.io',
 			valid_schemes='https',
 			throw=True
 		)
@@ -168,16 +208,16 @@ class TestValidationUtils(unittest.TestCase):
 		# Valid addresses
 		self.assertTrue(validate_email_address('someone@frappe.com'))
 		self.assertTrue(validate_email_address('someone@frappe.com, anyone@frappe.io'))
-		
+
 		# Invalid address
 		self.assertFalse(validate_email_address('someone'))
 		self.assertFalse(validate_email_address('someone@----.com'))
 
 		# Invalid with throw
 		self.assertRaises(
-			frappe.InvalidEmailAddressError, 
-			validate_email_address, 
-			'someone.com', 
+			frappe.InvalidEmailAddressError,
+			validate_email_address,
+			'someone.com',
 			throw=True
 		)
 
@@ -193,7 +233,6 @@ class TestImage(unittest.TestCase):
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
 class TestPythonExpressions(unittest.TestCase):
-
 	def test_validation_for_good_python_expression(self):
 		valid_expressions = [
 			"foo == bar",

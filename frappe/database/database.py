@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import re
 import time
+from typing import Dict, List, Union
 import frappe
 import datetime
 import frappe.defaults
@@ -15,7 +16,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime
+from frappe.utils import now, getdate, cast, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports
@@ -112,6 +113,7 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		query = str(query)
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -523,7 +525,6 @@ class Database(object):
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		# result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
@@ -564,7 +565,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		val = cast_fieldtype(df.fieldtype, val)
+		val = cast(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -960,15 +961,37 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype, conditions, debug=False):
-		if conditions:
-			conditions, values = self.build_conditions(conditions)
-			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
-				doctype=doctype,
-				conditions=conditions
-			), values, debug=debug)
-		else:
-			frappe.throw(_('No conditions provided'))
+	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
+		"""Delete rows from a table in site which match the passed filters. This
+		does trigger DocType hooks. Simply runs a DELETE query in the database.
+
+		Doctype name can be passed directly, it will be pre-pended with `tab`.
+		"""
+		values = ()
+		filters = filters or kwargs.get("conditions")
+		table = get_table_name(doctype)
+		query = f"DELETE FROM `{table}`"
+
+		if "debug" not in kwargs:
+			kwargs["debug"] = debug
+
+		if filters:
+			conditions, values = self.build_conditions(filters)
+			query = f"{query} WHERE {conditions}"
+
+		return self.sql(query, values, **kwargs)
+
+	def truncate(self, doctype: str):
+		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
+		This cannot be rolled back.
+
+		Doctype name can be passed directly, it will be pre-pended with `tab`.
+		"""
+		table = doctype if doctype.startswith("__") else f"tab{doctype}"
+		return self.sql_ddl(f"truncate `{table}`")
+
+	def clear_table(self, doctype):
+		return self.truncate(doctype)
 
 	def get_last_created(self, doctype):
 		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')
@@ -1030,6 +1053,7 @@ class Database(object):
 					), tuple(insert_list))
 				insert_list = []
 
+
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue
 
@@ -1039,19 +1063,3 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
-
-# Helpers
-def _cast_result(doctype, result):
-	batch = [ ]
-
-	try:
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-	except frappe.exceptions.DoesNotExistError:
-		return result
-
-	return tuple(batch)

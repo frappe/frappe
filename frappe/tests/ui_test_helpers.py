@@ -62,6 +62,18 @@ def create_todo_records():
 	}).insert()
 
 @frappe.whitelist()
+def create_communication_records():
+	if frappe.db.get_all('Communication', {'subject': 'Test Form Communication 1'}):
+		return
+
+	frappe.get_doc({
+		"doctype": "Communication",
+		"recipients": "test@gmail.com",
+		"subject": "Test Form Communication 1",
+		"communication_date": frappe.utils.now_datetime(),
+	}).insert()
+
+@frappe.whitelist()
 def setup_workflow():
 	from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
 	create_todo_workflow()

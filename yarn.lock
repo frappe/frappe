@@ -2716,10 +2716,10 @@ frappe-charts@^2.0.0-rc13:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc13.tgz#fdb251d7ae311c41e38f90a3ae108070ec6b9072"
   integrity sha512-Bv7IfllIrjRbKWHn5b769dOSenqdBixAr6m5kurf8ZUOJSLOgK4HOXItJ7BA8n9PvviH9/k5DaloisjLM2Bm1w==
 
-frappe-datatable@^1.15.3:
-  version "1.15.3"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.3.tgz#1737e9aebfd363ffadffced71a3534c40e350223"
-  integrity sha512-tUE3pNbxCMX0HPKvwurLBPRAOAdS0gNo1+MpoyFSqXI7b7sp6/TCBRht6qu1Luw+VyIzBtXkJdnnqU+Uoy8iow==
+frappe-datatable@^1.15.4:
+  version "1.15.4"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.4.tgz#dc2e5e5d8a0a7cb8ee658f2d39966af1d4405401"
+  integrity sha512-eW3upPvverm1GNBL4+IcPDvjm5xbJc5ZXW8TYEUZt/QQ2W75K/T6736pSzi9D6mX9sn3BtZ7Ige7MS45SGrgzQ==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"

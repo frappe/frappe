@@ -4,13 +4,10 @@
 # the repo. Unless a later match takes precedence,
 
 *									@frappe/frappe-review-team
-website/					@prssanna
-web_form/					@prssanna
 templates/				@surajshetty3416
 www/							@surajshetty3416
 integrations/			@leela
 patches/					@surajshetty3416
-dashboard/				@prssanna
 email/						@leela
 event_streaming/	@ruchamahabal
 data_import*			@netchampfaris

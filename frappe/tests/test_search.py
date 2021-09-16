@@ -4,8 +4,7 @@
 from __future__ import unicode_literals
 import unittest
 import frappe
-from frappe.desk.search import search_link
-from frappe.desk.search import search_widget
+from frappe.desk.search import search_link, search_widget, get_names_for_mentions
 
 
 class TestSearch(unittest.TestCase):
@@ -47,6 +46,23 @@ class TestSearch(unittest.TestCase):
 		self.assertRaises(frappe.DataError,
 			search_link, 'DocType', 'Customer', query=None, filters=None,
 			page_length=20, searchfield=';')
+
+	def test_only_enabled_in_mention(self):
+		email = 'test_disabled_user_in_mentions@example.com'
+		frappe.delete_doc('User', email)
+		if not frappe.db.exists('User', email):
+			user = frappe.new_doc('User')
+			user.update({
+				'email' : email,
+				'first_name' : email.split("@")[0],
+				'enabled' : False,
+				'allowed_in_mentions' : True,
+			})
+			# saved when roles are added
+			user.add_roles('System Manager',)
+
+		names_for_mention = [user.get('id') for user in get_names_for_mentions('')]
+		self.assertNotIn(email, names_for_mention)
 
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
