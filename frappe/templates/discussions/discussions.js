@@ -205,7 +205,7 @@ var submit_discussion = (e) => {
 				"title": title,
 				"topic_name": $(e.currentTarget).closest(".discussion-on-page").attr("data-topic")
 			}
-		})
+		});
 	}
 };
 
@@ -226,7 +226,7 @@ var add_color_to_avatars = () => {
 
 var get_color_from_palette = (element) => {
 	var palette = frappe.get_palette(element.attr("title"));
-	return {"background-color": `var(${palette[0]})`, "color": `var(${palette[1]})` }
+	return {"background-color": `var(${palette[0]})`, "color": `var(${palette[1]})` };
 };
 
 var style_avatar_frame = (template) => {
