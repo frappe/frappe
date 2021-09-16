@@ -408,20 +408,47 @@ def bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 
+@click.command('db-console')
+@pass_context
+def database(context):
+	"""
+		Enter into the Database console for given site.
+	"""
+	site = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
+	frappe.init(site=site)
+	if not frappe.conf.db_type or frappe.conf.db_type == "mariadb":
+		_mariadb()
+	elif frappe.conf.db_type == "postgres":
+		_psql()
+
+
 @click.command('mariadb')
 @pass_context
 def mariadb(context):
 	"""
 		Enter into mariadb console for a given site.
 	"""
-	import os
-
 	site  = get_site(context)
 	if not site:
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
+	_mariadb()
 
-	# This is assuming you're within the bench instance.
+
+@click.command('postgres')
+@pass_context
+def postgres(context):
+	"""
+		Enter into postgres console for a given site.
+	"""
+	site  = get_site(context)
+	frappe.init(site=site)
+	_psql()
+
+
+def _mariadb():
 	mysql = find_executable('mysql')
 	os.execv(mysql, [
 		mysql,
@@ -434,15 +461,7 @@ def mariadb(context):
 		"-A"])
 
 
-@click.command('postgres')
-@pass_context
-def postgres(context):
-	"""
-		Enter into postgres console for a given site.
-	"""
-	site  = get_site(context)
-	frappe.init(site=site)
-	# This is assuming you're within the bench instance.
+def _psql():
 	psql = find_executable('psql')
 	subprocess.run([ psql, '-d', frappe.conf.db_name])
 
@@ -523,6 +542,74 @@ def console(context, autoreload=False):
 	terminal.colors = "neutral"
 	terminal.display_banner = False
 	terminal()
+
+
+@click.command('transform-database', help="Change tables' internal settings changing engine and row formats")
+@click.option('--table', required=True, help="Comma separated name of tables to convert. To convert all tables, pass 'all'")
+@click.option('--engine', default=None, type=click.Choice(["InnoDB", "MyISAM"]), help="Choice of storage engine for said table(s)")
+@click.option('--row_format', default=None, type=click.Choice(["DYNAMIC", "COMPACT", "REDUNDANT", "COMPRESSED"]), help="Set ROW_FORMAT parameter for said table(s)")
+@click.option('--failfast', is_flag=True, default=False, help="Exit on first failure occurred")
+@pass_context
+def transform_database(context, table, engine, row_format, failfast):
+	"Transform site database through given parameters"
+	site = get_site(context)
+	check_table = []
+	add_line = False
+	skipped = 0
+	frappe.init(site=site)
+
+	if frappe.conf.db_type and frappe.conf.db_type != "mariadb":
+		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
+		sys.exit(1)
+
+	if not (engine or row_format):
+		click.secho("Values for `--engine` or `--row_format` must be set")
+		sys.exit(1)
+
+	frappe.connect()
+
+	if table == "all":
+		information_schema = frappe.qb.Schema("information_schema")
+		queried_tables = frappe.qb.from_(
+			information_schema.tables
+		).select("table_name").where(
+			(information_schema.tables.row_format != row_format)
+			& (information_schema.tables.table_schema == frappe.conf.db_name)
+		).run()
+		tables = [x[0] for x in queried_tables]
+	else:
+		tables = [x.strip() for x in table.split(",")]
+
+	total = len(tables)
+
+	for current, table in enumerate(tables):
+		values_to_set = ""
+		if engine:
+			values_to_set += f" ENGINE={engine}"
+		if row_format:
+			values_to_set += f" ROW_FORMAT={row_format}"
+
+		try:
+			frappe.db.sql(f"ALTER TABLE `{table}`{values_to_set}")
+			update_progress_bar("Updating table schema", current - skipped, total)
+			add_line = True
+
+		except Exception as e:
+			check_table.append([table, e.args])
+			skipped += 1
+
+			if failfast:
+				break
+
+	if add_line:
+		print()
+
+	for errored_table in check_table:
+		table, err = errored_table
+		err_msg = f"{table}: ERROR {err[0]}: {err[1]}"
+		click.secho(err_msg, fg="yellow")
+
+	frappe.destroy()
 
 
 @click.command('run-tests')
@@ -811,6 +898,8 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	database,
+	transform_database,
 	jupyter,
 	console,
 	destroy_all_sessions,

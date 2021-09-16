@@ -197,6 +197,7 @@ class TestDB(unittest.TestCase):
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
 
+
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"
@@ -205,7 +206,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		frappe.db.commit()
 		frappe.db.sql(
 			f"""
-			CREATE TABLE `tab{self.test_table_name}` (`id` INT NULL,PRIMARY KEY (`id`));
+			CREATE TABLE `tab{self.test_table_name}` (`id` INT NULL, content TEXT, PRIMARY KEY (`id`));
 			"""
 		)
 
@@ -230,7 +231,10 @@ class TestDDLCommandsMaria(unittest.TestCase):
 
 	def test_describe(self) -> None:
 		self.assertEqual(
-			(("id", "int(11)", "NO", "PRI", None, ""),),
+			(
+				("id", "int(11)", "NO", "PRI", None, ""),
+				("content", "text", "YES", "", None, ""),
+			),
 			frappe.db.describe(self.test_table_name),
 		)
 
@@ -240,6 +244,17 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		self.assertGreater(len(test_table_description), 0)
 		self.assertIn("varchar(255)", test_table_description[0])
 
+	def test_add_index(self) -> None:
+		index_name = "test_index"
+		frappe.db.add_index(self.test_table_name, ["id", "content(50)"], index_name)
+		indexs_in_table = frappe.db.sql(
+			f"""
+			SHOW INDEX FROM tab{self.test_table_name}
+			WHERE Key_name = '{index_name}';
+			"""
+		)
+		self.assertEquals(len(indexs_in_table), 2)
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestDDLCommandsPost(unittest.TestCase):
@@ -248,7 +263,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 	def setUp(self) -> None:
 		frappe.db.sql(
 			f"""
-			CREATE TABLE "tab{self.test_table_name}" ("id" INT NULL,PRIMARY KEY ("id"))
+			CREATE TABLE "tab{self.test_table_name}" ("id" INT NULL, content text, PRIMARY KEY ("id"))
 			"""
 		)
 
@@ -273,7 +288,9 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.test_table_name = new_table_name
 
 	def test_describe(self) -> None:
-		self.assertEqual([("id",)], frappe.db.describe(self.test_table_name))
+		self.assertEqual(
+			[("id",), ("content",)], frappe.db.describe(self.test_table_name)
+		)
 
 	def test_change_type(self) -> None:
 		frappe.db.change_column_type(self.test_table_name, "id", "varchar(255)")
@@ -292,3 +309,15 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.assertGreater(len(check_change), 0)
 		self.assertIn("character varying", check_change[0])
 
+	def test_add_index(self) -> None:
+		index_name = "test_index"
+		frappe.db.add_index(self.test_table_name, ["id", "content(50)"], index_name)
+		indexs_in_table = frappe.db.sql(
+			f"""
+			SELECT indexname
+			FROM pg_indexes
+			WHERE tablename = 'tab{self.test_table_name}'
+			AND indexname = '{index_name}' ;
+			""",
+		)
+		self.assertEquals(len(indexs_in_table), 1)
