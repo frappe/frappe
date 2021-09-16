@@ -643,7 +643,10 @@ frappe.views.Workspace = class Workspace {
 		this.tools = {
 			header: {
 				class: this.blocks['header'],
-				inlineToolbar: true
+				inlineToolbar: true,
+				config: {
+					defaultLevel: 4
+				}
 			},
 			paragraph: {
 				class: this.blocks['paragraph'],
