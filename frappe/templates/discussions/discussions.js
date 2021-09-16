@@ -2,8 +2,6 @@ frappe.ready(() => {
 
 	setup_socket_io();
 
-	set_docname_if_missing();
-
 	add_color_to_avatars();
 
 	expand_first_discussion();
@@ -52,14 +50,23 @@ frappe.ready(() => {
 	$(document).on("click", ".cancel-comment", (e) => {
 		clear_comment_box(e);
 	})
+
+	if ($(document).width() <= 550) {
+		$(document).on("click", ".sidebar-parent", (e) => {
+			hide_sidebar();
+		})
+	}
+
+	$(document).on("click", ".back", (e) => {
+		back_to_sidebar(e);
+	})
+
 })
 
 var show_new_topic_modal = (e) => {
 	e.preventDefault();
 	$("#discussion-modal").modal("show");
 	var topic = $(e.currentTarget).attr("data-topic");
-	$(".modal-headings").text(topic ? "Reply" : "Start a Discussion");
-	topic ? $(".topic-title").addClass("hide") : $(".topic-title").removeClass("hide");
 	$("#submit-discussion").attr("data-topic", topic ? topic : "");
 }
 
@@ -87,8 +94,8 @@ var publish_message = (data) => {
 		$(data.template).insertBefore(`.discussion-on-page[data-topic=${data.topic_info.name}] .discussion-form`);
 	}
 
-	else if ((decodeURIComponent($(".discussions-parent .course-content-parent").attr("data-doctype")) == data.topic_info.reference_doctype
-		&& decodeURIComponent($(".discussions-parent .course-content-parent").attr("data-docname")) == data.topic_info.reference_docname)) {
+	else if ((decodeURIComponent($(".discussions-parent .discussions-card").attr("data-doctype")) == data.topic_info.reference_doctype
+		&& decodeURIComponent($(".discussions-parent .discussions-card").attr("data-docname")) == data.topic_info.reference_docname)) {
 
 		post_message_cleanup();
 		data.new_topic_template = style_avatar_frame(data.new_topic_template)
@@ -114,6 +121,7 @@ var post_message_cleanup = () => {
 	$(".comment-field").css("height", "48px");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
+	$(".cancel-comment").addClass("hide");
 }
 
 var update_reply_count = (topic) => {
@@ -122,23 +130,15 @@ var update_reply_count = (topic) => {
 	$(`[data-target='#t${topic}']`).find(".reply-count").text(reply_count);
 }
 
-var set_docname_if_missing = () => {
-	if ($("[data-docname='None']").length) {
-		frappe.call({
-			method: "frappe.website.doctype.discussion_topic.discussion_topic.get_docname",
-			args: {
-				"route": window.location.href.split("/").slice(-1)[0]
-			},
-			callback: (data) => {
-				$("[data-docname='None']").attr("data-docname", data.message);
-			}
-		})
-	}
-}
-
 var expand_first_discussion = () => {
-	$($(".discussions-parent .collapse")[0]).addClass("show");
-	$($(".discussions-sidebar [data-toggle='collapse']")[0]).attr("aria-expanded", true);
+	if ($(document).width() > 550) {
+		$($(".discussions-parent .collapse")[0]).addClass("show");
+		$($(".discussions-sidebar [data-toggle='collapse']")[0]).attr("aria-expanded", true);
+	}
+	else {
+		$("#discussion-group").addClass("hide");
+	}
+
 }
 
 var search_topic = (e) => {
@@ -217,6 +217,7 @@ var submit_discussion = (e) => {
 }
 
 var login_from_discussion = (e) => {
+	e.preventDefault();
 	var redirect = $(e.currentTarget).attr("data-redirect") || window.location.href;
 	window.location.href = `/login?redirect-to=${redirect}`;
 }
@@ -248,4 +249,15 @@ var clear_comment_box = (e) => {
 	else {
 		$(".discussion-on-page .comment-field").val("");
 	}
+}
+
+var hide_sidebar = () => {
+	$(".discussions-sidebar").addClass("hide");
+	$("#discussion-group").removeClass("hide");
+}
+
+var back_to_sidebar = () => {
+	$(".discussions-sidebar").removeClass("hide");
+	$("#discussion-group").addClass("hide");
+	$(".discussion-on-page").collapse("hide");
 }

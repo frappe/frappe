@@ -1,12 +1,31 @@
 {
- "__islocal": true,
  "__unsaved": 1,
  "creation": "2021-08-30 12:42:31.550200",
  "docstatus": 0,
  "doctype": "Web Template",
- "fields": [],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cta_title",
+   "fieldtype": "Data",
+   "label": "CTA Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "docname",
+   "fieldtype": "Link",
+   "label": "Reference Docname",
+   "options": "Web Page",
+   "reqd": 1
+  }
+ ],
  "idx": 0,
- "modified": "2021-08-30 12:42:31.550201",
+ "modified": "2021-09-16 12:11:56.140616",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Discussions",
