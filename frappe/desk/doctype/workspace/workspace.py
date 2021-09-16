@@ -208,17 +208,17 @@ def save_page(title, icon, parent, public, sb_public_items, sb_private_items, de
 	if loads(deleted_pages):
 		return delete_pages(loads(deleted_pages))
 
-	return {"name": title, "public": public}
+	return {"name": title, "public": public, "label": doc.label}
 
 def delete_pages(deleted_pages):
 	for page in deleted_pages:
 		if page.get("public") and "Workspace Manager" not in frappe.get_roles():
-			return {"name": page.get("title"), "public": 1}
+			return {"name": page.get("title"), "public": 1, "label": page.get("label")}
 
 		if frappe.db.exists("Workspace", page.get("name")):
 			frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
 
-	return {"name": "Home", "public": 1}
+	return {"name": "Home", "public": 1, "label": "Home"}
 
 def sort_pages(sb_public_items, sb_private_items):
 	wspace_public_pages = get_page_list(['name', 'title'], {'public': 1})

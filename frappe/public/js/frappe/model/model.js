@@ -131,6 +131,7 @@ $.extend(frappe.model, {
 	with_doctype: function(doctype, callback, async) {
 		if(locals.DocType[doctype]) {
 			callback && callback();
+			return Promise.resolve();
 		} else {
 			let cached_timestamp = null;
 			let cached_doc = null;
