@@ -131,7 +131,7 @@
 		}
 	}
 
-	.select-like {
+	.select-like, .file-select {
 		padding: 15px 0px 15px 15px;
 	}
 }
@@ -169,7 +169,7 @@ $level-margin-right: 8px;
 		color: var(--text-color);
 	}
 
-	.level-item {
+	.level-item:not(.file-select) {
 		margin-right: $level-margin-right;
 	}
 
