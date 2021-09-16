@@ -165,7 +165,8 @@ def notify_assignment(assigned_by, allocated_to, doc_type, doc_name, action='CLO
 	"""
 		Notify assignee that there is a change in assignment
 	"""
-	if not (assigned_by and allocated_to and doc_type and doc_name): return
+	if not (assigned_by and allocated_to and doc_type and doc_name):
+		return
 
 	# return if self assigned or user disabled
 	if assigned_by == allocated_to or not frappe.db.get_value('User', allocated_to, 'enabled'):

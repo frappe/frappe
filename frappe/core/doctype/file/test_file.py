@@ -18,6 +18,7 @@ test_content2 = 'Hello World'
 def make_test_doc():
 	d = frappe.new_doc('ToDo')
 	d.description = 'Test'
+	d.assigned_by = frappe.session.user
 	d.save()
 	return d.doctype, d.name
 

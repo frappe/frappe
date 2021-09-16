@@ -661,7 +661,7 @@
   {
    "group": "Activity",
    "link_doctype": "ToDo",
-   "link_fieldname": "owner"
+   "link_fieldname": "allocated_to"
   },
   {
    "group": "Integrations",
