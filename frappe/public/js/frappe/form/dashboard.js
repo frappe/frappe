@@ -2,27 +2,14 @@
 // MIT License. See license.txt
 
 import Section from "./section.js";
-import Tab from "./tab.js";
 
 frappe.ui.form.Dashboard = class FormDashboard {
 	constructor(opts) {
 		$.extend(this, opts);
-		this.setup_dashboard_tabs();
+		let parent = this.tab ? this.tab.wrapper : this.frm.layout.wrapper;
+		this.parent = $('<div class="form-dashboard">');
+		parent.prepend(this.parent);
 		this.setup_dashboard_sections();
-	}
-
-	setup_dashboard_tabs() {
-		this.overview_tab = new Tab(this.frm.layout, {
-			label: __("Overview"),
-			hidden: 1,
-			fieldname: 'dashboard-overview'
-		});
-
-		this.connections_tab = new Tab(this.frm.layout, {
-			label: __("Connections"),
-			hidden: 1,
-			fieldname: 'dashboard-connection'
-		});
 	}
 
 	setup_dashboard_sections() {
@@ -30,7 +17,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			css_class: 'progress-area',
 			hidden: 1,
 			is_dashboard_section: 1,
-		}, this.overview_tab);
+		});
 
 		this.heatmap_area = this.make_section({
 			label: __("Overview"),
@@ -41,14 +28,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				<div id="heatmap-${frappe.model.scrub(this.frm.doctype)}" class="heatmap"></div>
 				<div class="text-muted small heatmap-message hidden"></div>
 			`
-		}, this.overview_tab);
+		});
 
 		this.chart_area = this.make_section({
 			label: __("Graph"),
 			css_class: 'form-graph',
 			hidden: 1,
 			is_dashboard_section: 1
-		}, this.overview_tab);
+		});
 
 		this.stats_area_row = $(`<div class="row"></div>`);
 		this.stats_area = this.make_section({
@@ -57,7 +44,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			hidden: 1,
 			is_dashboard_section: 1,
 			body_html: this.stats_area_row
-		}, this.overview_tab);
+		});
 
 		this.transactions_area = $(`<div class="transactions"></div`);
 
@@ -67,20 +54,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			hidden: 1,
 			is_dashboard_section: 1,
 			body_html: this.transactions_area
-		}, this.connections_tab);
+		});
 	}
 
-	make_section(df, tab) {
-		return new Section(
-			this.frm.layout,
-			df,
-			tab,
-		);
+	make_section(df) {
+		return new Section(this.parent, df);
 	}
 
 	reset() {
-		// this.hide();
-
 		// clear progress
 		this.progress_area.body.empty();
 		this.progress_area.hide();
@@ -98,8 +79,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		// this.hide();
 	}
 
-	add_section(body_html, label=null, css_class="custom", hidden=false, tab=null) {
-		if (!tab) tab = this.overview_tab;
+	add_section(body_html, label=null, css_class="custom", hidden=false) {
 		let options = {
 			label,
 			css_class,
@@ -108,7 +88,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			make_card: true,
 			is_dashboard_section: 1
 		};
-		return new Section(this.frm.layout, options, tab).body;
+		return new Section(this.frm.layout, options).body;
 	}
 
 	add_progress(title, percent, message) {

@@ -20,25 +20,28 @@ frappe.ui.form.Layout = class Layout {
 		}
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		this.message = $('<div class="form-message hidden"></div>').appendTo(this.wrapper);
-
 		this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
-		this.tabbed_layout && this.setup_tabbed_layout();
 
 		if (!this.fields) {
 			this.fields = this.get_doctype_fields();
 		}
 
-		this.setup_tabbing();
+		if (this.is_tabbed_layout()) {
+			this.setup_tabbed_layout();
+		}
+
+		this.setup_tab_events();
 		this.render();
 	}
 
 	setup_tabbed_layout() {
-		$(`<div class="form-tabs-list">
-			<ul class="nav form-tabs" id="form-tabs" role="tablist"></ul>
-		</div>`).appendTo(this.page);
+		$(`
+			<div class="form-tabs-list">
+				<ul class="nav form-tabs" id="form-tabs" role="tablist"></ul>
+			</div>
+		`).appendTo(this.page);
 		this.tabs_list = this.page.find('.form-tabs');
 		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(this.page);
-
 		this.setup_events();
 	}
 
@@ -114,16 +117,16 @@ frappe.ui.form.Layout = class Layout {
 		this.section = null;
 		this.column = null;
 
-		// if (this.with_dashboard) {
-		// 	this.setup_dashboard_section();
-		// }
-
-		if (this.tabbed_layout && this.no_opening_tab()) {
-			this.make_tab({label: __('Details'), fieldname: 'details'});
+		if (this.no_opening_section() && !this.is_tabbed_layout()) {
+			this.fields.unshift({fieldtype: 'Section Break'});
 		}
 
-		if (this.no_opening_section()) {
-			this.make_section();
+		if (this.is_tabbed_layout()) {
+			let default_tab = {label: __('Details'), fieldname: 'details'};
+			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
+			if (!first_tab) {
+				this.fields.splice(1, 0, default_tab);
+			}
 		}
 
 		fields.forEach(df => {
@@ -154,10 +157,8 @@ frappe.ui.form.Layout = class Layout {
 		return (this.fields[1] && this.fields[1].fieldtype != "Tab Break") || !this.fields.length;
 	}
 
-	setup_dashboard_section() {
-		if (this.no_opening_section()) {
-			this.fields.unshift({fieldtype: 'Section Break'});
-		}
+	is_tabbed_layout() {
+		return this.fields.find(f => f.fieldtype === "Tab Break");
 	}
 
 	replace_field(fieldname, df, render) {
@@ -190,7 +191,7 @@ frappe.ui.form.Layout = class Layout {
 		this.section.fields_list.push(fieldobj);
 		this.section.fields_dict[df.fieldname] = fieldobj;
 		fieldobj.section = this.section;
-		fieldobj.tab = this.tab;
+		fieldobj.tab = this.current_tab;
 	}
 
 	init_field(df, render=false) {
@@ -239,7 +240,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_section(df) {
-		this.section = new Section(this, df, this.tab || null);
+		this.section = new Section(this, df, this.current_tab || null);
 
 		// append to layout fields
 		if (df) {
@@ -258,14 +259,12 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_tab(df) {
-		this.tab = new Tab(this, df);
-
-		if (df) {
-			this.fields_dict[df.fieldname] = this.tab;
-			this.fields_list.push(this.tab);
-		}
-
-		return this.tab;
+		this.section = null;
+		let tab = new Tab(this, df, this.frm, this.tabs_list, this.tabs_content);
+		this.current_tab = tab;
+		this.make_section({fieldtype: 'Section Break'});
+		this.tabs.push(tab);
+		return tab;
 	}
 
 	refresh(doc) {
@@ -421,14 +420,15 @@ frappe.ui.form.Layout = class Layout {
 		});
 	}
 
-	setup_tabbing() {
+	setup_tab_events() {
 		this.wrapper.on("keydown", (ev) => {
 			if (ev.which == 9) {
-				let current = $(ev.target),
-					doctype = current.attr("data-doctype"),
-					fieldname = current.attr("data-fieldname");
-				if (doctype)
+				let current = $(ev.target);
+				let doctype = current.attr("data-doctype");
+				let fieldname = current.attr("data-fieldname");
+				if (doctype) {
 					return this.handle_tab(doctype, fieldname, ev.shiftKey);
+				}
 			}
 		});
 	}

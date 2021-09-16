@@ -1,10 +1,7 @@
-// import '../class';
-
 export default class Section {
-	constructor(layout, df, tab) {
-		this.layout = layout;
-		this.tab = tab;
-		this.parent = this.tab && this.tab.wrapper || null;
+	constructor(parent, df) {
+		this.card_layout = true;
+		this.parent = parent;
 		this.df = df || {};
 		this.fields_list = [];
 		this.fields_dict = {};
@@ -23,18 +20,11 @@ export default class Section {
 	}
 
 	make() {
-		if (!this.layout.page) {
-			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
-		}
-
-		let make_card = this.layout.card_layout;
-
+		let make_card = this.card_layout;
 		this.wrapper = $(`<div class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
 				${ make_card ? "card-section" : "" }">
-			`).appendTo(this.parent || this.layout.page);
-
-		this.layout.sections.push(this);
+			`).appendTo(this.parent);
 
 		if (this.df) {
 			if (this.df.label) {
@@ -86,17 +76,11 @@ export default class Section {
 		}
 	}
 
-	refresh() {
+	refresh(hide) {
 		if (!this.df) return;
-
 		// hide if explicitly hidden
-		let hide = this.df.hidden || this.df.hidden_due_to_dependency;
-		if (!hide && this.layout && this.layout.frm && !this.layout.frm.get_perm(this.df.permlevel || 0, "read")) {
-			hide = true;
-		}
-
+		hide = hide || this.df.hidden || this.df.hidden_due_to_dependency;
 		this.wrapper.toggleClass("hide-control", !!hide);
-		// this.tab && this.tab.refresh();
 	}
 
 	collapse(hide) {
@@ -136,9 +120,9 @@ export default class Section {
 	}
 
 	has_missing_mandatory () {
-		var missing_mandatory = false;
-		for (var j = 0, l = this.fields_list.length; j < l; j++) {
-			var section_df = this.fields_list[j].df;
+		let missing_mandatory = false;
+		for (let j = 0, l = this.fields_list.length; j < l; j++) {
+			const section_df = this.fields_list[j].df;
 			if (section_df.reqd && this.layout.doc[section_df.fieldname] == null) {
 				missing_mandatory = true;
 				break;
@@ -148,11 +132,15 @@ export default class Section {
 	}
 
 	hide() {
-		this.wrapper.toggleClass("hide-control", true);
+		this.on_section_toggle(false);
 	}
 
 	show() {
-		this.wrapper.toggleClass("hide-control", false);
-		this.tab && this.tab.toggle(true);
+		this.on_section_toggle(true);
+	}
+
+	on_section_toggle(show) {
+		this.wrapper.toggleClass("hide-control", !show);
+		this.on_section_toggle && this.on_section_toggle(show);
 	}
 }

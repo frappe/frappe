@@ -133,8 +133,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_std_layout() {
-		this.form_wrapper 	= $('<div></div>').appendTo(this.layout_main);
-		this.body 			= $('<div></div>').appendTo(this.form_wrapper);
+		this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
+		this.body = $('<div></div>').appendTo(this.form_wrapper);
 
 		// only tray
 		this.meta.section_style='Simple'; // always simple!
@@ -146,9 +146,9 @@ frappe.ui.form.Form = class FrappeForm {
 			doctype_layout: this.doctype_layout,
 			frm: this,
 			with_dashboard: true,
-			card_layout: true,
-			tabbed_layout: true,
+			card_layout: true
 		});
+
 		this.layout.make();
 
 		this.fields_dict = this.layout.fields_dict;
@@ -156,7 +156,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.dashboard = new frappe.ui.form.Dashboard({
 			frm: this,
-			parent: this.layout.wrapper,
+			tab: this.layout.tabs.length ? this.layout.tabs[0] : null
 		});
 
 		this.tour = new frappe.ui.form.FormTour({
