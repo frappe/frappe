@@ -135,8 +135,8 @@ class MariaDBDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"DESC `{table_name}`")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
-		table_name = get_table_name(table)
+	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
 		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
 
 	# exception types
@@ -195,7 +195,7 @@ class MariaDBDatabase(Database):
 				`password` TEXT NOT NULL,
 				`encrypted` INT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
-			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
+			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
 
 	def create_global_search_table(self):
 		if not '__global_search' in self.get_tables():
