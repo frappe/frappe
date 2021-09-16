@@ -549,7 +549,7 @@ class DatabaseQuery(object):
 
 			if isinstance(f.value, Column):
 				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
-				value = f"{tname}.{quote}{f.value}{quote}"
+				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
 			elif isinstance(value, str) and not f.operator.lower() == 'between':
