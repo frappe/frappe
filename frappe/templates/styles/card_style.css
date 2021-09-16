@@ -9,7 +9,6 @@ body {
 	max-width: 360px;
 	padding: 15px;
 	margin: 70px auto;
-	border: var;
 	border-radius: 4px;
 	background-color: var(--fg-color);
 	box-shadow: var(--shadow-base);
@@ -46,6 +45,7 @@ body {
 
 #reset-password .form-group {
 	margin-bottom: 10px;
+	font-size: var(--font-size-sm);
 }
 .page-card .page-card-head .indicator {
 	color: #36414C;
