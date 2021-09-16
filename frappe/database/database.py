@@ -919,13 +919,13 @@ class Database(object):
 			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
 
 	def has_index(self, table_name, index_name):
-		pass
+		raise NotImplementedError
 
 	def add_index(self, doctype, fields, index_name=None):
-		pass
+		raise NotImplementedError
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		pass
+		raise NotImplementedError
 
 	@staticmethod
 	def get_index_name(fields):
@@ -951,7 +951,7 @@ class Database(object):
 	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# implemented in specific class
-		pass
+		raise NotImplementedError
 
 	@staticmethod
 	def is_column_missing(e):
