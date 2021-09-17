@@ -191,3 +191,27 @@ def create_form_tour():
 		}]
 	})
 	tour.insert()
+
+@frappe.whitelist()
+def create_data_for_discussions():
+	web_page = frappe.db.exists("Web Page", {"route": "test-page"})
+	if not web_page:
+		web_page = frappe.get_doc({
+						"doctype": "Web Page",
+						"title": "Test Page",
+						"route": "test-page",
+						"published": True
+					})
+		web_page.save()
+		web_page.append("page_blocks", {
+			"web_template": "Discussions",
+			"web_template_values": frappe.as_json({
+										"title": "Discussions",
+										"cta_title": "New Discussion",
+										"docname": web_page.name
+									})
+		})
+		web_page.save()
+
+
+
