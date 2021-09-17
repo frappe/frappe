@@ -1,17 +1,15 @@
 {
  "actions": [],
- "autoname": "format:{server_ip}-{printer_name}",
- "creation": "2021-09-07 11:13:57.724404",
+ "autoname": "Prompt",
+ "creation": "2021-09-17 11:26:06.943999",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "server_ip",
-  "printer_name",
   "port",
   "column_break_4",
-  "reference_doctype",
-  "reference_name"
+  "printer_name"
  ],
  "fields": [
   {
@@ -20,13 +18,6 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Server IP",
-   "reqd": 1
-  },
-  {
-   "fieldname": "printer_name",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Printer Name",
    "reqd": 1
   },
   {
@@ -42,24 +33,18 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "reference_doctype",
-   "fieldtype": "Link",
-   "label": "Reference DocType",
-   "options": "DocType"
-  },
-  {
-   "fieldname": "reference_name",
-   "fieldtype": "Dynamic Link",
-   "label": "Reference Name",
-   "options": "reference_doctype"
+   "fieldname": "printer_name",
+   "fieldtype": "Select",
+   "label": "Printer Name",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-13 17:19:30.713385",
+ "modified": "2021-09-17 11:30:16.781655",
  "modified_by": "Administrator",
  "module": "Printing",
- "name": "Printer Settings",
+ "name": "Network Printer Settings",
  "owner": "Administrator",
  "permissions": [
   {

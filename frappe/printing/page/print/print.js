@@ -113,17 +113,6 @@ frappe.ui.form.PrintView = class {
 			},
 		).$input;
 
-		if (cint(this.print_settings.enable_print_server)) {
-			this.printer_sel = this.add_sidebar_item({
-				fieldtype: 'Link',
-				fieldname: 'printer',
-				placeholder: __('Printer'),
-				options: 'Printer Settings',
-				default: this.printer_setting
-			}).$input;
-			this.get_printer_settings();
-		}
-
 		this.letterhead_selector_df = this.add_sidebar_item(
 			{
 				fieldtype: 'Autocomplete',
@@ -161,25 +150,6 @@ frappe.ui.form.PrintView = class {
 		return field;
 	}
 
-	get_printer_settings() {
-		let route = frappe.get_route();
-		let doctype = route[1];
-		let me = this;
-		frappe.call({
-			method: 'frappe.printing.doctype.printer_settings.printer_settings.get_printer_setting',
-			args: {
-				doctype: doctype,
-			},
-			callback: function(r) {
-				if (r.message) {
-					me.printer_setting = r.message;
-				} else {
-					me.printer_setting = me.print_settings.default_printer_setting;
-				}
-				me.printer_sel.val(me.printer_setting);
-			},
-		});
-	}
 	get_default_option_for_select(value) {
 		return {
 			label: value,
@@ -195,10 +165,7 @@ frappe.ui.form.PrintView = class {
 			frappe.set_route('Form', 'Print Settings');
 		});
 
-		if (
-			frappe.model.get_doc(':Print Settings', 'Print Settings')
-				.enable_raw_printing == '1'
-		) {
+		if (this.print_settings.enable_raw_printing == '1') {
 			this.page.add_menu_item(__('Raw Printing Setting'), () => {
 				this.printer_setting_dialog();
 			});
@@ -207,6 +174,12 @@ frappe.ui.form.PrintView = class {
 		if (frappe.perm.has_perm('Print Format', 0, 'create')) {
 			this.page.add_menu_item(__('Customize'), () =>
 				this.edit_print_format()
+			);
+		}
+
+		if (this.print_settings.enable_print_server) {
+			this.page.add_menu_item(__('Select Network Printer'), () =>
+				this.network_printer_setting_dialog()
 			);
 		}
 	}
@@ -490,73 +463,109 @@ frappe.ui.form.PrintView = class {
 
 	printit() {
 		let me = this;
-		frappe.call({
-			method:
-				'frappe.printing.doctype.print_settings.print_settings.is_print_server_enabled',
-			callback: function(data) {
-				if (data.message) {
-					frappe.call({
-						method: 'frappe.utils.print_format.print_by_server',
-						args: {
-							doctype: me.frm.doc.doctype,
-							name: me.frm.doc.name,
-							printer_setting: me.printer_sel.val(),
-							print_format: me.selected_format(),
-							no_letterhead: me.with_letterhead(),
-							letterhead: me.get_letterhead(),
-						},
-						callback: function() {},
-					});
-				} else if (me.get_mapped_printer().length === 1) {
-					// printer is already mapped in localstorage (applies for both raw and pdf )
-					if (me.is_raw_printing()) {
-						me.get_raw_commands(function(out) {
-							frappe.ui.form
-								.qz_connect()
-								.then(function() {
-									let printer_map = me.get_mapped_printer()[0];
-									let data = [out.raw_commands];
-									let config = qz.configs.create(printer_map.printer);
-									return qz.print(config, data);
-								})
-								.then(frappe.ui.form.qz_success)
-								.catch((err) => {
-									frappe.ui.form.qz_fail(err);
-								});
+
+		if (me.print_settings.enable_print_server) {
+			if (localStorage.getItem('network_printer')) {
+				me.print_by_server();
+			} else {
+				me.network_printer_setting_dialog(() => me.print_by_server());
+			}
+		} else if (me.get_mapped_printer().length === 1) {
+			// printer is already mapped in localstorage (applies for both raw and pdf )
+			if (me.is_raw_printing()) {
+				me.get_raw_commands(function(out) {
+					frappe.ui.form
+						.qz_connect()
+						.then(function() {
+							let printer_map = me.get_mapped_printer()[0];
+							let data = [out.raw_commands];
+							let config = qz.configs.create(printer_map.printer);
+							return qz.print(config, data);
+						})
+						.then(frappe.ui.form.qz_success)
+						.catch((err) => {
+							frappe.ui.form.qz_fail(err);
 						});
-					} else {
-						frappe.show_alert(
+				});
+			} else {
+				frappe.show_alert(
+					{
+						message: __('PDF printing via "Raw Print" is not supported.'),
+						subtitle: __(
+							'Please remove the printer mapping in Printer Settings and try again.'
+						),
+						indicator: 'info',
+					},
+					14
+				);
+				//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
+			}
+		} else if (me.is_raw_printing()) {
+			// printer not mapped in localstorage and the current print format is raw printing
+			frappe.show_alert(
+				{
+					message: __('Printer mapping not set.'),
+					subtitle: __(
+						'Please set a printer mapping for this print format in the Printer Settings'
+					),
+					indicator: 'warning',
+				},
+				14
+			);
+			me.printer_setting_dialog();
+		} else {
+			me.render_page('/printview?', true);
+		}
+	}
+
+	print_by_server() {
+		let me = this;
+		if (localStorage.getItem('network_printer')) {
+			frappe.call({
+				method: 'frappe.utils.print_format.print_by_server',
+				args: {
+					doctype: me.frm.doc.doctype,
+					name: me.frm.doc.name,
+					printer_setting: localStorage.getItem('network_printer'),
+					print_format: me.selected_format(),
+					no_letterhead: me.with_letterhead(),
+					letterhead: me.get_letterhead(),
+				},
+				callback: function() {},
+			});
+		}
+	}
+	network_printer_setting_dialog(callback) {
+		let me = this;
+		frappe.call({
+			method: 'frappe.printing.doctype.network_printer_settings.network_printer_settings.get_network_printer_settings',
+			callback: function(r) {
+				if(r.message) {
+					let d = new frappe.ui.Dialog({
+						title: __('Select Network Printer'),
+						fields: [
 							{
-								message: __('PDF printing via "Raw Print" is not supported.'),
-								subtitle: __(
-									'Please remove the printer mapping in Printer Settings and try again.'
-								),
-								indicator: 'info',
-							},
-							14
-						);
-						//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
-					}
-				} else if (me.is_raw_printing()) {
-					// printer not mapped in localstorage and the current print format is raw printing
-					frappe.show_alert(
-						{
-							message: __('Printer mapping not set.'),
-							subtitle: __(
-								'Please set a printer mapping for this print format in the Printer Settings'
-							),
-							indicator: 'warning',
+								"label" : "Printer",
+								"fieldname": "printer",
+								"fieldtype": "Select",
+								"reqd": 1,
+								"options": r.message
+							}
+						],
+						primary_action: function() {
+							localStorage.setItem('network_printer', d.get_values().printer);
+							if (typeof callback == "function") {
+								callback();
+							}
+							d.hide();
 						},
-						14
-					);
-					me.printer_setting_dialog();
-				} else {
-					me.render_page('/printview?', true);
+						primary_action_label: __('Select')
+					});
+					d.show();
 				}
 			},
 		});
 	}
-
 	render_page(method, printit = false) {
 		let w = window.open(
 			frappe.urllib.get_full_url(
