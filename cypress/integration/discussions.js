@@ -26,7 +26,7 @@ context('Discussions', () => {
 
 		// Submit
 		cy.get('.modal .submit-discussion').click();
-		cy.wait(1000);
+		cy.wait(3000);
 
 		// Check if discussion is added to page and content is visible
 		cy.get('.sidebar-parent:first .discussion-topic-title').should('have.text', 'Discussion from tests');
@@ -38,12 +38,13 @@ context('Discussions', () => {
 
 	const reply_through_comment_box = () => {
 		cy.visit('/test-page');
+		cy.wait(3000);
 		cy.get('.discussion-on-page:visible .comment-field')
 			.type('This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page.')
 			.should('have.value', 'This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page.');
 
 			cy.get('.discussion-on-page:visible .submit-discussion').click();
-		cy.wait(1000);
+		cy.wait(3000);
 		cy.get('.discussion-on-page:visible').should('have.class', 'show');
 		cy.get('.discussion-on-page:visible').children(".reply-card").eq(1).children(".reply-text")
 			.should('have.text', 'This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page.\n');
@@ -51,6 +52,7 @@ context('Discussions', () => {
 
 	const cancel_and_clear_comment_box = () => {
 		cy.visit('/test-page');
+		cy.wait(3000);
 		cy.get('.discussion-on-page:visible .comment-field')
 			.type('This is a discussion from the cypress ui tests.')
 			.should('have.value', 'This is a discussion from the cypress ui tests.');
