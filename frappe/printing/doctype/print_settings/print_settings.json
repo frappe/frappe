@@ -19,7 +19,6 @@
   "allow_print_for_cancelled",
   "server_printer",
   "enable_print_server",
-  "default_printer_setting",
   "raw_printing_section",
   "enable_raw_printing",
   "print_style_section",
@@ -157,12 +156,6 @@
    "fieldname": "font_size",
    "fieldtype": "Float",
    "label": "Font Size"
-  },
-  {
-   "fieldname": "default_printer_setting",
-   "fieldtype": "Link",
-   "label": "Default Printer Setting",
-   "options": "Printer Settings"
   }
  ],
  "icon": "fa fa-cog",
@@ -170,10 +163,14 @@
  "issingle": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2020-10-22 23:42:09.471022",
 =======
  "modified": "2021-09-09 11:07:23.042310",
 >>>>>>> ec938c960e (feat: provision to add multiple network printers)
+=======
+ "modified": "2021-09-17 12:59:14.783694",
+>>>>>>> cfe4dc41c0 (review changes)
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
