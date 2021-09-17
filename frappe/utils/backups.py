@@ -677,7 +677,7 @@ def get_backup_encryption_key():
 		message = frappe.local.conf.backup_encryption_key
 	else:
 		message = "No key found."
-	return frappe.msgprint(message)
+	return frappe.msgprint(message,'Backup Encryption Key')
 
 def backup_decryption(file_path,passphrase):
 	"""
