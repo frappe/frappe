@@ -5,7 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 
-class PrinterSettings(Document):
+class NetworkPrinterSettings(Document):
 	@frappe.whitelist()
 	def get_printers_list(self,ip="localhost",port=631):
 		printer_list = []
@@ -32,5 +32,5 @@ class PrinterSettings(Document):
 		return printer_list
 
 @frappe.whitelist()
-def get_printer_setting(doctype):
-	return frappe.db.get_value('Printer Settings', {'reference_doctype': doctype})
+def get_network_printer_settings():
+	return frappe.db.get_list('Network Printer Settings', pluck='name')
