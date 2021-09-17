@@ -37,13 +37,11 @@ context('Discussions', () => {
 	};
 
 	const reply_through_comment_box = () => {
-		cy.visit('/test-page');
-		cy.wait(3000);
 		cy.get('.discussion-on-page:visible .comment-field')
 			.type('This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page.')
 			.should('have.value', 'This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page.');
 
-			cy.get('.discussion-on-page:visible .submit-discussion').click();
+		cy.get('.discussion-on-page:visible .submit-discussion').click();
 		cy.wait(3000);
 		cy.get('.discussion-on-page:visible').should('have.class', 'show');
 		cy.get('.discussion-on-page:visible').children(".reply-card").eq(1).children(".reply-text")
@@ -51,8 +49,6 @@ context('Discussions', () => {
 	};
 
 	const cancel_and_clear_comment_box = () => {
-		cy.visit('/test-page');
-		cy.wait(3000);
 		cy.get('.discussion-on-page:visible .comment-field')
 			.type('This is a discussion from the cypress ui tests.')
 			.should('have.value', 'This is a discussion from the cypress ui tests.');
