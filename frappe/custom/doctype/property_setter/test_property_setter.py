@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 import frappe
 import unittest
 

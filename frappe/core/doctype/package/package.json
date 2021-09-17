@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2021-09-04 11:54:35.155687",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "package_name",
+  "readme",
+  "license_type",
+  "license"
+ ],
+ "fields": [
+  {
+   "fieldname": "readme",
+   "fieldtype": "Markdown Editor",
+   "label": "Readme"
+  },
+  {
+   "fieldname": "package_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Package Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "license_type",
+   "fieldtype": "Select",
+   "label": "License Type",
+   "options": "\nMIT License\nGNU General Public License\nGNU Affero General Public License"
+  },
+  {
+   "fieldname": "license",
+   "fieldtype": "Markdown Editor",
+   "label": "License"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Modules",
+   "link_doctype": "Module Def",
+   "link_fieldname": "package"
+  },
+  {
+   "group": "Release",
+   "link_doctype": "Package Release",
+   "link_fieldname": "package"
+  }
+ ],
+ "modified": "2021-09-05 13:15:01.130982",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Package",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

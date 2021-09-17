@@ -135,8 +135,8 @@ class MariaDBDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"DESC `{table_name}`")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
-		table_name = get_table_name(table)
+	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
 		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
 
 	# exception types
@@ -195,7 +195,7 @@ class MariaDBDatabase(Database):
 				`password` TEXT NOT NULL,
 				`encrypted` INT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
-			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
+			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
 
 	def create_global_search_table(self):
 		if not '__global_search' in self.get_tables():
@@ -256,11 +256,11 @@ class MariaDBDatabase(Database):
 				index_name=index_name
 			))
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype: str, fields: List, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
 			self.commit()
 			self.sql("""ALTER TABLE `%s`

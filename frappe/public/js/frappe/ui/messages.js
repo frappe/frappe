@@ -140,7 +140,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 		return;
 	}
 
-	if(data.alert) {
+	if(data.alert || data.toast) {
 		frappe.show_alert(data);
 		return;
 	}
@@ -361,7 +361,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds=7, actions={}) {
+frappe.show_alert = frappe.toast = function(message, seconds=7, actions={}) {
 	let indicator_icon_map = {
 		'orange': "solid-warning",
 		'yellow': "solid-warning",
