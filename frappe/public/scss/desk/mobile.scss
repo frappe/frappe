@@ -202,8 +202,12 @@ body {
 	}
 
 	// listviews
-	.list-row {
-		padding: 13px 15px !important;
+	.select-like {
+		margin-right: unset !important;
+	}
+
+	.list-count {
+		display: contents;
 	}
 
 	.doclist-row {
