@@ -196,12 +196,12 @@ def create_form_tour():
 
 @frappe.whitelist()
 def create_data_for_discussions():
-	web_page = frappe.db.exists("Web Page", {"route": "test-page"})
+	web_page = frappe.db.exists("Web Page", {"route": "test-page-discussions"})
 	if not web_page:
 		web_page = frappe.get_doc({
 						"doctype": "Web Page",
-						"title": "Test Page",
-						"route": "test-page",
+						"title": "Test page for discussions",
+						"route": "test-page-discussions",
 						"published": True
 					})
 		web_page.save()
