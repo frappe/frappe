@@ -14,8 +14,10 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast, get_datetime, get_table_name
+from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.query_builder.functions import Count
+from frappe.query_builder.functions import Min, Max, Avg, Sum
 from .query import Query
 
 
@@ -92,7 +94,7 @@ class Database(object):
 		:param as_utf8: Encode values as UTF 8.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-		:param run: Returns query without excuting it if False.
+		:param run: Returns query without executing it if False.
 		Examples:
 
 			# return customer names as dicts
@@ -376,7 +378,7 @@ class Database(object):
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if isinstance(filters, list):
-			order_by = order_by or "modified desc"
+			order_by = order_by or "modified_desc"
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 
 		else:
@@ -389,7 +391,7 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					order_by = order_by or "modified desc"
+					order_by = order_by or "modified"
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -752,9 +754,20 @@ class Database(object):
 			except Exception:
 				return None
 
+	def min(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Min(fieldname)).run(**kwargs)[0][0] or 0
+
+	def max(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Max(fieldname)).run(**kwargs)[0][0] or 0
+
+	def avg(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Avg(fieldname)).run(**kwargs)[0][0] or 0
+
+	def sum(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Sum(fieldname)).run(**kwargs)[0][0] or 0
+
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
-		from frappe.query_builder.functions import Count
 		if cache and not filters:
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
