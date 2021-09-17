@@ -48,8 +48,8 @@ def map_docs(method, source_names, target_doc, args=None):
 		raise frappe.PermissionError
 
 	for src in json.loads(source_names):
-		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
-		target_doc = method(*_args)
+		_kwargs = json.loads(args) if args else {}
+		target_doc = method(src, target_doc, **_kwargs)
 	return target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
