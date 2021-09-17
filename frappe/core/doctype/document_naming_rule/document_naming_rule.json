@@ -41,6 +41,7 @@
    "fieldname": "counter",
    "fieldtype": "Int",
    "label": "Counter",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -79,7 +80,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-04 14:38:14.836056",
+ "modified": "2021-09-13 20:07:47.617615",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Rule",
