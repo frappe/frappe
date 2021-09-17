@@ -99,7 +99,7 @@ def report_to_pdf(html, orientation="Landscape"):
 
 @frappe.whitelist()
 def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0):
-	print_settings = frappe.get_doc("Printer Settings", printer_setting)
+	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups
 	except ImportError:
