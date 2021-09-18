@@ -86,7 +86,7 @@ class BaseTimeline {
 		});
 		if (item.icon) {
 			timeline_item.append(`
-				<div class="timeline-badge">
+				<div class="timeline-badge" title='${item.title || frappe.utils.to_title_case(item.icon)}'>
 					${frappe.utils.icon(item.icon, item.icon_size || 'md')}
 				</div>
 			`);

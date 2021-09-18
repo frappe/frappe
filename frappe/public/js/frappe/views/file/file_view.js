@@ -380,8 +380,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 		return `
 			<div class="list-row-col ellipsis list-subject level">
-				<input class="level-item list-row-checkbox hidden-xs"
-					type="checkbox" data-name="${file.name}">
+				<span class="level-item file-select">
+					<input class="list-row-checkbox hidden-xs"
+						type="checkbox" data-name="${file.name}">
+				</span>
 				<span class="level-item  ellipsis" title="${file.file_name}">
 					<a class="ellipsis" href="${route_url}" title="${file.file_name}">
 						${file.subject_html}

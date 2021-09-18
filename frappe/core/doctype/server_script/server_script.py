@@ -27,6 +27,11 @@ class ServerScript(Document):
 			for job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", job.name)
 
+	def get_code_fields(self):
+		return {
+			'script': 'py'
+		}
+
 	@property
 	def scheduled_jobs(self) -> List[Dict[str, str]]:
 		return frappe.get_all(
