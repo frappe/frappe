@@ -15,18 +15,18 @@ def condition() -> bool:
 	Patches are meant to repair data or change schema based on certain conditions, this function should capture them.
 
 	Example:
-	        A patch that should only execute if there are any Indian companies in database.
+		A patch that should only execute if there are any Indian companies in database.
 
-	        ```python
-	        def condition:
-	                return bool(frappe.db.exists("Company", {"country": "India"}))
-	        ```
+		```python
+		def condition:
+				return bool(frappe.db.exists("Company", {"country": "India"}))
+		```
 
 	Note:
-	        1. This condition is ignored in patch tests.
-	        2. If this function is removed from patch file, `execute` function is executed unconditionally.
+		1. This condition is ignored in patch tests.
+		2. If this function is removed from patch file, `execute` function is executed unconditionally.
 	"""
-	return True
+	return False
 
 
 def execute() -> None:
