@@ -10,6 +10,7 @@
 
 	where patch1, patch2 is module name
 """
+import click
 import frappe, frappe.permissions, time
 
 class PatchError(Exception): pass
@@ -83,7 +84,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 				if patchmodule.startswith("execute:"):
 					exec(patchmodule.split("execute:")[1],globals())
 				else:
-					frappe.get_attr(patchmodule.split()[0] + ".execute")()
+					_execute_patch_file(patchmodule)
 				update_patch_log(patchmodule)
 		elif method:
 			method(**methodargs)
@@ -99,6 +100,29 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		log('Success: Done in {time}s'.format(time = round(end_time - start_time, 3)))
 
 	return True
+
+
+def _execute_patch_file(patch_module_path):
+	dotted_path = patch_module_path.split()[0]
+	patch_module = frappe.get_module(dotted_path)
+
+	patch_required = True
+	if hasattr(patch_module, "condition"):
+		patch_required = bool(patch_module.condition())
+
+	if not patch_required:
+		click.secho(f"Skipping {patch_module_path}", fg="blue")
+		return
+
+	documents_to_reload = getattr(patch_module, "doctypes_to_reload", [])
+
+	for doc in documents_to_reload:
+		frappe.reload_doc(**doc)
+
+	patch_module.execute()
+
+
+
 
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
