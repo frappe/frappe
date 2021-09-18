@@ -113,8 +113,9 @@ var publish_message = (data) => {
 };
 
 var post_message_cleanup = () => {
+	$(".topic-title").val("");
 	$(".comment-field").val("");
-	$(".comment-field").css("height", "48px");
+	$(".discussion-on-page .comment-field").css("height", "48px");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
 	$(".cancel-comment").addClass("hide");
