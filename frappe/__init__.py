@@ -618,33 +618,12 @@ def read_only():
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
+			except:
+				raise
 			finally:
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
 					local.db = local.primary_db
-
-			return retval
-		return wrapper_fn
-	return innfn
-
-def write_only():
-	# if replica connection exists, we have to replace it momentarily with the primary connection
-	def innfn(fn):
-		def wrapper_fn(*args, **kwargs):
-			primary_db = getattr(local, "primary_db", None)
-			replica_db = getattr(local, "replica_db", None)
-			in_read_only = getattr(local, "db", None) != primary_db
-
-			# switch to primary connection
-			if in_read_only and primary_db:
-				local.db = local.primary_db
-
-			try:
-				retval = fn(*args, **get_newargs(fn, kwargs))
-			finally:
-				# switch back to replica connection
-				if in_read_only and replica_db:
-					local.db = replica_db
 
 			return retval
 		return wrapper_fn

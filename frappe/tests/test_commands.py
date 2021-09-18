@@ -63,28 +63,6 @@ def clean(value):
 	return value
 
 
-def missing_in_backup(doctypes, file):
-	"""Returns list of missing doctypes in the backup.
-
-	Args:
-		doctypes (list): List of DocTypes to be checked
-		file (str): Path of the database file
-
-	Returns:
-		doctypes(list): doctypes that are missing in backup
-	"""
-	predicate = (
-		'COPY public."tab{}"'
-		if frappe.conf.db_type == "postgres"
-		else "CREATE TABLE `tab{}`"
-	)
-	with gzip.open(file, "rb") as f:
-		content = f.read().decode("utf8").lower()
-
-	return [doctype for doctype in doctypes
-			if predicate.format(doctype).lower() not in content]
-
-
 def exists_in_backup(doctypes, file):
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
@@ -95,8 +73,14 @@ def exists_in_backup(doctypes, file):
 	Returns:
 		bool: True if all tables exist
 	"""
-	missing_doctypes = missing_in_backup(doctypes, file)
-	return len(missing_doctypes) == 0
+	predicate = (
+		'COPY public."tab{}"'
+		if frappe.conf.db_type == "postgres"
+		else "CREATE TABLE `tab{}`"
+	)
+	with gzip.open(file, "rb") as f:
+		content = f.read().decode("utf8")
+	return all(predicate.format(doctype).lower() in content.lower() for doctype in doctypes)
 
 
 class BaseTestCommands(unittest.TestCase):
@@ -238,7 +222,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
-		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
+		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 8: take a backup with frappe.conf.backup.excludes
 		self.execute(
@@ -249,7 +233,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
-		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
+		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 9: take a backup with --include (with frappe.conf.excludes still set)
 		self.execute(
@@ -258,7 +242,7 @@ class TestCommands(BaseTestCommands):
 		)
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
-		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
+		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
 
 		# test 10: take a backup with --exclude
 		self.execute(
@@ -273,7 +257,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} backup --ignore-backup-conf")
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
-		self.assertEqual([], missing_in_backup(backup["excludes"]["excludes"], database))
+		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
 
 	def test_restore(self):
 		# step 0: create a site to run the test on

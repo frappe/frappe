@@ -9,10 +9,7 @@
  "field_order": [
   "dt",
   "view",
-  "column_break_3",
-  "module",
   "enabled",
-  "section_break_6",
   "script",
   "sample"
  ],
@@ -56,27 +53,13 @@
    "label": "Apply To",
    "options": "List\nForm",
    "set_only_once": 1
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "module",
-   "fieldtype": "Link",
-   "label": "Module (for export)",
-   "options": "Module Def"
-  },
-  {
-   "fieldname": "section_break_6",
-   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-04 12:03:27.029815",
+ "modified": "2021-03-16 20:33:51.400191",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Client Script",

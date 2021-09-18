@@ -6,11 +6,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		return frappe.run_serially([
-			() => this.show_skeleton(),
-			() => this.fetch_meta(),
-			() => this.hide_skeleton(),
-			() => this.check_permissions(),
+		frappe.run_serially([
 			() => this.init(),
 			() => this.before_refresh(),
 			() => this.refresh(),
@@ -152,22 +148,6 @@ frappe.views.BaseList = class BaseList {
 			}
 			this.stats.push(this.workflow_state_fieldname);
 		}
-	}
-
-	fetch_meta() {
-		return frappe.model.with_doctype(this.doctype);
-	}
-
-	show_skeleton() {
-
-	}
-
-	hide_skeleton() {
-
-	}
-
-	check_permissions() {
-		return true;
 	}
 
 	setup_page() {

@@ -30,15 +30,6 @@
 	}
 }
 
-.list-skeleton {
-	min-height: calc(100vh - 200px);
-
-	.list-skeleton-box {
-		background-color: var(--skeleton-bg);
-		height: 100%;
-		border-radius: var(--border-radius);
-	}
-}
 
 .no-list-sidebar {
 	&[data-page-route^="List/"], [data-page-route^="List/"]{
@@ -140,7 +131,7 @@
 		}
 	}
 
-	.select-like, .file-select {
+	.select-like {
 		padding: 15px 0px 15px 15px;
 	}
 }
@@ -178,7 +169,7 @@ $level-margin-right: 8px;
 		color: var(--text-color);
 	}
 
-	.level-item:not(.file-select) {
+	.level-item {
 		margin-right: $level-margin-right;
 	}
 

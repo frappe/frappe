@@ -409,8 +409,7 @@ class BackupGenerator:
 			backup_info = ("Skipping Tables: ", ", ".join(self.backup_excludes))
 
 		if self.partial:
-			if self.verbose:
-				print(''.join(backup_info), "\n")
+			print(''.join(backup_info), "\n")
 			database_header_content.extend([
 				f"Partial Backup of Frappe Site {frappe.local.site}",
 				("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],

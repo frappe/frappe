@@ -17,15 +17,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "execute_section",
-  "type",
   "console",
   "commit",
-  "output",
-  "sql_output",
-  "database_processes_section",
-  "show_processlist",
-  "processlist"
+  "output"
  ],
  "fields": [
   {
@@ -46,47 +40,13 @@
    "fieldname": "commit",
    "fieldtype": "Check",
    "label": "Commit"
-  },
-  {
-   "fieldname": "execute_section",
-   "fieldtype": "Section Break",
-   "label": "Execute"
-  },
-  {
-   "fieldname": "database_processes_section",
-   "fieldtype": "Section Break",
-   "label": "Database Processes"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_processlist",
-   "fieldtype": "Check",
-   "label": "Show Processlist"
-  },
-  {
-   "fieldname": "processlist",
-   "fieldtype": "HTML",
-   "label": "processlist"
-  },
-  {
-   "default": "Python",
-   "fieldname": "type",
-   "fieldtype": "Select",
-   "label": "Type",
-   "options": "Python\nSQL"
-  },
-  {
-   "depends_on": "eval:doc.type == 'SQL'",
-   "fieldname": "sql_output",
-   "fieldtype": "HTML",
-   "label": "SQL Output"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-09-15 17:17:44.844767",
+ "modified": "2020-08-21 14:44:35.296877",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Console",

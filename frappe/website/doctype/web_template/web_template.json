@@ -45,6 +45,7 @@
    "options": "Component\nSection\nNavbar\nFooter"
   },
   {
+   "depends_on": "standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
@@ -53,12 +54,16 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2021-09-04 12:38:27.656042",
+ "links": [
+  {
+   "link_doctype": "Web Page",
+   "link_fieldname": "web_template"
+  }
+ ],
+ "modified": "2020-10-26 17:22:55.459453",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
- "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {

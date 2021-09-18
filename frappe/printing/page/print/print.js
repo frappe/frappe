@@ -174,7 +174,7 @@ frappe.ui.form.PrintView = class {
 			});
 		}
 
-		if (frappe.perm.has_perm('Print Format', 0, 'create')) {
+		if (frappe.user.has_role('System Manager')) {
 			this.page.add_menu_item(__('Customize'), () =>
 				this.edit_print_format()
 			);

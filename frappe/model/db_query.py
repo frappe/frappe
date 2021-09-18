@@ -2,9 +2,7 @@
 # License: MIT. See LICENSE
 """build query for doclistview and return results"""
 
-from typing import List
 import frappe.defaults
-from frappe.query_builder.utils import Column
 import frappe.share
 from frappe import _
 import frappe.permissions
@@ -35,7 +33,7 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None, ignore_ddl=False) -> List:
+		return_query=False, strict=True, pluck=None, ignore_ddl=False):
 		if not ignore_permissions and \
 			not frappe.has_permission(self.doctype, "select", user=user) and \
 			not frappe.has_permission(self.doctype, "read", user=user):
@@ -492,7 +490,7 @@ class DatabaseQuery(object):
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
 
-			if (f.fieldname in ('creation', 'modified')):
+			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
 				value = cstr(f.value)
 				fallback = "NULL"
 
@@ -548,12 +546,8 @@ class DatabaseQuery(object):
 				value = flt(f.value)
 				fallback = 0
 
-			if isinstance(f.value, Column):
-				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
-				value = f"{tname}.{quote}{f.value.name}{quote}"
-
 			# escape value
-			elif isinstance(value, str) and not f.operator.lower() == 'between':
+			if isinstance(value, str) and not f.operator.lower() == 'between':
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (

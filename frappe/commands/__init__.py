@@ -104,22 +104,7 @@ def get_commands():
 	from .utils import commands as utils_commands
 	from .redis import commands as redis_commands
 
-	clickable_link = (
-		"\x1b]8;;https://frappeframework.com/docs\afrappeframework.com\x1b]8;;\a"
-	)
-	all_commands = (
-		scheduler_commands
-		+ site_commands
-		+ translate_commands
-		+ utils_commands
-		+ redis_commands
-	)
-
-	for command in all_commands:
-		if not command.help:
-			command.help = f"Refer to {clickable_link}"
-
-	return all_commands
-
+	all_commands = scheduler_commands + site_commands + translate_commands + utils_commands + redis_commands
+	return list(set(all_commands))
 
 commands = get_commands()

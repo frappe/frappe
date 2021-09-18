@@ -4,11 +4,11 @@ context('Timeline', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
+		cy.visit('/app/todo');
 	});
 
 	it('Adding new ToDo, adding new comment, verifying comment addition & deletion and deleting ToDo', () => {
 		//Adding new ToDo
-		cy.visit('/app/todo');
 		cy.click_listview_primary_button('Add ToDo');
 		cy.findByRole('button', {name: 'Edit in full page'}).click();
 		cy.get('[data-fieldname="description"] .ql-editor').eq(0).type('Test ToDo', {force: true});
@@ -28,15 +28,15 @@ context('Timeline', () => {
 		cy.get('.timeline-content').should('contain', 'Testing Timeline');
 
 		//Editing comment
-		cy.click_timeline_action_btn("Edit");
+		cy.click_timeline_action_btn(0);
 		cy.get('.timeline-content [data-fieldname="comment"] .ql-editor').first().type(' 123');
-		cy.click_timeline_action_btn("Save");
+		cy.click_timeline_action_btn(0);
 
 		//To check if the edited comment text is visible in timeline content
 		cy.get('.timeline-content').should('contain', 'Testing Timeline 123');
 
 		//Discarding comment
-		cy.click_timeline_action_btn("Edit");
+		cy.click_timeline_action_btn(0);
 		cy.findByRole('button', {name: 'Dismiss'}).click();
 
 		//To check if after discarding the timeline content is same as previous
@@ -81,7 +81,7 @@ context('Timeline', () => {
 		cy.visit('/app/custom-submittable-doctype');
 		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
 		cy.findByRole('button', {name: 'Actions'}).click();
-		cy.get('.actions-btn-group > .dropdown-menu > li > .dropdown-item').contains("Delete").click();
+		cy.get('.actions-btn-group > .dropdown-menu > li > .grey-link').eq(7).click();
 		cy.click_modal_primary_button('Yes', {force: true, delay: 700});
 
 		//Deleting the custom doctype

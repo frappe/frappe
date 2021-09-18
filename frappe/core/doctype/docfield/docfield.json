@@ -18,53 +18,46 @@
   "hide_seconds",
   "reqd",
   "search_index",
-  "column_break_18",
-  "options",
-  "defaults_section",
-  "default",
-  "column_break_6",
-  "fetch_from",
-  "fetch_if_empty",
-  "visibility_section",
-  "hidden",
-  "bold",
-  "allow_in_quick_entry",
-  "translatable",
-  "print_hide",
-  "print_hide_if_no_value",
-  "report_hide",
-  "column_break_28",
-  "depends_on",
-  "collapsible",
-  "collapsible_depends_on",
-  "hide_border",
-  "list__search_settings_section",
   "in_list_view",
   "in_standard_filter",
-  "in_preview",
-  "column_break_35",
-  "in_filter",
   "in_global_search",
+  "in_preview",
+  "allow_in_quick_entry",
+  "bold",
+  "translatable",
+  "collapsible",
+  "collapsible_depends_on",
+  "column_break_6",
+  "options",
+  "default",
+  "fetch_from",
+  "fetch_if_empty",
   "permissions",
+  "depends_on",
+  "hidden",
   "read_only",
-  "allow_on_submit",
-  "ignore_user_permissions",
+  "unique",
+  "set_only_once",
   "allow_bulk_edit",
   "column_break_13",
   "permlevel",
-  "ignore_xss_filter",
-  "constraints_section",
-  "unique",
-  "no_copy",
-  "set_only_once",
+  "ignore_user_permissions",
+  "allow_on_submit",
+  "report_hide",
   "remember_last_selected_value",
-  "column_break_38",
+  "ignore_xss_filter",
+  "hide_border",
+  "property_depends_on_section",
   "mandatory_depends_on",
+  "column_break_38",
   "read_only_depends_on",
   "display",
+  "in_filter",
+  "no_copy",
+  "print_hide",
+  "print_hide_if_no_value",
   "print_width",
   "width",
-  "max_height",
   "columns",
   "column_break_22",
   "description",
@@ -160,7 +153,7 @@
    "default": "0",
    "fieldname": "in_standard_filter",
    "fieldtype": "Check",
-   "label": "In List Filter"
+   "label": "In Standard Filter"
   },
   {
    "default": "0",
@@ -204,11 +197,10 @@
    "length": 255
   },
   {
-   "depends_on": "eval:doc.fieldtype==\"Section Break\" && doc.collapsible",
+   "depends_on": "eval:doc.fieldtype==\"Section Break\"",
    "fieldname": "collapsible_depends_on",
    "fieldtype": "Code",
-   "label": "Collapsible Depends On (JS)",
-   "max_height": "3rem",
+   "label": "Collapsible Depends On",
    "options": "JS"
   },
   {
@@ -228,7 +220,6 @@
    "fieldname": "default",
    "fieldtype": "Small Text",
    "label": "Default",
-   "max_height": "3rem",
    "oldfieldname": "default",
    "oldfieldtype": "Text"
   },
@@ -239,9 +230,10 @@
   },
   {
    "default": "0",
+   "description": "If checked, this field will be not overwritten based on Fetch From if a value already exists.",
    "fieldname": "fetch_if_empty",
    "fieldtype": "Check",
-   "label": "Fetch only if value is not set"
+   "label": "Fetch If Empty"
   },
   {
    "fieldname": "permissions",
@@ -251,9 +243,8 @@
   {
    "fieldname": "depends_on",
    "fieldtype": "Code",
-   "label": "Display Depends On (JS)",
+   "label": "Display Depends On",
    "length": 255,
-   "max_height": "3rem",
    "oldfieldname": "depends_on",
    "oldfieldtype": "Data",
    "options": "JS"
@@ -284,9 +275,10 @@
   },
   {
    "default": "0",
+   "description": "Do not allow user to change after set the first time",
    "fieldname": "set_only_once",
    "fieldtype": "Check",
-   "label": "Set only once"
+   "label": "Set Only Once"
   },
   {
    "default": "0",
@@ -311,6 +303,7 @@
   },
   {
    "default": "0",
+   "description": "User permissions should not apply for this Link",
    "fieldname": "ignore_user_permissions",
    "fieldtype": "Check",
    "label": "Ignore User Permissions"
@@ -395,14 +388,12 @@
   {
    "fieldname": "print_width",
    "fieldtype": "Data",
-   "label": "Print Width",
-   "length": 10
+   "label": "Print Width"
   },
   {
    "fieldname": "width",
    "fieldtype": "Data",
    "label": "Width",
-   "length": 10,
    "oldfieldname": "width",
    "oldfieldtype": "Data",
    "print_width": "50px",
@@ -445,16 +436,19 @@
   {
    "fieldname": "mandatory_depends_on",
    "fieldtype": "Code",
-   "label": "Mandatory Depends On (JS)",
-   "max_height": "3rem",
+   "label": "Mandatory Depends On",
    "options": "JS"
   },
   {
    "fieldname": "read_only_depends_on",
    "fieldtype": "Code",
-   "label": "Read Only Depends On (JS)",
-   "max_height": "3rem",
+   "label": "Read Only Depends On",
    "options": "JS"
+  },
+  {
+   "fieldname": "property_depends_on_section",
+   "fieldtype": "Section Break",
+   "label": "Property Depends On"
   },
   {
    "fieldname": "column_break_38",
@@ -487,56 +481,16 @@
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
-  },
-  {
-   "fieldname": "column_break_18",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "defaults_section",
-   "fieldtype": "Section Break",
-   "label": "Defaults",
-   "max_height": "2rem"
-  },
-  {
-   "fieldname": "visibility_section",
-   "fieldtype": "Section Break",
-   "label": "Visibility"
-  },
-  {
-   "fieldname": "column_break_28",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "constraints_section",
-   "fieldtype": "Section Break",
-   "label": "Constraints"
-  },
-  {
-   "fieldname": "max_height",
-   "fieldtype": "Data",
-   "label": "Max Height",
-   "length": 10
-  },
-  {
-   "fieldname": "list__search_settings_section",
-   "fieldtype": "Section Break",
-   "label": "List / Search Settings"
-  },
-  {
-   "fieldname": "column_break_35",
-   "fieldtype": "Column Break"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-09-04 19:41:53.684094",
+ "modified": "2021-07-10 21:56:04.167745",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
- "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

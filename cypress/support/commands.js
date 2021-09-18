@@ -187,7 +187,7 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 	if (fieldtype === 'Select') {
 		cy.get('@input').select(value);
 	} else {
-		cy.get('@input').type(value, {waitForAnimations: false, force: true, delay: 100});
+		cy.get('@input').type(value, {waitForAnimations: false, force: true});
 	}
 	return cy.get('@input');
 });
@@ -252,8 +252,7 @@ Cypress.Commands.add('new_form', doctype => {
 });
 
 Cypress.Commands.add('go_to_list', doctype => {
-	let dt_in_route = doctype.toLowerCase().replace(/ /g, '-');
-	cy.visit(`/app/${dt_in_route}`);
+	cy.visit(`/app/list/${doctype}/list`);
 });
 
 Cypress.Commands.add('clear_cache', () => {
@@ -317,11 +316,7 @@ Cypress.Commands.add('add_filter', () => {
 });
 
 Cypress.Commands.add('clear_filters', () => {
-	cy.intercept({
-		method: 'POST',
-		url: 'api/method/frappe.model.utils.user_settings.save'
-	}).as('filter-saved');
-	cy.get('.filter-section .filter-button').click({force: true});
+	cy.get('.filter-section .filter-button').click();
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
 	cy.get('.filter-popover').find('.clear-filters').click();
@@ -329,15 +324,16 @@ Cypress.Commands.add('clear_filters', () => {
 	cy.window().its('cur_list').then(cur_list => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
 	});
-	cy.wait('@filter-saved');
+
+	
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
 	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).trigger('click', {force: true});
 });
 
-Cypress.Commands.add('click_sidebar_button', (btn_name) => {
-	cy.get('.list-group-by-fields .list-link > a').contains(btn_name).click({force: true});
+Cypress.Commands.add('click_sidebar_button', (btn_no) => {
+	cy.get('.list-group-by-fields > .group-by-field > .btn').eq(btn_no).click();
 });
 
 Cypress.Commands.add('click_listview_row_item', (row_no) => {
@@ -352,6 +348,6 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 	cy.get('.primary-action').contains(btn_name).click({force: true});
 });
 
-Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
-	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').contains(btn_name).click();
+Cypress.Commands.add('click_timeline_action_btn', (btn_no) => {
+	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').eq(btn_no).first().click();
 });

@@ -8,8 +8,6 @@ from whoosh.index import create_in, open_dir, EmptyIndexError
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
 from whoosh.query import Prefix
-from whoosh.writing import AsyncWriter
-
 
 class FullTextSearch:
 	""" Frappe Wrapper for Whoosh """
@@ -77,7 +75,7 @@ class FullTextSearch:
 		ix = self.get_index()
 
 		with ix.searcher():
-			writer = AsyncWriter(ix)
+			writer = ix.writer()
 			writer.delete_by_term(self.id, document[self.id])
 			writer.add_document(**document)
 			writer.commit(optimize=True)

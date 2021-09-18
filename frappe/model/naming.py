@@ -346,7 +346,7 @@ def _prompt_autoname(autoname, doc):
 	"""
 	# set from __newname in save.py
 	if not doc.name:
-		frappe.throw(_("Please set the document name"))
+		frappe.throw(_("Name not set via prompt"))
 
 def _format_autoname(autoname, doc):
 	"""

@@ -6,12 +6,12 @@ context('Sidebar', () => {
 	});
 
 	it('Test for checking "Assigned To" counter value, adding filter and adding & removing an assignment', () => {
-		cy.click_sidebar_button("Assigned To");
+		cy.click_sidebar_button(0);
 
 		//To check if no filter is available in "Assigned To" dropdown
 		cy.get('.empty-state').should('contain', 'No filters found');
 
-		cy.click_sidebar_button("Created By");
+		cy.click_sidebar_button(1);
 
 		//To check if "Created By" dropdown contains filter
 		cy.get('.group-by-item > .dropdown-item').should('contain', 'Me');
@@ -22,7 +22,7 @@ context('Sidebar', () => {
 		cy.get_field('assign_to_me', 'Check').click();
 		cy.get('.modal-footer > .standard-actions > .btn-primary').click();
 		cy.visit('/app/doctype');
-		cy.click_sidebar_button("Assigned To");
+		cy.click_sidebar_button(0);
 
 		//To check if filter is added in "Assigned To" dropdown after assignment
 		cy.get('.group-by-field.show > .dropdown-menu > .group-by-item > .dropdown-item').should('contain', '1');
@@ -38,19 +38,20 @@ context('Sidebar', () => {
 		cy.get('.fieldname-select-area > .awesomplete > .form-control').should('have.value', 'Assigned To');
 		cy.get('.condition').should('have.value', 'like');
 		cy.get('.filter-field > .form-group > .input-with-feedback').should('have.value', '%Administrator%');
-		cy.click_filter_button();
 
 		//To remove the applied filter
-		cy.clear_filters();
+		cy.get('.filter-action-buttons > div > .btn-secondary').contains('Clear Filters').click();
+		cy.click_filter_button();
+		cy.get('.filter-selector > .btn').should('contain', 'Filter');
 
 		//To remove the assignment
 		cy.visit('/app/doctype');
 		cy.click_listview_row_item(0);
 		cy.get('.assignments > .avatar-group > .avatar > .avatar-frame').click();
 		cy.get('.remove-btn').click({force: true});
-		cy.hide_dialog();
+		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-header > .modal-actions > .btn-modal-close').click();
 		cy.visit('/app/doctype');
-		cy.click_sidebar_button("Assigned To");
+		cy.click_sidebar_button(0);
 		cy.get('.empty-state').should('contain', 'No filters found');
 	});
 });

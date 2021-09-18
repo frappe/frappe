@@ -254,11 +254,10 @@ class File(Document):
 			return
 		file_name = self.file_url.split('/')[-1]
 		try:
-			file_path = get_files_path(file_name, is_private=self.is_private)
-			with open(file_path, "rb") as f:
+			with open(get_files_path(file_name, is_private=self.is_private), "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
-			frappe.throw(_("File {0} does not exist").format(file_path))
+			frappe.throw(_("File {0} does not exist").format(self.file_url))
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
