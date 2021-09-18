@@ -10,6 +10,7 @@
 
 	where patch1, patch2 is module name
 """
+import os
 import click
 import frappe, frappe.permissions, time
 
@@ -20,6 +21,7 @@ def run_all(skip_failing=False):
 	executed = [p[0] for p in frappe.db.sql("""select patch from `tabPatch Log`""")]
 
 	frappe.flags.final_patches = []
+	frappe.flags.in_patch_test = bool(os.environ.get("PATCH_TEST"))
 
 	def run_patch(patch):
 		try:
@@ -107,7 +109,7 @@ def _execute_patch_file(patch_module_path):
 	patch_module = frappe.get_module(dotted_path)
 
 	patch_required = True
-	if hasattr(patch_module, "condition"):
+	if not frappe.flags.in_patch_test and hasattr(patch_module, "condition"):
 		patch_required = bool(patch_module.condition())
 
 	if not patch_required:

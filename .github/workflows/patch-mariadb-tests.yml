@@ -103,3 +103,5 @@ jobs:
           wget https://frappeframework.com/files/v10-frappe.sql.gz
           bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
           bench --site test_site migrate
+        env:
+          PATCH_TEST: mariadb
