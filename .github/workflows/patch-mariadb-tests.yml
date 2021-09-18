@@ -102,4 +102,13 @@ jobs:
           cd ~/frappe-bench/
           wget https://frappeframework.com/files/v10-frappe.sql.gz
           bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
+          cd apps/frappe && git remote set-url upstream https://github.com/frappe/frappe.git && git fetch --all --tags
+          git tag --sort version:refname \
+            | grep -v "beta" \
+            | tail -1 \
+            | xargs -L 1 git checkout -f
+          bench setup requirements --python
+          bench --site test_site migrate --skip-search-index
+          git checkout -f "$GITHUB_SHA"
+          bench setup requirements --python
           bench --site test_site migrate
