@@ -26,7 +26,7 @@ context('Discussions', () => {
 
 		// Submit
 		cy.get('.modal .submit-discussion').click();
-		cy.wait(20000);
+		cy.wait(2000);
 
 		// Check if discussion is added to page and content is visible
 		cy.get('.sidebar-parent:first .discussion-topic-title').should('have.text', 'Discussion from tests');
