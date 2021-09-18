@@ -112,22 +112,6 @@ def change_orderby(order: str):
 	return orderby, order
 
 
-def get_condition(table: str, **kwargs) -> frappe.qb:
-	"""Get initial table object
-
-	Args:
-		table (str): DocType
-
-	Returns:
-		frappe.qb: DocType with initial condition
-	"""
-	if kwargs.get("update"):
-		return frappe.qb.update(table)
-	if kwargs.get("into"):
-		return frappe.qb.into(table)
-	return frappe.qb.from_(table)
-
-
 OPERATOR_MAP = {
 					"+": operator.add,
 					"=": operator.eq,
@@ -146,8 +130,22 @@ OPERATOR_MAP = {
 				}
 
 
-
 class Query:
+	def get_condition(self, table: str, **kwargs) -> frappe.qb:
+		"""Get initial table object
+
+		Args:
+			table (str): DocType
+
+		Returns:
+			frappe.qb: DocType with initial condition
+		"""
+		if kwargs.get("update"):
+			return frappe.qb.update(table)
+		if kwargs.get("into"):
+			return frappe.qb.into(table)
+		return frappe.qb.from_(table)
+
 	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> frappe.qb:
 		"""Generate filters from Criterion objects
 
@@ -158,9 +156,8 @@ class Query:
 		Returns:
 			frappe.qb: condition object
 		"""
-		condition = get_condition(table, **kwargs)
+		condition = self.get_condition(table, **kwargs)
 		return condition.where(criterion)
-
 
 	def add_conditions(self, conditions: frappe.qb, **kwargs):
 		"""Adding additional conditions
@@ -196,7 +193,7 @@ class Query:
 			table (str): DocType
 			filters (Union[List, Tuple], optional): Filters. Defaults to None.
 		"""
-		conditions = get_condition(table, **kwargs)
+		conditions = self.get_condition(table, **kwargs)
 		if not filters:
 			return conditions
 		if isinstance(filters, list):
@@ -225,7 +222,7 @@ class Query:
 		Returns:
 			frappe.qb: conditions object
 		"""
-		conditions = get_condition(table, **kwargs)
+		conditions = self.get_condition(table, **kwargs)
 		if not filters:
 			return conditions
 
