@@ -47,6 +47,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 
 @click.command('restore')
 @click.argument('sql-file-path')
+@click.option('--backup-encryption-key', help='Backup encryption Key')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--db-name', help='Database name for site in case it is a new one')
@@ -56,7 +57,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
 @click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
 @pass_context
-def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
+def restore(context, sql_file_path, backup_encryption_key=None, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
 	from frappe.installer import (
 		_new_site,
@@ -66,9 +67,56 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		is_partial,
 		validate_database_sql
 	)
+	from frappe.utils.backups import backup_decryption, decryption_rollback
 
-	site = get_site(context)
-	frappe.init(site=site)
+	if not os.path.exists(sql_file_path):
+		print("Invalid path", sql_file_path)
+		sys.exit(1)
+
+	# Check if file is encrypted 
+	if "enc" in sql_file_path:
+
+		# Decrypt using the provided key
+		if backup_encryption_key:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using provided key.", 
+				fg="yellow"
+			)
+			
+			backup_decryption(sql_file_path, backup_encryption_key)
+			
+			# Rollback on unsuccessful decryrption
+			if not os.path.exists(sql_file_path):
+				click.secho(
+					"Decryption failed. Please provide a valid key and try again.",
+					fg="red"
+				)
+				decryption_rollback(sql_file_path)
+				sys.exit(1)
+				
+		# Decrypt using the key from site config if key not provided
+		else:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using site config", 
+				fg="yellow"
+			)
+
+			#Get the key from site config
+			site = get_site(context)
+			frappe.init(site)
+			backup_encryption_key = frappe.get_site_config().backup_encryption_key
+			frappe.destroy()
+
+			backup_decryption(sql_file_path, backup_encryption_key)
+
+			# Rollback on unsucessful decryrption
+			if not os.path.exists(sql_file_path):
+				click.secho(
+					"Decryption failed. Please provide a valid key and try again.",
+					fg="red"
+				)
+				decryption_rollback(sql_file_path)
+				sys.exit(1)
 
 	force = context.force or force
 	decompressed_file_name = extract_sql_from_archive(sql_file_path)
@@ -83,36 +131,61 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 			"Use `bench partial-restore` to restore a partial backup to an existing site.",
 			fg="yellow"
 		)
+		decryption_rollback(sql_file_path)
 		sys.exit(1)
 
-	# check if valid SQL file
-	validate_database_sql(decompressed_file_name, _raise=not force)
 
-	# dont allow downgrading to older versions of frappe without force
-	if not force and is_downgrade(decompressed_file_name, verbose=True):
-		warn_message = (
-			"This is not recommended and may lead to unexpected behaviour. "
-			"Do you want to continue anyway?"
-		)
-		click.confirm(warn_message, abort=True)
+	try:
+		# check if valid SQL file
+		validate_database_sql(decompressed_file_name, _raise=not force)
 
-	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
-		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
-		force=True, db_type=frappe.conf.db_type)
+		site = get_site(context)
+		frappe.init(site=site)
 
-	# Extract public and/or private files to the restored site, if user has given the path
-	if with_public_files:
-		public = extract_files(site, with_public_files)
-		os.remove(public)
+		# dont allow downgrading to older versions of frappe without force
+		if not force and is_downgrade(decompressed_file_name, verbose=True):
+			warn_message = (
+				"This is not recommended and may lead to unexpected behaviour. "
+				"Do you want to continue anyway?"
+			)
+			click.confirm(warn_message, abort=True)
 
-	if with_private_files:
-		private = extract_files(site, with_private_files)
-		os.remove(private)
-
+		_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
+			mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+			verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
+			force=True, db_type=frappe.conf.db_type)
+		
+	except Exception as err:
+		print(err.args[1])
+		decryption_rollback(sql_file_path)
+	
 	# Removing temporarily created file
 	if decompressed_file_name != sql_file_path:
 		os.remove(decompressed_file_name)
+		decryption_rollback(sql_file_path)
+
+	# Extract public and/or private files to the restored site, if user has given the path
+	if with_public_files:		
+		# Decrypt data if there is a Key
+		if backup_encryption_key and os.path.exists(with_public_files):
+			backup_decryption(with_public_files, backup_encryption_key)
+		public = extract_files(site, with_public_files)
+		
+		# Removing temporarily created file
+		os.remove(public)
+		decryption_rollback(with_public_files)
+		
+
+	if with_private_files:
+		
+		# Decrypt data if there is a Key
+		if backup_encryption_key and "enc" in sql_file_path:
+			backup_decryption(with_private_files, backup_encryption_key)
+		private = extract_files(site, with_private_files)
+		
+		# Removing temporarily created file
+		os.remove(private)
+		decryption_rollback(with_private_files)
 
 	success_message = "Site {0} has been restored{1}".format(
 		site,
@@ -123,17 +196,76 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 @click.command('partial-restore')
 @click.argument('sql-file-path')
+@click.option('--backup-encryption-key', help='Backup encryption Key')
 @click.option("--verbose", "-v", is_flag=True)
 @pass_context
-def partial_restore(context, sql_file_path, verbose):
+def partial_restore(context, sql_file_path, verbose,  backup_encryption_key=None):
 	from frappe.installer import partial_restore
-	verbose = context.verbose or verbose
+	from frappe.utils.backups import backup_decryption, decryption_rollback
+	
+	if not os.path.exists(sql_file_path):
+		print("Invalid path", sql_file_path)
+		sys.exit(1)
 
+	# Check if file is encrypted 
+	if "enc" in sql_file_path:
+		
+		# Decrypt using the provided key
+		if backup_encryption_key:
+			click.secho(
+				"Encrypted Backup file detected. Decrypting using provided key.", 
+				fg="yellow"
+			)
+			
+			backup_decryption(sql_file_path, backup_encryption_key)
+			
+			# Rollback on unsucessful decryrption
+			if not os.path.exists(sql_file_path):
+				click.secho(
+					"Decryption failed. Please provide a valid key and try again.",
+					fg="red"
+				)
+				decryption_rollback(sql_file_path)
+				sys.exit(1)
+				
+		# Decrypt using the key from site config if key not provided
+		else:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using site config", 
+				fg="yellow"
+			)
+
+			#Get the key from site config
+			site = get_site(context)
+			frappe.init(site)
+			backup_encryption_key = frappe.get_site_config().backup_encryption_key
+			frappe.destroy()
+			
+			backup_decryption(sql_file_path, backup_encryption_key)
+
+			# Rollback on unsucessful decryrption
+			if not os.path.exists(sql_file_path):
+				click.secho(
+					"Decryption failed. Please provide a valid key and try again.",
+					fg="red"
+				)
+				decryption_rollback(sql_file_path)
+				sys.exit(1)
+
+	verbose = context.verbose or verbose
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect(site=site)
 	partial_restore(sql_file_path, verbose)
+	
+	# Removing temporarily created file
+	decryption_rollback(sql_file_path)
+	if os.path.exists(sql_file_path.rstrip(".gz")):
+		os.remove(sql_file_path.rstrip(".gz"))
+	
+
 	frappe.destroy()
+
 
 
 @click.command('reinstall')
@@ -441,14 +573,25 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 				force=True
 			)
 		except Exception:
-			click.secho("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
+			click.secho(
+				"Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), 
+				fg="red"
+			)
 			if verbose:
 				print(frappe.get_traceback())
 			exit_code = 1
 			continue
+		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().backup_encryption_key:
+			click.secho(
+				"Backup encryption is turned on. Please note the backup encryption key.", 
+				fg="yellow"
+			)
 
 		odb.print_summary()
-		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
+		click.secho(
+			"Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), 
+			fg="green"
+		)
 		frappe.destroy()
 
 	if not context.sites:
