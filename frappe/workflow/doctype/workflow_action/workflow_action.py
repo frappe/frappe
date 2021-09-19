@@ -291,7 +291,7 @@ def get_common_email_args(doc):
 	common_args = {
 		'template': 'workflow_action',
 		'header': 'Workflow Action',
-		'attachments': [frappe.attach_print(doctype, docname , file_name=docname)],
+		'attachments': [frappe.attach_print(doctype, docname, file_name=docname, doc=doc)],
 		'subject': subject,
 		'message': response
 	}
