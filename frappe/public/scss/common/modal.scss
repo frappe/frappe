@@ -144,6 +144,10 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 
+	.internal-section {
+		flex: 1;
+	}
+
 	.hasDatepicker {
 		z-index: 1140;
 	}

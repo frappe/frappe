@@ -305,6 +305,10 @@
 		}
 	}
 
+	.internal-section {
+		flex: 1;
+	}
+
 	.grid-delete-row {
 		.icon use {
 			stroke: var(--fg-color);

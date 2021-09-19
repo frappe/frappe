@@ -595,13 +595,21 @@ frappe.ui.form.Section = class FormSection {
 		if (!this.layout.page) {
 			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
 		}
-		let make_card = this.layout.card_layout;
-		this.wrapper = $(`<div class="row form-section ${ make_card ? "card-section" : "" }">`)
-			.appendTo(this.layout.page);
+
+		let is_internal_section = this.df.hide_border;
+		if (is_internal_section && this.layout.section) {
+			this.wrapper = $(`<div class="row form-section internal-section">`);
+			this.wrapper.appendTo(this.layout.section.wrapper);
+		} else {
+			let make_card = this.layout.card_layout;
+			this.wrapper = $(`<div class="row form-section ${ make_card ? "card-section" : "" }">`);
+			this.wrapper.appendTo(this.layout.page);
+		}
+
 		this.layout.sections.push(this);
 
 		if (this.df) {
-			if (this.df.label) {
+			if (!is_internal_section && this.df.label) {
 				this.make_head();
 			}
 			if (this.df.description) {
