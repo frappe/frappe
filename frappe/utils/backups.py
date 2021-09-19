@@ -24,7 +24,6 @@ compress = False
 _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
-
 class BackupGenerator:
 	"""
 	This class contains methods to perform On Demand Backup
@@ -233,14 +232,18 @@ class BackupGenerator:
 		"""
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
-			if os.path.exists(path):
+			if not os.path.exists(path):
+				print("Invalid path",path)
+				return
+
+			else:
 				cmd_string = ("gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}")
 				try:
 					command = cmd_string.format(
 						passphrase = backup_encryption_key(),
 						filelocation = path,
 					)
-					
+
 					frappe.utils.execute_in_shell(command)
 					os.rename(path + ".gpg", path)
 
@@ -265,7 +268,6 @@ class BackupGenerator:
 				"private": "*-{}-private-files.enc.tar",
 				"config": "*-{}-site_config_backup.json",
 			}
-
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
@@ -420,7 +422,7 @@ class BackupGenerator:
 
 		with gzip.open(args.backup_path_db, "wt") as f:
 			f.write(generated_header)
-		
+
 		if self.db_type == "postgres":
 			if self.backup_includes:
 				args["include"] = " ".join(
@@ -564,7 +566,6 @@ def scheduled_backup(
 	)
 	return odb
 
-
 def new_backup(
 	older_than=6,
 	ignore_files=False,
@@ -671,6 +672,7 @@ def backup(
 		"backup_path_private_files": odb.backup_path_private_files,
 	}
 
+
 @frappe.whitelist()
 def get_backup_encryption_key():
 	if 'backup_encryption_key' in frappe.local.conf:
@@ -679,22 +681,24 @@ def get_backup_encryption_key():
 		message = "No key found."
 	return frappe.msgprint(message)
 
+
 def backup_decryption(file_path,passphrase):
 	"""
 	Decrypts backup at the given path using the passphrase.
 	"""
-	if os.path.exists(file_path):
-
+	if not os.path.exists(file_path):
+		print("Invalid path", file_path)
+		return
+	else:
 		os.rename(file_path, file_path + ".gpg")
 		file_path = file_path + ".gpg"
-		
+
 		cmd_string = ("gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decryptedfile} -d {filelocation}")
 		command = cmd_string.format(
 			passphrase = passphrase,
 			filelocation = file_path,
 			decryptedfile = file_path[:-4],
 		)
-
 	frappe.utils.execute_in_shell(command)
 
 
@@ -703,7 +707,7 @@ def backup_encryption_key():
 	Checks if backup encryption key exists
 		else create one
 	Return:
-		Backup encryption key 
+		Backup encryption key
 	"""
 	from frappe.installer import update_site_config
 	if 'backup_encryption_key' not in frappe.local.conf:
@@ -716,7 +720,8 @@ def backup_encryption_key():
 		update_site_config('backup_encryption_key', backup_encryption_key)
 		frappe.local.conf.backup_encryption_key = backup_encryption_key
 	return frappe.local.conf.backup_encryption_key
-	
+
+
 def decryption_rollback(file_path):
 	"""
 	Rollback if the decrypted file exist.
@@ -725,7 +730,6 @@ def decryption_rollback(file_path):
 		if os.path.exists(file_path):
 			os.remove(file_path)
 		os.rename(file_path + ".gpg", file_path)
-
 
 if __name__ == "__main__":
 	import sys
