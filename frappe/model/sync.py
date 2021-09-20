@@ -78,7 +78,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 		# print each progress bar on new line
 		print()
 
-def get_doc_files(files, start_path):
+def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
 
 	files = files or []
@@ -88,7 +88,10 @@ def get_doc_files(files, start_path):
 		'website_theme', 'web_form', 'web_template', 'notification', 'print_style',
 		'data_migration_mapping', 'data_migration_plan', 'workspace',
 		'onboarding_step', 'module_onboarding']
+<<<<<<< HEAD
 
+=======
+>>>>>>> 278883edb0 (fix: missing migration hash column)
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
