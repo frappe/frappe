@@ -1,56 +1,68 @@
-# if the script ends with exit code 0, then no tests are run further, else all tests are run
+import json
 import os
 import re
 import shlex
 import subprocess
 import sys
+import urllib.request
 
+
+def get_files_list(pr_number, repo="frappe/frappe"):
+	req = urllib.request.Request(f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files")
+	res = urllib.request.urlopen(req)
+	dump = json.loads(res.read().decode('utf8'))
+	return [change["filename"] for change in dump]
 
 def get_output(command, shell=True):
-    print(command)
-    command = shlex.split(command)
-    return subprocess.check_output(command, shell=shell, encoding="utf8").strip()
+	print(command)
+	command = shlex.split(command)
+	return subprocess.check_output(command, shell=shell, encoding="utf8").strip()
 
 def is_py(file):
-    return file.endswith("py")
+	return file.endswith("py")
 
-def is_js(file):
-    return file.endswith("js")
+def is_ci(file):
+	return ".github" in file
+
+def is_frontend_code(file):
+	return file.endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
 
 def is_docs(file):
-    regex = re.compile('\.(md|png|jpg|jpeg)$|^.github|LICENSE')
-    return bool(regex.search(file))
+	regex = re.compile(r'\.(md|png|jpg|jpeg|csv)$|^.github|LICENSE')
+	return bool(regex.search(file))
 
 
 if __name__ == "__main__":
-    build_type = os.environ.get("TYPE")
-    before = os.environ.get("BEFORE")
-    after = os.environ.get("AFTER")
-    commit_range = before + '...' + after
-    print("Build Type: {}".format(build_type))
-    print("Commit Range: {}".format(commit_range))
+	files_list = sys.argv[1:]
+	build_type = os.environ.get("TYPE")
+	pr_number = os.environ.get("PR_NUMBER")
+	repo = os.environ.get("REPO_NAME")
 
-    try:
-        files_changed = get_output("git diff --name-only {}".format(commit_range), shell=False)
-    except Exception:
-        sys.exit(2)
+	if not files_list and pr_number:
+		files_list = get_files_list(pr_number=pr_number, repo=repo)
 
-    if "fatal" not in files_changed:
-        files_list = files_changed.split()
-        only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
-        only_js_changed = len(list(filter(is_js, files_list))) == len(files_list)
-        only_py_changed = len(list(filter(is_py, files_list))) == len(files_list)
+	if not files_list:
+		print("No files' changes detected. Build is shutting")
+		sys.exit(0)
 
-        if only_docs_changed:
-            print("Only docs were updated, stopping build process.")
-            sys.exit(0)
+	ci_files_changed = any(f for f in files_list if is_ci(f))
+	only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
+	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
+	only_py_changed = len(list(filter(is_py, files_list))) == len(files_list)
 
-        if only_js_changed and build_type == "server":
-            print("Only JavaScript code was updated; Stopping Python build process.")
-            sys.exit(0)
+	if ci_files_changed:
+		print("CI related files were updated, running all build processes.")
 
-        if only_py_changed and build_type == "ui":
-            print("Only Python code was updated, stopping Cypress build process.")
-            sys.exit(0)
+	elif only_docs_changed:
+		print("Only docs were updated, stopping build process.")
+		sys.exit(0)
 
-    sys.exit(2)
+	elif only_frontend_code_changed and build_type == "server":
+		print("Only Frontend code was updated; Stopping Python build process.")
+		sys.exit(0)
+
+	elif only_py_changed and build_type == "ui":
+		print("Only Python code was updated, stopping Cypress build process.")
+		sys.exit(0)
+
+	os.system('echo "::set-output name=build::strawberry"')
