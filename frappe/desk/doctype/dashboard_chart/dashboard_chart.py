@@ -335,6 +335,9 @@ class DashboardChart(Document):
 		if not self.document_type:
 				frappe.throw(_("Document type is required to create a dashboard chart"))
 
+		if self.document_type and frappe.get_meta(self.document_type).istable and not self.parent_document_type:
+				frappe.throw(_("Parent document type is required to create a dashboard chart"))
+
 		if self.chart_type == 'Group By':
 			if not self.group_by_based_on:
 				frappe.throw(_("Group By field is required to create a dashboard chart"))
