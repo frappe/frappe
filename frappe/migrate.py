@@ -18,6 +18,7 @@ from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.search.website_search import build_index_for_all_routes
+from frappe.database.schema import add_column
 
 
 def migrate(verbose=True, skip_failing=False, skip_search_index=False):
@@ -51,7 +52,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		os.remove(touched_tables_file)
 
 	try:
-		frappe.reload_doctype("DocType", force=True)
+		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
 		frappe.flags.touched_tables = set()
 		frappe.flags.in_migrate = True
 

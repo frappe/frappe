@@ -73,7 +73,7 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			if not force:
 				try:
 					db_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
-				except:
+				except Exception:
 					frappe.flags.dt += [doc["doctype"]]
 					db_hash = None
 
