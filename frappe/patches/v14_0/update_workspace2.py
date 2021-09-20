@@ -53,7 +53,7 @@ def update_wspace(doc, seq, content):
 	if not doc.title and not doc.content and not doc.is_standard and not doc.public:
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
-		doc.public = 0
+		doc.public = 0 if doc.for_user else 1
 		doc.title = doc.extends or doc.label
 		doc.extends = ''
 		doc.category = ''
