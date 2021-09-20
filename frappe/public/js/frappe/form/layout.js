@@ -240,7 +240,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_section(df) {
-		this.section = new Section(this, df, this.current_tab || null);
+		this.section = new Section(this.current_tab ? this.current_tab.wrapper : this.page, df);
 
 		// append to layout fields
 		if (df) {

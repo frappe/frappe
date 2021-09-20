@@ -141,6 +141,6 @@ export default class Section {
 
 	on_section_toggle(show) {
 		this.wrapper.toggleClass("hide-control", !show);
-		this.on_section_toggle && this.on_section_toggle(show);
+		// this.on_section_toggle && this.on_section_toggle(show);
 	}
 }

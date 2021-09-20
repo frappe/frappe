@@ -88,7 +88,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			make_card: true,
 			is_dashboard_section: 1
 		};
-		return new Section(this.frm.layout, options).body;
+		return new Section(this.frm.layout.wrapper, options).body;
 	}
 
 	add_progress(title, percent, message) {
