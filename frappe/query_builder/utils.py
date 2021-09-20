@@ -3,8 +3,10 @@ from typing import Any, Callable, Dict, get_type_hints
 from importlib import import_module
 
 from pypika import Query
+from pypika.queries import Column
 
 import frappe
+
 from .builder import MariaDB, Postgres
 
 

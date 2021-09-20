@@ -332,7 +332,7 @@ class Database(object):
 			values[key] = value
 			if isinstance(value, (list, tuple)):
 				# value is a tuple like ("!=", 0)
-				_operator = value[0]
+				_operator = value[0].lower()
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
 					# value is a list in tuple ("in", ("A", "B"))
