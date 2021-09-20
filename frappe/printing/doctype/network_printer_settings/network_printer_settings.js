@@ -3,9 +3,7 @@
 
 frappe.ui.form.on('Network Printer Settings', {
 	onload (frm) {
-		if (!frm.is_new()) {
-			frm.trigger("connect_print_server");
-		}
+		frm.trigger("connect_print_server");
 	},
 	server_ip (frm) {
 		frm.trigger("connect_print_server");

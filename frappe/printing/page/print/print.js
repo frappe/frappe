@@ -536,16 +536,15 @@ frappe.ui.form.PrintView = class {
 		}
 	}
 	network_printer_setting_dialog(callback) {
-		let me = this;
 		frappe.call({
 			method: 'frappe.printing.doctype.network_printer_settings.network_printer_settings.get_network_printer_settings',
 			callback: function(r) {
-				if(r.message) {
+				if (r.message) {
 					let d = new frappe.ui.Dialog({
 						title: __('Select Network Printer'),
 						fields: [
 							{
-								"label" : "Printer",
+								"label": "Printer",
 								"fieldname": "printer",
 								"fieldtype": "Select",
 								"reqd": 1,
