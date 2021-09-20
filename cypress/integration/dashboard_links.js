@@ -51,13 +51,12 @@ context('Dashboard links', () => {
 				cur_frm.dashboard.data.reports = [
 					{
 						'label': 'Reports',
-						'items': ['Permitted Documents For User']
+						'items': ['Website Analytics']
 					}
 				];
 				cur_frm.dashboard.render_report_links();
-				cy.get('[data-report="Permitted Documents For User"]').contains('Permitted Documents For User').click();
-				cy.findByText('Permitted Documents For User');
-				cy.findByPlaceholderText('User').should("have.value", "Administrator");
+				cy.get('[data-report="Website Analytics"]').contains('Website Analytics').click();
+				cy.findByText('Website Analytics');
 			});
 	});
 });
