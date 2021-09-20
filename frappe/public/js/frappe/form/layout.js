@@ -122,7 +122,7 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		if (this.is_tabbed_layout()) {
-			let default_tab = {label: __('Details'), fieldname: 'details'};
+			let default_tab = {label: __('Details'), fieldname: 'details', fieldtype: "Tab Break"};
 			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
 			if (!first_tab) {
 				this.fields.splice(1, 0, default_tab);
@@ -240,7 +240,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_section(df) {
-		this.section = new Section(this.current_tab ? this.current_tab.wrapper : this.page, df);
+		this.section = new Section(this.current_tab ? this.current_tab.wrapper : this.page, df, this.card_layout);
 
 		// append to layout fields
 		if (df) {

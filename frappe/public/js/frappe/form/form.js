@@ -154,10 +154,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.fields_dict = this.layout.fields_dict;
 		this.fields = this.layout.fields_list;
 
-		this.dashboard = new frappe.ui.form.Dashboard({
-			frm: this,
-			tab: this.layout.tabs.length ? this.layout.tabs[0] : null
-		});
+		let dashboard_parent = $('<div class="form-dashboard">');
+
+		let main_page = this.layout.tabs.length ? this.layout.tabs[0].wrapper : this.layout.wrapper;
+		main_page.prepend(dashboard_parent);
+		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({
 			frm: this

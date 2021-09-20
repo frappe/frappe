@@ -1,6 +1,6 @@
 export default class Section {
-	constructor(parent, df) {
-		this.card_layout = true;
+	constructor(parent, df, card_layout) {
+		this.card_layout = card_layout;
 		this.parent = parent;
 		this.df = df || {};
 		this.fields_list = [];

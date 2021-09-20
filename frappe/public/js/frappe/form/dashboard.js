@@ -4,11 +4,9 @@
 import Section from "./section.js";
 
 frappe.ui.form.Dashboard = class FormDashboard {
-	constructor(opts) {
-		$.extend(this, opts);
-		let parent = this.tab ? this.tab.wrapper : this.frm.layout.wrapper;
-		this.parent = $('<div class="form-dashboard">');
-		parent.prepend(this.parent);
+	constructor(parent, frm) {
+		this.parent = parent;
+		this.frm = frm;
 		this.setup_dashboard_sections();
 	}
 
