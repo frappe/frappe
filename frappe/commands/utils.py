@@ -592,9 +592,10 @@ def run_parallel_tests(context, app, build_number, total_builds, with_coverage=F
 @click.argument('app')
 @click.option('--headless', is_flag=True, help="Run UI Test in headless mode")
 @click.option('--parallel', is_flag=True, help="Run UI Test in parallel mode")
+@click.option('--with-coverage', is_flag=True, help="Generate coverage report")
 @click.option('--ci-build-id')
 @pass_context
-def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
+def run_ui_tests(context, app, headless=False, parallel=True, with_coverage=False, ci_build_id=None):
 	"Run UI tests"
 	site = get_site(context)
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
@@ -604,6 +605,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	# override baseUrl using env variable
 	site_env = f'CYPRESS_baseUrl={site_url}'
 	password_env = f'CYPRESS_adminPassword={admin_password}' if admin_password else ''
+	coverage_env = f'CYPRESS_coverage={str(with_coverage).lower()}'
 
 	os.chdir(app_base_path)
 
@@ -611,22 +613,23 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	cypress_path = f"{node_bin}/cypress"
 	plugin_path = f"{node_bin}/../cypress-file-upload"
 	testing_library_path = f"{node_bin}/../@testing-library"
+	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
 
 	# check if cypress in path...if not, install it.
 	if not (
 		os.path.exists(cypress_path)
 		and os.path.exists(plugin_path)
 		and os.path.exists(testing_library_path)
+		and os.path.exists(coverage_plugin_path)
 		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 --no-lockfile")
+		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile")
 
 	# run for headless mode
 	run_or_open = 'run --browser firefox --record' if headless else 'open'
-	command = '{site_env} {password_env} {cypress} {run_or_open}'
-	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
+	formatted_command = f'{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}'
 
 	if parallel:
 		formatted_command += ' --parallel'
