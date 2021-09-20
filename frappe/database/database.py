@@ -527,7 +527,6 @@ class Database(object):
 			if fields=="*":
 				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(fields)
 				as_dict = True
-		print(query)
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
 
 		return r
@@ -907,7 +906,6 @@ class Database(object):
 		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-			
 		return self.sql(query, values, **kwargs)
 
 	def truncate(self, doctype: str):
