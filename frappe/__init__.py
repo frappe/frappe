@@ -195,12 +195,13 @@ def connect_replica():
 	from frappe.database import get_db
 	user = local.conf.db_name
 	password = local.conf.db_password
+	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password)
+	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
 
 	# swap db connections
 	local.primary_db = local.db
