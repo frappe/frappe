@@ -10,6 +10,8 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
+from collections.abc import Iterator
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
