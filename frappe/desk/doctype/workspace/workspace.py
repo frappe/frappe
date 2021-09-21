@@ -32,12 +32,7 @@ class Workspace(Document):
 
 	@staticmethod
 	def get_module_page_map():
-		filters = {
-			'extends_another_page': 0,
-			'for_user': '',
-		}
-
-		pages = frappe.get_all("Workspace", fields=["name", "module"], filters=filters, as_list=1)
+		pages = frappe.get_all("Workspace", fields=["name", "module"], filters={ 'for_user': '' }, as_list=1)
 
 		return { page[1]: page[0] for page in pages if page[1] }
 
@@ -68,35 +63,6 @@ class Workspace(Document):
 		cards.append(current_card)
 
 		return cards
-
-	def build_links_table_from_cards(self, config):
-		# Empty links table
-		self.links = []
-		order = config.get('order')
-		widgets = config.get('widgets')
-
-		for idx, name in enumerate(order):
-			card = widgets[name].copy()
-			links = loads(card.get('links'))
-
-			self.append('links', {
-				"label": card.get('label'),
-				"type": "Card Break",
-				"icon": card.get('icon'),
-				"hidden": card.get('hidden') or False
-			})
-
-			for link in links:
-				self.append('links', {
-					"label": link.get('label'),
-					"type": "Link",
-					"link_type": link.get('link_type'),
-					"link_to": link.get('link_to'),
-					"onboard": link.get('onboard'),
-					"only_for": link.get('only_for'),
-					"dependencies": link.get('dependencies'),
-					"is_query_report": link.get('is_query_report')
-				})
 
 	def build_links_table_from_card(self, config):
 

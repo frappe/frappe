@@ -4,8 +4,8 @@ from frappe import _
 
 def execute():
 	frappe.reload_doc('desk', 'doctype', 'workspace', force=True)
-	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	for seq, wspace in enumerate(frappe.get_all('Workspace', order_by=order_by)):
+
+	for seq, wspace in enumerate(frappe.get_all('Workspace', order_by='name asc')):
 		doc = frappe.get_doc('Workspace', wspace.name)
 		content = create_content(doc)
 		update_wspace(doc, seq, content)
