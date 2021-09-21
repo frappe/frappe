@@ -191,7 +191,12 @@ frappe.ui.form.Layout = class Layout {
 		this.section.fields_list.push(fieldobj);
 		this.section.fields_dict[df.fieldname] = fieldobj;
 		fieldobj.section = this.section;
-		fieldobj.tab = this.current_tab;
+
+		if (this.current_tab) {
+			fieldobj.tab = this.current_tab;
+			this.current_tab.fields_list.push(fieldobj);
+			this.current_tab.fields_dict[df.fieldname] = fieldobj;
+		}
 	}
 
 	init_field(df, render=false) {
@@ -516,10 +521,13 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	is_visible(field) {
-		return field.disp_status === "Write" && (field.$wrapper && field.$wrapper.is(":visible"));
+		return field.disp_status === "Write" && (field.df && "hidden" in field.df && !field.df.hidden);
 	}
 
 	set_focus(field) {
+		if (field.tab) {
+			field.tab.set_active();
+		}
 		// next is table, show the table
 		if (field.df.fieldtype=="Table") {
 			if (!field.grid.grid_rows.length) {
