@@ -5,6 +5,13 @@
 		<a href="{{ f[0] }}" target="_blank" rel="noopener noreferrer" class="frappe-card download-backup-card">
 			<div>
 				{{ f[1] }}
+				{% if f[2] %}
+					  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-key-fill" viewBox="0 0 20 20">
+						<path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5z"/>
+						<path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+					  </svg>
+				{% endif %}
+
 			</div>
 			<div class="mt-2">
 				<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -12,7 +19,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 						d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
 				</svg>
-				{{ f[2] }}
+				{{ f[3] }}
 			</div>
 		</a>
 	</div>
