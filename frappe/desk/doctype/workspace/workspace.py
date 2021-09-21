@@ -32,7 +32,7 @@ class Workspace(Document):
 
 	@staticmethod
 	def get_module_page_map():
-		pages = frappe.get_all("Workspace", fields=["name", "module"], filters={ 'for_user': '' }, as_list=1)
+		pages = frappe.get_all("Workspace", fields=["name", "module"], filters={'for_user': ''}, as_list=1)
 
 		return { page[1]: page[0] for page in pages if page[1] }
 
