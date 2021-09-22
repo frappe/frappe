@@ -226,7 +226,7 @@
   },
   {
    "default": "UNSEEN",
-   "depends_on": "eval: doc.enable_incoming",
+   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
    "fieldname": "email_sync_option",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -236,7 +236,7 @@
   },
   {
    "default": "250",
-   "depends_on": "eval: doc.enable_incoming",
+   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
    "description": "Total number of emails to sync in initial sync process ",
    "fieldname": "initial_sync_count",
    "fieldtype": "Select",
@@ -567,7 +567,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-08-31 15:23:25.714366",
+ "modified": "2021-09-21 16:44:25.728637",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

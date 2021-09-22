@@ -18,7 +18,7 @@ class CustomField(Document):
 		if not self.fieldname:
 			label = self.label
 			if not label:
-				if self.fieldtype in ["Section Break", "Column Break"]:
+				if self.fieldtype in ["Section Break", "Column Break", "Tab Break"]:
 					label = self.fieldtype + "_" + str(self.idx)
 				else:
 					frappe.throw(_("Label is mandatory"))
