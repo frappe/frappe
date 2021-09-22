@@ -18,6 +18,7 @@ import click
 import frappe
 from frappe import _, conf
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
+from frappe.utils.password import get_encryption_key
 
 # backup variable for backwards compatibility
 verbose = False
@@ -236,11 +237,13 @@ class BackupGenerator:
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
-				cmd_string = ("gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}")
+				cmd_string = (
+					"gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
+				)
 				try:
 					command = cmd_string.format(
-						passphrase = backup_encryption_key(),
-						filelocation = path,
+						passphrase=get_encryption_key(),
+						filelocation=path,
 					)
 
 					frappe.utils.execute_in_shell(command)
@@ -651,32 +654,9 @@ def get_backup_path():
 
 @frappe.whitelist()
 def get_backup_encryption_key():
-	if 'backup_encryption_key' in frappe.local.conf:
-		message = frappe.local.conf.backup_encryption_key
-	else:
-		message = "No key found."
-	return message
+	return frappe.local.conf.encryption_key
 
-def backup_encryption_key():
-	"""
-	Checks if backup encryption key exists
-		else create one
-	Return:
-		Backup encryption key
-	"""
-	from frappe.installer import update_site_config
-	if 'backup_encryption_key' not in frappe.local.conf:
-		confirm = click.confirm(
-			"No encrytion key found. Generate new Key?"
-		)
-		if not confirm:
-			sys.exit(1)
-		backup_encryption_key = Fernet.generate_key().decode()
-		update_site_config('backup_encryption_key', backup_encryption_key)
-		frappe.local.conf.backup_encryption_key = backup_encryption_key
-	return frappe.local.conf.backup_encryption_key
-
-class backups:
+class Backup:
 	def __init__(self, file_path):
 		self.file_path = file_path
 
@@ -691,7 +671,9 @@ class backups:
 			os.rename(self.file_path, self.file_path + ".gpg")
 			file_path = self.file_path + ".gpg"
 
-			cmd_string = ("gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}")
+			cmd_string = (
+					"gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
+			)
 			command = cmd_string.format(
 				passphrase=passphrase,
 				file_location=file_path,
@@ -711,6 +693,8 @@ class backups:
 		if os.path.exists(self.file_path + ".gpg"):
 			if os.path.exists(self.file_path):
 				os.remove(self.file_path)
+			if os.path.exists(self.file_path.rstrip(".gz")):
+				os.remove(self.file_path.rstrip(".gz"))
 			os.rename(self.file_path + ".gpg", self.file_path)
 
 
