@@ -28,7 +28,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			// set default icon
 			var default_icon = {
 				url: default_icon_url,
-				scaledSize: new google.maps.Size(25, 25)
+				scaledSize: new google.maps.Size(30, 30)
 			};
 
 			// list of markers
@@ -106,7 +106,6 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 							strokeWeight: 1,
 							strokeColor: "rgb(51, 136, 255)",
 							clickable: false,
-							editable: true,
 							zIndex: 1,
 							map,
 							center: {lng: circle[i].geometry.coordinates[0], lat: circle[i].geometry.coordinates[1]},
@@ -210,7 +209,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		} else if (value===undefined || value === "") {
 			const icon = {
 				url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-				scaledSize: new google.maps.Size(25, 25)
+				scaledSize: new google.maps.Size(30, 30)
 			};
 
 			let map = new google.maps.Map(document.getElementById("map"), {
@@ -453,7 +452,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 		const icon = {
 			url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-			scaledSize: new google.maps.Size(25, 25)
+			scaledSize: new google.maps.Size(30, 30)
 		};
 	}
 }); 
