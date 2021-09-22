@@ -85,6 +85,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		add_attachments(comm.name, attachments)
 
 	if cint(send_email):
+		# Raise error if outgoing email account is missing
+		_ = frappe.email.smtp.get_outgoing_email_account(append_to=comm.doctype, sender=comm.sender)
 		frappe.flags.print_letterhead = cint(print_letterhead)
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
