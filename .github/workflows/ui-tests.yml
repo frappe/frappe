@@ -140,8 +140,14 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
+      - name: Check If Coverage Report Exists
+        id: check_coverage
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "/home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml"
+
       - name: Upload Coverage Data
-        if: ${{ steps.check-build.outputs.build == 'strawberry' && hashFiles('/home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml') != '' }}
+        if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
         uses: codecov/codecov-action@v2
         with:
           name: Cypress
