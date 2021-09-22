@@ -1,4 +1,4 @@
-frappe.pages['backups'].on_page_load = function(wrapper) {
+frappe.pages['backups'].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Download Backups'),
@@ -11,8 +11,8 @@ frappe.pages['backups'].on_page_load = function(wrapper) {
 
 	page.add_inner_button(__("Download Files Backup"), function () {
 		frappe.call({
-			method:"frappe.desk.page.backups.backups.schedule_files_backup",
-			args: {"user_email": frappe.session.user_email}
+			method: "frappe.desk.page.backups.backups.schedule_files_backup",
+			args: { "user_email": frappe.session.user_email }
 		});
 	});
 
@@ -31,7 +31,7 @@ frappe.pages['backups'].on_page_load = function(wrapper) {
 				});
 			});
 		}
-		else{
+		else {
 			frappe.msgprint({
 				title: __('Error'),
 				message: __('Administrator privileges required.'),

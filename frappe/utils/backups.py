@@ -8,7 +8,6 @@ from calendar import timegm
 from datetime import datetime
 from glob import glob
 from shutil import which
-from cryptography.fernet import Fernet
 
 
 # imports - third party imports
