@@ -63,7 +63,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 					// set icon for gmaps
 					const icon = {
 						url: this.icon_url,
-						scaledSize: new google.maps.Size(25, 25)
+						scaledSize: new google.maps.Size(30, 30)
 					};
 					
 					// draw markers on gmaps
