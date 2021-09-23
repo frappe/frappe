@@ -44,7 +44,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			if (points.length > 0) {
 
 				//create dafult map
-				let map = new google.maps.Map(document.getElementById("map"), {
+				let map = new google.maps.Map(document.getElementById(this.map_id), {
 					zoom: 8,
 					mapTypeId: "terrain",
 					center: {lat: -6.321916245621676, lng:106.67620042320505}
@@ -212,7 +212,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 				scaledSize: new google.maps.Size(30, 30)
 			};
 
-			let map = new google.maps.Map(document.getElementById("map"), {
+			let map = new google.maps.Map(document.getElementById(this.map_id), {
 				zoom: 13,
 				center: { lat: -6.304551452226169, lng: 106.68479307871746 },
 				mapTypeId: "terrain",
@@ -439,7 +439,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		self = this;
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
-		this.map_id = 'map';
+		this.map_id = frappe.dom.get_unique_id();;
 
 		this.map_area = $(
 			`<div class="map-wrapper border">
