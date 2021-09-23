@@ -13,7 +13,7 @@ class NetworkPrinterSettings(Document):
 			import cups
 		except ImportError:
 			frappe.throw(_('''This feature can not be used as dependencies are missing.
-				 Please contact your system manager to enable this by installing pycups!'''))
+				Please contact your system manager to enable this by installing pycups!'''))
 			return
 		try:
 			cups.setServer(self.server_ip)
