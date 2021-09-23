@@ -28,7 +28,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			// set default icon
 			var default_icon = {
 				url: default_icon_url,
-				scaledSize: new google.maps.Size(25, 25)
+				scaledSize: new google.maps.Size(30, 30)
 			};
 
 			// list of markers
@@ -44,7 +44,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			if (points.length > 0) {
 
 				//create dafult map
-				let map = new google.maps.Map(document.getElementById("map"), {
+				let map = new google.maps.Map(document.getElementById(this.map_id), {
 					zoom: 8,
 					mapTypeId: "terrain",
 					center: {lat: -6.321916245621676, lng:106.67620042320505}
@@ -106,7 +106,6 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 							strokeWeight: 1,
 							strokeColor: "rgb(51, 136, 255)",
 							clickable: false,
-							editable: true,
 							zIndex: 1,
 							map,
 							center: {lng: circle[i].geometry.coordinates[0], lat: circle[i].geometry.coordinates[1]},
@@ -210,10 +209,10 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		} else if (value===undefined || value === "") {
 			const icon = {
 				url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-				scaledSize: new google.maps.Size(25, 25)
+				scaledSize: new google.maps.Size(30, 30)
 			};
 
-			let map = new google.maps.Map(document.getElementById("map"), {
+			let map = new google.maps.Map(document.getElementById(this.map_id), {
 				zoom: 13,
 				center: { lat: -6.304551452226169, lng: 106.68479307871746 },
 				mapTypeId: "terrain",
@@ -440,7 +439,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		self = this;
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
-		this.map_id = 'map';
+		this.map_id = frappe.dom.get_unique_id();;
 
 		this.map_area = $(
 			`<div class="map-wrapper border">
@@ -453,7 +452,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 		const icon = {
 			url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-			scaledSize: new google.maps.Size(25, 25)
+			scaledSize: new google.maps.Size(30, 30)
 		};
 	}
 }); 
