@@ -11,8 +11,6 @@ from frappe.model.document import Document
 from frappe.utils.safe_exec import get_safe_globals, safe_exec, NamespaceDict
 from frappe import _
 
-import re
-
 
 class ServerScript(Document):
 	def validate(self):
