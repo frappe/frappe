@@ -11,16 +11,15 @@
   "section_title",
   "title",
   "route",
-  "dynamic_route",
-  "slideshow",
-  "cb1",
   "published",
-  "full_width",
-  "show_title",
+  "dynamic_route",
+  "cb1",
+  "module",
   "start_date",
   "end_date",
   "sb1",
   "content_type",
+  "slideshow",
   "dynamic_template",
   "main_section",
   "main_section_md",
@@ -34,7 +33,9 @@
   "insert_style",
   "text_align",
   "css",
+  "full_width",
   "settings",
+  "show_title",
   "section_break_17",
   "show_sidebar",
   "website_sidebar",
@@ -75,6 +76,7 @@
    "unique": 1
   },
   {
+   "depends_on": "eval:doc.content_type=='Slideshow'",
    "fieldname": "slideshow",
    "fieldtype": "Link",
    "label": "Slideshow",
@@ -118,7 +120,7 @@
    "fieldname": "content_type",
    "fieldtype": "Select",
    "label": "Content Type",
-   "options": "Rich Text\nMarkdown\nHTML\nPage Builder"
+   "options": "Rich Text\nMarkdown\nHTML\nPage Builder\nSlideshow"
   },
   {
    "depends_on": "eval:doc.content_type==='Rich Text'",
@@ -305,6 +307,12 @@
    "fieldtype": "Code",
    "label": "Context Script",
    "options": "Python"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def"
   }
  ],
  "has_web_view": 1,
@@ -314,7 +322,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 20,
- "modified": "2021-04-13 10:23:28.681197",
+ "modified": "2021-09-04 12:11:56.070994",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

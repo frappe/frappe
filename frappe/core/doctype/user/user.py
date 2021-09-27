@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 from bs4 import BeautifulSoup
 import frappe
 import frappe.share
@@ -788,7 +788,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key='user', limit=get_password_reset_limit, seconds = 24*60*60, methods=['POST'])
+@rate_limit(limit=get_password_reset_limit, seconds = 24*60*60, methods=['POST'])
 def reset_password(user):
 	if user=="Administrator":
 		return 'not allowed'

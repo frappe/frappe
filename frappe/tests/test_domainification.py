@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import unittest, frappe
 from frappe.core.page.permission_manager.permission_manager import get_roles_and_doctypes
 from frappe.desk.doctype.desktop_icon.desktop_icon import (get_desktop_icons, add_user_icon,

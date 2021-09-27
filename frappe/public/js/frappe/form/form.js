@@ -94,6 +94,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.watch_model_updates();
 
 		if (!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
+			// this.footer_tab = new frappe.ui.form.Tab(this.layout, {
+			// 	label: __("Activity"),
+			// 	fieldname: 'timeline'
+			// });
+
 			this.footer = new frappe.ui.form.Footer({
 				frm: this,
 				parent: $('<div>').appendTo(this.page.main.parent())
@@ -128,8 +133,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_std_layout() {
-		this.form_wrapper 	= $('<div></div>').appendTo(this.layout_main);
-		this.body 			= $('<div></div>').appendTo(this.form_wrapper);
+		this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
+		this.body = $('<div></div>').appendTo(this.form_wrapper);
 
 		// only tray
 		this.meta.section_style='Simple'; // always simple!
@@ -141,17 +146,19 @@ frappe.ui.form.Form = class FrappeForm {
 			doctype_layout: this.doctype_layout,
 			frm: this,
 			with_dashboard: true,
-			card_layout: true,
+			card_layout: true
 		});
+
 		this.layout.make();
 
 		this.fields_dict = this.layout.fields_dict;
 		this.fields = this.layout.fields_list;
 
-		this.dashboard = new frappe.ui.form.Dashboard({
-			frm: this,
-			parent: $('<div class="form-dashboard">').insertAfter(this.layout.wrapper.find('.form-message'))
-		});
+		let dashboard_parent = $('<div class="form-dashboard">');
+
+		let main_page = this.layout.tabs.length ? this.layout.tabs[0].wrapper : this.layout.wrapper;
+		main_page.prepend(dashboard_parent);
+		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({
 			frm: this
@@ -181,8 +188,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 				me.layout.refresh_dependency();
 				me.layout.refresh_sections();
-				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
-				return object;
+				return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			}
 		});
 
@@ -197,7 +203,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
 					me.dirty();
 					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-					me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			});
 		});
@@ -459,7 +465,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
-				() => this.dashboard.after_refresh()
+				() => this.dashboard.after_refresh(),
 			]);
 
 		} else {
@@ -468,11 +474,18 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
+		this.cscript.is_onload && this.set_first_tab_as_active();
+
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
 		}
 
 		this.scroll_to_element();
+	}
+
+	set_first_tab_as_active() {
+		this.layout.tabs[0]
+			&& this.layout.tabs[0].set_active();
 	}
 
 	focus_on_first_input() {
@@ -1152,6 +1165,10 @@ frappe.ui.form.Form = class FrappeForm {
 		return btn;
 	}
 
+	change_custom_button_type(label, group, type) {
+		this.page.change_inner_button_type(label, group, type);
+	}
+
 	clear_custom_buttons() {
 		this.page.clear_inner_toolbar();
 		this.page.clear_user_actions();
@@ -1600,6 +1617,11 @@ frappe.ui.form.Form = class FrappeForm {
 		if (!field) return;
 
 		let $el = field.$wrapper;
+
+		// set tab as active
+		if (field.tab && !field.tab.is_active()) {
+			field.tab.set_active();
+		}
 
 		// uncollapse section
 		if (field.section.is_collapsed()) {

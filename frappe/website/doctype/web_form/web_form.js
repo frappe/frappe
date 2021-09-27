@@ -47,7 +47,7 @@ frappe.ui.form.on("Web Form", {
 
 		frm.add_custom_button(__('Get Fields'), () => {
 			let webform_fieldtypes = frappe.meta.get_field('Web Form Field', 'fieldtype').options.split('\n');
-			let fieldnames = (frm.doc.fields || []).map(d => d.fieldname);
+			let fieldnames = (frm.doc.web_form_fields || []).map(d => d.fieldname);
 			frappe.model.with_doctype(frm.doc.doc_type, () => {
 				let meta = frappe.get_meta(frm.doc.doc_type);
 				for (let field of meta.fields) {
