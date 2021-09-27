@@ -22,6 +22,8 @@ class TestNotification(unittest.TestCase):
 			notification.event = 'Value Change'
 			notification.value_changed = 'status'
 			notification.send_to_all_assignees = 1
+			notification.set_property_after_alert = 'description'
+			notification.property_value = 'Changed by Notification'
 			notification.save()
 
 		if not frappe.db.exists('Notification', {'name': 'Contact Status Update'}, 'name'):
@@ -238,6 +240,9 @@ class TestNotification(unittest.TestCase):
 			'reference_name': todo.name})
 
 		self.assertTrue(email_queue)
+
+		# check if description is changed after alert since set_property_after_alert is set
+		self.assertEquals(todo.description, 'Changed by Notification')
 
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue('test2@example.com' in recipients)
