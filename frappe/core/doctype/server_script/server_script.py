@@ -11,6 +11,8 @@ from frappe.model.document import Document
 from frappe.utils.safe_exec import get_safe_globals, safe_exec, NamespaceDict
 from frappe import _
 
+class CommitNotAllowed(frappe.ValidationError):
+	pass
 
 class ServerScript(Document):
 	def validate(self):
@@ -101,7 +103,7 @@ class ServerScript(Document):
 		for line in self.script.splitlines():
 			line = line.strip()
 			if not line.startswith('#') and "frappe.db.commit()" in line:
-				frappe.throw(_("Commit cannot be used in DocType Event server script"))
+				frappe.throw(_("Commit cannot be used in DocType Event server script"), CommitNotAllowed)
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
