@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2021-09-24 11:35:08.255598",
+ "doctype": "DocType",
+ "document_type": "System",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "merchantid",
+  "merchant_tid",
+  "securekey",
+  "use_sandbox",
+  "redirect_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "merchantid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Merchant ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "merchant_tid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Terminal ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "securekey",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Secure Key",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "use_sandbox",
+   "fieldtype": "Check",
+   "label": "Use Sandbox"
+  },
+  {
+   "fieldname": "redirect_url",
+   "fieldtype": "Data",
+   "label": "Redirect URL"
+  }
+ ],
+ "in_create": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2021-09-24 11:35:08.255598",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "mPay Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
