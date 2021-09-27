@@ -116,8 +116,7 @@ def get_safe_globals():
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
 			sanitize_html=frappe.utils.sanitize_html,
-			log_error=frappe.log_error,
-			cache=frappe.cache 
+			log_error=frappe.log_error
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(
@@ -155,6 +154,13 @@ def get_safe_globals():
 			min = frappe.db.min,
 			max = frappe.db.max,
 			commit = frappe.db.commit
+		)
+
+		out.frappe.cache = NamespaceDict(
+			get_value = frappe.cache().get_value,
+			set_value = frappe.cache().set_value,
+			hset = frappe.cache().hset,
+			hget = frappe.cache().hget
 		)
 
 	if frappe.response:
