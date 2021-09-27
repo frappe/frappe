@@ -13,6 +13,8 @@ from frappe.model.document import Document
 from frappe.utils.safe_exec import get_safe_globals, safe_exec, NamespaceDict
 from frappe import _
 
+import re
+
 
 class ServerScript(Document):
 	def validate(self):
@@ -91,7 +93,14 @@ class ServerScript(Document):
 		Args:
 			doc (Document): Executes script with for a certain document's events
 		"""
+		self.validate_script_for_doc_events()
 		safe_exec(self.script, _locals={"doc": doc})
+
+	def validate_script_for_doc_events(self):
+		for line in self.script.splitlines():
+			line = line.strip()
+			if not line.startswith('#') and "frappe.db.commit()" in line:
+				frappe.throw(_("Commit cannot be used in DocType Event server script"))
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
