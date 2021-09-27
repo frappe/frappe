@@ -19,14 +19,14 @@
   {
    "fieldname": "docname",
    "fieldtype": "Link",
-   "label": "Reference Docname",
+   "label": "Web Page",
    "options": "Web Page",
    "reqd": 1
   }
  ],
  "idx": 0,
- "modified": "2021-09-16 12:11:56.140616",
- "modified_by": "Administrator",
+ "modified": "2021-09-27 12:15:28.876919",
+ "modified_by": "jannat@erpnext.com",
  "module": "Website",
  "name": "Discussions",
  "owner": "Administrator",
