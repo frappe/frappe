@@ -14,7 +14,7 @@
 	{% for reply in replies %}
 	{% include "frappe/templates/discussions/reply_card.html" %}
 
-	{% if loop.index == 1 %}
+	{% if loop.index != replies | length %}
 	<div class="card-divider-dark mb-8"></div>
 	{% endif %}
 	{% endfor %}

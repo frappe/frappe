@@ -90,7 +90,7 @@ var publish_message = (data) => {
 
 	if ($(`.discussion-on-page[data-topic=${data.topic_info.name}]`).length) {
 		post_message_cleanup();
-		$(data.template).insertBefore(`.discussion-on-page[data-topic=${data.topic_info.name}] .discussion-form`);
+		$('<div class="card-divider-dark mb-8"></div>' + data.template).insertBefore(`.discussion-on-page[data-topic=${data.topic_info.name}] .discussion-form`);
 	} else if ((decodeURIComponent($(".discussions-parent .discussions-card").attr("data-doctype")) == data.topic_info.reference_doctype
 		&& decodeURIComponent($(".discussions-parent .discussions-card").attr("data-docname")) == data.topic_info.reference_docname)) {
 
