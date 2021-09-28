@@ -3,6 +3,7 @@
  */
 import DataTable from 'frappe-datatable';
 
+window.DataTable = DataTable;
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {

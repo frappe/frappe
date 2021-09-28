@@ -10,16 +10,54 @@ frappe.ui.form.on('System Console', {
 			description: __('Execute Console script'),
 			ignore_inputs: true,
 		});
+		frm.set_value("type", "Python");
 	},
 
 	refresh: function(frm) {
 		frm.disable_save();
 		frm.page.set_primary_action(__("Execute"), $btn => {
-			$btn.text(__('Executing...'));
-			return frm.execute_action("Execute").then(() => {
-				$btn.text(__('Execute'));
-			});
+			$btn.text(__("Executing..."));
+			return frm
+				.execute_action("Execute")
+				.then(() => frm.trigger("render_sql_output"))
+				.finally(() => $btn.text(__("Execute")));
 		});
+	},
+
+	type: function(frm) {
+		if (frm.doc.type == "Python") {
+			frm.set_value("output", "");
+			if (frm.sql_output) {
+				frm.sql_output.destroy();
+				frm.get_field("sql_output").html("");
+			}
+		}
+	},
+
+	render_sql_output: function(frm) {
+		if (frm.doc.type !== "SQL") return;
+		if (frm.sql_output) {
+			frm.sql_output.destroy();
+			frm.get_field("sql_output").html("");
+		}
+
+		if (frm.doc.output.startsWith("Traceback")) {
+			return;
+		}
+
+		let result = JSON.parse(frm.doc.output);
+		frm.set_value("output", `${result.length} ${result.length == 1 ? 'row' : 'rows'}`);
+
+		if (result.length) {
+			let columns = Object.keys(result[0]);
+			frm.sql_output = new DataTable(
+				frm.get_field("sql_output").$wrapper.get(0),
+				{
+					columns,
+					data: result
+				}
+			);
+		}
 	},
 
 	show_processlist: function(frm) {
@@ -32,6 +70,7 @@ frappe.ui.form.on('System Console', {
 
 				// end it
 				clearInterval(frm.processlist_interval);
+				frm.get_field("processlist").html('');
 			}
 		}
 	},
