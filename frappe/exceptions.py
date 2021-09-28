@@ -108,8 +108,15 @@ class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
+<<<<<<< HEAD
 class DocumentAlreadyRestored(ValidationError): pass
 class AttachmentLimitReached(ValidationError): pass
+=======
+class DocumentAlreadyRestored(Exception): pass
+class AttachmentLimitReached(Exception): pass
+class QueryTimeout(ValidationError): pass
+class QueryDeadlock(ValidationError): pass
+>>>>>>> e205acae3c (feat: handle timeout and deadlocks in db.sql)
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass

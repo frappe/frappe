@@ -168,6 +168,10 @@ class Database(object):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
+			elif self.is_deadlocked(e) or self.is_timedout(e):
+				err_msg = _('There was a problem accessing required resources to complete the transaction. Please retry.')
+				exception = frappe.QueryTimeout if self.is_timedout(e) else frappe.QueryDeadlock
+				frappe.throw(msg=err_msg, title=_('Request Timeout'), exc=exception)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
