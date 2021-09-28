@@ -7,7 +7,7 @@
 	data-parent="#discussion-group">
 
 	<div class="button is-default back">
-		Back
+		{{ _("Back") }}
 	</div>
 
 	<div class="course-home-headings p-0">{{ topic.title }}</div>
@@ -21,9 +21,9 @@
 
 	{% if frappe.session.user == "Guest" or (condition is defined and not condition) %}
 	<div class="d-flex flex-column align-items-center small">
-		Want to join the discussion?
+		{{ _("Want to join the discussion?") }}
 		{% if frappe.session.user == "Guest" %}
-		<div class="button is-primary mt-3 mb-3" id="login-from-discussion">Log In</div>
+		<div class="button is-primary mt-3 mb-3" id="login-from-discussion">{{ _("Log In") }}</div>
 		{% elif not condition %}
 		<div class="button is-primary mt-3 mb-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">{{ button_name }}
 		</div>
