@@ -62,14 +62,14 @@ frappe.ready(() => {
 
 });
 
-var show_new_topic_modal = (e) => {
+const show_new_topic_modal = (e) => {
 	e.preventDefault();
 	$("#discussion-modal").modal("show");
-	var topic = $(e.currentTarget).attr("data-topic");
+	let topic = $(e.currentTarget).attr("data-topic");
 	$("#submit-discussion").attr("data-topic", topic ? topic : "");
 };
 
-var setup_socket_io = () => {
+const setup_socket_io = () => {
 	const assets = [
 		"/assets/frappe/js/lib/socket.io.min.js",
 		"/assets/frappe/js/frappe/socketio_client.js"
@@ -86,7 +86,7 @@ var setup_socket_io = () => {
 	});
 };
 
-var publish_message = (data) => {
+const publish_message = (data) => {
 
 	if ($(`.discussion-on-page[data-topic=${data.topic_info.name}]`).length) {
 		post_message_cleanup();
@@ -112,7 +112,7 @@ var publish_message = (data) => {
 	update_reply_count(data.topic_info.name);
 };
 
-var post_message_cleanup = () => {
+const post_message_cleanup = () => {
 	$(".topic-title").val("");
 	$(".comment-field").val("");
 	$(".discussion-on-page .comment-field").css("height", "48px");
@@ -121,13 +121,13 @@ var post_message_cleanup = () => {
 	$(".cancel-comment").addClass("hide");
 };
 
-var update_reply_count = (topic) => {
-	var reply_count = $(`[data-target='#t${topic}']`).find(".reply-count").text();
+const update_reply_count = (topic) => {
+	let reply_count = $(`[data-target='#t${topic}']`).find(".reply-count").text();
 	reply_count = parseInt(reply_count) + 1;
 	$(`[data-target='#t${topic}']`).find(".reply-count").text(reply_count);
 };
 
-var expand_first_discussion = () => {
+const expand_first_discussion = () => {
 	if ($(document).width() > 550) {
 		$($(".discussions-parent .collapse")[0]).addClass("show");
 		$($(".discussions-sidebar [data-toggle='collapse']")[0]).attr("aria-expanded", true);
@@ -136,22 +136,22 @@ var expand_first_discussion = () => {
 	}
 };
 
-var search_topic = (e) => {
-	var input = $(e.currentTarget).val();
+const search_topic = (e) => {
+	let input = $(e.currentTarget).val();
 
-	var topics = $(".discussions-parent .discussion-topic-title");
+	let topics = $(".discussions-parent .discussion-topic-title");
 	if (input.length < 3 || input.trim() == "") {
 		topics.closest(".sidebar-parent").removeClass("hide");
 		return;
 	}
 
 	topics.each((i, elem) => {
-		var topic_id = $(elem).parent().attr("data-target");
+		let topic_id = $(elem).parent().attr("data-target");
 
 		/* Check match in replies */
-		var match_in_reply = false;
-		var replies = $(`${topic_id}`);
-		for (var reply of replies.find(".reply-text")) {
+		let match_in_reply = false;
+		const replies = $(`${topic_id}`);
+		for (const reply of replies.find(".reply-text")) {
 			if (has_common_substring($(reply).text(), input)) {
 				match_in_reply = true;
 				break;
@@ -167,13 +167,13 @@ var search_topic = (e) => {
 	});
 };
 
-var has_common_substring = (str1, str2) => {
-	var str1_arr = str1.toLowerCase().split(" ");
-	var str2_arr = str2.toLowerCase().split(" ");
+const has_common_substring = (str1, str2) => {
+	const str1_arr = str1.toLowerCase().split(" ");
+	const str2_arr = str2.toLowerCase().split(" ");
 
-	var substring_found = false;
-	for (var first_word of str1_arr) {
-		for (var second_word of str2_arr) {
+	let substring_found = false;
+	for (const first_word of str1_arr) {
+		for (const second_word of str2_arr) {
 			if (first_word.indexOf(second_word) > -1) {
 				substring_found = true;
 				break;
@@ -183,18 +183,18 @@ var has_common_substring = (str1, str2) => {
 	return substring_found;
 };
 
-var submit_discussion = (e) => {
+const submit_discussion = (e) => {
 	e.preventDefault();
 	e.stopImmediatePropagation();
 
-	var title = $(".topic-title:visible").length ? $(".topic-title:visible").val().trim() : "";
-	var reply = $(".comment-field:visible").val().trim();
+	const title = $(".topic-title:visible").length ? $(".topic-title:visible").val().trim() : "";
+	const reply = $(".comment-field:visible").val().trim();
 
 	if (reply) {
-		var doctype = $(e.currentTarget).attr("data-doctype");
+		let doctype = $(e.currentTarget).attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
-		var docname = $(e.currentTarget).attr("data-docname");
+		let docname = $(e.currentTarget).attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
 		frappe.call({
@@ -210,14 +210,14 @@ var submit_discussion = (e) => {
 	}
 };
 
-var login_from_discussion = (e) => {
+const login_from_discussion = (e) => {
 	e.preventDefault();
-	var redirect = $(e.currentTarget).attr("data-redirect") || window.location.href;
+	const redirect = $(e.currentTarget).attr("data-redirect") || window.location.href;
 	window.location.href = `/login?redirect-to=${redirect}`;
 };
 
-var add_color_to_avatars = () => {
-	var avatars = $(".avatar-frame");
+const add_color_to_avatars = () => {
+	const avatars = $(".avatar-frame");
 	avatars.each((i, avatar) => {
 		if (!$(avatar).attr("style")) {
 			$(avatar).css(get_color_from_palette($(avatar)));
@@ -225,31 +225,29 @@ var add_color_to_avatars = () => {
 	});
 };
 
-var get_color_from_palette = (element) => {
-	var palette = frappe.get_palette(element.attr("title"));
+const get_color_from_palette = (element) => {
+	const palette = frappe.get_palette(element.attr("title"));
 	return {"background-color": `var(${palette[0]})`, "color": `var(${palette[1]})` };
 };
 
-var style_avatar_frame = (template) => {
-	var $template = $(template);
+const style_avatar_frame = (template) => {
+	const $template = $(template);
 	$template.find(".avatar-frame").css(get_color_from_palette($template.find(".avatar-frame")));
 	return $template.prop("outerHTML");
 };
 
-var clear_comment_box = () => {
-	if ($(".discussion-modal").hasClass("show")) {
-		$("#discussion-modal").modal("hide");
-	} else {
-		$(".discussion-on-page .comment-field").val("");
-	}
+const clear_comment_box = () => {
+	$(".discussion-on-page .comment-field").val("");
+	$(".cancel-comment").removeClass("show").addClass("hide");
+	$(".discussion-on-page .comment-field").css("height", "48px");
 };
 
-var hide_sidebar = () => {
+const hide_sidebar = () => {
 	$(".discussions-sidebar").addClass("hide");
 	$("#discussion-group").removeClass("hide");
 };
 
-var back_to_sidebar = () => {
+const back_to_sidebar = () => {
 	$(".discussions-sidebar").removeClass("hide");
 	$("#discussion-group").addClass("hide");
 	$(".discussion-on-page").collapse("hide");

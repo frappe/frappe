@@ -69,19 +69,12 @@
 	background-color: #F4F5F6;
 	padding: 0.75rem;
 	border-radius: 4px;
-	max-height: 700px;
-	overflow-y: auto;
 }
 
 @media (max-width: 550px) {
 	.discussions-sidebar {
 		padding: 1rem;
 	}
-}
-
-#discussion-group {
-	max-height: 700px;
-	overflow-y: auto;
 }
 
 .sidebar-topic {

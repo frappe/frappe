@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "autoname": "REPLY.####",
  "creation": "2021-08-11 10:59:38.597046",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -26,10 +27,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-08-27 15:06:51.362715",
+ "modified": "2021-09-28 12:09:10.875927",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Discussion Reply",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
