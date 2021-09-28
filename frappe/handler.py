@@ -211,7 +211,10 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc = frappe.get_doc(dt, dn)
 
 	else:
-		doc = frappe.get_doc(json.loads(docs))
+		if isinstance(docs, str):
+			docs = json.loads(docs)
+
+		doc = frappe.get_doc(docs)
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
