@@ -97,7 +97,11 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			)
 
 			if doc["doctype"] == "DocType":
-				frappe.db.set_value(doc["doctype"], doc["name"], "migration_hash", curr_hash)
+				if doc["name"] == "DocType":
+					Doctype_table=frappe.qb.DocType("DocType")
+					frappe.qb.update(Doctype_table).set(Doctype_table.migration_hash, curr_hash).where(Doctype_table.name == "DocType").run()
+				else:
+					frappe.db.set_value(doc["doctype"], doc["name"], "migration_hash", curr_hash)
 
 			if original_modified:
 				update_modified(original_modified, doc)
