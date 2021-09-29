@@ -1,21 +1,10 @@
-<<<<<<< HEAD
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-=======
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
->>>>>>> d8020672b0 (refactor(minor): Built Assets Management)
 import os
 import re
 import json
 import shutil
-<<<<<<< HEAD
-=======
-import subprocess
 from subprocess import getoutput
-from io import StringIO
->>>>>>> d8020672b0 (refactor(minor): Built Assets Management)
 from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
@@ -26,12 +15,8 @@ import click
 import psutil
 from urllib.parse import urlparse
 from simple_chalk import green
-<<<<<<< HEAD
-=======
-from semantic_version import Version
 from requests import head
 from requests.exceptions import HTTPError
->>>>>>> d8020672b0 (refactor(minor): Built Assets Management)
 
 
 timestamps = {}
