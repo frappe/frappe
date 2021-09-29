@@ -15,27 +15,5 @@ frappe.ui.form.on('Print Settings', {
 	},
 	onload: function(frm) {
 		frm.script_manager.trigger("print_style");
-	},
-	server_ip: function(frm) {
-		frm.trigger("connect_print_server");
-	},
-	port:function(frm) {
-		frm.trigger("connect_print_server");
-	},
-	connect_print_server:function(frm) {
-		if(frm.doc.server_ip && frm.doc.port){
-			frappe.call({
-				"doc": frm.doc,
-				"method": "get_printers",
-				"args": {
-					ip: frm.doc.server_ip,
-					port: frm.doc.port
-				},
-				callback: function(data) {
-					frm.set_df_property('printer_name', 'options', [""].concat(data.message));
-				},
-				error: (data) => frm.set_value("enable_print_server", 0)
-			});
-		}
 	}
 });
