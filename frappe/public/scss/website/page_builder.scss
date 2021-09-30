@@ -493,9 +493,12 @@
 }
 
 .collapsible-content {
+	color: $gray-700;
+}
+
+.collapsible-content p {
 	margin-top: 1rem;
 	margin-bottom: 0;
-	color: $gray-700;
 }
 
 .section-with-collapsible-content.align-center {
