@@ -21,7 +21,9 @@
 				</svg>
 			</a>
 			<div class="collapse collapsible-content from-markdown" id="{{ collapse_id }}">
-				{{ frappe.utils.md_to_html(item.content) }}
+				<div>
+					{{ frappe.utils.md_to_html(item.content) }}
+				</div>
 			</div>
 		</div>
 		{%- endfor -%}

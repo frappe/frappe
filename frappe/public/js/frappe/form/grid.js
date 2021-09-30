@@ -212,13 +212,12 @@ export default class Grid {
 
 	delete_all_rows() {
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
-			this.grid_rows.forEach(row => {
-				row.remove();
-			});
-			this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
-
-			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
+			this.frm.doc[this.df.fieldname] = [];
+			$(this.parent).find('.rows').empty();
+			this.grid_rows = [];
 			this.refresh();
+			this.frm && this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
+			this.frm && this.frm.dirty();
 			this.scroll_to_top();
 		});
 	}
@@ -244,8 +243,10 @@ export default class Grid {
 
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
-		this.remove_all_rows_button.toggleClass('hidden',
-			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true);
+
+		let select_all_checkbox_checked = this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length;
+		let show_delete_all_btn = select_all_checkbox_checked && this.data.length > this.get_selected_children().length;
+		this.remove_all_rows_button.toggleClass('hidden', !show_delete_all_btn);
 	}
 
 	get_selected() {
@@ -834,10 +835,11 @@ export default class Grid {
 									$.each(row, (ci, value) => {
 										var fieldname = fieldnames[ci];
 										var df = frappe.meta.get_docfield(me.df.options, fieldname);
-
-										d[fieldnames[ci]] = value_formatter_map[df.fieldtype]
-											? value_formatter_map[df.fieldtype](value)
-											: value;
+										if (df) {
+											d[fieldnames[ci]] = value_formatter_map[df.fieldtype]
+												? value_formatter_map[df.fieldtype](value)
+												: value;
+										}
 									});
 								}
 							}
