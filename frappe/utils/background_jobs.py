@@ -16,7 +16,7 @@ import frappe
 from frappe import _
 import frappe.monitor
 from frappe.utils import cstr, get_bench_id
-from frappe.utils.rq import RedisQueue
+from frappe.utils.redis_queue import RedisQueue
 from frappe.utils.commands import log
 
 
