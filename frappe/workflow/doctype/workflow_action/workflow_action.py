@@ -287,7 +287,7 @@ def get_common_email_args(doc):
 		subject = frappe.render_template(email_template.subject, vars(doc))
 		response = frappe.render_template(email_template.response, vars(doc))
 	else:
-		subject = _('Workflow Action')
+		subject = _('Workflow Action') + f" on {doctype}: {docname}"
 		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
 
 	common_args = {

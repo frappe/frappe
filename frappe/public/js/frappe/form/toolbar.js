@@ -545,7 +545,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	show_jump_to_field_dialog() {
 		let visible_fields_filter = f =>
-			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+			!['Section Break', 'Column Break', 'Tab Break'].includes(f.df.fieldtype)
 			&& !f.df.hidden
 			&& f.disp_status !== 'None';
 

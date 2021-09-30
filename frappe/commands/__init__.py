@@ -102,7 +102,7 @@ def get_commands():
 	from .site import commands as site_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
-	from .redis import commands as redis_commands
+	from .redis_utils import commands as redis_commands
 
 	clickable_link = (
 		"\x1b]8;;https://frappeframework.com/docs\afrappeframework.com\x1b]8;;\a"
