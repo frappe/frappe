@@ -9,17 +9,20 @@ context('Dashboard links', () => {
 		cy.clear_filters();
 
 		cy.visit('/app/user');
-		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
+		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click({ force: true });
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 
 		//Adding a new contact
-		cy.get('.btn[data-doctype="Contact"]').click();
+		cy.get('.document-link-badge[data-doctype="Contact"]').click();
+		cy.wait(300);
+		cy.findByRole('button', {name: 'Add Contact'}).should('be.visible');
+		cy.findByRole('button', {name: 'Add Contact'}).click();
 		cy.get('[data-doctype="Contact"][data-fieldname="first_name"]').type('Admin');
 		cy.findByRole('button', {name: 'Save'}).click();
 		cy.visit('/app/user');
-		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
+		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click({ force: true });
 
 		//To check if the counter for contact doc is "1" after adding the contact
 		cy.get('[data-doctype="Contact"] > .count').should('contain', '1');
@@ -27,7 +30,7 @@ context('Dashboard links', () => {
 
 		//Deleting the newly created contact
 		cy.visit('/app/contact');
-		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
+		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click({ force: true });
 		cy.findByRole('button', {name: 'Actions'}).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
 		cy.findByRole('button', {name: 'Yes'}).click({delay: 700});
@@ -36,7 +39,7 @@ context('Dashboard links', () => {
 		//To check if the counter from the "Contact" doc link is removed
 		cy.wait(700);
 		cy.visit('/app/user');
-		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
+		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click({ force: true });
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 	});
 
