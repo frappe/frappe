@@ -100,7 +100,7 @@ def report_to_pdf(html, orientation="Landscape"):
 	frappe.local.response.type = "pdf"
 
 @frappe.whitelist()
-def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0):
+def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups
@@ -113,9 +113,10 @@ def print_by_server(doctype, name, printer_setting, print_format=None, doc=None,
 		conn = cups.Connection()
 		output = PdfFileWriter()
 		output = frappe.get_print(doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf = True, output = output)
-		file = os.path.join("/", "tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
-		output.write(open(file,"wb"))
-		conn.printFile(print_settings.printer_name,file , name, {})
+		if not file_path:
+			file_path = os.path.join("/", "tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+		output.write(open(file_path,"wb"))
+		conn.printFile(print_settings.printer_name,file_path , name, {})
 	except IOError as e:
 		if ("ContentNotFoundError" in e.message
 			or "ContentOperationNotPermittedError" in e.message
