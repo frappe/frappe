@@ -7,50 +7,49 @@ https://www.mpay.com.hk/
 """
 
 import frappe
-import base64
-import hmac
+import json
 import hashlib
+
+from six.moves.urllib.parse import urlencode
 from frappe import _
 from frappe.model.document import Document
 from frappe.integrations.utils import create_payment_gateway
-from frappe.utils import get_url, call_hook_method, cint, flt
-from six.moves.urllib.parse import urlencode
+from frappe.utils import get_url, call_hook_method, flt
+from frappe.integrations.utils import create_request_log
+from frappe.utils.password import get_decrypted_password
 
 
-class mPaySettings(Document):
-	supported_currencies = [
-		'HKD', 'RMB', 'USD'
-	]
+class PaymentGateway(Document):
+	gateway_name = 'mPay'
+	supported_currencies = []
+	currency_wise_minimum_charge_amount = {}
+	sandbox_url = ''
+	prod_url = ''
 
-	currency_wise_minimum_charge_amount = {
-		'HKD': 10,
-		'RMB': 10,
-		'USD': 2,
-	}
-
-	api_version = '5.0'
-
-	sandbox_url = 'https://demo.mobiletech.com.hk/MPay/MerchantPay.jsp'
-	prod_url = 'https://mobiletech.com.hk/MPay/MerchantPay.jsp'
-
-	def validate(self):
+	def vaildate(self):
 		if not self.flags.ignore_mandatory:
-			self.validate_mpay_credentails()
+			self.validate_credentials()
 
 	def on_update(self):
 		create_payment_gateway(
-			gateway='mPay',
+			gateway=self.gateway_name,
 		)
-		call_hook_method('payment_gateway_enabled', gateway='mPay')
+		call_hook_method(
+			'payment_gateway_enabled',
+			gateway=self.gateway_name
+		)
 
-	def validate_mpay_credentails(self):
+	def validate_credentials():
 		pass
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_(
-				"Please select another payment method. mPay does not support transactions in currency '{0}'"
-			).format(currency))
+				"Please select another payment method. {gateway} does not support transactions in currency '{currency}'"
+			).format(
+				gateway=self.gateway_name,
+				currency=currency
+			))
 
 	def validate_minimum_transaction_amount(self, currency, amount):
 		if currency in self.currency_wise_minimum_charge_amount:
@@ -60,19 +59,63 @@ class mPaySettings(Document):
 					self.currency_wise_minimum_charge_amount.get(currency, 0.0)
 				))
 
+	def create_payment_request(self, data):
+		self.data = frappe._dict(data)
+
+		try:
+			self.integration_request = create_request_log(
+				self.data, 'Host', self.gateway_name,
+			)
+
+		except Exception:
+			frappe.log_error(frappe.get_traceback())
+			return{
+				'redirect_to': frappe.redirect_to_message(
+					_('Server Error'),
+					_((
+						"There seems to be an issue with the server's {gateway} configuration."
+						"Don't worry, in case of failure, the amount will get refunded to your account."
+					).format(gateway=self.gateway_name))),
+				'status': 401
+			}
+
+
+class mPaySettings(PaymentGateway):
+	supported_currencies = [
+		'HKD', 'RMB', 'USD'
+	]
+	currency_wise_minimum_charge_amount = {
+		'HKD': 10,
+		'RMB': 10,
+		'USD': 2,
+	}
+	api_version = '5.0'
+	sandbox_url = 'https://demo.mobiletech.com.hk/MPay/MerchantPay.jsp'
+	prod_url = 'https://mobiletech.com.hk/MPay/MerchantPay.jsp'
+
 	def get_payment_url(self, **kwargs):
-		pass
+		self.create_payment_request(self, data=kwargs)
+		return get_url('./integrations/mpay_checkout?{0}'.format(
+			urlencode(self.integration_request.name)
+		))
+
+	def get_gateway_settings(self):
+		self.gateway_settings = {
+			'merchantid': self.merchantid,
+			'merchant_tid': self.merchant_tid,
+			'returnurl': self.redirect_url,
+			'securekey': get_decrypted_password(
+				doctype='mPay Settings',
+				name='mPay Settings',
+				fieldname='securekey'
+			),
+		}
 
 	def construct_text_params(self, **kwargs):
 		"""Combine all params, return as string"""
-		params_dict = {
-			**{
-				'merchantid': self.merchantid,
-				'merchant_tid': self.merchant_tid,
-				'returnurl': self.redirect_url,
-				'securekey': self.securekey,
-				'salt': frappe.generate_hash(length=16),
-			},
+		self.get_gateway_settings()
+		dict_params = {
+			**self.gateway_settings,
 			**kwargs,
 		}
 
@@ -99,18 +142,19 @@ class mPaySettings(Document):
 
 		params_list = []
 		for key in params_key_list:
-			if key in params_dict:
+			if key in dict_params:
 				params_list.append(kwargs.get(key))
 
 		params_text = ''.join(params_list)
 
 		text_params = '{salt};{params_text};{securekey}'.format(
-			salt=params_dict.get('salt'),
+			salt=dict_params.get('salt'),
 			params_text=params_text,
-			securekey=params_dict.get('securekey'),
+			securekey=dict_params.get('securekey'),
 		)
 
 		self.text_params = text_params
+		self.dict_params = dict_params
 
 	def gen_text_hash(self):
 		m = hashlib.sha256()
@@ -118,3 +162,28 @@ class mPaySettings(Document):
 		self.text_hash = hashlib.sha256(
 			self.text_params.encode('utf-8')
 		).hexdigest()
+
+	def get_payment_context(self, integration_request_id):
+		integration_request = frappe.get_doc(
+			'Integration Request',
+			integration_request_id
+		).as_dict()
+
+		self.construct_text_params(**json.loads(integration_request.data))
+		self.gen_text_hash()
+
+		self.dict_params.pop('securekey')
+		self.dict_params['version'] = self.api_version
+		self.dict_params['hash'] = self.text_hash
+
+		if self.use_sandbox:
+			url = self.sandbox_url
+		else:
+			url = self.prod_url
+
+		context = {
+			'url': url,
+			'data': self.dict_params,
+		}
+
+		return context
