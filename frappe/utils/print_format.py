@@ -100,7 +100,7 @@ def report_to_pdf(html, orientation="Landscape"):
 	frappe.local.response.type = "pdf"
 
 @frappe.whitelist()
-def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, file_path=None,no_letterhead=0):
+def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups
