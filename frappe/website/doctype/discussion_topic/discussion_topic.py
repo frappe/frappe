@@ -14,11 +14,11 @@ def submit_discussion(doctype, docname, reply, title, topic_name=None):
 		return topic_name
 
 	topic = frappe.get_doc({
-				"doctype": "Discussion Topic",
-				"title": title,
-				"reference_doctype": doctype,
-				"reference_docname": docname
-			})
+		"doctype": "Discussion Topic",
+		"title": title,
+		"reference_doctype": doctype,
+		"reference_docname": docname
+	})
 	topic.save(ignore_permissions=True)
 	save_message(reply, topic.name)
 	return topic.name
