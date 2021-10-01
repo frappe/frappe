@@ -241,11 +241,11 @@
 }
 
 .card-divider {
-	border: 1px solid #EEF0F2;
+	border: 1px solid var(--gray-200);
 	margin-bottom: 1rem;
 }
 
-  .card-divider-dark {
-	border: 1px solid #C8CFD5;
+.card-divider-dark {
+	border: 1px solid var(--gray-400);
 	margin-bottom: 16px;
 }
