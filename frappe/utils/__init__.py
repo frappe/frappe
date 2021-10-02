@@ -16,6 +16,7 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 from werkzeug.test import Client
+from redis.exceptions import ConnectionError
 
 import frappe
 # utility functions like cint, int, flt, etc.
@@ -786,16 +787,24 @@ def get_build_version():
 def get_assets_json():
 	if not hasattr(frappe.local, "assets_json"):
 		cache = frappe.cache()
+
 		# using .get instead of .get_value to avoid pickle.loads
-		assets_json = cache.get("assets_json")
 		try:
-			assets_json = assets_json.decode('utf-8')
-		except (UnicodeDecodeError, AttributeError):
+			assets_json = cache.get("assets_json")
+		except ConnectionError:
 			assets_json = None
+
+		# if value found, decode it
+		if assets_json != None:
+			try:
+				assets_json = assets_json.decode('utf-8')
+			except (UnicodeDecodeError, AttributeError):
+				assets_json = None
 
 		if not assets_json:
 			assets_json = frappe.read_file("assets/assets.json")
 			cache.set_value("assets_json", assets_json, shared=True)
+
 		frappe.local.assets_json = frappe.safe_decode(assets_json)
 
 	return frappe.parse_json(frappe.local.assets_json)
