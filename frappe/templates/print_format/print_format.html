@@ -13,7 +13,7 @@
 	</style>
 </head>
 <body>
-	{{ header }}
+	{{ header or '' }}
 	{% for section in layout.sections %}
 	<div class="section {{ resolve_class({'page-break': section.page_break}) }}">
 		{% if section.label %}
@@ -31,6 +31,6 @@
 		</div>
 	</div>
 	{% endfor %}
-	{{ footer }}
+	{{ footer or '' }}
 </body>
 </html>

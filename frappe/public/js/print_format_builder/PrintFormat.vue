@@ -32,7 +32,12 @@
 			@change="$set(layout, 'footer', $event)"
 			:button-label="__('Edit Footer')"
 		/>
-		<LetterHeadEditor type="Footer" />
+		<HTMLEditor
+			v-if="letterhead"
+			:value="letterhead.footer"
+			@change="update_letterhead_footer"
+			:button-label="__('Edit LetterHead Footer')"
+		/>
 	</div>
 </template>
 
@@ -85,6 +90,10 @@ export default {
 				sections.push(_section);
 			}
 			this.$set(this.layout, "sections", sections);
+		},
+		update_letterhead_footer(val) {
+			this.letterhead.footer = val;
+			this.letterhead._dirty = true;
 		}
 	}
 };

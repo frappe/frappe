@@ -115,9 +115,11 @@ export function getStore(print_format_name) {
 					})
 					.then(() => {
 						if (this.letterhead && this.letterhead._dirty) {
-							return frappe.call("frappe.client.save", {
-								doc: this.letterhead
-							});
+							return frappe
+								.call("frappe.client.save", {
+									doc: this.letterhead
+								})
+								.then(r => (this.letterhead = r.message));
 						}
 					})
 					.then(() => this.fetch())
@@ -125,7 +127,6 @@ export function getStore(print_format_name) {
 			},
 			reset_changes() {
 				this.fetch();
-
 			},
 			get_layout() {
 				if (this.print_format) {
@@ -143,7 +144,7 @@ export function getStore(print_format_name) {
 				return create_default_layout(this.meta);
 			},
 			change_letterhead(letterhead) {
-				frappe.db.get_doc("Letter Head", letterhead).then(doc => {
+				return frappe.db.get_doc("Letter Head", letterhead).then(doc => {
 					this.letterhead = doc;
 				});
 			}

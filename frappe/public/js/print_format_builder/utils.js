@@ -94,8 +94,8 @@ export function get_table_columns(df) {
 				typeof tf.width == "number" && tf.width < 100
 					? tf.width
 					: tf.width
-						? 20
-						: 10;
+					? 20
+					: 10;
 			table_columns.push({
 				label: tf.label,
 				fieldname: tf.fieldname,
@@ -117,4 +117,14 @@ export function pluck(object, keys) {
 		}
 	}
 	return out;
+}
+
+export function get_image_dimensions(src) {
+	return new Promise(resolve => {
+		let img = new Image();
+		img.onload = function() {
+			resolve({ width: this.width, height: this.height });
+		};
+		img.src = src;
+	});
 }
