@@ -343,7 +343,7 @@ export default class GridRow {
 			]
 		});
 
-		d.set_primary_action(__('Save'), () => {
+		d.set_primary_action(__('Add'), () => {
 			let selected_fields = d.get_values().fields;
 			this.selected_columns_for_grid = [];
 			if (selected_fields) {
