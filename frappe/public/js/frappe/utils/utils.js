@@ -927,7 +927,16 @@ Object.assign(frappe.utils, {
 		// decodes base64 to string
 		let parts = dataURI.split(',');
 		const encoded_data = parts[1];
-		return decodeURIComponent(escape(atob(encoded_data)));
+		let decoded = atob(encoded_data);
+		try {
+			const escaped = escape(decoded);
+			decoded = decodeURIComponent(escaped);
+
+		} catch (e) {
+			// pass decodeURIComponent failure
+			// just return atob response
+		}
+		return decoded;
 	},
 	copy_to_clipboard(string) {
 		let input = $("<input>");
@@ -1114,11 +1123,11 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="") {
 		let size_class = "";
-		let icon_style = "";
+
 		if (typeof size == "object") {
-			icon_style = `width: ${size.width}; height: ${size.height}`;
+			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
@@ -1323,6 +1332,19 @@ Object.assign(frappe.utils, {
 		let e = clipboard_paste_event;
 		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 		return clipboard_data.getData('Text');
+	},
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper, prepend) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action(event);
+		});
+		!prepend && button.appendTo(wrapper);
+		prepend && wrapper.prepend(button);
 	},
 
 	sleep(time) {

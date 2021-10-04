@@ -1,4 +1,20 @@
 pull_request_rules:
+  - name: Auto-close PRs on stable branch
+    conditions:
+      - and:
+        - and:
+          - author!=surajshetty3416
+          - author!=gavindsouza
+        - or:
+          - base=version-13
+          - base=version-12
+    actions:
+      close:
+      comment:
+          message: |
+            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch. 
+            https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist#which-branch
+
   - name: Automatic merge on CI success and review
     conditions:
       - status-success=Sider

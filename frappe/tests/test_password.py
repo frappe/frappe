@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from frappe.utils.password import update_password, check_password, passlibctx, encrypt, decrypt
@@ -110,7 +110,7 @@ class TestPassword(unittest.TestCase):
 
 		encrypted_text = encrypt(text, encryption_key=custom_encryption_key)
 		decrypted_text = decrypt(encrypted_text, encryption_key=custom_encryption_key)
-		
+
 		self.assertEqual(text, decrypted_text)
 
 		pass

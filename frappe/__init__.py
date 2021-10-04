@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
 
@@ -27,6 +27,8 @@ import click
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
+
+from frappe.query_builder import get_query_builder, patch_query_execute
 
 # Lazy imports
 faker = lazy_import('faker')
@@ -118,6 +120,7 @@ def set_user_lang(user, user_language=None):
 
 # local-globals
 db = local("db")
+qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
@@ -137,7 +140,11 @@ lang = local("lang")
 if typing.TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from pypika import Query
+
 	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+	qb: Query
+
 # end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):
@@ -202,8 +209,10 @@ def init(site, sites_path=None, new_site=False):
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
+	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
+	patch_query_execute()
 
 	local.initialised = True
 
@@ -226,12 +235,13 @@ def connect_replica():
 	from frappe.database import get_db
 	user = local.conf.db_name
 	password = local.conf.db_password
+	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password)
+	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -609,12 +619,33 @@ def read_only():
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
-			except:
-				raise
 			finally:
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
 					local.db = local.primary_db
+
+			return retval
+		return wrapper_fn
+	return innfn
+
+def write_only():
+	# if replica connection exists, we have to replace it momentarily with the primary connection
+	def innfn(fn):
+		def wrapper_fn(*args, **kwargs):
+			primary_db = getattr(local, "primary_db", None)
+			replica_db = getattr(local, "replica_db", None)
+			in_read_only = getattr(local, "db", None) != primary_db
+
+			# switch to primary connection
+			if in_read_only and primary_db:
+				local.db = local.primary_db
+
+			try:
+				retval = fn(*args, **get_newargs(fn, kwargs))
+			finally:
+				# switch back to replica connection
+				if in_read_only and replica_db:
+					local.db = replica_db
 
 			return retval
 		return wrapper_fn

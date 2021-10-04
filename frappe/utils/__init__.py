@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import functools
 import hashlib
@@ -16,6 +16,7 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 from werkzeug.test import Client
+from redis.exceptions import ConnectionError
 
 import frappe
 # utility functions like cint, int, flt, etc.
@@ -382,6 +383,12 @@ def get_files_path(*path, **kwargs):
 
 def get_bench_path():
 	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
+
+def get_bench_id():
+	return frappe.get_conf().get('bench_id', get_bench_path().strip('/').replace('/', '-'))
+
+def get_site_id(site=None):
+	return f"{site or frappe.local.site}@{get_bench_id()}"
 
 def get_backups_path():
 	return get_site_path("private", "backups")
@@ -780,16 +787,24 @@ def get_build_version():
 def get_assets_json():
 	if not hasattr(frappe.local, "assets_json"):
 		cache = frappe.cache()
+
 		# using .get instead of .get_value to avoid pickle.loads
-		assets_json = cache.get("assets_json")
 		try:
-			assets_json = assets_json.decode('utf-8')
-		except (UnicodeDecodeError, AttributeError):
+			assets_json = cache.get("assets_json")
+		except ConnectionError:
 			assets_json = None
+
+		# if value found, decode it
+		if assets_json is not None:
+			try:
+				assets_json = assets_json.decode('utf-8')
+			except (UnicodeDecodeError, AttributeError):
+				assets_json = None
 
 		if not assets_json:
 			assets_json = frappe.read_file("assets/assets.json")
 			cache.set_value("assets_json", assets_json, shared=True)
+
 		frappe.local.assets_json = frappe.safe_decode(assets_json)
 
 	return frappe.parse_json(frappe.local.assets_json)
@@ -843,3 +858,6 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 		for item in items:
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
+
+def get_table_name(table_name: str) -> str:
+	return f"tab{table_name}" if not table_name.startswith("__") else table_name

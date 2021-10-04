@@ -1,5 +1,6 @@
-# Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+
 import unittest, os, base64
 from frappe import safe_decode
 from frappe.email.receive import Email
@@ -127,7 +128,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 '''
 		transformed_html = '''
 <h3>Hi John</h3>
-<p style="margin:5px 0 !important">This is a test email</p>
+<p style="margin:1em 0 !important">This is a test email</p>
 '''
 		self.assertTrue(transformed_html in inline_style_in_html(html))
 

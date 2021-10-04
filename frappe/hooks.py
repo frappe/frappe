@@ -12,11 +12,11 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
-develop_version = '13.x.x-develop'
+develop_version = '14.x.x-develop'
 
-app_email = "info@frappe.io"
+app_email = "developers@frappe.io"
 
-docs_app = "frappe_io"
+docs_app = "frappe_docs"
 
 translator_url = "https://translate.erpnext.com"
 
@@ -164,12 +164,16 @@ doc_events = {
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+		],
+		"on_update_after_submit": [
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",

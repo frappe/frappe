@@ -53,13 +53,15 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		this.img = $("<img class='img-responsive attach-image-display'>")
 			.appendTo(this.img_wrapper).toggle(false);
 	}
-	refresh_input(e) {
+	refresh_input() {
+		// signature dom is not ready
+		if (!this.body) return;
 		// prevent to load the second time
 		this.make_pad();
 		this.$wrapper.find(".control-input").toggle(false);
 		this.set_editable(this.get_status()=="Write");
 		this.load_pad();
-		if(this.get_status()=="Read") {
+		if (this.get_status() == "Read") {
 			$(this.disp_area).toggle(false);
 		}
 	}

@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
 import frappe
 
@@ -178,4 +178,4 @@ def set_link_title(doc):
 	for link in doc.links:
 		if not link.link_title:
 			linked_doc = frappe.get_doc(link.link_doctype, link.link_name)
-			link.link_title = linked_doc.get("title_field") or linked_doc.get("name")
+			link.link_title = linked_doc.get_title() or link.link_name

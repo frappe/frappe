@@ -64,7 +64,7 @@
 									<div class="grid-body">
 										<div class="rows">
 											<div class="grid-row" :class="showing == call.index ? 'grid-row-open' : ''"  v-for="call in paginated(sorted(grouped(request.calls)))" :key="call.index">
-												<div class="data-row row" v-if="showing != call.index" style="display: block;" @click="showing = call.index" >
+												<div class="data-row row" @click="showing = showing == call.index ? null : call.index" >
 													<div class="row-index col col-xs-1"><span>{{ call.index }}</span></div>
 													<div class="col grid-static-col col-xs-6" data-fieldtype="Code">
 														<div class="static-area"><span>{{ call.query }}</span></div>
@@ -76,16 +76,13 @@
 														<div class="static-area ellipsis text-right">{{ call.exact_copies }}</div>
 													</div>
 													<div class="col col-xs-1"><a class="close btn-open-row">
-														<span class="octicon octicon-triangle-down"></span></a>
+														<span class="octicon" :class="showing == call.index? 'octicon-triangle-up' : 'octicon-triangle-down'"></span></a>
 													</div>
 												</div>
 												<div class="recorder-form-in-grid" v-if="showing == call.index">
 													<div class="grid-form-heading" @click="showing = null">
 														<div class="toolbar grid-header-toolbar">
 															<span class="panel-title">{{ __("SQL Query") }} #<span class="grid-form-row-index">{{ call.index }}</span></span>
-															<div class="btn btn-default btn-xs pull-right" style="margin-left: 7px;">
-																<span class="hidden-xs octicon octicon-triangle-up"></span>
-															</div>
 														</div>
 													</div>
 													<div class="grid-form-body">
@@ -116,7 +113,7 @@
 																					</div>
 																					<div class="frappe-control">
 																						<div class="form-group">
-																							<div class="clearfix"><label class="control-label"{{ __("Stack Trace") }}</label></div>
+																							<div class="clearfix"><label class="control-label">{{ __("Stack Trace") }}</label></div>
 																							<div class="control-value like-disabled-input for-description" style="overflow:auto">
 																								<table class="table table-striped">
 																									<thead>
@@ -286,14 +283,21 @@ export default {
 			label: __('Recorder'),
 			route: '/app/recorder'
 		});
-		frappe.call({
-			method: "frappe.recorder.get",
-			args: {
-				uuid: this.$route.params.id
-			}
-		}).then( r => {
-			this.request = r.message
-		});
-	}
+
+		const request = this.$route.params.request;
+		if (request.headers || request.form_dict || request.calls) {
+			// complete request data passed as parameter.
+			this.request = request;
+		} else {
+			frappe.call({
+				method: "frappe.recorder.get",
+				args: {
+					uuid: request.uuid
+				}
+			}).then( r => {
+				this.request = r.message
+			});
+		}
+	},
 };
 </script>

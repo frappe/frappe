@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+from frappe.query_builder import Column
 
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
@@ -105,7 +106,7 @@ class TestReportview(unittest.TestCase):
 
 	def test_between_filters(self):
 		""" test case to check between filter for date fields """
-		frappe.db.sql("delete from tabEvent")
+		frappe.db.delete("Event")
 
 		# create events to test the between operator filter
 		todays_event = create_event()
@@ -372,6 +373,25 @@ class TestReportview(unittest.TestCase):
 	def test_pluck_any_field(self):
 		owners = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="owner")
 		self.assertEqual(owners, ["Administrator"])
+
+	def test_column_comparison(self):
+		"""Test DatabaseQuery.execute to test column comparison
+		"""
+		users_unedited = frappe.get_all(
+			"User",
+			filters={"creation": Column("modified")},
+			fields=["name", "creation", "modified"],
+			limit=1,
+		)
+		users_edited = frappe.get_all(
+			"User",
+			filters={"creation": ("!=", Column("modified"))},
+			fields=["name", "creation", "modified"],
+			limit=1,
+		)
+
+		self.assertEqual(users_unedited[0].modified, users_unedited[0].creation)
+		self.assertNotEqual(users_edited[0].modified, users_edited[0].creation)
 
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")

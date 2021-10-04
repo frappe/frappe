@@ -30,8 +30,14 @@ class NamespaceDict(frappe._dict):
 
 
 def safe_exec(script, _globals=None, _locals=None):
-	# script reports must be enabled via site_config.json
-	if not frappe.conf.server_script_enabled:
+	# server scripts can be disabled via site_config.json
+	# they are enabled by default
+	if 'server_script_enabled' in frappe.conf:
+		enabled = frappe.conf.server_script_enabled
+	else:
+		enabled = True
+
+	if not enabled:
 		frappe.throw(_('Please Enable Server Scripts'), ServerScriptNotEnabled)
 
 	# build globals
@@ -78,6 +84,7 @@ def get_safe_globals():
 			form_dict=getattr(frappe.local, 'form_dict', {}),
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
+			errprint=frappe.errprint,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
@@ -141,7 +148,12 @@ def get_safe_globals():
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
 			escape = frappe.db.escape,
-			sql = read_sql
+			sql = read_sql,
+			sum = frappe.db.sum,
+			avg = frappe.db.avg,
+			count = frappe.db.count,
+			min = frappe.db.min,
+			max = frappe.db.max
 		)
 
 	if frappe.response:
@@ -228,6 +240,7 @@ VALID_UTILS = (
 "getdate",
 "get_datetime",
 "to_timedelta",
+"get_timedelta",
 "add_to_date",
 "add_days",
 "add_months",

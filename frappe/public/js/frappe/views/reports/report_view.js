@@ -3,6 +3,7 @@
  */
 import DataTable from 'frappe-datatable';
 
+window.DataTable = DataTable;
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
@@ -49,6 +50,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_columns();
 		super.setup_new_doc_event();
 		this.page.main.addClass('report-view');
+		this.page.body[0].style.setProperty('--report-filter-height', this.page.page_form.css('height'));
+		this.page.body.parent().css('margin-bottom', 'unset');
 	}
 
 	toggle_side_bar() {
@@ -1399,7 +1402,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					];
 
-					if (this.total_count > args.page_length) {
+					if (this.total_count > this.count_without_children || args.page_length) {
 						fields.push({
 							fieldtype: 'Check',
 							fieldname: 'export_all_rows',
