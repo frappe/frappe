@@ -146,12 +146,7 @@ def get_safe_globals():
 			commit = frappe.db.commit
 		)
 
-		out.frappe.cache = NamespaceDict(
-			get_value = frappe.cache().get_value,
-			set_value = frappe.cache().set_value,
-			hset = frappe.cache().hset,
-			hget = frappe.cache().hget
-		)
+		out.frappe.cache = cache
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -169,6 +164,14 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
+
+def cache():
+	return NamespaceDict(
+		get_value = frappe.cache().get_value,
+		set_value = frappe.cache().set_value,
+		hset = frappe.cache().hset,
+		hget = frappe.cache().hget
+	)
 
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
