@@ -154,3 +154,4 @@ jobs:
           fail_ci_if_error: true
           directory: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/
           verbose: true
+          flags: ui-tests

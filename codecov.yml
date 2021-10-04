@@ -9,5 +9,15 @@ coverage:
         threshold: 0.5%
 
 comment:
-  layout: "diff"
+  layout: "diff, flags"
   require_changes: true
+
+flags:
+  server:
+    paths:
+      - ".*\.py"
+    carryforward: true
+  ui-tests:
+    paths:
+      - ".*\.js"
+    carryforward: true
