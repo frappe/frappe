@@ -536,8 +536,8 @@ frappe.ui.filter_utils = {
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
 			df.options = [
-				{ label: __('Set'), value: 'set' },
-				{ label: __('Not Set'), value: 'not set' },
+				{ label: __('Set', null, 'Field value is set'), value: 'set' },
+				{ label: __('Not Set', null, 'Field value is not set'), value: 'not set' },
 			];
 		}
 		return;
