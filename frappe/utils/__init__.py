@@ -795,7 +795,7 @@ def get_assets_json():
 			assets_json = None
 
 		# if value found, decode it
-		if assets_json != None:
+		if assets_json is not None:
 			try:
 				assets_json = assets_json.decode('utf-8')
 			except (UnicodeDecodeError, AttributeError):
