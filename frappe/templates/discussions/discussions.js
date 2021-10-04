@@ -87,12 +87,17 @@ const setup_socket_io = () => {
 };
 
 const publish_message = (data) => {
+	const doctype = decodeURIComponent($(".discussions-parent .thread-card").attr("data-doctype"));
+	const docname = decodeURIComponent($(".discussions-parent .thread-card").attr("data-docname"));
+	const topic = data.topic_info;
 
-	if ($(`.discussion-on-page[data-topic=${data.topic_info.name}]`).length) {
+	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
+
 		post_message_cleanup();
-		$('<div class="card-divider-dark mb-8"></div>' + data.template).insertBefore(`.discussion-on-page[data-topic=${data.topic_info.name}] .discussion-form`);
-	} else if ((decodeURIComponent($(".discussions-parent .discussions-card").attr("data-doctype")) == data.topic_info.reference_doctype
-		&& decodeURIComponent($(".discussions-parent .discussions-card").attr("data-docname")) == data.topic_info.reference_docname)) {
+		$('<div class="card-divider-dark mb-8"></div>' + data.template)
+			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
+
+	} else if (doctype == topic.reference_doctype && docname == topic.reference_docname) {
 
 		post_message_cleanup();
 		data.new_topic_template = style_avatar_frame(data.new_topic_template);
@@ -100,16 +105,18 @@ const publish_message = (data) => {
 		$(data.sidebar).insertAfter(`.discussions-sidebar .form-group`);
 		$(`#discussion-group`).prepend(data.new_topic_template);
 
-		if (data.topic_info.owner == frappe.session.user) {
+		if (topic.owner == frappe.session.user) {
 			$(".discussion-on-page").collapse();
 			$(".sidebar-topic").first().click();
 		}
-	} else if (data.topic_info.owner == frappe.session.user) {
+
+	} else if (topic.owner == frappe.session.user
+		&& doctype == topic.reference_docname && docname == topic.reference_docname) {
 		post_message_cleanup();
 		window.location.reload();
 	}
 
-	update_reply_count(data.topic_info.name);
+	update_reply_count(topic.name);
 };
 
 const post_message_cleanup = () => {
@@ -191,10 +198,10 @@ const submit_discussion = (e) => {
 	const reply = $(".comment-field:visible").val().trim();
 
 	if (reply) {
-		let doctype = $(e.currentTarget).attr("data-doctype");
+		let doctype = $(e.currentTarget).closest(".thread-card").attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
-		let docname = $(e.currentTarget).attr("data-docname");
+		let docname = $(e.currentTarget).closest(".thread-card").attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
 		frappe.call({
