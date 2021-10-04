@@ -27,9 +27,10 @@ def migrate(verbose=True, skip_failing=False, skip_search_index=False):
 	- run patches
 	- sync doctypes (schema)
 	- sync dashboards
+	- sync jobs
 	- sync fixtures
-	- sync desktop icons
-	- sync web pages (from /www)
+	- sync customizations
+	- sync languages
 	- sync web pages (from /www)
 	- run after migrate hooks
 	'''
@@ -67,7 +68,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		frappe.modules.patch_handler.run_all(skip_failing)
 
 		# sync
-		frappe.model.sync.sync_all(verbose=verbose)
+		frappe.model.sync.sync_all()
 		frappe.translate.clear_cache()
 		sync_jobs()
 		sync_fixtures()
