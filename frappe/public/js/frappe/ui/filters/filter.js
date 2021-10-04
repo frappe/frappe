@@ -490,6 +490,8 @@ frappe.ui.filter_utils = {
 				'Small Text',
 				'Text Editor',
 				'Code',
+				'Markdown Editor',
+				'HTML Editor',
 				'Tag',
 				'Comments',
 				'Dynamic Link',
