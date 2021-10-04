@@ -628,16 +628,30 @@ export default class ChartWidget extends Widget {
 	}
 
 	render_heatmap_legend() {
+		let legend_colors;
+
+		let set_legend_color = (options) => {
+			legend_colors = JSON.parse(options).colors;
+		}
+
+		if (this.custom_options) {
+			set_legend_color(this.custom_options);
+		}
+
+		if (this.chart_doc.custom_options) {
+			set_legend_color(this.chart_doc.custom_options);
+		}
+
 		if (!this.$heatmap_legend && this.widget.width() > 991) {
 			this.$heatmap_legend =
 				$(`
 				<div class="heatmap-legend">
 					<ul class="legend-colors">
-						<li style="background-color: #ebedf0"></li>
-						<li style="background-color: #c6e48b"></li>
-						<li style="background-color: #7bc96f"></li>
-						<li style="background-color: #239a3b"></li>
-						<li style="background-color: #196127"></li>
+						<li style="background-color: ${legend_colors[0] || '#ebedf0'}"></li>
+						<li style="background-color: ${legend_colors[1] || '#c6e48b'}"></li>
+						<li style="background-color: ${legend_colors[2] || '#7bc96f'}"></li>
+						<li style="background-color: ${legend_colors[3] || '#239a3b'}"></li>
+						<li style="background-color: ${legend_colors[4] || '#196127'}"></li>
 					</ul>
 					<div class="legend-label">
 						<div style="margin-bottom: 45px">${__("Less")}</div>
