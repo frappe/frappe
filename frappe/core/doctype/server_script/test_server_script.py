@@ -79,7 +79,7 @@ frappe.db.commit()
 		reference_doctype = 'ToDo',
 		disabled = 1,
 		script = '''
-frappe.cache.set_value('test_key', doc.name)
+frappe.cache().set_value('test_key', doc.name)
 '''
 	)
 ]
