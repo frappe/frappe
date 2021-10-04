@@ -12,17 +12,17 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import block_user
 from frappe.utils import update_progress_bar
 
-def sync_all(force=0, verbose=False, reset_permissions=False):
+def sync_all(force=0, reset_permissions=False):
 	block_user(True)
 
 	for app in frappe.get_installed_apps():
-		sync_for(app, force, verbose=verbose, reset_permissions=reset_permissions)
+		sync_for(app, force, reset_permissions=reset_permissions)
 
 	block_user(False)
 
 	frappe.clear_cache()
 
-def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_permissions=False):
+def sync_for(app_name, force=0, reset_permissions=False):
 	files = []
 
 	if app_name == "frappe":
@@ -61,14 +61,13 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 
 	for module_name in frappe.local.app_modules.get(app_name) or []:
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
-		files = get_doc_files(files, folder, force, sync_everything, verbose=verbose)
+		files = get_doc_files(files=files, start_path=folder)
 
 	l = len(files)
 
 	if l:
 		for i, doc_path in enumerate(files):
-			import_file_by_path(doc_path, force=force, ignore_version=True,
-				reset_permissions=reset_permissions, for_sync=True)
+			import_file_by_path(doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions, for_sync=True)
 
 			frappe.db.commit()
 
@@ -78,7 +77,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 		# print each progress bar on new line
 		print()
 
-def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
+def get_doc_files(files, start_path):
 	"""walk and sync all doctypes and pages"""
 
 	files = files or []
