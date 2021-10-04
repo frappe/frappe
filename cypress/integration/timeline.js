@@ -11,6 +11,7 @@ context('Timeline', () => {
 		cy.visit('/app/todo');
 		cy.click_listview_primary_button('Add ToDo');
 		cy.findByRole('button', {name: 'Edit in full page'}).click();
+		cy.findByTitle('New ToDo').should('be.visible');
 		cy.get('[data-fieldname="description"] .ql-editor').eq(0).type('Test ToDo', {force: true});
 		cy.wait(200);
 		cy.findByRole('button', {name: 'Save'}).click();
