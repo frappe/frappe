@@ -1,0 +1,32 @@
+<form class="discussion-form">
+
+		<div class="form-group">
+			<div class="control-input-wrapper">
+				<div class="control-input">
+					<input type="text" autocomplete="off" class="input-with-feedback form-control topic-title" data-fieldtype="Data"
+						data-fieldname="feedback_comments" placeholder="{{ _('Type title') }}" spellcheck="false"></input>
+				</div>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="control-input-wrapper">
+				<div class="control-input">
+					<textarea type="text" autocomplete="off" class="input-with-feedback form-control comment-field"
+						data-fieldtype="Text" data-fieldname="feedback_comments" placeholder="{{ _('Type here. Use markdown to format.') }}"
+						spellcheck="false"></textarea>
+				</div>
+			</div>
+		</div>
+
+		<div class="comment-footer">
+			<div class="small flex-grow-1">
+				{{ _("Press Cmd+Enter to post your comment") }}
+			</div>
+
+			<a class="dark-links cancel-comment hide"> {{ _("Cancel") }} </a>
+			<div class="button is-default submit-discussion pull-right mb-1" data-doctype="{{ doctype | urlencode }}"
+				data-docname="{{ docname | urlencode }}">
+				{{ _("Post") }} </div>
+		</div>
+	</form>

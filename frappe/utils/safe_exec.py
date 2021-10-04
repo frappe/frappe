@@ -84,6 +84,7 @@ def get_safe_globals():
 			form_dict=getattr(frappe.local, 'form_dict', {}),
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
+			errprint=frappe.errprint,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
