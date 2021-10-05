@@ -147,13 +147,13 @@ def get_safe_globals():
 			set_value = frappe.db.set_value,
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
-			escape = frappe.db.escape,
-			sql = read_sql,
-			sum = frappe.db.sum,
-			avg = frappe.db.avg,
 			count = frappe.db.count,
 			min = frappe.db.min,
-			max = frappe.db.max
+			max = frappe.db.max,
+			avg = frappe.db.avg,
+			sum = frappe.db.sum,
+			escape = frappe.db.escape,
+			sql = read_sql
 		)
 
 	if frappe.response:

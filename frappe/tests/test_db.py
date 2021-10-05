@@ -46,12 +46,6 @@ class TestDB(unittest.TestCase):
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
-	def test_aggregation(self):
-		self.assertTrue(type(frappe.db.sum('DocField', 'permlevel', dict(parent=('like', 'doc')))) in (int, float))
-		self.assertTrue(type(frappe.db.avg('DocField', 'permlevel')) in (int, float))
-		self.assertTrue(type(frappe.db.min('DocField', 'permlevel')) in (int, float))
-		self.assertTrue(type(frappe.db.max('DocField', 'permlevel')) in (int, float))
-
 	def test_get_single_value(self):
 		#setup
 		values_dict = {
