@@ -176,8 +176,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 				me.layout.refresh_dependency();
 				me.layout.refresh_sections();
-				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
-				return object;
+				return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			}
 		});
 
@@ -192,7 +191,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
 					me.dirty();
 					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-					me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			});
 		});

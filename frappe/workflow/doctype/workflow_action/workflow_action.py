@@ -10,9 +10,10 @@ from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access, \
-	get_workflow_state_field, send_email_alert, get_workflow_field_value, is_transition_condition_satisfied
+	get_workflow_state_field, send_email_alert, is_transition_condition_satisfied
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
+from frappe.utils.data import get_link_to_form
 
 class WorkflowAction(Document):
 	pass
@@ -285,13 +286,13 @@ def get_common_email_args(doc):
 		subject = frappe.render_template(email_template.subject, vars(doc))
 		response = frappe.render_template(email_template.response, vars(doc))
 	else:
-		subject = _('Workflow Action')
-		response = _('{0}: {1}').format(doctype, docname)
+		subject = _('Workflow Action') + f" on {doctype}: {docname}"
+		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
 
 	common_args = {
 		'template': 'workflow_action',
 		'header': 'Workflow Action',
-		'attachments': [frappe.attach_print(doctype, docname , file_name=docname)],
+		'attachments': [frappe.attach_print(doctype, docname, file_name=docname, doc=doc)],
 		'subject': subject,
 		'message': response
 	}
