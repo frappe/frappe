@@ -23,9 +23,10 @@ class PackageRelease(Document):
 				.where(doctype.package == self.package) \
 				.select(Max("minor")).run()[0][0] or 0
 		if not self.patch:
-			self.patch = frappe.qb.from_(doctype) \
+			value = frappe.qb.from_(doctype) \
 				.where(doctype.package == self.package) \
-				.select(Max("patch")).run()[0][0] or 1
+				.select(Max("patch")).run()[0][0] or 0
+			self.patch = value + 1
 
 	def autoname(self):
 		self.set_version()
