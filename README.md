@@ -55,5 +55,9 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 For details and documentation, see the website
 [https://frappeframework.com](https://frappeframework.com)
 
+## Learning
+
+1. [Frappe School](https://frappe.school) - Learn Frappe Framework and ERPNext from the various courses by the maintainers or from the community.
+
 ### License
 This repository has been released under the [MIT License](LICENSE).
