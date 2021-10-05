@@ -30,13 +30,20 @@ class NamespaceDict(frappe._dict):
 			return default_function
 		return ret
 
+def get_safe_query_builder():
+	"""Allows execution of SELECT SQL queries only.
 
-query_class = get_attr(str(frappe.qb).split("'")[1])
-class SafeQb(query_class):
-	def __init__(self, *args, **kwargs):
-		_builder = get_type_hints(super()._builder).get('return')
-		_builder.run = read_sql
+	Raises:
+	   	PermissionsError raised on execution of any other SQL query.
 
+	"""
+	query_class = get_attr(str(frappe.qb).split("'")[1])
+	class SafeQB(query_class):
+		def __init__(self, *args, **kwargs):
+			_builder = get_type_hints(super()._builder).get('return')
+			_builder.run = read_sql
+
+	return SafeQB()
 
 def safe_exec(script, _globals=None, _locals=None):
 	# server scripts can be disabled via site_config.json
@@ -61,7 +68,7 @@ def safe_exec(script, _globals=None, _locals=None):
 
 def get_safe_globals():
 	datautils = frappe._dict()
-	safe_qb = SafeQb()
+	safe_qb = get_safe_query_builder()
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
