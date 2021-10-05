@@ -1123,7 +1123,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="", svg_class="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
 		let size_class = "";
 		let icon_style = "";
 		if (typeof size == "object") {

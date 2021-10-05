@@ -114,7 +114,7 @@ export default class ListSettings {
 
 					<div class="row">
 						<div class="col-md-1">
-							${frappe.utils.icon("drag", "xs", "", "sortable-handle " + show_sortable_handle)}
+							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
 							${me.fields[idx].label}
