@@ -34,7 +34,7 @@ body {
 
 @media screen {
 	html {
-		background-color: var(--gray-300);
+		background-color: var(--gray-200);
 	}
 	body {
 		background-color: white;
