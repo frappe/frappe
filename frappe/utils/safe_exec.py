@@ -32,10 +32,8 @@ class NamespaceDict(frappe._dict):
 
 def get_safe_query_builder():
 	"""Allows execution of SELECT SQL queries only.
-
 	Raises:
-	   	PermissionsError raised on execution of any other SQL query.
-
+	   	PermissionsError raised on execution of any other SQL query
 	"""
 	query_class = get_attr(str(frappe.qb).split("'")[1])
 	class SafeQB(query_class):

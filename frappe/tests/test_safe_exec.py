@@ -27,8 +27,7 @@ class TestSafeExec(unittest.TestCase):
 
 	def test_query_builder(self):
 		_locals = dict(out=None)
-		safe_exec(script='''out = frappe.qb.from_("User").select(frappe.qb.terms.PseudoColumn("Max(name)")).run()''',
-				  _globals=None, _locals=_locals)
+		safe_exec(script='''out = frappe.qb.from_("User").select(frappe.qb.terms.PseudoColumn("Max(name)")).run()''', _globals=None, _locals=_locals)
 		self.assertEqual(frappe.db.sql("SELECT Max(name) FROM tabUser"), _locals["out"])
 
 	def test_safe_query_builder(self):
