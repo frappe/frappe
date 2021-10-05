@@ -138,15 +138,28 @@ def read_doc_from_file(path):
 def update_modified(original_modified, doc):
 	# since there is a new timestamp on the file, update timestamp in
 	if doc["doctype"] == doc["name"] and doc["name"] != "DocType":
-		frappe.db.sql(
-			"""update tabSingles set value=%s where field="modified" and doctype=%s""", (original_modified, doc["name"])
-		)
-	else:
-		frappe.db.sql("update `tab%s` set modified=%s where name=%s" % (doc['doctype'],
-			'%s', '%s'), (original_modified, doc['name']))
+		singles_table = frappe.qb.DocType("Singles")
 
-def import_doc(docdict, force=False, data_import=False, pre_process=None,
-		ignore_version=None, reset_permissions=False, path=None):
+		frappe.qb.update(
+			singles_table
+		).set(
+			singles_table.value,original_modified
+		).where(
+			singles_table.field == "modified"
+		).where(
+			singles_table.doctype == doc["name"]
+		).run()
+	else:
+		doctype_table = frappe.qb.DocType(doc['doctype'])
+		
+		frappe.qb.update(doctype_table
+		).set(
+			doctype_table.modified, original_modified
+		).where(
+			doctype_table.name == doc["name"]
+		).run()
+
+def import_doc(docdict, force=False, data_import=False, pre_process=None, ignore_version=None, reset_permissions=False, path=None):
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 
