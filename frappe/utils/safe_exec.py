@@ -30,7 +30,10 @@ class NamespaceDict(frappe._dict):
 			return default_function
 		return ret
 
+def get_safe_query_builder():
+	"""Allows execution of SELECT SQL queries only.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 =======
@@ -39,7 +42,19 @@ class SafeQb(query_class):
 	def __init__(self, *args, **kwargs):
 		_builder = get_type_hints(super()._builder).get('return')
 		_builder.run = read_sql
+=======
+	Raises:
+	   	PermissionsError raised on execution of any other SQL query.
+>>>>>>> 6c706ec000 (fix: fixed multitenancy in safeqb)
 
+	"""
+	query_class = get_attr(str(frappe.qb).split("'")[1])
+	class SafeQB(query_class):
+		def __init__(self, *args, **kwargs):
+			_builder = get_type_hints(super()._builder).get('return')
+			_builder.run = read_sql
+
+	return SafeQB()
 
 def safe_exec(script, _globals=None, _locals=None):
 >>>>>>> 9c00a28869 (feat: Added safe_qb for server scripts)
@@ -69,7 +84,7 @@ def safe_exec(script, _globals=None, _locals=None):
 
 def get_safe_globals():
 	datautils = frappe._dict()
-	safe_qb = SafeQb()
+	safe_qb = get_safe_query_builder()
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
