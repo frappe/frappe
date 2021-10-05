@@ -14,12 +14,7 @@ context('List View', () => {
 		cy.get('.dropdown-menu li:visible .dropdown-item .menu-item-label[data-label="Edit"]').click();
 
 		cy.get('.modal-body .form-control[data-fieldname="field"]').first().select('Due Date').wait(200);
-		cy.get('.modal-body .frappe-control[data-fieldname="value"] input:visible').first().focus();
-		cy.get('.datepickers-container .datepicker.active').should('be.visible');
-
-		cy.get('.datepickers-container .datepicker.active .datepicker--cell-day.-current-').click({force: true});
-		cy.get('.modal-body .frappe-control[data-fieldname="value"] input:visible').first().focus();
-		cy.get('.datepickers-container .datepicker.active .datepicker--cell-day.-current-').click({force: true});
+		cy.fill_field('value', '09-28-21', 'Date');
 
 		cy.get('.modal-footer .standard-actions .btn-primary').click();
 		cy.wait(500);
@@ -46,7 +41,9 @@ context('List View', () => {
 			}).as('real-time-update');
 			cy.wrap(elements).contains('Approve').click();
 			cy.wait(['@bulk-approval', '@real-time-update']);
-			cy.hide_dialog();
+			cy.wait(300);
+			cy.get_open_dialog().find('.btn-modal-close').click();
+			cy.reload();
 			cy.clear_filters();
 			cy.get('.list-row-container:visible').should('contain', 'Approved');
 		});

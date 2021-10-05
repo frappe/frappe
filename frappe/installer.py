@@ -29,6 +29,10 @@ def _new_site(
 ):
 	"""Install a new Frappe site"""
 
+	from frappe.commands.scheduler import _is_scheduler_enabled
+	from frappe.utils import get_site_path, scheduler, touch_file
+
+
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
 		sys.exit(1)
@@ -37,14 +41,11 @@ def _new_site(
 		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
-	if not db_name:
-		import hashlib
-		db_name = "_" + hashlib.sha1(site.encode()).hexdigest()[:16]
-
 	frappe.init(site=site)
 
-	from frappe.commands.scheduler import _is_scheduler_enabled
-	from frappe.utils import get_site_path, scheduler, touch_file
+	if not db_name:
+		import hashlib
+		db_name = "_" + hashlib.sha1(os.path.realpath(frappe.get_site_path()).encode()).hexdigest()[:16]
 
 	try:
 		# enable scheduler post install?

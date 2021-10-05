@@ -1125,9 +1125,9 @@ Object.assign(frappe.utils, {
 
 	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
 		let size_class = "";
-		let icon_style = "";
+
 		if (typeof size == "object") {
-			icon_style = `width: ${size.width}; height: ${size.height}`;
+			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
