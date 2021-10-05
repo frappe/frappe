@@ -87,18 +87,23 @@ const setup_socket_io = () => {
 };
 
 const publish_message = (data) => {
-	const doctype = decodeURIComponent($(".discussions-parent .thread-card").attr("data-doctype"));
-	const docname = decodeURIComponent($(".discussions-parent .thread-card").attr("data-docname"));
+	const doctype = decodeURIComponent($(".discussions-parent").attr("data-doctype"));
+	const docname = decodeURIComponent($(".discussions-parent").attr("data-docname"));
 	const topic = data.topic_info;
 
-	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
+	console.log(topic, doctype, topic.reference_doctype, docname, topic.reference_docname, doctype == topic.reference_doctype, docname == topic.reference_docname)
+	console.log(topic.owner, frappe.session.user, topic.owner == frappe.session.user)
 
+	console.log(topic.owner == frappe.session.user && doctype == topic.reference_doctype && docname == topic.reference_docname)
+	console.log(topic.title)
+	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
+		console.log("if")
 		post_message_cleanup();
 		$('<div class="card-divider-dark mb-8"></div>' + data.template)
 			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
-	} else if (doctype == topic.reference_doctype && docname == topic.reference_docname) {
-
+	} else if (doctype == topic.reference_doctype && docname == topic.reference_docname && $(".reply-card").length) {
+		console.log("elif")
 		post_message_cleanup();
 		data.new_topic_template = style_avatar_frame(data.new_topic_template);
 
@@ -106,13 +111,13 @@ const publish_message = (data) => {
 		$(`#discussion-group`).prepend(data.new_topic_template);
 
 		if (topic.owner == frappe.session.user) {
-			$(".discussion-on-page").collapse();
+			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-topic").first().click();
 		}
 
-	} else if (topic.owner == frappe.session.user
-		&& doctype == topic.reference_docname && docname == topic.reference_docname) {
+	} else if (topic.owner == frappe.session.user && doctype == topic.reference_doctype && docname == topic.reference_docname) {
 		post_message_cleanup();
+		console.log("in")
 		window.location.reload();
 	}
 
@@ -198,10 +203,10 @@ const submit_discussion = (e) => {
 	const reply = $(".comment-field:visible").val().trim();
 
 	if (reply) {
-		let doctype = $(e.currentTarget).closest(".thread-card").attr("data-doctype");
+		let doctype = $(e.currentTarget).closest(".discussions-parent").attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
-		let docname = $(e.currentTarget).closest(".thread-card").attr("data-docname");
+		let docname = $(e.currentTarget).closest(".discussions-parent").attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
 		frappe.call({

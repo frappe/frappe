@@ -1,9 +1,11 @@
 {% set topics = frappe.get_all("Discussion Topic",
 {"reference_doctype": doctype, "reference_docname": docname}, ["name", "title", "owner", "creation"]) %}
 
-{% include "frappe/templates/discussions/topic_modal.html" %}
 
-<div class="discussions-parent">
+<div class="discussions-parent" data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
+
+	{% include "frappe/templates/discussions/topic_modal.html" %}
+
 	<div class="discussions-header">
 		<span class="course-home-headings">{{ _(title) }}</span>
 		{% if topics %}
@@ -11,20 +13,24 @@
 		{% endif %}
 	</div>
 
-
-	<div class="common-card-style thread-card {% if topics | length or not single_thread %} discussions-card {% endif %} "
-		data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
+	<div class="common-card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %} ">
 		{% if topics %}
+
+		{% if not single_thread %}
 		<div class="discussions-sidebar">
 			{% include "frappe/templates/discussions/search.html" %}
+
 			{% for topic in topics %}
 			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}
 			{% include "frappe/templates/discussions/sidebar.html" %}
 			{% endfor %}
 		</div>
+		{% endif %}
 
 		<div class="mr-2" id="discussion-group">
+			{% for topic in topics %}
 			{% include "frappe/templates/discussions/reply_section.html" %}
+			{% endfor %}
 		</div>
 
 		{% elif not topics and single_thread %}

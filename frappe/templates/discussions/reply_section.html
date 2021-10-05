@@ -1,8 +1,6 @@
-{% for topic in topics %}
 {% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name},
 ["reply", "owner", "creation"], order_by="creation")%}
 
-{% if replies %}
 <div class="collapse discussion-on-page" id="t{{ topic.name }}" data-topic="{{ topic.name }}"
 	data-parent="#discussion-group">
 
@@ -34,5 +32,3 @@
 	{% endif %}
 
 </div>
-{% endif %}
-{% endfor %}

@@ -27,7 +27,7 @@ class DiscussionReply(Document):
 		})
 
 		new_topic_template = frappe.render_template("frappe/templates/discussions/reply_section.html", {
-			"topics": topic_info
+			"topic": topic_info[0]
 		})
 
 		frappe.publish_realtime(
