@@ -32,6 +32,7 @@ class NamespaceDict(frappe._dict):
 
 def get_safe_query_builder():
 	"""Allows execution of SELECT SQL queries only.
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47,6 +48,10 @@ class SafeQb(query_class):
 	   	PermissionsError raised on execution of any other SQL query.
 >>>>>>> 6c706ec000 (fix: fixed multitenancy in safeqb)
 
+=======
+	Raises:
+	   	PermissionsError raised on execution of any other SQL query
+>>>>>>> 2a241bd2dc (style: formatted code)
 	"""
 	query_class = get_attr(str(frappe.qb).split("'")[1])
 	class SafeQB(query_class):
