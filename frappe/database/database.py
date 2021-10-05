@@ -523,11 +523,13 @@ class Database(object):
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		field_objects = []
+
 		for field in fields:
 			if "(" in field or " as " in field:
 				field_objects.append(PseudoColumn(field))
 			else:
 				field_objects.append(field)
+
 		criterion = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update)
 
 		if isinstance(fields, (list, tuple)):
