@@ -1,19 +1,34 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+<<<<<<< HEAD
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
 
 import frappe, os, json
+=======
+# License: MIT. See LICENSE
+import hashlib
+import json
+import os
+
+import frappe
+from frappe.model.base_document import get_controller
+>>>>>>> 3ac65adb94 (style: misc changes)
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
-from frappe.model.base_document import get_controller
-
-import hashlib
 
 
-def md5(fname):
+def caclulate_hash(path: str) -> str:
+	"""Calculate md5 hash of the file in binary mode
+
+	Args:
+		path (str): Path to the file to be hashed
+
+	Returns:
+		str: The calculated hash
+	"""
 	hash_md5 = hashlib.md5()
-	with open(fname, "rb") as f:
+	with open(path, "rb") as f:
 		for chunk in iter(lambda: f.read(4096), b""):
 			hash_md5.update(chunk)
 	return hash_md5.hexdigest()
@@ -35,9 +50,7 @@ def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_
 	if type(module) is list:
 		out = []
 		for m in module:
-			out.append(
-				import_file(m[0], m[1], m[2], force=force, pre_process=pre_process, reset_permissions=reset_permissions)
-			)
+			out.append(import_file(m[0], m[1], m[2], force=force, pre_process=pre_process, reset_permissions=reset_permissions))
 		return out
 	else:
 		return import_file(module, dt, dn, force=force, pre_process=pre_process, reset_permissions=reset_permissions)
@@ -57,8 +70,7 @@ def get_file_path(module, dt, dn):
 
 	return path
 
-def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None,
-		reset_permissions=False, for_sync=False):
+def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None, reset_permissions=False, for_sync=False):
 	frappe.flags.dt = frappe.flags.dt or []
 	try:
 		docs = read_doc_from_file(path)
@@ -66,7 +78,7 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 		print(f"{path} missing")
 		return
 
-	curr_hash = md5(path)
+	calculated_hash = caclulate_hash(path)
 
 	if docs:
 		if not isinstance(docs, list):
@@ -80,17 +92,25 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 				if db_modified and doc.get('modified')==get_datetime_str(db_modified):
 =======
 				try:
-					db_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
+					stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
 				except Exception:
 					frappe.flags.dt += [doc["doctype"]]
-					db_hash = None
+					stored_hash = None
 
+<<<<<<< HEAD
 				if not db_hash:
 					db_modified = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
 					if db_modified and doc.get("modified") == get_datetime_str(db_modified):
 						return False
 				if curr_hash == db_hash:
 >>>>>>> db6fc6a5fb (feat: Hash based comparison migration)
+=======
+				# fallback if stored_hash doesn't exist
+				if not stored_hash and is_timestamp_changed(doc):
+					return False
+
+				if calculated_hash == stored_hash:
+>>>>>>> 3ac65adb94 (style: misc changes)
 					return False
 
 			original_modified = doc.get("modified")
@@ -112,12 +132,10 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			)
 >>>>>>> b2b391e90a (style: misc)
 
+			# not using db.set_value to avoid making changes in tabSingles
 			if doc["doctype"] == "DocType":
-				if doc["name"] == "DocType":
-					Doctype_table=frappe.qb.DocType("DocType")
-					frappe.qb.update(Doctype_table).set(Doctype_table.migration_hash, curr_hash).where(Doctype_table.name == "DocType").run()
-				else:
-					frappe.db.set_value(doc["doctype"], doc["name"], "migration_hash", curr_hash)
+				doctype_table = frappe.qb.DocType("DocType")
+				frappe.qb.update(doctype_table).set(doctype_table.migration_hash, calculated_hash).where(doctype_table.name == doc["name"]).run()
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
@@ -132,13 +150,17 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 <<<<<<< HEAD
 =======
 
-def is_changed(doc):
+def is_timestamp_changed(doc):
 	# check if timestamps match
 	db_modified = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
+<<<<<<< HEAD
 	if db_modified and doc.get("modified") == get_datetime_str(db_modified):
 		return False
 >>>>>>> b2b391e90a (style: misc)
 	return True
+=======
+	return not (db_modified and doc.get("modified") == get_datetime_str(db_modified))
+>>>>>>> 3ac65adb94 (style: misc changes)
 
 
 def read_doc_from_file(path):
