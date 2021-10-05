@@ -83,6 +83,7 @@ def get_doc_files(files, start_path):
 	files = files or []
 
 	# load in sequence - warning for devs
+<<<<<<< HEAD
 	document_types = ['doctype', 'page', 'report', 'dashboard_chart_source', 'print_format',
 		'website_theme', 'web_form', 'web_template', 'notification', 'print_style',
 		'data_migration_mapping', 'data_migration_plan', 'workspace',
@@ -91,6 +92,31 @@ def get_doc_files(files, start_path):
 
 =======
 >>>>>>> 278883edb0 (fix: missing migration hash column)
+=======
+	document_types = [
+		"doctype",
+		"page",
+		"report",
+		"dashboard_chart_source",
+		"print_format",
+		"web_page",
+		"website_theme",
+		"web_form",
+		"web_template",
+		"notification",
+		"print_style",
+		"data_migration_mapping",
+		"data_migration_plan",
+		"workspace",
+		"onboarding_step",
+		"module_onboarding",
+		"form_tour",
+		"client_script",
+		"server_script",
+		"custom_field",
+		"property_setter",
+	]
+>>>>>>> 0be59cee80 (chore: add missing document_types)
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
