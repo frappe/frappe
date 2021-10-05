@@ -81,10 +81,29 @@ def get_doc_files(files, start_path):
 	files = files or []
 
 	# load in sequence - warning for devs
-	document_types = ['doctype', 'page', 'report', 'dashboard_chart_source', 'print_format',
-		'website_theme', 'web_form', 'web_template', 'notification', 'print_style',
-		'data_migration_mapping', 'data_migration_plan', 'workspace',
-		'onboarding_step', 'module_onboarding']
+	document_types = [
+		"doctype",
+		"page",
+		"report",
+		"dashboard_chart_source",
+		"print_format",
+		"web_page",
+		"website_theme",
+		"web_form",
+		"web_template",
+		"notification",
+		"print_style",
+		"data_migration_mapping",
+		"data_migration_plan",
+		"workspace",
+		"onboarding_step",
+		"module_onboarding",
+		"form_tour",
+		"client_script",
+		"server_script",
+		"custom_field",
+		"property_setter",
+	]
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
