@@ -4,9 +4,17 @@ codecov:
 coverage:
   status:
     project:
-      default:
+      default: false
+      server:
         target: auto
         threshold: 0.5%
+        flags:
+          - server
+      ui-tests:
+        target: auto
+        threshold: 0.5%
+        flags:
+          - ui-tests
 
 comment:
   layout: "diff, flags"
@@ -15,9 +23,9 @@ comment:
 flags:
   server:
     paths:
-      - ".*\.py"
+      - ".*\\.py"
     carryforward: true
   ui-tests:
     paths:
-      - ".*\.js"
+      - ".*\\.js"
     carryforward: true
