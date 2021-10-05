@@ -105,7 +105,7 @@ async function execute() {
 		log();
 		log(chalk.dim(e.stack));
 		if (process.env.CI) {
-			process.kill(process.pid)
+			process.kill(process.pid);
 		}
 		return;
 	}
