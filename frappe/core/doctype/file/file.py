@@ -839,6 +839,7 @@ def extract_images_from_html(doc, content):
 
 		doctype = doc.parenttype if doc.parent else doc.doctype
 		name = doc.parent or doc.name
+		is_private = True if doctype == "Comment" else False
 
 		_file = frappe.get_doc({
 			"doctype": "File",
@@ -846,7 +847,8 @@ def extract_images_from_html(doc, content):
 			"attached_to_doctype": doctype,
 			"attached_to_name": name,
 			"content": content,
-			"decode": False
+			"decode": False,
+			"is_private": is_private
 		})
 		_file.save(ignore_permissions=True)
 		file_url = _file.file_url
