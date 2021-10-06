@@ -260,9 +260,11 @@ function get_chat_room(socket, room) {
 }
 
 function get_site_name(socket) {
+	var hostname_from_host = get_hostname(socket.request.headers.host);
+
 	if (socket.request.headers['x-frappe-site-name']) {
 		return get_hostname(socket.request.headers['x-frappe-site-name']);
-	} else if (['localhost', '127.0.0.1'].indexOf(socket.request.headers.host) !== -1 &&
+	} else if (['localhost', '127.0.0.1'].indexOf(hostname_from_host) !== -1 &&
 		conf.default_site) {
 		// from currentsite.txt since host is localhost
 		return conf.default_site;

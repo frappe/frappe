@@ -100,8 +100,8 @@ def report_to_pdf(html, orientation="Landscape"):
 	frappe.local.response.type = "pdf"
 
 @frappe.whitelist()
-def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0):
-	print_settings = frappe.get_doc("Print Settings")
+def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0):
+	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups
 	except ImportError:
@@ -125,4 +125,4 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:
-		cleanup(file,{})
+		return

@@ -925,7 +925,16 @@ Object.assign(frappe.utils, {
 		// decodes base64 to string
 		let parts = dataURI.split(',');
 		const encoded_data = parts[1];
-		return decodeURIComponent(escape(atob(encoded_data)));
+		let decoded = atob(encoded_data);
+		try {
+			const escaped = escape(decoded);
+			decoded = decodeURIComponent(escaped);
+
+		} catch (e) {
+			// pass decodeURIComponent failure
+			// just return atob response
+		}
+		return decoded;
 	},
 	copy_to_clipboard(string) {
 		let input = $("<input>");
