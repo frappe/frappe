@@ -191,3 +191,54 @@ def create_form_tour():
 		}]
 	})
 	tour.insert()
+
+@frappe.whitelist()
+def create_data_for_discussions():
+	web_page = create_web_page()
+	create_topic_and_reply(web_page)
+
+def create_web_page():
+	web_page = frappe.db.exists("Web Page", {"route": "test-page-discussions"})
+	if not web_page:
+		web_page = frappe.get_doc({
+			"doctype": "Web Page",
+			"title": "Test page for discussions",
+			"route": "test-page-discussions",
+			"published": True
+		})
+		web_page.save()
+
+		web_page.append("page_blocks", {
+			"web_template": "Discussions",
+			"web_template_values": frappe.as_json({
+				"title": "Discussions",
+				"cta_title": "New Discussion",
+				"docname": web_page.name
+			})
+		})
+		web_page.save()
+
+	return web_page
+
+def create_topic_and_reply(web_page):
+	topic = frappe.db.exists("Discussion Topic",{
+		"reference_doctype": "Web Page",
+		"reference_docname": web_page.name
+	})
+
+	if not topic:
+		topic = frappe.get_doc({
+			"doctype": "Discussion Topic",
+			"reference_doctype": "Web Page",
+			"reference_docname": web_page.name,
+			"title": "Test Topic"
+		})
+		topic.save()
+
+		reply = frappe.get_doc({
+			"doctype": "Discussion Reply",
+			"topic": topic.name,
+			"reply": "This is a test reply"
+		})
+
+		reply.save()
