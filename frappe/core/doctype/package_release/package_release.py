@@ -6,16 +6,27 @@ from frappe.model.document import Document
 from frappe.modules.export_file import export_doc
 import os
 import subprocess
+from frappe.query_builder.functions import Max
+
 
 class PackageRelease(Document):
 	def set_version(self):
 		# set the next patch release by default
+		doctype = frappe.qb.DocType("Package Release")
 		if not self.major:
-			self.major = frappe.db.max('Package Release', 'major', dict(package=self.package))
+			self.major = frappe.qb.from_(doctype) \
+				.where(doctype.package == self.package) \
+				.select(Max(doctype.minor)).run()[0][0] or 0
+
 		if not self.minor:
-			self.minor = frappe.db.max('Package Release', 'minor', dict(package=self.package))
+			self.minor = frappe.qb.from_(doctype) \
+				.where(doctype.package == self.package) \
+				.select(Max("minor")).run()[0][0] or 0
 		if not self.patch:
-			self.patch = frappe.db.max('Package Release', 'patch', dict(package=self.package)) + 1
+			value = frappe.qb.from_(doctype) \
+				.where(doctype.package == self.package) \
+				.select(Max("patch")).run()[0][0] or 0
+			self.patch = value + 1
 
 	def autoname(self):
 		self.set_version()
