@@ -96,6 +96,7 @@ const publish_message = (data) => {
 
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
 		post_message_cleanup();
+		data.template = style_avatar_frame(data.template);
 		$('<div class="card-divider-dark mb-8"></div>' + data.template)
 			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
@@ -245,7 +246,8 @@ const get_color_from_palette = (element) => {
 
 const style_avatar_frame = (template) => {
 	const $template = $(template);
-	$template.find(".avatar-frame").css(get_color_from_palette($template.find(".avatar-frame")));
+	$template.find(".avatar-frame").length
+		&& $template.find(".avatar-frame").css(get_color_from_palette($template.find(".avatar-frame")));
 	return $template.prop("outerHTML");
 };
 
