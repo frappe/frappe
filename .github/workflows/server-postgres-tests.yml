@@ -131,3 +131,4 @@ jobs:
           fail_ci_if_error: true
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
+          flags: server

@@ -1,0 +1,58 @@
+{% set topics = frappe.get_all("Discussion Topic",
+{"reference_doctype": doctype, "reference_docname": docname}, ["name", "title", "owner", "creation"]) %}
+
+{% include "frappe/templates/discussions/topic_modal.html" %}
+
+<div class="discussions-parent">
+	<div class="discussions-header">
+		<span class="course-home-headings">{{ _(title) }}</span>
+		{% if topics %}
+		{% include "frappe/templates/discussions/button.html" %}
+		{% endif %}
+	</div>
+
+	{% if topics %}
+	<div class="common-card-style thread-card discussions-card" data-doctype="{{ doctype }}"
+		data-docname="{{ docname }}">
+
+		<div class="discussions-sidebar">
+			{% include "frappe/templates/discussions/search.html" %}
+			{% for topic in topics %}
+			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}
+			{% include "frappe/templates/discussions/sidebar.html" %}
+			{% endfor %}
+		</div>
+
+		<div class="mr-2" id="discussion-group">
+			{% include "frappe/templates/discussions/reply_section.html" %}
+		</div>
+	</div>
+	{% else %}
+
+	<div id="no-discussions" class="common-card-style thread-card">
+		<div class="no-discussions">
+			<div class="font-weight-bold">No {{ title }}</div>
+			<div class="small mt-3 mb-3">There are no {{ title | lower }} for this {{ doctype | lower }}, why don't you start
+				one! </div>
+			{% if frappe.session.user == "Guest" %}
+			<div class="button is-primary mt-3" id="login-from-discussion"> {{ _("Log In") }} </div>
+			{% elif condition is defined and not condition %}
+			<a class="button is-primary mt-3" id="login-from-discussion" href="" data-redirect="{{ redirect_to }}">
+				{{ button_name }}
+			</a>
+			{% else %}
+			{% include "frappe/templates/discussions/button.html" %}
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endif %}
+</div>
+
+{% block script %}
+	<script> {% include "frappe/templates/discussions/discussions.js" %} </script>
+{% endblock %}
+
+{% block style %}
+	<style> {% include "frappe/templates/styles/discussion_style.css" %} </style>
+{% endblock %}
