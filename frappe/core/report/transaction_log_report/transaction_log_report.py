@@ -18,7 +18,7 @@ def get_data(filters=None):
 	for l in logs:
 		row_index = int(l.row_index)
 		if row_index > 1:
-			previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransaction Log` WHERE row_index = {0}".format(row_index - 1))
+			previous_hash = frappe.get_list("Transaction Log", fields = "chaining_hash", filters = {"row_index":row_index - 1} )
 			if not previous_hash:
 				integrity = False
 			else:
