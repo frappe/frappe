@@ -66,7 +66,7 @@ frappe.views.Workspace = class Workspace {
 		if (this.all_pages) {
 			frappe.workspaces = {};
 			for (let page of this.all_pages) {
-				frappe.workspaces[frappe.router.slug(page.label)] = {title: page.title};
+				frappe.workspaces[frappe.router.slug(page.name)] = {title: page.title};
 			}
 			if (this.new_page && this.new_page.name) {
 				if (!frappe.workspaces[frappe.router.slug(this.new_page.name)]) {
@@ -94,10 +94,10 @@ frappe.views.Workspace = class Workspace {
 				<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
 					<a
 						href="/app/${item.public ? frappe.router.slug(item.title) : 'private/'+frappe.router.slug(item.title) }"
-						class="item-anchor ${item.is_editable ? "" : "block-click" }" title="${item.title}"
+						class="item-anchor ${item.is_editable ? "" : "block-click" }" title="${__(item.title)}"
 					>
 						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>${frappe.utils.icon(item.icon || "folder-normal", "md")}</span>
-						<span class="sidebar-item-label">${item.title}<span>
+						<span class="sidebar-item-label">${__(item.title)}<span>
 					</a>
 					<div class="sidebar-item-control"></div>
 				</div>
