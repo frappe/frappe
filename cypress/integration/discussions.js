@@ -70,7 +70,7 @@ context('Discussions', () => {
 		cy.wait(3000);
 		cy.get('.discussion-on-page').children(".reply-card").eq(-1).children(".reply-text")
 			.should('have.text', 'This comment is being made on a single thread discussion.\n');
-	}
+	};
 
 	it('reply through modal', reply_through_modal);
 	it('reply through comment box', reply_through_comment_box);
