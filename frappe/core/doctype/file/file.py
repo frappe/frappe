@@ -818,7 +818,7 @@ def extract_images_from_doc(doc, fieldname):
 		doc.set(fieldname, content)
 
 
-def extract_images_from_html(doc, content):
+def extract_images_from_html(doc, content, is_private=False):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
@@ -857,7 +857,6 @@ def extract_images_from_html(doc, content):
 =======
 		doctype = doc.parenttype if doc.parent else doc.doctype
 		name = doc.parent or doc.name
-		is_private = True if doctype == "Comment" else False
 
 		_file = frappe.get_doc({
 			"doctype": "File",
