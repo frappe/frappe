@@ -150,6 +150,7 @@ def get_context(context):
 					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
 						value = frappe.utils.cint(value)
 
+					doc.reload()
 					doc.set(fieldname, value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
