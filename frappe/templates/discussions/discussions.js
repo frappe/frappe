@@ -90,20 +90,16 @@ const publish_message = (data) => {
 	const doctype = decodeURIComponent($(".discussions-parent").attr("data-doctype"));
 	const docname = decodeURIComponent($(".discussions-parent").attr("data-docname"));
 	const topic = data.topic_info;
+	const single_thread = $(".is-single-thread").length;
+	const first_topic = !$(".reply-card").length;
+	const document_match_found = doctype == topic.reference_doctype && docname == topic.reference_docname;
 
-	console.log(topic, doctype, topic.reference_doctype, docname, topic.reference_docname, doctype == topic.reference_doctype, docname == topic.reference_docname)
-	console.log(topic.owner, frappe.session.user, topic.owner == frappe.session.user)
-
-	console.log(topic.owner == frappe.session.user && doctype == topic.reference_doctype && docname == topic.reference_docname)
-	console.log(topic.title)
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
-		console.log("if")
 		post_message_cleanup();
 		$('<div class="card-divider-dark mb-8"></div>' + data.template)
 			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
-	} else if (doctype == topic.reference_doctype && docname == topic.reference_docname && $(".reply-card").length) {
-		console.log("elif")
+	} else if (!first_topic && !single_thread && document_match_found) {
 		post_message_cleanup();
 		data.new_topic_template = style_avatar_frame(data.new_topic_template);
 
@@ -115,9 +111,14 @@ const publish_message = (data) => {
 			$(".sidebar-topic").first().click();
 		}
 
-	} else if (topic.owner == frappe.session.user && doctype == topic.reference_doctype && docname == topic.reference_docname) {
+	} else if (single_thread && document_match_found) {
 		post_message_cleanup();
-		console.log("in")
+		data.template = style_avatar_frame(data.template);
+		$(data.template).insertBefore(`.discussion-form`);
+		$(".discussion-on-page").attr("data-topic", topic.name);
+
+	} else if (topic.owner == frappe.session.user && document_match_found) {
+		post_message_cleanup();
 		window.location.reload();
 	}
 

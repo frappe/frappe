@@ -2,21 +2,22 @@
 {"reference_doctype": doctype, "reference_docname": docname}, ["name", "title", "owner", "creation"]) %}
 
 
-<div class="discussions-parent" data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
+<div class="discussions-parent {% if single_thread %} is-single-thread {% endif %}"
+	data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
 
 	{% include "frappe/templates/discussions/topic_modal.html" %}
 
 	<div class="discussions-header">
 		<span class="course-home-headings">{{ _(title) }}</span>
-		{% if topics %}
+		{% if topics and not single_thread %}
 		{% include "frappe/templates/discussions/button.html" %}
 		{% endif %}
 	</div>
 
 	<div class="common-card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %} ">
-		{% if topics %}
+		{% if topics and not single_thread %}
 
-		{% if not single_thread %}
+
 		<div class="discussions-sidebar">
 			{% include "frappe/templates/discussions/search.html" %}
 
@@ -25,7 +26,6 @@
 			{% include "frappe/templates/discussions/sidebar.html" %}
 			{% endfor %}
 		</div>
-		{% endif %}
 
 		<div class="mr-2" id="discussion-group">
 			{% for topic in topics %}
@@ -33,10 +33,9 @@
 			{% endfor %}
 		</div>
 
-		{% elif not topics and single_thread %}
-		<div class="discussion-on-page">
-			{% include "frappe/templates/discussions/comment_box.html" %}
-		</div>
+		{% elif single_thread %}
+		{% set topic = topics[0] if topics | length else None %}
+		{% include "frappe/templates/discussions/reply_section.html" %}
 
 		{% else %}
 		<div class="no-discussions" id="no-discussions">
