@@ -213,15 +213,19 @@ class User(Document):
 		user_type_doc.update_modules_in_user(self)
 
 	def has_desk_access(self):
-		'''Return true if any of the set roles has desk access'''
+		"""Return true if any of the set roles has desk access"""
 		if not self.roles:
 			return False
 
-		return len(frappe.db.sql("""select name
-			from `tabRole` where desk_access=1
-				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
-				[d.role for d in self.roles]))
-
+		role_table = frappe.qb.DocType("Role")
+		return len(
+			frappe.qb.from_(role_table)
+			.select(role_table.name)
+			.where(role_table.desk_access == 1)
+			.where(role_table.name.isin([d.role for d in self.roles]))
+			.limit(1)
+			.run()
+		)
 
 	def share_with_self(self):
 		frappe.share.add(self.doctype, self.name, self.name, write=1, share=1,
