@@ -8,7 +8,7 @@ import frappe
 from frappe.model.base_document import get_controller
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
-
+from frappe.query_builder import DocType
 
 def caclulate_hash(path: str) -> str:
 	"""Calculate md5 hash of the file in binary mode
@@ -106,7 +106,9 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			# not using db.set_value to avoid making changes in tabSingles
 			if doc["doctype"] == "DocType":
 				doctype_table = frappe.qb.DocType("DocType")
-				frappe.qb.update(doctype_table).set(doctype_table.migration_hash, calculated_hash).where(doctype_table.name == doc["name"]).run()
+				frappe.qb.update(doctype_table).set(
+					doctype_table.migration_hash, calculated_hash
+				).where(doctype_table.name == doc["name"]).run()
 
 			if original_modified:
 				update_modified(original_modified, doc)
@@ -138,7 +140,7 @@ def read_doc_from_file(path):
 def update_modified(original_modified, doc):
 	# since there is a new timestamp on the file, update timestamp in
 	if doc["doctype"] == doc["name"] and doc["name"] != "DocType":
-		singles_table = frappe.qb.DocType("Singles")
+		singles_table = DocType("Singles")
 
 		frappe.qb.update(
 			singles_table
@@ -150,8 +152,8 @@ def update_modified(original_modified, doc):
 			singles_table.doctype == doc["name"]
 		).run()
 	else:
-		doctype_table = frappe.qb.DocType(doc['doctype'])
-		
+		doctype_table = DocType(doc['doctype'])
+
 		frappe.qb.update(doctype_table
 		).set(
 			doctype_table.modified, original_modified
