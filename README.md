@@ -27,7 +27,7 @@
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
 	</a>
 	<a href="https://codecov.io/gh/frappe/frappe">
-	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
+	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj&flag=server"/>
 	</a>
 </div>
 
