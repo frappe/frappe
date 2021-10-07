@@ -177,7 +177,7 @@ frappe.ui.form.PrintView = class {
 			);
 		}
 
-		if (this.print_settings.enable_print_server) {
+		if (cint(this.print_settings.enable_print_server)) {
 			this.page.add_menu_item(__('Select Network Printer'), () =>
 				this.network_printer_setting_dialog()
 			);
