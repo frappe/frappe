@@ -221,7 +221,8 @@ input.list-check-all, input.list-row-checkbox {
 	}
 
 	.sortable-handle {
-		cursor: -webkit-grabbing;
+		cursor: all-scroll;
+		cursor: grabbing;
 	}
 }
 
