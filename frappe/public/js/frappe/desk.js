@@ -283,7 +283,7 @@ frappe.Application = class Application {
 		frappe.workspaces = {};
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module]=page;
-			frappe.workspaces[frappe.router.slug(page.title)] = page;
+			frappe.workspaces[frappe.router.slug(page.label)] = page;
 		}
 	}
 

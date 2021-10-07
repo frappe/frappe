@@ -66,7 +66,7 @@ frappe.views.Workspace = class Workspace {
 		if (this.all_pages) {
 			frappe.workspaces = {};
 			for (let page of this.all_pages) {
-				frappe.workspaces[frappe.router.slug(page.title)] = {title: page.title};
+				frappe.workspaces[frappe.router.slug(page.label)] = {title: page.title};
 			}
 			if (this.new_page && this.new_page.name) {
 				if (!frappe.workspaces[frappe.router.slug(this.new_page.name)]) {
