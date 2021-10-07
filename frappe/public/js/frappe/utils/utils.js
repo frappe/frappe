@@ -927,7 +927,16 @@ Object.assign(frappe.utils, {
 		// decodes base64 to string
 		let parts = dataURI.split(',');
 		const encoded_data = parts[1];
-		return decodeURIComponent(escape(atob(encoded_data)));
+		let decoded = atob(encoded_data);
+		try {
+			const escaped = escape(decoded);
+			decoded = decodeURIComponent(escaped);
+
+		} catch (e) {
+			// pass decodeURIComponent failure
+			// just return atob response
+		}
+		return decoded;
 	},
 	copy_to_clipboard(string) {
 		let input = $("<input>");
@@ -1114,11 +1123,11 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="") {
 		let size_class = "";
-		let icon_style = "";
+
 		if (typeof size == "object") {
-			icon_style = `width: ${size.width}; height: ${size.height}`;
+			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}

@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # imports - standard imports
 import gzip
@@ -374,7 +374,8 @@ class BackupGenerator:
 			backup_info = ("Skipping Tables: ", ", ".join(self.backup_excludes))
 
 		if self.partial:
-			print(''.join(backup_info), "\n")
+			if self.verbose:
+				print(''.join(backup_info), "\n")
 			database_header_content.extend([
 				f"Partial Backup of Frappe Site {frappe.local.site}",
 				("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],

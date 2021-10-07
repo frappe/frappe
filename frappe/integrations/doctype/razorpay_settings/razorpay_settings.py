@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 """
 # Integrating RazorPay
@@ -371,6 +371,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc = frappe.get_doc("Integration Request", doc.name)
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
+			doc.save()
 			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
 
 

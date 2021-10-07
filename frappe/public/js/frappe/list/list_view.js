@@ -33,14 +33,38 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show() {
 		this.parent.disable_scroll_to_top = true;
+		super.show();
+	}
 
+	check_permissions() {
 		if (!this.has_permissions()) {
 			frappe.set_route('');
-			frappe.msgprint(__("Not permitted to view {0}", [this.doctype]));
-			return;
+			frappe.throw(__("Not permitted to view {0}", [this.doctype]));
 		}
+	}
 
-		super.show();
+	show_skeleton() {
+		this.$list_skeleton = this.parent.page.container.find('.list-skeleton');
+		if (!this.$list_skeleton.length) {
+			this.$list_skeleton = $(`
+				<div class="row list-skeleton">
+					<div class="col-lg-2">
+						<div class="list-skeleton-box"></div>
+					</div>
+					<div class="col">
+						<div class="list-skeleton-box"></div>
+					</div>
+				</div>
+			`);
+			this.parent.page.container.find('.page-content').append(this.$list_skeleton);
+		}
+		this.parent.page.container.find('.layout-main').hide();
+		this.$list_skeleton.show();
+	}
+
+	hide_skeleton() {
+		this.$list_skeleton && this.$list_skeleton.hide();
+		this.parent.page.container.find('.layout-main').show();
 	}
 
 	get view_name() {
@@ -367,6 +391,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			!this.settings.hide_name_column &&
+			this.meta.title_field &&
 			this.meta.title_field !== 'name'
 		) {
 			this.columns.push({
@@ -547,6 +572,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	render() {
 		this.render_list();
+		this.set_rows_as_checked();
 		this.on_row_checked();
 		this.render_count();
 	}
@@ -582,9 +608,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const subject_field = this.columns[0].df;
 		let subject_html = `
-			<input class="level-item list-check-all hidden-xs" type="checkbox"
+			<input class="level-item list-check-all" type="checkbox"
 				title="${__("Select All")}">
-			<span class="level-item list-liked-by-me">
+			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Likes")}">${frappe.utils.icon('heart', 'sm', 'like-icon')}</span>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
@@ -621,7 +647,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
-						<input class="level-item list-check-all hidden-xs" type="checkbox"
+						<input class="level-item list-check-all" type="checkbox"
 							title="${__("Select All")}">
 						<span class="level-item list-header-meta"></span>
 					</div>
@@ -867,8 +893,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			filters: this.get_filters_for_args()
 		}).then(total_count => {
 			this.total_count = total_count || current_count;
+			this.count_without_children = count_without_children !== current_count ? count_without_children : undefined;
 			let str = __('{0} of {1}', [current_count, this.total_count]);
-			if (count_without_children !== current_count) {
+			if (this.count_without_children) {
 				str = __('{0} of {1} ({2} rows with children)', [count_without_children, this.total_count, current_count]);
 			}
 			return str;
@@ -928,9 +955,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let subject_html = `
 			<span class="level-item select-like">
-				<input class="list-row-checkbox hidden-xs" type="checkbox"
+				<input class="list-row-checkbox" type="checkbox"
 					data-name="${escape(doc.name)}">
-				<span class="list-row-like style="margin-bottom: 1px;">
+				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
 					${this.get_like_html(doc)}
 				</span>
 			</span>
@@ -950,9 +977,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_indicator_html(doc) {
 		const indicator = frappe.get_indicator(doc, this.doctype);
+		// sequence is important
+		const docstatus_description = [
+			__('Document is in draft state'),
+			__('Document has been submitted'),
+			__('Document has been cancelled')
+		];
+		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
 			return `<span class="indicator-pill ${indicator[1]} filterable ellipsis"
-				data-filter='${indicator[2]}'>
+				data-filter='${indicator[2]}' title='${title}'>
 				<span class="ellipsis"> ${__(indicator[0])}</span>
 			<span>`;
 		}
@@ -1130,6 +1164,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (
 				$target.hasClass("filterable") ||
 				$target.hasClass("select-like") ||
+				$target.hasClass("file-select") ||
 				$target.hasClass("list-row-like") ||
 				$target.is(":checkbox")
 			) {
@@ -1730,10 +1765,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_export = () => {
+			return {
+				label: __("Export"),
+				action: () => {
+					const docnames = this.get_checked_items(true);
+
+					bulk_operations.export(doctype, docnames);
+				},
+				standard: true
+			};
+		};
+
 		// bulk edit
 		if (has_editable_fields(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
+
+		actions_menu_items.push(bulk_export());
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());

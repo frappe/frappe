@@ -832,6 +832,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
 			data.splice(-1, 1);
+			this.$page.find('.layout-main-section')[0].style.setProperty('--report-total-height', '310px');
 		}
 
 		this.$report.show();

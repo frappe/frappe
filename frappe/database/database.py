@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Database Module
 # --------------------
@@ -14,8 +14,13 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype, get_datetime, get_table_name
+from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.query_builder.functions import Count
+from frappe.query_builder.functions import Min, Max, Avg, Sum
+from frappe.query_builder.utils import Column
+from .query import Query
+from pypika.terms import PseudoColumn
 
 
 class Database(object):
@@ -55,6 +60,7 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.query = Query()
 
 	def setup_type_map(self):
 		pass
@@ -77,7 +83,7 @@ class Database(object):
 		pass
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False):
+		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False, run=True):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -90,7 +96,7 @@ class Database(object):
 		:param as_utf8: Encode values as UTF 8.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-
+		:param run: Returns query without executing it if False.
 		Examples:
 
 			# return customer names as dicts
@@ -105,6 +111,8 @@ class Database(object):
 
 		"""
 		query = str(query)
+		if not run:
+			return query
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -310,59 +318,6 @@ class Database(object):
 			nres.append(nr)
 		return nres
 
-	def build_conditions(self, filters):
-		"""Convert filters sent as dict, lists to SQL conditions. filter's key
-		is passed by map function, build conditions like:
-
-		* ifnull(`fieldname`, default_value) = %(fieldname)s
-		* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
-		"""
-		conditions = []
-		values = {}
-		def _build_condition(key):
-			"""
-				filter's key is passed by map function
-				build conditions like:
-					* ifnull(`fieldname`, default_value) = %(fieldname)s
-					* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
-			"""
-			_operator = "="
-			_rhs = " %(" + key + ")s"
-			value = filters.get(key)
-			values[key] = value
-			if isinstance(value, (list, tuple)):
-				# value is a tuple like ("!=", 0)
-				_operator = value[0]
-				values[key] = value[1]
-				if isinstance(value[1], (tuple, list)):
-					# value is a list in tuple ("in", ("A", "B"))
-					_rhs = " ({0})".format(", ".join(self.escape(v) for v in value[1]))
-					del values[key]
-
-			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
-				_operator = "="
-
-			if "[" in key:
-				split_key = key.split("[")
-				condition = "coalesce(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
-					+ _operator + _rhs
-			else:
-				condition = "`" + key + "` " + _operator + _rhs
-
-			conditions.append(condition)
-
-		if isinstance(filters, int):
-			# docname is a number, convert to string
-			filters = str(filters)
-
-		if isinstance(filters, str):
-			filters = { "name": filters }
-
-		for f in filters:
-			_build_condition(f)
-
-		return " and ".join(conditions), values
-
 	def get(self, doctype, filters=None, as_dict=True, cache=False):
 		"""Returns `get_value` with fieldname='*'"""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
@@ -424,9 +379,8 @@ class Database(object):
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
-		if not order_by: order_by = 'modified desc'
-
 		if isinstance(filters, list):
+			order_by = order_by or "modified_desc"
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 
 		else:
@@ -439,6 +393,7 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
+					order_by = order_by or "modified"
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -516,7 +471,6 @@ class Database(object):
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		# result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
@@ -557,7 +511,7 @@ class Database(object):
 		if not df:
 			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
 
-		val = cast_fieldtype(df.fieldtype, val)
+		val = cast(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -568,32 +522,23 @@ class Database(object):
 		return self.get_single_value(*args, **kwargs)
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
-		fl = []
+		field_objects = []
+
+		for field in fields:
+			if "(" in field or " as " in field:
+				field_objects.append(PseudoColumn(field))
+			else:
+				field_objects.append(field)
+
+		criterion = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update)
+
 		if isinstance(fields, (list, tuple)):
-			for f in fields:
-				if "(" in f or " as " in f: # function
-					fl.append(f)
-				else:
-					fl.append("`" + f + "`")
-			fl = ", ".join(fl)
+			query = criterion.select(*field_objects)
 		else:
-			fl = fields
 			if fields=="*":
+				query = criterion.select(fields)
 				as_dict = True
-
-		conditions, values = self.build_conditions(filters)
-
-		order_by = ("order by " + order_by) if order_by else ""
-
-		r = self.sql("select {fields} from `tab{doctype}` {where} {conditions} {order_by} {for_update}"
-			.format(
-				for_update = 'for update' if for_update else '',
-				fields = fl,
-				doctype = doctype,
-				where = "where" if conditions else "",
-				conditions = conditions,
-				order_by = order_by),
-			values, as_dict=as_dict, debug=debug, update=update)
+		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
@@ -820,24 +765,32 @@ class Database(object):
 			except Exception:
 				return None
 
+	def min(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Min(Column(fieldname))).run(**kwargs)[0][0] or 0
+
+	def max(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Max(Column(fieldname))).run(**kwargs)[0][0] or 0
+
+	def avg(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Avg(Column(fieldname))).run(**kwargs)[0][0] or 0
+
+	def sum(self, dt, fieldname, filters=None, **kwargs):
+		return self.query.build_conditions(dt, filters=filters).select(Sum(Column(fieldname))).run(**kwargs)[0][0] or 0
+
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
+		query = self.query.build_conditions(table=dt, filters=filters).select(Count("*"))
 		if filters:
-			conditions, filters = self.build_conditions(filters)
-			count = self.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+			count = self.sql(query, debug=debug)[0][0]
 			return count
 		else:
-			count = self.sql("""select count(*)
-				from `tab%s`""" % (dt,))[0][0]
-
+			count = self.sql(query, debug=debug)[0][0]
 			if cache:
 				frappe.cache().set_value('doctype:count:{}'.format(dt), count, expires_in_sec = 86400)
-
 			return count
 
 	@staticmethod
@@ -896,13 +849,13 @@ class Database(object):
 			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
 
 	def has_index(self, table_name, index_name):
-		pass
+		raise NotImplementedError
 
 	def add_index(self, doctype, fields, index_name=None):
-		pass
+		raise NotImplementedError
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		pass
+		raise NotImplementedError
 
 	@staticmethod
 	def get_index_name(fields):
@@ -928,7 +881,7 @@ class Database(object):
 	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# implemented in specific class
-		pass
+		raise NotImplementedError
 
 	@staticmethod
 	def is_column_missing(e):
@@ -961,16 +914,9 @@ class Database(object):
 		"""
 		values = ()
 		filters = filters or kwargs.get("conditions")
-		table = get_table_name(doctype)
-		query = f"DELETE FROM `{table}`"
-
+		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-
-		if filters:
-			conditions, values = self.build_conditions(filters)
-			query = f"{query} WHERE {conditions}"
-
 		return self.sql(query, values, **kwargs)
 
 	def truncate(self, doctype: str):
@@ -1052,19 +998,3 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
-
-# Helpers
-def _cast_result(doctype, result):
-	batch = [ ]
-
-	try:
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-	except frappe.exceptions.DoesNotExistError:
-		return result
-
-	return tuple(batch)

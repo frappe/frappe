@@ -14,7 +14,7 @@ context('Workspace 2.0', () => {
 
 	it('Create Private Page', () => {
 		cy.get('.codex-editor__redactor .ce-block');
-		cy.get('.custom-actions button[data-label="Create%20Page"]').click();
+		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field('title', 'Test Private Page', 'Data');
 		cy.fill_field('icon', 'edit', 'Icon');
 		cy.get_open_dialog().find('.modal-header').click();
@@ -29,19 +29,19 @@ context('Workspace 2.0', () => {
 
 		cy.wait(500);
 		cy.get('.codex-editor__redactor .ce-block');
-		cy.get('.standard-actions .btn-secondary[data-label=Customize]').click();
+		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 	});
 
 	it('Add New Block', () => {
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Heading').click();
-		cy.get(".ce-block:last").find('h2').click({force: true}).type('Header');
+		cy.get(":focus").type('Header');
 		cy.get(".ce-block:last").find('.ce-header').should('exist');
 
 		cy.get('.custom-actions .inner-group-button[data-label="Add%20Block"]').click();
 		cy.get('.custom-actions .inner-group-button .dropdown-menu .block-menu-item-label').contains('Text').click();
-		cy.get(".ce-block:last").find('.ce-paragraph').click({force: true}).type('Paragraph text');
+		cy.get(":focus").type('Paragraph text');
 		cy.get(".ce-block:last").find('.ce-paragraph').should('exist');
 	});
 
@@ -77,7 +77,7 @@ context('Workspace 2.0', () => {
 
 	it('Delete Private Page', () => {
 		cy.get('.codex-editor__redactor .ce-block');
-		cy.get('.standard-actions .btn-secondary[data-label=Customize]').click();
+		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').find('.sidebar-item-control .delete-page').click();
 		cy.wait(300);

@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 def get_jenv():
 	import frappe
 	from frappe.utils.safe_exec import get_safe_globals

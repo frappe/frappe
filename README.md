@@ -26,8 +26,8 @@
 	<a href='https://www.codetriage.com/frappe/frappe'>
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
 	</a>
-	<a href='https://coveralls.io/github/frappe/frappe?branch=develop'>
-		<img src='https://coveralls.io/repos/github/frappe/frappe/badge.svg?branch=develop'>
+	<a href="https://codecov.io/gh/frappe/frappe">
+	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
 	</a>
 </div>
 
