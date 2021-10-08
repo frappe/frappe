@@ -10,6 +10,7 @@ import "./frappe/utils/common.js";
 import "./frappe/ui/messages.js";
 import "./frappe/translate.js";
 import "./frappe/utils/pretty_date.js";
+import "./frappe/utils/datetime.js";
 import "./frappe/microtemplate.js";
 import "./frappe/query_string.js";
 
