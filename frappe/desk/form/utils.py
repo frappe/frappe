@@ -66,7 +66,7 @@ def add_comment(reference_doctype, reference_name, content, comment_email, comme
 		comment_type='Comment',
 		comment_by=comment_by
 	))
-	doc.content = extract_images_from_html(doc, content)
+	doc.content = extract_images_from_html(doc, content, is_private=True)
 	doc.insert(ignore_permissions=True)
 
 	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
