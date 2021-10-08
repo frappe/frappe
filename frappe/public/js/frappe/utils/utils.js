@@ -268,7 +268,8 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled, callback) {
+	scroll_to: function(element, animate=true, additional_offset,
+		element_to_be_scrolled, callback, highlight_element=false) {
 		if (frappe.flags.disable_auto_scroll) return;
 
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
@@ -291,11 +292,20 @@ Object.assign(frappe.utils, {
 		}
 
 		if (animate) {
-			element_to_be_scrolled.animate({ scrollTop: scroll_top }).promise().then(callback);
+			element_to_be_scrolled.animate({
+				scrollTop: scroll_top
+			}).promise().then(() => {
+				if (highlight_element) {
+					$(element).addClass('highlight');
+					document.addEventListener("click", function() {
+						$(element).removeClass('highlight');
+					}, {once: true});
+				}
+				callback && callback();
+			});
 		} else {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
-
 	},
 	get_scroll_position: function(element, additional_offset) {
 		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
