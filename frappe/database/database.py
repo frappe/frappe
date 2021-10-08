@@ -676,11 +676,11 @@ class Database(object):
 				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
 			)
 
-			singles_data = tuple((dt, key, value) for key, value in to_update.items())
+			singles_data = ((dt, key, value) for key, value in to_update.items())
 			query = (
 				frappe.qb.into("Singles")
 					.columns("doctype", "field", "value")
-					.insert(singles_data)
+					.insert(*singles_data)
 			).run(debug=debug)
 
 			frappe.clear_document_cache(dt, dn)
