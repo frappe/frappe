@@ -63,7 +63,7 @@ class ServerScript(Document):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
 
-	def execute_method(self) -> Dict:
+	def execute_method(self, args: Dict = None) -> Dict:
 		"""Specific to API endpoint Server Scripts
 
 		Raises:
@@ -82,7 +82,7 @@ class ServerScript(Document):
 			raise frappe.PermissionError
 
 		# output can be stored in flags
-		_globals, _locals = safe_exec(self.script)
+		_globals, _locals = safe_exec(self.script, _globals={"args": args})
 		return _globals.frappe.flags
 
 	def execute_doc(self, doc: Document):
@@ -93,7 +93,7 @@ class ServerScript(Document):
 		"""
 		safe_exec(self.script, _locals={"doc": doc})
 
-	def execute_scheduled_method(self):
+	def execute_scheduled_method(self, args: Dict = None):
 		"""Specific to Scheduled Jobs via Server Scripts
 
 		Raises:
@@ -102,7 +102,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script)
+		safe_exec(self.script, _globals={"args": args})
 
 	def get_permission_query_conditions(self, user: str) -> List[str]:
 		"""Specific to Permission Query Server Scripts
