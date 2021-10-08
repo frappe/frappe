@@ -104,6 +104,9 @@ async function execute() {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
+		if (process.env.CI) {
+			process.kill(process.pid);
+		}
 		return;
 	}
 
