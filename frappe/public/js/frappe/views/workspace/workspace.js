@@ -69,7 +69,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.workspaces[frappe.router.slug(page.name)] = {title: page.title};
 			}
 			if (this.new_page && this.new_page.name) {
-				if (!frappe.workspaces[frappe.router.slug(this.new_page.name)]) {
+				if (!frappe.workspaces[frappe.router.slug(this.new_page.label)]) {
 					this.new_page = { name: this.all_pages[0].title, public: this.all_pages[0].public };
 				}
 				if (this.new_page.public) {
