@@ -1133,7 +1133,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="", icon_style="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
 		let size_class = "";
 
 		if (typeof size == "object") {
@@ -1141,7 +1141,7 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${size_class}" style="${icon_style}">
+		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	},

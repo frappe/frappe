@@ -228,6 +228,11 @@ input.list-check-all, input.list-row-checkbox {
 		z-index: 500;
 		top: 0;
 	}
+
+	.sortable-handle {
+		cursor: all-scroll;
+		cursor: grabbing;
+	}
 }
 
 .list-items {
