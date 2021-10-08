@@ -294,7 +294,7 @@ Object.assign(frappe.utils, {
 		if (animate) {
 			element_to_be_scrolled.animate({
 				scrollTop: scroll_top
-			}, null, () => {
+			}).promise().then(() => {
 				if (highlight_element) {
 					$(element).addClass('highlight');
 					document.addEventListener("click", function() {
