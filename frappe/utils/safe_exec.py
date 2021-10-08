@@ -147,6 +147,7 @@ def get_safe_globals():
 			set_value = frappe.db.set_value,
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
+			exists = frappe.db.exists,
 			count = frappe.db.count,
 			min = frappe.db.min,
 			max = frappe.db.max,

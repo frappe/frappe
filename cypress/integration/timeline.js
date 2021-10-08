@@ -44,13 +44,14 @@ context('Timeline', () => {
 		cy.get('.timeline-content').should('contain', 'Testing Timeline 123');
 
 		//Deleting the added comment
-		cy.get('.actions > .btn > .icon').first().click();
+		cy.get('.more-actions > .action-btn').click();
+		cy.get('.more-actions .dropdown-item').contains('Delete').click();
 		cy.findByRole('button', {name: 'Yes'}).click();
 		cy.click_modal_primary_button('Yes');
 
 		//Deleting the added ToDo
-		cy.get('.menu-btn-group button').eq(1).click();
-		cy.get('.menu-btn-group [data-label="Delete"]').click();
+		cy.get('.menu-btn-group [data-original-title="Menu"]').click();
+		cy.get('.menu-btn-group .dropdown-item').contains('Delete').click();
 		cy.findByRole('button', {name: 'Yes'}).click();
 	});
 
