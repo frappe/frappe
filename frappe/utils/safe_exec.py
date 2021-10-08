@@ -155,7 +155,8 @@ def get_safe_globals():
 			sum = frappe.db.sum,
 			escape = frappe.db.escape,
 			sql = read_sql,
-			commit = frappe.db.commit
+			commit = frappe.db.commit,
+			rollback = frappe.db.rollback
 		)
 
 		out.frappe.cache = cache
