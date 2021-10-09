@@ -164,12 +164,11 @@ body {
 
 			.drag-handle {
 				cursor: all-scroll;
-				cursor: -webkit-grabbing;
+				cursor: grabbing;
 
 				&:active {
+					cursor: all-scroll;
 					cursor: grabbing;
-					cursor: -moz-grabbing;
-					cursor: -webkit-grabbing;
 				}
 			}
 
@@ -813,7 +812,7 @@ body {
 
 			.drag-handle {
 				cursor: all-scroll;
-				cursor: -webkit-grabbing;
+				cursor: grabbing;
 				display: none;
 			}
 
@@ -966,7 +965,7 @@ body {
 
 							.drag-handle {
 								cursor: all-scroll;
-								cursor: -webkit-grabbing;
+								cursor: grabbing;
 							}
 						}
 					}
