@@ -544,8 +544,11 @@ class Document(BaseDocument):
 
 	def validate_owner(self):
 		"""Validate if the owner of the Document has changed"""
-		if not self.is_new() and self.has_value_changed('owner'):
-			frappe.throw(_('Document owner cannot be changed'))
+		try:
+			if not self.is_new() and self.has_value_changed('owner'):
+				frappe.throw(_('Document owner cannot be changed'))
+		except frappe.InvalidOwner:
+			False
 
 	def validate_set_only_once(self):
 		"""Validate that fields are not changed if not in insert"""
