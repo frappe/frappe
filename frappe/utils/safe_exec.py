@@ -29,7 +29,7 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
-def safe_exec(script, _globals=None, _locals=None):
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
 	if 'server_script_enabled' in frappe.conf:
@@ -44,6 +44,10 @@ def safe_exec(script, _globals=None, _locals=None):
 	exec_globals = get_safe_globals()
 	if _globals:
 		exec_globals.update(_globals)
+
+	if restrict_commit_rollback:
+		exec_globals.frappe.db.pop('commit', None)
+		exec_globals.frappe.db.pop('rollback', None)
 
 	# execute script compiled by RestrictedPython
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
