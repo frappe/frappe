@@ -41,6 +41,10 @@ def get_context(context):
 	# TODO: Find better fix
 	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
 	boot_json = json.dumps(boot_json)
+	svg_string = ""
+	for include_path in hooks["app_include_svg"]:
+		with open(include_path) as file:
+			svg_string += file.read()
 
 	context.update(
 		{
@@ -48,6 +52,7 @@ def get_context(context):
 			"build_version": frappe.utils.get_build_version(),
 			"include_js": hooks["app_include_js"],
 			"include_css": hooks["app_include_css"],
+			"include_svg": svg_string,
 			"layout_direction": "rtl" if is_rtl() else "ltr",
 			"lang": frappe.local.lang,
 			"sounds": hooks["sounds"],
