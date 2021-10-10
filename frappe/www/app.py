@@ -42,11 +42,17 @@ def get_context(context):
 
 	style_urls = hooks["app_include_css"]
 
+	svg_string = ""
+	for include_path in hooks["app_include_svg"]:
+		with open(include_path) as file:
+			svg_string += file.read()
+
 	context.update({
 		"no_cache": 1,
 		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
 		"include_css": get_rtl_styles(style_urls) if is_rtl() else style_urls,
+		"include_svg": svg_string,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
