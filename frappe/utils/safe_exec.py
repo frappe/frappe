@@ -168,7 +168,7 @@ def get_safe_globals():
 			avg=frappe.db.avg,
 			sum=frappe.db.sum,
 			escape=frappe.db.escape,
-			sql=frappe.db.sql,
+			sql=read_sql,
 			commit=frappe.db.commit,
 			rollback=frappe.db.rollback,
 		)
@@ -202,10 +202,10 @@ def cache():
 
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
-	if query.strip().split(None, 1)[0].lower() == 'select':
-		return frappe.db.sql(query, *args, **kwargs)
-	else:
+	query = str(query)
+	if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+	return frappe.db.sql(query, *args, **kwargs)
 
 def run_script(script):
 	'''run another server script'''

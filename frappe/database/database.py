@@ -111,10 +111,6 @@ class Database(object):
 
 		"""
 		query = str(query)
-
-		if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
-			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
-
 		if not run:
 			return query
 
