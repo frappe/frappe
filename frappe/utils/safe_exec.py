@@ -215,11 +215,17 @@ def get_safe_globals():
 			sum=frappe.db.sum,
 			escape=frappe.db.escape,
 <<<<<<< HEAD
+<<<<<<< HEAD
 			sql=read_sql
 >>>>>>> 9c00a28869 (feat: Added safe_qb for server scripts)
 =======
 			sql=frappe.db.sql
 >>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
+=======
+			sql=read_sql,
+			commit=frappe.db.commit,
+			rollback=frappe.db.rollback,
+>>>>>>> fe7b45c068 (fix: fixing safeqb in server scripts)
 		)
 
 		out.frappe.cache = cache
@@ -253,10 +259,15 @@ def cache():
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
 	query = str(query)
+<<<<<<< HEAD
 	if query.strip().split(None, 1)[0].lower() == 'select':
 		return frappe.db.sql(query, *args, **kwargs)
 	else:
+=======
+	if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
+>>>>>>> fe7b45c068 (fix: fixing safeqb in server scripts)
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+	return frappe.db.sql(query, *args, **kwargs)
 
 =======
 >>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)

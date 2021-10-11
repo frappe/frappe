@@ -116,12 +116,15 @@ class Database(object):
 
 		query = str(query)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 		if frappe.flags.in_safe_exec:
 			if not query.strip().lower().startswith('select'):
 				raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 
+=======
+>>>>>>> fe7b45c068 (fix: fixing safeqb in server scripts)
 		if not run:
 			return query
 >>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
