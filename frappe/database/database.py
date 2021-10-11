@@ -20,6 +20,7 @@ from frappe.query_builder.functions import Count
 from frappe.query_builder.functions import Min, Max, Avg, Sum
 from frappe.query_builder.utils import Column
 from .query import Query
+from pypika.terms import PseudoColumn
 
 
 class Database(object):
@@ -109,15 +110,14 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
-
 		query = str(query)
 
-		if frappe.flags.in_safe_exec:
-			if not query.strip().lower().startswith('select'):
-				raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+		if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
+			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 
 		if not run:
 			return query
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -527,11 +527,21 @@ class Database(object):
 		return self.get_single_value(*args, **kwargs)
 
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
+		field_objects = []
+
+		for field in fields:
+			if "(" in field or " as " in field:
+				field_objects.append(PseudoColumn(field))
+			else:
+				field_objects.append(field)
+
+		criterion = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update)
+
 		if isinstance(fields, (list, tuple)):
-			query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(*fields)
+			query = criterion.select(*field_objects)
 		else:
 			if fields=="*":
-				query = self.query.build_conditions(table=doctype, filters=filters, orderby=order_by, for_update=for_update).select(fields)
+				query = criterion.select(fields)
 				as_dict = True
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update)
 

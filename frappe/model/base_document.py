@@ -267,7 +267,12 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+			if convert_dates_to_str and isinstance(d[fieldname], (
+				datetime.datetime,
+				datetime.date,
+				datetime.time,
+				datetime.timedelta
+			)):
 				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:

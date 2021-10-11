@@ -34,7 +34,7 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
-def safe_exec(script, _globals=None, _locals=None):
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
 	if 'server_script_enabled' in frappe.conf:
@@ -49,6 +49,10 @@ def safe_exec(script, _globals=None, _locals=None):
 	exec_globals = get_safe_globals()
 	if _globals:
 		exec_globals.update(_globals)
+
+	if restrict_commit_rollback:
+		exec_globals.frappe.db.pop('commit', None)
+		exec_globals.frappe.db.pop('rollback', None)
 
 	# execute script compiled by RestrictedPython
 	frappe.flags.in_safe_exec = True
@@ -78,7 +82,8 @@ def get_safe_globals():
 		# make available limited methods of frappe
 		json=NamespaceDict(
 			loads=json.loads,
-			dumps=json.dumps),
+			dumps=json.dumps
+		),
 		dict=dict,
 		log=frappe.log,
 		_dict=frappe._dict,
@@ -156,14 +161,19 @@ def get_safe_globals():
 			set_value=frappe.db.set_value,
 			get_single_value=frappe.db.get_single_value,
 			get_default=frappe.db.get_default,
+			exists=frappe.db.exists,
 			count=frappe.db.count,
 			min=frappe.db.min,
 			max=frappe.db.max,
 			avg=frappe.db.avg,
 			sum=frappe.db.sum,
 			escape=frappe.db.escape,
-			sql=frappe.db.sql
+			sql=frappe.db.sql,
+			commit=frappe.db.commit,
+			rollback=frappe.db.rollback,
 		)
+
+		out.frappe.cache = cache
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -181,6 +191,21 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
+
+def cache():
+	return NamespaceDict(
+		get_value = frappe.cache().get_value,
+		set_value = frappe.cache().set_value,
+		hset = frappe.cache().hset,
+		hget = frappe.cache().hget
+	)
+
+def read_sql(query, *args, **kwargs):
+	'''a wrapper for frappe.db.sql to allow reads'''
+	if query.strip().split(None, 1)[0].lower() == 'select':
+		return frappe.db.sql(query, *args, **kwargs)
+	else:
+		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 
 def run_script(script):
 	'''run another server script'''
