@@ -25,7 +25,9 @@
   "is_shipping_address",
   "disabled",
   "linked_with",
-  "links"
+  "links",
+  "lic_section_section",
+  "lic"
  ],
  "fields": [
   {
@@ -143,12 +145,23 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "Dynamic Link"
+  },
+  {
+   "fieldname": "lic_section_section",
+   "fieldtype": "Section Break",
+   "label": "Lic Section"
+  },
+  {
+   "fieldname": "lic",
+   "fieldtype": "Table",
+   "label": "Lic",
+   "options": "Lic Details"
   }
  ],
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2020-10-21 16:14:37.284830",
+ "modified": "2021-10-05 16:21:14.153756",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
