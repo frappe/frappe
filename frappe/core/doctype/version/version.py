@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-# For license information, please see license.txt
+# MIT License. See LICENSE
 
 from __future__ import unicode_literals
 import frappe, json

@@ -31,8 +31,6 @@ function open_web_template_values_editor(template, current_values = {}) {
 		let current_table = null;
 		for (let df of doc.fields) {
 			if (current_table) {
-				current_table.fields = current_table.fields || [];
-
 				if (df.fieldtype != 'Table Break') {
 					current_table.fields.push(df);
 				} else {
@@ -44,6 +42,9 @@ function open_web_template_values_editor(template, current_values = {}) {
 			} else {
 				table_fields.push(df);
 				current_table = df;
+
+				// start capturing fields in current_table till the next table break
+				current_table.fields = [];
 			}
 		}
 
