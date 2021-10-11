@@ -1,10 +1,12 @@
 from enum import Enum
-from typing import Any, Callable, Dict, get_type_hints
+from typing import Any, Callable, Dict, Union, get_type_hints
 from importlib import import_module
 
 from pypika import Query
+from pypika.queries import Column
 
 import frappe
+
 from .builder import MariaDB, Postgres
 
 
@@ -24,7 +26,7 @@ class BuilderIdentificationFailed(Exception):
 	def __init__(self):
 		super().__init__("Couldn't guess builder")
 
-def get_query_builder(type_of_db: str) -> Query:
+def get_query_builder(type_of_db: str) -> Union[Postgres, MariaDB]:
 	"""[return the query builder object]
 
 	Args:

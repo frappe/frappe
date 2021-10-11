@@ -353,5 +353,5 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 });
 
 Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
-	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').contains(btn_name).click();
+	cy.get('.timeline-message-box .custom-actions > .btn').contains(btn_name).click();
 });

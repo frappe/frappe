@@ -5,7 +5,7 @@ import redis
 
 import frappe
 from frappe.utils import get_bench_id
-from frappe.utils.rq import RedisQueue
+from frappe.utils.redis_queue import RedisQueue
 from frappe.utils.background_jobs import get_redis_conn
 
 def version_tuple(version):

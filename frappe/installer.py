@@ -29,6 +29,10 @@ def _new_site(
 ):
 	"""Install a new Frappe site"""
 
+	from frappe.commands.scheduler import _is_scheduler_enabled
+	from frappe.utils import get_site_path, scheduler, touch_file
+
+
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
 		sys.exit(1)
@@ -37,14 +41,11 @@ def _new_site(
 		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
-	if not db_name:
-		import hashlib
-		db_name = "_" + hashlib.sha1(site.encode()).hexdigest()[:16]
-
 	frappe.init(site=site)
 
-	from frappe.commands.scheduler import _is_scheduler_enabled
-	from frappe.utils import get_site_path, scheduler, touch_file
+	if not db_name:
+		import hashlib
+		db_name = "_" + hashlib.sha1(os.path.realpath(frappe.get_site_path()).encode()).hexdigest()[:16]
 
 	try:
 		# enable scheduler post install?
@@ -445,7 +446,31 @@ def extract_sql_from_archive(sql_file_path):
 	else:
 		decompressed_file_name = sql_file_path
 
+	# convert archive sql to latest compatible
+	convert_archive_content(decompressed_file_name)
+
 	return decompressed_file_name
+
+
+def convert_archive_content(sql_file_path):
+	if frappe.conf.db_type == "mariadb":
+		# ever since mariaDB 10.6, row_format COMPRESSED has been deprecated and removed
+		# this step is added to ease restoring sites depending on older mariaDB servers
+		from frappe.utils import random_string
+		from pathlib import Path
+
+		old_sql_file_path = Path(f"{sql_file_path}_{random_string(10)}")
+		sql_file_path = Path(sql_file_path)
+
+		os.rename(sql_file_path, old_sql_file_path)
+		sql_file_path.unlink(missing_ok=True)
+		sql_file_path.touch()
+
+		with open(old_sql_file_path) as r, open(sql_file_path, "a") as w:
+			for line in r:
+				w.write(line.replace("ROW_FORMAT=COMPRESSED", "ROW_FORMAT=DYNAMIC"))
+
+		old_sql_file_path.unlink(missing_ok=True)
 
 
 def extract_sql_gzip(sql_gz_path):
@@ -457,7 +482,7 @@ def extract_sql_gzip(sql_gz_path):
 		decompressed_file = original_file.rstrip(".gz")
 		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
 		subprocess.check_call(cmd, shell=True)
-	except:
+	except Exception:
 		raise
 
 	return decompressed_file
