@@ -29,11 +29,6 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
-<<<<<<< HEAD
-def safe_exec(script, _globals=None, _locals=None):
-	# script reports must be enabled via site_config.json
-	if not frappe.conf.server_script_enabled:
-=======
 def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
@@ -43,7 +38,6 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		enabled = True
 
 	if not enabled:
->>>>>>> 1127d3d184 (fix: Restrict commit and rollback for doc events)
 		frappe.throw(_('Please Enable Server Scripts'), ServerScriptNotEnabled)
 
 	# build globals
