@@ -113,7 +113,18 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+
 		query = str(query)
+<<<<<<< HEAD
+=======
+
+		if frappe.flags.in_safe_exec:
+			if not query.strip().lower().startswith('select'):
+				raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+
+		if not run:
+			return query
+>>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)

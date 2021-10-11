@@ -1,7 +1,11 @@
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.queries import Schema, Table
 from frappe.utils import get_table_name
+<<<<<<< HEAD
 
+=======
+from pypika.terms import Function
+>>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
 
 class Base:
 	terms = terms

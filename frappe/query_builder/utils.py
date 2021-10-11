@@ -48,8 +48,8 @@ def patch_query_execute():
 	executing the query object
 	"""
 
-	def execute_query(query, **kwargs):
-		return frappe.db.sql(query, **kwargs)
+	def execute_query(query, *args, **kwargs):
+		return frappe.db.sql(query, *args, **kwargs)
 
 	query_class = get_attr(str(frappe.qb).split("'")[1])
 	builder_class = get_type_hints(query_class._builder).get('return')

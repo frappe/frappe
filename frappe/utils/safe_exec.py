@@ -1,24 +1,27 @@
 
-import os, json, inspect
+import inspect
+import json
 import mimetypes
+
+import RestrictedPython.Guards
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
-import RestrictedPython.Guards
+
 import frappe
-from frappe import _
-import frappe.utils
-import frappe.utils.data
-from frappe.website.utils import (get_shade, get_toc, get_next_link)
-from frappe.modules import scrub
-from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 import frappe.integrations.utils
+import frappe.utils
+import frappe.utils.data
+from frappe import _
 from frappe.frappeclient import FrappeClient
-from frappe.query_builder.utils import get_attr
-from typing import get_type_hints
+from frappe.modules import scrub
+from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.www.printview import get_visible_columns
+
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
+
 
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
@@ -30,6 +33,7 @@ class NamespaceDict(frappe._dict):
 			return default_function
 		return ret
 
+<<<<<<< HEAD
 def get_safe_query_builder():
 	"""Allows execution of SELECT SQL queries only.
 <<<<<<< HEAD
@@ -60,6 +64,8 @@ class SafeQb(query_class):
 			_builder.run = read_sql
 
 	return SafeQB()
+=======
+>>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
 
 def safe_exec(script, _globals=None, _locals=None):
 >>>>>>> 9c00a28869 (feat: Added safe_qb for server scripts)
@@ -83,13 +89,15 @@ def safe_exec(script, _globals=None, _locals=None):
 		exec_globals.frappe.db.pop('rollback', None)
 
 	# execute script compiled by RestrictedPython
+	frappe.flags.in_safe_exec = True
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
+	frappe.flags.in_safe_exec = False
 
 	return exec_globals, _locals
 
 def get_safe_globals():
 	datautils = frappe._dict()
-	safe_qb = get_safe_query_builder()
+
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
@@ -123,7 +131,7 @@ def get_safe_globals():
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
-			qb=safe_qb,
+			qb=frappe.qb,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
@@ -206,8 +214,12 @@ def get_safe_globals():
 			avg=frappe.db.avg,
 			sum=frappe.db.sum,
 			escape=frappe.db.escape,
+<<<<<<< HEAD
 			sql=read_sql
 >>>>>>> 9c00a28869 (feat: Added safe_qb for server scripts)
+=======
+			sql=frappe.db.sql
+>>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
 		)
 
 		out.frappe.cache = cache
@@ -229,6 +241,7 @@ def get_safe_globals():
 
 	return out
 
+<<<<<<< HEAD
 def cache():
 	return NamespaceDict(
 		get_value = frappe.cache().get_value,
@@ -245,6 +258,8 @@ def read_sql(query, *args, **kwargs):
 	else:
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 
+=======
+>>>>>>> cfa2d65394 (refactor(safe_exec): Manage in-safe frappe.db.sql)
 def run_script(script):
 	'''run another server script'''
 	return frappe.get_doc('Server Script', script).execute_method()
