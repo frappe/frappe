@@ -15,8 +15,9 @@ import frappe
 from frappe.model.base_document import get_controller
 >>>>>>> 3ac65adb94 (style: misc changes)
 from frappe.modules import get_module_path, scrub_dt_dn
-from frappe.utils import get_datetime_str
 from frappe.query_builder import DocType
+from frappe.utils import get_datetime_str, now
+
 
 def caclulate_hash(path: str) -> str:
 	"""Calculate md5 hash of the file in binary mode
@@ -85,18 +86,28 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			docs = [docs]
 
 		for doc in docs:
+<<<<<<< HEAD
 			if not force:
 <<<<<<< HEAD
 				# check if timestamps match
 				db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
 				if db_modified and doc.get('modified')==get_datetime_str(db_modified):
 =======
+=======
+
+			# modified timestamp in db, none if doctype's first import
+			db_modified_timestamp = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
+			is_db_timestamp_latest = db_modified_timestamp and doc.get("modified") <= get_datetime_str(db_modified_timestamp)
+
+			if not force or db_modified_timestamp:
+>>>>>>> 86f29aeaa3 (fix: missing logical cases)
 				try:
 					stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
 				except Exception:
 					frappe.flags.dt += [doc["doctype"]]
 					stored_hash = None
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 				if not db_hash:
 					db_modified = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
@@ -121,6 +132,16 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 				ignore_version=ignore_version, reset_permissions=reset_permissions)
 			frappe.flags.in_import = False
 =======
+=======
+				# if hash exists and is equal no need to update
+				if stored_hash and stored_hash == calculated_hash:
+					return False
+
+				# if hash doesn't exist, check if db timestamp is same as json timestamp, add hash if from doctype
+				if is_db_timestamp_latest and doc["doctype"] != "DocType":
+					return False
+
+>>>>>>> 86f29aeaa3 (fix: missing logical cases)
 			import_doc(
 				docdict=doc,
 				force=force,
@@ -132,13 +153,23 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			)
 >>>>>>> b2b391e90a (style: misc)
 
-			# not using db.set_value to avoid making changes in tabSingles
 			if doc["doctype"] == "DocType":
-				doctype_table = frappe.qb.DocType("DocType")
-				frappe.qb.update(doctype_table).set(
+				doctype_table = DocType("DocType")
+				frappe.qb.update(
+					doctype_table
+				).set(
 					doctype_table.migration_hash, calculated_hash
-				).where(doctype_table.name == doc["name"]).run()
+				).where(
+					doctype_table.name == doc["name"]
+				).run()
 
+			new_modified_timestamp = doc.get("modified")
+
+			# if db timestamp is newer, hash must have changed, must update db timestamp
+			if is_db_timestamp_latest and doc["doctype"] == "DocType":
+				new_modified_timestamp = now()
+
+<<<<<<< HEAD
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
 				if doc["doctype"] == doc["name"] and doc["name"]!="DocType":
@@ -151,6 +182,13 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 
 <<<<<<< HEAD
 =======
+=======
+			if new_modified_timestamp:
+				update_modified(new_modified_timestamp, doc)
+
+	return True
+
+>>>>>>> 86f29aeaa3 (fix: missing logical cases)
 
 def is_timestamp_changed(doc):
 	# check if timestamps match
