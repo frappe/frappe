@@ -109,7 +109,13 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+
 		query = str(query)
+
+		if frappe.flags.in_safe_exec:
+			if not query.strip().lower().startswith('select'):
+				raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+
 		if not run:
 			return query
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):

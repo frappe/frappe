@@ -1,24 +1,27 @@
 
-import os, json, inspect
+import inspect
+import json
 import mimetypes
+
+import RestrictedPython.Guards
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
-import RestrictedPython.Guards
+
 import frappe
-from frappe import _
-import frappe.utils
-import frappe.utils.data
-from frappe.website.utils import (get_shade, get_toc, get_next_link)
-from frappe.modules import scrub
-from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 import frappe.integrations.utils
+import frappe.utils
+import frappe.utils.data
+from frappe import _
 from frappe.frappeclient import FrappeClient
-from frappe.query_builder.utils import get_attr
-from typing import get_type_hints
+from frappe.modules import scrub
+from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.www.printview import get_visible_columns
+
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
+
 
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
@@ -30,18 +33,6 @@ class NamespaceDict(frappe._dict):
 			return default_function
 		return ret
 
-def get_safe_query_builder():
-	"""Allows execution of SELECT SQL queries only.
-	Raises:
-	   	PermissionsError raised on execution of any other SQL query
-	"""
-	query_class = get_attr(str(frappe.qb).split("'")[1])
-	class SafeQB(query_class):
-		def __init__(self, *args, **kwargs):
-			_builder = get_type_hints(super()._builder).get('return')
-			_builder.run = read_sql
-
-	return SafeQB()
 
 def safe_exec(script, _globals=None, _locals=None):
 	# server scripts can be disabled via site_config.json
@@ -60,13 +51,15 @@ def safe_exec(script, _globals=None, _locals=None):
 		exec_globals.update(_globals)
 
 	# execute script compiled by RestrictedPython
+	frappe.flags.in_safe_exec = True
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
+	frappe.flags.in_safe_exec = False
 
 	return exec_globals, _locals
 
 def get_safe_globals():
 	datautils = frappe._dict()
-	safe_qb = get_safe_query_builder()
+
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
@@ -100,7 +93,7 @@ def get_safe_globals():
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
-			qb=safe_qb,
+			qb=frappe.qb,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
@@ -169,7 +162,7 @@ def get_safe_globals():
 			avg=frappe.db.avg,
 			sum=frappe.db.sum,
 			escape=frappe.db.escape,
-			sql=read_sql
+			sql=frappe.db.sql
 		)
 
 	if frappe.response:
@@ -188,14 +181,6 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
-
-def read_sql(query, *args, **kwargs):
-	'''a wrapper for frappe.db.sql to allow reads'''
-	query = str(query)
-	if query.strip().split(None, 1)[0].lower() == 'select':
-		return frappe.db.sql(query, *args, **kwargs)
-	else:
-		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 
 def run_script(script):
 	'''run another server script'''
