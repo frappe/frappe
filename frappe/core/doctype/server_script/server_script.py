@@ -91,7 +91,7 @@ class ServerScript(Document):
 		Args:
 			doc (Document): Executes script with for a certain document's events
 		"""
-		safe_exec(self.script, _locals={"doc": doc})
+		safe_exec(self.script, _locals={"doc": doc}, restrict_commit_rollback=True)
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
