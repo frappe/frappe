@@ -93,7 +93,7 @@ class ServerScript(Document):
 		"""
 		safe_exec(self.script, _locals={"doc": doc}, restrict_commit_rollback=True)
 
-	def execute_scheduled_method(self):
+	def execute_scheduled_method(self, args: Dict = None) -> Dict:
 		"""Specific to Scheduled Jobs via Server Scripts
 
 		Raises:
