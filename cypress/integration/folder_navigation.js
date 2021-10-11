@@ -71,7 +71,7 @@ context('Folder Navigation', () => {
 	it('Deleting Test Folder from the home', () => {
 	//Deleting the Test Folder added in the home directory
 		cy.visit('/app/file/view/home');
-		cy.get('.level-left > .list-subject > .list-row-checkbox').eq(0).click({force: true, delay: 500});
+		cy.get('.level-left > .list-subject > .file-select >.list-row-checkbox').eq(0).click({force: true, delay: 500});
 		cy.findByRole('button', {name: 'Actions'}).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
 		cy.findByRole('button', {name: 'Yes'}).click();
