@@ -29,7 +29,7 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
-def safe_exec(script, _globals=None, _locals=None):
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
 	if 'server_script_enabled' in frappe.conf:
@@ -44,6 +44,10 @@ def safe_exec(script, _globals=None, _locals=None):
 	exec_globals = get_safe_globals()
 	if _globals:
 		exec_globals.update(_globals)
+
+	if restrict_commit_rollback:
+		exec_globals.frappe.db.pop('commit', None)
+		exec_globals.frappe.db.pop('rollback', None)
 
 	# execute script compiled by RestrictedPython
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
@@ -154,8 +158,12 @@ def get_safe_globals():
 			avg = frappe.db.avg,
 			sum = frappe.db.sum,
 			escape = frappe.db.escape,
-			sql = read_sql
+			sql = read_sql,
+			commit = frappe.db.commit,
+			rollback = frappe.db.rollback
 		)
+
+		out.frappe.cache = cache
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -173,6 +181,14 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
+
+def cache():
+	return NamespaceDict(
+		get_value = frappe.cache().get_value,
+		set_value = frappe.cache().set_value,
+		hset = frappe.cache().hset,
+		hget = frappe.cache().hget
+	)
 
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
