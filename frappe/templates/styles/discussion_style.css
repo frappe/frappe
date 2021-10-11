@@ -246,7 +246,6 @@
 }
 
 .card-divider-dark {
-	border: 1px solid var(--gray-400);
+	border: 1px solid var(--gray-300);
 	margin-bottom: 1rem;
-	opacity: 0.5;
 }
