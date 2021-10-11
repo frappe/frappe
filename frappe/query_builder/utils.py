@@ -51,6 +51,7 @@ def patch_query_execute():
 	"""
 
 	def execute_query(query, *args, **kwargs):
+		query = str(query)
 		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
 			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 		return frappe.db.sql(query, *args, **kwargs)
