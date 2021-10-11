@@ -17,6 +17,7 @@ from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 from werkzeug.test import Client
 from redis.exceptions import ConnectionError
+from collections.abc import MutableMapping, MutableSequence, Sequence
 
 import frappe
 # utility functions like cint, int, flt, etc.
@@ -861,3 +862,57 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 
 def get_table_name(table_name: str) -> str:
 	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+def squashify(what):
+	if isinstance(what, Sequence) and len(what) == 1:
+		return what[0]
+
+	return what
+
+def safe_json_loads(*args):
+	results = []
+
+	for arg in args:
+		try:
+			arg = json.loads(arg)
+		except Exception:
+			pass
+
+		results.append(arg)
+
+	return squashify(results)
+
+def filter_dict(what, keys, ignore = False):
+	copy = dict()
+
+	if keys:
+		for k in keys:
+			if k not in what and not ignore:
+				raise KeyError('{key} not in dict.'.format(key = k))
+			else:
+				copy.update({
+					k: what[k]
+				})
+	else:
+		copy = what.copy()
+
+	return copy
+
+def get_if_empty(a, b):
+	if not a:
+		a = b
+	return a
+
+def listify(arg):
+	if not isinstance(arg, list):
+		arg = [arg]
+	return arg
+
+def dictify(arg):
+	if isinstance(arg, MutableSequence):
+		for i, a in enumerate(arg):
+			arg[i] = dictify(a)
+	elif isinstance(arg, MutableMapping):
+		arg = frappe._dict(arg)
+
+	return arg
