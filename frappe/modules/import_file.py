@@ -7,8 +7,9 @@ import os
 import frappe
 from frappe.model.base_document import get_controller
 from frappe.modules import get_module_path, scrub_dt_dn
-from frappe.utils import get_datetime_str
 from frappe.query_builder import DocType
+from frappe.utils import get_datetime_str, now
+
 
 def caclulate_hash(path: str) -> str:
 	"""Calculate md5 hash of the file in binary mode
@@ -76,43 +77,54 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 			docs = [docs]
 
 		for doc in docs:
-			if not force:
+
+			# modified timestamp in db, none if doctype's first import
+			db_modified_timestamp = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
+			is_db_timestamp_latest = db_modified_timestamp and doc.get("modified") <= get_datetime_str(db_modified_timestamp)
+
+			if not force or db_modified_timestamp:
 				try:
 					stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
 				except Exception:
 					frappe.flags.dt += [doc["doctype"]]
 					stored_hash = None
 
-				# fallback if stored_hash doesn't exist
-				if not stored_hash and is_timestamp_changed(doc):
+				# if hash exists and is equal no need to update
+				if stored_hash and stored_hash == calculated_hash:
 					return False
 
-				if calculated_hash == stored_hash:
+				# if hash doesn't exist, check if db timestamp is same as json timestamp, add hash if from doctype
+				if is_db_timestamp_latest and doc["doctype"] != "DocType":
 					return False
 
-			original_modified = doc.get("modified")
+			import_doc(
+				docdict=doc,
+				force=force,
+				data_import=data_import,
+				pre_process=pre_process,
+				ignore_version=ignore_version,
+				reset_permissions=reset_permissions,
+				path=path,
+			)
 
-			frappe.flags.in_import = True
-			import_doc(doc, force=force, data_import=data_import, pre_process=pre_process,
-				ignore_version=ignore_version, reset_permissions=reset_permissions)
-			frappe.flags.in_import = False
-
-			# not using db.set_value to avoid making changes in tabSingles
 			if doc["doctype"] == "DocType":
-				doctype_table = frappe.qb.DocType("DocType")
-				frappe.qb.update(doctype_table).set(
+				doctype_table = DocType("DocType")
+				frappe.qb.update(
+					doctype_table
+				).set(
 					doctype_table.migration_hash, calculated_hash
-				).where(doctype_table.name == doc["name"]).run()
+				).where(
+					doctype_table.name == doc["name"]
+				).run()
 
-			if original_modified:
-				# since there is a new timestamp on the file, update timestamp in
-				if doc["doctype"] == doc["name"] and doc["name"]!="DocType":
-					frappe.db.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""",
-						(original_modified, doc["name"]))
-				else:
-					frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
-						(doc['doctype'], '%s', '%s'),
-						(original_modified, doc['name']))
+			new_modified_timestamp = doc.get("modified")
+
+			# if db timestamp is newer, hash must have changed, must update db timestamp
+			if is_db_timestamp_latest and doc["doctype"] == "DocType":
+				new_modified_timestamp = now()
+
+			if new_modified_timestamp:
+				update_modified(new_modified_timestamp, doc)
 
 	return True
 
