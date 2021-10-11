@@ -10,7 +10,7 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
-from collections.abc import Iterator
+from typing import Iterator
 
 import frappe
 from frappe import _
