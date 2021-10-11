@@ -113,6 +113,7 @@ class Database(object):
 		query = str(query)
 		if not run:
 			return query
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
