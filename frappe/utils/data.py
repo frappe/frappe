@@ -235,7 +235,7 @@ def get_first_day(dt, d_years=0, d_months=0, as_str=False):
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
-	return str(datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1))
+	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
 
 def get_quarter_start(dt, as_str=False):
 	date = getdate(dt)
@@ -507,7 +507,7 @@ def get_timespan_date_range(timespan):
 		"today": lambda: (today, today),
 		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
 		"this week": lambda: (get_first_day_of_week(today), today),
-		"this month": lambda: (get_first_day(today), today),
+		"this month": lambda: (get_first_day(today, as_str=True), today),
 		"this quarter": lambda: (get_quarter_start(today), today),
 		"this year": lambda: (get_year_start(today), today),
 		"next week": lambda: (get_first_day_of_week(add_to_date(today, days=7)), get_last_day_of_week(add_to_date(today, days=7))),
