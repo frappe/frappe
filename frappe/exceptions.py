@@ -101,7 +101,6 @@ class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
 class DocumentAlreadyRestored(Exception): pass
 class AttachmentLimitReached(Exception): pass
-class InvalidOwner(Exception): pass
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass

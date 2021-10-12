@@ -64,6 +64,10 @@ class ToDo(Document):
 			"link_name": self.name
 		})
 
+	def set_owner(self):
+		# owner is set from client side
+		pass
+
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):
 			return
