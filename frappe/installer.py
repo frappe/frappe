@@ -233,7 +233,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	frappe.flags.in_uninstall = True
 
-	drop_doctypes = _delete_modules(app_name, dry_run=dry_run)
+	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
+
+	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
 	_delete_doctypes(drop_doctypes, dry_run=dry_run)
 
 	if not dry_run:
@@ -244,15 +246,13 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	frappe.flags.in_uninstall = False
 
 
-def _delete_modules(app_name: str, dry_run: bool) -> List[str]:
+def _delete_modules(modules: List[str], dry_run: bool) -> List[str]:
 	""" Delete modules belonging to the app and all related doctypes.
 
 		Note: All record linked linked to Module Def are also deleted.
 
 		Returns: list of deleted doctypes."""
 	drop_doctypes = []
-
-	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
 
 	doctype_link_field_map = _get_module_linked_doctype_field_map()
 	for module_name in modules:
