@@ -50,7 +50,9 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.frappe.db.pop('rollback', None)
 
 	# execute script compiled by RestrictedPython
+	frappe.flags.in_safe_exec = True
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
+	frappe.flags.in_safe_exec = False
 
 	return exec_globals, _locals
 
@@ -89,6 +91,7 @@ def get_safe_globals():
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
+			qb=frappe.qb,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
@@ -188,10 +191,10 @@ def cache():
 
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
-	if query.strip().split(None, 1)[0].lower() == 'select':
-		return frappe.db.sql(query, *args, **kwargs)
-	else:
+	query = str(query)
+	if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+	return frappe.db.sql(query, *args, **kwargs)
 
 def run_script(script):
 	'''run another server script'''
