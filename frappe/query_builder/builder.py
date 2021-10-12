@@ -1,13 +1,17 @@
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.queries import Schema, Table
 from frappe.utils import get_table_name
-
+from pypika.terms import Function
 
 class Base:
 	terms = terms
 	desc = Order.desc
 	Schema = Schema
 	Table = Table
+
+	@staticmethod
+	def functions(name: str, *args, **kwargs) -> Function:
+		return Function(name, *args, **kwargs)
 
 	@staticmethod
 	def DocType(table_name: str, *args, **kwargs) -> Table:
