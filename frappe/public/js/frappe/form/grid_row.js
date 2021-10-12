@@ -723,6 +723,7 @@ export default class GridRow {
 
 	set_arrow_keys(field) {
 		var me = this;
+		let ignore_fieldtypes = ['Text', 'Small Text', 'Code', 'Text Editor', 'HTML Editor'];
 		if (field.$input) {
 			field.$input.on('keydown', function(e) {
 				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
@@ -734,8 +735,20 @@ export default class GridRow {
 				var fieldname = $(this).attr('data-fieldname');
 				var fieldtype = $(this).attr('data-fieldtype');
 
+				let ctrl_key = e.metaKey || e.ctrlKey;
+				if (!in_list(ignore_fieldtypes, fieldtype)
+					&& ctrl_key && e.which !== TAB) {
+					me.add_new_row_using_keys(e);
+					return;
+				}
+
+				if (e.shiftKey && e.altKey && DOWN_ARROW === e.which) {
+					me.duplicate_row_using_keys();
+					return;
+				}
+
 				var move_up_down = function(base) {
-					if (in_list(['Text', 'Small Text', 'Code', 'Text Editor', 'HTML Editor'], fieldtype) && !e.altKey) {
+					if (in_list(ignore_fieldtypes, fieldtype) && !e.altKey) {
 						return false;
 					}
 					if (field.autocomplete_open) {
@@ -787,6 +800,45 @@ export default class GridRow {
 				}
 
 			});
+		}
+	}
+
+	duplicate_row_using_keys() {
+		setTimeout(() => {
+			this.insert(false, true, true);
+			this.grid.grid_rows[this.doc.idx].toggle_editable_row();
+			this.grid.set_focus_on_row(this.doc.idx);
+		}, 100);
+	}
+
+	add_new_row_using_keys(e) {
+		let me = this;
+		let idx = '';
+
+		let ctrl_key = e.metaKey || e.ctrlKey;
+		let { DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+
+		if (ctrl_key && e.shiftKey)  {
+			let show = (e.which === DOWN_ARROW) ? true : false;
+			idx = (e.which === DOWN_ARROW) ? null : 1;
+
+			setTimeout(() => {
+				this.grid.add_new_row(idx, null, show);
+
+				idx = (e.which === DOWN_ARROW) ? this.grid.grid_rows.length : 1;
+				this.grid.grid_rows[(idx - 1)].toggle_editable_row();
+				this.grid.set_focus_on_row((idx - 1));
+			}, 100);
+
+		} else if (ctrl_key) {
+			let below = (e.which === DOWN_ARROW) ? true : false;
+			idx = (e.which === DOWN_ARROW) ? me.doc.idx : (me.doc.idx - 1);
+
+			setTimeout(() => {
+				this.insert(false, below);
+				this.grid.grid_rows[idx].toggle_editable_row();
+				this.grid.set_focus_on_row(idx);
+			}, 100);
 		}
 	}
 
