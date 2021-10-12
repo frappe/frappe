@@ -434,7 +434,7 @@ class TestReportview(unittest.TestCase):
 		})
 
 		response = execute_cmd("frappe.desk.reportview.get")
-		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
+		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column", 'columns'])
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc({
