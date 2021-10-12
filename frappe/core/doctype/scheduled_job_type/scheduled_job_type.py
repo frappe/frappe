@@ -8,6 +8,7 @@ from typing import Dict, List
 from croniter import croniter
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, get_jobs
@@ -21,6 +22,10 @@ class ScheduledJobType(Document):
 		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
+		if self.frequency == 'Cron' and self.cron_format and not croniter.is_valid(self.cron_format):
+			frappe.throw(_('{} is not a valid cron expression.').format(self.cron_format), title=_('Invalid Expression'))
+		if self.frequency != 'Cron':
+			self.cron_format = None
 
 	def enqueue(self, force=False):
 		# enqueue event if last execution is done
@@ -52,13 +57,9 @@ class ScheduledJobType(Document):
 			"Yearly": "0 0 1 1 *",
 			"Annual": "0 0 1 1 *",
 			"Monthly": "0 0 1 * *",
-			"Monthly Long": "0 0 1 * *",
 			"Weekly": "0 0 * * 0",
-			"Weekly Long": "0 0 * * 0",
 			"Daily": "0 0 * * *",
-			"Daily Long": "0 0 * * *",
 			"Hourly": "0 * * * *",
-			"Hourly Long": "0 * * * *",
 			"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
 		}
 
@@ -96,8 +97,16 @@ class ScheduledJobType(Document):
 				self.db_set('last_execution', now_datetime(), update_modified=False)
 				frappe.db.commit()
 			return
+
+		if self.create_failure_log and status != 'Failed':
+			return
+
 		if not self.scheduler_log:
-			self.scheduler_log = frappe.get_doc(dict(doctype = 'Scheduled Job Log', scheduled_job_type=self.name)).insert(ignore_permissions=True)
+			self.scheduler_log = frappe.get_doc(dict(
+				doctype = 'Scheduled Job Log',
+				scheduled_job_type=self.name
+			)).insert(ignore_permissions=True)
+
 		self.scheduler_log.db_set('status', status)
 		if status == 'Failed':
 			self.scheduler_log.db_set('details', frappe.get_traceback())
@@ -106,7 +115,7 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
-		return 'long' if ('Long' in self.frequency) else 'default'
+		return self.queue.lower()
 
 	def on_trash(self):
 		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
@@ -160,12 +169,14 @@ def insert_event_jobs(events: List, event_type: str) -> List:
 	event_jobs = []
 	for event in events:
 		event_jobs.append(event)
-		frequency = event_type.replace("_", " ").title()
-		insert_single_event(frequency, event)
+		event_type = event_type.replace("_", " ").title()
+		frequency = event_type.split(' ')[0]
+		queue = event_type.split(' ')[1] if 'Long' in event_type else 'Default'
+		insert_single_event(frequency, event, queue)
 	return event_jobs
 
 
-def insert_single_event(frequency: str, event: str, cron_format: str = None):
+def insert_single_event(frequency: str, event: str, cron_format: str = None, queue: str = 'Default'):
 	cron_expr = {"cron_format": cron_format} if cron_format else {}
 	doc = frappe.get_doc(
 		{
@@ -173,11 +184,12 @@ def insert_single_event(frequency: str, event: str, cron_format: str = None):
 			"method": event,
 			"cron_format": cron_format,
 			"frequency": frequency,
+			"queue": queue
 		}
 	)
 
 	if not frappe.db.exists(
-		"Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}
+		"Scheduled Job Type", {"method": event, "frequency": frequency, "queue": queue, **cron_expr}
 	):
 		try:
 			doc.insert()

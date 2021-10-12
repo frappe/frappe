@@ -93,7 +93,7 @@
    "fieldtype": "Select",
    "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
-   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly"
   },
   {
    "fieldname": "module",
@@ -109,10 +109,11 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2021-09-04 12:02:43.671240",
+ "modified": "2021-10-12 15:16:45.827264",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
