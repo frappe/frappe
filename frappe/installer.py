@@ -4,6 +4,7 @@
 import json
 import os
 import sys
+from typing import List
 
 import frappe
 from frappe.defaults import _clear_cache
@@ -229,9 +230,28 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		scheduled_backup(ignore_files=True)
 
 	frappe.flags.in_uninstall = True
+
+	drop_doctypes = _delete_modules(app_name, dry_run=dry_run)
+	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+
+	if not dry_run:
+		remove_from_installed_apps(app_name)
+		frappe.db.commit()
+
+	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
+	frappe.flags.in_uninstall = False
+
+
+def _delete_modules(app_name: str, dry_run: bool) -> List[str]:
+	""" Delete modules belonging to the app and all related doctypes.
+
+		Note: All record linked linked to Module Def are also deleted.
+
+		Returns: list of deleted doctypes."""
 	drop_doctypes = []
 
 	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
+
 	for module_name in modules:
 		print(f"Deleting Module '{module_name}'")
 
@@ -246,39 +266,41 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
-		linked_doctypes = frappe.get_all(
-			"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent"]
-		)
-		ordered_doctypes = ["Workspace", "Report", "Page", "Web Form"]
-		all_doctypes_with_linked_modules = ordered_doctypes + [
-			doctype.parent
-			for doctype in linked_doctypes
-			if doctype.parent not in ordered_doctypes
-		]
-		doctypes_with_linked_modules = [
-			x for x in all_doctypes_with_linked_modules if frappe.db.exists("DocType", x)
-		]
-		for doctype in doctypes_with_linked_modules:
-			for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
-				print(f"* removing {doctype} '{record}'...")
-				if not dry_run:
-					frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
+		_delete_linked_documents(module_name, dry_run=dry_run)
 
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True, force=True)
 
-	for doctype in set(drop_doctypes):
+	return drop_doctypes
+
+
+def _delete_linked_documents(module_name: str, dry_run: bool) -> None:
+	"""Deleted all records linked with module def"""
+	linked_doctypes = frappe.get_all(
+		"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent"]
+	)
+	ordered_doctypes = ["Workspace", "Report", "Page", "Web Form"]
+	all_doctypes_with_linked_modules = ordered_doctypes + [
+		doctype.parent
+		for doctype in linked_doctypes
+		if doctype.parent not in ordered_doctypes
+	]
+	doctypes_with_linked_modules = [
+		x for x in all_doctypes_with_linked_modules if frappe.db.exists("DocType", x)
+	]
+	for doctype in doctypes_with_linked_modules:
+		for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
+			print(f"* removing {doctype} '{record}'...")
+			if not dry_run:
+				frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
+
+
+def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
+	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
 			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
-
-	if not dry_run:
-		remove_from_installed_apps(app_name)
-		frappe.db.commit()
-
-	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
-	frappe.flags.in_uninstall = False
 
 
 def post_install(rebuild_website=False):
