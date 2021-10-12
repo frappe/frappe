@@ -235,7 +235,7 @@ def get_first_day(dt, d_years=0, d_months=0, as_str=False):
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
-	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
+	return str(datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1))
 
 def get_quarter_start(dt, as_str=False):
 	date = getdate(dt)

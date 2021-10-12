@@ -69,7 +69,6 @@ class DatabaseQuery(object):
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
 		if limit: limit_page_length = limit
-
 		self.filters = filters or []
 		self.or_filters = or_filters or []
 		self.docstatus = docstatus or []
@@ -203,7 +202,6 @@ class DatabaseQuery(object):
 
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
-
 		return args
 
 	def parse_args(self):
@@ -566,6 +564,10 @@ class DatabaseQuery(object):
 				f.operator = 'ilike'
 			condition = f'{column_name} {f.operator} {value}'
 		else:
+			if f.operator == "Between":
+				value = value.replace("(", "")
+				value = value.replace(")", "")
+				value = value.replace(",", "AND")
 			condition = f'ifnull({column_name}, {fallback}) {f.operator} {value}'
 
 		return condition
