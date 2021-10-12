@@ -194,16 +194,17 @@ def create_form_tour():
 
 @frappe.whitelist()
 def create_data_for_discussions():
-	web_page = create_web_page()
+	web_page = create_web_page("Test page for discussions", "test-page-discussions", False)
 	create_topic_and_reply(web_page)
+	create_web_page("Test single thread discussion", "test-single-thread", True)
 
-def create_web_page():
-	web_page = frappe.db.exists("Web Page", {"route": "test-page-discussions"})
+def create_web_page(title, route, single_thread):
+	web_page = frappe.db.exists("Web Page", {"route": route})
 	if not web_page:
 		web_page = frappe.get_doc({
 			"doctype": "Web Page",
-			"title": "Test page for discussions",
-			"route": "test-page-discussions",
+			"title": title,
+			"route": route,
 			"published": True
 		})
 		web_page.save()
@@ -213,7 +214,8 @@ def create_web_page():
 			"web_template_values": frappe.as_json({
 				"title": "Discussions",
 				"cta_title": "New Discussion",
-				"docname": web_page.name
+				"docname": web_page.name,
+				"single_thread": single_thread
 			})
 		})
 		web_page.save()
