@@ -3,7 +3,7 @@
 	padding: 1rem;
 }
 
-.discussions-parent .form-control {
+.thread-card .form-control {
 	background-color: #FFFFFF;
 	font-size: inherit;
 	color: inherit;
@@ -246,6 +246,6 @@
 }
 
 .card-divider-dark {
-	border: 1px solid var(--gray-400);
-	margin-bottom: 16px;
+	border: 1px solid var(--gray-300);
+	margin-bottom: 1rem;
 }
