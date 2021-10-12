@@ -263,9 +263,9 @@ def _delete_modules(app_name: str, dry_run: bool) -> List[str]:
 			print(f"* removing DocType '{doctype.name}'...")
 
 			if not dry_run:
-				frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
-
-				if not doctype.issingle:
+				if doctype.issingle:
+					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
+				else:
 					drop_doctypes.append(doctype.name)
 
 		_delete_linked_documents(module_name, doctype_link_field_map, dry_run=dry_run)
@@ -310,7 +310,8 @@ def _get_module_linked_doctype_field_map() -> Dict[str, str]:
 	existing_linked_doctypes = [d for d in linked_doctypes if frappe.db.exists("DocType", d.parent)]
 
 	for d in existing_linked_doctypes:
-		if d.parent not in doctype_to_field_map:
+		# DocType deletion is handled separately in the end
+		if d.parent not in doctype_to_field_map and d.parent != "DocType":
 			doctype_to_field_map[d.parent] = d.fieldname
 
 	return doctype_to_field_map
@@ -320,6 +321,7 @@ def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
 	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
+			frappe.delete_doc("DocType", doctype, ignore_on_trash=True)
 			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
 
 
