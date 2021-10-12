@@ -70,7 +70,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 
 	if l:
 		for i, doc_path in enumerate(files):
-			import_file_by_path(doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions, for_sync=True)
+			import_file_by_path(doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions)
 
 			frappe.db.commit()
 
