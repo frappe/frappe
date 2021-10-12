@@ -4,7 +4,8 @@
 import json
 import os
 import sys
-from typing import List
+from collections import OrderedDict
+from typing import List, Dict
 
 import frappe
 from frappe.defaults import _clear_cache
@@ -253,6 +254,7 @@ def _delete_modules(app_name: str, dry_run: bool) -> List[str]:
 
 	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
 
+	doctype_link_field_map = _get_module_linked_doctype_field_map()
 	for module_name in modules:
 		print(f"Deleting Module '{module_name}'")
 
@@ -267,7 +269,7 @@ def _delete_modules(app_name: str, dry_run: bool) -> List[str]:
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
-		_delete_linked_documents(module_name, dry_run=dry_run)
+		_delete_linked_documents(module_name, doctype_link_field_map, dry_run=dry_run)
 
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
@@ -276,25 +278,43 @@ def _delete_modules(app_name: str, dry_run: bool) -> List[str]:
 	return drop_doctypes
 
 
-def _delete_linked_documents(module_name: str, dry_run: bool) -> None:
+def _delete_linked_documents(
+		module_name: str,
+		doctype_linkfield_map: Dict[str, str],
+		dry_run: bool
+	) -> None:
+
 	"""Deleted all records linked with module def"""
-	linked_doctypes = frappe.get_all(
-		"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent"]
-	)
-	ordered_doctypes = ["Workspace", "Report", "Page", "Web Form"]
-	all_doctypes_with_linked_modules = ordered_doctypes + [
-		doctype.parent
-		for doctype in linked_doctypes
-		if doctype.parent not in ordered_doctypes
-	]
-	doctypes_with_linked_modules = [
-		x for x in all_doctypes_with_linked_modules if frappe.db.exists("DocType", x)
-	]
-	for doctype in doctypes_with_linked_modules:
-		for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
+	for doctype, fieldname in doctype_linkfield_map.items():
+		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):
 			print(f"* removing {doctype} '{record}'...")
 			if not dry_run:
 				frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
+
+def _get_module_linked_doctype_field_map() -> Dict[str, str]:
+	""" Get all the doctypes which have module linked with them.
+
+		returns ordered dictionary with doctype->link field mapping."""
+
+	# Hardcoded to change order of deletion
+	ordered_doctypes = [
+			("Workspace", "module"),
+			("Report", "module"),
+			("Page", "module"),
+			("Web Form", "module")
+	]
+	doctype_to_field_map = OrderedDict(ordered_doctypes)
+
+	linked_doctypes = frappe.get_all(
+		"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent", "fieldname"]
+	)
+	existing_linked_doctypes = [d for d in linked_doctypes if frappe.db.exists("DocType", d.parent)]
+
+	for d in existing_linked_doctypes:
+		if d.parent not in doctype_to_field_map:
+			doctype_to_field_map[d.parent] = d.fieldname
+
+	return doctype_to_field_map
 
 
 def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
