@@ -684,7 +684,7 @@ export default class Grid {
 	}
 
 	set_focus_on_row(idx) {
-		if (!idx) {
+		if (!idx && idx!=0) {
 			idx = this.grid_rows.length - 1;
 		}
 
