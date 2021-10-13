@@ -60,11 +60,9 @@ class PaymentGateway(Document):
 				))
 
 	def create_payment_request(self, data):
-		self.data = frappe._dict(data)
-
 		try:
 			self.integration_request = create_request_log(
-				self.data, 'Host', self.gateway_name,
+				data, 'Host', self.gateway_name,
 			)
 
 		except Exception:
@@ -94,9 +92,11 @@ class mPaySettings(PaymentGateway):
 	prod_url = 'https://mobiletech.com.hk/MPay/MerchantPay.jsp'
 
 	def get_payment_url(self, **kwargs):
-		self.create_payment_request(self, data=kwargs)
+		self.create_payment_request(data=frappe._dict(kwargs))
 		return get_url('./integrations/mpay_checkout?{0}'.format(
-			urlencode(self.integration_request.name)
+			urlencode({
+				'order_id': self.integration_request.name,
+			})
 		))
 
 	def get_gateway_settings(self):

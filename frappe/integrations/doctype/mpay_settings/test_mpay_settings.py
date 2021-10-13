@@ -23,9 +23,35 @@ class TestmPaySettings(unittest.TestCase):
 		)
 		self.mpay.insert()
 
+		self.ref_doc = frappe.get_doc({
+			'doctype': 'Note',
+			'title': 'Note title',
+			'content': """
+				Use note as reference doc for Payment Request doctype,
+				since note doesn't have any other doctype dependencies
+				such as company or customer, so we don't have to set those up
+			"""
+		})
+
 	def tearDown(self):
 		self.mpay.delete()
 		frappe.db.rollback()
+
+	def test_get_payment_url(self):
+		self.assertRegex(
+			self.mpay.get_payment_url(**{
+				'amount': 100,
+				'title': 'mPay testing',
+				'description': 'mPay unittest',
+				'reference_doctype': self.ref_doc.doctype,
+				'reference_docname': self.ref_doc.name,
+				'payer_email': 'someone@mpaytest.com',
+				'payer_name': 'someonetest',
+				'order_id': 'orderid0124',
+				'currency': 'HKD'
+			}),
+			r'^http.*\/integrations\/mpay_checkout\?order_id=[\w\d]*$'
+		)
 
 	def test_create_payment_request(self):
 		data = dict(
