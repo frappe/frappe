@@ -63,3 +63,15 @@ class TestScheduledJobType(unittest.TestCase):
 		self.assertTrue(job.is_event_due(get_datetime('2019-01-01 00:15:01')))
 		self.assertFalse(job.is_event_due(get_datetime('2019-01-01 00:05:06')))
 		self.assertFalse(job.is_event_due(get_datetime('2019-01-01 00:14:59')))
+
+	def test_cron_format_validation(self):
+		cron_job = frappe.get_doc(dict(
+			doctype='Scheduled Job Type',
+			method='test_cron_validation',
+			frequency='Cron',
+			cron_format='0/10 * * **'
+		))
+		with self.assertRaises(frappe.ValidationError) as err_msg:
+			cron_job.save()
+
+		self.assertTrue("not a valid cron expression" in str(err_msg.exception).lower())
