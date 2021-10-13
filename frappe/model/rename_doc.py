@@ -471,7 +471,7 @@ def bulk_rename(doctype, rows=None, via_console = False):
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
-			merge = True if len(row) > 2 and (row[2] == "1" or row[2].lower() == "true") else False
+			merge = len(row) > 2 and (row[2] == "1" or row[2].lower() == "true")
 			try:
 				if rename_doc(doctype, row[0], row[1], merge=merge):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])
