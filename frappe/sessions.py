@@ -17,6 +17,7 @@ import redis
 from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
+from frappe.query_builder import DocType
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):
@@ -65,12 +66,10 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	table = frappe.qb.DocType("Sessions")
 	criterion =  frappe.qb.from_(table).where(table.user == user) \
 		  		.where(table.device.isin(device))
-	condition = ''
 	if keep_current:
 		criterion = criterion.where(table.sid != frappe.db.escape(frappe.session.sid))
 
-	query = criterion.select(table.sid).offset(offset).limit(100) \
-			.orderby(table.lastupdate, order=Order.desc)
+	query = criterion.select(table.sid).offset(offset).limit(100).orderby(table.lastupdate, order=Order.desc)
 
 	return frappe.db.sql_list(query)
 
@@ -80,7 +79,10 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
 	if sid and not user:
-		user_details = frappe.db.sql("""select user from tabSessions where sid=%s""", sid, as_dict=True)
+		table = DocType("Sessions")
+		user_details = frappe.qb.from_(table).where(
+			table.sid == sid
+		).select(table.user).run(as_dict=True)
 		if user_details: user = user_details[0].get("user")
 
 	logout_feed(user, reason)
@@ -91,7 +93,7 @@ def clear_all_sessions(reason=None):
 	"""This effectively logs out all users"""
 	frappe.only_for("Administrator")
 	if not reason: reason = "Deleted All Active Session"
-	for sid in frappe.db.sql_list("select sid from `tabSessions`"):
+	for sid in [r[0] for r in frappe.qb.from_("Sessions").select("sid").run()]:
 		delete_session(sid, reason=reason)
 
 def get_expired_sessions():
