@@ -20,6 +20,7 @@ from typing import List, Union, Tuple
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
+from frappe.query_builder import Field
 
 
 def get_language(lang_list: List = None) -> str:
@@ -156,7 +157,7 @@ def get_dict(fortype, name=None):
 			messages += frappe.qb.from_("DocType").select("DocType:", "name").run()
 			messages += frappe.qb.from_("Role").select("Role:", "name").run()
 			messages += frappe.qb.from_("Module Def").select("Module:", "name").run()
-			messages += frappe.qb.from_("Workspace Shortcut").where(frappe.qb.Field("format" != None)).select("").run()
+			messages += frappe.qb.from_("Workspace Shortcut").where(Field("format").isnotnull()).select("").run()
 			messages += frappe.qb.from_("Onboarding Step").select("", "title").run()
 
 		messages = deduplicate_messages(messages)
@@ -324,13 +325,17 @@ def get_messages_for_app(app, deduplicate=True):
 
 	# doctypes
 	if modules:
-		for name in frappe.db.sql_list("""select name from tabDocType
-			where module in ({})""".format(modules)):
+		names = frappe.qb.from_("DocType").where(
+			Field("module").isin(modules)
+		).select("name").run()
+		for name in names:
 			messages.extend(get_messages_from_doctype(name))
 
 		# pages
-		for name, title in frappe.db.sql("""select name, title from tabPage
-			where module in ({})""".format(modules)):
+		result = frappe.qb.from_("Page").where(
+			Field("module").isin(modules)
+		).select("name", "title").run()
+		for name, title in result:
 			messages.append((None, title or name))
 			messages.extend(get_messages_from_page(name))
 

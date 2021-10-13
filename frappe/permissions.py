@@ -6,7 +6,7 @@ import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
-
+from frappe.query_builder import DocType
 
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
@@ -333,8 +333,7 @@ def get_all_perms(role):
 	'''Returns valid permissions for a given role'''
 	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
 	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
-	query = frappe.qb.from_("Custom DocPerm").select("parent").distinct()
-	doctypes_with_custom_perms = frappe.db.sql_list(query)
+	doctypes_with_custom_perms = frappe.get_all("Custom DocPerm", pluck="parent", distinct=True)
 
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:
@@ -351,11 +350,12 @@ def get_roles(user=None, with_standard=True):
 
 	def get():
 		if user == 'Administrator':
-			return [r[0] for r in frappe.qb.from_("Role").select("name").run()] # return all available roles
+			return frappe.get_all("Role", pluck="name") # return all available roles
 		else:
-			table = frappe.qb.DocType("Has Role")
-			result = frappe.qb.from_(table).where(table.parent == user) \
-					.where(table.role.notin(["All", "Guest"])).select(table.role).run()
+			table = DocType("Has Role")
+			result = frappe.qb.from_(table).where(
+				(table.parent == user) & (table.role.notin(["All", "Guest"]))
+			).select(table.role).run()
 			return [r[0] for r in result] + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
@@ -465,7 +465,7 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
 		permlevel=permlevel))
-	table = frappe.qb.DocType("Custom DocPerm")
+	table = DocType("Custom DocPerm")
 	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
 	if validate:
