@@ -333,8 +333,8 @@ def get_all_perms(role):
 	'''Returns valid permissions for a given role'''
 	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
 	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
-	doctypes_with_custom_perms = frappe.db.sql_list("""select distinct parent
-		from `tabCustom DocPerm`""")
+	query = frappe.qb.from_("Custom DocPerm").select("parent").distinct()
+	doctypes_with_custom_perms = frappe.db.sql_list(query)
 
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:
@@ -351,10 +351,12 @@ def get_roles(user=None, with_standard=True):
 
 	def get():
 		if user == 'Administrator':
-			return [r[0] for r in frappe.db.sql("select name from `tabRole`")] # return all available roles
+			return [r[0] for r in frappe.qb.from_("Role").select("name").run()] # return all available roles
 		else:
-			return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
-				where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+			table = frappe.qb.DocType("Has Role")
+			result = frappe.qb.form_(table).where(table.parent == user) \
+					.where(table.role.notin(["All", "Guest"])).select(table.role).run()
+			return [r[0] for r in result] + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
 
@@ -463,10 +465,9 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
 		permlevel=permlevel))
+	table = frappe.qb.DocType("Custom DocPerm")
+	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
-	frappe.db.sql("""
-		update `tabCustom DocPerm`
-		set `{0}`=%s where name=%s""".format(ptype), (value, name))
 	if validate:
 		validate_permissions_for_doctype(doctype)
 

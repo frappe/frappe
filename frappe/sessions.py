@@ -16,6 +16,7 @@ import frappe.translate
 import redis
 from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
+from frappe.query_builder import Order
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):
@@ -61,18 +62,17 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		simultaneous_sessions = frappe.db.get_value('User', user, 'simultaneous_sessions') or 1
 		offset = simultaneous_sessions - 1
 
+	table = frappe.qb.DocType("Sessions")
+	criterion =  frappe.qb.from_(table).where(table.user == user) \
+		  		.where(table.device.isin(device))
 	condition = ''
 	if keep_current:
-		condition = ' AND sid != {0}'.format(frappe.db.escape(frappe.session.sid))
+		criterion = criterion.where(table.sid != frappe.db.escape(frappe.session.sid))
 
-	return frappe.db.sql_list("""
-		SELECT `sid` FROM `tabSessions`
-		WHERE `tabSessions`.user=%(user)s
-		AND device in %(device)s
-		{condition}
-		ORDER BY `lastupdate` DESC
-		LIMIT 100 OFFSET {offset}""".format(condition=condition, offset=offset),
-		{"user": user, "device": device})
+	query = criterion.select(table.sid).offset(offset).limit(100) \
+			.orderby(table.lastupdate, order=Order.desc)
+
+	return frappe.db.sql_list(query)
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
 	from frappe.core.doctype.activity_log.feed import logout_feed

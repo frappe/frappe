@@ -116,14 +116,11 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	if frappe.db.sql('''
-		select
-			defkey
-		from
-			`tabDefaultValue`
-		where
-			defkey=%s and parent=%s
-		for update''', (key, parent)):
+	table = frappe.qb.DocType("DefaultValue")
+	result = frappe.qb.from_(table).where(table.defkey == key) \
+	.where(table.parent == parent) \
+	.select(table.defkey).for_update().run()
+	if result:
 		frappe.db.delete("DefaultValue", {
 			"defkey": key,
 			"parent": parent
@@ -191,8 +188,9 @@ def get_defaults_for(parent="__default"):
 
 	if defaults==None:
 		# sort descending because first default must get precedence
-		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`
-			where parent = %s order by creation""", (parent,), as_dict=1)
+		table = frappe.qb.DocType("DefaultValue")
+		res = frappe.qb.from_(table).where(table.parent == parent) \
+			  .select(table.defkey, table.defvalue).orderby("creation").run(as_dict=True)
 
 		defaults = frappe._dict({})
 		for d in res:
