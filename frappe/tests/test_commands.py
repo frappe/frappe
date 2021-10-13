@@ -436,21 +436,6 @@ class TestCommands(BaseTestCommands):
 		
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
-<<<<<<< HEAD
-=======
-
-	def test_set_password(self):
-		from frappe.utils.password import check_password
-
-		self.execute("bench --site {site} set-password Administrator test1")
-		self.assertEqual(self.returncode, 0)
-		self.assertEqual(check_password('Administrator', 'test1'), 'Administrator')
-		# to release the lock taken by check_password
-		frappe.db.commit()
-
-		self.execute("bench --site {site} set-admin-password test2")
-		self.assertEqual(self.returncode, 0)
-		self.assertEqual(check_password('Administrator', 'test2'), 'Administrator')
 
 
 class RemoveAppUnitTests(unittest.TestCase):
@@ -498,4 +483,3 @@ class RemoveAppUnitTests(unittest.TestCase):
 
 		# nothing to assert, if this fails rest of the test suite will crumble.
 		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
->>>>>>> 35b242fe27 (test: remove app unit tests)
