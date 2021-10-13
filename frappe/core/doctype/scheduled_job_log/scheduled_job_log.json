@@ -7,6 +7,11 @@
  "field_order": [
   "status",
   "scheduled_job_type",
+  "column_break_3",
+  "start",
+  "end",
+  "completed_in",
+  "section_break_7",
   "details"
  ],
  "fields": [
@@ -23,7 +28,7 @@
   {
    "fieldname": "details",
    "fieldtype": "Code",
-   "label": "Details",
+   "label": "Traceback",
    "read_only": 1
   },
   {
@@ -35,10 +40,39 @@
    "options": "Scheduled Job Type",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.status == 'Complete'",
+   "fieldname": "start",
+   "fieldtype": "Datetime",
+   "label": "Start",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.status == 'Complete'",
+   "fieldname": "end",
+   "fieldtype": "Datetime",
+   "label": "End",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.status == 'Complete'",
+   "fieldname": "completed_in",
+   "fieldtype": "Duration",
+   "label": "Completed In",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
   }
  ],
  "links": [],
- "modified": "2020-01-22 00:00:00.000000",
+ "modified": "2021-10-13 11:55:13.702402",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Log",

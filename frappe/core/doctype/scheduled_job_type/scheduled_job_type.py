@@ -10,7 +10,7 @@ from croniter import croniter
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_datetime, now_datetime
+from frappe.utils import get_datetime, now_datetime, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue, get_jobs
 
 
@@ -107,10 +107,26 @@ class ScheduledJobType(Document):
 				scheduled_job_type=self.name
 			)).insert(ignore_permissions=True)
 
-		self.scheduler_log.db_set('status', status)
 		if status == 'Failed':
-			self.scheduler_log.db_set('details', frappe.get_traceback())
+			self.scheduler_log.db_set({
+				'status': status,
+				'details': frappe.get_traceback()
+			})
+		if status == 'Complete':
+			self.scheduler_log.reload()
+			start = get_datetime(self.scheduler_log.start)
+			end = now_datetime()
+			completed_in = time_diff_in_seconds(end, start)
+			self.scheduler_log.db_set({
+				'status': status,
+				'end': end,
+				'completed_in': completed_in
+			})
 		if status == 'Start':
+			self.scheduler_log.db_set({
+				'status': status,
+				'start': now_datetime()
+			})
 			self.db_set('last_execution', now_datetime(), update_modified=False)
 		frappe.db.commit()
 
