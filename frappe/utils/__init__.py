@@ -882,32 +882,6 @@ def safe_json_loads(*args):
 
 	return squashify(results)
 
-def filter_dict(what, keys, ignore = False):
-	copy = dict()
-
-	if keys:
-		for k in keys:
-			if k not in what and not ignore:
-				raise KeyError('{key} not in dict.'.format(key = k))
-			else:
-				copy.update({
-					k: what[k]
-				})
-	else:
-		copy = what.copy()
-
-	return copy
-
-def get_if_empty(a, b):
-	if not a:
-		a = b
-	return a
-
-def listify(arg):
-	if not isinstance(arg, list):
-		arg = [arg]
-	return arg
-
 def dictify(arg):
 	if isinstance(arg, MutableSequence):
 		for i, a in enumerate(arg):
