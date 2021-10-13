@@ -116,6 +116,9 @@ class mPaySettings(PaymentGateway):
 		self.get_gateway_settings()
 		dict_params = {
 			**self.gateway_settings,
+			**{
+				'paymethod': 0,
+			},
 			**kwargs,
 		}
 
@@ -163,13 +166,32 @@ class mPaySettings(PaymentGateway):
 			self.text_params.encode('utf-8')
 		).hexdigest()
 
+	@staticmethod
+	def map_payment_key(params_dict):
+		map_dict = {
+			# 'frappe_key': 'mpay_key',
+			'amount': 'amt',
+			'currency': 'currency',
+			'reference_docname': 'ordernum',
+			'payer_name': 'customerid',
+		}
+
+		for frappe_key, mpay_key in map_dict.items():
+			if frappe_key in params_dict:
+				params_dict[mpay_key] = params_dict.pop(frappe_key)
+
+		return params_dict
+
 	def get_payment_context(self, integration_request_id):
 		integration_request = frappe.get_doc(
 			'Integration Request',
 			integration_request_id
 		).as_dict()
 
-		self.construct_text_params(**json.loads(integration_request.data))
+		integration_request_data = json.loads(integration_request.data)
+		request_data = self.map_payment_key(integration_request_data)
+
+		self.construct_text_params(**request_data)
 		self.gen_text_hash()
 
 		self.dict_params.pop('securekey')

@@ -25,13 +25,14 @@ class TestmPaySettings(unittest.TestCase):
 
 		self.ref_doc = frappe.get_doc({
 			'doctype': 'Note',
-			'title': 'Note title',
+			'title': frappe.generate_hash(),
 			'content': """
 				Use note as reference doc for Payment Request doctype,
 				since note doesn't have any other doctype dependencies
 				such as company or customer, so we don't have to set those up
 			"""
 		})
+		self.ref_doc.insert()
 
 	def tearDown(self):
 		self.mpay.delete()
@@ -135,6 +136,32 @@ class TestmPaySettings(unittest.TestCase):
 				self.mpay.text_hash.upper(),
 				'0D959AA4CCBF2844B1DB7A3777772203712F31E04BAD9E208CB52BCA11FAF72B'
 			)
+
+	def test_map_payment_key(self):
+		self.assertDictEqual(
+			self.mpay.map_payment_key({
+				"amount": 100,
+				"title": "mPay testing",
+				"description": "mPay unittest",
+				"reference_doctype": "Note",
+				"reference_docname": "04fb9bd3",
+				"payer_email": "someone@mpaytest.com",
+				"payer_name": "someonetest",
+				"order_id": "orderid0124",
+				"currency": "HKD"
+			}),
+			{
+				"amt": 100,
+				"title": "mPay testing",
+				"description": "mPay unittest",
+				"reference_doctype": "Note",
+				"ordernum": "04fb9bd3",
+				"payer_email": "someone@mpaytest.com",
+				"customerid": "someonetest",
+				"order_id": "orderid0124",
+				"currency": "HKD"
+			},
+		)
 
 	def test_get_payment_context(self):
 		data = dict(
