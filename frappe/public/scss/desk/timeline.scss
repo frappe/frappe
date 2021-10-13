@@ -117,7 +117,7 @@ $threshold: 34;
 
 			.actions {
 				display: flex;
-				> * {
+				> *:not(.indicator-pill) {
 					color: var(--text-muted);
 				}
 			}
