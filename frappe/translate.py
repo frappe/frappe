@@ -119,7 +119,8 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	return dict(frappe.db.sql('select language_name, name from tabLanguage'))
+	result = dict(frappe.qb.from_("Language").select("language_name", "name").run())
+	return result
 
 def get_dict(fortype, name=None):
 	"""Returns translation dict for a type of object.
@@ -151,12 +152,12 @@ def get_dict(fortype, name=None):
 
 			messages += get_messages_from_navbar()
 			messages += get_messages_from_include_files()
-			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
-			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
-			messages += frappe.db.sql("select 'Role:', name from tabRole")
-			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
-			messages += frappe.db.sql("select '', format from `tabWorkspace Shortcut` where format is not null")
-			messages += frappe.db.sql("select '', title from `tabOnboarding Step`")
+			messages += frappe.qb.from_("Print Format").select("Print Format:", "name").run()
+			messages += frappe.qb.from_("DocType").select("DocType:", "name").run()
+			messages += frappe.qb.from_("Role").select("Role:", "name").run()
+			messages += frappe.qb.from_("Module Def").select("Module:", "name").run()
+			messages += frappe.qb.from_("Workspace Shortcut").where(frappe.qb.Field("format" != None)).select("").run()
+			messages += frappe.qb.from_("Onboarding Step").select("", "title").run()
 
 		messages = deduplicate_messages(messages)
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
@@ -898,7 +899,8 @@ def get_translator_url():
 def get_all_languages(with_language_name=False):
 	"""Returns all language codes ar, ch etc"""
 	def get_language_codes():
-		return frappe.db.sql_list('select name from tabLanguage')
+		query = frappe.qb.from_("Language").select("name")
+		return frappe.db.sql_list(query)
 
 	def get_all_language_with_name():
 		return frappe.db.get_all('Language', ['language_code', 'language_name'])

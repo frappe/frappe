@@ -128,8 +128,10 @@ def get_shared_doctypes(user=None):
 	"""Return list of doctypes in which documents are shared for the given user."""
 	if not user:
 		user = frappe.session.user
-
-	return frappe.db.sql_list("select distinct share_doctype from tabDocShare where (user=%s or everyone=1)", user)
+	table = frappe.qb.DocType("DocShare")
+	query = frappe.qb.from_(table).where(table.user == user | table.everyone == 1) \
+			.select(table.share_doctype).distinct()
+	return frappe.db.sql_list(query)
 
 def get_share_name(doctype, name, user, everyone):
 	if cint(everyone):
