@@ -190,7 +190,7 @@ def get_defaults_for(parent="__default"):
 		# sort descending because first default must get precedence
 		table = frappe.qb.DocType("DefaultValue")
 		res = frappe.qb.from_(table).where(table.parent == parent) \
-			  .select(table.defkey, table.defvalue).orderby("creation").run(as_dict=True)
+ 			  .select(table.defkey, table.defvalue).orderby("creation").run(as_dict=True)
 
 		defaults = frappe._dict({})
 		for d in res:

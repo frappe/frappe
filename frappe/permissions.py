@@ -354,7 +354,7 @@ def get_roles(user=None, with_standard=True):
 			return [r[0] for r in frappe.qb.from_("Role").select("name").run()] # return all available roles
 		else:
 			table = frappe.qb.DocType("Has Role")
-			result = frappe.qb.form_(table).where(table.parent == user) \
+			result = frappe.qb.from_(table).where(table.parent == user) \
 					.where(table.role.notin(["All", "Guest"])).select(table.role).run()
 			return [r[0] for r in result] + ['All', 'Guest']
 
