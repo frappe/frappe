@@ -32,3 +32,19 @@ class TestSafeExec(unittest.TestCase):
 
 	def test_safe_query_builder(self):
 		self.assertRaises(frappe.PermissionError, safe_exec, '''frappe.qb.from_("User").delete().run()''')
+
+	def test_enqueue_job(self):
+		import time
+		from frappe.utils.background_jobs import get_queue
+
+		queue = get_queue("short")
+		finished_count = queue.finished_job_registry.count
+
+		# enqueue job
+		safe_exec('''frappe.enqueue("frappe.tests.test_safe_exec.enqueued_method", queue="short")''')
+		time.sleep(2)
+
+		self.assertEquals(queue.finished_job_registry.count, finished_count + 1)
+
+def enqueued_method():
+	return 1 / 1
