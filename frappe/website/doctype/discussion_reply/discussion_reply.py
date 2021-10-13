@@ -8,6 +8,10 @@ class DiscussionReply(Document):
 	def after_insert(self):
 
 		replies = frappe.db.count("Discussion Reply", {"topic": self.topic})
+		topic_info = frappe.get_all("Discussion Topic",
+			{"name": self.topic},
+			["reference_doctype", "reference_docname", "name", "title", "owner", "creation"])
+
 		template = frappe.render_template("frappe/templates/discussions/reply_card.html", {
 			"reply": self,
 			"topic": {
@@ -15,19 +19,16 @@ class DiscussionReply(Document):
 			},
 			"loop": {
 				"index": replies
-			}
+			},
+			"single_thread": True if not topic_info[0].title else False
 		})
-
-		topic_info = frappe.get_all("Discussion Topic",
-			{"name": self.topic},
-			["reference_doctype", "reference_docname", "name", "title", "owner", "creation"])
 
 		sidebar = frappe.render_template("frappe/templates/discussions/sidebar.html", {
 			"topic": topic_info[0]
 		})
 
 		new_topic_template = frappe.render_template("frappe/templates/discussions/reply_section.html", {
-			"topics": topic_info
+			"topic": topic_info[0]
 		})
 
 		frappe.publish_realtime(
