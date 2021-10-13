@@ -57,7 +57,7 @@ class ServerScript(Document):
 		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts
 		"""
 		if not self.disabled and self.event_frequency and self.script_type == "Scheduler Event":
-			setup_scheduler_events(script_name=self.name, frequency=self.event_frequency)
+			setup_scheduler_events(script_name=self.name, frequency=self.event_frequency, queue=self.queue)
 
 	def clear_scheduled_events(self):
 		"""Deletes existing scheduled jobs by Server Script if self.event_frequency has changed
@@ -168,7 +168,7 @@ class ServerScript(Document):
 
 
 @frappe.whitelist()
-def setup_scheduler_events(script_name, frequency):
+def setup_scheduler_events(script_name, frequency, queue='Default'):
 	"""Creates or Updates Scheduled Job Type documents based on the specified script name and frequency
 
 	Args:
@@ -184,6 +184,7 @@ def setup_scheduler_events(script_name, frequency):
 				"doctype": "Scheduled Job Type",
 				"method": method,
 				"frequency": frequency,
+				"queue": queue,
 				"server_script": script_name,
 			}
 		).insert()
@@ -193,10 +194,11 @@ def setup_scheduler_events(script_name, frequency):
 	else:
 		doc = frappe.get_doc("Scheduled Job Type", scheduled_script)
 
-		if doc.frequency == frequency:
+		if doc.frequency == frequency and doc.queue == queue:
 			return
 
 		doc.frequency = frequency
+		doc.queue = queue
 		doc.save()
 
 		frappe.msgprint(

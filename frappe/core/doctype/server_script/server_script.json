@@ -9,6 +9,7 @@
   "script_type",
   "reference_doctype",
   "event_frequency",
+  "queue",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -100,6 +101,13 @@
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
+  },
+  {
+   "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
+   "fieldname": "queue",
+   "fieldtype": "Select",
+   "label": "Queue",
+   "options": "Default\nShort\nLong"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -109,7 +117,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2021-10-12 15:16:45.827264",
+ "modified": "2021-10-13 11:41:43.389816",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
