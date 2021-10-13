@@ -201,8 +201,6 @@ def get_context(context):
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:
-			controller = get_payment_gateway_controller(self.payment_gateway)
-
 			title = "Payment for {0} {1}".format(doc.doctype, doc.name)
 			amount = self.amount
 			if self.amount_based_on_field:
@@ -224,6 +222,13 @@ def get_context(context):
 				"currency": self.currency,
 				"redirect_to": frappe.utils.get_url(self.success_url or self.route)
 			}
+
+			controller = get_payment_gateway_controller(self.payment_gateway)
+
+			controller.validate_transaction_currency(self.currency)
+
+			if hasattr(controller, 'validate_minimum_transaction_amount'):
+				controller.validate_minimum_transaction_amount(self.currency, amount)
 
 			# Redirect the user to this url
 			return controller.get_payment_url(**payment_details)
