@@ -96,7 +96,7 @@ class ServerScript(Document):
 		"""
 		safe_exec(self.script, _locals={"doc": doc})
 
-	def execute_scheduled_method(self, args: Dict = None):
+	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
 
 		Raises:
@@ -105,7 +105,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script, _globals={"args": args})
+		safe_exec(self.script)
 
 	def get_permission_query_conditions(self, user: str) -> List[str]:
 		"""Specific to Permission Query Server Scripts

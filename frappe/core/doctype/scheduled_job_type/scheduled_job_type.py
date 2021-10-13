@@ -33,8 +33,7 @@ class ScheduledJobType(Document):
 			else:
 				if not self.is_job_in_queue():
 					enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
-						queue=self.get_queue_name(), job_type=self.method,
-						server_script_args=self.get('server_script_args')
+						queue=self.get_queue_name(), job_type=self.method
 					)
 					return True
 
@@ -77,8 +76,7 @@ class ScheduledJobType(Document):
 			if self.server_script:
 				script_name = frappe.db.get_value("Server Script", self.server_script)
 				if script_name:
-					args = self.get('server_script_args') or {}
-					frappe.get_doc('Server Script', script_name).execute_scheduled_method(args)
+					frappe.get_doc('Server Script', script_name).execute_scheduled_method()
 			else:
 				frappe.get_attr(self.method)()
 			frappe.db.commit()
