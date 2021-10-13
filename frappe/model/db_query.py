@@ -564,9 +564,8 @@ class DatabaseQuery(object):
 				f.operator = 'ilike'
 			condition = f'{column_name} {f.operator} {value}'
 		else:
-			if f.operator == "Between":
-				value = value.replace("(", "")
-				value = value.replace(")", "")
+			if f.operator.lower() == "between":
+				value = value.replace("(", "").replace(")", "")
 				value = value.replace(",", "AND")
 			condition = f'ifnull({column_name}, {fallback}) {f.operator} {value}'
 
