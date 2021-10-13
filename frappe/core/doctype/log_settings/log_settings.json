@@ -11,6 +11,7 @@
   "clear_error_log_after",
   "clear_activity_log_after",
   "column_break_4",
+  "clear_scheduled_job_log_after",
   "clear_email_queue_after"
  ],
  "fields": [
@@ -54,12 +55,19 @@
    "fieldname": "clear_email_queue_after",
    "fieldtype": "Int",
    "label": "Clear Email Queue After"
+  },
+  {
+   "default": "90",
+   "description": "In Days",
+   "fieldname": "clear_scheduled_job_log_after",
+   "fieldtype": "Int",
+   "label": "Clear Scheduled Job Log After"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-10-13 12:18:48.649038",
+ "modified": "2021-10-13 13:01:14.961831",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Log Settings",

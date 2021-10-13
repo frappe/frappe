@@ -9,6 +9,7 @@ from frappe.model.document import Document
 class LogSettings(Document):
 	def clear_logs(self):
 		self.clear_error_logs()
+		self.clear_scheduled_job_logs()
 		self.clear_activity_logs()
 		self.clear_email_queue()
 
@@ -16,6 +17,11 @@ class LogSettings(Document):
 		frappe.db.sql(""" DELETE FROM `tabError Log`
 			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
 		""".format(self.clear_error_log_after))
+
+	def clear_scheduled_job_logs(self):
+		frappe.db.sql(""" DELETE FROM `tabScheduled Job Log`
+			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
+		""".format(self.clear_scheduled_job_log_after))
 
 	def clear_activity_logs(self):
 		from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
