@@ -85,7 +85,7 @@ class ServerScript(Document):
 			raise frappe.PermissionError
 
 		# output can be stored in flags
-		_globals, _locals = safe_exec(self.script, _globals={"args": args})
+		_globals, _locals = safe_exec(self.script, _globals={"args": frappe._dict(args)})
 		return _globals.frappe.flags
 
 	def execute_doc(self, doc: Document):

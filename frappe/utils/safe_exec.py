@@ -14,6 +14,10 @@ from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 import frappe.integrations.utils
 from frappe.frappeclient import FrappeClient
+from frappe.handler import execute_cmd
+from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
+
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
@@ -116,6 +120,7 @@ def get_safe_globals():
 			make_post_request = frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
+			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error
 		),
@@ -173,6 +178,43 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
+
+def safe_enqueue(cmd, queue='default', job_name=None, **kwargs):
+	'''
+		Enqueue method to be executed using a background worker if not already queued
+
+		:param cmd: whitelised method or server script api method
+		:param queue: should be either long, default or short
+		:param job_name: used to identify an enqueue call, used to prevent duplicate calls
+	'''
+
+	if not job_name:
+		job_name = cmd
+
+	site = frappe.local.site
+	queued_jobs = get_jobs(site=site, key='job_name').get(site) or []
+
+	if not job_name in queued_jobs:
+		enqueue(
+			'frappe.utils.safe_exec.execute_enqueued_cmd',
+			cmd=cmd, job_name=job_name, queue=queue, **kwargs
+		)
+
+def execute_enqueued_cmd(cmd, **kwargs):
+	'''
+		Executes in a background worker
+		Executes the method if it is a whitelisted method or server script api
+	'''
+	try:
+		if run_server_script_api(cmd, kwargs):
+			return
+
+		frappe.form_dict.update(kwargs)
+		execute_cmd(cmd)
+
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(title="Enqueued Method Failed")
 
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''

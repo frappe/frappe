@@ -43,14 +43,11 @@ def handle():
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
-		# override using the first hook
-		cmd = hook
-		break
-
 	# via server script
 	if run_server_script_api(cmd):
 		return None
+
+	cmd = get_overridden_method(cmd)
 
 	try:
 		method = get_attr(cmd)
@@ -66,8 +63,18 @@ def execute_cmd(cmd, from_async=False):
 
 	return frappe.call(method, **frappe.form_dict)
 
+def get_overridden_method(cmd):
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+		# override using the first hook
+		return hook
+
+	return cmd
+
 def is_valid_http_method(method):
-	http_method = frappe.local.request.method
+	if not hasattr(frappe.local, 'request'):
+		http_method = 'GET'
+	else:
+		http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
 		throw_permission_error()
