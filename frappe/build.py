@@ -246,7 +246,7 @@ def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, ver
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
 def watch(apps=None):

@@ -480,7 +480,11 @@ frappe.ui.form.Form = class FrappeForm {
 			this.layout.show_empty_form_message();
 		}
 
-		this.scroll_to_element();
+		frappe.after_ajax(() => {
+			$(document).ready(() => {
+				this.scroll_to_element();
+			});
+		});
 	}
 
 	set_first_tab_as_active() {
@@ -598,6 +602,8 @@ frappe.ui.form.Form = class FrappeForm {
 		this.validate_form_action(save_action, resolve);
 
 		var after_save = function(r) {
+			// to remove hash from URL to avoid scroll after save
+			history.replaceState(null, null, ' ');
 			if(!r.exc) {
 				if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
 					frappe.utils.play_sound("click");
@@ -1195,6 +1201,8 @@ frappe.ui.form.Form = class FrappeForm {
 			if (selector.length) {
 				frappe.utils.scroll_to(selector);
 			}
+		} else if (window.location.hash && $(window.location.hash).length) {
+			frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
 		}
 	}
 
