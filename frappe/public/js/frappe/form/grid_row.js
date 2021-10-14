@@ -821,9 +821,10 @@ export default class GridRow {
 		if (ctrl_key && e.shiftKey)  {
 			let show = (e.which === DOWN_ARROW) ? true : false;
 			idx = (e.which === DOWN_ARROW) ? null : 1;
+			let goto_last_page = (e.which === DOWN_ARROW) ? true : false;
 
 			setTimeout(() => {
-				this.grid.add_new_row(idx, null, show);
+				this.grid.add_new_row(idx, null, show, false, goto_last_page, !goto_last_page);
 
 				idx = (e.which === DOWN_ARROW) ? this.grid.grid_rows.length : 1;
 				this.grid.grid_rows[(idx - 1)].toggle_editable_row();
