@@ -561,6 +561,19 @@ details > summary:focus {
 	display: none;
 }
 
+.highlight {
+	transition: 0.5s ease background-color;
+	box-shadow: var(--highlight-shadow) !important;
+}
+
+.dropdown-menu.small {
+	font-size: var(--text-sm);
+	min-width: 140px;
+	.dropdown-item {
+		padding: var(--padding-xs);
+	}
+}
+
 // REDESIGN TODO: Handling of broken images?
 // img.no-image:before {
 // 	.img-background();
