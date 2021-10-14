@@ -5,6 +5,9 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
+
 
 class LogSettings(Document):
 	def clear_logs(self):
@@ -13,9 +16,10 @@ class LogSettings(Document):
 		self.clear_email_queue()
 
 	def clear_error_logs(self):
-		frappe.db.sql(""" DELETE FROM `tabError Log`
-			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
-		""".format(self.clear_error_log_after))
+		table = DocType("Error Log")
+		frappe.db.delete(table, filters=(
+			table.creation < Now() - Interval(days=self.clear_error_log_after)
+		))
 
 	def clear_activity_logs(self):
 		from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
