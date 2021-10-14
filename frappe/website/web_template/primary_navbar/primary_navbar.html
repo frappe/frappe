@@ -1,4 +1,4 @@
-<nav class="navbar navbar-primary navbar-expand-lg navbar-dark">
+<nav class="navbar navbar-primary navbar-expand-lg">
 	<div class="container">
 		<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
 			{%- if brand_html -%}
@@ -15,7 +15,11 @@
 			aria-controls="navbarSupportedContent"
 			aria-expanded="false"
 			aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
+			<span>
+				<svg class="icon icon-lg">
+					<use href="#icon-menu"></use>
+				</svg>
+			</span>
 		</button>
 
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
