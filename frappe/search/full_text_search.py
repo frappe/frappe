@@ -7,7 +7,7 @@ from frappe.utils import update_progress_bar
 from whoosh.index import create_in, open_dir, EmptyIndexError
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
-from whoosh.query import Prefix
+from whoosh.query import Prefix, FuzzyTerm
 from whoosh.writing import AsyncWriter
 
 
@@ -121,7 +121,7 @@ class FullTextSearch:
 		out = []
 
 		with ix.searcher() as searcher:
-			parser = MultifieldParser(["title", "content"], ix.schema)
+			parser = MultifieldParser(["title", "content"], ix.schema, termclass=FuzzyTermExtended)
 			parser.remove_plugin_class(FieldsPlugin)
 			parser.remove_plugin_class(WildcardPlugin)
 			query = parser.parse(text)
@@ -135,6 +135,14 @@ class FullTextSearch:
 				out.append(self.parse_result(r))
 
 		return out
+
+
+class FuzzyTermExtended(FuzzyTerm):
+	def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=1,
+			constantscore=True):
+		super().__init__(fieldname, text, boost=boost, maxdist=maxdist,
+				prefixlength=prefixlength, constantscore=constantscore)
+
 
 def get_index_path(index_name):
 	return frappe.get_site_path("indexes", index_name)
