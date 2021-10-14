@@ -87,29 +87,43 @@ const setup_socket_io = () => {
 };
 
 const publish_message = (data) => {
+	const doctype = decodeURIComponent($(".discussions-parent").attr("data-doctype"));
+	const docname = decodeURIComponent($(".discussions-parent").attr("data-docname"));
+	const topic = data.topic_info;
+	const single_thread = $(".is-single-thread").length;
+	const first_topic = !$(".reply-card").length;
+	const document_match_found = doctype == topic.reference_doctype && docname == topic.reference_docname;
 
-	if ($(`.discussion-on-page[data-topic=${data.topic_info.name}]`).length) {
+	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
 		post_message_cleanup();
-		$('<div class="card-divider-dark mb-8"></div>' + data.template).insertBefore(`.discussion-on-page[data-topic=${data.topic_info.name}] .discussion-form`);
-	} else if ((decodeURIComponent($(".discussions-parent .discussions-card").attr("data-doctype")) == data.topic_info.reference_doctype
-		&& decodeURIComponent($(".discussions-parent .discussions-card").attr("data-docname")) == data.topic_info.reference_docname)) {
+		data.template = style_avatar_frame(data.template);
+		$('<div class="card-divider-dark mb-8"></div>' + data.template)
+			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
+	} else if (!first_topic && !single_thread && document_match_found) {
 		post_message_cleanup();
 		data.new_topic_template = style_avatar_frame(data.new_topic_template);
 
 		$(data.sidebar).insertAfter(`.discussions-sidebar .form-group`);
 		$(`#discussion-group`).prepend(data.new_topic_template);
 
-		if (data.topic_info.owner == frappe.session.user) {
-			$(".discussion-on-page").collapse();
+		if (topic.owner == frappe.session.user) {
+			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-topic").first().click();
 		}
-	} else if (data.topic_info.owner == frappe.session.user) {
+
+	} else if (single_thread && document_match_found) {
+		post_message_cleanup();
+		data.template = style_avatar_frame(data.template);
+		$(data.template).insertBefore(`.discussion-form`);
+		$(".discussion-on-page").attr("data-topic", topic.name);
+
+	} else if (topic.owner == frappe.session.user && document_match_found) {
 		post_message_cleanup();
 		window.location.reload();
 	}
 
-	update_reply_count(data.topic_info.name);
+	update_reply_count(topic.name);
 };
 
 const post_message_cleanup = () => {
@@ -191,10 +205,10 @@ const submit_discussion = (e) => {
 	const reply = $(".comment-field:visible").val().trim();
 
 	if (reply) {
-		let doctype = $(e.currentTarget).attr("data-doctype");
+		let doctype = $(e.currentTarget).closest(".discussions-parent").attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
-		let docname = $(e.currentTarget).attr("data-docname");
+		let docname = $(e.currentTarget).closest(".discussions-parent").attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
 		frappe.call({
@@ -232,7 +246,8 @@ const get_color_from_palette = (element) => {
 
 const style_avatar_frame = (template) => {
 	const $template = $(template);
-	$template.find(".avatar-frame").css(get_color_from_palette($template.find(".avatar-frame")));
+	$template.find(".avatar-frame").length
+		&& $template.find(".avatar-frame").css(get_color_from_palette($template.find(".avatar-frame")));
 	return $template.prop("outerHTML");
 };
 

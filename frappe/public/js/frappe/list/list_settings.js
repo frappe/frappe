@@ -114,14 +114,14 @@ export default class ListSettings {
 
 					<div class="row">
 						<div class="col-md-1">
-							<i class="fa fa-bars text-muted sortable-handle ${show_sortable_handle}" aria-hidden="true"></i>
+							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
 							${me.fields[idx].label}
 						</div>
 						<div class="col-md-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								<i class="fa fa-trash-o" aria-hidden="true"></i>
+								${frappe.utils.icon("delete", "xs")}
 							</a>
 						</div>
 					</div>
