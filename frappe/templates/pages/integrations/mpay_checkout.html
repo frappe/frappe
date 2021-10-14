@@ -1,0 +1,50 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Payment{% endblock %}
+
+{%- block header -%}
+<head>
+  <title>Checkout Page</title>
+</head>
+{% endblock %}
+
+{% block script %}
+<script defer type="text/javascript">
+  document.payment_form.submit();
+</script>
+{% endblock %}
+
+{%- block page_content -%}
+<body>
+  <div class="centered">
+    <h2>Please do not refresh this page...</h2>
+  </div>
+
+  <!-- To debug you could remove `display: none` from 'mpay_form'
+  and comment out `document.payment_form.submit();` -->
+  <div id="mpay_form" style="display: none">
+    <form method="post" action="{{ gateway_url }}" name="payment_form">
+      {% for key, val in payment_details.items() %}
+      <label>{{ key }}</label>
+      <input name="{{ key }}" value="{{ val }}" />
+      <br/>
+      {% endfor %}
+      <button type="submit" value="Submit">Submit</button>
+    </form>
+  </div>
+</body>
+{% endblock %}
+
+{% block style %}
+<style>
+  .centered {
+  	position: absolute;
+  	top: 50%;
+  	left: 50%;
+  	transform: translate(-50%, -50%);
+  }
+  .web-footer {
+  	display: none;
+  }
+</style>
+{% endblock %}

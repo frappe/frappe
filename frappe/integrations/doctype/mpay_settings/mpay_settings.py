@@ -117,7 +117,20 @@ class mPaySettings(PaymentGateway):
 		dict_params = {
 			**self.gateway_settings,
 			**{
+				# salt value generated, used for security validation
+				# random alphanumeric values with length 16 (e.g. whi1i7lifa70yhgs)
+				'salt': frappe.generate_hash(length=16),
+				# choose payment method at mPay side
 				'paymethod': 0,
+				# datetime in "yyyyMMddHHmmss" format
+				'datetime': frappe.utils.data.now_datetime().strftime('%Y%m%d%H%M%S'),
+				# store ID of this transaction take place
+				# if not used, just put in "1" as default
+				'storeid': 1,
+				# the notify URL of merchant which receive payment response from mPay server
+				'notifyurl': 'https://dummy.com',
+				# language used in mPay side
+				'locale': 'en_US',
 			},
 			**kwargs,
 		}
@@ -146,7 +159,9 @@ class mPaySettings(PaymentGateway):
 		params_list = []
 		for key in params_key_list:
 			if key in dict_params:
-				params_list.append(kwargs.get(key))
+				val = dict_params.get(key, None)
+				if val is not None:
+					params_list.append(str(val))
 
 		params_text = ''.join(params_list)
 

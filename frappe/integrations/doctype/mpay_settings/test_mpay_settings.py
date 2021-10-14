@@ -25,7 +25,7 @@ class TestmPaySettings(unittest.TestCase):
 
 		self.ref_doc = frappe.get_doc({
 			'doctype': 'Note',
-			'title': frappe.generate_hash(),
+			'title': frappe.generate_hash(length=5),
 			'content': """
 				Use note as reference doc for Payment Request doctype,
 				since note doesn't have any other doctype dependencies
