@@ -19,12 +19,6 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger('show_filters');
 	},
 
-	onload: function(frm) {
-		if (frm.doc.parent_document_type) {
-			frm.set_df_property('parent_document_type', 'hidden', false);
-		}
-	},
-
 	refresh: function(frm) {
 		frm.chart_filters = null;
 		frm.is_disabled = !frappe.boot.developer_mode && frm.doc.is_standard;
