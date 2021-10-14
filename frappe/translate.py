@@ -120,7 +120,7 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	result = dict(frappe.qb.from_("Language").select("language_name", "name").run())
+	result = frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
 	return result
 
 def get_dict(fortype, name=None):
@@ -904,8 +904,7 @@ def get_translator_url():
 def get_all_languages(with_language_name=False):
 	"""Returns all language codes ar, ch etc"""
 	def get_language_codes():
-		query = frappe.qb.from_("Language").select("name")
-		return frappe.db.sql_list(query)
+		return frappe.get_all("Language", pluck="name", order_by="modified")
 
 	def get_all_language_with_name():
 		return frappe.db.get_all('Language', ['language_code', 'language_name'])
