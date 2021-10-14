@@ -504,6 +504,12 @@ frappe.db.connect()
 	])
 
 
+def _console_cleanup():
+	# Execute rollback_observers on console close
+	frappe.db.rollback()
+	frappe.destroy()
+
+
 @click.command('console')
 @click.option(
 	'--autoreload',
@@ -519,6 +525,9 @@ def console(context, autoreload=False):
 	frappe.local.lang = frappe.db.get_default("lang")
 
 	from IPython.terminal.embed import InteractiveShellEmbed
+	from atexit import register
+
+	register(_console_cleanup)
 
 	terminal = InteractiveShellEmbed()
 	if autoreload:
