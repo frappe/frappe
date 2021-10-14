@@ -78,5 +78,8 @@
   "snyk": true,
   "nyc": {
     "report-dir": ".cypress-coverage"
+  },
+  "resolutions": {
+    "@testing-library/dom": "8.7.2"
   }
 }
