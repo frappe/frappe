@@ -812,31 +812,25 @@ export default class GridRow {
 	}
 
 	add_new_row_using_keys(e) {
-		let me = this;
 		let idx = '';
 
 		let ctrl_key = e.metaKey || e.ctrlKey;
-		let { DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+		let is_down_arrow_key_press = (e.which === 40);
 
+		// Add new row at the end or start of the table
 		if (ctrl_key && e.shiftKey)  {
-			let show = (e.which === DOWN_ARROW) ? true : false;
-			idx = (e.which === DOWN_ARROW) ? null : 1;
-			let goto_last_page = (e.which === DOWN_ARROW) ? true : false;
-
-			setTimeout(() => {
-				this.grid.add_new_row(idx, null, show, false, goto_last_page, !goto_last_page);
-
-				idx = (e.which === DOWN_ARROW) ? this.grid.grid_rows.length : 1;
-				this.grid.grid_rows[(idx - 1)].toggle_editable_row();
-				this.grid.set_focus_on_row((idx - 1));
-			}, 100);
+			idx = is_down_arrow_key_press ? null : 1;
+			this.grid.add_new_row(idx, null, is_down_arrow_key_press,
+				false, is_down_arrow_key_press, !is_down_arrow_key_press);
+			idx = is_down_arrow_key_press ? (cint(this.grid.grid_rows.length) - 1) : 0;
 
 		} else if (ctrl_key) {
-			let below = (e.which === DOWN_ARROW) ? true : false;
-			idx = (e.which === DOWN_ARROW) ? me.doc.idx : (me.doc.idx - 1);
+			idx = is_down_arrow_key_press ? this.doc.idx : (this.doc.idx - 1);
+			this.insert(false, is_down_arrow_key_press);
+		}
 
+		if (idx !== '') {
 			setTimeout(() => {
-				this.insert(false, below);
 				this.grid.grid_rows[idx].toggle_editable_row();
 				this.grid.set_focus_on_row(idx);
 			}, 100);
