@@ -245,7 +245,7 @@ def bundle(no_compress, app=None, hard_link=False, verbose=False, skip_frappe=Fa
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
 def watch(no_compress):
