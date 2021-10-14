@@ -12,10 +12,9 @@ from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import update_progress_bar, cint
 from frappe.coverage import CodeCoverage
 
-DATA_IMPORT_DEPRECATION = click.style(
+DATA_IMPORT_DEPRECATION = (
 	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
-	"Use `data-import` command instead to import data via 'Data Import'.",
-	fg="yellow"
+	"Use `data-import` command instead to import data via 'Data Import'."
 )
 
 
@@ -364,7 +363,7 @@ def import_doc(context, path, force=False):
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	click.secho(DATA_IMPORT_DEPRECATION)
+	click.secho(DATA_IMPORT_DEPRECATION, fg="yellow")
 	sys.exit(1)
 
 
