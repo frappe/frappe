@@ -272,6 +272,7 @@
   },
   {
    "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
+   "description": "The document type selected is a child table and it has more than one parent doctype, please select one to continue.",
    "fieldname": "parent_document_type",
    "fieldtype": "Link",
    "hidden": 1,
@@ -281,7 +282,7 @@
   }
  ],
  "links": [],
- "modified": "2021-08-20 13:59:59.359233",
+ "modified": "2021-10-14 15:57:12.949895",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

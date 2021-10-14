@@ -502,8 +502,10 @@ frappe.ui.form.on('Dashboard Chart', {
 	set_parent_document_type: async function(frm) {
 		let document_type = frm.doc.document_type;
 		let doc = document_type && await frappe.db.get_doc('DocType', document_type);
+
+		frm.set_df_property('parent_document_type', 'hidden', true);
+
 		if (document_type && doc.istable) {
-			frm.set_df_property('parent_document_type', 'hidden', false);
 			let parent = await frappe.db.get_list('DocField', {
 				filters: {
 					'fieldtype': 'Table',
@@ -511,6 +513,7 @@ frappe.ui.form.on('Dashboard Chart', {
 				},
 				fields: ['parent']
 			});
+
 			parent && frm.set_query('parent_document_type', function() {
 				return {
 					filters: {
@@ -518,8 +521,12 @@ frappe.ui.form.on('Dashboard Chart', {
 					}
 				};
 			});
-		} else {
-			frm.set_df_property('parent_document_type', 'hidden', true);
+
+			if (parent.length === 1) {
+				frm.set_value('parent_document_type', parent[0].parent);
+			} else {
+				frm.set_df_property('parent_document_type', 'hidden', false);
+			}
 		}
 	}
 
