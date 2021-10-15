@@ -3,7 +3,7 @@
 
 """
 # Integration for mPay
-https://www.mpay.com.hk/
+https://www.mpay.com.hk
 """
 
 import frappe
@@ -103,7 +103,6 @@ class mPaySettings(PaymentGateway):
 		self.gateway_settings = {
 			'merchantid': self.merchantid,
 			'merchant_tid': self.merchant_tid,
-			'returnurl': self.redirect_url,
 			'securekey': get_decrypted_password(
 				doctype='mPay Settings',
 				name='mPay Settings',
@@ -111,10 +110,10 @@ class mPaySettings(PaymentGateway):
 			),
 		}
 
-	def construct_text_params(self, **kwargs):
-		"""Combine all params, return as string"""
+	def construct_request_params(self, **kwargs):
+		"""Combine all params, return request data with hash and other value"""
 		self.get_gateway_settings()
-		dict_params = {
+		request_dict_params = {
 			**self.gateway_settings,
 			**{
 				# salt value generated, used for security validation
@@ -127,8 +126,11 @@ class mPaySettings(PaymentGateway):
 				# store ID of this transaction take place
 				# if not used, just put in "1" as default
 				'storeid': 1,
+				# return URL which payment response pass back by
+				# customer’s browser redirection
+				'returnurl': get_url('/api/method/frappe.integrations.doctype.mpay_settings.mpay_settings.return_url'),
 				# the notify URL of merchant which receive payment response from mPay server
-				'notifyurl': 'https://dummy.com',
+				'notifyurl': get_url('/api/method/frappe.integrations.doctype.mpay_settings.mpay_settings.notify_url'),
 				# language used in mPay side
 				'locale': 'en_US',
 			},
@@ -156,30 +158,46 @@ class mPaySettings(PaymentGateway):
 			'tokenid',
 		]
 
+		request_text_params = self.params_dict_to_text(
+			params_dict=request_dict_params,
+			params_key_list=params_key_list,
+		)
+		request_text_hash = self.gen_text_hash(
+			request_text_params
+		)
+
+		request_dict_params.pop('securekey')
+		request_dict_params['version'] = self.api_version
+		request_dict_params['hash'] = request_text_hash
+
+		return request_dict_params
+
+	@staticmethod
+	def params_dict_to_text(params_dict, params_key_list):
 		params_list = []
 		for key in params_key_list:
-			if key in dict_params:
-				val = dict_params.get(key, None)
+			if key in params_dict:
+				val = params_dict.get(key, None)
 				if val is not None:
 					params_list.append(str(val))
 
 		params_text = ''.join(params_list)
 
-		text_params = '{salt};{params_text};{securekey}'.format(
-			salt=dict_params.get('salt'),
+		params_text = '{salt};{params_text};{securekey}'.format(
+			salt=params_dict.get('salt'),
 			params_text=params_text,
-			securekey=dict_params.get('securekey'),
+			securekey=params_dict.get('securekey'),
 		)
+		return params_text
 
-		self.text_params = text_params
-		self.dict_params = dict_params
-
-	def gen_text_hash(self):
+	@staticmethod
+	def gen_text_hash(params_text):
 		m = hashlib.sha256()
-		m.update(self.text_params.encode('utf-8'))
-		self.text_hash = hashlib.sha256(
-			self.text_params.encode('utf-8')
+		m.update(params_text.encode('utf-8'))
+		text_hash = hashlib.sha256(
+			params_text.encode('utf-8')
 		).hexdigest()
+		return text_hash
 
 	@staticmethod
 	def map_payment_key(params_dict):
@@ -206,12 +224,7 @@ class mPaySettings(PaymentGateway):
 		integration_request_data = json.loads(integration_request.data)
 		request_data = self.map_payment_key(integration_request_data)
 
-		self.construct_text_params(**request_data)
-		self.gen_text_hash()
-
-		self.dict_params.pop('securekey')
-		self.dict_params['version'] = self.api_version
-		self.dict_params['hash'] = self.text_hash
+		request_data = self.construct_request_params(**request_data)
 
 		if self.use_sandbox:
 			url = self.sandbox_url
@@ -220,7 +233,7 @@ class mPaySettings(PaymentGateway):
 
 		context = {
 			'url': url,
-			'data': self.dict_params,
+			'data': request_data,
 		}
 
 		return context

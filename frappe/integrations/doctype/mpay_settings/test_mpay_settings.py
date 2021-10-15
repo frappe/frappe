@@ -13,7 +13,6 @@ class TestmPaySettings(unittest.TestCase):
 			'merchant_tid': '999',
 			'securekey': 'ABCDEFG00GFEDCBA',
 			'use_sandbox': 1,
-			'redirect_url': 'https://redirect-url.com',
 		}
 		self.mpay = frappe.get_doc(
 			**{
@@ -92,12 +91,11 @@ class TestmPaySettings(unittest.TestCase):
 			{
 				'merchant_tid': '999',
 				'merchantid': '1234567',
-				'returnurl': 'https://redirect-url.com',
 				'securekey': 'ABCDEFG00GFEDCBA',
 			},
 		)
 
-	def test_construct_text_params(self):
+	def test_construct_request_params(self):
 		with self.subTest('Text params from mpay Manual'):
 			params = dict(
 				salt="whi1i7lifa70yhgs",
@@ -117,23 +115,84 @@ class TestmPaySettings(unittest.TestCase):
 				storeid="001",
 				tokenid="101",
 			)
-			self.mpay.construct_text_params(**params)
+			request_dict_params = self.mpay.construct_request_params(**params)
 			self.assertEqual(
-				self.mpay.text_params,
-				'whi1i7lifa70yhgs;V30.0HKD1257984115649643163420180701010100zh_TW0011100000https://demo.mpay.com.hk/mpay/notify.jspHK2018070101010037https://demo.mpay.com.hk/return.jsp001101;ABCDEFG123456789',
+				request_dict_params,
+				{
+					"merchantid": "1100000",
+					"merchant_tid": "001",
+					"returnurl": "https://demo.mpay.com.hk/return.jsp",
+					"salt": "whi1i7lifa70yhgs",
+					"paymethod": "37",
+					"datetime": "20180701010100",
+					"storeid": "001",
+					"notifyurl": "https://demo.mpay.com.hk/mpay/notify.jsp",
+					"locale": "zh_TW",
+					"accounttype": "V",
+					"amt": "30.0",
+					"currency": "HKD",
+					"customerid": "12579841156496431634",
+					"ordernum": "HK20180701010100",
+					"tokenid": "101",
+					"version": "5.0",
+					"hash": "0d959aa4ccbf2844b1db7a3777772203712f31e04bad9e208cb52bca11faf72b"
+				},
 			)
 
-			self.assertEqual(
-				self.mpay.dict_params,
-				params,
-			)
+	def test_params_dict_to_text(self):
+		params_key_list = [
+			'accounttype',
+			'amt',
+			'currency',
+			'customerid',
+			'customizeddata',
+			'datetime',
+			'extrafield1',
+			'extrafield2',
+			'extrafield3',
+			'locale',
+			'merchant_tid',
+			'merchantid',
+			'notifyurl',
+			'ordernum',
+			'paymethod',
+			'returnurl',
+			'storeid',
+			'tokenid',
+		]
+		params_dict = dict(
+			salt="whi1i7lifa70yhgs",
+			securekey="ABCDEFG123456789",
+			accounttype="V",
+			amt="30.0",
+			currency="HKD",
+			customerid="12579841156496431634",
+			datetime="20180701010100",
+			locale="zh_TW",
+			merchant_tid="001",
+			merchantid="1100000",
+			notifyurl="https://demo.mpay.com.hk/mpay/notify.jsp",
+			ordernum="HK20180701010100",
+			paymethod="37",
+			returnurl="https://demo.mpay.com.hk/return.jsp",
+			storeid="001",
+			tokenid="101",
+		)
+		params_text = self.mpay.params_dict_to_text(
+			params_dict=params_dict,
+			params_key_list=params_key_list,
+		)
+		self.assertEqual(
+			params_text,
+			'whi1i7lifa70yhgs;V30.0HKD1257984115649643163420180701010100zh_TW0011100000https://demo.mpay.com.hk/mpay/notify.jspHK2018070101010037https://demo.mpay.com.hk/return.jsp001101;ABCDEFG123456789',
+		)
 
 	def test_gen_text_hash(self):
 		with self.subTest('Text params from mpay Manual'):
-			self.mpay.text_params = 'whi1i7lifa70yhgs;V30.0HKD1257984115649643163420180701010100zh_TW0011100000https://demo.mpay.com.hk/mpay/notify.jspHK2018070101010037https://demo.mpay.com.hk/return.jsp001101;ABCDEFG123456789'
-			self.mpay.gen_text_hash()
+			text_params = 'whi1i7lifa70yhgs;V30.0HKD1257984115649643163420180701010100zh_TW0011100000https://demo.mpay.com.hk/mpay/notify.jspHK2018070101010037https://demo.mpay.com.hk/return.jsp001101;ABCDEFG123456789'
+			text_hash = self.mpay.gen_text_hash(text_params)
 			self.assertEqual(
-				self.mpay.text_hash.upper(),
+				text_hash.upper(),
 				'0D959AA4CCBF2844B1DB7A3777772203712F31E04BAD9E208CB52BCA11FAF72B'
 			)
 
