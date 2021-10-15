@@ -51,6 +51,7 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 	# build globals
 	exec_globals = get_safe_globals()
 	if _globals:
+		_globals = frappe._dict(_globals)
 		exec_globals.update(_globals)
 
 	if restrict_commit_rollback:
