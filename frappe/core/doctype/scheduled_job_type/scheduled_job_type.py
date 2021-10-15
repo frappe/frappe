@@ -96,7 +96,8 @@ class ScheduledJobType(Document):
 			if self.frequency == "All" and status == 'Start':
 				self.db_set('last_execution', now_datetime(), update_modified=False)
 				frappe.db.commit()
-			return
+			if not self.create_failure_log:
+				return
 
 		if self.create_failure_log and status != 'Failed':
 			return
@@ -112,7 +113,7 @@ class ScheduledJobType(Document):
 				'status': status,
 				'details': frappe.get_traceback()
 			})
-		if status == 'Complete':
+		elif status == 'Complete':
 			self.scheduler_log.reload()
 			start = get_datetime(self.scheduler_log.start)
 			end = now_datetime()
@@ -122,7 +123,7 @@ class ScheduledJobType(Document):
 				'end': end,
 				'completed_in': completed_in
 			})
-		if status == 'Start':
+		elif status == 'Start':
 			self.scheduler_log.db_set({
 				'status': status,
 				'start': now_datetime()
