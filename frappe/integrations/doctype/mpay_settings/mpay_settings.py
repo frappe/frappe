@@ -161,6 +161,7 @@ class mPaySettings(PaymentGateway):
 		request_text_params = self.params_dict_to_text(
 			params_dict=request_dict_params,
 			params_key_list=params_key_list,
+			secure_key=request_dict_params.get('securekey')
 		)
 		request_text_hash = self.gen_text_hash(
 			request_text_params
@@ -173,7 +174,7 @@ class mPaySettings(PaymentGateway):
 		return request_dict_params
 
 	@staticmethod
-	def params_dict_to_text(params_dict, params_key_list):
+	def params_dict_to_text(params_dict, params_key_list, secure_key):
 		params_list = []
 		for key in params_key_list:
 			if key in params_dict:
@@ -186,7 +187,7 @@ class mPaySettings(PaymentGateway):
 		params_text = '{salt};{params_text};{securekey}'.format(
 			salt=params_dict.get('salt'),
 			params_text=params_text,
-			securekey=params_dict.get('securekey'),
+			securekey=secure_key,
 		)
 		return params_text
 

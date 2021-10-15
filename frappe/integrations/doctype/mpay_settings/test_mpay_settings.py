@@ -162,7 +162,6 @@ class TestmPaySettings(unittest.TestCase):
 		]
 		params_dict = dict(
 			salt="whi1i7lifa70yhgs",
-			securekey="ABCDEFG123456789",
 			accounttype="V",
 			amt="30.0",
 			currency="HKD",
@@ -181,6 +180,7 @@ class TestmPaySettings(unittest.TestCase):
 		params_text = self.mpay.params_dict_to_text(
 			params_dict=params_dict,
 			params_key_list=params_key_list,
+			secure_key='ABCDEFG123456789'
 		)
 		self.assertEqual(
 			params_text,
