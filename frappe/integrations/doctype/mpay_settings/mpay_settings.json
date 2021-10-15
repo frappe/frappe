@@ -9,8 +9,7 @@
   "merchantid",
   "merchant_tid",
   "securekey",
-  "use_sandbox",
-  "redirect_url"
+  "use_sandbox"
  ],
  "fields": [
   {
@@ -39,17 +38,12 @@
    "fieldname": "use_sandbox",
    "fieldtype": "Check",
    "label": "Use Sandbox"
-  },
-  {
-   "fieldname": "redirect_url",
-   "fieldtype": "Data",
-   "label": "Redirect URL"
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-09-24 11:35:08.255598",
+ "modified": "2021-10-15 15:26:18.194756",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "mPay Settings",
