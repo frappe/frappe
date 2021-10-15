@@ -124,6 +124,12 @@ class BaseDocument(object):
 	def get_db_value(self, key):
 		return frappe.db.get_value(self.doctype, self.name, key)
 
+	def _get_field(self, key, default):
+		if isinstance(getattr(type(self), key, None), property):
+			return getattr(self, key, default)
+		else:
+			return self.__dict__.get(key, default)
+
 	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
 			if isinstance(key, dict):
@@ -134,9 +140,9 @@ class BaseDocument(object):
 				else:
 					default = filters
 					filters = None
-					value = self.__dict__.get(key, default)
+					value = self._get_field(key, default)
 			else:
-				value = self.__dict__.get(key, default)
+				value = self._get_field(key, default)
 
 			if value is None and key not in self.ignore_in_getter \
 				and key in (d.fieldname for d in self.meta.get_table_fields()):
