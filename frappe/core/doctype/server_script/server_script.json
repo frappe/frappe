@@ -9,6 +9,7 @@
   "script_type",
   "reference_doctype",
   "event_frequency",
+  "cron_format",
   "queue",
   "doctype_event",
   "api_method",
@@ -94,13 +95,20 @@
    "fieldtype": "Select",
    "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
-   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly"
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nCron"
   },
   {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
+  },
+  {
+   "depends_on": "eval: doc.event_frequency == 'Cron'",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format",
+   "mandatory_depends_on": "eval: doc.event_frequency == 'Cron'"
   },
   {
    "depends_on": "eval:doc.script_type == \"Scheduler Event\"",
@@ -117,7 +125,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2021-10-13 11:41:43.389816",
+ "modified": "2021-10-15 18:53:10.497295",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
