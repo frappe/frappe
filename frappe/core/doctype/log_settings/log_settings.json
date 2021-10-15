@@ -16,9 +16,10 @@
  ],
  "fields": [
   {
+   "description": "Clear logs older than a defined number of days",
    "fieldname": "log_cleanup_section",
    "fieldtype": "Section Break",
-   "label": "Log Cleanup"
+   "label": "Log Retention"
   },
   {
    "fieldname": "column_break_4",
@@ -40,34 +41,34 @@
    "description": "In Days",
    "fieldname": "clear_error_log_after",
    "fieldtype": "Int",
-   "label": "Clear Error log After"
+   "label": "Error log"
   },
   {
    "default": "90",
    "description": "In Days",
    "fieldname": "clear_activity_log_after",
    "fieldtype": "Int",
-   "label": "Clear Activity Log After"
+   "label": "Activity Log"
   },
   {
    "default": "90",
    "description": "In Days",
    "fieldname": "clear_email_queue_after",
    "fieldtype": "Int",
-   "label": "Clear Email Queue After"
+   "label": "Email Queue"
   },
   {
    "default": "90",
    "description": "In Days",
    "fieldname": "clear_scheduled_job_log_after",
    "fieldtype": "Int",
-   "label": "Clear Scheduled Job Log After"
+   "label": "Scheduled Job Log"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-10-13 13:01:14.961831",
+ "modified": "2021-10-15 12:12:17.647064",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Log Settings",
