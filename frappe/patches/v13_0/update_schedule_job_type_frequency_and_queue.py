@@ -13,10 +13,10 @@ def execute():
 				'queue': 'Long'
 			}, update_modified=True)
 
-	for script in frappe.get_all('Server Script', {'script_type': 'Scheduler Event'}, ['name', 'frequency']):
+	for script in frappe.get_all('Server Script', {'script_type': 'Scheduler Event'}, ['name', 'event_frequency as frequency']):
 		if 'Long' in script.frequency:
 			frequency = script.frequency.split(' ')[0]
 			frappe.db.set_value('Server Script', script.name, {
-				'frequency': frequency,
+				'event_frequency': frequency,
 				'queue': 'Long'
 			}, update_modified=True)
