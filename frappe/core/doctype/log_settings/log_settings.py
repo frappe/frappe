@@ -5,6 +5,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.data import add_days, nowdate
 
 class LogSettings(Document):
 	def clear_logs(self):
@@ -14,14 +15,16 @@ class LogSettings(Document):
 		self.clear_email_queue()
 
 	def clear_error_logs(self):
-		frappe.db.sql(""" DELETE FROM `tabError Log`
-			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
-		""".format(self.clear_error_log_after))
+		date = add_days(nowdate(), -1 * self.clear_error_log_after)
+		frappe.db.delete('Error Log', {
+			'creation': ['<', date]
+		})
 
 	def clear_scheduled_job_logs(self):
-		frappe.db.sql(""" DELETE FROM `tabScheduled Job Log`
-			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
-		""".format(self.clear_scheduled_job_log_after))
+		date = add_days(nowdate(), -1 * self.clear_scheduled_job_log_after)
+		frappe.db.delete('Scheduled Job Log', {
+			'creation': ['<', date]
+		})
 
 	def clear_activity_logs(self):
 		from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
