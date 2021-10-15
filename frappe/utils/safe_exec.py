@@ -211,7 +211,7 @@ def safe_enqueue(cmd, queue='default', job_name=None, **kwargs):
 	site = frappe.local.site
 	queued_jobs = get_jobs(site=site, queue=queue, key='job_name').get(site) or []
 
-	if not job_name in queued_jobs:
+	if job_name not in queued_jobs:
 		enqueue(
 			'frappe.utils.safe_exec.execute_enqueued_cmd',
 			cmd=cmd, job_name=job_name, queue=queue, **kwargs
