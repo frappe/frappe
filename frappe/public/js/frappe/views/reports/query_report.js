@@ -555,7 +555,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		this.toggle_message(true);
 		this.toggle_report(false);
-		this.show_loading_indicator();
+		this.show_loading_screen();
 		let filters = this.get_filter_values(true);
 
 		// only one refresh at a time
@@ -646,7 +646,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.show_footer_message();
 			frappe.hide_progress();
 		}).finally(() => {
-			this.hide_loading_indicator();
+			this.hide_loading_screen();
 		});
 	}
 
@@ -871,18 +871,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
-	show_loading_indicator() {
-		this.$loading.find('div').html(`<div class="msg-box no-border">
+	show_loading_screen() {
+		const loading_state = `<div class="msg-box no-border">
 			<div>
 				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
 			</div>
 			<p>${__('Loading')}...</p>
-		</div>`);
+		</div>`;
+
+		this.$loading.find('div').html(loading_state);
 		this.$report.hide();
 		this.$loading.show();
 	}
 
-	hide_loading_indicator() {
+	hide_loading_screen() {
 		this.$loading.hide();
 		this.$report.show();
 	}
@@ -1699,7 +1701,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 
 		this.$loading = $(this.message_div('')).hide().appendTo(this.page.main);
-
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
 	}
