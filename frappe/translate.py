@@ -21,6 +21,7 @@ import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
 from frappe.query_builder import Field
+from pypika.terms import PseudoColumn
 
 
 def get_language(lang_list: List = None) -> str:
@@ -153,12 +154,35 @@ def get_dict(fortype, name=None):
 
 			messages += get_messages_from_navbar()
 			messages += get_messages_from_include_files()
-			messages += frappe.qb.from_("Print Format").select("Print Format:", "name").run()
-			messages += frappe.qb.from_("DocType").select("DocType:", "name").run()
-			messages += frappe.qb.from_("Role").select("Role:", "name").run()
-			messages += frappe.qb.from_("Module Def").select("Module:", "name").run()
-			messages += frappe.qb.from_("Workspace Shortcut").where(Field("format").isnotnull()).select("").run()
-			messages += frappe.qb.from_("Onboarding Step").select("", "title").run()
+			messages += (
+				frappe.qb.from_("Print Format")
+				.select(PseudoColumn("'Print Format:'"), "name")
+				.run()
+			)
+			messages += (
+				frappe.qb.from_("DocType")
+				.select(PseudoColumn("'DocType:'"), "name")
+				.run()
+			)
+			messages += (
+				frappe.qb.from_("Role").select(PseudoColumn("'Role:'"), "name").run()
+			)
+			messages += (
+				frappe.qb.from_("Module Def")
+				.select(PseudoColumn("'Module:'"), "name")
+				.run()
+			)
+			messages += (
+				frappe.qb.from_("Workspace Shortcut")
+				.where(Field("format").isnotnull())
+				.select(PseudoColumn("''"), "format")
+				.run()
+			)
+			messages += (
+				frappe.qb.from_("Onboarding Step")
+				.select(PseudoColumn("''"), "title")
+				.run()
+			)
 
 		messages = deduplicate_messages(messages)
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
