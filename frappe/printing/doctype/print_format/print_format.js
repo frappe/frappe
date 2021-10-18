@@ -36,7 +36,7 @@ frappe.ui.form.on("Print Format", {
 			else if (frm.doc.custom_format && !frm.doc.raw_printing) {
 				frm.set_df_property("html", "reqd", 1);
 			}
-			if (frappe.perm.has_perm('DocType', 0, 'read', frm.doc.doc_type)) {
+			if (frappe.model.can_read(frm.doc.doc_type)) {
 				frappe.db.get_value('DocType', frm.doc.doc_type, 'default_print_format', (r) => {
 					if (r.default_print_format != frm.doc.name) {
 						frm.add_custom_button(__("Set as Default"), function () {
