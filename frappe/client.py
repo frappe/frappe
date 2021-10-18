@@ -264,7 +264,9 @@ def bulk_update(docs):
 	docs = json.loads(docs)
 	failed_docs = []
 	for doc in docs:
+		doc.pop("flags", None)
 		try:
+<<<<<<< HEAD
 			ddoc = {key: val for key, val in iteritems(doc) if key not in ['doctype', 'docname']}
 			doctype = doc['doctype']
 			docname = doc['docname']
@@ -272,10 +274,17 @@ def bulk_update(docs):
 			doc.update(ddoc)
 			doc.save()
 		except:
+=======
+			existing_doc = frappe.get_doc(doc.pop("doctype"), doc.pop("docname"))
+			existing_doc.update(doc)
+			existing_doc.save()
+		except Exception:
+>>>>>>> 9df93d341b (fix: ignore `flags` in `frappe.client.bulk_update`)
 			failed_docs.append({
 				'doc': doc,
 				'exc': frappe.utils.get_traceback()
 			})
+
 	return {'failed_docs': failed_docs}
 
 @frappe.whitelist()
