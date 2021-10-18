@@ -497,7 +497,7 @@ export default class GridRow {
 	}
 
 	update_user_settings_for_grid() {
-		if (!this.selected_columns_for_grid) {
+		if (!this.selected_columns_for_grid || !this.frm) {
 			return;
 		}
 
