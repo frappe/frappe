@@ -44,14 +44,20 @@ def get_attr(method_string):
 	methodname = method_string.split('.')[-1]
 	return getattr(import_module(modulename), methodname)
 
+def DocType(*args, **kwargs):
+	return frappe.qb.DocType(*args, **kwargs)
+
 def patch_query_execute():
 	"""Patch the Query Builder with helper execute method
 	This excludes the use of `frappe.db.sql` method while
 	executing the query object
 	"""
 
-	def execute_query(query, **kwargs):
-		return frappe.db.sql(query, **kwargs)
+	def execute_query(query, *args, **kwargs):
+		query = str(query)
+		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
+			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+		return frappe.db.sql(query, *args, **kwargs)
 
 	query_class = get_attr(str(frappe.qb).split("'")[1])
 	builder_class = get_type_hints(query_class._builder).get('return')
