@@ -61,9 +61,9 @@
   },
   {
    "fieldname": "event_category",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Event Category",
-   "options": "Event\nMeeting\nCall\nSent/Received Email\nOther"
+   "options": "Event Category"
   },
   {
    "fieldname": "event_type",
@@ -277,10 +277,11 @@
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2020-01-14 21:47:15.825287",
+ "modified": "2021-10-18 23:29:13.589406",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
