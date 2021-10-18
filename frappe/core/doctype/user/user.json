@@ -201,7 +201,8 @@
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
    "label": "Role Profile",
-   "options": "Role Profile"
+   "options": "Role Profile",
+   "permlevel": 1
   },
   {
    "fieldname": "roles_html",
@@ -586,7 +587,7 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-10-22 14:16:34.810223",
+ "modified": "2021-10-18 16:56:05.578379",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
