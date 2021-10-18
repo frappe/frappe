@@ -49,6 +49,19 @@ def get_report_doc(report_name):
 	return doc
 
 
+def get_report_result(report, filters):
+	if report.report_type == "Query Report":
+		res = report.execute_query_report(filters)
+
+	elif report.report_type == "Script Report":
+		res = report.execute_script_report(filters)
+
+	elif report.report_type == "Custom Report":
+		ref_report = get_report_doc(report.report_name)
+		res = get_report_result(ref_report, filters)
+
+	return res
+
 def generate_report_result(report, filters=None, user=None, custom_columns=None):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -56,6 +69,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 	if filters and isinstance(filters, string_types):
 		filters = json.loads(filters)
 
+<<<<<<< HEAD
 	res = []
 
 	if report.report_type == "Query Report":
@@ -63,6 +77,9 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 
 	elif report.report_type == 'Script Report':
 		res = report.execute_script_report(filters)
+=======
+	res = get_report_result(report, filters) or []
+>>>>>>> 1e9056c0ee (fix: Multi level custom report fix)
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in columns]
