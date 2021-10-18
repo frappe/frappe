@@ -78,7 +78,7 @@ export default class BulkOperations {
 			args: {
 				doctype: 'Letter Head',
 				fields: ['name', 'is_default'],
-				limit: 0
+				limit_page_length: 0
 			},
 			async: false,
 			callback (r) {
