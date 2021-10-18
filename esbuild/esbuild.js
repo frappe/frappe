@@ -44,7 +44,7 @@ let argv = yargs
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
 	})
-	.option("auto-reload", {
+	.option("live-reload", {
 		type: "boolean",
 		description: `Automatically reload webpages when assets are rebuilt.
 			Can only be used with the --watch flag.`
@@ -481,7 +481,7 @@ async function notify_redis({ error, success }) {
 	if (success) {
 		payload = {
 			success: true,
-			autoreload: argv["auto-reload"]
+			live_reload: argv["live-reload"]
 		};
 	}
 

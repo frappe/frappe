@@ -235,8 +235,12 @@ def watch(apps=None):
 	if apps:
 		command += " --apps {apps}".format(apps=apps)
 
-	if frappe.conf.autoreload_on_build:
-		command += " --auto-reload"
+	live_reload = frappe.conf.live_reload
+	if "LIVE_RELOAD" in os.environ:
+		live_reload = os.environ["LIVE_RELOAD"]
+
+	if live_reload:
+		command += " --live-reload"
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")

@@ -5,7 +5,7 @@
 	>
 		Compiled successfully
 		<a
-			v-if="!autoreload"
+			v-if="!live_reload"
 			class="ml-4 text-white underline" href="/" @click.prevent="reload"
 		>
 			Refresh
@@ -18,13 +18,13 @@ export default {
 	data() {
 		return {
 			is_shown: false,
-			autoreload: false,
+			live_reload: false,
 		};
 	},
 	methods: {
 		show(data) {
-			if (data.autoreload) {
-				this.autoreload = true;
+			if (data.live_reload) {
+				this.live_reload = true;
 				this.reload();
 			}
 
