@@ -488,7 +488,8 @@ class Document(BaseDocument):
 			d.docstatus = self.docstatus
 
 	def set_owner(self):
-		self.owner = self.flags.owner or self.modified_by
+		if self.is_new():
+			self.owner = self.flags.owner or self.modified_by
 
 	def _validate(self):
 		self._validate_mandatory()
