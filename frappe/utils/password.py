@@ -92,7 +92,7 @@ def remove_encrypted_password(doctype, name, fieldname='password'):
 		"fieldname": fieldname
 	})
 
-def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
+def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True, reset_password=False):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
 	result = (
@@ -109,7 +109,10 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	)
 
 	if not result or not passlibctx.verify(pwd, result[0].password):
-		raise frappe.AuthenticationError(_("Incorrect User or Password"))
+		if reset_password:
+			raise frappe.ValidationError(_('Incorrect Password'))
+		else:
+			raise frappe.AuthenticationError(_('Incorrect User or Password'))
 
 	# lettercase agnostic
 	user = result[0].name
