@@ -264,6 +264,20 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertEqual(frappe.db.get_value("User",d.owner),d.owner)
 		d.set("owner","johndoe@gmail.com")
-		d.reload()
 		d.save()
-		self.assertEqual(frappe.db.get_value("User",d.owner),d.owner)
+		d.reload()
+		self.assertNotEqual(frappe.db.get_value("User",d.owner),"johndoe@gmail.com")
+
+	def test_todo_owner_changed(self):
+		frappe.db.delete("ToDo")
+
+		d = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": "test doc"
+		})
+		d.insert()
+		self.assertEqual(frappe.db.get_value("ToDo", d.name, "owner"), d.owner)
+		d.set("owner", "hello@example.com")
+		d.save()
+		d.reload()
+		self.assertEqual(frappe.db.get_value("ToDo", d.name, "owner"), "hello@example.com")
