@@ -271,7 +271,7 @@ class LoginManager:
 		"""check password"""
 		try:
 			# returns user in correct case
-			return check_password(user, pwd)
+			return check_password(user, pwd, reset_password=True)
 		except frappe.AuthenticationError:
 			self.fail('Incorrect password', user=user)
 
