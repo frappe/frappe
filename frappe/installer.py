@@ -507,7 +507,6 @@ def convert_archive_content(sql_file_path):
 		sql_file_path = Path(sql_file_path)
 
 		os.rename(sql_file_path, old_sql_file_path)
-		sql_file_path.unlink()
 		sql_file_path.touch()
 
 		with open(old_sql_file_path) as r, open(sql_file_path, "a") as w:
