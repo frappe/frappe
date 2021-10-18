@@ -235,9 +235,9 @@ def watch(apps=None):
 	if apps:
 		command += " --apps {apps}".format(apps=apps)
 
-	live_reload = frappe.conf.live_reload
-	if "LIVE_RELOAD" in os.environ:
-		live_reload = os.environ["LIVE_RELOAD"]
+	live_reload = frappe.utils.cint(
+		os.environ.get("LIVE_RELOAD", frappe.conf.live_reload)
+	)
 
 	if live_reload:
 		command += " --live-reload"
