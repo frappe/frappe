@@ -197,17 +197,19 @@ frappe.views.CommunicationComposer = Class.extend({
 				me.reply_added = email_template;
 			}
 
-			frappe.call({
-				method: 'frappe.email.doctype.email_template.email_template.get_email_template',
-				args: {
-					template_name: email_template,
-					doc: me.frm.doc,
-					_lang: me.dialog.get_value("language_sel")
-				},
-				callback: function(r) {
-					prepend_reply(r.message);
-				},
-			});
+			if (email_template && email_template !== '') {
+				frappe.call({
+					method: 'frappe.email.doctype.email_template.email_template.get_email_template',
+					args: {
+						template_name: email_template,
+						doc: me.frm.doc,
+						_lang: me.dialog.get_value("language_sel")
+					},
+					callback: function(r) {
+						prepend_reply(r.message);
+					},
+				});
+			}
 		}
 	},
 
