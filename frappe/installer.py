@@ -507,14 +507,13 @@ def convert_archive_content(sql_file_path):
 		sql_file_path = Path(sql_file_path)
 
 		os.rename(sql_file_path, old_sql_file_path)
-		sql_file_path.unlink(missing_ok=True)
 		sql_file_path.touch()
 
 		with open(old_sql_file_path) as r, open(sql_file_path, "a") as w:
 			for line in r:
 				w.write(line.replace("ROW_FORMAT=COMPRESSED", "ROW_FORMAT=DYNAMIC"))
 
-		old_sql_file_path.unlink(missing_ok=True)
+		old_sql_file_path.unlink()
 
 
 def extract_sql_gzip(sql_gz_path):
