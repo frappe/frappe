@@ -45,7 +45,10 @@
 				>
 					Configure columns
 				</button>
-				<button class="btn btn-xs btn-icon" @click="$set(df, 'remove', true)">
+				<button
+					class="btn btn-xs btn-icon"
+					@click="$set(df, 'remove', true)"
+				>
 					<svg class="icon icon-sm">
 						<use xlink:href="#icon-close"></use>
 					</svg>
@@ -141,7 +144,11 @@ export default {
 								let column = this.get_column_to_add(fieldname);
 								if (column) {
 									this.df.table_columns.push(column);
-									this.$set(this.df, "table_columns", this.df.table_columns);
+									this.$set(
+										this.df,
+										"table_columns",
+										this.df.table_columns
+									);
 									dialog.set_value("add_column", "");
 								}
 							}

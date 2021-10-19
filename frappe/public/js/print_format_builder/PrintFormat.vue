@@ -31,7 +31,7 @@
 			v-if="letterhead"
 			:value="letterhead.footer"
 			@change="update_letterhead_footer"
-			:button-label="__('Edit LetterHead Footer')"
+			:button-label="__('Edit Letter Head Footer')"
 		/>
 	</div>
 </template>

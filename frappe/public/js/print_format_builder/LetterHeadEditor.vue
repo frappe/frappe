@@ -54,10 +54,10 @@
 					{{ __("Change Letter Head") }}
 				</button>
 				<button
-					class="btn btn-default btn-xs btn-edit ml-2"
+					class="ml-2 btn btn-default btn-xs btn-edit"
 					@click="toggle_edit_letterhead"
 				>
-					{{ !$store.edit_letterhead ? __("Edit") : __("Done") }}
+					{{ !$store.edit_letterhead ? __("Edit Letter Head") : __("Done") }}
 				</button>
 			</div>
 		</div>

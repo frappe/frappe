@@ -1,7 +1,10 @@
 <template>
 	<div class="html-editor">
 		<div class="d-flex justify-content-end">
-			<button class="btn btn-default btn-xs btn-edit" @click="toggle_edit">
+			<button
+				class="btn btn-default btn-xs btn-edit"
+				@click="toggle_edit"
+			>
 				{{ !editing ? buttonLabel : __("Done") }}
 			</button>
 		</div>
@@ -57,5 +60,9 @@ export default {
 	border-radius: var(--border-radius);
 	padding: 1rem;
 	margin-bottom: 1rem;
+}
+
+.html-editor:last-child {
+	margin-bottom: 0;
 }
 </style>
