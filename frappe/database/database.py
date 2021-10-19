@@ -27,6 +27,13 @@ from six import (
 	iteritems
 )
 
+def get_human_friendly_error_message():
+	return (
+		_('Server was too busy to process this request.')
+		+ '<br>'
+		+ _('Please try again.')
+	)
+
 class Database(object):
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
@@ -168,12 +175,20 @@ class Database(object):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
-			elif self.is_deadlocked(e) or self.is_timedout(e):
-				title = _('Deadlock Occurred') if self.is_deadlocked(e) else _('Request Timeout')
-				err_msg = _('Server was too busy to process this request.') + '<br>'
-				err_msg += _('Please try again.')
-				exception = frappe.QueryDeadlockError if self.is_deadlocked(e) else frappe.QueryTimeoutError
-				frappe.throw(msg=err_msg, title=title, exc=exception)
+
+			elif self.is_deadlocked(e):
+				frappe.throw(
+					title=_('Deadlock Occurred'),
+					msg=get_human_friendly_error_message(),
+					exc=frappe.QueryDeadlockError,
+				)
+
+			elif self.is_timedout(e):
+				frappe.throw(
+					title=_('Request Timeout'),
+					msg=get_human_friendly_error_message(),
+					exc=frappe.QueryTimeoutError,
+				)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
