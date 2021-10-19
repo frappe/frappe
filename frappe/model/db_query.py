@@ -589,19 +589,12 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-<<<<<<< HEAD
-			#if has if_owner permission skip user perm check
-			if role_permissions.get("has_if_owner_enabled") and role_permissions.get("if_owner", {}):
-				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
-					frappe.db.escape(self.user, percent=False)))
-=======
 			# skip user perm check if owner constraint is required
 			if requires_owner_constraint(role_permissions):
 				self.match_conditions.append(
 					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
 				)
 
->>>>>>> 5c86dc80c7 (fix: `if_owner` constraint being applied wrongly (#14471))
 			# add user permission only if role has read perm
 			elif role_permissions.get("read") or role_permissions.get("select"):
 				# get user permissions
