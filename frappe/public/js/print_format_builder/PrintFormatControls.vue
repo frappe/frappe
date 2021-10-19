@@ -53,6 +53,27 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
+				<div class="sidebar-label">{{ __("Font Size") }}</div>
+				<div class="form-group">
+					<div class="control-input-wrapper">
+						<div class="control-input">
+							<input
+								type="number"
+								class="form-control form-control-sm"
+								placeholder="12, 13, 14"
+								:value="print_format.font_size"
+								@change="
+									e =>
+										(print_format.font_size = parseFloat(
+											e.target.value
+										))
+								"
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Page Number") }}</div>
 				<div class="form-group">
 					<div class="control-input-wrapper">

@@ -21,10 +21,12 @@
 		{{ render_margin_text(page_number_position, 'counter(page) " of " counter(pages)') }}
 	{% endif %}
 }
+
+html, body {
+	font-size: {{ print_format.font_size }}px;
 }
 
 body {
-	font-size: {{ print_format.font_size }}px;
 	min-width: {{ body_width | int }}mm !important;
 	max-width: {{ body_width | int }}mm !important;
 }
@@ -52,7 +54,7 @@ body {
 }
 
 .section-label {
-	font-size: var(--text-lg);
+	font-size: 1.2rem;
 	font-weight: 600;
 }
 
