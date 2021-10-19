@@ -1123,15 +1123,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-	icon(icon_name, size="sm", icon_class="", icon_style="") {
-=======
-	icon(icon_name, size="sm", icon_class="", svg_class="") {
->>>>>>> dca6dd2750 (fix: Changing the drag icon in list settings)
-=======
 	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
->>>>>>> dc9f6a58c8 (fix: Resolved conflict)
 		let size_class = "";
 
 		if (typeof size == "object") {
