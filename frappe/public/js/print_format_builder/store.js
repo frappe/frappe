@@ -88,7 +88,8 @@ export function getStore(print_format_name) {
 													"fieldname",
 													"fieldtype",
 													"options",
-													"width"
+													"width",
+													"field_template",
 												]);
 											}
 										);
@@ -99,7 +100,8 @@ export function getStore(print_format_name) {
 										"fieldtype",
 										"options",
 										"table_columns",
-										"html"
+										"html",
+										"field_template",
 									]);
 								});
 							return column;

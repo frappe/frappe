@@ -7,6 +7,12 @@
 					v-if="df.fieldtype == 'HTML' && df.html"
 					v-html="df.html"
 				></div>
+				<div
+					class="custom-html"
+					v-if="df.fieldtype == 'Field Template'"
+				>
+					{{ df.label }}
+				</div>
 				<input
 					v-else-if="editing && df.fieldtype != 'HTML'"
 					ref="label-input"

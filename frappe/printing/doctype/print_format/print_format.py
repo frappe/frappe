@@ -11,6 +11,14 @@ from frappe.utils.weasyprint import get_html, download_pdf
 from frappe.model.document import Document
 
 class PrintFormat(Document):
+	def onload(self):
+		templates = frappe.db.get_all(
+			"Print Format Field Template",
+			fields=["template", "field", "name"],
+			filters={"document_type": self.doc_type},
+		)
+		self.set_onload("print_templates", templates)
+
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
 

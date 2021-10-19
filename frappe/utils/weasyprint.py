@@ -198,12 +198,17 @@ class PrintFormatGenerator:
 		return layout
 
 	def set_field_renderers(self, layout):
-		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+		renderers = {
+			"HTML Editor": "HTML",
+			"Markdown Editor": "Markdown",
+			"Field Template": "FieldTemplate",
+		}
 		for section in layout["sections"]:
 			for column in section["columns"]:
 				for df in column["fields"]:
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype
+					df["section"] = section
 		return layout
 
 	def process_margin_texts(self, layout):

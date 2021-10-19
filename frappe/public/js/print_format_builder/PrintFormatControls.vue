@@ -132,7 +132,8 @@ export default {
 				"fieldtype",
 				"options",
 				"table_columns",
-				"html"
+				"html",
+				"field_template"
 			]);
 			if (cloned.custom) {
 				// generate unique fieldnames for custom blocks
@@ -196,8 +197,35 @@ export default {
 					fieldname: "name",
 					fieldtype: "Data"
 				},
+				...this.print_templates,
 				...fields
 			];
+		},
+		print_templates() {
+			let templates = this.print_format.__onload.print_templates || {};
+			let out = [];
+			for (let template of templates) {
+				let df;
+				if (template.field) {
+					df = frappe.meta.get_docfield(
+						this.meta.name,
+						template.field
+					);
+				} else {
+					df = {
+						label: template.name,
+						fieldname: frappe.scrub(template.name)
+					};
+				}
+				out.push({
+					label: `${__(df.label)} (${__("Field Template")})`,
+					fieldname: df.fieldname + "_template",
+					fieldtype: "Field Template",
+					field_template: template.name
+				});
+			}
+			return out;
+		},
 		page_number_positions() {
 			return [
 				{ label: __("Hide"), value: "Hide" },

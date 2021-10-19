@@ -63,6 +63,17 @@ export function create_default_layout(meta) {
 					options: df.options
 				};
 
+				let field_template = get_field_template(
+					print_format,
+					df.fieldname
+				);
+				if (field_template) {
+					field.label = `${__(df.label)} (${__("Field Template")})`;
+					field.fieldtype = "Field Template";
+					field.field_template = field_template.name;
+					field.fieldname = df.fieldname = "_template";
+				}
+
 				if (df.fieldtype === "Table") {
 					field.table_columns = get_table_columns(df);
 				}
@@ -109,6 +120,15 @@ export function get_table_columns(df) {
 	return table_columns;
 }
 
+function get_field_template(print_format, fieldname) {
+	let templates = print_format.__onload.print_templates || {};
+	for (let template of templates) {
+		if (template.field === fieldname) {
+			return template;
+		}
+	}
+	return null;
+}
 export function pluck(object, keys) {
 	let out = {};
 	for (let key of keys) {
