@@ -249,9 +249,9 @@ def read_sql(query, *args, **kwargs):
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 	return frappe.db.sql(query, *args, **kwargs)
 
-def run_script(script, args=None):
+def run_script(script, kwargs=None):
 	'''run another server script'''
-	return frappe.get_doc('Server Script', script).execute_method(args=args)
+	return frappe.get_doc('Server Script', script).execute_method(kwargs=kwargs)
 
 def _getitem(obj, key):
 	# guard function for RestrictedPython
