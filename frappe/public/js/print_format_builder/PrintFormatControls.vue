@@ -42,6 +42,7 @@
 							<input
 								type="text"
 								class="form-control form-control-sm"
+								:placeholder="__('Roboto, Lato, Merriweather')"
 								:value="print_format.font"
 								@change="
 									e =>
@@ -279,8 +280,8 @@ export default {
 	display: flex;
 }
 
-.margin-controls .form-control {
-	background: white;
+.form-control {
+	background: var(--control-bg-on-gray);
 }
 
 .margin-controls > .form-group + .form-group {
