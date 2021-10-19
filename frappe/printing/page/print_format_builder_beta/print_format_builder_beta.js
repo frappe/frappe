@@ -105,11 +105,13 @@ function load_print_format_builder_beta(wrapper) {
 							print_format_builder_beta: 1
 						})
 						.then(doc => {
-							d.get_primary_btn().prop("disabled", false);
 							frappe.set_route(
 								"print-format-builder-beta",
 								doc.name
 							);
+						})
+						.finally(() => {
+							d.get_primary_btn().prop("disabled", false);
 						});
 				}
 			}

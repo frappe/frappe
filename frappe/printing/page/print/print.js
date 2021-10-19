@@ -76,7 +76,7 @@ frappe.ui.form.PrintView = class {
 
 		this.page.add_button(
 			__('PDF'),
-			() => this.render_page('/api/method/frappe.utils.print_format.download_pdf?'),
+			() => this.render_pdf(),
 			{ icon: 'small-file' }
 		);
 
@@ -241,7 +241,7 @@ frappe.ui.form.PrintView = class {
 		let print_format = this.get_print_format();
 		let is_custom_format =
 			print_format.name &&
-			print_format.print_format_builder &&
+			(print_format.print_format_builder || print_format.print_format_builder_beta) &&
 			print_format.standard === 'No';
 		let is_standard_but_editable =
 			print_format.name && print_format.custom_format;
@@ -251,7 +251,11 @@ frappe.ui.form.PrintView = class {
 			return;
 		}
 		if (is_custom_format) {
-			frappe.set_route('print-format-builder', print_format.name);
+			if (print_format.print_format_builder_beta) {
+				frappe.set_route('print-format-builder-beta', print_format.name);
+			} else {
+				frappe.set_route('print-format-builder', print_format.name);
+			}
 			return;
 		}
 		// start a new print format
@@ -567,6 +571,25 @@ frappe.ui.form.PrintView = class {
 				}
 			},
 		});
+	}
+
+	render_pdf() {
+		let print_format = this.get_print_format();
+		if (print_format.print_format_builder_beta) {
+			let params = new URLSearchParams({
+				doctype: this.frm.doc.doctype,
+				name: this.frm.doc.name,
+				print_format: print_format.name,
+				letterhead: this.get_letterhead()
+			})
+			let w = window.open(`/api/method/frappe.utils.weasyprint.download_pdf?${params}`);
+			if (!w) {
+				frappe.msgprint(__('Please enable pop-ups'));
+				return;
+			}
+		} else {
+			this.render_page('/api/method/frappe.utils.print_format.download_pdf?')
+		}
 	}
 
 	render_page(method, printit = false) {
