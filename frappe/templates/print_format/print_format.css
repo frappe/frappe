@@ -12,8 +12,8 @@
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
-	padding-top: {{ header_height }}px;
-	padding-bottom: {{ footer_height }}px;
+	padding-top: {{ (header_height or 0) + 8 }}px;
+	padding-bottom: {{ (footer_height or 0) + 8 }}px;
 
 	/* page number */
 	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
@@ -29,6 +29,15 @@ html, body {
 body {
 	min-width: {{ body_width | int }}mm !important;
 	max-width: {{ body_width | int }}mm !important;
+}
+
+/* CSS rules to fix bootstrap column rendering in PDF
+   https://github.com/Kozea/WeasyPrint/issues/697#issuecomment-542338732
+*/
+@media print {
+	.col, *[class^="col-"] {
+		max-width: none !important;
+	}
 }
 
 @media screen {
@@ -74,12 +83,12 @@ body {
 	page-break-inside: avoid;
 }
 
-.table-row td, .table-row th {
+.page-break {
+	page-break-after: always;
+}
+
+.document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	border-bottom-color: var(--gray-300);
-}
-
-.page-break {
-	page-break-after: always;
 }
