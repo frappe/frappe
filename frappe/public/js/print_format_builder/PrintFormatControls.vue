@@ -218,6 +218,18 @@ export default {
 					fieldname: "name",
 					fieldtype: "Data"
 				},
+				{
+					label: __("Spacer"),
+					fieldname: "spacer",
+					fieldtype: "Spacer",
+					custom: 1
+				},
+				{
+					label: __("Divider"),
+					fieldname: "divider",
+					fieldtype: "Divider",
+					custom: 1
+				},
 				...this.print_templates,
 				...fields
 			];
