@@ -206,8 +206,7 @@ def safe_enqueue(cmd, queue='default', job_name=None, **kwargs):
 		:param job_name: used to identify an enqueue call, used to prevent duplicate calls
 	'''
 
-	if not job_name:
-		job_name = cmd
+	job_name = job_name or cmd
 
 	site = frappe.local.site
 	queued_jobs = get_jobs(site=site, queue=queue, key='job_name').get(site) or []
