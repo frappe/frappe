@@ -617,10 +617,7 @@ frappe.ui.Page = Class.extend({
 		}
 	},
 
-<<<<<<< HEAD
-	add_inner_message: function(message) {
-=======
-	change_inner_button_type(label, group, type) {
+	change_inner_button_type: function(label, group, type) {
 		let btn;
 
 		if (group) {
@@ -635,10 +632,9 @@ frappe.ui.Page = Class.extend({
 		if (btn) {
 			btn.removeClass().addClass(`btn btn-${type} ellipsis`);
 		}
-	}
+	},
 
-	add_inner_message(message) {
->>>>>>> 62a205fe2e (feat: change custom button type (#14074))
+	add_inner_message: function(message) {
 		let $message = $(`<span class='inner-page-message text-muted small'>${message}</div>`);
 		this.inner_toolbar.find('.inner-page-message').remove();
 		this.inner_toolbar.removeClass("hide").prepend($message);
