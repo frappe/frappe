@@ -1,11 +1,6 @@
 <template>
 	<div class="print-format-main" :style="rootStyles">
-		<MarginText position="top_left" />
-		<MarginText position="top_center" />
-		<MarginText position="top_right" />
-		<MarginText position="bottom_left" />
-		<MarginText position="bottom_center" />
-		<MarginText position="bottom_right" />
+		<div :style="page_number_style">{{ __("1 of 2") }}</div>
 
 		<LetterHeadEditor type="Header" />
 		<HTMLEditor
@@ -45,7 +40,6 @@
 import draggable from "vuedraggable";
 import HTMLEditor from "./HTMLEditor.vue";
 import LetterHeadEditor from "./LetterHeadEditor.vue";
-import MarginText from "./MarginText.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import { storeMixin } from "./store";
 
@@ -56,8 +50,7 @@ export default {
 		draggable,
 		PrintFormatSection,
 		LetterHeadEditor,
-		HTMLEditor,
-		MarginText
+		HTMLEditor
 	},
 	computed: {
 		rootStyles() {
@@ -72,6 +65,38 @@ export default {
 				width: "210mm",
 				minHeight: "297mm"
 			};
+		},
+		page_number_style() {
+			let style = {
+				position: "absolute",
+				background: "white",
+				padding: "4px",
+				borderRadius: "var(--border-radius)",
+				border: "1px solid var(--border-color)"
+			};
+			if (this.print_format.page_number.includes("Top")) {
+				style.top = this.print_format.margin_top / 2 + "mm";
+				style.transform = "translateY(-50%)";
+			}
+			if (this.print_format.page_number.includes("Left")) {
+				style.left = this.print_format.margin_left + "mm";
+			}
+			if (this.print_format.page_number.includes("Right")) {
+				style.right = this.print_format.margin_right + "mm";
+			}
+			if (this.print_format.page_number.includes("Bottom")) {
+				style.bottom = this.print_format.margin_bottom / 2 + "mm";
+				style.transform = "translateY(50%)";
+			}
+			if (this.print_format.page_number.includes("Center")) {
+				style.left = "50%";
+				style.transform += " translateX(-50%)";
+			}
+			if (this.print_format.page_number.includes("Hide")) {
+				style.display = "none";
+			}
+
+			return style;
 		}
 	},
 	methods: {

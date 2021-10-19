@@ -30,6 +30,7 @@
   "column_break_11",
   "font_size",
   "font",
+  "page_number",
   "css_section",
   "css",
   "custom_html_help",
@@ -245,13 +246,20 @@
    "fieldname": "font_size",
    "fieldtype": "Int",
    "label": "Font Size"
+  },
+  {
+   "default": "Hide",
+   "fieldname": "page_number",
+   "fieldtype": "Select",
+   "label": "Page Number",
+   "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-07 09:47:57.119820",
+ "modified": "2021-10-12 17:52:41.167107",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

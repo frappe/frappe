@@ -53,6 +53,26 @@
 				</div>
 			</div>
 			<div class="sidebar-menu">
+				<div class="sidebar-label">{{ __("Page Number") }}</div>
+				<div class="form-group">
+					<div class="control-input-wrapper">
+						<div class="control-input">
+							<select
+								class="form-control form-control-sm"
+								v-model="print_format.page_number"
+							>
+								<option
+									v-for="position in page_number_positions"
+									:value="position.value"
+								>
+									{{ position.label }}
+								</option>
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Fields") }}</div>
 				<input
 					class="mb-2 form-control form-control-sm"
@@ -177,6 +197,16 @@ export default {
 					fieldtype: "Data"
 				},
 				...fields
+			];
+		page_number_positions() {
+			return [
+				{ label: __("Hide"), value: "Hide" },
+				{ label: __("Top Left"), value: "Top Left" },
+				{ label: __("Top Center"), value: "Top Center" },
+				{ label: __("Top Right"), value: "Top Right" },
+				{ label: __("Bottom Left"), value: "Bottom Left" },
+				{ label: __("Bottom Center"), value: "Bottom Center" },
+				{ label: __("Bottom Right"), value: "Bottom Right" }
 			];
 		}
 	}
