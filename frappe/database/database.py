@@ -27,13 +27,6 @@ from six import (
 	iteritems
 )
 
-def get_human_friendly_error_message():
-	return (
-		_('Server was too busy to process this request.')
-		+ '<br>'
-		+ _('Please try again.')
-	)
-
 class Database(object):
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
@@ -177,18 +170,10 @@ class Database(object):
 				frappe.errprint(query)
 
 			elif self.is_deadlocked(e):
-				frappe.throw(
-					title=_('Deadlock Occurred'),
-					msg=get_human_friendly_error_message(),
-					exc=frappe.QueryDeadlockError,
-				)
+				raise frappe.QueryDeadlockError
 
 			elif self.is_timedout(e):
-				frappe.throw(
-					title=_('Request Timeout'),
-					msg=get_human_friendly_error_message(),
-					exc=frappe.QueryTimeoutError,
-				)
+				raise frappe.QueryTimeoutError
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
