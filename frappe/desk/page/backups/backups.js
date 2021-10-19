@@ -30,8 +30,7 @@ frappe.pages['backups'].on_page_load = function (wrapper) {
 					}
 				});
 			});
-		}
-		else {
+		} else {
 			frappe.msgprint({
 				title: __('Error'),
 				message: __('Administrator privileges required.'),
@@ -43,4 +42,4 @@ frappe.pages['backups'].on_page_load = function (wrapper) {
 	frappe.breadcrumbs.add("Setup");
 
 	$(frappe.render_template("backups")).appendTo(page.body.addClass("no-border"));
-}
+};
