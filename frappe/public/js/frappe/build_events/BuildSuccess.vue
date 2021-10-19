@@ -3,8 +3,11 @@
 		v-if="is_shown"
 		class="flex justify-between build-success-message align-center"
 	>
-		<div class="mr-4">Compiled successfully</div>
-		<a class="text-white underline" href="/" @click.prevent="reload">
+		Compiled successfully
+		<a
+			v-if="!live_reload"
+			class="ml-4 text-white underline" href="/" @click.prevent="reload"
+		>
 			Refresh
 		</a>
 	</div>
@@ -14,11 +17,17 @@ export default {
 	name: "BuildSuccess",
 	data() {
 		return {
-			is_shown: false
+			is_shown: false,
+			live_reload: false,
 		};
 	},
 	methods: {
-		show() {
+		show(data) {
+			if (data.live_reload) {
+				this.live_reload = true;
+				this.reload();
+			}
+
 			this.is_shown = true;
 			if (this.timeout) {
 				clearTimeout(this.timeout);
