@@ -268,7 +268,8 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled, callback) {
+	scroll_to: function(element, animate=true, additional_offset,
+		element_to_be_scrolled, callback, highlight_element=false) {
 		if (frappe.flags.disable_auto_scroll) return;
 
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
@@ -291,11 +292,20 @@ Object.assign(frappe.utils, {
 		}
 
 		if (animate) {
-			element_to_be_scrolled.animate({ scrollTop: scroll_top }).promise().then(callback);
+			element_to_be_scrolled.animate({
+				scrollTop: scroll_top
+			}).promise().then(() => {
+				if (highlight_element) {
+					$(element).addClass('highlight');
+					document.addEventListener("click", function() {
+						$(element).removeClass('highlight');
+					}, {once: true});
+				}
+				callback && callback();
+			});
 		} else {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
-
 	},
 	get_scroll_position: function(element, additional_offset) {
 		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
@@ -1039,18 +1049,20 @@ Object.assign(frappe.utils, {
 		return duration;
 	},
 
-	seconds_to_duration(value, duration_options) {
-		let secs = value;
-		let total_duration = {
-			days: Math.floor(secs / (3600 * 24)),
-			hours: Math.floor(secs % (3600 * 24) / 3600),
-			minutes: Math.floor(secs % 3600 / 60),
-			seconds: Math.floor(secs % 60)
+	seconds_to_duration(seconds, duration_options) {
+		const round = seconds > 0 ? Math.floor : Math.ceil;
+		const total_duration = {
+			days: round(seconds / 86400), // 60 * 60 * 24
+			hours: round(seconds % 86400 / 3600),
+			minutes: round(seconds % 3600 / 60),
+			seconds: round(seconds % 60)
 		};
+
 		if (duration_options.hide_days) {
-			total_duration.hours = Math.floor(secs / 3600);
+			total_duration.hours = round(seconds / 3600);
 			total_duration.days = 0;
 		}
+
 		return total_duration;
 	},
 
@@ -1123,7 +1135,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="", icon_style="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
 		let size_class = "";
 
 		if (typeof size == "object") {
@@ -1131,7 +1143,7 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${size_class}" style="${icon_style}">
+		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	},

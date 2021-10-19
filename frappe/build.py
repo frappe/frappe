@@ -246,7 +246,7 @@ def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, ver
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
 def watch(apps=None):
@@ -256,6 +256,13 @@ def watch(apps=None):
 	command = "yarn run watch"
 	if apps:
 		command += " --apps {apps}".format(apps=apps)
+
+	live_reload = frappe.utils.cint(
+		os.environ.get("LIVE_RELOAD", frappe.conf.live_reload)
+	)
+
+	if live_reload:
+		command += " --live-reload"
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")

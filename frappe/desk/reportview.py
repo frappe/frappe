@@ -14,7 +14,7 @@ from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
@@ -127,6 +127,8 @@ def setup_group_by(data):
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
 			data.fields.append('{aggregate_function}(`tab{aggregate_on_doctype}`.`{aggregate_on_field}`) AS _aggregate_column'.format(**data))
+			if data.aggregate_on_field:
+				data.fields.append(f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`")
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
