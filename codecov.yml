@@ -10,11 +10,6 @@ coverage:
         threshold: 0.5%
         flags:
           - server
-      ui-tests:
-        target: auto
-        threshold: 0.5%
-        flags:
-          - ui-tests
 
 comment:
   layout: "diff, flags"
