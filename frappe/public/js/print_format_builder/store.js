@@ -132,9 +132,6 @@ export function getStore(print_format_name) {
 			},
 			get_layout() {
 				if (this.print_format) {
-					// if (!this.print_format.format_data) {
-					// 	return create_default_layout(this.meta);
-					// }
 					if (typeof this.print_format.format_data == "string") {
 						return JSON.parse(this.print_format.format_data);
 					}
@@ -143,7 +140,7 @@ export function getStore(print_format_name) {
 				return null;
 			},
 			get_default_layout() {
-				return create_default_layout(this.meta);
+				return create_default_layout(this.meta, this.print_format);
 			},
 			change_letterhead(letterhead) {
 				return frappe.db.get_doc("Letter Head", letterhead).then(doc => {

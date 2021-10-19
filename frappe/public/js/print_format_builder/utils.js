@@ -1,5 +1,6 @@
-export function create_default_layout(meta) {
+export function create_default_layout(meta, print_format) {
 	let layout = {
+		header: get_default_header(meta),
 		sections: []
 	};
 
@@ -129,6 +130,14 @@ function get_field_template(print_format, fieldname) {
 	}
 	return null;
 }
+
+function get_default_header(meta) {
+	return `<div class="document-header">
+	<h3>${meta.name}</h3>
+	<p>{{ doc.name }}</p>
+</div>`;
+}
+
 export function pluck(object, keys) {
 	let out = {};
 	for (let key of keys) {
