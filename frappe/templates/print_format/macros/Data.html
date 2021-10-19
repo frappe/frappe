@@ -1,4 +1,14 @@
-{% if doc.get(fieldname) %}
+{% if doc.get(df.fieldname) %}
+{%- if df.section.field_orientation == 'left-right' -%}
+<div class="field row">
+	<div class="col-6 label" {{ field_attributes(df) }}>
+		{{ df.label }}
+	</div>
+	<div class="col-6 value {{ 'text-right' if df.fieldtype in ['Int', 'Float', 'Currency'] else '' }}" {{ field_attributes(df) }}>
+		{{ doc.get_formatted(df.fieldname) }}
+	</div>
+</div>
+{%- else -%}
 <div class="field">
 	<div class="label" {{ field_attributes(df) }}>
 		{{ df.label }}
@@ -7,4 +17,5 @@
 		{{ doc.get_formatted(df.fieldname) }}
 	</div>
 </div>
+{%- endif -%}
 {% endif %}

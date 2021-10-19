@@ -8,60 +8,54 @@
 					:placeholder="__('Section Title')"
 					v-model="section.label"
 				/>
-				<div class="dropdown">
-					<button
-						class="btn btn-xs btn-section dropdown-button"
-						data-toggle="dropdown"
+				<div class="d-flex align-items-center">
+					<div
+						class="mr-2 text-small text-muted d-flex"
+						v-if="section.field_orientation == 'left-right'"
+						:title="
+							// prettier-ignore
+							__('Render labels to the left and values to the right in this section')
+						"
 					>
-						<svg class="icon icon-sm">
-							<use xlink:href="#icon-dot-horizontal"></use>
-						</svg>
-					</button>
-					<div class="dropdown-menu dropdown-menu-right" role="menu">
-						<button class="dropdown-item" @click="$emit('add_section_above')">
-							{{ __("Add section above") }}
-						</button>
+						Label → Value
+					</div>
+					<div class="dropdown">
 						<button
-							class="dropdown-item"
-							@click="add_column"
-							v-if="section.columns.length < 4"
+							class="btn btn-xs btn-section dropdown-button"
+							data-toggle="dropdown"
 						>
-							{{ __("Add column") }}
+							<svg class="icon icon-sm">
+								<use xlink:href="#icon-dot-horizontal"></use>
+							</svg>
 						</button>
-						<button
-							class="dropdown-item"
-							@click="add_page_break"
-							v-if="!section.page_break"
+						<div
+							class="dropdown-menu dropdown-menu-right"
+							role="menu"
 						>
-							{{ __("Add page break") }}
-						</button>
-						<button
-							class="dropdown-item"
-							@click="remove_page_break"
-							v-if="section.page_break"
-						>
-							{{ __("Remove page break") }}
-						</button>
-						<button
-							class="dropdown-item"
-							@click="remove_column"
-							v-if="section.columns.length > 1"
-						>
-							{{ __("Remove column") }}
-						</button>
-						<button
-							class="dropdown-item"
-							@click="$set(section, 'remove', true)"
-						>
-							{{ __("Remove section") }}
-						</button>
+							<button
+								v-for="option in section_options"
+								class="dropdown-item"
+								@click="option.action"
+							>
+								{{ option.label }}
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div class="row section-columns">
-				<div class="column col" v-for="(column, i) in section.columns" :key="i">
+				<div
+					class="column col"
+					v-for="(column, i) in section.columns"
+					:key="i"
+				>
 					<draggable
 						class="drag-container"
+						:style="{
+							backgroundColor: column.fields.length
+								? null
+								: 'var(--gray-50)'
+						}"
 						v-model="column.fields"
 						group="fields"
 						:animation="150"
@@ -75,7 +69,10 @@
 				</div>
 			</div>
 		</div>
-		<div class="my-4 text-muted text-center font-italic" v-if="section.page_break">
+		<div
+			class="my-4 text-center text-muted font-italic"
+			v-if="section.page_break"
+		>
 			{{ __("Page Break") }}
 		</div>
 	</div>
@@ -123,6 +120,57 @@ export default {
 		},
 		get_fields(column) {
 			return column.fields.filter(df => !df.remove);
+		}
+	},
+	computed: {
+		section_options() {
+			return [
+				{
+					label: __("Add section above"),
+					action: () => this.$emit("add_section_above")
+				},
+				{
+					label: __("Add column"),
+					action: this.add_column,
+					condition: () => this.section.columns.length < 4
+				},
+				{
+					label: __("Remove column"),
+					action: this.remove_column,
+					condition: () => this.section.columns.length > 1
+				},
+				{
+					label: __("Add page break"),
+					action: this.add_page_break,
+					condition: () => !this.section.page_break
+				},
+				{
+					label: __("Remove page break"),
+					action: this.remove_page_break,
+					condition: () => this.section.page_break
+				},
+				{
+					label: __("Remove section"),
+					action: () => this.$set(this.section, "remove", true)
+				},
+				{
+					label: __("Field Orientation (Left-Right)"),
+					condition: () => !this.section.field_orientation,
+					action: () =>
+						this.$set(
+							this.section,
+							"field_orientation",
+							"left-right"
+						)
+				},
+				{
+					label: __("Field Orientation (Top-Down)"),
+					condition: () =>
+						this.section.field_orientation == "left-right",
+					action: () =>
+						this.$set(this.section, "field_orientation", "")
+				}
+			].filter(option => (option.condition ? option.condition() : true));
 		}
 	}
 };
@@ -192,5 +240,6 @@ export default {
 .drag-container {
 	height: 100%;
 	min-height: 2rem;
+	border-radius: var(--border-radius);
 }
 </style>
