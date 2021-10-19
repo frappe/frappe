@@ -3,6 +3,7 @@ codecov:
 
 coverage:
   status:
+    patch: off
     project:
       default: false
       server:
