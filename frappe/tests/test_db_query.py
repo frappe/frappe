@@ -4,6 +4,7 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+from frappe.query_builder import Column
 
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
@@ -373,6 +374,25 @@ class TestReportview(unittest.TestCase):
 		owners = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="owner")
 		self.assertEqual(owners, ["Administrator"])
 
+	def test_column_comparison(self):
+		"""Test DatabaseQuery.execute to test column comparison
+		"""
+		users_unedited = frappe.get_all(
+			"User",
+			filters={"creation": Column("modified")},
+			fields=["name", "creation", "modified"],
+			limit=1,
+		)
+		users_edited = frappe.get_all(
+			"User",
+			filters={"creation": ("!=", Column("modified"))},
+			fields=["name", "creation", "modified"],
+			limit=1,
+		)
+
+		self.assertEqual(users_unedited[0].modified, users_unedited[0].creation)
+		self.assertNotEqual(users_edited[0].modified, users_edited[0].creation)
+
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
 		add_child_table_to_blog_post()
@@ -426,6 +446,25 @@ class TestReportview(unittest.TestCase):
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
 
+	def test_reportview_get_aggregation(self):
+		# test aggregation based on child table field
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "DocType",
+			"fields": """["`tabDocField`.`label` as field_label","`tabDocField`.`name` as field_name"]""",
+			"filters": "[]",
+			"order_by": "_aggregate_column desc",
+			"start": 0,
+			"page_length": 20,
+			"view": "Report",
+			"with_comment_count": 0,
+			"group_by": "field_label, field_name",
+			"aggregate_on_field": "columns",
+			"aggregate_on_doctype": "DocField",
+			"aggregate_function": "sum"
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column", 'columns'])
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc({

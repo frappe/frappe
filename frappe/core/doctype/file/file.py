@@ -813,7 +813,7 @@ def extract_images_from_doc(doc, fieldname):
 		doc.set(fieldname, content)
 
 
-def extract_images_from_html(doc, content):
+def extract_images_from_html(doc, content, is_private=False):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
@@ -846,7 +846,8 @@ def extract_images_from_html(doc, content):
 			"attached_to_doctype": doctype,
 			"attached_to_name": name,
 			"content": content,
-			"decode": False
+			"decode": False,
+			"is_private": is_private
 		})
 		_file.save(ignore_permissions=True)
 		file_url = _file.file_url

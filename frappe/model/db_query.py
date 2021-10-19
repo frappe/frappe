@@ -4,6 +4,7 @@
 
 from typing import List
 import frappe.defaults
+from frappe.query_builder.utils import Column
 import frappe.share
 from frappe import _
 import frappe.permissions
@@ -491,7 +492,7 @@ class DatabaseQuery(object):
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
 
-			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
+			if (f.fieldname in ('creation', 'modified')):
 				value = cstr(f.value)
 				fallback = "NULL"
 
@@ -547,8 +548,12 @@ class DatabaseQuery(object):
 				value = flt(f.value)
 				fallback = 0
 
+			if isinstance(f.value, Column):
+				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
+				value = f"{tname}.{quote}{f.value.name}{quote}"
+
 			# escape value
-			if isinstance(value, str) and not f.operator.lower() == 'between':
+			elif isinstance(value, str) and not f.operator.lower() == 'between':
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
@@ -592,8 +597,8 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			#if has if_owner permission skip user perm check
-			if role_permissions.get("has_if_owner_enabled") and role_permissions.get("if_owner", {}):
+			# skip user perm check if owner constraint is required
+			if requires_owner_constraint(role_permissions):
 				self.match_conditions.append(
 					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
 				)
@@ -890,3 +895,22 @@ def get_date_range(operator, value):
 	timespan = period_map[operator] + ' ' + timespan_map[value] if operator != 'timespan' else value
 
 	return get_timespan_date_range(timespan)
+
+def requires_owner_constraint(role_permissions):
+	"""Returns True if "select" or "read" isn't available without being creator."""
+
+	if not role_permissions.get("has_if_owner_enabled"):
+		return
+
+	if_owner_perms = role_permissions.get("if_owner")
+	if not if_owner_perms:
+		return
+
+	# has select or read without if owner, no need for constraint
+	for perm_type in ("select", "read"):
+		if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
+			return
+
+	# not checking if either select or read if present in if_owner_perms
+	# because either of those is required to perform a query
+	return True

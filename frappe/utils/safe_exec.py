@@ -1,22 +1,27 @@
 
-import os, json, inspect
+import inspect
+import json
 import mimetypes
+
+import RestrictedPython.Guards
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
-import RestrictedPython.Guards
+
 import frappe
-from frappe import _
-import frappe.utils
-import frappe.utils.data
-from frappe.website.utils import (get_shade, get_toc, get_next_link)
-from frappe.modules import scrub
-from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 import frappe.integrations.utils
+import frappe.utils
+import frappe.utils.data
+from frappe import _
 from frappe.frappeclient import FrappeClient
+from frappe.modules import scrub
+from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.www.printview import get_visible_columns
+
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
+
 
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
@@ -29,7 +34,7 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
-def safe_exec(script, _globals=None, _locals=None):
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
 	if 'server_script_enabled' in frappe.conf:
@@ -45,13 +50,20 @@ def safe_exec(script, _globals=None, _locals=None):
 	if _globals:
 		exec_globals.update(_globals)
 
+	if restrict_commit_rollback:
+		exec_globals.frappe.db.pop('commit', None)
+		exec_globals.frappe.db.pop('rollback', None)
+
 	# execute script compiled by RestrictedPython
+	frappe.flags.in_safe_exec = True
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
+	frappe.flags.in_safe_exec = False
 
 	return exec_globals, _locals
 
 def get_safe_globals():
 	datautils = frappe._dict()
+
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
@@ -69,8 +81,9 @@ def get_safe_globals():
 	out = NamespaceDict(
 		# make available limited methods of frappe
 		json=NamespaceDict(
-			loads = json.loads,
-			dumps = json.dumps),
+			loads=json.loads,
+			dumps=json.dumps
+		),
 		dict=dict,
 		log=frappe.log,
 		_dict=frappe._dict,
@@ -84,6 +97,8 @@ def get_safe_globals():
 			form_dict=getattr(frappe.local, 'form_dict', {}),
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
+			errprint=frappe.errprint,
+			qb=frappe.qb,
 
 			get_meta=frappe.get_meta,
 			get_doc=frappe.get_doc,
@@ -98,9 +113,9 @@ def get_safe_globals():
 			render_template=frappe.render_template,
 			msgprint=frappe.msgprint,
 			throw=frappe.throw,
-			sendmail = frappe.sendmail,
-			get_print = frappe.get_print,
-			attach_print = frappe.attach_print,
+			sendmail=frappe.sendmail,
+			get_print=frappe.get_print,
+			attach_print=frappe.attach_print,
 
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
@@ -111,8 +126,8 @@ def get_safe_globals():
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
-			make_get_request = frappe.integrations.utils.make_get_request,
-			make_post_request = frappe.integrations.utils.make_post_request,
+			make_get_request=frappe.integrations.utils.make_get_request,
+			make_post_request=frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
 			sanitize_html=frappe.utils.sanitize_html,
@@ -140,20 +155,25 @@ def get_safe_globals():
 		out.frappe.date_format = date_format
 		out.frappe.time_format = time_format
 		out.frappe.db = NamespaceDict(
-			get_list = frappe.get_list,
-			get_all = frappe.get_all,
-			get_value = frappe.db.get_value,
-			set_value = frappe.db.set_value,
-			get_single_value = frappe.db.get_single_value,
-			get_default = frappe.db.get_default,
-			escape = frappe.db.escape,
-			sql = read_sql,
-			sum = frappe.db.sum,
-			avg = frappe.db.avg,
-			count = frappe.db.count,
-			min = frappe.db.min,
-			max = frappe.db.max
+			get_list=frappe.get_list,
+			get_all=frappe.get_all,
+			get_value=frappe.db.get_value,
+			set_value=frappe.db.set_value,
+			get_single_value=frappe.db.get_single_value,
+			get_default=frappe.db.get_default,
+			exists=frappe.db.exists,
+			count=frappe.db.count,
+			min=frappe.db.min,
+			max=frappe.db.max,
+			avg=frappe.db.avg,
+			sum=frappe.db.sum,
+			escape=frappe.db.escape,
+			sql=read_sql,
+			commit=frappe.db.commit,
+			rollback=frappe.db.rollback,
 		)
+
+		out.frappe.cache = cache
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -172,12 +192,20 @@ def get_safe_globals():
 
 	return out
 
+def cache():
+	return NamespaceDict(
+		get_value = frappe.cache().get_value,
+		set_value = frappe.cache().set_value,
+		hset = frappe.cache().hset,
+		hget = frappe.cache().hget
+	)
+
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
-	if query.strip().split(None, 1)[0].lower() == 'select':
-		return frappe.db.sql(query, *args, **kwargs)
-	else:
+	query = str(query)
+	if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+	return frappe.db.sql(query, *args, **kwargs)
 
 def run_script(script):
 	'''run another server script'''

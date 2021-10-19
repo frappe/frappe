@@ -32,11 +32,11 @@ class PostgresDatabase(Database):
 	def setup_type_map(self):
 		self.db_type = 'postgres'
 		self.type_map = {
-			'Currency':		('decimal', '18,6'),
+			'Currency':		('decimal', '21,9'),
 			'Int':			('bigint', None),
 			'Long Int':		('bigint', None),
-			'Float':		('decimal', '18,6'),
-			'Percent':		('decimal', '18,6'),
+			'Float':		('decimal', '21,9'),
+			'Percent':		('decimal', '21,9'),
 			'Check':		('smallint', None),
 			'Small Text':	('text', ''),
 			'Long Text':	('text', ''),
@@ -61,7 +61,7 @@ class PostgresDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
 			'Geolocation':	('text', ''),
-			'Duration':		('decimal', '18,6'),
+			'Duration':		('decimal', '21,9'),
 			'Icon':			('varchar', self.VARCHAR_LEN)
 		}
 
@@ -183,8 +183,8 @@ class PostgresDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
 
-	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
-		table_name = get_table_name(table)
+	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
 		return self.sql(f'ALTER TABLE "{table_name}" ALTER COLUMN "{column}" TYPE {type}')
 
 	def create_auth_table(self):
