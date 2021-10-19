@@ -134,7 +134,7 @@ frappe.ui.form.PrintView = class {
 
 	add_sidebar_item(df, is_dynamic) {
 		if (df.fieldtype == 'Select') {
-			df.input_class = 'btn btn-default btn-sm';
+			df.input_class = 'btn btn-default btn-sm text-left';
 		}
 
 		let field = frappe.ui.form.make_control({
