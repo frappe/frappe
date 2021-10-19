@@ -168,14 +168,12 @@ class Database(object):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
-			elif self.is_deadlocked(e):
-				err_msg = _('There was a problem accessing required resources to complete the transaction.') + '<br>'
+			elif self.is_deadlocked(e) or self.is_timedout(e):
+				title = _('Deadlock Occurred') if self.is_deadlocked(e) else _('Request Timeout')
+				err_msg = _('Server was too busy to process this request.') + '<br>'
 				err_msg += _('Please try again.')
-				frappe.throw(msg=err_msg, title=_('Deadlock Occurred'), exc=frappe.QueryDeadlockError)
-			elif self.is_timedout(e):
-				err_msg = _('There was a problem accessing required resources to complete the transaction.') + '<br>'
-				err_msg += _('Please try again.')
-				frappe.throw(msg=err_msg, title=_('Request Timeout'), exc=frappe.QueryTimeoutError)
+				exception = frappe.QueryDeadlockError if self.is_deadlocked(e) else frappe.QueryTimeoutError
+				frappe.throw(msg=err_msg, title=title, exc=exception)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
