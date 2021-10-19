@@ -20,8 +20,8 @@ from six.moves.urllib.parse import unquote
 from six import text_type
 from frappe.cache_manager import clear_user_cache
 
-@frappe.whitelist(allow_guest=True)
-def clear(user=None):
+@frappe.whitelist()
+def clear():
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
 	clear_user_cache(frappe.session.user)
