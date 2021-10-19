@@ -34,17 +34,24 @@ class TestSafeExec(unittest.TestCase):
 		self.assertRaises(frappe.PermissionError, safe_exec, '''frappe.qb.from_("User").delete().run()''')
 
 	def test_enqueue_job(self):
-		import time
-		from frappe.utils.background_jobs import get_queue
+		# enqueue non_whitelisted_method
+		safe_exec('''frappe.enqueue("frappe.tests.test_safe_exec.non_whitelisted_method", now=True)''')
 
-		queue = get_queue("short")
-		finished_count = queue.finished_job_registry.count
+		error_log = frappe.get_last_doc('Error Log', {'method': 'Enqueued Execution Failed'})
+		self.assertTrue('Not permitted' in error_log.error)
 
-		# enqueue job
-		safe_exec('''frappe.enqueue("frappe.tests.test_safe_exec.enqueued_method", queue="short")''')
-		time.sleep(2)
+		# enqueue whitelisted_method
+		safe_exec('''frappe.enqueue("frappe.tests.test_safe_exec.whitelisted_method", now=True)''')
 
-		self.assertEquals(queue.finished_job_registry.count, finished_count + 1)
+		todo = frappe.get_last_doc('ToDo', {'description': 'Test enqueue from safe_exec'})
+		self.assertTrue(todo.name)
 
-def enqueued_method():
+def non_whitelisted_method():
 	return 1 / 1
+
+@frappe.whitelist()
+def whitelisted_method():
+	frappe.get_doc({
+		'doctype': 'ToDo',
+		'description': 'Test enqueue from safe_exec'
+	}).insert()

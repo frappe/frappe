@@ -223,15 +223,17 @@ def execute_enqueued_cmd(cmd, **kwargs):
 		Executes the method if it is a whitelisted method or server script api
 	'''
 	try:
-		if run_server_script_api(cmd, kwargs):
-			return
+		# run server script if `cmd` is a server script of type API
+		is_server_script_api = run_server_script_api(cmd, kwargs)
 
-		frappe.form_dict.update(kwargs)
-		execute_cmd(cmd)
+		if not is_server_script_api:
+			# update form_dict, to use as `kwargs` in frappe.call
+			frappe.form_dict.update(kwargs)
+			execute_cmd(cmd)
 
 	except Exception:
 		frappe.db.rollback()
-		frappe.log_error(title="Enqueued Method Failed")
+		frappe.log_error(title="Enqueued Execution Failed")
 
 def cache():
 	return NamespaceDict(
