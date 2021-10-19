@@ -171,11 +171,11 @@ class Database(object):
 			elif self.is_deadlocked(e):
 				err_msg = _('There was a problem accessing required resources to complete the transaction.') + '<br>'
 				err_msg += _('Please try again.')
-				frappe.throw(msg=err_msg, title=_('Deadlock Occurred'), exc=frappe.QueryDeadlock)
+				frappe.throw(msg=err_msg, title=_('Deadlock Occurred'), exc=frappe.QueryDeadlockError)
 			elif self.is_timedout(e):
 				err_msg = _('There was a problem accessing required resources to complete the transaction.') + '<br>'
 				err_msg += _('Please try again.')
-				frappe.throw(msg=err_msg, title=_('Request Timeout'), exc=frappe.QueryTimeout)
+				frappe.throw(msg=err_msg, title=_('Request Timeout'), exc=frappe.QueryTimeoutError)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
