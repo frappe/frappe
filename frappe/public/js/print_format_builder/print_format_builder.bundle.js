@@ -8,20 +8,28 @@ class PrintFormatBuilder {
 		this.print_format = print_format;
 
 		this.page.clear_actions();
+		this.page.clear_icons();
 		this.page.clear_custom_actions();
 
 		this.page.set_title(__("Editing {0}", [this.print_format]));
-		this.page.set_primary_action(__("Save changes"), () => {
+		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});
-		this.page.set_secondary_action(__("Reset changes"), () => {
-			this.$component.$store.reset_changes();
-		});
-		let $toggle_preview_btn = this.page.add_button(
-			__("Toggle Preview"),
+		let $toggle_preview_btn = this.page.add_action_icon(
+			"printer",
 			() => this.$component.toggle_preview(),
-			{ icon: "small-file" }
+			"",
+			__("Toggle Preview")
 		);
+		this.page.add_action_icon(
+			"refresh",
+			() => this.$component.$store.reset_changes(),
+			"",
+			__("Reset Changes")
+		);
+		this.page.add_menu_item(__("Edit Print Format"), () => {
+			frappe.set_route("Form", "Print Format", this.print_format);
+		});
 
 		let $vm = new Vue({
 			el: this.$wrapper.get(0),
