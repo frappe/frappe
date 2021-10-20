@@ -17,6 +17,7 @@ if [ "$TYPE" == "server" ]; then
 fi
 
 if [ "$DB" == "mariadb" ];then
+      sudo apt install mariadb-client-10.3
       mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
       mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
@@ -58,4 +59,4 @@ cd ../..
 bench start &
 bench --site test_site reinstall --yes
 if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi
-bench build --app frappe
+CI=Yes bench build --app frappe

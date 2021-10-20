@@ -27,7 +27,7 @@
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
 	</a>
 	<a href="https://codecov.io/gh/frappe/frappe">
-	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
+	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj&flag=server"/>
 	</a>
 </div>
 
@@ -35,25 +35,36 @@
 
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
-### Table of Contents
-* [Installation](https://frappeframework.com/docs/user/en/installation)
-* [Documentation](https://frappeframework.com/docs)
+<div align="center">
+	<a href="https://frappecloud.com/deploy?apps=frappe&source=frappe_readme">
+		<img src=".github/try-on-f-cloud-button.svg" height="40">
+	</a>
+</div>
+
+## Table of Contents
+* [Installation](#installation)
+* [Contributing](#contributing)
+* [Resources](#resources)
 * [License](#license)
 
-### Installation
+## Installation
 
 * [Install via Docker](https://github.com/frappe/frappe_docker)
 * [Install via Frappe Bench](https://github.com/frappe/bench)
+* [Offical Documentation](https://frappeframework.com/docs/user/en/installation)
+* [Managed Hosting on Frappe Cloud](https://frappecloud.com/deploy?apps=frappe&source=frappe_readme)
 
 ## Contributing
 
+1. [Code of Conduct](CODE_OF_CONDUCT.md)
 1. [Contribution Guidelines](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
+1. [Security Policy](SECURITY.md)
 1. [Translations](https://translate.erpnext.com)
 
-### Website
+## Resources
 
-For details and documentation, see the website
-[https://frappeframework.com](https://frappeframework.com)
+1. [frappeframework.com](https://frappeframework.com) - Official documentation of the Frappe Framework.
+1. [frappe.school](https://frappe.school) - Pick from the various courses by the maintainers or from the community.
 
-### License
+## License
 This repository has been released under the [MIT License](LICENSE).

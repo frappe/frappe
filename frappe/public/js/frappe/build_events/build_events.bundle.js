@@ -41,10 +41,11 @@ frappe.realtime.on("build_event", data => {
 	}
 });
 
-function show_build_success() {
+function show_build_success(data) {
 	if (error) {
 		error.hide();
 	}
+
 	if (!success) {
 		let target = $('<div class="build-success-container">')
 			.appendTo($container)
@@ -55,7 +56,7 @@ function show_build_success() {
 		});
 		success = vm.$children[0];
 	}
-	success.show();
+	success.show(data);
 }
 
 function show_build_error(data) {

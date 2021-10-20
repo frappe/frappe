@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -38,7 +38,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: '3.9'
 
       - name: Check if build should be run
         id: check-build
@@ -121,9 +121,11 @@ jobs:
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
       - name: Upload coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: codecov/codecov-action@v2
         with:
           name: MariaDB
           fail_ci_if_error: true
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
+          flags: server

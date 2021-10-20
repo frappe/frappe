@@ -44,6 +44,11 @@ let argv = yargs
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
 	})
+	.option("live-reload", {
+		type: "boolean",
+		description: `Automatically reload web pages when assets are rebuilt.
+			Can only be used with the --watch flag.`
+	})
 	.option("production", {
 		type: "boolean",
 		description: "Run build in production mode"
@@ -104,6 +109,9 @@ async function execute() {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
+		if (process.env.CI) {
+			process.kill(process.pid);
+		}
 		return;
 	}
 
@@ -490,7 +498,8 @@ async function notify_redis({ error, success, changed_files }) {
 	if (success) {
 		payload = {
 			success: true,
-			changed_files
+			changed_files,
+			live_reload: argv["live-reload"]
 		};
 	}
 

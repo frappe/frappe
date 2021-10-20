@@ -67,7 +67,8 @@ def get_info(show_failed=False) -> List[Dict]:
 			fail_registry = queue.failed_job_registry
 			for job_id in fail_registry.get_job_ids():
 				job = queue.fetch_job(job_id)
-				add_job(job, queue.name)
+				if job:
+					add_job(job, queue.name)
 
 	return jobs
 

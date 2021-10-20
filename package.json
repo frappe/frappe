@@ -4,7 +4,8 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
-    "snyk-protect": "snyk protect"
+    "snyk-protect": "snyk protect",
+    "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
     "type": "git",
@@ -56,7 +57,7 @@
     "qz-tray": "^2.0.8",
     "redis": "^3.1.1",
     "showdown": "^1.9.1",
-    "snyk": "^1.667.0",
+    "snyk": "^1.685.0",
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
@@ -75,5 +76,8 @@
     "rtlcss": "^3.2.1",
     "yargs": "^16.2.0"
   },
-  "snyk": true
+  "snyk": true,
+  "nyc": {
+    "report-dir": ".cypress-coverage"
+  }
 }
