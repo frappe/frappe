@@ -332,8 +332,8 @@ export default class Header extends Block {
 
 	static get toolbox() {
 		return {
-			icon: '<svg width="10" height="14" viewBox="0 0 10 14"><path d="M7.6 8.15H2.25v4.525a1.125 1.125 0 0 1-2.25 0V1.125a1.125 1.125 0 1 1 2.25 0V5.9H7.6V1.125a1.125 1.125 0 0 1 2.25 0v11.55a1.125 1.125 0 0 1-2.25 0V8.15z"></path></svg>',
 			title: 'Heading',
+			icon: frappe.utils.icon('header', 'md')
 		};
 	}
 }

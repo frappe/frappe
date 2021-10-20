@@ -793,8 +793,8 @@ body {
 	}
 
 	.block-menu-item-icon svg{
-		width: 12px;
-		height: 12px;
+		width: 18px;
+		height: 18px;
 		margin-right: 5px;
 	}
 
@@ -984,8 +984,10 @@ body {
 
 			.icon {
 				stroke: none;
-				width: fit-content;
-				height: fit-content;
+
+				&.icon--plus {
+					width: 14px;
+				}
 			}
 
 			.ce-settings {
@@ -993,6 +995,10 @@ body {
 
 				.ce-settings__button, .cdx-settings-button {
 					color: #707684;
+
+					.icon {
+						width: 14px;
+					}
 				}
 
 				.cdx-settings-button--active {
