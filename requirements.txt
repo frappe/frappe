@@ -43,7 +43,6 @@ pyasn1~=0.4.8
 pycryptodome~=3.10.1
 PyJWT~=2.0.1
 PyMySQL~=1.0.2
-pyngrok~=5.0.5
 pyOpenSSL~=20.0.1
 pyotp~=2.6.0
 PyPDF2~=1.26.0
