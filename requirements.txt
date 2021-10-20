@@ -62,7 +62,6 @@ rq~=1.8.0
 rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability
 schedule~=1.1.0
 semantic-version~=2.8.5
-simple-chalk~=0.1.0
 six~=1.15.0
 sqlparse~=0.4.1
 stripe~=2.56.0
