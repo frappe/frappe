@@ -105,9 +105,14 @@ class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
+<<<<<<< HEAD
 class AttachmentLimitReached(Exception): pass
 class QueryTimeoutError(Exception): pass
 class QueryDeadlockError(Exception): pass
+=======
+class DocumentAlreadyRestored(ValidationError): pass
+class AttachmentLimitReached(ValidationError): pass
+>>>>>>> 3b4530ef5d (fix: prevent report error for AttachmentLimitReached exceptions)
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass
