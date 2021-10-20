@@ -99,8 +99,8 @@ class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
-class DocumentAlreadyRestored(Exception): pass
-class AttachmentLimitReached(Exception): pass
+class DocumentAlreadyRestored(ValidationError): pass
+class AttachmentLimitReached(ValidationError): pass
 class QueryTimeoutError(ValidationError): pass
 class QueryDeadlockError(ValidationError): pass
 # OAuth exceptions
