@@ -22,10 +22,17 @@
    "label": "Web Page",
    "options": "Web Page",
    "reqd": 1
+  },
+  {
+   "__unsaved": 1,
+   "fieldname": "single_thread",
+   "fieldtype": "Check",
+   "label": "Single Thread",
+   "reqd": 0
   }
  ],
  "idx": 0,
- "modified": "2021-10-01 12:15:28.876920",
+ "modified": "2021-10-01 15:15:57.366552",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Discussions",

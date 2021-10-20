@@ -15,7 +15,9 @@
   "subtitle",
   "column_break_11",
   "cta_label",
-  "cta_url"
+  "cta_url",
+  "section_break_12",
+  "feedback_limit"
  ],
  "fields": [
   {
@@ -78,13 +80,24 @@
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "1",
+   "description": "Feedback limit per hour",
+   "fieldname": "feedback_limit",
+   "fieldtype": "Int",
+   "label": "Feedback limit"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-06-01 15:57:21.564652",
+ "modified": "2021-09-30 13:00:18.887103",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

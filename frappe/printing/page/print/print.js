@@ -134,7 +134,7 @@ frappe.ui.form.PrintView = class {
 
 	add_sidebar_item(df, is_dynamic) {
 		if (df.fieldtype == 'Select') {
-			df.input_class = 'btn btn-default btn-sm';
+			df.input_class = 'btn btn-default btn-sm text-left';
 		}
 
 		let field = frappe.ui.form.make_control({
@@ -171,13 +171,13 @@ frappe.ui.form.PrintView = class {
 			});
 		}
 
-		if (frappe.perm.has_perm('Print Format', 0, 'create')) {
+		if (frappe.model.can_create('Print Format')) {
 			this.page.add_menu_item(__('Customize'), () =>
 				this.edit_print_format()
 			);
 		}
 
-		if (this.print_settings.enable_print_server) {
+		if (cint(this.print_settings.enable_print_server)) {
 			this.page.add_menu_item(__('Select Network Printer'), () =>
 				this.network_printer_setting_dialog()
 			);

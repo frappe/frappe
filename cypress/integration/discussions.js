@@ -57,7 +57,23 @@ context('Discussions', () => {
 		cy.get('.discussion-on-page:visible .comment-field').should('have.value', '');
 	};
 
+	const single_thread_discussion = () => {
+		cy.visit('/test-single-thread');
+		cy.get('.discussions-sidebar').should('have.length', 0);
+		cy.get('.reply').should('have.length', 0);
+
+		cy.get('.discussion-on-page .comment-field')
+			.type('This comment is being made on a single thread discussion.')
+			.should('have.value', 'This comment is being made on a single thread discussion.');
+
+		cy.get('.discussion-on-page .submit-discussion').click();
+		cy.wait(3000);
+		cy.get('.discussion-on-page').children(".reply-card").eq(-1).children(".reply-text")
+			.should('have.text', 'This comment is being made on a single thread discussion.\n');
+	};
+
 	it('reply through modal', reply_through_modal);
 	it('reply through comment box', reply_through_comment_box);
 	it('cancel and clear comment box', cancel_and_clear_comment_box);
+	it('single thread discussion', single_thread_discussion);
 });
