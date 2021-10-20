@@ -265,6 +265,14 @@ export default class Grid {
 		});
 	}
 
+	reset_grid() {
+		this.visible_columns = [];
+		this.grid_rows = [];
+
+		$(this.parent).find(".grid-body .grid-row").remove();
+		this.refresh();
+	}
+
 	make_head() {
 		// labels
 		if (this.header_row) {
@@ -275,7 +283,8 @@ export default class Grid {
 			parent_df: this.df,
 			docfields: this.docfields,
 			frm: this.frm,
-			grid: this
+			grid: this,
+			configure_columns: true
 		});
 	}
 
@@ -686,10 +695,13 @@ export default class Grid {
 	}
 
 	setup_visible_columns() {
-		if (this.visible_columns) return;
+		if (this.visible_columns && this.visible_columns.length > 0) return;
 
+		this.user_defined_columns = [];
+		this.setup_user_defined_columns();
 		var total_colsize = 1,
-			fields = this.editable_fields || this.docfields;
+			fields = (this.user_defined_columns && this.user_defined_columns.length > 0)
+				? this.user_defined_columns : this.editable_fields || this.docfields;
 
 		this.visible_columns = [];
 
@@ -697,9 +709,9 @@ export default class Grid {
 			var _df = fields[ci];
 
 			// get docfield if from fieldname
-			df = this.fields_map[_df.fieldname];
+			df = (this.user_defined_columns && this.user_defined_columns.length > 0) ? _df : this.fields_map[_df.fieldname];
 
-			if (!df.hidden
+			if (df && !df.hidden
 				&& (this.editable_fields || df.in_list_view)
 				&& (this.frm && this.frm.get_perm(df.permlevel, "read") || !this.frm)
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
@@ -707,13 +719,7 @@ export default class Grid {
 				if (df.columns) {
 					df.colsize = df.columns;
 				} else {
-					var colsize = 2;
-					switch (df.fieldtype) {
-						case "Text": break;
-						case "Small Text": colsize = 3; break;
-						case "Check": colsize = 1;
-					}
-					df.colsize = colsize;
+					this.update_default_colsize(df);
 				}
 
 				// attach formatter on refresh
@@ -756,6 +762,31 @@ export default class Grid {
 		}
 	}
 
+	update_default_colsize(df) {
+		var colsize = 2;
+		switch (df.fieldtype) {
+			case "Text": break;
+			case "Small Text": colsize = 3; break;
+			case "Check": colsize = 1;
+		}
+		df.colsize = colsize;
+	}
+
+	setup_user_defined_columns() {
+		if (this.frm) {
+			let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
+			if (user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
+				this.user_defined_columns = user_settings[this.doctype].map(row => {
+					let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
+					if (column) {
+						column.in_list_view = 1;
+						column.columns = row.columns;
+						return column;
+					}
+				});
+			}
+		}
+	}
 
 	is_editable() {
 		return this.display_status == "Write" && !this.static_rows;
