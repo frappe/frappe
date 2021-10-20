@@ -67,7 +67,6 @@ six~=1.15.0
 sqlparse~=0.4.1
 stripe~=2.56.0
 terminaltables~=3.1.0
-unittest-xml-reporting~=3.0.4
 urllib3~=1.26.4
 Werkzeug~=0.16.1
 Whoosh~=2.7.4
