@@ -39,16 +39,17 @@
 				<div class="form-group">
 					<div class="control-input-wrapper">
 						<div class="control-input">
-							<input
-								type="text"
+							<select
 								class="form-control form-control-sm"
-								:placeholder="__('Roboto, Lato, Merriweather')"
-								:value="print_format.font"
-								@change="
-									e =>
-										(print_format.font = e.target.value.trim())
-								"
-							/>
+								v-model="print_format.font"
+							>
+								<option
+									v-for="font in google_fonts"
+									:value="font"
+								>
+									{{ font }}
+								</option>
+							</select>
 						</div>
 					</div>
 				</div>
@@ -133,11 +134,22 @@ export default {
 	mixins: [storeMixin],
 	data() {
 		return {
-			search_text: ""
+			search_text: "",
+			google_fonts: []
 		};
 	},
 	components: {
 		draggable
+	},
+	mounted() {
+		let method =
+			"frappe.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
+		frappe.call(method).then(r => {
+			this.google_fonts = r.message || [];
+			if (!this.google_fonts.includes(this.print_format.font)) {
+				this.google_fonts.push(this.print_format.font);
+			}
+		});
 	},
 	methods: {
 		update_margin(fieldname, value) {

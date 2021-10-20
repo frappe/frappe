@@ -19,7 +19,7 @@
 				<button
 					v-if="url"
 					class="ml-3 btn btn-default btn-sm btn-new-tab"
-					@click="$refs.iframe.contentWindow.location.reload()"
+					@click="refresh"
 				>
 					{{ __("Refresh") }}
 				</button>
@@ -79,8 +79,14 @@ export default {
 		this.get_default_docname().then(
 			docname => docname && this.doc_select.set_value(docname)
 		);
+		this.$store.$on("after_save", () => {
+			this.refresh();
+		});
 	},
 	methods: {
+		refresh() {
+			this.$refs.iframe.contentWindow.location.reload();
+		},
 		get_default_docname() {
 			return frappe.db.get_list(this.doctype, { limit: 1 }).then(doc => {
 				return doc.length > 0 ? doc[0].name : null;

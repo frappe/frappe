@@ -89,7 +89,7 @@ export function getStore(print_format_name) {
 													"fieldtype",
 													"options",
 													"width",
-													"field_template",
+													"field_template"
 												]);
 											}
 										);
@@ -101,7 +101,7 @@ export function getStore(print_format_name) {
 										"options",
 										"table_columns",
 										"html",
-										"field_template",
+										"field_template"
 									]);
 								});
 							return column;
@@ -125,7 +125,10 @@ export function getStore(print_format_name) {
 						}
 					})
 					.then(() => this.fetch())
-					.always(() => frappe.dom.unfreeze());
+					.always(() => {
+						frappe.dom.unfreeze();
+						this.$emit("after_save");
+					});
 			},
 			reset_changes() {
 				this.fetch();
@@ -143,9 +146,11 @@ export function getStore(print_format_name) {
 				return create_default_layout(this.meta, this.print_format);
 			},
 			change_letterhead(letterhead) {
-				return frappe.db.get_doc("Letter Head", letterhead).then(doc => {
-					this.letterhead = doc;
-				});
+				return frappe.db
+					.get_doc("Letter Head", letterhead)
+					.then(doc => {
+						this.letterhead = doc;
+					});
 			}
 		}
 	};
