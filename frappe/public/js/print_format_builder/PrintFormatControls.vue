@@ -305,7 +305,7 @@ export default {
 }
 
 .fields-container {
-	max-height: calc(100vh - 26rem);
+	max-height: calc(100vh - 34rem);
 	overflow-y: auto;
 }
 
