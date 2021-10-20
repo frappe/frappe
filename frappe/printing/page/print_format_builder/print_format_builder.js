@@ -136,7 +136,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				beta: Boolean(beta)
 			},
 			callback: (r) => {
-				if(r.message) {
+				if (r.message) {
 					let print_format = r.message;
 					if (print_format.print_format_builder_beta) {
 						frappe.set_route('print-format-builder-beta', print_format.name);
