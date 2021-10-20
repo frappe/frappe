@@ -1112,12 +1112,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	// UTILITIES
-	add_fetch(link_field, src_field, tar_field) {
+	add_fetch(link_field, src_field, tar_field, fetch_if_empty) {
 		if(!this.fetch_dict[link_field]) {
-			this.fetch_dict[link_field] = {'columns':[], 'fields':[]};
+			this.fetch_dict[link_field] = {'columns': [], 'fields': [], 'fetch_if_empty': []};
 		}
 		this.fetch_dict[link_field].columns.push(src_field);
 		this.fetch_dict[link_field].fields.push(tar_field);
+		this.fetch_dict[link_field].fetch_if_empty.push(fetch_if_empty);
 	}
 
 	has_perm(ptype) {

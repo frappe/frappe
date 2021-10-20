@@ -492,9 +492,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	set_fetch_values(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
+		var target_fields = this.frm.fetch_dict[df.fieldname].fields;
+		var fetch_if_empty = this.frm.fetch_dict[df.fieldname].fetch_if_empty;
+		for(var i=0; i < target_fields.length; i++) {
+			let target_fieldname = target_fields[i]
+			if (fetch_if_empty && frappe.model.get_value(df.parent, docname, target_fieldname)) {
+				continue;
+			}
+			frappe.model.set_value(df.parent, docname, target_fieldname, fetch_values[i], df.fieldtype);
 		}
 	}
 };
