@@ -1146,6 +1146,10 @@ frappe.ui.form.Form = class FrappeForm {
 		return btn;
 	}
 
+	change_custom_button_type(label, group, type) {
+		this.page.change_inner_button_type(label, group, type);
+	}
+
 	clear_custom_buttons() {
 		this.page.clear_inner_toolbar();
 		this.page.clear_user_actions();
