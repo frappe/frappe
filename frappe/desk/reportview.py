@@ -16,7 +16,7 @@ from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
@@ -123,7 +123,7 @@ def validate_filters(data, filters):
 
 def setup_group_by(data):
 	'''Add columns for aggregated values e.g. count(name)'''
-	if data.group_by:
+	if data.group_by and data.aggregate_function:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
 			frappe.throw(_('Invalid aggregate function'))
 

@@ -62,6 +62,7 @@ frappe.ui.form.on("Website Theme", {
 		let $body = $("<div>").insertAfter($wrapper);
 		let ignored_apps = (frm.doc.ignored_apps || []).map(d => d.app);
 		frm.events.get_installed_apps(frm).then(apps => {
+			if (frm.app_theme_selector) return;
 			let form = new frappe.ui.FieldGroup({
 				fields: [
 					{
