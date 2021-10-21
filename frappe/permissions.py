@@ -34,7 +34,7 @@ def print_has_permission_check_logs(func):
 	return inner
 
 @print_has_permission_check_logs
-def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, raise_exception=True):
+def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, raise_exception=True, parent_doctype=None):
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
 
@@ -48,7 +48,11 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 		doctype = doc.doctype
 
 	if frappe.is_table(doctype):
-		return True
+		# use parent doctype to check the permission
+		doctype, doc = get_parent(doctype, doc, parent_doctype)
+		# there's no parent doctype for this is child so deny access!
+		if not doctype:
+			return False
 
 	if user=="Administrator":
 		return True
@@ -559,3 +563,33 @@ def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=
 def push_perm_check_log(log):
 	if frappe.flags.get('has_permission_check_logs') == None: return
 	frappe.flags.get('has_permission_check_logs').append(_(log))
+
+def get_parent(child_doctype, doc, parent_doctype=None):
+	'''
+		Returns parent doctype/document for a child doctype/document
+		Note: Returns parent doctype incase if there's only one parent doctype for
+		the child doctype that is passed
+
+		TODO: Make this more predictable
+	'''
+	parent_doctype = parent_doctype
+	parent_doc = None
+	if doc:
+		parent_doctype = doc.get("parenttype") \
+			or frappe.get_cached_value(doc.doctype, doc.docname, "parenttype")
+		parent_doc = frappe._dict({
+			"doctype": parent_doctype,
+			"docname": doc.get("parent") \
+				or frappe.get_cached_value(doc.doctype, doc.docname, "parent")
+		})
+	elif not parent_doctype:
+		filters = {"options": child_doctype, "fieldtype": "Table"}
+		table_fields = (frappe.db.get_all('DocField', filters=filters, fields=["parent"], limit=2) +
+			frappe.db.get_all('Custom Field', filters=filters, fields=["parent"],limit=2))
+		if len(table_fields) > 1:
+			# request for parent doctype since there's no other way to find this out
+			frappe.throw(f"There are more than one parents for {child_doctype}. Please specify parent doctype of the child table")
+		else:
+			parent_doctype = table_fields[0].parent if table_fields else None
+
+	return parent_doctype, parent_doc
