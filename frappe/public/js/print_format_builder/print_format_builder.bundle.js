@@ -15,20 +15,20 @@ class PrintFormatBuilder {
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});
-		let $toggle_preview_btn = this.page.add_action_icon(
-			"printer",
-			() => this.$component.toggle_preview(),
-			"",
-			__("Toggle Preview")
+		let $toggle_preview_btn = this.page.add_button(
+			__("Show Preview"),
+			() => {
+				this.$component.toggle_preview();
+			}
 		);
-		this.page.add_action_icon(
-			"refresh",
-			() => this.$component.$store.reset_changes(),
-			"",
-			__("Reset Changes")
+		this.page.add_button(__("Reset Changes"), () =>
+			this.$component.$store.reset_changes()
 		);
 		this.page.add_menu_item(__("Edit Print Format"), () => {
 			frappe.set_route("Form", "Print Format", this.print_format);
+		});
+		this.page.add_menu_item(__("Change Print Format"), () => {
+			frappe.set_route("print-format-builder-beta");
 		});
 
 		let $vm = new Vue({
@@ -50,6 +50,11 @@ class PrintFormatBuilder {
 				this.page.clear_indicator();
 				$toggle_preview_btn.show();
 			}
+		});
+		this.$component.$watch("show_preview", value => {
+			$toggle_preview_btn.text(
+				value ? __("Hide Preview") : __("Show Preview")
+			);
 		});
 	}
 }
