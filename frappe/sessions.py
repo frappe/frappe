@@ -16,8 +16,8 @@ import frappe.translate
 import redis
 from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
-from frappe.query_builder import Order
-from frappe.query_builder import DocType
+from frappe.query_builder import Order, DocType
+
 
 @frappe.whitelist(allow_guest=True)
 def clear(user=None):
@@ -63,12 +63,12 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		simultaneous_sessions = frappe.db.get_value('User', user, 'simultaneous_sessions') or 1
 		offset = simultaneous_sessions - 1
 
-	table = frappe.qb.DocType("Sessions")
-	criterion = frappe.qb.from_(table).where((table.user == user) & (table.device.isin(device)))
+	session = DocType("Sessions")
+	session_id = frappe.qb.from_(session).where((session.user == user) & (session.device.isin(device)))
 	if keep_current:
-		criterion = criterion.where(table.sid != frappe.db.escape(frappe.session.sid))
+		session_id = session_id.where(session.sid != frappe.db.escape(frappe.session.sid))
 
-	query = criterion.select(table.sid).offset(offset).limit(100).orderby(table.lastupdate, order=Order.desc)
+	query = session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
 
 	return frappe.db.sql_list(query)
 

@@ -121,7 +121,7 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	result = frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
+	result = dict(frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True))
 	return result
 
 def get_dict(fortype, name=None):
@@ -156,33 +156,23 @@ def get_dict(fortype, name=None):
 			messages += get_messages_from_include_files()
 			messages += (
 				frappe.qb.from_("Print Format")
-				.select(PseudoColumn("'Print Format:'"), "name")
-				.run()
-			)
+				.select(PseudoColumn("'Print Format:'"), "name")).run()
 			messages += (
 				frappe.qb.from_("DocType")
-				.select(PseudoColumn("'DocType:'"), "name")
-				.run()
-			)
+				.select(PseudoColumn("'DocType:'"), "name")).run()
 			messages += (
 				frappe.qb.from_("Role").select(PseudoColumn("'Role:'"), "name").run()
 			)
 			messages += (
 				frappe.qb.from_("Module Def")
-				.select(PseudoColumn("'Module:'"), "name")
-				.run()
-			)
+				.select(PseudoColumn("'Module:'"), "name")).run()
 			messages += (
 				frappe.qb.from_("Workspace Shortcut")
 				.where(Field("format").isnotnull())
-				.select(PseudoColumn("''"), "format")
-				.run()
-			)
+				.select(PseudoColumn("''"), "format")).run()
 			messages += (
 				frappe.qb.from_("Onboarding Step")
-				.select(PseudoColumn("''"), "title")
-				.run()
-			)
+				.select(PseudoColumn("''"), "title")).run()
 
 		messages = deduplicate_messages(messages)
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
@@ -349,17 +339,17 @@ def get_messages_for_app(app, deduplicate=True):
 
 	# doctypes
 	if modules:
-		names = frappe.qb.from_("DocType").where(
+		filtered_doctypes = frappe.qb.from_("DocType").where(
 			Field("module").isin(modules)
 		).select("name").run()
-		for name in names:
+		for name in filtered_doctypes:
 			messages.extend(get_messages_from_doctype(name))
 
 		# pages
-		result = frappe.qb.from_("Page").where(
+		filtered_pages = frappe.qb.from_("Page").where(
 			Field("module").isin(modules)
 		).select("name", "title").run()
-		for name, title in result:
+		for name, title in filtered_pages:
 			messages.append((None, title or name))
 			messages.extend(get_messages_from_page(name))
 
@@ -928,7 +918,7 @@ def get_translator_url():
 def get_all_languages(with_language_name=False):
 	"""Returns all language codes ar, ch etc"""
 	def get_language_codes():
-		return frappe.get_all("Language", pluck="name", order_by="modified")
+		return frappe.get_all("Language", pluck="name")
 
 	def get_all_language_with_name():
 		return frappe.db.get_all('Language', ['language_code', 'language_name'])
