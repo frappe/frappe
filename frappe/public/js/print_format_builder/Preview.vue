@@ -2,10 +2,10 @@
 	<div class="h-100">
 		<div class="row">
 			<div class="col">
-				<div ref="doc-select"></div>
+				<div class="preview-control" ref="doc-select"></div>
 			</div>
 			<div class="col">
-				<div ref="preview-type"></div>
+				<div class="preview-control" ref="preview-type"></div>
 			</div>
 			<div class="col d-flex">
 				<a
@@ -125,5 +125,8 @@ export default {
 .btn-new-tab {
 	margin-top: auto;
 	margin-bottom: 1.2rem;
+}
+.preview-control >>> .form-control {
+	background: var(--control-bg-on-gray);
 }
 </style>
