@@ -49,15 +49,15 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 		doc = doctype
 		doctype = doc.doctype
 
+	if user == "Administrator":
+		return True
+
 	if frappe.is_table(doctype):
 		# use parent doctype to check the permission
 		doctype, doc = get_parent(doctype, doc, parent_doctype)
 		# there's no parent doctype for this is child so deny access!
 		if not doctype:
 			return False
-
-	if user=="Administrator":
-		return True
 
 	meta = frappe.get_meta(doctype)
 
@@ -591,7 +591,7 @@ def get_parent(child_doctype, doc, parent_doctype=None):
 			frappe.db.get_all('Custom Field', filters=filters, fields=["parent"],limit=2))
 		if len(table_fields) > 1:
 			# request for parent doctype since there's no other way to find this out
-			frappe.throw(f"There are more than one parents for {child_doctype}. Please specify parent doctype of the child table")
+			frappe.throw(f"There are more than one parents for {child_doctype}. Please specify parent doctype of the child table.")
 		else:
 			parent_doctype = table_fields[0].parent if table_fields else None
 
