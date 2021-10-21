@@ -55,7 +55,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
 @click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
-@click.option('--encryption-key', help='Backup encryption Key')
+@click.option('--encryption-key', help='Backup encryption key')
 @pass_context
 def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=None, mariadb_root_password=None,
 			db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None,
@@ -84,7 +84,7 @@ def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=N
 		decompressed_file_name = extract_sql_from_archive(sql_file_path)
 		if is_partial(decompressed_file_name):
 			click.secho(
-				"Partial Backup file detected. You cannot use a partial file to restore a Frappe Site.",
+				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
 				fg="red"
 			)
 			click.secho(
@@ -125,7 +125,7 @@ def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=N
 
 		if is_partial(decompressed_file_name):
 			click.secho(
-				"Partial Backup file detected. You cannot use a partial file to restore a Frappe Site.",
+				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
 				fg="red"
 			)
 			click.secho(
@@ -202,7 +202,7 @@ def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=N
 @click.command('partial-restore')
 @click.argument('sql-file-path')
 @click.option("--verbose", "-v", is_flag=True)
-@click.option('--encryption-key', help='Backup encryption Key')
+@click.option('--encryption-key', help='Backup encryption key')
 @pass_context
 def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
 	from frappe.installer import partial_restore, extract_sql_from_archive
@@ -229,7 +229,7 @@ def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
 			#Check for full backup file
 			if "Partial Backup" not in header:
 				click.secho(
-					"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
+					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
 					fg="red"
 				)
 				_backup.decryption_rollback()

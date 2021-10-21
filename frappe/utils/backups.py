@@ -231,7 +231,7 @@ class BackupGenerator:
 
 	def backup_encryption(self):
 		"""
-		Encryt all the backups created using gpg.
+		Encrypt all the backups created using gpg.
 		"""
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
