@@ -23,6 +23,7 @@ from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
 from frappe.desk.utils import validate_route_conflict
 from frappe.website.utils import clear_cache
+from frappe.query_builder.functions import Concat
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -465,7 +466,7 @@ class DocType(Document):
 			return
 
 		# check if atleast 1 record exists
-		if not (frappe.db.table_exists(self.name) and frappe.db.sql("select name from `tab{}` limit 1".format(self.name))):
+		if not (frappe.db.table_exists(self.name) and frappe.get_all(self.name, fields=["name"], limit=1, as_list=True)):
 			return
 
 		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.name,
@@ -571,17 +572,17 @@ class DocType(Document):
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:
-			if not frappe.db.sql("""select name from tabDocField
-				where fieldname = 'amended_from' and parent = %s""", self.name):
-					self.append("fields", {
-						"label": "Amended From",
-						"fieldtype": "Link",
-						"fieldname": "amended_from",
-						"options": self.name,
-						"read_only": 1,
-						"print_hide": 1,
-						"no_copy": 1
-					})
+			docfield_exists = frappe.get_all("DocField", filters={"fieldname": "amended_from", "parent": self.name}, pluck="name", limit=1)
+			if not docfield_exists:
+				self.append("fields", {
+					"label": "Amended From",
+					"fieldtype": "Link",
+					"fieldname": "amended_from",
+					"options": self.name,
+					"read_only": 1,
+					"print_hide": 1,
+					"no_copy": 1
+				})
 
 	def make_repeatable(self):
 		"""If allow_auto_repeat is set, add auto_repeat custom field."""
@@ -706,12 +707,13 @@ def validate_series(dt, autoname=None, name=None):
 		and (not autoname.startswith('format:')):
 
 		prefix = autoname.split('.')[0]
-		used_in = frappe.db.sql("""
-			SELECT `name`
-			FROM `tabDocType`
-			WHERE `autoname` LIKE CONCAT(%s, '.%%')
-			AND `name`!=%s
-		""", (prefix, name))
+		doctype = frappe.qb.DocType("DocType")
+		used_in = (frappe.qb
+					.from_(doctype)
+					.select(doctype.name)
+					.where(doctype.autoname.like(Concat(prefix,".%")))
+					.where(doctype.name != name)
+					).run()
 		if used_in:
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 

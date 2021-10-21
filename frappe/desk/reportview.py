@@ -14,7 +14,7 @@ from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
