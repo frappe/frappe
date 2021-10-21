@@ -49,6 +49,7 @@ body {
 		box-shadow: var(--shadow-md);
 		margin: 2rem auto;
 		min-height: 297mm;
+		height: min-content;
 		min-width: {{ body_width | int }}mm !important;
 		max-width: {{ body_width | int }}mm !important;
 		padding-top: {{ print_format.margin_top | int }}mm;
