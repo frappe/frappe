@@ -250,7 +250,7 @@ class BackupGenerator:
 
 				except Exception as err:
 					print(err)
-					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="yellow")
+					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="red")
 
 	def get_recent_backup(self, older_than, partial=False):
 		backup_path = get_backup_path()

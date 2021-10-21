@@ -475,13 +475,13 @@
    "default": "0",
    "fieldname": "encrypt_backup",
    "fieldtype": "Check",
-   "label": "Encrypt Backup"
+   "label": "Encrypt Backups"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-09-21 16:34:48.226466",
+ "modified": "2021-10-21 19:24:15.232430",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
