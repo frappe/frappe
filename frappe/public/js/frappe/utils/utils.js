@@ -2,7 +2,150 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
+<<<<<<< HEAD
 frappe.provide('frappe.utils');
+=======
+
+frappe.provide("frappe.utils");
+
+// Array de duplicate
+if (!Array.prototype.uniqBy) {
+	Object.defineProperty(Array.prototype, 'uniqBy', {
+		value: function (key) {
+			var seen = {};
+			return this.filter(function (item) {
+				var k = key(item);
+				return k in seen ? false : (seen[k] = true);
+			});
+		}
+	});
+	Object.defineProperty(Array.prototype, 'move', {
+		value: function(from, to) {
+			this.splice(to, 0, this.splice(from, 1)[0]);
+		}
+	});
+}
+
+// Python's dict.setdefault ported for JS objects
+Object.defineProperty(Object.prototype, "setDefault", {
+	value: function(key, default_value) {
+		if (!(key in this)) this[key] = default_value;
+		return this[key];
+	}
+});
+
+// Pluralize
+String.prototype.plural = function(revert) {
+	const plural = {
+		"(quiz)$": "$1zes",
+		"^(ox)$": "$1en",
+		"([m|l])ouse$": "$1ice",
+		"(matr|vert|ind)ix|ex$": "$1ices",
+		"(x|ch|ss|sh)$": "$1es",
+		"([^aeiouy]|qu)y$": "$1ies",
+		"(hive)$": "$1s",
+		"(?:([^f])fe|([lr])f)$": "$1$2ves",
+		"(shea|lea|loa|thie)f$": "$1ves",
+		sis$: "ses",
+		"([ti])um$": "$1a",
+		"(tomat|potat|ech|her|vet)o$": "$1oes",
+		"(bu)s$": "$1ses",
+		"(alias)$": "$1es",
+		"(octop)us$": "$1i",
+		"(ax|test)is$": "$1es",
+		"(us)$": "$1es",
+		"([^s]+)$": "$1s",
+	};
+
+	const singular = {
+		"(quiz)zes$": "$1",
+		"(matr)ices$": "$1ix",
+		"(vert|ind)ices$": "$1ex",
+		"^(ox)en$": "$1",
+		"(alias)es$": "$1",
+		"(octop|vir)i$": "$1us",
+		"(cris|ax|test)es$": "$1is",
+		"(shoe)s$": "$1",
+		"(o)es$": "$1",
+		"(bus)es$": "$1",
+		"([m|l])ice$": "$1ouse",
+		"(x|ch|ss|sh)es$": "$1",
+		"(m)ovies$": "$1ovie",
+		"(s)eries$": "$1eries",
+		"([^aeiouy]|qu)ies$": "$1y",
+		"([lr])ves$": "$1f",
+		"(tive)s$": "$1",
+		"(hive)s$": "$1",
+		"(li|wi|kni)ves$": "$1fe",
+		"(shea|loa|lea|thie)ves$": "$1f",
+		"(^analy)ses$": "$1sis",
+		"((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$":
+			"$1$2sis",
+		"([ti])a$": "$1um",
+		"(n)ews$": "$1ews",
+		"(h|bl)ouses$": "$1ouse",
+		"(corpse)s$": "$1",
+		"(us)es$": "$1",
+		s$: "",
+	};
+
+	const irregular = {
+		move: "moves",
+		foot: "feet",
+		goose: "geese",
+		sex: "sexes",
+		child: "children",
+		man: "men",
+		tooth: "teeth",
+		person: "people",
+	};
+
+	const uncountable = [
+		"sheep",
+		"fish",
+		"deer",
+		"moose",
+		"series",
+		"species",
+		"money",
+		"rice",
+		"information",
+		"equipment",
+	];
+
+	// save some time in the case that singular and plural are the same
+	if (uncountable.indexOf(this.toLowerCase()) >= 0) return this;
+
+	// check for irregular forms
+	let word;
+	let pattern;
+	let replace;
+	for (word in irregular) {
+		if (revert) {
+			pattern = new RegExp(irregular[word] + "$", "i");
+			replace = word;
+		} else {
+			pattern = new RegExp(word + "$", "i");
+			replace = irregular[word];
+		}
+		if (pattern.test(this)) return this.replace(pattern, replace);
+	}
+
+	let array;
+	if (revert) array = singular;
+	else array = plural;
+
+	// check for matches using regular expressions
+	let reg;
+	for (reg in array) {
+		pattern = new RegExp(reg, "i");
+
+		if (pattern.test(this)) return this.replace(pattern, array[reg]);
+	}
+
+	return this;
+};
+>>>>>>> 551f68d85a (feat: `setDefault` for JS Objects)
 
 Object.assign(frappe.utils, {
 	get_random: function(len) {
