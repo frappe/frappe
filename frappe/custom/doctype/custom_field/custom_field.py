@@ -134,7 +134,7 @@ def create_custom_field(doctype, df, ignore_validate=False):
 			"permlevel": 0,
 			"fieldtype": 'Data',
 			"hidden": 0,
-			# Looks like we always  use this programatically?
+			# Looks like we always	use this programatically?
 			# "is_standard": 1
 		})
 		custom_field.update(df)
@@ -149,24 +149,29 @@ def create_custom_fields(custom_fields, ignore_validate = False, update=True):
 	if not ignore_validate and frappe.flags.in_setup_wizard:
 		ignore_validate = True
 
-	for doctype, fields in custom_fields.items():
+	for doctypes, fields in custom_fields.items():
 		if isinstance(fields, dict):
 			# only one field
 			fields = [fields]
 
-		for df in fields:
-			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
-			if not field:
-				try:
-					df["owner"] = "Administrator"
-					create_custom_field(doctype, df, ignore_validate=ignore_validate)
-				except frappe.exceptions.DuplicateEntryError:
-					pass
-			elif update:
-				custom_field = frappe.get_doc("Custom Field", field)
-				custom_field.flags.ignore_validate = ignore_validate
-				custom_field.update(df)
-				custom_field.save()
+		if isinstance(doctypes, str):
+			# only one doctype
+			doctypes = (doctypes,)
+
+		for doctype in doctypes:
+			for df in fields:
+				field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
+				if not field:
+					try:
+						df["owner"] = "Administrator"
+						create_custom_field(doctype, df, ignore_validate=ignore_validate)
+					except frappe.exceptions.DuplicateEntryError:
+						pass
+				elif update:
+					custom_field = frappe.get_doc("Custom Field", field)
+					custom_field.flags.ignore_validate = ignore_validate
+					custom_field.update(df)
+					custom_field.save()
 
 		frappe.clear_cache(doctype=doctype)
 		frappe.db.updatedb(doctype)
