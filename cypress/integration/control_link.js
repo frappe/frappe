@@ -77,4 +77,19 @@ context('Control Link', () => {
 			cy.location('pathname').should('eq', `/app/todo/${todos[0]}`);
 		});
 	});
+
+	it('should fetch valid value', () => {
+		cy.get('@todos').then(todos => {
+			cy.visit(`/app/todo/${todos[0]}`);
+			cy.intercept('GET', '/api/method/frappe.client.get_value*').as('get_value');
+
+			cy.get('.frappe-control[data-fieldname=assigned_by] input').focus().as('input');
+			cy.get('@input').type('Administrator', {delay: 100}).blur();
+			cy.wait('@get_value');
+			cy.get('.frappe-control[data-fieldname=assigned_by_full_name] .control-value').should(
+				'contain', 'Administrator'
+			);
+		});
+	});
+
 });
