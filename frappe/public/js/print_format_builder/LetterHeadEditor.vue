@@ -54,10 +54,22 @@
 					{{ __("Change Letter Head") }}
 				</button>
 				<button
+					v-if="letterhead"
 					class="ml-2 btn btn-default btn-xs btn-edit"
 					@click="toggle_edit_letterhead"
 				>
-					{{ !$store.edit_letterhead ? __("Edit Letter Head") : __("Done") }}
+					{{
+						!$store.edit_letterhead
+							? __("Edit Letter Head")
+							: __("Done")
+					}}
+				</button>
+				<button
+					v-if="!letterhead"
+					class="ml-2 btn btn-default btn-xs btn-edit"
+					@click="create_letterhead"
+				>
+					{{ __("Create Letter Head") }}
 				</button>
 			</div>
 		</div>
@@ -268,6 +280,33 @@ export default {
 					}
 				);
 			});
+		},
+		create_letterhead() {
+			let d = new frappe.ui.Dialog({
+				title: __("Create Letter Head"),
+				fields: [
+					{
+						label: __("Letter Head Name"),
+						fieldname: "name",
+						fieldtype: "Data"
+					}
+				],
+				primary_action: ({ name }) => {
+					return frappe.db
+						.insert({
+							doctype: "Letter Head",
+							letter_head_name: name,
+							source: "Image"
+						})
+						.then(doc => {
+							d.hide();
+							this.$store.change_letterhead(doc.name).then(() => {
+								this.toggle_edit_letterhead();
+							});
+						});
+				}
+			});
+			d.show();
 		}
 	}
 };
