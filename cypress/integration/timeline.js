@@ -11,6 +11,7 @@ context('Timeline', () => {
 		cy.visit('/app/todo');
 		cy.click_listview_primary_button('Add ToDo');
 		cy.findByRole('button', {name: 'Edit in full page'}).click();
+		cy.findByTitle('New ToDo').should('be.visible');
 		cy.get('[data-fieldname="description"] .ql-editor').eq(0).type('Test ToDo', {force: true});
 		cy.wait(200);
 		cy.findByRole('button', {name: 'Save'}).click();
@@ -43,13 +44,14 @@ context('Timeline', () => {
 		cy.get('.timeline-content').should('contain', 'Testing Timeline 123');
 
 		//Deleting the added comment
-		cy.get('.actions > .btn > .icon').first().click();
+		cy.get('.more-actions > .action-btn').click();
+		cy.get('.more-actions .dropdown-item').contains('Delete').click();
 		cy.findByRole('button', {name: 'Yes'}).click();
 		cy.click_modal_primary_button('Yes');
 
 		//Deleting the added ToDo
-		cy.get('.menu-btn-group button').eq(1).click();
-		cy.get('.menu-btn-group [data-label="Delete"]').click();
+		cy.get('[id="page-ToDo"] .menu-btn-group [data-original-title="Menu"]').click();
+		cy.get('[id="page-ToDo"] .menu-btn-group .dropdown-item').contains('Delete').click();
 		cy.findByRole('button', {name: 'Yes'}).click();
 	});
 

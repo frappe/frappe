@@ -96,6 +96,7 @@ class FormTimeline extends BaseTimeline {
 	render_timeline_items() {
 		super.render_timeline_items();
 		this.set_document_info();
+		frappe.utils.bind_actions_with_object(this.timeline_items_wrapper, this);
 	}
 
 	set_document_info() {
@@ -179,6 +180,7 @@ class FormTimeline extends BaseTimeline {
 				is_card: true,
 				content: this.get_communication_timeline_content(communication),
 				doctype: "Communication",
+				id: `communication-${communication.name}`,
 				name: communication.name
 			});
 		});
@@ -246,6 +248,7 @@ class FormTimeline extends BaseTimeline {
 			creation: comment.creation,
 			is_card: true,
 			doctype: "Comment",
+			id: `comment-${comment.name}`,
 			name: comment.name,
 			content: this.get_comment_timeline_content(comment),
 		};
@@ -299,7 +302,7 @@ class FormTimeline extends BaseTimeline {
 		(this.doc_info.info_logs || []).forEach(info_log => {
 			info_timeline_contents.push({
 				creation: info_log.creation,
-				content: `${this.get_user_link(info_log.comment_email)} ${info_log.content}`,
+				content: `${this.get_user_link(info_log.owner)} ${info_log.content}`,
 			});
 		});
 		return info_timeline_contents;
@@ -394,7 +397,7 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	setup_reply(communication_box, communication_doc) {
-		let actions = communication_box.find('.actions');
+		let actions = communication_box.find('.custom-actions');
 		let reply = $(`<a class="action-btn reply">${frappe.utils.icon('reply', 'md')}</a>`).click(() => {
 			this.compose_mail(communication_doc);
 		});
@@ -446,14 +449,16 @@ class FormTimeline extends BaseTimeline {
 		let edit_wrapper = $(`<div class="comment-edit-box">`).hide();
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find('.content');
-
-		let delete_button = $();
+		let more_actions_wrapper = comment_wrapper.find('.more-actions');
 		if (frappe.model.can_delete("Comment")) {
-			delete_button = $(`
-				<button class="btn btn-link action-btn">
-					${frappe.utils.icon('close', 'sm')}
-				</button>
+			const delete_option = $(`
+				<li>
+					<a class="dropdown-item">
+						${__("Delete")}
+					</a>
+				</li>
 			`).click(() => this.delete_comment(doc.name));
+			more_actions_wrapper.find('.dropdown-menu').append(delete_option);
 		}
 
 		let dismiss_button = $(`
@@ -493,15 +498,14 @@ class FormTimeline extends BaseTimeline {
 		edit_button.toggle_edit_mode = () => {
 			edit_button.edit_mode = !edit_button.edit_mode;
 			edit_button.text(edit_button.edit_mode ? __('Save') : __('Edit'));
-			delete_button.toggle(!edit_button.edit_mode);
+			more_actions_wrapper.toggle(!edit_button.edit_mode);
 			dismiss_button.toggle(edit_button.edit_mode);
 			edit_wrapper.toggle(edit_button.edit_mode);
 			content_wrapper.toggle(!edit_button.edit_mode);
 		};
-
-		comment_wrapper.find('.actions').append(edit_button);
-		comment_wrapper.find('.actions').append(dismiss_button);
-		comment_wrapper.find('.actions').append(delete_button);
+		let actions_wrapper = comment_wrapper.find('.custom-actions');
+		actions_wrapper.append(edit_button);
+		actions_wrapper.append(dismiss_button);
 	}
 
 	make_editable(container) {
@@ -558,6 +562,14 @@ class FormTimeline extends BaseTimeline {
 				frappe.utils.play_sound("delete");
 			});
 		});
+	}
+
+	copy_link(ev) {
+		let doc_link = frappe.urllib.get_full_url(
+			frappe.utils.get_form_link(this.frm.doctype, this.frm.docname)
+		);
+		let element_id = $(ev.currentTarget).closest(".timeline-content").attr("id");
+		frappe.utils.copy_to_clipboard(`${doc_link}#${element_id}`);
 	}
 }
 

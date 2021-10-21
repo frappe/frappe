@@ -4,10 +4,10 @@
 frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
-	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect',
+	no_value_type: ['Section Break', 'Column Break', 'Tab Break', 'HTML', 'Table', 'Table MultiSelect',
 		'Button', 'Image', 'Fold', 'Heading'],
 
-	layout_fields: ['Section Break', 'Column Break', 'Fold'],
+	layout_fields: ['Section Break', 'Column Break', 'Tab Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',

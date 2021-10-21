@@ -3,25 +3,16 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import add_to_date, now
 
 from frappe import _
+from frappe.rate_limiter import rate_limit
+from frappe.website.doctype.blog_settings.blog_settings import get_feedback_limit
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='reference_name', limit=get_feedback_limit, seconds=60*60)
 def add_feedback(reference_doctype, reference_name, rating, feedback):
 	doc = frappe.get_doc(reference_doctype, reference_name)
 	if doc.disable_feedback == 1:
-		return
-
-	feedback_count = frappe.db.count("Feedback", {
-		"reference_doctype": reference_doctype,
-		"reference_name": reference_name,
-		"ip_address": frappe.local.request_ip,
-		"creation": (">", add_to_date(now(), hours=-1))
-	})
-
-	if feedback_count > 20:
-		frappe.msgprint(_('Hourly feedback limit reached'))
 		return
 
 	doc = frappe.new_doc('Feedback')
