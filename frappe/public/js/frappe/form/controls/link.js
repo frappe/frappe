@@ -486,7 +486,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 					return resolve(response.name);
 				}
-			)
+			);
 		});
 	},
 
