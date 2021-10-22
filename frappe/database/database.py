@@ -83,7 +83,8 @@ class Database(object):
 		pass
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False, run=True):
+			debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None,
+			explain=False, run=True, pluck=False):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -178,6 +179,9 @@ class Database(object):
 		if not self._cursor.description:
 			return ()
 
+		if pluck:
+			return [r[0] for r in self._cursor.fetchall()]
+
 		# scrub output if required
 		if as_dict:
 			ret = self.fetch_as_dict(formatted, as_utf8)
@@ -233,7 +237,7 @@ class Database(object):
 		except Exception:
 			frappe.errprint("error in query explain")
 
-	def sql_list(self, query, values=(), debug=False):
+	def sql_list(self, query, values=(), debug=False, **kwargs):
 		"""Return data as list of single elements (first column).
 
 		Example:
@@ -241,7 +245,7 @@ class Database(object):
 			# doctypes = ["DocType", "DocField", "User", ...]
 			doctypes = frappe.db.sql_list("select name from DocType")
 		"""
-		return [r[0] for r in self.sql(query, values, debug=debug)]
+		return [r[0] for r in self.sql(query, values, **kwargs, debug=debug)]
 
 	def sql_ddl(self, query, values=(), debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
