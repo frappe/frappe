@@ -353,10 +353,10 @@ def get_roles(user=None, with_standard=True):
 			return frappe.get_all("Role", pluck="name") # return all available roles
 		else:
 			table = DocType("Has Role")
-			result = frappe.qb.from_(table).where(
+			roles = frappe.qb.from_(table).where(
 				(table.parent == user) & (table.role.notin(["All", "Guest"]))
-			).select(table.role).run()
-			return [r[0] for r in result] + ['All', 'Guest']
+			).select(table.role).run(pluck=True)
+			return roles + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
 
