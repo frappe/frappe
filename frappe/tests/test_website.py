@@ -4,14 +4,13 @@ import frappe
 from frappe.utils import set_request
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import (build_response, clear_website_cache, get_home_page)
-from tenacity import retry, stop_after_attempt, retry_if_exception_type
-
 
 class TestWebsite(unittest.TestCase):
 	def setUp(self):
 		frappe.set_user('Guest')
 
 	def tearDown(self):
+		frappe.db.value_cache = {}
 		frappe.set_user('Administrator')
 
 	def test_home_page(self):
@@ -197,13 +196,8 @@ class TestWebsite(unittest.TestCase):
 		delattr(frappe.hooks, 'page_renderer')
 		frappe.cache().delete_key('app_hooks')
 
-	# TODO: Get rid of this retry logic
-	# Added since test is flaky and we can't figure out why at this point
-	@retry(
-		stop=stop_after_attempt(5), retry=retry_if_exception_type(AssertionError),
-	)
 	def test_printview_page(self):
-		content = get_response_content('/Language/en')
+		content = get_response_content('/Language/ru')
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn('<div>Language</div>', content)
 
