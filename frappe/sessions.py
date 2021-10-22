@@ -70,7 +70,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 
 	query = session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
 
-	return frappe.db.sql_list(query)
+	return query.run(pluck=True)
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
 	from frappe.core.doctype.activity_log.feed import logout_feed
@@ -92,7 +92,7 @@ def clear_all_sessions(reason=None):
 	"""This effectively logs out all users"""
 	frappe.only_for("Administrator")
 	if not reason: reason = "Deleted All Active Session"
-	for sid in [r[0] for r in frappe.qb.from_("Sessions").select("sid").run()]:
+	for sid in frappe.qb.from_("Sessions").select("sid").run(pluck=True):
 		delete_session(sid, reason=reason)
 
 def get_expired_sessions():

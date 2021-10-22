@@ -132,7 +132,7 @@ def get_shared_doctypes(user=None):
 	query = frappe.qb.from_(table).where(
 		(table.user == user) | (table.everyone == 1)
 	).select(table.share_doctype).distinct()
-	return frappe.db.sql_list(query)
+	return query.run(pluck=True)
 
 def get_share_name(doctype, name, user, everyone):
 	if cint(everyone):
