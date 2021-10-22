@@ -18,9 +18,9 @@ from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.functions import Min, Max, Avg, Sum
-from frappe.query_builder.utils import Column
+from frappe.query_builder.utils import Column, DocType
 from .query import Query
-from pypika.terms import PseudoColumn
+from pypika.terms import PseudoColumn, NullValue
 
 
 class Database(object):
@@ -588,18 +588,20 @@ class Database(object):
 			to_update.update({"modified": modified, "modified_by": modified_by})
 
 		if not is_single_doctype:
-			docnames = tuple(x[0] for x in self.get_values(dt, dn, 'name', debug=debug, for_update=for_update))
-			if not docnames:
-				if debug:
-					print("Matched with no rows...exitting")
-				return
+			table = DocType(dt)
 
-			table = frappe.qb.DocType(dt)
+			if for_update:
+				docnames = tuple(
+					x[0] for x in self.get_values(dt, dn, "name", debug=debug, for_update=for_update)
+				) or (NullValue(),)
+				query = frappe.qb.update(table).where(table.name.isin(docnames))
 
-			query = frappe.qb.update(table)
+			else:
+				query = self.query.build_conditions(table=dt, filters=dn, update=True)
+
 			for column, value in to_update.items():
 				query = query.set(column, value)
-			query = query.where(table.name.isin(docnames))
+
 			query.run(debug=debug)
 
 		else:
