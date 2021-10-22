@@ -587,7 +587,20 @@ class Database(object):
 			modified_by = modified_by or frappe.session.user
 			to_update.update({"modified": modified, "modified_by": modified_by})
 
-		if not is_single_doctype:
+		if is_single_doctype:
+			frappe.db.delete(
+				"Singles",
+				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
+			)
+
+			singles_data = ((dt, key, str(value)) for key, value in to_update.items())
+			query = (
+				frappe.qb.into("Singles")
+					.columns("doctype", "field", "value")
+					.insert(*singles_data)
+			).run(debug=debug)
+
+		else:
 			table = DocType(dt)
 
 			if for_update:
@@ -603,19 +616,6 @@ class Database(object):
 				query = query.set(column, value)
 
 			query.run(debug=debug)
-
-		else:
-			frappe.db.delete(
-				"Singles",
-				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
-			)
-
-			singles_data = ((dt, key, value) for key, value in to_update.items())
-			query = (
-				frappe.qb.into("Singles")
-					.columns("doctype", "field", "value")
-					.insert(*singles_data)
-			).run(debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
