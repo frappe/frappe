@@ -262,11 +262,11 @@ class TestDocument(unittest.TestCase):
 			"first_name": "John"
 		})
 		d.insert()
-		self.assertEqual(frappe.db.get_value("User",d.owner),d.owner)
+		self.assertEqual(d.owner, frappe.session.user)
 		d.set("owner","johndoe@gmail.com")
 		d.save()
 		d.reload()
-		self.assertNotEqual(frappe.db.get_value("User",d.owner),"johndoe@gmail.com")
+		self.assertNotEqual(d.owner, "johndoe@gmail.com")
 
 	def test_todo_owner_changed(self):
 		frappe.db.delete("ToDo")
@@ -280,4 +280,4 @@ class TestDocument(unittest.TestCase):
 		d.set("owner", "hello@example.com")
 		d.save()
 		d.reload()
-		self.assertEqual(frappe.db.get_value("ToDo", d.name, "owner"), "hello@example.com")
+		self.assertEqual(d.owner, "hello@example.com")
