@@ -599,7 +599,7 @@ class Database(object):
 			for key in to_update:
 				set_values.append('`{0}`=%({0})s'.format(key))
 
-			for name in self.get_values(dt, dn, 'name', for_update=for_update):
+			for name in self.get_values(dt, dn, 'name', for_update=for_update, debug=debug):
 				values = dict(name=name[0])
 				values.update(to_update)
 

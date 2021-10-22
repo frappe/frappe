@@ -156,7 +156,7 @@ class Query:
 		Returns:
 			frappe.qb: condition object
 		"""
-		condition = self.get_condition(table, **kwargs)
+		condition = self.add_conditions(self.get_condition(table, **kwargs), **kwargs)
 		return condition.where(criterion)
 
 	def add_conditions(self, conditions: frappe.qb, **kwargs):
