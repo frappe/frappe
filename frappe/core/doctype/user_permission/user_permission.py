@@ -1,5 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe, json
 from frappe.model.document import Document
@@ -54,7 +54,7 @@ class UserPermission(Document):
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_user_permissions(user=None):
 	'''Get all users permissions for the user as a dict of doctype'''
 	# if this is called from client-side,

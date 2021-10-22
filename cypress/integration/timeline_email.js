@@ -5,14 +5,16 @@ context('Timeline Email', () => {
 		cy.visit('/app/todo');
 	});
 
-	it('Adding new ToDo, adding email and verifying timeline content for email attachment, deleting attachment and ToDo', () => {
-		//Adding new ToDo
+	it('Adding new ToDo', () => {
 		cy.click_listview_primary_button('Add ToDo');
 		cy.get('.custom-actions:visible > .btn').contains("Edit in full page").click({delay: 500});
 		cy.fill_field("description", "Test ToDo",  "Text Editor");
 		cy.wait(500);
 		cy.get('.primary-action').contains('Save').click({force: true});
 		cy.wait(700);
+	});
+
+	it('Adding email and verifying timeline content for email attachment, deleting attachment and ToDo', () => {
 		cy.visit('/app/todo');
 		cy.get('.list-row > .level-left > .list-subject').eq(0).click();
 
@@ -41,11 +43,13 @@ context('Timeline Email', () => {
 		cy.get('#page-Communication > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .btn').click();
 		cy.get('#page-Communication > .page-head > .container > .row > .col > .standard-actions > .menu-btn-group > .dropdown-menu > li > .grey-link').eq(9).click();
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-footer > .standard-actions > .btn-primary').click();
+
 		cy.visit('/app/todo');
 		cy.get('.list-row > .level-left > .list-subject > .level-item.ellipsis > .ellipsis').eq(0).click();
 
 		//Removing the added attachment
 		cy.get('.attachment-row > .data-pill > .remove-btn > .icon').click();
+		cy.wait(500);
 		cy.get('.modal-footer:visible > .standard-actions > .btn-primary').contains('Yes').click();
 
 		//To check if the removed attachment is shown in the timeline content

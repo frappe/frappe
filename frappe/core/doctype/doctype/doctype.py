@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # imports - standard imports
 import re, copy, os, shutil
@@ -23,6 +23,7 @@ from frappe.modules.import_file import get_file_path
 from frappe.model.meta import Meta
 from frappe.desk.utils import validate_route_conflict
 from frappe.website.utils import clear_cache
+from frappe.query_builder.functions import Concat
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -274,6 +275,8 @@ class DocType(Document):
 							d.fieldname = d.fieldname + '_section'
 						elif d.fieldtype=='Column Break':
 							d.fieldname = d.fieldname + '_column'
+						elif d.fieldtype=='Tab Break':
+							d.fieldname = d.fieldname + '_tab'
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 				else:
@@ -463,7 +466,7 @@ class DocType(Document):
 			return
 
 		# check if atleast 1 record exists
-		if not (frappe.db.table_exists(self.name) and frappe.db.sql("select name from `tab{}` limit 1".format(self.name))):
+		if not (frappe.db.table_exists(self.name) and frappe.get_all(self.name, fields=["name"], limit=1, as_list=True)):
 			return
 
 		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.name,
@@ -492,6 +495,9 @@ class DocType(Document):
 
 		# retain order of 'fields' table and change order in 'field_order'
 		docdict["field_order"] = [f.fieldname for f in self.fields]
+
+		if self.custom:
+			return
 
 		path = get_file_path(self.module, "DocType", self.name)
 		if os.path.exists(path):
@@ -566,17 +572,17 @@ class DocType(Document):
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:
-			if not frappe.db.sql("""select name from tabDocField
-				where fieldname = 'amended_from' and parent = %s""", self.name):
-					self.append("fields", {
-						"label": "Amended From",
-						"fieldtype": "Link",
-						"fieldname": "amended_from",
-						"options": self.name,
-						"read_only": 1,
-						"print_hide": 1,
-						"no_copy": 1
-					})
+			docfield_exists = frappe.get_all("DocField", filters={"fieldname": "amended_from", "parent": self.name}, pluck="name", limit=1)
+			if not docfield_exists:
+				self.append("fields", {
+					"label": "Amended From",
+					"fieldtype": "Link",
+					"fieldname": "amended_from",
+					"options": self.name,
+					"read_only": 1,
+					"print_hide": 1,
+					"no_copy": 1
+				})
 
 	def make_repeatable(self):
 		"""If allow_auto_repeat is set, add auto_repeat custom field."""
@@ -701,12 +707,13 @@ def validate_series(dt, autoname=None, name=None):
 		and (not autoname.startswith('format:')):
 
 		prefix = autoname.split('.')[0]
-		used_in = frappe.db.sql("""
-			SELECT `name`
-			FROM `tabDocType`
-			WHERE `autoname` LIKE CONCAT(%s, '.%%')
-			AND `name`!=%s
-		""", (prefix, name))
+		doctype = frappe.qb.DocType("DocType")
+		used_in = (frappe.qb
+					.from_(doctype)
+					.select(doctype.name)
+					.where(doctype.autoname.like(Concat(prefix,".%")))
+					.where(doctype.name != name)
+					).run()
 		if used_in:
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
@@ -719,20 +726,20 @@ def validate_links_table_fieldnames(meta):
 	for index, link in enumerate(meta.links):
 		link_meta = frappe.get_meta(link.link_doctype)
 		if not link_meta.get_field(link.link_fieldname):
-			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
 		if link.is_child_table and not meta.get_field(link.table_fieldname):
-			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
 
 		if link.is_child_table:
 			if not link.parent_doctype:
-				message = _("Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
+				message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
 				frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
 
 			if not link.table_fieldname:
-				message = _("Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
+				message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
 				frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
 def validate_fields_for_doctype(doctype):
@@ -1027,6 +1034,9 @@ def validate_fields(meta):
 			frappe.throw(_('Option {0} for field {1} is not a child table')
 				.format(frappe.bold(doctype), frappe.bold(docfield.fieldname)), title=_("Invalid Option"))
 
+	def check_max_height(docfield):
+		if getattr(docfield, 'max_height', None) and (docfield.max_height[-2:] not in ('px', 'em')):
+			frappe.throw('Max for {} height must be in px, em, rem'.format(frappe.bold(docfield.fieldname)))
 
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
@@ -1060,6 +1070,7 @@ def validate_fields(meta):
 		scrub_options_in_select(d)
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
+		check_max_height(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
@@ -1216,8 +1227,14 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		if	("tabModule Def" in frappe.db.get_tables()
 			and not frappe.db.exists("Module Def", doc.module)):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
-			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
+			if frappe.scrub(doc.module) in frappe.local.module_app:
+				m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
+			else:
+				m.app_name = 'frappe'
 			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
+			if frappe.flags.package:
+				m.package = frappe.flags.package.name
+				m.custom = 1
 			m.insert()
 
 		default_roles = ["Administrator", "Guest", "All"]

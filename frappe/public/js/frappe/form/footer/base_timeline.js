@@ -86,7 +86,7 @@ class BaseTimeline {
 		});
 		if (item.icon) {
 			timeline_item.append(`
-				<div class="timeline-badge">
+				<div class="timeline-badge" title='${item.title || frappe.utils.to_title_case(item.icon)}'>
 					${frappe.utils.icon(item.icon, item.icon_size || 'md')}
 				</div>
 			`);
@@ -97,9 +97,13 @@ class BaseTimeline {
 		}
 
 		timeline_item.append(`<div class="timeline-content ${item.is_card ? 'frappe-card' : ''}">`);
-		timeline_item.find('.timeline-content').append(item.content);
+		let timeline_content = timeline_item.find('.timeline-content');
+		timeline_content.append(item.content);
 		if (!item.hide_timestamp && !item.is_card) {
-			timeline_item.find('.timeline-content').append(`<span> - ${comment_when(item.creation)}</span>`);
+			timeline_content.append(`<span> - ${comment_when(item.creation)}</span>`);
+		}
+		if (item.id) {
+			timeline_content.attr("id", item.id);
 		}
 		return timeline_item;
 	}

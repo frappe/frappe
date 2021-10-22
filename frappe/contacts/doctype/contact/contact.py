@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 import frappe
 from frappe.utils import cstr, has_gravatar
 from frappe import _
@@ -47,14 +47,14 @@ class Contact(Document):
 	def get_link_for(self, link_doctype):
 		'''Return the link name, if exists for the given link DocType'''
 		for link in self.links:
-			if link.link_doctype==link_doctype:
+			if link.link_doctype == link_doctype:
 				return link.link_name
 
 		return None
 
 	def has_link(self, doctype, name):
 		for link in self.links:
-			if link.link_doctype==doctype and link.link_name== name:
+			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
 	def has_common_link(self, doc):

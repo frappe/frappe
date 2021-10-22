@@ -1,8 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_list_settings(doctype):
 	try:
 		return frappe.get_cached_doc("List View Settings", doctype)

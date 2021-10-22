@@ -2,9 +2,14 @@ name: Patch
 
 on: [pull_request, workflow_dispatch]
 
+
+concurrency:
+  group: patch-mariadb-develop-${{ github.event.number }}
+  cancel-in-progress: true
+
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     name: Patch Test
 
@@ -24,7 +29,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: '3.9'
 
       - name: Check if build should be run
         id: check-build
@@ -97,4 +102,25 @@ jobs:
           cd ~/frappe-bench/
           wget https://frappeframework.com/files/v10-frappe.sql.gz
           bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
+
+          source env/bin/activate
+          cd apps/frappe/
+          git remote set-url upstream https://github.com/frappe/frappe.git
+          git fetch --all --tags
+
+          taglist=$(git tag --sort version:refname | grep -v "beta")
+          last_release=$(echo "$taglist" | tail -1 | cut -d . -f 1 | cut -c 2-)
+
+          for version in $(seq 12 "$last_release")
+          do
+              last_tag=$(echo "$taglist" | grep "v$version" | tail -1)
+              echo "Updating to $last_tag"
+              git checkout -q -f "$last_tag"
+              pip install -q -r requirements.txt
+              bench --site test_site migrate
+          done
+
+          echo "Updating to last commit"
+          git checkout -q -f "$GITHUB_SHA"
+          bench setup requirements --python
           bench --site test_site migrate

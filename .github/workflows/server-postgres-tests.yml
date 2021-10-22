@@ -3,10 +3,16 @@ name: Server
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches: [ develop ]
+
+concurrency:
+  group: server-postgres-develop-${{ github.event.number }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -35,7 +41,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: '3.9'
 
       - name: Check if build should be run
         id: check-build
@@ -112,7 +118,17 @@ jobs:
 
       - name: Run Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator --with-coverage
         env:
           CI_BUILD_ID: ${{ github.run_id }}
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
+
+      - name: Upload coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: codecov/codecov-action@v2
+        with:
+          name: Postgres
+          fail_ci_if_error: true
+          files: /home/runner/frappe-bench/sites/coverage.xml
+          verbose: true
+          flags: server

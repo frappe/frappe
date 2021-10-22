@@ -283,11 +283,7 @@ frappe.Application = class Application {
 		frappe.workspaces = {};
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module]=page;
-			frappe.workspaces[frappe.router.slug(page.title)] = page;
-		}
-		if (!frappe.workspaces['home']) {
-			// default workspace is settings for Frappe
-			frappe.workspaces['home'] = frappe.workspaces[Object.keys(frappe.workspaces)[0]];
+			frappe.workspaces[frappe.router.slug(page.name)] = page;
 		}
 	}
 

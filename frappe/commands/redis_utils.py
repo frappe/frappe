@@ -3,7 +3,7 @@ import os
 import click
 
 import frappe
-from frappe.utils.rq import RedisQueue
+from frappe.utils.redis_queue import RedisQueue
 from frappe.installer import update_site_config
 
 @click.command('create-rq-users')

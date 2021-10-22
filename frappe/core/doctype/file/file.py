@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 """
 record of files
@@ -254,10 +254,11 @@ class File(Document):
 			return
 		file_name = self.file_url.split('/')[-1]
 		try:
-			with open(get_files_path(file_name, is_private=self.is_private), "rb") as f:
+			file_path = get_files_path(file_name, is_private=self.is_private)
+			with open(file_path, "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
-			frappe.throw(_("File {0} does not exist").format(self.file_url))
+			frappe.throw(_("File {0} does not exist").format(file_path))
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
@@ -812,7 +813,7 @@ def extract_images_from_doc(doc, fieldname):
 		doc.set(fieldname, content)
 
 
-def extract_images_from_html(doc, content):
+def extract_images_from_html(doc, content, is_private=False):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
@@ -845,7 +846,8 @@ def extract_images_from_html(doc, content):
 			"attached_to_doctype": doctype,
 			"attached_to_name": name,
 			"content": content,
-			"decode": False
+			"decode": False,
+			"is_private": is_private
 		})
 		_file.save(ignore_permissions=True)
 		file_url = _file.file_url

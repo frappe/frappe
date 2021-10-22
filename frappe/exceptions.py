@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
@@ -99,8 +99,8 @@ class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
-class DocumentAlreadyRestored(Exception): pass
-class AttachmentLimitReached(Exception): pass
+class DocumentAlreadyRestored(ValidationError): pass
+class AttachmentLimitReached(ValidationError): pass
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass

@@ -13,13 +13,6 @@ context('Recorder', () => {
 		});
 	});
 
-	it('Navigate to Recorder', () => {
-		cy.visit('/app');
-		cy.awesomebar('recorder');
-		cy.findByTitle('Recorder').should('exist');
-		cy.url().should('include', '/recorder/detail');
-	});
-
 	it('Recorder Empty State', () => {
 		cy.findByTitle('Recorder').should('exist');
 

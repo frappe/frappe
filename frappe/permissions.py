@@ -1,12 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import copy
 
 import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
-
+from frappe.query_builder import DocType
 
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
@@ -107,13 +107,9 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	meta = frappe.get_meta(doc.doctype)
 
 	def is_user_owner():
-		doc_owner = doc.get('owner') or ''
-		doc_owner = doc_owner.lower()
-		session_user = frappe.session.user.lower()
-		return doc_owner == session_user
+		return (doc.get("owner") or "").lower() == frappe.session.user.lower()
 
-
-	if has_controller_permissions(doc, ptype, user=user) == False :
+	if has_controller_permissions(doc, ptype, user=user) is False:
 		push_perm_check_log('Not allowed via controller permission check')
 		return {ptype: 0}
 
@@ -182,22 +178,23 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 
 		applicable_permissions = list(filter(is_perm_applicable, getattr(doctype_meta, 'permissions', [])))
 		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
-
 		perms['has_if_owner_enabled'] = has_if_owner_enabled
 
 		for ptype in rights:
 			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
 			# check if any perm object allows perm type
 			perms[ptype] = cint(pvalue)
-			if (pvalue
-				and has_if_owner_enabled
-				and not has_permission_without_if_owner_enabled(ptype)
-				and ptype != 'create'):
+			if (
+					pvalue
+					and has_if_owner_enabled
+					and not has_permission_without_if_owner_enabled(ptype)
+					and ptype != 'create'
+			):
 				perms['if_owner'][ptype] = cint(pvalue and is_owner)
 				# has no access if not owner
 				# only provide select or read access so that user is able to at-least access list
 				# (and the documents will be filtered based on owner sin further checks)
-				perms[ptype] = 1 if ptype in ['select', 'read'] else 0
+				perms[ptype] = 1 if ptype in ('select', 'read') else 0
 
 		frappe.local.role_permissions[cache_key] = perms
 
@@ -333,8 +330,7 @@ def get_all_perms(role):
 	'''Returns valid permissions for a given role'''
 	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
 	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
-	doctypes_with_custom_perms = frappe.db.sql_list("""select distinct parent
-		from `tabCustom DocPerm`""")
+	doctypes_with_custom_perms = frappe.get_all("Custom DocPerm", pluck="parent", distinct=True)
 
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:
@@ -351,10 +347,13 @@ def get_roles(user=None, with_standard=True):
 
 	def get():
 		if user == 'Administrator':
-			return [r[0] for r in frappe.db.sql("select name from `tabRole`")] # return all available roles
+			return frappe.get_all("Role", pluck="name") # return all available roles
 		else:
-			return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
-				where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+			table = DocType("Has Role")
+			roles = frappe.qb.from_(table).where(
+				(table.parent == user) & (table.role.notin(["All", "Guest"]))
+			).select(table.role).run(pluck=True)
+			return roles + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
 
@@ -463,10 +462,9 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
 		permlevel=permlevel))
+	table = DocType("Custom DocPerm")
+	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
-	frappe.db.sql("""
-		update `tabCustom DocPerm`
-		set `{0}`=%s where name=%s""".format(ptype), (value, name))
 	if validate:
 		validate_permissions_for_doctype(doctype)
 

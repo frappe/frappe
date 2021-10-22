@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 
@@ -65,7 +65,7 @@ class Address(Document):
 
 	def has_link(self, doctype, name):
 		for link in self.links:
-			if link.link_doctype==doctype and link.link_name== name:
+			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
 	def has_common_link(self, doc):
