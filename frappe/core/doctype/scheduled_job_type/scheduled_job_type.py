@@ -19,6 +19,13 @@ class ScheduledJobType(Document):
 		self.name = ".".join(self.method.split(".")[-2:])
 
 	def validate(self):
+		if ' ' in self.frequency:
+			# for backward compatibility
+			frequency, queue = self.frequency.split(' ')
+			self.frequency = frequency
+			if queue == 'Long':
+				self.queue = queue
+
 		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
