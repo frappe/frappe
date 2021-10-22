@@ -241,7 +241,7 @@ Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fie
 });
 
 Cypress.Commands.add('awesomebar', text => {
-	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 100});
+	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 700});
 });
 
 Cypress.Commands.add('new_form', doctype => {
