@@ -4,8 +4,8 @@ from frappe import _
 
 def execute():
 	frappe.reload_doc('desk', 'doctype', 'workspace', force=True)
-	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
-	for seq, wspace in enumerate(frappe.get_all('Workspace', order_by=order_by)):
+
+	for seq, wspace in enumerate(frappe.get_all('Workspace', order_by='name asc')):
 		doc = frappe.get_doc('Workspace', wspace.name)
 		content = create_content(doc)
 		update_wspace(doc, seq, content)
@@ -53,7 +53,7 @@ def update_wspace(doc, seq, content):
 	if not doc.title and not doc.content and not doc.is_standard and not doc.public:
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
-		doc.public = 0
+		doc.public = 0 if doc.for_user else 1
 		doc.title = doc.extends or doc.label
 		doc.extends = ''
 		doc.category = ''

@@ -50,8 +50,8 @@ context('Timeline', () => {
 		cy.click_modal_primary_button('Yes');
 
 		//Deleting the added ToDo
-		cy.get('.menu-btn-group [data-original-title="Menu"]').click();
-		cy.get('.menu-btn-group .dropdown-item').contains('Delete').click();
+		cy.get('[id="page-ToDo"] .menu-btn-group [data-original-title="Menu"]').click();
+		cy.get('[id="page-ToDo"] .menu-btn-group .dropdown-item').contains('Delete').click();
 		cy.findByRole('button', {name: 'Yes'}).click();
 	});
 
