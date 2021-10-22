@@ -450,32 +450,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		return this.validate_link_and_fetch(this.df, this.get_options(),
 			this.docname, value);
-<<<<<<< HEAD
 	},
-	validate_link_and_fetch: function(df, doctype, docname, value) {
-		if(value) {
-			return new Promise((resolve) => {
-				var fetch = '';
-				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-				}
-				// if default and no fetch, no need to validate
-				if (!fetch && df.__default_value && df.__default_value===value) {
-					resolve(value);
-				}
 
-				this.fetch_and_validate_link(resolve, df, doctype, docname, value, fetch);
-			});
-		}
-	},
-=======
-	}
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!value) return;
 
 		return new Promise((resolve) => {
-			const fetch_map = this.fetch_map;
->>>>>>> f2b319920c (refactor: improved design for fetching values using `add_fetch`)
+			const fetch_map = this.get_fetch_map();
 
 			// if default and no fetch, no need to validate
 			if ($.isEmptyObject(fetch_map) && df.__default_value === value) {
@@ -509,16 +490,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 	},
 
-<<<<<<< HEAD
-	set_fetch_values: function(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
-		}
-	},
-});
-=======
-	get fetch_map() {
+	get_fetch_map() {
 		const fetch_map = {};
 		if (!this.frm) return fetch_map;
 
@@ -530,8 +502,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		return fetch_map;
 	}
-};
->>>>>>> f2b319920c (refactor: improved design for fetching values using `add_fetch`)
+});
 
 if (Awesomplete) {
 	Awesomplete.prototype.get_item = function(value) {
