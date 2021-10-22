@@ -1,5 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# MIT License. See LICENSE
 
 import frappe
 from weasyprint import HTML, CSS
