@@ -2,8 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
+    <a href="{{ value }}">{{ value.rsplit('/', 1)[1] }}</a>
 </div>
 {%- endblock -%}
-
-

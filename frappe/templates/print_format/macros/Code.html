@@ -2,8 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
+    <pre><code>{{ value }}</code></pre>
 </div>
 {%- endblock -%}
-
-

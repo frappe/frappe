@@ -2,8 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
+    <img class="w-100" src="{{ value }}" alt="{{ df.label }}">
 </div>
 {%- endblock -%}
-
-

@@ -76,6 +76,18 @@ body {
 	font-weight: bold;
 }
 
+.field.left-right {
+	display: flex;
+}
+
+.field.left-right .label {
+	width: 50%;
+}
+
+.field.left-right .value {
+	width: 50%;
+}
+
 .child-table [data-fieldtype="Currency"] {
 	text-align: right;
 }
@@ -92,4 +104,28 @@ body {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	border-bottom-color: var(--gray-300);
+}
+
+.field[data-fieldtype="Rating"] .rating-star {
+	width: 1.5rem;
+}
+
+.field[data-fieldtype="Long Text"] .value, .field[data-fieldtype="Text"] .value {
+	white-space: pre-line;
+}
+
+.field[data-fieldtype="Color"] .value {
+	display: flex;
+	align-items: center;
+}
+
+.field[data-fieldtype="Color"] .color-square {
+	width: 1rem;
+	height: 1rem;
+	margin-right: 0.3rem;
+	border-radius: var(--border-radius);
+}
+
+.field[data-fieldtype="Check"] #icon-tick {
+	width: 1rem;
 }
