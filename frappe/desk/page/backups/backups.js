@@ -16,7 +16,7 @@ frappe.pages['backups'].on_page_load = function (wrapper) {
 		});
 	});
 
-	page.add_inner_button(__("Get Encryption Key"), function () {
+	page.add_inner_button(__("Get Backup Encryption Key"), function () {
 		if (frappe.session.user === "Administrator") {
 			frappe.verify_password(function () {
 				frappe.call({

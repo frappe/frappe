@@ -5,21 +5,29 @@
 		<a href="{{ f[0] }}" target="_blank" rel="noopener noreferrer" class="frappe-card download-backup-card">
 			<div>
 				{{ f[1] }}
-				{% if f[2] %}
-					  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-key-fill" viewBox="0 0 20 20">
-						<path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5z"/>
-						<path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-					  </svg>
-				{% endif %}
 
 			</div>
 			<div class="mt-2">
-				<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-					stroke="var(--icon-stroke)">
+
+
+
+				<svg style="background-size: 20px 30px;" class="icon-sm" width="30" xmlns="http://www.w3.org/2000/svg"
+					fill="none" viewBox="0 0 24 24" stroke="var(--icon-stroke)">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 						d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
 				</svg>
+
 				{{ f[3] }}
+				{% if f[2] %}
+
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 30 30"
+					style=" fill:#000000;">
+					<path
+						d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z">
+					</path>
+				</svg>
+				{% endif %}
+
 			</div>
 		</a>
 	</div>
