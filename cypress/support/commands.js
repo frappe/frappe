@@ -325,7 +325,7 @@ Cypress.Commands.add('clear_filters', () => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
 	});
 
-	
+
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
@@ -348,12 +348,6 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 	cy.get('.primary-action').contains(btn_name).click({force: true});
 });
 
-<<<<<<< HEAD
 Cypress.Commands.add('click_timeline_action_btn', (btn_no) => {
 	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').eq(btn_no).first().click();
 });
-=======
-Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
-	cy.get('.timeline-message-box .custom-actions > .btn').contains(btn_name).click();
-});
->>>>>>> 5996d6829d (test: fix flaky awesome_bar test)
