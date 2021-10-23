@@ -281,7 +281,7 @@ def bulk_update(docs):
 	for doc in docs:
 		doc.pop("flags", None)
 		try:
-			existing_doc = frappe.get_doc(doc.pop("doctype"), doc.pop("docname"))
+			existing_doc = frappe.get_doc(doc["doctype"], doc["docname"])
 			existing_doc.update(doc)
 			existing_doc.save()
 		except Exception:
