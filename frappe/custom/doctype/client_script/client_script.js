@@ -46,7 +46,7 @@ frappe.ui.form.on('Client Script', {
 
 			if (!frm.is_new()) {
 				frm.add_custom_button(__('Compare Versions'), () => {
-					let diff = new frappe.ui.DiffView("Client Script", "script", frm.doc.name);
+					new frappe.ui.DiffView("Client Script", "script", frm.doc.name);
 				});
 			}
 		}
