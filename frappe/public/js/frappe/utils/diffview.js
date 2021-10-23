@@ -79,6 +79,32 @@ frappe.ui.DiffView = class DiffView {
 	}
 
 	prettify_diff(diff) {
-		return `<pre>${diff.join("<br>")}</pre>`;
+		let html = `
+		<style type="text/css">
+			.diffview {
+				font-family: monospace;
+				white-space: pre;
+				word-wrap: break-word;
+				color: #000000;
+			}
+		.diffview .insert {
+			background-color: #ddffdd;
+		}
+		.diffview .delete {
+			background-color: #ffdddd;
+		}
+		</style>
+		`;
+
+		diff.forEach((line) => {
+			let line_class = "";
+			if (line.startsWith("+")) {
+				line_class = "insert";
+			} else if (line.startsWith("-")) {
+				line_class = "delete";
+			}
+			html += `<div class=${line_class}>${line}</div>`;
+		});
+		return `<div class='diffview'>${html}</div>`;
 	}
 };
