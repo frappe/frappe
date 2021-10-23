@@ -532,18 +532,8 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	def _get_values_from_table(
-		self,
-		fields,
-		filters,
-		doctype,
-		as_dict,
-		debug,
-		order_by=None,
-		update=None,
-		for_update=False,
-		run=True,
-	):
+	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None,
+							   update=None, for_update=False, run=True):
 		field_objects = []
 
 		for field in fields:
