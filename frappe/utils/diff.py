@@ -3,6 +3,7 @@ from difflib import unified_diff
 from typing import List
 
 import frappe
+from frappe.utils import pretty_date
 
 
 @frappe.whitelist()
@@ -20,7 +21,12 @@ def get_version_diff(
 	after = after.split("\n")
 
 	diff = unified_diff(
-		before, after, fromfiledate=before_timestamp, tofiledate=after_timestamp
+		before,
+		after,
+		fromfile=from_version,
+		tofile=to_version,
+		fromfiledate=before_timestamp,
+		tofiledate=after_timestamp,
 	)
 	return list(diff)
 
@@ -44,12 +50,12 @@ def _get_value_from_version(version_name: str, fieldname: str):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def version_query(doctype, txt, searchfield, start, page_len, filters):
-	return frappe.get_list(
+	results = frappe.get_list(
 		"Version",
 		fields=["name", "modified"],
 		filters=filters,
 		limit_start=start,
 		limit_page_length=page_len,
-		as_list=1,
 		order_by="modified desc",
 	)
+	return [(d.name, pretty_date(d.modified), d.modified) for d in results]
