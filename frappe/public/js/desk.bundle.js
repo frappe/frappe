@@ -62,6 +62,7 @@ import "./frappe/utils/help_links.js";
 import "./frappe/utils/address_and_contact.js";
 import "./frappe/utils/preview_email.js";
 import "./frappe/utils/file_manager.js";
+import "./frappe/utils/diffview";
 
 import "./frappe/upload.js";
 import "./frappe/ui/tree.js";
