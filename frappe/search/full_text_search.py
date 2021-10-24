@@ -27,6 +27,9 @@ class FullTextSearch:
 	def get_schema(self):
 		return Schema(name=ID(stored=True), content=TEXT(stored=True))
 
+	def get_fields_to_search(self):
+		return ["name", "content"]
+
 	def get_id(self):
 		return "name"
 
@@ -125,7 +128,7 @@ class FullTextSearch:
 		out = []
 
 		with ix.searcher() as searcher:
-			parser = MultifieldParser(["title", "content"], ix.schema, termclass=FuzzyTermExtended)
+			parser = MultifieldParser(self.get_fields_to_search(), ix.schema, termclass=FuzzyTermExtended)
 			parser.remove_plugin_class(FieldsPlugin)
 			parser.remove_plugin_class(WildcardPlugin)
 			query = parser.parse(text)
