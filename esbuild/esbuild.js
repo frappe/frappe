@@ -46,7 +46,7 @@ let argv = yargs
 	})
 	.option("live-reload", {
 		type: "boolean",
-		description: `Automatically reload web pages when assets are rebuilt.
+		description: `Automatically reload Desk when assets are rebuilt.
 			Can only be used with the --watch flag.`
 	})
 	.option("production", {
