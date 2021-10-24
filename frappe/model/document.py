@@ -75,6 +75,30 @@ def get_doc(*args, **kwargs):
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+
+	# Hack to import overridden class using `override_doctype_class` hook.
+	# Example if ToDo is overridden with `CustomTodo`
+	# then while creating `ToDo` object, it will be dynamically replaced with CustomTodo
+	# https://docs.python.org/3/reference/datamodel.html#basic-customization
+	def __new__(cls, *args, **kwargs):
+		doctype =  getattr(cls, "_DOCTYPE_NAME", None)
+		class_overrides = frappe.get_hooks('override_doctype_class')
+
+		if not class_overrides or not class_overrides.get(doctype):
+			# class is not overriden, return original class
+			return super(Document, cls).__new__(cls)
+
+		import_path = class_overrides[doctype][-1]
+		module_path, classname = import_path.rsplit('.', 1)
+
+		module = frappe.get_module(module_path)
+		_class = getattr(module, classname, None)
+
+		if _class is None or not issubclass(_class, BaseDocument):
+			raise ImportError('{0}: {1} does not exist in module {2}'.format(doctype, classname, module_path))
+
+		return super(Document, _class).__new__(_class)
+
 	def __init__(self, *args, **kwargs):
 		"""Constructor.
 
