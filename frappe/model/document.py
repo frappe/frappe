@@ -143,7 +143,7 @@ class Document(BaseDocument):
 			raise ValueError('Illegal arguments')
 
 	@classmethod
-	def new(cls: Type[D]) -> D:
+	def new_doc(cls: Type[D]) -> D:
 		if hasattr(cls, "_DOCTYPE_NAME"):
 			return frappe.new_doc(cls._DOCTYPE_NAME)
 		else:
