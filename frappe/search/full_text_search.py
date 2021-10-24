@@ -123,8 +123,15 @@ class FullTextSearch:
 		results = None
 		out = []
 
+		search_fields = self.get_fields_to_search()
+		fieldboosts = {}
+
+		# apply reducing boost on fields based on order. 1.0, 0.5, 0.33 and so on
+		for idx, field in enumerate(search_fields, start=1):
+			fieldboosts[field] = 1.0 / idx
+
 		with ix.searcher() as searcher:
-			parser = MultifieldParser(self.get_fields_to_search(), ix.schema, termclass=FuzzyTermExtended)
+			parser = MultifieldParser(search_fields, ix.schema, termclass=FuzzyTermExtended, fieldboosts=fieldboosts)
 			parser.remove_plugin_class(FieldsPlugin)
 			parser.remove_plugin_class(WildcardPlugin)
 			query = parser.parse(text)
