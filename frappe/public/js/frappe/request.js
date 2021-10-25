@@ -207,23 +207,23 @@ frappe.request.call = function(opts) {
 	};
 
 	var exception_handlers = {
-		'QueryTimeoutError': function(data) {
+		'QueryTimeoutError': function() {
 			frappe.utils.play_sound("error");
 			frappe.msgprint({
-				title:__('Request Timeout'),
-				indicator:'red',
-				message:__("Server was too busy to process this request. Please try again.")
+				title: __('Request Timeout'),
+				indicator: 'red',
+				message: __("Server was too busy to process this request. Please try again.")
 			});
 		},
-		'QueryDeadlockError': function(data) {
+		'QueryDeadlockError': function() {
 			frappe.utils.play_sound("error");
 			frappe.msgprint({
-				title:__('Deadlock Occurred'),
-				indicator:'red',
-				message:__("Server was too busy to process this request. Please try again.")
+				title: __('Deadlock Occurred'),
+				indicator: 'red',
+				message: __("Server was too busy to process this request. Please try again.")
 			});
 		}
-	}
+	};
 
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
