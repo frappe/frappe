@@ -299,7 +299,7 @@ class FormTimeline extends BaseTimeline {
 		(this.doc_info.info_logs || []).forEach(info_log => {
 			info_timeline_contents.push({
 				creation: info_log.creation,
-				content: `${this.get_user_link(info_log.comment_email)} ${info_log.content}`,
+				content: `${this.get_user_link(info_log.owner)} ${info_log.content}`,
 			});
 		});
 		return info_timeline_contents;
