@@ -87,10 +87,6 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
-		if frappe.conf.get('developer_mode'):
-			self.owner = 'Administrator'
-			self.modified_by = 'Administrator'
-
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
 		core_doctypes = [
@@ -176,7 +172,6 @@ class DocType(Document):
 
 		if self.is_virtual and self.custom:
 			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
-
 
 		if frappe.conf.get('developer_mode'):
 			self.owner = 'Administrator'
