@@ -151,12 +151,12 @@ def process_response(response):
 		response.headers.extend(frappe.local.rate_limiter.headers())
 
 	# CORS headers
-	if hasattr(frappe.local, 'conf') and frappe.conf.allow_cors:
+	if hasattr(frappe.local, 'conf') and frappe.local.conf.allow_cros:
 		set_cors_headers(response)
 
 def set_cors_headers(response):
 	origin = frappe.request.headers.get('Origin')
-	allow_cors = frappe.conf.allow_cors
+	allow_cors = frappe.local.conf.allow_cros
 	if not (origin and allow_cors):
 		return
 
