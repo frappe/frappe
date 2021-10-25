@@ -123,7 +123,7 @@ def validate_filters(data, filters):
 
 def setup_group_by(data):
 	'''Add columns for aggregated values e.g. count(name)'''
-	if data.group_by:
+	if data.group_by and data.aggregate_function:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
 			frappe.throw(_('Invalid aggregate function'))
 
