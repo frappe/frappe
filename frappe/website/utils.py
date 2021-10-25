@@ -164,7 +164,7 @@ def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
 	if not path:
 		return
-	if path.startswith('http://') or path.startswith('https://'):
+	if path.startswith('http://') or path.startswith('https://') or path.startswith('tel:'):
 		return path
 	if path.startswith('data:'):
 		return path
