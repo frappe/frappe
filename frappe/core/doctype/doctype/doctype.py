@@ -310,9 +310,7 @@ class DocType(Document):
 		if allow_doctype_export:
 			self.export_doc()
 			self.make_controller_template()
-
-			if self.has_web_view:
-				self.set_base_class_for_controller()
+			self.set_base_class_for_controller()
 
 		# update index
 		if not self.custom:
@@ -350,23 +348,49 @@ class DocType(Document):
 				now=now, doctype=self.name)
 
 	def set_base_class_for_controller(self):
-		'''Updates the controller class to subclass from `WebsiteGenertor`,
-		if it is a subclass of `Document`'''
-		controller_path = frappe.get_module_path(frappe.scrub(self.module),
-			'doctype', frappe.scrub(self.name), frappe.scrub(self.name) + '.py')
+		"""If DocType.has_web_view has been changed, updates the controller class and import
+		from `WebsiteGenertor` to `Document` or viceversa"""
 
-		with open(controller_path, 'r') as f:
+		if not self.has_value_changed("has_web_view"):
+			return
+
+		despaced_name = self.name.replace(" ", "_")
+		scrubbed_name = frappe.scrub(self.name)
+		scrubbed_module = frappe.scrub(self.module)
+		controller_path = frappe.get_module_path(
+			scrubbed_module, "doctype", scrubbed_name, f"{scrubbed_name}.py"
+		)
+
+		document_cls_tag = f"class {despaced_name}(Document)"
+		document_import_tag = "from frappe.model.document import Document"
+		website_generator_cls_tag = f"class {despaced_name}(WebsiteGenerator)"
+		website_generator_import_tag = "from frappe.website.generators.website_generator import WebsiteGenerator"
+
+		with open(controller_path) as f:
 			code = f.read()
+		updated_code = code
 
-		class_string = '\nclass {0}(Document)'.format(self.name.replace(' ', ''))
-		if '\nfrom frappe.model.document import Document' in code and class_string in code:
-			code = code.replace('from frappe.model.document import Document',
-				'from frappe.website.website_generator import WebsiteGenerator')
-			code = code.replace('class {0}(Document)'.format(self.name.replace(' ', '')),
-				'class {0}(WebsiteGenerator)'.format(self.name.replace(' ', '')))
+		is_website_generator_class = all(
+			website_generator_cls_tag in code,
+			website_generator_import_tag in code
+		)
 
-		with open(controller_path, 'w') as f:
-			f.write(code)
+		if self.has_web_view and not is_website_generator_class:
+			updated_code = updated_code.replace(
+				document_import_tag, website_generator_import_tag
+			).replace(
+				document_cls_tag, website_generator_cls_tag
+			)
+		elif not self.has_web_view and is_website_generator_class:
+			updated_code = updated_code.replace(
+				website_generator_import_tag, document_import_tag
+			).replace(
+				website_generator_cls_tag, document_cls_tag
+			)
+
+		if updated_code != code:
+			with open(controller_path, "w") as f:
+				f.write(updated_code)
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module
