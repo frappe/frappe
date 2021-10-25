@@ -217,7 +217,7 @@ class User(Document):
 		if not self.roles:
 			return False
 
-		role_table = frappe.qb.DocType("Role")
+		role_table = DocType("Role")
 		return len(
 			frappe.qb.from_(role_table)
 			.select(role_table.name)
@@ -283,12 +283,16 @@ class User(Document):
 		return link
 
 	def get_other_system_managers(self):
-		return frappe.db.sql("""select distinct `user`.`name` from `tabHas Role` as `user_role`, `tabUser` as `user`
-			where user_role.role='System Manager'
-				and `user`.docstatus<2
-				and `user`.enabled=1
-				and `user_role`.parent = `user`.name
-			and `user_role`.parent not in ('Administrator', %s) limit 1""", (self.name,))
+		user_doctype = DocType("user").as_("user")
+		has_role_doctype = DocType("Has Role").as_("user_role")
+		return frappe.qb.from_(user_doctype
+			).from_(has_role_doctype
+			).select(user_doctype.name
+			).where(user_doctype.docstatus<2
+			).where(user_doctype.enabled==1
+			).where(has_role_doctype.parent == user_doctype.name
+			).where(has_role_doctype.parent.notin(["Administrator", self.name])
+			).limit(1).distinct()
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
@@ -362,8 +366,8 @@ class User(Document):
 
 		# delete todos
 		frappe.db.delete("ToDo", {"owner": self.name})
-		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
-			(self.name,))
+		todo_table = DocType("ToDo")
+		frappe.qb.update(todo_table).set(todo_table.assigned_by, None).where(todo_table.assigned_by == self.name).run()
 
 		# delete events
 		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})
@@ -432,11 +436,8 @@ class User(Document):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
-		table = DocType("User")
-		frappe.qb.update(table).where(
-			table.name == new_name
-		).set("email", new_name).run()
-
+		frappe.set_value("User", new_name, "email", new_name)
+		
 	def append_roles(self, *roles):
 		"""Add roles to user"""
 		current_roles = [d.role for d in self.get("roles")]
@@ -709,20 +710,15 @@ def get_email_awaiting(user):
 	if waiting:
 		return waiting
 	else:
-		# TODO
-		frappe.db.sql("""update `tabUser Email`
-				set awaiting_password =0
-				where parent = %(user)s""",{"user":user})
+		user_email_table = DocType("User Email")
+		frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(user_email_table.parent == user)
 		return False
 
 def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
 
-	users = frappe.db.sql("""SELECT DISTINCT(parent) as user FROM `tabUser Email`
-		WHERE awaiting_password = 1""", as_dict=True)
-
-	password_list = [ user.get("user") for user in users ]
+	password_list = frappe.get_all("User Email", filters={"awaiting_password": 1}, distinct = True, pluck = "parent")
 	set_default("email_user_password", u','.join(password_list))
 
 def _get_user_for_update_password(key, old_password):
@@ -890,8 +886,7 @@ def get_active_users():
 
 def get_website_users():
 	"""Returns total no. of website users"""
-	return frappe.db.sql("""select count(*) from `tabUser`
-		where enabled = 1 and user_type = 'Website User'""")[0][0]
+	return frappe.db.count("User", filters={"enabled": "1", "user_type": "Website User"})
 
 def get_active_website_users():
 	"""Returns No. of website users who logged in, in the last 3 days"""
