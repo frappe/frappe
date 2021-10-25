@@ -370,10 +370,10 @@ class DocType(Document):
 			code = f.read()
 		updated_code = code
 
-		is_website_generator_class = all(
+		is_website_generator_class = all([
 			website_generator_cls_tag in code,
 			website_generator_import_tag in code
-		)
+		])
 
 		if self.has_web_view and not is_website_generator_class:
 			updated_code = updated_code.replace(
