@@ -37,6 +37,7 @@ class Database(object):
 	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
 	DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',
 		'parentfield', 'parenttype', 'idx']
+	MAX_WRITES_PER_TRANSACTION = 200_000
 
 	class InvalidColumnName(frappe.ValidationError): pass
 
@@ -266,7 +267,7 @@ class Database(object):
 
 		if query[:6].lower() in ('update', 'insert', 'delete'):
 			self.transaction_writes += 1
-			if self.transaction_writes > 200000:
+			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 				if self.auto_commit_on_many_writes:
 					self.commit()
 				else:
