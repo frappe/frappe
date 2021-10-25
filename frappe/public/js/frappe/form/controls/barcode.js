@@ -56,9 +56,6 @@ frappe.ui.form.ControlBarcode = class ControlBarcode extends frappe.ui.form.Cont
 	get_options(value) {
 		// get JsBarcode options
 		let options = {};
-		options.background = "var(--control-bg)";
-		options.lineColor = "var(--text-color)";
-		options.font = "var(--font-stack)";
 		options.fontSize = "16";
 		options.width = "3";
 		options.height = "50";
