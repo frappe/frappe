@@ -8,14 +8,9 @@ frappe.ui.form.on('Workspace', {
 
 	refresh: function(frm) {
 		frm.enable_save();
-		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
-		frm.get_field("developer_mode_only").toggle(frappe.boot.developer_mode);
 
-		if (frm.doc.for_user) {
-			frm.set_df_property("extends", "read_only", true);
-		}
-
-		if (frm.doc.for_user || (frm.doc.is_standard && !frappe.boot.developer_mode)) {
+		if (frm.doc.for_user || (frm.doc.public && !frm.has_perm('write') && 
+			!frappe.user.has_role('Workspace Manager'))) {
 			frm.trigger('disable_form');
 		}
 	},
