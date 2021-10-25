@@ -7,7 +7,6 @@ from frappe.utils import update_progress_bar
 from whoosh.index import create_in, open_dir, EmptyIndexError
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
-from whoosh.query import Prefix
 from whoosh.query import Prefix, FuzzyTerm
 from whoosh.writing import AsyncWriter
 
