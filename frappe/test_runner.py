@@ -3,7 +3,6 @@
 import frappe
 import unittest, json, sys, os
 import time
-import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
 import frappe.utils.scheduler
@@ -17,6 +16,13 @@ SLOW_TEST_THRESHOLD = 2
 
 def xmlrunner_wrapper(output):
 	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
+	try:
+		import xmlrunner
+	except ImportError:
+		print("Development dependencies are required to execute this command. To install run:")
+		print("$ bench setup requirements --dev")
+		raise
+
 	def _runner(*args, **kwargs):
 		kwargs['output'] = output
 		return xmlrunner.XMLTestRunner(*args, **kwargs)
