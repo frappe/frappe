@@ -555,7 +555,7 @@ frappe.ui.form.Layout = class Layout {
 		for (let fkey in this.fields_list) {
 			let f = this.fields_list[fkey];
 			f.dependencies_clear = true;
-			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
+			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on || f.df.only_show_after_insert) {
 				has_dep = true;
 			}
 		}
@@ -566,9 +566,22 @@ frappe.ui.form.Layout = class Layout {
 		for (let i = this.fields_list.length - 1; i >= 0; i--) {
 			let f = this.fields_list[i];
 			f.guardian_has_value = true;
-			if (f.df.depends_on) {
-				// evaluate guardian
 
+			// show / hide based on the insert state
+			if (f.df.only_show_after_insert) {
+				if (f.doc.__islocal) {
+					if (!f.df.hidden_due_to_dependency) {
+						f.df.hidden_due_to_dependency = true;
+						f.refresh();
+					}
+				} else {
+					if (f.df.hidden_due_to_dependency) {
+						f.df.hidden_due_to_dependency = false;
+						f.refresh();
+					}
+				}
+			} else if (f.df.depends_on) {
+				// evaluate guardian
 				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
 
 				// show / hide
