@@ -38,13 +38,13 @@ def load_address_and_contact(doc, key=None):
 	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
 
 	for contact in contact_list:
-		contact["email_ids"] = frappe.get_list("Contact Email", filters={
+		contact["email_ids"] = frappe.get_all("Contact Email", filters={
 				"parenttype": "Contact",
 				"parent": contact.name,
 				"is_primary": 0
 			}, fields=["email_id"])
 
-		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
+		contact["phone_nos"] = frappe.get_all("Contact Phone", filters={
 				"parenttype": "Contact",
 				"parent": contact.name,
 				"is_primary_phone": 0,
