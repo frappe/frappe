@@ -321,7 +321,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(update_password(new_password, key="wrong_key"), "The Link specified has either been used before or Invalid")
 
 		# password verification should fail with old password
-		self.assertRaises(frappe.exceptions.AuthenticationError, verify_password, old_password)
+		self.assertRaises(frappe.exceptions.ValidationError, verify_password, old_password)
 		verify_password(new_password)
 
 		# reset password
