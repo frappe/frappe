@@ -26,7 +26,7 @@ def get_group_by_count(doctype, current_filters, field):
 	current_filters = frappe.parse_json(current_filters)
 	subquery_condition = ''
 
-	subquery = frappe.get_all(doctype, filters=current_filters, return_query = True)
+	subquery = frappe.get_all(doctype, filters=current_filters, run=False)
 	if field == 'assigned_to':
 		subquery_condition = ' and `tabToDo`.reference_name in ({subquery})'.format(subquery = subquery)
 		return frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count

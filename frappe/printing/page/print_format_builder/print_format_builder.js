@@ -12,9 +12,9 @@ frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 		});
 	} else if(frappe.route_options) {
 		if(frappe.route_options.make_new) {
-			let { doctype, name, based_on } = frappe.route_options;
+			let { doctype, name, based_on, beta } = frappe.route_options;
 			frappe.route_options = null;
-			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on);
+			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on, beta);
 		} else {
 			frappe.print_format_builder.print_format = frappe.route_options.doc;
 			frappe.route_options = null;
@@ -126,18 +126,22 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 
 		});
 	}
-	setup_new_print_format(doctype, name, based_on) {
+	setup_new_print_format(doctype, name, based_on, beta) {
 		frappe.call({
 			method: 'frappe.printing.page.print_format_builder.print_format_builder.create_custom_format',
 			args: {
 				doctype: doctype,
 				name: name,
-				based_on: based_on
+				based_on: based_on,
+				beta: Boolean(beta)
 			},
 			callback: (r) => {
-				if(!r.exc) {
-					if(r.message) {
-						this.print_format = r.message;
+				if (r.message) {
+					let print_format = r.message;
+					if (print_format.print_format_builder_beta) {
+						frappe.set_route('print-format-builder-beta', print_format.name);
+					} else {
+						this.print_format = print_format;
 						this.refresh();
 					}
 				}

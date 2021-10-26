@@ -258,6 +258,12 @@ def set_default(key, value, parent=None):
 	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
 
+@frappe.whitelist()
+def get_default(key, parent=None):
+	"""set a user default value"""
+	return frappe.db.get_default(key, parent)
+
+
 @frappe.whitelist(methods=['POST', 'PUT'])
 def make_width_property_setter(doc):
 	'''Set width Property Setter
@@ -278,7 +284,7 @@ def bulk_update(docs):
 	for doc in docs:
 		doc.pop("flags", None)
 		try:
-			existing_doc = frappe.get_doc(doc.pop("doctype"), doc.pop("docname"))
+			existing_doc = frappe.get_doc(doc["doctype"], doc["docname"])
 			existing_doc.update(doc)
 			existing_doc.save()
 		except Exception:

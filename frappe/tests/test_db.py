@@ -11,6 +11,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
+from frappe.query_builder import Field
 
 from .test_query_builder import run_only_if, db_type_is
 
@@ -24,6 +25,7 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {}, ["Max(name)"]), frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0])
 		self.assertEqual(frappe.db.get_value("User", {}, "Min(name)"), frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0])
+		self.assertIn("for update", frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower())
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
