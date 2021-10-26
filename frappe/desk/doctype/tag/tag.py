@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import unique
+from frappe.query_builder import DocType
 
 class Tag(Document):
 	pass
@@ -42,10 +43,11 @@ def remove_tag(tag, dt, dn):
 @frappe.whitelist()
 def get_tagged_docs(doctype, tag):
 	frappe.has_permission(doctype, throw=True)
-
-	return frappe.db.sql("""SELECT name
-		FROM `tab{0}`
-		WHERE _user_tags LIKE '%{1}%'""".format(doctype, tag))
+	doctype = DocType(doctype)
+	return (
+		frappe.qb.from_(doctype)
+		.where(doctype._user_tags.like(tag))
+		.select(doctype.name).run())
 
 @frappe.whitelist()
 def get_tags(doctype, txt):
