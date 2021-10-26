@@ -592,15 +592,17 @@ def get_parent(child_doctype, doc, parent_doctype=None):
 	if doc:
 		parent_doctype = doc.get("parenttype") \
 			or frappe.get_cached_value(doc.doctype, doc.docname, "parenttype")
-		parent_doc = frappe._dict({
+		parent_doc = frappe.get_cached_doc({
 			"doctype": parent_doctype,
 			"docname": doc.get("parent") \
 				or frappe.get_cached_value(doc.doctype, doc.docname, "parent")
 		})
 	elif not parent_doctype:
 		filters = {"options": child_doctype, "fieldtype": "Table"}
-		table_fields = (frappe.db.get_all('DocField', filters=filters, fields=["parent"], limit=2) +
-			frappe.db.get_all('Custom Field', filters=filters, fields=["parent"],limit=2))
+		options = dict(filters=filters, fields=["parent"], limit=2)
+		table_fields = (frappe.db.get_all('DocField', **options) +
+			frappe.db.get_all('Custom Field', **options))
+
 		if len(table_fields) > 1:
 			# request for parent doctype since there's no other way to find this out
 			frappe.throw(f"There are more than one parents for {child_doctype}. Please specify parent doctype of the child table.")
