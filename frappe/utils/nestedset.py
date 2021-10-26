@@ -176,8 +176,10 @@ def rebuild_node(doctype, parent, left, parent_field):
 	right = left+1
 
 	# get all children of this node
-	result = frappe.db.sql("SELECT name FROM `tab{0}` WHERE `{1}`=%s"
-		.format(doctype, parent_field), (parent))
+	doctype = DocType(doctype)
+	result = (
+		frappe.qb.from_(doctype).where(getattr(doctype, parent_field) == parent).run()
+	)
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
