@@ -24,7 +24,7 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 	doc_export = doc.as_dict(no_nulls=True)
 	doc.run_method("before_export", doc_export)
 
-	strip_default_fields(doc, doc_export)
+	doc_export = strip_default_fields(doc, doc_export)
 	module = record_module or get_module_name(doc)
 
 	# create folder
@@ -42,11 +42,16 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 
 def strip_default_fields(doc, doc_export):
 	# strip out default fields from children
+	if doc.doctype == "DocType" and doc.migration_hash:
+		del doc_export["migration_hash"]
+
 	for df in doc.meta.get_table_fields():
 		for d in doc_export.get(df.fieldname):
 			for fieldname in frappe.model.default_fields:
 				if fieldname in d:
 					del d[fieldname]
+
+	return doc_export
 
 def write_code_files(folder, fname, doc, doc_export):
 	'''Export code files and strip from values'''
@@ -58,8 +63,6 @@ def write_code_files(folder, fname, doc, doc_export):
 
 				# remove from exporting
 				del doc_export[key]
-
-
 
 def get_module_name(doc):
 	if doc.doctype  == 'Module Def':
