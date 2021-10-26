@@ -7,6 +7,9 @@ from frappe.utils import get_fullname, now
 from frappe.model.document import Document
 from frappe.core.utils import set_timeline_doc
 import frappe
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
+from pypika.terms import PseudoColumn
 
 class ActivityLog(Document):
 	def before_insert(self):
@@ -44,6 +47,7 @@ def clear_activity_logs(days=None):
 
 	if not days:
 		days = 90
-
-	frappe.db.sql("""delete from `tabActivity Log` where \
-		creation< (NOW() - INTERVAL '{0}' DAY)""".format(days))
+	doctype = DocType("Activity Log")
+	frappe.db.delete(doctype, filters=(
+		doctype.creation < PseudoColumn(f"({Now() - Interval(days=days)})")
+	))

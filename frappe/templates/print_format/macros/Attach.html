@@ -1,0 +1,7 @@
+{% extends "templates/print_format/macros/Data.html" %}
+
+{%- block value -%}
+<div class="value">
+    <a href="{{ value }}">{{ value.rsplit('/', 1)[1] }}</a>
+</div>
+{%- endblock -%}
