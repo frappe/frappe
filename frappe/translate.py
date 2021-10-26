@@ -339,9 +339,11 @@ def get_messages_for_app(app, deduplicate=True):
 
 	# doctypes
 	if modules:
+		if isinstance(modules, str):
+			modules = [modules]
 		filtered_doctypes = frappe.qb.from_("DocType").where(
 			Field("module").isin(modules)
-		).select("name").run()
+		).select("name").run(pluck=True)
 		for name in filtered_doctypes:
 			messages.extend(get_messages_from_doctype(name))
 
