@@ -30,9 +30,6 @@ from .utils.lazy_loader import lazy_import
 
 from frappe.query_builder import get_query_builder, patch_query_execute
 
-# Lazy imports
-faker = lazy_import('faker')
-
 __version__ = '14.0.0-dev'
 
 __title__ = "Frappe Framework"
@@ -1480,7 +1477,10 @@ def get_value(*args, **kwargs):
 
 def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
-	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	try:
+		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	except TypeError:
+		return json.dumps(obj, indent=indent, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint
@@ -1835,6 +1835,7 @@ def parse_json(val):
 	return parse_json(val)
 
 def mock(type, size=1, locale='en'):
+	import faker
 	results = []
 	fake = faker.Faker(locale)
 	if type not in dir(fake):

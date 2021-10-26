@@ -13,8 +13,8 @@ from json import loads
 
 class Workspace(Document):
 	def validate(self):
-		if (self.is_standard and not frappe.conf.developer_mode and not disable_saving_as_standard()):
-			frappe.throw(_("You need to be in developer mode to edit this document"))
+		if (self.public and not is_workspace_manager() and not disable_saving_as_public()):
+			frappe.throw(_("You need to be Workspace Manager to edit this document"))
 		validate_route_conflict(self.doctype, self.name)
 
 		try:
@@ -23,15 +23,8 @@ class Workspace(Document):
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
 
-		duplicate_exists = frappe.db.exists("Workspace", {
-			"name": ["!=", self.name], 'is_default': 1, 'extends': self.extends
-		})
-
-		if self.is_default and self.name and duplicate_exists:
-			frappe.throw(_("You can only have one default page that extends a particular standard page."))
-
 	def on_update(self):
-		if disable_saving_as_standard():
+		if disable_saving_as_public():
 			return
 
 		if frappe.conf.developer_mode and self.module and self.public:
@@ -39,12 +32,7 @@ class Workspace(Document):
 
 	@staticmethod
 	def get_module_page_map():
-		filters = {
-			'extends_another_page': 0,
-			'for_user': '',
-		}
-
-		pages = frappe.get_all("Workspace", fields=["name", "module"], filters=filters, as_list=1)
+		pages = frappe.get_all("Workspace", fields=["name", "module"], filters={'for_user': ''}, as_list=1)
 
 		return { page[1]: page[0] for page in pages if page[1] }
 
@@ -75,35 +63,6 @@ class Workspace(Document):
 		cards.append(current_card)
 
 		return cards
-
-	def build_links_table_from_cards(self, config):
-		# Empty links table
-		self.links = []
-		order = config.get('order')
-		widgets = config.get('widgets')
-
-		for idx, name in enumerate(order):
-			card = widgets[name].copy()
-			links = loads(card.get('links'))
-
-			self.append('links', {
-				"label": card.get('label'),
-				"type": "Card Break",
-				"icon": card.get('icon'),
-				"hidden": card.get('hidden') or False
-			})
-
-			for link in links:
-				self.append('links', {
-					"label": link.get('label'),
-					"type": "Link",
-					"link_type": link.get('link_type'),
-					"link_to": link.get('link_to'),
-					"onboard": link.get('onboard'),
-					"only_for": link.get('only_for'),
-					"dependencies": link.get('dependencies'),
-					"is_query_report": link.get('is_query_report')
-				})
 
 	def build_links_table_from_card(self, config):
 
@@ -137,7 +96,7 @@ class Workspace(Document):
 					"idx": self.links[-1].idx + 1
 				})
 
-def disable_saving_as_standard():
+def disable_saving_as_public():
 	return frappe.flags.in_install or \
 			frappe.flags.in_patch or \
 			frappe.flags.in_test or \
@@ -212,7 +171,7 @@ def save_page(title, icon, parent, public, sb_public_items, sb_private_items, de
 
 def delete_pages(deleted_pages):
 	for page in deleted_pages:
-		if page.get("public") and "Workspace Manager" not in frappe.get_roles():
+		if page.get("public") and not is_workspace_manager():
 			return {"name": page.get("title"), "public": 1, "label": page.get("label")}
 
 		if frappe.db.exists("Workspace", page.get("name")):
@@ -227,7 +186,7 @@ def sort_pages(sb_public_items, sb_private_items):
 	if sb_private_items:
 		sort_page(wspace_private_pages, sb_private_items)
 
-	if sb_public_items and "Workspace Manager" in frappe.get_roles():
+	if sb_public_items and is_workspace_manager():
 		sort_page(wspace_public_pages, sb_public_items)
 
 def sort_page(wspace_pages, pages):
@@ -242,3 +201,6 @@ def sort_page(wspace_pages, pages):
 
 def get_page_list(fields, filters):
 	return frappe.get_list("Workspace", fields=fields, filters=filters, order_by='sequence_id asc')
+
+def is_workspace_manager():
+	return "Workspace Manager" in frappe.get_roles()

@@ -56,6 +56,17 @@ $('body').on('click', 'a', function(e) {
 		return override(e.currentTarget.hash);
 	}
 
+	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
+		// target has "/app, this is a v2 style route.
+
+		frappe.route_options = {};
+		let params = new URLSearchParams(e.currentTarget.search);
+		for (const [key, value] of params) {
+			frappe.route_options[key] = value;
+		}
+		return override(e.currentTarget.pathname + e.currentTarget.hash);
+	}
+
 });
 
 frappe.router = {
@@ -122,12 +133,14 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 
+		let private_wspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
 			route = ['Workspaces', frappe.workspaces[route[0]].title];
-		} else if (route[0] == 'private' && frappe.workspaces[route[1]]) {
+		} else if (route[0] == 'private' && frappe.workspaces[private_wspace]) {
 			// private workspace
-			route = ['Workspaces', 'private', frappe.workspaces[route[1]].title];
+			route = ['Workspaces', 'private', frappe.workspaces[private_wspace].title];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = this.set_doctype_route(route);
@@ -352,7 +365,8 @@ frappe.router = {
 				return a;
 			}
 		}).join('/');
-		let default_page = frappe.workspaces['home'] ? 'home' : Object.keys(frappe.workspaces)[0];
+		let private_home = frappe.workspaces[`home-${frappe.user.name.toLowerCase()}`];
+		let default_page = private_home ? 'private/home' : frappe.workspaces['home'] ? 'home' : Object.keys(frappe.workspaces)[0];
 		return '/app/' + (path_string || default_page);
 	},
 

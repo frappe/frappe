@@ -16,6 +16,7 @@ from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_disabled
 from frappe.rate_limiter import rate_limit
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
+from frappe.query_builder import DocType
 
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -366,15 +367,21 @@ class User(Document):
 		# delete shares
 		frappe.db.delete("DocShare", {"user": self.name})
 		# delete messages
-		frappe.db.sql("""delete from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='User'
-			and (reference_name=%s or owner=%s)""", (self.name, self.name))
-
+		table = DocType("Communication")
+		frappe.db.delete(
+			table,
+			filters=(
+				(table.communication_type.isin(["Chat", "Notification"]))
+				& (table.reference_doctype == "User")
+				& ((table.reference_name == self.name) | table.owner == self.name)
+			),
+			run=False,
+		)
 		# unlink contact
-		frappe.db.sql("""update `tabContact`
-			set `user`=null
-			where `user`=%s""", (self.name))
+		table = DocType("Contact")
+		frappe.qb.update(table).where(
+			table.user == self.name
+		).set(table.user, None).run()
 
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
@@ -418,9 +425,10 @@ class User(Document):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
-		frappe.db.sql("""UPDATE `tabUser`
-			SET email = %s
-			WHERE name = %s""", (new_name, new_name))
+		table = DocType("User")
+		frappe.qb.update(table).where(
+			table.name == new_name
+		).set("email", new_name).run()
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
