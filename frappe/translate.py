@@ -358,9 +358,12 @@ def get_messages_for_app(app, deduplicate=True):
 		# reports
 		report = DocType("Report")
 		doctype = DocType("DocType")
-		for name in frappe.qb.from_(doctype).from_(report).where(
-   					(report.ref_doctype == doctype.name) & doctype.module.isin(modules)).select(
-   					 report.name).run(pluck=True):
+		names = (
+			frappe.qb.from_(doctype)
+			.from_(report)
+			.where((report.ref_doctype == doctype.name) & doctype.module.isin(modules))
+			.select(report.name).run(pluck=True))
+		for name in names:
 			messages.append((None, name))
 			messages.extend(get_messages_from_report(name))
 			for i in messages:
