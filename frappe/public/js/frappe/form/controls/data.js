@@ -13,11 +13,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
 
-		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
-			this.df.fieldtype)) {
-			this.$input.attr("maxlength", this.df.length || 140);
-		}
-
 		this.$input.on('paste', (e) => {
 			let pasted_data = frappe.utils.get_clipboard_data(e);
 			let maxlength = this.$input.attr('maxlength');
@@ -193,8 +188,20 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				}
 			});
 		}
+<<<<<<< HEAD
 	},
 	set_input_attributes: function() {
+=======
+	}
+	set_input_attributes() {
+		if (in_list(
+			['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only'],
+			this.df.fieldtype
+		)) {
+			this.$input.attr("maxlength", this.df.length || 140);
+		}
+
+>>>>>>> 5fded165e2 (fix: set maxlength property for Link fields)
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
