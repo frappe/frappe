@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now
+from frappe.query_builder import DocType, Order
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -149,7 +150,16 @@ def rebuild_tree(doctype, parent_field):
 	frappe.db.auto_commit_on_many_writes = 1
 
 	right = 1
-	result = frappe.db.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL ORDER BY name ASC" % (doctype, parent_field, parent_field))
+	doctype = DocType(doctype)
+	result = (
+		frappe.qb.from_(doctype)
+		.where(
+			(getattr(doctype, parent_field) == "") | (parent_field.isnull())
+		)
+		.select("name")
+		.orderby(doctype.name, order=Order.asc)
+		.run()
+	)
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
