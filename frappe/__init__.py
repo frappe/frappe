@@ -625,18 +625,43 @@ def clear_cache(user=None, doctype=None):
 
 	local.role_permissions = {}
 
+<<<<<<< HEAD
 def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
+=======
+def only_has_select_perm(doctype, user=None, ignore_permissions=False):
+	if ignore_permissions:
+		return False
+
+	if not user:
+		user = local.session.user
+
+	import frappe.permissions
+	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
+
+	if permissions.get('select') and not permissions.get('read'):
+		return True
+	else:
+		return False
+
+def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False, parent_doctype=None):
+>>>>>>> 0f98b4d174 (fix: Make parent_doctype mandatory while accessing child doctype)
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
-	:param user: [optional] Check for given user. Default: current user."""
+	:param user: [optional] Check for given user. Default: current user.
+	:param parent_doctype: [optional] Useful while checking permission for child doctype. Default: None"""
 	if not doctype and doc:
 		doctype = doc.doctype
 
 	import frappe.permissions
+<<<<<<< HEAD
 	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+=======
+	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user,
+		raise_exception=throw, parent_doctype=parent_doctype)
+>>>>>>> 0f98b4d174 (fix: Make parent_doctype mandatory while accessing child doctype)
 	if throw and not out:
 		if doc:
 			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))

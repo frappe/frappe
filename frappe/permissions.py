@@ -53,11 +53,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 		return True
 
 	if frappe.is_table(doctype):
-		# use parent doctype to check the permission
-		doctype, doc = get_parent(doctype, doc, parent_doctype)
-		# there's no parent doctype for this is child so deny access!
-		if not doctype:
-			return False
+		return has_child_table_permission(doctype, ptype, doc, parent_doctype)
 
 	meta = frappe.get_meta(doctype)
 
@@ -555,6 +551,7 @@ def push_perm_check_log(log):
 	frappe.flags.get('has_permission_check_logs').append(_(log))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def has_web_form_permission(doctype, name, ptype='read'):
 	user = frappe.session.user
 	if user == "Guest":
@@ -588,26 +585,40 @@ def get_parent(child_doctype, doc, parent_doctype=None):
 		TODO: Make this more predictable
 	'''
 	parent_doctype = parent_doctype
+=======
+def has_child_table_permission(child_doctype, ptype, doc, parent_doctype=None):
+>>>>>>> 0f98b4d174 (fix: Make parent_doctype mandatory while accessing child doctype)
 	parent_doc = None
+
 	if doc:
 		parent_doctype = doc.get("parenttype") \
-			or frappe.get_cached_value(doc.doctype, doc.docname, "parenttype")
+			or frappe.get_cached_value(doc.doctype, doc.name, "parent")
+
 		parent_doc = frappe.get_cached_doc({
 			"doctype": parent_doctype,
 			"docname": doc.get("parent") \
-				or frappe.get_cached_value(doc.doctype, doc.docname, "parent")
+				or frappe.get_cached_value(doc.doctype, doc.name, "parent")
 		})
-	elif not parent_doctype:
-		filters = {"options": child_doctype, "fieldtype": "Table"}
-		options = dict(filters=filters, fields=["parent"], limit=2)
-		table_fields = (frappe.db.get_all('DocField', **options) +
-			frappe.db.get_all('Custom Field', **options))
 
-		if len(table_fields) > 1:
-			# request for parent doctype since there's no other way to find this out
-			frappe.throw(f"There are more than one parents for {child_doctype}. Please specify parent doctype of the child table.")
-		else:
-			parent_doctype = table_fields[0].parent if table_fields else None
-
+<<<<<<< HEAD
 	return parent_doctype, parent_doc
 >>>>>>> 2a2421888f (fix: Check parent permission while doing has_permission for child)
+=======
+	if parent_doctype:
+		if not is_parent_valid(child_doctype, parent_doctype):
+			frappe.throw(f"{parent_doctype} is not a valid parent doctype {child_doctype}")
+	else:
+		frappe.throw(f"Please specify a valid parent doctype for {child_doctype}")
+
+	return has_permission(parent_doctype, ptype, parent_doc)
+
+
+def is_parent_valid(child_doctype, parent_doctype):
+	filters = {
+		"options": child_doctype,
+		"fieldtype": "Table",
+		"parent": parent_doctype
+	}
+	return frappe.db.exists("DocField", filters, cache=True) \
+			or frappe.db.exists("Custom Field", filters, cache=True)
+>>>>>>> 0f98b4d174 (fix: Make parent_doctype mandatory while accessing child doctype)
