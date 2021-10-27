@@ -591,5 +591,5 @@ def is_parent_valid(child_doctype, parent_doctype):
 		"fieldtype": "Table",
 		"parent": parent_doctype
 	}
-	return frappe.db.exists("DocField", filters, cache=True) \
-			or frappe.db.exists("Custom Field", filters, cache=True)
+	return not frappe.is_table(parent_doctype) and (frappe.db.exists("DocField", filters, cache=True)
+			or frappe.db.exists("Custom Field", filters, cache=True))
