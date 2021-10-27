@@ -595,3 +595,9 @@ class TestPermissions(unittest.TestCase):
 
 		# reset the user
 		frappe.set_user(current_user)
+
+	def test_child_table_permissions(self):
+		frappe.set_user("test@example.com")
+		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "ToDo is not a valid parent doctype Has Role", frappe.get_list, doctype="Has Role", parent_doctype="ToDo")
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Please specify a valid parent doctype for Has Role", frappe.get_list, "Has Role")
