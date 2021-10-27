@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import frappe
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_list_settings(doctype):
 	try:
 		return frappe.get_cached_doc("List View Settings", doctype)

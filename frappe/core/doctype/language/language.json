@@ -7,6 +7,7 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "enabled",
   "language_code",
   "language_name",
   "flag",
@@ -39,15 +40,22 @@
    "fieldtype": "Link",
    "label": "Based On",
    "options": "Language"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
   }
  ],
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
- "modified": "2020-04-16 22:11:33.066852",
+ "modified": "2021-10-18 14:02:06.818219",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

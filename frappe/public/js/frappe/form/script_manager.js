@@ -188,7 +188,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select', 'Duration'].includes(df.fieldtype) || df.read_only==1)
 				&& df.fetch_from && df.fetch_from.indexOf(".")!=-1) {
 				var parts = df.fetch_from.split(".");
-				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
+				me.frm.add_fetch(parts[0], parts[1], df.fieldname, df.parent);
 			}
 		}
 
