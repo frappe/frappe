@@ -60,6 +60,7 @@ def sanitize_html(html, linkify=False):
 	"""
 	import bleach
 	from bs4 import BeautifulSoup
+	import re
 
 	if not isinstance(html, str):
 		return html
@@ -67,8 +68,15 @@ def sanitize_html(html, linkify=False):
 	elif is_json(html):
 		return html
 
-	if not bool(BeautifulSoup(html, 'html.parser').find()):
+	# regex for finding unicode characters like %3E, %3c
+	regex = re.compile(r"%[0-9]?[a-zA-Z]?")
+	char_list = regex.findall(html)
+
+	if not bool(BeautifulSoup(html, 'html.parser').find()) \
+		and not bool(char_list) and (u"<" not in html and u">" not in html):
 		return html
+
+	html = strip_encoded_chars(html, char_list) if bool(char_list) else html
 
 	tags = (acceptable_elements + svg_elements + mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
@@ -78,7 +86,7 @@ def sanitize_html(html, linkify=False):
 
 	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
-		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
+		strip_comments=strip_comments, strip=True, protocols=['cid', 'http', 'https', 'mailto'])
 
 	return escaped_html
 
@@ -116,6 +124,11 @@ def get_icon_html(icon, small=False):
 def unescape_html(value):
 	from html import unescape
 	return unescape(value)
+
+def strip_encoded_chars(html, char_list):
+	for d in char_list:
+		html = html.replace(d, '')
+	return html
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [

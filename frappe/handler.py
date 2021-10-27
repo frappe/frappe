@@ -42,6 +42,11 @@ def handle():
 	return build_response("json")
 
 def execute_cmd(cmd, from_async=False):
+
+	from frappe.utils import sanitize_html
+
+	cmd = sanitize_html(cmd)
+
 	"""execute a request as python module"""
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
 		# override using the first hook
