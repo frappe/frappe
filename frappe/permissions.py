@@ -6,7 +6,7 @@ import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
-
+from frappe.query_builder import DocType
 
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
@@ -330,8 +330,7 @@ def get_all_perms(role):
 	'''Returns valid permissions for a given role'''
 	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
 	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
-	doctypes_with_custom_perms = frappe.db.sql_list("""select distinct parent
-		from `tabCustom DocPerm`""")
+	doctypes_with_custom_perms = frappe.get_all("Custom DocPerm", pluck="parent", distinct=True)
 
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:
@@ -348,10 +347,13 @@ def get_roles(user=None, with_standard=True):
 
 	def get():
 		if user == 'Administrator':
-			return [r[0] for r in frappe.db.sql("select name from `tabRole`")] # return all available roles
+			return frappe.get_all("Role", pluck="name") # return all available roles
 		else:
-			return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
-				where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+			table = DocType("Has Role")
+			roles = frappe.qb.from_(table).where(
+				(table.parent == user) & (table.role.notin(["All", "Guest"]))
+			).select(table.role).run(pluck=True)
+			return roles + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
 
@@ -460,10 +462,9 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
 		permlevel=permlevel))
+	table = DocType("Custom DocPerm")
+	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
-	frappe.db.sql("""
-		update `tabCustom DocPerm`
-		set `{0}`=%s where name=%s""".format(ptype), (value, name))
 	if validate:
 		validate_permissions_for_doctype(doctype)
 

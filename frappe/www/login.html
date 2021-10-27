@@ -79,7 +79,11 @@
 			<form class="form-signin form-login" role="form">
 				{%- if social_login -%}
 				<div class="page-card-body">
+					<form class="form-signin form-login" role="form">
+						{{ email_login_body() }}
+					</form>	
 					<div class="social-logins text-center">
+						<p class="text-muted login-divider">{{ _("or") }}</p>
 						<div class="social-login-buttons">
 							{% for provider in provider_logins %}
 							<div class="login-button-wrapper">
@@ -91,12 +95,8 @@
 									{{ _("Login With {0}").format(provider.provider_name) }}</a>
 							</div>
 							{% endfor %}
-							<p class="text-muted login-divider">{{ _("or") }}</p>
 						</div>
 					</div>
-					<a href="#email"
-						class="btn btn-block btn-default btn-sm btn-login-option">
-					 {{ _("Login With Email") }}</a>
 				</div>
 				{% else %}
 					{{ email_login_body() }}
