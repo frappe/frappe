@@ -27,7 +27,7 @@ export default class Header extends Block {
 			data = {};
 		}
 
-		newData.text = data.text || '';
+		newData.text = (data.text && __(data.text.replace(/(\n|\t)/gm, ""))) || '';
 		newData.level = parseInt(data.level) || this.defaultLevel.number;
 		newData.col = parseInt(data.col) || 12;
 
