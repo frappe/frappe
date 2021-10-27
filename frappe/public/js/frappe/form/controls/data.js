@@ -27,7 +27,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 					let doctype_edit_link = null;
 					if (this.frm.meta.custom) {
 						doctype_edit_link = frappe.utils.get_form_link(
-							'DocType', 
+							'DocType',
 							this.frm.doctype, true,
 							__('this form')
 						);
@@ -73,7 +73,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				</a>
 			</span>`
 		);
-		
+
 		this.$link = this.$wrapper.find('.link-btn');
 		this.$link_open = this.$link.find('.btn-open');
 		this.$input[0].style.paddingRight = "24px"; // To prevent text-icon mixup
@@ -81,7 +81,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.$input.on("focus", () => {
 			setTimeout(() => {
 				let inputValue = this.get_input_value();
-				
+
 				if (inputValue && validate_url(inputValue)) {
 					this.$link.toggle(true);
 					this.$link_open.attr('href', this.get_input_value());
@@ -100,7 +100,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				this.$link.toggle(false);
 			}
 		});
-		
+
 		this.$input.on("blur", () => {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
@@ -188,12 +188,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				}
 			});
 		}
-<<<<<<< HEAD
 	},
 	set_input_attributes: function() {
-=======
-	}
-	set_input_attributes() {
 		if (in_list(
 			['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only'],
 			this.df.fieldtype
@@ -201,7 +197,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			this.$input.attr("maxlength", this.df.length || 140);
 		}
 
->>>>>>> 5fded165e2 (fix: set maxlength property for Link fields)
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
@@ -270,7 +265,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
 	},
-	
+
 	in_grid() {
 		return this.grid || this.layout && this.layout.grid;
 	}
