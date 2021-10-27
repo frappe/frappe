@@ -264,6 +264,11 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
+				if d[fieldname] == None:
+					_val = getattr(self, fieldname, None)
+					if not callable(_val):
+						d[fieldname] = _val
+
 			if convert_dates_to_str and isinstance(d[fieldname], (
 				datetime.datetime,
 				datetime.date,
@@ -307,6 +312,7 @@ class BaseDocument(object):
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
+
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
 			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls, no_default_fields=no_default_fields) for d in children]
