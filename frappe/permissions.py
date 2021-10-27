@@ -592,7 +592,7 @@ def has_child_table_permission(child_doctype, ptype, doc, parent_doctype=None):
 
 	if doc:
 		parent_doctype = doc.get("parenttype") \
-			or frappe.get_cached_value(doc.doctype, doc.name, "parent")
+			or frappe.get_cached_value(doc.doctype, doc.name, "parenttype")
 
 		parent_doc = frappe.get_cached_doc({
 			"doctype": parent_doctype,
