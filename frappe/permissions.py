@@ -619,6 +619,11 @@ def is_parent_valid(child_doctype, parent_doctype):
 		"fieldtype": "Table",
 		"parent": parent_doctype
 	}
+<<<<<<< HEAD
 	return frappe.db.exists("DocField", filters, cache=True) \
 			or frappe.db.exists("Custom Field", filters, cache=True)
 >>>>>>> 0f98b4d174 (fix: Make parent_doctype mandatory while accessing child doctype)
+=======
+	return not frappe.is_table(parent_doctype) and (frappe.db.exists("DocField", filters, cache=True)
+			or frappe.db.exists("Custom Field", filters, cache=True))
+>>>>>>> 9189c62437 (fix: Pass parent_doctype while checking permission for child_table in db_query)

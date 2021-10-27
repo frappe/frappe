@@ -290,7 +290,14 @@ class DatabaseQuery(object):
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
+<<<<<<< HEAD
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
+=======
+		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
+
+		if not self.flags.ignore_permissions and \
+			not frappe.has_permission(doctype, ptype=ptype, parent_doctype=self.doctype):
+>>>>>>> 9189c62437 (fix: Pass parent_doctype while checking permission for child_table in db_query)
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
