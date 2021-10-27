@@ -10,7 +10,7 @@ class TestWebsite(unittest.TestCase):
 		frappe.set_user('Guest')
 
 	def tearDown(self):
-		frappe.db.value_cache = {}
+		frappe.db.delete('Access Log')
 		frappe.set_user('Administrator')
 
 	def test_home_page(self):
