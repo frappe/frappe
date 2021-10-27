@@ -20,7 +20,7 @@ from typing import List, Union, Tuple
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
-from frappe.query_builder import Field
+from frappe.query_builder import Field, DocType
 from pypika.terms import PseudoColumn
 
 
@@ -334,14 +334,15 @@ def clear_cache():
 def get_messages_for_app(app, deduplicate=True):
 	"""Returns all messages (list) for a specified `app`"""
 	messages = []
-	modules = ", ".join('"{}"'.format(m.title().replace("_", " ")) \
-		for m in frappe.local.app_modules[app])
+	modules = [frappe.unscrub(m) for m in frappe.local.app_modules[app]]
 
 	# doctypes
 	if modules:
+		if isinstance(modules, str):
+			modules = [modules]
 		filtered_doctypes = frappe.qb.from_("DocType").where(
 			Field("module").isin(modules)
-		).select("name").run()
+		).select("name").run(pluck=True)
 		for name in filtered_doctypes:
 			messages.extend(get_messages_from_doctype(name))
 
@@ -355,9 +356,14 @@ def get_messages_for_app(app, deduplicate=True):
 
 
 		# reports
-		for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport
-			where tabReport.ref_doctype = tabDocType.name
-				and tabDocType.module in ({})""".format(modules)):
+		report = DocType("Report")
+		doctype = DocType("DocType")
+		names = (
+			frappe.qb.from_(doctype)
+			.from_(report)
+			.where((report.ref_doctype == doctype.name) & doctype.module.isin(modules))
+			.select(report.name).run(pluck=True))
+		for name in names:
 			messages.append((None, name))
 			messages.extend(get_messages_from_report(name))
 			for i in messages:

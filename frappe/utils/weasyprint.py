@@ -1,8 +1,20 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
+import click
+
 import frappe
-from weasyprint import HTML, CSS
+
+try:
+	from weasyprint import HTML, CSS
+except OSError:
+	click.secho(
+		"\n".join(["WeasyPrint depdends on additional system dependencies.",
+		"Follow instructions specific to your operating system:",
+		"https://doc.courtbouillon.org/weasyprint/stable/first_steps.html"]),
+		fg="yellow"
+	)
+	raise
 
 
 @frappe.whitelist()
