@@ -1,28 +1,76 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 {% extends "templates/web.html" %}
-
-{% block title %}{{ _("My Account") }}{% endblock %}
-{% block header %}<h1>{{ _("My Account") }}</h1>{% endblock %}
-
+{% block title %}
+  {{ _("My Account") }}
+{% endblock %}
+{% block header %}
+  <h3 class="my-account-header font-weight-bold">{{ _("My Account") }}</h3>
+{% endblock %}
 {% block page_content %}
-<div class="row your-account-info d-none d-sm-block">
-	<div class="col-sm-4">
-		<ul class="list-unstyled">
-			<li><a href="/update-password">{{ _("Reset Password") }}</a></li>
-			<li><a href="/update-profile?name={{ user }}">{{ _("Edit Profile") }}</a></li>
-			<li><a href="/third_party_apps">{{ _("Manage Third Party Apps") }}</a></li>
-		</ul>
-	</div>
-</div>
-<div class="row d-block d-sm-none">
-	<div class="col-12">
-		<ul class="list-group">
-			{% for item in sidebar_items -%}
-				<a class="list-group-item" href="{{ item.route }}"
-					{% if item.target %}target="{{ item.target }}"{% endif %}>
-					{{ _(item.title or item.label) }}
-				</a>
-			{%- endfor %}
-		</ul>
-	</div>
-</div>
+  <div class="row account-info d-flex flex-column">
+    <div class="col d-flex justify-content-between align-items-center">
+      <div>
+        <span class="my-account-avatar">
+          {{avatar(current_user.name)}}
+        </span>
+        <span class="my-account-name ml-4">
+          {{current_user.full_name }}
+        </span>
+      </div>
+      <div>
+        <span class="my-account-item-link">
+          <a href="/update-profile?name={{ user }}">
+            <img class="edit-profile-icon mb-1 pr-2" src="/assets/frappe/images/ui-states/edit.svg" />
+            <span class="item-link-text">
+              {{_("Edit Profile") }}
+            </span>
+          </a>
+        </span>
+      </div>
+    </div>
+
+    <div class="col d-flex justify-content-between align-items-center">
+      <span>
+        <div class="my-account-item">Reset Password</div>
+        <div class="my-account-item-desc">Reset the password for your account</div>
+      </span>
+      <span class="my-account-item-link">
+        <a href="/update-password">
+          <img class="right-icon pr-2" src="/assets/frappe/images/ui-states/right-icon.svg" />
+          <span class="item-link-text">{{ _("Reset Password") }}</span></a>
+      </span>
+    </div>
+
+    <div class="col d-flex justify-content-between align-items-center">
+      <span>
+        <div class="my-account-item">Manage third party apps</div>
+          <div class="my-account-item-desc">To manage your authorized third party apps</div>
+      </span>
+      <span class="my-account-item-link">
+        <a href="/third_party_apps">
+          <img class="right-icon pr-2" src="/assets/frappe/images/ui-states/right-icon.svg" />
+          <span class="item-link-text">{{ _("Manage Third Party Apps") }}</span></a>
+      </span>
+    </div>
+  </div>
+
+  <div class="row d-block d-sm-none">
+    <div class="col-12">
+      <ul class="list-group">
+        {% for item in sidebar_items -%}
+        <a class="list-group-item" href="{{ item.route }}" {% if item.target %} target="{{ item.target }}" {% endif %}>
+          {{ _(item.title or item.label) }}
+        </a>
+        {%- endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    frappe.ready(function () {
+      if ($(window).width() > 576) {
+        $('body').css('background-color', '#F4F5F6');
+      }
+  });
+  </script>
 {% endblock %}

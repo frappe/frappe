@@ -1,0 +1,76 @@
+.my-account-header {
+	color: var(--gray-900);
+	margin-bottom: var(--margin-lg); 
+
+	@include media-breakpoint-down(sm) {
+		margin-left: -16px;
+	}
+}
+
+.account-info {
+	background-color: var(--fg-color);
+	border-radius: var(--border-radius-md);
+	padding: var(--padding-sm) 25px;
+	max-width: 850px;
+	
+
+	@include media-breakpoint-up(sm) {
+		margin-left: 0;
+	}
+	@include media-breakpoint-down(sm) {
+		padding: 0;
+	}
+
+
+	.my-account-name {
+		color: var(--gray-900);
+		font-weight: var(--text-bold);
+	}
+	
+	.my-account-item {
+		color: var(--gray-900);
+		font-weight: var(--text-bold);
+	}
+
+	.my-account-avatar{
+
+		.avatar {
+			height: 60px;
+			width: 60px;
+		}	
+	}
+	
+	.my-account-item-desc {
+		color: var(--gray-700);
+		font-size: 13px;
+	}
+
+	.my-account-item-link {
+		font-size: 13px;
+
+		.right-icon {
+			@include media-breakpoint-up(sm) {
+				display: none;
+			}
+		}
+
+		.item-link-text {
+			@include media-breakpoint-down(sm) {
+				display: none;
+			}
+		}	
+	}
+
+	.col {
+		padding: var(--padding-md) 0;
+		border-bottom: 1px solid var(--gray-100);
+		
+		.form-group {
+			margin-right: var(--margin-lg);
+		}
+	}
+
+	:last-child {
+		border: 0;
+	}
+}
