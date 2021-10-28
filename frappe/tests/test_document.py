@@ -171,7 +171,7 @@ class TestDocument(unittest.TestCase):
 		d.reload()
 
 		self.assertTrue(xss not in d.subject)
-		self.assertTrue(escaped_xss in d.subject)
+		self.assertTrue(escaped_xss not in d.subject)
 
 		# onload
 		xss = '<div onload="alert("XSS")">Test</div>'

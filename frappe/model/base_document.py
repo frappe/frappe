@@ -813,7 +813,7 @@ class BaseDocument(object):
 				continue
 
 			else:
-				sanitized_value = sanitize_html(value, linkify=df and df.fieldtype=='Text Editor')
+				sanitized_value = sanitize_html(value, strip=df.get("fieldtype") in ("Data", "Small Text", "Text"))
 
 			self.set(fieldname, sanitized_value)
 

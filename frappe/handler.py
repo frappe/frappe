@@ -45,7 +45,7 @@ def execute_cmd(cmd, from_async=False):
 
 	from frappe.utils import sanitize_html
 
-	cmd = sanitize_html(cmd)
+	cmd = sanitize_html(cmd, strip=True)
 
 	"""execute a request as python module"""
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):

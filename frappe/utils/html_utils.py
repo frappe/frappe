@@ -51,7 +51,7 @@ def clean_script_and_style(html):
 		s.decompose()
 	return frappe.as_unicode(soup)
 
-def sanitize_html(html, linkify=False):
+def sanitize_html(html, strip=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
@@ -72,8 +72,8 @@ def sanitize_html(html, linkify=False):
 	regex = re.compile(r"%[0-9]?[a-zA-Z]?")
 	char_list = regex.findall(html)
 
-	if not bool(BeautifulSoup(html, 'html.parser').find()) \
-		and not bool(char_list) and (u"<" not in html and u">" not in html):
+	if (u"<" not in html or u">" not in html) \
+		and not bool(char_list) and not bool(BeautifulSoup(html, 'html.parser').find()):
 		return html
 
 	html = strip_encoded_chars(html, char_list) if bool(char_list) else html
@@ -83,10 +83,11 @@ def sanitize_html(html, linkify=False):
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
 	styles = bleach_allowlist.all_styles
 	strip_comments = False
+	strip = strip
 
 	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
-		strip_comments=strip_comments, strip=True, protocols=['cid', 'http', 'https', 'mailto'])
+		strip_comments=strip_comments, strip=strip, protocols=['cid', 'http', 'https', 'mailto'])
 
 	return escaped_html
 

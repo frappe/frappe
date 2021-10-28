@@ -544,7 +544,7 @@ def markdown(text, sanitize=True, linkify=True):
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
-		html = sanitize_html(html, linkify=linkify)
+		html = sanitize_html(html)
 
 	return html
 
