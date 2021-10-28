@@ -174,8 +174,6 @@ def get_safe_globals():
 			rollback=frappe.db.rollback,
 		)
 
-		out.frappe.cache = cache
-
 	if frappe.response:
 		out.frappe.response = frappe.response
 
@@ -192,14 +190,6 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
-
-def cache():
-	return NamespaceDict(
-		get_value = frappe.cache().get_value,
-		set_value = frappe.cache().set_value,
-		hset = frappe.cache().hset,
-		hget = frappe.cache().hget
-	)
 
 def get_hooks(hook=None, default=None, app_name=None):
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
