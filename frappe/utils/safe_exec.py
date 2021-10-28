@@ -84,7 +84,7 @@ def get_safe_globals():
 				csrf_token = frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
 			socketio_port = frappe.conf.socketio_port,
-			get_hooks = frappe.get_hooks,
+			get_hooks = get_hooks,
 		),
 		style = frappe._dict(
 			border_color = '#d1d8dd'
