@@ -145,11 +145,6 @@
 
 .section-with-cards .card {
 	@include transition();
-	border: none;
-
-	.card-body {
-		padding: 0 1.5rem 2rem 0;
-	}
 
 	&:hover {
 		border-color: $gray-500;
