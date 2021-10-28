@@ -491,7 +491,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 	"""get tags info"""
 	import json
 	tags = json.loads(stats)
-	filters = json.loads(filters or {})
+	filters = json.loads(filters or [])
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
