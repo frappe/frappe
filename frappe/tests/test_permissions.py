@@ -479,8 +479,8 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test@example.com")
 		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
 		self.assertRaisesRegex(frappe.exceptions.ValidationError,
-			".* is not a valid parent doctype .*", frappe.get_list, doctype="Has Role", parent_doctype="ToDo")
+			".* is not a valid parent DocType for .*", frappe.get_list, doctype="Has Role", parent_doctype="ToDo")
 		self.assertRaisesRegex(frappe.exceptions.ValidationError,
-			"Please specify a valid parent doctype for .*", frappe.get_list, "Has Role")
+			"Please specify a valid parent DocType for .*", frappe.get_list, "Has Role")
 		self.assertRaisesRegex(frappe.exceptions.ValidationError,
-			".* is not a valid parent doctype .*", frappe.get_list, doctype="Has Role", parent_doctype="Has Role")
+			".* is not a valid parent DocType for .*", frappe.get_list, doctype="Has Role", parent_doctype="Has Role")

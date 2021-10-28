@@ -609,14 +609,14 @@ def has_child_table_permission(child_doctype, ptype="read", child_doc=None,
 =======
 	if parent_doctype:
 		if not is_parent_valid(child_doctype, parent_doctype):
-			frappe.throw(_("{0} is not a valid parent doctype {1}").format(
+			frappe.throw(_("{0} is not a valid parent DocType for {1}").format(
 				frappe.bold(parent_doctype),
 				frappe.bold(child_doctype)
-			), title="Invalid Parent DocType")
+			), title=_("Invalid Parent DocType"))
 	else:
-		frappe.throw(_("Please specify a valid parent doctype for {0}").format(
+		frappe.throw(_("Please specify a valid parent DocType for {0}").format(
 			frappe.bold(child_doctype)
-		), title="Parent DocType Required")
+		), title=_("Parent DocType Required"))
 
 	return has_permission(parent_doctype, ptype=ptype, doc=parent_doc,
 		verbose=verbose, user=user, raise_exception=raise_exception)

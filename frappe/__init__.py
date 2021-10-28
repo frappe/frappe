@@ -651,7 +651,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
-	:param parent_doctype: [optional] Useful while checking permission for child doctype. Default: None"""
+	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
 	if not doctype and doc:
 		doctype = doc.doctype
 
