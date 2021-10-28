@@ -1,11 +1,6 @@
-
-<<<<<<< HEAD
-import os, json, inspect
-=======
 import copy
 import inspect
 import json
->>>>>>> 787364b166 (fix(minor): Don't allow changes to global hooks from server scripts)
 import mimetypes
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
