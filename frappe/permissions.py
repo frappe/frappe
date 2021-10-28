@@ -51,7 +51,8 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 		return True
 
 	if frappe.is_table(doctype):
-		return has_child_table_permission(doctype, ptype, doc, parent_doctype)
+		return has_child_table_permission(doctype, ptype, doc, verbose,
+			user, raise_exception, parent_doctype)
 
 	meta = frappe.get_meta(doctype)
 
@@ -561,26 +562,33 @@ def push_perm_check_log(log):
 	if frappe.flags.get('has_permission_check_logs') == None: return
 	frappe.flags.get('has_permission_check_logs').append(_(log))
 
-def has_child_table_permission(child_doctype, ptype, doc, parent_doctype=None):
+def has_child_table_permission(child_doctype, ptype="read", child_doc=None,
+	verbose=False, user=None, raise_exception=True, parent_doctype=None):
 	parent_doc = None
 
-	if doc:
-		parent_doctype = doc.get("parenttype") \
-			or frappe.get_cached_value(doc.doctype, doc.name, "parenttype")
+	if child_doc:
+		parent_doctype = child_doc.get("parenttype") \
+			or frappe.get_cached_value(child_doc.doctype, child_doc.name, "parenttype")
 
 		parent_doc = frappe.get_cached_doc({
 			"doctype": parent_doctype,
-			"docname": doc.get("parent") \
-				or frappe.get_cached_value(doc.doctype, doc.name, "parent")
+			"docname": child_doc.get("parent") \
+				or frappe.get_cached_value(child_doc.doctype, child_doc.name, "parent")
 		})
 
 	if parent_doctype:
 		if not is_parent_valid(child_doctype, parent_doctype):
-			frappe.throw(f"{parent_doctype} is not a valid parent doctype {child_doctype}")
+			frappe.throw(_("{0} is not a valid parent doctype {1}").format(
+				frappe.bold(parent_doctype),
+				frappe.bold(child_doctype)
+			), title="Invalid Parent DocType")
 	else:
-		frappe.throw(f"Please specify a valid parent doctype for {child_doctype}")
+		frappe.throw(_("Please specify a valid parent doctype for {0}").format(
+			frappe.bold(child_doctype)
+		), title="Parent DocType Required")
 
-	return has_permission(parent_doctype, ptype, parent_doc)
+	return has_permission(parent_doctype, ptype=ptype, doc=parent_doc,
+		verbose=verbose, user=user, raise_exception=raise_exception)
 
 
 def is_parent_valid(child_doctype, parent_doctype):
