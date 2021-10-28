@@ -37,17 +37,10 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
-<<<<<<< HEAD
-		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False, strict=True):
-		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
-=======
-		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
+		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False,
+		strict=True, parent_doctype=None):
 		if not ignore_permissions and \
-			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
 			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
-
->>>>>>> 0f98b4d174 (fix: Make parent_doctype mandatory while accessing child doctype)
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
@@ -290,14 +283,7 @@ class DatabaseQuery(object):
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
-<<<<<<< HEAD
-		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
-=======
-		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
-
-		if not self.flags.ignore_permissions and \
-			not frappe.has_permission(doctype, ptype=ptype, parent_doctype=self.doctype):
->>>>>>> 9189c62437 (fix: Pass parent_doctype while checking permission for child_table in db_query)
+		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype, parent_doctype=self.doctype)):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
