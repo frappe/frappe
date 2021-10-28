@@ -1026,7 +1026,7 @@ def image_to_base64(image, extn):
 def pdf_to_base64(filename):
 	from frappe.utils.file_manager import get_file_path
 
-	if '../' in filename or not filename.endswith('.pdf'):
+	if '../' in filename or filename.rsplit('.')[-1] not in ['pdf', 'PDF']:
 		return
 
 	file_path = get_file_path(filename)
