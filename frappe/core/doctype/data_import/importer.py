@@ -764,7 +764,9 @@ class Column:
 	seen = []
 	fields_column_map = {}
 
-	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=[]):
+	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None):
+		if seen is None:
+			seen = []
 		self.index = index
 		self.column_number = index + 1
 		self.doctype = doctype
