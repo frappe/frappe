@@ -1,55 +1,82 @@
 <div class="comment-view mb-6">
-	{% if comment_text %}
-	<div class="comment-header mb-6">{{ comment_text }}</div>
-	{% endif %}
 	{% if not comment_list %}
-	<div class="no-comment">
-		<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
-	</div>
+		<div class="no-comment">
+			<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
+		</div>
+	{% endif %}
+
+	{% if not is_communication %}
+		<div class="add-comment-section">
+			<div class="text-muted hidden login-required">
+				<a href="/login?redirect-to={{ pathname }}">{{ _("Login to comment") }}</a>
+			</div>
+			<div class="comment-form-wrapper">
+				<div id="comment-form">
+					<form class="new-comment">
+						<fieldset class="new-comment-fields">
+							<div class="user-details row" style="margin-bottom: 15px; display:none;">
+								<div class="comment-by col-sm-6 pb-4">
+									<div class="form-label mb-1">Your Name</div>
+									<input class="form-control comment_by" name="comment_by" type="text">
+								</div>
+								<div class="col-sm-6">
+									<div class="form-label mb-1">Email</div>
+									<input class="form-control comment_email" name="comment_email" type="email">
+								</div>
+							</div>
+							<div class="comment-text-area">
+								<div class="form-label mb-1">Add a comment</div>
+								<textarea class="form-control" name="comment" rows=5 ></textarea>
+								<div class="text-muted small mt-1 mb-4">Ctrl+Enter to add comment</div>
+							</div>
+							<button class="btn btn-sm small" id="submit-comment">{{ _("Comment") }}</button>
+						</fieldset>
+					</form>
+				</div>
+			</div>
+		</div>
 	{% endif %}
 
 	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
 		{% for comment in comment_list %}
-		<div class="my-3">
 			{% include "templates/includes/comments/comment.html" %}
-		</div>
 		{% endfor %}
 	</div>
 </div>
 
-{% if not is_communication %}
-<div class="add-comment-section">
-	<div class="text-muted hidden login-required">
-		<a href="/login?redirect-to={{ pathname }}">{{ _("Login to comment") }}</a>
-	</div>
-
-	<div class="comment-form-wrapper">
-		<a class="add-comment btn btn-light btn-sm">{{ _("Add Comment") }}</a>
-		<div style="display: none;" id="comment-form">
-			<p>{{ _("Leave a Comment") }}</p>
-			<div class="alert" style="display:none;"></div>
-			<form>
-				<fieldset>
-					<div class="row" style="margin-bottom: 15px;">
-						<div class="col-sm-6">
-							<input class="form-control comment_by" name="comment_by" placeholder="{{ _("Your Name") }}" type="text">
-						</div>
-						<div class="col-sm-6">
-							<input class="form-control comment_email" name="comment_email" placeholder="{{ _("Your Email Address") }}" type="email">
-						</div>
-					</div>
-					<p><textarea class="form-control" name="comment" rows=10
-				       placeholder="{{ _("Comment") }}"></textarea></p>
-					<button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">{{ _("Submit") }}</button>
-				</fieldset>
-			</form>
-		</div>
-	</div>
-</div>
-{% endif %}
 <script>
 	frappe.ready(function() {
 		let guest_allowed = "{{ guest_allowed or ''}}";
+		let comment_count = "{{ comment_text }}";
+
+		let $comment_count = $(`
+			<div class="comment-count">
+				${frappe.utils.icon('small-message', 'md')}
+			</div>
+		`);
+
+		$('.feedback-header').append($comment_count);
+
+		$('form').keydown(function(event) {
+			if (event.ctrlKey && event.keyCode === 13) {
+				$(this).find('#submit-comment').trigger('click');
+			}
+		})
+
+		let comment_timeline_height = $('#comment-list .comment-row:last-child').height() - 10;
+		$('.blog-container')[0].style.setProperty('--comment-timeline-height', comment_timeline_height +'px');
+
+		let update_count = function(name, count) {
+			let text = count == 0 || count == 1 ? name : `${name}s`;
+
+			$(`.${name.toLowerCase()}-count`).find('span').remove();
+
+			$(`.${name.toLowerCase()}-count`).append(`
+				<span>${text} ${count}</span>
+			`);
+		}
+
+		update_count('Comment', comment_count);
 
 		if (!frappe.is_user_logged_in()) {
 			!guest_allowed && $(".login-required, .comment-form-wrapper").toggleClass("hidden");
@@ -67,20 +94,19 @@
 			$(".add-comment").toggle(false)
 				.parent().append("<div class='text-muted'>Comments are closed.</div>")
 		}
-		$(".add-comment").click(function() {
-			$(this).toggle(false);
-			$("#comment-form").toggle();
-			var full_name = "", user_id = "";
-			if(frappe.is_user_logged_in()) {
-				full_name = frappe.get_cookie("full_name");
-				user_id = frappe.get_cookie("user_id");
-				if(user_id != "Guest") {
-					$("[name='comment_email']").val(user_id);
-					$("[name='comment_by']").val(full_name);
-				}
+
+		var full_name = "", user_id = "";
+		if(frappe.is_user_logged_in()) {
+			full_name = frappe.get_cookie("full_name");
+			user_id = frappe.get_cookie("user_id");
+			if(user_id != "Guest") {
+				$("[name='comment_email']").val(user_id);
+				$("[name='comment_by']").val(full_name);
 			}
-			$("#comment-form textarea").val("");
-		})
+		} else {
+			$(".user-details").toggle('hide');
+		}
+		$("#comment-form textarea").val("");
 
 		$("#submit-comment").click(function() {
 			var args = {
@@ -119,17 +145,17 @@
 							frappe.msgprint(r._server_messages);
 					} else {
 						if (r.message) {
-							$(r.message).appendTo("#comment-list");
-							$(".add-comment").text(__("Add Another Comment"));
+							$(r.message).prependTo("#comment-list");
+							comment_count = cint(comment_count) + 1;
+							update_count('Comment', comment_count);
 						}
 						$(".no-comment, .add-comment").toggle(false);
-						$("#comment-form").toggle();
-						$(".add-comment").toggle();
+						$("#comment-form textarea").val("");
 					}
 				}
 			})
 
 			return false;
-		})
+		});
 	});
 </script>
