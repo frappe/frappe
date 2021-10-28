@@ -98,7 +98,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 	if not perm:
 		perm = false_if_not_shared()
 
-	return perm
+	return bool(perm)
 
 def get_doc_permissions(doc, user=None, ptype=None):
 	"""Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
@@ -626,6 +626,7 @@ def has_child_table_permission(child_doctype, ptype="read", child_doc=None,
 
 
 def is_parent_valid(child_doctype, parent_doctype):
+<<<<<<< HEAD
 	filters = {
 		"options": child_doctype,
 		"fieldtype": "Table",
@@ -639,3 +640,9 @@ def is_parent_valid(child_doctype, parent_doctype):
 	return not frappe.is_table(parent_doctype) and (frappe.db.exists("DocField", filters, cache=True)
 			or frappe.db.exists("Custom Field", filters, cache=True))
 >>>>>>> 9189c62437 (fix: Pass parent_doctype while checking permission for child_table in db_query)
+=======
+	from frappe.core.utils import find
+	parent_meta = frappe.get_meta(parent_doctype)
+	child_table_field_exist = find(parent_meta.get_table_fields(), lambda d: d.options == child_doctype)
+	return not frappe.is_table(parent_doctype) and child_table_field_exist
+>>>>>>> cb76118268 (refactor: Check parent validity using parent meta)
