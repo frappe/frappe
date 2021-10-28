@@ -594,5 +594,5 @@ def has_child_table_permission(child_doctype, ptype="read", child_doc=None,
 def is_parent_valid(child_doctype, parent_doctype):
 	from frappe.core.utils import find
 	parent_meta = frappe.get_meta(parent_doctype)
-	child_table_field_exist = find(parent_meta.get_table_fields(), lambda d: d.options == child_doctype)
-	return not frappe.is_table(parent_doctype) and child_table_field_exist
+	child_table_field_exists = find(parent_meta.get_table_fields(), lambda d: d.options == child_doctype)
+	return not parent_meta.istable and child_table_field_exists
