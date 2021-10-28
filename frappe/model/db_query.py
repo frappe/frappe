@@ -35,10 +35,10 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		run=True, strict=True, pluck=None, ignore_ddl=False) -> List:
+		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
 		if not ignore_permissions and \
-			not frappe.has_permission(self.doctype, "select", user=user) and \
-			not frappe.has_permission(self.doctype, "read", user=user):
+			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
+			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
 
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -318,7 +318,8 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
 
-		if not self.flags.ignore_permissions and not frappe.has_permission(doctype, ptype=ptype):
+		if not self.flags.ignore_permissions and \
+			not frappe.has_permission(doctype, ptype=ptype, parent_doctype=self.doctype):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
