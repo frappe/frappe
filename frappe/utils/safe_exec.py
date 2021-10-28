@@ -1,11 +1,7 @@
-
-<<<<<<< HEAD
-import os, json, inspect
-=======
+import os
 import copy
 import inspect
 import json
->>>>>>> 787364b166 (fix(minor): Don't allow changes to global hooks from server scripts)
 import mimetypes
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
@@ -87,17 +83,8 @@ def get_safe_globals():
 				user = user,
 				csrf_token = frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
-<<<<<<< HEAD
 			socketio_port = frappe.conf.socketio_port,
 			get_hooks = frappe.get_hooks,
-=======
-			make_get_request=frappe.integrations.utils.make_get_request,
-			make_post_request=frappe.integrations.utils.make_post_request,
-			socketio_port=frappe.conf.socketio_port,
-			get_hooks=get_hooks,
-			sanitize_html=frappe.utils.sanitize_html,
-			log_error=frappe.log_error
->>>>>>> 787364b166 (fix(minor): Don't allow changes to global hooks from server scripts)
 		),
 		style = frappe._dict(
 			border_color = '#d1d8dd'
@@ -145,32 +132,11 @@ def get_safe_globals():
 
 	return out
 
-<<<<<<< HEAD
-=======
-def cache():
-	return NamespaceDict(
-		get_value = frappe.cache().get_value,
-		set_value = frappe.cache().set_value,
-		hset = frappe.cache().hset,
-		hget = frappe.cache().hget
-	)
 
 def get_hooks(hook=None, default=None, app_name=None):
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
 	return copy.deepcopy(hooks)
 
-def read_sql(query, *args, **kwargs):
-	'''a wrapper for frappe.db.sql to allow reads'''
-	query = str(query)
-	if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
-		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
-	return frappe.db.sql(query, *args, **kwargs)
-
-def run_script(script):
-	'''run another server script'''
-	return frappe.get_doc('Server Script', script).execute_method()
-
->>>>>>> 787364b166 (fix(minor): Don't allow changes to global hooks from server scripts)
 def _getitem(obj, key):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as it does not start with underscore
