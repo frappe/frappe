@@ -25,6 +25,7 @@ class TestEmailAccount(unittest.TestCase):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 		email_account.db_set("enable_auto_reply", 1)
+		email_account.db_set("use_imap", 1)
 
 	@classmethod
 	def tearDownClass(cls):
