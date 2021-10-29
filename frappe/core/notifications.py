@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from pypika.terms import Field
 
 def get_notification_config():
 	return {
@@ -39,6 +40,10 @@ def get_todays_events(as_list=False):
 
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
+	from frappe.query_builder.functions import Now
+	from frappe.query_builder import Interval
+	comment_doctype = frappe.qb.DocType("Comment")
+	frappe.db.count("Comment", filters=((comment_doctype.comment_type == "Like") and comment_doctype.modified == Now() - Interval(years=1) ))
 	return frappe.db.sql("""select count(*) from `tabComment`
 		where
 			comment_type='Like'
