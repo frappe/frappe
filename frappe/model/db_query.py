@@ -490,7 +490,7 @@ class DatabaseQuery(object):
 
 			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
 				value = cstr(f.value)
-				fallback = "NULL"
+				fallback = "'0001-01-01 00:00:00'"
 
 			elif f.operator.lower() in ('between') and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
