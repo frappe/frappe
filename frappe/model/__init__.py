@@ -49,7 +49,7 @@ core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Rol
 	'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
 	'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
 
-def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
+def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=None):
 	if not tarfields:
 		tarfields = srcfields
 	l = []
