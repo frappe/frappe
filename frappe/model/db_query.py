@@ -488,9 +488,9 @@ class DatabaseQuery(object):
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
 
-			if (f.fieldname in ('creation', 'modified')):
+			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
 				value = cstr(f.value)
-				fallback = "NULL"
+				fallback = "'0001-01-01 00:00:00'"
 
 			elif f.operator.lower() in ('between') and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
@@ -545,6 +545,7 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			if isinstance(f.value, Column):
+				can_be_null = False	# added to avoid the ifnull/coalesce addition
 				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
