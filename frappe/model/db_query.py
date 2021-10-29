@@ -545,6 +545,7 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			if isinstance(f.value, Column):
+				can_be_null = False	# added to avoid the ifnull/coalesce addition
 				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
