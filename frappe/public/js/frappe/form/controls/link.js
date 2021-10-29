@@ -451,51 +451,55 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.validate_link_and_fetch(this.df, this.get_options(),
 			this.docname, value);
 	}
-	validate_link_and_fetch(df, doctype, docname, value) {
-		if(value) {
-			return new Promise((resolve) => {
-				var fetch = '';
-				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-				}
-				// if default and no fetch, no need to validate
-				if (!fetch && df.__default_value && df.__default_value===value) {
-					resolve(value);
-				}
+	validate_link_and_fetch(df, options, docname, value) {
+		if (!value) return;
 
-				this.fetch_and_validate_link(resolve, df, doctype, docname, value, fetch);
-			});
-		}
-	}
+		return new Promise((resolve) => {
+			const fetch_map = this.fetch_map;
 
-	fetch_and_validate_link(resolve, df, doctype, docname, value, fetch) {
-		frappe.call({
-			method: 'frappe.desk.form.utils.validate_link',
-			type: "GET",
-			args: {
-				'value': value,
-				'options': doctype,
-				'fetch': fetch
-			},
-			no_spinner: true,
-			callback: (r) => {
-				if (r.message=='Ok') {
-					if (r.fetch_values && docname) {
-						this.set_fetch_values(df, docname, r.fetch_values);
-					}
-					resolve(r.valid_value);
-				} else {
-					resolve("");
-				}
+			// if default and no fetch, no need to validate
+			if ($.isEmptyObject(fetch_map) && df.__default_value === value) {
+				return resolve(value);
 			}
+
+			frappe.db.get_value(
+				options,
+				value,
+				["name", ...Object.values(fetch_map)],
+				(response) => {
+					if (!response.name) {
+						return resolve("");
+					}
+
+					if (docname) {
+						for (const [target_field, source_field] of Object.entries(fetch_map)) {
+							frappe.model.set_value(
+								df.parent,
+								docname,
+								target_field,
+								response[source_field],
+								df.fieldtype,
+							);
+						}
+					}
+
+					return resolve(response.name);
+				}
+			)
 		});
 	}
 
-	set_fetch_values(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
+	get fetch_map() {
+		const fetch_map = {};
+		if (!this.frm) return fetch_map;
+
+		for (const key of ["*", this.df.parent]) {
+			if (this.frm.fetch_dict[key] && this.frm.fetch_dict[key][this.df.fieldname]) {
+				Object.assign(fetch_map, this.frm.fetch_dict[key][this.df.fieldname]);
+			}
 		}
+
+		return fetch_map;
 	}
 };
 

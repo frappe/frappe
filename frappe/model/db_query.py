@@ -35,10 +35,10 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None, ignore_ddl=False) -> List:
+		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
 		if not ignore_permissions and \
-			not frappe.has_permission(self.doctype, "select", user=user) and \
-			not frappe.has_permission(self.doctype, "read", user=user):
+			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
+			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
 
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -87,7 +87,7 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		self.return_query = return_query
+		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
 
@@ -104,8 +104,6 @@ class DatabaseQuery(object):
 		if not self.columns: return []
 
 		result = self.build_and_run()
-		if return_query:
-			return result
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -137,11 +135,8 @@ class DatabaseQuery(object):
 			%(order_by)s
 			%(limit)s""" % args
 
-		if self.return_query:
-			return query
-		else:
-			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
-				update=self.update, ignore_ddl=self.ignore_ddl)
+		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
+				update=self.update, ignore_ddl=self.ignore_ddl, run=self.run)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -323,7 +318,8 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
 
-		if not self.flags.ignore_permissions and not frappe.has_permission(doctype, ptype=ptype):
+		if not self.flags.ignore_permissions and \
+			not frappe.has_permission(doctype, ptype=ptype, parent_doctype=self.doctype):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 

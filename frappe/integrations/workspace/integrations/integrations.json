@@ -1,20 +1,13 @@
 {
- "category": "",
  "charts": [],
  "content": "[{\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Backup\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Google Services\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Authentication\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Payments\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
  "creation": "2020-03-02 15:16:18.714190",
- "developer_mode_only": 0,
- "disable_user_customization": 0,
  "docstatus": 0,
  "doctype": "Workspace",
- "extends": "",
- "extends_another_page": 0,
  "for_user": "",
  "hide_custom": 0,
  "icon": "integration",
  "idx": 0,
- "is_default": 0,
- "is_standard": 0,
  "label": "Integrations",
  "links": [
   {
@@ -267,15 +260,12 @@
    "type": "Link"
   }
  ],
- "modified": "2021-08-05 12:16:00.355267",
+ "modified": "2021-08-05 12:16:00.355268",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
- "onboarding": "",
  "owner": "Administrator",
  "parent_page": "",
- "pin_to_bottom": 0,
- "pin_to_top": 0,
  "public": 1,
  "restrict_to_domain": "",
  "roles": [],

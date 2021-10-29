@@ -406,7 +406,7 @@ def get_contacts(email_strings, auto_create_contact=False):
 	return contacts
 
 def add_contact_links_to_communication(communication, contact_name):
-	contact_links = frappe.get_list("Dynamic Link", filters={
+	contact_links = frappe.get_all("Dynamic Link", filters={
 			"parenttype": "Contact",
 			"parent": contact_name
 		}, fields=["link_doctype", "link_name"])
