@@ -222,6 +222,11 @@ input.list-check-all {
 		z-index: 500;
 		top: 0;
 	}
+
+	.sortable-handle {
+		cursor: all-scroll;
+		cursor: grabbing;
+	}
 }
 
 .list-items {
