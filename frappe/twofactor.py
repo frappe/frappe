@@ -15,9 +15,9 @@ from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
 
-def toggle_two_factor_auth(state, roles=[]):
+def toggle_two_factor_auth(state, roles=None):
 	'''Enable or disable 2FA in site_config and roles'''
-	for role in roles:
+	for role in roles or []:
 		role = frappe.get_doc('Role', {'role_name': role})
 		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
