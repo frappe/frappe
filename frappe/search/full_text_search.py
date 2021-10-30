@@ -7,7 +7,9 @@ from frappe.utils import update_progress_bar
 from whoosh.index import create_in, open_dir, EmptyIndexError
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
-from whoosh.query import Prefix
+from whoosh.query import Prefix, FuzzyTerm
+from whoosh.writing import AsyncWriter
+
 
 class FullTextSearch:
 	""" Frappe Wrapper for Whoosh """
@@ -20,6 +22,9 @@ class FullTextSearch:
 
 	def get_schema(self):
 		return Schema(name=ID(stored=True), content=TEXT(stored=True))
+
+	def get_fields_to_search(self):
+		return ["name", "content"]
 
 	def get_id(self):
 		return "name"
@@ -75,7 +80,7 @@ class FullTextSearch:
 		ix = self.get_index()
 
 		with ix.searcher():
-			writer = ix.writer()
+			writer = AsyncWriter(ix)
 			writer.delete_by_term(self.id, document[self.id])
 			writer.add_document(**document)
 			writer.commit(optimize=True)
@@ -118,8 +123,15 @@ class FullTextSearch:
 		results = None
 		out = []
 
+		search_fields = self.get_fields_to_search()
+		fieldboosts = {}
+
+		# apply reducing boost on fields based on order. 1.0, 0.5, 0.33 and so on
+		for idx, field in enumerate(search_fields, start=1):
+			fieldboosts[field] = 1.0 / idx
+
 		with ix.searcher() as searcher:
-			parser = MultifieldParser(["title", "content"], ix.schema)
+			parser = MultifieldParser(search_fields, ix.schema, termclass=FuzzyTermExtended, fieldboosts=fieldboosts)
 			parser.remove_plugin_class(FieldsPlugin)
 			parser.remove_plugin_class(WildcardPlugin)
 			query = parser.parse(text)
@@ -133,6 +145,14 @@ class FullTextSearch:
 				out.append(self.parse_result(r))
 
 		return out
+
+
+class FuzzyTermExtended(FuzzyTerm):
+	def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=1,
+			constantscore=True):
+		super().__init__(fieldname, text, boost=boost, maxdist=maxdist,
+				prefixlength=prefixlength, constantscore=constantscore)
+
 
 def get_index_path(index_name):
 	return frappe.get_site_path("indexes", index_name)

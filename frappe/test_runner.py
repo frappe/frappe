@@ -73,6 +73,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
 
+		frappe.utils.scheduler.enable_scheduler()
 		if frappe.db: frappe.db.commit()
 
 		# workaround! since there is no separate test db

@@ -78,6 +78,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$wrapper
 			.on("hide.bs.modal", function() {
 				me.display = false;
+				me.is_minimized = false;
+				me.hide_scrollbar(false);
 
 				if(frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1]===me) {
 					frappe.ui.open_dialogs.pop();
@@ -96,6 +98,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
 				me.focus_on_first_input();
+				me.hide_scrollbar(true);
 				me.on_page_show && me.on_page_show();
 				$(document).trigger('frappe.ui.Dialog:shown');
 			})
@@ -232,6 +235,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.get_minimize_btn().html(frappe.utils.icon(icon));
 		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
+		this.hide_scrollbar(!this.is_minimized);
+	}
+
+	hide_scrollbar(bool) {
+		$("body").css("overflow", bool ?  "hidden" : "auto");
 	}
 
 	add_custom_action(label, action, css_class=null) {
