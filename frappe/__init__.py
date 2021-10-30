@@ -556,18 +556,22 @@ def sendmail(recipients=None, sender="", subject="No Subject", message="No Messa
 	builder.process(send_now=now)
 
 
-whitelisted = []
-guest_methods = []
-xss_safe_methods = []
-allowed_http_methods_for_whitelisted_func = {}
+whitelisted = {}
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None):
+def whitelist(
+	allow_guest=False,
+	xss_safe=False,
+	methods=("GET", "POST", "PUT", "DELETE"),
+	roles=None
+):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
+	:param xss_safe: Bypass parameter sanitizaiton (applicable for Guest)
 	:param methods: Allowed http method to access the method.
+	:param roles: Restrict method to users with specified role(s)
 
 	Use as:
 
@@ -575,43 +579,45 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		def myfunc(param1, param2):
 			pass
 	"""
+	global whitelisted
 
-	if not methods:
-		methods = ['GET', 'POST', 'PUT', 'DELETE']
-
-	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
-
+	def add_to_whitelist(function):
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
 		method = None
-		if hasattr(fn, '__func__'):
-			method = fn
-			fn = method.__func__
+		if hasattr(function, "__func__"):
+			method = function
+			function = method.__func__
 
-		whitelisted.append(fn)
-		allowed_http_methods_for_whitelisted_func[fn] = methods
+		whitelisted[function] = _dict({
+			"allowed_http_methods": methods,
+			"roles": roles,
+			"allow_guest": allow_guest,
+			"xss_safe": allow_guest and xss_safe,
+		})
 
-		if allow_guest:
-			guest_methods.append(fn)
+		return method or function
 
-			if xss_safe:
-				xss_safe_methods.append(fn)
+	return add_to_whitelist
 
-		return method or fn
-
-	return innerfn
-
-def is_whitelisted(method):
-	from frappe.utils import sanitize_html
-
-	is_guest = session['user'] == 'Guest'
-	if method not in whitelisted or is_guest and method not in guest_methods:
+def is_whitelisted(function):
+	is_guest = session.user == 'Guest'
+	conditions = whitelisted.get(function)
+	if (
+		not conditions
+		or (is_guest and not conditions.allow_guest)
+		or (request and request.method not in conditions.allowed_http_methods)
+	):
 		throw(_("Not permitted"), PermissionError)
 
-	if is_guest and method not in xss_safe_methods:
+	if conditions.roles:
+		only_for(conditions.roles)
+
+	if is_guest and not conditions.xss_safe:
 		# strictly sanitize form_dict
-		# escapes html characters like <> except for predefined tags like a, b, ul etc.
+		# escapes HTML code except for predefined tags like <a>, <ul>
+		from frappe.utils import sanitize_html
+
 		for key, value in form_dict.items():
 			if isinstance(value, str):
 				form_dict[key] = sanitize_html(value)
@@ -657,19 +663,25 @@ def write_only():
 	return innfn
 
 def only_for(roles, message=False):
-	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
+	"""
+	Raises `frappe.PermissionError` if the user does not have any of the permitted roles.
 
-	:param roles: List of roles to check."""
+	:param roles (list / tuple / str): Permitted role(s)
+	"""
 	if local.flags.in_test:
 		return
 
 	if not isinstance(roles, (tuple, list)):
 		roles = (roles,)
-	roles = set(roles)
-	myroles = set(get_roles())
-	if not roles.intersection(myroles):
+
+	user_roles = set(get_roles())
+	if not set(roles).intersection(user_roles):
 		if message:
-			msgprint(_('This action is only allowed for {}').format(bold(', '.join(roles))), _('Not Permitted'))
+			msgprint(
+				_('This action is only allowed for {}').format(bold(', '.join(roles))),
+				_('Not Permitted')
+			)
+
 		raise PermissionError
 
 def get_domain_data(module):

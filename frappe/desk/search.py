@@ -1,13 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-# Search
-import frappe, json
+import re
+import json
+import wrapt
+
+import frappe
+from frappe import _
 from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
-from frappe import _, is_whitelisted
-import re
-import wrapt
+from frappe.handler import get_whitelisted_method
+
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
@@ -74,7 +77,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	if query and query.split()[0].lower()!="select":
 		# by method
 		try:
-			is_whitelisted(frappe.get_attr(query))
+			query = get_whitelisted_method(query)
 			frappe.response["values"] = frappe.call(query, doctype, txt,
 				searchfield, start, page_length, filters, as_dict=as_dict)
 		except frappe.exceptions.PermissionError as e:

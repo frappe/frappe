@@ -24,12 +24,7 @@ ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/
 def handle():
 	"""handle request"""
 
-	cmd = frappe.local.form_dict.cmd
-	data = None
-
-	if cmd!='login':
-		data = execute_cmd(cmd)
-
+	data = execute_cmd()
 	# data can be an empty string or list which are valid responses
 	if data is not None:
 		if isinstance(data, Response):
@@ -41,39 +36,34 @@ def handle():
 
 	return build_response("json")
 
-def execute_cmd(cmd, from_async=False):
-	"""execute a request as python module"""
+def execute_cmd(cmd=None):
+	if not cmd:
+		cmd = frappe.form_dict.cmd
+
+	if cmd == "login" or run_server_script_api(cmd):
+		return
+
+	return frappe.call(get_whitelisted_method(cmd), **frappe.form_dict)
+
+def get_whitelisted_method(cmd, validate_http_method=False):
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
 		# override using the first hook
 		cmd = hook
 		break
 
-	# via server script
-	if run_server_script_api(cmd):
-		return None
-
 	try:
 		method = get_attr(cmd)
 	except Exception as e:
-		frappe.throw(_('Failed to get method for command {0} with {1}').format(cmd, e))
-
-	if from_async:
-		method = method.queue
+		frappe.throw(
+			_("Failed to get method for command {0} with error: {1}").format(
+				cmd, repr(e)
+			)
+		)
 
 	if method != run_doc_method:
 		is_whitelisted(method)
-		is_valid_http_method(method)
 
-	return frappe.call(method, **frappe.form_dict)
-
-def is_valid_http_method(method):
-	http_method = frappe.local.request.method
-
-	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
-		throw_permission_error()
-
-def throw_permission_error():
-	frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return method
 
 @frappe.whitelist(allow_guest=True)
 def version():
@@ -114,11 +104,8 @@ def uploadfile():
 				# ignore pass
 				ret = None
 				frappe.db.rollback()
-		else:
-			if frappe.form_dict.get('method'):
-				method = frappe.get_attr(frappe.form_dict.method)
-				is_whitelisted(method)
-				ret = method()
+		elif frappe.form_dict.get('method'):
+			ret = get_whitelisted_method(frappe.form_dict.method)()
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
 		frappe.response['http_status_code'] = 500
@@ -176,11 +163,9 @@ def upload_file():
 			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
 
 	if method:
-		method = frappe.get_attr(method)
-		is_whitelisted(method)
-		return method()
+		return get_whitelisted_method(method)()
 	else:
-		ret = frappe.get_doc({
+		return frappe.get_doc({
 			"doctype": "File",
 			"attached_to_doctype": doctype,
 			"attached_to_name": docname,
@@ -190,10 +175,7 @@ def upload_file():
 			"file_url": file_url,
 			"is_private": cint(is_private),
 			"content": content
-		})
-		ret.save(ignore_permissions=ignore_permissions)
-		return ret
-
+		}).save(ignore_permissions=ignore_permissions)
 
 def get_attr(cmd):
 	"""get method object from cmd"""
@@ -217,6 +199,11 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	if not args:
 		args = arg or ""
 
+	try:
+		args = json.loads(args)
+	except ValueError:
+		args = args
+
 	if dt: # not called from a doctype (from a page)
 		if not dn:
 			dn = dt # single
@@ -230,22 +217,13 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
-	if not doc or not doc.has_permission("read"):
-		throw_permission_error()
+	if not doc or not doc.has_permission():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	try:
-		args = json.loads(args)
-	except ValueError:
-		args = args
+	doc.is_whitelisted(method)
 
-	method_obj = getattr(doc, method)
-	fn = getattr(method_obj, '__func__', method_obj)
-	is_whitelisted(fn)
-	is_valid_http_method(fn)
-
-	fnargs = inspect.getfullargspec(method_obj).args
-
-	if not fnargs or (len(fnargs)==1 and fnargs[0]=="self"):
+	fnargs = inspect.getfullargspec(getattr(doc, method)).args
+	if not fnargs or (len(fnargs) == 1 and fnargs[0] == "self"):
 		response = doc.run_method(method)
 
 	elif "args" in fnargs or not isinstance(args, dict):

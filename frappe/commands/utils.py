@@ -780,8 +780,7 @@ def request(context, args=None, path=None):
 
 				frappe.local.form_dict = frappe._dict(args)
 
-			frappe.handler.execute_cmd(frappe.form_dict.cmd)
-
+			frappe.handler.handle()
 			print(frappe.response)
 		finally:
 			frappe.destroy()
