@@ -11,7 +11,9 @@ var conf = get_conf();
 var subscriber = get_redis_subscriber();
 
 // serve socketio
-server.listen(conf.socketio_port, function () {
+
+// add "0.0.0.0", node ip will be ipv4 and not ipv6
+server.listen(conf.socketio_port, "0.0.0.0", function () {
 	log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
