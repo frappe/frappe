@@ -14,7 +14,7 @@ from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
 from six.moves.urllib.parse import quote
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def getdoc(doctype, name, user=None):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
@@ -53,7 +53,7 @@ def getdoc(doctype, name, user=None):
 
 	frappe.response.docs.append(doc)
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	"""load doctype"""
 

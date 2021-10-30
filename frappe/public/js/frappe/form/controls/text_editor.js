@@ -94,7 +94,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}, 300));
 
 		$(this.quill.root).on('keydown', (e) => {
-			const key = frappe.ui.keys.get_key(e);
+			const key = frappe.ui.keys && frappe.ui.keys.get_key(e);
 			if (['ctrl+b', 'meta+b'].includes(key)) {
 				e.stopPropagation();
 			}

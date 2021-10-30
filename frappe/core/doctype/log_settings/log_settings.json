@@ -49,7 +49,7 @@
    "label": "Clear Activity Log After"
   },
   {
-   "default": "90",
+   "default": "30",
    "description": "In Days",
    "fieldname": "clear_email_queue_after",
    "fieldtype": "Int",
@@ -59,7 +59,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-10-13 12:18:48.649038",
+ "modified": "2020-10-26 12:18:48.649038",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Log Settings",
