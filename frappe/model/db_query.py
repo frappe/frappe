@@ -90,11 +90,12 @@ class DatabaseQuery(object):
 		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
+		self.parent_doctype = parent_doctype
+		self.permission_doctype = parent_doctype or self.doctype
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
-		self.reference_doctype = reference_doctype or self.doctype
-
+		self.reference_doctype = reference_doctype or self.permission_doctype
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
 
@@ -155,9 +156,20 @@ class DatabaseQuery(object):
 		# query dict
 		args.tables = self.tables[0]
 
-		# left join parent, child tables
-		for child in self.tables[1:]:
-			args.tables += f" {self.join} {child} on ({child}.parent = {self.tables[0]}.name)"
+		if self.parent_doctype:
+			parent_table_name = f"`tab{self.parent_doctype}`"
+			if parent_table_name in self.tables:
+				args.tables += (
+					f" {self.join} {parent_table_name}"
+					f" on ({self.tables[0]}.parent = {parent_table_name}.name)"
+				)
+
+		else:
+			for table in self.tables[1:]:
+				args.tables += (
+					f" {self.join} {table}"
+					f" on ({table}.parent = {self.tables[0]}.name)"
+				)
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -577,15 +589,15 @@ class DatabaseQuery(object):
 
 		if not self.tables: self.extract_tables()
 
-		meta = frappe.get_meta(self.doctype)
+		meta = frappe.get_meta(self.permission_doctype)
 		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
-		self.shared = frappe.share.get_shared(self.doctype, self.user)
+		self.shared = frappe.share.get_shared(self.permission_doctype, self.user)
 
 		if (
 			not meta.istable and
 			not (role_permissions.get("select") or role_permissions.get("read")) and
 			not self.flags.ignore_permissions and
-			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
+			not has_any_user_permission_for_doctype(self.permission_doctype, self.user, self.reference_doctype)
 		):
 			only_if_shared = True
 			if not self.shared:
@@ -626,7 +638,12 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return f"`tab{self.doctype}`.name in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		table_name = f"`tab{self.permission_doctype}`"
+
+		if self.parent_doctype:
+			self.tables.append(table_name)
+
+		return f"{table_name}.name in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
@@ -667,7 +684,7 @@ class DatabaseQuery(object):
 						if permission.get('applicable_for') == self.reference_doctype:
 							docs.append(permission.get('doc'))
 
-					elif permission.get('applicable_for') == self.doctype:
+					elif permission.get('applicable_for') == self.permission_doctype:
 						docs.append(permission.get('doc'))
 
 				if docs:
@@ -684,14 +701,14 @@ class DatabaseQuery(object):
 
 	def get_permission_query_conditions(self):
 		conditions = []
-		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
+		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.permission_doctype, [])
 		if condition_methods:
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
-		permision_script_name = get_server_script_map().get("permission_query", {}).get(self.doctype)
+		permision_script_name = get_server_script_map().get("permission_query", {}).get(self.permission_doctype)
 		if permision_script_name:
 			script = frappe.get_doc("Server Script", permision_script_name)
 			condition = script.get_permission_query_conditions(self.user)

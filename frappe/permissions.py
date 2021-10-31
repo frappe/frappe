@@ -42,13 +42,16 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 	"""
 	if not user: user = frappe.session.user
 
+	if user == "Administrator":
+		return True
+
 	if not doc and hasattr(doctype, 'doctype'):
 		# first argument can be doc or doctype
 		doc = doctype
 		doctype = doc.doctype
 
-	if user == "Administrator":
-		return True
+	if isinstance(doc, str):
+		doc = frappe.get_doc(doctype, doc)
 
 	if frappe.is_table(doctype):
 		return has_child_table_permission(doctype, ptype, doc, verbose,
@@ -57,8 +60,6 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, ra
 	meta = frappe.get_meta(doctype)
 
 	if doc:
-		if isinstance(doc, str):
-			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype).get(ptype)
 		if not perm: push_perm_check_log(_('User {0} does not have access to this document').format(frappe.bold(user)))
 	else:
