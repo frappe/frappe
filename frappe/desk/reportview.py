@@ -32,6 +32,7 @@ def get_form_params():
 
 	is_report = data.get('view') == 'Report'
 
+<<<<<<< HEAD
 	data.pop('cmd', None)
 	data.pop('data', None)
 	data.pop('ignore_permissions', None)
@@ -41,6 +42,52 @@ def get_form_params():
 		del data["csrf_token"]
 
 	if isinstance(data.get("filters"), string_types):
+=======
+	fieldname = field
+	for sep in (' as ', ' AS '):
+		if sep in fieldname:
+			fieldname = fieldname.split(sep)[0]
+
+	# certain functions allowed, extract the fieldname from the function
+	if (fieldname.startswith('count(')
+		or fieldname.startswith('sum(')
+		or fieldname.startswith('avg(')):
+		if not fieldname.strip().endswith(')'):
+			raise_invalid_field(field)
+		fieldname = fieldname.split('(', 1)[1][:-1]
+
+	return fieldname
+
+def get_meta_and_docfield(fieldname, data):
+	parenttype, fieldname = get_parenttype_and_fieldname(fieldname, data)
+	meta = frappe.get_meta(parenttype)
+	df = meta.get_field(fieldname)
+	return meta, df
+
+def update_wildcard_field_param(data):
+	if ((isinstance(data.fields, str) and data.fields == "*")
+		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
+		data.fields = frappe.db.get_table_columns(data.doctype)
+		return True
+
+	return False
+
+
+def clean_params(data):
+	for param in (
+		"cmd",
+		"data",
+		"ignore_permissions",
+		"view",
+		"user",
+		"csrf_token",
+		"join"
+	):
+		data.pop(param, None)
+
+def parse_json(data):
+	if isinstance(data.get("filters"), str):
+>>>>>>> 2e48c0a85e (fix: clean `join` param when executing `reportview.get`)
 		data["filters"] = json.loads(data["filters"])
 	if isinstance(data.get("fields"), string_types):
 		data["fields"] = json.loads(data["fields"])
