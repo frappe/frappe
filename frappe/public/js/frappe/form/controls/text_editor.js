@@ -83,10 +83,19 @@ Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
 
+<<<<<<< HEAD
 //Adding fonts in text editor
 const Font = Quill.import('attributors/class/font');
 Font.whitelist = font_names;
 Quill.register(Font, true);
+=======
+// direction class
+const DirectionClass = Quill.import('attributors/class/direction');
+Quill.register(DirectionClass,true);
+
+// replace font tag with span
+const Inline = Quill.import('blots/inline');
+>>>>>>> 6e57e8b40d (fix(minor): add classes for rtl)
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
