@@ -11,13 +11,6 @@ from frappe.query_builder import DocType
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
-
-def check_admin_or_system_manager(user=None):
-	if not user: user = frappe.session.user
-
-	if ("System Manager" not in frappe.get_roles(user)) and (user!="Administrator"):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
-
 def print_has_permission_check_logs(func):
 	def inner(*args, **kwargs):
 		frappe.flags['has_permission_check_logs'] = []

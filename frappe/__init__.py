@@ -668,7 +668,7 @@ def only_for(roles, message=False):
 
 	:param roles (list / tuple / str): Permitted role(s)
 	"""
-	if local.flags.in_test:
+	if local.flags.in_test or session.user == "Administrator":
 		return
 
 	if not isinstance(roles, (tuple, list)):
