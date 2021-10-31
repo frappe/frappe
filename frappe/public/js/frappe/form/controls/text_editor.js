@@ -54,7 +54,7 @@ Quill.register(DirectionStyle, true);
 
 // direction class
 const DirectionClass = Quill.import('attributors/class/direction');
-Quill.register(DirectionClass,true);
+Quill.register(DirectionClass, true);
 
 // replace font tag with span
 const Inline = Quill.import('blots/inline');
