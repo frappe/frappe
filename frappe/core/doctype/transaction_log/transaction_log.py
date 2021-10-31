@@ -47,10 +47,10 @@ class TransactionLog(Document):
 def get_current_index():
 	series = DocType("Series")
 	current = (
-        frappe.qb.from_(series)
-        .where(series.name == "TRANSACTLOG")
-        .for_update()
-        .select("current").run())
+		frappe.qb.from_(series)
+		.where(series.name == "TRANSACTLOG")
+		.for_update()
+		.select("current").run())
 	if current and current[0][0] is not None:
 		current = current[0][0]
 
