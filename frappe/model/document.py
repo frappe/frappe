@@ -236,6 +236,7 @@ class Document(BaseDocument):
 		self._validate()
 		self.set_docstatus()
 		self.flags.in_insert = False
+		self.set_owner()
 
 		# run validate, on update etc.
 
@@ -315,6 +316,8 @@ class Document(BaseDocument):
 		self.validate_higher_perm_levels()
 		self._validate_links()
 		self.run_before_save_methods()
+
+		self.set_owner()
 
 		if self._action != "cancel":
 			self._validate()
@@ -468,7 +471,6 @@ class Document(BaseDocument):
 		self.modified_by = frappe.session.user
 		if not self.creation:
 			self.creation = self.modified
-		self.set_owner()
 
 		for d in self.get_all_children():
 			d.modified = self.modified
@@ -488,8 +490,13 @@ class Document(BaseDocument):
 			d.docstatus = self.docstatus
 
 	def set_owner(self):
-		if self.is_new() or self.has_value_changed('owner'):
+		"""Override the owner if owner is not a session user"""
+		if self.is_new():
 			self.owner = self.flags.owner or self.modified_by
+		else:
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save.owner != self.owner:
+				self.owner = self.flags.owner or doc_before_save.owner
 
 	def _validate(self):
 		self._validate_mandatory()
