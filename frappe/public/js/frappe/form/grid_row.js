@@ -320,7 +320,7 @@ export default class GridRow {
 				</div>
 				<p class='help-box small text-muted hidden-xs'>
 					<a class='add-new-fields text-muted'>
-						+ Add / Remove Columns
+						+ ${__('Add / Remove Columns')}
 					</a>
 				</p>
 			</div>
@@ -397,7 +397,7 @@ export default class GridRow {
 								<a style='cursor: grabbing;'>${frappe.utils.icon('drag', 'xs')}</a>
 							</div>
 							<div class='col-md-7' style='padding-left:0px;'>
-								${docfield.label}
+								${__(docfield.label)}
 							</div>
 							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__('Columns')}'>
 								<input class='form-control column-width input-xs text-right'

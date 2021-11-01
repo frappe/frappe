@@ -75,7 +75,7 @@ def execute():
 	if new_user_permissions_list:
 		frappe.qb.into("User Permission").columns(
 			"name", "user", "allow", "for_value", "applicable_for", "apply_to_all_doctypes", "creation", "modified"
-		).insert(tuple(new_user_permissions_list)).run()
+		).insert(*new_user_permissions_list).run()
 
 	if user_permissions_to_delete:
 		frappe.db.delete(
