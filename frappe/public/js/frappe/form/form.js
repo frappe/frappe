@@ -1612,9 +1612,17 @@ frappe.ui.form.Form = class FrappeForm {
 		}, 1000);
 	}
 
-	show_tour(on_finish) {
+	show_tour(on_finish, step_name) {
 		let that = this;
-		const tour_info = frappe.tour[this.doctype];
+		let tour_info;
+		if (step_name && typeof(frappe.tour[this.doctype]) !== "undefined" && typeof(frappe.tour[this.doctype][step_name]) !== "undefined"){
+			tour_info = frappe.tour[this.doctype][step_name];
+		} else if (typeof(frappe.tour[this.doctype]) !== "undefined" && !Array.isArray(frappe.tour[this.doctype])) {
+			tour_info = frappe.tour[this.doctype]["default"];
+		} else {
+			tour_info = frappe.tour[this.doctype];
+		}
+
 
 		if (!Array.isArray(tour_info)) {
 			return;
