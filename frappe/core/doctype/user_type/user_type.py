@@ -194,7 +194,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 		['DocType', 'read_only', '=', 0], ['DocType', 'name', 'like', '%{0}%'.format(txt)]]
 
 	doctypes = frappe.get_all('DocType', fields = ['`tabDocType`.`name`'], filters=filters,
-		order_by = '`tabDocType`.`idx` desc', limit_start=start, limit_page_length=page_len, as_list=1, debug=1)
+		order_by = '`tabDocType`.`idx` desc', limit_start=start, limit_page_length=page_len, as_list=1)
 
 	custom_dt_filters = [['Custom Field', 'dt', 'like', '%{0}%'.format(txt)],
 		['Custom Field', 'options', '=', 'User'], ['Custom Field', 'fieldtype', '=', 'Link']]
