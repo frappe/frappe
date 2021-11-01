@@ -295,6 +295,8 @@ def load_lang(lang, apps=None):
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
 
+	if lang=='en' and not getattr(frappe.local, "initialised", None):
+		return {}
 
 	out = frappe.cache().hget("lang_full_dict", lang, shared=True)
 	if not out:
