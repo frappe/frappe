@@ -182,15 +182,16 @@ def update_wildcard_field_param(data):
 
 
 def clean_params(data):
-	data.pop('cmd', None)
-	data.pop('data', None)
-	data.pop('ignore_permissions', None)
-	data.pop('view', None)
-	data.pop('user', None)
-
-	if "csrf_token" in data:
-		del data["csrf_token"]
-
+	for param in (
+		"cmd",
+		"data",
+		"ignore_permissions",
+		"view",
+		"user",
+		"csrf_token",
+		"join"
+	):
+		data.pop(param, None)
 
 def parse_json(data):
 	if isinstance(data.get("filters"), string_types):
