@@ -31,14 +31,16 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 
 	is_report = data.get('view') == 'Report'
-
-	data.pop('cmd', None)
-	data.pop('data', None)
-	data.pop('ignore_permissions', None)
-	data.pop('view', None)
-
-	if "csrf_token" in data:
-		del data["csrf_token"]
+	for param in (
+		"cmd",
+		"data",
+		"ignore_permissions",
+		"view",
+		"user",
+		"csrf_token",
+		"join"
+	):
+		data.pop(param, None)
 
 	if isinstance(data.get("filters"), string_types):
 		data["filters"] = json.loads(data["filters"])
