@@ -86,7 +86,7 @@ class BaseDocument(object):
 			self.__setup__()
 
 	def __getitem__(self, key):
-		return self.get(key)
+		return getattr(self, key)
 
 	@property
 	def meta(self):
