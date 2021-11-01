@@ -28,7 +28,10 @@ def report_error(status_code):
 	allow_traceback = cint(frappe.db.get_system_setting('allow_error_traceback')) if frappe.db else True
 	if (allow_traceback and (status_code!=404 or frappe.conf.logging)
 		and not frappe.local.flags.disable_traceback):
-		frappe.errprint(frappe.utils.get_traceback())
+		traceback = frappe.utils.get_traceback()
+		if traceback:
+			frappe.errprint(traceback)
+			frappe.local.response.exception = traceback.splitlines()[-1]
 
 	response = build_response("json")
 	response.status_code = status_code
