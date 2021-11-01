@@ -85,6 +85,9 @@ class BaseDocument(object):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
+	def __getitem__(self, key):
+		return self.get(key)
+
 	@property
 	def meta(self):
 		if not hasattr(self, "_meta"):
