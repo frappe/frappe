@@ -1613,6 +1613,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	show_tour(on_finish) {
+		let that = this;
 		const tour_info = frappe.tour[this.doctype];
 
 		if (!Array.isArray(tour_info)) {
@@ -1633,6 +1634,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.layout.sections.forEach(section => section.collapse(false));
 
 		let steps = tour_info.map(step => {
+			if(typeof(step.custom_driver) !== "undefined"){
+				return step.custom_driver(that, driver, on_finish);
+			}
 			let field = this.get_docfield(step.fieldname);
 			return {
 				element: `.frappe-control[data-fieldname='${step.fieldname}']`,

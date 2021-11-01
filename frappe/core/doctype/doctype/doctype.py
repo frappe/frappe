@@ -79,8 +79,7 @@ class DocType(Document):
 		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_website()
-		validate_links_table_fieldnames(self)
-
+		validate_fields_for_doctype(self.doctype)
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
 			self.setup_fields_to_fetch()

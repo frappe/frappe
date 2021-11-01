@@ -16,8 +16,8 @@ export default class OnboardingWidget extends Widget {
 		this.steps.forEach((step, index) => {
 			this.add_step(step, index);
 		});
-
-		this.show_step(this.steps[0]);
+		let active_step = this.steps.find(step => step.is_complete === 0);
+		this.show_step(active_step || this.steps[0]);
 	}
 
 	add_step(step, index) {
@@ -95,9 +95,17 @@ export default class OnboardingWidget extends Widget {
 					.appendTo(this.step_footer)
 					.on('click', toggle_video);
 			} else {
+				console.log("setting content")
 				$(`<button class="btn btn-primary btn-sm">${__(step.action_label || step.action)}</button>`)
 					.appendTo(this.step_footer)
-					.on('click', () => actions[step.action](step));
+					.on('click', () => {
+						if(typeof(frappe.onboading_step_setup) !== "undefined" && typeof(frappe.onboading_step_setup[step.name]) === "function"){
+							frappe.onboading_step_setup[step.name](step);
+						}
+						console.log(step.name)
+
+						actions[step.action](step);
+					});
 			}
 		};
 
@@ -219,7 +227,6 @@ export default class OnboardingWidget extends Widget {
 				});
 			});
 		};
-
 		frappe.set_route(route);
 	}
 
