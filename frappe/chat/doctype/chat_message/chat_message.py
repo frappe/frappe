@@ -132,8 +132,8 @@ def get_new_chat_message(user, room, content, type = "Content"):
 
 @frappe.whitelist(allow_guest = True)
 def send(user, room, content, type = "Content"):
-	if user != frappe.session.user:
-		user = frappe.session.user
+	# user should not be other than session user
+	user = frappe.session.user
 
 	mess = get_new_chat_message(user, room, content, type)
 
@@ -201,14 +201,15 @@ def mark_messages_as_seen(message_names, user):
 def validate_members(room):
 	user = frappe.session.user
 
-	members = []
-	for d in room.users:
-		members.append(d.user)
-
-	if user in members or user == room.owner:
+	if user == room.owner:
 		return
-	else:
-		frappe.throw("Chat Room {} not found".format(room))
+
+	user_in_room = [member for member in room.users if member.user == user]
+
+	if user_in_room:
+		return
+
+	frappe.throw("Chat Room {} not found".format(room))
 
 
 @frappe.whitelist()
