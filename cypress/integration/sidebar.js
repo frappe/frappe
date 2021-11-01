@@ -17,7 +17,7 @@ context('Sidebar', () => {
 		cy.get('.group-by-item > .dropdown-item').should('contain', 'Me');
 
 		//Assigning a doctype to a user
-		cy.click_listview_row_item(0);
+		cy.visit('/app/doctype/ToDo');
 		cy.get('.form-assignments > .flex > .text-muted').click();
 		cy.get_field('assign_to_me', 'Check').click();
 		cy.get('.modal-footer > .standard-actions > .btn-primary').click();
@@ -45,8 +45,7 @@ context('Sidebar', () => {
 		cy.get('.filter-selector > .btn').should('contain', 'Filter');
 
 		//To remove the assignment
-		cy.visit('/app/doctype');
-		cy.click_listview_row_item(0);
+		cy.visit('/app/doctype/ToDo');
 		cy.get('.assignments > .avatar-group > .avatar > .avatar-frame').click();
 		cy.get('.remove-btn').click({force: true});
 		cy.get('.modal.show > .modal-dialog > .modal-content > .modal-header > .modal-actions > .btn-modal-close').click();
