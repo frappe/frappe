@@ -359,7 +359,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-29 14:40:38.619106", 
+ "modified": "2021-10-25 14:40:38.619106", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Error Snapshot", 
@@ -394,6 +394,5 @@
  "sort_field": "timestamp", 
  "sort_order": "DESC", 
  "title_field": "evalue", 
- "track_changes": 1, 
  "track_seen": 0
 }

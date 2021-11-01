@@ -142,6 +142,12 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({ "name": event1.name } not in data)
 		self.assertTrue({ "name": event2.name } not in data)
 
+		# test between is formatted for creation column
+		data = DatabaseQuery("Event").execute(
+			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]},
+			fields=["name"])
+
+
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user('test2@example.com')
 		self.assertRaises(frappe.PermissionError, get_filters_cond, 'DocType', dict(istable=1), [])
