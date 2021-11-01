@@ -860,12 +860,23 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
+<<<<<<< HEAD
 
 @click.command("browse")
 @click.argument("site", required=False)
 @pass_context
 def browse(context, site):
 	"""Opens the site on web browser"""
+=======
+@click.command('browse')
+@click.argument('site', required=False)
+@click.option('--user', required=False)
+@pass_context
+def browse(context, site, user=None):
+	'''Opens the site on web browser'''
+	from frappe.auth import LoginManager
+	from frappe.auth import CookieManager
+>>>>>>> c5512d4c66 (fix: login as user with browse command)
 	import webbrowser
 
 	site = context.sites[0] if context.sites else site
@@ -879,7 +890,20 @@ def browse(context, site):
 	site = site.lower()
 
 	if site in frappe.utils.get_sites():
-		webbrowser.open(frappe.utils.get_site_url(site), new=2)
+		frappe.init(site=site)
+		frappe.connect()
+
+		if user:
+			frappe.utils.set_request(path="/")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			sid = f'/app?sid={frappe.session.sid}'
+		else:
+			sid = ''
+
+		url = f'{frappe.utils.get_site_url(site)}{sid}'
+		webbrowser.open(url, new=2)
 	else:
 		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 
