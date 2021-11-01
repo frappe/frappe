@@ -156,21 +156,29 @@ class BlogPost(WebsiteGenerator):
 			)
 		)
 
-		like_count = frappe.db.count('Feedback', {
-			'reference_doctype':self.doctype, 
-			'reference_name':self.name,
-			'like':True,
-		})
+		like_count = 0
+		dislike_count = 0
 
-		dislike_count = frappe.db.count('Feedback', {
-			'reference_doctype':self.doctype, 
-			'reference_name':self.name,
-			'dislike':True,
-		})
+		if frappe.db.count('Feedback'):
+			like_count = frappe.db.count('Feedback', 
+				filters = dict(
+					reference_doctype = self.doctype, 
+					reference_name = self.name, 
+					like = True
+				)
+			)
+
+			dislike_count = frappe.db.count('Feedback', 
+				filters = dict(
+					reference_doctype = self.doctype, 
+					reference_name = self.name, 
+					dislike = True
+				)
+			)
 
 		context.user_feedback = feedback[0] if feedback else ''
-		context.like_count = like_count or 0
-		context.dislike_count = dislike_count or 0
+		context.like_count = like_count
+		context.dislike_count = dislike_count
 
 	def set_read_time(self):
 		content = self.content or self.content_html or ''
