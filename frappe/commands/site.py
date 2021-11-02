@@ -870,7 +870,7 @@ def browse(context, site):
 =======
 @click.command('browse')
 @click.argument('site', required=False)
-@click.option('--user', required=False)
+@click.option('--user', required=False, help='Login as user')
 @pass_context
 def browse(context, site, user=None):
 	'''Opens the site on web browser'''
@@ -893,16 +893,20 @@ def browse(context, site, user=None):
 		frappe.init(site=site)
 		frappe.connect()
 
+		sid = ''
 		if user:
-			frappe.utils.set_request(path="/")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(user)
-			sid = f'/app?sid={frappe.session.sid}'
-		else:
-			sid = ''
+			if frappe.conf.developer_mode or user == "Administrator":
+				frappe.utils.set_request(path="/")
+				frappe.local.cookie_manager = CookieManager()
+				frappe.local.login_manager = LoginManager()
+				frappe.local.login_manager.login_as(user)
+				sid = f'/app?sid={frappe.session.sid}'
+			else:
+				print("Please enable developer mode to login as a user")
 
 		url = f'{frappe.utils.get_site_url(site)}{sid}'
+		if sid:
+			print(f'Login URL: {url}')
 		webbrowser.open(url, new=2)
 	else:
 		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
