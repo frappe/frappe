@@ -278,7 +278,8 @@ class Database(object):
 
 		_query = query.lstrip()[:10].lower()
 
-		if not self.transaction_started:
+		# start a transaction if not yet started
+		if not self.transaction_writes and not self.transaction_started:
 			self.begin()
 
 		if self.transaction_writes and _query.startswith(
