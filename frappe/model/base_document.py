@@ -86,7 +86,7 @@ class BaseDocument(object):
 			self.__setup__()
 
 	def __getitem__(self, key):
-		return getattr(self, key)
+		return self.get(key, frappe.throw(msg=key, exc=KeyError))
 
 	@property
 	def meta(self):
@@ -678,7 +678,7 @@ class BaseDocument(object):
 			if data_field_options == "URL":
 				if not data:
 					continue
-				
+
 				frappe.utils.validate_url(data, throw=True)
 
 	def _validate_constants(self):
