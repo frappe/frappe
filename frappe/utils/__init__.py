@@ -865,7 +865,3 @@ def get_table_name(table_name: str) -> str:
 
 def is_read_query(query):
 	return not query.startswith(("update", "insert", "delete"))
-
-def scrub_sql(query):
-	# get rid of comments etc in queries; anything that looks funny
-	return query

@@ -228,6 +228,16 @@ def connect(site=None, db_name=None, set_admin_as_user=True):
 	if set_admin_as_user:
 		set_user("Administrator")
 
+def connect_read_only():
+	"""Connect to database in read only mode."""
+	from frappe.database import get_db
+	local.read_only_db = get_db()
+	local.read_only_db.begin(read_only=True)
+
+	local.primary_db = local.db
+	local.db = local.read_only_db
+
+
 def connect_replica():
 	from frappe.database import get_db
 	user = local.conf.db_name
@@ -619,16 +629,19 @@ def is_whitelisted(method):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-			flags.read_only = True
 			if conf.read_from_replica:
 				connect_replica()
+			else:
+				connect_read_only()
 
 			try:
+				flags.read_only = True
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
 					local.db = local.primary_db
+
 				flags.read_only = False
 
 			return retval

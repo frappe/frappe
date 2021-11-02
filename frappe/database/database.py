@@ -14,7 +14,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast, get_datetime, is_read_query, scrub_sql
+from frappe.utils import now, getdate, cast, get_datetime, is_read_query
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.functions import Min, Max, Avg, Sum
@@ -56,6 +56,7 @@ class Database(object):
 		if use_default:
 			self.user = frappe.conf.db_name
 
+		self.transaction_started = False
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
@@ -275,16 +276,10 @@ class Database(object):
 		if not query:
 			return
 
-		_query = scrub_sql(query)
-		is_write_query = not is_read_query(_query)
+		_query = query.lstrip()[:10].lower()
 
-		# print(query, frappe.flags.read_only, is_write_query)
-
-		if frappe.flags.read_only and is_write_query:
-			frappe.throw(
-				_("Not allowed in Read Only transactions"),
-				frappe.OperationNotAllowedError
-			)
+		if not self.transaction_started:
+			self.begin()
 
 		if self.transaction_writes and _query.startswith(
 			('start', 'alter', 'drop', 'create', "begin", "truncate")
@@ -296,8 +291,9 @@ class Database(object):
 
 		if _query.startswith(("commit", "rollback")):
 			self.transaction_writes = 0
+			self.transaction_started = False
 
-		if not is_write_query:
+		if is_read_query(_query):
 			return
 
 		self.transaction_writes += 1
@@ -730,8 +726,10 @@ class Database(object):
 		else:
 			return frappe.defaults.get_defaults(parent)
 
-	def begin(self):
-		self.sql("START TRANSACTION")
+	def begin(self, read_only=False):
+		mode = "READ ONLY" if read_only else ""
+		self.transaction_started = True
+		self.sql(f"START TRANSACTION {mode}")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
