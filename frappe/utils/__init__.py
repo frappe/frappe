@@ -859,5 +859,13 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 			records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
 
+
 def get_table_name(table_name: str) -> str:
 	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+def is_read_query(query):
+	return not query.startswith(("update", "insert", "delete"))
+
+def scrub_sql(query):
+	# get rid of comments etc in queries; anything that looks funny
+	return query
