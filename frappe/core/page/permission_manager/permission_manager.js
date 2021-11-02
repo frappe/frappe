@@ -325,15 +325,15 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-doctype", d.parent)
 			.attr("data-role", d.role)
 			.attr("data-permlevel", d.permlevel)
-			.click(function () {
+			.on("click", () => {
 				return frappe.call({
 					module: "frappe.core",
 					page: "permission_manager",
 					method: "remove",
 					args: {
-						doctype: $(this).attr("data-doctype"),
-						role: $(this).attr("data-role"),
-						permlevel: $(this).attr("data-permlevel")
+						doctype: d.parent,
+						role: d.role,
+						permlevel: d.permlevel
 					},
 					callback: (r) => {
 						if (r.exc) {
