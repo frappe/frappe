@@ -64,22 +64,29 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param is_path: (optional) assert that the `template` parameter is a path
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
-
-	from frappe import _, get_traceback, throw
-	from jinja2 import TemplateError
-
 	if not template:
 		return ""
 
-	if (is_path or guess_is_path(template)):
-		return get_jenv().get_template(template).render(context)
-	else:
+	from frappe import _, get_traceback, throw, read_only
+	from jinja2 import TemplateError
+
+	@read_only()
+	def _render_template():
+		if (is_path or guess_is_path(template)):
+			return get_jenv().get_template(template).render(context)
+
 		if safe_render and ".__" in template:
-			throw(_("Illegal template"))
+				throw(_("Illegal template"))
+
 		try:
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
-			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=get_traceback()))
+			throw(
+				title="Jinja Template Error",
+				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>"
+			)
+
+	return _render_template()
 
 def guess_is_path(template):
 	# template can be passed as a path or content
