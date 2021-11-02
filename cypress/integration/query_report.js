@@ -43,7 +43,7 @@ context('Form', () => {
 		cy.get('.modal-dialog').should('contain', 'Save Report');
 
 		cy.get('input[data-fieldname="report_name"]').type(update_name, {delay: 100, force: true});
-		cy.get('button').contains('Submit').click({timeout:1000, force: true});
+		cy.get('button').contains('Submit').click({timeout: 1000, force: true});
 
 		cy.visit('/desk#query-report/'+report);
 		cy.get('.datatable').should('exist');
