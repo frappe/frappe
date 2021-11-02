@@ -55,7 +55,10 @@ context('Recorder', () => {
 
 		cy.visit('/app/recorder');
 
-		cy.get('.frappe-list .list-row-container span').contains('/api/method/frappe').should('be.visible').click();
+		cy.get('.frappe-list .list-row-container span')
+			.contains('/api/method/frappe')
+			.should('be.visible')
+			.click({force: true});
 
 		cy.url().should('include', '/recorder/request');
 		cy.get('form').should('contain', '/api/method/frappe');

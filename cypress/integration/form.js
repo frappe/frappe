@@ -25,7 +25,7 @@ context('Form', () => {
 	it('navigates between documents with child table list filters applied', () => {
 		cy.visit('/app/contact');
 		cy.add_filter();
-		cy.get('.filter-field input[data-fieldname="name"]').type('123', { force: true });
+		cy.get('.filter-field .input-with-feedback').type('123', { force: true });
 		cy.get('.filter-action-buttons').findByRole('button', {name: 'Apply Filters'}).click({ force: true });
 
 		cy.visit('/app/contact/Test Form Contact 3');
