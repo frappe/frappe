@@ -278,10 +278,6 @@ class Database(object):
 
 		_query = query.lstrip()[:10].lower()
 
-		# start a transaction if not yet started
-		if not self.transaction_writes and not self.transaction_started:
-			self.begin()
-
 		if self.transaction_writes and _query.startswith(
 			('start', 'alter', 'drop', 'create', "begin", "truncate")
 		):
@@ -297,7 +293,12 @@ class Database(object):
 		if is_read_query(_query):
 			return
 
-		self.transaction_writes += 1
+		# start a transaction if not yet started
+		if not self.transaction_writes and not self.transaction_started:
+			self.begin()
+
+		if _query.startswith(("insert", "update", "delete")):
+			self.transaction_writes += 1
 
 		if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 			if self.auto_commit_on_many_writes:
