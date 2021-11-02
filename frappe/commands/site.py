@@ -905,7 +905,7 @@ def browse(context, site, user=None):
 				print("Please enable developer mode to login as a user")
 
 		url = f'{frappe.utils.get_site_url(site)}{sid}'
-		if sid:
+		if user == "Administrator":
 			print(f'Login URL: {url}')
 		webbrowser.open(url, new=2)
 	else:
