@@ -619,6 +619,7 @@ def is_whitelisted(method):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
+			flags.read_only = True
 			if conf.read_from_replica:
 				connect_replica()
 
@@ -628,6 +629,7 @@ def read_only():
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
 					local.db = local.primary_db
+				flags.read_only = False
 
 			return retval
 		return wrapper_fn
