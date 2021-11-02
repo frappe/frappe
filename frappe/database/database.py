@@ -14,7 +14,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast, get_datetime
+from frappe.utils import now, getdate, cast, get_datetime, is_read_query, scrub_sql
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.functions import Min, Max, Avg, Sum
@@ -261,23 +261,55 @@ class Database(object):
 		self.sql(query, debug=debug)
 
 	def check_transaction_status(self, query):
-		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
-		executed in one transaction. This is to ensure that writes are always flushed otherwise this
-		could cause the system to hang."""
-		if self.transaction_writes and \
-			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
-			raise Exception('This statement can cause implicit commit')
+		"""Raises exceptions if
+		* More than self.MAX_WRITES_PER_TRANSACTION `INSERT`, `UPDATE`
+		or `DELETE` queries are executed in one transaction.
+		* If frappe.flags.read_only is set to True and the query uses an
+		 `INSERT`, `UPDATE` or `DELETE` statement.
+		* If write queries have already been executed and query may cause
+		an implicit commit.
 
-		if query and query.strip().lower() in ('commit', 'rollback'):
+		This is to ensure that writes are always flushed otherwise this
+		could cause the system to hang."""
+
+		if not query:
+			return
+
+		_query = scrub_sql(query)
+		is_write_query = not is_read_query(_query)
+
+		# print(query, frappe.flags.read_only, is_write_query)
+
+		if frappe.flags.read_only and is_write_query:
+			frappe.throw(
+				_("Not allowed in Read Only transactions"),
+				frappe.OperationNotAllowedError
+			)
+
+		if self.transaction_writes and _query.startswith(
+			('start', 'alter', 'drop', 'create', "begin", "truncate")
+		):
+			frappe.throw(
+				_("This statement can cause implicit commit"),
+				frappe.ImplicitCommitError
+			)
+
+		if _query.startswith(("commit", "rollback")):
 			self.transaction_writes = 0
 
-		if query[:6].lower() in ('update', 'insert', 'delete'):
-			self.transaction_writes += 1
-			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
-				if self.auto_commit_on_many_writes:
-					self.commit()
-				else:
-					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
+		if not is_write_query:
+			return
+
+		self.transaction_writes += 1
+
+		if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
+			if self.auto_commit_on_many_writes:
+				self.commit()
+			else:
+				frappe.throw(
+					_("Too many writes in one request. Please send smaller requests"),
+					frappe.ValidationError
+				)
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
