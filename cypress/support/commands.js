@@ -353,5 +353,13 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 });
 
 Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
-	cy.get('.timeline-message-box .custom-actions > .btn').contains(btn_name).click();
+	cy.get('.timeline-message-box .actions .action-btn').contains(btn_name).click();
+});
+
+Cypress.Commands.add('click_first_row_in_list', () => {
+	cy.get('.frappe-list .list-row-container .level-item.ellipsis').first().click();
+});
+
+Cypress.Commands.add('select_first_row_checkbox', () => {
+	cy.get('.frappe-list .select-like > .list-row-checkbox').first().click();
 });
