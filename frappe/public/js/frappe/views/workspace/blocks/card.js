@@ -14,7 +14,7 @@ export default class Card extends Block {
 	constructor({ data, api, config, readOnly, block }) {
 		super({ data, api, config, readOnly, block });
 		this.sections = {};
-		this.col = this.data.col ? this.data.col : "12";
+		this.col = this.data.col ? this.data.col : "4";
 		this.allow_customization = !this.readOnly;
 		this.options = {
 			allow_sorting: this.allow_customization,
@@ -30,7 +30,7 @@ export default class Card extends Block {
 		this.new('card', 'links');
 
 		if (this.data && this.data.card_name) {
-			let has_data = this.make('card', this.data.card_name, 'links');
+			let has_data = this.make('card', __(this.data.card_name), 'links');
 			if (!has_data) return;
 		}
 

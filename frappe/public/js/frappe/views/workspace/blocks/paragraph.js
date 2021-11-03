@@ -123,10 +123,10 @@ export default class Paragraph extends Block {
 		return true;
 	}
 
-	save(toolsContent) {
+	save() {
 		this.wrapper = this._element;
 		return {
-			text: toolsContent.innerText,
+			text: this.wrapper.innerHTML,
 			col: this.get_col(),
 		};
 	}
@@ -155,6 +155,9 @@ export default class Paragraph extends Block {
 		return {
 			text: {
 				br: true,
+				b: true,
+				i: true,
+				a: true
 			}
 		};
 	}
@@ -174,7 +177,7 @@ export default class Paragraph extends Block {
 	set data(data) {
 		this._data = data || {};
 
-		this._element.innerHTML = this._data.text || '';
+		this._element.innerHTML = __(this._data.text) || '';
 	}
 
 	static get pasteConfig() {

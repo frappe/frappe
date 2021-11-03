@@ -15,11 +15,6 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
 
-		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
-			this.df.fieldtype)) {
-			this.$input.attr("maxlength", this.df.length || 140);
-		}
-
 		this.$input.on('paste', (e) => {
 			let pasted_data = frappe.utils.get_clipboard_data(e);
 			let maxlength = this.$input.attr('maxlength');
@@ -163,7 +158,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			}
 		};
 		this.$input.on("change", change_handler);
-		if (this.constructor.trigger_change_on_input_event) {
+		if (this.constructor.trigger_change_on_input_event && !this.in_grid()) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
@@ -199,6 +194,13 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		}
 	}
 	set_input_attributes() {
+		if (in_list(
+			['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only'],
+			this.df.fieldtype
+		)) {
+			this.$input.attr("maxlength", this.df.length || 140);
+		}
+
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
@@ -266,5 +268,8 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	toggle_container_scroll(el_class, scroll_class, add=false) {
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
+	}
+	in_grid() {
+		return this.grid || this.layout && this.layout.grid;
 	}
 };

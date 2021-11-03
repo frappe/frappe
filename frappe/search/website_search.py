@@ -1,5 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import os
 
@@ -20,6 +20,9 @@ class WebsiteSearch(FullTextSearch):
 		return Schema(
 			title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
 		)
+
+	def get_fields_to_search(self):
+		return ["title", "content"]
 
 	def get_id(self):
 		return "path"

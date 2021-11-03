@@ -1,5 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 # Author - Shivam Mishra <shivam@frappe.io>
 
 import frappe
@@ -32,9 +32,6 @@ class Workspace:
 		self.page_name = page.get('name')
 		self.page_title = page.get('title')
 		self.public_page = page.get('public')
-		self.extended_links = []
-		self.extended_charts = []
-		self.extended_shortcuts = []
 		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
 
 		self.user = frappe.get_user()
@@ -151,21 +148,6 @@ class Workspace:
 
 		return doc
 
-	def get_pages_to_extend(self):
-		pages = frappe.get_all("Workspace", filters={
-			"extends": self.page_name,
-			'restrict_to_domain': ['in', frappe.get_active_domains()],
-			'for_user': '',
-			'module': ['in', self.allowed_modules]
-		})
-
-		pages = [frappe.get_cached_doc("Workspace", page['name']) for page in pages]
-
-		for page in pages:
-			self.extended_links = self.extended_links + page.get_link_groups()
-			self.extended_charts = self.extended_charts + page.charts
-			self.extended_shortcuts = self.extended_shortcuts + page.shortcuts
-
 	def is_item_allowed(self, name, item_type):
 		if frappe.session.user == "Administrator":
 			return True
@@ -187,17 +169,14 @@ class Workspace:
 
 	def build_workspace(self):
 		self.cards = {
-			'label': _(self.doc.cards_label),
 			'items': self.get_links()
 		}
 
 		self.charts = {
-			'label': _(self.doc.charts_label),
 			'items': self.get_charts()
 		}
 
 		self.shortcuts = {
-			'label': _(self.doc.shortcuts_label),
 			'items': self.get_shortcuts()
 		}
 
@@ -249,9 +228,6 @@ class Workspace:
 		if not self.doc.hide_custom:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 
-		if len(self.extended_links):
-			cards = merge_cards_based_on_label(cards + self.extended_links)
-
 		default_country = frappe.db.get_default("country")
 
 		new_data = []
@@ -289,8 +265,6 @@ class Workspace:
 		all_charts = []
 		if frappe.has_permission("Dashboard Chart", throw=False):
 			charts = self.doc.charts
-			if len(self.extended_charts):
-				charts = charts + self.extended_charts
 
 			for chart in charts:
 				if frappe.has_permission('Dashboard Chart', doc=chart.chart_name):
@@ -311,8 +285,6 @@ class Workspace:
 
 		items = []
 		shortcuts = self.doc.shortcuts
-		if len(self.extended_shortcuts):
-			shortcuts = shortcuts + self.extended_shortcuts
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
@@ -368,7 +340,7 @@ def get_desktop_page(page):
 	on desk.
 
 	Args:
-		page (string): page name
+		page (json): page data
 
 	Returns:
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
@@ -380,8 +352,7 @@ def get_desktop_page(page):
 			'charts': wspace.charts,
 			'shortcuts': wspace.shortcuts,
 			'cards': wspace.cards,
-			'onboardings': wspace.onboardings,
-			'allow_customization': not wspace.doc.disable_user_customization
+			'onboardings': wspace.onboardings
 		}
 	except DoesNotExistError:
 		frappe.log_error(frappe.get_traceback())
@@ -414,7 +385,7 @@ def get_wspace_sidebar_items():
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
-			wspace = Workspace(page)
+			wspace = Workspace(page, True)
 			if wspace.is_permitted() and wspace.is_page_allowed() or has_access:
 				if page.public:
 					pages.append(page)
@@ -461,7 +432,6 @@ def get_custom_doctype_list(module):
 
 	return out
 
-
 def get_custom_report_list(module):
 	"""Returns list on new style reports for modules."""
 	reports =  frappe.get_all("Report", fields=["name", "ref_doctype", "report_type"], filters=
@@ -482,85 +452,6 @@ def get_custom_report_list(module):
 
 	return out
 
-def get_custom_workspace_for_user(page):
-	"""Get custom page from workspace if exists or create one
-
-	Args:
-		page (stirng): Page name
-
-	Returns:
-		Object: Document object
-	"""
-	filters = {
-		'extends': page,
-		'for_user': frappe.session.user,
-	}
-	pages = frappe.get_list("Workspace", filters=filters)
-	if pages:
-		return frappe.get_doc("Workspace", pages[0])
-	doc = frappe.new_doc("Workspace")
-	doc.extends = page
-	doc.for_user = frappe.session.user
-	return doc
-
-@frappe.whitelist()
-def save_customization(page, config):
-	"""Save customizations as a separate doctype in Workspace per user
-
-	Args:
-		page (string): Name of the page to be edited
-		config (dict): Dictionary config of al widgets
-
-	Returns:
-		Boolean: Customization saving status
-	"""
-	original_page = frappe.get_doc("Workspace", page)
-	page_doc = get_custom_workspace_for_user(page)
-
-	# Update field values
-	page_doc.update({
-		"icon": original_page.icon,
-		"charts_label": original_page.charts_label,
-		"cards_label": original_page.cards_label,
-		"shortcuts_label": original_page.shortcuts_label,
-		"module": original_page.module,
-		"onboarding": original_page.onboarding,
-		"developer_mode_only": original_page.developer_mode_only,
-		"category": original_page.category
-	})
-
-	config = _dict(loads(config))
-	if config.charts:
-		page_doc.charts = prepare_widget(config.charts, "Workspace Chart", "charts")
-	if config.shortcuts:
-		page_doc.shortcuts = prepare_widget(config.shortcuts, "Workspace Shortcut", "shortcuts")
-	if config.cards:
-		page_doc.build_links_table_from_cards(config.cards)
-
-	# Set label
-	page_doc.label = page + '-' + frappe.session.user
-
-	try:
-		if page_doc.is_new():
-			page_doc.insert(ignore_permissions=True)
-		else:
-			page_doc.save(ignore_permissions=True)
-	except (ValidationError, TypeError) as e:
-		# Create a json string to log
-		json_config = dumps(config, sort_keys=True, indent=4)
-
-		# Error log body
-		log = \
-			"""
-		page: {0}
-		config: {1}
-		exception: {2}
-		""".format(page, json_config, e)
-		frappe.log_error(log, _("Could not save customization"))
-		return False
-
-	return True
-
 def save_new_widget(doc, page, blocks, new_widgets):
 
 	widgets = _dict(loads(new_widgets))
@@ -573,7 +464,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	if widgets: 
+	if widgets:
 		clean_up(doc, blocks)
 
 	try:
@@ -593,11 +484,12 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		return False
 
 	return True
+
 def clean_up(original_page, blocks):
 	page_widgets = {}
 
 	for wid in ['shortcut', 'card', 'chart']:
-		# get list of widget's name from blocks 
+		# get list of widget's name from blocks
 		page_widgets[wid] = [x['data'][wid + '_name'] for x in loads(blocks) if x['type'] == wid]
 
 	# shortcut & chart cleanup
@@ -670,40 +562,14 @@ def prepare_widget(config, doctype, parentfield):
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
 
-
 @frappe.whitelist()
 def update_onboarding_step(name, field, value):
 	"""Update status of onboaridng step
 
 	Args:
-	    name (string): Name of the doc
-	    field (string): field to be updated
-	    value: Value to be updated
+		name (string): Name of the doc
+		field (string): field to be updated
+		value: Value to be updated
 
 	"""
 	frappe.db.set_value("Onboarding Step", name, field, value)
-
-@frappe.whitelist()
-def reset_customization(page):
-	"""Reset workspace customizations for a user
-
-	Args:
-		page (string): Name of the page to be reset
-	"""
-	page_doc = get_custom_workspace_for_user(page)
-	page_doc.delete()
-
-def merge_cards_based_on_label(cards):
-	"""Merge cards with common label."""
-	cards_dict = {}
-	for card in cards:
-		label = card.get('label')
-		if label in cards_dict:
-			links = cards_dict[label].links + card.links
-			cards_dict[label].update(dict(links=links))
-			cards_dict[label] = cards_dict.pop(label)
-		else:
-			cards_dict[label] = card
-
-	return list(cards_dict.values())
-

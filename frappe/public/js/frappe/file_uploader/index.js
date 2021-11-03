@@ -28,7 +28,7 @@ export default class FileUploader {
 		}
 
 		if (attach_doc_image) {
-			restrictions.allowed_file_types = ['.jpg', '.jpeg', '.png'];
+			restrictions.allowed_file_types = ['image/jpeg', 'image/png'];
 		}
 
 		this.$fileuploader = new Vue({
@@ -70,8 +70,10 @@ export default class FileUploader {
 		this.uploader.$watch('hide_dialog_footer', (hide_dialog_footer) => {
 			if (hide_dialog_footer) {
 				this.dialog && this.dialog.footer.addClass('hide');
+				this.dialog.$wrapper.data('bs.modal')._config.backdrop = 'static';
 			} else {
 				this.dialog && this.dialog.footer.removeClass('hide');
+				this.dialog.$wrapper.data('bs.modal')._config.backdrop = true;
 			}
 		});
 

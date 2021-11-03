@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 import os
@@ -59,6 +59,19 @@ def get_report_doc(report_name):
 	return doc
 
 
+def get_report_result(report, filters):
+	if report.report_type == "Query Report":
+		res = report.execute_query_report(filters)
+
+	elif report.report_type == "Script Report":
+		res = report.execute_script_report(filters)
+
+	elif report.report_type == "Custom Report":
+		ref_report = get_report_doc(report.report_name)
+		res = get_report_result(ref_report, filters)
+
+	return res
+
 def generate_report_result(report, filters=None, user=None, custom_columns=None):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -66,13 +79,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 	if filters and isinstance(filters, str):
 		filters = json.loads(filters)
 
-	res = []
-
-	if report.report_type == "Query Report":
-		res = report.execute_query_report(filters)
-
-	elif report.report_type == "Script Report":
-		res = report.execute_script_report(filters)
+	res = get_report_result(report, filters) or []
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in columns]
@@ -391,7 +398,7 @@ def handle_duration_fieldtype_values(result, columns):
 	return result
 
 
-def build_xlsx_data(columns, data, visible_idx, include_indentation):
+def build_xlsx_data(columns, data, visible_idx, include_indentation, ignore_visible_idx=False):
 	result = [[]]
 	column_widths = []
 
@@ -407,7 +414,7 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if row_idx in visible_idx:
+		if ignore_visible_idx or row_idx in visible_idx:
 			row_data = []
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):

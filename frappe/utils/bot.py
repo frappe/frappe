@@ -1,5 +1,5 @@
 # Copyright (c) 2016, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 
 import frappe, re, frappe.utils
 from frappe.desk.notifications import get_notifications

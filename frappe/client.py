@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 from frappe import _
 import frappe.model
@@ -258,6 +258,12 @@ def set_default(key, value, parent=None):
 	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
 
+@frappe.whitelist()
+def get_default(key, parent=None):
+	"""set a user default value"""
+	return frappe.db.get_default(key, parent)
+
+
 @frappe.whitelist(methods=['POST', 'PUT'])
 def make_width_property_setter(doc):
 	'''Set width Property Setter
@@ -276,18 +282,17 @@ def bulk_update(docs):
 	docs = json.loads(docs)
 	failed_docs = []
 	for doc in docs:
+		doc.pop("flags", None)
 		try:
-			ddoc = {key: val for key, val in doc.items() if key not in ['doctype', 'docname']}
-			doctype = doc['doctype']
-			docname = doc['docname']
-			doc = frappe.get_doc(doctype, docname)
-			doc.update(ddoc)
-			doc.save()
-		except:
+			existing_doc = frappe.get_doc(doc["doctype"], doc["docname"])
+			existing_doc.update(doc)
+			existing_doc.save()
+		except Exception:
 			failed_docs.append({
 				'doc': doc,
 				'exc': frappe.utils.get_traceback()
 			})
+
 	return {'failed_docs': failed_docs}
 
 @frappe.whitelist()

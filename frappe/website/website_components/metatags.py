@@ -1,5 +1,7 @@
 import frappe
 
+METATAGS = ('title', 'description', 'image', 'author', 'published_on')
+
 class MetaTags():
 	def __init__(self, path, context):
 		self.path = path
@@ -12,7 +14,7 @@ class MetaTags():
 		self.set_metatags_from_website_route_meta()
 
 	def init_metatags_from_context(self):
-		for key in ('title', 'description', 'image', 'author', 'url', 'published_on'):
+		for key in METATAGS:
 			if key not in self.tags and self.context.get(key):
 				self.tags[key] = self.context[key]
 
@@ -28,12 +30,12 @@ class MetaTags():
 		if "og:type" not in self.tags:
 			self.tags["og:type"] = "article"
 
-		for key in ('title', 'description', 'image', 'author', 'url'):
+		for key in METATAGS:
 			if self.tags.get(key):
 				self.tags['og:' + key] = self.tags.get(key)
 
 	def set_twitter_tags(self):
-		for key in ('title', 'description', 'image', 'author', 'url'):
+		for key in METATAGS:
 			if self.tags.get(key):
 				self.tags['twitter:' + key] = self.tags.get(key)
 
