@@ -1,9 +1,24 @@
+import os
+import sys
 import unittest
+from contextlib import contextmanager
 
 import frappe
 from frappe.utils import set_request
 from frappe.website.serve import get_response, get_response_content
-from frappe.website.utils import (build_response, clear_website_cache, get_home_page)
+from frappe.website.utils import build_response, clear_website_cache, get_home_page
+
+
+@contextmanager
+def suppress_stdout():
+	with open(os.devnull, "w") as devnull:
+		old_stdout = sys.stdout
+		sys.stdout = devnull
+		try:
+			yield
+		finally:
+			sys.stdout = old_stdout
+
 
 class TestWebsite(unittest.TestCase):
 	def setUp(self):
@@ -97,8 +112,9 @@ class TestWebsite(unittest.TestCase):
 		self.assertEqual(response.status_code, 200)
 
 	def test_error_page(self):
-		set_request(method='GET', path='/_test/problematic_page')
-		response = get_response()
+		with suppress_stdout():
+			set_request(method='GET', path='/_test/problematic_page')
+			response = get_response()
 		self.assertEqual(response.status_code, 500)
 
 	def test_login(self):
@@ -125,7 +141,6 @@ class TestWebsite(unittest.TestCase):
 		set_request(method='GET', path='/_test/missing')
 		response = get_response()
 		self.assertEqual(response.status_code, 404)
-
 
 	def test_redirect(self):
 		import frappe.hooks
@@ -281,7 +296,8 @@ class TestWebsite(unittest.TestCase):
 		frappe.flags.force_website_cache = False
 
 	def test_safe_render(self):
-		content = get_response_content('/_test/_test_safe_render_on')
+		with suppress_stdout():
+			content = get_response_content('/_test/_test_safe_render_on')
 		self.assertNotIn("Safe Render On", content)
 		self.assertIn("frappe.exceptions.ValidationError: Illegal template", content)
 
