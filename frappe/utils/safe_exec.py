@@ -242,14 +242,6 @@ def execute_enqueued_cmd(cmd, **kwargs):
 			title="Enqueued Execution Failed"
 		)
 
-def cache():
-	return NamespaceDict(
-		get_value = frappe.cache().get_value,
-		set_value = frappe.cache().set_value,
-		hset = frappe.cache().hset,
-		hget = frappe.cache().hget
-	)
-
 def get_hooks(hook=None, default=None, app_name=None):
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
 	return copy.deepcopy(hooks)
