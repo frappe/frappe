@@ -147,19 +147,21 @@ def rebuild_tree(doctype, parent_field):
 		frappe.only_for('System Manager')
 
 	# get all roots
+	right = 1
+	table = DocType(doctype)
+	column = getattr(table, parent_field)
+
+	result = (
+		frappe.qb.from_(table)
+		.where(
+			(column == "") | (column.isnull())
+		)
+		.orderby(table.name, order=Order.asc)
+		.select(table.name)
+	).run()
+
 	frappe.db.auto_commit_on_many_writes = 1
 
-	right = 1
-	doctype = DocType(doctype)
-	result = (
-		frappe.qb.from_(doctype)
-		.where(
-			(getattr(doctype, parent_field) == "") | (parent_field.isnull())
-		)
-		.select("name")
-		.orderby(doctype.name, order=Order.asc)
-		.run()
-	)
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
@@ -169,24 +171,23 @@ def rebuild_node(doctype, parent, left, parent_field):
 	"""
 		reset lft, rgt and recursive call for all children
 	"""
-	from frappe.utils import now
-	n = now()
-
 	# the right value of this node is the left value + 1
 	right = left+1
 
 	# get all children of this node
-	doctype = DocType(doctype)
+	table = DocType(doctype)
+	column = getattr(table, parent_field)
+
 	result = (
-		frappe.qb.from_(doctype).where(getattr(doctype, parent_field) == parent).run()
-	)
+		frappe.qb.from_(table).where(column == parent).select(table.name)
+	).run()
+
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.sql("""UPDATE `tab{0}` SET lft=%s, rgt=%s, modified=%s
-		WHERE name=%s""".format(doctype), (left,right,n,parent))
+	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False)
 
 	#return the right value of this node + 1
 	return right+1
