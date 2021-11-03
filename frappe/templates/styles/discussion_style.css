@@ -37,7 +37,7 @@
 }
 
 .no-discussions {
-	width: 250px;
+	width: 500px;
 	margin: 0 auto;
 	text-align: center;
 }
@@ -248,4 +248,12 @@
 .card-divider-dark {
 	border: 1px solid var(--gray-300);
 	margin-bottom: 1rem;
+}
+
+.empty-state {
+	background: #EBEEF0;
+	border: 1px dashed #C8CFD5;
+	box-sizing: border-box;
+	border-radius: 8px;
+	padding: 2.5rem;
 }
