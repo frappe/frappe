@@ -2,6 +2,7 @@
 import inspect
 import json
 import mimetypes
+import traceback
 
 import RestrictedPython.Guards
 from html2text import html2text
@@ -233,7 +234,14 @@ def execute_enqueued_cmd(cmd, **kwargs):
 
 	except Exception:
 		frappe.db.rollback()
-		frappe.log_error(title="Enqueued Execution Failed")
+		context = f"Failed to execute enqueued method: {cmd}"
+		context += f"\nArgs:\n {json.dumps(kwargs, indent=2, default=str)}"
+		context += f"\n\nTraceback:\n {traceback.format_exc()}"
+
+		frappe.log_error(
+			message=context,
+			title="Enqueued Execution Failed"
+		)
 
 def cache():
 	return NamespaceDict(
