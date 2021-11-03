@@ -1612,8 +1612,17 @@ frappe.ui.form.Form = class FrappeForm {
 		}, 1000);
 	}
 
-	show_tour(on_finish) {
-		const tour_info = frappe.tour[this.doctype];
+	show_tour(on_finish, step_name) {
+		let that = this;
+		let tour_info;
+		if (step_name && typeof(frappe.tour[this.doctype]) !== "undefined" && typeof(frappe.tour[this.doctype][step_name]) !== "undefined"){
+			tour_info = frappe.tour[this.doctype][step_name];
+		} else if (typeof(frappe.tour[this.doctype]) !== "undefined" && !Array.isArray(frappe.tour[this.doctype])) {
+			tour_info = frappe.tour[this.doctype]["default"];
+		} else {
+			tour_info = frappe.tour[this.doctype];
+		}
+
 
 		if (!Array.isArray(tour_info)) {
 			return;
@@ -1633,6 +1642,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.layout.sections.forEach(section => section.collapse(false));
 
 		let steps = tour_info.map(step => {
+			if(typeof(step.custom_driver) !== "undefined"){
+				return step.custom_driver(that, driver, on_finish);
+			}
 			let field = this.get_docfield(step.fieldname);
 			return {
 				element: `.frappe-control[data-fieldname='${step.fieldname}']`,

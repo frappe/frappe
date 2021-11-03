@@ -194,6 +194,10 @@ frappe.views.Workspace = class Workspace {
 		this.page.add_menu_item(__('Toggle Sidebar'), () => {
 			this.toggle_side_bar();
 		}, 1);
+
+		if (localStorage.current_workspace && frappe.workspace_menu &&  typeof(frappe.workspace_menu[localStorage.current_workspace]) === "function"){
+			frappe.workspace_menu[localStorage.current_workspace](this);
+		}
 	}
 
 	toggle_side_bar() {
