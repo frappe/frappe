@@ -142,6 +142,12 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({ "name": event1.name } not in data)
 		self.assertTrue({ "name": event2.name } not in data)
 
+		# test between is formatted for creation column
+		data = DatabaseQuery("Event").execute(
+			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]},
+			fields=["name"])
+
+
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user('test2@example.com')
 		self.assertRaises(frappe.PermissionError, get_filters_cond, 'DocType', dict(istable=1), [])
@@ -446,6 +452,25 @@ class TestReportview(unittest.TestCase):
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
 
+	def test_reportview_get_aggregation(self):
+		# test aggregation based on child table field
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "DocType",
+			"fields": """["`tabDocField`.`label` as field_label","`tabDocField`.`name` as field_name"]""",
+			"filters": "[]",
+			"order_by": "_aggregate_column desc",
+			"start": 0,
+			"page_length": 20,
+			"view": "Report",
+			"with_comment_count": 0,
+			"group_by": "field_label, field_name",
+			"aggregate_on_field": "columns",
+			"aggregate_on_doctype": "DocField",
+			"aggregate_function": "sum"
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column", 'columns'])
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc({

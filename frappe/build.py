@@ -16,7 +16,6 @@ from frappe.utils.minify import JavascriptMinify
 import click
 import psutil
 from urllib.parse import urlparse
-from simple_chalk import green
 from semantic_version import Version
 from requests import head
 from requests.exceptions import HTTPError
@@ -108,7 +107,7 @@ def fetch_assets(url, frappe_head):
 	if not assets_archive:
 		raise AssetsNotDownloadedError(f"Assets could not be retrived from {url}")
 
-	print(f"\n{green('✔')} Downloaded Frappe assets from {url}")
+	click.echo(click.style("✔", fg="green") + f" Downloaded Frappe assets from {url}")
 
 	return assets_archive
 
@@ -131,7 +130,7 @@ def setup_assets(assets_archive):
 					directories_created.add(asset_directory)
 
 				tar.makefile(file, dest)
-				print("{0} Restored {1}".format(green('✔'), show))
+				click.echo(click.style("✔", fg="green") + f" Restored {show}")
 
 	return directories_created
 
@@ -246,7 +245,7 @@ def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, ver
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
 def watch(apps=None):
@@ -256,6 +255,13 @@ def watch(apps=None):
 	command = "yarn run watch"
 	if apps:
 		command += " --apps {apps}".format(apps=apps)
+
+	live_reload = frappe.utils.cint(
+		os.environ.get("LIVE_RELOAD", frappe.conf.live_reload)
+	)
+
+	if live_reload:
+		command += " --live-reload"
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
@@ -372,7 +378,7 @@ def make_asset_dirs(hard_link=False):
 		except Exception:
 			print(fail_message, end="\r")
 
-	print(unstrip(f"{green('✔')} Application Assets Linked") + "\n")
+	click.echo(unstrip(click.style("✔", fg="green") + " Application Assets Linked") + "\n")
 
 
 def link_assets_dir(source, target, hard_link=False):

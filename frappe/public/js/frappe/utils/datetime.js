@@ -242,18 +242,21 @@ Object.defineProperties(window, {
 		get: function() {
 			console.warn('Please use `frappe.datetime` instead of `dateutil`. It will be deprecated soon.');
 			return frappe.datetime;
-		}
+		},
+		configurable: true
 	},
 	'date': {
 		get: function() {
 			console.warn('Please use `frappe.datetime` instead of `date`. It will be deprecated soon.');
 			return frappe.datetime;
-		}
+		},
+		configurable: true
 	},
 	'get_today': {
 		get: function() {
 			console.warn('Please use `frappe.datetime.get_today` instead of `get_today`. It will be deprecated soon.');
 			return frappe.datetime.get_today;
-		}
+		},
+		configurable: true
 	}
 });

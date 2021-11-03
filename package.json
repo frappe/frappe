@@ -4,7 +4,8 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
-    "snyk-protect": "snyk protect"
+    "snyk-protect": "snyk protect",
+    "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
     "type": "git",
@@ -61,7 +62,8 @@
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
     "vue": "2.6.12",
-    "vue-router": "^2.0.0"
+    "vue-router": "^2.0.0",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "chalk": "^2.3.2",
@@ -74,5 +76,8 @@
     "rtlcss": "^3.2.1",
     "yargs": "^16.2.0"
   },
-  "snyk": true
+  "snyk": true,
+  "nyc": {
+    "report-dir": ".cypress-coverage"
+  }
 }

@@ -81,6 +81,9 @@ class BaseDocument(object):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
+	def __getitem__(self, key):
+		return self.get(key) if hasattr(self, key) else frappe.throw(msg=key, exc=KeyError)
+
 	@property
 	def meta(self):
 		if not getattr(self, "_meta", None):
@@ -267,7 +270,12 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+			if convert_dates_to_str and isinstance(d[fieldname], (
+				datetime.datetime,
+				datetime.date,
+				datetime.time,
+				datetime.timedelta
+			)):
 				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:

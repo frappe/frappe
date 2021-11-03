@@ -11,6 +11,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
+from frappe.query_builder import Field
 
 from .test_query_builder import run_only_if, db_type_is
 
@@ -22,6 +23,9 @@ class TestDB(unittest.TestCase):
 		self.assertNotEqual(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
+		self.assertEqual(frappe.db.get_value("User", {}, ["Max(name)"]), frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0])
+		self.assertEqual(frappe.db.get_value("User", {}, "Min(name)"), frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0])
+		self.assertIn("for update", frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower())
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
@@ -45,12 +49,6 @@ class TestDB(unittest.TestCase):
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
-
-	def test_aggregation(self):
-		self.assertTrue(type(frappe.db.sum('DocField', 'permlevel', dict(parent=('like', 'doc')))) in (int, float))
-		self.assertTrue(type(frappe.db.avg('DocField', 'permlevel')) in (int, float))
-		self.assertTrue(type(frappe.db.min('DocField', 'permlevel')) in (int, float))
-		self.assertTrue(type(frappe.db.max('DocField', 'permlevel')) in (int, float))
 
 	def test_get_single_value(self):
 		#setup

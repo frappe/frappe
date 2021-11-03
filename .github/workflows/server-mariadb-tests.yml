@@ -38,7 +38,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: '3.9'
 
       - name: Check if build should be run
         id: check-build
@@ -128,3 +128,4 @@ jobs:
           fail_ci_if_error: true
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
+          flags: server

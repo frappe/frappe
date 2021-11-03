@@ -206,6 +206,25 @@ frappe.request.call = function(opts) {
 		}
 	};
 
+	var exception_handlers = {
+		'QueryTimeoutError': function() {
+			frappe.utils.play_sound("error");
+			frappe.msgprint({
+				title: __('Request Timeout'),
+				indicator: 'red',
+				message: __("Server was too busy to process this request. Please try again.")
+			});
+		},
+		'QueryDeadlockError': function() {
+			frappe.utils.play_sound("error");
+			frappe.msgprint({
+				title: __('Deadlock Occurred'),
+				indicator: 'red',
+				message: __("Server was too busy to process this request. Please try again.")
+			});
+		}
+	};
+
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
 		data: opts.args,
@@ -272,13 +291,25 @@ frappe.request.call = function(opts) {
 		})
 		.fail(function(xhr, textStatus) {
 			try {
+				if (xhr.responseText) {
+					var data = JSON.parse(xhr.responseText);
+					if (data.exception) {
+						// frappe.exceptions.CustomError -> CustomError
+						var exception = data.exception.split('.').at(-1);
+						var exception_handler = exception_handlers[exception];
+						if (exception_handler) {
+							exception_handler(data);
+							return;
+						}
+					}
+				}
 				var status_code_handler = statusCode[xhr.statusCode().status];
 				if (status_code_handler) {
 					status_code_handler(xhr);
-				} else {
-					// if not handled by error handler!
-					opts.error_callback && opts.error_callback(xhr);
+					return;
 				}
+				// if not handled by error handler!
+				opts.error_callback && opts.error_callback(xhr);
 			} catch(e) {
 				console.log("Unable to handle failed response"); // eslint-disable-line
 				console.trace(e); // eslint-disable-line

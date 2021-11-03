@@ -241,7 +241,7 @@ Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fie
 });
 
 Cypress.Commands.add('awesomebar', text => {
-	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 100});
+	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 700});
 });
 
 Cypress.Commands.add('new_form', doctype => {
@@ -353,5 +353,5 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 });
 
 Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
-	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').contains(btn_name).click();
+	cy.get('.timeline-message-box .custom-actions > .btn').contains(btn_name).click();
 });

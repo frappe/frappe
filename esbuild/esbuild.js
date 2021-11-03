@@ -44,6 +44,11 @@ let argv = yargs
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
 	})
+	.option("live-reload", {
+		type: "boolean",
+		description: `Automatically reload Desk when assets are rebuilt.
+			Can only be used with the --watch flag.`
+	})
 	.option("production", {
 		type: "boolean",
 		description: "Run build in production mode"
@@ -104,6 +109,9 @@ async function execute() {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
+		if (process.env.CI) {
+			process.kill(process.pid);
+		}
 		return;
 	}
 
@@ -280,10 +288,24 @@ function get_watch_config() {
 						assets_json,
 						prev_assets_json
 					} = await write_assets_json(result.metafile);
+
+					let changed_files;
 					if (prev_assets_json) {
-						log_rebuilt_assets(prev_assets_json, assets_json);
+						changed_files = get_rebuilt_assets(
+							prev_assets_json,
+							assets_json
+						);
+
+						let timestamp = new Date().toLocaleTimeString();
+						let message = `${timestamp}: Compiled ${changed_files.length} files...`;
+						log(chalk.yellow(message));
+						for (let filepath of changed_files) {
+							let filename = path.basename(filepath);
+							log("    " + filename);
+						}
+						log();
 					}
-					notify_redis({ success: true });
+					notify_redis({ success: true, changed_files });
 				}
 			}
 		};
@@ -453,7 +475,7 @@ function run_build_command_for_apps(apps) {
 	process.chdir(cwd);
 }
 
-async function notify_redis({ error, success }) {
+async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
 	let subscriber = get_redis_subscriber("redis_socketio");
 	subscriber.on("error", _ => {
@@ -475,7 +497,9 @@ async function notify_redis({ error, success }) {
 	}
 	if (success) {
 		payload = {
-			success: true
+			success: true,
+			changed_files,
+			live_reload: argv["live-reload"]
 		};
 	}
 
@@ -505,7 +529,7 @@ function open_in_editor() {
 	subscriber.subscribe("open_in_editor");
 }
 
-function log_rebuilt_assets(prev_assets, new_assets) {
+function get_rebuilt_assets(prev_assets, new_assets) {
 	let added_files = [];
 	let old_files = Object.values(prev_assets);
 	let new_files = Object.values(new_assets);
@@ -515,17 +539,5 @@ function log_rebuilt_assets(prev_assets, new_assets) {
 			added_files.push(filepath);
 		}
 	}
-
-	log(
-		chalk.yellow(
-			`${new Date().toLocaleTimeString()}: Compiled ${
-				added_files.length
-			} files...`
-		)
-	);
-	for (let filepath of added_files) {
-		let filename = path.basename(filepath);
-		log("    " + filename);
-	}
-	log();
+	return added_files;
 }
