@@ -141,7 +141,7 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 		info = session.get(api_endpoint, params=api_endpoint_args).json()
 
 		if provider == "github":
-			info = list(filter(lambda x: x.get("primary") == True, info))[0]
+			info = list(filter(lambda x: x.get("primary"), info))[0]
 
 	if not (info.get("email_verified") or info.get("email")):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
