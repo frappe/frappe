@@ -72,6 +72,9 @@ def get_list_data(doctype, txt=None, limit_start=0, fields=None, cmd=None, limit
 	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 
+	if frappe.is_table(doctype):
+		frappe.throw(_("Child DocTypes are not allowed"), title=_("Invalid DocType"))
+
 	if not txt and frappe.form_dict.search:
 		txt = frappe.form_dict.search
 		del frappe.form_dict['search']
@@ -183,8 +186,7 @@ def get_list_context(context, doctype, web_form_name=None):
 
 	return list_context
 
-def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False,
-	fields=None, order_by=None):
+def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False, fields=None, order_by=None):
 	meta = frappe.get_meta(doctype)
 	if not filters:
 		filters = []

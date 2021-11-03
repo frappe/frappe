@@ -68,6 +68,13 @@ def web_blocks(blocks):
 	return html
 
 
+def get_dom_id(seed=None):
+	from frappe import generate_hash
+	if not seed:
+		seed = 'DOM'
+	return 'id-' + generate_hash(seed, 12)
+
+
 def include_script(path):
 	path = bundled_asset(path)
 	return f'<script type="text/javascript" src="{path}"></script>'
