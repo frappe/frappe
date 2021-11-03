@@ -3,7 +3,7 @@
  "creation": "2019-07-25 15:44:44.955496",
  "doctype": "DocType",
  "editable_grid": 1,
- "engine": "InnoDB",
+ "engine": "MyISAM",
  "field_order": [
   "log_data_section",
   "export_from",
