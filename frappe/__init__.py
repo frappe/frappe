@@ -231,6 +231,10 @@ def connect(site=None, db_name=None, set_admin_as_user=True):
 def connect_read_only():
 	"""Connect to database in read only mode."""
 	from frappe.database import get_db
+
+	if hasattr(local, "read_only_db"):
+		return local.read_only_db
+
 	local.read_only_db = get_db()
 	local.read_only_db.begin(read_only=True)
 
@@ -309,6 +313,10 @@ def destroy():
 	"""Closes connection and releases werkzeug local."""
 	if db:
 		db.close()
+	if hasattr(local, "read_only_db"):
+		local.read_only_db.close()
+	if hasattr(local, "replica_db"):
+		local.replica_db.close()
 
 	release_local(local)
 
