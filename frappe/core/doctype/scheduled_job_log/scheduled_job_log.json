@@ -72,7 +72,7 @@
   }
  ],
  "links": [],
- "modified": "2021-10-13 11:55:13.702402",
+ "modified": "2021-10-26 11:55:13.702402",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Log",
@@ -94,5 +94,4 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1
 }
