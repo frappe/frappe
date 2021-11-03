@@ -47,7 +47,8 @@ def get_tagged_docs(doctype, tag):
 	return (
 		frappe.qb.from_(doctype)
 		.where(doctype._user_tags.like(tag))
-		.select(doctype.name).run())
+		.select(doctype.name)
+	).run()
 
 @frappe.whitelist()
 def get_tags(doctype, txt):

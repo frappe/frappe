@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import frappe
@@ -12,9 +12,9 @@ def execute(filters=None):
 	return columns, data
 
 def get_data(filters=None):
-
-	logs = frappe.get_all("Transaction Log", fields=["*"], order_by="creation desc")
 	result = []
+	logs = frappe.get_all("Transaction Log", fields=["*"], order_by="creation desc")
+
 	for l in logs:
 		row_index = int(l.row_index)
 		if row_index > 1:

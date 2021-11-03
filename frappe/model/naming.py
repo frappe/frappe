@@ -201,7 +201,9 @@ def getseries(key, digits):
 		frappe.qb.from_(series)
 		.where(series.name == key)
 		.for_update()
-		.select("current").run())
+		.select("current")
+	).run()
+
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
@@ -272,7 +274,8 @@ def revert_series_if_last(key, name, doc=None):
 		frappe.qb.from_(series)
 		.where(series.name == prefix)
 		.for_update()
-		.select("current").run())
+		.select("current")
+	).run()
 
 	if current and current[0][0]==count:
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)

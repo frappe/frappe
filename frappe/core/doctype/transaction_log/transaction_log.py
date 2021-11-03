@@ -1,13 +1,14 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2018, Frappe Technologies and contributors
+# Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+
+import hashlib
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, now_datetime
-import hashlib
 from frappe.query_builder import DocType
+from frappe.utils import cint, now_datetime
+
 
 class TransactionLog(Document):
 	def before_insert(self):
@@ -50,7 +51,9 @@ def get_current_index():
 		frappe.qb.from_(series)
 		.where(series.name == "TRANSACTLOG")
 		.for_update()
-		.select("current").run())
+		.select("current")
+	).run()
+
 	if current and current[0][0] is not None:
 		current = current[0][0]
 
