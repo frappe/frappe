@@ -1,4 +1,5 @@
 
+import copy
 import inspect
 import json
 import mimetypes
@@ -134,7 +135,7 @@ def get_safe_globals():
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
-			get_hooks=frappe.get_hooks,
+			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error
@@ -178,8 +179,6 @@ def get_safe_globals():
 			commit=frappe.db.commit,
 			rollback=frappe.db.rollback,
 		)
-
-		out.frappe.cache = cache
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -250,6 +249,10 @@ def cache():
 		hset = frappe.cache().hset,
 		hget = frappe.cache().hget
 	)
+
+def get_hooks(hook=None, default=None, app_name=None):
+	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
+	return copy.deepcopy(hooks)
 
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
@@ -378,6 +381,7 @@ VALID_UTILS = (
 "is_image",
 "get_thumbnail_base64_for_image",
 "image_to_base64",
+"pdf_to_base64",
 "strip_html",
 "escape_html",
 "pretty_date",
