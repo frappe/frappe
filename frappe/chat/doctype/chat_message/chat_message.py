@@ -209,7 +209,7 @@ def validate_members(room):
 	if user_in_room:
 		return
 
-	frappe.throw("Chat Room {} not found".format(room))
+	frappe.throw(_("Chat Room {} not found").format(room))
 
 
 @frappe.whitelist()
