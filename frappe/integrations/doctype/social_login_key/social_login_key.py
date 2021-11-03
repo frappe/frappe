@@ -79,9 +79,11 @@ class SocialLoginKey(Document):
 			"authorize_url":"https://github.com/login/oauth/authorize",
 			"access_token_url":"https://github.com/login/oauth/access_token",
 			"redirect_url":"/api/method/frappe.www.login.login_via_github",
-			"api_endpoint":"user",
+			"api_endpoint":"user/emails",
 			"api_endpoint_args":None,
-			"auth_url_data":None
+			"auth_url_data": json.dumps({
+				"scope": "user:email"
+			})
 		}
 
 		providers["Google"] = {
