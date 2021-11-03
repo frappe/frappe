@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 import time
-from frappe import _, msgprint, is_whitelisted
+from frappe import _, msgprint, is_whitelisted, DoesNotExistError
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
@@ -99,8 +99,7 @@ class Document(BaseDocument):
 					# filter
 					self.name = frappe.db.get_value(args[0], args[1], "name")
 					if self.name is None:
-						frappe.throw(_("{0} {1} not found").format(_(args[0]), args[1]),
-							frappe.DoesNotExistError)
+						frappe.throw(_("{0} {1} not found").format(_(args[0]), args[1]), DoesNotExistError)
 				else:
 					self.name = args[1]
 
@@ -150,7 +149,7 @@ class Document(BaseDocument):
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=self.flags.for_update)
 			if not d:
-				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
+				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), DoesNotExistError)
 
 			super(Document, self).__init__(d)
 
@@ -710,7 +709,7 @@ class Document(BaseDocument):
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
 					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
 				if not tmp:
-					frappe.throw(_("Record does not exist"))
+					frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), DoesNotExistError)
 				else:
 					tmp = tmp[0]
 
@@ -980,7 +979,7 @@ class Document(BaseDocument):
 		if not self.is_new():
 			try:
 				self._doc_before_save = frappe.get_doc(self.doctype, self.name)
-			except frappe.DoesNotExistError:
+			except DoesNotExistError:
 				self._doc_before_save = None
 				frappe.clear_last_message()
 
