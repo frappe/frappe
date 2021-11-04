@@ -56,7 +56,6 @@ class Database(object):
 		if use_default:
 			self.user = frappe.conf.db_name
 
-		self.transaction_started = False
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
@@ -288,14 +287,9 @@ class Database(object):
 
 		if _query.startswith(("commit", "rollback")):
 			self.transaction_writes = 0
-			self.transaction_started = False
 
 		if is_read_query(_query):
 			return
-
-		# start a transaction if not yet started
-		if not self.transaction_writes and not self.transaction_started:
-			self.begin()
 
 		if _query.startswith(("insert", "update", "delete")):
 			self.transaction_writes += 1
@@ -730,7 +724,6 @@ class Database(object):
 
 	def begin(self, read_only=False):
 		mode = "READ ONLY" if read_only else ""
-		self.transaction_started = True
 		self.sql(f"START TRANSACTION {mode}")
 
 	def commit(self):
