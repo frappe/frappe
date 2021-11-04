@@ -16,7 +16,7 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "link_name", "=", doc.name],
 		["Dynamic Link", "parenttype", "=", "Address"],
 	]
-	address_list = frappe.get_all("Address", filters=filters, fields=["*"])
+	address_list = frappe.get_list("Address", filters=filters, fields=["*"])
 
 	address_list = [a.update({"display": get_address_display(a)})
 		for a in address_list]
@@ -34,16 +34,16 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "link_name", "=", doc.name],
 		["Dynamic Link", "parenttype", "=", "Contact"],
 	]
-	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
+	contact_list = frappe.get_list("Contact", filters=filters, fields=["*"])
 
 	for contact in contact_list:
-		contact["email_ids"] = frappe.get_list("Contact Email", filters={
+		contact["email_ids"] = frappe.get_all("Contact Email", filters={
 				"parenttype": "Contact",
 				"parent": contact.name,
 				"is_primary": 0
 			}, fields=["email_id"])
 
-		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
+		contact["phone_nos"] = frappe.get_all("Contact Phone", filters={
 				"parenttype": "Contact",
 				"parent": contact.name,
 				"is_primary_phone": 0,
