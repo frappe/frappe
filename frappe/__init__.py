@@ -1542,8 +1542,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
 
-	if not pdf_options:
-		pdf_options = {}
+	pdf_options = pdf_options or {}
 	if password:
 		pdf_options['password'] = password
 
