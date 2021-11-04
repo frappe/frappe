@@ -864,4 +864,4 @@ def get_table_name(table_name: str) -> str:
 	return f"tab{table_name}" if not table_name.startswith("__") else table_name
 
 def is_read_query(query):
-	return query.startswith(("select", "with"))
+	return query.startswith(("select", "with", "explain"))
