@@ -635,14 +635,11 @@ def read_only():
 				connect_read_only()
 
 			try:
-				flags.read_only = True
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
 					local.db = local.primary_db
-
-				flags.read_only = False
 
 			return retval
 		return wrapper_fn
@@ -653,24 +650,19 @@ def write_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
 			primary_db = getattr(local, "primary_db", None)
-			replica_db = getattr(local, "replica_db", None)
+			replica_db = getattr(local, "replica_db", None) or getattr(local, "read_only_db", None)
 			in_read_only_conn = getattr(local, "db", None) != primary_db
-			is_read_only_set = flags.read_only
 
 			# switch to primary connection
 			if in_read_only_conn and primary_db:
 				local.db = local.primary_db
 
 			try:
-				flags.read_only = False
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
 				# switch back to replica connection
 				if in_read_only_conn and replica_db:
 					local.db = replica_db
-
-				# reset read_only flag value
-				flags.read_only = is_read_only_set
 
 			return retval
 		return wrapper_fn

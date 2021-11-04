@@ -264,8 +264,6 @@ class Database(object):
 		"""Raises exceptions if
 		* More than self.MAX_WRITES_PER_TRANSACTION `INSERT`, `UPDATE`
 		or `DELETE` queries are executed in one transaction.
-		* If frappe.flags.read_only is set to True and the query uses an
-		 `INSERT`, `UPDATE` or `DELETE` statement.
 		* If write queries have already been executed and query may cause
 		an implicit commit.
 
@@ -276,6 +274,9 @@ class Database(object):
 			return
 
 		_query = query.lstrip()[:10].lower()
+
+		if is_read_query(_query):
+			return
 
 		if self.transaction_writes and _query.startswith(
 			('start', 'alter', 'drop', 'create', "begin", "truncate")
@@ -288,10 +289,7 @@ class Database(object):
 		if _query.startswith(("commit", "rollback")):
 			self.transaction_writes = 0
 
-		if is_read_query(_query):
-			return
-
-		if _query.startswith(("insert", "update", "delete")):
+		elif _query.startswith(("insert", "update", "delete")):
 			self.transaction_writes += 1
 
 		if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
