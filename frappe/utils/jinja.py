@@ -76,7 +76,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 			return get_jenv().get_template(template).render(context)
 
 		if safe_render and ".__" in template:
-				throw(_("Illegal template"))
+			throw(_("Illegal template"))
 
 		try:
 			return get_jenv().from_string(template).render(context)
