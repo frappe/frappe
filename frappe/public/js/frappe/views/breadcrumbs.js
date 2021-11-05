@@ -84,9 +84,9 @@ frappe.breadcrumbs = {
 	set_workspace_breadcrumb(breadcrumbs) {
 		// get preferred module for breadcrumbs, based on sent via module
 
-		if (!breadcrumbs.workspace) {
-			this.set_workspace(breadcrumbs);
-		}
+		// if (!breadcrumbs.workspace) {
+		this.set_workspace(breadcrumbs);
+		// }
 
 		if (breadcrumbs.workspace) {
 			if (!breadcrumbs.module_info.blocked && frappe.visible_modules.includes(breadcrumbs.module_info.module)) {
@@ -121,6 +121,9 @@ frappe.breadcrumbs = {
 			// set workspace
 			if (breadcrumbs.module_info && frappe.boot.module_page_map[breadcrumbs.module]) {
 				breadcrumbs.workspace = frappe.boot.module_page_map[breadcrumbs.module];
+				if(frappe.route_history.at(-2) !== undefined){
+					breadcrumbs.workspace = frappe.route_history.at(-2)[1]
+				}
 			}
 		}
 	},
