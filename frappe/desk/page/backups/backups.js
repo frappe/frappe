@@ -17,7 +17,7 @@ frappe.pages['backups'].on_page_load = function (wrapper) {
 	});
 
 	page.add_inner_button(__("Get Backup Encryption Key"), function () {
-		if (frappe.session.user === "Administrator") {
+		if (frappe.user.has_role("System Manager")) {
 			frappe.verify_password(function () {
 				frappe.call({
 					method: "frappe.utils.backups.get_backup_encryption_key",
@@ -33,7 +33,7 @@ frappe.pages['backups'].on_page_load = function (wrapper) {
 		} else {
 			frappe.msgprint({
 				title: __('Error'),
-				message: __('Administrator privileges required.'),
+				message: __('System Manager privileges required.'),
 				indicator: 'red'
 			});
 		}
