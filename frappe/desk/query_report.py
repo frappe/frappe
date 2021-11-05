@@ -49,6 +49,7 @@ def get_report_doc(report_name):
 	return doc
 
 
+@frappe.read_only()
 def generate_report_result(report, filters=None, user=None, custom_columns=None):
 	user = user or frappe.session.user
 	filters = filters or []
