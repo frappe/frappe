@@ -120,10 +120,14 @@ frappe.breadcrumbs = {
 
 			// set workspace
 			if (breadcrumbs.module_info && frappe.boot.module_page_map[breadcrumbs.module]) {
-				breadcrumbs.workspace = frappe.boot.module_page_map[breadcrumbs.module];
-				if(frappe.route_history.at(-2) !== undefined){
-					breadcrumbs.workspace = frappe.route_history.at(-2)[1]
+				const last_visited_workspace = frappe.route_history.reverse().find(_ => _[0] === 'Workspaces');
+				if(last_visited_workspace !== undefined){
+					breadcrumbs.workspace = last_visited_workspace[1]
 				}
+				else{
+					breadcrumbs.workspace = frappe.boot.module_page_map[breadcrumbs.module];
+				}
+
 			}
 		}
 	},
