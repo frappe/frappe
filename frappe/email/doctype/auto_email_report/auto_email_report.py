@@ -250,7 +250,8 @@ def make_links(columns, data):
 				if col.options and row.get(col.fieldname) and row.get(col.options):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 			elif col.fieldtype == "Currency":
-				row[col.fieldname] = frappe.format_value(row[col.fieldname], col)
+				if row.get(col.fieldname):
+					row[col.fieldname] = frappe.format_value(row[col.fieldname], col)
 
 	return columns, data
 
