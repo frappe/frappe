@@ -243,15 +243,24 @@ def send_monthly():
 def make_links(columns, data):
 	for row in data:
 		for col in columns:
-			if col.fieldtype == "Link" and col.options != "Currency":
-				if col.options and row.get(col.fieldname):
+			if not row.get(col.fieldname):
+				continue
+			
+			if col.fieldtype == "Link":
+				if col.options and col.options != "Currency":
 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
 			elif col.fieldtype == "Dynamic Link":
-				if col.options and row.get(col.fieldname) and row.get(col.options):
+				if col.options and row.get(col.options):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 			elif col.fieldtype == "Currency":
+<<<<<<< HEAD
 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col)
 
+=======
+				doc = frappe.get_doc(col.parent, doc_name) if doc_name and col.parent else None
+				# Pass the Document to get the currency based on docfield option
+				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
+>>>>>>> 29785af915 (refactor: minor code cleanup in auto_email_report.py)
 	return columns, data
 
 def update_field_types(columns):
