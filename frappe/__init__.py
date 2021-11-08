@@ -43,7 +43,7 @@ local = Local()
 controllers = {}
 
 class _dict(dict):
-	"""dict like object that exposes keys as attributes. DFP added "__deepcopy__" exception"""
+	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		ret = self.get(key)
 		if not ret and key.startswith("__") and key != "__deepcopy__":
