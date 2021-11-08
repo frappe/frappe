@@ -15,8 +15,8 @@ context('Navigation', () => {
 		cy.visit('/app/todo');
 		cy.get('.page-head').findByTitle('To Do').should('be.visible');
 		cy.request('/api/method/logout');
-		cy.reload();
-		cy.get('.page-card .btn-primary').contains('Login').click();
+		cy.reload().as('reload');
+		cy.get('@reload').get('.page-card .btn-primary').contains('Login').click();
 		cy.location('pathname').should('eq', '/login');
 		cy.login();
 		cy.visit('/app');
