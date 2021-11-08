@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, now_datetime
+from frappe.query_builder import DocType
 import hashlib
 
 class TransactionLog(Document):
@@ -44,10 +45,14 @@ class TransactionLog(Document):
 
 
 def get_current_index():
-	current = frappe.db.sql("""SELECT `current`
-		FROM `tabSeries`
-		WHERE `name` = 'TRANSACTLOG'
-		FOR UPDATE""")
+	series = DocType("Series")
+	current = (
+		frappe.qb.from_(series)
+		.where(series.name == "TRANSACTLOG")
+		.for_update()
+		.select("current")
+		.run()
+	)
 	if current and current[0][0] is not None:
 		current = current[0][0]
 
