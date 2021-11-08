@@ -717,17 +717,10 @@ def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
 
-	user_email = DocType("User Email")
-	users = (
-		frappe.qb.from_(user_email)
-		.where(user_email.awaiting_password == 1)
-		.select(user_email.parent.as_("user"))
-		.distinct()
-		.run(as_dict=True)
-	)
-	users = frappe.qb.from_(user_email).where(user_email.awaiting_password == 1).select(user_email.parent.as_("user")).distinct().run(debug=1, as_dict=1)
-	users = frappe.db.sql("""SELECT DISTINCT(parent) as user FROM `tabUser Email`
-		WHERE awaiting_password = 1""", as_dict=True)
+	doctype = DocType("User Email")
+	users = frappe.qb.from_(doctype).where(doctype.awaiting_password == 1).select(
+		doctype.parent.as_("user")
+	).distinct().run(as_dict=True)
 
 	password_list = [ user.get("user") for user in users ]
 	set_default("email_user_password", u','.join(password_list))

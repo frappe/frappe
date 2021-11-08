@@ -88,7 +88,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2018-10-05 13:26:03.106050",
+ "modified": "2021-10-25 13:26:03.106050",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Route History",
@@ -121,7 +121,6 @@
  "show_name_in_global_search": 0,
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1,
  "track_seen": 0,
  "track_views": 0
 }
