@@ -6,9 +6,9 @@
 			<span class="course-instructor ml-0">
 				{{ creator.full_name }}
 			</span>
-			<span class="small">
-				<span class="mr-2">
-					<svg class="icon icon-sm"><use href="#icon-small-message"></use></svg>
+			<span class="small d-flex">
+				<span class="mr-2 d-flex align-items-center">
+					<img class="mr-1" src="/assets/frappe/icons/timeless/message.svg">
 					<span class="reply-count">{{ replies | length }}</span>
 				</span>
 				<span> {{ frappe.utils.format_date(topic.creation, "dd MMM YYYY") }} </span>
