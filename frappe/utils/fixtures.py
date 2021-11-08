@@ -70,4 +70,4 @@ def export_fixtures(app=None):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 
 			export_json(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"),
-				filters=filters, or_filters=or_filters, order_by="idx asc, creation asc")
+				filters=filters, or_filters=or_filters, order_by="name asc")
