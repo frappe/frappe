@@ -12,6 +12,7 @@ from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
 from frappe.desk.form.load import getdoc
+from frappe.utils.data import now_datetime
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
@@ -196,6 +197,17 @@ class TestPermissions(unittest.TestCase):
 
 		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(doc.has_permission("read"))
+
+	def test_dont_change_standard_constants(self):
+		# check that Document.creation cannot be changed
+		user = frappe.get_doc("User", frappe.session.user)
+		user.creation = now_datetime()
+		self.assertRaises(frappe.CannotChangeConstantError, user.save)
+
+		# check that Document.owner cannot be changed
+		user.reload()
+		user.owner = frappe.db.get_value("User", {"name": ("!=", user.name)})
+		self.assertRaises(frappe.CannotChangeConstantError, user.save)
 
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
