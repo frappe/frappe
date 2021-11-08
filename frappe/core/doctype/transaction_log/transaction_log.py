@@ -51,13 +51,8 @@ def get_current_index():
 		.where(series.name == "TRANSACTLOG")
 		.for_update()
 		.select("current")
-<<<<<<< HEAD
-		.run()
-	)
-=======
 	).run()
 
->>>>>>> b0de865eb2f8eded5236a80ea59cd4982e3035c2
 	if current and current[0][0] is not None:
 		current = current[0][0]
 
