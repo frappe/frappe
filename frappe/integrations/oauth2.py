@@ -6,14 +6,14 @@ from oauthlib.openid.connect.core.endpoints.pre_configured import (
 )
 
 import frappe
+from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import (
+	get_oauth_settings,
+)
 from frappe.oauth import (
 	OAuthWebRequestValidator,
 	generate_json_error_response,
 	get_server_url,
 	get_userinfo,
-)
-from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import (
-	get_oauth_settings,
 )
 
 

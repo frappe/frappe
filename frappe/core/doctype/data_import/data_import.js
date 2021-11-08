@@ -203,7 +203,7 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	download_template(frm) {
-		frappe.require('/assets/js/data_import_tools.min.js', () => {
+		frappe.require('data_import_tools.bundle.js', () => {
 			frm.data_exporter = new frappe.data_import.DataExporter(
 				frm.doc.reference_doctype,
 				frm.doc.import_type
@@ -287,7 +287,7 @@ frappe.ui.form.on('Data Import', {
 			return;
 		}
 
-		frappe.require('/assets/js/data_import_tools.min.js', () => {
+		frappe.require('data_import_tools.bundle.js', () => {
 			frm.import_preview = new frappe.data_import.ImportPreview({
 				wrapper: frm.get_field('import_preview').$wrapper,
 				doctype: frm.doc.reference_doctype,

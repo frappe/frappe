@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Tree (Hierarchical) Nested Set Model (nsm)
 #
@@ -10,12 +10,11 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now
+from frappe.query_builder import DocType, Order
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -148,10 +147,21 @@ def rebuild_tree(doctype, parent_field):
 		frappe.only_for('System Manager')
 
 	# get all roots
+	right = 1
+	table = DocType(doctype)
+	column = getattr(table, parent_field)
+
+	result = (
+		frappe.qb.from_(table)
+		.where(
+			(column == "") | (column.isnull())
+		)
+		.orderby(table.name, order=Order.asc)
+		.select(table.name)
+	).run()
+
 	frappe.db.auto_commit_on_many_writes = 1
 
-	right = 1
-	result = frappe.db.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL ORDER BY name ASC" % (doctype, parent_field, parent_field))
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
@@ -161,22 +171,23 @@ def rebuild_node(doctype, parent, left, parent_field):
 	"""
 		reset lft, rgt and recursive call for all children
 	"""
-	from frappe.utils import now
-	n = now()
-
 	# the right value of this node is the left value + 1
 	right = left+1
 
 	# get all children of this node
-	result = frappe.db.sql("SELECT name FROM `tab{0}` WHERE `{1}`=%s"
-		.format(doctype, parent_field), (parent))
+	table = DocType(doctype)
+	column = getattr(table, parent_field)
+
+	result = (
+		frappe.qb.from_(table).where(column == parent).select(table.name)
+	).run()
+
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.sql("""UPDATE `tab{0}` SET lft=%s, rgt=%s, modified=%s
-		WHERE name=%s""".format(doctype), (left,right,n,parent))
+	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False)
 
 	#return the right value of this node + 1
 	return right+1

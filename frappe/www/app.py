@@ -1,16 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
+# License: MIT. See LICENSE
 no_cache = 1
-base_template_path = "templates/www/app.html"
 
 import os, re
 import frappe
 from frappe import _
 import frappe.sessions
-from frappe.utils.jinja import is_rtl
+from frappe.utils.jinja_globals import is_rtl
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -40,13 +36,11 @@ def get_context(context):
 	# TODO: Find better fix
 	boot_json = re.sub(r"</script\>", "", boot_json)
 
-	style_urls = hooks["app_include_css"]
-
 	context.update({
 		"no_cache": 1,
 		"build_version": frappe.utils.get_build_version(),
 		"include_js": hooks["app_include_js"],
-		"include_css": get_rtl_styles(style_urls) if is_rtl() else style_urls,
+		"include_css": hooks["app_include_css"],
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],

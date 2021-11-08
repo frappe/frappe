@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe
 
@@ -21,7 +19,7 @@ def run_webhooks(doc, method):
 		if webhooks is None:
 			# query webhooks
 			webhooks_list = frappe.get_all('Webhook',
-						fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"], 
+						fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"],
 						filters={"enabled": True}
 					)
 

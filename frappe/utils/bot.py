@@ -1,7 +1,5 @@
 # Copyright (c) 2016, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe, re, frappe.utils
 from frappe.desk.notifications import get_notifications
@@ -40,10 +38,10 @@ class BotParser(object):
 
 	def format_list(self, data):
 		'''Format list as markdown'''
-		return _('I found these: ') + ', '.join([' [{title}](/app/Form/{doctype}/{name})'.format(
+		return _('I found these:') + ' ' + ', '.join(' [{title}](/app/Form/{doctype}/{name})'.format(
 			title = d.title or d.name,
 			doctype=self.get_doctype(),
-			name=d.name) for d in data])
+			name=d.name) for d in data)
 
 	def get_doctype(self):
 		'''returns the doctype name from self.tables'''
@@ -58,8 +56,8 @@ class ShowNotificationBot(BotParser):
 
 			if open_items:
 				return ("Following items need your attention:\n\n"
-					+ "\n\n".join(["{0} [{1}](/app/List/{1})".format(d[1], d[0])
-						for d in open_items if d[1] > 0]))
+					+ "\n\n".join("{0} [{1}](/app/List/{1})".format(d[1], d[0])
+						for d in open_items if d[1] > 0))
 			else:
 				return 'Take it easy, nothing urgent needs your attention'
 

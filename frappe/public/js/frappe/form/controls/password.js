@@ -1,11 +1,11 @@
-frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
-	input_type: "password",
-	make: function() {
-		this._super();
-	},
-	make_input: function() {
+frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.ControlData {
+	static input_type = "password"
+	make() {
+		super.make();
+	}
+	make_input() {
 		var me = this;
-		this._super();
+		super.make_input();
 		this.$input.parent().append($('<span class="password-strength-indicator indicator"></span>'));
 		this.$wrapper.find('.control-input-wrapper').append($('<p class="password-strength-message text-muted small hidden"></p>'));
 
@@ -18,8 +18,8 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 				me.get_password_strength(me.$input.val());
 			}, 500);
 		});
-	},
-	get_password_strength: function(value) {
+	}
+	get_password_strength(value) {
 		var me = this;
 		frappe.call({
 			type: 'POST',
@@ -41,10 +41,10 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 			}
 
 		});
-	},
-	set_strength_indicator: function(color) {
+	}
+	set_strength_indicator(color) {
 		var message = __("Include symbols, numbers and capital letters in the password");
 		this.indicator.removeClass().addClass('password-strength-indicator indicator ' + color);
 		this.message.html(message).removeClass('hidden');
 	}
-});
+};

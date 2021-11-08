@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import os
-from six import iteritems
 import logging
 
 from werkzeug.local import LocalManager
@@ -18,9 +16,9 @@ import frappe.handler
 import frappe.auth
 import frappe.api
 import frappe.utils.response
-import frappe.website.render
 from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
+from frappe.website.serve import get_response
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
@@ -74,7 +72,7 @@ def application(request):
 			response = frappe.utils.response.download_private_file(request.path)
 
 		elif request.method in ('GET', 'HEAD', 'POST'):
-			response = frappe.website.render.render()
+			response = get_response()
 
 		else:
 			raise NotFound
@@ -188,11 +186,12 @@ def make_form_dict(request):
 		args = request.form or request.args
 
 	if not isinstance(args, dict):
-		frappe.throw("Invalid request arguments")
+		frappe.throw(_("Invalid request arguments"))
 
 	try:
-		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-			for k, v in iteritems(args) })
+		frappe.local.form_dict = frappe._dict({
+			k: v[0] if isinstance(v, (list, tuple)) else v for k, v in args.items()
+		})
 	except IndexError:
 		frappe.local.form_dict = frappe._dict(args)
 
@@ -267,8 +266,7 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message",
-			http_status_code=http_status_code)
+		response = get_response("message", http_status_code=http_status_code)
 
 	return response
 
@@ -299,7 +297,7 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 	from werkzeug.serving import run_simple
 	patch_werkzeug_reloader()
 
-	if profile:
+	if profile or os.environ.get('USE_PROFILER'):
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):

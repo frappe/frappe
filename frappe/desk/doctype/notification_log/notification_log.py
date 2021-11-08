@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -13,7 +12,10 @@ class NotificationLog(Document):
 		frappe.publish_realtime('notification', after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled_for_type(self.for_user, self.type):
-			send_notification_email(self)
+			try:
+				send_notification_email(self)
+			except frappe.OutgoingEmailError:
+				frappe.log_error(message=frappe.get_traceback(), title=_("Failed to send notification email"))
 
 
 def get_permission_query_conditions(for_user):
@@ -46,7 +48,7 @@ def enqueue_create_notification(users, doc):
 
 	doc = frappe._dict(doc)
 
-	if isinstance(users, frappe.string_types):
+	if isinstance(users, str):
 		users = [user.strip() for user in users.split(',') if user.strip()]
 	users = list(set(users))
 

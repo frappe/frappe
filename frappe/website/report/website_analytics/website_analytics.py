@@ -1,7 +1,6 @@
 # Copyright (c) 2013, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 from datetime import datetime
 
 import frappe

@@ -1,14 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import datetime
 from frappe.utils import get_datetime, add_to_date, getdate
 from frappe.utils.data import get_first_day, get_first_day_of_week, get_quarter_start, get_year_start,\
 	get_last_day, get_last_day_of_week, get_quarter_ending, get_year_ending
-from six import string_types
 
 # global values -- used for caching
 dateformats = {
@@ -71,7 +69,7 @@ def get_user_date_format():
 def datetime_in_user_format(date_time):
 	if not date_time:
 		return ""
-	if isinstance(date_time, string_types):
+	if isinstance(date_time, str):
 		date_time = get_datetime(date_time)
 	from frappe.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")

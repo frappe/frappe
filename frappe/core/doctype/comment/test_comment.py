@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe, json
 import unittest
 
@@ -32,7 +30,7 @@ class TestComment(unittest.TestCase):
 		from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 		test_blog = make_test_blog()
 
-		frappe.db.sql("delete from `tabComment` where reference_doctype = 'Blog Post'")
+		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
 		from frappe.templates.includes.comments.comments import add_comment
 		add_comment('Good comment with 10 chars', 'test@test.com', 'Good Tester',
@@ -43,7 +41,7 @@ class TestComment(unittest.TestCase):
 			reference_name = test_blog.name
 		))[0].published, 1)
 
-		frappe.db.sql("delete from `tabComment` where reference_doctype = 'Blog Post'")
+		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
 		add_comment('pleez vizits my site http://mysite.com', 'test@test.com', 'bad commentor',
 			'Blog Post', test_blog.name, test_blog.route)

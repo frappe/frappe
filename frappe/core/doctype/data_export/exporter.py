@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _
@@ -9,8 +7,6 @@ import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint, format_duration
-from frappe.core.doctype.data_import_legacy.importer import get_data_keys
-from six import string_types
 from frappe.core.doctype.access_log.access_log import make_access_log
 
 reflags = {
@@ -22,6 +18,15 @@ reflags = {
 	"X":re.X,
 	"D": re.DEBUG
 }
+
+def get_data_keys():
+	return frappe._dict({
+		"data_separator": _('Start entering data below this line'),
+		"main_table": _("Table") + ":",
+		"parent_table": _("Parent Table") + ":",
+		"columns": _("Column Name") + ":",
+		"doctype": _("DocType") + ":"
+	})
 
 @frappe.whitelist()
 def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False,
@@ -57,7 +62,7 @@ class DataExporter:
 
 		self.docs_to_export = {}
 		if self.doctype:
-			if isinstance(self.doctype, string_types):
+			if isinstance(self.doctype, str):
 				self.doctype = [self.doctype]
 
 			if len(self.doctype) > 1:
@@ -256,6 +261,7 @@ class DataExporter:
 			self.writer.writerow([self.data_keys.data_separator])
 
 	def add_data(self):
+		from frappe.query_builder import DocType
 		if self.template and not self.with_data:
 			return
 
@@ -300,9 +306,15 @@ class DataExporter:
 			if self.all_doctypes:
 				# add child tables
 				for c in self.child_doctypes:
-					for ci, child in enumerate(frappe.db.sql("""select * from `tab{0}`
-						where parent=%s and parentfield=%s order by idx""".format(c['doctype']),
-						(doc.name, c['parentfield']), as_dict=1)):
+					child_doctype_table = DocType(c["doctype"])
+					data_row = (
+						frappe.qb.from_(child_doctype_table)
+						.select("*")
+						.where(child_doctype_table.parent == doc.name)
+						.where(child_doctype_table.parentfield == c["parentfield"])
+						.orderby(child_doctype_table.idx)
+					)
+					for ci, child in enumerate(data_row.run()):
 						self.add_data_row(rows, c['doctype'], c['parentfield'], child, ci)
 
 			for row in rows:

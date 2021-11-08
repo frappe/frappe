@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
+# License: MIT. See LICENSE
 """
 	Utilities for using modules
 """
@@ -116,8 +114,7 @@ def sync_customizations_for_doctype(data, folder):
 					doc.db_insert()
 
 			if custom_doctype != 'Custom Field':
-				frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
-					custom_doctype, doctype_fieldname), doc_type)
+				frappe.db.delete(custom_doctype, {doctype_fieldname: doc_type})
 
 				for d in data[key]:
 					_insert(d)

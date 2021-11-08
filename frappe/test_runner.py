@@ -1,18 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
+# License: MIT. See LICENSE
 import frappe
 import unittest, json, sys, os
 import time
-import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
 import frappe.utils.scheduler
 import cProfile, pstats
-from six import StringIO
-from six.moves import reload_module
+from io import StringIO
+from importlib import reload
 from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
@@ -20,6 +16,13 @@ SLOW_TEST_THRESHOLD = 2
 
 def xmlrunner_wrapper(output):
 	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
+	try:
+		import xmlrunner
+	except ImportError:
+		print("Development dependencies are required to execute this command. To install run:")
+		print("$ bench setup requirements --dev")
+		raise
+
 	def _runner(*args, **kwargs):
 		kwargs['output'] = output
 		return xmlrunner.XMLTestRunner(*args, **kwargs)
@@ -57,8 +60,12 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
-		frappe.utils.scheduler.disable_scheduler()
+		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled()
+		if not scheduler_disabled_by_user:
+			frappe.utils.scheduler.disable_scheduler()
+
 		set_test_email_config()
+		frappe.conf.update({'bench_id': 'test_bench', 'use_rq_auth': False})
 
 		if not frappe.flags.skip_before_tests:
 			if verbose:
@@ -72,6 +79,9 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
+
+		if not scheduler_disabled_by_user:
+			frappe.utils.scheduler.enable_scheduler()
 
 		if frappe.db: frappe.db.commit()
 
@@ -282,7 +292,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload_module(test_module)
+			reload(test_module)
 	except ImportError:
 		test_module = None
 

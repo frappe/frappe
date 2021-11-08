@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 import frappe
 import unittest
 import functools
@@ -172,7 +172,6 @@ class LDAP_TestCase():
 		# Clear OpenLDAP connection
 		self.connection = None
 
-	
 	@mock_ldap_connection
 	def test_mandatory_fields(self):
 
@@ -218,7 +217,6 @@ class LDAP_TestCase():
 
 			localdoc = self.doc.copy()
 			localdoc[non_mandatory_field] = ''
-			
 			try:
 
 				frappe.get_doc(localdoc).save()
@@ -324,7 +322,7 @@ class LDAP_TestCase():
 					self.assertTrue(kwargs['user'] == self.base_dn,
 						'ldap3.Connection user does not match provided user')
 
-					ldap3_connection_method.assert_called_with(server=ldap3_server_method.return_value, 
+					ldap3_connection_method.assert_called_with(server=ldap3_server_method.return_value,
 						auto_bind=True,
 						password=self.base_password,
 						raise_exceptions=True,
@@ -467,7 +465,7 @@ class LDAP_TestCase():
 				self.test_class.create_or_update_user(self.user1doc, test_user_data[test_user])
 
 				self.assertTrue(sync_roles_method.called, 'User roles need to be updated for a new user')
-				self.assertFalse(update_user_fields_method.called, 
+				self.assertFalse(update_user_fields_method.called,
 					'User roles are not required to be updated for a new user, this will occur during logon')
 
 
@@ -489,7 +487,6 @@ class LDAP_TestCase():
 
 	@mock_ldap_connection
 	def test_fetch_ldap_groups(self):
-	
 		if self.TEST_LDAP_SERVER.lower() == 'openldap':
 			test_users = {
 				'posix.user': ['Users', 'Administrators'],
@@ -523,7 +520,6 @@ class LDAP_TestCase():
 
 	@mock_ldap_connection
 	def test_authenticate(self):
-		
 		with mock.patch('frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups') as \
 			fetch_ldap_groups_function:
 
@@ -543,7 +539,6 @@ class LDAP_TestCase():
 			{'': 'posix_user_password'},
 			{'': ''}
 		] # All invalid users should return 'invalid username or password'
-			
 		for username, password in enumerate(invalid_users):
 
 			with self.assertRaises(frappe.exceptions.ValidationError) as display_massage:

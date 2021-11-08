@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 import frappe.desk.form.document_follow as document_follow
@@ -17,14 +15,14 @@ class TestDocumentFollow(unittest.TestCase):
 
 		document_follow.unfollow_document("Event", event_doc.name, user.name)
 		doc = document_follow.follow_document("Event", event_doc.name, user.name)
-		self.assertEquals(doc.user, user.name)
+		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
 
 		email_queue_entry_name = frappe.get_all("Email Queue", limit=1)[0].name
 		email_queue_entry_doc = frappe.get_doc("Email Queue", email_queue_entry_name)
 
-		self.assertEquals((email_queue_entry_doc.recipients[0].recipient), user.name)
+		self.assertEqual((email_queue_entry_doc.recipients[0].recipient), user.name)
 
 		self.assertIn(event_doc.doctype, email_queue_entry_doc.message)
 		self.assertIn(event_doc.name, email_queue_entry_doc.message)

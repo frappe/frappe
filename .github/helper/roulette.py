@@ -25,7 +25,7 @@ def is_ci(file):
 	return ".github" in file
 
 def is_frontend_code(file):
-	return file.endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
+	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
 
 def is_docs(file):
 	regex = re.compile(r'\.(md|png|jpg|jpeg|csv)$|^.github|LICENSE')
@@ -38,8 +38,12 @@ if __name__ == "__main__":
 	pr_number = os.environ.get("PR_NUMBER")
 	repo = os.environ.get("REPO_NAME")
 
-	if not files_list and pr_number:
-		files_list = get_files_list(pr_number=pr_number, repo=repo)
+	# this is a push build, run all builds
+	if not pr_number:
+		os.system('echo "::set-output name=build::strawberry"')
+		sys.exit(0)
+
+	files_list = files_list or get_files_list(pr_number=pr_number, repo=repo)
 
 	if not files_list:
 		print("No files' changes detected. Build is shutting")

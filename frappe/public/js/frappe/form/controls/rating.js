@@ -1,6 +1,6 @@
-frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
+frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.ControlInt {
 	make_input() {
-		this._super();
+		super.make_input();
 		let stars = '';
 		[1, 2, 3, 4, 5].forEach(i => {
 			stars += `<svg class="icon icon-md" data-rating=${i}>
@@ -47,10 +47,10 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 				this.set_input(star_value);
 			}
 		});
-	},
+	}
 	get_value() {
 		return cint(this.value, null);
-	},
+	}
 	set_formatted_input(value) {
 		let el = $(this.input_area).find('svg');
 		el.children('svg').prevObject.each( function(e) {
@@ -61,4 +61,4 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 			}
 		});
 	}
-});
+};

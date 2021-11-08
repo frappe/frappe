@@ -270,6 +270,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "doc_type",
    "fieldname": "naming_section",
    "fieldtype": "Section Break",
    "label": "Naming"
@@ -279,16 +280,6 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
-  },
-  {
-   "fieldname": "default_email_template",
-   "fieldtype": "Link",
-   "label": "Default Email Template",
-   "options": "Email Template"
-  },
-  {
-   "fieldname": "column_break_26",
-   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,

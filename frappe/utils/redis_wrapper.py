@@ -1,11 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
+import pickle
+import re
 
-import redis, frappe, re
-from six.moves import cPickle as pickle
+import redis
+
+import frappe
 from frappe.utils import cstr
-from six import iteritems
 
 
 class RedisWrapper(redis.Redis):
@@ -28,7 +29,7 @@ class RedisWrapper(redis.Redis):
 
 		return "{0}|{1}".format(frappe.conf.db_name, key).encode('utf-8')
 
-	def set_value(self, key, val, user=None, expires_in_sec=None):
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -36,7 +37,7 @@ class RedisWrapper(redis.Redis):
 		:param user: Prepends key with User
 		:param expires_in_sec: Expire value of this key in X seconds
 		"""
-		key = self.make_key(key, user)
+		key = self.make_key(key, user, shared)
 
 		if not expires_in_sec:
 			frappe.local.cache[key] = val
@@ -50,7 +51,7 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return None
 
-	def get_value(self, key, generator=None, user=None, expires=False):
+	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
 		"""Returns cache value. If not found and generator function is
 			given, it will call the generator.
 
@@ -59,7 +60,7 @@ class RedisWrapper(redis.Redis):
 		:param expires: If the key is supposed to be with an expiry, don't store it in frappe.local
 		"""
 		original_key = key
-		key = self.make_key(key, user)
+		key = self.make_key(key, user, shared)
 
 		if key in frappe.local.cache:
 			val = frappe.local.cache[key]
@@ -165,8 +166,10 @@ class RedisWrapper(redis.Redis):
 			pass
 
 	def hgetall(self, name):
-		return {key: pickle.loads(value) for key, value in
-			iteritems(super(RedisWrapper, self).hgetall(self.make_key(name)))}
+		value = super(RedisWrapper, self).hgetall(self.make_key(name))
+		return {
+			key: pickle.loads(value) for key, value in value.items()
+		}
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)

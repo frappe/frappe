@@ -1,8 +1,8 @@
 import Grid from '../grid';
 
-frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
-	make: function() {
-		this._super();
+frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control {
+	make() {
+		super.make();
 
 		// add title if prev field is not column / section heading or html
 		this.grid = new Grid({
@@ -84,7 +84,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			});
 			return false; // Prevent the default handler from running.
 		});
-	},
+	}
 	get_field(field_name) {
 		let fieldname;
 		field_name = field_name.toLowerCase();
@@ -107,22 +107,22 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			}
 		});
 		return fieldname;
-	},
-	refresh_input: function() {
+	}
+	refresh_input() {
 		this.grid.refresh();
-	},
-	get_value: function() {
+	}
+	get_value() {
 		if(this.grid) {
 			return this.grid.get_data();
 		}
-	},
-	set_input: function( ) {
+	}
+	set_input( ) {
 		//
-	},
-	validate: function() {
+	}
+	validate() {
 		return this.get_value();
-	},
+	}
 	check_all_rows() {
 		this.$wrapper.find('.grid-row-check')[0].click();
 	}
-});
+};

@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
-# For license information, please see license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import os
 from shutil import rmtree
 
 import frappe
 from frappe.model.document import Document
-from frappe.website.render import clear_cache
+from frappe.website.utils import clear_cache
 from frappe import _
 from frappe.modules.export_file import (
 	write_document_file,

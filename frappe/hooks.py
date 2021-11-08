@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 from . import __version__ as app_version
 
 
@@ -12,11 +12,11 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
-develop_version = '13.x.x-develop'
+develop_version = '14.x.x-develop'
 
-app_email = "info@frappe.io"
+app_email = "developers@frappe.io"
 
-docs_app = "frappe_io"
+docs_app = "frappe_docs"
 
 translator_url = "https://translate.erpnext.com"
 
@@ -29,16 +29,16 @@ page_js = {
 
 # website
 app_include_js = [
-	"/assets/js/libs.min.js",
-	"/assets/js/desk.min.js",
-	"/assets/js/list.min.js",
-	"/assets/js/form.min.js",
-	"/assets/js/control.min.js",
-	"/assets/js/report.min.js",
+	"libs.bundle.js",
+	"desk.bundle.js",
+	"list.bundle.js",
+	"form.bundle.js",
+	"controls.bundle.js",
+	"report.bundle.js",
 ]
 app_include_css = [
-	"/assets/css/desk.min.css",
-	"/assets/css/report.min.css",
+	"desk.bundle.css",
+	"report.bundle.css",
 ]
 
 doctype_js = {
@@ -51,6 +51,8 @@ web_include_js = [
 ]
 
 web_include_css = []
+
+email_css = ['email.bundle.css']
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
@@ -128,6 +130,16 @@ has_permission = {
 
 has_website_permission = {
 	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
+}
+
+jinja = {
+	"methods": "frappe.utils.jinja_globals",
+	"filters": [
+		"frappe.utils.data.global_date_format",
+		"frappe.utils.markdown",
+		"frappe.website.utils.get_shade",
+		"frappe.website.utils.abs_url",
+	]
 }
 
 standard_queries = {

@@ -1,11 +1,11 @@
 {
   "name": "frappe-framework",
   "scripts": {
-    "build": "node rollup/build.js",
-    "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js",
+    "build": "node esbuild",
+    "production": "node esbuild --production",
+    "watch": "node esbuild --watch",
     "snyk-protect": "snyk protect",
-    "prepare": "yarn run snyk-protect"
+    "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
     "type": "git",
@@ -16,16 +16,23 @@
   "bugs": {
     "url": "https://github.com/frappe/frappe/issues"
   },
+  "engines": {
+    "node": ">=14"
+  },
   "homepage": "https://frappeframework.com",
   "dependencies": {
+    "@editorjs/editorjs": "2.20.0",
     "ace-builds": "^1.4.8",
     "air-datepicker": "github:frappe/air-datepicker",
     "autoprefixer": "^9.8.6",
     "awesomplete": "^1.1.5",
-    "bootstrap": "4",
+    "bootstrap": "4.5.0",
+    "cliui": "^7.0.4",
     "cookie": "^0.4.0",
-    "cssnano": "^4.1.10",
+    "cropperjs": "^1.5.12",
+    "cssnano": "^5.0.0",
     "driver.js": "^0.9.8",
+    "editorjs-undo": "0.1.6",
     "express": "^4.17.1",
     "fast-deep-equal": "^2.0.1",
     "frappe-charts": "^2.0.0-rc13",
@@ -34,6 +41,7 @@
     "fuse.js": "^3.4.6",
     "highlight.js": "^10.4.1",
     "html5-qrcode": "^2.0.11",
+    "jquery": "3.5.0",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.9.0",
     "localforage": "^1.9.0",
@@ -41,35 +49,36 @@
     "moment-timezone": "^0.5.28",
     "node-sass": "^4.14.1",
     "plyr": "^3.6.2",
+    "popper.js": "^1.16.0",
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.4",
     "quill-image-resize": "^3.0.9",
+    "quill-magic-url": "^3.0.0",
     "qz-tray": "^2.0.8",
     "redis": "^3.1.1",
     "rtlcss": "2.6.2",
     "showdown": "^1.9.1",
-    "snyk": "^1.518.0",
+    "snyk": "^1.685.0",
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "^2.6.11",
-    "vue-router": "^2.0.0"
+    "vue": "2.6.12",
+    "vue-router": "^2.0.0",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
-    "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
-    "graphlib": "^2.1.8",
-    "less": "^3.11.1",
-    "rollup": "^1.2.2",
-    "rollup-plugin-buble": "^0.19.2",
-    "rollup-plugin-commonjs": "^8.3.0",
-    "rollup-plugin-multi-entry": "^2.0.2",
-    "rollup-plugin-node-resolve": "^4.0.1",
-    "rollup-plugin-postcss": "^2.0.3",
-    "rollup-plugin-terser": "^4.0.4",
-    "rollup-plugin-vue": "4.2.0",
-    "svg-sprite": "^1.5.0",
-    "vue-template-compiler": "^2.6.11"
+    "esbuild": "^0.11.21",
+    "esbuild-plugin-postcss2": "^0.0.9",
+    "esbuild-vue": "^0.2.0",
+    "fast-glob": "^3.2.5",
+    "launch-editor": "^2.2.1",
+    "md5": "^2.3.0",
+    "rtlcss": "^3.2.1",
+    "yargs": "^16.2.0"
   },
-  "snyk": true
+  "snyk": true,
+  "nyc": {
+    "report-dir": ".cypress-coverage"
+  }
 }

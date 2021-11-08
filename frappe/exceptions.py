@@ -1,17 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
-import sys
+# License: MIT. See LICENSE
 
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
-
-
-if sys.version_info.major == 2:
-	class FileNotFoundError(Exception): pass
-else:
-	from builtins import FileNotFoundError
 
 class SiteNotSpecifiedError(Exception):
 	def __init__(self, *args, **kwargs):
@@ -108,8 +99,10 @@ class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
 class FileAlreadyAttachedException(Exception): pass
-class DocumentAlreadyRestored(Exception): pass
-class AttachmentLimitReached(Exception): pass
+class DocumentAlreadyRestored(ValidationError): pass
+class AttachmentLimitReached(ValidationError): pass
+class QueryTimeoutError(Exception): pass
+class QueryDeadlockError(Exception): pass
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
 class InvalidAuthorizationPrefix(CSRFTokenError): pass

@@ -1,12 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
-from six import iteritems, text_type, string_types, PY2
-
-from frappe.utils import cstr
-
+# License: MIT. See LICENSE
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
@@ -21,21 +14,14 @@ import operator
 import functools
 import os
 import re
+from csv import reader
 from typing import List, Union, Tuple
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
-
-
-def guess_language(lang_list=None):
-	"""[DEPRECATED] This method is deprecated, use `frappe.translate.get_language` method instead.
-	It will be removed in v14.
-	"""
-	import click
-
-	click.secho(f"{guess_language.__doc__}\n{get_language.__doc__}", fg="yellow")
-	return get_language(lang_list)
+from frappe.query_builder import Field, DocType
+from pypika.terms import PseudoColumn
 
 
 def get_language(lang_list: List = None) -> str:
@@ -135,7 +121,8 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	return dict(frappe.db.sql('select language_name, name from tabLanguage'))
+	result = dict(frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True))
+	return result
 
 def get_dict(fortype, name=None):
 	"""Returns translation dict for a type of object.
@@ -167,18 +154,31 @@ def get_dict(fortype, name=None):
 
 			messages += get_messages_from_navbar()
 			messages += get_messages_from_include_files()
-			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
-			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
-			messages += frappe.db.sql("select 'Role:', name from tabRole")
-			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
-			messages += frappe.db.sql("select '', format from `tabWorkspace Shortcut` where format is not null")
-			messages += frappe.db.sql("select '', title from `tabOnboarding Step`")
+			messages += (
+				frappe.qb.from_("Print Format")
+				.select(PseudoColumn("'Print Format:'"), "name")).run()
+			messages += (
+				frappe.qb.from_("DocType")
+				.select(PseudoColumn("'DocType:'"), "name")).run()
+			messages += (
+				frappe.qb.from_("Role").select(PseudoColumn("'Role:'"), "name").run()
+			)
+			messages += (
+				frappe.qb.from_("Module Def")
+				.select(PseudoColumn("'Module:'"), "name")).run()
+			messages += (
+				frappe.qb.from_("Workspace Shortcut")
+				.where(Field("format").isnotnull())
+				.select(PseudoColumn("''"), "format")).run()
+			messages += (
+				frappe.qb.from_("Onboarding Step")
+				.select(PseudoColumn("''"), "title")).run()
 
 		messages = deduplicate_messages(messages)
 		message_dict = make_dict_from_messages(messages, load_user_translation=False)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 		# remove untranslated
-		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
+		message_dict = {k: v for k, v in message_dict.items() if k!=v}
 		translation_assets[asset_key] = message_dict
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
@@ -334,26 +334,36 @@ def clear_cache():
 def get_messages_for_app(app, deduplicate=True):
 	"""Returns all messages (list) for a specified `app`"""
 	messages = []
-	modules = ", ".join(['"{}"'.format(m.title().replace("_", " ")) \
-		for m in frappe.local.app_modules[app]])
+	modules = [frappe.unscrub(m) for m in frappe.local.app_modules[app]]
 
 	# doctypes
 	if modules:
-		for name in frappe.db.sql_list("""select name from tabDocType
-			where module in ({})""".format(modules)):
+		if isinstance(modules, str):
+			modules = [modules]
+		filtered_doctypes = frappe.qb.from_("DocType").where(
+			Field("module").isin(modules)
+		).select("name").run(pluck=True)
+		for name in filtered_doctypes:
 			messages.extend(get_messages_from_doctype(name))
 
 		# pages
-		for name, title in frappe.db.sql("""select name, title from tabPage
-			where module in ({})""".format(modules)):
+		filtered_pages = frappe.qb.from_("Page").where(
+			Field("module").isin(modules)
+		).select("name", "title").run()
+		for name, title in filtered_pages:
 			messages.append((None, title or name))
 			messages.extend(get_messages_from_page(name))
 
 
 		# reports
-		for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport
-			where tabReport.ref_doctype = tabDocType.name
-				and tabDocType.module in ({})""".format(modules)):
+		report = DocType("Report")
+		doctype = DocType("DocType")
+		names = (
+			frappe.qb.from_(doctype)
+			.from_(report)
+			.where((report.ref_doctype == doctype.name) & doctype.module.isin(modules))
+			.select(report.name).run(pluck=True))
+		for name in names:
 			messages.append((None, name))
 			messages.extend(get_messages_from_report(name))
 			for i in messages:
@@ -440,7 +450,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 		for fixture in fixtures:
-			if isinstance(fixture, string_types) and fixture == 'Worflow':
+			if isinstance(fixture, str) and fixture == 'Worflow':
 				workflows = frappe.get_all('Workflow')
 				break
 			elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Workflow':
@@ -476,7 +486,7 @@ def get_messages_from_custom_fields(app_name):
 	custom_fields = []
 
 	for fixture in fixtures:
-		if isinstance(fixture, string_types) and fixture == 'Custom Field':
+		if isinstance(fixture, str) and fixture == 'Custom Field':
 			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
@@ -647,7 +657,7 @@ def is_translatable(m):
 def add_line_number(messages, code):
 	ret = []
 	messages = sorted(messages, key=lambda x: x[0])
-	newlines = [m.start() for m in re.compile('\\n').finditer(code)]
+	newlines = [m.start() for m in re.compile(r'\n').finditer(code)]
 	line = 1
 	newline_i = 0
 	for pos, message, context in messages:
@@ -661,20 +671,11 @@ def read_csv_file(path):
 	"""Read CSV file and return as list of list
 
 	:param path: File path"""
-	from csv import reader
 
-	if PY2:
-		with codecs.open(path, 'r', 'utf-8') as msgfile:
-			data = msgfile.read()
+	with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
+		data = reader(msgfile)
+		newdata = [[val for val in row] for row in data]
 
-			# for japanese! #wtf
-			data = data.replace(chr(28), "").replace(chr(29), "")
-			data = reader([r.encode('utf-8') for r in data.splitlines()])
-			newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
-	else:
-		with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
-			data = reader(msgfile)
-			newdata = [[ val for val in row ] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
@@ -864,7 +865,7 @@ def update_translations_for_source(source=None, translation_dict=None):
 			frappe.delete_doc('Translation', d.name)
 
 	# remaining values are to be inserted
-	for lang, translated_text in iteritems(translation_dict):
+	for lang, translated_text in translation_dict.items():
 		doc = frappe.new_doc('Translation')
 		doc.language = lang
 		doc.source_text = source
@@ -923,7 +924,7 @@ def get_translator_url():
 def get_all_languages(with_language_name=False):
 	"""Returns all language codes ar, ch etc"""
 	def get_language_codes():
-		return frappe.db.sql_list('select name from tabLanguage')
+		return frappe.get_all("Language", pluck="name")
 
 	def get_all_language_with_name():
 		return frappe.db.get_all('Language', ['language_code', 'language_name'])

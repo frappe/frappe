@@ -3,6 +3,14 @@
 
 frappe.provide("frappe.ui.form.handlers");
 
+window.extend_cscript = (cscript, controller_object) => {
+	$.extend(cscript, controller_object);
+	if (cscript && controller_object) {
+		cscript.__proto__ = controller_object.__proto__;
+	}
+	return cscript;
+};
+
 frappe.ui.form.get_event_handler_list = function(doctype, fieldname) {
 	if(!frappe.ui.form.handlers[doctype]) {
 		frappe.ui.form.handlers[doctype] = {};
@@ -69,15 +77,15 @@ frappe.ui.form.trigger = function(doctype, fieldname) {
 	cur_frm.script_manager.trigger(fieldname, doctype);
 }
 
-frappe.ui.form.ScriptManager = Class.extend({
-	init: function(opts) {
+frappe.ui.form.ScriptManager = class ScriptManager {
+	constructor(opts) {
 		$.extend(this, opts);
-	},
-	make: function(ControllerClass) {
-		this.frm.cscript = $.extend(this.frm.cscript,
+	}
+	make(ControllerClass) {
+		this.frm.cscript = extend_cscript(this.frm.cscript,
 			new ControllerClass({frm: this.frm}));
-	},
-	trigger: function(event_name, doctype, name) {
+	}
+	trigger(event_name, doctype, name) {
 		// trigger all the form level events that
 		// are bound to this event_name
 		let me = this;
@@ -130,12 +138,12 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		// run them serially
 		return frappe.run_serially(tasks);
-	},
-	has_handlers: function(event_name, doctype) {
+	}
+	has_handlers(event_name, doctype) {
 		let handlers = this.get_handlers(event_name, doctype);
 		return handlers && (handlers.old_style.length || handlers.new_style.length);
-	},
-	get_handlers: function(event_name, doctype) {
+	}
+	get_handlers(event_name, doctype) {
 		// returns list of all functions to be called (old style and new style)
 		let me = this;
 		let handlers = {
@@ -154,8 +162,8 @@ frappe.ui.form.ScriptManager = Class.extend({
 			handlers.old_style.push("custom_" + event_name);
 		}
 		return handlers;
-	},
-	setup: function() {
+	}
+	setup() {
 		const doctype = this.frm.meta;
 		const me = this;
 		let client_script;
@@ -185,10 +193,10 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		function setup_add_fetch(df) {
 			if ((['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check',
-				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select'].includes(df.fieldtype) || df.read_only==1)
+				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select', 'Duration'].includes(df.fieldtype) || df.read_only==1)
 				&& df.fetch_from && df.fetch_from.indexOf(".")!=-1) {
 				var parts = df.fetch_from.split(".");
-				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
+				me.frm.add_fetch(parts[0], parts[1], df.fieldname, df.parent);
 			}
 		}
 
@@ -206,8 +214,8 @@ frappe.ui.form.ScriptManager = Class.extend({
 		doctype.__css && frappe.dom.set_style(doctype.__css);
 
 		this.trigger('setup');
-	},
-	log_error: function(caller, e) {
+	}
+	log_error(caller, e) {
 		frappe.show_alert({message: __("Error in Client Script."), indicator: "error"});
 		console.group && console.group();
 		console.log("----- error in client script -----");
@@ -217,8 +225,8 @@ frappe.ui.form.ScriptManager = Class.extend({
 		console.trace && console.trace();
 		console.log("----- end of error message -----");
 		console.group && console.groupEnd();
-	},
-	copy_from_first_row: function(parentfield, current_row, fieldnames) {
+	}
+	copy_from_first_row(parentfield, current_row, fieldnames) {
 		var data = this.frm.doc[parentfield];
 		if(data.length===1 || data[0]===current_row) return;
 
@@ -231,4 +239,4 @@ frappe.ui.form.ScriptManager = Class.extend({
 				data[0][fieldname]);
 		});
 	}
-});
+};

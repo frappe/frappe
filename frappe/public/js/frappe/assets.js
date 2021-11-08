@@ -9,6 +9,8 @@ frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
+	items = items.map(item => frappe.assets.bundled_asset(item));
+
 	return new Promise(resolve => {
 		frappe.assets.execute(items, () => {
 			resolve();
@@ -166,11 +168,14 @@ frappe.assets = {
 		}
 	},
 
-	include_style(file, base_url, is_rtl=null) {
-		let path = `${base_url}/assets/css/${file}`;
-		if (is_rtl) {
-			path = `${base_url}/assets/css-rtl/${file}`;
+	bundled_asset(path, is_rtl=null) {
+		if (!path.startsWith('/assets') && path.includes('.bundle.')) {
+			if (path.endsWith('.css') && is_rtl) {
+				path = `rtl_${path}`;
+			}
+			path = frappe.boot.assets_json[path] || path;
+			return path;
 		}
-		return `<link href="${path}" rel="stylesheet">`;
+		return path;
 	}
 };

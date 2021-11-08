@@ -11,7 +11,7 @@ frappe.pages['recorder'].on_page_load = function(wrapper) {
 		frappe.recorder.show();
 	});
 
-	frappe.require('/assets/js/frappe-recorder.min.js');
+	frappe.require('recorder.bundle.js');
 };
 
 class Recorder {

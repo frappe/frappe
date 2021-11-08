@@ -1,15 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
+from urllib.parse import quote
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import get_request_site_address, encode
-from frappe.model.document import Document
-from six.moves.urllib.parse import quote
-from frappe.website.router import resolve_route
-from frappe.website.doctype.website_theme.website_theme import add_website_theme
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.model.document import Document
+from frappe.utils import encode, get_request_site_address
+from frappe.website.doctype.website_theme.website_theme import add_website_theme
 
 INDEXING_SCOPES = "https://www.googleapis.com/auth/indexing"
 
@@ -23,8 +21,8 @@ class WebsiteSettings(Document):
 	def validate_home_page(self):
 		if frappe.flags.in_install:
 			return
-
-		if self.home_page and not resolve_route(self.home_page):
+		from frappe.website.path_resolver import PathResolver
+		if self.home_page and not PathResolver(self.home_page).is_valid_path():
 			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - home, login, products, blog, about, contact)")
 			self.home_page = ''
 
@@ -70,7 +68,7 @@ class WebsiteSettings(Document):
 		# clear web cache (for menus!)
 		frappe.clear_cache(user = 'Guest')
 
-		from frappe.website.render import clear_cache
+		from frappe.website.utils import clear_cache
 		clear_cache()
 
 		# clears role based home pages

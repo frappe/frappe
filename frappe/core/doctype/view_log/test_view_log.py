@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 
@@ -25,11 +23,11 @@ class TestViewLog(unittest.TestCase):
 		# load the form
 		getdoc('Event', ev.name)
 		a = frappe.get_value(
-			doctype="View Log", 
+			doctype="View Log",
 			filters={
 				"reference_doctype": "Event",
 				"reference_name": ev.name
-			}, 
+			},
 			fieldname=['viewed_by']
 		)
 

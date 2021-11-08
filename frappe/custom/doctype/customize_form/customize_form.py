@@ -1,7 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 
-from __future__ import unicode_literals
 """
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
@@ -19,10 +18,11 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model.docfield import supports_translation
 from frappe.core.doctype.doctype.doctype import validate_series
 
+
 class CustomizeForm(Document):
 	def on_update(self):
-		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
-		frappe.db.sql("delete from `tabCustomize Form Field`")
+		frappe.db.delete("Singles", {"doctype": "Customize Form"})
+		frappe.db.delete("Customize Form Field")
 
 	@frappe.whitelist()
 	def fetch_to_customize(self):
@@ -366,9 +366,9 @@ class CustomizeForm(Document):
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
-		fields_to_remove = (set([df.fieldname for df in meta.get("fields")])
-			- set(df.fieldname for df in self.get("fields")))
-
+		fields_to_remove = (
+			{df.fieldname for df in meta.get("fields")} - {df.fieldname for df in self.get("fields")}
+		)
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
 			if df.get("is_custom_field"):

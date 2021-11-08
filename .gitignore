@@ -9,6 +9,7 @@ locale
 dist/
 # build/
 frappe/docs/current
+frappe/public/dist
 .vscode
 node_modules
 .kdev4/
@@ -66,6 +67,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+.cypress-coverage
 
 # Translations
 *.mo

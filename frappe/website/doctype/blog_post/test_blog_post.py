@@ -1,15 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from bs4 import BeautifulSoup
 import re
 
 from frappe.utils import set_request
-from frappe.website.render import render
+from frappe.website.serve import get_response
 from frappe.utils import random_string
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
+from frappe.website.utils import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
@@ -24,7 +24,7 @@ class TestBlogPost(unittest.TestCase):
 			filters={'published': 1, 'route': ('!=', '')}, limit =1)
 
 		set_request(path=pages[0].route)
-		response = render()
+		response = get_response()
 
 		self.assertTrue(response.status_code, 200)
 
@@ -35,20 +35,22 @@ class TestBlogPost(unittest.TestCase):
 		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
 			filters={'published': 0}, limit =1)
 
-		frappe.db.set_value('Blog Post', pages[0].name, 'route', 'test-route-000')
+		route = f'test-route-{frappe.generate_hash(length=5)}'
 
-		set_request(path='test-route-000')
-		response = render()
+		frappe.db.set_value('Blog Post', pages[0].name, 'route', route)
+
+		set_request(path=route)
+		response = get_response()
 
 		self.assertTrue(response.status_code, 404)
 
 	def test_category_link(self):
 		# Make a temporary Blog Post (and a Blog Category)
-		blog = make_test_blog()
+		blog = make_test_blog('Test Category Link')
 
 		# Visit the blog post page
 		set_request(path=blog.route)
-		blog_page_response = render()
+		blog_page_response = get_response()
 		blog_page_html = frappe.safe_decode(blog_page_response.get_data())
 
 		# On blog post page find link to the category page
@@ -58,13 +60,13 @@ class TestBlogPost(unittest.TestCase):
 
 		# Visit the category page (by following the link found in above stage)
 		set_request(path=category_page_url)
-		category_page_response = render()
+		category_page_response = get_response()
 		category_page_html = frappe.safe_decode(category_page_response.get_data())
 
 		# Category page should contain the blog post title
 		self.assertIn(blog.title, category_page_html)
 
-		# Cleanup afterwords
+		# Cleanup
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
@@ -88,6 +90,29 @@ class TestBlogPost(unittest.TestCase):
 		for blog in blogs:
 			frappe.delete_doc(blog.doctype, blog.name)
 		frappe.delete_doc("Blog Category", blogs[0].blog_category)
+
+	def test_caching(self):
+		# to enable caching
+		frappe.flags.force_website_cache = True
+		print(frappe.session.user)
+
+		clear_website_cache()
+		# first response no-cache
+		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
+			filters={'published': 1, 'title': "_Test Blog Post"}, limit=1)
+
+		route = pages[0].route
+		set_request(path=route)
+		# response = get_response()
+		response = get_response()
+		# TODO: enable this assert
+		# self.assertIn(('X-From-Cache', 'False'), list(response.headers))
+
+		set_request(path=route)
+		response = get_response()
+		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
+
+		frappe.flags.force_website_cache = True
 
 def scrub(text):
 	return WebsiteGenerator.scrub(None, text)

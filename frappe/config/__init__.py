@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-import json
-from six import iteritems
 import frappe
 from frappe import _
 from frappe.desk.moduleview import (get_data, get_onboard_items, config_exists, get_module_link_items_from_list)

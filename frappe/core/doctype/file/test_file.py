@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import base64
 import json
 import frappe
@@ -206,10 +204,14 @@ class TestFile(unittest.TestCase):
 
 
 	def delete_test_data(self):
-		for f in frappe.db.sql('''select name, file_name from tabFile where
-			is_home_folder = 0 and is_attachments_folder = 0 order by creation desc'''):
-			frappe.delete_doc("File", f[0])
-
+		test_file_data = frappe.db.get_all(
+			"File",
+			pluck="name",
+			filters={"is_home_folder": 0, "is_attachments_folder": 0},
+			order_by="creation desc",
+		)
+		for f in test_file_data:
+			frappe.delete_doc("File", f)
 
 	def upload_file(self):
 		_file = frappe.get_doc({
@@ -571,3 +573,68 @@ class TestFileUtils(unittest.TestCase):
 		from frappe.core.doctype.file.file import create_new_folder
 		folder = create_new_folder('test_folder', 'Home')
 		self.assertTrue(folder.is_folder)
+
+
+class TestFileOptimization(unittest.TestCase):
+	def test_optimize_file(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content
+		}).insert()
+		original_size = test_file.file_size
+		original_content_hash = test_file.content_hash
+
+		test_file.optimize_file()
+		optimized_size = test_file.file_size
+		updated_content_hash = test_file.content_hash
+
+		self.assertLess(optimized_size, original_size)
+		self.assertNotEqual(original_content_hash, updated_content_hash)
+		test_file.delete()
+
+	def test_optimize_svg(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_svg.svg",
+			"content": file_content
+		}).insert()
+		self.assertRaises(TypeError, test_file.optimize_file)
+		test_file.delete()
+
+	def test_optimize_textfile(self):
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_text.txt",
+			"content": "Text files cannot be optimized"
+		}).insert()
+		self.assertRaises(NotImplementedError, test_file.optimize_file)
+		test_file.delete()
+
+	def test_optimize_folder(self):
+		test_folder = frappe.get_doc("File", "Home/Attachments")
+		self.assertRaises(TypeError, test_folder.optimize_file)
+
+	def test_revert_optimized_file_on_rollback(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content
+		}).insert()
+		image_path = test_file.get_full_path()
+		size_before_optimization = os.stat(image_path).st_size
+
+		test_file.optimize_file()
+		frappe.db.rollback()
+		size_after_rollback = os.stat(image_path).st_size
+		self.assertEqual(size_before_optimization, size_after_rollback)
+		test_file.delete()

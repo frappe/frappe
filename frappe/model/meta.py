@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # metadata
 
@@ -14,10 +14,8 @@ Example:
 
 
 '''
-
-from __future__ import unicode_literals, print_function
 from datetime import datetime
-from six.moves import range
+import click
 import frappe, json, os
 from frappe.utils import cstr, cint, cast
 from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
@@ -118,7 +116,7 @@ class Meta(Document):
 						# non standard list object, skip
 						continue
 
-				if (isinstance(value, (frappe.text_type, int, float, datetime, list, tuple))
+				if (isinstance(value, (str, int, float, datetime, list, tuple))
 					or (not no_nulls and value is None)):
 					out[key] = value
 
@@ -661,27 +659,48 @@ def get_default_df(fieldname):
 				fieldtype = "Data"
 			)
 
-def trim_tables(doctype=None):
+def trim_tables(doctype=None, dry_run=False, quiet=False):
 	"""
 	Removes database fields that don't exist in the doctype (json or custom field). This may be needed
 	as maintenance since removing a field in a DocType doesn't automatically
 	delete the db field.
 	"""
-	ignore_fields = default_fields + optional_fields
-
-	filters={ "issingle": 0 }
+	UPDATED_TABLES = {}
+	filters = {"issingle": 0}
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters=filters):
-		doctype = doctype.name
-		columns = frappe.db.get_table_columns(doctype)
-		fields = frappe.get_meta(doctype).get_fieldnames_with_value()
-		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields
-			and not f.startswith("_")]
-		if columns_to_remove:
-			print(doctype, "columns removed:", columns_to_remove)
-			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
-			query = """alter table `tab{doctype}` {columns}""".format(
-				doctype=doctype, columns=columns_to_remove)
-			frappe.db.sql_ddl(query)
+	for doctype in frappe.db.get_all("DocType", filters=filters, pluck="name"):
+		try:
+			dropped_columns = trim_table(doctype, dry_run=dry_run)
+			if dropped_columns:
+				UPDATED_TABLES[doctype] = dropped_columns
+		except frappe.db.TableMissingError:
+			if quiet:
+				continue
+			click.secho(f"Ignoring missing table for DocType: {doctype}", fg="yellow", err=True)
+			click.secho(f"Consider removing record in the DocType table for {doctype}", fg="yellow", err=True)
+		except Exception as e:
+			if quiet:
+				continue
+			click.echo(e, err=True)
+
+	return UPDATED_TABLES
+
+
+def trim_table(doctype, dry_run=True):
+	frappe.cache().hdel('table_columns', f"tab{doctype}")
+	ignore_fields = default_fields + optional_fields
+	columns = frappe.db.get_table_columns(doctype)
+	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
+	is_internal = lambda f: f not in ignore_fields and not f.startswith("_")
+	columns_to_remove = [
+		f for f in list(set(columns) - set(fields)) if is_internal(f)
+	]
+	DROPPED_COLUMNS = columns_to_remove[:]
+
+	if columns_to_remove and not dry_run:
+		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
+		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+
+	return DROPPED_COLUMNS

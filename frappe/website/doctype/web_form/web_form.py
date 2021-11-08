@@ -1,14 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import json
 import os
-
-from six import iteritems
-from six.moves.urllib.parse import urlencode
-
 import frappe
 from frappe import _, scrub
 from frappe.core.doctype.file.file import get_max_file_size, remove_file_by_url
@@ -19,7 +13,7 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import cstr
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
-
+from frappe.rate_limiter import rate_limit
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -109,9 +103,7 @@ class WebForm(WebsiteGenerator):
 			# py
 			if not os.path.exists(path + '.py'):
 				with open(path + '.py', 'w') as f:
-					f.write("""from __future__ import unicode_literals
-
-import frappe
+					f.write("""import frappe
 
 def get_context(context):
 	# do your magic here
@@ -219,7 +211,7 @@ def get_context(context):
 			from decimal import Decimal
 			if amount is None or Decimal(amount) <= 0:
 				return frappe.utils.get_url(self.success_url or self.route)
-				
+
 			payment_details = {
 				"amount": amount,
 				"title": title,
@@ -346,7 +338,7 @@ def get_context(context):
 
 		if missing:
 			frappe.throw(_('Mandatory Information missing:') + '<br><br>'
-				+ '<br>'.join(['{0} ({1})'.format(d.label, d.fieldtype) for d in missing]))
+				+ '<br>'.join('{0} ({1})'.format(d.label, d.fieldtype) for d in missing))
 
 	def allow_website_search_indexing(self):
 		return False
@@ -373,6 +365,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='web_form', limit=5, seconds=60, methods=['POST'])
 def accept(web_form, data, docname=None, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
@@ -550,7 +543,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options)
+			field.fields = frappe.get_meta(field.options).fields
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":

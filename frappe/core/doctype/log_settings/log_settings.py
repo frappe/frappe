@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
+from pypika.terms import PseudoColumn
+
 
 class LogSettings(Document):
 	def clear_logs(self):
@@ -14,9 +17,10 @@ class LogSettings(Document):
 		self.clear_email_queue()
 
 	def clear_error_logs(self):
-		frappe.db.sql(""" DELETE FROM `tabError Log`
-			WHERE `creation` < (NOW() - INTERVAL '{0}' DAY)
-		""".format(self.clear_error_log_after))
+		table = DocType("Error Log")
+		frappe.db.delete(table, filters=(
+			table.creation < PseudoColumn(f"({Now() - Interval(days=self.clear_error_log_after)})")
+		))
 
 	def clear_activity_logs(self):
 		from frappe.core.doctype.activity_log.activity_log import clear_activity_logs
@@ -39,7 +43,7 @@ def has_unseen_error_log(user):
 			'message': _("You have unseen {0}").format('<a href="/app/List/Error%20Log/List"> Error Logs </a>')
 		}
 
-	if frappe.db.sql_list("select name from `tabError Log` where seen = 0 limit 1"):
+	if frappe.get_all("Error Log", filters={"seen": 0}, limit=1):
 		log_settings = frappe.get_cached_doc('Log Settings')
 
 		if log_settings.users_to_notify:

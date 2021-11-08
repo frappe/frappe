@@ -78,7 +78,7 @@ export default class BulkOperations {
 			args: {
 				doctype: 'Letter Head',
 				fields: ['name', 'is_default'],
-				limit: 0
+				limit_page_length: 0
 			},
 			async: false,
 			callback (r) {
@@ -251,7 +251,6 @@ export default class BulkOperations {
 		dialog.show();
 	}
 
-
 	add_tags (docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __('Add Tags'),
@@ -288,5 +287,15 @@ export default class BulkOperations {
 			},
 		});
 		dialog.show();
+	}
+
+	export (doctype, docnames) {
+		frappe.require('data_import_tools.bundle.js', () => {
+			const data_exporter = new frappe.data_import.DataExporter(doctype, 'Insert New Records');
+			data_exporter.dialog.set_value('export_records', 'by_filter');
+			data_exporter.filter_group.add_filters_to_filter_group(
+				[[doctype, "name", "in", docnames, false]]
+			);
+		});
 	}
 }

@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
+# License: MIT. See LICENSE
 """
 	Execute Patch Files
 
@@ -13,9 +11,6 @@ from __future__ import unicode_literals, print_function
 	where patch1, patch2 is module name
 """
 import frappe, frappe.permissions, time
-
-# for patches
-import os
 
 class PatchError(Exception): pass
 

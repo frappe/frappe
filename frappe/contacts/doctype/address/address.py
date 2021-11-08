@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 
 from frappe import throw, _
@@ -10,14 +9,9 @@ from frappe.utils import cstr
 
 from frappe.model.document import Document
 from jinja2 import TemplateSyntaxError
-from frappe.utils.user import is_website_user
 from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
-from six import iteritems, string_types
-from past.builtins import cmp
 from frappe.contacts.address_and_contact import set_link_title
-
-import functools
 
 
 class Address(Document):
@@ -112,10 +106,13 @@ def get_default_address(doctype, name, sort_key='is_primary_address'):
 		WHERE
 			dl.parent = addr.name and dl.link_doctype = %s and
 			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
-		""" %(sort_key, '%s', '%s'), (doctype, name))
+		""" %(sort_key, '%s', '%s'), (doctype, name), as_dict=True)
 
 	if out:
-		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
+		for contact in out:
+			if contact.get(sort_key):
+				return contact.name
+		return out[0].name
 	else:
 		return None
 
@@ -141,7 +138,7 @@ def get_territory_from_address(address):
 	if not address:
 		return
 
-	if isinstance(address, string_types):
+	if isinstance(address, str):
 		address = frappe.get_cached_doc("Address", address)
 
 	territory = None
@@ -174,13 +171,10 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20,
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+
 	if contact_name:
 		contact = frappe.get_doc('Contact', contact_name)
 		return contact.has_common_link(doc)
-
-		lead_name = frappe.db.get_value("Lead", {"email_id": frappe.session.user})
-		if lead_name:
-			return doc.has_link('Lead', lead_name)
 
 	return False
 
@@ -214,7 +208,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 
 	condition = ""
 	meta = frappe.get_meta("Address")
-	for fieldname, value in iteritems(filters):
+	for fieldname, value in filters.items():
 		if meta.get_field(fieldname) or fieldname in frappe.db.DEFAULT_COLUMNS:
 			condition += " and {field}={value}".format(
 				field=fieldname,
@@ -263,7 +257,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 
 def get_condensed_address(doc):
 	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
-	return ", ".join([doc.get(d) for d in fields if doc.get(d)])
+	return ", ".join(doc.get(d) for d in fields if doc.get(d))
 
 def update_preferred_address(address, field):
 	frappe.db.set_value('Address', address, field, 0)

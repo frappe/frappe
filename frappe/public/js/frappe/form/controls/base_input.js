@@ -1,14 +1,14 @@
-frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
-	horizontal: true,
-	make: function() {
+frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control {
+	static horizontal = true
+	make() {
 		// parent element
-		this._super();
+		super.make();
 		this.set_input_areas();
 
 		// set description
 		this.set_max_width();
-	},
-	make_wrapper: function() {
+	}
+	make_wrapper() {
 		if(this.only_input) {
 			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
@@ -25,14 +25,14 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				</div>\
 			</div>').appendTo(this.parent);
 		}
-	},
-	toggle_label: function(show) {
+	}
+	toggle_label(show) {
 		this.$wrapper.find(".control-label").toggleClass("hide", !show);
-	},
-	toggle_description: function(show) {
+	}
+	toggle_description(show) {
 		this.$wrapper.find(".help-box").toggleClass("hide", !show);
-	},
-	set_input_areas: function() {
+	}
+	set_input_areas() {
 		if(this.only_input) {
 			this.input_area = this.wrapper;
 		} else {
@@ -43,17 +43,17 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			// like links, currencies, HTMLs etc.
 			this.disp_area = this.$wrapper.find(".control-value").get(0);
 		}
-	},
-	set_max_width: function() {
-		if(this.horizontal) {
+	}
+	set_max_width() {
+		if(this.constructor.horizontal) {
 			this.$wrapper.addClass("input-max-width");
 		}
-	},
+	}
 
 	// update input value, label, description
 	// display (show/hide/read-only),
 	// mandatory style on refresh
-	refresh_input: function() {
+	refresh_input() {
 		var me = this;
 		var make_input = function() {
 			if (!me.has_input) {
@@ -106,13 +106,13 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			me.set_bold();
 			me.set_required();
 		}
-	},
+	}
 
 	can_write() {
 		return this.disp_status == "Write";
-	},
+	}
 
-	set_disp_area: function(value) {
+	set_disp_area(value) {
 		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype)
 			&& (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
@@ -126,8 +126,8 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		this.disp_area && $(this.disp_area).html(display_value);
-	},
-	set_label: function(label) {
+	}
+	set_label(label) {
 		if(label) this.df.label = label;
 
 		if(this.only_input || this.df.label==this._label)
@@ -137,8 +137,8 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") +
 			__(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
-	},
-	set_description: function(description) {
+	}
+	set_description(description) {
 		if (description !== undefined) {
 			this.df.description = description;
 		}
@@ -151,17 +151,17 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			this.set_empty_description();
 		}
 		this._description = this.df.description;
-	},
-	set_new_description: function(description) {
+	}
+	set_new_description(description) {
 		this.$wrapper.find(".help-box").html(description);
-	},
-	set_empty_description: function() {
+	}
+	set_empty_description() {
 		this.$wrapper.find(".help-box").html("");
-	},
-	set_mandatory: function(value) {
+	}
+	set_mandatory(value) {
 		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
-	},
-	set_invalid: function () {
+	}
+	set_invalid () {
 		let invalid = !!this.df.invalid;
 		if (this.grid) {
 			this.$wrapper.parents('.grid-static-col').toggleClass('invalid', invalid);
@@ -170,11 +170,11 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		} else {
 			this.$wrapper.toggleClass('has-error', invalid);
 		}
-	},
+	}
 	set_required() {
 		this.label_area && $(this.label_area).toggleClass('reqd', Boolean(this.df.reqd));
-	},
-	set_bold: function() {
+	}
+	set_bold() {
 		if(this.$input) {
 			this.$input.toggleClass("bold", !!(this.df.bold || this.df.reqd));
 		}
@@ -182,4 +182,4 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			$(this.disp_area).toggleClass("bold", !!(this.df.bold || this.df.reqd));
 		}
 	}
-});
+};

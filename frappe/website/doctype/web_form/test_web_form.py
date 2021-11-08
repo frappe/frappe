@@ -1,11 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest, json
 
-from frappe.website.render import build_page
+from frappe.website.serve import get_response_content
 from frappe.website.doctype.web_form.web_form import accept
 
 test_dependencies = ['Web Form']
@@ -18,15 +16,26 @@ class TestWebForm(unittest.TestCase):
 	def tearDown(self):
 		frappe.conf.disable_website_cache = False
 		frappe.local.path = None
+		frappe.local.request_ip = None
+		frappe.form_dict.web_form = None
+		frappe.form_dict.data = None
+		frappe.form_dict.docname = None
 
 	def test_accept(self):
 		frappe.set_user("Administrator")
-		accept(web_form='manage-events', data=json.dumps({
+
+		doc = {
 			'doctype': 'Event',
 			'subject': '_Test Event Web Form',
 			'description': '_Test Event Description',
 			'starts_on': '2014-09-09'
-		}))
+		}
+
+		frappe.form_dict.web_form = "manage-events"
+		frappe.form_dict.data = json.dumps(doc)
+		frappe.local.request_ip = '127.0.0.1'
+
+		accept(web_form='manage-events', data=json.dumps(doc))
 
 		self.event_name = frappe.db.get_value("Event",
 			{"subject": "_Test Event Web Form"})
@@ -34,6 +43,7 @@ class TestWebForm(unittest.TestCase):
 
 	def test_edit(self):
 		self.test_accept()
+
 		doc={
 			'doctype': 'Event',
 			'subject': '_Test Event Web Form',
@@ -42,10 +52,21 @@ class TestWebForm(unittest.TestCase):
 			'name': self.event_name
 		}
 
-		self.assertNotEquals(frappe.db.get_value("Event",
+		self.assertNotEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
+
+		frappe.form_dict.web_form = 'manage-events'
+		frappe.form_dict.docname = self.event_name
+		frappe.form_dict.data = json.dumps(doc)
 
 		accept(web_form='manage-events', docname=self.event_name, data=json.dumps(doc))
 
 		self.assertEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
+
+	def test_webform_render(self):
+		content = get_response_content('request-data')
+		self.assertIn('<h2>Request Data</h2>', content)
+		self.assertIn('data-doctype="Web Form"', content)
+		self.assertIn('data-path="request-data"', content)
+		self.assertIn('source-type="Generator"', content)

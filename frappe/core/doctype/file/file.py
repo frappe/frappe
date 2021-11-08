@@ -1,13 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 """
 record of files
 
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
-
-from __future__ import unicode_literals
 
 import base64
 import hashlib
@@ -23,14 +21,14 @@ import zipfile
 import requests
 import requests.exceptions
 from PIL import Image, ImageFile, ImageOps
-from six import PY2, BytesIO, string_types, text_type
-from six.moves.urllib.parse import quote, unquote
+from io import BytesIO
+from urllib.parse import quote, unquote
 
 import frappe
 from frappe import _, conf, safe_decode
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
-from frappe.utils.image import strip_exif_data
+from frappe.utils.image import strip_exif_data, optimize_image
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -256,10 +254,11 @@ class File(Document):
 			return
 		file_name = self.file_url.split('/')[-1]
 		try:
-			with open(get_files_path(file_name, is_private=self.is_private), "rb") as f:
+			file_path = get_files_path(file_name, is_private=self.is_private)
+			with open(file_path, "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
-			frappe.throw(_("File {0} does not exist").format(self.file_url))
+			frappe.throw(_("File {0} does not exist").format(file_path))
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
@@ -315,8 +314,16 @@ class File(Document):
 			self.delete_file_data_content(only_thumbnail=True)
 
 	def on_rollback(self):
-		self.flags.on_rollback = True
-		self.on_trash()
+		# if original_content flag is set, this rollback should revert the file to its original state
+		if self.flags.original_content:
+			file_path = self.get_full_path()
+			with open(file_path, "wb+") as f:
+				f.write(self.flags.original_content)
+
+		# following condition is only executed when an insert has been rolledback
+		else:
+			self.flags.on_rollback = True
+			self.on_trash()
 
 	def unzip(self):
 		'''Unzip current file and replace it by its children'''
@@ -368,18 +375,14 @@ class File(Document):
 		file_path = self.get_full_path()
 
 		# read the file
-		if PY2:
-			with open(encode(file_path)) as f:
-				content = f.read()
-		else:
-			with io.open(encode(file_path), mode='rb') as f:
-				content = f.read()
-				try:
-					# for plain text files
-					content = content.decode()
-				except UnicodeDecodeError:
-					# for .png, .jpg, etc
-					pass
+		with io.open(encode(file_path), mode='rb') as f:
+			content = f.read()
+			try:
+				# for plain text files
+				content = content.decode()
+			except UnicodeDecodeError:
+				# for .png, .jpg, etc
+				pass
 
 		return content
 
@@ -416,7 +419,7 @@ class File(Document):
 		frappe.create_folder(file_path)
 		# write the file
 		self.content = self.get_content()
-		if isinstance(self.content, text_type):
+		if isinstance(self.content, str):
 			self.content = self.content.encode()
 		with open(os.path.join(file_path.encode('utf-8'), self.file_name.encode('utf-8')), 'wb+') as f:
 			f.write(self.content)
@@ -428,7 +431,7 @@ class File(Document):
 		self.content = content
 
 		if decode:
-			if isinstance(content, text_type):
+			if isinstance(content, str):
 				self.content = content.encode("utf-8")
 
 			if b"," in self.content:
@@ -537,6 +540,35 @@ class File(Document):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith('/private'))
 
+	@frappe.whitelist()
+	def optimize_file(self):
+		if self.is_folder:
+			raise TypeError('Folders cannot be optimized')
+
+		content_type = mimetypes.guess_type(self.file_name)[0]
+		is_local_image = content_type.startswith('image/') and self.file_size > 0
+		is_svg = content_type == 'image/svg+xml'
+
+		if not is_local_image:
+			raise NotImplementedError('Only local image files can be optimized')
+
+		if is_svg:
+			raise TypeError('Optimization of SVG images is not supported')
+
+		content = self.get_content()
+		file_path = self.get_full_path()
+		optimized_content = optimize_image(content, content_type)
+
+		with open(file_path, 'wb+') as f:
+			f.write(optimized_content)
+
+		self.file_size = len(optimized_content)
+		self.content_hash = get_content_hash(optimized_content)
+		# if rolledback, revert back to original
+		self.flags.original_content = content
+		frappe.local.rollback_observers.append(self)
+		self.save()
+
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
@@ -570,7 +602,7 @@ def create_new_folder(file_name, folder):
 @frappe.whitelist()
 def move_file(file_list, new_parent, old_parent):
 
-	if isinstance(file_list, string_types):
+	if isinstance(file_list, str):
 		file_list = json.loads(file_list)
 
 	for file_obj in file_list:
@@ -740,7 +772,7 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 
 
 def get_content_hash(content):
-	if isinstance(content, text_type):
+	if isinstance(content, str):
 		content = content.encode()
 	return hashlib.md5(content).hexdigest() #nosec
 
@@ -781,23 +813,28 @@ def extract_images_from_doc(doc, fieldname):
 		doc.set(fieldname, content)
 
 
-def extract_images_from_html(doc, content):
+def extract_images_from_html(doc, content, is_private=False):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
 		data = match.group(1)
 		data = data.split("data:")[1]
 		headers, content = data.split(",")
+		mtype = headers.split(";")[0]
+
+		if isinstance(content, str):
+			content = content.encode("utf-8")
+		if b"," in content:
+			content = content.split(b",")[1]
+		content = base64.b64decode(content)
+
+		content = optimize_image(content, mtype)
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
 			filename = safe_decode(filename).split(";")[0]
 
-			# decode filename
-			if not isinstance(filename, text_type):
-				filename = text_type(filename, 'utf-8')
 		else:
-			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
 		doctype = doc.parenttype if doc.parent else doc.doctype
@@ -809,7 +846,8 @@ def extract_images_from_html(doc, content):
 			"attached_to_doctype": doctype,
 			"attached_to_name": name,
 			"content": content,
-			"decode": True
+			"decode": False,
+			"is_private": is_private
 		})
 		_file.save(ignore_permissions=True)
 		file_url = _file.file_url
@@ -818,7 +856,7 @@ def extract_images_from_html(doc, content):
 
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
-	if content and isinstance(content, string_types):
+	if content and isinstance(content, str):
 		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content
@@ -845,7 +883,7 @@ def get_attached_images(doctype, names):
 	'''get list of image urls attached in form
 	returns {name: ['image.jpg', 'image.png']}'''
 
-	if isinstance(names, string_types):
+	if isinstance(names, str):
 		names = json.loads(names)
 
 	img_urls = frappe.db.get_list('File', filters={

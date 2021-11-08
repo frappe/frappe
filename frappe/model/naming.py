@@ -1,25 +1,23 @@
 """utilities to generate a document name based on various rules defined.
 
 NOTE:
+Till version 13, whenever a submittable document is amended it's name is set to orig_name-X,
+where X is a counter and it increments when amended again and so on.
+
 From Version 14, The naming pattern is changed in a way that amended documents will
 have the original name `orig_name` instead of `orig_name-X`. To make this happen
 the cancelled document naming pattern is changed to 'orig_name-CANC-X'.
-
-In version 13, whenever a submittable document is amended it's name is set to orig_name-X,
-where X is a counter and it increments when amended again and so on. We are backporting
-the version-14 styled naming into version-13 and will be available through system settings.
 """
 
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import now_datetime, cint, cstr
 import re
-from six import string_types
 from frappe.model import log_types
+from frappe.query_builder import DocType
 
 
 def set_new_name(doc):
@@ -158,7 +156,7 @@ def make_autoname(key="", doctype="", doc=""):
 
 def parse_naming_series(parts, doctype='', doc=''):
 	n = ''
-	if isinstance(parts, string_types):
+	if isinstance(parts, str):
 		parts = parts.split('.')
 	series_set = False
 	today = now_datetime()
@@ -189,7 +187,7 @@ def parse_naming_series(parts, doctype='', doc=''):
 		else:
 			part = e
 
-		if isinstance(part, string_types):
+		if isinstance(part, str):
 			n += part
 
 	return n
@@ -197,7 +195,15 @@ def parse_naming_series(parts, doctype='', doc=''):
 
 def getseries(key, digits):
 	# series created ?
-	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (key,))
+	# Using frappe.qb as frappe.get_values does not allow order_by=None
+	series = DocType("Series")
+	current = (
+		frappe.qb.from_(series)
+		.where(series.name == key)
+		.for_update()
+		.select("current")
+	).run()
+
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
@@ -211,8 +217,31 @@ def getseries(key, digits):
 
 
 def revert_series_if_last(key, name, doc=None):
-	if frappe.get_system_settings('use_original_name_for_amended_document',
-			ignore_if_not_exists=True) and hasattr(doc, 'amended_from'):
+	"""
+	Reverts the series for particular naming series:
+	* key is naming series		- SINV-.YYYY-.####
+	* name is actual name		- SINV-2021-0001
+
+	1. This function split the key into two parts prefix (SINV-YYYY) & hashes (####).
+	2. Use prefix to get the current index of that naming series from Series table
+	3. Then revert the current index.
+
+	*For custom naming series:*
+	1. hash can exist anywhere, if it exist in hashes then it take normal flow.
+	2. If hash doesn't exit in hashes, we get the hash from prefix, then update name and prefix accordingly.
+
+	*Example:*
+		1. key = SINV-.YYYY.-
+			* If key doesn't have hash it will add hash at the end
+			* prefix will be SINV-YYYY based on this will get current index from Series table.
+		2. key = SINV-.####.-2021
+			* now prefix = SINV-#### and hashes = 2021 (hash doesn't exist)
+			* will search hash in key then accordingly get prefix = SINV-
+		3. key = ####.-2021
+			* prefix = #### and hashes = 2021 (hash doesn't exist)
+			* will search hash in key then accordingly get prefix = ""
+	"""
+	if hasattr(doc, 'amended_from'):
 		# Do not revert the series if the document is amended.
 		if doc.amended_from:
 			return
@@ -227,7 +256,12 @@ def revert_series_if_last(key, name, doc=None):
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
-			return
+			# get the hash part from the key
+			hash = re.search("#+", key)
+			if not hash:
+				return
+			name = name.replace(hashes, "")
+			prefix = prefix.replace(hash.group(), "")
 	else:
 		prefix = key
 
@@ -235,7 +269,13 @@ def revert_series_if_last(key, name, doc=None):
 		prefix = parse_naming_series(prefix.split('.'), doc=doc)
 
 	count = cint(name.replace(prefix, ""))
-	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (prefix,))
+	series = DocType("Series")
+	current = (
+		frappe.qb.from_(series)
+		.where(series.name == prefix)
+		.for_update()
+		.select("current")
+	).run()
 
 	if current and current[0][0]==count:
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
@@ -302,16 +342,7 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 
 def _get_amended_name(doc):
-	if frappe.get_system_settings('use_original_name_for_amended_document', ignore_if_not_exists=True):
-		name, _ = NameParser(doc).parse_amended_from()
-	else:
-		am_id = 1
-		am_prefix = doc.amended_from
-		if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
-			am_id = cint(doc.amended_from.split("-")[-1]) + 1
-			am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
-
-		name = am_prefix + "-" + str(am_id)
+	name, _ = NameParser(doc).parse_amended_from()
 	return name
 
 def _field_autoname(autoname, doc, skip_slicing=None):
@@ -330,7 +361,7 @@ def _prompt_autoname(autoname, doc):
 	"""
 	# set from __newname in save.py
 	if not doc.name:
-		frappe.throw(_("Name not set via prompt"))
+		frappe.throw(_("Please set the document name"))
 
 def _format_autoname(autoname, doc):
 	"""
@@ -384,9 +415,14 @@ class NameParser:
 		# Handle old style cancelled documents (original_name-X-CANC, original_name-CANC)
 		if self.doc.amended_from.endswith('-CANC'):
 			name, _ = self.parse_docname(self.doc.amended_from, '-CANC')
+			amended_from_doc = frappe.get_all(
+				self.doc.doctype,
+				filters = {'name': self.doc.amended_from},
+				fields = ['amended_from'],
+				limit=1)
 
 			# Handle format original_name-X-CANC.
-			if frappe.db.get_value(self.doc.doctype, self.doc.amended_from, "amended_from"):
+			if amended_from_doc and amended_from_doc[0].amended_from:
 				return self.parse_docname(name, '-')
 			return name, None
 

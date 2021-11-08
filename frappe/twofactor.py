@@ -1,23 +1,19 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 from frappe import _
 import pyotp, os
 from frappe.utils.background_jobs import enqueue
 from pyqrcode import create as qrcreate
-from six import BytesIO
+from io import BytesIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
-from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
 
-def toggle_two_factor_auth(state, roles=[]):
+def toggle_two_factor_auth(state, roles=None):
 	'''Enable or disable 2FA in site_config and roles'''
-	for role in roles:
+	for role in roles or []:
 		role = frappe.get_doc('Role', {'role_name': role})
 		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
@@ -78,7 +74,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
-	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
+	for k, v in {'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}.items():
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
 
@@ -87,7 +83,7 @@ def two_factor_is_enabled_for_(user):
 	if user == "Administrator":
 		return False
 
-	if isinstance(user, string_types):
+	if isinstance(user, str):
 		user = frappe.get_doc('User', user)
 
 	roles = [frappe.db.escape(d.role) for d in user.roles or []]
@@ -393,7 +389,7 @@ def delete_all_barcodes_for_users():
 
 def should_remove_barcode_image(barcode):
 	'''Check if it's time to delete barcode image from server. '''
-	if isinstance(barcode, string_types):
+	if isinstance(barcode, str):
 		barcode = frappe.get_doc('File', barcode)
 	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image') or 240
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):

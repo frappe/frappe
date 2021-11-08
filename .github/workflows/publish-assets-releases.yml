@@ -21,8 +21,8 @@ jobs:
           python-version: '12.x'
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
-      - name: Set up bench for current push
+          python-version: '3.9'
+      - name: Set up bench and build assets
         run: |
           npm install -g yarn
           pip3 install -U frappe-bench
@@ -32,7 +32,7 @@ jobs:
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/js ./frappe-bench/sites/assets/css*
+          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/frappe/dist
 
       - name: Get release
         id: get_release

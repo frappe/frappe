@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.config import get_modules_from_all_apps_for_user
@@ -22,7 +21,7 @@ class Dashboard(Document):
 
 	def validate(self):
 		if not frappe.conf.developer_mode and self.is_standard:
-			frappe.throw(_('Cannot edit Standard Dashboards'))
+			frappe.throw(_("Cannot edit Standard Dashboards"))
 
 		if self.is_standard:
 			non_standard_docs_map = {

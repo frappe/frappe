@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 """Use blog post test to test user permissions logic"""
 
 import frappe
@@ -40,7 +38,7 @@ class TestPermissions(unittest.TestCase):
 		reset('Blogger')
 		reset('Blog Post')
 
-		frappe.db.sql('delete from `tabUser Permission`')
+		frappe.db.delete("User Permission")
 
 		frappe.set_user("test1@example.com")
 
@@ -336,9 +334,9 @@ class TestPermissions(unittest.TestCase):
 			doctype"""
 
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabContact`')
-		frappe.db.sql('DELETE FROM `tabContact Email`')
-		frappe.db.sql('DELETE FROM `tabContact Phone`')
+		frappe.db.delete("Contact")
+		frappe.db.delete("Contact Email")
+		frappe.db.delete("Contact Phone")
 
 		reset('Salutation')
 		reset('Contact')
@@ -495,6 +493,34 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, getdoc, 'Blog Post', doc.name)
 
+	def test_if_owner_permission_on_get_list(self):
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "-test-blog-category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test If Owner Permissions on Get List",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert(ignore_if_duplicate=True)
+
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Website Manager")
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test2@example.com")
+		self.assertIn(doc.name, frappe.get_list("Blog Post", pluck="name"))
+
+		# Become system manager to remove role
+		frappe.set_user("test1@example.com")
+		user.remove_roles("Website Manager")
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test2@example.com")
+		self.assertNotIn(doc.name, frappe.get_list("Blog Post", pluck="name"))
+
 	def test_if_owner_permission_on_delete(self):
 		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
 		update('Blog Post', 'Blogger', 0, 'read', 1)
@@ -567,3 +593,13 @@ class TestPermissions(unittest.TestCase):
 
 		# reset the user
 		frappe.set_user(current_user)
+
+	def test_child_table_permissions(self):
+		frappe.set_user("test@example.com")
+		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
+		self.assertRaisesRegex(frappe.exceptions.ValidationError,
+			".* is not a valid parent DocType for .*", frappe.get_list, doctype="Has Role", parent_doctype="ToDo")
+		self.assertRaisesRegex(frappe.exceptions.ValidationError,
+			"Please specify a valid parent DocType for .*", frappe.get_list, "Has Role")
+		self.assertRaisesRegex(frappe.exceptions.ValidationError,
+			".* is not a valid parent DocType for .*", frappe.get_list, doctype="Has Role", parent_doctype="Has Role")

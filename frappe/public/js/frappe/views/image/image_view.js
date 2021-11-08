@@ -196,8 +196,8 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 };
 
-frappe.views.GalleryView = Class.extend({
-	init: function(opts) {
+frappe.views.GalleryView = class GalleryView {
+	constructor(opts) {
 		$.extend(this, opts);
 		var me = this;
 
@@ -205,16 +205,16 @@ frappe.views.GalleryView = Class.extend({
 		this.lib_ready.then(function() {
 			me.prepare();
 		});
-	},
-	prepare: function() {
+	}
+	prepare() {
 		// keep only one pswp dom element
 		this.pswp_root = $("body > .pswp");
 		if (this.pswp_root.length === 0) {
 			var pswp = frappe.render_template("photoswipe_dom");
 			this.pswp_root = $(pswp).appendTo("body");
 		}
-	},
-	prepare_pswp_items: function(_items, _images_map) {
+	}
+	prepare_pswp_items(_items, _images_map) {
 		var me = this;
 
 		if (_items) {
@@ -254,13 +254,13 @@ frappe.views.GalleryView = Class.extend({
 			this.pswp_items = items;
 			resolve();
 		});
-	},
-	show: function(docname) {
+	}
+	show(docname) {
 		this.lib_ready
 			.then(() => this.prepare_pswp_items())
 			.then(() => this._show(docname));
-	},
-	_show: function(docname) {
+	}
+	_show(docname) {
 		const me = this;
 		const items = this.pswp_items;
 		const item_index = items.findIndex(item => item.name === docname);
@@ -300,8 +300,8 @@ frappe.views.GalleryView = Class.extend({
 		);
 		this.browse_images();
 		this.pswp.init();
-	},
-	browse_images: function() {
+	}
+	browse_images() {
 		const $more_items = this.pswp_root.find(".pswp__more-items");
 		const images_map = this.images_map;
 		let last_hide_timeout = null;
@@ -364,8 +364,8 @@ frappe.views.GalleryView = Class.extend({
 				<img src="${src}">
 			</div>`;
 		}
-	},
-	load_lib: function() {
+	}
+	load_lib() {
 		return new Promise(resolve => {
 			var asset_dir = "assets/frappe/js/lib/photoswipe/";
 			frappe.require(
@@ -379,4 +379,4 @@ frappe.views.GalleryView = Class.extend({
 			);
 		});
 	}
-});
+};

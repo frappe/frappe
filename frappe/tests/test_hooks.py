@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.desk.doctype.todo.todo import ToDo
@@ -19,12 +18,12 @@ class TestHooks(unittest.TestCase):
 
 	def test_override_doctype_class(self):
 		from frappe import hooks
-		
+
 		# Set hook
 		hooks.override_doctype_class = {
 			'ToDo': ['frappe.tests.test_hooks.CustomToDo']
 		}
-		
+
 		# Clear cache
 		frappe.cache().delete_value('app_hooks')
 		clear_controller_cache('ToDo')

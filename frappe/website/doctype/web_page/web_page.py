@@ -1,24 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import print_function, unicode_literals
+# License: MIT. See LICENSE
 
 import re
 
-import requests
-import requests.exceptions
 from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
-from frappe.utils import get_datetime, now, strip_html, quoted
+from frappe.utils import get_datetime, now, quoted, strip_html
 from frappe.utils.jinja import render_template
-from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.router import resolve_route
-from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
-	get_html_content_based_on_type)
-from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.safe_exec import safe_exec
+from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
+from frappe.website.utils import (extract_title, find_first_image,
+	get_comment_list, get_html_content_based_on_type)
+from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebPage(WebsiteGenerator):
@@ -185,32 +180,6 @@ def check_publish_status():
 				if not end_date or (end_date and now_date < end_date):
 					frappe.db.set_value("Web Page", page.name, "published", 1)
 
-
-
-def check_broken_links():
-	cnt = 0
-	for p in frappe.db.sql("select name, main_section from `tabWeb Page`", as_dict=True):
-		for link in re.findall('href=["\']([^"\']*)["\']', p.main_section):
-			if link.startswith("http"):
-				try:
-					res = requests.get(link)
-				except requests.exceptions.SSLError:
-					res = frappe._dict({"status_code": "SSL Error"})
-				except requests.exceptions.ConnectionError:
-					res = frappe._dict({"status_code": "Connection Error"})
-
-				if res.status_code!=200:
-					print("[{0}] {1}: {2}".format(res.status_code, p.name, link))
-					cnt += 1
-			else:
-				link = link[1:] # remove leading /
-				link = link.split("#")[0]
-
-				if not resolve_route(link):
-					print(p.name + ":" + link)
-					cnt += 1
-
-	print("{0} links broken".format(cnt))
 
 def get_web_blocks_html(blocks):
 	'''Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication'''

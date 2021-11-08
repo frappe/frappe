@@ -1,13 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
+# License: MIT. See LICENSE
 import frappe
 import time
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from six import iteritems, string_types
 from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
@@ -54,7 +51,7 @@ def get_doc(*args, **kwargs):
 		if isinstance(args[0], BaseDocument):
 			# already a document
 			return args[0]
-		elif isinstance(args[0], string_types):
+		elif isinstance(args[0], str):
 			doctype = args[0]
 
 		elif isinstance(args[0], dict):
@@ -91,7 +88,7 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
-		if args and args[0] and isinstance(args[0], string_types):
+		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
 			if len(args)==1:
 				# single
@@ -388,15 +385,15 @@ class Document(BaseDocument):
 					[self.name, self.doctype, fieldname] + rows)
 			if len(deleted_rows) > 0:
 				# delete rows that do not match the ones in the document
-				frappe.db.sql("""delete from `tab{0}` where name in ({1})""".format(df.options,
-					','.join(['%s'] * len(deleted_rows))), tuple(row[0] for row in deleted_rows))
+				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
 
 		else:
 			# no rows found, delete all rows
-			frappe.db.sql("""delete from `tab{0}` where parent=%s
-				and parenttype=%s and parentfield=%s""".format(df.options),
-				(self.name, self.doctype, fieldname))
-
+			frappe.db.delete(df.options, {
+				"parent": self.name,
+				"parenttype": self.doctype,
+				"parentfield": fieldname
+			})
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -438,7 +435,7 @@ class Document(BaseDocument):
 		def get_values():
 			values = self.as_dict()
 			# format values
-			for key, value in iteritems(values):
+			for key, value in values.items():
 				if value==None:
 					values[key] = ""
 			return values
@@ -454,8 +451,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
-		for field, value in iteritems(d):
+		frappe.db.delete("Singles", {
+			"doctype": self.doctype
+		})
+		for field, value in d.items():
 			if field != "doctype":
 				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
@@ -923,11 +922,9 @@ class Document(BaseDocument):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
 		self.docstatus = 2
-
-		if frappe.get_system_settings('use_original_name_for_amended_document', ignore_if_not_exists=True):
-			new_name = gen_new_name_for_cancelled_doc(self)
-			frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
-			self.name = new_name
+		new_name = gen_new_name_for_cancelled_doc(self)
+		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
+		self.name = new_name
 		self.save()
 
 	@whitelist.__func__

@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, unittest, json
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
@@ -47,64 +46,64 @@ class TestCustomizeForm(unittest.TestCase):
 		self.assertEqual(len(d.get("fields")), 0)
 
 		d = self.get_customize_form("Event")
-		self.assertEquals(d.doc_type, "Event")
-		self.assertEquals(len(d.get("fields")), 36)
+		self.assertEqual(d.doc_type, "Event")
+		self.assertEqual(len(d.get("fields")), 36)
 
 		d = self.get_customize_form("Event")
-		self.assertEquals(d.doc_type, "Event")
+		self.assertEqual(d.doc_type, "Event")
 
 		self.assertEqual(len(d.get("fields")),
 			len(frappe.get_doc("DocType", d.doc_type).fields) + 1)
-		self.assertEquals(d.get("fields")[-1].fieldname, "test_custom_field")
-		self.assertEquals(d.get("fields", {"fieldname": "event_type"})[0].in_list_view, 1)
+		self.assertEqual(d.get("fields")[-1].fieldname, "test_custom_field")
+		self.assertEqual(d.get("fields", {"fieldname": "event_type"})[0].in_list_view, 1)
 
 		return d
 
 	def test_save_customization_property(self):
 		d = self.get_customize_form("Event")
-		self.assertEquals(frappe.db.get_value("Property Setter",
+		self.assertEqual(frappe.db.get_value("Property Setter",
 			{"doc_type": "Event", "property": "allow_copy"}, "value"), None)
 
 		d.allow_copy = 1
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Property Setter",
+		self.assertEqual(frappe.db.get_value("Property Setter",
 			{"doc_type": "Event", "property": "allow_copy"}, "value"), '1')
 
 		d.allow_copy = 0
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Property Setter",
+		self.assertEqual(frappe.db.get_value("Property Setter",
 			{"doc_type": "Event", "property": "allow_copy"}, "value"), None)
 
 	def test_save_customization_field_property(self):
 		d = self.get_customize_form("Event")
-		self.assertEquals(frappe.db.get_value("Property Setter",
+		self.assertEqual(frappe.db.get_value("Property Setter",
 			{"doc_type": "Event", "property": "reqd", "field_name": "repeat_this_event"}, "value"), None)
 
 		repeat_this_event_field = d.get("fields", {"fieldname": "repeat_this_event"})[0]
 		repeat_this_event_field.reqd = 1
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Property Setter",
+		self.assertEqual(frappe.db.get_value("Property Setter",
 			{"doc_type": "Event", "property": "reqd", "field_name": "repeat_this_event"}, "value"), '1')
 
 		repeat_this_event_field = d.get("fields", {"fieldname": "repeat_this_event"})[0]
 		repeat_this_event_field.reqd = 0
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Property Setter",
+		self.assertEqual(frappe.db.get_value("Property Setter",
 			{"doc_type": "Event", "property": "reqd", "field_name": "repeat_this_event"}, "value"), None)
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("Event")
-		self.assertEquals(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
+		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
 
 		custom_field = d.get("fields", {"fieldname": "test_custom_field"})[0]
 		custom_field.reqd = 1
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 1)
+		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 1)
 
 		custom_field = d.get("fields", {"is_custom_field": True})[0]
 		custom_field.reqd = 0
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
+		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
 
 	def test_save_customization_new_field(self):
 		d = self.get_customize_form("Event")
@@ -115,14 +114,14 @@ class TestCustomizeForm(unittest.TestCase):
 			"is_custom_field": 1
 		})
 		d.run_method("save_customization")
-		self.assertEquals(frappe.db.get_value("Custom Field",
+		self.assertEqual(frappe.db.get_value("Custom Field",
 			"Event-test_add_custom_field_via_customize_form", "fieldtype"), "Data")
 
-		self.assertEquals(frappe.db.get_value("Custom Field",
+		self.assertEqual(frappe.db.get_value("Custom Field",
 			"Event-test_add_custom_field_via_customize_form", 'insert_after'), last_fieldname)
 
 		frappe.delete_doc("Custom Field", "Event-test_add_custom_field_via_customize_form")
-		self.assertEquals(frappe.db.get_value("Custom Field",
+		self.assertEqual(frappe.db.get_value("Custom Field",
 			"Event-test_add_custom_field_via_customize_form"), None)
 
 
@@ -142,7 +141,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d.doc_type = "Event"
 		d.run_method('reset_to_defaults')
 
-		self.assertEquals(d.get("fields", {"fieldname": "repeat_this_event"})[0].in_list_view, 0)
+		self.assertEqual(d.get("fields", {"fieldname": "repeat_this_event"})[0].in_list_view, 0)
 
 		frappe.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
@@ -156,7 +155,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d = self.get_customize_form("Event")
 
 		# don't allow for standard fields
-		self.assertEquals(d.get("fields", {"fieldname": "subject"})[0].allow_on_submit or 0, 0)
+		self.assertEqual(d.get("fields", {"fieldname": "subject"})[0].allow_on_submit or 0, 0)
 
 		# allow for custom field
 		self.assertEqual(d.get("fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)

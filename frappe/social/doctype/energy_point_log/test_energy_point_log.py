@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
@@ -15,8 +13,8 @@ class TestEnergyPointLog(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Log`')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Rule`')
+		frappe.db.delete("Energy Point Log")
+		frappe.db.delete("Energy Point Rule")
 		frappe.cache().delete_value('energy_point_rule_map')
 
 	def test_user_energy_point(self):
@@ -78,7 +76,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		points_after_closing_todo = get_points('test@example.com')
 
 		# test max_points cap
-		self.assertNotEquals(points_after_closing_todo,
+		self.assertNotEqual(points_after_closing_todo,
 			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
 
 		self.assertEqual(points_after_closing_todo,

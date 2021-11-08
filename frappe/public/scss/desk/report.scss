@@ -103,18 +103,9 @@
 
 .report-view {
 	.result {
-		min-height: 50vh !important;
 		.dt-row:last-child:not(.dt-row-filter) {
 			.dt-cell {
 				border-bottom: 1px solid var(--border-color);
-			}
-		}
-
-		.datatable {
-			height: calc(100vh - var(--report-filter-height) - 225px);
-
-			.dt-scrollable {
-				height: calc(100vh - var(--report-filter-height) - 295px);
 			}
 		}
 	}

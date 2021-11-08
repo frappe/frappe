@@ -1,10 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
+# License: MIT. See LICENSE
 from bs4 import BeautifulSoup
-
 import frappe
 import frappe.share
 import frappe.defaults
@@ -20,6 +16,7 @@ from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_disabled
 from frappe.rate_limiter import rate_limit
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
+from frappe.query_builder import DocType
 
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -360,27 +357,31 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# delete todos
-		frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
+		frappe.db.delete("ToDo", {"owner": self.name})
 		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 
 		# delete events
-		frappe.db.sql("""delete from `tabEvent` where owner=%s
-			and event_type='Private'""", (self.name,))
+		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})
 
 		# delete shares
-		frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
-
+		frappe.db.delete("DocShare", {"user": self.name})
 		# delete messages
-		frappe.db.sql("""delete from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='User'
-			and (reference_name=%s or owner=%s)""", (self.name, self.name))
-
+		table = DocType("Communication")
+		frappe.db.delete(
+			table,
+			filters=(
+				(table.communication_type.isin(["Chat", "Notification"]))
+				& (table.reference_doctype == "User")
+				& ((table.reference_name == self.name) | table.owner == self.name)
+			),
+			run=False,
+		)
 		# unlink contact
-		frappe.db.sql("""update `tabContact`
-			set `user`=null
-			where `user`=%s""", (self.name))
+		table = DocType("Contact")
+		frappe.qb.update(table).where(
+			table.user == self.name
+		).set(table.user, None).run()
 
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
@@ -427,9 +428,10 @@ class User(Document):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
-		frappe.db.sql("""UPDATE `tabUser`
-			SET email = %s
-			WHERE name = %s""", (new_name, new_name))
+		table = DocType("User")
+		frappe.qb.update(table).where(
+			table.name == new_name
+		).set("email", new_name).run()
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
@@ -715,8 +717,10 @@ def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
 
-	users = frappe.db.sql("""SELECT DISTINCT(parent) as user FROM `tabUser Email`
-		WHERE awaiting_password = 1""", as_dict=True)
+	doctype = DocType("User Email")
+	users = frappe.qb.from_(doctype).where(doctype.awaiting_password == 1).select(
+		doctype.parent.as_("user")
+	).distinct().run(as_dict=True)
 
 	password_list = [ user.get("user") for user in users ]
 	set_default("email_user_password", u','.join(password_list))
@@ -794,7 +798,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key='user', limit=get_password_reset_limit, seconds = 24*60*60, methods=['POST'])
+@rate_limit(limit=get_password_reset_limit, seconds = 24*60*60, methods=['POST'])
 def reset_password(user):
 	if user=="Administrator":
 		return 'not allowed'
@@ -842,7 +846,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		LIMIT %(page_len)s OFFSET %(start)s
 	""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
+			standard_users=", ".join(frappe.db.escape(u) for u in STANDARD_USERS),
 			key=searchfield,
 			fcond=get_filters_cond(doctype, filters, conditions),
 			mcond=get_match_cond(doctype)

@@ -1,19 +1,19 @@
 import Awesomplete from 'awesomplete';
 
-frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
-	trigger_change_on_input_event: false,
+frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui.form.ControlData {
+	static trigger_change_on_input_event = false
 	make_input() {
-		this._super();
+		super.make_input();
 		this.setup_awesomplete();
 		this.set_options();
-	},
+	}
 
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
 			this._data = this.parse_options(options);
 		}
-	},
+	}
 
 	get_awesomplete_settings() {
 		var me = this;
@@ -63,7 +63,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 				return 0;
 			}
 		};
-	},
+	}
 
 	setup_awesomplete() {
 		this.awesomplete = new Awesomplete(
@@ -100,7 +100,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 		this.$input.on('awesomplete-selectcomplete', () => {
 			this.$input.trigger('change');
 		});
-	},
+	}
 
 	validate(value) {
 		if (this.df.ignore_validation) {
@@ -115,7 +115,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 		} else {
 			return '';
 		}
-	},
+	}
 
 	parse_options(options) {
 		if (typeof options === 'string') {
@@ -125,11 +125,11 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			options = options.map(o => ({ label: o, value: o }));
 		}
 		return options;
-	},
+	}
 
 	get_data() {
 		return this._data || [];
-	},
+	}
 
 	set_data(data) {
 		data = this.parse_options(data);
@@ -138,4 +138,4 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 		}
 		this._data = data;
 	}
-});
+};

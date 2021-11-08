@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # imports - standard imports
 import gzip
@@ -116,16 +116,16 @@ class BackupGenerator:
 
 	def setup_backup_tables(self):
 		"""Sets self.backup_includes, self.backup_excludes based on passed args"""
-		existing_doctypes = set([x.name for x in frappe.get_all("DocType")])
+		existing_tables = frappe.db.get_tables()
 
 		def get_tables(doctypes):
 			tables = []
 			for doctype in doctypes:
-				if doctype and doctype in existing_doctypes:
-					if doctype.startswith("tab"):
-						tables.append(doctype)
-					else:
-						tables.append("tab" + doctype)
+				if not doctype:
+					continue
+				table = frappe.utils.get_table_name(doctype)
+				if table in existing_tables:
+					tables.append(table)
 			return tables
 
 		passed_tables = {
@@ -307,8 +307,8 @@ class BackupGenerator:
 		backup_summary = self.get_summary()
 		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
 
-		title = max([len(x) for x in backup_summary])
-		path = max([len(x["path"]) for x in backup_summary.values()])
+		title = max(len(x) for x in backup_summary)
+		path = max(len(x["path"]) for x in backup_summary.values())
 
 		for _type, info in backup_summary.items():
 			template = "{{0:{0}}}: {{1:{1}}} {{2}}".format(title, path)
@@ -374,14 +374,15 @@ class BackupGenerator:
 			backup_info = ("Skipping Tables: ", ", ".join(self.backup_excludes))
 
 		if self.partial:
-			print(''.join(backup_info), "\n")
+			if self.verbose:
+				print(''.join(backup_info), "\n")
 			database_header_content.extend([
 				f"Partial Backup of Frappe Site {frappe.local.site}",
 				("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],
 				"",
 			])
 
-		generated_header = "\n".join([f"-- {x}" for x in database_header_content]) + "\n"
+		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
 
 		with gzip.open(args.backup_path_db, "wt") as f:
 			f.write(generated_header)

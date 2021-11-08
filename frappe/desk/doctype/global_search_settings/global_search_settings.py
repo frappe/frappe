@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
@@ -22,7 +21,7 @@ class GlobalSearchSettings(Document):
 			dts.append(dt.document_type)
 
 		if core_dts:
-			core_dts = (", ".join([frappe.bold(dt) for dt in core_dts]))
+			core_dts = ", ".join(frappe.bold(dt) for dt in core_dts)
 			frappe.throw(_("Core Modules {0} cannot be searched in Global Search.").format(core_dts))
 
 		if repeated_dts:
@@ -61,7 +60,7 @@ def update_global_search_doctypes():
 			if search_doctypes.get(domain):
 				global_search_doctypes.extend(search_doctypes.get(domain))
 
-	doctype_list = set([dt.name for dt in frappe.get_all("DocType")])
+	doctype_list = {dt.name for dt in frappe.get_all("DocType")}
 	allowed_in_global_search = []
 
 	for dt in global_search_doctypes:

@@ -1,7 +1,8 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.desk.form.linked_with import get_linked_doctypes
 from frappe.patches.v11_0.replicate_old_user_permissions import get_doctypes_to_skip
+from frappe.query_builder import Field
 
 # `skip_for_doctype` was a un-normalized way of storing for which
 # doctypes the user permission was applicable.
@@ -72,16 +73,12 @@ def execute():
 			frappe.db.set_value('User Permission', user_permission.name, 'apply_to_all_doctypes', 1)
 
 	if new_user_permissions_list:
-		frappe.db.sql('''
-			INSERT INTO `tabUser Permission`
-			(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`, `creation`, `modified`)
-			VALUES {}
-		'''.format( # nosec
-			', '.join(['%s'] * len(new_user_permissions_list))
-		), tuple(new_user_permissions_list))
+		frappe.qb.into("User Permission").columns(
+			"name", "user", "allow", "for_value", "applicable_for", "apply_to_all_doctypes", "creation", "modified"
+		).insert(*new_user_permissions_list).run()
 
 	if user_permissions_to_delete:
-		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `name` in ({})' # nosec
-			.format(','.join(['%s'] * len(user_permissions_to_delete))),
-			tuple(user_permissions_to_delete)
+		frappe.db.delete(
+			"User Permission",
+			filters=(Field("name").isin(tuple(user_permissions_to_delete)))
 		)

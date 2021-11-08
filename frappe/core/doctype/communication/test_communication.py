@@ -1,12 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
+import unittest
+from urllib.parse import quote
 
 import frappe
-import unittest
-from six.moves.urllib.parse import quote
-test_records = frappe.get_test_records('Communication')
+from frappe.email.doctype.email_queue.email_queue import EmailQueue
 
+test_records = frappe.get_test_records('Communication')
 
 class TestCommunication(unittest.TestCase):
 
@@ -200,6 +200,70 @@ class TestCommunication(unittest.TestCase):
 			doc_links.append((timeline_link.link_doctype, timeline_link.link_name))
 
 		self.assertIn(("Note", note.name), doc_links)
+
+class TestCommunicationEmailMixin(unittest.TestCase):
+	def new_communication(self, recipients=None, cc=None, bcc=None):
+		recipients = ', '.join(recipients or [])
+		cc = ', '.join(cc or [])
+		bcc = ', '.join(bcc or [])
+
+		comm = frappe.get_doc({
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"communication_medium": "Email",
+			"content": "Test content",
+			"recipients": recipients,
+			"cc": cc,
+			"bcc": bcc
+		}).insert(ignore_permissions=True)
+		return comm
+
+	def new_user(self, email, **user_data):
+		user_data.setdefault('first_name', 'first_name')
+		user = frappe.new_doc('User')
+		user.email = email
+		user.update(user_data)
+		user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+		return user
+
+	def test_recipients(self):
+		to_list = ['to@test.com', 'receiver <to+1@test.com>', 'to@test.com']
+		comm = self.new_communication(recipients = to_list)
+		res = comm.get_mail_recipients_with_displayname()
+		self.assertCountEqual(res, ['to@test.com', 'receiver <to+1@test.com>'])
+		comm.delete()
+
+	def test_cc(self):
+		to_list = ['to@test.com']
+		cc_list = ['cc+1@test.com', 'cc <cc+2@test.com>', 'to@test.com']
+		user = self.new_user(email='cc+1@test.com', thread_notify=0)
+		comm = self.new_communication(recipients=to_list, cc=cc_list)
+		res = comm.get_mail_cc_with_displayname()
+		self.assertCountEqual(res, ['cc <cc+2@test.com>'])
+		user.delete()
+		comm.delete()
+
+	def test_bcc(self):
+		bcc_list = ['bcc+1@test.com', 'cc <bcc+2@test.com>', ]
+		user = self.new_user(email='bcc+2@test.com', enabled=0)
+		comm = self.new_communication(bcc=bcc_list)
+		res = comm.get_mail_bcc_with_displayname()
+		self.assertCountEqual(res, ['bcc+1@test.com'])
+		user.delete()
+		comm.delete()
+
+	def test_sendmail(self):
+		to_list = ['to <to@test.com>']
+		cc_list = ['cc <cc+1@test.com>', 'cc <cc+2@test.com>']
+
+		comm = self.new_communication(recipients=to_list, cc=cc_list)
+		comm.send_email()
+		doc = EmailQueue.find_one_by_filters(communication=comm.name)
+		mail_receivers = [each.recipient for each in doc.recipients]
+		self.assertIsNotNone(doc)
+		self.assertCountEqual(to_list+cc_list, mail_receivers)
+		doc.delete()
+		comm.delete()
 
 def create_email_account():
 	frappe.delete_doc_if_exists("Email Account", "_Test Comm Account 1")

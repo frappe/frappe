@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 from werkzeug.wrappers import Response
 
@@ -12,6 +10,8 @@ from frappe.utils import cint
 from frappe import _, is_whitelisted
 from frappe.utils.response import build_response
 from frappe.utils.csvutils import build_csv_response
+from frappe.utils.image import optimize_image
+from mimetypes import guess_type
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
 
 
@@ -27,7 +27,7 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
-	if cmd!='login':
+	if cmd != 'login':
 		data = execute_cmd(cmd)
 
 	# data can be an empty string or list which are valid responses
@@ -146,20 +146,32 @@ def upload_file():
 	file_url = frappe.form_dict.file_url
 	folder = frappe.form_dict.folder or 'Home'
 	method = frappe.form_dict.method
+	filename = frappe.form_dict.file_name
+	optimize = frappe.form_dict.optimize
 	content = None
-	filename = None
 
 	if 'file' in files:
 		file = files['file']
 		content = file.stream.read()
 		filename = file.filename
 
+		content_type = guess_type(filename)[0]
+		if optimize and content_type.startswith("image/"):
+			args = {
+				"content": content,
+				"content_type": content_type
+			}
+			if frappe.form_dict.max_width:
+				args["max_width"] = int(frappe.form_dict.max_width)
+			if frappe.form_dict.max_height:
+				args["max_height"] = int(frappe.form_dict.max_height)
+			content = optimize_image(**args)
+
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
-		import mimetypes
-		filetype = mimetypes.guess_type(filename)[0]
+	if not file_url and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
+		filetype = guess_type(filename)[0]
 		if filetype not in ALLOWED_MIMETYPES:
 			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
 
@@ -211,7 +223,10 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc = frappe.get_doc(dt, dn)
 
 	else:
-		doc = frappe.get_doc(json.loads(docs))
+		if isinstance(docs, str):
+			docs = json.loads(docs)
+
+		doc = frappe.get_doc(docs)
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 

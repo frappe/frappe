@@ -1,8 +1,6 @@
-from __future__ import print_function, unicode_literals
 import requests
 import json
 import frappe
-from six import iteritems, string_types
 import base64
 
 '''
@@ -88,7 +86,7 @@ class FrappeClient(object):
 
 	def get_list(self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=0):
 		"""Returns list of records of a particular type"""
-		if not isinstance(fields, string_types):
+		if not isinstance(fields, str):
 			fields = json.dumps(fields)
 		params = {
 			"fields": fields,
@@ -288,12 +286,16 @@ class FrappeClient(object):
 		doc.modified = frappe.db.get_single_value(doctype, "modified")
 		frappe.get_doc(doc).insert()
 
-	def get_api(self, method, params={}):
+	def get_api(self, method, params=None):
+		if params is None:
+			params = {}
 		res = self.session.get(self.url + "/api/method/" + method + "/",
 			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
-	def post_api(self, method, params={}):
+	def post_api(self, method, params=None):
+		if params is None:
+			params = {}
 		res = self.session.post(self.url + "/api/method/" + method + "/",
 			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
@@ -310,7 +312,7 @@ class FrappeClient(object):
 
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""
-		for key, value in iteritems(params):
+		for key, value in params.items():
 			if isinstance(value, (dict, list)):
 				params[key] = json.dumps(value)
 

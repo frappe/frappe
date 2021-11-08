@@ -1,22 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 """build query for doclistview and return results"""
 
 import frappe, json
-from six.moves import range
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe.model import default_fields, optional_fields
 from frappe import _
-from six import string_types, StringIO
+from io import StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
@@ -123,12 +121,14 @@ def validate_filters(data, filters):
 
 def setup_group_by(data):
 	'''Add columns for aggregated values e.g. count(name)'''
-	if data.group_by:
+	if data.group_by and data.aggregate_function:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
 			frappe.throw(_('Invalid aggregate function'))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
 			data.fields.append('{aggregate_function}(`tab{aggregate_on_doctype}`.`{aggregate_on_field}`) AS _aggregate_column'.format(**data))
+			if data.aggregate_on_field:
+				data.fields.append(f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`")
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -171,7 +171,7 @@ def get_meta_and_docfield(fieldname, data):
 	return meta, df
 
 def update_wildcard_field_param(data):
-	if ((isinstance(data.fields, string_types) and data.fields == "*")
+	if ((isinstance(data.fields, str) and data.fields == "*")
 		or (isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*")):
 		data.fields = frappe.db.get_table_columns(data.doctype)
 		return True
@@ -180,26 +180,27 @@ def update_wildcard_field_param(data):
 
 
 def clean_params(data):
-	data.pop('cmd', None)
-	data.pop('data', None)
-	data.pop('ignore_permissions', None)
-	data.pop('view', None)
-	data.pop('user', None)
-
-	if "csrf_token" in data:
-		del data["csrf_token"]
-
+	for param in (
+		"cmd",
+		"data",
+		"ignore_permissions",
+		"view",
+		"user",
+		"csrf_token",
+		"join"
+	):
+		data.pop(param, None)
 
 def parse_json(data):
-	if isinstance(data.get("filters"), string_types):
+	if isinstance(data.get("filters"), str):
 		data["filters"] = json.loads(data["filters"])
-	if isinstance(data.get("or_filters"), string_types):
+	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
-	if isinstance(data.get("fields"), string_types):
+	if isinstance(data.get("fields"), str):
 		data["fields"] = json.loads(data["fields"])
-	if isinstance(data.get("docstatus"), string_types):
+	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), string_types):
+	if isinstance(data.get("save_user_settings"), str):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
@@ -214,11 +215,13 @@ def get_parenttype_and_fieldname(field, data):
 
 	return parenttype, fieldname
 
-def compress(data, args = {}):
+def compress(data, args=None):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
 
 	if not data: return data
+	if args is None:
+		args = {}
 	values = []
 	keys = list(data[0])
 	for row in data:
@@ -311,7 +314,7 @@ def export_query():
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
 			writer.writerow([handle_html(frappe.as_unicode(v)) \
-				if isinstance(v, string_types) else v for v in r])
+				if isinstance(v, str) else v for v in r])
 
 		f.seek(0)
 		frappe.response['result'] = cstr(f.read())
@@ -423,15 +426,20 @@ def delete_bulk(doctype, items):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=[]):
+def get_sidebar_stats(stats, doctype, filters=None):
+	if filters is None:
+		filters = []
 
 	return {"stats": get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=[]):
+def get_stats(stats, doctype, filters=None):
 	"""get tag info"""
 	import json
+
+	if filters is None:
+		filters = []
 	tags = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)
@@ -480,12 +488,11 @@ def get_stats(stats, doctype, filters=[]):
 	return stats
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=[]):
+def get_filter_dashboard_data(stats, doctype, filters=None):
 	"""get tags info"""
 	import json
 	tags = json.loads(stats)
-	if filters:
-		filters = json.loads(filters)
+	filters = json.loads(filters or [])
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
@@ -552,7 +559,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 		return match_conditions
 
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	if filters:
@@ -561,7 +568,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 			filters = filters.items()
 			flt = []
 			for f in filters:
-				if isinstance(f[1], string_types) and f[1][0] == '!':
+				if isinstance(f[1], str) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
 				elif isinstance(f[1], (list, tuple)) and \
 					f[1][0] in (">", "<", ">=", "<=", "!=", "like", "not like", "in", "not in", "between"):

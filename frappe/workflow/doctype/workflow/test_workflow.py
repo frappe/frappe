@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from frappe.utils import random_string
@@ -78,7 +76,7 @@ class TestWorkflow(unittest.TestCase):
 		self.assertListEqual(actions, ['Review'])
 
 	def test_if_workflow_actions_were_processed(self):
-		frappe.db.sql('delete from `tabWorkflow Action`')
+		frappe.db.delete("Workflow Action")
 		user = frappe.get_doc('User', 'test2@example.com')
 		user.add_roles('Test Approver', 'System Manager')
 		frappe.set_user('test2@example.com')

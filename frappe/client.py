@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 import frappe
 from frappe import _
 import frappe.model
@@ -11,7 +9,6 @@ from frappe.utils import get_safe_filters
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 
-from six import iteritems, string_types, integer_types
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -86,7 +83,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = {"name": filters}
 
 	try:
@@ -135,7 +132,7 @@ def set_value(doctype, name, fieldname, value=None):
 
 	if not value:
 		values = fieldname
-		if isinstance(fieldname, string_types):
+		if isinstance(fieldname, str):
 			try:
 				values = json.loads(fieldname)
 			except ValueError:
@@ -161,7 +158,7 @@ def insert(doc=None):
 	'''Insert a document
 
 	:param doc: JSON or dict object to be inserted'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
 	if doc.get("parent") and doc.get("parenttype"):
@@ -179,7 +176,7 @@ def insert_many(docs=None):
 	'''Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request'''
-	if isinstance(docs, string_types):
+	if isinstance(docs, str):
 		docs = json.loads(docs)
 
 	out = []
@@ -205,7 +202,7 @@ def save(doc):
 	'''Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc)
@@ -228,7 +225,7 @@ def submit(doc):
 	'''Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc)
@@ -261,12 +258,18 @@ def set_default(key, value, parent=None):
 	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
 
+@frappe.whitelist()
+def get_default(key, parent=None):
+	"""set a user default value"""
+	return frappe.db.get_default(key, parent)
+
+
 @frappe.whitelist(methods=['POST', 'PUT'])
 def make_width_property_setter(doc):
 	'''Set width Property Setter
 
 	:param doc: Property Setter document with `width` property'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
@@ -279,18 +282,17 @@ def bulk_update(docs):
 	docs = json.loads(docs)
 	failed_docs = []
 	for doc in docs:
+		doc.pop("flags", None)
 		try:
-			ddoc = {key: val for key, val in iteritems(doc) if key not in ['doctype', 'docname']}
-			doctype = doc['doctype']
-			docname = doc['docname']
-			doc = frappe.get_doc(doctype, docname)
-			doc.update(ddoc)
-			doc.save()
-		except:
+			existing_doc = frappe.get_doc(doc["doctype"], doc["docname"])
+			existing_doc.update(doc)
+			existing_doc.save()
+		except Exception:
 			failed_docs.append({
 				'doc': doc,
 				'exc': frappe.utils.get_traceback()
 			})
+
 	return {'failed_docs': failed_docs}
 
 @frappe.whitelist()

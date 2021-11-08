@@ -1,10 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
-
-from six import iteritems, text_type
-
+# License: MIT. See LICENSE
 """
 bootstrap client session
 """
@@ -75,7 +70,7 @@ def get_bootinfo():
 		frappe.get_attr(method)(bootinfo)
 
 	if bootinfo.lang:
-		bootinfo.lang = text_type(bootinfo.lang)
+		bootinfo.lang = str(bootinfo.lang)
 	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
@@ -110,8 +105,8 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.desktop import get_desk_sidebar_items
-	bootinfo.allowed_workspaces = get_desk_sidebar_items()
+	from frappe.desk.desktop import get_wspace_sidebar_items
+	bootinfo.allowed_workspaces = get_wspace_sidebar_items().get('pages')
 	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
@@ -220,7 +215,7 @@ def load_translations(bootinfo):
 		messages[name] = frappe._(name)
 
 	# only untranslated
-	messages = {k:v for k, v in iteritems(messages) if k!=v}
+	messages = {k: v for k, v in messages.items() if k!=v}
 
 	bootinfo["__messages"] = messages
 

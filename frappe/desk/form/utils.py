@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
@@ -9,7 +8,6 @@ from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.file.file import extract_images_from_html
 
 from frappe import _
-from six import string_types
 
 @frappe.whitelist()
 def remove_attach():
@@ -17,44 +15,6 @@ def remove_attach():
 	fid = frappe.form_dict.get('fid')
 	file_name = frappe.form_dict.get('file_name')
 	frappe.delete_doc('File', fid)
-
-@frappe.whitelist()
-def validate_link():
-	"""validate link when updated by user"""
-	import frappe
-	import frappe.utils
-
-	value, options, fetch = frappe.form_dict.get('value'), frappe.form_dict.get('options'), frappe.form_dict.get('fetch')
-
-	# no options, don't validate
-	if not options or options=='null' or options=='undefined':
-		frappe.response['message'] = 'Ok'
-		return
-
-	valid_value = frappe.db.get_all(options, filters=dict(name=value), as_list=1, limit=1)
-
-	if valid_value:
-		valid_value = valid_value[0][0]
-
-		# get fetch values
-		if fetch:
-			# escape with "`"
-			fetch = ", ".join(("`{0}`".format(f.strip()) for f in fetch.split(",")))
-			fetch_value = None
-			try:
-				fetch_value = frappe.db.sql("select %s from `tab%s` where name=%s"
-					% (fetch, options, '%s'), (value,))[0]
-			except Exception as e:
-				error_message = str(e).split("Unknown column '")
-				fieldname = None if len(error_message)<=1 else error_message[1].split("'")[0]
-				frappe.msgprint(_("Wrong fieldname <b>{0}</b> in add_fetch configuration of custom client script").format(fieldname))
-				frappe.errprint(frappe.get_traceback())
-
-			if fetch_value:
-				frappe.response['fetch_values'] = [frappe.utils.parse_val(c) for c in fetch_value]
-
-		frappe.response['valid_value'] = valid_value
-		frappe.response['message'] = 'Ok'
 
 
 @frappe.whitelist()
@@ -68,7 +28,8 @@ def add_comment(reference_doctype, reference_name, content, comment_email, comme
 		comment_type='Comment',
 		comment_by=comment_by
 	))
-	doc.content = extract_images_from_html(doc, content)
+	reference_doc = frappe.get_doc(reference_doctype, reference_name)
+	doc.content = extract_images_from_html(reference_doc, content, is_private=True)
 	doc.insert(ignore_permissions=True)
 
 	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
@@ -90,7 +51,7 @@ def get_next(doctype, value, prev, filters=None, sort_order='desc', sort_field='
 
 	prev = int(prev)
 	if not filters: filters = []
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	# # condition based on sort order

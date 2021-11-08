@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from datetime import timedelta
@@ -334,7 +333,7 @@ class AutoRepeat(Document):
 		if self.reference_doctype and self.reference_document:
 			res = get_contacts_linking_to(self.reference_doctype, self.reference_document, fields=['email_id'])
 			res += get_contacts_linked_from(self.reference_doctype, self.reference_document, fields=['email_id'])
-			email_ids = list(set([d.email_id for d in res]))
+			email_ids = {d.email_id for d in res}
 			if not email_ids:
 				frappe.msgprint(_('No contacts linked to document'), alert=True)
 			else:

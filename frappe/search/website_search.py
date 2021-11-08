@@ -1,5 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import os
 
@@ -9,7 +9,7 @@ from whoosh.fields import ID, TEXT, Schema
 import frappe
 from frappe.search.full_text_search import FullTextSearch
 from frappe.utils import set_request, update_progress_bar
-from frappe.website.render import render_page
+from frappe.website.serve import get_response_content
 
 INDEX_NAME = "web_routes"
 
@@ -20,6 +20,9 @@ class WebsiteSearch(FullTextSearch):
 		return Schema(
 			title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
 		)
+
+	def get_fields_to_search(self):
+		return ["title", "content"]
 
 	def get_id(self):
 		return "path"
@@ -35,9 +38,11 @@ class WebsiteSearch(FullTextSearch):
 		if getattr(self, "_items_to_index", False):
 			return self._items_to_index
 
-		routes = get_static_pages_from_all_apps() + slugs_with_web_view()
-
 		self._items_to_index = []
+
+
+		routes = get_static_pages_from_all_apps() + slugs_with_web_view(self._items_to_index)
+
 
 		for i, route in enumerate(routes):
 			update_progress_bar("Retrieving Routes", i, len(routes))
@@ -61,7 +66,7 @@ class WebsiteSearch(FullTextSearch):
 
 		try:
 			set_request(method="GET", path=route)
-			content = render_page(route)
+			content = get_response_content(route)
 			soup = BeautifulSoup(content, "html.parser")
 			page_content = soup.find(class_="page_content")
 			text_content = page_content.text if page_content else ""
@@ -85,16 +90,26 @@ class WebsiteSearch(FullTextSearch):
 		)
 
 
-def slugs_with_web_view():
+def slugs_with_web_view(_items_to_index):
 	all_routes = []
 	filters = { "has_web_view": 1, "allow_guest_to_view": 1, "index_web_pages_for_search": 1}
-	fields = ["name", "is_published_field"]
+	fields = ["name", "is_published_field", "website_search_field"]
 	doctype_with_web_views = frappe.get_all("DocType", filters=filters, fields=fields)
 
 	for doctype in doctype_with_web_views:
 		if doctype.is_published_field:
-			routes = frappe.get_all(doctype.name, filters={doctype.is_published_field: 1}, fields="route")
-			all_routes += [route.route for route in routes]
+			fields=["route", doctype.website_search_field]
+			filters={doctype.is_published_field: 1},
+			if doctype.website_search_field:
+				docs = frappe.get_all(doctype.name, filters=filters, fields=fields + ["title"])
+				for doc in docs:
+					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
+					soup = BeautifulSoup(content, "html.parser")
+					text_content = soup.text if soup else ""
+					_items_to_index += [frappe._dict(title=doc.title, content=text_content, path=doc.route)]
+			else:
+				docs = frappe.get_all(doctype.name, filters=filters, fields=fields)
+				all_routes += [route.route for route in docs]
 
 	return all_routes
 

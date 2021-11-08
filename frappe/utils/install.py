@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
+# License: MIT. See LICENSE
 import frappe
 import getpass
 from frappe.utils.password import update_password
@@ -114,9 +111,9 @@ def before_tests():
 		# don't run before tests if any other app is installed
 		return
 
-	frappe.db.sql("delete from `tabCustom Field`")
-	frappe.db.sql("delete from `tabEvent`")
-	frappe.db.commit()
+	frappe.db.truncate("Custom Field")
+	frappe.db.truncate("Event")
+
 	frappe.clear_cache()
 
 	# complete setup if missing

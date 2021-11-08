@@ -135,7 +135,7 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
 
-		recipients = set([e.recipients[0].recipient for e in email_queue_list])
+		recipients = {e.recipients[0].recipient for e in email_queue_list}
 		self.assertTrue(set(emails).issubset(recipients))
 
 	def test_unsubscribe(self):

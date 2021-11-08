@@ -1,7 +1,6 @@
 # Copyright (c) 2013, Frappe and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils import is_markdown, markdown, cint
@@ -93,7 +92,7 @@ def get_sidebar_items():
 def clear_cache():
 	clear_website_cache()
 
-	from frappe.website.render import clear_cache
+	from frappe.website.utils import clear_cache
 	clear_cache()
 
 def clear_website_cache(path=None):

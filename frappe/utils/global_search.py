@@ -1,7 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
-
-from __future__ import unicode_literals
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
 import frappe
 import re
@@ -11,7 +9,6 @@ import os
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.html_utils import unescape_html
 from frappe.model.base_document import get_controller
-from six import text_type
 
 def setup_global_search_table():
 	"""
@@ -26,8 +23,7 @@ def reset():
 	Deletes all data in __global_search
 	:return:
 	"""
-	frappe.db.sql('DELETE FROM `__global_search`')
-
+	frappe.db.delete("__global_search")
 
 def get_doctypes_with_global_search(with_child_tables=True):
 	"""
@@ -149,10 +145,9 @@ def rebuild_for_doctype(doctype):
 
 
 def delete_global_search_records_for_doctype(doctype):
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s''', doctype, as_dict=True)
-
+	frappe.db.delete("__global_search", {
+		"doctype": doctype
+	})
 
 def get_selected_fields(meta, global_search_fields):
 	fieldnames = [df.fieldname for df in global_search_fields]
@@ -234,9 +229,6 @@ def update_global_search(doc):
 	if frappe.local.conf.get('disable_global_search'):
 		return
 
-	if frappe.local.conf.get('disable_global_search'):
-		return
-
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) \
 		or doc.get("disabled"):
 			return
@@ -310,14 +302,14 @@ def get_routes_to_index():
 
 def add_route_to_global_search(route):
 	from bs4 import BeautifulSoup
-	from frappe.website.render import render_page
+	from frappe.website.serve import get_response_content
 	from frappe.utils import set_request
 	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 
 	try:
 		set_request(method='GET', path=route)
-		content = render_page(route)
+		content = get_response_content(route)
 		soup = BeautifulSoup(content, 'html.parser')
 		page_content = soup.find(class_='page_content')
 		text_content = page_content.text if page_content else ''
@@ -332,7 +324,7 @@ def add_route_to_global_search(route):
 			route=route
 		)
 		sync_value_in_queue(value)
-	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception):
+	except Exception:
 		pass
 
 	frappe.set_user('Administrator')
@@ -348,9 +340,9 @@ def get_formatted_value(value, field):
 
 	if getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]:
 		value = unescape_html(frappe.safe_decode(value))
-		value = (re.subn(r'(?s)<[\s]*(script|style).*?</\1>', '', text_type(value))[0])
+		value = (re.subn(r'(?s)<[\s]*(script|style).*?</\1>', '', str(value))[0])
 		value = ' '.join(value.split())
-	return field.label + " : " + strip_html_tags(text_type(value))
+	return field.label + " : " + strip_html_tags(str(value))
 
 
 def sync_global_search():
@@ -405,12 +397,10 @@ def delete_for_document(doc):
 	been deleted
 	:param doc: Deleted document
 	"""
-
-	frappe.db.sql('''DELETE
-		FROM `__global_search`
-		WHERE doctype = %s
-		AND name = %s''', (doc.doctype, doc.name), as_dict=True)
-
+	frappe.db.delete("__global_search", {
+		"doctype": doc.doctype,
+		"name": doc.name
+	})
 
 @frappe.whitelist()
 def search(text, start=0, limit=20, doctype=""):

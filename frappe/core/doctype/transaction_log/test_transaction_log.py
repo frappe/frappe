@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 import hashlib
@@ -35,7 +33,7 @@ class TestTransactionLog(unittest.TestCase):
 
 		sha = hashlib.sha256()
 		sha.update(
-			frappe.safe_encode(str(third_log.transaction_hash)) + 
+			frappe.safe_encode(str(third_log.transaction_hash)) +
 			frappe.safe_encode(str(second_log.chaining_hash))
 		)
 

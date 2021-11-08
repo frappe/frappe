@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 
-from __future__ import unicode_literals
-
 import unittest
 import frappe
 

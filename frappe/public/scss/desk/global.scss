@@ -1,5 +1,4 @@
 html {
-	height: 100%;
 	background-color: var(--bg-color);
 }
 
@@ -451,6 +450,24 @@ kbd {
 	color: var(--text-muted);
 }
 
+/*rtl styles*/
+
+.frappe-rtl {
+	text-align: right;
+	.modal-actions {
+		right: auto !important;
+		left: 5px;
+	}
+	input, textarea {
+		direction: rtl !important;
+	}
+
+	.checkbox .disp-area {
+		margin-right: -20px;
+		margin-left: 0px;
+	}
+}
+
 /* broken image styling */
 
 img.no-image {
@@ -542,6 +559,19 @@ details > summary:focus {
 
 .popover-title {
 	display: none;
+}
+
+.highlight {
+	transition: 0.5s ease background-color;
+	box-shadow: var(--highlight-shadow) !important;
+}
+
+.dropdown-menu.small {
+	font-size: var(--text-sm);
+	min-width: 140px;
+	.dropdown-item {
+		padding: var(--padding-xs);
+	}
 }
 
 // REDESIGN TODO: Handling of broken images?

@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # all country info
-from __future__ import unicode_literals
-
 import os, json, frappe
 from frappe.utils.momentjs import get_all_timezones
 

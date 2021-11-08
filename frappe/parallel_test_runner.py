@@ -15,10 +15,9 @@ if click_ctx:
 	click_ctx.color = True
 
 class ParallelTestRunner():
-	def __init__(self, app, site, build_number=1, total_builds=1, with_coverage=False):
+	def __init__(self, app, site, build_number=1, total_builds=1):
 		self.app = app
 		self.site = site
-		self.with_coverage = with_coverage
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.setup_test_site()
@@ -53,12 +52,9 @@ class ParallelTestRunner():
 	def run_tests(self):
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
 
-		self.start_coverage()
-
 		for test_file_info in self.get_test_file_list():
 			self.run_tests_for_file(test_file_info)
 
-		self.save_coverage()
 		self.print_result()
 
 	def run_tests_for_file(self, file_info):
@@ -106,28 +102,6 @@ class ParallelTestRunner():
 		if self.test_result.failures or self.test_result.errors:
 			if os.environ.get('CI'):
 				sys.exit(1)
-
-	def start_coverage(self):
-		if self.with_coverage:
-			from coverage import Coverage
-			from frappe.utils import get_bench_path
-			from frappe.coverage import STANDARD_INCLUSIONS, STANDARD_EXCLUSIONS, FRAPPE_EXCLUSIONS
-
-			# Generate coverage report only for app that is being tested
-			source_path = os.path.join(get_bench_path(), 'apps', self.app)
-			omit = STANDARD_EXCLUSIONS[:]
-
-			if self.app == 'frappe':
-				omit.extend(FRAPPE_EXCLUSIONS)
-
-			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
-			self.coverage.start()
-
-	def save_coverage(self):
-		if not self.with_coverage:
-			return
-		self.coverage.stop()
-		self.coverage.save()
 
 	def get_test_file_list(self):
 		test_list = get_all_tests(self.app)
@@ -224,7 +198,7 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 		- get-next-test-spec (<build_id>, <instance_id>)
 		- test-completed (<build_id>, <instance_id>)
 	'''
-	def __init__(self, app, site, with_coverage=False):
+	def __init__(self, app, site):
 		self.orchestrator_url = os.environ.get('ORCHESTRATOR_URL')
 		if not self.orchestrator_url:
 			click.echo('ORCHESTRATOR_URL environment variable not found!')
@@ -237,7 +211,7 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 			click.echo('CI_BUILD_ID environment variable not found!')
 			sys.exit(1)
 
-		ParallelTestRunner.__init__(self, app, site, with_coverage=with_coverage)
+		ParallelTestRunner.__init__(self, app, site)
 
 	def run_tests(self):
 		self.test_status = 'ongoing'
@@ -264,7 +238,9 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 		self.call_orchestrator('test-completed')
 		return super().print_result()
 
-	def call_orchestrator(self, endpoint, data={}):
+	def call_orchestrator(self, endpoint, data=None):
+		if data is None:
+			data = {}
 		# add repo token header
 		# build id in header
 		headers = {

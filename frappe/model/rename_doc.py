@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import print_function, unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 from frappe import _, bold
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -144,7 +141,7 @@ def update_user_settings(old, new, link_fields):
 	if not link_fields: return
 
 	# find the user settings for the linked doctypes
-	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
+	linked_doctypes = {d.parent for d in link_fields if not d.issingle}
 	user_settings_details = frappe.db.sql('''SELECT `user`, `doctype`, `data`
 			FROM `__UserSettings`
 			WHERE `data` like %s
@@ -461,7 +458,7 @@ def bulk_rename(doctype, rows=None, via_console = False):
 	"""Bulk rename documents
 
 	:param doctype: DocType to be renamed
-	:param rows: list of documents as `((oldname, newname), ..)`"""
+	:param rows: list of documents as `((oldname, newname, merge(optional)), ..)`"""
 	if not rows:
 		frappe.throw(_("Please select a valid csv file with data"))
 
@@ -474,8 +471,9 @@ def bulk_rename(doctype, rows=None, via_console = False):
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
+			merge = len(row) > 2 and (row[2] == "1" or row[2].lower() == "true")
 			try:
-				if rename_doc(doctype, row[0], row[1]):
+				if rename_doc(doctype, row[0], row[1], merge=merge):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])
 					frappe.db.commit()
 				else:
