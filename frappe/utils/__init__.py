@@ -15,13 +15,15 @@ from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
-from werkzeug.test import Client
+
+import sqlparse
 from redis.exceptions import ConnectionError
+from werkzeug.test import Client
 
 import frappe
-# utility functions like cint, int, flt, etc.
-from frappe.utils.data import *
+from frappe.utils.data import *  # utility functions like cint, int, flt, etc.
 from frappe.utils.html_utils import sanitize_html
+
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -861,3 +863,7 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 
 def get_table_name(table_name: str) -> str:
 	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+def is_read_query(query):
+	query = sqlparse.format(query, strip_comments=True, strip_whitespace=True)
+	return query.startswith(("select", "with", "explain"))
