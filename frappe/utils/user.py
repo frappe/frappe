@@ -210,11 +210,11 @@ class UserPermissions:
 		return get_allowed_reports()
 
 def get_user_fullname(user):
-	user = DocType("User")
+	user_doctype = DocType("User")
 	fullname = frappe.get_value(
-		user,
+		user_doctype,
 		filters={"name": user},
-		fieldname=Concat_ws(" ", user.first_name, user.last_name),
+		fieldname=Concat_ws(" ", user_doctype.first_name, user_doctype.last_name),
 	)
 	return fullname or ''
 
