@@ -275,14 +275,13 @@
    "description": "The document type selected is a child table and it has more than one parent doctype, please select one to continue.",
    "fieldname": "parent_document_type",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "Parent Document Type",
    "options": "DocType",
    "set_only_once": 1
   }
  ],
  "links": [],
- "modified": "2021-10-14 15:57:12.949895",
+ "modified": "2021-11-08 18:23:16.120212",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
