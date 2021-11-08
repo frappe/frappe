@@ -277,7 +277,7 @@ class Database(object):
 		if frappe.flags.read_only:
 			frappe.throw(
 				_("This operation is not allowed in read only transactions"),
-				exc=frappe.OperationNotAllowed
+				exc=frappe.OperationNotAllowedError
 			)
 
 		query = query.lstrip()[:10].lower()

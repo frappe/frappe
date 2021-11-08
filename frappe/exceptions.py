@@ -103,7 +103,7 @@ class DocumentAlreadyRestored(ValidationError): pass
 class AttachmentLimitReached(ValidationError): pass
 class QueryTimeoutError(Exception): pass
 class QueryDeadlockError(Exception): pass
-class OperationNotAllowed(ValidationError): pass
+class OperationNotAllowedError(ValidationError): pass
 
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError): pass
