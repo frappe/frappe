@@ -24,11 +24,10 @@ context('Form', () => {
 
 	it('navigates between documents with child table list filters applied', () => {
 		cy.visit('/app/contact');
-		cy.add_filter();
-		cy.get('.filter-field .input-with-feedback').type('123', { force: true });
-		cy.get('.filter-action-buttons').findByRole('button', {name: 'Apply Filters'}).click({ force: true });
 
-		cy.visit('/app/contact/Test Form Contact 3');
+		cy.clear_filters();
+		cy.get('.standard-filter-section [data-fieldname="name"] input').type('Test Form Contact 3').blur();
+		cy.click_listview_row_item(0);
 
 		cy.get('.prev-doc').should('be.visible').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
@@ -38,7 +37,7 @@ context('Form', () => {
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
 		cy.hide_dialog();
 
-		cy.get('.page-head').findByTitle('Test Form Contact 3').should('exist');
+		cy.get('#page-Contact .page-head').findByTitle('Test Form Contact 3').should('exist');
 
 		// clear filters
 		cy.visit('/app/contact');
