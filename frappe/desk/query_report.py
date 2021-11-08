@@ -49,23 +49,7 @@ def get_report_doc(report_name):
 	return doc
 
 
-<<<<<<< HEAD
-=======
-def get_report_result(report, filters):
-	if report.report_type == "Query Report":
-		res = report.execute_query_report(filters)
-
-	elif report.report_type == "Script Report":
-		res = report.execute_script_report(filters)
-
-	elif report.report_type == "Custom Report":
-		ref_report = get_report_doc(report.report_name)
-		res = get_report_result(ref_report, filters)
-
-	return res
-
 @frappe.read_only()
->>>>>>> e907f77ccd (feat: prepared report read from replica)
 def generate_report_result(report, filters=None, user=None, custom_columns=None):
 	user = user or frappe.session.user
 	filters = filters or []
