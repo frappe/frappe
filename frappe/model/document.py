@@ -562,8 +562,12 @@ class Document(BaseDocument):
 					fail = value != original_value
 
 				if fail:
-					frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(field.fieldname)),
-						frappe.CannotChangeConstantError)
+					frappe.throw(
+						_("Value cannot be changed for {0}").format(
+							frappe.bold(self.meta.get_label(field.fieldname))
+						),
+						exc=frappe.CannotChangeConstantError
+					)
 
 		return False
 
