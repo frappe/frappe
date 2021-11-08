@@ -13,7 +13,7 @@ context('Timeline', () => {
 		cy.get('.page-head .page-actions').findByRole('button', {name: 'Save'}).click();
 
 		cy.visit('/app/todo');
-		cy.click_first_row_in_list();
+		cy.click_listview_row_item(0);
 
 		//To check if the comment box is initially empty and tying some text into it
 		cy.get('[data-fieldname="comment"] .ql-editor').should('contain', '').type('Testing Timeline');
@@ -66,7 +66,7 @@ context('Timeline', () => {
 		cy.click_modal_primary_button('Submit');
 
 		cy.visit('/app/custom-submittable-doctype');
-		cy.click_first_row_in_list();
+		cy.click_listview_row_item(0);
 
 		//To check if the submission of the documemt is visible in the timeline content
 		cy.get('.timeline-content').should('contain', 'Administrator submitted this document');
@@ -78,14 +78,14 @@ context('Timeline', () => {
 
 		//Deleting the document
 		cy.visit('/app/custom-submittable-doctype');
-		cy.select_first_row_checkbox();
+		cy.select_listview_row_checkbox(0);
 		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
 		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
 		cy.click_modal_primary_button('Yes');
 
 		//Deleting the custom doctype
 		cy.visit('/app/doctype');
-		cy.select_first_row_checkbox();
+		cy.select_listview_row_checkbox(0);
 		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
 		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
 		cy.click_modal_primary_button('Yes');
