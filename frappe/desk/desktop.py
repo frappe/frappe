@@ -323,6 +323,8 @@ class Workspace:
 		for doc in onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
+			step.action_label = _(doc.action_label)
+			step.description = _(doc.description)
 			if step.action == "Create Entry":
 				step.is_submittable = frappe.db.get_value(
 					"DocType", step.reference_document, "is_submittable", cache=True
