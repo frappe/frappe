@@ -23,6 +23,14 @@ if (!Array.prototype.uniqBy) {
 	});
 }
 
+// Python's dict.setdefault ported for JS objects
+Object.defineProperty(Object.prototype, "setDefault", {
+	value: function(key, default_value) {
+		if (!(key in this)) this[key] = default_value;
+		return this[key];
+	}
+});
+
 // Pluralize
 String.prototype.plural = function(revert) {
 	const plural = {
