@@ -1,5 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
 def get_jenv():
 	import frappe
 	from frappe.utils.safe_exec import get_safe_globals
@@ -65,21 +66,36 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
-	from frappe import _, get_traceback, throw
-	from jinja2 import TemplateError
-
 	if not template:
 		return ""
 
-	if (is_path or guess_is_path(template)):
-		return get_jenv().get_template(template).render(context)
-	else:
+	import frappe
+	from frappe import _, get_traceback, throw
+	from jinja2 import TemplateError
+
+	def _render_template():
+		if (is_path or guess_is_path(template)):
+			return get_jenv().get_template(template).render(context)
+
 		if safe_render and ".__" in template:
 			throw(_("Illegal template"))
+
 		try:
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
-			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=get_traceback()))
+			throw(
+				title="Jinja Template Error",
+				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>"
+			)
+
+	writes_allowed = frappe.flags.read_only
+
+	try:
+		frappe.flags.read_only = True
+		return _render_template()
+	finally:
+		frappe.flags.read_only = writes_allowed
+
 
 def guess_is_path(template):
 	# template can be passed as a path or content
