@@ -9,6 +9,7 @@ frappe.ui.DiffView = class DiffView {
 		this.docname = docname;
 
 		this.dialog = this.make_dialog();
+		this.set_empty_state();
 		this.dialog.show();
 	}
 
@@ -74,7 +75,7 @@ frappe.ui.DiffView = class DiffView {
 					this.dialog.set_value("diff", this.prettify_diff(data));
 				});
 		} else {
-			this.dialog.set_value("diff", " ");
+			this.set_empty_state();
 		}
 	}
 
@@ -106,5 +107,9 @@ frappe.ui.DiffView = class DiffView {
 			html += `<div class=${line_class}>${line}</div>`;
 		});
 		return `<div class='diffview'>${html}</div>`;
+	}
+
+	set_empty_state() {
+		this.dialog.set_value("diff", __("Select two versions to view the diff."));
 	}
 };
