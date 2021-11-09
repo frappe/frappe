@@ -69,18 +69,18 @@ def update_add_node(doc, parent, parent_field):
 	right = right or 1
 
 	# update all on the right
-	frappe.db.sql("update `tab{0}` set rgt = rgt+2, modified=%s where rgt >= %s"
-		.format(doctype), (n, right))
-	frappe.db.sql("update `tab{0}` set lft = lft+2, modified=%s where lft >= %s"
-		.format(doctype), (n, right))
+	frappe.db.sql("update `tab{0}` set rgt = rgt+2 where rgt >= %s"
+		.format(doctype), (right,))
+	frappe.db.sql("update `tab{0}` set lft = lft+2 where lft >= %s"
+		.format(doctype), (right,))
 
 	# update index of new node
 	if frappe.db.sql("select * from `tab{0}` where lft=%s or rgt=%s".format(doctype), (right, right+1)):
 		frappe.msgprint(_("Nested set error. Please contact the Administrator."))
 		raise Exception
 
-	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s, modified=%s where name=%s".format(doctype),
-		(right,right+1, n, name))
+	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s where name=%s".format(doctype),
+		(right,right+1, name))
 	return right
 
 
@@ -95,17 +95,17 @@ def update_move_node(doc, parent_field):
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
 	# move to dark side
-	frappe.db.sql("""update `tab{0}` set lft = -lft, rgt = -rgt, modified=%s
-		where lft >= %s and rgt <= %s""".format(doc.doctype), (n, doc.lft, doc.rgt))
+	frappe.db.sql("""update `tab{0}` set lft = -lft, rgt = -rgt
+		where lft >= %s and rgt <= %s""".format(doc.doctype), (doc.lft, doc.rgt))
 
 	# shift left
 	diff = doc.rgt - doc.lft + 1
-	frappe.db.sql("""update `tab{0}` set lft = lft -%s, rgt = rgt - %s, modified=%s
-		where lft > %s""".format(doc.doctype), (diff, diff, n, doc.rgt))
+	frappe.db.sql("""update `tab{0}` set lft = lft -%s, rgt = rgt - %s
+		where lft > %s""".format(doc.doctype), (diff, diff, doc.rgt))
 
 	# shift left rgts of ancestors whose only rgts must shift
-	frappe.db.sql("""update `tab{0}` set rgt = rgt - %s, modified=%s
-		where lft < %s and rgt > %s""".format(doc.doctype), (diff, n, doc.lft, doc.rgt))
+	frappe.db.sql("""update `tab{0}` set rgt = rgt - %s
+		where lft < %s and rgt > %s""".format(doc.doctype), (diff, doc.lft, doc.rgt))
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
@@ -113,17 +113,17 @@ def update_move_node(doc, parent_field):
 
 
 		# set parent lft, rgt
-		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s, modified=%s
-			where name = %s""".format(doc.doctype), (diff, n, parent))
+		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
+			where name = %s""".format(doc.doctype), (diff, parent))
 
 		# shift right at new parent
-		frappe.db.sql("""update `tab{0}` set lft = lft + %s, rgt = rgt + %s, modified=%s
-			where lft > %s""".format(doc.doctype), (diff, diff, n, new_parent.rgt))
+		frappe.db.sql("""update `tab{0}` set lft = lft + %s, rgt = rgt + %s
+			where lft > %s""".format(doc.doctype), (diff, diff, new_parent.rgt))
 
 		# shift right rgts of ancestors whose only rgts must shift
-		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s, modified=%s
+		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
 			where lft < %s and rgt > %s""".format(doc.doctype),
-			(diff, n, new_parent.lft, new_parent.rgt))
+			(diff, new_parent.lft, new_parent.rgt))
 
 
 		new_diff = new_parent.rgt - doc.lft
@@ -133,8 +133,8 @@ def update_move_node(doc, parent_field):
 		new_diff = max_rgt + 1 - doc.lft
 
 	# bring back from dark side
-	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s, modified=%s
-		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
+	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s
+		where lft < 0""".format(doc.doctype), (new_diff, new_diff))
 
 @frappe.whitelist()
 def rebuild_tree(doctype, parent_field):
@@ -187,7 +187,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False)
+	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False, update_modified=False)
 
 	#return the right value of this node + 1
 	return right+1
