@@ -241,7 +241,7 @@ Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fie
 });
 
 Cypress.Commands.add('awesomebar', text => {
-	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 100});
+	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, {delay: 700});
 });
 
 Cypress.Commands.add('new_form', doctype => {
@@ -325,7 +325,7 @@ Cypress.Commands.add('clear_filters', () => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
 	});
 
-	
+
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
