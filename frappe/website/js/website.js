@@ -634,6 +634,7 @@ $(document).on("page-change", function() {
 frappe.ready(function() {
 	frappe.show_language_picker();
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (window.is_chat_enabled) {
 		frappe.require(['/assets/js/moment-bundle.min.js', "/assets/css/frappe-chat-web.css", "/assets/frappe/js/lib/socket.io.min.js"], () => {
 			frappe.require('/assets/js/chat.js', () => {
@@ -650,4 +651,6 @@ frappe.ready(function() {
 	]);
 >>>>>>> ed13182573 (chore: Remove Chat Module)
 	frappe.socketio.init(window.socketio_port);
+=======
+>>>>>>> 6232bfbd39 (fix: remove unused assets)
 });
