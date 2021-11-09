@@ -1,4 +1,5 @@
 Babel~=2.9.0
+beartype~=0.9.1
 beautifulsoup4~=4.9.3
 bleach-allowlist~=1.0.3
 bleach~=3.3.0

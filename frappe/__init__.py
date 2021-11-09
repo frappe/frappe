@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+from beartype import beartype
 import os, warnings
 
 _dev_server = os.environ.get('DEV_SERVER', False)
@@ -599,7 +600,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 			if xss_safe:
 				xss_safe_methods.append(fn)
 
-		return method or fn
+		return beartype(method or fn)
 
 	return innerfn
 
