@@ -91,7 +91,7 @@ def create_github_social_login_key():
 		# Dummy client_id and client_secret
 		social_login_key.client_id = "h6htd6q"
 		social_login_key.client_secret = "keoererk988ekkhf8w9e8ewrjhhkjer9889"
-		social_login_key.insert()
+		social_login_key.insert(ignore_permissions=True)
 		return social_login_key
 
 def github_response_for_private_email(url, *args, **kwargs):
