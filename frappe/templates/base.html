@@ -56,8 +56,12 @@
 		}
 		window.dev_server = {{ dev_server }};
 		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
+<<<<<<< HEAD
 		window.show_language_picker = {{ show_language_picker }};
 		window.is_chat_enabled = {{ chat_enable }};
+=======
+		window.show_language_picker = {{ show_language_picker or 'false' }};
+>>>>>>> ed13182573 (chore: Remove Chat Module)
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">

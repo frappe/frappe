@@ -65,11 +65,15 @@
   "attach_view_link",
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
+<<<<<<< HEAD
   "prepared_report_expiry_period",
   "chat",
   "enable_chat",
   "document_naming_section",
   "use_original_name_for_amended_document"
+=======
+  "prepared_report_expiry_period"
+>>>>>>> ed13182573 (chore: Remove Chat Module)
  ],
  "fields": [
   {
@@ -384,18 +388,6 @@
    "label": "Hide footer in auto email reports"
   },
   {
-   "collapsible": 1,
-   "fieldname": "chat",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_chat",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -489,7 +481,11 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-08-11 09:04:43.856970",
+=======
+ "modified": "2021-10-08 14:04:11.406725",
+>>>>>>> ed13182573 (chore: Remove Chat Module)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
