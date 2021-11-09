@@ -15,11 +15,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-<<<<<<< HEAD
-from frappe.utils import now
-=======
-from frappe.query_builder import DocType, Order
->>>>>>> 6a50442936 (refactor(minor): better variable names)
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -176,12 +171,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-<<<<<<< HEAD
-	frappe.db.sql("""UPDATE `tab{0}` SET lft=%s, rgt=%s, modified=%s
-		WHERE name=%s""".format(doctype), (left,right,n,parent))
-=======
 	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False, update_modified=False)
->>>>>>> fb929566cc (fix: don't change `modified` when updating lft/rgt)
 
 	#return the right value of this node + 1
 	return right+1
