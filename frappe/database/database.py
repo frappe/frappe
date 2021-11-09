@@ -20,7 +20,7 @@ from frappe.query_builder.functions import Count
 from frappe.query_builder.functions import Min, Max, Avg, Sum
 from frappe.query_builder.utils import Column
 from .query import Query
-from pypika.terms import PseudoColumn
+from pypika.terms import Criterion, PseudoColumn
 
 
 class Database(object):
@@ -543,18 +543,22 @@ class Database(object):
 								update=None, for_update=False, run=True):
 		field_objects = []
 
-		for field in fields:
-			if "(" in field or " as " in field:
-				field_objects.append(PseudoColumn(field))
-			else:
-				field_objects.append(field)
+		if not isinstance(fields, Criterion):
+			for field in fields:
+				if "(" in field or " as " in field:
+					field_objects.append(PseudoColumn(field))
+				else:
+					field_objects.append(field)
 
 		criterion = self.query.build_conditions(
 			table=doctype, filters=filters, orderby=order_by, for_update=for_update
 		)
-
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*field_objects)
+
+		elif isinstance(fields, Criterion):
+			query = criterion.select(fields)
+
 		else:
 			if fields=="*":
 				query = criterion.select(fields)
