@@ -73,7 +73,7 @@ class TestUserPermission(unittest.TestCase):
 	def test_for_applicable_on_update_from_apply_to_all(self):
 		''' Update User Permission from all to some applicable Doctypes'''
 		user = create_user('test_bulk_creation_update@example.com')
-		param = get_params(user,'User', user.name, applicable = ["Chat Room", "Chat Message"])
+		param = get_params(user,'User', user.name, applicable = ["Comment", "Contact"])
 
 		# Initially create User Permission document with apply_to_all checked
 		is_created = add_user_permissions(get_params(user, 'User', user.name))
@@ -84,8 +84,8 @@ class TestUserPermission(unittest.TestCase):
 		frappe.db.commit()
 
 		removed_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
-		is_created_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
-		is_created_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
+		is_created_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Comment"))
+		is_created_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Contact"))
 
 		# Check that apply_to_all is removed
 		self.assertIsNone(removed_apply_to_all)
@@ -101,14 +101,14 @@ class TestUserPermission(unittest.TestCase):
 		param = get_params(user, 'User', user.name)
 
 		# create User permissions that with applicable
-		is_created = add_user_permissions(get_params(user, 'User', user.name, applicable = ["Chat Room", "Chat Message"]))
+		is_created = add_user_permissions(get_params(user, 'User', user.name, applicable = ["Comment", "Contact"]))
 
 		self.assertEqual(is_created, 1)
 
 		is_created = add_user_permissions(param)
 		is_created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
-		removed_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
-		removed_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
+		removed_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Comment"))
+		removed_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Contact"))
 
 		# To check that a User permission with apply_to_all exists
 		self.assertIsNotNone(is_created_apply_to_all)

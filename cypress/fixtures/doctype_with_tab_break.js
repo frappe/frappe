@@ -30,11 +30,6 @@ export default {
 			"link_doctype": "Contact",
 			"link_fieldname": "user"
 		},
-		{
-			"group": "Profile",
-			"link_doctype": "Chat Profile",
-			"link_fieldname": "user"
-		},
 	],
 	modified_by: 'Administrator',
 	module: 'Custom',
