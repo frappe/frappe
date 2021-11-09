@@ -25,6 +25,7 @@ def handle():
 	"""handle request"""
 
 	data = execute_cmd()
+  
 	# data can be an empty string or list which are valid responses
 	if data is not None:
 		if isinstance(data, Response):

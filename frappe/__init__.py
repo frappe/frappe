@@ -41,7 +41,8 @@ class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		ret = self.get(key)
-		if not ret and key.startswith("__"):
+		# "__deepcopy__" exception added to fix frappe#14833 via DFP
+		if not ret and key.startswith("__") and key != "__deepcopy__":
 			raise AttributeError()
 		return ret
 	def __setattr__(self, key, value):

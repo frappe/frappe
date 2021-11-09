@@ -112,7 +112,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-06 17:25:40.477044",
+ "modified": "2021-10-25 17:25:40.477044",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",
@@ -131,6 +131,5 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "title_field": "user",
- "track_changes": 1
+ "title_field": "user"
 }
