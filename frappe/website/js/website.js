@@ -635,6 +635,7 @@ frappe.ready(function() {
 	frappe.show_language_picker();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (window.is_chat_enabled) {
 		frappe.require(['/assets/js/moment-bundle.min.js', "/assets/css/frappe-chat-web.css", "/assets/frappe/js/lib/socket.io.min.js"], () => {
 			frappe.require('/assets/js/chat.js', () => {
@@ -653,4 +654,7 @@ frappe.ready(function() {
 	frappe.socketio.init(window.socketio_port);
 =======
 >>>>>>> 6232bfbd39 (fix: remove unused assets)
+=======
+	frappe.socketio.init(window.socketio_port);
+>>>>>>> e8c25cf0f3 (fix: added socketio initialization)
 });
