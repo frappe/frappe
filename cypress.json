@@ -5,5 +5,9 @@
   "defaultCommandTimeout": 20000,
   "pageLoadTimeout": 15000,
   "video": true,
-  "videoUploadOnPasses": false
+  "videoUploadOnPasses": false,
+  "retries": {
+    "runMode": 2,
+    "openMode": 2
+  }
 }
