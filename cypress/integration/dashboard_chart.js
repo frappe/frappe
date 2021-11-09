@@ -1,7 +1,7 @@
 context('Dashboard Chart', () => {
 	before(() => {
-		cy.visit('/login');
 		cy.login();
+		cy.visit('/app/website');
 	});
 
 	it('Check filter populate for child table doctype', () => {
