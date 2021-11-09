@@ -1,0 +1,100 @@
+{
+ "autoname": "CR.#####",
+ "beta": 1,
+ "creation": "2017-11-08 15:27:21.156667",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "room_name",
+  "avatar",
+  "last_message",
+  "message_count",
+  "owner",
+  "user_list",
+  "users"
+ ],
+ "fields": [
+  {
+   "default": "Direct",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Direct\nGroup\nVisitor",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:doc.type==\"Group\"",
+   "fieldname": "room_name",
+   "fieldtype": "Data",
+   "label": "Name"
+  },
+  {
+   "depends_on": "eval:doc.type==\"Group\"",
+   "fieldname": "avatar",
+   "fieldtype": "Attach Image",
+   "hidden": 1,
+   "label": "Avatar"
+  },
+  {
+   "fieldname": "last_message",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Last Message"
+  },
+  {
+   "fieldname": "message_count",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Message Count"
+  },
+  {
+   "fieldname": "owner",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Owner",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user_list",
+   "fieldtype": "Section Break",
+   "label": "Users"
+  },
+  {
+   "fieldname": "users",
+   "fieldtype": "Table",
+   "label": "Users",
+   "options": "Chat Room User"
+  }
+ ],
+ "image_field": "avatar",
+ "modified": "2019-11-07 13:20:24.625329",
+ "modified_by": "Administrator",
+ "module": "Chat",
+ "name": "Chat Room",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "set_user_permissions": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "room_name",
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "room_name",
+ "track_changes": 1
+}

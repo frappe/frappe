@@ -9,6 +9,7 @@ Integrations
 Printing
 Contacts
 Data Migration
+Chat
 Social
 Automation
 Event Streaming
