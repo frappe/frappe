@@ -1,20 +1,20 @@
 /* eslint-disable no-console */
-let path = require("path");
-let fs = require("fs");
-let glob = require("fast-glob");
-let esbuild = require("esbuild");
-let vue = require("esbuild-vue");
-let yargs = require("yargs");
-let cliui = require("cliui")();
-let chalk = require("chalk");
-let html_plugin = require("./frappe-html");
-let rtlcss = require('rtlcss');
-let postCssPlugin = require("esbuild-plugin-postcss2").default;
-let ignore_assets = require("./ignore-assets");
-let sass_options = require("./sass_options");
-let build_cleanup_plugin = require("./build-cleanup");
+const path = require("path");
+const fs = require("fs");
+const glob = require("fast-glob");
+const esbuild = require("esbuild");
+const vue = require("esbuild-vue");
+const yargs = require("yargs");
+const cliui = require("cliui")();
+const chalk = require("chalk");
+const html_plugin = require("./frappe-html");
+const rtlcss = require('rtlcss');
+const postCssPlugin = require("esbuild-plugin-postcss2").default;
+const ignore_assets = require("./ignore-assets");
+const sass_options = require("./sass_options");
+const build_cleanup_plugin = require("./build-cleanup");
 
-let {
+const {
 	app_list,
 	assets_path,
 	apps_path,
@@ -28,7 +28,7 @@ let {
 	get_redis_subscriber
 } = require("./utils");
 
-let argv = yargs
+const argv = yargs
 	.usage("Usage: node esbuild [options]")
 	.option("apps", {
 		type: "string",
