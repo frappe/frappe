@@ -633,4 +633,5 @@ $(document).on("page-change", function() {
 
 frappe.ready(function() {
 	frappe.show_language_picker();
+	frappe.socketio.init(window.socketio_port);
 });
