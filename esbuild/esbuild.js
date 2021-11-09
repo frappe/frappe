@@ -12,6 +12,8 @@ let rtlcss = require('rtlcss');
 let postCssPlugin = require("esbuild-plugin-postcss2").default;
 let ignore_assets = require("./ignore-assets");
 let sass_options = require("./sass_options");
+let build_cleanup_plugin = require("./build-cleanup");
+
 let {
 	app_list,
 	assets_path,
@@ -98,9 +100,6 @@ if (WATCH_MODE) {
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
-	if (!FILES_TO_BUILD.length) {
-		await clean_dist_folders(APPS);
-	}
 
 	let results;
 	try {
@@ -231,12 +230,13 @@ function get_files_to_build(files) {
 function build_files({ files, outdir }) {
 	let build_plugins = [
 		html_plugin,
+		build_cleanup_plugin,
 		vue(),
 	];
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
-function build_style_files({ files, outdir, rtl_style=false }) {
+function build_style_files({ files, outdir, rtl_style = false }) {
 	let plugins = [];
 	if (rtl_style) {
 		plugins.push(rtlcss);
@@ -244,6 +244,7 @@ function build_style_files({ files, outdir, rtl_style=false }) {
 
 	let build_plugins = [
 		ignore_assets,
+		build_cleanup_plugin,
 		postCssPlugin({
 			plugins: plugins,
 			sassOptions: sass_options
@@ -311,24 +312,6 @@ function get_watch_config() {
 		};
 	}
 	return null;
-}
-
-async function clean_dist_folders(apps) {
-	for (let app of apps) {
-		let public_path = get_public_path(app);
-		let paths = [
-			path.resolve(public_path, "dist", "js"),
-			path.resolve(public_path, "dist", "css"),
-			path.resolve(public_path, "dist", "css-rtl")
-		];
-		for (let target of paths) {
-			if (fs.existsSync(target)) {
-				// rmdir is deprecated in node 16, this will work in both node 14 and 16
-				let rmdir = fs.promises.rm || fs.promises.rmdir;
-				await rmdir(target, { recursive: true });
-			}
-		}
-	}
 }
 
 function log_built_assets(results) {
