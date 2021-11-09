@@ -7,7 +7,7 @@ import frappe
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 import unittest
 from frappe.utils.oauth import login_via_oauth2
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, MagicMock
 from rauth import OAuth2Service
 from frappe.auth import LoginManager, CookieManager
 from frappe.utils import set_request
