@@ -9,10 +9,6 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.add_fetch('source', 'timeseries', 'timeseries');
 	},
 
-	onload: function(frm) {
-		frm.set_df_property('parent_document_type', 'hidden', true);
-	},
-
 	before_save: function(frm) {
 		let dynamic_filters = JSON.parse(frm.doc.dynamic_filters_json || 'null');
 		let static_filters = JSON.parse(frm.doc.filters_json || 'null');
@@ -49,6 +45,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.set_df_property("dynamic_filters_section", "hidden", 1);
 
+		frm.trigger('set_parent_document_type');
 		frm.trigger('set_time_series');
 		frm.set_query('document_type', function() {
 			return {
@@ -498,9 +495,10 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	set_parent_document_type: async function(frm) {
 		let document_type = frm.doc.document_type;
-		let doc_is_table = document_type && await frappe.db.get_value('DocType', document_type, 'istable');
+		let doc_is_table = document_type && 
+			(await frappe.db.get_value('DocType', document_type, 'istable')).message.istable;
 
-		frm.set_df_property('parent_document_type', 'hidden', true);
+		frm.set_df_property('parent_document_type', 'hidden', !doc_is_table);
 
 		if (document_type && doc_is_table) {
 			let parent = await frappe.db.get_list('DocField', {
@@ -521,8 +519,6 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			if (parent.length === 1) {
 				frm.set_value('parent_document_type', parent[0].parent);
-			} else {
-				frm.set_df_property('parent_document_type', 'hidden', false);
 			}
 		}
 	}
