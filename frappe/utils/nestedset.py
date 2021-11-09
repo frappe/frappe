@@ -15,7 +15,11 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+<<<<<<< HEAD
 from frappe.utils import now
+=======
+from frappe.query_builder import DocType, Order
+>>>>>>> 6a50442936 (refactor(minor): better variable names)
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -25,25 +29,25 @@ class NestedSetInvalidMergeError(frappe.ValidationError): pass
 # called in the on_update method
 def update_nsm(doc):
 	# get fields, data from the DocType
-	opf = 'old_parent'
-	pf = "parent_" + frappe.scrub(doc.doctype)
+	old_parent_field = 'old_parent'
+	parent_field = "parent_" + frappe.scrub(doc.doctype)
 
 	if hasattr(doc,'nsm_parent_field'):
-		pf = doc.nsm_parent_field
+		parent_field = doc.nsm_parent_field
 	if hasattr(doc,'nsm_oldparent_field'):
-		opf = doc.nsm_oldparent_field
+		old_parent_field = doc.nsm_oldparent_field
 
-	p, op = doc.get(pf) or None, doc.get(opf) or None
+	parent, old_parent = doc.get(parent_field) or None, doc.get(old_parent_field) or None
 
 	# has parent changed (?) or parent is None (root)
 	if not doc.lft and not doc.rgt:
-		update_add_node(doc, p or '', pf)
-	elif op != p:
-		update_move_node(doc, pf)
+		update_add_node(doc, parent or '', parent_field)
+	elif old_parent != parent:
+		update_move_node(doc, parent_field)
 
 	# set old parent
-	doc.set(opf, p)
-	frappe.db.set_value(doc.doctype, doc.name, opf, p or '', update_modified=False)
+	doc.set(old_parent_field, parent)
+	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or '', update_modified=False)
 
 	doc.reload()
 
@@ -51,8 +55,6 @@ def update_add_node(doc, parent, parent_field):
 	"""
 		insert a new node
 	"""
-
-	n = now()
 
 	doctype = doc.doctype
 	name = doc.name
@@ -86,7 +88,6 @@ def update_add_node(doc, parent, parent_field):
 
 
 def update_move_node(doc, parent_field):
-	n = now()
 	parent = doc.get(parent_field)
 
 	if parent:
