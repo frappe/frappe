@@ -147,7 +147,7 @@ def add_attachments(name, attachments):
 			_file.save(ignore_permissions=True)
 
 @frappe.whitelist(allow_guest=True)
-def mark_email_as_seen(name=None):
+def mark_email_as_seen(name: str = None):
 	try:
 		if name and frappe.db.exists("Communication", name) and not frappe.db.get_value("Communication", name, "read_by_recipient"):
 			frappe.db.set_value("Communication", name, "read_by_recipient", 1)

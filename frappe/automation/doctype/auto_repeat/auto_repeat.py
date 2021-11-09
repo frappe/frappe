@@ -460,7 +460,7 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 	return [[d] for d in docs]
 
 @frappe.whitelist()
-def update_reference(docname, reference):
+def update_reference(docname: str, reference: str):
 	result = ""
 	try:
 		frappe.db.set_value("Auto Repeat", docname, "reference_document", reference)
