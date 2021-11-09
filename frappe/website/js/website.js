@@ -633,11 +633,4 @@ $(document).on("page-change", function() {
 
 frappe.ready(function() {
 	frappe.show_language_picker();
-
-	frappe.require([
-		"/assets/frappe/node_modules/moment/min/moment-with-locales.min.js",
-		"/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
-		"/assets/frappe/js/lib/socket.io.min.js"
-	]);
-	frappe.socketio.init(window.socketio_port);
 });
