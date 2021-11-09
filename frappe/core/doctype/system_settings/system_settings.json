@@ -24,6 +24,7 @@
   "first_day_of_the_week",
   "sec_backup_limit",
   "backup_limit",
+  "encrypt_backup",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -460,6 +461,7 @@
    "label": "Strip EXIF tags from uploaded images"
   },
   {
+<<<<<<< HEAD
    "collapsible": 1,
    "fieldname": "system_updates_section",
    "fieldtype": "Section Break",
@@ -477,12 +479,22 @@
    "fieldtype": "Select",
    "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+=======
+   "default": "0",
+   "fieldname": "encrypt_backup",
+   "fieldtype": "Check",
+   "label": "Encrypt Backups"
+>>>>>>> 8b7629c064 (feat: Encrypted Backups (#14513))
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-01-04 11:28:34.881192",
+=======
+ "modified": "2021-10-21 19:24:15.232430",
+>>>>>>> 8b7629c064 (feat: Encrypted Backups (#14513))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
