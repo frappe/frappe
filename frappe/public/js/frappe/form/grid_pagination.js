@@ -49,13 +49,13 @@ export default class GridPagination {
 
 		this.$page_number.on('keyup', (e) => {
 			e.currentTarget.style.width = ((e.currentTarget.value.length + 1) * 8) + 'px';
-		})
+		});
 
 		this.$page_number.on('keydown', (e) => {
 			e = (e) ? e : window.event;
 			var charCode = (e.which) ? e.which : e.keyCode;
 			let arrow = { up: 38, down: 40 };
-		 
+
 			switch (charCode) {
 				case arrow.up:
 					this.inc_dec_number(true);
@@ -71,24 +71,24 @@ export default class GridPagination {
 				return false;
 			}
 			return true;
-		})
+		});
 
 		this.$page_number.on('focusout', (e) => {
 			if (this.page_index == e.currentTarget.value) return;
 			this.page_index = e.currentTarget.value;
 
-			if(this.page_index < 1) {
+			if (this.page_index < 1) {
 				this.page_index = 1;
-			} else if(this.page_index > this.total_pages) {
+			} else if (this.page_index > this.total_pages) {
 				this.page_index = this.total_pages;
 			}
 
 			this.go_to_page();
-		})
+		});
 	}
 
 	inc_dec_number(increment) {
-		let new_value = parseInt(this.$page_number.val())
+		let new_value = parseInt(this.$page_number.val());
 		increment ? new_value++ : new_value--;
 
 		if (new_value < 1 || new_value > this.total_pages) return;
@@ -111,8 +111,7 @@ export default class GridPagination {
 	}
 
 	get_pagination_html() {
-		let page_text_html = `
-			<div class="page-text">
+		let page_text_html = `<div class="page-text">
 				<input class="current-page-number page-number" type="text" value="${__(this.page_index)}"/>
 				<span>${__('of')}</span>
 				<span class="total-page-number page-number"> ${__(this.total_pages)} </span>
