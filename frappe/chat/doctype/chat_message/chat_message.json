@@ -1,0 +1,91 @@
+{
+ "beta": 1,
+ "creation": "2017-11-10 11:10:40.011099",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "room_type",
+  "type",
+  "user",
+  "room",
+  "content",
+  "mentions",
+  "urls"
+ ],
+ "fields": [
+  {
+   "fieldname": "room_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Room Type",
+   "options": "Direct\nGroup\nVisitor",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "label": "Type",
+   "options": "Content\nFile"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Chat Room",
+   "reqd": 1
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text",
+   "label": "Content",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mentions",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Mentions"
+  },
+  {
+   "fieldname": "urls",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "URLs"
+  }
+ ],
+ "modified": "2020-09-18 17:26:09.703215",
+ "modified_by": "Administrator",
+ "module": "Chat",
+ "name": "Chat Message",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "content, user",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "content",
+ "track_changes": 1,
+ "track_seen": 1
+}

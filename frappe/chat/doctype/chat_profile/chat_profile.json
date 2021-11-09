@@ -1,0 +1,98 @@
+{
+ "autoname": "field:user",
+ "beta": 1,
+ "creation": "2017-11-13 18:26:57.943027",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "status",
+  "chat_background",
+  "notifications",
+  "message_preview",
+  "notification_tones",
+  "conversation_tones",
+  "settings",
+  "enable_chat"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "default": "Online",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Online\nAway\nBusy\nOffline"
+  },
+  {
+   "fieldname": "chat_background",
+   "fieldtype": "Attach Image",
+   "label": "Chat Background"
+  },
+  {
+   "fieldname": "notifications",
+   "fieldtype": "Section Break",
+   "label": "Notifications"
+  },
+  {
+   "default": "1",
+   "fieldname": "message_preview",
+   "fieldtype": "Check",
+   "label": "Message Preview"
+  },
+  {
+   "default": "1",
+   "fieldname": "notification_tones",
+   "fieldtype": "Check",
+   "label": "Notification Tones"
+  },
+  {
+   "default": "1",
+   "fieldname": "conversation_tones",
+   "fieldtype": "Check",
+   "label": "Conversation Tones"
+  },
+  {
+   "fieldname": "settings",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_chat",
+   "fieldtype": "Check",
+   "label": "Enable Chat"
+  }
+ ],
+ "in_create": 1,
+ "modified": "2019-11-07 13:21:36.414961",
+ "modified_by": "Administrator",
+ "module": "Chat",
+ "name": "Chat Profile",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
