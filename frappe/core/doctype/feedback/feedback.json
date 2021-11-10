@@ -9,7 +9,6 @@
   "reference_name",
   "column_break_3",
   "like",
-  "dislike",
   "ip_address"
  ],
  "fields": [
@@ -44,17 +43,11 @@
    "fieldname": "like",
    "fieldtype": "Check",
    "label": "Like"
-  },
-  {
-   "default": "0",
-   "fieldname": "dislike",
-   "fieldtype": "Check",
-   "label": "Dislike"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-10-27 22:33:58.362849",
+ "modified": "2021-11-10 20:53:21.255593",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Feedback",
