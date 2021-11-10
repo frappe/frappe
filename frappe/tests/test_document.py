@@ -6,6 +6,7 @@ import unittest
 import frappe
 from frappe.utils import cint
 from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
+from frappe.utils import sanitize_html
 
 
 class TestDocument(unittest.TestCase):
@@ -172,6 +173,23 @@ class TestDocument(unittest.TestCase):
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss not in d.subject)
+
+		# not allowed tags are stripped only for fieldtype Data, Text, Small Text
+		d.description = xss
+		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
+		d.save()
+		d.reload()
+
+		self.assertTrue(escaped_xss in d.description)
+
+		xss2 = 'test;<img src=x onerror=alert(1)'
+		filtered_xss = 'test;'
+		d.subject += xss2
+		d.save()
+		d.reload()
+
+		self.assertTrue(xss2 not in d.subject)
+		self.assertTrue(filtered_xss in d.subject)
 
 		# onload
 		xss = '<div onload="alert("XSS")">Test</div>'

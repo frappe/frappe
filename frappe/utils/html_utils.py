@@ -69,10 +69,10 @@ def sanitize_html(html, strip=False):
 		return html
 
 	# regex for finding unicode characters like %3E, %3c
-	regex = re.compile(r"%[0-9]?[a-zA-Z]?")
-	char_list = regex.findall(html)
+	regex = re.compile(r"%[0-9]?[0-9a-zA-Z]?")
+	char_list = set(regex.findall(html))
 
-	if (u"<" not in html or u">" not in html) \
+	if (u"<" not in html and u">" not in html) \
 		and not bool(char_list) and not bool(BeautifulSoup(html, 'html.parser').find()):
 		return html
 
