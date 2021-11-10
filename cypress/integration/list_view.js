@@ -14,7 +14,7 @@ context('List View', () => {
 		cy.get('.dropdown-menu li:visible .dropdown-item .menu-item-label[data-label="Edit"]').click();
 
 		cy.get('.modal-body .form-control[data-fieldname="field"]').first().select('Due Date').wait(200);
-		cy.fill_field('value', '09-28-21', 'Date');
+		cy.get('.modal-body').fill_field('value', '09-28-21', 'Date');
 
 		cy.get('.modal-footer .standard-actions .btn-primary').click();
 		cy.wait(500);
