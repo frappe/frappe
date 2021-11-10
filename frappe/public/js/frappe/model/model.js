@@ -650,6 +650,27 @@ $.extend(frappe.model, {
 		}
 	},
 
+	round_floats_childs_in: function(arr, fieldnames) {
+		var cached_precision = [];
+		$.each(arr || [], function(k, item) {
+			if(!fieldnames) {
+				fieldnames = frappe.meta.get_fieldnames(item.doctype, item.parent,
+					{"fieldtype": ["in", ["Currency", "Float"]]});
+			}
+
+			for(var i=0, j=fieldnames.length; i < j; i++) {
+				var fieldname = fieldnames[i];
+				
+				if (k == 0) { // cache precision on first arr position, the precision will be the same for all rows.
+					// precision was cached because it's running many times, and tuning the loop to many itens on sales documents...
+					cached_precision[fieldname] = precision(fieldname, item);
+				}
+
+				item[fieldname] = flt(item[fieldname], cached_precision[fieldname]);
+			}
+		});
+	},	
+
 	validate_missing: function(doc, fieldname) {
 		if(!doc[fieldname]) {
 			frappe.throw(__("Please specify") + ": " +
