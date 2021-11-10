@@ -23,7 +23,7 @@ context('Report View', () => {
 		let cell = cy.get('.dt-row-0 > .dt-cell--col-4');
 		// select the cell
 		cell.dblclick();
-		cell.get('.dt-cell__content').findByRole('checkbox').check({ force: true }).blur();
+		cell.findByRole('checkbox').check({ force: true }).blur();
 		cy.wait('@value-update');
 		cy.get('@doc').then(doc => {
 			cy.call('frappe.client.get_value', {

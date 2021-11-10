@@ -43,10 +43,10 @@ context('Timeline', () => {
 		cy.get('.timeline-message-box .more-actions > .action-btn').click(); //Menu button in timeline item
 		cy.get('.timeline-message-box .more-actions .dropdown-item').contains('Delete').click();
 		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click();
-		cy.click_modal_primary_button('Yes');
+		cy.click_modal_primary_button('Yes').blur();
 
 		//Deleting the added ToDo
-		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group [data-original-title="Menu"]').click();
+		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group [data-original-title="Menu"]').click({ force: true });
 		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group .dropdown-item').contains('Delete').click();
 		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click();
 	});
