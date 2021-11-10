@@ -40,6 +40,27 @@ context('Grid Pagination', () => {
 		cy.get('@table').find('.current-page-number').should('have.value', '20');
 		cy.get('@table').find('.total-page-number').should('contain', '20');
 	});
+	it('go to specific page, use up and down arrow, type characters, 0 page and more than existing page', () => {
+		cy.visit('/app/contact/Test Contact');
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
+		cy.get('@table').find('.current-page-number').focus().clear().type('17').blur();
+		cy.get('@table').find('.grid-body .row-index').should('contain', 801);
+
+		cy.get('@table').find('.current-page-number').focus().type('{uparrow}{uparrow}');
+		cy.get('@table').find('.current-page-number').should('have.value', '19');
+
+		cy.get('@table').find('.current-page-number').focus().type('{downarrow}{downarrow}');
+		cy.get('@table').find('.current-page-number').should('have.value', '17');
+
+		cy.get('@table').find('.current-page-number').focus().clear().type('700').blur();
+		cy.get('@table').find('.current-page-number').should('have.value', '20');
+
+		cy.get('@table').find('.current-page-number').focus().clear().type('0').blur();
+		cy.get('@table').find('.current-page-number').should('have.value', '1');
+
+		cy.get('@table').find('.current-page-number').focus().clear().type('abc').blur();
+		cy.get('@table').find('.current-page-number').should('have.value', '1');
+	});
 	// it('deletes all rows', ()=> {
 	// 	cy.visit('/app/contact/Test Contact');
 	// 	cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
