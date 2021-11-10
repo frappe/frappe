@@ -14,6 +14,7 @@ from frappe.utils.testutils import clear_custom_fields
 from frappe.query_builder import Field
 
 from .test_query_builder import run_only_if, db_type_is
+from frappe.query_builder.functions import Concat_ws
 
 
 class TestDB(unittest.TestCase):
@@ -32,6 +33,8 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
+
+		self.assertIn("concat_ws", frappe.db.get_value("User", filters={"name": "Administrator"}, fieldname=Concat_ws(" ", "LastName"), run=False).lower())
 
 	def test_set_value(self):
 		todo1 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 1')).insert()

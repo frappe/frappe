@@ -41,7 +41,8 @@ class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		ret = self.get(key)
-		if not ret and key.startswith("__"):
+		# "__deepcopy__" exception added to fix frappe#14833 via DFP
+		if not ret and key.startswith("__") and key != "__deepcopy__":
 			raise AttributeError()
 		return ret
 	def __setattr__(self, key, value):
@@ -1797,7 +1798,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 			'limit': limit
 		}, as_list=1)
 
-		from frappe.chat.util import squashify, dictify, safe_json_loads
+		from frappe.utils import squashify, dictify, safe_json_loads
 
 		versions = []
 
@@ -1855,7 +1856,7 @@ def mock(type, size=1, locale='en'):
 			data = getattr(fake, type)()
 			results.append(data)
 
-	from frappe.chat.util import squashify
+	from frappe.utils import squashify
 	return squashify(results)
 
 def validate_and_sanitize_search_inputs(fn):

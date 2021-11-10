@@ -12,7 +12,8 @@ class Tag(Document):
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
 	try:
-		frappe.db.sql("select `_user_tags` from `tab%s` limit 1" % dt)
+		doctype = DocType(dt)
+		frappe.qb.from_(doctype).select(doctype._user_tags).limit(1).run()
 	except Exception as e:
 		if frappe.db.is_column_missing(e):
 			DocTags(dt).setup()

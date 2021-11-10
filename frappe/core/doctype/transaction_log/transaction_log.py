@@ -9,7 +9,6 @@ from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import cint, now_datetime
 
-
 class TransactionLog(Document):
 	def before_insert(self):
 		index = get_current_index()
