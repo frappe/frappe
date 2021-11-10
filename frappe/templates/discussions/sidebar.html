@@ -3,7 +3,7 @@
 		<div class="discussion-topic-title">{{ topic.title }}</div>
 		<div class="sidebar-info">
 			{% set creator = frappe.get_doc("User", topic.owner) %}
-			<span class="course-instructor ml-0">
+			<span class="reply-author ml-0">
 				{{ creator.full_name }}
 			</span>
 			<span class="small d-flex">

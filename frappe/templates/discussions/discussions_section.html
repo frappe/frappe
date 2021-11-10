@@ -8,13 +8,13 @@
 	{% include "frappe/templates/discussions/topic_modal.html" %}
 
 	<div class="discussions-header">
-		<span class="course-home-headings">{{ _(title) }}</span>
+		<span class="discussion-heading">{{ _(title) }}</span>
 		{% if topics and not single_thread %}
 		{% include "frappe/templates/discussions/button.html" %}
 		{% endif %}
 	</div>
 
-	<div class="common-card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %}
+	<div class="card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %}
 		{% if not topics | length %} empty-state {% endif %}">
 		{% if topics and not single_thread %}
 
@@ -40,12 +40,12 @@
 		{% else %}
 		<div class="no-discussions">
 			<img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
-			<div class="course-home-headings mt-4 mb-0" style="color: inherit;"> {{ empty_state_title }} </div>
+			<div class="discussion-heading mt-4 mb-0" style="color: inherit;"> {{ empty_state_title }} </div>
 			<div class="small mb-6"> {{ empty_state_subtitle }} </div>
 			{% if frappe.session.user == "Guest" %}
-			<div class="button is-secondary mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
+			<div class="btn btn-default btn-md ellipsis mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
 			{% elif condition is defined and not condition %}
-			<div class="button is-secondary mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
+			<div class="btn btn-default btn-md ellipsis mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
 				{{ button_name }}
 			</div>
 			{% else %}
