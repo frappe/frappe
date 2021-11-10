@@ -85,6 +85,9 @@ class BaseDocument(object):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
+	def __getitem__(self, key):
+		return self.get(key) if hasattr(self, key) else frappe.throw(msg=key, exc=KeyError)
+
 	@property
 	def meta(self):
 		if not hasattr(self, "_meta"):
@@ -267,7 +270,12 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+			if convert_dates_to_str and isinstance(d[fieldname], (
+				datetime.datetime,
+				datetime.date,
+				datetime.time,
+				datetime.timedelta
+			)):
 				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:
@@ -307,7 +315,7 @@ class BaseDocument(object):
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls) for d in children]
+			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls, no_default_fields=no_default_fields) for d in children]
 
 		if no_nulls:
 			for k in list(doc):
@@ -670,7 +678,7 @@ class BaseDocument(object):
 			if data_field_options == "URL":
 				if not data:
 					continue
-				
+
 				frappe.utils.validate_url(data, throw=True)
 
 	def _validate_constants(self):

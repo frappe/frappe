@@ -5,6 +5,7 @@ import psycopg2
 import psycopg2.extensions
 from six import string_types
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 import frappe
 from frappe.database.database import Database
@@ -32,11 +33,11 @@ class PostgresDatabase(Database):
 	def setup_type_map(self):
 		self.db_type = 'postgres'
 		self.type_map = {
-			'Currency':		('decimal', '18,6'),
+			'Currency':		('decimal', '21,9'),
 			'Int':			('bigint', None),
 			'Long Int':		('bigint', None),
-			'Float':		('decimal', '18,6'),
-			'Percent':		('decimal', '18,6'),
+			'Float':		('decimal', '21,9'),
+			'Percent':		('decimal', '21,9'),
 			'Check':		('smallint', None),
 			'Small Text':	('text', ''),
 			'Long Text':	('text', ''),
@@ -61,7 +62,7 @@ class PostgresDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
 			'Geolocation':	('text', ''),
-			'Duration':		('decimal', '18,6')
+			'Duration':		('decimal', '21,9')
 		}
 
 	def get_connection(self):
@@ -171,7 +172,7 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_data_too_long(e):
-		return e.pgcode == '22001'
+		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
 
 	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
 		old_name = get_table_name(old_name)

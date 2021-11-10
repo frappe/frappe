@@ -4,12 +4,18 @@ body {
 	background-color: var(--bg-light-gray);
 }
 
-.for-login,
 .for-forgot,
 .for-signup,
 .for-email-login {
 	display: none;
-	margin: 70px 0;
+}
+
+.for-login,
+.for-forgot,
+.for-signup,
+.for-email-login {
+	// max with capital M to avoid libsass compatibility issue
+	padding: Max(15vh, 70px) 0;
 
 	@include media-breakpoint-up(sm) {
 		.page-card {

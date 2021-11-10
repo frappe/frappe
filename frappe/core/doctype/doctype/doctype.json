@@ -28,6 +28,7 @@
   "sb1",
   "autoname",
   "name_case",
+  "allow_rename",
   "column_break_15",
   "description",
   "documentation",
@@ -39,7 +40,6 @@
   "column_break_23",
   "hide_toolbar",
   "allow_copy",
-  "allow_rename",
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
@@ -275,7 +275,7 @@
    "oldfieldtype": "Check"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -628,7 +628,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-03-22 12:26:41.031135",
+ "modified": "2021-08-31 15:26:19.077164",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

@@ -19,9 +19,6 @@
   "allow_print_for_cancelled",
   "server_printer",
   "enable_print_server",
-  "server_ip",
-  "printer_name",
-  "port",
   "raw_printing_section",
   "enable_raw_printing",
   "print_style_section",
@@ -107,29 +104,11 @@
   },
   {
    "default": "0",
+   "depends_on": "enable_print_server",
    "fieldname": "enable_print_server",
    "fieldtype": "Check",
-   "label": "Enable Print Server"
-  },
-  {
-   "default": "localhost",
-   "depends_on": "enable_print_server",
-   "fieldname": "server_ip",
-   "fieldtype": "Data",
-   "label": "Server IP"
-  },
-  {
-   "depends_on": "enable_print_server",
-   "fieldname": "printer_name",
-   "fieldtype": "Select",
-   "label": "Printer Name"
-  },
-  {
-   "default": "631",
-   "depends_on": "enable_print_server",
-   "fieldname": "port",
-   "fieldtype": "Int",
-   "label": "Port"
+   "label": "Enable Print Server",
+   "mandatory_depends_on": "enable_print_server"
   },
   {
    "fieldname": "raw_printing_section",
@@ -183,7 +162,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-10-22 23:42:09.471022",
+ "modified": "2021-09-17 12:59:14.783694",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",

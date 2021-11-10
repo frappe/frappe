@@ -416,6 +416,25 @@ class TestReportview(unittest.TestCase):
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
 
+	def test_reportview_get_aggregation(self):
+		# test aggregation based on child table field
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "DocType",
+			"fields": """["`tabDocField`.`label` as field_label","`tabDocField`.`name` as field_name"]""",
+			"filters": "[]",
+			"order_by": "_aggregate_column desc",
+			"start": 0,
+			"page_length": 20,
+			"view": "Report",
+			"with_comment_count": 0,
+			"group_by": "field_label, field_name",
+			"aggregate_on_field": "columns",
+			"aggregate_on_doctype": "DocField",
+			"aggregate_function": "sum"
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column", 'columns'])
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc({
