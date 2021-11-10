@@ -1,7 +1,3 @@
-:root {
-	--discussions-card-shadow: 0 0px 4px 2px #19273405
-}
-
 .thread-card {
 	flex-direction: column;
 	padding: 1rem;
@@ -157,7 +153,6 @@
 	border-radius: 8px;
 	position: relative;
 	border: 1px solid var(--gray-200);
-	box-shadow: var(--discussions-card-shadow);
 }
 
 .discussions-card {
@@ -220,4 +215,12 @@
 	box-sizing: border-box;
 	border-radius: 8px;
 	padding: 2.5rem;
+}
+
+.discussions-parent .btn-default {
+	color: var(--gray-700);
+}
+
+.discussions-header .btn {
+	float: right;
 }

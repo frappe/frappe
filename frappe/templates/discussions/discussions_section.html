@@ -43,9 +43,9 @@
 			<div class="discussion-heading mt-4 mb-0" style="color: inherit;"> {{ empty_state_title }} </div>
 			<div class="small mb-6"> {{ empty_state_subtitle }} </div>
 			{% if frappe.session.user == "Guest" %}
-			<div class="btn btn-default btn-md ellipsis mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
+			<div class="btn btn-default btn-md mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
 			{% elif condition is defined and not condition %}
-			<div class="btn btn-default btn-md ellipsis mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
+			<div class="btn btn-default btn-md mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
 				{{ button_name }}
 			</div>
 			{% else %}
