@@ -405,3 +405,20 @@ def is_document_amended(doctype, docname):
 			pass
 
 	return False
+
+@frappe.whitelist()
+def validate_link(doctype: str, docname):
+	if not isinstance(doctype, str):
+		frappe.throw(_("DocType must be a string"))
+
+	if doctype != "DocType" and not (
+		frappe.has_permission(doctype, "select")
+		or frappe.has_permission(doctype, "read")
+	):
+		frappe.throw(
+			_("You do not have Read or Select Permissions for {}")
+			.format(frappe.bold(doctype)),
+			frappe.PermissionError
+		)
+	
+	return frappe.db.get_value(doctype, docname, cache=True)
