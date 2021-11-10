@@ -43,28 +43,26 @@
 		) }}
 	{%- endif -%}
 	<div class="blog-footer">
-		<div>
-			{{ _('Published on') }} <time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
-		</div>
-		<div>
-			{% if social_links %}
+		{% if social_links %}
+			<div>
 				{% for link in social_links %}
 					<a href="{{ link.link }}" class="text-muted ml-2 fa fa-{{ link.icon }}" target="_blank"></a>
 				{% endfor %}
+			</div>
+		{% endif %}
+		<div class="blog-feedback">
+			{% if not disable_feedback %}
+				{% include 'templates/includes/feedback/feedback.html' %}
 			{% endif %}
+		</div>
+		<div>
+			{{ _('Published on') }} <time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
 		</div>
 	</div>
 
 	{% if blogger_info %}
-		<hr class="my-5">
+		<hr class="mt-2 mb-5">
 		{% include "templates/includes/blog/blogger.html" %}
-	{% endif %}
-
-	{% if not disable_feedback %}
-		<div class="blog-feedback my-5">
-			{% include 'templates/includes/feedback/feedback.html' %}
-			<hr class="mt-2 mb-5">
-		</div>
 	{% endif %}
 
 	{% if not disable_comments %}

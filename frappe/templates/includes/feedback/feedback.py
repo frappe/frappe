@@ -10,9 +10,8 @@ from frappe.website.doctype.blog_settings.blog_settings import get_feedback_limi
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key='reference_name', limit=get_feedback_limit, seconds=60*60)
-def give_feedback(reference_doctype, reference_name, like, dislike):
+def give_feedback(reference_doctype, reference_name, like):
 	like = frappe.parse_json(like)
-	dislike = frappe.parse_json(dislike)
 	doc = frappe.get_doc(reference_doctype, reference_name)
 	if doc.disable_feedback == 1:
 		return
@@ -31,7 +30,6 @@ def give_feedback(reference_doctype, reference_name, like, dislike):
 		doc.reference_name = reference_name
 		doc.ip_address = frappe.local.request_ip
 	doc.like = like
-	doc.dislike = dislike
 	doc.save(ignore_permissions=True)
 
 	subject = _('Feedback on {0}: {1}').format(reference_doctype, reference_name)
@@ -41,9 +39,7 @@ def give_feedback(reference_doctype, reference_name, like, dislike):
 def send_mail(feedback, subject):
 	doc = frappe.get_doc(feedback.reference_doctype, feedback.reference_name)
 	if feedback.like:
-		message = "<p>Hey, </p><p>You have received a 👍 like on your blog post <b>{0}</b></p>".format(feedback.reference_name)
-	elif feedback.dislike:
-		message = "<p>Hey, </p><p>You have received a 👎 dislike on your blog post <b>{0}</b></p>".format(feedback.reference_name)
+		message = "<p>Hey, </p><p>You have received a ❤️ heart on your blog post <b>{0}</b></p>".format(feedback.reference_name)
 	else:
 		return
 

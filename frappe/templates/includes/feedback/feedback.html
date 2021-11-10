@@ -1,64 +1,31 @@
-<div class="feedback-header mb-0">
-	<div class="like-dislike">
-		<div class="feedback-button mr-3">
-			<span class="like-icon"></span>
-			<span class="like-count"></span>
-		</div>
-		<div class="feedback-button mr-3">
-			<span class="dislike-icon"></span>
-			<span class="dislike-count"></span>
-		</div>
-	</div>
+<div class="feedback-item mr-3">
+	<span class="like-icon"></span>
+	<span class="like-count"></span>
 </div>
 
 <script type="text/javascript">
 	frappe.ready(() => {
 		let like = parseInt("{{ user_feedback.like or 0 }}");
-		let dislike = parseInt("{{ user_feedback.dislike or 0 }}");
 		let like_count = parseInt("{{ like_count or 0 }}");
-		let dislike_count = parseInt("{{ dislike_count or 0 }}");
-
-		$('.like-icon').append(frappe.utils.icon(like ? 'like-active' : 'like', 'md'));
-		$('.dislike-icon').append(frappe.utils.icon(dislike ? 'dislike-active' : 'dislike', 'md'));
-
-		let update_count = function(name, count) {
-			let text = count == 0 || count == 1 ? name : `${name}s`;
-
-			$(`.${name.toLowerCase()}-count`).text('');
-			$(`.${name.toLowerCase()}-count`).text(`${text} ${count}`);
-		}
 
 		let update_like = function() {
 			like = !like;
 			like ? like_count++ : like_count--;
-			toggle_icon('like', like);
-			update_count('Like', like_count);
+			toggle_like_icon(like);
+			$('.like-count').text(like_count);
 		}
 
-		let update_dislike = function() {
-			dislike = !dislike;
-			dislike ? dislike_count++ : dislike_count--;
-			toggle_icon('dislike', dislike);
-			update_count('Dislike', dislike_count);
+		let toggle_like_icon = function(active) {
+			active ? $('.like-icon').addClass('gray') : $('.like-icon').removeClass('gray');
 		}
 
-		let toggle_icon = function(icon_name, active) {
-			let icon = active ? `${icon_name}-active` : icon_name;
-			$(`.${icon_name}-icon svg`).replaceWith(frappe.utils.icon(icon, 'md'));
-		}
+		$('.like-icon').append(frappe.utils.icon('heart', 'md'))
+		toggle_like_icon(like);
 
-		update_count('Like', like_count);
-		update_count('Dislike', dislike_count);
+		$('.like-count').text(like_count);
 
 		$('.like-icon').click(() => {
 			update_like();
-			dislike && update_dislike();
-			update_feedback();
-		})
-
-		$('.dislike-icon').click(() => {
-			update_dislike();
-			like && update_like();
 			update_feedback();
 		})
 
@@ -68,8 +35,7 @@
 				args: {
 					reference_doctype: "{{ reference_doctype or doctype }}",
 					reference_name: "{{ reference_name or name }}",
-					like,
-					dislike
+					like
 				}
 			});
 		} 

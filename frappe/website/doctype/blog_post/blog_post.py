@@ -147,7 +147,7 @@ class BlogPost(WebsiteGenerator):
 		user = frappe.session.user
 
 		feedback = frappe.get_all('Feedback',
-			fields=['like', 'dislike'],
+			fields=['like'],
 			filters=dict(
 				reference_doctype=self.doctype,
 				reference_name=self.name,
@@ -157,7 +157,6 @@ class BlogPost(WebsiteGenerator):
 		)
 
 		like_count = 0
-		dislike_count = 0
 
 		if frappe.db.count('Feedback'):
 			like_count = frappe.db.count('Feedback', 
@@ -168,17 +167,8 @@ class BlogPost(WebsiteGenerator):
 				)
 			)
 
-			dislike_count = frappe.db.count('Feedback', 
-				filters = dict(
-					reference_doctype = self.doctype, 
-					reference_name = self.name, 
-					dislike = True
-				)
-			)
-
 		context.user_feedback = feedback[0] if feedback else ''
 		context.like_count = like_count
-		context.dislike_count = dislike_count
 
 	def set_read_time(self):
 		content = self.content or self.content_html or ''

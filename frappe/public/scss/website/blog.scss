@@ -1,5 +1,6 @@
 :root {
-	--comment-timeline-height: 60px;
+	--comment-timeline-bottom: 60px;
+	--comment-timeline-top: 8px;
 }
 
 .blog-list {
@@ -102,26 +103,54 @@
 	}
 
 
-	.feedback-button svg, .comment-count svg {
+	.feedback-item svg {
 		vertical-align: sub;
 	}
 
 	.blog-feedback {
-		.feedback-header {
-			display: flex;
-			justify-content: space-between;
+		display: flex;
 
-			.like-dislike {
-				display: flex;
+		.like-icon {
+			cursor: pointer;
 
-				.like-icon, .dislike-icon {
-					cursor: pointer;
-				}
+			&.gray use {
+				fill: var(--gray-600);
+				stroke: none;
 			}
 		}
 	}
 
+	.add-comment-button {
+		margin-left: 35px;
+	}
+
+	.timeline-dot {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		position: absolute;
+		top: 8px;
+		left: 22px;
+		background-color: var(--fg-color);
+		border: 1px solid var(--dark-border-color);
+
+		&:before {
+			content: ' ';
+			background: var(--gray-600);
+			position: absolute;
+			top: 5px;
+			left: 5px;
+			border-radius: 50%;
+			height: 4px;
+			width: 4px;
+		}
+	}
+
 	.blog-comments {
+		.comment-form-wrapper {
+			display: none;
+		}
+
 		.add-comment-section {
 			.login-required {
 				padding: var(--padding-sm);
@@ -160,13 +189,12 @@
 		#comment-list {
 			position: relative;
 			padding-left: var(--padding-xl);
-			padding-top: var(--padding-lg);
 
-			&::before {
+			&:before {
 				content: " ";
-				top: 0;
 				position: absolute;
-				bottom: var(--comment-timeline-height);
+				top: var(--comment-timeline-top);
+				bottom: var(--comment-timeline-bottom);
 				border-left: 1px solid var(--dark-border-color);
 			}
 
