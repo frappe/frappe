@@ -41,14 +41,10 @@ context('Timeline', () => {
 
 		//Deleting the added comment
 		cy.get('.timeline-message-box .more-actions > .action-btn').click(); //Menu button in timeline item
-		cy.get('.timeline-message-box .more-actions .dropdown-item').contains('Delete').click();
-		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click();
-		cy.click_modal_primary_button('Yes').blur();
-
-		//Deleting the added ToDo
-		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group [data-original-title="Menu"]').click({ force: true });
-		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group .dropdown-item').contains('Delete').click({ force: true });
+		cy.get('.timeline-message-box .more-actions .dropdown-item').contains('Delete').click({ force: true });
 		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click({ force: true });
+
+		cy.get('.timeline-content').should('not.contain', 'Testing Timeline 123');
 	});
 
 	it('Timeline should have submit and cancel activity information', () => {
