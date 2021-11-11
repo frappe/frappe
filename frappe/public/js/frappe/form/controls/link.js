@@ -455,14 +455,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!value) return;
 
-<<<<<<< HEAD
-		return new Promise((resolve) => {
-			const fetch_map = this.get_fetch_map();
-=======
 		return new Promise(async (resolve) => {
 			const fetch_map = this.fetch_map;
 			const columns_to_fetch = Object.values(fetch_map);
->>>>>>> 9503e7788a (fix: restore `validate_link`)
 
 			// if default and no fetch, no need to validate
 			if (!columns_to_fetch.length && df.__default_value === value) {
@@ -492,11 +487,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						);
 					}
 				}
-<<<<<<< HEAD
-			);
-=======
 			).always(() => resolve(name));
->>>>>>> 9503e7788a (fix: restore `validate_link`)
 		});
 	},
 
