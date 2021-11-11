@@ -421,9 +421,6 @@ class User(Document):
 					WHERE `%s` = %s""" %
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
-		if frappe.db.exists("Chat Profile", old_name):
-			frappe.rename_doc("Chat Profile", old_name, new_name, force=True, show_alert=False)
-
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
@@ -717,8 +714,10 @@ def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
 
-	users = frappe.db.sql("""SELECT DISTINCT(parent) as user FROM `tabUser Email`
-		WHERE awaiting_password = 1""", as_dict=True)
+	doctype = DocType("User Email")
+	users = frappe.qb.from_(doctype).where(doctype.awaiting_password == 1).select(
+		doctype.parent.as_("user")
+	).distinct().run(as_dict=True)
 
 	password_list = [ user.get("user") for user in users ]
 	set_default("email_user_password", u','.join(password_list))
