@@ -456,7 +456,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if (!value) return;
 
 		return new Promise(async (resolve) => {
-			const fetch_map = this.fetch_map;
+			const fetch_map = this.get_fetch_map();
 			const columns_to_fetch = Object.values(fetch_map);
 
 			// if default and no fetch, no need to validate
