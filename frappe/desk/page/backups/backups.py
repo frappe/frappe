@@ -11,6 +11,10 @@ def get_context(context):
 		dt = os.path.getmtime(path)
 		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime('%a %b %d %H:%M %Y')
 
+	def get_encrytion_status(path):
+		if "-enc" in path:
+			return True
+
 	def get_size(path):
 		size = os.path.getsize(path)
 		if size > 1048576:
@@ -26,8 +30,9 @@ def get_context(context):
 		cleanup_old_backups(path, files, backup_limit)
 
 	files = [('/backups/' + _file,
-		get_time(os.path.join(path, _file)),
-		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
+			get_time(os.path.join(path, _file)),
+			get_encrytion_status(os.path.join(path, _file)),
+			get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
 	files.sort(key=lambda x: x[1], reverse=True)
 
 	return {"files": files[:backup_limit]}
