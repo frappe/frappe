@@ -471,7 +471,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (!name) return resolve("");
 			if (!docname || !columns_to_fetch.length) return resolve(name);
 
-			console.log(columns_to_fetch);
 			frappe.db.get_value(
 				options,
 				value,
