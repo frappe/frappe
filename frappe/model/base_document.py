@@ -675,7 +675,7 @@ class BaseDocument(object):
 			if data_field_options == "URL":
 				if not data:
 					continue
-				
+
 				frappe.utils.validate_url(data, throw=True)
 
 	def _validate_constants(self):
