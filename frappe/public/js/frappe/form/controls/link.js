@@ -477,7 +477,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			if (!name) return resolve("");
 			if (!docname || !columns_to_fetch.length) return resolve(name);
 
-			console.log(columns_to_fetch);
 			frappe.db.get_value(
 				options,
 				value,
