@@ -47,8 +47,8 @@ context('Timeline', () => {
 
 		//Deleting the added ToDo
 		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group [data-original-title="Menu"]').click({ force: true });
-		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group .dropdown-item').contains('Delete').click();
-		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click();
+		cy.get('[id="page-ToDo"] .page-actions .menu-btn-group .dropdown-item').contains('Delete').click({ force: true });
+		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click({ force: true });
 	});
 
 	it('Timeline should have submit and cancel activity information', () => {

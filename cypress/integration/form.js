@@ -8,7 +8,7 @@ context('Form', () => {
 	});
 	it('create a new form', () => {
 		cy.visit('/app/todo/new');
-		cy.get_field('description', 'Text Editor').type('this is a test todo').wait(200);
+		cy.get_field('description', 'Text Editor').type('this is a test todo', {force: true}).wait(200);
 		cy.get('.page-title').should('contain', 'Not Saved');
 		cy.intercept({
 			method: 'POST',
