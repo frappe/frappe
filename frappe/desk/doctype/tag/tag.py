@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import unique
+from frappe.query_builder import DocType
 
 class Tag(Document):
 	pass
@@ -11,7 +12,8 @@ class Tag(Document):
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
 	try:
-		frappe.db.sql("select `_user_tags` from `tab%s` limit 1" % dt)
+		doctype = DocType(dt)
+		frappe.qb.from_(doctype).select(doctype._user_tags).limit(1).run()
 	except Exception as e:
 		if frappe.db.is_column_missing(e):
 			DocTags(dt).setup()
@@ -42,10 +44,12 @@ def remove_tag(tag, dt, dn):
 @frappe.whitelist()
 def get_tagged_docs(doctype, tag):
 	frappe.has_permission(doctype, throw=True)
-
-	return frappe.db.sql("""SELECT name
-		FROM `tab{0}`
-		WHERE _user_tags LIKE '%{1}%'""".format(doctype, tag))
+	doctype = DocType(doctype)
+	return (
+		frappe.qb.from_(doctype)
+		.where(doctype._user_tags.like(tag))
+		.select(doctype.name)
+	).run()
 
 @frappe.whitelist()
 def get_tags(doctype, txt):

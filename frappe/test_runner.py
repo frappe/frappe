@@ -60,7 +60,10 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
-		frappe.utils.scheduler.disable_scheduler()
+		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled()
+		if not scheduler_disabled_by_user:
+			frappe.utils.scheduler.disable_scheduler()
+
 		set_test_email_config()
 		frappe.conf.update({'bench_id': 'test_bench', 'use_rq_auth': False})
 
@@ -76,6 +79,9 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
+
+		if not scheduler_disabled_by_user:
+			frappe.utils.scheduler.enable_scheduler()
 
 		if frappe.db: frappe.db.commit()
 
