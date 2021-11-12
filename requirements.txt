@@ -6,8 +6,6 @@ boto3~=1.17.53
 braintree~=4.8.0
 chardet~=4.0.0
 Click~=7.1.2
-colorama~=0.4.4
-coverage==5.5
 croniter~=1.0.11
 cryptography~=3.4.7
 dropbox~=11.7.0
@@ -28,7 +26,6 @@ Jinja2~=3.0.1
 ldap3~=2.9
 markdown2~=2.4.0
 maxminddb-geolite2==2018.703
-ndg-httpsclient~=0.5.1
 num2words~=0.5.10
 oauthlib~=3.1.0
 openpyxl~=3.0.7
