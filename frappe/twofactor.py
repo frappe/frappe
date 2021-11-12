@@ -1,5 +1,5 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 from frappe import _
 import pyotp, os
@@ -11,9 +11,9 @@ from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
 
 class ExpiredLoginException(Exception): pass
 
-def toggle_two_factor_auth(state, roles=[]):
+def toggle_two_factor_auth(state, roles=None):
 	'''Enable or disable 2FA in site_config and roles'''
-	for role in roles:
+	for role in roles or []:
 		role = frappe.get_doc('Role', {'role_name': role})
 		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
@@ -398,3 +398,23 @@ def should_remove_barcode_image(barcode):
 
 def disable():
 	frappe.db.set_value('System Settings', None, 'enable_two_factor_auth', 0)
+
+@frappe.whitelist()
+def reset_otp_secret(user):
+	otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
+	user_email = frappe.db.get_value('User', user, 'email')
+	if frappe.session.user in ["Administrator", user] :
+		frappe.defaults.clear_default(user + '_otplogin')
+		frappe.defaults.clear_default(user + '_otpsecret')
+		email_args = {
+			'recipients': user_email,
+			'sender': None,
+			'subject': _('OTP Secret Reset - {0}').format(otp_issuer or "Frappe Framework"),
+			'message': _('<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>').format(otp_issuer or "Frappe Framework"),
+			'delayed':False,
+			'retry':3
+		}
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, is_async=True, job_name=None, now=False, **email_args)
+		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
+	else:
+		return frappe.throw(_("OTP secret can only be reset by the Administrator."))

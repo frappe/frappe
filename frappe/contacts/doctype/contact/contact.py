@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 import frappe
 from frappe.utils import cstr, has_gravatar
 from frappe import _
@@ -47,14 +47,14 @@ class Contact(Document):
 	def get_link_for(self, link_doctype):
 		'''Return the link name, if exists for the given link DocType'''
 		for link in self.links:
-			if link.link_doctype==link_doctype:
+			if link.link_doctype == link_doctype:
 				return link.link_name
 
 		return None
 
 	def has_link(self, doctype, name):
 		for link in self.links:
-			if link.link_doctype==doctype and link.link_name== name:
+			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
 	def has_common_link(self, doc):
@@ -262,7 +262,7 @@ def get_contact_with_phone_number(number):
 	return contacts[0].parent if contacts else None
 
 def get_contact_name(email_id):
-	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
+	contact = frappe.get_all("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
 	return contact[0].parent if contact else None
 
 def get_contacts_linking_to(doctype, docname, fields=None):

@@ -1,5 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import os
 
@@ -20,6 +20,9 @@ class WebsiteSearch(FullTextSearch):
 		return Schema(
 			title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
 		)
+
+	def get_fields_to_search(self):
+		return ["title", "content"]
 
 	def get_id(self):
 		return "path"
@@ -98,7 +101,7 @@ def slugs_with_web_view(_items_to_index):
 			fields=["route", doctype.website_search_field]
 			filters={doctype.is_published_field: 1},
 			if doctype.website_search_field:
-				docs = frappe.get_all(doctype.name, filters=filters, fields=fields.append("title"))
+				docs = frappe.get_all(doctype.name, filters=filters, fields=fields + ["title"])
 				for doc in docs:
 					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
 					soup = BeautifulSoup(content, "html.parser")

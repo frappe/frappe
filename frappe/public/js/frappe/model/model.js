@@ -4,10 +4,10 @@
 frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
-	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect',
+	no_value_type: ['Section Break', 'Column Break', 'Tab Break', 'HTML', 'Table', 'Table MultiSelect',
 		'Button', 'Image', 'Fold', 'Heading'],
 
-	layout_fields: ['Section Break', 'Column Break', 'Fold'],
+	layout_fields: ['Section Break', 'Column Break', 'Tab Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
@@ -131,6 +131,7 @@ $.extend(frappe.model, {
 	with_doctype: function(doctype, callback, async) {
 		if(locals.DocType[doctype]) {
 			callback && callback();
+			return Promise.resolve();
 		} else {
 			let cached_timestamp = null;
 			let cached_doc = null;
@@ -464,31 +465,31 @@ $.extend(frappe.model, {
 	},
 
 	trigger: function(fieldname, value, doc) {
-		let tasks = [];
-		var runner = function(events, event_doc) {
-			$.each(events || [], function(i, fn) {
-				if(fn) {
-					let _promise = fn(fieldname, value, event_doc || doc);
+		const tasks = [];
+
+		function enqueue_events(events) {
+			if (!events) return;
+
+			for (const fn of events) {
+				if (!fn) continue;
+
+				tasks.push(() => {
+					const return_value = fn(fieldname, value, doc);
 
 					// if the trigger returns a promise, return it,
 					// or use the default promise frappe.after_ajax
-					if (_promise && _promise.then) {
-						return _promise;
+					if (return_value && return_value.then) {
+						return return_value;
 					} else {
 						return frappe.after_server_call();
 					}
-				}
-			});
+				});
+			}
 		};
 
 		if(frappe.model.events[doc.doctype]) {
-			tasks.push(() => {
-				return runner(frappe.model.events[doc.doctype][fieldname]);
-			});
-
-			tasks.push(() => {
-				return runner(frappe.model.events[doc.doctype]['*']);
-			});
+			enqueue_events(frappe.model.events[doc.doctype][fieldname]);
+			enqueue_events(frappe.model.events[doc.doctype]['*']);
 		}
 
 		return frappe.run_serially(tasks);

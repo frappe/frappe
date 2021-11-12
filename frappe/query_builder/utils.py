@@ -1,9 +1,12 @@
 from enum import Enum
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Union, get_type_hints
+from importlib import import_module
 
 from pypika import Query
+from pypika.queries import Column
 
 import frappe
+
 from .builder import MariaDB, Postgres
 
 
@@ -19,8 +22,11 @@ class ImportMapper:
 		db = db_type_is(frappe.conf.db_type or "mariadb")
 		return self.func_map[db](*args, **kwds)
 
+class BuilderIdentificationFailed(Exception):
+	def __init__(self):
+		super().__init__("Couldn't guess builder")
 
-def get_query_builder(type_of_db: str) -> Query:
+def get_query_builder(type_of_db: str) -> Union[Postgres, MariaDB]:
 	"""[return the query builder object]
 
 	Args:
@@ -32,3 +38,31 @@ def get_query_builder(type_of_db: str) -> Query:
 	db = db_type_is(type_of_db)
 	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
 	return picks[db]
+
+def get_attr(method_string):
+	modulename = '.'.join(method_string.split('.')[:-1])
+	methodname = method_string.split('.')[-1]
+	return getattr(import_module(modulename), methodname)
+
+def DocType(*args, **kwargs):
+	return frappe.qb.DocType(*args, **kwargs)
+
+def patch_query_execute():
+	"""Patch the Query Builder with helper execute method
+	This excludes the use of `frappe.db.sql` method while
+	executing the query object
+	"""
+
+	def execute_query(query, *args, **kwargs):
+		query = str(query)
+		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
+			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+		return frappe.db.sql(query, *args, **kwargs)
+
+	query_class = get_attr(str(frappe.qb).split("'")[1])
+	builder_class = get_type_hints(query_class._builder).get('return')
+
+	if not builder_class:
+		raise BuilderIdentificationFailed
+
+	builder_class.run = execute_query

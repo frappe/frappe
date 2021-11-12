@@ -1,9 +1,4 @@
-html {
-	min-height: 100%;
-}
-
 body {
-	height: 100%;
 	// The html and body elements cannot have any padding or margin.
 	margin: 0px;
 	padding: 0px !important;
@@ -207,8 +202,12 @@ body {
 	}
 
 	// listviews
-	.list-row {
-		padding: 13px 15px !important;
+	.select-like {
+		margin-right: unset !important;
+	}
+
+	.list-count {
+		display: contents;
 	}
 
 	.doclist-row {

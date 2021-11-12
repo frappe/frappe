@@ -55,6 +55,10 @@ Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
 
+// direction class
+const DirectionClass = Quill.import('attributors/class/direction');
+Quill.register(DirectionClass, true);
+
 // replace font tag with span
 const Inline = Quill.import('blots/inline');
 
@@ -97,7 +101,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		}, 300));
 
 		$(this.quill.root).on('keydown', (e) => {
-			const key = frappe.ui.keys.get_key(e);
+			const key = frappe.ui.keys && frappe.ui.keys.get_key(e);
 			if (['ctrl+b', 'meta+b'].includes(key)) {
 				e.stopPropagation();
 			}
@@ -164,8 +168,11 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			['bold', 'italic', 'underline', 'clean'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
+			// Adding Direction tool to give the user the ability to change text direction.
+			[{ 'direction': "rtl" }],
 			['link', 'image'],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
 			[{'table': [
 				'insert-table',

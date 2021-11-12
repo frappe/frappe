@@ -251,7 +251,7 @@ frappe.ui.Page = class Page {
 			.prop("disabled", false)
 			.html(opts.label)
 			.on("click", function() {
-				let response = opts.click.apply(this);
+				let response = opts.click.apply(this, [btn]);
 				me.btn_disable_enable(btn, response);
 			});
 
@@ -615,6 +615,23 @@ frappe.ui.Page = class Page {
 			if ($group.find('.dropdown-item').length === 0) $group.remove();
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
+		}
+	}
+
+	change_inner_button_type(label, group, type) {
+		let btn;
+
+		if (group) {
+			var $group = this.get_inner_group_button(__(group));
+			if ($group.length) {
+				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`);
+			}
+		} else {
+			btn = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
+		}
+
+		if (btn) {
+			btn.removeClass().addClass(`btn btn-${type} ellipsis`);
 		}
 	}
 

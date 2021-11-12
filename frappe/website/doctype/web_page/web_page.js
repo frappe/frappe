@@ -2,11 +2,6 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on('Web Page', {
-	title: function(frm) {
-		if (frm.doc.title && !frm.doc.route) {
-			frm.set_value('route', frappe.scrub(frm.doc.title, '-'));
-		}
-	},
 	layout: function(frm) {
 		if (frm.is_new()) {
 			if (frm.doc.insert_code) {
@@ -27,6 +22,11 @@ frappe.ui.form.on('Web Page', {
 				}
 			};
 		});
+	},
+	validate: function(frm) {
+		if (frm.doc.title && !frm.doc.route) {
+			frm.set_value('route', frappe.scrub(frm.doc.title, '-'));
+		}
 	},
 	refresh: function(frm) {
 		if (frm.doc.template_path) {

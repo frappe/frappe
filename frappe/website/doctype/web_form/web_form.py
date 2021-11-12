@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import json
 import os
@@ -13,7 +13,7 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import cstr
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
-
+from frappe.rate_limiter import rate_limit
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -365,6 +365,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='web_form', limit=5, seconds=60, methods=['POST'])
 def accept(web_form, data, docname=None, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))

@@ -317,7 +317,7 @@ var continue_otp_app = function (setup, qrcode) {
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
 	} else {
-		direction = $('<div>').attr('id', 'qr_info').text('{{ _("OTP setup using OTP App was not completed. Please contact Administrator.") }}');
+		direction = $('<div>').attr('id', 'qr_info').html('{{ _("OTP setup using OTP App was not completed. Please contact Administrator.") }}');
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
 	}
@@ -331,7 +331,7 @@ var continue_sms = function (setup, prompt) {
 		sms_div.append(prompt)
 		$('#otp_div').prepend(sms_div);
 	} else {
-		direction = $('<div>').attr('id', 'qr_info').text(prompt || '{{ _("SMS was not sent. Please contact Administrator.") }}');
+		direction = $('<div>').attr('id', 'qr_info').html(prompt || '{{ _("SMS was not sent. Please contact Administrator.") }}');
 		sms_div.append(direction);
 		$('#otp_div').prepend(sms_div)
 	}
@@ -345,7 +345,7 @@ var continue_email = function (setup, prompt) {
 		email_div.append(prompt)
 		$('#otp_div').prepend(email_div);
 	} else {
-		var direction = $('<div>').attr('id', 'qr_info').text(prompt || '{{ _("Verification code email not sent. Please contact Administrator.") }}');
+		var direction = $('<div>').attr('id', 'qr_info').html(prompt || '{{ _("Verification code email not sent. Please contact Administrator.") }}');
 		email_div.append(direction);
 		$('#otp_div').prepend(email_div);
 	}

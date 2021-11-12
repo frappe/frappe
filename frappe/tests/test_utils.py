@@ -1,15 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import unittest
 import frappe
 
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import validate_url, validate_email_address
 from frappe.utils import ceil, floor
+from frappe.utils.data import cast, validate_python_code
 
 from PIL import Image
-from frappe.utils.image import strip_exif_data
+from frappe.utils.image import strip_exif_data, optimize_image
 import io
+from mimetypes import guess_type
+from datetime import datetime, timedelta, date
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -90,6 +93,45 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
 		self.assertTrue('style="background-image: url(\'{0}/assets/frappe/bg.jpg\') !important"'.format(url) in html)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
+
+class TestFieldCasting(unittest.TestCase):
+	def test_str_types(self):
+		STR_TYPES = (
+			"Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link"
+		)
+		for fieldtype in STR_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), str)
+			self.assertIsInstance(cast(fieldtype, value="12-12-2021"), str)
+			self.assertIsInstance(cast(fieldtype, value=""), str)
+			self.assertIsInstance(cast(fieldtype, value=[]), str)
+			self.assertIsInstance(cast(fieldtype, value=set()), str)
+
+	def test_float_types(self):
+		FLOAT_TYPES = ("Currency", "Float", "Percent")
+		for fieldtype in FLOAT_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), float)
+			self.assertIsInstance(cast(fieldtype, value=1.12), float)
+			self.assertIsInstance(cast(fieldtype, value=112), float)
+
+	def test_int_types(self):
+		INT_TYPES = ("Int", "Check")
+
+		for fieldtype in INT_TYPES:
+			self.assertIsInstance(cast(fieldtype, value=None), int)
+			self.assertIsInstance(cast(fieldtype, value=1.12), int)
+			self.assertIsInstance(cast(fieldtype, value=112), int)
+
+	def test_datetime_types(self):
+		self.assertIsInstance(cast("Datetime", value=None), datetime)
+		self.assertIsInstance(cast("Datetime", value="12-2-22"), datetime)
+
+	def test_date_types(self):
+		self.assertIsInstance(cast("Date", value=None), date)
+		self.assertIsInstance(cast("Date", value="12-12-2021"), date)
+
+	def test_time_types(self):
+		self.assertIsInstance(cast("Time", value=None), timedelta)
+		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
 class TestMathUtils(unittest.TestCase):
 	def test_floor(self):
@@ -188,3 +230,42 @@ class TestImage(unittest.TestCase):
 
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
+
+	def test_optimize_image(self):
+		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
+		content_type = guess_type(image_file_path)[0]
+		original_content = io.open(image_file_path, mode='rb').read()
+
+		optimized_content = optimize_image(original_content, content_type, max_width=500, max_height=500)
+		optimized_image = Image.open(io.BytesIO(optimized_content))
+		width, height = optimized_image.size
+
+		self.assertLessEqual(width, 500)
+		self.assertLessEqual(height, 500)
+		self.assertLess(len(optimized_content), len(original_content))
+
+class TestPythonExpressions(unittest.TestCase):
+	def test_validation_for_good_python_expression(self):
+		valid_expressions = [
+			"foo == bar",
+			"foo == 42",
+			"password != 'hunter2'",
+			"complex != comparison and more_complex == condition",
+			"escaped_values == 'str with newline\\n'",
+			"check_box_field",
+		]
+		for expr in valid_expressions:
+			try:
+				validate_python_code(expr)
+			except Exception as e:
+				self.fail(f"Invalid error thrown for valid expression: {expr}: {str(e)}")
+
+	def test_validation_for_bad_python_expression(self):
+		invalid_expressions = [
+			"these_are && js_conditions",
+			"more || js_conditions",
+			"curly_quotes_bad == “const”",
+			"oops = forgot_equals",
+		]
+		for expr in invalid_expressions:
+			self.assertRaises(frappe.ValidationError, validate_python_code, expr)

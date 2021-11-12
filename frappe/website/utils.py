@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import json
 import mimetypes
 import os
@@ -165,6 +165,8 @@ def abs_url(path):
 	if not path:
 		return
 	if path.startswith('http://') or path.startswith('https://'):
+		return path
+	if path.startswith('tel:'):
 		return path
 	if path.startswith('data:'):
 		return path

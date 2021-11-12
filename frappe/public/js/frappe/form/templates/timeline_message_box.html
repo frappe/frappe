@@ -63,6 +63,20 @@
 				</svg>
 			</a>
 			{% } %}
+			<div class="custom-actions"></div>
+			<div class="more-actions">
+				<a type="button" class="action-btn"
+					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<svg class="icon icon-sm">
+						<use xlink:href="#icon-dot-horizontal"></use>
+					</svg>
+				</a>
+				<ul class="dropdown-menu small">
+					<li>
+						<a class="dropdown-item" data-action="copy_link">{{ __('Copy Link') }}</a>
+					</li>
+				</ul>
+			</div>
 		</span>
 	</span>
 	<div class="content">
