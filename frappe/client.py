@@ -410,6 +410,7 @@ def validate_link(doctype: str, docname: str, fields=None):
 
 	if not isinstance(docname, str):
 		frappe.throw(_("Document Name must be a string"))
+
 	if doctype != "DocType" and not (
 		frappe.has_permission(doctype, "select")
 		or frappe.has_permission(doctype, "read")
