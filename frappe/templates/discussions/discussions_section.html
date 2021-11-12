@@ -8,15 +8,15 @@
 	{% include "frappe/templates/discussions/topic_modal.html" %}
 
 	<div class="discussions-header">
-		<span class="course-home-headings">{{ _(title) }}</span>
+		<span class="discussion-heading">{{ _(title) }}</span>
 		{% if topics and not single_thread %}
 		{% include "frappe/templates/discussions/button.html" %}
 		{% endif %}
 	</div>
 
-	<div class="common-card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %} ">
+	<div class="card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %}
+		{% if not topics | length %} empty-state {% endif %}">
 		{% if topics and not single_thread %}
-
 
 		<div class="discussions-sidebar">
 			{% include "frappe/templates/discussions/search.html" %}
@@ -38,23 +38,22 @@
 		{% include "frappe/templates/discussions/reply_section.html" %}
 
 		{% else %}
-		<div class="no-discussions" id="no-discussions">
-			<div class="font-weight-bold">No {{ title }}</div>
-			<div class="small mt-3 mb-3">There are no {{ title | lower }} for this {{ doctype | lower }}, why don't you start
-				one! </div>
+		<div class="no-discussions">
+			<img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
+			<div class="discussion-heading mt-4 mb-0" style="color: inherit;"> {{ empty_state_title }} </div>
+			<div class="small mb-6"> {{ empty_state_subtitle }} </div>
 			{% if frappe.session.user == "Guest" %}
-			<div class="button is-primary mt-3" id="login-from-discussion"> {{ _("Log In") }} </div>
+			<div class="btn btn-default btn-md mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
 			{% elif condition is defined and not condition %}
-			<a class="button is-primary mt-3" id="login-from-discussion" href="" data-redirect="{{ redirect_to }}">
+			<div class="btn btn-default btn-md mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
 				{{ button_name }}
-			</a>
+			</div>
 			{% else %}
 			{% include "frappe/templates/discussions/button.html" %}
 			{% endif %}
 		</div>
+		{% endif %}
 	</div>
-</div>
-{% endif %}
 </div>
 
 {% block script %}
