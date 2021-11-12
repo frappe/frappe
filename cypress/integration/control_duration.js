@@ -33,12 +33,13 @@ context('Control Duration', () => {
 		cy.get('@dialog').then(dialog => {
 			let value = dialog.get_value('duration');
 			expect(value).to.equal(3889800);
+			cy.hide_dialog();
 		});
 	});
 
 	it('should hide days or seconds according to duration options', () => {
 		get_dialog_with_duration(1, 1).as('dialog');
-		cy.get('.frappe-control[data-fieldname=duration] input').first().click();
+		cy.get('.frappe-control[data-fieldname=duration] input').first();
 		cy.get('.duration-input[data-duration=days]').should('not.be.visible');
 		cy.get('.duration-input[data-duration=seconds]').should('not.be.visible');
 	});
