@@ -9,6 +9,7 @@ from datetime import datetime
 from glob import glob
 from shutil import which
 
+
 # imports - third party imports
 import click
 
@@ -16,6 +17,7 @@ import click
 import frappe
 from frappe import _, conf
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
+from frappe.utils.password import get_encryption_key
 
 # backup variable for backwards compatibility
 verbose = False
@@ -197,6 +199,9 @@ class BackupGenerator:
 			if not ignore_files:
 				self.backup_files()
 
+			if frappe.get_system_settings("encrypt_backup"):
+				self.backup_encryption()
+
 		else:
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
@@ -206,11 +211,13 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
+		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
 
-		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup.json"
-		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database.sql.gz"
-		for_public_files = f"{self.todays_date}-{self.site_slug}-files.{ext}"
-		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files.{ext}"
+
+		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
+		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
+		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
 
 		if not self.backup_path_conf:
@@ -222,15 +229,46 @@ class BackupGenerator:
 		if not self.backup_path_private_files:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
+	def backup_encryption(self):
+		"""
+		Encrypt all the backups created using gpg.
+		"""
+		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
+		for path in paths:
+			if os.path.exists(path):
+				cmd_string = (
+					"gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
+				)
+				try:
+					command = cmd_string.format(
+						passphrase=get_encryption_key(),
+						filelocation=path,
+					)
+
+					frappe.utils.execute_in_shell(command)
+					os.rename(path + ".gpg", path)
+
+				except Exception as err:
+					print(err)
+					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="red")
+
 	def get_recent_backup(self, older_than, partial=False):
 		backup_path = get_backup_path()
 
-		file_type_slugs = {
-			"database": "*-{{}}-{}database.sql.gz".format('*' if partial else ''),
-			"public": "*-{}-files.tar",
-			"private": "*-{}-private-files.tar",
-			"config": "*-{}-site_config_backup.json",
-		}
+		if not frappe.get_system_settings("encrypt_backup"):
+			file_type_slugs = {
+				"database": "*-{{}}-{}database.sql.gz".format('*' if partial else ''),
+				"public": "*-{}-files.tar",
+				"private": "*-{}-private-files.tar",
+				"config": "*-{}-site_config_backup.json",
+			}
+		else:
+			file_type_slugs = {
+				"database": "*-{{}}-{}database.enc.sql.gz".format('*' if partial else ''),
+				"public": "*-{}-files.enc.tar",
+				"private": "*-{}-private-files.enc.tar",
+				"config": "*-{}-site_config_backup.json",
+			}
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
@@ -612,6 +650,51 @@ def is_file_old(file_path, older_than=24):
 def get_backup_path():
 	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 	return backup_path
+
+@frappe.whitelist()
+def get_backup_encryption_key():
+	return frappe.local.conf.encryption_key
+
+class Backup:
+	def __init__(self, file_path):
+		self.file_path = file_path
+
+	def backup_decryption(self,passphrase):
+		"""
+		Decrypts backup at the given path using the passphrase.
+		"""
+		if not os.path.exists(self.file_path):
+			print("Invalid path", self.file_path)
+			return
+		else:
+			os.rename(self.file_path, self.file_path + ".gpg")
+			file_path = self.file_path + ".gpg"
+
+			cmd_string = (
+					"gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
+			)
+			command = cmd_string.format(
+				passphrase=passphrase,
+				file_location=file_path,
+				decrypted_file=file_path.rstrip(".gpg"),
+			)
+		frappe.utils.execute_in_shell(command)
+
+
+	def decryption_rollback(self):
+		"""
+		Checks if the decrypted file exists at the given path.
+		if exists
+			Renames the orginal encrypted file.
+		else
+			Removes the decrypted file and rename the original file.
+		"""
+		if os.path.exists(self.file_path + ".gpg"):
+			if os.path.exists(self.file_path):
+				os.remove(self.file_path)
+			if os.path.exists(self.file_path.rstrip(".gz")):
+				os.remove(self.file_path.rstrip(".gz"))
+			os.rename(self.file_path + ".gpg", self.file_path)
 
 
 def backup(

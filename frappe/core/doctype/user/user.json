@@ -555,20 +555,22 @@
    "collapsible": 1,
    "fieldname": "api_access",
    "fieldtype": "Section Break",
-   "label": "Api Access"
+   "label": "API Access"
   },
   {
-   "description": "API Key cannot be  regenerated",
+   "description": "API Key cannot be regenerated",
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
+   "permlevel": 1,
    "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "generate_keys",
    "fieldtype": "Button",
-   "label": "Generate Keys"
+   "label": "Generate Keys",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_65",
@@ -578,6 +580,7 @@
    "fieldname": "api_secret",
    "fieldtype": "Password",
    "label": "API Secret",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -612,11 +615,6 @@
   {
    "group": "Profile",
    "link_doctype": "Contact",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Profile",
-   "link_doctype": "Chat Profile",
    "link_fieldname": "user"
   },
   {
@@ -671,7 +669,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-10-18 16:56:05.578379",
+ "modified": "2021-10-27 17:17:16.098457",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
