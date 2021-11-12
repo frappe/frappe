@@ -454,38 +454,39 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!value) return;
 
-		return new Promise((resolve) => {
+		return new Promise(async (resolve) => {
 			const fetch_map = this.fetch_map;
+			const columns_to_fetch = Object.values(fetch_map);
 
 			// if default and no fetch, no need to validate
-			if ($.isEmptyObject(fetch_map) && df.__default_value === value) {
+			if (!columns_to_fetch.length && df.__default_value === value) {
 				return resolve(value);
 			}
+
+			const name = await frappe.xcall("frappe.client.validate_link", {
+				doctype: options,
+				docname: value
+			});
+
+			if (!name) return resolve("");
+			if (!docname || !columns_to_fetch.length) return resolve(name);
 
 			frappe.db.get_value(
 				options,
 				value,
-				["name", ...Object.values(fetch_map)],
+				columns_to_fetch,
 				(response) => {
-					if (!response.name) {
-						return resolve("");
+					for (const [target_field, source_field] of Object.entries(fetch_map)) {
+						frappe.model.set_value(
+							df.parent,
+							docname,
+							target_field,
+							response[source_field],
+							df.fieldtype,
+						);
 					}
-
-					if (docname) {
-						for (const [target_field, source_field] of Object.entries(fetch_map)) {
-							frappe.model.set_value(
-								df.parent,
-								docname,
-								target_field,
-								response[source_field],
-								df.fieldtype,
-							);
-						}
-					}
-
-					return resolve(response.name);
 				}
-			)
+			).always(() => resolve(name));
 		});
 	}
 

@@ -81,9 +81,6 @@ class BaseDocument(object):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	def __getitem__(self, key):
-		return self.get(key) if hasattr(self, key) else frappe.throw(msg=key, exc=KeyError)
-
 	@property
 	def meta(self):
 		if not getattr(self, "_meta", None):
