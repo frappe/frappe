@@ -99,7 +99,6 @@ import "./frappe/query_string.js";
 
 // import "./frappe/ui/comment.js";
 
-import "./frappe/chat.js";
 import "./frappe/utils/energy_point_utils.js";
 import "./frappe/utils/dashboard_utils.js";
 import "./frappe/ui/chart.js";

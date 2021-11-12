@@ -17,6 +17,7 @@ from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 from werkzeug.test import Client
 from redis.exceptions import ConnectionError
+from collections.abc import MutableMapping, MutableSequence, Sequence
 
 import frappe
 # utility functions like cint, int, flt, etc.
@@ -861,3 +862,31 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 
 def get_table_name(table_name: str) -> str:
 	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+def squashify(what):
+	if isinstance(what, Sequence) and len(what) == 1:
+		return what[0]
+
+	return what
+
+def safe_json_loads(*args):
+	results = []
+
+	for arg in args:
+		try:
+			arg = json.loads(arg)
+		except Exception:
+			pass
+
+		results.append(arg)
+
+	return squashify(results)
+
+def dictify(arg):
+	if isinstance(arg, MutableSequence):
+		for i, a in enumerate(arg):
+			arg[i] = dictify(a)
+	elif isinstance(arg, MutableMapping):
+		arg = frappe._dict(arg)
+
+	return arg
