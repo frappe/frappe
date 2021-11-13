@@ -22,12 +22,7 @@
 	}
 
 
-	.my-account-name {
-		color: var(--gray-900);
-		font-weight: var(--text-bold);
-	}
-	
-	.my-account-item {
+	.my-account-name, .my-account-item {
 		color: var(--gray-900);
 		font-weight: var(--text-bold);
 	}
