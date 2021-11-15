@@ -337,7 +337,7 @@ Cypress.Commands.add('click_sidebar_button', (btn_no) => {
 });
 
 Cypress.Commands.add('click_listview_row_item', (row_no) => {
-	cy.get('.list-row > .level-left > .list-subject > .bold > .ellipsis').eq(row_no).click({force: true});
+	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis').eq(row_no).click({force: true});
 });
 
 Cypress.Commands.add('click_filter_button', () => {
@@ -349,5 +349,9 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 });
 
 Cypress.Commands.add('click_timeline_action_btn', (btn_no) => {
-	cy.get('.timeline-content > .timeline-message-box > .justify-between > .actions > .btn').eq(btn_no).first().click();
+	cy.get('.timeline-message-box .actions .action-btn').contains(btn_name).click();
+});
+
+Cypress.Commands.add('select_listview_row_checkbox', (row_no) => {
+	cy.get('.frappe-list .select-like > .list-row-checkbox').eq(row_no).click();
 });
