@@ -33,8 +33,10 @@ frappe.ui.form.on("System Settings", {
 			}
 		}
 	},
-	after_save: function(frm) {
-		// Clear cache after saving to refresh the values of boot.
-		frappe.ui.toolbar.clear_cache();
+	on_update: function(frm) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system !== frm.doc.time_zone) {
+			// Clear cache after saving to refresh the values of boot.
+			frappe.ui.toolbar.clear_cache();
+		}
 	}
 });
