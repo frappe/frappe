@@ -109,7 +109,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 frappe.views.Calendar = class Calendar {
 	constructor(options) {
 		$.extend(this, options);
-		this.field_map = {
+		this.field_map = this.field_map || {
 			"id": "name",
 			"start": "start",
 			"end": "end",

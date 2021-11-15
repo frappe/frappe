@@ -1,0 +1,19 @@
+<div class="sidebar-parent">
+	<div class="sidebar-topic" data-target="#t{{ topic.name }}" data-toggle="collapse" aria-expanded="false">
+		<div class="discussion-topic-title">{{ topic.title }}</div>
+		<div class="sidebar-info">
+			{% set creator = frappe.get_doc("User", topic.owner) %}
+			<span class="reply-author ml-0">
+				{{ creator.full_name }}
+			</span>
+			<span class="small d-flex">
+				<span class="mr-2 d-flex align-items-center">
+					<img class="mr-1" src="/assets/frappe/icons/timeless/message.svg">
+					<span class="reply-count">{{ replies | length }}</span>
+				</span>
+				<span> {{ frappe.utils.format_date(topic.creation, "dd MMM YYYY") }} </span>
+			</span>
+		</div>
+	</div>
+	<div class="card-divider"></div>
+</div>

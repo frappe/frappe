@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 import json
@@ -84,8 +84,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	# if not committed, delayed task doesn't find the communication
 	if attachments:
 		add_attachments(comm.name, attachments)
-
-	frappe.db.commit()
 
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():

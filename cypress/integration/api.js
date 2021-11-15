@@ -31,8 +31,13 @@ context('API Resources', () => {
 	});
 
 	it('Removes the Comments', () => {
-		cy.get_list('Comment').then(body => body.data.forEach(comment => {
-			cy.remove_doc('Comment', comment.name);
-		}));
+		cy.get_list('Comment').then(body => {
+			let comment_names = [];
+			body.data.map(comment => comment_names.push(comment.name));
+			comment_names = [...new Set(comment_names)]; // remove duplicates
+			comment_names.forEach((comment_name) => {
+				cy.remove_doc('Comment', comment_name);
+			});
+		});
 	});
 });

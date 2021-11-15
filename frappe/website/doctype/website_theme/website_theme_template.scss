@@ -43,5 +43,12 @@ body {
 	--text-color: #{$body-text-color};
 	--text-light: #{$body-text-color};
 	{% endif -%}
+	{% if not button_rounded_corners %}
+	--border-radius-sm: 0px;
+	--border-radius: 0px;
+	--border-radius-md: 0px;
+	--border-radius-lg: 0px;
+	--border-radius-full: 0px;
+	{% endif -%}
 }
 

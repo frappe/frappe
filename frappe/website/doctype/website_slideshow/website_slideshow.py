@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _
@@ -14,7 +14,7 @@ class WebsiteSlideshow(Document):
 
 	def on_update(self):
 		# a slide show can be in use and any change in it should get reflected
-		from frappe.website.render import clear_cache
+		from frappe.website.utils import clear_cache
 		clear_cache()
 
 	def validate_images(self):

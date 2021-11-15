@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 import json, os
@@ -146,6 +146,7 @@ def get_context(context):
 					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
 						value = frappe.utils.cint(value)
 
+					doc.reload()
 					doc.set(fieldname, value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,

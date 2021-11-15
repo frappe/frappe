@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 import base64
+import json
 import frappe
 import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file, get_files_in_folder
+from frappe.core.doctype.file.file import get_attached_images, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
 # test_records = frappe.get_test_records('File')
 
@@ -203,10 +204,14 @@ class TestFile(unittest.TestCase):
 
 
 	def delete_test_data(self):
-		for f in frappe.db.sql('''select name, file_name from tabFile where
-			is_home_folder = 0 and is_attachments_folder = 0 order by creation desc'''):
-			frappe.delete_doc("File", f[0])
-
+		test_file_data = frappe.db.get_all(
+			"File",
+			pluck="name",
+			filters={"is_home_folder": 0, "is_attachments_folder": 0},
+			order_by="creation desc",
+		)
+		for f in test_file_data:
+			frappe.delete_doc("File", f)
 
 	def upload_file(self):
 		_file = frappe.get_doc({
@@ -365,6 +370,81 @@ class TestFile(unittest.TestCase):
 		file1.file_url = '/private/files/parent_dir2.txt'
 		file1.save()
 
+	def test_file_url_validation(self):
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": 'https://frappe.io/files/frappe.png'
+		})
+
+		self.assertIsNone(test_file.validate())
+
+		# bad path
+		test_file.file_url = "/usr/bin/man"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "URL must start with http:// or https://", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "/usr/bin/man"
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "There is some problem with the file url", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "_file"
+		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+
+		test_file.file_url = None
+		test_file.file_name = "/private/files/_file"
+		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+
+	def test_make_thumbnail(self):
+		# test web image
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
+		}).insert(ignore_permissions=True)
+
+		test_file.make_thumbnail()
+		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+
+		# test local image
+		test_file.db_set('thumbnail_url', None)
+		test_file.reload()
+		test_file.file_url = "/files/image_small.jpg"
+		test_file.make_thumbnail(suffix="xs", crop=True)
+		self.assertEquals(test_file.thumbnail_url, '/files/image_small_xs.jpg')
+
+		frappe.clear_messages()
+		test_file.db_set('thumbnail_url', None)
+		test_file.reload()
+		test_file.file_url = frappe.utils.get_url('unknown.jpg')
+		test_file.make_thumbnail(suffix="xs")
+		self.assertEqual(json.loads(frappe.message_log[0]), {"message": f"File '{frappe.utils.get_url('unknown.jpg')}' not found"})
+		self.assertEquals(test_file.thumbnail_url, None)
+
+	def test_file_unzip(self):
+		file_path = frappe.get_app_path('frappe', 'www/_test/assets/file.zip')
+		public_file_path = frappe.get_site_path('public', 'files')
+		try:
+			import shutil
+			shutil.copy(file_path, public_file_path)
+		except Exception:
+			pass
+
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": '/files/file.zip',
+		}).insert(ignore_permissions=True)
+
+		self.assertListEqual([file.file_name for file in unzip_file(test_file.name)],
+			['css_asset.css', 'image.jpg', 'js_asset.min.js'])
+
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
+		}).insert(ignore_permissions=True)
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, 'not a zip file', test_file.unzip)
+
+
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'
 
@@ -469,3 +549,93 @@ class TestAttachmentsAccess(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 		frappe.db.rollback()
+
+
+class TestFileUtils(unittest.TestCase):
+	def test_extract_images_from_doc(self):
+		# with filename in data URI
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": 'Test <img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'
+		}).insert()
+		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name}))
+		self.assertIn('<img src="/files/pix.png">', todo.description)
+		self.assertListEqual(get_attached_images('ToDo', [todo.name])[todo.name], ['/files/pix.png'])
+
+		# without filename in data URI
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": 'Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">'
+		}).insert()
+		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
+		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
+
+	def test_create_new_folder(self):
+		from frappe.core.doctype.file.file import create_new_folder
+		folder = create_new_folder('test_folder', 'Home')
+		self.assertTrue(folder.is_folder)
+
+
+class TestFileOptimization(unittest.TestCase):
+	def test_optimize_file(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content
+		}).insert()
+		original_size = test_file.file_size
+		original_content_hash = test_file.content_hash
+
+		test_file.optimize_file()
+		optimized_size = test_file.file_size
+		updated_content_hash = test_file.content_hash
+
+		self.assertLess(optimized_size, original_size)
+		self.assertNotEqual(original_content_hash, updated_content_hash)
+		test_file.delete()
+
+	def test_optimize_svg(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_svg.svg",
+			"content": file_content
+		}).insert()
+		self.assertRaises(TypeError, test_file.optimize_file)
+		test_file.delete()
+
+	def test_optimize_textfile(self):
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_text.txt",
+			"content": "Text files cannot be optimized"
+		}).insert()
+		self.assertRaises(NotImplementedError, test_file.optimize_file)
+		test_file.delete()
+
+	def test_optimize_folder(self):
+		test_folder = frappe.get_doc("File", "Home/Attachments")
+		self.assertRaises(TypeError, test_folder.optimize_file)
+
+	def test_revert_optimized_file_on_rollback(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content
+		}).insert()
+		image_path = test_file.get_full_path()
+		size_before_optimization = os.stat(image_path).st_size
+
+		test_file.optimize_file()
+		frappe.db.rollback()
+		size_after_rollback = os.stat(image_path).st_size
+		self.assertEqual(size_before_optimization, size_after_rollback)
+		test_file.delete()

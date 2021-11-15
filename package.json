@@ -4,7 +4,8 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
-    "snyk-protect": "snyk protect"
+    "snyk-protect": "snyk protect",
+    "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   },
   "homepage": "https://frappeframework.com",
   "dependencies": {
+    "@editorjs/editorjs": "2.20.0",
     "ace-builds": "^1.4.8",
     "air-datepicker": "github:frappe/air-datepicker",
     "autoprefixer": "^9.8.6",
@@ -27,16 +29,19 @@
     "bootstrap": "4.5.0",
     "cliui": "^7.0.4",
     "cookie": "^0.4.0",
+    "cropperjs": "^1.5.12",
     "cssnano": "^5.0.0",
     "driver.js": "^0.9.8",
+    "editorjs-undo": "0.1.6",
     "express": "^4.17.1",
     "fast-deep-equal": "^2.0.1",
     "frappe-charts": "^2.0.0-rc13",
-    "frappe-datatable": "^1.15.3",
+    "frappe-datatable": "^1.15.4",
     "frappe-gantt": "^0.5.0",
     "fuse.js": "^3.4.6",
     "highlight.js": "^10.4.1",
-    "jquery": "3.5.0",
+    "html5-qrcode": "^2.0.11",
+    "jquery": "3.6.0",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.9.0",
     "localforage": "^1.9.0",
@@ -52,12 +57,13 @@
     "qz-tray": "^2.0.8",
     "redis": "^3.1.1",
     "showdown": "^1.9.1",
-    "snyk": "^1.518.0",
+    "snyk": "^1.685.0",
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
     "vue": "2.6.12",
-    "vue-router": "^2.0.0"
+    "vue-router": "^2.0.0",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "chalk": "^2.3.2",
@@ -67,7 +73,11 @@
     "fast-glob": "^3.2.5",
     "launch-editor": "^2.2.1",
     "md5": "^2.3.0",
+    "rtlcss": "^3.2.1",
     "yargs": "^16.2.0"
   },
-  "snyk": true
+  "snyk": true,
+  "nyc": {
+    "report-dir": ".cypress-coverage"
+  }
 }

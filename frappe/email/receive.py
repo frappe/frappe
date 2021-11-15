@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import datetime
 import email
@@ -340,7 +340,7 @@ class EmailServer:
 
 		return error_msg
 
-	def update_flag(self, uid_list={}):
+	def update_flag(self, uid_list=None):
 		""" set all uids mails the flag as seen  """
 
 		if not uid_list:
@@ -802,7 +802,7 @@ class InboundMail(Email):
 		except frappe.DuplicateEntryError:
 			# try and find matching parent
 			parent_name = frappe.db.get_value(self.email_account.append_to,
-				{email_fileds.sender_field: email.from_email}
+				{email_fileds.sender_field: self.from_email}
 			)
 			if parent_name:
 				parent.name = parent_name

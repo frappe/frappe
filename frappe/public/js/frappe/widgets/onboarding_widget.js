@@ -3,7 +3,23 @@ import Widget from "./base_widget.js";
 frappe.provide("frappe.utils");
 
 export default class OnboardingWidget extends Widget {
+
+	async refresh() {
+		this.new && await this.get_onboarding_data();
+		this.set_title();
+		this.set_actions();
+		this.set_body();
+		this.setup_events();
+	}
+
+	get_config() {
+		return {
+			label: this.onboarding_name
+		};
+	}
+
 	make_body() {
+		this.body.empty();
 		this.steps_wrapper = $(`<div class="onboarding-steps-wrapper"></div>`).appendTo(this.body);
 		this.step_preview = $(`<div class="onboarding-step-preview">
 			<div class="onboarding-step-body"></div>
@@ -203,7 +219,7 @@ export default class OnboardingWidget extends Widget {
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			frm.show_tour(() => {
+			const on_finish = () => {
 				let msg_dialog = frappe.msgprint({
 					message: __("Let's take you back to onboarding"),
 					title: __("Great Job"),
@@ -217,7 +233,10 @@ export default class OnboardingWidget extends Widget {
 						label: () => __("Continue"),
 					},
 				});
-			});
+			};
+			frm.tour
+				.init({ on_finish })
+				.then(() => frm.tour.start());
 		};
 
 		frappe.set_route(route);
@@ -290,12 +309,15 @@ export default class OnboardingWidget extends Widget {
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			frm.show_tour(() => {
+			const on_finish = () => {
 				frappe.msgprint({
 					message: __("Awesome, now try making an entry yourself"),
 					title: __("Great"),
 				});
-			});
+			};
+			frm.tour
+				.init({ on_finish })
+				.then(() => frm.tour.start());
 		};
 
 		let callback = () => {
@@ -471,11 +493,13 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	is_dismissed() {
+		if (this.in_customize_mode) return false;
+
 		let dismissed = JSON.parse(
 			localStorage.getItem("dismissed-onboarding") || "{}"
 		);
-		if (Object.keys(dismissed).includes(this.label)) {
-			let last_hidden = new Date(dismissed[this.label]);
+		if (Object.keys(dismissed).includes(this.title)) {
+			let last_hidden = new Date(dismissed[this.title]);
 			let today = new Date();
 			let diff = frappe.datetime.get_hour_diff(today, last_hidden);
 			return diff < 24;
@@ -484,6 +508,8 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	set_actions() {
+		if (this.in_customize_mode) return;
+
 		this.action_area.empty();
 		const dismiss = $(
 			`<div class="small" style="cursor:pointer;">${__('Dismiss', null, 'Stop showing the onboarding widget.')}</div>`
@@ -492,14 +518,38 @@ export default class OnboardingWidget extends Widget {
 			let dismissed = JSON.parse(
 				localStorage.getItem("dismissed-onboarding") || "{}"
 			);
-			dismissed[this.label] = frappe.datetime.now_datetime();
+			dismissed[this.title] = frappe.datetime.now_datetime();
 
 			localStorage.setItem(
 				"dismissed-onboarding",
 				JSON.stringify(dismissed)
 			);
-			this.delete();
+			this.delete(true, true);
+			this.widget.closest('.ce-block').hide();
 		});
 		dismiss.appendTo(this.action_area);
+	}
+
+	get_onboarding_data() {
+		return frappe.model
+			.with_doc("Module Onboarding", this.onboarding_name)
+			.then(onboarding_doc => {
+				if (onboarding_doc) {
+					this.onboarding_doc = onboarding_doc;
+					this.label = onboarding_doc.label;
+					this.title = onboarding_doc.title || __("Let's Get Started");
+					this.subtitle = onboarding_doc.subtitle;
+					this.success = onboarding_doc.success;
+					this.docs_url = onboarding_doc.docs_url;
+					this.user_can_dismiss = onboarding_doc.user_can_dismiss;
+					const method =
+						"frappe.desk.doctype.onboarding_step.onboarding_step.get_onboarding_steps";
+					return frappe
+						.xcall(method, { ob_steps: onboarding_doc.steps })
+						.then(steps => {
+							this.steps = steps;
+						});
+				}
+			});
 	}
 }

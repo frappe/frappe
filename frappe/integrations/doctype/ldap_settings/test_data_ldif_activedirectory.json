@@ -1,0 +1,338 @@
+{
+    "entries": [
+        {
+            "attributes": {
+                "cn": "base_dn_user",
+                "memberOf": [
+                    "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+                    "cn=Enterprise Administrators,ou=Groups,dc=unit,dc=testing"
+                ],
+                "objectClass": [
+                    "user",
+                    "top",
+                    "person",
+                    "organizationalPerson"
+                ],
+                "samaccountname": "cn=base_dn_user,dc=unit,dc=testing",
+                "sn": "user_sn",
+                "userPassword": [
+                    "my_password"
+                ]
+            },
+            "dn": "cn=base_dn_user,dc=unit,dc=testing",
+            "raw": {
+                "cn": [
+                    "base_dn_user"
+                ],
+                "memberOf": [
+                    "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+                    "cn=Enterprise Administrators,ou=Groups,dc=unit,dc=testing"
+                ],
+                "objectClass": [
+                    "user",
+                    "top",
+                    "person",
+                    "organizationalPerson"
+                ],
+                "samaccountname": [
+                    "cn=base_dn_user,dc=unit,dc=testing"
+                ],
+                "sn": [
+                    "user_sn"
+                ],
+                "userPassword": [
+                    "my_password"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "cn": "Posix User1",
+                "description": [
+                    "ACCESS:test1,ACCESS:test2"
+                ],
+                "givenname": "Posix",
+                "mail": "posix.user1@unit.testing",
+                "memberOf": [
+                    "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+                    "cn=Domain Administrators,ou=Groups,dc=unit,dc=testing"
+                ],
+                "mobile": "0421 123 456",
+                "objectClass": [
+                    "user",
+                    "top",
+                    "person",
+                    "organizationalPerson"
+                ],
+                "samaccountname": "posix.user",
+                "sn": "User1",
+                "telephonenumber": "08 8912 3456",
+                "userpassword": [
+                    "posix_user_password"
+                ]
+            },
+            "dn": "cn=Posix User1,ou=Users,dc=unit,dc=testing",
+            "raw": {
+                "cn": [
+                    "Posix User1"
+                ],
+                "description": [
+                    "ACCESS:test1,ACCESS:test2"
+                ],
+                "givenname": [
+                    "Posix"
+                ],
+                "mail": [
+                    "posix.user1@unit.testing"
+                ],
+                "memberOf": [
+                    "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+                    "cn=Domain Administrators,ou=Groups,dc=unit,dc=testing"
+                ],
+                "mobile": [
+                    "0421 123 456"
+                ],
+                "objectClass": [
+                    "user",
+                    "top",
+                    "person",
+                    "organizationalPerson"
+                ],
+                "samaccountname": [
+                    "posix.user"
+                ],
+                "sn": [
+                    "User1"
+                ],
+                "telephonenumber": [
+                    "08 8912 3456"
+                ],
+                "userpassword": [
+                    "posix_user_password"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "cn": "Posix User2",
+                "description": [
+                    "ACCESS:test1,ACCESS:test3"
+                ],
+                "givenname": "Posix",
+                "homedirectory": "/home/users/posix.user2",
+                "mail": "posix.user2@unit.testing",
+                "memberOf": [
+                    "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+                    "cn=Enterprise Administrators,ou=Groups,dc=unit,dc=testing"
+                ],
+                "mobile": "0421 456 789",
+                "objectClass": [
+                    "user",
+                    "top",
+                    "person",
+                    "organizationalPerson"
+                ],
+                "samaccountname": "posix.user2",
+                "sn": "User2",
+                "telephonenumber": "08 8978 1234",
+                "userpassword": [
+                    "posix_user2_password"
+                ]
+            },
+            "dn": "cn=Posix User2,ou=Users,dc=unit,dc=testing",
+            "raw": {
+                "cn": [
+                    "Posix User2"
+                ],
+                "description": [
+                    "ACCESS:test1,ACCESS:test3"
+                ],
+                "givenname": [
+                    "Posix"
+                ],
+                "homedirectory": [
+                    "/home/users/posix.user2"
+                ],
+                "mail": [
+                    "posix.user2@unit.testing"
+                ],
+                "memberOf": [
+                    "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+                    "cn=Enterprise Administrators,ou=Groups,dc=unit,dc=testing"
+                ],
+                "mobile": [
+                    "0421 456 789"
+                ],
+                "objectClass": [
+                    "user",
+                    "top",
+                    "person",
+                    "organizationalPerson"
+                ],
+                "samaccountname": [
+                    "posix.user2"
+                ],
+                "sn": [
+                    "User2"
+                ],
+                "telephonenumber": [
+                    "08 8978 1234"
+                ],
+                "userpassword": [
+                    "posix_user2_password"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "objectClass": [
+                    "top",
+                    "organizationalUnit"
+                ],
+                "ou": [
+                    "Users"
+                ]
+            },
+            "dn": "ou=Users,dc=unit,dc=testing",
+            "raw": {
+                "objectClass": [
+                    "top",
+                    "organizationalUnit"
+                ],
+                "ou": [
+                    "Users"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "Member": [
+                    "cn=Posix User2,ou=Users,dc=unit,dc=testing"
+                ],
+                "cn": "Enterprise Administrators",
+                "description": [
+                    "group contains only posix.user2"
+                ],
+                "groupType": 2147483652,
+                "objectClass": [
+                    "top",
+                    "group"
+                ]
+            },
+            "dn": "cn=Enterprise Administrators,ou=Groups,dc=unit,dc=testing",
+            "raw": {
+                "Member": [
+                    "cn=Posix User2,ou=Users,dc=unit,dc=testing"
+                ],
+                "cn": [
+                    "Enterprise Administrators"
+                ],
+                "description": [
+                    "group contains only posix.user2"
+                ],
+                "groupType": [
+                    "2147483652"
+                ],
+                "objectClass": [
+                    "top",
+                    "group"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "Member": [
+                    "cn=Posix User1,ou=Users,dc=unit,dc=testing",
+                    "cn=Posix User2,ou=Users,dc=unit,dc=testing"
+                ],
+                "cn": "Domain Users",
+                "description": [
+                    "group2 Users contains only posix.user and posix.user2"
+                ],
+                "groupType": 2147483652,
+                "objectClass": [
+                    "top",
+                    "group"
+                ]
+            },
+            "dn": "cn=Domain Users,ou=Groups,dc=unit,dc=testing",
+            "raw": {
+                "Member": [
+                    "cn=Posix User1,ou=Users,dc=unit,dc=testing",
+                    "cn=Posix User2,ou=Users,dc=unit,dc=testing"
+                ],
+                "cn": [
+                    "Domain Users"
+                ],
+                "description": [
+                    "group2 Users contains only posix.user and posix.user2"
+                ],
+                "groupType": [
+                    "2147483652"
+                ],
+                "objectClass": [
+                    "top",
+                    "group"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "Member": [
+                    "cn=Posix User1,ou=Users,dc=unit,dc=testing",
+                    "cn=base_dn_user,dc=unit,dc=testing"
+                ],
+                "cn": "Domain Administrators",
+                "description": [
+                    "group1 Administrators contains only posix.user only"
+                ],
+                "groupType": 2147483652,
+                "objectClass": [
+                    "top",
+                    "group"
+                ]
+            },
+            "dn": "cn=Domain Administrators,ou=Groups,dc=unit,dc=testing",
+            "raw": {
+                "Member": [
+                    "cn=Posix User1,ou=Users,dc=unit,dc=testing",
+                    "cn=base_dn_user,dc=unit,dc=testing"
+                ],
+                "cn": [
+                    "Domain Administrators"
+                ],
+                "description": [
+                    "group1 Administrators contains only posix.user only"
+                ],
+                "groupType": [
+                    "2147483652"
+                ],
+                "objectClass": [
+                    "top",
+                    "group"
+                ]
+            }
+        },
+        {
+            "attributes": {
+                "objectClass": [
+                    "top",
+                    "organizationalUnit"
+                ],
+                "ou": [
+                    "Groups"
+                ]
+            },
+            "dn": "ou=Groups,dc=unit,dc=testing",
+            "raw": {
+                "objectClass": [
+                    "top",
+                    "organizationalUnit"
+                ],
+                "ou": [
+                    "Groups"
+                ]
+            }
+        }
+    ]
+}

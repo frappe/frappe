@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import sys
 import click
@@ -102,7 +102,24 @@ def get_commands():
 	from .site import commands as site_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
+	from .redis_utils import commands as redis_commands
 
-	return list(set(scheduler_commands + site_commands + translate_commands + utils_commands))
+	clickable_link = (
+		"\x1b]8;;https://frappeframework.com/docs\afrappeframework.com\x1b]8;;\a"
+	)
+	all_commands = (
+		scheduler_commands
+		+ site_commands
+		+ translate_commands
+		+ utils_commands
+		+ redis_commands
+	)
+
+	for command in all_commands:
+		if not command.help:
+			command.help = f"Refer to {clickable_link}"
+
+	return all_commands
+
 
 commands = get_commands()

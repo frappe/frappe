@@ -1,8 +1,7 @@
 
 import frappe
 
-base_template_path = "templates/www/robots.txt"
-
+base_template_path = "www/robots.txt"
 def get_context(context):
 	robots_txt = (
 		frappe.db.get_single_value('Website Settings', 'robots_txt') or

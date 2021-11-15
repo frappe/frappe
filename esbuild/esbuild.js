@@ -1,17 +1,20 @@
 /* eslint-disable no-console */
-let path = require("path");
-let fs = require("fs");
-let glob = require("fast-glob");
-let esbuild = require("esbuild");
-let vue = require("esbuild-vue");
-let yargs = require("yargs");
-let cliui = require("cliui")();
-let chalk = require("chalk");
-let html_plugin = require("./frappe-html");
-let postCssPlugin = require("esbuild-plugin-postcss2").default;
-let ignore_assets = require("./ignore-assets");
-let sass_options = require("./sass_options");
-let {
+const path = require("path");
+const fs = require("fs");
+const glob = require("fast-glob");
+const esbuild = require("esbuild");
+const vue = require("esbuild-vue");
+const yargs = require("yargs");
+const cliui = require("cliui")();
+const chalk = require("chalk");
+const html_plugin = require("./frappe-html");
+const rtlcss = require('rtlcss');
+const postCssPlugin = require("esbuild-plugin-postcss2").default;
+const ignore_assets = require("./ignore-assets");
+const sass_options = require("./sass_options");
+const build_cleanup_plugin = require("./build-cleanup");
+
+const {
 	app_list,
 	assets_path,
 	apps_path,
@@ -25,7 +28,7 @@ let {
 	get_redis_subscriber
 } = require("./utils");
 
-let argv = yargs
+const argv = yargs
 	.usage("Usage: node esbuild [options]")
 	.option("apps", {
 		type: "string",
@@ -42,6 +45,11 @@ let argv = yargs
 	.option("watch", {
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
+	})
+	.option("live-reload", {
+		type: "boolean",
+		description: `Automatically reload Desk when assets are rebuilt.
+			Can only be used with the --watch flag.`
 	})
 	.option("production", {
 		type: "boolean",
@@ -92,28 +100,30 @@ if (WATCH_MODE) {
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
-	if (!FILES_TO_BUILD.length) {
-		await clean_dist_folders(APPS);
-	}
 
-	let result;
+	let results;
 	try {
-		result = await build_assets_for_apps(APPS, FILES_TO_BUILD);
+		results = await build_assets_for_apps(APPS, FILES_TO_BUILD);
 	} catch (e) {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
+		if (process.env.CI) {
+			process.kill(process.pid);
+		}
 		return;
 	}
 
 	if (!WATCH_MODE) {
-		log_built_assets(result.metafile);
+		log_built_assets(results);
 		console.timeEnd(TOTAL_BUILD_TIME);
 		log();
 	} else {
 		log("Watching for changes...");
 	}
-	return await write_assets_json(result.metafile);
+	for (const result of results) {
+		await write_assets_json(result.metafile);
+	}
 }
 
 function build_assets_for_apps(apps, files) {
@@ -125,6 +135,8 @@ function build_assets_for_apps(apps, files) {
 		let output_path = assets_path;
 
 		let file_map = {};
+		let style_file_map = {};
+		let rtl_style_file_map = {};
 		for (let file of files) {
 			let relative_app_path = path.relative(apps_path, file);
 			let app = relative_app_path.split(path.sep)[0];
@@ -140,19 +152,32 @@ function build_assets_for_apps(apps, files) {
 			}
 			output_name = path.join(app, "dist", output_name);
 
-			if (Object.keys(file_map).includes(output_name)) {
+			if (Object.keys(file_map).includes(output_name) || Object.keys(style_file_map).includes(output_name)) {
 				log_warn(
 					`Duplicate output file ${output_name} generated from ${file}`
 				);
 			}
-
-			file_map[output_name] = file;
+			if ([".css", ".scss", ".less", ".sass", ".styl"].includes(extension)) {
+				style_file_map[output_name] = file;
+				rtl_style_file_map[output_name.replace('/css/', '/css-rtl/')] = file;
+			} else {
+				file_map[output_name] = file;
+			}
 		}
-
-		return build_files({
+		let build = build_files({
 			files: file_map,
 			outdir: output_path
 		});
+		let style_build = build_style_files({
+			files: style_file_map,
+			outdir: output_path
+		});
+		let rtl_style_build = build_style_files({
+			files: rtl_style_file_map,
+			outdir: output_path,
+			rtl_style: true
+		});
+		return Promise.all([build, style_build, rtl_style_build]);
 	});
 }
 
@@ -203,7 +228,35 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	return esbuild.build({
+	let build_plugins = [
+		html_plugin,
+		build_cleanup_plugin,
+		vue(),
+	];
+	return esbuild.build(get_build_options(files, outdir, build_plugins));
+}
+
+function build_style_files({ files, outdir, rtl_style = false }) {
+	let plugins = [];
+	if (rtl_style) {
+		plugins.push(rtlcss);
+	}
+
+	let build_plugins = [
+		ignore_assets,
+		build_cleanup_plugin,
+		postCssPlugin({
+			plugins: plugins,
+			sassOptions: sass_options
+		})
+	];
+
+	plugins.push(require("autoprefixer"));
+	return esbuild.build(get_build_options(files, outdir, build_plugins));
+}
+
+function get_build_options(files, outdir, plugins) {
+	return {
 		entryPoints: files,
 		entryNames: "[dir]/[name].[hash]",
 		outdir,
@@ -217,17 +270,9 @@ function build_files({ files, outdir }) {
 				PRODUCTION ? "production" : "development"
 			)
 		},
-		plugins: [
-			html_plugin,
-			ignore_assets,
-			vue(),
-			postCssPlugin({
-				plugins: [require("autoprefixer")],
-				sassOptions: sass_options
-			})
-		],
+		plugins: plugins,
 		watch: get_watch_config()
-	});
+	};
 }
 
 function get_watch_config() {
@@ -244,10 +289,24 @@ function get_watch_config() {
 						assets_json,
 						prev_assets_json
 					} = await write_assets_json(result.metafile);
+
+					let changed_files;
 					if (prev_assets_json) {
-						log_rebuilt_assets(prev_assets_json, assets_json);
+						changed_files = get_rebuilt_assets(
+							prev_assets_json,
+							assets_json
+						);
+
+						let timestamp = new Date().toLocaleTimeString();
+						let message = `${timestamp}: Compiled ${changed_files.length} files...`;
+						log(chalk.yellow(message));
+						for (let filepath of changed_files) {
+							let filename = path.basename(filepath);
+							log("    " + filename);
+						}
+						log();
 					}
-					notify_redis({ success: true });
+					notify_redis({ success: true, changed_files });
 				}
 			}
 		};
@@ -255,19 +314,11 @@ function get_watch_config() {
 	return null;
 }
 
-async function clean_dist_folders(apps) {
-	for (let app of apps) {
-		let public_path = get_public_path(app);
-		await fs.promises.rmdir(path.resolve(public_path, "dist", "js"), {
-			recursive: true
-		});
-		await fs.promises.rmdir(path.resolve(public_path, "dist", "css"), {
-			recursive: true
-		});
+function log_built_assets(results) {
+	let outputs = {};
+	for (const result of results) {
+		outputs = Object.assign(outputs, result.metafile.outputs);
 	}
-}
-
-function log_built_assets(metafile) {
 	let column_widths = [60, 20];
 	cliui.div(
 		{
@@ -282,9 +333,9 @@ function log_built_assets(metafile) {
 	cliui.div("");
 
 	let output_by_dist_path = {};
-	for (let outfile in metafile.outputs) {
+	for (let outfile in outputs) {
 		if (outfile.endsWith(".map")) continue;
-		let data = metafile.outputs[outfile];
+		let data = outputs[outfile];
 		outfile = path.resolve(outfile);
 		outfile = path.relative(assets_path, outfile);
 		let filename = path.basename(outfile);
@@ -339,7 +390,11 @@ async function write_assets_json(metafile) {
 		let info = metafile.outputs[output];
 		let asset_path = "/" + path.relative(sites_path, output);
 		if (info.entryPoint) {
-			out[path.basename(info.entryPoint)] = asset_path;
+			let key = path.basename(info.entryPoint);
+			if (key.endsWith('.css') && asset_path.includes('/css-rtl/')) {
+				key = `rtl_${key}`;
+			}
+			out[key] = asset_path;
 		}
 	}
 
@@ -403,7 +458,7 @@ function run_build_command_for_apps(apps) {
 	process.chdir(cwd);
 }
 
-async function notify_redis({ error, success }) {
+async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
 	let subscriber = get_redis_subscriber("redis_socketio");
 	subscriber.on("error", _ => {
@@ -425,7 +480,9 @@ async function notify_redis({ error, success }) {
 	}
 	if (success) {
 		payload = {
-			success: true
+			success: true,
+			changed_files,
+			live_reload: argv["live-reload"]
 		};
 	}
 
@@ -455,7 +512,7 @@ function open_in_editor() {
 	subscriber.subscribe("open_in_editor");
 }
 
-function log_rebuilt_assets(prev_assets, new_assets) {
+function get_rebuilt_assets(prev_assets, new_assets) {
 	let added_files = [];
 	let old_files = Object.values(prev_assets);
 	let new_files = Object.values(new_assets);
@@ -465,17 +522,5 @@ function log_rebuilt_assets(prev_assets, new_assets) {
 			added_files.push(filepath);
 		}
 	}
-
-	log(
-		chalk.yellow(
-			`${new Date().toLocaleTimeString()}: Compiled ${
-				added_files.length
-			} files...`
-		)
-	);
-	for (let filepath of added_files) {
-		let filename = path.basename(filepath);
-		log("    " + filename);
-	}
-	log();
+	return added_files;
 }

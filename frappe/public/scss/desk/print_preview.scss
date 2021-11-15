@@ -14,6 +14,11 @@
 	}
 }
 
+.preview-beta-wrapper {
+	border-radius: var(--border-radius);
+	overflow: hidden;
+}
+
 .print-toolbar {
 	margin: 0px;
 	padding: var(--padding-md) 0;

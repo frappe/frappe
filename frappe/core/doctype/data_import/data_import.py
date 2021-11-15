@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import os
 
@@ -171,9 +171,6 @@ def import_file(
 	i.import_data()
 
 
-##############
-
-
 def import_doc(path, pre_process=None):
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
@@ -192,19 +189,8 @@ def import_doc(path, pre_process=None):
 			)
 			frappe.flags.mute_emails = False
 			frappe.db.commit()
-		elif f.endswith(".csv"):
-			validate_csv_import_file(f)
-			frappe.db.commit()
-
-
-def validate_csv_import_file(path):
-	if path.endswith(".csv"):
-		print()
-		print("This method is deprecated.")
-		print('Import CSV files using the command "bench --site sitename data-import"')
-		print("Or use the method frappe.core.doctype.data_import.data_import.import_file")
-		print()
-		raise Exception("Method deprecated")
+		else:
+			raise NotImplementedError("Only .json files can be imported")
 
 
 def export_json(

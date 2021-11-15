@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import ast
 from types import FunctionType, MethodType, ModuleType
@@ -15,7 +15,6 @@ from frappe import _
 class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
-		self.validate_script()
 		self.sync_scheduled_jobs()
 		self.clear_scheduled_events()
 
@@ -28,6 +27,11 @@ class ServerScript(Document):
 			for job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", job.name)
 
+	def get_code_fields(self):
+		return {
+			'script': 'py'
+		}
+
 	@property
 	def scheduled_jobs(self) -> List[Dict[str, str]]:
 		return frappe.get_all(
@@ -36,10 +40,6 @@ class ServerScript(Document):
 			fields=["name", "stopped"],
 		)
 
-	def validate_script(self):
-		"""Utilizes the ast module to check for syntax errors
-		"""
-		ast.parse(self.script)
 
 	def sync_scheduled_jobs(self):
 		"""Sync Scheduled Job Type statuses if Server Script's disabled status is changed
@@ -94,7 +94,7 @@ class ServerScript(Document):
 		Args:
 			doc (Document): Executes script with for a certain document's events
 		"""
-		safe_exec(self.script, _locals={"doc": doc})
+		safe_exec(self.script, _locals={"doc": doc}, restrict_commit_rollback=True)
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts

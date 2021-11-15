@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 
 from frappe.model.document import Document
 
-desk_properties = ("search_bar", "notifications", "chat", "list_sidebar",
+desk_properties = ("search_bar", "notifications", "list_sidebar",
 	"bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard")
 
 class Role(Document):
@@ -38,7 +38,7 @@ class Role(Document):
 				self.set(key, 0)
 
 	def remove_roles(self):
-		frappe.db.sql("delete from `tabHas Role` where role = %s", self.name)
+		frappe.db.delete("Has Role", {"role": self.name})
 		frappe.clear_cache()
 
 	def on_update(self):

@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe.desk.doctype.notification_settings.notification_settings import get_subscribed_documents
@@ -216,7 +216,7 @@ def get_filters_for(doctype):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_open_count(doctype, name, items=[]):
+def get_open_count(doctype, name, items=None):
 	'''Get open count for given transactions and filters
 
 	:param doctype: Reference DocType
@@ -235,7 +235,8 @@ def get_open_count(doctype, name, items=[]):
 	links = meta.get_dashboard_data()
 
 	# compile all items in a list
-	if not items:
+	if items is None:
+		items = []
 		for group in links.transactions:
 			items.extend(group.get("items"))
 

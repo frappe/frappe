@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe, json
 from frappe import _
@@ -80,7 +80,9 @@ class SocialLoginKey(Document):
 			"redirect_url":"/api/method/frappe.www.login.login_via_github",
 			"api_endpoint":"user",
 			"api_endpoint_args":None,
-			"auth_url_data":None
+			"auth_url_data": json.dumps({
+				"scope": "user:email"
+			})
 		}
 
 		providers["Google"] = {

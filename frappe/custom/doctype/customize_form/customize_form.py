@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 
 """
 	Customize Form is a Single DocType used to mask the Property Setter
@@ -18,10 +18,11 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model.docfield import supports_translation
 from frappe.core.doctype.doctype.doctype import validate_series
 
+
 class CustomizeForm(Document):
 	def on_update(self):
-		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
-		frappe.db.sql("delete from `tabCustomize Form Field`")
+		frappe.db.delete("Singles", {"doctype": "Customize Form"})
+		frappe.db.delete("Customize Form Field")
 
 	@frappe.whitelist()
 	def fetch_to_customize(self):
@@ -191,6 +192,16 @@ class CustomizeForm(Document):
 	def allow_property_change(self, prop, meta_df, df):
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+
+		elif prop == "length":
+			old_value_length = cint(meta_df[0].get(prop))
+			new_value_length = cint(df.get(prop))
+
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': meta_df[0].get(prop)})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
 
 		elif prop == "allow_on_submit" and df.get(prop):
 			if not frappe.db.get_value("DocField",

@@ -3,6 +3,7 @@ from frappe import _
 from frappe.core.utils import get_parent_doc
 from frappe.utils import parse_addr, get_formatted_email, get_url
 from frappe.email.doctype.email_account.email_account import EmailAccount
+from frappe.desk.doctype.todo.todo import ToDo
 
 class CommunicationEmailMixin:
 	"""Mixin class to handle communication mails.
@@ -76,6 +77,7 @@ class CommunicationEmailMixin:
 		if is_inbound_mail_communcation:
 			cc.append(self.get_owner())
 			cc = set(cc) - {self.sender_mailid}
+			cc.update(self.get_assignees())
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
@@ -89,7 +91,7 @@ class CommunicationEmailMixin:
 		return self._final_cc
 
 	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender = False):
-		cc_list = self.mail_cc(is_inbound_mail_communcation=False, include_sender = False)
+		cc_list = self.mail_cc(is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender = include_sender)
 		return [self.get_email_with_displayname(email) for email in cc_list]
 
 	def mail_bcc(self, is_inbound_mail_communcation=False):
@@ -176,8 +178,8 @@ class CommunicationEmailMixin:
 	def mail_attachments(self, print_format=None, print_html=None):
 		final_attachments = []
 
-		if print_format and print_html:
-			d = {'print_format': print_format, 'print_html': print_html, 'print_format_attachment': 1,
+		if print_format or print_html:
+			d = {'print_format': print_format, 'html': print_html, 'print_format_attachment': 1,
 					'doctype': self.reference_doctype, 'name': self.reference_name}
 			final_attachments.append(d)
 
@@ -201,6 +203,13 @@ class CommunicationEmailMixin:
 			self.mail_cc(is_inbound_mail_communcation = is_inbound_mail_communcation, include_sender=include_sender)
 		return set(all_ids) - set(final_ids)
 
+	def get_assignees(self):
+		"""Get owners of the reference document.
+		"""
+		filters = {'status': 'Open', 'reference_name': self.reference_name,
+			'reference_type': self.reference_doctype}
+		return ToDo.get_owners(filters)
+
 	@staticmethod
 	def filter_thread_notification_disbled_users(emails):
 		"""Filter users based on notifications for email threads setting is disabled.
@@ -208,17 +217,7 @@ class CommunicationEmailMixin:
 		if not emails:
 			return []
 
-		disabled_users = frappe.db.sql_list("""
-			SELECT
-				email
-			FROM
-				`tabUser`
-			where
-				email in %(emails)s
-				and
-				thread_notify=0
-		""", {'emails': tuple(emails)})
-		return disabled_users
+		return frappe.get_all("User", pluck="email", filters={"email": ["in", emails], "thread_notify": 0})
 
 	@staticmethod
 	def filter_disabled_users(emails):
@@ -227,17 +226,7 @@ class CommunicationEmailMixin:
 		if not emails:
 			return []
 
-		disabled_users = frappe.db.sql_list("""
-			SELECT
-				email
-			FROM
-				`tabUser`
-			where
-				email in %(emails)s
-				and
-				enabled=0
-		""", {'emails': tuple(emails)})
-		return disabled_users
+		return frappe.get_all("User", pluck="email", filters={"email": ["in", emails], "enabled": 0})
 
 	def sendmail_input_dict(self, print_html=None, print_format=None,
 			send_me_a_copy=None, print_letterhead=None, is_inbound_mail_communcation=None):

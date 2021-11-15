@@ -41,7 +41,11 @@ frappe.ui.form.PrintView = class {
 				</iframe>
 			</div>
 			<div class="page-break-message text-muted text-center text-medium margin-top"></div>
-		</div>`
+		</div>
+		<div class="preview-beta-wrapper">
+			<iframe width="100%" height="0" frameBorder="0"></iframe>
+		</div>
+		`
 		);
 
 		this.print_settings = frappe.model.get_doc(
@@ -72,7 +76,7 @@ frappe.ui.form.PrintView = class {
 
 		this.page.add_button(
 			__('PDF'),
-			() => this.render_page('/api/method/frappe.utils.print_format.download_pdf?'),
+			() => this.render_pdf(),
 			{ icon: 'small-file' }
 		);
 
@@ -113,22 +117,20 @@ frappe.ui.form.PrintView = class {
 			},
 		).$input;
 
-		this.letterhead_selector = this.add_sidebar_item(
+		this.letterhead_selector_df = this.add_sidebar_item(
 			{
-				fieldtype: 'Select',
+				fieldtype: 'Autocomplete',
 				fieldname: 'letterhead',
 				label: __('Select Letterhead'),
-				options: [
-					this.get_default_option_for_select(__('Select Letterhead')),
-					__('No Letterhead')
-				],
+				placeholder: __('Select Letterhead'),
+				options: [__('No Letterhead')],
 				change: () => this.preview(),
 				default: this.print_settings.with_letterhead
 					? __('No Letterhead')
 					: __('Select Letterhead')
 			},
-		).$input;
-
+		);
+		this.letterhead_selector = this.letterhead_selector_df.$input;
 		this.sidebar_dynamic_section = $(
 			`<div class="dynamic-settings"></div>`
 		).appendTo(this.sidebar);
@@ -136,7 +138,7 @@ frappe.ui.form.PrintView = class {
 
 	add_sidebar_item(df, is_dynamic) {
 		if (df.fieldtype == 'Select') {
-			df.input_class = 'btn btn-default btn-sm';
+			df.input_class = 'btn btn-default btn-sm text-left';
 		}
 
 		let field = frappe.ui.form.make_control({
@@ -167,18 +169,21 @@ frappe.ui.form.PrintView = class {
 			frappe.set_route('Form', 'Print Settings');
 		});
 
-		if (
-			frappe.model.get_doc(':Print Settings', 'Print Settings')
-				.enable_raw_printing == '1'
-		) {
+		if (this.print_settings.enable_raw_printing == '1') {
 			this.page.add_menu_item(__('Raw Printing Setting'), () => {
 				this.printer_setting_dialog();
 			});
 		}
 
-		if (frappe.user.has_role('System Manager')) {
+		if (frappe.model.can_create('Print Format')) {
 			this.page.add_menu_item(__('Customize'), () =>
 				this.edit_print_format()
+			);
+		}
+
+		if (cint(this.print_settings.enable_print_server)) {
+			this.page.add_menu_item(__('Select Network Printer'), () =>
+				this.network_printer_setting_dialog()
 			);
 		}
 	}
@@ -188,6 +193,13 @@ frappe.ui.form.PrintView = class {
 		this.set_title();
 		this.set_breadcrumbs();
 		this.setup_customize_dialog();
+
+		// print format builder beta
+		this.page.add_inner_message(`
+			<a style="line-height: 2.4" href="/app/print-format-builder-beta?doctype=${this.frm.doctype}">
+				${__('Try the new Print Format Builder')}
+			</a>
+		`);
 
 		let tasks = [
 			this.refresh_print_options,
@@ -232,7 +244,7 @@ frappe.ui.form.PrintView = class {
 		let print_format = this.get_print_format();
 		let is_custom_format =
 			print_format.name &&
-			print_format.print_format_builder &&
+			(print_format.print_format_builder || print_format.print_format_builder_beta) &&
 			print_format.standard === 'No';
 		let is_standard_but_editable =
 			print_format.name && print_format.custom_format;
@@ -242,7 +254,11 @@ frappe.ui.form.PrintView = class {
 			return;
 		}
 		if (is_custom_format) {
-			frappe.set_route('print-format-builder', print_format.name);
+			if (print_format.print_format_builder_beta) {
+				frappe.set_route('print-format-builder-beta', print_format.name);
+			} else {
+				frappe.set_route('print-format-builder', print_format.name);
+			}
 			return;
 		}
 		// start a new print format
@@ -260,6 +276,11 @@ frappe.ui.form.PrintView = class {
 					fieldtype: 'Read Only',
 					default: print_format.name || 'Standard',
 				},
+				{
+					label: __('Use the new Print Format Builder'),
+					fieldname: 'beta',
+					fieldtype: 'Check'
+				},
 			],
 			(data) => {
 				frappe.route_options = {
@@ -267,6 +288,7 @@ frappe.ui.form.PrintView = class {
 					doctype: this.frm.doctype,
 					name: data.print_format_name,
 					based_on: data.based_on,
+					beta: data.beta
 				};
 				frappe.set_route('print-format-builder');
 				this.print_sel.val(data.print_format_name);
@@ -336,23 +358,19 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_letterhead_options() {
-		let letterhead_options = [
-			this.get_default_option_for_select(__('Select Letterhead')),
-			__('No Letterhead')
-		];
+		let letterhead_options = [__('No Letterhead')];
 		let default_letterhead;
 		let doc_letterhead = this.frm.doc.letter_head;
 
 		return frappe.db
-			.get_list('Letter Head', { fields: ['name', 'is_default'] })
+			.get_list('Letter Head', { fields: ['name', 'is_default'], limit: 0 })
 			.then((letterheads) => {
-				this.letterhead_selector.empty();
 				letterheads.map((letterhead) => {
 					if (letterhead.is_default) default_letterhead = letterhead.name;
 					return letterhead_options.push(letterhead.name);
 				});
 
-				this.letterhead_selector.add_options(letterhead_options);
+				this.letterhead_selector_df.set_data(letterhead_options);
 				let selected_letterhead = doc_letterhead || default_letterhead;
 				if (selected_letterhead)
 					this.letterhead_selector.val(selected_letterhead);
@@ -383,6 +401,17 @@ frappe.ui.form.PrintView = class {
 	}
 
 	preview() {
+		let print_format = this.get_print_format();
+		if (print_format.print_format_builder_beta) {
+			this.print_wrapper.find('.print-preview-wrapper').hide();
+			this.print_wrapper.find('.preview-beta-wrapper').show();
+			this.preview_beta();
+			return;
+		}
+
+		this.print_wrapper.find('.preview-beta-wrapper').hide();
+		this.print_wrapper.find('.print-preview-wrapper').show();
+
 		const $print_format = this.print_wrapper.find('iframe');
 		this.$print_format_body = $print_format.contents();
 		this.get_print_html((out) => {
@@ -406,21 +435,31 @@ frappe.ui.form.PrintView = class {
 		});
 	}
 
+	preview_beta() {
+		let print_format = this.get_print_format();
+		const iframe = this.print_wrapper.find('.preview-beta-wrapper iframe');
+		let params = new URLSearchParams({
+			doctype: this.frm.doc.doctype,
+			name: this.frm.doc.name,
+			print_format: print_format.name
+		});
+		let letterhead = this.get_letterhead();
+		if (letterhead) {
+			params.append("letterhead", letterhead);
+		}
+		iframe.prop('src', `/printpreview?${params.toString()}`);
+	}
+
 	setup_print_format_dom(out, $print_format) {
 		this.print_wrapper.find('.print-format-skeleton').remove();
 		let base_url = frappe.urllib.get_base_url();
-		let print_css = frappe.assets.bundled_asset('print.bundle.css');
+		let print_css = frappe.assets.bundled_asset('print.bundle.css', frappe.utils.is_rtl(this.lang_code));
+		this.$print_format_body.find('html').attr('dir', frappe.utils.is_rtl(this.lang_code) ? 'rtl': 'ltr');
+		this.$print_format_body.find('html').attr('lang', this.lang_code);
 		this.$print_format_body.find('head').html(
 			`<style type="text/css">${out.style}</style>
 			<link href="${base_url}${print_css}" rel="stylesheet">`
 		);
-
-		if (frappe.utils.is_rtl(this.lang_code)) {
-			let rtl_css = frappe.assets.bundled_asset('frappe-rtl.bundle.css');
-			this.$print_format_body.find('head').append(
-				`<link type="text/css" rel="stylesheet" href="${base_url}${rtl_css}"></link>`
-			);
-		}
 
 		this.$print_format_body.find('body').html(
 			`<div class="print-format print-format-preview">${out.html}</div>`
@@ -471,70 +510,126 @@ frappe.ui.form.PrintView = class {
 
 	printit() {
 		let me = this;
-		frappe.call({
-			method:
-				'frappe.printing.doctype.print_settings.print_settings.is_print_server_enabled',
-			callback: function(data) {
-				if (data.message) {
-					frappe.call({
-						method: 'frappe.utils.print_format.print_by_server',
-						args: {
-							doctype: me.frm.doc.doctype,
-							name: me.frm.doc.name,
-							print_format: me.selected_format(),
-							no_letterhead: me.with_letterhead(),
-							letterhead: this.get_letterhead(),
-						},
-						callback: function() {},
-					});
-				} else if (me.get_mapped_printer().length === 1) {
-					// printer is already mapped in localstorage (applies for both raw and pdf )
-					if (me.is_raw_printing()) {
-						me.get_raw_commands(function(out) {
-							frappe.ui.form
-								.qz_connect()
-								.then(function() {
-									let printer_map = me.get_mapped_printer()[0];
-									let data = [out.raw_commands];
-									let config = qz.configs.create(printer_map.printer);
-									return qz.print(config, data);
-								})
-								.then(frappe.ui.form.qz_success)
-								.catch((err) => {
-									frappe.ui.form.qz_fail(err);
-								});
+
+		if (cint(me.print_settings.enable_print_server)) {
+			if (localStorage.getItem('network_printer')) {
+				me.print_by_server();
+			} else {
+				me.network_printer_setting_dialog(() => me.print_by_server());
+			}
+		} else if (me.get_mapped_printer().length === 1) {
+			// printer is already mapped in localstorage (applies for both raw and pdf )
+			if (me.is_raw_printing()) {
+				me.get_raw_commands(function(out) {
+					frappe.ui.form
+						.qz_connect()
+						.then(function() {
+							let printer_map = me.get_mapped_printer()[0];
+							let data = [out.raw_commands];
+							let config = qz.configs.create(printer_map.printer);
+							return qz.print(config, data);
+						})
+						.then(frappe.ui.form.qz_success)
+						.catch((err) => {
+							frappe.ui.form.qz_fail(err);
 						});
-					} else {
-						frappe.show_alert(
+				});
+			} else {
+				frappe.show_alert(
+					{
+						message: __('PDF printing via "Raw Print" is not supported.'),
+						subtitle: __(
+							'Please remove the printer mapping in Printer Settings and try again.'
+						),
+						indicator: 'info',
+					},
+					14
+				);
+				//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
+			}
+		} else if (me.is_raw_printing()) {
+			// printer not mapped in localstorage and the current print format is raw printing
+			frappe.show_alert(
+				{
+					message: __('Printer mapping not set.'),
+					subtitle: __(
+						'Please set a printer mapping for this print format in the Printer Settings'
+					),
+					indicator: 'warning',
+				},
+				14
+			);
+			me.printer_setting_dialog();
+		} else {
+			me.render_page('/printview?', true);
+		}
+	}
+
+	print_by_server() {
+		let me = this;
+		if (localStorage.getItem('network_printer')) {
+			frappe.call({
+				method: 'frappe.utils.print_format.print_by_server',
+				args: {
+					doctype: me.frm.doc.doctype,
+					name: me.frm.doc.name,
+					printer_setting: localStorage.getItem('network_printer'),
+					print_format: me.selected_format(),
+					no_letterhead: me.with_letterhead(),
+					letterhead: me.get_letterhead(),
+				},
+				callback: function() {},
+			});
+		}
+	}
+	network_printer_setting_dialog(callback) {
+		frappe.call({
+			method: 'frappe.printing.doctype.network_printer_settings.network_printer_settings.get_network_printer_settings',
+			callback: function(r) {
+				if (r.message) {
+					let d = new frappe.ui.Dialog({
+						title: __('Select Network Printer'),
+						fields: [
 							{
-								message: __('PDF printing via "Raw Print" is not supported.'),
-								subtitle: __(
-									'Please remove the printer mapping in Printer Settings and try again.'
-								),
-								indicator: 'info',
-							},
-							14
-						);
-						//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
-					}
-				} else if (me.is_raw_printing()) {
-					// printer not mapped in localstorage and the current print format is raw printing
-					frappe.show_alert(
-						{
-							message: __('Printer mapping not set.'),
-							subtitle: __(
-								'Please set a printer mapping for this print format in the Printer Settings'
-							),
-							indicator: 'warning',
+								"label": "Printer",
+								"fieldname": "printer",
+								"fieldtype": "Select",
+								"reqd": 1,
+								"options": r.message
+							}
+						],
+						primary_action: function() {
+							localStorage.setItem('network_printer', d.get_values().printer);
+							if (typeof callback == "function") {
+								callback();
+							}
+							d.hide();
 						},
-						14
-					);
-					me.printer_setting_dialog();
-				} else {
-					me.render_page('/printview?', true);
+						primary_action_label: __('Select')
+					});
+					d.show();
 				}
 			},
 		});
+	}
+
+	render_pdf() {
+		let print_format = this.get_print_format();
+		if (print_format.print_format_builder_beta) {
+			let params = new URLSearchParams({
+				doctype: this.frm.doc.doctype,
+				name: this.frm.doc.name,
+				print_format: print_format.name,
+				letterhead: this.get_letterhead()
+			});
+			let w = window.open(`/api/method/frappe.utils.weasyprint.download_pdf?${params}`);
+			if (!w) {
+				frappe.msgprint(__('Please enable pop-ups'));
+				return;
+			}
+		} else {
+			this.render_page('/api/method/frappe.utils.print_format.download_pdf?');
+		}
 	}
 
 	render_page(method, printit = false) {

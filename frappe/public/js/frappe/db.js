@@ -10,7 +10,7 @@ frappe.db = {
 		if (!args.fields) {
 			args.fields = ['name'];
 		}
-		if (!args.limit) {
+		if (!('limit' in args)) {
 			args.limit = 20;
 		}
 		return new Promise ((resolve) => {

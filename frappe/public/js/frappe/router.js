@@ -14,11 +14,10 @@ frappe.view_factories = [];
 frappe.route_options = null;
 frappe.route_hooks = {};
 
-$(window).on('hashchange', function() {
+$(window).on('hashchange', function(e) {
 	// v1 style routing, route is in hash
-	if (window.location.hash) {
+	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
 		let sub_path = frappe.router.get_sub_path(window.location.hash);
-		window.location.hash = '';
 		frappe.router.push_state(sub_path);
 		return false;
 	}
@@ -48,19 +47,26 @@ $('body').on('click', 'a', function(e) {
 		return;
 	}
 
-	if (href==='') {
+	if (href === '') {
 		return override('/app');
 	}
 
-	// target has "#" ,this is a v1 style route, so remake it.
-	if (e.currentTarget.hash) {
+	if (href && href.startsWith('#')) {
+		// target startswith "#", this is a v1 style route, so remake it.
 		return override(e.currentTarget.hash);
 	}
 
-	// target has "/app, this is a v2 style route.
-	if (e.currentTarget.pathname && frappe.router.is_app_route(e.currentTarget.pathname)) {
-		return override(e.currentTarget.pathname);
+	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
+		// target has "/app, this is a v2 style route.
+
+		frappe.route_options = {};
+		let params = new URLSearchParams(e.currentTarget.search);
+		for (const [key, value] of params) {
+			frappe.route_options[key] = value;
+		}
+		return override(e.currentTarget.pathname + e.currentTarget.hash);
 	}
+
 });
 
 frappe.router = {
@@ -119,6 +125,7 @@ frappe.router = {
 
 	convert_to_standard_route(route) {
 		// /app/settings = ["Workspaces", "Settings"]
+		// /app/private/settings = ["Workspaces", "private", "Settings"]
 		// /app/user = ["List", "User"]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
@@ -126,15 +133,25 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 
+		let private_wspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+
 		if (frappe.workspaces[route[0]]) {
-			// workspace
-			route = ['Workspaces', frappe.workspaces[route[0]].name];
+			// public workspace
+			route = ['Workspaces', frappe.workspaces[route[0]].title];
+		} else if (route[0] == 'private' && frappe.workspaces[private_wspace]) {
+			// private workspace
+			route = ['Workspaces', 'private', frappe.workspaces[private_wspace].title];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = this.set_doctype_route(route);
 		}
 
 		return route;
+	},
+
+	doctype_route_exist(route) {
+		route = this.get_sub_path_string(route).split('/');
+		return this.routes[route[0]];
 	},
 
 	set_doctype_route(route) {
@@ -170,10 +187,8 @@ frappe.router = {
 			standard_route = ['Tree', doctype_route.doctype];
 		} else {
 			standard_route = ['List', doctype_route.doctype, frappe.utils.to_title_case(route[2])];
-			if (route[3]) {
-				// calendar / kanban / dashboard name
-				standard_route.push(route[3]);
-			}
+			// calendar / kanban / dashboard / folder
+			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}
 		return standard_route;
 	},
@@ -235,6 +250,12 @@ frappe.router = {
 		}
 	},
 
+	clear_re_route(doctype, docname) {
+		delete frappe.re_route[
+			`${encodeURIComponent(frappe.router.slug(doctype))}/${encodeURIComponent(docname)}`
+		];
+	},
+
 	set_title(sub_path) {
 		if (frappe.route_titles[sub_path]) {
 			frappe.utils.set_title(frappe.route_titles[sub_path]);
@@ -246,12 +267,14 @@ frappe.router = {
 		// example 1: frappe.set_route('a', 'b', 'c');
 		// example 2: frappe.set_route(['a', 'b', 'c']);
 		// example 3: frappe.set_route('a/b/c');
-		let route = arguments;
+		let route = Array.from(arguments);
 
 		return new Promise(resolve => {
 			route = this.get_route_from_arguments(route);
 			route = this.convert_from_standard_route(route);
-			const sub_path = this.make_url(route);
+			let sub_path = this.make_url(route);
+			// replace each # occurrences in the URL with encoded character except for last
+			// sub_path = sub_path.replace(/[#](?=.*[#])/g, "%23");
 			this.push_state(sub_path);
 
 			setTimeout(() => {
@@ -297,8 +320,8 @@ frappe.router = {
 			if (route[2] && route[2] !== 'list' && !$.isPlainObject(route[2])) {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
-				// calendar / inbox
-				if (route[3]) new_route.push(route[3]);
+				// calendar / inbox / file folder
+				if (route[3]) new_route.push(...route.slice(3, route.length));
 			} else {
 				if ($.isPlainObject(route[2])) {
 					frappe.route_options = route[2];
@@ -335,22 +358,21 @@ frappe.router = {
 				return null;
 			} else {
 				a = String(a);
-				if (a && a.match(/[%'"\s\t]/)) {
+				if (a && a.match(/[%'"#\s\t]/)) {
 					// if special chars, then encode
 					a = encodeURIComponent(a);
 				}
 				return a;
 			}
 		}).join('/');
-
-		return '/app/' + (path_string || 'home');
+		let private_home = frappe.workspaces[`home-${frappe.user.name.toLowerCase()}`];
+		let default_page = private_home ? 'private/home' : frappe.workspaces['home'] ? 'home' : Object.keys(frappe.workspaces)[0];
+		return '/app/' + (path_string || default_page);
 	},
 
 	push_state(url) {
 		// change the URL and call the router
 		if (window.location.pathname !== url) {
-			// cleanup any remenants of v1 routing
-			window.location.hash = '';
 
 			// push state so the browser looks fine
 			history.pushState(null, null, url);
@@ -364,7 +386,11 @@ frappe.router = {
 		// return clean sub_path from hash or url
 		// supports both v1 and v2 routing
 		if (!route) {
-			route = window.location.hash || (window.location.pathname + window.location.search);
+			route = window.location.pathname;
+			if (route.includes('app#')) {
+				// to support v1
+				route = window.location.hash;
+			}
 		}
 
 		return this.strip_prefix(route);
