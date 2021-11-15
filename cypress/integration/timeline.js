@@ -4,7 +4,6 @@ context('Timeline', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/app/todo');
 	});
 
 	it('Adding new ToDo, adding new comment, verifying comment addition & deletion and deleting ToDo', () => {
@@ -26,15 +25,15 @@ context('Timeline', () => {
 		cy.get('.timeline-content').should('contain', 'Testing Timeline');
 
 		//Editing comment
-		cy.click_timeline_action_btn(0);
+		cy.click_timeline_action_btn("Edit");
 		cy.get('.timeline-content [data-fieldname="comment"] .ql-editor').first().type(' 123');
-		cy.click_timeline_action_btn(0);
+		cy.click_timeline_action_btn("Save");
 
 		//To check if the edited comment text is visible in timeline content
 		cy.get('.timeline-content').should('contain', 'Testing Timeline 123');
 
 		//Discarding comment
-		cy.click_timeline_action_btn(0);
+		cy.click_timeline_action_btn("Edit");
 		cy.click_timeline_action_btn("Dismiss");
 
 		//To check if after discarding the timeline content is same as previous
