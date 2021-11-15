@@ -16,10 +16,10 @@ $.extend(frappe.datetime, {
 		// Converts the datetime string to system time zone first since the database only stores datetime in
 		// system time zone and then convert the string to user time zone(from User doctype).
 		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system_time_zone && frappe.boot.time_zone.user_time_zone) {
-			date_obj = moment.tz(date, frappe.boot.time_zone.system_time_zone)
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+			date_obj = moment.tz(date, frappe.boot.time_zone.system)
 				.clone()
-				.tz(frappe.boot.time_zone.user_time_zone);
+				.tz(frappe.boot.time_zone.user);
 		} else {
 			date_obj = moment(date);
 		}
@@ -34,10 +34,10 @@ $.extend(frappe.datetime, {
 		// This is done so that only one timezone is present in database and we do not end up storing local timezone since it changes
 		// as per the location of user.
 		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system_time_zone && frappe.boot.time_zone.user_time_zone) {
-			date_obj = moment.tz(date, frappe.boot.time_zone.user_time_zone)
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+			date_obj = moment.tz(date, frappe.boot.time_zone.user)
 				.clone()
-				.tz(frappe.boot.time_zone.system_time_zone);
+				.tz(frappe.boot.time_zone.system);
 		} else {
 			date_obj = moment(date);
 		}
@@ -46,11 +46,15 @@ $.extend(frappe.datetime, {
 	},
 
 	is_system_time_zone: function() {
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system_time_zone && frappe.boot.time_zone.user_time_zone) {
-			return moment().tz(frappe.boot.time_zone.system_time_zone).utcOffset() === moment().tz(frappe.boot.time_zone.user_time_zone).utcOffset();
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+			return moment().tz(frappe.boot.time_zone.system).utcOffset() === moment().tz(frappe.boot.time_zone.user).utcOffset();
 		}
 
 		return true;
+	},
+
+	is_timezone_same: function() {
+		return frappe.datetime.is_system_time_zone();
 	},
 
 	str_to_obj: function(d) {
@@ -204,7 +208,7 @@ $.extend(frappe.datetime, {
 		 * This will make sure that at any point we know which timezone the user if following and not have random timezone
 		 * when the timezone of the local machine changes.
 		 */
-		let time_zone = frappe.boot.time_zone ? frappe.boot.time_zone.user_time_zone || frappe.boot.time_zone.system_time_zone : frappe.sys_defaults.time_zone;
+		let time_zone = frappe.boot.time_zone ? frappe.boot.time_zone.user || frappe.boot.time_zone.system : frappe.sys_defaults.time_zone;
 		let date = moment.tz(time_zone);
 
 		return as_obj ? frappe.datetime.moment_to_date_obj(date) : date.format(format);

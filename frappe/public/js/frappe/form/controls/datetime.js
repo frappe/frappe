@@ -63,7 +63,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		super.set_description();
 	}
 	get_user_time_zone() {
-		return frappe.boot.time_zone ? frappe.boot.time_zone.user_time_zone : frappe.sys_defaults.time_zone;
+		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
 		super.set_datepicker();

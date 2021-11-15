@@ -329,6 +329,6 @@ def get_notification_settings():
 
 def set_time_zone(bootinfo):
 	bootinfo.time_zone = {
-		"system_time_zone": get_time_zone(),
-		"user_time_zone": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None) or get_time_zone()
+		"system": get_time_zone(),
+		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None) or get_time_zone()
 	}
