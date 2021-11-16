@@ -43,6 +43,11 @@
 		) }}
 	{%- endif -%}
 	<div class="blog-footer">
+		<div class="blog-feedback">
+			{% if not disable_feedback %}
+				{% include 'templates/includes/feedback/feedback.html' %}
+			{% endif %}
+		</div>
 		{% if social_links %}
 			<div>
 				{% for link in social_links %}
@@ -50,11 +55,6 @@
 				{% endfor %}
 			</div>
 		{% endif %}
-		<div class="blog-feedback">
-			{% if not disable_feedback %}
-				{% include 'templates/includes/feedback/feedback.html' %}
-			{% endif %}
-		</div>
 		<div>
 			{{ _('Published on') }} <time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
 		</div>
