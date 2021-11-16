@@ -40,7 +40,9 @@ context('List View', () => {
 			}).as('real-time-update');
 			cy.wrap(elements).contains('Approve').click();
 			cy.wait(['@bulk-approval', '@real-time-update']);
-			cy.hide_dialog();
+			cy.wait(300);
+			cy.get_open_dialog().find('.btn-modal-close').click();
+			cy.reload();
 			cy.clear_filters();
 			cy.get('.list-row-container:visible').should('contain', 'Approved');
 		});
