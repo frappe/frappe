@@ -90,7 +90,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 		filters = {"name": filters}
 
 	try:
-		fields = json.loads(fieldname)
+		fields = frappe.parse_json(fieldname)
 	except (TypeError, ValueError):
 		# name passed, not json
 		fields = [fieldname]
@@ -402,3 +402,45 @@ def is_document_amended(doctype, docname):
 			pass
 
 	return False
+
+@frappe.whitelist()
+def validate_link(doctype: str, docname: str, fields=None):
+	if not isinstance(doctype, str):
+		frappe.throw(_("DocType must be a string"))
+
+	if not isinstance(docname, str):
+		frappe.throw(_("Document Name must be a string"))
+
+	if doctype != "DocType" and not (
+		frappe.has_permission(doctype, "select")
+		or frappe.has_permission(doctype, "read")
+	):
+		frappe.throw(
+			_("You do not have Read or Select Permissions for {}")
+			.format(frappe.bold(doctype)),
+			frappe.PermissionError
+		)
+
+	values = frappe._dict()
+	values.name = frappe.db.get_value(doctype, docname, cache=True)
+
+	fields = frappe.parse_json(fields)
+	if not values.name or not fields:
+		return values
+
+	try:
+		values.update(get_value(doctype, fields, docname))
+	except frappe.PermissionError:
+		frappe.clear_last_message()
+		frappe.msgprint(
+			_("You need {0} permission to fetch values from {1} {2}")
+			.format(
+				frappe.bold(_("Read")),
+				frappe.bold(doctype),
+				frappe.bold(docname)
+			),
+			title=_("Cannot Fetch Values"),
+			indicator="orange"
+		)
+
+	return values
