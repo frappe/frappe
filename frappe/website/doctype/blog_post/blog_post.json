@@ -17,6 +17,7 @@
   "published",
   "featured",
   "hide_cta",
+  "enable_email_notification",
   "disable_comments",
   "disable_feedback",
   "section_break_5",
@@ -197,6 +198,12 @@
    "fieldname": "disable_feedback",
    "fieldtype": "Check",
    "label": "Disable Feedback"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_email_notification",
+   "fieldtype": "Check",
+   "label": "Enable Email Notification"
   }
  ],
  "has_web_view": 1,
@@ -206,7 +213,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2021-09-13 17:19:35.436045",
+ "modified": "2021-11-16 16:19:18.135696",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
