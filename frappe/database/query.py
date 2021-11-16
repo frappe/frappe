@@ -224,6 +224,7 @@ class Query:
 		"""
 		conditions = self.get_condition(table, **kwargs)
 		if not filters:
+			conditions = self.add_conditions(conditions, **kwargs)
 			return conditions
 
 		for key in filters:

@@ -85,7 +85,7 @@ class Database(object):
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
 			debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None,
-			explain=False, run=True, pluck=False):
+			explain=False, run=True, pluck=False, **kwargs):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -553,7 +553,7 @@ class Database(object):
 					field_objects.append(field)
 
 		criterion = self.query.build_conditions(
-			table=doctype, filters=filters, orderby=order_by, for_update=for_update
+			table=doctype, filters=filters, orderby=order_by, for_update=for_update, **kwargs,
 		)
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*field_objects)
