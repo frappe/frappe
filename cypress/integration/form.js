@@ -8,7 +8,10 @@ context('Form', () => {
 	});
 	it('create a new form', () => {
 		cy.visit('/app/todo/new');
-		cy.fill_field('description', 'this is a test todo', 'Text Editor');
+		cy.get('[data-fieldname="description"] .ql-editor')
+			.first()
+			.click()
+			.type('this is a test todo');
 		cy.wait(300);
 		cy.get('.page-title').should('contain', 'Not Saved');
 		cy.intercept({
