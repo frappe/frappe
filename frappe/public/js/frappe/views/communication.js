@@ -34,7 +34,7 @@ frappe.views.CommunicationComposer = class {
 			minimizable: true
 		});
 
-		this.dialog.sections[0].wrapper.addClass('to_section');
+		$(this.dialog.$wrapper.find(".form-section").get(0)).addClass('to_section');
 
 		this.prepare();
 		this.dialog.show();
