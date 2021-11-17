@@ -1,7 +1,7 @@
 frappe.provide('frappe.utils.utils');
 frappe.provide("frappe.views");
 
-let default_icon = "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png";
+let default_icon_url = "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png";
 
 frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView {
     get view_name() {
@@ -57,16 +57,15 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                     for (z = 0; z < this.markers.length; z++) {
 
                         if (this.markers[z].properties.point_type === 'marker'){
+                            this.icon_url = default_icon_url;
                             for (y = 0; y < this.icons.length; y++) {
                                 if (this.icons[y].name1 === this.markers[z].properties.icon) {
                                     this.icon_url = this.icons[y].icon_image;
-                                } else {
-                                    this.icon_url = default_icon;
                                 }
                             }
                             const icon = {
                                 url: this.icon_url,
-                                scaledSize: new google.maps.Size(15, 15)
+                                scaledSize: new google.maps.Size(30, 30)
                             };
 
                             this.marker = new google.maps.Marker({

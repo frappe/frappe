@@ -8,14 +8,14 @@ let markers = []
 frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 	horizontal: false,
 
-	format_for_input(value) {
+	format_for_input(value, docstatus = 0) {
 		this.get_google_icons()
             .then(() => {
-                this.render_map(value)
+                this.render_map(value, docstatus)
             });
 	},
 
-	render_map(value) {
+	render_map(value, docstatus=0) {
 		//set bounds variable for fitbBounds function (set map center with multiple markers)
 		var bounds = new google.maps.LatLngBounds();
 		let markers = []
@@ -28,7 +28,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 			// set default icon
 			var default_icon = {
 				url: default_icon_url,
-				scaledSize: new google.maps.Size(20, 20)
+				scaledSize: new google.maps.Size(30, 30)
 			};
 
 			// list of markers
@@ -36,39 +36,37 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 				return ele.properties.point_type === "marker";
 			});
 
+
 			// list of circles
 			var circle = this.objValue.features.filter(function(ele) {
 				return ele.properties.point_type === "circle";
 			});
 
 			if (points.length > 0) {
-
 				//create dafult map
-				let map = new google.maps.Map(document.getElementById("map"), {
+				let map = new google.maps.Map(document.getElementById(this.map_id), {
 					zoom: 8,
 					mapTypeId: "terrain",
 					center: {lat: -6.321916245621676, lng:106.67620042320505}
 
 				});
 
-				// map.setOptions({
-				// 	maxZoom: 10
-				// });
 
 				for (i = 0; i < points.length; i++) {
+					this.icon_url = default_icon_url;
 					for (z = 0; z < this.icons.length; z++) {
-						// set icons get from json or default icon url if icon in json
 						if (points[i].properties.icon === this.icons[z].name1) {
 							this.icon_url = this.icons[z].icon_image;
-						} else {
-							this.icon_url = default_icon_url;
-						}
+							console.log("Ini diliat bro", this.icon_url);
+
+							break;
+						} 
 					}
 					
 					// set icon for gmaps
 					const icon = {
 						url: this.icon_url,
-						scaledSize: new google.maps.Size(15, 15)
+						scaledSize: new google.maps.Size(30, 30)
 					};
 					
 					// draw markers on gmaps
@@ -89,19 +87,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 						};
 					})(marker,markerLabel,infowindow)); 
 					bounds.extend(marker.position);
-					// map.setCenter(this.markersCenter.lng, this.markersCenter.lat); // set map center to marker position
-					
-					// map.fitBounds(bounds);
 				}
-
-				// google.maps.event.addListener(marker, 'dblclick', function(event){
-				// 	map = marker.getMap();    
-				// 	map.setCenter(overlay.getPosition()); // set map center to marker position
-				// 	smoothZoom(map, 12, map.getZoom()); // call smoothZoom, parameters map, final zoomLevel, and starting zoom level
-				// });
-				// this.fitToMarkers(map, markers);
-				// map.fitBounds(bounds);
-				// map.panTo(bounds);
 
 				if (circle.length > 0) {
 					for (i = 0; i < circle.length; i++) {  
@@ -111,7 +97,6 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 							strokeWeight: 1,
 							strokeColor: "rgb(51, 136, 255)",
 							clickable: false,
-							editable: true,
 							zIndex: 1,
 							map,
 							center: {lng: circle[i].geometry.coordinates[0], lat: circle[i].geometry.coordinates[1]},
@@ -119,6 +104,8 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 						});
 					}
 				}
+
+			
 
 				this.getMarkersCenter(markers);
 				map.setCenter(new google.maps.LatLng(
@@ -130,38 +117,56 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 					this.markersZoom = 18;
 				}
 
-				console.log(this.markersZoom);
-
 				this.smoothZoom(map, this.markersZoom, map.getZoom()); // call smoothZoom, parameters map, final zoomLevel, and starting zoom level
 
+				if (docstatus === 1) {
+					this.drawingManager = new google.maps.drawing.DrawingManager({
+						drawingMode: google.maps.drawing.OverlayType.MARKER,
+						drawingControl: true,
+						drawingControlOptions: {
+						  position: google.maps.ControlPosition.TOP_CENTER,
+						  drawingModes: [
+						  ],
+						},
+						markerOptions: {
+						  icon: default_icon,
+						},
+						circleOptions: {
+							fillColor: "rgb(51, 136, 255)",
+							fillOpacity: 0.2,
+							strokeWeight: 1,
+							strokeColor: "rgb(51, 136, 255)",
+							clickable: false,
+							zIndex: 1,
+						  },
+					});
 
-				const drawingManager = new google.maps.drawing.DrawingManager({
-					drawingMode: google.maps.drawing.OverlayType.MARKER,
-					drawingControl: true,
-					drawingControlOptions: {
-					  position: google.maps.ControlPosition.TOP_CENTER,
-					  drawingModes: [
-						google.maps.drawing.OverlayType.MARKER,
-						google.maps.drawing.OverlayType.CIRCLE,
-						// google.maps.drawing.OverlayType.POLYGON,
-						// google.maps.drawing.OverlayType.POLYLINE,
-						// google.maps.drawing.OverlayType.RECTANGLE,
-					  ],
-					},
-					markerOptions: {
-					  icon: default_icon,
-					},
-					circleOptions: {
-						fillColor: "rgb(51, 136, 255)",
-						fillOpacity: 0.2,
-						strokeWeight: 1,
-						strokeColor: "rgb(51, 136, 255)",
-						clickable: false,
-						editable: true,
-						zIndex: 1,
-					  },
-				});
-				drawingManager.setMap(map);
+
+				} else {
+					this.drawingManager = new google.maps.drawing.DrawingManager({
+						drawingMode: google.maps.drawing.OverlayType.MARKER,
+						drawingControl: true,
+						drawingControlOptions: {
+						  position: google.maps.ControlPosition.TOP_CENTER,
+						  drawingModes: [
+							google.maps.drawing.OverlayType.MARKER,
+							google.maps.drawing.OverlayType.CIRCLE,
+						  ],
+						},
+						markerOptions: {
+						  icon: default_icon,
+						},
+						circleOptions: {
+							fillColor: "rgb(51, 136, 255)",
+							fillOpacity: 0.2,
+							strokeWeight: 1,
+							strokeColor: "rgb(51, 136, 255)",
+							clickable: false,
+							zIndex: 1,
+						  },
+					});
+				}
+				this.drawingManager.setMap(map);			
 
 				this.customControlDiv = document.createElement('div');
 				this.customControl = this.custom_control(this.customControlDiv, map);
@@ -169,8 +174,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 				this.customControlDiv.index = 1;
 				map.controls[google.maps.ControlPosition.TOP_CENTER].push(this.customControlDiv);
 
-
-				google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
+				google.maps.event.addListener(this.drawingManager, 'overlaycomplete', function(event) {
 					if (event.type == 'circle') {
 
 						let newDataCircle = 
@@ -215,57 +219,68 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		} else if (value===undefined || value === "") {
 			const icon = {
 				url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-				scaledSize: new google.maps.Size(20, 20)
+				scaledSize: new google.maps.Size(30, 30)
 			};
 
-			let map = new google.maps.Map(document.getElementById("map"), {
+			let map = new google.maps.Map(document.getElementById(this.map_id), {
 				zoom: 13,
 				center: { lat: -6.304551452226169, lng: 106.68479307871746 },
 				mapTypeId: "terrain",
 			});
 
-			// map.setOptions({
-			// 	minZoom: 0
-			// });
-
-			const drawingManager = new google.maps.drawing.DrawingManager({
-				drawingMode: google.maps.drawing.OverlayType.MARKER,
-				drawingControl: true,
-				drawingControlOptions: {
-				  position: google.maps.ControlPosition.TOP_CENTER,
-				  drawingModes: [
-					google.maps.drawing.OverlayType.MARKER,
-					google.maps.drawing.OverlayType.CIRCLE,
-					// google.maps.drawing.OverlayType.POLYGON,
-					// google.maps.drawing.OverlayType.POLYLINE,
-					// google.maps.drawing.OverlayType.RECTANGLE,
-				  ],
-				},
-				markerOptions: {
-				  icon: icon,
-				},
-				circleOptions: {
-					fillColor: "rgb(51, 136, 255)",
-					fillOpacity: 0.2,
-					strokeWeight: 1,
-					strokeColor: "rgb(51, 136, 255)",
-					clickable: false,
-					editable: true,
-					zIndex: 1,
-				  },
-			});
-
-			drawingManager.setMap(map);
+			if (docstatus === 1) {
+				this.drawingManager = new google.maps.drawing.DrawingManager({
+					drawingMode: google.maps.drawing.OverlayType.MARKER,
+					drawingControl: true,
+					drawingControlOptions: {
+					  position: google.maps.ControlPosition.TOP_CENTER,
+					  drawingModes: [
+					  ],
+					},
+					markerOptions: {
+					  icon: icon,
+					},
+					circleOptions: {
+						fillColor: "rgb(51, 136, 255)",
+						fillOpacity: 0.2,
+						strokeWeight: 1,
+						strokeColor: "rgb(51, 136, 255)",
+						clickable: false,
+						zIndex: 1,
+					  },
+				});
+			} else {
+				this.drawingManager = new google.maps.drawing.DrawingManager({
+					drawingMode: google.maps.drawing.OverlayType.MARKER,
+					drawingControl: true,
+					drawingControlOptions: {
+					  position: google.maps.ControlPosition.TOP_CENTER,
+					  drawingModes: [
+						google.maps.drawing.OverlayType.MARKER,
+						google.maps.drawing.OverlayType.CIRCLE
+					  ],
+					},
+					markerOptions: {
+					  icon: icon,
+					},
+					circleOptions: {
+						fillColor: "rgb(51, 136, 255)",
+						fillOpacity: 0.2,
+						strokeWeight: 1,
+						strokeColor: "rgb(51, 136, 255)",
+						clickable: false,
+						zIndex: 1,
+					  },
+				});
+			}
+			this.drawingManager.setMap(map);
 			this.customControlDiv = document.createElement('div');
 			this.customControl = this.custom_control(this.customControlDiv, map);
 
 			this.customControlDiv.index = 1;
 			map.controls[google.maps.ControlPosition.TOP_CENTER].push(this.customControlDiv);
 
-
-			// this.clear_gmap_button();
-
-			google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
+			google.maps.event.addListener(this.drawingManager, 'overlaycomplete', function(event) {
 				if (event.type == 'circle') {
 
 					var data_layers =
@@ -354,31 +369,6 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		this.getZoomLevel(lngMin,lngMax)
 	},
 
-
-
-	// fitToMarkers(map, markers) {
-	// 	var bounds = new google.maps.LatLngBounds();
-	
-	// 	// Create bounds from markers
-	// 	for( var index in markers ) {
-	// 		var latlng = markers[index].getPosition();
-	// 		bounds.extend(latlng);
-	// 	}
-	
-	// 	// Don't zoom in too far on only one marker
-	// 	if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
-	// 	   var extendPoint1 = new google.maps.LatLng(bounds.getNorthEast().lat() + 0.01, bounds.getNorthEast().lng() + 0.01);
-	// 	   var extendPoint2 = new google.maps.LatLng(bounds.getNorthEast().lat() - 0.01, bounds.getNorthEast().lng() - 0.01);
-	// 	   bounds.extend(extendPoint1);
-	// 	   bounds.extend(extendPoint2);
-	// 	}
-	
-	// 	map.fitBounds(bounds);
-	
-	// 	// Adjusting zoom here doesn't work :/
-	
-	// },
-
 	smoothZoom (map, max, cnt) {
 		let self = this;
 		if (cnt >= max) {
@@ -389,7 +379,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 				google.maps.event.removeListener(z);
 				self.smoothZoom(map, max, cnt + 1);
 			});
-			setTimeout(function(){map.setZoom(cnt)}, 80); // 80ms is what I found to work well on my system -- it might not work well on all systems
+			setTimeout(function(){map.setZoom(cnt)}, 80);
 		}
 	},
 
@@ -445,7 +435,8 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 		self = this;
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
-		this.map_id = 'map';
+
+		this.map_id = frappe.dom.get_unique_id();;
 
 		this.map_area = $(
 			`<div class="map-wrapper border">
@@ -458,7 +449,12 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 		const icon = {
 			url: "https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/radio-tower-icon-14-256.png",
-			scaledSize: new google.maps.Size(15, 15)
+			scaledSize: new google.maps.Size(30, 30)
 		};
+
+		if (this.frm.doc.docstatus === 1) {
+			this.format_for_input(this.frm.doc.google_maps_location, this.frm.doc.docstatus)
+			this.$wrapper.find(".like-disabled-input").addClass("hidden");
+		}
 	}
 }); 
