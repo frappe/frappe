@@ -1,21 +1,23 @@
-frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
-	trigger_change_on_input_event: false,
-	make_input: function() {
-		this._super();
+frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
+	static trigger_change_on_input_event = false
+	make_input() {
+		super.make_input();
 		this.make_picker();
-	},
-	make_picker: function() {
+	}
+	make_picker() {
 		this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
-	},
-	set_formatted_input: function(value) {
-		this._super(value);
+	}
+	set_formatted_input(value) {
+		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
-		if(!value) {
+		if (!value) {
 			this.datepicker.clear();
 			return;
+		} else if (value === "Today") {
+			value = this.get_now_date();
 		}
 
 		let should_refresh = this.last_value && this.last_value !== value;
@@ -37,8 +39,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
-	},
-	set_date_options: function() {
+	}
+	set_date_options() {
 		// webformTODO:
 		let sysdefaults = frappe.boot.sysdefaults;
 
@@ -73,8 +75,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				this.update_datepicker_position();
 			}
 		};
-	},
-	set_datepicker: function() {
+	}
+	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
 
@@ -85,8 +87,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			.click(() => {
 				this.datepicker.selectDate(this.get_now_date());
 			});
-	},
-	update_datepicker_position: function() {
+	}
+	update_datepicker_position() {
 		if(!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
@@ -108,11 +110,11 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 
 		this.datepicker.update('position', position);
-	},
-	get_now_date: function() {
+	}
+	get_now_date() {
 		return frappe.datetime.now_date(true);
-	},
-	set_t_for_today: function() {
+	}
+	set_t_for_today() {
 		var me = this;
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
@@ -126,19 +128,19 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				return false;
 			}
 		});
-	},
-	parse: function(value) {
+	}
+	parse(value) {
 		if(value) {
 			return frappe.datetime.user_to_str(value);
 		}
-	},
-	format_for_input: function(value) {
+	}
+	format_for_input(value) {
 		if(value) {
 			return frappe.datetime.str_to_user(value);
 		}
 		return "";
-	},
-	validate: function(value) {
+	}
+	validate(value) {
 		if(value && !frappe.datetime.validate(value)) {
 			let sysdefaults = frappe.sys_defaults;
 			let date_format = sysdefaults && sysdefaults.date_format
@@ -148,4 +150,4 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 		return value;
 	}
-});
+};

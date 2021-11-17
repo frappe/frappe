@@ -26,13 +26,13 @@ frappe.throw = function(msg) {
 
 frappe.confirm = function(message, confirm_action, reject_action) {
 	var d = new frappe.ui.Dialog({
-		title: __("Confirm"),
-		primary_action_label: __("Yes"),
+		title: __("Confirm", null, "Title of confirmation dialog"),
+		primary_action_label: __("Yes", null, "Approve confirmation dialog"),
 		primary_action: () => {
 			confirm_action && confirm_action();
 			d.hide();
 		},
-		secondary_action_label: __("No"),
+		secondary_action_label: __("No", null, "Dismiss confirmation dialog"),
 		secondary_action: () => d.hide(),
 	});
 
@@ -88,9 +88,9 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	if(!$.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,
-		title: title || __("Enter Value"),
+		title: title || __("Enter Value", null, "Title of prompt dialog"),
 	});
-	d.set_primary_action(primary_label || __("Submit"), function() {
+	d.set_primary_action(primary_label || __("Submit", null, "Primary action of prompt dialog"), function() {
 		var values = d.get_values();
 		if(!values) {
 			return;
@@ -140,7 +140,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 		return;
 	}
 
-	if(data.alert) {
+	if(data.alert || data.toast) {
 		frappe.show_alert(data);
 		return;
 	}
@@ -316,12 +316,17 @@ frappe.verify_password = function(callback) {
 	}, __("Verify Password"), __("Verify"))
 }
 
-frappe.show_progress = function(title, count, total=100, description) {
-	if(frappe.cur_progress && frappe.cur_progress.title === title && frappe.cur_progress.is_visible) {
-		var dialog = frappe.cur_progress;
+frappe.show_progress = (title, count, total = 100, description, hide_on_completion = false) => {
+	let dialog;
+	if (
+		frappe.cur_progress &&
+		frappe.cur_progress.title === title &&
+		frappe.cur_progress.is_visible
+	) {
+		dialog = frappe.cur_progress;
 	} else {
-		var dialog = new frappe.ui.Dialog({
-			title: title,
+		dialog = new frappe.ui.Dialog({
+			title: title
 		});
 		dialog.progress = $(`<div>
 			<div class="progress">
@@ -329,19 +334,24 @@ frappe.show_progress = function(title, count, total=100, description) {
 			</div>
 			<p class="description text-muted small"></p>
 		</div`).appendTo(dialog.body);
-		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
-			.find(".progress-bar");
-		dialog.$wrapper.removeClass("fade");
+		dialog.progress_bar = dialog.progress
+			.css({ 'margin-top': '10px' })
+			.find('.progress-bar');
+		dialog.$wrapper.removeClass('fade');
 		dialog.show();
 		frappe.cur_progress = dialog;
 	}
 	if (description) {
 		dialog.progress.find('.description').text(description);
 	}
-	dialog.percent = cint(flt(count) * 100 / total);
-	dialog.progress_bar.css({"width": dialog.percent + "%" });
+	dialog.percent = cint((flt(count) * 100) / total);
+	dialog.progress_bar.css({ width: dialog.percent + '%' });
+	if (hide_on_completion && dialog.percent === 100) {
+		// timeout to avoid abrupt hide
+		setTimeout(frappe.hide_progress, 500);
+	}
 	return dialog;
-}
+};
 
 frappe.hide_progress = function() {
 	if(frappe.cur_progress) {
@@ -351,7 +361,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds=7, actions={}) {
+frappe.show_alert = frappe.toast = function(message, seconds=7, actions={}) {
 	let indicator_icon_map = {
 		'orange': "solid-warning",
 		'yellow': "solid-warning",

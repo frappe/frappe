@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import datetime
 import json
 from frappe.utils.dashboard import cache_source
 from frappe.utils import nowdate, getdate, get_datetime, cint, now_datetime
-from frappe.utils.dateutils import\
-	get_period, get_period_beginning, get_from_date_from_timespan, get_dates_from_timegrain
+from frappe.utils.dateutils import get_period, get_period_beginning, get_from_date_from_timespan, get_dates_from_timegrain
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.config import get_modules_from_all_apps_for_user
@@ -326,7 +324,7 @@ class DashboardChart(Document):
 
 	def validate(self):
 		if not frappe.conf.developer_mode and self.is_standard:
-			frappe.throw('Cannot edit Standard charts')
+			frappe.throw(_("Cannot edit Standard charts"))
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 			self.check_document_type()
@@ -335,7 +333,10 @@ class DashboardChart(Document):
 
 	def check_required_field(self):
 		if not self.document_type:
-				frappe.throw(_("Document type is required to create a dashboard chart"))
+			frappe.throw(_("Document type is required to create a dashboard chart"))
+
+		if self.document_type and frappe.get_meta(self.document_type).istable and not self.parent_document_type:
+			frappe.throw(_("Parent document type is required to create a dashboard chart"))
 
 		if self.chart_type == 'Group By':
 			if not self.group_by_based_on:

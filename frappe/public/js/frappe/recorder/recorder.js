@@ -6,6 +6,9 @@ import RecorderRoot from "./RecorderRoot.vue";
 import RecorderDetail from "./RecorderDetail.vue";
 import RequestDetail from "./RequestDetail.vue";
 
+Vue.prototype.__ = window.__;
+Vue.prototype.frappe = window.frappe;
+
 Vue.use(VueRouter);
 const routes = [
 	{

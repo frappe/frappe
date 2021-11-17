@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
-# For license information, please see license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import json
 
 import frappe
-from frappe.utils.safe_exec import safe_exec
+from frappe.utils.safe_exec import safe_exec, read_sql
 from frappe.model.document import Document
 
 class SystemConsole(Document):
@@ -15,8 +13,11 @@ class SystemConsole(Document):
 		frappe.only_for('System Manager')
 		try:
 			frappe.debug_log = []
-			safe_exec(self.console)
-			self.output = '\n'.join(frappe.debug_log)
+			if self.type == 'Python':
+				safe_exec(self.console)
+				self.output = '\n'.join(frappe.debug_log)
+			elif self.type == 'SQL':
+				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
 		except: # noqa: E722
 			self.output = frappe.get_traceback()
 
@@ -36,3 +37,8 @@ def execute_code(doc):
 	console = frappe.get_doc(json.loads(doc))
 	console.run()
 	return console.as_dict()
+
+@frappe.whitelist()
+def show_processlist():
+	frappe.only_for('System Manager')
+	return frappe.db.sql('show full processlist', as_dict=1)

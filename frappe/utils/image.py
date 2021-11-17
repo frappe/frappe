@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
+# License: MIT. See LICENSE
 import os
+from PIL import Image
+import io
 
 def resize_images(path, maxdim=700):
 	from PIL import Image
@@ -24,20 +24,32 @@ def strip_exif_data(content, content_type):
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
-	Returns: 
+	Returns:
 		Bytes: Stripped image content
 	"""
 
-	from PIL import Image
-	import io
-
 	original_image = Image.open(io.BytesIO(content))
 	output = io.BytesIO()
-	
+
 	new_image = Image.new(original_image.mode, original_image.size)
 	new_image.putdata(list(original_image.getdata()))
 	new_image.save(output, format=content_type.split('/')[1])
-	
+
 	content = output.getvalue()
 
 	return content
+
+def optimize_image(content, content_type, max_width=1920, max_height=1080, optimize=True, quality=85):
+	if content_type == 'image/svg+xml':
+		return content
+
+	image = Image.open(io.BytesIO(content))
+	image_format = content_type.split('/')[1]
+	size = max_width, max_height
+	image.thumbnail(size, Image.LANCZOS)
+
+	output = io.BytesIO()
+	image.save(output, format=image_format, optimize=optimize, quality=quality, save_all=True if image_format=='gif' else None)
+
+	optimized_content = output.getvalue()
+	return optimized_content if len(optimized_content) < len(content) else content

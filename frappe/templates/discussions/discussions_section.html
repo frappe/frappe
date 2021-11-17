@@ -1,0 +1,65 @@
+{% set topics = frappe.get_all("Discussion Topic",
+{"reference_doctype": doctype, "reference_docname": docname}, ["name", "title", "owner", "creation"]) %}
+
+
+<div class="discussions-parent {% if single_thread %} is-single-thread {% endif %}"
+	data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
+
+	{% include "frappe/templates/discussions/topic_modal.html" %}
+
+	<div class="discussions-header">
+		<span class="discussion-heading">{{ _(title) }}</span>
+		{% if topics and not single_thread %}
+		{% include "frappe/templates/discussions/button.html" %}
+		{% endif %}
+	</div>
+
+	<div class="card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %}
+		{% if not topics | length %} empty-state {% endif %}">
+		{% if topics and not single_thread %}
+
+		<div class="discussions-sidebar">
+			{% include "frappe/templates/discussions/search.html" %}
+
+			{% for topic in topics %}
+			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}
+			{% include "frappe/templates/discussions/sidebar.html" %}
+			{% endfor %}
+		</div>
+
+		<div class="mr-2" id="discussion-group">
+			{% for topic in topics %}
+			{% include "frappe/templates/discussions/reply_section.html" %}
+			{% endfor %}
+		</div>
+
+		{% elif single_thread %}
+		{% set topic = topics[0] if topics | length else None %}
+		{% include "frappe/templates/discussions/reply_section.html" %}
+
+		{% else %}
+		<div class="no-discussions">
+			<img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
+			<div class="discussion-heading mt-4 mb-0" style="color: inherit;"> {{ empty_state_title }} </div>
+			<div class="small mb-6"> {{ empty_state_subtitle }} </div>
+			{% if frappe.session.user == "Guest" %}
+			<div class="btn btn-default btn-md mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
+			{% elif condition is defined and not condition %}
+			<div class="btn btn-default btn-md mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
+				{{ button_name }}
+			</div>
+			{% else %}
+			{% include "frappe/templates/discussions/button.html" %}
+			{% endif %}
+		</div>
+		{% endif %}
+	</div>
+</div>
+
+{% block script %}
+	<script> {% include "frappe/templates/discussions/discussions.js" %} </script>
+{% endblock %}
+
+{% block style %}
+	<style> {% include "frappe/templates/styles/discussion_style.css" %} </style>
+{% endblock %}

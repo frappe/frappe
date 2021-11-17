@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import frappe, os
 from frappe import _
 
@@ -9,7 +7,7 @@ from PyPDF2 import PdfFileWriter
 
 no_cache = 1
 
-base_template_path = "templates/www/printview.html"
+base_template_path = "www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 @frappe.whitelist()
@@ -100,8 +98,8 @@ def report_to_pdf(html, orientation="Landscape"):
 	frappe.local.response.type = "pdf"
 
 @frappe.whitelist()
-def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0):
-	print_settings = frappe.get_doc("Print Settings")
+def print_by_server(doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None):
+	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups
 	except ImportError:
@@ -113,9 +111,10 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 		conn = cups.Connection()
 		output = PdfFileWriter()
 		output = frappe.get_print(doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf = True, output = output)
-		file = os.path.join("/", "tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
-		output.write(open(file,"wb"))
-		conn.printFile(print_settings.printer_name,file , name, {})
+		if not file_path:
+			file_path = os.path.join("/", "tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+		output.write(open(file_path,"wb"))
+		conn.printFile(print_settings.printer_name,file_path , name, {})
 	except IOError as e:
 		if ("ContentNotFoundError" in e.message
 			or "ContentOperationNotPermittedError" in e.message
@@ -125,4 +124,4 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:
-		cleanup(file,{})
+		return

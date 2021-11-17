@@ -6,7 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "email",
-  "status"
+  "status",
+  "anonymization_matrix",
+  "deletion_steps"
  ],
  "fields": [
   {
@@ -27,10 +29,23 @@
    "label": "Status",
    "options": "Pending Verification\nPending Approval\nDeleted",
    "read_only": 1
+  },
+  {
+   "fieldname": "anonymization_matrix",
+   "fieldtype": "Code",
+   "label": "Anonymization Matrix",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deletion_steps",
+   "fieldtype": "Table",
+   "label": "Deletion Steps ",
+   "options": "Personal Data Deletion Step"
   }
  ],
  "links": [],
- "modified": "2021-02-28 12:36:08.219719",
+ "modified": "2021-04-23 13:25:53.629308",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Personal Data Deletion Request",

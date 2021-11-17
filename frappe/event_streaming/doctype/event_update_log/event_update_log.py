@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_jobs
@@ -235,7 +234,7 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 
 	if isinstance(doctypes, str):
 		doctypes = frappe.parse_json(doctypes)
-	
+
 	from frappe.event_streaming.doctype.event_consumer.event_consumer import has_consumer_access
 
 	consumer = frappe.get_doc('Event Consumer', event_consumer)

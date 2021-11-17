@@ -85,14 +85,11 @@ frappe.notification = {
 			}
 
 			// set email recipient options
-			frappe.meta.get_docfield(
-				'Notification Recipient',
+			frm.fields_dict.recipients.grid.update_docfield_property(
 				'receiver_by_document_field',
-				// set first option as blank to allow notification not to be defaulted to the owner
-				frm.doc.name
-			).options = [''].concat(["owner"]).concat(receiver_fields);
-
-			frm.fields_dict.recipients.grid.refresh();
+				'options',
+				[''].concat(["owner"]).concat(receiver_fields)
+			);
 		});
 	},
 	setup_example_message: function(frm) {

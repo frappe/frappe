@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import frappe
 import os
 from frappe.database.db_manager import DbManager
@@ -36,25 +34,23 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	db_name = frappe.local.conf.db_name
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	dbman = DbManager(root_conn)
+	dbman_kwargs = {}
+	if no_mariadb_socket:
+		dbman_kwargs["host"] = "%"
+
 	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_name)
-		if no_mariadb_socket:
-			dbman.delete_user(db_name, host="%")
+		dbman.delete_user(db_name, **dbman_kwargs)
 		dbman.drop_database(db_name)
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
 
-	dbman.create_user(db_name, frappe.conf.db_password)
-	if no_mariadb_socket:
-		dbman.create_user(db_name, frappe.conf.db_password, host="%")
+	dbman.create_user(db_name, frappe.conf.db_password, **dbman_kwargs)
 	if verbose: print("Created user %s" % db_name)
 
 	dbman.create_database(db_name)
 	if verbose: print("Created database %s" % db_name)
 
-	dbman.grant_all_privileges(db_name, db_name)
-	if no_mariadb_socket:
-		dbman.grant_all_privileges(db_name, db_name, host="%")
+	dbman.grant_all_privileges(db_name, db_name, **dbman_kwargs)
 	dbman.flush_privileges()
 	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
 

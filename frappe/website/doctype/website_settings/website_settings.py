@@ -1,15 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
+from urllib.parse import quote
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import get_request_site_address, encode
-from frappe.model.document import Document
-from six.moves.urllib.parse import quote
-from frappe.website.router import resolve_route
-from frappe.website.doctype.website_theme.website_theme import add_website_theme
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.model.document import Document
+from frappe.utils import encode, get_request_site_address
+from frappe.website.doctype.website_theme.website_theme import add_website_theme
 
 INDEXING_SCOPES = "https://www.googleapis.com/auth/indexing"
 
@@ -23,8 +21,9 @@ class WebsiteSettings(Document):
 	def validate_home_page(self):
 		if frappe.flags.in_install:
 			return
-		if self.home_page and not resolve_route(self.home_page):
-			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
+		from frappe.website.path_resolver import PathResolver
+		if self.home_page and not PathResolver(self.home_page).is_valid_path():
+			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - home, login, products, blog, about, contact)")
 			self.home_page = ''
 
 	def validate_top_bar_items(self):
@@ -69,7 +68,7 @@ class WebsiteSettings(Document):
 		# clear web cache (for menus!)
 		frappe.clear_cache(user = 'Guest')
 
-		from frappe.website.render import clear_cache
+		from frappe.website.utils import clear_cache
 		clear_cache()
 
 		# clears role based home pages
@@ -121,7 +120,7 @@ def get_website_settings(context=None):
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
 		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
-		"footer_logo", "call_to_action", "call_to_action_url"]:
+		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -178,7 +177,3 @@ def get_items(parentfield):
 					t['child_items'].append(d)
 					break
 	return top_items
-
-@frappe.whitelist(allow_guest=True)
-def is_chat_enabled():
-	return bool(frappe.db.get_single_value('Website Settings', 'chat_enable'))

@@ -8,8 +8,10 @@
 @import "../common/buttons";
 @import "../common/flex";
 @import "mobile";
+@import "module.scss";
 @import "form";
 @import "print_preview";
+@import "scrollbar";
 @import "navbar";
 @import "../common/modal";
 @import "slides";
@@ -23,7 +25,7 @@
 @import "notification";
 @import "global_search";
 @import "desktop";
-@import "awesomebar";
+@import "../common/awesomeplete";
 @import "sidebar";
 @import "filters";
 @import "list";
@@ -45,3 +47,4 @@
 @import "link_preview";
 @import "../common/quill";
 @import "plyr";
+@import "version";

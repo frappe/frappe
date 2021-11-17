@@ -1,8 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
+# License: MIT. See LICENSE
 import frappe
 import json
 from frappe.model import no_value_fields, table_fields

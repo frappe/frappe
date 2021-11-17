@@ -13,7 +13,7 @@ frappe.barcode.scan_barcode = function() {
 				}
 			}, reject);
 		} else {
-			frappe.require('/assets/js/barcode_scanner.min.js', () => {
+			frappe.require('barcode_scanner.bundle.js', () => {
 				frappe.barcode.get_barcode().then(barcode => {
 					resolve(barcode);
 				});

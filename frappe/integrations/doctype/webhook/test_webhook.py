@@ -1,15 +1,53 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import unittest
 
 import frappe
-from frappe.integrations.doctype.webhook.webhook import get_webhook_headers, get_webhook_data
+from frappe.integrations.doctype.webhook.webhook import get_webhook_headers, get_webhook_data, enqueue_webhook
 
 
 class TestWebhook(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		# delete any existing webhooks
+		frappe.db.delete("Webhook")
+		# Delete existing logs if any
+		frappe.db.delete("Webhook Request Log")
+		# create test webhooks
+		cls.create_sample_webhooks()
+
+	@classmethod
+	def create_sample_webhooks(cls):
+		samples_webhooks_data = [
+			{
+				"webhook_doctype": "User",
+				"webhook_docevent": "after_insert",
+				"request_url": "https://httpbin.org/post",
+				"condition": "doc.email",
+				"enabled": True
+			},
+			{
+				"webhook_doctype": "User",
+				"webhook_docevent": "after_insert",
+				"request_url": "https://httpbin.org/post",
+				"condition": "doc.first_name",
+				"enabled": False
+			}
+		]
+
+		cls.sample_webhooks = []
+		for wh_fields in samples_webhooks_data:
+			wh = frappe.new_doc("Webhook")
+			wh.update(wh_fields)
+			wh.insert()
+			cls.sample_webhooks.append(wh)
+
+	@classmethod
+	def tearDownClass(cls):
+		# delete any existing webhooks
+		frappe.db.delete("Webhook")
+
 	def setUp(self):
 		# retrieve or create a User webhook for `after_insert`
 		webhook_fields = {
@@ -30,9 +68,36 @@ class TestWebhook(unittest.TestCase):
 		self.user.email = frappe.mock("email")
 		self.user.save()
 
+		# Create another test user specific to this test
+		self.test_user = frappe.new_doc("User")
+		self.test_user.email = "user1@integration.webhooks.test.com"
+		self.test_user.first_name = "user1"
+
 	def tearDown(self) -> None:
 		self.user.delete()
+		self.test_user.delete()
 		super().tearDown()
+
+	def test_webhook_trigger_with_enabled_webhooks(self):
+		"""Test webhook trigger for enabled webhooks"""
+
+		frappe.cache().delete_value('webhooks')
+		frappe.flags.webhooks = None
+
+		# Insert the user to db
+		self.test_user.insert()
+
+		self.assertTrue("User" in frappe.flags.webhooks)
+		# only 1 hook (enabled) must be queued
+		self.assertEqual(
+			len(frappe.flags.webhooks.get("User")),
+			1
+		)
+		self.assertTrue(self.test_user.email in frappe.flags.webhooks_executed)
+		self.assertEqual(
+			frappe.flags.webhooks_executed.get(self.test_user.email)[0],
+			self.sample_webhooks[0].name
+		)
 
 	def test_validate_doc_events(self):
 		"Test creating a submit-related webhook for a non-submittable DocType"
@@ -99,3 +164,18 @@ class TestWebhook(unittest.TestCase):
 
 		data = get_webhook_data(doc=self.user, webhook=self.webhook)
 		self.assertEqual(data, {"name": self.user.name})
+
+	def test_webhook_req_log_creation(self):
+		if not frappe.db.get_value('User', 'user2@integration.webhooks.test.com'):
+			user = frappe.get_doc({
+				'doctype': 'User',
+				'email': 'user2@integration.webhooks.test.com',
+				'first_name': 'user2'
+			}).insert()
+		else:
+			user = frappe.get_doc('User', 'user2@integration.webhooks.test.com')
+
+		webhook = frappe.get_doc('Webhook', {'webhook_doctype': 'User'})
+		enqueue_webhook(user, webhook)
+
+		self.assertTrue(frappe.db.get_all('Webhook Request Log', pluck='name'))

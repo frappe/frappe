@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from datetime import timedelta
@@ -118,6 +117,7 @@ class AutoRepeat(Document):
 	def is_completed(self):
 		return self.end_date and getdate(self.end_date) < getdate(today())
 
+	@frappe.whitelist()
 	def get_auto_repeat_schedule(self):
 		schedule_details = []
 		start_date = getdate(self.start_date)
@@ -328,11 +328,12 @@ class AutoRepeat(Document):
 		make(doctype=new_doc.doctype, name=new_doc.name, recipients=recipients,
 			subject=subject, content=message, attachments=attachments, send_email=1)
 
+	@frappe.whitelist()
 	def fetch_linked_contacts(self):
 		if self.reference_doctype and self.reference_document:
 			res = get_contacts_linking_to(self.reference_doctype, self.reference_document, fields=['email_id'])
 			res += get_contacts_linked_from(self.reference_doctype, self.reference_document, fields=['email_id'])
-			email_ids = list(set([d.email_id for d in res]))
+			email_ids = {d.email_id for d in res}
 			if not email_ids:
 				frappe.msgprint(_('No contacts linked to document'), alert=True)
 			else:

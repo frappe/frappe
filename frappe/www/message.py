@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import strip_html_tags
@@ -9,7 +8,7 @@ from frappe.utils import strip_html_tags
 no_cache = 1
 
 def get_context(context):
-	message_context = {}
+	message_context = frappe._dict()
 	if hasattr(frappe.local, "message"):
 		message_context["header"] = frappe.local.message_title
 		message_context["title"] = strip_html_tags(frappe.local.message_title)
@@ -25,5 +24,11 @@ def get_context(context):
 			message_context.update(message.get('context', {}))
 			if message.get('http_status_code'):
 				frappe.local.response['http_status_code'] = message['http_status_code']
+
+	if not message_context.title:
+		message_context.title = frappe.form_dict.title
+
+	if not message_context.message:
+		message_context.message = frappe.form_dict.message
 
 	return message_context

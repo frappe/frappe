@@ -10,12 +10,17 @@
   "column_break",
   "enable_social_sharing",
   "show_cta_in_blog",
+  "allow_guest_to_comment",
   "cta_section",
   "title",
   "subtitle",
   "column_break_11",
   "cta_label",
-  "cta_url"
+  "cta_url",
+  "section_break_12",
+  "feedback_limit",
+  "column_break_14",
+  "comment_limit"
  ],
  "fields": [
   {
@@ -78,13 +83,41 @@
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "5",
+   "description": "Feedback limit per hour",
+   "fieldname": "feedback_limit",
+   "fieldtype": "Int",
+   "label": "Feedback limit"
+  },
+  {
+   "default": "5",
+   "description": "Comment limit per hour",
+   "fieldname": "comment_limit",
+   "fieldtype": "Int",
+   "label": "Comment limit"
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_guest_to_comment",
+   "fieldtype": "Check",
+   "label": "Allow guest to comment"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-06-01 15:57:21.564652",
+ "modified": "2021-10-28 20:44:44.143193",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

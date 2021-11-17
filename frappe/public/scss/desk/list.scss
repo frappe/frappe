@@ -30,6 +30,15 @@
 	}
 }
 
+.list-skeleton {
+	min-height: calc(100vh - 200px);
+
+	.list-skeleton-box {
+		background-color: var(--skeleton-bg);
+		height: 100%;
+		border-radius: var(--border-radius);
+	}
+}
 
 .no-list-sidebar {
 	&[data-page-route^="List/"], [data-page-route^="List/"]{
@@ -58,7 +67,7 @@
 }
 
 .list-row {
-	padding: 15px;
+	padding: 15px 15px 15px 0px;
 	height: 45px;
 	cursor: pointer;
 	transition: color 0.2s;
@@ -130,6 +139,10 @@
 			margin-left: 5px;
 		}
 	}
+
+	.select-like, .file-select {
+		padding: 15px 0px 15px 15px;
+	}
 }
 
 .list-row-head {
@@ -164,7 +177,7 @@ $level-margin-right: 8px;
 		color: var(--text-color);
 	}
 
-	.level-item {
+	.level-item:not(.file-select) {
 		margin-right: $level-margin-right;
 	}
 
@@ -197,8 +210,15 @@ $level-margin-right: 8px;
 
 input.list-check-all, input.list-row-checkbox {
 	margin-top: 0px;
-	margin-left: calc(var(--custom-checkbox-size) / 2);
-	--checkbox-right-margin: #{$level-margin-right};
+	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
+}
+
+input.list-check-all {
+	margin-left: 15px;
+}
+
+.render-list-checkbox {
+	margin-left: 15px;
 }
 
 .filterable {
@@ -210,6 +230,11 @@ input.list-check-all, input.list-row-checkbox {
 		position: sticky !important;
 		z-index: 500;
 		top: 0;
+	}
+
+	.sortable-handle {
+		cursor: all-scroll;
+		cursor: grabbing;
 	}
 }
 
@@ -261,7 +286,6 @@ input.list-check-all, input.list-row-checkbox {
 	input[type=checkbox] {
 		margin: 0;
 		margin-right: 5px;
-		flex: 0 0 12px;
 	}
 
 	.liked-by, .liked-by-filter-button {
@@ -332,10 +356,6 @@ input.list-check-all, input.list-row-checkbox {
 }
 
 .page-form {
-	// .awesomplete > ul {
-	// 	min-width: 300px;
-	// }
-
 	.standard-filter-section {
 		flex-wrap: wrap;
 		// width: 65%;

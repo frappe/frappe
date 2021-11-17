@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
+from typing import Dict, List, Union
 import frappe, json
 import frappe.utils
 import frappe.share
@@ -11,9 +11,9 @@ from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def getdoc(doctype, name, user=None):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
@@ -52,7 +52,7 @@ def getdoc(doctype, name, user=None):
 
 	frappe.response.docs.append(doc)
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	"""load doctype"""
 
@@ -89,10 +89,16 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
+
+	all_communications = _get_communications(doc.doctype, doc.name)
+	automated_messages = filter(lambda x: x['communication_type'] == 'Automated Message', all_communications)
+	communications_except_auto_messages = filter(lambda x: x['communication_type'] != 'Automated Message', all_communications)
+
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"attachment_logs": get_comments(doc.doctype, doc.name, 'attachment'),
-		"communications": _get_communications(doc.doctype, doc.name),
+		"communications": communications_except_auto_messages,
+		"automated_messages": automated_messages,
 		'comments': get_comments(doc.doctype, doc.name),
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
@@ -100,8 +106,10 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignment_logs": get_comments(doc.doctype, doc.name, 'assignment'),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
+		"info_logs": get_comments(doc.doctype, doc.name, comment_type=['Info', 'Edit', 'Label']),
 		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
 		"like_logs": get_comments(doc.doctype, doc.name, 'Like'),
+		"workflow_logs": get_comments(doc.doctype, doc.name, comment_type="Workflow"),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
@@ -132,10 +140,11 @@ def get_communications(doctype, name, start=0, limit=20):
 	return _get_communications(doctype, name, start, limit)
 
 
-def get_comments(doctype, name, comment_type='Comment'):
-	comment_types = [comment_type]
+def get_comments(doctype: str, name: str, comment_type : Union[str, List[str]] = "Comment") -> List[frappe._dict]:
+	if isinstance(comment_type, list):
+		comment_types = comment_type
 
-	if comment_type == 'share':
+	elif comment_type == 'share':
 		comment_types = ['Shared', 'Unshared']
 
 	elif comment_type == 'assignment':
@@ -144,15 +153,21 @@ def get_comments(doctype, name, comment_type='Comment'):
 	elif comment_type == 'attachment':
 		comment_types = ['Attachment', 'Attachment Removed']
 
-	comments = frappe.get_all('Comment', fields = ['name', 'creation', 'content', 'owner', 'comment_type'], filters=dict(
-		reference_doctype = doctype,
-		reference_name = name,
-		comment_type = ['in', comment_types]
-	))
+	else:
+		comment_types = [comment_type]
+
+	comments = frappe.get_all("Comment",
+		fields=["name", "creation", "content", "owner", "comment_type"],
+		filters={
+			"reference_doctype": doctype,
+			"reference_name": name,
+			"comment_type": ['in', comment_types],
+		}
+	)
 
 	# convert to markdown (legacy ?)
-	if comment_type == 'Comment':
-		for c in comments:
+	for c in comments:
+		if c.comment_type == "Comment":
 			c.content = frappe.utils.markdown(c.content)
 
 	return comments
@@ -186,7 +201,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating
+			C.read_by_recipient, C.rating, C.recipients
 		'''
 
 	conditions = ''
@@ -205,7 +220,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	part1 = '''
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback')
+		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 	'''.format(fields=fields, conditions=conditions)
@@ -215,7 +230,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback')
+		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	'''.format(fields=fields, conditions=conditions)

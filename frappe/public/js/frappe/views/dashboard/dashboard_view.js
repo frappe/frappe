@@ -8,7 +8,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults()
 			.then(() => {
-				this.page_title = __('{0} Dashboard', [this.doctype]);
+				this.page_title = __('{0} Dashboard', [__(this.doctype)]);
 				this.dashboard_settings = frappe.get_user_settings(this.doctype)['dashboard_settings'] || null;
 			});
 	}
@@ -20,6 +20,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_page() {
 		this.hide_sidebar = true;
 		this.hide_page_form = true;
+		this.hide_filters = true;
+		this.hide_sort_selector = true;
 		super.setup_page();
 	}
 
@@ -72,6 +74,10 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		);
 
 		this.toggle_customization_buttons(false);
+	}
+
+	set_primary_action() {
+		// Don't render Add doc button for dashboard view
 	}
 
 	toggle_customization_buttons(show) {
@@ -265,7 +271,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	show_add_chart_dialog() {
 		let fields = this.get_field_options();
 		const dialog = new frappe.ui.Dialog({
-			title: __("Add a {0} Chart", [this.doctype]),
+			title: __("Add a {0} Chart", [__(this.doctype)]),
 			fields: [
 				{
 					fieldname: 'new_or_existing',

@@ -91,7 +91,7 @@ frappe.ui.form.on('Data Import', {
 
 		if (frm.doc.status.includes('Success')) {
 			frm.add_custom_button(
-				__('Go to {0} List', [frm.doc.reference_doctype]),
+				__('Go to {0} List', [__(frm.doc.reference_doctype)]),
 				() => frappe.set_route('List', frm.doc.reference_doctype)
 			);
 		}
@@ -203,7 +203,7 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	download_template(frm) {
-		frappe.require('/assets/js/data_import_tools.min.js', () => {
+		frappe.require('data_import_tools.bundle.js', () => {
 			frm.data_exporter = new frappe.data_import.DataExporter(
 				frm.doc.reference_doctype,
 				frm.doc.import_type
@@ -287,7 +287,7 @@ frappe.ui.form.on('Data Import', {
 			return;
 		}
 
-		frappe.require('/assets/js/data_import_tools.min.js', () => {
+		frappe.require('data_import_tools.bundle.js', () => {
 			frm.import_preview = new frappe.data_import.ImportPreview({
 				wrapper: frm.get_field('import_preview').$wrapper,
 				doctype: frm.doc.reference_doctype,
@@ -479,43 +479,4 @@ frappe.ui.form.on('Data Import', {
 			</table>
 		`);
 	},
-
-	show_missing_link_values(frm, missing_link_values) {
-		let can_be_created_automatically = missing_link_values.every(
-			d => d.has_one_mandatory_field
-		);
-
-		let html = missing_link_values
-			.map(d => {
-				let doctype = d.doctype;
-				let values = d.missing_values;
-				return `
-					<h5>${doctype}</h5>
-					<ul>${values.map(v => `<li>${v}</li>`).join('')}</ul>
-				`;
-			})
-			.join('');
-
-		if (can_be_created_automatically) {
-			// prettier-ignore
-			let message = __('There are some linked records which needs to be created before we can import your file. Do you want to create the following missing records automatically?');
-			frappe.confirm(message + html, () => {
-				frm
-					.call('create_missing_link_values', {
-						missing_link_values
-					})
-					.then(r => {
-						let records = r.message;
-						frappe.msgprint(
-							__('Created {0} records successfully.', [records.length])
-						);
-					});
-			});
-		} else {
-			frappe.msgprint(
-				// prettier-ignore
-				__('The following records needs to be created before we can import your file.') + html
-			);
-		}
-	}
 });

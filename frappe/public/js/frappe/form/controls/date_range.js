@@ -1,11 +1,11 @@
-frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
-	make_input: function() {
-		this._super();
+frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.ControlData {
+	make_input() {
+		super.make_input();
 		this.set_date_options();
 		this.set_datepicker();
 		this.refresh();
-	},
-	set_date_options: function() {
+	}
+	set_date_options() {
 		var me = this;
 		this.datepicker_options = {
 			language: "en",
@@ -18,12 +18,12 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.datepicker_options.onSelect = function() {
 			me.$input.trigger('change');
 		};
-	},
-	set_datepicker: function() {
+	}
+	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
-	},
-	set_input: function(value, value2) {
+	}
+	set_input(value, value2) {
 		this.last_value = this.value;
 		if (value && value2) {
 			this.value = [value, value2];
@@ -38,8 +38,8 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		}
 		this.set_disp_area(value || '');
 		this.set_mandatory && this.set_mandatory(value);
-	},
-	parse: function(value) {
+	}
+	parse(value) {
 		// replace the separator (which can be in user language) with comma
 		const to = __('{0} to {1}').replace('{0}', '').replace('{1}', '');
 		value = value.replace(to, ',');
@@ -50,8 +50,8 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
 			return [from_date, to_date];
 		}
-	},
-	format_for_input: function(value1, value2) {
+	}
+	format_for_input(value1, value2) {
 		if(value1 && value2) {
 			value1 = frappe.datetime.str_to_user(value1);
 			value2 = frappe.datetime.str_to_user(value2);
@@ -59,4 +59,4 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		}
 		return "";
 	}
-});
+};

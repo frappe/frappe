@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError,
@@ -92,7 +90,7 @@ class TestDocType(unittest.TestCase):
 			fields=["parent", "depends_on", "collapsible_depends_on", "mandatory_depends_on",\
 				"read_only_depends_on", "fieldname", "fieldtype"])
 
-		pattern = """[\w\.:_]+\s*={1}\s*[\w\.@'"]+"""
+		pattern = r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+'
 		for field in docfields:
 			for depends_on in ["depends_on", "collapsible_depends_on", "mandatory_depends_on", "read_only_depends_on"]:
 				condition = field.get(depends_on)
@@ -350,6 +348,7 @@ class TestDocType(unittest.TestCase):
 		dump_docs = json.dumps(docs.get('docs'))
 		cancel_all_linked_docs(dump_docs)
 		data_link_doc.cancel()
+		data_doc.name = '{}-CANC-0'.format(data_doc.name)
 		data_doc.load_from_db()
 		self.assertEqual(data_link_doc.docstatus, 2)
 		self.assertEqual(data_doc.docstatus, 2)
@@ -373,7 +372,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		link_doc.insert()
+		link_doc.insert(ignore_if_duplicate=True)
 
 		#create first parent doctype
 		test_doc_1 = new_doctype('Test Doctype 1')
@@ -388,7 +387,7 @@ class TestDocType(unittest.TestCase):
 		for data in test_doc_1.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		test_doc_1.insert()
+		test_doc_1.insert(ignore_if_duplicate=True)
 
 		#crete second parent doctype
 		doc = new_doctype('Test Doctype 2')
@@ -403,7 +402,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		doc.insert()
+		doc.insert(ignore_if_duplicate=True)
 
 		# create doctype data
 		data_link_doc_1 = frappe.new_doc('Test Linked Doctype 1')
@@ -434,6 +433,7 @@ class TestDocType(unittest.TestCase):
 		# checking that doc for Test Doctype 2 is not canceled
 		self.assertRaises(frappe.LinkExistsError, data_link_doc_1.cancel)
 
+		data_doc_2.name = '{}-CANC-0'.format(data_doc_2.name)
 		data_doc.load_from_db()
 		data_doc_2.load_from_db()
 		self.assertEqual(data_link_doc_1.docstatus, 2)
@@ -480,8 +480,19 @@ class TestDocType(unittest.TestCase):
 			'link_doctype': "User",
 			'link_fieldname': "a_field_that_does_not_exists"
 		})
+
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
+	def test_create_virtual_doctype(self):
+		"""Test virtual DOcTYpe."""
+		virtual_doc = new_doctype('Test Virtual Doctype')
+		virtual_doc.is_virtual = 1
+		virtual_doc.insert()
+		virtual_doc.save()
+		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
+
+		self.assertEqual(doc.is_virtual, 1)
+		self.assertFalse(frappe.db.table_exists('Test Virtual Doctype'))
 
 def new_doctype(name, unique=0, depends_on='', fields=None):
 	doc = frappe.get_doc({

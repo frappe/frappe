@@ -1,23 +1,19 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 from frappe import _
 import pyotp, os
 from frappe.utils.background_jobs import enqueue
 from pyqrcode import create as qrcreate
-from six import BytesIO
+from io import BytesIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
-from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
 
-def toggle_two_factor_auth(state, roles=[]):
+def toggle_two_factor_auth(state, roles=None):
 	'''Enable or disable 2FA in site_config and roles'''
-	for role in roles:
+	for role in roles or []:
 		role = frappe.get_doc('Role', {'role_name': role})
 		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
@@ -73,12 +69,12 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 
 	# set increased expiry time for SMS and Email
 	if verification_method in ['SMS', 'Email']:
-		expiry_time = 300
+		expiry_time = frappe.flags.token_expiry or 300
 		frappe.cache().set(tmp_id + '_token', token)
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
-		expiry_time = 180
-	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
+		expiry_time = frappe.flags.otp_expiry or 180
+	for k, v in {'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}.items():
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
 
@@ -87,7 +83,7 @@ def two_factor_is_enabled_for_(user):
 	if user == "Administrator":
 		return False
 
-	if isinstance(user, string_types):
+	if isinstance(user, str):
 		user = frappe.get_doc('User', user)
 
 	roles = [frappe.db.escape(d.role) for d in user.roles or []]
@@ -118,6 +114,7 @@ def get_verification_method():
 
 def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	'''Confirm otp matches.'''
+	from frappe.auth import get_login_attempt_tracker
 	if not otp:
 		otp = frappe.form_dict.get('otp')
 	if not otp:
@@ -130,12 +127,17 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	otp_secret = frappe.cache().get(tmp_id + '_otp_secret')
 	if not otp_secret:
 		raise ExpiredLoginException(_('Login session expired, refresh page to retry'))
+
+	tracker = get_login_attempt_tracker(login_manager.user)
+
 	hotp = pyotp.HOTP(otp_secret)
 	if hotp_token:
 		if hotp.verify(otp, int(hotp_token)):
 			frappe.cache().delete(tmp_id + '_token')
+			tracker.add_success_attempt()
 			return True
 		else:
+			tracker.add_failure_attempt()
 			login_manager.fail(_('Incorrect Verification code'), login_manager.user)
 
 	totp = pyotp.TOTP(otp_secret)
@@ -144,8 +146,10 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		if not frappe.db.get_default(login_manager.user + '_otplogin'):
 			frappe.db.set_default(login_manager.user + '_otplogin', 1)
 			delete_qrimage(login_manager.user)
+		tracker.add_success_attempt()
 		return True
 	else:
+		tracker.add_failure_attempt()
 		login_manager.fail(_('Incorrect Verification code'), login_manager.user)
 
 
@@ -385,7 +389,7 @@ def delete_all_barcodes_for_users():
 
 def should_remove_barcode_image(barcode):
 	'''Check if it's time to delete barcode image from server. '''
-	if isinstance(barcode, string_types):
+	if isinstance(barcode, str):
 		barcode = frappe.get_doc('File', barcode)
 	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image') or 240
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
@@ -394,3 +398,23 @@ def should_remove_barcode_image(barcode):
 
 def disable():
 	frappe.db.set_value('System Settings', None, 'enable_two_factor_auth', 0)
+
+@frappe.whitelist()
+def reset_otp_secret(user):
+	otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
+	user_email = frappe.db.get_value('User', user, 'email')
+	if frappe.session.user in ["Administrator", user] :
+		frappe.defaults.clear_default(user + '_otplogin')
+		frappe.defaults.clear_default(user + '_otpsecret')
+		email_args = {
+			'recipients': user_email,
+			'sender': None,
+			'subject': _('OTP Secret Reset - {0}').format(otp_issuer or "Frappe Framework"),
+			'message': _('<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>').format(otp_issuer or "Frappe Framework"),
+			'delayed':False,
+			'retry':3
+		}
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, is_async=True, job_name=None, now=False, **email_args)
+		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
+	else:
+		return frappe.throw(_("OTP secret can only be reset by the Administrator."))

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from unittest import TestCase
 from dateutil.relativedelta import relativedelta
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
@@ -47,7 +45,7 @@ class TestScheduler(TestCase):
 
 		# 1st job is in the queue (or running), don't enqueue it again
 		self.assertFalse(job.enqueue())
-		frappe.db.sql('DELETE FROM `tabScheduled Job Log` WHERE `scheduled_job_type`=%s', job.name)
+		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": job.name})
 
 	def test_is_dormant(self):
 		self.assertTrue(is_dormant(check_time= get_datetime('2100-01-01 00:00:00')))

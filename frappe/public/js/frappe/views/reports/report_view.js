@@ -3,6 +3,7 @@
  */
 import DataTable from 'frappe-datatable';
 
+window.DataTable = DataTable;
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
@@ -410,7 +411,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			x_fields.push({
 				label: col.content,
 				fieldname: col.id,
-				value:  col.id,
+				value: col.id,
 			});
 
 			// numeric values in y
@@ -1024,8 +1025,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return docfield.fieldtype === 'Date' ? 'right' : 'left';
 		})();
 
+		let id = fieldname;
+
 		// child table column
-		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
+		if (doctype !== this.doctype && fieldname !== '_aggregate_column') {
+			id = `${doctype}:${fieldname}`;
+		}
 
 		let width = (docfield ? cint(docfield.width) : null) || null;
 		if (this.report_doc) {
@@ -1395,7 +1400,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					];
 
-					if (this.total_count > args.page_length) {
+					if (this.total_count > this.count_without_children || args.page_length) {
 						fields.push({
 							fieldtype: 'Check',
 							fieldname: 'export_all_rows',

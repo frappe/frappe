@@ -39,7 +39,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Attach\nAttach Image\nCheck\nCurrency\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nRating\nSelect\nSmall Text\nText\nText Editor\nTable\nSection Break\nColumn Break"
+   "options": "Attach\nAttach Image\nCheck\nCurrency\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nPassword\nRating\nSelect\nSmall Text\nText\nText Editor\nTable\nSection Break\nColumn Break"
   },
   {
    "fieldname": "label",
@@ -146,7 +146,7 @@
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-11-10 23:20:44.354862",
+ "modified": "2021-04-30 12:02:25.422345",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",

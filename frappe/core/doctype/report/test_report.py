@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, json, os
 import unittest
 from frappe.desk.query_report import run, save_report
@@ -83,9 +82,11 @@ class TestReport(unittest.TestCase):
 
 	def test_report_permissions(self):
 		frappe.set_user('test@example.com')
-		frappe.db.sql("""delete from `tabHas Role` where parent = %s
-			and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
-
+		frappe.db.delete("Has Role", {
+			"parent": frappe.session.user,
+			"role": "Test Has Role"
+		})
+		frappe.db.commit()
 		if not frappe.db.exists('Role', 'Test Has Role'):
 			role = frappe.get_doc({
 				'doctype': 'Role',
@@ -106,7 +107,7 @@ class TestReport(unittest.TestCase):
 		else:
 			report = frappe.get_doc('Report', 'Test Report')
 
-		self.assertNotEquals(report.is_permitted(), True)
+		self.assertNotEqual(report.is_permitted(), True)
 		frappe.set_user('Administrator')
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
@@ -201,3 +202,27 @@ result = [
 
 		# check values
 		self.assertTrue('System User' in [d.get('type') for d in data[1]])
+
+	def test_toggle_disabled(self):
+		"""Make sure that authorization is respected.
+		"""
+		# Assuming that there will be reports in the system.
+		reports = frappe.get_all(doctype='Report', limit=1)
+		report_name = reports[0]['name']
+		doc = frappe.get_doc('Report', report_name)
+		status = doc.disabled
+
+		# User has write permission on reports and should pass through
+		frappe.set_user('test@example.com')
+		doc.toggle_disable(not status)
+		doc.reload()
+		self.assertNotEqual(status, doc.disabled)
+
+		# User has no write permission on reports, permission error is expected.
+		frappe.set_user('test1@example.com')
+		doc = frappe.get_doc('Report', report_name)
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			doc.toggle_disable(1)
+
+		# Set user back to administrator
+		frappe.set_user('Administrator')

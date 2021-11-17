@@ -85,6 +85,7 @@ $.extend(frappe.perm, {
 					if (s.user === user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;
 						perm[0]["write"] = perm[0]["write"] || s.write;
+						perm[0]["submit"] = perm[0]["submit"] || s.submit;
 						perm[0]["share"] = perm[0]["share"] || s.share;
 
 						if (s.read) {

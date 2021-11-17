@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2021, Frappe Technologies and contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
 class RouteHistory(Document):
 	pass
+
 
 def flush_old_route_records():
 	"""Deletes all route records except last 500 records per user"""
@@ -25,19 +24,14 @@ def flush_old_route_records():
 	for user in users:
 		user = user[0]
 		last_record_to_keep = frappe.db.get_all('Route History',
-			filters={
-				'user': user,
-			},
+			filters={'user': user},
 			limit=1,
 			limit_start=500,
 			fields=['modified'],
-			order_by='modified desc')
+			order_by='modified desc'
+		)
 
-		frappe.db.sql('''
-			DELETE
-			FROM `tabRoute History`
-			WHERE `modified` <= %(modified)s and `user`=%(modified)s
-		''', {
-			"modified": last_record_to_keep[0].modified,
+		frappe.db.delete("Route History", {
+			"modified": ("<=", last_record_to_keep[0].modified),
 			"user": user
 		})

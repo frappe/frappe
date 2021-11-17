@@ -11,6 +11,34 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 			title: __("Switch Theme")
 		});
 		this.body = $(`<div class="theme-grid"></div>`).appendTo(this.dialog.$body);
+		this.bind_events();
+	}
+
+	bind_events() {
+		this.dialog.$wrapper.on('keydown', (e) => {
+			if (!this.themes) return;
+
+			const key = frappe.ui.keys.get_key(e);
+			let increment_by;
+
+			if (key === "right") {
+				increment_by = 1;
+			} else if (key === "left") {
+				increment_by = -1;
+			} else {
+				return;
+			}
+
+			const current_index = this.themes.findIndex(theme => {
+				return theme.name === this.current_theme;
+			});
+
+			const new_theme = this.themes[current_index + increment_by];
+			if (!new_theme) return;
+
+			new_theme.$html.click();
+			return false;
+		});
 	}
 
 	refresh() {

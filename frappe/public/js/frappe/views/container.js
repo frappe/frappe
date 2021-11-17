@@ -6,10 +6,9 @@ frappe.provide('frappe.pages');
 frappe.provide('frappe.views');
 
 window.cur_page = null;
-frappe.views.Container = Class.extend({
-	_intro: "Container contains pages inside `#container` and manages \
-			page creation, switching",
-	init: function() {
+frappe.views.Container = class Container {
+	// Container contains pages inside `#container` and manages page creation, switching
+	constructor() {
 		this.container = $('#body').get(0);
 		this.page = null; // current page
 		this.pagewidth = $(this.container).width();
@@ -27,8 +26,8 @@ frappe.views.Container = Class.extend({
 		$(document).bind('rename', function(event, dt, old_name, new_name) {
 			frappe.breadcrumbs.rename(dt, old_name, new_name);
 		});
-	},
-	add_page: function(label) {
+	}
+	add_page(label) {
 		var page = $('<div class="content page-container"></div>')
 			.attr('id', "page-" + label)
 			.attr("data-page-route", label)
@@ -38,8 +37,8 @@ frappe.views.Container = Class.extend({
 		frappe.pages[label] = page;
 
 		return page;
-	},
-	change_to: function(label) {
+	}
+	change_to(label) {
 		cur_page = this;
 		if(this.page && this.page.label === label) {
 			$(this.page).trigger('show');
@@ -88,8 +87,8 @@ frappe.views.Container = Class.extend({
 		frappe.breadcrumbs.update();
 
 		return this.page;
-	},
-	has_sidebar: function() {
+	}
+	has_sidebar() {
 		var flag = 0;
 		var route_str = frappe.get_route_str();
 		// check in frappe.ui.pages
@@ -103,7 +102,7 @@ frappe.views.Container = Class.extend({
 		}
 
 		return flag;
-	},
-});
+	}
+};
 
 

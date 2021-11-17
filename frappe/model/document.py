@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
+# License: MIT. See LICENSE
 import frappe
 import time
-from frappe import _, msgprint
+from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name
-from six import iteritems, string_types
+from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
@@ -18,6 +15,7 @@ from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from frappe.utils.data import get_absolute_url
 
 # once_only validation
 # methods
@@ -53,7 +51,7 @@ def get_doc(*args, **kwargs):
 		if isinstance(args[0], BaseDocument):
 			# already a document
 			return args[0]
-		elif isinstance(args[0], string_types):
+		elif isinstance(args[0], str):
 			doctype = args[0]
 
 		elif isinstance(args[0], dict):
@@ -90,7 +88,7 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
-		if args and args[0] and isinstance(args[0], string_types):
+		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
 			if len(args)==1:
 				# single
@@ -126,10 +124,10 @@ class Document(BaseDocument):
 			raise ValueError('Illegal arguments')
 
 	@staticmethod
-	def whitelist(f):
+	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
-		f.whitelisted = True
-		return f
+		frappe.whitelist()(fn)
+		return fn
 
 	def reload(self):
 		"""Reload document from database"""
@@ -387,15 +385,15 @@ class Document(BaseDocument):
 					[self.name, self.doctype, fieldname] + rows)
 			if len(deleted_rows) > 0:
 				# delete rows that do not match the ones in the document
-				frappe.db.sql("""delete from `tab{0}` where name in ({1})""".format(df.options,
-					','.join(['%s'] * len(deleted_rows))), tuple(row[0] for row in deleted_rows))
+				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
 
 		else:
 			# no rows found, delete all rows
-			frappe.db.sql("""delete from `tab{0}` where parent=%s
-				and parenttype=%s and parentfield=%s""".format(df.options),
-				(self.name, self.doctype, fieldname))
-
+			frappe.db.delete(df.options, {
+				"parent": self.name,
+				"parenttype": self.doctype,
+				"parentfield": fieldname
+			})
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -437,7 +435,7 @@ class Document(BaseDocument):
 		def get_values():
 			values = self.as_dict()
 			# format values
-			for key, value in iteritems(values):
+			for key, value in values.items():
 				if value==None:
 					values[key] = ""
 			return values
@@ -453,8 +451,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
-		for field, value in iteritems(d):
+		frappe.db.delete("Singles", {
+			"doctype": self.doctype
+		})
+		for field, value in d.items():
 			if field != "doctype":
 				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
@@ -494,6 +494,7 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_non_negative()
 		self._validate_length()
+		self._validate_code_fields()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
@@ -505,6 +506,7 @@ class Document(BaseDocument):
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_length()
+			d._validate_code_fields()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
@@ -697,7 +699,7 @@ class Document(BaseDocument):
 		`self.check_docstatus_transition`."""
 		conflict = False
 		self._action = "save"
-		if not self.get('__islocal'):
+		if not self.get('__islocal') and not self.meta.get('is_virtual'):
 			if self.meta.issingle:
 				modified = frappe.db.sql("""select value from tabSingles
 					where doctype=%s and field='modified' for update""", self.doctype)
@@ -707,7 +709,6 @@ class Document(BaseDocument):
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
 					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
-
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
 				else:
@@ -918,8 +919,12 @@ class Document(BaseDocument):
 
 	@whitelist.__func__
 	def _cancel(self):
-		"""Cancel the document. Sets `docstatus` = 2, then saves."""
+		"""Cancel the document. Sets `docstatus` = 2, then saves.
+		"""
 		self.docstatus = 2
+		new_name = gen_new_name_for_cancelled_doc(self)
+		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
+		self.name = new_name
 		self.save()
 
 	@whitelist.__func__
@@ -1062,7 +1067,10 @@ class Document(BaseDocument):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
-		self.load_doc_before_save()
+		# load but do not reload doc_before_save because before_change or on_change might expect it
+		if not self.get_doc_before_save():
+			self.load_doc_before_save()
+
 		# to trigger notification on value change
 		self.run_method('before_change')
 
@@ -1148,12 +1156,12 @@ class Document(BaseDocument):
 
 		return composer
 
-	def is_whitelisted(self, method):
-		fn = getattr(self, method, None)
-		if not fn:
-			raise NotFound("Method {0} not found".format(method))
-		elif not getattr(fn, "whitelisted", False):
-			raise Forbidden("Method {0} not whitelisted".format(method))
+	def is_whitelisted(self, method_name):
+		method = getattr(self, method_name, None)
+		if not method:
+			raise NotFound("Method {0} not found".format(method_name))
+
+		is_whitelisted(getattr(method, '__func__', method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2
@@ -1202,8 +1210,8 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 
 	def get_url(self):
-		"""Returns Desk URL for this document. `/app/Form/{doctype}/{name}`"""
-		return "/app/Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+		"""Returns Desk URL for this document."""
+		return get_absolute_url(self.doctype, self.name)
 
 	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.
@@ -1346,6 +1354,22 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
+	def __repr__(self):
+		name = self.name or "unsaved"
+		doctype = self.__class__.__name__
+
+		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
+		parent = f" parent={self.parent}" if self.parent else ""
+
+		return f"<{doctype}: {name}{docstatus}{parent}>"
+
+	def __str__(self):
+		name = self.name or "unsaved"
+		doctype = self.__class__.__name__
+
+		return f"{doctype}({name})"
+
 
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""

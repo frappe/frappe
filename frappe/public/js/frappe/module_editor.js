@@ -1,10 +1,10 @@
-frappe.ModuleEditor = Class.extend({
-	init: function(frm, wrapper) {
+frappe.ModuleEditor = class ModuleEditor {
+	constructor(frm, wrapper) {
 		this.wrapper = $('<div class="row module-block-list"></div>').appendTo(wrapper);
 		this.frm = frm;
 		this.make();
-	},
-	make: function() {
+	}
+	make() {
 		var me = this;
 		this.frm.doc.__onload.all_modules.forEach(function(m) {
 			$(repl('<div class="col-sm-6"><div class="checkbox">\
@@ -12,15 +12,15 @@ frappe.ModuleEditor = Class.extend({
 				%(module)s</label></div></div>', {module: m})).appendTo(me.wrapper);
 		});
 		this.bind();
-	},
-	refresh: function() {
+	}
+	refresh() {
 		var me = this;
 		this.wrapper.find(".block-module-check").prop("checked", true);
 		$.each(this.frm.doc.block_modules, function(i, d) {
 			me.wrapper.find(".block-module-check[data-module='"+ d.module +"']").prop("checked", false);
 		});
-	},
-	bind: function() {
+	}
+	bind() {
 		var me = this;
 		this.wrapper.on("change", ".block-module-check", function() {
 			var module = $(this).attr('data-module');
@@ -36,4 +36,4 @@ frappe.ModuleEditor = Class.extend({
 			}
 		});
 	}
-});
+};

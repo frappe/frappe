@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe, frappe.utils, frappe.utils.scheduler
 from frappe.desk.form import assign_to
 import unittest
 
-test_records = frappe.get_test_records('Notification')
-
-test_dependencies = ["User"]
+test_dependencies = ["User", "Notification"]
 
 class TestNotification(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
 
 		if not frappe.db.exists('Notification', {'name': 'ToDo Status Update'}, 'name'):
@@ -24,6 +20,8 @@ class TestNotification(unittest.TestCase):
 			notification.event = 'Value Change'
 			notification.value_changed = 'status'
 			notification.send_to_all_assignees = 1
+			notification.set_property_after_alert = 'description'
+			notification.property_value = 'Changed by Notification'
 			notification.save()
 
 		if not frappe.db.exists('Notification', {'name': 'Contact Status Update'}, 'name'):
@@ -44,6 +42,8 @@ class TestNotification(unittest.TestCase):
 		frappe.set_user("Administrator")
 
 	def test_new_and_save(self):
+		"""Check creating a new communication triggers a notification.
+		"""
 		communication = frappe.new_doc("Communication")
 		communication.communication_type = 'Comment'
 		communication.subject = "test"
@@ -52,8 +52,9 @@ class TestNotification(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Communication",
 			"reference_name": communication.name, "status":"Not Sent"}))
-		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.delete("Email Queue")
 
+		communication.reload()
 		communication.content = "test 2"
 		communication.save()
 
@@ -64,6 +65,8 @@ class TestNotification(unittest.TestCase):
 			communication.name, 'subject'), '__testing__')
 
 	def test_condition(self):
+		"""Check notification is triggered based on a condition.
+		"""
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
@@ -78,6 +81,11 @@ class TestNotification(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
+
+		# Make sure that we track the triggered notifications in communication doctype.
+		self.assertTrue(frappe.db.get_value("Communication", {"reference_doctype": "Event",
+			"reference_name": event.name, "communication_type": 'Automated Message'}))
+
 
 	def test_invalid_condition(self):
 		frappe.set_user("Administrator")
@@ -183,9 +191,9 @@ class TestNotification(unittest.TestCase):
 
 	def test_cc_jinja(self):
 
-		frappe.db.sql("""delete from `tabUser` where email='test_jinja@example.com'""")
-		frappe.db.sql("""delete from `tabEmail Queue`""")
-		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
+		frappe.db.delete("User", {"email": "test_jinja@example.com"})
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
 
 		test_user = frappe.new_doc("User")
 		test_user.name = 'test_jinja'
@@ -199,9 +207,9 @@ class TestNotification(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"}))
 
-		frappe.db.sql("""delete from `tabUser` where email='test_jinja@example.com'""")
-		frappe.db.sql("""delete from `tabEmail Queue`""")
-		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
+		frappe.db.delete("User", {"email": "test_jinja@example.com"})
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
 
 	def test_notification_to_assignee(self):
 		todo = frappe.new_doc('ToDo')
@@ -230,6 +238,9 @@ class TestNotification(unittest.TestCase):
 			'reference_name': todo.name})
 
 		self.assertTrue(email_queue)
+
+		# check if description is changed after alert since set_property_after_alert is set
+		self.assertEquals(todo.description, 'Changed by Notification')
 
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue('test2@example.com' in recipients)
@@ -263,4 +274,7 @@ class TestNotification(unittest.TestCase):
 		self.assertTrue('test2@example.com' in recipients)
 		self.assertTrue('test1@example.com' in recipients)
 
-
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc_if_exists("Notification", "ToDo Status Update")
+		frappe.delete_doc_if_exists("Notification", "Contact Status Update")

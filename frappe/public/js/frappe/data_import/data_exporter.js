@@ -15,6 +15,13 @@ frappe.data_import.DataExporter = class DataExporter {
 			fields: [
 				{
 					fieldtype: 'Select',
+					fieldname: 'file_type',
+					label: __('File Type'),
+					options: ['Excel', 'CSV'],
+					default: 'CSV'
+				},
+				{
+					fieldtype: 'Select',
 					fieldname: 'export_records',
 					label: __('Export Type'),
 					options: [
@@ -46,13 +53,6 @@ frappe.data_import.DataExporter = class DataExporter {
 					depends_on: doc => doc.export_records === 'by_filter'
 				},
 				{
-					fieldtype: 'Select',
-					fieldname: 'file_type',
-					label: __('File Type'),
-					options: ['Excel', 'CSV'],
-					default: 'CSV'
-				},
-				{
 					fieldtype: 'Section Break'
 				},
 				{
@@ -72,8 +72,8 @@ frappe.data_import.DataExporter = class DataExporter {
 					let child_fieldname = df.fieldname;
 					let label = df.reqd
 						? // prettier-ignore
-						  __('{0} ({1}) (1 row mandatory)', [df.label || df.fieldname, doctype])
-						: __('{0} ({1})', [df.label || df.fieldname, doctype]);
+						  __('{0} ({1}) (1 row mandatory)', [__(df.label || df.fieldname), __(doctype)])
+						: __('{0} ({1})', [__(df.label || df.fieldname), __(doctype)]);
 					return {
 						label,
 						fieldname: child_fieldname,
@@ -141,7 +141,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		let for_insert = this.exporting_for === 'Insert New Records';
 		let section_title = for_insert ? __('Select Fields To Insert') : __('Select Fields To Update');
 		let $select_all_buttons = $(`
-			<div>
+			<div class="mb-3">
 				<h6 class="form-section-heading uppercase">${section_title}</h6>
 				<button class="btn btn-default btn-xs" data-action="select_all">
 					${__('Select All')}

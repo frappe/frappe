@@ -1,17 +1,13 @@
-from __future__ import unicode_literals
-
-import frappe
-import warnings
+from typing import List, Tuple, Union
 
 import pymysql
-from pymysql.times import TimeDelta
-from pymysql.constants 	import ER, FIELD_TYPE
-from pymysql.converters import conversions
+from pymysql.constants import ER, FIELD_TYPE
+from pymysql.converters import conversions, escape_string
 
-from frappe.utils import get_datetime, cstr, UnicodeWithAttrs
+import frappe
 from frappe.database.database import Database
-from six import PY2, binary_type, text_type, string_types
 from frappe.database.mariadb.schema import MariaDBTable
+from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
 
 class MariaDBDatabase(Database):
@@ -26,11 +22,11 @@ class MariaDBDatabase(Database):
 	def setup_type_map(self):
 		self.db_type = 'mariadb'
 		self.type_map = {
-			'Currency':		('decimal', '18,6'),
+			'Currency':		('decimal', '21,9'),
 			'Int':			('int', '11'),
 			'Long Int':		('bigint', '20'),
-			'Float':		('decimal', '18,6'),
-			'Percent':		('decimal', '18,6'),
+			'Float':		('decimal', '21,9'),
+			'Percent':		('decimal', '21,9'),
 			'Check':		('int', '1'),
 			'Small Text':	('text', ''),
 			'Long Text':	('longtext', ''),
@@ -55,11 +51,11 @@ class MariaDBDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('longtext', ''),
 			'Geolocation':	('longtext', ''),
-			'Duration':		('decimal', '18,6')
+			'Duration':		('decimal', '21,9'),
+			'Icon':			('varchar', self.VARCHAR_LEN)
 		}
 
 	def get_connection(self):
-		warnings.filterwarnings('ignore', category=pymysql.Warning)
 		usessl = 0
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
 			usessl = 1
@@ -72,22 +68,20 @@ class MariaDBDatabase(Database):
 		conversions.update({
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			UnicodeWithAttrs: conversions[text_type]
+			UnicodeWithAttrs: conversions[str]
 		})
 
-		if PY2:
-			conversions.update({
-				TimeDelta: conversions[binary_type]
-			})
-
-		if usessl:
-			conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				port=self.port, charset='utf8mb4', use_unicode = True, ssl=ssl_params,
-				conv = conversions, local_infile = frappe.conf.local_infile)
-		else:
-			conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				port=self.port, charset='utf8mb4', use_unicode = True, conv = conversions,
-				local_infile = frappe.conf.local_infile)
+		conn = pymysql.connect(
+			user=self.user or '',
+			password=self.password or '',
+			host=self.host,
+			port=self.port,
+			charset='utf8mb4',
+			use_unicode=True,
+			ssl=ssl_params if usessl else None,
+			conv=conversions,
+			local_infile=frappe.conf.local_infile
+		)
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
@@ -111,7 +105,7 @@ class MariaDBDatabase(Database):
 	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# pymysql expects unicode argument to escape_string with Python 3
-		s = frappe.as_unicode(pymysql.escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
+		s = frappe.as_unicode(escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s
@@ -131,6 +125,19 @@ class MariaDBDatabase(Database):
 	@staticmethod
 	def is_type_datetime(code):
 		return code in (pymysql.DATE, pymysql.DATETIME)
+
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+		old_name = get_table_name(old_name)
+		new_name = get_table_name(new_name)
+		return self.sql(f"RENAME TABLE `{old_name}` TO `{new_name}`")
+
+	def describe(self, doctype: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		return self.sql(f"DESC `{table_name}`")
+
+	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
 
 	# exception types
 	@staticmethod
@@ -188,7 +195,7 @@ class MariaDBDatabase(Database):
 				`password` TEXT NOT NULL,
 				`encrypted` INT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
-			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
+			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
 
 	def create_global_search_table(self):
 		if not '__global_search' in self.get_tables():
@@ -249,18 +256,18 @@ class MariaDBDatabase(Database):
 				index_name=index_name
 			))
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype: str, fields: List, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
 			self.commit()
 			self.sql("""ALTER TABLE `%s`
 				ADD INDEX `%s`(%s)""" % (table_name, index_name, ", ".join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, string_types):
+		if isinstance(fields, str):
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)

@@ -201,6 +201,7 @@ frappe.ui.FilterGroup = class {
 			parent: this.wrapper,
 			parent_doctype: this.doctype,
 			doctype: doctype,
+			_parent_doctype: this.parent_doctype,
 			fieldname: fieldname,
 			condition: condition,
 			value: value,
@@ -283,6 +284,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	get_filter_area_template() {
+		/* eslint-disable indent */
 		return $(`
 			<div class="filter-area">
 				<div class="filter-edit-area">
@@ -293,19 +295,23 @@ frappe.ui.FilterGroup = class {
 				<hr class="divider"></hr>
 				<div class="filter-action-buttons">
 					<button class="text-muted add-filter btn btn-xs">
-						${__('+ Add a Filter')}
+						+ ${__('Add a Filter')}
 					</button>
 					<div>
 						<button class="btn btn-secondary btn-xs clear-filters">
 							${__('Clear Filters')}
 						</button>
-						<button class="btn btn-primary btn-xs apply-filters">
-							${__('Apply Filters')}
-						</button>
+						${this.filter_button ?
+							`<button class="btn btn-primary btn-xs apply-filters">
+								${__('Apply Filters')}
+							</button>`
+							: ''
+						}
 					</div>
 				</div>
 			</div>`
 		);
+		/* eslint-disable indent */
 	}
 
 	get_filters_as_object() {
@@ -318,9 +324,12 @@ frappe.ui.FilterGroup = class {
 	}
 
 	add_filters_to_filter_group(filters) {
-		filters.forEach((filter) => {
-			this.add_filter(filter[0], filter[1], filter[2], filter[3]);
-		});
+		if (filters.length) {
+			this.toggle_empty_filters(false);
+			filters.forEach((filter) => {
+				this.add_filter(filter[0], filter[1], filter[2], filter[3]);
+			});
+		}
 	}
 
 	add(filters, refresh = true) {

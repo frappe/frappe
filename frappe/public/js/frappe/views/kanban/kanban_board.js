@@ -1,3 +1,5 @@
+// TODO: Refactor for better UX
+
 frappe.provide("frappe.views");
 
 (function() {
@@ -178,14 +180,14 @@ frappe.provide("frappe.views");
 					method_name = "update_order_for_single_card";
 					args = {
 						board_name: this.board.name,
-						docname: unescape(card.name),
+						docname: card.name,
 						from_colname: card.from_colname,
 						to_colname: card.to_colname,
 						old_index: card.old_index,
 						new_index: card.new_index,
 					};
 				}
-
+				frappe.dom.freeze();
 				frappe.call({
 					method: method_prefix + method_name,
 					args: args,
@@ -198,6 +200,7 @@ frappe.provide("frappe.views");
 							cards: cards,
 							columns: columns
 						});
+						frappe.dom.unfreeze();
 					}
 				}).fail(function() {
 					// revert original order
@@ -205,6 +208,7 @@ frappe.provide("frappe.views");
 						cards: _cards,
 						columns: _columns
 					});
+					frappe.dom.unfreeze();
 				});
 			},
 			update_order: function(updater) {
@@ -218,7 +222,7 @@ frappe.provide("frappe.views");
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
 						$(this).find('.kanban-card-wrapper').each(function() {
-							var card_name = unescape($(this).data().name);
+							var card_name = decodeURIComponent($(this).data().name);
 							order[col_name].push(card_name);
 						});
 					});
@@ -306,6 +310,7 @@ frappe.provide("frappe.views");
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
 			store.on('change:empty_state', show_empty_state);
+			fluxify.doAction('update_order');
 		}
 
 		function prepare() {
@@ -509,7 +514,7 @@ frappe.provide("frappe.views");
 					wrapper.find('.kanban-cards').height('auto');
 					// update order
 					const args = {
-						name: $(e.item).attr('data-name'),
+						name: decodeURIComponent($(e.item).attr('data-name')),
 						from_colname: $(e.from).parents('.kanban-column').attr('data-column-value'),
 						to_colname: $(e.to).parents('.kanban-column').attr('data-column-value'),
 						old_index: e.oldIndex,

@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 from . import __version__ as app_version
 
 
@@ -12,11 +12,11 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
 
-develop_version = '13.x.x-develop'
+develop_version = '14.x.x-develop'
 
-app_email = "info@frappe.io"
+app_email = "developers@frappe.io"
 
-docs_app = "frappe_io"
+docs_app = "frappe_docs"
 
 translator_url = "https://translate.erpnext.com"
 
@@ -29,16 +29,16 @@ page_js = {
 
 # website
 app_include_js = [
-	"/assets/js/libs.min.js",
-	"/assets/js/desk.min.js",
-	"/assets/js/list.min.js",
-	"/assets/js/form.min.js",
-	"/assets/js/control.min.js",
-	"/assets/js/report.min.js",
+	"libs.bundle.js",
+	"desk.bundle.js",
+	"list.bundle.js",
+	"form.bundle.js",
+	"controls.bundle.js",
+	"report.bundle.js",
 ]
 app_include_css = [
-	"/assets/css/desk.min.css",
-	"/assets/css/report.min.css",
+	"desk.bundle.css",
+	"report.bundle.css",
 ]
 
 doctype_js = {
@@ -51,6 +51,8 @@ web_include_js = [
 ]
 
 web_include_css = []
+
+email_css = ['email.bundle.css']
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
@@ -73,8 +75,6 @@ notification_config = "frappe.core.notifications.get_notification_config"
 before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
-
-get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
@@ -130,6 +130,16 @@ has_website_permission = {
 	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
 }
 
+jinja = {
+	"methods": "frappe.utils.jinja_globals",
+	"filters": [
+		"frappe.utils.data.global_date_format",
+		"frappe.utils.markdown",
+		"frappe.website.utils.get_shade",
+		"frappe.website.utils.abs_url",
+	]
+}
+
 standard_queries = {
 	"User": "frappe.core.doctype.user.user.user_query"
 }
@@ -147,16 +157,21 @@ doc_events = {
 			"frappe.core.doctype.file.file.attach_files_to_document",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
+			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+		],
+		"on_update_after_submit": [
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
@@ -215,7 +230,6 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
-		"frappe.realtime.remove_old_task_logs",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
@@ -265,11 +279,6 @@ sounds = [
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
 	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
-
-	# frappe.chat sounds
-	{ "name": "chat-message", 	   "src": "/assets/frappe/sounds/chat-message.mp3",      "volume": 0.1 },
-	{ "name": "chat-notification", "src": "/assets/frappe/sounds/chat-notification.mp3", "volume": 0.1 }
-	# frappe.chat sounds
 ]
 
 bot_parsers = [

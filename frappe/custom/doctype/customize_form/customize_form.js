@@ -117,7 +117,7 @@ frappe.ui.form.on("Customize Form", {
 			frappe.customize_form.set_primary_action(frm);
 
 			frm.add_custom_button(
-				__("Go to {0} List", [frm.doc.doc_type]),
+				__("Go to {0} List", [__(frm.doc.doc_type)]),
 				function() {
 					frappe.set_route("List", frm.doc.doc_type);
 				},

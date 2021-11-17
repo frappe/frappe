@@ -1,12 +1,15 @@
-frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
+frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.ControlData {
 	can_write() {
 		// should be always true in case of button
 		return true;
-	},
-	make_input: function() {
+	}
+	make_input() {
 		var me = this;
 		const btn_type = this.df.primary ? 'btn-primary': 'btn-default';
-		this.$input = $(`<button class="btn btn-xs ${btn_type}">`)
+		const btn_size = this.df.btn_size
+			? `btn-${this.df.btn_size}`
+			: "btn-xs";
+		this.$input = $(`<button class="btn ${btn_size} ${btn_type}">`)
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();
@@ -15,8 +18,8 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		this.set_input_attributes();
 		this.has_input = true;
 		this.toggle_label(false);
-	},
-	onclick: function() {
+	}
+	onclick() {
 		if (this.frm && this.frm.doc) {
 			if (this.frm.script_manager.has_handlers(this.df.fieldname, this.doctype)) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
@@ -28,13 +31,13 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		} else if (this.df.click) {
 			this.df.click();
 		}
-	},
-	run_server_script: function() {
+	}
+	run_server_script() {
 		// DEPRECATE
 		var me = this;
 		if(this.frm && this.frm.docname) {
 			frappe.call({
-				method: "runserverobj",
+				method: "run_doc_method",
 				args: {'docs': this.frm.doc, 'method': this.df.options },
 				btn: this.$input,
 				callback: function(r) {
@@ -44,18 +47,18 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 				}
 			});
 		}
-	},
+	}
 	hide() {
 		this.$input.hide();
-	},
-	set_input_areas: function() {
-		this._super();
+	}
+	set_input_areas() {
+		super.set_input_areas();
 		$(this.disp_area).removeClass().addClass("hide");
-	},
-	set_empty_description: function() {
+	}
+	set_empty_description() {
 		this.$wrapper.find(".help-box").empty().toggle(false);
-	},
-	set_label: function(label) {
+	}
+	set_label(label) {
 		if (label) {
 			this.df.label = label;
 		}
@@ -63,4 +66,4 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html(label);
 	}
-});
+};

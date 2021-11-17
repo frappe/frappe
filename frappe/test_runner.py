@@ -1,19 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
-
+# License: MIT. See LICENSE
 import frappe
 import unittest, json, sys, os
 import time
-import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
-from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, pstats
-from six import StringIO
-from six.moves import reload_module
+from io import StringIO
+from importlib import reload
 from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
@@ -21,6 +16,13 @@ SLOW_TEST_THRESHOLD = 2
 
 def xmlrunner_wrapper(output):
 	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
+	try:
+		import xmlrunner
+	except ImportError:
+		print("Development dependencies are required to execute this command. To install run:")
+		print("$ bench setup requirements --dev")
+		raise
+
 	def _runner(*args, **kwargs):
 		kwargs['output'] = output
 		return xmlrunner.XMLTestRunner(*args, **kwargs)
@@ -54,12 +56,16 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			frappe.connect()
 
 		# if not frappe.conf.get("db_name").startswith("test_"):
-		# 	raise Exception, 'db_name must start with "test_"'
+		#	raise Exception, 'db_name must start with "test_"'
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
-		frappe.utils.scheduler.disable_scheduler()
+		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled()
+		if not scheduler_disabled_by_user:
+			frappe.utils.scheduler.disable_scheduler()
+
 		set_test_email_config()
+		frappe.conf.update({'bench_id': 'test_bench', 'use_rq_auth': False})
 
 		if not frappe.flags.skip_before_tests:
 			if verbose:
@@ -68,11 +74,14 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 				frappe.get_attr(fn)()
 
 		if doctype:
-			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, junit_xml_output=junit_xml_output)
+			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		elif module:
-			ret = run_tests_for_module(module, verbose, tests, profile, junit_xml_output=junit_xml_output)
+			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
+
+		if not scheduler_disabled_by_user:
+			frappe.utils.scheduler.enable_scheduler()
 
 		if frappe.db: frappe.db.commit()
 
@@ -153,7 +162,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 
 	return out
 
-def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False, junit_xml_output=False):
+def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False, failfast=False, junit_xml_output=False):
 	modules = []
 	if not isinstance(doctypes, (list, tuple)):
 		doctypes = [doctypes]
@@ -171,17 +180,18 @@ def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profil
 		make_test_records(doctype, verbose=verbose, force=force)
 		modules.append(importlib.import_module(test_module))
 
-	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
+	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
-def run_tests_for_module(module, verbose=False, tests=(), profile=False, junit_xml_output=False):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, junit_xml_output=junit_xml_output)
+	frappe.db.commit()
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
-def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_output=False):
+def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
 	frappe.db.begin()
 
 	test_suite = unittest.TestSuite()
@@ -200,9 +210,9 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False, junit_xml_out
 			test_suite.addTest(module_test_cases)
 
 	if junit_xml_output:
-		runner = unittest_runner(verbosity=1+(verbose and 1 or 0))
+		runner = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast)
 	else:
-		runner = unittest_runner(resultclass=TimeLoggingTestResult, verbosity=1+(verbose and 1 or 0))
+		runner = unittest_runner(resultclass=TimeLoggingTestResult, verbosity=1+(verbose and 1 or 0), failfast=failfast)
 
 	if profile:
 		pr = cProfile.Profile()
@@ -282,7 +292,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload_module(test_module)
+			reload(test_module)
 	except ImportError:
 		test_module = None
 
@@ -307,6 +317,8 @@ def get_dependencies(doctype):
 		for doctype_name in test_module.test_ignore:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
+
+	options_list.sort()
 
 	return options_list
 

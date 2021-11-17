@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-
-from __future__ import unicode_literals
 
 import json
 
@@ -13,8 +11,6 @@ from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.utils import gzip_compress, gzip_decompress
 from frappe.utils.background_jobs import enqueue
-from frappe.core.doctype.file.file import remove_all
-
 
 class PreparedReport(Document):
 	def before_insert(self):
@@ -37,7 +33,10 @@ def run_background(prepared_report):
 			custom_report_doc = report
 			reference_report = custom_report_doc.reference_report
 			report = frappe.get_doc("Report", reference_report)
-			report.custom_columns = custom_report_doc.json
+			if custom_report_doc.json:
+				data = json.loads(custom_report_doc.json)
+				if data:
+					report.custom_columns = data["columns"]
 
 		result = generate_report_result(
 			report=report,

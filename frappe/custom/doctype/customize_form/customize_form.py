@@ -1,7 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 
-from __future__ import unicode_literals
 """
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
@@ -19,11 +18,13 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model.docfield import supports_translation
 from frappe.core.doctype.doctype.doctype import validate_series
 
+
 class CustomizeForm(Document):
 	def on_update(self):
-		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
-		frappe.db.sql("delete from `tabCustomize Form Field`")
+		frappe.db.delete("Singles", {"doctype": "Customize Form"})
+		frappe.db.delete("Customize Form Field")
 
+	@frappe.whitelist()
 	def fetch_to_customize(self):
 		self.clear_existing_doc()
 		if not self.doc_type:
@@ -133,6 +134,7 @@ class CustomizeForm(Document):
 		self.doc_type = doc_type
 		self.name = "Customize Form"
 
+	@frappe.whitelist()
 	def save_customization(self):
 		if not self.doc_type:
 			return
@@ -190,6 +192,16 @@ class CustomizeForm(Document):
 	def allow_property_change(self, prop, meta_df, df):
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+
+		elif prop == "length":
+			old_value_length = cint(meta_df[0].get(prop))
+			new_value_length = cint(df.get(prop))
+
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': meta_df[0].get(prop)})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
 
 		elif prop == "allow_on_submit" and df.get(prop):
 			if not frappe.db.get_value("DocField",
@@ -354,9 +366,9 @@ class CustomizeForm(Document):
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
-		fields_to_remove = (set([df.fieldname for df in meta.get("fields")])
-			- set(df.fieldname for df in self.get("fields")))
-
+		fields_to_remove = (
+			{df.fieldname for df in meta.get("fields")} - {df.fieldname for df in self.get("fields")}
+		)
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
 			if df.get("is_custom_field"):
@@ -399,22 +411,18 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
-		allowed = False
-		self.check_length_for_fieldtypes = []
-		for allowed_changes in ALLOWED_FIELDTYPE_CHANGE:
-			if (old_value in allowed_changes and new_value in allowed_changes):
-				allowed = True
-				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
-				new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+		allowed = self.allow_fieldtype_change(old_value, new_value)
+		if allowed:
+			old_value_length = cint(frappe.db.type_map.get(old_value)[1])
+			new_value_length = cint(frappe.db.type_map.get(new_value)[1])
 
-				# Ignore fieldtype check validation if new field type has unspecified maxlength
-				# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
-				if new_value_length and (old_value_length > new_value_length):
-					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
-					self.validate_fieldtype_length()
-				else:
-					self.flags.update_db = True
-				break
+			# Ignore fieldtype check validation if new field type has unspecified maxlength
+			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
@@ -448,12 +456,21 @@ class CustomizeForm(Document):
 
 		self.flags.update_db = True
 
+	@frappe.whitelist()
 	def reset_to_defaults(self):
 		if not self.doc_type:
 			return
 
 		reset_customization(self.doc_type)
 		self.fetch_to_customize()
+
+	@classmethod
+	def allow_fieldtype_change(self, old_type: str, new_type: str) -> bool:
+		""" allow type change, if both old_type and new_type are in same field group.
+		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
+		"""
+		in_field_group = lambda group: (old_type in group) and (new_type in group)
+		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 def reset_customization(doctype):
 	setters = frappe.get_all("Property Setter", filters={
@@ -484,6 +501,7 @@ doctype_properties = {
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
 	'show_preview_popup': 'Check',
+	'default_email_template': 'Data',
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
 	'sender_field': 'Data',

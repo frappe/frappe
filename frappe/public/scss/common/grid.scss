@@ -53,7 +53,12 @@
 	display: none;
 }
 
+.form-grid .grid-heading-row .template-row {
+	margin-left: 20px;
+}
+
 .form-grid .template-row {
+	width: calc(100% - 30px);
 	padding: 8px 15px;
 }
 
@@ -140,7 +145,7 @@
 		.checkbox {
 			margin: 0px;
 			text-align: center;
-			margin-top: 9px;
+			margin-top: var(--padding-sm);
 		}
 
 		textarea {
@@ -196,7 +201,7 @@
 		margin-left: 1rem;
 	}
 
-	.grid-static-col[data-fieldtype="Code"] {
+	.grid-static-col[data-fieldtype="Code"], .grid-static-col[data-fieldtype="HTML Editor"] {
 		overflow: hidden;
 
 		.static-area {
@@ -368,6 +373,18 @@
 
 .page-text {
 	display: inline-block;
+	cursor: default;
+}
+
+.current-page-number {
+	width: 16px;
+	text-align: center;
+	border: none;
+	cursor: text;
+
+	&:focus {
+		outline: none;
+	}
 }
 
 .prev-page,

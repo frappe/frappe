@@ -8,8 +8,11 @@
 @import "../common/flex";
 @import "../common/buttons";
 @import "../common/modal";
+@import "../desk/toast";
+@import "../common/css_variables.scss";
 @import "../common/indicator";
 @import "../common/controls";
+@import "../common/awesomeplete";
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
@@ -87,6 +90,19 @@
 
 .main-column .page-content-wrapper {
 	margin: 2rem 0;
+}
+
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.page-content-wrapper .container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+}
+
+.page-header-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .breadcrumb-container {
@@ -182,8 +198,8 @@ h5.modal-title {
 }
 
 .hidden-xs {
-	@extend .d-none;
-	@extend .d-sm-block;
+	@extend .d-block;
+	@extend .d-sm-none;
 }
 
 .visible-xs {
@@ -204,6 +220,10 @@ h5.modal-title {
 
 .pull-right {
 	float: right;
+}
+
+.pull-left {
+	float: left;
 }
 
 .image-with-blur {
@@ -241,4 +261,14 @@ h5.modal-title {
 }
 .about-footer {
 	padding-top: 1rem;
+}
+
+.login-content.container {
+	background-color: var(--fg-color);
+	padding: 45px 0px;
+	box-shadow: var(--shadow-base);
+	border-radius: var(--border-radius-md);
+	max-width: 400px;
+	margin: 70px auto;
+	font-size: $font-size-sm;
 }

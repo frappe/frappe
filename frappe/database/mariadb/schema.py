@@ -1,23 +1,25 @@
-from __future__ import unicode_literals
-
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
 
 class MariaDBTable(DBTable):
 	def create(self):
-		add_text = ''
+		additional_definitions = ""
+		engine = self.meta.get("engine") or "InnoDB"
+		varchar_len = frappe.db.VARCHAR_LEN
 
 		# columns
 		column_defs = self.get_column_definitions()
-		if column_defs: add_text += ',\n'.join(column_defs) + ',\n'
+		if column_defs:
+			additional_definitions += ',\n'.join(column_defs) + ',\n'
 
 		# index
 		index_defs = self.get_index_definitions()
-		if index_defs: add_text += ',\n'.join(index_defs) + ',\n'
+		if index_defs:
+			additional_definitions += ',\n'.join(index_defs) + ',\n'
 
 		# create table
-		frappe.db.sql("""create table `%s` (
+		query = f"""create table `{self.table_name}` (
 			name varchar({varchar_len}) not null primary key,
 			creation datetime(6),
 			modified datetime(6),
@@ -28,13 +30,15 @@ class MariaDBTable(DBTable):
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
-			%sindex parent(parent),
+			{additional_definitions}
+			index parent(parent),
 			index modified(modified))
 			ENGINE={engine}
-			ROW_FORMAT=COMPRESSED
+			ROW_FORMAT=DYNAMIC
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=frappe.db.VARCHAR_LEN,
-				engine=self.meta.get("engine") or 'InnoDB') % (self.table_name, add_text))
+			COLLATE=utf8mb4_unicode_ci"""
+
+		frappe.db.sql(query)
 
 	def alter(self):
 		for col in self.columns.values():

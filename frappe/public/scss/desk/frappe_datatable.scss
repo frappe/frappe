@@ -123,6 +123,10 @@
 		font-feature-settings: "tnum";
 	}
 
+	.dt-cell__content--header-0, .dt-cell__content--col-0 {
+		padding: 0.5rem;
+	}
+
 	.dt-scrollable--highlight-all {
 		.dt-cell__content {
 			background: var(--dt-selection-highlight-color);

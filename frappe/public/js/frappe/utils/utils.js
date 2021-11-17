@@ -23,6 +23,14 @@ if (!Array.prototype.uniqBy) {
 	});
 }
 
+// Python's dict.setdefault ported for JS objects
+Object.defineProperty(Object.prototype, "setDefault", {
+	value: function(key, default_value) {
+		if (!(key in this)) this[key] = default_value;
+		return this[key];
+	}
+});
+
 // Pluralize
 String.prototype.plural = function(revert) {
 	const plural = {
@@ -268,7 +276,10 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate=true, additional_offset, element_to_be_scrolled) {
+	scroll_to: function(element, animate=true, additional_offset,
+		element_to_be_scrolled, callback, highlight_element=false) {
+		if (frappe.flags.disable_auto_scroll) return;
+
 		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
 		let scroll_top = 0;
 		if (element) {
@@ -289,11 +300,20 @@ Object.assign(frappe.utils, {
 		}
 
 		if (animate) {
-			element_to_be_scrolled.animate({ scrollTop: scroll_top });
+			element_to_be_scrolled.animate({
+				scrollTop: scroll_top
+			}).promise().then(() => {
+				if (highlight_element) {
+					$(element).addClass('highlight');
+					document.addEventListener("click", function() {
+						$(element).removeClass('highlight');
+					}, {once: true});
+				}
+				callback && callback();
+			});
 		} else {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
-
 	},
 	get_scroll_position: function(element, additional_offset) {
 		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
@@ -405,7 +425,7 @@ Object.assign(frappe.utils, {
 				regExp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 				break;
 			case "url":
-				regExp = /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[$&'()*+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!$&'()*+,;=]|:|@)|\/|\?)*)?$/i;
+				regExp = /^((([A-Za-z0-9.+-]+:(?:\/\/)?)(?:[-;:&=\+\,\w]@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/i;
 				break;
 			case "dateIso":
 				regExp = /^(\d{4})\D?(0[1-9]|1[0-2])\D?([12]\d|0[1-9]|3[01])$/;
@@ -831,10 +851,13 @@ Object.assign(frappe.utils, {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	get_form_link: function(doctype, name, html = false, display_text = null) {
+	get_form_link: function(doctype, name, html=false, display_text=null, query_params_obj=null) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
-		const route = `/app/${encodeURIComponent(frappe.router.slug(doctype))}/${name}`;
+		let route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, '-'))}/${name}`;
+		if (query_params_obj) {
+			route += frappe.utils.make_query_string(query_params_obj);
+		}
 		if (html) {
 			return `<a href="${route}">${display_text}</a>`;
 		}
@@ -922,7 +945,16 @@ Object.assign(frappe.utils, {
 		// decodes base64 to string
 		let parts = dataURI.split(',');
 		const encoded_data = parts[1];
-		return decodeURIComponent(escape(atob(encoded_data)));
+		let decoded = atob(encoded_data);
+		try {
+			const escaped = escape(decoded);
+			decoded = decodeURIComponent(escaped);
+
+		} catch (e) {
+			// pass decodeURIComponent failure
+			// just return atob response
+		}
+		return decoded;
 	},
 	copy_to_clipboard(string) {
 		let input = $("<input>");
@@ -938,7 +970,7 @@ Object.assign(frappe.utils, {
 		});
 	},
 	is_rtl(lang=null) {
-		return ["ar", "he", "fa"].includes(lang || frappe.boot.lang);
+		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
@@ -952,6 +984,20 @@ Object.assign(frappe.utils, {
 		});
 
 		return $el;
+	},
+
+	eval(code, context={}) {
+		let variable_names = Object.keys(context);
+		let variables = Object.values(context);
+		code = `let out = ${code}; return out`;
+		try {
+			let expression_function = new Function(...variable_names, code);
+			return expression_function(...variables);
+		} catch (error) {
+			console.log('Error evaluating the following expression:'); // eslint-disable-line no-console
+			console.error(code); // eslint-disable-line no-console
+			throw error;
+		}
 	},
 
 	get_browser() {
@@ -1011,18 +1057,20 @@ Object.assign(frappe.utils, {
 		return duration;
 	},
 
-	seconds_to_duration(value, duration_options) {
-		let secs = value;
-		let total_duration = {
-			days: Math.floor(secs / (3600 * 24)),
-			hours: Math.floor(secs % (3600 * 24) / 3600),
-			minutes: Math.floor(secs % 3600 / 60),
-			seconds: Math.floor(secs % 60)
+	seconds_to_duration(seconds, duration_options) {
+		const round = seconds > 0 ? Math.floor : Math.ceil;
+		const total_duration = {
+			days: round(seconds / 86400), // 60 * 60 * 24
+			hours: round(seconds % 86400 / 3600),
+			minutes: round(seconds % 3600 / 60),
+			seconds: round(seconds % 60)
 		};
+
 		if (duration_options.hide_days) {
-			total_duration.hours = Math.floor(secs / 3600);
+			total_duration.hours = round(seconds / 3600);
 			total_duration.days = 0;
 		}
+
 		return total_duration;
 	},
 
@@ -1095,15 +1143,15 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
 		let size_class = "";
-		let icon_style = "";
+
 		if (typeof size == "object") {
-			icon_style = `width: ${size.width}; height: ${size.height}`;
+			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${size_class}" style="${icon_style}">
+		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	},
@@ -1180,10 +1228,14 @@ Object.assign(frappe.utils, {
 							route = "";
 					}
 				}
-			} else if (type === "report" && item.is_query_report) {
-				route = "query-report/" + item.name;
 			} else if (type === "report") {
-				route = frappe.router.slug(item.name) + "/view/report";
+				if (item.is_query_report) {
+					route = "query-report/" + item.name;
+				} else if (!item.doctype) {
+					route = "/report/" + item.name;
+				} else {
+					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+				}
 			} else if (type === "page") {
 				route = item.name;
 			} else if (type === "dashboard") {
@@ -1272,21 +1324,6 @@ Object.assign(frappe.utils, {
 		</div>`);
 	},
 
-	get_names_for_mentions() {
-		let names_for_mentions = Object.keys(frappe.boot.user_info || [])
-			.filter(user => {
-				return !["Administrator", "Guest"].includes(user)
-					&& frappe.boot.user_info[user].allowed_in_mentions
-					&& frappe.boot.user_info[user].user_type === 'System User';
-			})
-			.map(user => {
-				return {
-					id: frappe.boot.user_info[user].name,
-					value: frappe.boot.user_info[user].fullname,
-				};
-			});
-		return names_for_mentions;
-	},
 	print(doctype, docname, print_format, letterhead, lang_code) {
 		let w = window.open(
 			frappe.urllib.get_full_url(
@@ -1309,5 +1346,35 @@ Object.assign(frappe.utils, {
 			frappe.msgprint(__('Please enable pop-ups'));
 			return;
 		}
+	},
+
+	get_clipboard_data(clipboard_paste_event) {
+		let e = clipboard_paste_event;
+		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
+		return clipboard_data.getData('Text');
+	},
+
+	add_custom_button(html, action, class_name = "", title="", btn_type, wrapper, prepend) {
+		if (!btn_type) btn_type = 'btn-secondary';
+		let button = $(
+			`<button class="btn ${btn_type} btn-xs ${class_name}" title="${title}">${html}</button>`
+		);
+		button.click(event => {
+			event.stopPropagation();
+			action && action(event);
+		});
+		!prepend && button.appendTo(wrapper);
+		prepend && wrapper.prepend(button);
+	},
+
+	sleep(time) {
+		return new Promise((resolve) => setTimeout(resolve, time));
+	},
+
+	parse_array(array) {
+		if (array && array.length !== 0) {
+			return array;
+		}
+		return undefined;
 	}
 });

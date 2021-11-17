@@ -1,10 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.desk.notifications import clear_notifications
 from frappe.cache_manager import clear_defaults_cache, common_default_keys
+from frappe.query_builder import DocType
 
 # Note: DefaultValue records are identified by parenttype
 # __default, __global or 'User Permission'
@@ -117,19 +117,15 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	if frappe.db.sql('''
-		select
-			defkey
-		from
-			`tabDefaultValue`
-		where
-			defkey=%s and parent=%s
-		for update''', (key, parent)):
-		frappe.db.sql("""
-			delete from
-				`tabDefaultValue`
-			where
-				defkey=%s and parent=%s""", (key, parent))
+	table = DocType("DefaultValue")
+	key_exists = frappe.qb.from_(table).where(
+		(table.defkey == key) & (table.parent == parent)
+	).select(table.defkey).for_update().run()
+	if key_exists:
+		frappe.db.delete("DefaultValue", {
+			"defkey": key,
+			"parent": parent
+		})
 	if value != None:
 		add_default(key, value, parent)
 	else:
@@ -156,29 +152,23 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	:param name: Default ID.
 	:param parenttype: Clear defaults table for a particular type e.g. **User**.
 	"""
-	conditions = []
-	values = []
+	filters = {}
 
 	if name:
-		conditions.append("name=%s")
-		values.append(name)
+		filters.update({"name": name})
 
 	else:
 		if key:
-			conditions.append("defkey=%s")
-			values.append(key)
+			filters.update({"defkey": key})
 
 		if value:
-			conditions.append("defvalue=%s")
-			values.append(value)
+			filters.update({"defvalue": value})
 
 		if parent:
-			conditions.append("parent=%s")
-			values.append(parent)
+			filters.update({"parent": parent})
 
 		if parenttype:
-			conditions.append("parenttype=%s")
-			values.append(parenttype)
+			filters.update({"parenttype": parenttype})
 
 	if parent:
 		clear_defaults_cache(parent)
@@ -186,11 +176,10 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		clear_defaults_cache("__default")
 		clear_defaults_cache("__global")
 
-	if not conditions:
+	if not filters:
 		raise Exception("[clear_default] No key specified.")
 
-	frappe.db.sql("""delete from tabDefaultValue where {0}""".format(" and ".join(conditions)),
-		tuple(values))
+	frappe.db.delete("DefaultValue", filters)
 
 	_clear_cache(parent)
 
@@ -200,8 +189,12 @@ def get_defaults_for(parent="__default"):
 
 	if defaults==None:
 		# sort descending because first default must get precedence
-		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`
-			where parent = %s order by creation""", (parent,), as_dict=1)
+		table = DocType("DefaultValue")
+		res = frappe.qb.from_(table).where(
+			table.parent == parent
+		).select(
+			table.defkey, table.defvalue
+		).orderby("creation").run(as_dict=True)
 
 		defaults = frappe._dict({})
 		for d in res:

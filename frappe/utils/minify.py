@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 # This code is original from jsmin by Douglas Crockford, it was translated to
 # Python by Baruch Even. The original code had the following copyright and
 # license.
@@ -29,7 +29,7 @@ from __future__ import unicode_literals
 # SOFTWARE.
 # */
 
-from six import StringIO
+from io import StringIO
 
 def jsmin(js):
 	ins = StringIO(js)

@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 
 from frappe import _, throw, msgprint
 from frappe.utils import nowdate
 
 from frappe.model.document import Document
-import six
-from six import string_types
 
 class SMSSettings(Document):
 	pass
@@ -35,20 +32,20 @@ def validate_receiver_nos(receiver_list):
 @frappe.whitelist()
 def get_contact_number(contact_name, ref_doctype, ref_name):
 	"returns mobile number of the contact"
-	number = frappe.db.sql("""select mobile_no, phone from tabContact 
-		where name=%s 
+	number = frappe.db.sql("""select mobile_no, phone from tabContact
+		where name=%s
 			and exists(
 				select name from `tabDynamic Link` where link_doctype=%s and link_name=%s
 			)
 	""", (contact_name, ref_doctype, ref_name))
-	
+
 	return number and (number[0][0] or number[0][1]) or ''
 
 @frappe.whitelist()
 def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 	import json
-	if isinstance(receiver_list, string_types):
+	if isinstance(receiver_list, str):
 		receiver_list = json.loads(receiver_list)
 		if not isinstance(receiver_list, list):
 			receiver_list = [receiver_list]

@@ -1,4 +1,3 @@
-from __future__ import unicode_literals, absolute_import, print_function
 import click
 import sys
 import frappe
@@ -18,21 +17,32 @@ def _is_scheduler_enabled():
 
 	return enable_scheduler
 
-@click.command('trigger-scheduler-event')
-@click.argument('event')
+
+@click.command("trigger-scheduler-event", help="Trigger a scheduler event")
+@click.argument("event")
 @pass_context
 def trigger_scheduler_event(context, event):
-	"Trigger a scheduler event"
 	import frappe.utils.scheduler
+
+	exit_code = 0
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.utils.scheduler.trigger(site, event, now=True)
+			try:
+				frappe.get_doc("Scheduled Job Type", {"method": event}).execute()
+			except frappe.DoesNotExistError:
+				click.secho(f"Event {event} does not exist!", fg="red")
+				exit_code = 1
 		finally:
 			frappe.destroy()
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
+
+	sys.exit(exit_code)
+
 
 @click.command('enable-scheduler')
 @pass_context
@@ -162,9 +172,13 @@ def start_scheduler():
 @click.command('worker')
 @click.option('--queue', type=str)
 @click.option('--quiet', is_flag = True, default = False, help = 'Hide Log Outputs')
-def start_worker(queue, quiet = False):
+@click.option('-u', '--rq-username', default=None, help='Redis ACL user')
+@click.option('-p', '--rq-password', default=None, help='Redis ACL user password')
+def start_worker(queue, quiet = False, rq_username=None, rq_password=None):
+	"""Site is used to find redis credentals.
+	"""
 	from frappe.utils.background_jobs import start_worker
-	start_worker(queue, quiet = quiet)
+	start_worker(queue, quiet = quiet, rq_username=rq_username, rq_password=rq_password)
 
 @click.command('ready-for-migration')
 @click.option('--site', help='site name')

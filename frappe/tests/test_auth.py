@@ -1,13 +1,12 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import time
 import unittest
 
 import frappe
-from frappe.auth import LoginAttemptTracker
+from frappe.auth import HTTPRequest, LoginAttemptTracker
 from frappe.frappeclient import FrappeClient, AuthError
+from frappe.utils import set_request
 
 class TestAuth(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
@@ -110,7 +109,7 @@ class TestLoginAttemptTracker(unittest.TestCase):
 	def test_account_unlock(self):
 		"""Make sure that locked account gets unlocked after lock_interval of time.
 		"""
-		lock_interval = 10 # In sec
+		lock_interval = 2 # In sec
 		tracker = LoginAttemptTracker(user_name='tester', max_consecutive_login_attempts=1, lock_interval=lock_interval)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()

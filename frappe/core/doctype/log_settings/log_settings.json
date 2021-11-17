@@ -49,7 +49,7 @@
    "label": "Clear Activity Log After"
   },
   {
-   "default": "90",
+   "default": "30",
    "description": "In Days",
    "fieldname": "clear_email_queue_after",
    "fieldtype": "Int",

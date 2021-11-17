@@ -1,9 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 
@@ -15,7 +14,7 @@ class WebsiteSlideshow(Document):
 
 	def on_update(self):
 		# a slide show can be in use and any change in it should get reflected
-		from frappe.website.render import clear_cache
+		from frappe.website.utils import clear_cache
 		clear_cache()
 
 	def validate_images(self):
@@ -23,7 +22,7 @@ class WebsiteSlideshow(Document):
 		files = map(lambda row: row.image, self.slideshow_items)
 		if files:
 			result = frappe.get_all("File", filters={ "file_url":("in", list(files)) }, fields="is_private")
-			if any([file.is_private for file in result]):
+			if any(file.is_private for file in result):
 				frappe.throw(_("All Images attached to Website Slideshow should be public"))
 
 def get_slideshow(doc):

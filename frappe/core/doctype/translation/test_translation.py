@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 
@@ -10,7 +8,7 @@ from frappe import _
 
 class TestTranslation(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql('delete from tabTranslation')
+		frappe.db.delete("Translation")
 
 	def tearDown(self):
 		frappe.local.lang = 'en'

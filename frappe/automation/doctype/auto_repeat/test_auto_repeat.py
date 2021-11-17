@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import unittest
 
 import frappe
@@ -173,7 +171,7 @@ class TestAutoRepeat(unittest.TestCase):
 			fields=['docstatus'],
 			limit=1
 		)
-		self.assertEquals(docnames[0].docstatus, 1)
+		self.assertEqual(docnames[0].docstatus, 1)
 
 
 def make_auto_repeat(**args):
@@ -196,7 +194,7 @@ def make_auto_repeat(**args):
 	return doc
 
 
-def create_submittable_doctype(doctype):
+def create_submittable_doctype(doctype, submit_perms=1):
 	if frappe.db.exists('DocType', doctype):
 		return
 	else:
@@ -217,9 +215,9 @@ def create_submittable_doctype(doctype):
 				'write': 1,
 				'create': 1,
 				'delete': 1,
-				'submit': 1,
-				'cancel': 1,
-				'amend': 1
+				'submit': submit_perms,
+				'cancel': submit_perms,
+				'amend': submit_perms
 			}]
 		}).insert()
 

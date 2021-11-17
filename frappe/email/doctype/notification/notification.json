@@ -102,7 +102,8 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard"
+   "label": "Is Standard",
+   "no_copy": 1
   },
   {
    "depends_on": "is_standard",
@@ -281,7 +282,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-24 14:25:43.245677",
+ "modified": "2021-05-04 11:17:11.882314",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

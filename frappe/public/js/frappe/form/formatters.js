@@ -15,7 +15,10 @@ frappe.form.formatters = {
 			return "<div style='text-align: right'>" + value + "</div>";
 		}
 	},
-	Data: function(value) {
+	Data: function(value, df) {
+		if (df && df.options == "URL") {
+			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
+		}
 		return value==null ? "" : value;
 	},
 	Select: function(value) {
@@ -97,11 +100,8 @@ frappe.form.formatters = {
 		}
 	},
 	Check: function(value) {
-		if (value) {
-			return `<input type="checkbox" class="disabled-selected">`;
-		} else {
-			return `<input type="checkbox" class="disabled-deselected">`;
-		}
+		return `<input type="checkbox" disabled
+			class="disabled-${value ? "selected" : "deselected"}">`;
 	},
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
@@ -159,7 +159,7 @@ frappe.form.formatters = {
 		return value || "";
 	},
 	DateRange: function(value) {
-		if($.isArray(value)) {
+		if (Array.isArray(value)) {
 			return __("{0} to {1}", [frappe.datetime.str_to_user(value[0]), frappe.datetime.str_to_user(value[1])]);
 		} else {
 			return value || "";
@@ -221,9 +221,13 @@ frappe.form.formatters = {
 	Tag: function(value) {
 		var html = "";
 		$.each((value || "").split(","), function(i, v) {
-			if(v) html+= '<span class="label label-info" \
-				style="margin-right: 7px; cursor: pointer;"\
-				data-field="_user_tags" data-label="'+v+'">'+v +'</span>';
+			if (v) html += `
+				<span
+					class="data-pill btn-xs align-center ellipsis"
+					style="background-color: var(--control-bg); box-shadow: none; margin-right: 4px;"
+					data-field="_user_tags" data-label="${v}'">
+					${v}
+				</span>`;
 		});
 		return html;
 	},
@@ -295,12 +299,18 @@ frappe.form.formatters = {
 		return formatted_values.join(', ');
 	},
 	Color: (value) => {
-		return `<div>
+		return value ? `<div>
 			<div class="selected-color" style="background-color: ${value}"></div>
 			<span class="color-value">${value}</span>
-		</div>`;
+		</div>` : '';
+	},
+	Icon: (value) => {
+		return value ? `<div>
+			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
+			<span class="icon-value">${value}</span>
+		</div>` : '';
 	}
-}
+};
 
 frappe.form.get_formatter = function(fieldtype) {
 	if(!fieldtype)
@@ -310,6 +320,7 @@ frappe.form.get_formatter = function(fieldtype) {
 
 frappe.format = function(value, df, options, doc) {
 	if(!df) df = {"fieldtype":"Data"};
+	if (df.fieldname == '_user_tags') df.fieldtype = 'Tag';
 	var fieldtype = df.fieldtype || "Data";
 
 	// format Dynamic Link as a Link

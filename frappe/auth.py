@@ -1,35 +1,58 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
+from urllib.parse import quote
 
-from __future__ import unicode_literals
-import datetime
-
-from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint, flt, get_datetime, datetime, date_diff, today
 import frappe.utils.user
-from frappe import conf
-from frappe.sessions import Session, clear_sessions, delete_session
-from frappe.modules.patch_handler import check_session_stopped
-from frappe.translate import get_lang_code
-from frappe.utils.password import check_password, delete_login_failed_cache
+from frappe import _, conf
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
-	confirm_otp_token, get_cached_user_pass)
+from frappe.modules.patch_handler import check_session_stopped
+from frappe.sessions import Session, clear_sessions, delete_session
+from frappe.translate import get_language
+from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, get_cached_user_pass, should_run_2fa
+from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils.password import check_password
 from frappe.website.utils import get_home_page
-
-from six.moves.urllib.parse import quote
 
 
 class HTTPRequest:
 	def __init__(self):
-		# Get Environment variables
-		self.domain = frappe.request.host
-		if self.domain and self.domain.startswith('www.'):
-			self.domain = self.domain[4:]
+		# set frappe.local.request_ip
+		self.set_request_ip()
 
+		# load cookies
+		self.set_cookies()
+
+		# set frappe.local.db
+		self.connect()
+
+		# login and start/resume user session
+		self.set_session()
+
+		# set request language
+		self.set_lang()
+
+		# match csrf token from current session
+		self.validate_csrf_token()
+
+		# write out latest cookies
+		frappe.local.cookie_manager.init_cookies()
+
+		# check session status
+		check_session_stopped()
+
+	@property
+	def domain(self):
+		if not getattr(self, "_domain", None):
+			self._domain = frappe.request.host
+			if self._domain and self._domain.startswith('www.'):
+				self._domain = self._domain[4:]
+
+		return self._domain
+
+	def set_request_ip(self):
 		if frappe.get_request_header('X-Forwarded-For'):
 			frappe.local.request_ip = (frappe.get_request_header('X-Forwarded-For').split(",")[0]).strip()
 
@@ -39,37 +62,21 @@ class HTTPRequest:
 		else:
 			frappe.local.request_ip = '127.0.0.1'
 
-		# language
-		self.set_lang()
-
-		# load cookies
+	def set_cookies(self):
 		frappe.local.cookie_manager = CookieManager()
 
-		# set db
-		self.connect()
-
-		# login
+	def set_session(self):
 		frappe.local.login_manager = LoginManager()
-
-		if frappe.form_dict._lang:
-			lang = get_lang_code(frappe.form_dict._lang)
-			if lang:
-				frappe.local.lang = lang
-
-		self.validate_csrf_token()
-
-		# write out latest cookies
-		frappe.local.cookie_manager.init_cookies()
-
-		# check status
-		check_session_stopped()
 
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method in ("POST", "PUT", "DELETE"):
-			if not frappe.local.session: return
-			if not frappe.local.session.data.csrf_token \
-				or frappe.local.session.data.device=="mobile" \
-				or frappe.conf.get('ignore_csrf', None):
+			if not frappe.local.session:
+				return
+			if (
+				not frappe.local.session.data.csrf_token
+				or frappe.local.session.data.device == "mobile"
+				or frappe.conf.get('ignore_csrf', None)
+			):
 				# not via boot
 				return
 
@@ -83,17 +90,18 @@ class HTTPRequest:
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
 	def set_lang(self):
-		from frappe.translate import guess_language
-		frappe.local.lang = guess_language()
+		frappe.local.lang = get_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""
 		return conf.db_name
 
-	def connect(self, ac_name = None):
+	def connect(self):
 		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.get_db(user = self.get_db_name(), \
-			password = getattr(conf, 'db_password', ''))
+		frappe.local.db = frappe.database.get_db(
+			user=self.get_db_name(),
+			password=getattr(conf, 'db_password', '')
+		)
 
 class LoginManager:
 	def __init__(self):
@@ -146,7 +154,7 @@ class LoginManager:
 		self.setup_boot_cache()
 		self.set_user_info()
 
-	def get_user_info(self, resume=False):
+	def get_user_info(self):
 		self.info = frappe.db.get_value("User", self.user,
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 
@@ -184,10 +192,12 @@ class LoginManager:
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache().hdel('redirect_after_login', self.user)
 
-
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
+
+	def clear_preferred_language(self):
+		frappe.local.cookie_manager.delete_cookie("preferred_language")
 
 	def make_session(self, resume=False):
 		# start session
@@ -215,35 +225,25 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_('Incomplete login details'), user=user)
 
-		# Ignore password check if tmp_id is set, 2FA takes care of authentication.
-		validate_password = not bool(frappe.form_dict.get('tmp_id'))
-		user = User.find_by_credentials(user, pwd, validate_password=validate_password)
+		user = User.find_by_credentials(user, pwd)
 
 		if not user:
 			self.fail('Invalid login credentials')
 
-		sys_settings = frappe.get_doc("System Settings")
-		track_login_attempts = (sys_settings.allow_consecutive_login_attempts >0)
-
-		tracker_kwargs = {}
-		if track_login_attempts:
-			tracker_kwargs['lock_interval'] = sys_settings.allow_login_after_fail
-			tracker_kwargs['max_consecutive_login_attempts'] = sys_settings.allow_consecutive_login_attempts
-
-		tracker = LoginAttemptTracker(user.name, **tracker_kwargs)
-
-		if track_login_attempts and not tracker.is_user_allowed():
-			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
-				.format(sys_settings.allow_login_after_fail), frappe.SecurityException)
+		# Current login flow uses cached credentials for authentication while checking OTP.
+		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
+		# Tracker is activated for 2FA incase of OTP.
+		ignore_tracker = should_run_2fa(user.name) and ('otp' in frappe.form_dict)
+		tracker = None if ignore_tracker else get_login_attempt_tracker(user.name)
 
 		if not user.is_authenticated:
-			tracker.add_failure_attempt()
+			tracker and tracker.add_failure_attempt()
 			self.fail('Invalid login credentials', user=user.name)
 		elif not (user.name == 'Administrator' or user.enabled):
-			tracker.add_failure_attempt()
+			tracker and tracker.add_failure_attempt()
 			self.fail('User disabled or missing', user=user.name)
 		else:
-			tracker.add_success_attempt()
+			tracker and tracker.add_success_attempt()
 		self.user = user.name
 
 	def force_user_to_reset_password(self):
@@ -405,6 +405,27 @@ def validate_ip_address(user):
 			return
 
 	frappe.throw(_("Access not allowed from this IP Address"), frappe.AuthenticationError)
+
+def get_login_attempt_tracker(user_name: str, raise_locked_exception: bool = True):
+	"""Get login attempt tracker instance.
+
+	:param user_name: Name of the loggedin user
+	:param raise_locked_exception: If set, raises an exception incase of user not allowed to login
+	"""
+	sys_settings = frappe.get_doc("System Settings")
+	track_login_attempts = (sys_settings.allow_consecutive_login_attempts >0)
+	tracker_kwargs = {}
+
+	if track_login_attempts:
+		tracker_kwargs['lock_interval'] = sys_settings.allow_login_after_fail
+		tracker_kwargs['max_consecutive_login_attempts'] = sys_settings.allow_consecutive_login_attempts
+
+	tracker = LoginAttemptTracker(user_name, **tracker_kwargs)
+
+	if raise_locked_exception and track_login_attempts and not tracker.is_user_allowed():
+		frappe.throw(_("Your account has been locked and will resume after {0} seconds")
+			.format(sys_settings.allow_login_after_fail), frappe.SecurityException)
+	return tracker
 
 
 class LoginAttemptTracker(object):

@@ -3,9 +3,19 @@
 .web-form-wrapper {
 	.form-control {
 		color: var(--text-color);
+		background-color: var(--control-bg);
+	}
+
+	.form-section {
+		.section-head {
+			font-weight: bold;
+			font-size: var(--text-xl);
+			padding: var(--padding-md) 0;
+		}
 	}
 
 	.form-column {
+		padding: 0 var(--padding-md);
 		&:first-child {
 			padding-left: 0;
 		}

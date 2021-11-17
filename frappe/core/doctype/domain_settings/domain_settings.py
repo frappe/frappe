@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
@@ -35,7 +34,7 @@ class DomainSettings(Document):
 		all_domains = list((frappe.get_hooks('domains') or {}))
 
 		def remove_role(role):
-			frappe.db.sql('delete from `tabHas Role` where role=%s', role)
+			frappe.db.delete("Has Role", {"role": role})
 			frappe.set_value('Role', role, 'disabled', 1)
 
 		for domain in all_domains:
