@@ -8,6 +8,10 @@ context('Query Report', () => {
 			'report_type': 'Query Report',
 			'query': 'select * from tabToDo'
 		}, true).as('doc');
+		cy.create_records({
+			doctype: 'ToDo',
+			description: 'this is a test todo for query report'
+		}).as('todos');
 	});
 
 	it('add custom column in report', () => {
