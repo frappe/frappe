@@ -42,7 +42,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	}
 
 	refresh() {
-		this.current_theme = document.documentElement.getAttribute("data-theme") || "light";
+		this.current_theme = document.documentElement.getAttribute("data-theme-mode") || "light";
 		this.fetch_themes().then(() => {
 			this.render();
 		});
@@ -58,6 +58,11 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 				{
 					name: "dark",
 					label: __("Timeless Night"),
+				},
+				{
+					name: "automatic",
+					label: __("Automatic"),
+					info: __("Uses system's theme to switch between light and dark mode")
 				}
 			];
 
@@ -75,7 +80,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 
 	get_preview_html(theme) {
 		const preview = $(`<div class="${this.current_theme == theme.name ? "selected" : "" }">
-			<div data-theme=${theme.name}>
+			<div data-theme=${theme.name} title="${theme.info}">
 				<div class="background">
 					<div>
 						<div class="preview-check">${frappe.utils.icon('tick', 'xs')}</div>
@@ -112,7 +117,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 
 	toggle_theme(theme, options = { save_preferences: true, show_alert: true }) {
 		this.current_theme = theme.toLowerCase();
-		document.documentElement.setAttribute("data-theme", this.current_theme);
+		document.documentElement.setAttribute("data-theme-mode", this.current_theme);
 
 		if (options && options.show_alert) {
 			frappe.show_alert("Theme Changed", 3);
@@ -134,24 +139,20 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 };
 
 frappe.ui.add_system_theme_switch_listener = function() {
-	const toggle_theme = frappe.ui.toggle_theme;
-
 	frappe.ui.dark_theme_media_query.addEventListener('change', function(e) {
-		if (e.matches) {
-			toggle_theme('dark');
-			return;
-		}
-
-		toggle_theme('light');
+		frappe.ui.set_theme();
 	});
 };
 
 frappe.ui.dark_theme_media_query = window.matchMedia("(prefers-color-scheme: dark)");
 
-frappe.ui.toggle_theme = function(theme) {
-	const theme_switcher = new frappe.ui.ThemeSwitcher();
-	theme_switcher.toggle_theme(theme, {
-		save_preferences: false,
-		show_alert: false
-	});
-};
+frappe.ui.set_theme = (theme) => {
+	const root = document.documentElement;
+	let theme_mode = root.getAttribute("data-theme-mode");
+	if (!theme) {
+		if (theme_mode === "automatic") {
+			theme = frappe.ui.dark_theme_media_query.matches ? 'dark' : 'light';
+		}
+	}
+	root.setAttribute("data-theme", theme || theme_mode);
+}

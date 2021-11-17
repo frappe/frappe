@@ -64,11 +64,18 @@ frappe.Application = class Application {
 			}
 		});
 
-		if (frappe.boot.desk_theme == 'Automatic') {
-			frappe.ui.add_system_theme_switch_listener();
-			const startup_theme = frappe.ui.dark_theme_media_query.matches ? 'dark' : 'light';
-			frappe.ui.toggle_theme(startup_theme);
-		}
+		frappe.ui.add_system_theme_switch_listener();
+		const root = document.documentElement;
+
+		const observer = new MutationObserver(function(mutations) {
+			frappe.ui.set_theme();
+		});
+		observer.observe(root, {
+			attributes: true,
+			attributeFilter: ['data-theme-mode']
+		});
+
+		frappe.ui.set_theme();
 
 		// page container
 		this.make_page_container();
