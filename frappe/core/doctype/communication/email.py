@@ -146,7 +146,7 @@ def add_attachments(name, attachments):
 			})
 			_file.save(ignore_permissions=True)
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=("GET",))
 def mark_email_as_seen(name: str = None):
 	try:
 		update_communication_as_seen(name)
