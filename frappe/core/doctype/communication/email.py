@@ -483,7 +483,7 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 >>>>>>> a80cf47426 (fix: enforce GET method)
 def mark_email_as_seen(name: str = None):
 	try:
-		update_communication_as_seen(name)
+		update_communication_as_read(name)
 		frappe.db.commit()  # nosemgrep: this will be called in a GET request
 
 	except Exception:
@@ -501,19 +501,18 @@ def mark_email_as_seen(name: str = None):
 			)
 		})
 
-def update_communication_as_seen(name):
+def update_communication_as_read(name):
 	if not name or not isinstance(name, str):
 		return
 
-	values = frappe.db.get_value(
+	communication = frappe.db.get_value(
 		"Communication",
 		name,
 		"read_by_recipient",
 		as_dict=True
 	)
 
-	# Communication not found or already marked read
-	if not values or values.read_by_recipient:
+	if not communication or communication.read_by_recipient:
 		return
 
 	frappe.db.set_value("Communication", name, {
