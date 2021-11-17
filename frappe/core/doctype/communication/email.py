@@ -150,6 +150,7 @@ def add_attachments(name, attachments):
 def mark_email_as_seen(name: str = None):
 	try:
 		update_communication_as_seen(name)
+		frappe.db.commit()  # nosemgrep: this will be called in a GET request
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback())
@@ -186,5 +187,3 @@ def update_communication_as_seen(name):
 		"delivery_status": "Read",
 		"read_by_recipient_on": get_datetime()
 	})
-
-	frappe.db.commit()
