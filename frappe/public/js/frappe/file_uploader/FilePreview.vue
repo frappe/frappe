@@ -40,9 +40,9 @@
 				v-show="file.uploading && !uploaded && !file.failed"
 				primary="var(--primary-color)"
 				secondary="var(--gray-200)"
-				radius="24"
+				:radius="24"
 				:progress="progress"
-				stroke="3"
+				:stroke="3"
 			/>
 			<div v-if="uploaded" v-html="frappe.utils.icon('solid-success', 'lg')"></div>
 			<div v-if="file.failed" v-html="frappe.utils.icon('solid-error', 'lg')"></div>
