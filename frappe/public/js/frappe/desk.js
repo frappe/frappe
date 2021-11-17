@@ -67,7 +67,7 @@ frappe.Application = class Application {
 		frappe.ui.add_system_theme_switch_listener();
 		const root = document.documentElement;
 
-		const observer = new MutationObserver(function(mutations) {
+		const observer = new MutationObserver(() => {
 			frappe.ui.set_theme();
 		});
 		observer.observe(root, {

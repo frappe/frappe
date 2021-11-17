@@ -140,8 +140,8 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	}
 };
 
-frappe.ui.add_system_theme_switch_listener = function() {
-	frappe.ui.dark_theme_media_query.addEventListener('change', function(e) {
+frappe.ui.add_system_theme_switch_listener = () => {
+	frappe.ui.dark_theme_media_query.addEventListener('change', () => {
 		frappe.ui.set_theme();
 	});
 };
@@ -157,4 +157,4 @@ frappe.ui.set_theme = (theme) => {
 		}
 	}
 	root.setAttribute("data-theme", theme || theme_mode);
-}
+};
