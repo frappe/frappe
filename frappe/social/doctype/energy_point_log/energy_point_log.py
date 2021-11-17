@@ -33,7 +33,9 @@ class EnergyPointLog(Document):
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points', after_commit=True)
 
-		if self.type != 'Review':
+		if self.type != 'Review' and \
+			frappe.get_cached_value('Notification Settings', self.user, 'energy_points_system_notifications'):
+
 			reference_user = self.user if self.type == 'Auto' else self.owner
 			notification_doc = {
 				'type': 'Energy Point',
