@@ -26,7 +26,7 @@ export default class Section {
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
 				${ make_card ? "card-section" : "" }">
 			`).appendTo(this.parent);
-			this.layout && this.layout.sections.push(this);
+		this.layout && this.layout.sections.push(this);
 
 		if (this.df) {
 			if (this.df.label) {
