@@ -125,15 +125,16 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				}
 			},
 			Map: {
-				condition: this.list_view.settings.get_coords_method ||
-					(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
-					this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
-					(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
+				// condition: this.list_view.settings.get_coords_method ||
+				// 	(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+				// 		this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+				// 	(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
+				condition: false,
 				action: () => this.set_route("map")
 			},
 			Googlemaps: {
 				condition: this.list_view.settings.get_google_coords_method ||
-						   (this.list_view.meta.fields.find(i => i.fieldtype == 'Googlemaps')),
+					(this.list_view.meta.fields.find(i => i.fieldtype == 'Googlemaps')),
 				action: () => this.set_route("googlemaps")
 			},
 		};
@@ -155,7 +156,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		const views_wrapper = this.sidebar.sidebar.find(".views-section");
 		views_wrapper.find(".sidebar-label").html(`${__(view)}`);
 		const $dropdown = views_wrapper.find(".views-dropdown");
-		
+
 		let placeholder = `${__("Select {0}", [__(view)])}`;
 		let html = ``;
 
@@ -169,9 +170,8 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				if (item.name.toLowerCase() == page_name.toLowerCase()) {
 					placeholder = item.name;
 				} else {
-					html += `<li><a class="dropdown-item" href="${item.route}">${
-						item.name
-					}</a></li>`;
+					html += `<li><a class="dropdown-item" href="${item.route}">${item.name
+						}</a></li>`;
 				}
 			});
 		}
@@ -305,9 +305,8 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				result.map(calendar => {
 					calendars.push({
 						name: calendar.name,
-						route: `/app/${this.slug()}/view/calendar/${
-							calendar.name
-						}`
+						route: `/app/${this.slug()}/view/calendar/${calendar.name
+							}`
 					});
 				});
 
