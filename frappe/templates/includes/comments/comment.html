@@ -1,18 +1,14 @@
-{% from "frappe/templates/includes/macros.html" import square_image_with_fallback %}
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 
-<div class="comment-row media">
-    {{ square_image_with_fallback(src=frappe.get_gravatar(comment.comment_email or comment.sender), size='extra-small', alt=comment.sender_full_name, class='align-self-start mr-4') }}
-    <div class="media-body">
-        <div class="d-flex justify-content-between align-items-start">
-            <span class="font-weight-bold text-muted">
-                {{ comment.sender_full_name or comment.comment_by }}
-            </span>
-            <span class="text-muted small">
-                {{ comment.creation | global_date_format }}
-            </span>
-        </div>
-        <div class="text-muted">
-            {{ comment.content | markdown }}
-        </div>
-    </div>
+<div class="comment-row media my-5">
+	<div class="comment-avatar">
+		{{  avatar(user_id=(comment.comment_email or comment.sender), size='avatar-medium') }}
+	</div>
+	<div class="comment-content">
+		<div class="head mb-2">
+			<span class="title font-weight-bold mr-2">{{ comment.sender_full_name or comment.comment_by }}</span>
+			<span class="time small text-muted">{{ frappe.utils.pretty_date(comment.creation) }}</span>
+		</div>
+		<div class="content">{{ comment.content | markdown }}</div>
+	</div>
 </div>
