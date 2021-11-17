@@ -168,7 +168,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				f.file_url = frappe.urllib.get_full_url(f.file_url);
 
 				$(repl('<p class="checkbox">'
-					+	'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>'
+					+	'<label><span><input type="checkbox" data-file-name="%(name)s" checked="checked"></input></span>'
 					+		'<span class="small">%(file_name)s</span>'
 					+	' <a href="%(file_url)s" target="_blank" class="text-muted small">'
 					+		'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>'
