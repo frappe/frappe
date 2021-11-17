@@ -534,24 +534,50 @@ def update_mins_to_first_communication(parent, communication):
 			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
 
 @frappe.whitelist(allow_guest=True)
-def mark_email_as_seen(name=None):
+def mark_email_as_seen(name: str = None):
 	try:
-		if name and frappe.db.exists("Communication", name) and not frappe.db.get_value("Communication", name, "read_by_recipient"):
-			frappe.db.set_value("Communication", name, "read_by_recipient", 1)
-			frappe.db.set_value("Communication", name, "delivery_status", "Read")
-			frappe.db.set_value("Communication", name, "read_by_recipient_on", get_datetime())
-			frappe.db.commit()
+		update_communication_as_seen(name)
+
 	except Exception:
 		frappe.log_error(frappe.get_traceback())
-	finally:
-		# Return image as response under all circumstances
-		from PIL import Image
-		import io
-		im = Image.new('RGBA', (1, 1))
-		im.putdata([(255,255,255,0)])
-		buffered_obj = io.BytesIO()
-		im.save(buffered_obj, format="PNG")
 
+<<<<<<< HEAD
 		frappe.response["type"] = 'binary'
 		frappe.response["filename"] = "imaginary_pixel.png"
 		frappe.response["filecontent"] = buffered_obj.getvalue()
+=======
+	finally:
+		frappe.response.update({
+			"type": "binary",
+			"filename": "imaginary_pixel.png",
+			"filecontent": (
+				b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+				b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+				b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+				b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+			)
+		})
+
+def update_communication_as_seen(name):
+	if not name or not isinstance(name, str):
+		return
+
+	values = frappe.db.get_value(
+		"Communication",
+		name,
+		"read_by_recipient",
+		as_dict=True
+	)
+
+	# Communication not found or already marked read
+	if not values or values.read_by_recipient:
+		return
+
+	frappe.db.set_value("Communication", name, {
+		"read_by_recipient": 1,
+		"delivery_status": "Read",
+		"read_by_recipient_on": get_datetime()
+	})
+
+	frappe.db.commit()
+>>>>>>> 69c87e5cae (fix: optimise `mark_email_as_seen`)
