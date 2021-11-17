@@ -156,8 +156,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		let dashboard_parent = $('<div class="form-dashboard">');
 
-		let main_page = this.layout.tabs.length ? this.layout.tabs[0].wrapper : this.layout.wrapper;
-		main_page.prepend(dashboard_parent);
+		if (this.layout.tabs.length) {
+			this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+		} else {
+			dashboard_parent.insertAfter(this.layout.wrapper.find('.form-message'));
+		}
 		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({

@@ -1,5 +1,6 @@
 export default class Section {
-	constructor(parent, df, card_layout) {
+	constructor(parent, df, card_layout, layout) {
+		this.layout = layout;
 		this.card_layout = card_layout;
 		this.parent = parent;
 		this.df = df || {};
@@ -25,6 +26,7 @@ export default class Section {
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
 				${ make_card ? "card-section" : "" }">
 			`).appendTo(this.parent);
+		this.layout && this.layout.sections.push(this);
 
 		if (this.df) {
 			if (this.df.label) {
