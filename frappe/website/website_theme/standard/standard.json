@@ -5,16 +5,18 @@
  "creation": "2015-02-19 13:37:33.925909",
  "custom": 0,
  "custom_overrides": "",
+ "custom_scss": "",
  "docstatus": 0,
  "doctype": "Website Theme",
  "font_properties": "wght:400;500;600;700;800",
- "idx": 28,
- "modified": "2020-06-15 13:10:16.618476",
+ "idx": 29,
+ "ignored_apps": [],
+ "modified": "2021-10-22 08:43:10.630353",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Standard",
  "owner": "Administrator",
  "theme": "Standard",
- "theme_scss": "$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n// Bootstrap Variable Overrides\n\n\n@import \"frappe/public/scss/website\";\n\n\n\n// Custom Theme\n",
- "theme_url": "/assets/css/standard_style.css"
+ "theme_scss": "$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n// Bootstrap Variable Overrides\n\n\n// Import themes from installed apps\n@import \"frappe/public/scss/website\";\n@import \"erpnext/public/scss/website\";\n\n\n\n// Custom Theme\n\n\n:root {\n\t}\n",
+ "theme_url": "/files/website_theme/standard_style.css"
 }
