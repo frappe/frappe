@@ -138,7 +138,6 @@
 
 .list-row-head {
 	@extend .list-row;
-	padding: 15px;
 	cursor: default;
 
 	.list-subject {
@@ -205,6 +204,10 @@ input.list-check-all, input.list-row-checkbox {
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
 
+input.list-check-all {
+	margin-left: 15px;
+}
+
 .render-list-checkbox {
 	margin-left: 15px;
 }
@@ -218,6 +221,11 @@ input.list-check-all, input.list-row-checkbox {
 		position: sticky !important;
 		z-index: 500;
 		top: 0;
+	}
+
+	.sortable-handle {
+		cursor: all-scroll;
+		cursor: grabbing;
 	}
 }
 

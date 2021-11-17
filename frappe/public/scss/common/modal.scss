@@ -169,7 +169,7 @@ body.modal-open[style^="padding-right"] {
 			border-radius: var(--border-radius-md);
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
-			box-shadow: -10px 10px rgba(0, 0, 0, 0.100661);
+			box-shadow: var(--shadow-lg);
 		}
 
 		@include media-breakpoint-down(sm) {

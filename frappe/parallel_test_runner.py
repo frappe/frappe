@@ -264,7 +264,9 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 		self.call_orchestrator('test-completed')
 		return super().print_result()
 
-	def call_orchestrator(self, endpoint, data={}):
+	def call_orchestrator(self, endpoint, data=None):
+		if data is None:
+			data = {}
 		# add repo token header
 		# build id in header
 		headers = {

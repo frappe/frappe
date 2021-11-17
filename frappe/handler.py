@@ -146,8 +146,8 @@ def upload_file():
 	file_url = frappe.form_dict.file_url
 	folder = frappe.form_dict.folder or 'Home'
 	method = frappe.form_dict.method
+	filename = frappe.form_dict.file_name
 	content = None
-	filename = None
 
 	if 'file' in files:
 		file = files['file']
@@ -157,7 +157,7 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
+	if not file_url and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
 		import mimetypes
 		filetype = mimetypes.guess_type(filename)[0]
 		if filetype not in ALLOWED_MIMETYPES:
