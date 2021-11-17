@@ -8,6 +8,18 @@ from frappe.utils.testutils import add_custom_field, clear_custom_fields
 from frappe.desk.form.assign_to import add as assign_to
 
 class TestEnergyPointLog(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		settings = frappe.get_single('Energy Point Settings')
+		settings.enabled = 1
+		settings.save()
+
+	@classmethod
+	def tearDownClass(cls):
+		settings = frappe.get_single('Energy Point Settings')
+		settings.enabled = 0
+		settings.save()
+
 	def setUp(self):
 		frappe.cache().delete_value('energy_point_rule_map')
 
