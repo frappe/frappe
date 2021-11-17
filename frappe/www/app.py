@@ -45,7 +45,7 @@ def get_context(context):
 		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
-		"desk_theme": desk_theme or "Light",
+		"desk_theme": desk_theme,
 		"csrf_token": csrf_token,
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
 		"google_analytics_anonymize_ip": frappe.conf.get("google_analytics_anonymize_ip"),

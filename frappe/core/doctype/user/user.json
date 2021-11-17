@@ -599,7 +599,7 @@
    "fieldname": "desk_theme",
    "fieldtype": "Select",
    "label": "Desk Theme",
-   "options": "Light\nDark"
+   "options": "Light\nDark\nAutomatic"
   },
   {
    "fieldname": "module_profile",
@@ -669,7 +669,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-10-27 17:17:16.098457",
+ "modified": "2021-11-17 17:17:16.098457",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
