@@ -243,11 +243,14 @@ def send_monthly():
 def make_links(columns, data):
 	for row in data:
 		for col in columns:
-			if col.fieldtype == "Link" and col.options != "Currency":
-				if col.options and row.get(col.fieldname):
+			if not row.get(col.fieldname):
+				continue
+			
+			if col.fieldtype == "Link":
+				if col.options and col.options != "Currency":
 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
 			elif col.fieldtype == "Dynamic Link":
-				if col.options and row.get(col.fieldname) and row.get(col.options):
+				if col.options and row.get(col.options):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 			elif col.fieldtype == "Currency":
 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col)
