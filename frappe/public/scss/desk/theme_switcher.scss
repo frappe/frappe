@@ -28,6 +28,7 @@
 
 			margin-right: var(--margin-sm);
 			border-radius: var(--border-radius-full);
+			z-index: 1;
 		}
 	}
 
@@ -84,7 +85,7 @@
 }
 
 // TODO: Replace with better alternative
-[data-theme="automatic"] {
+[data-is-auto-theme="true"] {
 	.background::after {
 		content: "";
 		top: 0;
