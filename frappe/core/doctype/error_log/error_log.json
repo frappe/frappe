@@ -112,7 +112,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-03-14 12:21:44.292471", 
+ "modified": "2021-10-25 12:21:44.292471", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Error Log", 
@@ -144,6 +144,5 @@
  "read_only_onload": 0, 
  "show_name_in_global_search": 0, 
  "sort_order": "ASC", 
- "track_changes": 1, 
  "track_seen": 0
 }
