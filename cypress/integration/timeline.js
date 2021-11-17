@@ -40,8 +40,7 @@ context('Timeline', () => {
 		cy.get('.timeline-content').should('contain', 'Testing Timeline 123');
 
 		//Deleting the added comment
-		cy.get('.timeline-message-box .more-actions > .action-btn').click(); //Menu button in timeline item
-		cy.get('.timeline-message-box .more-actions .dropdown-item').contains('Delete').click({ force: true });
+		cy.get('.timeline-message-box .actions > .action-btn > svg').click(); // Delete (x) button
 		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click({ force: true });
 
 		cy.get('.timeline-content').should('not.contain', 'Testing Timeline 123');
