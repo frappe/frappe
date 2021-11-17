@@ -379,6 +379,7 @@ def add_attachments(name, attachments):
 			})
 			_file.save(ignore_permissions=True)
 
+<<<<<<< HEAD
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	# temp variables
 	filtered = []
@@ -477,6 +478,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 		raise
 
 @frappe.whitelist(allow_guest=True)
+=======
+@frappe.whitelist(allow_guest=True, methods=("GET",))
+>>>>>>> a80cf47426 (fix: enforce GET method)
 def mark_email_as_seen(name: str = None):
 	try:
 		update_communication_as_seen(name)
