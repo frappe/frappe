@@ -445,6 +445,7 @@ frappe.views.BaseList = class BaseList {
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
+			distinct: true,
 			group_by: this.get_group_by()
 		};
 	}
