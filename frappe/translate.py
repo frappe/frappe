@@ -457,17 +457,26 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 				workflows.extend(frappe.get_all('Workflow', filters=fixture.get('filters')))
 
 	messages  = []
+	document_state = DocType("Workflow Document State")
 	for w in workflows:
-		states = frappe.db.sql(
-			'select distinct state from `tabWorkflow Document State` where parent=%s',
-			(w['name'],), as_dict=True)
-
+		states = frappe.db.get_values(
+			document_state,
+			filters=document_state.parent == w["name"],
+			fieldname="state",
+			distinct=True,
+			as_dict=True,
+			no_order=True,
+		)
 		messages.extend([('Workflow: ' + w['name'], state['state']) for state in states if is_translatable(state['state'])])
-
-		states = frappe.db.sql(
-			'select distinct message from `tabWorkflow Document State` where parent=%s and message is not null',
-			(w['name'],), as_dict=True)
-
+		states = frappe.db.get_values(
+			document_state,
+			filters=(document_state.parent == w["name"])
+			& (document_state.message.isnotnull()),
+			fieldname="message",
+			distinct=True,
+			no_order=True,
+			as_dict=True,
+		)
 		messages.extend([("Workflow: " + w['name'], state['message'])
 			for state in states if is_translatable(state['message'])])
 
