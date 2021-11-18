@@ -421,9 +421,6 @@ class User(Document):
 					WHERE `%s` = %s""" %
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
-		if frappe.db.exists("Chat Profile", old_name):
-			frappe.rename_doc("Chat Profile", old_name, new_name, force=True, show_alert=False)
-
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
@@ -1049,7 +1046,7 @@ def generate_keys(user):
 
 @frappe.whitelist()
 def switch_theme(theme):
-	if theme in ["Dark", "Light"]:
+	if theme in ["Dark", "Light", "Automatic"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
 
 def get_enabled_users():

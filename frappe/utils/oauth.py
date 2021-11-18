@@ -138,7 +138,13 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 	else:
 		api_endpoint = oauth2_providers[provider].get("api_endpoint")
 		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
+
 		info = session.get(api_endpoint, params=api_endpoint_args).json()
+
+		if provider == "github" and not info.get("email"):
+			emails = session.get("/user/emails", params=api_endpoint_args).json()
+			email_dict = list(filter(lambda x: x.get("primary"), emails))[0]
+			info["email"] = email_dict.get("email")
 
 	if not (info.get("email_verified") or info.get("email")):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
