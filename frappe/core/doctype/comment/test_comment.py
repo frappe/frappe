@@ -5,6 +5,15 @@ import frappe, json
 import unittest
 
 class TestComment(unittest.TestCase):
+	def tearDown(self):
+		frappe.form_dict.comment = None
+		frappe.form_dict.comment_email = None
+		frappe.form_dict.comment_by = None
+		frappe.form_dict.reference_doctype = None
+		frappe.form_dict.reference_name = None
+		frappe.form_dict.route = None
+		frappe.local.request_ip = None
+
 	def test_comment_creation(self):
 		test_doc = frappe.get_doc(dict(doctype = 'ToDo', description = 'test'))
 		test_doc.insert()
@@ -33,8 +42,16 @@ class TestComment(unittest.TestCase):
 		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
 		from frappe.templates.includes.comments.comments import add_comment
-		add_comment('Good comment with 10 chars', 'test@test.com', 'Good Tester',
-			'Blog Post', test_blog.name, test_blog.route)
+
+		frappe.form_dict.comment = 'Good comment with 10 chars'
+		frappe.form_dict.comment_email = 'test@test.com'
+		frappe.form_dict.comment_by = 'Good Tester'
+		frappe.form_dict.reference_doctype = 'Blog Post'
+		frappe.form_dict.reference_name = test_blog.name
+		frappe.form_dict.route = test_blog.route
+		frappe.local.request_ip = '127.0.0.1'
+
+		add_comment()
 
 		self.assertEqual(frappe.get_all('Comment', fields = ['*'], filters = dict(
 			reference_doctype = test_blog.doctype,
@@ -43,8 +60,10 @@ class TestComment(unittest.TestCase):
 
 		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
-		add_comment('pleez vizits my site http://mysite.com', 'test@test.com', 'bad commentor',
-			'Blog Post', test_blog.name, test_blog.route)
+		frappe.form_dict.comment = 'pleez vizits my site http://mysite.com'
+		frappe.form_dict.comment_by = 'bad commentor'
+
+		add_comment()
 
 		self.assertEqual(len(frappe.get_all('Comment', fields = ['*'], filters = dict(
 			reference_doctype = test_blog.doctype,

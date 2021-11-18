@@ -570,12 +570,11 @@ class Database(object):
 
 	def _get_value_for_many_names(self, doctype, names, field, debug=False, run=True, **kwargs):
 		names = list(filter(None, names))
-
 		if names:
 			return self.get_all(doctype,
-				fields=['name', field],
-				filters=[['name', 'in', names]],
-				debug=debug, as_list=1, run=run, **kwargs),
+				fields=field,
+				filters=names,
+				debug=debug, as_list=1, run=run)
 		else:
 			return {}
 

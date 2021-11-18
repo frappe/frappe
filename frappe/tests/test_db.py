@@ -43,6 +43,13 @@ class TestDB(unittest.TestCase):
 				run=False,
 			).lower(),
 		)
+		self.assertEqual(
+			frappe.db.sql("select email from tabUser where name='Administrator' order by modified DESC"),
+			frappe.db.get_values(
+				"User", filters=[["name", "=", "Administrator"]], fieldname="email"
+			),
+		)
+
 	def test_set_value(self):
 		todo1 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 1')).insert()
 		todo2 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 2')).insert()
