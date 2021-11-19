@@ -791,10 +791,11 @@ def request(context, args=None, path=None):
 @click.command('make-app')
 @click.argument('destination')
 @click.argument('app_name')
-def make_app(destination, app_name):
+@click.option('--no-git', is_flag=True, default=False, help='Do not initialize git repository for the app')
+def make_app(destination, app_name, no_git=False):
 	"Creates a boilerplate app"
 	from frappe.utils.boilerplate import make_boilerplate
-	make_boilerplate(destination, app_name)
+	make_boilerplate(destination, app_name, no_git=no_git)
 
 
 @click.command('set-config')
