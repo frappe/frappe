@@ -395,7 +395,6 @@ class Database(object):
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if isinstance(filters, list):
-			order_by = order_by or "modified_desc"
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug, run=run, **kwargs)
 
 		else:
@@ -571,10 +570,15 @@ class Database(object):
 	def _get_value_for_many_names(self, doctype, names, field, debug=False, run=True, **kwargs):
 		names = list(filter(None, names))
 		if names:
-			return self.get_all(doctype,
+			return self.get_all(
+				doctype,
 				fields=field,
 				filters=names,
-				debug=debug, as_list=1, run=run)
+				debug=debug,
+				as_list=1,
+				run=run,
+				**kwargs,
+			)
 		else:
 			return {}
 

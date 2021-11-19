@@ -35,7 +35,7 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
+		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None, no_order=False) -> List:
 		if not ignore_permissions and \
 			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
 			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
@@ -90,6 +90,7 @@ class DatabaseQuery(object):
 		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
+		self.no_order = no_order
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -127,6 +128,9 @@ class DatabaseQuery(object):
 		if self.distinct:
 			args.fields = 'distinct ' + args.fields
 			args.order_by = '' # TODO: recheck for alternative
+
+		if self.no_order:
+			args.order_by = ""
 
 		query = """select %(fields)s
 			from %(tables)s
