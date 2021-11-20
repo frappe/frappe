@@ -307,7 +307,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					index: 80,
 					default: "Calculator",
 					onclick: function() {
-						frappe.msgprint(formatted_value, "Result");
+						frappe.msgprint(formatted_value, __("Result"));
 					}
 				});
 			} catch(e) {
@@ -319,10 +319,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	make_random(txt) {
 		if(txt.toLowerCase().includes('random')) {
 			this.options.push({
-				label: "Generate Random Password",
+				label: __("Generate Random Password"),
 				value: frappe.utils.get_random(16),
 				onclick: function() {
-					frappe.msgprint(frappe.utils.get_random(16), "Result");
+					frappe.msgprint(frappe.utils.get_random(16), __("Result"));
 				}
 			})
 		}
