@@ -116,6 +116,10 @@ class Database(object):
 		if not run:
 			return query
 
+		if not kwargs.get("ignore_permissions", True):
+			tables = self.get_tables_from_query(query)
+			self.check_permissions(doctype=tables, **kwargs)
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -259,6 +263,24 @@ class Database(object):
 		autocommit in MariaDB."""
 		self.commit()
 		self.sql(query, debug=debug)
+
+	@staticmethod
+	def check_permissions(doctype, **kwargs):
+		kwargs.pop("ignore_permissions")
+		if isinstance(doctype, str):
+			doctype = [doctype]
+
+		for dt in doctype:
+			dt = re.sub("tab", "", dt)
+			if not frappe.has_permission(
+				dt, "select", **kwargs
+			) and not frappe.has_permission(dt, "read", **kwargs):
+				frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(dt))
+				raise frappe.PermissionError(dt)
+
+	@staticmethod
+	def get_tables_from_query(query: str):
+		return [table for table in re.findall(r"\w+", query) if table.startswith("tab")]
 
 	def check_transaction_status(self, query):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
