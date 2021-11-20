@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 import frappe.defaults
@@ -17,6 +17,7 @@ dateformats = {
 	'dd-mmm-yyyy': '%d-%b-%Y', # numbers app format
 	'dd/mm/yyyy': '%d/%m/%Y',
 	'dd.mm.yyyy': '%d.%m.%Y',
+	'dd.mm.yy': '%d.%m.%y',
 	'dd-mm-yyyy': '%d-%m-%Y',
 	"dd/mm/yy": "%d/%m/%y",
 }

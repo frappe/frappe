@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Frappe and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe.website.website_generator import WebsiteGenerator

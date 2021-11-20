@@ -1,13 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 import re
 from frappe.website.utils import clear_cache
+from frappe.rate_limiter import rate_limit
 from frappe.utils import add_to_date, now
+from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
 
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='reference_name', limit=get_comment_limit, seconds=60*60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	doc = frappe.get_doc(reference_doctype, reference_name)
 

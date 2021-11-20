@@ -6,7 +6,11 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		frappe.run_serially([
+		return frappe.run_serially([
+			() => this.show_skeleton(),
+			() => this.fetch_meta(),
+			() => this.hide_skeleton(),
+			() => this.check_permissions(),
 			() => this.init(),
 			() => this.before_refresh(),
 			() => this.refresh(),
@@ -148,6 +152,22 @@ frappe.views.BaseList = class BaseList {
 			}
 			this.stats.push(this.workflow_state_fieldname);
 		}
+	}
+
+	fetch_meta() {
+		return frappe.model.with_doctype(this.doctype);
+	}
+
+	show_skeleton() {
+
+	}
+
+	hide_skeleton() {
+
+	}
+
+	check_permissions() {
+		return true;
 	}
 
 	setup_page() {
@@ -387,6 +407,14 @@ frappe.views.BaseList = class BaseList {
 		);
 	}
 
+	get_group_by() {
+		let name_field = this.fields && this.fields.find(f => f[0] == 'name');
+		if (name_field) {
+			return frappe.model.get_full_column_name(name_field[0], name_field[1]);
+		}
+		return null;
+	}
+
 	setup_view() {
 		// for child classes
 	}
@@ -417,6 +445,7 @@ frappe.views.BaseList = class BaseList {
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
+			group_by: this.get_group_by()
 		};
 	}
 
@@ -463,8 +492,6 @@ frappe.views.BaseList = class BaseList {
 		} else {
 			this.data = this.data.concat(data);
 		}
-
-		this.data = this.data.uniqBy((d) => d.name);
 	}
 
 	freeze() {

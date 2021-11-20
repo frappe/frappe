@@ -8,7 +8,7 @@ test_records = frappe.get_test_records('Web Page')
 
 class TestWebPage(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("delete from `tabWeb Page`")
+		frappe.db.delete("Web Page")
 		for t in test_records:
 			frappe.get_doc(t).insert()
 

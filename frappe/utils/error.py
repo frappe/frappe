@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Maxwell Morais and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import os
 import sys
@@ -176,6 +176,7 @@ def collect_error_snapshots():
 
 def clear_old_snapshots():
 	"""Clear snapshots that are older than a month"""
+
 	frappe.db.sql("""delete from `tabError Snapshot`
 		where creation < (NOW() - INTERVAL '1' MONTH)""")
 

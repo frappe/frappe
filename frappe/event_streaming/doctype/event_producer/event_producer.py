@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 import json
 import time
@@ -408,8 +408,9 @@ def sync_dependencies(document, producer_site):
 			child_table = doc.get(df.fieldname)
 			for entry in child_table:
 				child_doc = producer_site.get_doc(entry.doctype, entry.name)
-				child_doc = frappe._dict(child_doc)
-				set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
+				if child_doc:
+					child_doc = frappe._dict(child_doc)
+					set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
 
 	def sync_link_dependencies(doc, link_fields, producer_site):
 		set_dependencies(doc, link_fields, producer_site)

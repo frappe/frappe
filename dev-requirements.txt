@@ -1,0 +1,4 @@
+coverage==5.5
+Faker~=8.1.0
+pyngrok~=5.0.5
+unittest-xml-reporting~=3.0.4

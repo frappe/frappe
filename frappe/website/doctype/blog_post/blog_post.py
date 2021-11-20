@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe import _
@@ -104,7 +104,7 @@ class BlogPost(WebsiteGenerator):
 		context.parents = [{"name": _("Home"), "route":"/"},
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
-		context.guest_allowed = True
+		context.guest_allowed = frappe.db.get_single_value("Blog Settings", "allow_guest_to_comment", cache=True)
 
 	def fetch_cta(self):
 		if frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True):
@@ -139,23 +139,36 @@ class BlogPost(WebsiteGenerator):
 		context.comment_list = get_comment_list(self.doctype, self.name)
 
 		if not context.comment_list:
-			context.comment_text = _('No comments yet')
+			context.comment_text = 0
 		else:
-			if(len(context.comment_list)) == 1:
-				context.comment_text = _('1 comment')
-			else:
-				context.comment_text = _('{0} comments').format(len(context.comment_list))
+			context.comment_text = len(context.comment_list)
 
 	def load_feedback(self, context):
+		user = frappe.session.user
+
 		feedback = frappe.get_all('Feedback',
-			fields=['email', 'feedback', 'rating'],
+			fields=['like'],
 			filters=dict(
 				reference_doctype=self.doctype,
 				reference_name=self.name,
-				email=frappe.session.user
+				ip_address=frappe.local.request_ip,
+				owner=user
 			)
 		)
+
+		like_count = 0
+
+		if frappe.db.count('Feedback'):
+			like_count = frappe.db.count('Feedback', 
+				filters = dict(
+					reference_doctype = self.doctype, 
+					reference_name = self.name, 
+					like = True
+				)
+			)
+
 		context.user_feedback = feedback[0] if feedback else ''
+		context.like_count = like_count
 
 	def set_read_time(self):
 		content = self.content or self.content_html or ''

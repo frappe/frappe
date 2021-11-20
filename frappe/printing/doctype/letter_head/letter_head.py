@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
-from frappe.utils import is_image
+from frappe.utils import is_image, flt
 from frappe.model.document import Document
 from frappe import _
 
@@ -26,7 +26,15 @@ class LetterHead(Document):
 	def set_image(self):
 		if self.source=='Image':
 			if self.image and is_image(self.image):
-				self.content = '<img src="{}">'.format(self.image)
+				self.image_width = flt(self.image_width)
+				self.image_height = flt(self.image_height)
+				dimension = 'width' if self.image_width > self.image_height else 'height'
+				dimension_value = self.get('image_' + dimension)
+				self.content = f'''
+				<div style="text-align: {self.align.lower()};">
+					<img src="{self.image}" alt="{self.name}" {dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
+				</div>
+				'''
 				frappe.msgprint(frappe._('Header HTML set from attachment {0}').format(self.image), alert = True)
 			else:
 				frappe.msgprint(frappe._('Please attach an image file to set HTML'), alert = True, indicator = 'orange')

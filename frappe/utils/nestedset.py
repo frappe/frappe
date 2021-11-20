@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Tree (Hierarchical) Nested Set Model (nsm)
 #
@@ -10,10 +10,12 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
+from typing import Iterator
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now
+from frappe.query_builder import DocType, Order
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -23,25 +25,25 @@ class NestedSetInvalidMergeError(frappe.ValidationError): pass
 # called in the on_update method
 def update_nsm(doc):
 	# get fields, data from the DocType
-	opf = 'old_parent'
-	pf = "parent_" + frappe.scrub(doc.doctype)
+	old_parent_field = 'old_parent'
+	parent_field = "parent_" + frappe.scrub(doc.doctype)
 
 	if hasattr(doc,'nsm_parent_field'):
-		pf = doc.nsm_parent_field
+		parent_field = doc.nsm_parent_field
 	if hasattr(doc,'nsm_oldparent_field'):
-		opf = doc.nsm_oldparent_field
+		old_parent_field = doc.nsm_oldparent_field
 
-	p, op = doc.get(pf) or None, doc.get(opf) or None
+	parent, old_parent = doc.get(parent_field) or None, doc.get(old_parent_field) or None
 
 	# has parent changed (?) or parent is None (root)
 	if not doc.lft and not doc.rgt:
-		update_add_node(doc, p or '', pf)
-	elif op != p:
-		update_move_node(doc, pf)
+		update_add_node(doc, parent or '', parent_field)
+	elif old_parent != parent:
+		update_move_node(doc, parent_field)
 
 	# set old parent
-	doc.set(opf, p)
-	frappe.db.set_value(doc.doctype, doc.name, opf, p or '', update_modified=False)
+	doc.set(old_parent_field, parent)
+	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or '', update_modified=False)
 
 	doc.reload()
 
@@ -50,14 +52,12 @@ def update_add_node(doc, parent, parent_field):
 		insert a new node
 	"""
 
-	n = now()
-
 	doctype = doc.doctype
 	name = doc.name
 
 	# get the last sibling of the parent
 	if parent:
-		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s"
+		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s for update"
 			.format(doctype), parent)[0]
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
@@ -68,61 +68,60 @@ def update_add_node(doc, parent, parent_field):
 	right = right or 1
 
 	# update all on the right
-	frappe.db.sql("update `tab{0}` set rgt = rgt+2, modified=%s where rgt >= %s"
-		.format(doctype), (n, right))
-	frappe.db.sql("update `tab{0}` set lft = lft+2, modified=%s where lft >= %s"
-		.format(doctype), (n, right))
+	frappe.db.sql("update `tab{0}` set rgt = rgt+2 where rgt >= %s"
+		.format(doctype), (right,))
+	frappe.db.sql("update `tab{0}` set lft = lft+2 where lft >= %s"
+		.format(doctype), (right,))
 
 	# update index of new node
 	if frappe.db.sql("select * from `tab{0}` where lft=%s or rgt=%s".format(doctype), (right, right+1)):
 		frappe.msgprint(_("Nested set error. Please contact the Administrator."))
 		raise Exception
 
-	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s, modified=%s where name=%s".format(doctype),
-		(right,right+1, n, name))
+	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s where name=%s".format(doctype),
+		(right,right+1, name))
 	return right
 
 
 def update_move_node(doc, parent_field):
-	n = now()
 	parent = doc.get(parent_field)
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab{0}`
-			where name = %s""".format(doc.doctype), parent, as_dict=1)[0]
+			where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
 
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
 	# move to dark side
-	frappe.db.sql("""update `tab{0}` set lft = -lft, rgt = -rgt, modified=%s
-		where lft >= %s and rgt <= %s""".format(doc.doctype), (n, doc.lft, doc.rgt))
+	frappe.db.sql("""update `tab{0}` set lft = -lft, rgt = -rgt
+		where lft >= %s and rgt <= %s""".format(doc.doctype), (doc.lft, doc.rgt))
 
 	# shift left
 	diff = doc.rgt - doc.lft + 1
-	frappe.db.sql("""update `tab{0}` set lft = lft -%s, rgt = rgt - %s, modified=%s
-		where lft > %s""".format(doc.doctype), (diff, diff, n, doc.rgt))
+	frappe.db.sql("""update `tab{0}` set lft = lft -%s, rgt = rgt - %s
+		where lft > %s""".format(doc.doctype), (diff, diff, doc.rgt))
 
 	# shift left rgts of ancestors whose only rgts must shift
-	frappe.db.sql("""update `tab{0}` set rgt = rgt - %s, modified=%s
-		where lft < %s and rgt > %s""".format(doc.doctype), (diff, n, doc.lft, doc.rgt))
+	frappe.db.sql("""update `tab{0}` set rgt = rgt - %s
+		where lft < %s and rgt > %s""".format(doc.doctype), (diff, doc.lft, doc.rgt))
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
-			where name = %s""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
+			where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
 
 
 		# set parent lft, rgt
-		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s, modified=%s
-			where name = %s""".format(doc.doctype), (diff, n, parent))
+		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
+			where name = %s""".format(doc.doctype), (diff, parent))
 
 		# shift right at new parent
-		frappe.db.sql("""update `tab{0}` set lft = lft + %s, rgt = rgt + %s, modified=%s
-			where lft > %s""".format(doc.doctype), (diff, diff, n, new_parent.rgt))
+		frappe.db.sql("""update `tab{0}` set lft = lft + %s, rgt = rgt + %s
+			where lft > %s""".format(doc.doctype), (diff, diff, new_parent.rgt))
 
 		# shift right rgts of ancestors whose only rgts must shift
-		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s, modified=%s
+		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
 			where lft < %s and rgt > %s""".format(doc.doctype),
-			(diff, n, new_parent.lft, new_parent.rgt))
+			(diff, new_parent.lft, new_parent.rgt))
 
 
 		new_diff = new_parent.rgt - doc.lft
@@ -132,8 +131,8 @@ def update_move_node(doc, parent_field):
 		new_diff = max_rgt + 1 - doc.lft
 
 	# bring back from dark side
-	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s, modified=%s
-		where lft < 0""".format(doc.doctype), (new_diff, new_diff, n))
+	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s
+		where lft < 0""".format(doc.doctype), (new_diff, new_diff))
 
 @frappe.whitelist()
 def rebuild_tree(doctype, parent_field):
@@ -146,10 +145,21 @@ def rebuild_tree(doctype, parent_field):
 		frappe.only_for('System Manager')
 
 	# get all roots
+	right = 1
+	table = DocType(doctype)
+	column = getattr(table, parent_field)
+
+	result = (
+		frappe.qb.from_(table)
+		.where(
+			(column == "") | (column.isnull())
+		)
+		.orderby(table.name, order=Order.asc)
+		.select(table.name)
+	).run()
+
 	frappe.db.auto_commit_on_many_writes = 1
 
-	right = 1
-	result = frappe.db.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL ORDER BY name ASC" % (doctype, parent_field, parent_field))
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
@@ -159,22 +169,23 @@ def rebuild_node(doctype, parent, left, parent_field):
 	"""
 		reset lft, rgt and recursive call for all children
 	"""
-	from frappe.utils import now
-	n = now()
-
 	# the right value of this node is the left value + 1
 	right = left+1
 
 	# get all children of this node
-	result = frappe.db.sql("SELECT name FROM `tab{0}` WHERE `{1}`=%s"
-		.format(doctype, parent_field), (parent))
+	table = DocType(doctype)
+	column = getattr(table, parent_field)
+
+	result = (
+		frappe.qb.from_(table).where(column == parent).select(table.name)
+	).run()
+
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.sql("""UPDATE `tab{0}` SET lft=%s, rgt=%s, modified=%s
-		WHERE name=%s""".format(doctype), (left,right,n,parent))
+	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False, update_modified=False)
 
 	#return the right value of this node + 1
 	return right+1
@@ -261,6 +272,19 @@ class NestedSet(Document):
 
 	def get_ancestors(self):
 		return get_ancestors_of(self.doctype, self.name)
+
+	def get_parent(self) -> "NestedSet":
+		"""Return the parent Document."""
+		parent_name = self.get(self.nsm_parent_field)
+		if parent_name:
+			return frappe.get_doc(self.doctype, parent_name)
+
+	def get_children(self) -> Iterator["NestedSet"]:
+		"""Return a generator that yields child Documents."""
+		child_names = frappe.get_list(self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name")
+		for name in child_names:
+			yield frappe.get_doc(self.doctype, name)
+
 
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""

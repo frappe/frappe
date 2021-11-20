@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "field:letter_head_name",
  "creation": "2012-11-22 17:45:46",
@@ -13,6 +14,9 @@
   "is_default",
   "letter_head_image_section",
   "image",
+  "image_height",
+  "image_width",
+  "align",
   "header_section",
   "content",
   "footer_section",
@@ -100,15 +104,34 @@
    "fieldname": "footer",
    "fieldtype": "HTML Editor",
    "label": "Footer HTML"
+  },
+  {
+   "default": "Left",
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nRight\nCenter"
+  },
+  {
+   "fieldname": "image_height",
+   "fieldtype": "Float",
+   "label": "Image Height"
+  },
+  {
+   "fieldname": "image_width",
+   "fieldtype": "Float",
+   "label": "Image Width"
   }
  ],
  "icon": "fa fa-font",
  "idx": 1,
+ "links": [],
  "max_attachments": 3,
- "modified": "2019-11-11 18:46:43.375120",
+ "modified": "2021-10-03 14:37:58.314696",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

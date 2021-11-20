@@ -1,18 +1,20 @@
 /* eslint-disable no-console */
-let path = require("path");
-let fs = require("fs");
-let glob = require("fast-glob");
-let esbuild = require("esbuild");
-let vue = require("esbuild-vue");
-let yargs = require("yargs");
-let cliui = require("cliui")();
-let chalk = require("chalk");
-let html_plugin = require("./frappe-html");
-let rtlcss = require('rtlcss');
-let postCssPlugin = require("esbuild-plugin-postcss2").default;
-let ignore_assets = require("./ignore-assets");
-let sass_options = require("./sass_options");
-let {
+const path = require("path");
+const fs = require("fs");
+const glob = require("fast-glob");
+const esbuild = require("esbuild");
+const vue = require("esbuild-vue");
+const yargs = require("yargs");
+const cliui = require("cliui")();
+const chalk = require("chalk");
+const html_plugin = require("./frappe-html");
+const rtlcss = require('rtlcss');
+const postCssPlugin = require("esbuild-plugin-postcss2").default;
+const ignore_assets = require("./ignore-assets");
+const sass_options = require("./sass_options");
+const build_cleanup_plugin = require("./build-cleanup");
+
+const {
 	app_list,
 	assets_path,
 	apps_path,
@@ -26,7 +28,7 @@ let {
 	get_redis_subscriber
 } = require("./utils");
 
-let argv = yargs
+const argv = yargs
 	.usage("Usage: node esbuild [options]")
 	.option("apps", {
 		type: "string",
@@ -43,6 +45,11 @@ let argv = yargs
 	.option("watch", {
 		type: "boolean",
 		description: "Run in watch mode and rebuild on file changes"
+	})
+	.option("live-reload", {
+		type: "boolean",
+		description: `Automatically reload Desk when assets are rebuilt.
+			Can only be used with the --watch flag.`
 	})
 	.option("production", {
 		type: "boolean",
@@ -93,9 +100,6 @@ if (WATCH_MODE) {
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
-	if (!FILES_TO_BUILD.length) {
-		await clean_dist_folders(APPS);
-	}
 
 	let results;
 	try {
@@ -104,6 +108,9 @@ async function execute() {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
+		if (process.env.CI) {
+			process.kill(process.pid);
+		}
 		return;
 	}
 
@@ -223,12 +230,13 @@ function get_files_to_build(files) {
 function build_files({ files, outdir }) {
 	let build_plugins = [
 		html_plugin,
+		build_cleanup_plugin,
 		vue(),
 	];
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
-function build_style_files({ files, outdir, rtl_style=false }) {
+function build_style_files({ files, outdir, rtl_style = false }) {
 	let plugins = [];
 	if (rtl_style) {
 		plugins.push(rtlcss);
@@ -236,6 +244,7 @@ function build_style_files({ files, outdir, rtl_style=false }) {
 
 	let build_plugins = [
 		ignore_assets,
+		build_cleanup_plugin,
 		postCssPlugin({
 			plugins: plugins,
 			sassOptions: sass_options
@@ -280,33 +289,29 @@ function get_watch_config() {
 						assets_json,
 						prev_assets_json
 					} = await write_assets_json(result.metafile);
+
+					let changed_files;
 					if (prev_assets_json) {
-						log_rebuilt_assets(prev_assets_json, assets_json);
+						changed_files = get_rebuilt_assets(
+							prev_assets_json,
+							assets_json
+						);
+
+						let timestamp = new Date().toLocaleTimeString();
+						let message = `${timestamp}: Compiled ${changed_files.length} files...`;
+						log(chalk.yellow(message));
+						for (let filepath of changed_files) {
+							let filename = path.basename(filepath);
+							log("    " + filename);
+						}
+						log();
 					}
-					notify_redis({ success: true });
+					notify_redis({ success: true, changed_files });
 				}
 			}
 		};
 	}
 	return null;
-}
-
-async function clean_dist_folders(apps) {
-	for (let app of apps) {
-		let public_path = get_public_path(app);
-		let paths = [
-			path.resolve(public_path, "dist", "js"),
-			path.resolve(public_path, "dist", "css"),
-			path.resolve(public_path, "dist", "css-rtl")
-		];
-		for (let target of paths) {
-			if (fs.existsSync(target)) {
-				// rmdir is deprecated in node 16, this will work in both node 14 and 16
-				let rmdir = fs.promises.rm || fs.promises.rmdir;
-				await rmdir(target, { recursive: true });
-			}
-		}
-	}
 }
 
 function log_built_assets(results) {
@@ -453,7 +458,7 @@ function run_build_command_for_apps(apps) {
 	process.chdir(cwd);
 }
 
-async function notify_redis({ error, success }) {
+async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
 	let subscriber = get_redis_subscriber("redis_socketio");
 	subscriber.on("error", _ => {
@@ -475,7 +480,9 @@ async function notify_redis({ error, success }) {
 	}
 	if (success) {
 		payload = {
-			success: true
+			success: true,
+			changed_files,
+			live_reload: argv["live-reload"]
 		};
 	}
 
@@ -505,7 +512,7 @@ function open_in_editor() {
 	subscriber.subscribe("open_in_editor");
 }
 
-function log_rebuilt_assets(prev_assets, new_assets) {
+function get_rebuilt_assets(prev_assets, new_assets) {
 	let added_files = [];
 	let old_files = Object.values(prev_assets);
 	let new_files = Object.values(new_assets);
@@ -515,17 +522,5 @@ function log_rebuilt_assets(prev_assets, new_assets) {
 			added_files.push(filepath);
 		}
 	}
-
-	log(
-		chalk.yellow(
-			`${new Date().toLocaleTimeString()}: Compiled ${
-				added_files.length
-			} files...`
-		)
-	);
-	for (let filepath of added_files) {
-		let filename = path.basename(filepath);
-		log("    " + filename);
-	}
-	log();
+	return added_files;
 }

@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import json
 import mimetypes
 import os
@@ -165,6 +165,8 @@ def abs_url(path):
 	if not path:
 		return
 	if path.startswith('http://') or path.startswith('https://'):
+		return path
+	if path.startswith('tel:'):
 		return path
 	if path.startswith('data:'):
 		return path
@@ -488,11 +490,12 @@ def set_content_type(response, data, path):
 	return data
 
 def add_preload_headers(response):
-	from bs4 import BeautifulSoup
+	from bs4 import BeautifulSoup, SoupStrainer
 
 	try:
 		preload = []
-		soup = BeautifulSoup(response.data, "lxml")
+		strainer = SoupStrainer(re.compile("script|link"))
+		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
 		for elem in soup.find_all('script', src=re.compile(".*")):
 			preload.append(("script", elem.get("src")))
 

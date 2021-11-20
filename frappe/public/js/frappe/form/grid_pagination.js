@@ -46,8 +46,55 @@ export default class GridPagination {
 		this.last_page_button.on('click', () => {
 			this.go_to_page(this.total_pages);
 		});
+
+		this.$page_number.on('keyup', (e) => {
+			e.currentTarget.style.width = ((e.currentTarget.value.length + 1) * 8) + 'px';
+		});
+
+		this.$page_number.on('keydown', (e) => {
+			e = (e) ? e : window.event;
+			var charCode = (e.which) ? e.which : e.keyCode;
+			let arrow = { up: 38, down: 40 };
+
+			switch (charCode) {
+				case arrow.up:
+					this.inc_dec_number(true);
+					break;
+				case arrow.down:
+					this.inc_dec_number(false);
+					break;
+			}
+
+			// only allow numbers from 0-9 and up, down, left, right arrow keys
+			if (charCode > 31 && (charCode < 48 || charCode > 57) && 
+				![37, 38, 39, 40].includes(charCode)) {
+				return false;
+			}
+			return true;
+		});
+
+		this.$page_number.on('focusout', (e) => {
+			if (this.page_index == e.currentTarget.value) return;
+			this.page_index = e.currentTarget.value;
+
+			if (this.page_index < 1) {
+				this.page_index = 1;
+			} else if (this.page_index > this.total_pages) {
+				this.page_index = this.total_pages;
+			}
+
+			this.go_to_page();
+		});
 	}
 
+	inc_dec_number(increment) {
+		let new_value = parseInt(this.$page_number.val());
+		increment ? new_value++ : new_value--;
+
+		if (new_value < 1 || new_value > this.total_pages) return;
+
+		this.$page_number.val(new_value);
+	}
 
 	update_page_numbers() {
 		let total_pages = Math.ceil(this.grid.data.length/this.page_length);
@@ -65,7 +112,7 @@ export default class GridPagination {
 
 	get_pagination_html() {
 		let page_text_html = `<div class="page-text">
-				<span class="current-page-number page-number">${__(this.page_index)}</span>
+				<input class="current-page-number page-number" type="text" value="${__(this.page_index)}"/>
 				<span>${__('of')}</span>
 				<span class="total-page-number page-number"> ${__(this.total_pages)} </span>
 			</div>`;
@@ -104,7 +151,8 @@ export default class GridPagination {
 		let $rows = $(this.grid.parent).find(".rows").empty();
 		this.grid.render_result_rows($rows, true);
 		if (this.$page_number) {
-			this.$page_number.text(index);
+			this.$page_number.val(index);
+			this.$page_number.css('width', ((index.toString().length + 1) * 8) + 'px');
 		}
 
 		this.update_page_numbers();

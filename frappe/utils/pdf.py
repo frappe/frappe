@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import io
 import os
 import re
@@ -179,7 +179,7 @@ def prepare_header_footer(soup):
 				"html_id": html_id,
 				"css": css,
 				"lang": frappe.local.lang,
-				"layout_direction": "rtl" if is_rtl else "ltr"
+				"layout_direction": "rtl" if is_rtl() else "ltr"
 			})
 
 			# create temp file
