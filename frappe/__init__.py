@@ -790,7 +790,9 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
 	def get_tables():
-		return db.sql_list("select name from tabDocType where istable=1")
+		return db.get_values(
+			"DocType", filters={"istable": 1}, no_order=True, pluck=True
+		)
 
 	tables = cache().get_value("is_table", get_tables)
 	return doctype in tables
