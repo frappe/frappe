@@ -480,9 +480,14 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 		messages.extend([("Workflow: " + w['name'], state['message'])
 			for state in states if is_translatable(state['message'])])
 
-		actions = frappe.db.sql(
-			'select distinct action from `tabWorkflow Transition` where parent=%s',
-			(w['name'],), as_dict=True)
+		actions = frappe.db.get_values(
+			"Workflow Transition",
+			filters={"parent": w["name"]},
+			fieldname="action",
+			as_dict=True,
+			distinct=True,
+			no_order=True,
+		)
 
 		messages.extend([("Workflow: " + w['name'], action['action']) \
 			for action in actions if is_translatable(action['action'])])
