@@ -125,7 +125,7 @@ def json_handler(obj):
 	# serialize date
 	import collections.abc
 
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime, datetime.time)):
 		return str(obj)
 
 	elif isinstance(obj, decimal.Decimal):

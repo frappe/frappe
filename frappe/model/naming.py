@@ -337,7 +337,6 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 			count = "1"
 
 		value = "{0}{1}{2}".format(value, separator, count)
-
 	return value
 
 

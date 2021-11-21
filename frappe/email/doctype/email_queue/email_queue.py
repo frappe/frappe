@@ -473,7 +473,7 @@ class QueueBuilder:
 			from
 				`tabEmail Unsubscribe`
 			where
-				email in %(all_ids)s
+				email in {all_ids}
 				and (
 					(
 						reference_doctype = %(reference_doctype)s
@@ -481,8 +481,7 @@ class QueueBuilder:
 					)
 					or global_unsubscribe = 1
 				)
-		''', {
-			'all_ids': all_ids,
+		'''.format(all_ids = "('" + "','".join(all_ids) + "')"), {
 			'reference_doctype': self.reference_doctype,
 			'reference_name': self.reference_name,
 		})

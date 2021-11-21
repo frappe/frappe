@@ -36,8 +36,13 @@ def get_random(doctype, filters=None, doc=False):
 	else:
 		condition = ""
 
-	out = frappe.db.sql("""select name from `tab%s` %s
-		order by RAND() limit 0,1""" % (doctype, condition))
+	out = frappe.db.multisql({
+		'mariadb': """select name from `tab%s` %s
+		order by RAND() limit 1 offset 0""" % (doctype, condition),
+		'postgres': """select name from `tab%s` %s
+		order by RANDOM() limit 1 offset 0""" % (doctype, condition)
+		
+		})
 
 	out = out and out[0][0] or None
 
