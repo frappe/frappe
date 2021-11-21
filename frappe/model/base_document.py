@@ -570,7 +570,7 @@ class BaseDocument(object):
 						values = frappe._dict(name=frappe.db.get_value(doctype, docname,
 							'name', cache=True))
 					else:
-						values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
+						values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1].lower() #lowercase column for postgres
 							for _df in fields_to_fetch]
 
 						# don't cache if fetching other values too
