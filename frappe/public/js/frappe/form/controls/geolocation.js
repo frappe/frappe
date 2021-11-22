@@ -200,10 +200,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		this.editableLayers.eachLayer((l)=>{
 			this.editableLayers.removeLayer(l);
 		});
-	}
-<<<<<<< HEAD
-});
-=======
+	},
 
 	get required_libs() {
 		return [
@@ -217,5 +214,5 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 			"assets/frappe/js/lib/leaflet/L.Control.Locate.js",
 		];
 	}
-};
->>>>>>> 9ee1613d05 (fix: Load assets load required for geolocation control)
+
+});
