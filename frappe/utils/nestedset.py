@@ -10,6 +10,8 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
+from typing import Iterator
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -270,6 +272,19 @@ class NestedSet(Document):
 
 	def get_ancestors(self):
 		return get_ancestors_of(self.doctype, self.name)
+
+	def get_parent(self) -> "NestedSet":
+		"""Return the parent Document."""
+		parent_name = self.get(self.nsm_parent_field)
+		if parent_name:
+			return frappe.get_doc(self.doctype, parent_name)
+
+	def get_children(self) -> Iterator["NestedSet"]:
+		"""Return a generator that yields child Documents."""
+		child_names = frappe.get_list(self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name")
+		for name in child_names:
+			yield frappe.get_doc(self.doctype, name)
+
 
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""

@@ -634,6 +634,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.render_datatable();
 				this.add_chart_buttons_to_toolbar(true);
 				this.add_card_button_to_toolbar();
+				this.$report.show();
 			} else {
 				this.data = [];
 				this.toggle_nothing_to_show(true);
@@ -882,7 +883,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	hide_loading_screen() {
 		this.$loading.hide();
-		this.$report.show();
 	}
 
 	get_chart_options(data) {
