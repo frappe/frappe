@@ -775,7 +775,7 @@ class BaseDocument(object):
 				else:
 					self_value = self.get_value(key)
 				#postgres stores values as datetime.time, maria as timedelta
-				db_value = datetime.timedelta(hours=db_value.hours, minutes = db_value.minutes, seconds = db_value.seconds, microseconds = db_value.microseconds) if isinstance(self_value, datetime.timedelta) and isinstance(db_value, datetime.time) else db_value
+				db_value = datetime.timedelta(hours=db_value.hour, minutes = db_value.minute, seconds = db_value.second, microseconds = db_value.microsecond) if isinstance(self_value, datetime.timedelta) and isinstance(db_value, datetime.time) else db_value
 				if self_value != db_value:
 					frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 						frappe.UpdateAfterSubmitError)
