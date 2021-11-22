@@ -43,6 +43,9 @@
 	.my-account-item-link {
 		font-size: 13px;
 
+		a {
+			text-decoration: none;
+		}
 		.right-icon {
 			@include media-breakpoint-up(sm) {
 				display: none;
@@ -68,4 +71,8 @@
 	:last-child {
 		border: 0;
 	}
+}
+
+.bg-grey {
+	background-color: var(--bg-gray);
 }

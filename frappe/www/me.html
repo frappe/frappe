@@ -4,7 +4,7 @@
   {{ _("My Account") }}
 {% endblock %}
 {% block header %}
-  <h3 class="my-account-header font-weight-bold">{{ _("My Account") }}</h3>
+  <h3 class="my-account-header font-weight-bold">{{_("My Account") }}</h3>
 {% endblock %}
 {% block page_content %}
   <div class="row account-info d-flex flex-column">
@@ -20,7 +20,10 @@
       <div>
         <span class="my-account-item-link">
           <a href="/update-profile?name={{ user }}">
-            <img class="edit-profile-icon mb-1" src="/assets/frappe/images/ui-states/edit.svg" />
+            <svg class="edit-profile-icon icon icon-md">
+							<use xlink:href="#icon-edit">
+							</use>
+						</svg>            
             <span class="item-link-text pl-2">
               {{_("Edit Profile") }}
             </span>
@@ -31,25 +34,31 @@
 
     <div class="col d-flex justify-content-between align-items-center">
       <span>
-        <div class="my-account-item">Reset Password</div>
-        <div class="my-account-item-desc">Reset the password for your account</div>
+        <div class="my-account-item">{{_("Reset Password") }}</div>
+        <div class="my-account-item-desc">{{_("Reset the password for your account") }}</div>
       </span>
       <span class="my-account-item-link">
         <a href="/update-password">
-          <img class="right-icon" src="/assets/frappe/images/ui-states/right-icon.svg" />
-          <span class="item-link-text">{{ _("Reset Password") }}</span></a>
+          <svg class="right-icon icon icon-md">
+            <use xlink:href="#icon-right">
+            </use>
+          </svg>
+          <span class="item-link-text">{{_("Reset Password") }}</span></a>
       </span>
     </div>
 
     <div class="col d-flex justify-content-between align-items-center">
       <span>
-        <div class="my-account-item">Manage third party apps</div>
-          <div class="my-account-item-desc">To manage your authorized third party apps</div>
+        <div class="my-account-item">{{_("Manage third party apps") }}</div>
+          <div class="my-account-item-desc">{{_("To manage your authorized third party apps") }}</div>
       </span>
       <span class="my-account-item-link">
         <a href="/third_party_apps">
-          <img class="right-icon" src="/assets/frappe/images/ui-states/right-icon.svg" />
-          <span class="item-link-text">{{ _("Manage your apps") }}</span></a>
+          <svg class="right-icon icon icon-md">
+            <use xlink:href="#icon-right">
+            </use>
+          </svg>          
+          <span class="item-link-text">{{_("Manage your apps") }}</span></a>
       </span>
     </div>
   </div>
@@ -69,7 +78,7 @@
   <script>
     frappe.ready(function () {
       if ($(window).width() > 576) {
-        $('body').css('background-color', '#F4F5F6');
+        $('body').addClass('bg-grey');
       }
   });
   </script>
