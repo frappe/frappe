@@ -71,10 +71,10 @@ def get_overridden_method(cmd):
 	return cmd
 
 def is_valid_http_method(method):
-	if not hasattr(frappe.local, 'request'):
-		http_method = 'GET'
-	else:
-		http_method = frappe.local.request.method
+	if frappe.flags.in_safe_exec:
+		return
+
+	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
 		throw_permission_error()
