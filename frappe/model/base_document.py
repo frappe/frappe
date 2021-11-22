@@ -604,7 +604,7 @@ class BaseDocument(object):
 		return invalid_links, cancelled_links
 
 	def set_fetch_from_value(self, doctype, df, values):
-		fetch_from_fieldname = df.fetch_from.split('.')[-1]
+		fetch_from_fieldname = df.fetch_from.split('.')[-1].lower()
 		value = values[fetch_from_fieldname]
 		if df.fieldtype in ['Small Text', 'Text', 'Data']:
 			if fetch_from_fieldname in default_fields:
