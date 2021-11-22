@@ -1340,5 +1340,12 @@ Object.assign(frappe.utils, {
 		let e = clipboard_paste_event;
 		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 		return clipboard_data.getData('Text');
+	},
+
+	parse_array(array) {
+		if (array && array.length !== 0) {
+			return array;
+		}
+		return undefined;
 	}
 });
