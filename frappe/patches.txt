@@ -184,3 +184,4 @@ frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.rename_cancelled_documents
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
+frappe.patches.v14_0.update_github_endpoints #08-11-2021

@@ -373,6 +373,18 @@
 
 .page-text {
 	display: inline-block;
+	cursor: default;
+}
+
+.current-page-number {
+	width: 16px;
+	text-align: center;
+	border: none;
+	cursor: text;
+
+	&:focus {
+		outline: none;
+	}
 }
 
 .prev-page,
