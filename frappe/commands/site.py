@@ -829,39 +829,37 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 @pass_context
 def browse(context, site, user=None):
 	'''Opens the site on web browser'''
-	from frappe.auth import LoginManager
-	from frappe.auth import CookieManager
-	import webbrowser
+	from frappe.auth import CookieManager, LoginManager
 
-	site = context.sites[0] if context.sites else site
+	site = get_site(context, raise_err=False) or site
 
 	if not site:
-		click.echo('''Please provide site name\n\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse''')
-		return
+		raise SiteNotSpecifiedError
 
-	site = site.lower()
+	if site not in frappe.utils.get_sites():
+		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
+		sys.exit(1)
 
-	if site in frappe.utils.get_sites():
-		frappe.init(site=site)
-		frappe.connect()
+	frappe.init(site=site)
+	frappe.connect()
 
-		sid = ''
-		if user:
-			if frappe.conf.developer_mode or user == "Administrator":
-				frappe.utils.set_request(path="/")
-				frappe.local.cookie_manager = CookieManager()
-				frappe.local.login_manager = LoginManager()
-				frappe.local.login_manager.login_as(user)
-				sid = f'/app?sid={frappe.session.sid}'
-			else:
-				print("Please enable developer mode to login as a user")
+	sid = ''
+	if user:
+		if frappe.conf.developer_mode or user == "Administrator":
+			frappe.utils.set_request(path="/")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			sid = f'/app?sid={frappe.session.sid}'
+		else:
+			click.echo("Please enable developer mode to login as a user")
 
-		url = f'{frappe.utils.get_site_url(site)}{sid}'
-		if user == "Administrator":
-			print(f'Login URL: {url}')
-		webbrowser.open(url, new=2)
-	else:
-		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
+	url = f'{frappe.utils.get_site_url(site)}{sid}'
+
+	if user == "Administrator":
+		click.echo(f'Login URL: {url}')
+
+	click.launch(url)
 
 
 @click.command('start-recording')
