@@ -1667,7 +1667,13 @@ frappe.ui.form.Form = class FrappeForm {
 			};
 		});
 		driver.defineSteps(steps);
-		frappe.router.on('change', () => driver.reset());
+		frappe.router.on('change', () => {
+			let current_step = driver.steps[driver.currentStep];
+			if (typeof(current_step.options.allowed_routechanges) !== "undefined" && current_step.options.allowed_routechanges.some(regex => regex.test(frappe.get_route_str()))){
+				return;
+			}
+			driver.reset();
+		});
 		driver.start();
 	}
 
