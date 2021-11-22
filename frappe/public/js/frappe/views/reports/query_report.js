@@ -634,6 +634,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.render_datatable();
 				this.add_chart_buttons_to_toolbar(true);
 				this.add_card_button_to_toolbar();
+				this.$report.show();
 			} else {
 				this.data = [];
 				this.toggle_nothing_to_show(true);
@@ -882,7 +883,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	hide_loading_screen() {
 		this.$loading.hide();
-		this.$report.show();
 	}
 
 	get_chart_options(data) {
@@ -1789,6 +1789,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$chart.toggle(flag);
 		this.$summary.toggle(flag);
 	}
+
+	get_checked_items(only_docnames) {
+		const indexes = this.datatable.rowmanager.getCheckedRows();
+
+		return indexes.reduce((items, i) => {
+			if (i === undefined) return items;
+
+			const item = this.data[i];
+			items.push(only_docnames ? item.name : item);
+			return items;
+		}, []);
+	}
+
 	// backward compatibility
 	get get_values() {
 		return this.get_filter_values;

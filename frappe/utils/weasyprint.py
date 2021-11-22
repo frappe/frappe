@@ -5,18 +5,6 @@ import click
 
 import frappe
 
-try:
-	from weasyprint import HTML, CSS
-except OSError:
-	click.secho(
-		"\n".join(["WeasyPrint depdends on additional system dependencies.",
-		"Follow instructions specific to your operating system:",
-		"https://doc.courtbouillon.org/weasyprint/stable/first_steps.html"]),
-		fg="yellow"
-	)
-	raise
-
-
 @frappe.whitelist()
 def download_pdf(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
@@ -121,6 +109,8 @@ class PrintFormatGenerator:
 		pdf: a bytes sequence
 			The rendered PDF.
 		"""
+		HTML, CSS = import_weasyprint()
+
 		self._make_header_footer()
 
 		self.context.update(
@@ -151,6 +141,8 @@ class PrintFormatGenerator:
 		element_height: float
 			The height of this element, which will be then translated in a html height
 		"""
+		HTML, CSS = import_weasyprint()
+
 		html = HTML(string=getattr(self, f"{element}_html"), base_url=self.base_url,)
 		element_doc = html.render(
 			stylesheets=[CSS(string="@page {size: A4 portrait; margin: 0;}")]
@@ -254,3 +246,20 @@ class PrintFormatGenerator:
 			if box.element_tag == element:
 				return box
 			return PrintFormatGenerator.get_element(box.all_children(), element)
+
+
+def import_weasyprint():
+	try:
+		from weasyprint import HTML, CSS
+		return HTML, CSS
+	except OSError:
+		message = "\n".join([
+			"WeasyPrint depdends on additional system dependencies.",
+			"Follow instructions specific to your operating system:",
+			"https://doc.courtbouillon.org/weasyprint/stable/first_steps.html"
+		])
+		click.secho(
+			message,
+			fg="yellow"
+		)
+		frappe.throw(message)

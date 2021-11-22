@@ -27,7 +27,7 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
-	if cmd!='login':
+	if cmd != 'login':
 		data = execute_cmd(cmd)
 
 	# data can be an empty string or list which are valid responses

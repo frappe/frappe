@@ -43,20 +43,28 @@ class PropertySetter(Document):
 
 	def get_setup_data(self):
 		return {
-			'doctypes': [d[0] for d in frappe.db.sql("select name from tabDocType")],
+			'doctypes': frappe.get_all("DocType", pluck="name"),
 			'dt_properties': self.get_property_list('DocType'),
 			'df_properties': self.get_property_list('DocField')
 		}
 
 	def get_field_ids(self):
-		return frappe.db.sql("select name, fieldtype, label, fieldname from tabDocField where parent=%s", self.doc_type, as_dict = 1)
+		return frappe.db.get_values(
+			"DocField",
+			filters={"parent": self.doc_type},
+			fieldname=["name", "fieldtype", "label", "fieldname"],
+			as_dict=True,
+		)
 
 	def get_defaults(self):
 		if not self.field_name:
-			return frappe.db.sql("select * from `tabDocType` where name=%s", self.doc_type, as_dict = 1)[0]
+			return frappe.get_all("DocType", filters={"name": self.doc_type}, fields="*")[0]
 		else:
-			return frappe.db.sql("select * from `tabDocField` where fieldname=%s and parent=%s",
-				(self.field_name, self.doc_type), as_dict = 1)[0]
+			return frappe.db.get_values(
+				"DocField",
+				filters={"fieldname": self.field_name, "parent": self.doc_type},
+				fieldname="*",
+			)[0]
 
 	def on_update(self):
 		if frappe.flags.in_patch:
