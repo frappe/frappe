@@ -444,7 +444,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	validate(value) {
 		// validate the value just entered
-		if(this.df.options=="[Select]" || this.df.ignore_link_validation) {
+		if (
+			this._validated
+			|| this.df.options=="[Select]"
+			|| this.df.ignore_link_validation
+		) {
 			return value;
 		}
 
@@ -454,38 +458,33 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!value) return;
 
-		return new Promise((resolve) => {
-			const fetch_map = this.fetch_map;
+		const fetch_map = this.fetch_map;
+		const columns_to_fetch = Object.values(fetch_map);
 
-			// if default and no fetch, no need to validate
-			if ($.isEmptyObject(fetch_map) && df.__default_value === value) {
-				return resolve(value);
+		// if default and no fetch, no need to validate
+		if (!columns_to_fetch.length && df.__default_value === value) {
+			return value;
+		}
+
+		return frappe.xcall("frappe.client.validate_link", {
+			doctype: options,
+			docname: value,
+			fields: columns_to_fetch,
+		}).then((response) => {
+			if (!response || !response.name) return "";
+			if (!docname || !columns_to_fetch.length) return response.name;
+
+			for (const [target_field, source_field] of Object.entries(fetch_map)) {
+				frappe.model.set_value(
+					df.parent,
+					docname,
+					target_field,
+					response[source_field],
+					df.fieldtype,
+				);
 			}
 
-			frappe.db.get_value(
-				options,
-				value,
-				["name", ...Object.values(fetch_map)],
-				(response) => {
-					if (!response.name) {
-						return resolve("");
-					}
-
-					if (docname) {
-						for (const [target_field, source_field] of Object.entries(fetch_map)) {
-							frappe.model.set_value(
-								df.parent,
-								docname,
-								target_field,
-								response[source_field],
-								df.fieldtype,
-							);
-						}
-					}
-
-					return resolve(response.name);
-				}
-			)
+			return response.name;
 		});
 	}
 

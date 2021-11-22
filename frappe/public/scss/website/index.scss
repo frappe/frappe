@@ -99,6 +99,12 @@
 	}
 }
 
+.page-header-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 .breadcrumb-container {
 	margin-top: 1rem;
 	padding-top:  0.25rem;
@@ -255,4 +261,14 @@ h5.modal-title {
 }
 .about-footer {
 	padding-top: 1rem;
+}
+
+.login-content.container {
+	background-color: var(--fg-color);
+	padding: 45px 0px;
+	box-shadow: var(--shadow-base);
+	border-radius: var(--border-radius-md);
+	max-width: 400px;
+	margin: 70px auto;
+	font-size: $font-size-sm;
 }

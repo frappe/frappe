@@ -1369,5 +1369,12 @@ Object.assign(frappe.utils, {
 
 	sleep(time) {
 		return new Promise((resolve) => setTimeout(resolve, time));
+	},
+
+	parse_array(array) {
+		if (array && array.length !== 0) {
+			return array;
+		}
+		return undefined;
 	}
 });

@@ -76,8 +76,6 @@ before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
 
-get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
-
 calendars = ["Event"]
 
 leaderboards = "frappe.desk.leaderboard.get_leaderboards"
@@ -281,11 +279,6 @@ sounds = [
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
 	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
-
-	# frappe.chat sounds
-	{ "name": "chat-message", 	   "src": "/assets/frappe/sounds/chat-message.mp3",      "volume": 0.1 },
-	{ "name": "chat-notification", "src": "/assets/frappe/sounds/chat-notification.mp3", "volume": 0.1 }
-	# frappe.chat sounds
 ]
 
 bot_parsers = [

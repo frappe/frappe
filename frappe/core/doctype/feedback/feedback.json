@@ -8,33 +8,13 @@
   "reference_doctype",
   "reference_name",
   "column_break_3",
-  "rating",
-  "ip_address",
-  "section_break_6",
-  "feedback"
+  "like",
+  "ip_address"
  ],
  "fields": [
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "rating",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Rating",
-   "precision": "1",
-   "reqd": 1
-  },
-  {
-   "fieldname": "section_break_6",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "feedback",
-   "fieldtype": "Small Text",
-   "label": "Feedback",
-   "reqd": 1
   },
   {
    "fieldname": "reference_doctype",
@@ -57,11 +37,17 @@
    "hidden": 1,
    "label": "IP Address",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "like",
+   "fieldtype": "Check",
+   "label": "Like"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-06-23 12:45:42.045696",
+ "modified": "2021-11-10 20:53:21.255593",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Feedback",

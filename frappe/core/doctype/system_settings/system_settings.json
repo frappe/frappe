@@ -23,6 +23,7 @@
   "currency_precision",
   "sec_backup_limit",
   "backup_limit",
+  "encrypt_backup",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -65,9 +66,7 @@
   "attach_view_link",
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
-  "prepared_report_expiry_period",
-  "chat",
-  "enable_chat"
+  "prepared_report_expiry_period"
  ],
  "fields": [
   {
@@ -382,18 +381,6 @@
    "label": "Hide footer in auto email reports"
   },
   {
-   "collapsible": 1,
-   "fieldname": "chat",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_chat",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -469,12 +456,18 @@
    "fieldname": "strip_exif_metadata_from_uploaded_images",
    "fieldtype": "Check",
    "label": "Strip EXIF tags from uploaded images"
+  },
+  {
+   "default": "0",
+   "fieldname": "encrypt_backup",
+   "fieldtype": "Check",
+   "label": "Encrypt Backups"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-03-30 11:47:47.330437",
+ "modified": "2021-10-21 19:24:15.232430",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
