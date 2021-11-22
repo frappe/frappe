@@ -905,6 +905,30 @@ def rebuild_global_search(context, static_pages=False):
 		raise SiteNotSpecifiedError
 
 
+
+@click.command('download-translations')
+@click.option('--app', help='Download translations for app')
+@click.option('--apps', help='Download translations for specific apps')
+def download_translation(app=None, apps=None):
+	if app:
+		apps = [app]
+	elif not apps:
+		apps = frappe.get_all_apps(with_internal_apps=False, sites_path='.')
+	import requests, tarfile
+	from frappe.utils import get_bench_path
+	for app in apps:
+		translations_dir = os.path.join(get_bench_path(), 'apps', app, app, 'translations')
+		if not os.path.exists(translations_dir):
+			os.makedirs(translations_dir)
+		url = f"http://sl.erpnext.local:8002/translations/frappe/{app}/develop"
+		r = requests.get(url, stream=True)
+		r.raise_for_status()
+
+		file = tarfile.open(fileobj=r.raw, mode="r|gz")
+		file.extractall(path=translations_dir)
+		print('downloaded for', app)
+
+
 commands = [
 	build,
 	clear_cache,
@@ -937,5 +961,7 @@ commands = [
 	bulk_rename,
 	add_to_email_queue,
 	rebuild_global_search,
-	run_parallel_tests
+	run_parallel_tests,
+	download_translation,
 ]
+
