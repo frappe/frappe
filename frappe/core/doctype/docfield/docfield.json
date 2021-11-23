@@ -39,6 +39,7 @@
   "unique",
   "set_only_once",
   "allow_bulk_edit",
+  "allow_user_to_configure_columns",
   "column_break_13",
   "permlevel",
   "ignore_user_permissions",
@@ -481,13 +482,21 @@
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
+  },
+  {
+   "allow_user_to_configure_column": 1,
+   "default": "1",
+   "depends_on": "eval: doc.fieldtype == \"Table\"",
+   "fieldname": "allow_user_to_configure_columns",
+   "fieldtype": "Check",
+   "label": "Allow User To Configure Columns"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-07-10 21:56:04.167745",
+ "modified": "2021-11-23 20:30:38.669005",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

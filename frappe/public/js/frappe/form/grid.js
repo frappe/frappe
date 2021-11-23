@@ -275,6 +275,8 @@ export default class Grid {
 
 	make_head() {
 		// labels
+		console.log(this.df.options)
+		console.log(this.df.allow_user_to_configure_columns)
 		if (this.header_row) {
 			$(this.parent).find(".grid-heading-row .grid-row").remove();
 		}
@@ -284,7 +286,7 @@ export default class Grid {
 			docfields: this.docfields,
 			frm: this.frm,
 			grid: this,
-			configure_columns: this.meta.allow_user_to_configure_columns
+			configure_columns: this.df.allow_user_to_configure_columns
 		});
 	}
 
@@ -775,7 +777,7 @@ export default class Grid {
 	setup_user_defined_columns() {
 		if (this.frm) {
 			let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
-			if (this.meta.allow_user_to_configure_columns && user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
+			if (this.df.allow_user_to_configure_columns && user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
 				this.user_defined_columns = user_settings[this.doctype].map(row => {
 					let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
 					if (column) {

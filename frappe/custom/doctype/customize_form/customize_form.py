@@ -505,8 +505,7 @@ doctype_properties = {
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
 	'sender_field': 'Data',
-	'autoname': 'Data',
-	'allow_user_to_configure_columns': 'Check'
+	'autoname': 'Data'
 }
 
 docfield_properties = {
@@ -551,7 +550,8 @@ docfield_properties = {
 	'allow_in_quick_entry': 'Check',
 	'hide_border': 'Check',
 	'hide_days': 'Check',
-	'hide_seconds': 'Check'
+	'hide_seconds': 'Check',
+	'allow_user_to_configure_columns': 'Check'
 }
 
 doctype_link_properties = {

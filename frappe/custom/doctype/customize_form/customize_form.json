@@ -16,7 +16,6 @@
   "allow_copy",
   "istable",
   "editable_grid",
-  "allow_user_to_configure_columns",
   "quick_entry",
   "track_changes",
   "track_views",
@@ -280,13 +279,6 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
-  },
-  {
-   "default": "0",
-   "depends_on": "istable",
-   "fieldname": "allow_user_to_configure_columns",
-   "fieldtype": "Check",
-   "label": "Allow User To Configure Columns"
   }
  ],
  "hide_toolbar": 1,
@@ -295,7 +287,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-11-23 19:22:38.903685",
+ "modified": "2021-11-23 20:25:06.589980",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
