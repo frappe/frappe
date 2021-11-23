@@ -324,8 +324,7 @@ class Session:
 
 		self.device = frappe.db.get_values(
 			sessions, filters=sessions.sid == self.sid, fieldname="device", order_by=None,
-		)
-		self.device = self.device and self.device[0][0] or 'desktop'
+		) or 'desktop'
 		rec = frappe.db.get_values(
 			sessions,
 			filters=(sessions.sid == self.sid)
