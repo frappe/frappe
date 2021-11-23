@@ -275,7 +275,7 @@ class Database(object):
 			if not frappe.has_permission(
 				dt, "select", **kwargs
 			) and not frappe.has_permission(dt, "read", **kwargs):
-				frappe.throw(_(f"Insufficient Permission for {frappe.bold(dt)}"))
+				frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(dt)))
 
 	@staticmethod
 	def get_tables_from_query(query: str):
