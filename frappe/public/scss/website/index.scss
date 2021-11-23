@@ -27,6 +27,7 @@
 @import 'navbar';
 @import 'footer';
 @import 'my_account';
+@import 'error-state';
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -98,6 +99,12 @@
 		padding-left: 1rem;
 		padding-right: 1rem;
 	}
+}
+
+.page-header-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .breadcrumb-container {
