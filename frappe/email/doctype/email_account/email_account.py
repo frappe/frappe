@@ -575,13 +575,13 @@ class EmailAccount(Document):
 		if not self.use_imap:
 			return
 
-		EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
+		EmailFlagQ = frappe.qb.DocType("Email Flag Queue")
 		flags = (
-			frappe.qb.from_(EmailFlagQueue)
-				.select(EmailFlagQueue.name, EmailFlagQueue.communication, EmailFlagQueue.uid, EmailFlagQueue.action, EmailFlagQueue.imap_folder)
-				.where(EmailFlagQueue.is_completed == 0)
-				.where(EmailFlagQueue.email_account == frappe.db.escape(self.name))
-				.where(EmailFlagQueue.folder_name == frappe.db.escape(folder_name))
+			frappe.qb.from_(EmailFlagQ)
+			.select(EmailFlagQ.name, EmailFlagQ.communication, EmailFlagQ.uid, EmailFlagQ.action, EmailFlagQ.imap_folder)
+			.where(EmailFlagQ.is_completed == 0)
+			.where(EmailFlagQ.email_account == frappe.db.escape(self.name))
+			.where(EmailFlagQ.folder_name == frappe.db.escape(folder_name))
 		).run(as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
