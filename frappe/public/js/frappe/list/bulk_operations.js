@@ -24,51 +24,84 @@ export default class BulkOperations {
 			return;
 		}
 
-		if (valid_docs.length > 0) {
-			const dialog = new frappe.ui.Dialog({
-				title: __('Print Documents'),
-				fields: [
-					{
-						'fieldtype': 'Select',
-						'label': __('Letter Head'),
-						'fieldname': 'letter_sel',
-						'default': __('No Letterhead'),
-						options: this.get_letterhead_options()
-					},
-					{
-						'fieldtype': 'Select',
-						'label': __('Print Format'),
-						'fieldname': 'print_sel',
-						options: frappe.meta.get_print_formats(this.doctype)
-					}
-				]
-			});
-
-			dialog.set_primary_action(__('Print'), args => {
-				if (!args) return;
-				const default_print_format = frappe.get_meta(this.doctype).default_print_format;
-				const with_letterhead = args.letter_sel == __("No Letterhead") ? 0 : 1;
-				const print_format = args.print_sel ? args.print_sel : default_print_format;
-				const json_string = JSON.stringify(valid_docs);
-				const letterhead = args.letter_sel;
-				const w = window.open('/api/method/frappe.utils.print_format.download_multi_pdf?' +
-					'doctype=' + encodeURIComponent(this.doctype) +
-					'&name=' + encodeURIComponent(json_string) +
-					'&format=' + encodeURIComponent(print_format) +
-					'&no_letterhead=' + (with_letterhead ? '0' : '1') +
-					'&letterhead=' + encodeURIComponent(letterhead)
-				);
-
-				if (!w) {
-					frappe.msgprint(__('Please enable pop-ups'));
-					return;
-				}
-			});
-
-			dialog.show();
-		} else {
+		if (valid_docs.length === 0) {
 			frappe.msgprint(__('Select atleast 1 record for printing'));
+			return;
 		}
+
+		const dialog = new frappe.ui.Dialog({
+			title: __('Print Documents'),
+			fields: [{
+				fieldtype: 'Select',
+				label: __('Letter Head'),
+				fieldname: 'letter_sel',
+				default: __('No Letterhead'),
+				options: this.get_letterhead_options()
+			},
+			{
+				fieldtype: 'Select',
+				label: __('Print Format'),
+				fieldname: 'print_sel',
+				options: frappe.meta.get_print_formats(this.doctype)
+			},
+			{
+				fieldtype: 'Select',
+				label: __('Page Size'),
+				fieldname: 'page_size',
+				options: frappe.meta.get_print_sizes(),
+				default: print_settings.pdf_page_size
+			},
+			{
+				fieldtype: 'Float',
+				label: __('Page Height (in mm)'),
+				fieldname: 'page_height',
+				depends_on: 'eval:doc.page_size == "Custom"',
+				default: print_settings.pdf_page_height
+			},
+			{
+				fieldtype: 'Float',
+				label: __('Page Width (in mm)'),
+				fieldname: 'page_width',
+				depends_on: 'eval:doc.page_size == "Custom"',
+				default: print_settings.pdf_page_width
+			}]
+		});
+
+		dialog.set_primary_action(__('Print'), args => {
+			if (!args) return;
+			const default_print_format = frappe.get_meta(this.doctype).default_print_format;
+			const with_letterhead = args.letter_sel == __("No Letterhead") ? 0 : 1;
+			const print_format = args.print_sel ? args.print_sel : default_print_format;
+			const json_string = JSON.stringify(valid_docs);
+			const letterhead = args.letter_sel;
+
+			let pdf_options;
+			if (args.page_size === "Custom") {
+				if (args.page_height === 0 || args.page_width === 0) {
+					frappe.throw(__('Page height and width cannot be zero'));
+				}
+				pdf_options = JSON.stringify({ "page-height": args.page_height, "page-width": args.page_width });
+			} else {
+				pdf_options = JSON.stringify({ "page-size": args.page_size });
+			}
+
+			const w = window.open(
+				'/api/method/frappe.utils.print_format.download_multi_pdf?' +
+				'doctype=' + encodeURIComponent(this.doctype) +
+				'&name=' + encodeURIComponent(json_string) +
+				'&format=' + encodeURIComponent(print_format) +
+				'&no_letterhead=' + (with_letterhead ? '0' : '1') +
+				'&letterhead=' + encodeURIComponent(letterhead) +
+				'&options=' + encodeURIComponent(pdf_options)
+			);
+
+			if (!w) {
+				frappe.msgprint(__('Please enable pop-ups'));
+				return;
+			}
+		});
+
+		dialog.show();
 	}
 
 	get_letterhead_options () {

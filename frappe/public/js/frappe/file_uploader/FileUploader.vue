@@ -197,6 +197,7 @@ export default {
 			show_image_cropper: false,
 			crop_image_with_index: -1,
 			trigger_upload: false,
+			close_dialog: false,
 			hide_dialog_footer: false,
 			allow_take_photo: false,
 			allow_web_link: true,
@@ -217,6 +218,12 @@ export default {
 					}
 				}
 			});
+		}
+		if (this.restrictions.max_file_size == null) {
+			frappe.call('frappe.core.doctype.file.file.get_max_file_size')
+				.then(res => {
+					this.restrictions.max_file_size = Number(res.message);
+				});
 		}
 	},
 	watch: {
@@ -289,6 +296,8 @@ export default {
 						progress: 0,
 						total: 0,
 						failed: false,
+						request_succeeded: false,
+						error_message: null,
 						uploading: false,
 						private: !is_image
 					}
@@ -329,9 +338,17 @@ export default {
 
 			if (!is_correct_type) {
 				console.warn('File skipped because of invalid file type', file);
+				frappe.show_alert({
+					message: __('File "{0}" was skipped because of invalid file type', [file.name]),
+					indicator: 'orange'
+				});
 			}
 			if (!valid_file_size) {
 				console.warn('File skipped because of invalid file size', file.size, file);
+				frappe.show_alert({
+					message: __('File "{0}" was skipped because size exceeds {1} MB', [file.name, max_file_size / (1024 * 1024)]),
+					indicator: 'orange'
+				});
 			}
 
 			return is_correct_type && valid_file_size;
@@ -357,9 +374,10 @@ export default {
 			let selected_file = this.$refs.file_browser.selected_node;
 			if (!selected_file.value) {
 				frappe.msgprint(__('Click on a file to select it.'));
+				this.close_dialog = true;
 				return Promise.reject();
 			}
-
+			this.close_dialog = true;
 			return this.upload_file({
 				file_url: selected_file.file_url
 			});
@@ -368,9 +386,11 @@ export default {
 			let file_url = this.$refs.web_link.url;
 			if (!file_url) {
 				frappe.msgprint(__('Invalid URL'));
+				this.close_dialog = true;
 				return Promise.reject();
 			}
 			file_url = decodeURI(file_url)
+			this.close_dialog = true;
 			return this.upload_file({
 				file_url
 			});
@@ -383,6 +403,7 @@ export default {
 						this.on_success && this.on_success(file);
 					})
 			);
+			this.close_dialog = true;
 			return Promise.all(promises);
 		},
 		upload_file(file, i) {
@@ -410,6 +431,7 @@ export default {
 				xhr.onreadystatechange = () => {
 					if (xhr.readyState == XMLHttpRequest.DONE) {
 						if (xhr.status === 200) {
+							file.request_succeeded = true;
 							let r = null;
 							let file_doc = null;
 							try {
@@ -426,15 +448,24 @@ export default {
 							if (this.on_success) {
 								this.on_success(file_doc, r);
 							}
+
+							if (i == this.files.length - 1 && this.files.every(file => file.request_succeeded)) {
+								this.close_dialog = true;
+							}
+
 						} else if (xhr.status === 403) {
+							file.failed = true;
 							let response = JSON.parse(xhr.responseText);
-							frappe.msgprint({
-								title: __('Not permitted'),
-								indicator: 'red',
-								message: response._error_message
-							});
+							file.error_message = `Not permitted. ${response._error_message || ''}`;
+
+						} else if (xhr.status === 413) {
+							file.failed = true;
+							file.error_message = 'Size exceeds the maximum allowed file size.';
+
 						} else {
 							file.failed = true;
+							file.error_message = xhr.status === 0 ? 'XMLHttpRequest Error' : `${xhr.status} : ${xhr.statusText}`;
+
 							let error = null;
 							try {
 								error = JSON.parse(xhr.responseText);

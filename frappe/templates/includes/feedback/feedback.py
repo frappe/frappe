@@ -12,8 +12,8 @@ from frappe.website.doctype.blog_settings.blog_settings import get_feedback_limi
 @rate_limit(key='reference_name', limit=get_feedback_limit, seconds=60*60)
 def give_feedback(reference_doctype, reference_name, like):
 	like = frappe.parse_json(like)
-	doc = frappe.get_doc(reference_doctype, reference_name)
-	if doc.disable_feedback == 1:
+	ref_doc = frappe.get_doc(reference_doctype, reference_name)
+	if ref_doc.disable_feedback == 1:
 		return
 
 	filters = {
@@ -33,7 +33,7 @@ def give_feedback(reference_doctype, reference_name, like):
 	doc.save(ignore_permissions=True)
 
 	subject = _('Feedback on {0}: {1}').format(reference_doctype, reference_name)
-	send_mail(doc, subject)
+	ref_doc.enable_email_notification and send_mail(doc, subject)
 	return doc
 
 def send_mail(feedback, subject):

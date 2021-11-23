@@ -112,7 +112,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-02-20 13:33:44.011509", 
+ "modified": "2021-11-22 17:56:40.495232", 
  "modified_by": "Administrator", 
  "module": "Workflow", 
  "name": "Workflow State", 
@@ -137,6 +137,10 @@
    "share": 1, 
    "submit": 0, 
    "write": 1
+  },
+  {
+   "role": "All",
+   "select": 1
   }
  ], 
  "quick_entry": 1, 
