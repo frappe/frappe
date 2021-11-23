@@ -392,7 +392,7 @@ class Database(object):
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, update=None, cache=False, for_update=False, run=True, **kwargs):
+		debug=False, order_by="default_ordering", update=None, cache=False, for_update=False, run=True, **kwargs):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -429,9 +429,8 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					if not kwargs.get("no_order"):
-						order_by = order_by or "modified"
-					kwargs.pop("no_order", None)
+					if order_by:
+						order_by = "modified" if order_by == "default_ordering" else order_by
 					out = self._get_values_from_table(
 						fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update, run=run, **kwargs
 					)
