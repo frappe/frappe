@@ -357,7 +357,7 @@ class Database(object):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, cache=False, for_update=False, run=True, **kwargs):
+		debug=False, order_by="default_ordering", cache=False, for_update=False, run=True, **kwargs):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
