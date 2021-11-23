@@ -1,0 +1,41 @@
+{
+ "allow_roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "creation": "2021-11-23 12:21:11.384229",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://docs.erpnext.com/docs/v13/user/manual/en/customize-erpnext",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2021-11-23 15:04:15.826436",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Customization",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Custom Field"
+  },
+  {
+   "step": "Custom Doctype"
+  },
+  {
+   "step": "Naming Series"
+  },
+  {
+   "step": "Workflows"
+  },
+  {
+   "step": "Role Permissions"
+  },
+  {
+   "step": "Print Format"
+  }
+ ],
+ "subtitle": "Custom Field, Custom Doctype, Naming Series, Role Permission, Workflow, Print Formats, Reports",
+ "success_message": "Customization onboarding is all done!",
+ "title": "Customization"
+}

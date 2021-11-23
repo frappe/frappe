@@ -1,0 +1,53 @@
+{
+ "creation": "2021-11-23 12:38:52.807353",
+ "docstatus": 0,
+ "doctype": "Form Tour",
+ "idx": 0,
+ "is_standard": 1,
+ "modified": "2021-11-23 15:13:02.794031",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Doctype",
+ "owner": "Administrator",
+ "reference_doctype": "DocType",
+ "save_on_complete": 1,
+ "steps": [
+  {
+   "description": "Select a Module to which this Doctype would belong",
+   "field": "",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Module",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Module"
+  },
+  {
+   "description": "Check this to make the Docytpe as Custom",
+   "field": "",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Custom?",
+   "parent_field": "",
+   "position": "Left",
+   "title": "Custom "
+  },
+  {
+   "description": "Add fields to this Custom Doctype",
+   "field": "",
+   "fieldname": "fields",
+   "fieldtype": "Table",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Fields",
+   "parent_field": "",
+   "position": "Bottom",
+   "title": "Fields"
+  }
+ ],
+ "title": "Doctype"
+}
