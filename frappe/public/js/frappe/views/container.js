@@ -42,7 +42,6 @@ frappe.views.Container = class Container {
 		cur_page = this;
 		if(this.page && this.page.label === label) {
 			$(this.page).trigger('show');
-			return;
 		}
 
 		var me = this;
