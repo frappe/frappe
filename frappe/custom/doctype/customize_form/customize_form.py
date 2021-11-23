@@ -505,7 +505,8 @@ doctype_properties = {
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
 	'sender_field': 'Data',
-	'autoname': 'Data'
+	'autoname': 'Data',
+	'allow_user_to_configure_columns': 'Check'
 }
 
 docfield_properties = {
