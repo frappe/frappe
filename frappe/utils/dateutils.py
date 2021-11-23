@@ -19,6 +19,7 @@ dateformats = {
 	'dd-mmm-yyyy': '%d-%b-%Y', # numbers app format
 	'dd/mm/yyyy': '%d/%m/%Y',
 	'dd.mm.yyyy': '%d.%m.%Y',
+	'dd.mm.yy': '%d.%m.%y',
 	'dd-mm-yyyy': '%d-%m-%Y',
 	"dd/mm/yy": "%d/%m/%y",
 }

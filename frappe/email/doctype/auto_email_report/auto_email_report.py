@@ -246,7 +246,6 @@ def make_links(columns, data):
 		for col in columns:
 			if not row.get(col.fieldname):
 				continue
-			
 			if col.fieldtype == "Link":
 				if col.options and col.options != "Currency":
 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])

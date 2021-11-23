@@ -14,3 +14,6 @@ class BlogSettings(Document):
 		from frappe.website.render import clear_cache
 		clear_cache("blog")
 		clear_cache("writers")
+
+def get_feedback_limit():
+	return frappe.db.get_single_value("Blog Settings", "feedback_limit") or 0
