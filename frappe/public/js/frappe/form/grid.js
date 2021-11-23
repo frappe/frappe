@@ -275,8 +275,6 @@ export default class Grid {
 
 	make_head() {
 		// labels
-		console.log(this.df.options)
-		console.log(this.df.allow_user_to_configure_columns)
 		if (this.header_row) {
 			$(this.parent).find(".grid-heading-row .grid-row").remove();
 		}
