@@ -45,6 +45,10 @@
 
 		a {
 			text-decoration: none;
+
+			.edit-profile-icon {
+				stroke: var(--blue-500);
+			}
 		}
 		.right-icon {
 			@include media-breakpoint-up(sm) {

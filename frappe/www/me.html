@@ -7,6 +7,18 @@
   <h3 class="my-account-header font-weight-bold">{{_("My Account") }}</h3>
 {% endblock %}
 {% block page_content %}
+<style>
+	@media only screen and (min-width: 576px) {
+		body{
+			background-color: var(--bg-color);
+		}
+	} 
+	@media only screen and (max-width: 576px) {
+		.list-group{
+			display: none;
+		}
+	} 
+</style>
   <div class="row account-info d-flex flex-column">
     <div class="col d-flex justify-content-between align-items-center">
       <div>
@@ -21,9 +33,9 @@
         <span class="my-account-item-link">
           <a href="/update-profile?name={{ user }}">
             <svg class="edit-profile-icon icon icon-md">
-							<use xlink:href="#icon-edit">
-							</use>
-						</svg>            
+				<use xlink:href="#icon-edit">
+				</use>
+			</svg>            
             <span class="item-link-text pl-2">
               {{_("Edit Profile") }}
             </span>
@@ -75,11 +87,4 @@
     </div>
   </div>
 
-  <script>
-    frappe.ready(function () {
-      if ($(window).width() > 576) {
-        $('body').addClass('bg-grey');
-      }
-  });
-  </script>
 {% endblock %}
