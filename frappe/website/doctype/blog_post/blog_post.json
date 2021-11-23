@@ -201,7 +201,7 @@
   },
   {
    "default": "1",
-   "description": "Enable or Disable email notification when you get any comment or feedback on your Blog Post.",
+   "description": "Enable email notification for any comment or feedback on your Blog Post.",
    "fieldname": "enable_email_notification",
    "fieldtype": "Check",
    "label": "Enable Email Notification"
