@@ -160,11 +160,10 @@ class Newsletter(WebsiteGenerator):
 	def send_newsletter(self, emails: List[str]):
 		"""Trigger email generation for `emails` and add it in Email Queue.
 		"""
-		# TODO: get rid of this maybe?
-		message = self.get_message()
 		attachments = self.get_newsletter_attachments()
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
-		args = {"message": message, "name": self.name}
+		args = self.as_dict()
+		args["message"] = self.get_message()
 
 		is_auto_commit_set = bool(frappe.db.auto_commit_on_many_writes)
 		frappe.db.auto_commit_on_many_writes = not frappe.flags.in_test
@@ -173,7 +172,6 @@ class Newsletter(WebsiteGenerator):
 			subject=self.subject,
 			sender=sender,
 			recipients=emails,
-			message=message,
 			attachments=attachments,
 			template="newsletter",
 			add_unsubscribe_link=self.send_unsubscribe_link,
