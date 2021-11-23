@@ -80,22 +80,7 @@ frappe.ui.DiffView = class DiffView {
 	}
 
 	prettify_diff(diff) {
-		let html = `
-		<style type="text/css">
-			.diffview {
-				font-family: monospace;
-				white-space: pre;
-				word-wrap: break-word;
-				color: #000000;
-			}
-		.diffview .insert {
-			background-color: #ddffdd;
-		}
-		.diffview .delete {
-			background-color: #ffdddd;
-		}
-		</style>
-		`;
+		let html = ``;
 
 		diff.forEach((line) => {
 			let line_class = "";
