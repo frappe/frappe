@@ -42,7 +42,7 @@ frappe.ui.form.FormTour = class FormTour {
 				this.tour = { steps: frappe.tour[this.frm.doctype] };
 			}
 		}
-		
+
 		if (on_finish) this.on_finish = on_finish;
 
 		this.init_driver();
@@ -65,9 +65,10 @@ frappe.ui.form.FormTour = class FormTour {
 
 			const driver_step = this.get_step(step, on_next);
 			this.driver_steps.push(driver_step);
-			
+
 			if (step.fieldtype == 'Table') this.handle_table_step(step);
 			if (step.is_table_field) this.handle_child_table_step(step);
+			//if (step.fieldtype == 'Attach Image') this.handle_attach_image_steps(step);
 		});
 
 		if (this.tour.save_on_complete) {
@@ -139,7 +140,7 @@ frappe.ui.form.FormTour = class FormTour {
 			const is_next_field_in_curr_table = next_step.parent_field == curr_step.field;
 
 			if (!is_next_field_in_curr_table) return;
-			
+
 			const rows = this.frm.doc[curr_step.fieldname];
 			const table_has_rows = rows && rows.length > 0;
 			if (table_has_rows) {
@@ -242,6 +243,7 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_step_to_save() {
+		console.log("save")
 		const page_id = `[id="page-${this.frm.doctype}"]`;
 		const $save_btn = `${page_id} .standard-actions .primary-action`;
 		const save_step = {
@@ -261,5 +263,35 @@ frappe.ui.form.FormTour = class FormTour {
 		};
 		this.driver_steps.push(save_step);
 		frappe.ui.form.on(this.frm.doctype, 'after_save', () => this.on_finish && this.on_finish());
+	}
+
+	handle_attach_image_steps() {
+		$('.btn-attach').one('click', () => {
+			frappe.utils.sleep(300)
+			setTimeout(() => {
+				const modal_element = $(".file-uploader").closest(".modal-content");
+				modal_element.css("z-index", "1000004 !important");
+				const attach_dialog_step = {
+					element: modal_element[0],
+					allowClose: false,
+					overlayClickNext: false,
+					popover: {
+						title: __("Select an Image"),
+						description: "",
+						position: "left",
+						doneBtnText: __("Next")
+					}
+				};
+
+				this.driver_steps.splice(this.driver.currentStep + 1, 0, attach_dialog_step);
+				this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
+				frappe.utils.sleep(300).then(() => this.driver.start(this.driver.currentStep + 1));
+				console.log('click', this.driver_steps)
+			}, 1000);
+
+			modal_element.on('hidden.bs.modal', () => {
+				this.driver.moveNext();
+			})
+		})
 	}
 };
