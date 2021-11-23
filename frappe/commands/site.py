@@ -447,11 +447,10 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
-	import re
 	from frappe.migrate import migrate
 
 	for site in context.sites:
-		print('Migrating', site)
+		click.secho(f"Migrating {site}", fg="green")
 		frappe.init(site=site)
 		frappe.connect()
 		try:
@@ -697,8 +696,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	drop_user_and_database(frappe.conf.db_name, root_login, root_password)
 
-	if not archived_sites_path:
-		archived_sites_path = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')
+	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
 
 	if not os.path.exists(archived_sites_path):
 		os.mkdir(archived_sites_path)
