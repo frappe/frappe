@@ -210,22 +210,26 @@ class EmailServer:
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
-			frappe.db.sql(
-				"""update `tabCommunication` set uid=-1 where communication_medium='Email'
-				and email_account=%s""", (self.settings.email_account,)
-			)
+			Communication = frappe.qb.DocType("Communication")
+			frappe.qb.update(Communication) \
+				.set(Communication.uid, -1) \
+				.where(Communication.communication_medium == "Email") \
+				.where(Communication.email_account == self.settings.email_account).run()
+
 			if self.settings.use_imap:
-				# new update for the IMAP Folder DoctType
-				frappe.db.sql(
-					"""update `tabIMAP Folder` set uidvalidity=%s, uidnext=%s where
-									parent=%s and folder_name=%s""",
-					(current_uid_validity, uidnext, self.settings.email_account_name, folder)
-				)
+				# new update for the IMAP Folder DocType
+				IMAPFolder = frappe.qb.DocType("IMAP Folder")
+				frappe.qb.update(IMAPFolder) \
+					.set(IMAPFolder.uidvalidity, current_uid_validity) \
+					.set(IMAPFolder.uidnext, uidnext) \
+					.where(IMAPFolder.parent == self.settings.email_account_name) \
+					.where(IMAPFolder.folder_name == folder).run()
 			else:
-				frappe.db.sql(
-					"""update `tabEmail Account` set uidvalidity=%s, uidnext=%s where
-					name=%s""", (current_uid_validity, uidnext, self.settings.email_account)
-				)
+				EmailAccount = frappe.qb.DocType("Email Account")
+				frappe.qb.update(EmailAccount) \
+					.set(EmailAccount.uidvalidity, current_uid_validity) \
+					.set(EmailAccount.uidnext, uidnext) \
+					.where(EmailAccount.name == self.settings.email_account_name).run()
 
 			# uid validity not found pulling emails for first time
 			if not uid_validity:

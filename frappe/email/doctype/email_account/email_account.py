@@ -549,7 +549,11 @@ class EmailAccount(Document):
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
-		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
+		Communication = frappe.qb.from_("Communication")
+		frappe.qb.update(Communication) \
+			.set(Communication.email_account == "") \
+			.where(email_account == self.name).run()
+
 		remove_user_email_inbox(email_account=self.name)
 
 	def after_rename(self, old, new, merge=False):
@@ -571,9 +575,15 @@ class EmailAccount(Document):
 		if not self.use_imap:
 			return
 
-		flags = frappe.db.sql("""select name, communication, uid, action, imap_folder from
-			`tabEmail Flag Queue` where is_completed=0 and email_account={email_account} and imap_folder={folder_name}
-			""".format(email_account=frappe.db.escape(self.name),folder_name=frappe.db.escape(folder_name)), as_dict=True)
+		EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
+		flags = (
+			frappe.qb.from_(EmailFlagQueue)
+				.select(EmailFlagQueue.name, EmailFlagQueue.communication, EmailFlagQueue.uid,
+						EmailFlagQueue.action, EmailFlagQueue.imap_folder)
+				.where(EmailFlagQueue.is_completed == 0)
+				.where(EmailFlagQueue.email_account == frappe.db.escape(self.name))
+				.where(EmailFlagQueue.folder_name == frappe.db.escape(folder_name))
+		).run(as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
 		if flags and uid_list:
@@ -594,16 +604,20 @@ class EmailAccount(Document):
 			self.set_communication_seen_status(docnames, seen=0)
 
 			docnames = ",".join([ "'%s'"%flag.get("name") for flag in flags ])
-			frappe.db.sql(""" update `tabEmail Flag Queue` set is_completed=1
-				where name in ({docnames})""".format(docnames=docnames))
+
+			EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
+			frappe.qb.update(EmailFlagQueue) \
+				.set(EmailFlagQueue.is_completed, 1) \
+				.where(EmailFlagQueue.name.isin(docnames)).run()
 
 	def set_communication_seen_status(self, docnames, seen=0):
 		""" mark Email Flag Queue of self.email_account mails as read"""
 		if not docnames:
 			return
-
-		frappe.db.sql(""" update `tabCommunication` set seen={seen}
-			where name in ({docnames})""".format(docnames=docnames, seen=seen))
+		Communication = frappe.qb.from_("Communication")
+		frappe.qb.update(Communication) \
+			.set(Communication.seen == seen) \
+			.where(Communication.name.isin(docnames)).run()
 
 	def check_automatic_linking_email_account(self):
 		if self.enable_automatic_linking:
@@ -780,12 +794,12 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 			update_user_email_settings = True
 
 	if update_user_email_settings:
-		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s,
-			enable_outgoing = %(enable_outgoing)s WHERE email_account = %(email_account)s""", {
-				"email_account": email_account,
-				"enable_outgoing": enable_outgoing,
-				"awaiting_password": awaiting_password or 0
-			})
+		UserEmail = frappe.qb.from_("User Email")
+		frappe.qb.update(UserEmail) \
+			.set(UserEmail.awaiting_password == awaiting_password or 0) \
+			.set(UserEmail.enable_outgoing == enable_outgoing) \
+			.where(UserEmail.email_account == email_account).run()
+
 	else:
 		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
 		frappe.msgprint(_("Enabled email inbox for user {0}").format(users))
