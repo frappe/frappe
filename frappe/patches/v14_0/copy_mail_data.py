@@ -19,15 +19,8 @@ def execute():
 			})
 
 			doc.save()
-
-		frappe.db.sql(
-			"""
-			update
-				`tabEmail Flag Queue`
-			set
-				imap_folder = "INBOX"
-			where
-				email_account = '%s'
-				and imap_folder is NULL
-			""" % (doc.name)
-		)
+		EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
+		frappe.qb.update(EmailFlagQueue) \
+			.set(EmailFlagQueue.imap_folder, "INBOX") \
+			.where(EmailFlagQueue.email_account == doc.name) \
+			.where(EmailFlagQueue.imap_folder.isnull()).run()
