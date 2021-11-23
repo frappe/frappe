@@ -42,6 +42,9 @@ def get_attr(method_string):
 	methodname = method_string.split('.')[-1]
 	return getattr(import_module(modulename), methodname)
 
+def DocType(*args, **kwargs):
+	return frappe.qb.DocType(*args, **kwargs)
+
 def patch_query_execute():
 	"""Patch the Query Builder with helper execute method
 	This excludes the use of `frappe.db.sql` method while
