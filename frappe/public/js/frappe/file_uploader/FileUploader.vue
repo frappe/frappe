@@ -339,15 +339,15 @@ export default {
 			if (!is_correct_type) {
 				console.warn('File skipped because of invalid file type', file);
 				frappe.show_alert({
-					message:__(`File "${file.name}" was skipped because of invalid file type`),
-					indicator:'orange'
+					message: __('File "{0}" was skipped because of invalid file type', [file.name]),
+					indicator: 'orange'
 				});
 			}
 			if (!valid_file_size) {
 				console.warn('File skipped because of invalid file size', file.size, file);
 				frappe.show_alert({
-					message:__(`File "${file.name}" was skipped because size exceeds ${max_file_size / (1024 * 1024)} MB`),
-					indicator:'orange'
+					message: __('File "{0}" was skipped because size exceeds {1} MB', [file.name, max_file_size / (1024 * 1024)]),
+					indicator: 'orange'
 				});
 			}
 
