@@ -67,6 +67,12 @@ export default class FileUploader {
 			}
 		});
 
+		this.uploader.$watch('close_dialog', (close_dialog) => {
+			if (close_dialog) {
+				this.dialog && this.dialog.hide();
+			}
+		});
+
 		this.uploader.$watch('hide_dialog_footer', (hide_dialog_footer) => {
 			if (hide_dialog_footer) {
 				this.dialog && this.dialog.footer.addClass('hide');
@@ -84,10 +90,8 @@ export default class FileUploader {
 
 	upload_files() {
 		this.dialog && this.dialog.get_primary_btn().prop('disabled', true);
-		return this.uploader.upload_files()
-			.then(() => {
-				this.dialog && this.dialog.hide();
-			});
+		this.dialog && this.dialog.get_secondary_btn().prop('disabled', true);
+		return this.uploader.upload_files();
 	}
 
 	make_dialog() {

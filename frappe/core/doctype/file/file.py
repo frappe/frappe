@@ -716,11 +716,9 @@ def delete_file(path):
 			os.remove(path)
 
 
-
-
+@frappe.whitelist()
 def get_max_file_size():
 	return cint(conf.get('max_file_size')) or 10485760
-
 
 
 def has_permission(doc, ptype=None, user=None):
