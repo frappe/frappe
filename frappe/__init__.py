@@ -791,7 +791,7 @@ def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
 	def get_tables():
 		return db.get_values(
-			"DocType", filters={"istable": 1}, no_order=True, pluck=True
+			"DocType", filters={"istable": 1}, order_by=None, pluck=True
 		)
 
 	tables = cache().get_value("is_table", get_tables)

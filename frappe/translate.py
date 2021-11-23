@@ -465,7 +465,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			fieldname="state",
 			distinct=True,
 			as_dict=True,
-			no_order=True,
+			order_by=None,
 		)
 		messages.extend([('Workflow: ' + w['name'], state['state']) for state in states if is_translatable(state['state'])])
 		states = frappe.db.get_values(
@@ -474,7 +474,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			& (document_state.message.isnotnull()),
 			fieldname="message",
 			distinct=True,
-			no_order=True,
+			order_by=None,
 			as_dict=True,
 		)
 		messages.extend([("Workflow: " + w['name'], state['message'])
@@ -486,7 +486,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			fieldname="action",
 			as_dict=True,
 			distinct=True,
-			no_order=True,
+			order_by=None,
 		)
 
 		messages.extend([("Workflow: " + w['name'], action['action']) \

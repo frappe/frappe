@@ -112,7 +112,7 @@ def get_expired_sessions():
 				)
 				& (sessions.device == device),
 				fieldname="sid",
-				no_order=True,
+				order_by=None,
 				pluck=True,
 			)
 		)
@@ -323,7 +323,7 @@ class Session:
 		sessions = DocType("Sessions")
 
 		self.device = frappe.db.get_values(
-			sessions, filters=sessions.sid == self.sid, fieldname="device", no_order=True,
+			sessions, filters=sessions.sid == self.sid, fieldname="device", order_by=None,
 		)
 		self.device = self.device and self.device[0][0] or 'desktop'
 		rec = frappe.db.get_values(
@@ -334,7 +334,7 @@ class Session:
 				< get_expiry_period_for_query(self.device)
 			),
 			fieldname=["user", "sessiondata"],
-			no_order=True,
+			order_by=None,
 		)
 
 		if rec:

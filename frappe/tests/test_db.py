@@ -24,8 +24,8 @@ class TestDB(unittest.TestCase):
 		self.assertNotEqual(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
-		self.assertEqual(frappe.db.get_value("User", {}, ["Max(name)"], no_order=True), frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0])
-		self.assertEqual(frappe.db.get_value("User", {}, "Min(name)", no_order=True), frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0])
+		self.assertEqual(frappe.db.get_value("User", {}, ["Max(name)"], order_by=True), frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0])
+		self.assertEqual(frappe.db.get_value("User", {}, "Min(name)", order_by=True), frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0])
 		self.assertIn("for update", frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower())
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
