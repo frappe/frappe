@@ -43,11 +43,12 @@ def handle():
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
+	cmd = get_overridden_method(cmd)
+
 	# via server script
 	if run_server_script_api(cmd):
 		return None
 
-	cmd = get_overridden_method(cmd)
 
 	try:
 		method = get_attr(cmd)
