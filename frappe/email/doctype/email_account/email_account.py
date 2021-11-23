@@ -552,7 +552,7 @@ class EmailAccount(Document):
 		Communication = frappe.qb.from_("Communication")
 		frappe.qb.update(Communication) \
 			.set(Communication.email_account == "") \
-			.where(email_account == self.name).run()
+			.where(Communication.email_account == self.name).run()
 
 		remove_user_email_inbox(email_account=self.name)
 
@@ -578,8 +578,7 @@ class EmailAccount(Document):
 		EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
 		flags = (
 			frappe.qb.from_(EmailFlagQueue)
-				.select(EmailFlagQueue.name, EmailFlagQueue.communication, EmailFlagQueue.uid,
-						EmailFlagQueue.action, EmailFlagQueue.imap_folder)
+				.select(EmailFlagQueue.name, EmailFlagQueue.communication, EmailFlagQueue.uid, EmailFlagQueue.action, EmailFlagQueue.imap_folder)
 				.where(EmailFlagQueue.is_completed == 0)
 				.where(EmailFlagQueue.email_account == frappe.db.escape(self.name))
 				.where(EmailFlagQueue.folder_name == frappe.db.escape(folder_name))
