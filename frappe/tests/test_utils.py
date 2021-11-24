@@ -7,6 +7,7 @@ from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import validate_url, validate_email_address
 from frappe.utils import ceil, floor
 from frappe.utils.data import cast, validate_python_code
+from frappe.utils.diff import get_version_diff, version_query, _get_value_from_version
 
 from PIL import Image
 from frappe.utils.image import strip_exif_data, optimize_image
@@ -269,3 +270,39 @@ class TestPythonExpressions(unittest.TestCase):
 		]
 		for expr in invalid_expressions:
 			self.assertRaises(frappe.ValidationError, validate_python_code, expr)
+
+
+class TestDiffUtils(unittest.TestCase):
+
+	@classmethod
+	def setUpClass(cls):
+		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script")
+		cls.doc.save(ignore_version=False)
+		cls.doc.script = "2;"
+		cls.doc.save(ignore_version=False)
+		cls.doc.script = "42;"
+		cls.doc.save(ignore_version=False)
+
+		cls.versions = version_query(doctype="Version", txt="", searchfield="name", start=0,
+				page_len=20, filters={"ref_doctype": cls.doc.doctype, "docname": cls.doc.name})
+
+	@classmethod
+	def tearDownClass(cls):
+		cls.doc.delete()
+
+	def test_version_query(self):
+		self.assertGreaterEqual(len(self.versions), 2)
+
+	def test_get_field_value_from_version(self):
+		latest_version = self.versions[0][0]
+		self.assertEqual("42;", _get_value_from_version(latest_version, fieldname="script")[0])
+		old_version = self.versions[1][0]
+		self.assertEqual("2;", _get_value_from_version(old_version, fieldname="script")[0])
+
+	def test_get_version_diff(self):
+		old_version = self.versions[1][0]
+		latest_version = self.versions[0][0]
+
+		diff = get_version_diff(old_version, latest_version)
+		self.assertIn('-2;', diff)
+		self.assertIn('+42;', diff)
