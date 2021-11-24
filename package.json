@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/frappe/frappe.git"
+    "url": "https://github.com/ebassedu/frappe_bookmedic.git"
   },
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
