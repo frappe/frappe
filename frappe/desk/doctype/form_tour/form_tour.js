@@ -128,7 +128,7 @@ async function check_if_single(doctype) {
 async function get_first_document(doctype) {
 	let docname;
 
-	await frappe.db.get_list(doctype).then(res => {
+	await frappe.db.get_list(doctype, { order_by: "creation" }).then(res => {
 		if (Array.isArray(res) && res.length)
 			docname = res[0].name
 	});
