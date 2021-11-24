@@ -46,8 +46,21 @@ frappe.ui.form.FormTour = class FormTour {
 		if (on_finish) this.on_finish = on_finish;
 
 		this.init_driver();
+		if (this.tour.include_name_field)
+			this.include_name_field();
 		this.build_steps();
 		this.update_driver_steps();
+	}
+
+	include_name_field() {
+		const name_step = {
+			"description": "Enter a name",
+			"fieldname": "__newname",
+			"title": "Name",
+			"position": "right",
+			"is_table_field": 0
+		};
+		this.tour.steps.unshift(name_step);
 	}
 
 	build_steps() {
@@ -68,7 +81,7 @@ frappe.ui.form.FormTour = class FormTour {
 
 			if (step.fieldtype == 'Table') this.handle_table_step(step);
 			if (step.is_table_field) this.handle_child_table_step(step);
-			//if (step.fieldtype == 'Attach Image') this.handle_attach_image_steps(step);
+			if (step.fieldtype == 'Attach Image') this.handle_attach_image_steps(step);
 		});
 
 		if (this.tour.save_on_complete) {
@@ -266,10 +279,8 @@ frappe.ui.form.FormTour = class FormTour {
 
 	handle_attach_image_steps() {
 		$('.btn-attach').one('click', () => {
-			frappe.utils.sleep(300)
 			setTimeout(() => {
 				const modal_element = $(".file-uploader").closest(".modal-content");
-				modal_element.css("z-index", "1000004 !important");
 				const attach_dialog_step = {
 					element: modal_element[0],
 					allowClose: false,
@@ -284,12 +295,14 @@ frappe.ui.form.FormTour = class FormTour {
 
 				this.driver_steps.splice(this.driver.currentStep + 1, 0, attach_dialog_step);
 				this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
-				frappe.utils.sleep(300).then(() => this.driver.start(this.driver.currentStep + 1));
-			}, 1000);
-
-			modal_element.on('hidden.bs.modal', () => {
 				this.driver.moveNext();
-			})
-		})
+				this.driver.overlay.refresh();
+
+				modal_element.closest('.modal').on('hidden.bs.modal', () => {
+					this.driver.moveNext();
+				});
+
+			}, 500);
+		});
 	}
 };

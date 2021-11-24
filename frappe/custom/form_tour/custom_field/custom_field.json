@@ -2,9 +2,11 @@
  "creation": "2021-11-23 12:22:32.922700",
  "docstatus": 0,
  "doctype": "Form Tour",
+ "first_document": 0,
  "idx": 0,
+ "include_name_field": 0,
  "is_standard": 1,
- "modified": "2021-11-23 12:28:09.923397",
+ "modified": "2021-11-24 19:15:34.244244",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
@@ -37,18 +39,6 @@
    "title": "Label"
   },
   {
-   "description": "Select an appropriate Field Type that suits your requirements",
-   "field": "",
-   "fieldname": "fieldtype",
-   "fieldtype": "Select",
-   "has_next_condition": 0,
-   "is_table_field": 0,
-   "label": "Field Type",
-   "parent_field": "",
-   "position": "Left",
-   "title": "Field Type"
-  },
-  {
    "description": "Select the label after which you want to insert new field.",
    "field": "",
    "fieldname": "insert_after",
@@ -59,6 +49,18 @@
    "parent_field": "",
    "position": "Right",
    "title": "Insert After"
+  },
+  {
+   "description": "Select an appropriate Field Type that suits your requirements",
+   "field": "",
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Field Type",
+   "parent_field": "",
+   "position": "Left",
+   "title": "Field Type"
   },
   {
    "description": "Check this to make it a mandatory field",
