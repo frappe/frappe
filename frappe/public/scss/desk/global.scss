@@ -591,9 +591,11 @@ details > summary:focus {
 }
 
 [data-theme="dark"] {
-	.diffview .insert,.delete  {
-		color: var(--gray-900);
-
+	.diffview .insert {
+		background-color: var(--green-800);
+	}
+	.diffview .delete {
+		background-color: var(--red-800);
 	}
 }
 
