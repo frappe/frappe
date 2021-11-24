@@ -86,10 +86,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-24 10:12:23.365136",
+ "modified": "2021-11-24 12:03:45.449311",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

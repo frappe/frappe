@@ -243,7 +243,6 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_step_to_save() {
-		console.log("save")
 		const page_id = `[id="page-${this.frm.doctype}"]`;
 		const $save_btn = `${page_id} .standard-actions .primary-action`;
 		const save_step = {
@@ -286,7 +285,6 @@ frappe.ui.form.FormTour = class FormTour {
 				this.driver_steps.splice(this.driver.currentStep + 1, 0, attach_dialog_step);
 				this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
 				frappe.utils.sleep(300).then(() => this.driver.start(this.driver.currentStep + 1));
-				console.log('click', this.driver_steps)
 			}, 1000);
 
 			modal_element.on('hidden.bs.modal', () => {
