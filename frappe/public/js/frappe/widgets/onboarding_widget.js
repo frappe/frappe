@@ -567,13 +567,13 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	async get_first_document(doctype) {
-		const { message } = await frappe.db.get_value('Form Tour', { 'reference_doctype': doctype }, ["first_document"])
+		const { message } = await frappe.db.get_value('Form Tour', { 'reference_doctype': doctype }, ["first_document"]);
 		let docname;
 
 		if (message.first_document) {
 			await frappe.db.get_list(doctype, { order_by: "creation" }).then(res => {
 				if (Array.isArray(res) && res.length)
-					docname = res[0].name
+					docname = res[0].name;
 			});
 		}
 

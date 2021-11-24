@@ -20,7 +20,7 @@ frappe.ui.form.on('Form Tour', {
 
 			if (issingle) {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype);
-			} else if(frm.doc.first_document) {
+			} else if (frm.doc.first_document) {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, name);
 			} else {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, 'new');
@@ -130,7 +130,7 @@ async function get_first_document(doctype) {
 
 	await frappe.db.get_list(doctype, { order_by: "creation" }).then(res => {
 		if (Array.isArray(res) && res.length)
-			docname = res[0].name
+			docname = res[0].name;
 	});
 
 	return docname || 'new';
