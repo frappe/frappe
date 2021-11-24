@@ -560,7 +560,11 @@ class Database(object):
 			fields=fields,
 			**kwargs,
 		)
-		if fields=="*":
+		if (
+			fields == "*"
+			and not isinstance(fields, (list, tuple))
+			and not isinstance(fields, Criterion)
+		):
 			as_dict = True
 
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, **kwargs)
