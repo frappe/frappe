@@ -73,13 +73,16 @@ class PostgresDatabase(Database):
 
 		return conn
 
-	def escape(self, s, percent=True):
+	def escape(self, s, percent=True, underscore=False):
 		"""Excape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
 
 		if percent:
 			s = s.replace("%", "%%")
+		
+		if underscore:
+			s = s.replace("_", "//_")
 
 		s = s.encode('utf-8')
 
