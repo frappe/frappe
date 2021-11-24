@@ -11,6 +11,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 from frappe.desk.reportview import get_filters_cond
+from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled_for_type
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "Call": "Phone", "Sent/Received Email": "Email", "Other": "Other"}
@@ -141,7 +142,12 @@ def has_permission(doc, user):
 
 def send_event_digest():
 	today = nowdate()
-	for user in get_enabled_system_users():
+
+	# select only those users that have event reminder email notifications enabled
+	users = [user for user in get_enabled_system_users() if
+		is_email_notifications_enabled_for_type(user.name, 'Event Reminders')]
+
+	for user in users:
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
 			frappe.set_user_lang(user.name, user.language)
