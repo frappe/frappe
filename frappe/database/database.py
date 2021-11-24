@@ -116,10 +116,6 @@ class Database(object):
 		if not run:
 			return query
 
-		if not kwargs.get("ignore_permissions", True):
-			tables = self.get_tables_from_query(query)
-			self.check_permissions(doctype=tables, **kwargs)
-
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -264,22 +260,6 @@ class Database(object):
 		self.commit()
 		self.sql(query, debug=debug)
 
-	@staticmethod
-	def check_permissions(doctype, **kwargs):
-		kwargs.pop("ignore_permissions")
-		if isinstance(doctype, str):
-			doctype = [doctype]
-
-		for dt in doctype:
-			dt = re.sub("tab", "", dt)
-			if not frappe.has_permission(
-				dt, "select", **kwargs
-			) and not frappe.has_permission(dt, "read", **kwargs):
-				frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(dt)))
-
-	@staticmethod
-	def get_tables_from_query(query: str):
-		return [table for table in re.findall(r"\w+", query) if table.startswith("tab")]
 
 	def check_transaction_status(self, query):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
@@ -571,19 +551,18 @@ class Database(object):
 				else:
 					field_objects.append(field)
 
-		criterion = self.query.build_conditions(
-			table=doctype, filters=filters, orderby=order_by, for_update=for_update, **kwargs,
+		query = self.query.get_sql(
+			table=doctype,
+			filters=filters,
+			orderby=order_by,
+			for_update=for_update,
+			field_objects=field_objects,
+			fields=fields,
+			**kwargs,
 		)
-		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*field_objects)
+		if fields=="*":
+			as_dict = True
 
-		elif isinstance(fields, Criterion):
-			query = criterion.select(fields)
-
-		else:
-			if fields=="*":
-				query = criterion.select(fields)
-				as_dict = True
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, **kwargs)
 		return r
 
