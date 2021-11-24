@@ -110,6 +110,7 @@ body {
 	height: 100%;
 	box-shadow: var(--card-shadow);
 	background-color: var(--card-bg);
+	border-left: 4px solid var(--pin1si-dashboard-text);
 
 	.btn {
 		box-shadow: none;
