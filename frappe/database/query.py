@@ -3,7 +3,8 @@ import re
 from typing import Any, Dict, List, Tuple, Union
 
 import frappe
-from frappe.query_builder import Criterion, Order, Field
+from frappe import _
+from frappe.query_builder import Criterion, Field, Order
 
 
 def like(key: str, value: str) -> frappe.qb:
