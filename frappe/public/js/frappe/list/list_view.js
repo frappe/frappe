@@ -1484,8 +1484,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
-
-		if (frappe.model.can_import(doctype)) {
+		
+		if (frappe.model.can_import(this.meta)) {
 			items.push({
 				label: __("Import"),
 				action: () =>

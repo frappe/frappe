@@ -318,11 +318,14 @@ $.extend(frappe.model, {
 	},
 
 	can_import: function(doctype, frm) {
-		// system manager can always import
-		if(frappe.user_roles.includes("System Manager")) return true;
+		if(doctype.allow_import) {
+			// system manager can always import
+			if(frappe.user_roles.includes("System Manager")) return true;
 
-		if(frm) return frm.perm[0].import===1;
-		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
+			if(frm) return frm.perm[0].import===1;
+			return frappe.boot.user.can_import.indexOf(doctype)!==-1;
+		}
+		else return false;
 	},
 
 	can_export: function(doctype, frm) {
