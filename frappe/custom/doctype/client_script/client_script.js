@@ -43,6 +43,12 @@ frappe.ui.form.on('Client Script', {
 					d.show();
 				});
 			});
+
+			if (!frm.is_new()) {
+				frm.add_custom_button(__('Compare Versions'), () => {
+					new frappe.ui.DiffView("Client Script", "script", frm.doc.name);
+				});
+			}
 		}
 
 		frm.set_query('dt', {

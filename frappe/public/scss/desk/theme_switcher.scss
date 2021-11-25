@@ -1,6 +1,6 @@
 .modal-body .theme-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	grid-gap: 18px;
 
 	.background {
@@ -9,7 +9,7 @@
 		border-radius: var(--border-radius-lg);
 		overflow: hidden;
 		cursor: pointer;
-		height: 160px;
+		height: 120px;
 		position: relative;
 
 		&:hover {
@@ -28,6 +28,7 @@
 
 			margin-right: var(--margin-sm);
 			border-radius: var(--border-radius-full);
+			z-index: 1;
 		}
 	}
 
@@ -72,6 +73,7 @@
 		border-radius: var(--border-radius-sm);
 		height: 10px;
 		width: 20px;
+		z-index: 1;
 	}
 
 	.text {
@@ -79,5 +81,18 @@
 		border-radius: var(--border-radius-sm);
 		height: 10px;
 		width: 40px;
+	}
+}
+
+// TODO: Replace with better alternative
+[data-is-auto-theme="true"] {
+	.background::after {
+		content: "";
+		top: 0;
+		right: 0;
+		height: 100%;
+		width: 50%;
+		background: var(--gray-900);
+		position: absolute;
 	}
 }
