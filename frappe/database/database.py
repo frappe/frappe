@@ -85,7 +85,7 @@ class Database(object):
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
 			debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None,
-			explain=False, run=True, pluck=False, **kwargs):
+			explain=False, run=True, pluck=False):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -336,7 +336,7 @@ class Database(object):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by="KEEP_DEFAULT_ORDERING", cache=False, for_update=False, run=True, **kwargs):
+		debug=False, order_by="KEEP_DEFAULT_ORDERING", cache=False, for_update=False, run=True):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -363,7 +363,7 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update, run=run, **kwargs)
+			order_by, cache=cache, for_update=for_update, run=run)
 
 		if not run:
 			return ret
@@ -371,7 +371,7 @@ class Database(object):
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False, run=True, **kwargs):
+		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False, run=True):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -396,7 +396,7 @@ class Database(object):
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if isinstance(filters, list):
-			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug, run=run, **kwargs)
+			out = self._get_value_for_many_names(doctype, filters, fieldname, order_by, debug=debug, run=run)
 
 		else:
 			fields = fieldname
@@ -411,7 +411,7 @@ class Database(object):
 					if order_by:
 						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
 					out = self._get_values_from_table(
-						fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update, run=run, **kwargs
+						fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update, run=run
 					)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -570,17 +570,17 @@ class Database(object):
 		r = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, **kwargs)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, debug=False, run=True, **kwargs):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
 				doctype,
 				fields=field,
 				filters=names,
+				order_by=order_by,
 				debug=debug,
 				as_list=1,
 				run=run,
-				**kwargs,
 			)
 		else:
 			return {}
