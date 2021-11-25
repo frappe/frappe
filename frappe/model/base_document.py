@@ -368,7 +368,7 @@ class BaseDocument(object):
 					doctype = self.doctype,
 					columns = ", ".join("`"+c+"`" for c in columns),
 					values = ", ".join(["%s"] * len(columns))
-				), list(d.values()))
+				), list(d.values()), auto_commit = 1)
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname=="hash":
