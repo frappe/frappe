@@ -18,6 +18,7 @@ frappe.ui.form.FormTour = class FormTour {
 				// if last step is to save, then attach a listener to save button
 				if (step.options.is_save_step) {
 					$(step.options.element).one('click', () => this.driver.reset());
+					this.driver.overlay.refresh();
 				}
 
 				// focus on input
@@ -54,7 +55,7 @@ frappe.ui.form.FormTour = class FormTour {
 
 	include_name_field() {
 		const name_step = {
-			"description": "Enter a name",
+			"description": `Enter a name for this ${this.frm.doctype}`,
 			"fieldname": "__newname",
 			"title": "Name",
 			"position": "right",

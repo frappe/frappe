@@ -6,7 +6,7 @@
  "idx": 0,
  "include_name_field": 1,
  "is_standard": 1,
- "modified": "2021-11-24 17:25:18.317075",
+ "modified": "2021-11-25 17:03:01.646360",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Doctype",
@@ -15,7 +15,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Select a Module to which this Doctype would belong",
+   "description": "Select a Module to which this DocType would belong",
    "field": "",
    "fieldname": "module",
    "fieldtype": "Link",
@@ -27,19 +27,20 @@
    "title": "Module"
   },
   {
-   "description": "Check this to make the Docytpe as Custom",
+   "description": "Check this to make the DocType as Custom",
    "field": "",
    "fieldname": "custom",
    "fieldtype": "Check",
-   "has_next_condition": 0,
+   "has_next_condition": 1,
    "is_table_field": 0,
    "label": "Custom?",
+   "next_step_condition": "eval: doc.custom",
    "parent_field": "",
    "position": "Left",
    "title": "Custom "
   },
   {
-   "description": "Add fields to this Custom Doctype",
+   "description": "A Field (or a docfield) defines a property of a DocType. You can define the column name, label, datatype and more for DocFields. For instance, a ToDo doctype has fields description, status and priority. These ultimately become columns in the database table tabToDo.",
    "field": "",
    "fieldname": "fields",
    "fieldtype": "Table",
