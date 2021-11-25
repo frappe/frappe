@@ -67,7 +67,7 @@ class TestImporter(unittest.TestCase):
 		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #2: Value missing for: Child Title"
 		self.assertEqual(frappe.parse_json(import_log[0]['messages'][1])['message'], expected_error)
 
-		self.assertEqual(import_log[1]['row_indexes'], [4])
+		self.assertEqual(import_log[1]['row_indexes'], [3])
 		self.assertEqual(frappe.parse_json(import_log[1]['messages'][0])['message'], "Title is required")
 
 	def test_data_import_update(self):
