@@ -909,7 +909,7 @@ def rebuild_global_search(context, static_pages=False):
 @click.command('download-translations')
 @click.option('--app', help='Download translations for app')
 @click.option('--apps', help='Download translations for specific apps')
-def download_translation(app=None, apps=None):
+def download_translations(app=None, apps=None):
 	if app:
 		apps = [app]
 	elif not apps:
@@ -917,16 +917,26 @@ def download_translation(app=None, apps=None):
 	import requests, tarfile
 	from frappe.utils import get_bench_path
 	for app in apps:
+		module = frappe.get_module(app)
+		app_hooks = frappe.get_module(app + ".hooks")
+
+		url = getattr(app_hooks, 'translations_url', None)
+
+		if not url:
+			print('translations_url for ', app, ' is not set in hooks.py')
+			return
+
+		print('downloading translations for', app, end=' ')
 		translations_dir = os.path.join(get_bench_path(), 'apps', app, app, 'translations')
 		if not os.path.exists(translations_dir):
 			os.makedirs(translations_dir)
-		url = f"http://sl.erpnext.local:8002/translations/frappe/{app}/develop"
+
 		r = requests.get(url, stream=True)
 		r.raise_for_status()
 
 		file = tarfile.open(fileobj=r.raw, mode="r|gz")
 		file.extractall(path=translations_dir)
-		print('downloaded for', app)
+		print(': Done')
 
 
 commands = [
@@ -962,6 +972,6 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	run_parallel_tests,
-	download_translation,
+	download_translations,
 ]
 
