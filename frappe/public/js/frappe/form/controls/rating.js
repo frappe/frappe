@@ -2,11 +2,13 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 	make_input() {
 		super.make_input();
 		let stars = '';
-		[1, 2, 3, 4, 5].forEach(i => {
+		let number_of_stars = this.df.options || 5;
+		Array.from({length: parseInt(number_of_stars)}, (_, i) => i + 1).forEach(i => {
 			stars += `<svg class="icon icon-md" data-rating=${i}>
 				<use href="#icon-star"></use>
 			</svg>`;
 		});
+
 		const star_template = `
 			<div class="rating">
 				${stars}
