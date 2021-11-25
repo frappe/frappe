@@ -102,7 +102,7 @@ class MariaDBDatabase(Database):
 		return db_size[0].get('database_size')
 
 	@staticmethod
-	def escape(s, percent=True):
+	def escape(s, percent=True, underscore=False):
 		"""Excape quotes and percent in given string."""
 		# pymysql expects unicode argument to escape_string with Python 3
 		s = frappe.as_unicode(escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
@@ -114,7 +114,10 @@ class MariaDBDatabase(Database):
 		# ideally we shouldn't have to use ESCAPE and strive to pass values via the values argument of sql
 		if percent:
 			s = s.replace("%", "%%")
-
+		
+		if underscore: 
+			pass # underscore escape is used in postgres only currently
+		
 		return "'" + s + "'"
 
 	# column type
