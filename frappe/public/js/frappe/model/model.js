@@ -317,14 +317,14 @@ $.extend(frappe.model, {
 		return doc && doc.__last_sync_on && ((new Date() - doc.__last_sync_on)) < 5000;
 	},
 
-	can_import: function(doctype, frm) {
-		if (!doctype.allow_import) return false;
+	can_import: function(doctype, frm, meta=null) {
+		if (meta && !meta.allow_import) return false;
 
 		// system manager can always import
 		if (frappe.user_roles.includes("System Manager")) return true;
 
 		if (frm) return frm.perm[0].import===1;
-		return frappe.boot.user.can_import.indexOf(doctype.name)!==-1;
+		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
 	},
 
 	can_export: function(doctype, frm) {
