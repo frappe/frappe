@@ -29,7 +29,7 @@ class DatabaseQuery(object):
 		self.reference_doctype = None
 
 	def execute(self, fields=None, filters=None, or_filters=None,
-		docstatus=None, group_by=None, order_by="default_ordering", limit_start=False,
+		docstatus=None, group_by=None, order_by="KEEP_DEFAULT_ORDERING", limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
@@ -703,7 +703,7 @@ class DatabaseQuery(object):
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
 
-		if self.order_by and self.order_by != "default_ordering":
+		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
