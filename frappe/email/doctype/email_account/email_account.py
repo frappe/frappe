@@ -549,7 +549,7 @@ class EmailAccount(Document):
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
-		Communication = frappe.qb.from_("Communication")
+		Communication = frappe.qb.DocType("Communication")
 		frappe.qb.update(Communication) \
 			.set(Communication.email_account == "") \
 			.where(Communication.email_account == self.name).run()
