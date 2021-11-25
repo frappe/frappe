@@ -522,7 +522,7 @@ class Row:
 
 	def __init__(self, index, row, doctype, header, import_type):
 		self.index = index
-		self.row_number = index + 1
+		self.row_number = index
 		self.doctype = doctype
 		self.data = row
 		self.header = header
