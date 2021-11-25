@@ -61,7 +61,7 @@ class TestImporter(unittest.TestCase):
 		data_import.start_import()
 		data_import.reload()
 		import_log = frappe.parse_json(data_import.import_log)
-		self.assertEqual(import_log[0]['row_indexes'], [2,3])
+		self.assertEqual(import_log[0]['row_indexes'], [1,2])
 		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #1: Value missing for: Child Title"
 		self.assertEqual(frappe.parse_json(import_log[0]['messages'][0])['message'], expected_error)
 		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #2: Value missing for: Child Title"
