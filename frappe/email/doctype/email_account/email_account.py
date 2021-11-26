@@ -551,7 +551,7 @@ class EmailAccount(Document):
 		"""Clear communications where email account is linked"""
 		Communication = frappe.qb.DocType("Communication")
 		frappe.qb.update(Communication) \
-			.set(Communication.email_account == "") \
+			.set(Communication.email_account, "") \
 			.where(Communication.email_account == self.name).run()
 
 		remove_user_email_inbox(email_account=self.name)
