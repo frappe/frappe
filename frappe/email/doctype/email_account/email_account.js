@@ -109,6 +109,15 @@ frappe.ui.form.on("Email Account", {
 	onload: function(frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
+		frm.set_query("append_to", "imap_folder", function() {
+			return {
+				query: "frappe.email.doctype.email_account.email_account.get_append_to"
+			};
+		});
+		if (frm.doc.__islocal) {
+			frm.add_child("imap_folder", {"folder_name": "INBOX"});
+			frm.refresh_field("imap_folder");
+		}
 	},
 
 	refresh: function(frm) {
@@ -117,7 +126,7 @@ frappe.ui.form.on("Email Account", {
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
 
-		if(frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
+		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals['User'][frappe.route_flags.linked_user];
 		}
@@ -125,7 +134,7 @@ frappe.ui.form.on("Email Account", {
 
 	show_gmail_message_for_less_secure_apps: function(frm) {
 		frm.dashboard.clear_headline();
-		if(frm.doc.service==="GMail") {
+		if (frm.doc.service==="GMail") {
 			frm.dashboard.set_headline_alert('Gmail will only work if you allow access for less secure \
 				apps in Gmail settings. <a target="_blank" \
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
@@ -137,8 +146,8 @@ frappe.ui.form.on("Email Account", {
 		frm.events.update_domain(frm);
 	},
 
-	update_domain: function(frm){
-		if (!frm.doc.email_id && !frm.doc.service){
+	update_domain: function(frm) {
+		if (!frm.doc.email_id && !frm.doc.service) {
 			return;
 		}
 
@@ -148,7 +157,7 @@ frappe.ui.form.on("Email Account", {
 			args: {
 				"email_id": frm.doc.email_id
 			},
-			callback: function (r) {
+			callback: function(r) {
 				if (r.message) {
 					frm.events.set_domain_fields(frm, r.message);
 				}
@@ -157,7 +166,7 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	set_domain_fields: function(frm, args) {
-		if(!args){
+		if (!args) {
 			args = frappe.route_flags.set_domain_values? frappe.route_options: {};
 		}
 
@@ -172,10 +181,8 @@ frappe.ui.form.on("Email Account", {
 	email_sync_option: function(frm) {
 		// confirm if the ALL sync option is selected
 
-		if(frm.doc.email_sync_option == "ALL"){
-			var msg = __("You are selecting Sync Option as ALL, It will resync all \
-				read as well as unread message from server. This may also cause the duplication\
-				of Communication (emails).");
+		if (frm.doc.email_sync_option == "ALL") {
+			var msg = __("You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails).");
 			frappe.confirm(msg, null, function() {
 				frm.set_value("email_sync_option", "UNSEEN");
 			});
@@ -184,8 +191,7 @@ frappe.ui.form.on("Email Account", {
 
 	warn_autoreply_on_incoming: function(frm) {
 		if (frm.doc.enable_incoming && frm.doc.enable_auto_reply && frm.doc.__islocal) {
-			var msg = __("Enabling auto reply on an incoming email account will send automated replies \
-				to all the synchronized emails. Do you wish to continue?");
+			var msg = __("Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?");
 			frappe.confirm(msg, null, function() {
 				frm.set_value("enable_auto_reply", 0);
 				frappe.show_alert({message: __("Disabled Auto Reply"), indicator: "blue"});
