@@ -71,9 +71,9 @@ def patch_query_execute():
 def patch_query_aggregation():
 	"""Patch aggregation functions to frappe.qb
 	"""
-	from frappe.query_builder.functions import max, min, avg, sum
+	from frappe.query_builder.functions import _max, _min, _avg, _sum
 
-	frappe.qb.max = max
-	frappe.qb.min = min
-	frappe.qb.avg = avg
-	frappe.qb.sum = sum
+	frappe.qb.max = _max
+	frappe.qb.min = _min
+	frappe.qb.avg = _avg
+	frappe.qb.sum = _sum

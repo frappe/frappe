@@ -26,38 +26,24 @@ Match = ImportMapper(
 )
 
 
-def max(dt, fieldname, filters=None, **kwargs):
+def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
 		Query()
 		.build_conditions(dt, filters)
-		.select(Max(Column(fieldname)))
+		.select(function(Column(fieldname)))
 		.run(**kwargs)[0][0]
 		or 0
 	)
 
-def min(dt, fieldname, filters=None, **kwargs):
-	return (
-		Query()
-		.build_conditions(dt, filters)
-		.select(Min(Column(fieldname)))
-		.run(**kwargs)[0][0]
-		or 0
-	)
 
-def avg(dt, fieldname, filters=None, **kwargs):
-	return (
-		Query()
-		.build_conditions(dt, filters)
-		.select(Avg(Column(fieldname)))
-		.run(**kwargs)[0][0]
-		or 0
-	)
+def _max(dt, fieldname, filters=None, **kwargs):
+	return _aggregate(Max, dt, fieldname, filters, **kwargs)
 
-def sum(dt, fieldname, filters=None, **kwargs):
-	return (
-		Query()
-		.build_conditions(dt, filters)
-		.select(Sum(Column(fieldname)))
-		.run(**kwargs)[0][0]
-		or 0
-	)
+def _min(dt, fieldname, filters=None, **kwargs):
+	return _aggregate(Min, dt, fieldname, filters, **kwargs)
+
+def _avg(dt, fieldname, filters=None, **kwargs):
+	return _aggregate(Avg, dt, fieldname, filters, **kwargs)
+
+def _sum(dt, fieldname, filters=None, **kwargs):
+	return _aggregate(Sum, dt, fieldname, filters, **kwargs)
