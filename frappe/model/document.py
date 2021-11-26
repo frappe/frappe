@@ -609,6 +609,7 @@ class Document(BaseDocument):
 
 	def get_permissions(self):
 		if self.meta.istable:
+			print('METAAAAAAA',self.meta)
 			# use parent permissions
 			permissions = frappe.get_meta(self.parenttype).permissions
 		else:
