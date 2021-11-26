@@ -10,6 +10,8 @@
   "repeat_header_footer",
   "column_break_4",
   "pdf_page_size",
+  "pdf_page_height",
+  "pdf_page_width",
   "view_link_in_email",
   "with_letterhead",
   "allow_print_for_draft",
@@ -56,7 +58,7 @@
    "fieldname": "pdf_page_size",
    "fieldtype": "Select",
    "label": "PDF Page Size",
-   "options": "A4\nLetter"
+   "options": "A0\nA1\nA2\nA3\nA4\nA5\nA6\nA7\nA8\nA9\nB0\nB1\nB2\nB3\nB4\nB5\nB6\nB7\nB8\nB9\nB10\nC5E\nComm10E\nDLE\nExecutive\nFolio\nLedger\nLegal\nLetter\nTabloid\nCustom"
   },
   {
    "fieldname": "view_link_in_email",
@@ -156,6 +158,18 @@
    "fieldname": "font_size",
    "fieldtype": "Float",
    "label": "Font Size"
+  },
+  {
+   "depends_on": "eval:doc.pdf_page_size == \"Custom\"",
+   "fieldname": "pdf_page_height",
+   "fieldtype": "Float",
+   "label": "PDF Page Height (in mm)"
+  },
+  {
+   "depends_on": "eval:doc.pdf_page_size == \"Custom\"",
+   "fieldname": "pdf_page_width",
+   "fieldtype": "Float",
+   "label": "PDF Page Width (in mm)"
   }
  ],
  "icon": "fa fa-cog",

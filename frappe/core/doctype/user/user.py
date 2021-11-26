@@ -1051,7 +1051,7 @@ def generate_keys(user):
 
 @frappe.whitelist()
 def switch_theme(theme):
-	if theme in ["Dark", "Light"]:
+	if theme in ["Dark", "Light", "Automatic"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
 
 def get_enabled_users():

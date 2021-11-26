@@ -8,6 +8,7 @@ from pypika.queries import Column
 import frappe
 
 from .builder import MariaDB, Postgres
+from pypika.terms import PseudoColumn
 
 
 class db_type_is(Enum):

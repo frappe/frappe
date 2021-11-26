@@ -18,6 +18,7 @@ frappe.ui.form.FormTour = class FormTour {
 				// if last step is to save, then attach a listener to save button
 				if (step.options.is_save_step) {
 					$(step.options.element).one('click', () => this.driver.reset());
+					this.driver.overlay.refresh();
 				}
 
 				// focus on input
@@ -42,12 +43,25 @@ frappe.ui.form.FormTour = class FormTour {
 				this.tour = { steps: frappe.tour[this.frm.doctype] };
 			}
 		}
-		
+
 		if (on_finish) this.on_finish = on_finish;
 
 		this.init_driver();
+		if (this.tour.include_name_field)
+			this.include_name_field();
 		this.build_steps();
 		this.update_driver_steps();
+	}
+
+	include_name_field() {
+		const name_step = {
+			"description": __("Enter a name for this {0}", [this.frm.doctype]),
+			"fieldname": "__newname",
+			"title": __("Document Name"),
+			"position": "right",
+			"is_table_field": 0
+		};
+		this.tour.steps.unshift(name_step);
 	}
 
 	build_steps() {
@@ -65,9 +79,10 @@ frappe.ui.form.FormTour = class FormTour {
 
 			const driver_step = this.get_step(step, on_next);
 			this.driver_steps.push(driver_step);
-			
+
 			if (step.fieldtype == 'Table') this.handle_table_step(step);
 			if (step.is_table_field) this.handle_child_table_step(step);
+			if (step.fieldtype == 'Attach Image') this.handle_attach_image_steps(step);
 		});
 
 		if (this.tour.save_on_complete) {
@@ -139,7 +154,7 @@ frappe.ui.form.FormTour = class FormTour {
 			const is_next_field_in_curr_table = next_step.parent_field == curr_step.field;
 
 			if (!is_next_field_in_curr_table) return;
-			
+
 			const rows = this.frm.doc[curr_step.fieldname];
 			const table_has_rows = rows && rows.length > 0;
 			if (table_has_rows) {
@@ -261,5 +276,34 @@ frappe.ui.form.FormTour = class FormTour {
 		};
 		this.driver_steps.push(save_step);
 		frappe.ui.form.on(this.frm.doctype, 'after_save', () => this.on_finish && this.on_finish());
+	}
+
+	handle_attach_image_steps() {
+		$('.btn-attach').one('click', () => {
+			setTimeout(() => {
+				const modal_element = $(".file-uploader").closest(".modal-content");
+				const attach_dialog_step = {
+					element: modal_element[0],
+					allowClose: false,
+					overlayClickNext: false,
+					popover: {
+						title: __("Select an Image"),
+						description: "",
+						position: "left",
+						doneBtnText: __("Next")
+					}
+				};
+
+				this.driver_steps.splice(this.driver.currentStep + 1, 0, attach_dialog_step);
+				this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
+				this.driver.moveNext();
+				this.driver.overlay.refresh();
+
+				modal_element.closest('.modal').on('hidden.bs.modal', () => {
+					this.driver.moveNext();
+				});
+
+			}, 500);
+		});
 	}
 };

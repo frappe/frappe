@@ -307,6 +307,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	update_checkbox(target) {
+		if (!this.$checkbox_actions) return;
+
 		let $check_all_checkbox = this.$checkbox_actions.find(".list-check-all");
 
 		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
@@ -1483,7 +1485,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
-		if (frappe.model.can_import(doctype)) {
+		if (frappe.model.can_import(doctype, null, this.meta)) {
 			items.push({
 				label: __("Import"),
 				action: () =>

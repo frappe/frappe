@@ -9,6 +9,8 @@ def before_install():
 	frappe.reload_doc("core", "doctype", "docperm")
 	frappe.reload_doc("core", "doctype", "doctype_action")
 	frappe.reload_doc("core", "doctype", "doctype_link")
+	frappe.reload_doc("desk", "doctype", "form_tour_step")
+	frappe.reload_doc("desk", "doctype", "form_tour")
 	frappe.reload_doc("core", "doctype", "doctype")
 
 def after_install():

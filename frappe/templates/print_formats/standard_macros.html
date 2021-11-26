@@ -153,7 +153,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Signature" %}
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
-	{% elif df.fieldtype in ("Attach", "Attach Image") and frappe.utils.is_image(doc[df.fieldname]) %}
+	{% elif df.fieldtype in ("Attach", "Attach Image") %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}
@@ -195,9 +195,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% else %}
 	<div class="print-heading">
 		<h2>
-			<div>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
+			<div>{{ _(doc.select_print_heading) or (_(doc.print_heading) if doc.print_heading != None
 				else _(doc.doctype)) }}</div>
-			<small class="sub-heading">{{ doc.sub_heading if doc.sub_heading != None
+			<small class="sub-heading">{{ _(doc.sub_heading) if doc.sub_heading != None
 				else doc.name }}</small>
 		</h2>
 	</div>
