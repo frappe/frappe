@@ -29,7 +29,7 @@ class DatabaseQuery(object):
 		self.reference_doctype = None
 
 	def execute(self, fields=None, filters=None, or_filters=None,
-		docstatus=None, group_by=None, order_by=None, limit_start=False,
+		docstatus=None, group_by=None, order_by="KEEP_DEFAULT_ORDERING", limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
@@ -703,7 +703,7 @@ class DatabaseQuery(object):
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
 
-		if self.order_by:
+		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
@@ -729,11 +729,13 @@ class DatabaseQuery(object):
 				else:
 					sort_field = meta.sort_field or 'modified'
 					sort_order = (meta.sort_field and meta.sort_order) or 'desc'
-					args.order_by = f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+					if self.order_by:
+						args.order_by = f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
 
 				# draft docs always on top
 				if hasattr(meta, 'is_submittable') and meta.is_submittable:
-					args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
+					if self.order_by:
+						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
 	def validate_order_by_and_group_by(self, parameters):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
