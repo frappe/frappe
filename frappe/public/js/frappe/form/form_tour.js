@@ -55,9 +55,9 @@ frappe.ui.form.FormTour = class FormTour {
 
 	include_name_field() {
 		const name_step = {
-			"description": `Enter a name for this ${this.frm.doctype}`,
+			"description": __("Enter a name for this {0}", [this.frm.doctype]),
 			"fieldname": "__newname",
-			"title": "Name",
+			"title": __("Document Name"),
 			"position": "right",
 			"is_table_field": 0
 		};
