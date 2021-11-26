@@ -574,6 +574,31 @@ details > summary:focus {
 	}
 }
 
+.diffview {
+	font-family: monospace;
+	white-space: pre;
+	word-wrap: break-word;
+	color: var(--text-color);
+}
+
+
+.diffview .insert {
+	background-color: var(--green-100);
+}
+
+.diffview .delete {
+	background-color: var(--red-100);
+}
+
+[data-theme="dark"] {
+	.diffview .insert {
+		background-color: var(--green-800);
+	}
+	.diffview .delete {
+		background-color: var(--red-800);
+	}
+}
+
 // REDESIGN TODO: Handling of broken images?
 // img.no-image:before {
 // 	.img-background();

@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Learn about Standard and Custom Print Formats",
+ "creation": "2021-11-23 15:04:12.728513",
+ "description": "Print Formats allow you can define looks for documents when printed or converted to PDF. You can also create a custom Print Format using drag-and-drop tools.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-23 15:04:12.728513",
+ "modified_by": "Administrator",
+ "name": "Print Format",
+ "owner": "Administrator",
+ "reference_document": "Print Format",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Customize Print Formats",
+ "validate_action": 1
+}

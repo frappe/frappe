@@ -14,6 +14,7 @@
   "enable_email_assignment",
   "enable_email_energy_point",
   "enable_email_share",
+  "enable_email_event_reminders",
   "user",
   "seen",
   "system_notifications_section",
@@ -97,12 +98,19 @@
    "fieldname": "energy_points_system_notifications",
    "fieldtype": "Check",
    "label": "Energy Points"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_event_reminders",
+   "fieldtype": "Check",
+   "label": "Event Reminders"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-16 12:18:46.955501",
+ "modified": "2021-11-24 14:45:31.931154",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",

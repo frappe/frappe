@@ -7,7 +7,7 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
+from typing import List
 import unittest
 import glob
 
@@ -18,37 +18,11 @@ from frappe.installer import add_to_installed_apps, remove_app
 from frappe.utils import add_to_date, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
-
-# TODO: check frappe.cli.coloured_output to set coloured output!
-def supports_color():
-	"""
-	Returns True if the running system's terminal supports color, and False
-	otherwise.
-	"""
-	plat = sys.platform
-	supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
-	# isatty is not always implemented, #6223.
-	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-	return supported_platform and is_a_tty
+# imports - third party imports
+import click
 
 
-class color(dict):
-	nc = "\033[0m"
-	blue = "\033[94m"
-	green = "\033[92m"
-	yellow = "\033[93m"
-	red = "\033[91m"
-	silver = "\033[90m"
-
-	def __getattr__(self, key):
-		if supports_color():
-			ret = self.get(key)
-		else:
-			ret = ""
-		return ret
-
-
-def clean(value):
+def clean(value) -> str:
 	"""Strips and converts bytes to str
 
 	Args:
@@ -64,7 +38,7 @@ def clean(value):
 	return value
 
 
-def missing_in_backup(doctypes, file):
+def missing_in_backup(doctypes: List, file: os.PathLike) -> List:
 	"""Returns list of missing doctypes in the backup.
 
 	Args:
@@ -86,7 +60,7 @@ def missing_in_backup(doctypes, file):
 			if predicate.format(doctype).lower() not in content]
 
 
-def exists_in_backup(doctypes, file):
+def exists_in_backup(doctypes: List, file: os.PathLike) -> bool:
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
 	Args:
@@ -118,7 +92,8 @@ class BaseTestCommands(unittest.TestCase):
 			kwargs = site
 
 		self.command = " ".join(command.split()).format(**kwargs)
-		print("{0}$ {1}{2}".format(color.silver, self.command, color.nc))
+		click.secho(self.command, fg="bright_black")
+
 		command = shlex.split(self.command)
 		self._proc = subprocess.run(command, input=cmd_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		self.stdout = clean(self._proc.stdout)
