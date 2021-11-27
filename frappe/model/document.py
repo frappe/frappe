@@ -309,6 +309,9 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
+		if self.docstatus == 2:
+			self._rename_doc_on_cancel()
+
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
@@ -923,11 +926,6 @@ class Document(BaseDocument):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
 		self.docstatus = 2
-		if frappe.get_system_settings('use_original_name_for_amended_document', ignore_if_not_exists=True):
-			new_name = gen_new_name_for_cancelled_doc(self)
-			frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
-			self.name = new_name
-
 		return self.save()
 
 	@whitelist.__func__
@@ -1357,6 +1355,12 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
+	def _rename_doc_on_cancel(self):
+		if frappe.get_system_settings('use_original_name_for_amended_document', ignore_if_not_exists=True):
+			new_name = gen_new_name_for_cancelled_doc(self)
+			frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
+			self.name = new_name
 
 	def __repr__(self):
 		name = self.name or "unsaved"
