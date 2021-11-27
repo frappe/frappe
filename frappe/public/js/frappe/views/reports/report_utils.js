@@ -31,6 +31,9 @@ frappe.report_utils = {
 			axisOptions: {
 				shortenYAxisNumbers: 1,
 				xAxisMode: 'tick'
+			},
+			lineOpsitons: {
+				spline: 1,
 			}
 		};
 
