@@ -463,7 +463,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
 				discreteDomains: 1,
-				radius: 3,
+				radius: 5,
 				data: {},
 			});
 
