@@ -557,14 +557,12 @@
    "collapsible": 1,
    "fieldname": "api_access",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "label": "Api Access"
   },
   {
    "description": "API Key cannot be  regenerated",
    "fieldname": "api_key",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "API Key",
    "read_only": 1,
    "unique": 1
@@ -572,7 +570,6 @@
   {
    "fieldname": "generate_keys",
    "fieldtype": "Button",
-   "hidden": 1,
    "label": "Generate Keys"
   },
   {
@@ -583,7 +580,6 @@
   {
    "fieldname": "api_secret",
    "fieldtype": "Password",
-   "hidden": 1,
    "label": "API Secret",
    "read_only": 1
   },
@@ -689,7 +685,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-11-22 21:31:51.423119",
+ "modified": "2021-11-25 12:17:00.760483",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
