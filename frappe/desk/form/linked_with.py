@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import json
 from collections import defaultdict
-from os import link
 import itertools
 from typing import List
 
@@ -301,7 +300,7 @@ def get_references_across_doctypes_by_dynamic_link_field(to_doctypes: List[str]=
 			for linked_to in frappe.db.get_all(doctype, pluck=doctype_fieldname, filters = filters, distinct=1):
 				if linked_to:
 					links_by_doctype[linked_to].append({'doctype': doctype, 'fieldname': fieldname, 'doctype_fieldname': doctype_fieldname})
-		except frappe.db.ProgrammingError as e:
+		except frappe.db.ProgrammingError:
 			# TODO: FIXME
 			continue
 	return links_by_doctype
