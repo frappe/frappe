@@ -1,18 +1,20 @@
 /* eslint-disable no-console */
-let path = require("path");
-let fs = require("fs");
-let glob = require("fast-glob");
-let esbuild = require("esbuild");
-let vue = require("esbuild-vue");
-let yargs = require("yargs");
-let cliui = require("cliui")();
-let chalk = require("chalk");
-let html_plugin = require("./frappe-html");
-let rtlcss = require('rtlcss');
-let postCssPlugin = require("esbuild-plugin-postcss2").default;
-let ignore_assets = require("./ignore-assets");
-let sass_options = require("./sass_options");
-let {
+const path = require("path");
+const fs = require("fs");
+const glob = require("fast-glob");
+const esbuild = require("esbuild");
+const vue = require("esbuild-vue");
+const yargs = require("yargs");
+const cliui = require("cliui")();
+const chalk = require("chalk");
+const html_plugin = require("./frappe-html");
+const rtlcss = require('rtlcss');
+const postCssPlugin = require("esbuild-plugin-postcss2").default;
+const ignore_assets = require("./ignore-assets");
+const sass_options = require("./sass_options");
+const build_cleanup_plugin = require("./build-cleanup");
+
+const {
 	app_list,
 	assets_path,
 	apps_path,
@@ -26,7 +28,7 @@ let {
 	get_redis_subscriber
 } = require("./utils");
 
-let argv = yargs
+const argv = yargs
 	.usage("Usage: node esbuild [options]")
 	.option("apps", {
 		type: "string",
@@ -98,9 +100,6 @@ if (WATCH_MODE) {
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
-	if (!FILES_TO_BUILD.length) {
-		await clean_dist_folders(APPS);
-	}
 
 	let results;
 	try {
@@ -231,12 +230,13 @@ function get_files_to_build(files) {
 function build_files({ files, outdir }) {
 	let build_plugins = [
 		html_plugin,
+		build_cleanup_plugin,
 		vue(),
 	];
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
-function build_style_files({ files, outdir, rtl_style=false }) {
+function build_style_files({ files, outdir, rtl_style = false }) {
 	let plugins = [];
 	if (rtl_style) {
 		plugins.push(rtlcss);
@@ -244,6 +244,7 @@ function build_style_files({ files, outdir, rtl_style=false }) {
 
 	let build_plugins = [
 		ignore_assets,
+		build_cleanup_plugin,
 		postCssPlugin({
 			plugins: plugins,
 			sassOptions: sass_options
@@ -311,24 +312,6 @@ function get_watch_config() {
 		};
 	}
 	return null;
-}
-
-async function clean_dist_folders(apps) {
-	for (let app of apps) {
-		let public_path = get_public_path(app);
-		let paths = [
-			path.resolve(public_path, "dist", "js"),
-			path.resolve(public_path, "dist", "css"),
-			path.resolve(public_path, "dist", "css-rtl")
-		];
-		for (let target of paths) {
-			if (fs.existsSync(target)) {
-				// rmdir is deprecated in node 16, this will work in both node 14 and 16
-				let rmdir = fs.promises.rm || fs.promises.rmdir;
-				await rmdir(target, { recursive: true });
-			}
-		}
-	}
 }
 
 function log_built_assets(results) {

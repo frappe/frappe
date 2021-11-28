@@ -111,7 +111,17 @@ class EmailServer:
 				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
 				raise
 
-	def get_messages(self):
+	def select_imap_folder(self, folder):
+		self.imap.select(folder)
+
+	def logout(self):
+		if cint(self.settings.use_imap):
+			self.imap.logout()
+		else:
+			self.pop.quit()
+		return
+
+	def get_messages(self, folder="INBOX"):
 		"""Returns new email messages in a list."""
 		if not (self.check_mails() or self.connect()):
 			return []
@@ -126,7 +136,8 @@ class EmailServer:
 			self.latest_messages = []
 			self.seen_status = {}
 			self.uid_reindexed = False
-			uid_list = email_list = self.get_new_mails()
+
+			uid_list = email_list = self.get_new_mails(folder)
 
 			if not email_list:
 				return
@@ -160,13 +171,6 @@ class EmailServer:
 			else:
 				raise
 
-		finally:
-			# no matter the exception, pop should quit if connected
-			if cint(self.settings.use_imap):
-				self.imap.logout()
-			else:
-				self.pop.quit()
-
 		out = { "latest_messages": self.latest_messages }
 		if self.settings.use_imap:
 			out.update({
@@ -177,15 +181,15 @@ class EmailServer:
 
 		return out
 
-	def get_new_mails(self):
+	def get_new_mails(self, folder):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
 			email_list = []
-			self.check_imap_uidvalidity()
+			self.check_imap_uidvalidity(folder)
 
 			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
 
-			self.imap.select("Inbox", readonly=readonly)
+			self.imap.select(folder, readonly=readonly)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			if message[0]:
 				email_list =  message[0].split()
@@ -194,11 +198,11 @@ class EmailServer:
 
 		return email_list
 
-	def check_imap_uidvalidity(self):
+	def check_imap_uidvalidity(self, folder):
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = self.settings.uid_validity
 
-		response, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
+		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
 		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
@@ -206,14 +210,26 @@ class EmailServer:
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
-			frappe.db.sql(
-				"""update `tabCommunication` set uid=-1 where communication_medium='Email'
-				and email_account=%s""", (self.settings.email_account,)
-			)
-			frappe.db.sql(
-				"""update `tabEmail Account` set uidvalidity=%s, uidnext=%s where
-				name=%s""", (current_uid_validity, uidnext, self.settings.email_account)
-			)
+			Communication = frappe.qb.DocType("Communication")
+			frappe.qb.update(Communication) \
+				.set(Communication.uid, -1) \
+				.where(Communication.communication_medium == "Email") \
+				.where(Communication.email_account == self.settings.email_account).run()
+
+			if self.settings.use_imap:
+				# new update for the IMAP Folder DocType
+				IMAPFolder = frappe.qb.DocType("IMAP Folder")
+				frappe.qb.update(IMAPFolder) \
+					.set(IMAPFolder.uidvalidity, current_uid_validity) \
+					.set(IMAPFolder.uidnext, uidnext) \
+					.where(IMAPFolder.parent == self.settings.email_account_name) \
+					.where(IMAPFolder.folder_name == folder).run()
+			else:
+				EmailAccount = frappe.qb.DocType("Email Account")
+				frappe.qb.update(EmailAccount) \
+					.set(EmailAccount.uidvalidity, current_uid_validity) \
+					.set(EmailAccount.uidnext, uidnext) \
+					.where(EmailAccount.name == self.settings.email_account_name).run()
 
 			# uid validity not found pulling emails for first time
 			if not uid_validity:
@@ -232,6 +248,7 @@ class EmailServer:
 	def parse_imap_response(self, cmd, response):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
 		match = re.search(pattern, response.decode('utf-8'), re.U | re.I)
+
 		if match:
 			return match.group(0)
 		else:
@@ -340,16 +357,15 @@ class EmailServer:
 
 		return error_msg
 
-	def update_flag(self, uid_list=None):
+	def update_flag(self, folder, uid_list=None):
 		""" set all uids mails the flag as seen  """
-
 		if not uid_list:
 			return
 
 		if not self.connect():
 			return
 
-		self.imap.select("Inbox")
+		self.imap.select(folder)
 		for uid, operation in uid_list.items():
 			if not uid: continue
 

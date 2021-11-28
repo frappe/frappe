@@ -1,0 +1,20 @@
+{
+ "action": "Watch Video",
+ "creation": "2021-11-23 14:00:27.208500",
+ "description": "In ERPNext, you can add your Employees as Users, and give them restricted access. Tools like Role Permission and User Permission allow you to define rules which give restricted access to the user to masters and transactions.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-24 15:04:14.615232",
+ "modified_by": "Administrator",
+ "name": "Role Permissions",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Setup Limited Access for a User",
+ "validate_action": 1,
+ "video_url": "https://youtu.be/g3mk45o1zAg"
+}

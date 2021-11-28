@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.docfield import supports_translation
 from frappe.model import core_doctypes_list
+from frappe.query_builder.functions import IfNull
 
 class CustomField(Document):
 	def autoname(self):
@@ -115,9 +116,7 @@ def get_fields_label(doctype=None):
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
 	if df.fieldname in frappe.db.get_table_columns(doctype) and \
-		frappe.db.sql("""select count(*) from `tab{doctype}`
-			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
-
+		frappe.db.count(dt=doctype, filters=IfNull(df.fieldname, "") != ""):
 		create_custom_field(doctype, df)
 
 def create_custom_field(doctype, df, ignore_validate=False):

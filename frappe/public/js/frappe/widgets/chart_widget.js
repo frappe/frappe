@@ -455,6 +455,7 @@ export default class ChartWidget extends Widget {
 	create_filter_group_and_add_filters() {
 		this.filter_group = new frappe.ui.FilterGroup({
 			doctype: this.chart_doc.document_type,
+			parent_doctype: this.chart_doc.parent_document_type,
 			filter_button: this.filter_button,
 			on_change: () => {
 				this.filters = this.filter_group.get_filters();
@@ -697,11 +698,13 @@ export default class ChartWidget extends Widget {
 				.get_filters_for_chart_type(this.chart_doc).then(filters => {
 					chart_saved_filters = this.update_default_date_filters(filters, chart_saved_filters);
 					this.filters =
-						user_saved_filters || this.filters || chart_saved_filters;
+					frappe.utils.parse_array(user_saved_filters) || frappe.utils.parse_array(this.filters) 
+						|| frappe.utils.parse_array(chart_saved_filters);
 				});
 		} else {
 			this.filters =
-				user_saved_filters || this.filters || chart_saved_filters;
+				frappe.utils.parse_array(user_saved_filters) || frappe.utils.parse_array(this.filters) 
+					|| frappe.utils.parse_array(chart_saved_filters);
 			return Promise.resolve();
 		}
 	}
