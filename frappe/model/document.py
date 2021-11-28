@@ -864,14 +864,7 @@ class Document(BaseDocument):
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = 2
-<<<<<<< HEAD
-		self.save()
-=======
-		new_name = gen_new_name_for_cancelled_doc(self)
-		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
-		self.name = new_name
 		return self.save()
->>>>>>> 88c3d92662 (fix: return self after submit/cancel)
 
 	@whitelist.__func__
 	def submit(self):
