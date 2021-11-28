@@ -55,7 +55,7 @@ select.form-control {
 }
 
 .awesomplete .input-with-feedback {
-	background-color: #F4F5F6;
+	background-color: var(--control-bg);
 	color: var(--text-color);
 }
 
