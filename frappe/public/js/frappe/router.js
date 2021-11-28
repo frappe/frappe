@@ -14,7 +14,11 @@ frappe.view_factories = [];
 frappe.route_options = null;
 frappe.route_hooks = {};
 
-$(window).on("hashchange", function (e) {
+$(window).on('hashchange', function (e) {
+	if (document.location.href.indexOf("online-shop") > 1) {
+		console.log("Skip routing, we are in online shop");
+		return false;
+	}
 	// v1 style routing, route is in hash
 	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
 		let sub_path = frappe.router.get_sub_path(window.location.hash);
@@ -25,6 +29,11 @@ $(window).on("hashchange", function (e) {
 
 window.addEventListener("popstate", (e) => {
 	// forward-back button, just re-render based on current route
+	// not on shop	
+	if (document.location.href.indexOf("online-shop") > 1) {		
+		console.log("Skip routing, we are in online shop");
+		return false;
+	}
 	frappe.router.route();
 	e.preventDefault();
 	return false;
