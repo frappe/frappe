@@ -1,4 +1,6 @@
-import frappe, unittest
+import unittest
+
+import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form import linked_with
 
