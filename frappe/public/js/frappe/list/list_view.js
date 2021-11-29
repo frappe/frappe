@@ -278,7 +278,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	refresh(refresh_header=false) {
 		super.refresh().then(() => {
 			this.render_header(refresh_header);
+			this.update_checkbox();
 		});
+	}
+
+	update_checkbox(target) {
+		if (!this.$checkbox_actions) return;
+
+		let $check_all_checkbox = this.$checkbox_actions.find(".list-check-all");
+
+		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
+			$check_all_checkbox.prop("checked", false); 
+		}
+
+		$check_all_checkbox.prop("checked", this.$checks.length === this.data.length);
 	}
 
 	setup_freeze_area() {
@@ -1222,6 +1235,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.$checkbox_cursor = $target;
+
+			this.update_checkbox($target);
 		});
 	}
 
@@ -1367,6 +1382,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$checkbox_actions.show();
 			this.$list_head_subject.hide();
 		}
+		this.update_checkbox();
 		this.toggle_actions_menu_button(this.$checks.length > 0);
 	}
 
