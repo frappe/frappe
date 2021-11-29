@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.deferred_insert import deferred_insert
+from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
 
 
@@ -41,7 +41,7 @@ def flush_old_route_records():
 		})
 
 @frappe.whitelist()
-def deferred_insert_route_history(routes):
+def deferred_insert(routes):
 	routes_record = []
 
 	if isinstance(routes, str):
@@ -54,4 +54,4 @@ def deferred_insert_route_history(routes):
 			"creation": route_doc.get("creation")
 		})
 
-	deferred_insert("Route History", json.dumps(routes_record))
+	_deferred_insert("Route History", json.dumps(routes_record))

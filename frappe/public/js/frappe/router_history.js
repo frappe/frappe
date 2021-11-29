@@ -8,7 +8,7 @@ const save_routes = frappe.utils.debounce(() => {
 
 	if (!routes.length) return;
 
-	frappe.xcall('frappe.desk.doctype.route_history.route_history.deferred_insert_route_history', {
+	frappe.xcall('frappe.desk.doctype.route_history.route_history.deferred_insert', {
 		'routes': routes
 	}).catch(() => {
 		frappe.route_history_queue.concat(routes);
