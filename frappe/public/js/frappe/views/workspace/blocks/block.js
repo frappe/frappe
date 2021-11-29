@@ -54,6 +54,7 @@ export default class Block {
 		function do_drag(e) {
 			$(this).css("cursor", "col-resize");
 			$('.widget').css("pointer-events", "none");
+			$(me.wrapper.parentElement).find('.resizer').css("border-right", "3px solid lightgray");
 			un_focus();
 			if ((startWidth + e.clientX - startX) - startWidth > 60) {
 				startX = e.clientX;
@@ -76,6 +77,7 @@ export default class Block {
 		function stop_drag(e) {
 			$(this).css("cursor", "default");
 			$('.widget').css("pointer-events", "auto");
+			$(me.wrapper.parentElement).find('.resizer').css("border-right", "0px solid transparent");
 
 			document.documentElement.removeEventListener('mousemove', do_drag, false);
 			document.documentElement.removeEventListener('mouseup', stop_drag, false);
@@ -123,6 +125,21 @@ export default class Block {
 		this.new_block_widget = block_obj.get_config();
 	}
 
+	add_new_block_button() {
+		let $new_button = $(`
+			<div class="new-block-button">${frappe.utils.icon('add-round', 'lg')}</div>
+		`);
+
+		$new_button.appendTo(this.wrapper);
+
+		$new_button.click(event => {
+			event.stopPropagation();
+			let index = this.api.blocks.getCurrentBlockIndex();
+			this.api.blocks.insert('paragraph', {}, {}, index);
+			this.api.caret.setToBlock(index);
+		});
+	}
+
 	add_settings_button() {
 		this.dropdown_list = [
 			{
@@ -130,18 +147,6 @@ export default class Block {
 				title: 'Delete Block',
 				icon: frappe.utils.icon('delete-active', 'sm'),
 				action: () => this.api.blocks.delete()
-			},
-			{
-				label: 'Move Up',
-				title: 'Move Up',
-				icon: frappe.utils.icon('up-arrow', 'sm'),
-				action: () => this.move_block('up')
-			},
-			{
-				label: 'Move Down',
-				title: 'Move Down',
-				icon: frappe.utils.icon('down-arrow', 'sm'),
-				action: () => this.move_block('down')
 			},
 			{
 				label: 'Expand',
@@ -154,6 +159,18 @@ export default class Block {
 				title: 'Shrink Block',
 				icon: frappe.utils.icon('shrink', 'sm'),
 				action: () => this.decrease_width()
+			},
+			{
+				label: 'Move Up',
+				title: 'Move Up',
+				icon: frappe.utils.icon('up-arrow', 'sm'),
+				action: () => this.move_block('up')
+			},
+			{
+				label: 'Move Down',
+				title: 'Move Down',
+				icon: frappe.utils.icon('down-arrow', 'sm'),
+				action: () => this.move_block('down')
 			}
 		]
 

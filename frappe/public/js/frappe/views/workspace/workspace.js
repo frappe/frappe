@@ -395,18 +395,6 @@ frappe.views.Workspace = class Workspace {
 		page.name && this.page.add_inner_button(__("Settings"), () => {
 			frappe.set_route(`workspace/${page.name}`);
 		});
-
-		Object.keys(this.blocks).forEach(key => {
-			this.page.add_inner_button(`
-				<span class="block-menu-item-icon">${this.blocks[key].toolbox.icon}</span>
-				<span class="block-menu-item-label">${__(this.blocks[key].toolbox.title)}</span>
-			`, function() {
-				const index = me.editor.blocks.getBlocksCount() + 1;
-				me.editor.blocks.insert(key, {}, {}, index, true);
-				me.editor.caret.setToLastBlock('start', 0);
-				$('.ce-block:last-child')[0].scrollIntoView();
-			}, __('Add Block'));
-		});
 	}
 
 	show_sidebar_actions() {
@@ -650,7 +638,10 @@ frappe.views.Workspace = class Workspace {
 			},
 			paragraph: {
 				class: this.blocks['paragraph'],
-				inlineToolbar: ['HeaderSize', 'bold', 'italic', 'link']
+				inlineToolbar: ['HeaderSize', 'bold', 'italic', 'link'],
+				config: {
+					placeholder: 'Choose a block or continue typing'
+				}
 			},
 			chart: {
 				class: this.blocks['chart'],

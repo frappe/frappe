@@ -27,6 +27,7 @@ export default class Paragraph extends Block {
 	}
 
 	onKeyUp(e) {
+		$(this.wrapper.parentElement).find('.block-list-container.dropdown-list').hide();
 		if (e.code !== 'Backspace' && e.code !== 'Delete') {
 			return;
 		}
@@ -34,6 +35,7 @@ export default class Paragraph extends Block {
 		const {textContent} = this._element;
 
 		if (textContent === '') {
+			$(this.wrapper.parentElement).find('.block-list-container.dropdown-list').show();
 			this._element.innerHTML = '';
 		}
 	}
@@ -43,13 +45,56 @@ export default class Paragraph extends Block {
 
 		div.classList.add(this._CSS.wrapper, this._CSS.block, 'widget');
 		div.contentEditable = false;
-		div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 
 		if (!this.readOnly) {
 			div.contentEditable = true;
+			div.addEventListener('focus', () => {
+				const {textContent} = this._element;
+				if (textContent !== '') return;
+				let $wrapper = $(this.wrapper).hasClass('ce-paragraph') ? $(this.wrapper.parentElement) : $(this.wrapper);
+				let $block_list_container = $wrapper.find('.block-list-container.dropdown-list');
+				$block_list_container.show();
+			});
+			div.addEventListener('blur', () => {
+				let $block_list_container = $(this.wrapper.parentElement).find('.block-list-container.dropdown-list');
+				setTimeout(() => $block_list_container.hide(), 1);
+			});
+			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
 		}
 		return div;
+	}
+
+	open_block_list() {
+		let dropdown_title = 'Templates';
+		let $block_list_container = $(`
+			<div class="block-list-container dropdown-list">
+				<div class="dropdown-title">${dropdown_title.toUpperCase()}</div>
+			</div>
+		`);
+
+		let all_blocks = frappe.wspace_block.blocks;
+		Object.keys(all_blocks).forEach(key => {
+			let $block_list_item = $(`
+				<div class="block-list-item dropdown-item">
+					<span class="dropdown-item-icon">${all_blocks[key].toolbox.icon}</span>
+					<span class="dropdown-item-label">${__(all_blocks[key].toolbox.title)}</span>
+				</div>
+			`);
+
+			$block_list_item.click(event => {
+				event.stopPropagation();
+				const index = this.api.blocks.getCurrentBlockIndex();
+				this.api.blocks.delete();
+				this.api.blocks.insert(key, {}, {}, index);
+				this.api.caret.setToBlock(index);
+			});
+
+			$block_list_container.append($block_list_item);
+		});
+
+		$block_list_container.hide();
+		$block_list_container.appendTo(this.wrapper);
 	}
 
 	render() {
@@ -63,26 +108,9 @@ export default class Paragraph extends Block {
 			
 			this.wrapper.classList.add('widget', 'paragraph');
 
+			this.open_block_list();
+			this.add_new_block_button();
 			this.add_settings_button();
-			// frappe.utils.add_custom_button(
-			// 	frappe.utils.icon('dot-horizontal', 'xs'),
-			// 	(event) => {
-			// 		let evn = event;
-			// 		!$('.ce-settings.ce-settings--opened').length &&
-			// 		setTimeout(() => {
-			// 			this.api.toolbar.toggleBlockSettings();
-			// 			var position = $(evn.target).offset();
-			// 			$('.ce-settings.ce-settings--opened').offset({
-			// 				top: position.top + 25,
-			// 				left: position.left - 77
-			// 			});
-			// 		}, 50);
-			// 	},
-			// 	"tune-btn",
-			// 	`${__('Tune')}`,
-			// 	null,
-			// 	$para_control
-			// );
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
@@ -92,15 +120,6 @@ export default class Paragraph extends Block {
 				null,
 				$para_control
 			);
-
-			// frappe.utils.add_custom_button(
-			// 	frappe.utils.icon('delete-active', 'xs'),
-			// 	() => this.api.blocks.delete(),
-			// 	"delete-paragraph",
-			// 	`${__('Delete')}`,
-			// 	null,
-			// 	$para_control
-			// );
 
 			return this.wrapper;
 		}
@@ -145,13 +164,6 @@ export default class Paragraph extends Block {
 		this.data = data;
 	}
 
-	// static get conversionConfig() {
-	// 	return {
-	// 		export: 'text', // to convert Paragraph to other block, use 'text' property of saved data
-	// 		import: 'text' // to covert other block's exported string to Paragraph, fill 'text' property of tool data
-	// 	};
-	// }
-
 	static get sanitize() {
 		return {
 			text: {
@@ -191,7 +203,7 @@ export default class Paragraph extends Block {
 	static get toolbox() {
 		return {
 			title: 'Text',
-			icon: frappe.utils.icon('text', 'md')
+			icon: frappe.utils.icon('text', 'sm')
 		};
 	}
 }

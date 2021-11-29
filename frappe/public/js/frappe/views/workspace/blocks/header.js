@@ -38,6 +38,7 @@ export default class Header extends Block {
 			this.wrapper.classList.add('widget', 'header');
 
 			this.add_settings_button();
+			this.add_new_block_button();
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
@@ -137,7 +138,7 @@ export default class Header extends Block {
 	static get toolbox() {
 		return {
 			title: 'Heading',
-			icon: frappe.utils.icon('header', 'md')
+			icon: frappe.utils.icon('header', 'sm')
 		};
 	}
 }

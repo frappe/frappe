@@ -3,7 +3,7 @@ export default class Card extends Block {
 	static get toolbox() {
 		return {
 			title: 'Card',
-			icon: frappe.utils.icon('card', 'md')
+			icon: frappe.utils.icon('card', 'sm')
 		};
 	}
 
@@ -36,6 +36,7 @@ export default class Card extends Block {
 
 		if (!this.readOnly) {
 			this.add_settings_button();
+			this.add_new_block_button();
 		}
 
 		return this.wrapper;

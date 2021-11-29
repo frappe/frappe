@@ -4,7 +4,7 @@ export default class Onboarding extends Block {
 	static get toolbox() {
 		return {
 			title: 'Onboarding',
-			icon: frappe.utils.icon('onboarding', 'md')
+			icon: frappe.utils.icon('onboarding', 'sm')
 		};
 	}
 
@@ -106,7 +106,8 @@ export default class Onboarding extends Block {
 		}
 
 		if (!this.readOnly) {
-			// this.add_tune_button();
+			this.add_settings_button();
+			this.add_new_block_button();
 		}
 		$(this.wrapper).css("padding-bottom", "20px");
 		return this.wrapper;

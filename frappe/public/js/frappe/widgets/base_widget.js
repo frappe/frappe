@@ -71,7 +71,7 @@ export default class Widget {
 			frappe.utils.add_custom_button(
 				frappe.utils.icon("edit", "xs"),
 				() => this.edit(),
-				null,
+				"edit-button",
 				`${__('Edit')}`,
 				null,
 				this.action_area

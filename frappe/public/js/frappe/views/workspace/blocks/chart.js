@@ -3,7 +3,7 @@ export default class Chart extends Block {
 	static get toolbox() {
 		return {
 			title: 'Chart',
-			icon: frappe.utils.icon('chart', 'md')
+			icon: frappe.utils.icon('chart', 'sm')
 		};
 	}
 
@@ -36,6 +36,7 @@ export default class Chart extends Block {
 
 		if (!this.readOnly) {
 			this.add_settings_button();
+			this.add_new_block_button();
 		}
 
 		return this.wrapper;

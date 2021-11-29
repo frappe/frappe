@@ -3,7 +3,7 @@ export default class Spacer extends Block {
 	static get toolbox() {
 		return {
 			title: 'Spacer',
-			icon: frappe.utils.icon('spacer', 'md')
+			icon: frappe.utils.icon('spacer', 'sm')
 		};
 	}
 
@@ -21,7 +21,7 @@ export default class Spacer extends Block {
 		if (!this.readOnly) {
 			let $spacer = $(`
 				<div class="widget-head">
-					<div></div>
+					<div class="spacer-left"></div>
 					<div>Spacer</div>
 					<div class="widget-control"></div>
 				</div>
@@ -34,25 +34,7 @@ export default class Spacer extends Block {
 			let $widget_control = $spacer.find('.widget-control');
 
 			this.add_settings_button();
-			// frappe.utils.add_custom_button(
-			// 	frappe.utils.icon('dot-horizontal', 'xs'),
-			// 	(event) => {
-			// 		let evn = event;
-			// 		!$('.ce-settings.ce-settings--opened').length &&
-			// 		setTimeout(() => {
-			// 			this.api.toolbar.toggleBlockSettings();
-			// 			var position = $(evn.target).offset();
-			// 			$('.ce-settings.ce-settings--opened').offset({
-			// 				top: position.top + 25,
-			// 				left: position.left - 77
-			// 			});
-			// 		}, 50);
-			// 	},
-			// 	"tune-btn",
-			// 	`${__('Tune')}`,
-			// 	null,
-			// 	$widget_control
-			// );
+			this.add_new_block_button();
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
@@ -62,15 +44,6 @@ export default class Spacer extends Block {
 				null,
 				$widget_control
 			);
-
-			// frappe.utils.add_custom_button(
-			// 	frappe.utils.icon('delete-active', 'xs'),
-			// 	() => this.api.blocks.delete(),
-			// 	"delete-spacer",
-			// 	`${__('Delete')}`,
-			// 	null,
-			// 	$widget_control
-			// );
 		}
 		return this.wrapper;
 	}

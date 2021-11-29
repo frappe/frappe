@@ -783,8 +783,8 @@ body {
 				}
 			}
 
-			.layout-side-section {
-				margin-right: 20px;
+			.layout-main-section-wrapper {
+				padding-left: 35px;
 			}
 
 			.desk-sidebar {
@@ -909,6 +909,36 @@ body {
 					font-weight: 700 !important;
 				}
 
+				.new-block-button {
+					position: absolute;
+					top: 7px;
+					left: -22px;
+					cursor: pointer;
+					visibility: hidden;
+					opacity: 0;
+					transition: visibility 0s, opacity 0.5s ease-in-out;
+				}
+
+				.widget-control > *, .paragraph-control > * {
+					visibility: hidden;
+					opacity: 0;
+					transition: visibility 0s, opacity 0.5s ease-in-out;
+				}
+
+				&:hover {
+					.widget-control > *, .new-block-button {
+						visibility: visible;
+						opacity: 1;
+					}
+				}
+
+				&.ce-block--focused {
+					.widget-control > * {
+						visibility: visible;
+						opacity: 1;
+					}
+				}
+
 				&.ce-block--selected {
 					.ce-block__content {
 						background-color: inherit;
@@ -934,7 +964,13 @@ body {
 						position:absolute; 
 						right: 0; 
 						bottom: 0; 
-						cursor: col-resize; 
+						cursor: col-resize;
+						border-color: transparent;
+						transition: border-color 0.3s ease-in-out;
+
+						&:hover {
+							border-right: 3px solid lightgray !important;
+						}
 					}
 
 					.ce-header {
@@ -945,6 +981,22 @@ body {
 						&:focus { 
 							outline: none; 
 						}
+					}
+
+					.block-list-container {
+						left: 20px;
+						top: 55px !important;
+						width: 200px !important;
+					}
+
+					.dropdown-title {
+						padding: 6px 10px;
+						font-size: smaller;
+						cursor: default;
+					}
+
+					.ce-paragraph[data-placeholder]:empty::before {
+						opacity: 1;
 					}
 
 					.widget{
@@ -967,6 +1019,10 @@ body {
 
 						&.new-widget {
 							align-items: inherit;
+
+							.spacer-left {
+								min-width: 74px;
+							}
 						}
 
 						&.ce-paragraph {
@@ -1001,6 +1057,11 @@ body {
 		}
 
 		.ce-toolbar {
+
+			&.ce-toolbar--opened {
+				display: none;
+			}
+
 			svg {
 				fill: currentColor;
 			}
@@ -1074,6 +1135,27 @@ body {
 			.ce-block.col-4 {
 				flex: 0 0 50%;
 				max-width: 50%;
+			}
+		}
+
+		@media (max-width: 995px) {
+			.ce-block.col-3 {
+				flex: 0 0 100%;
+				max-width: 33.33%;
+			}
+		}
+
+		@media (max-width: 750px) {
+			.ce-block.col-3 {
+				flex: 0 0 50%;
+				max-width: 50%;
+			}
+		}
+
+		@media (max-width: 550px) {
+			.ce-block.col-3 {
+				flex: 0 0 100%;
+				max-width: 100%;
 			}
 		}
 
