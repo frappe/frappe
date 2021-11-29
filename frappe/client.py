@@ -21,7 +21,7 @@ Requests via FrappeClient are also handled here.
 
 @frappe.whitelist()
 def get_list(doctype, fields=None, filters=None, order_by=None,
-	limit_start=None, limit_page_length=20, parent=None, debug=False, as_dict=True):
+	limit_start=None, limit_page_length=20, parent=None, debug=False, as_dict=True, or_filters=None):
 	'''Returns a list of records by filters, fields, ordering and limit
 
 	:param doctype: DocType of the data to be queried
@@ -37,6 +37,7 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 		doctype=doctype,
 		fields=fields,
 		filters=filters,
+		or_filters=or_filters,
 		order_by=order_by,
 		limit_start=limit_start,
 		limit_page_length=limit_page_length,

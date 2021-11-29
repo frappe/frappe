@@ -99,7 +99,7 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
-		#'load-error-handling': 'ignore'
+		# 'load-error-handling': 'ignore'
 	})
 
 	if not options.get("margin-right"):
@@ -115,8 +115,21 @@ def prepare_options(html, options):
 	options.update(get_cookie_options())
 
 	# page size
-	if not options.get("page-size"):
-		options['page-size'] = frappe.db.get_single_value("Print Settings", "pdf_page_size") or "A4"
+	pdf_page_size = (
+		options.get("page-size")
+		or frappe.db.get_single_value("Print Settings", "pdf_page_size")
+		or "A4"
+	)
+
+	if pdf_page_size == "Custom":
+		options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_height"
+		)
+		options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_width"
+		)
+	else:
+		options["page-size"] = pdf_page_size
 
 	return html, options
 

@@ -386,6 +386,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.$charts_wrapper.addClass('hidden');
 			this.save_view_user_settings(
 				{ chart_args: null });
+			this.chart_args = null;
 		}
 	}
 
