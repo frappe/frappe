@@ -22,11 +22,11 @@ class MariaDBDatabase(Database):
 	def setup_type_map(self):
 		self.db_type = 'mariadb'
 		self.type_map = {
-			'Currency':		('decimal', '18,6'),
+			'Currency':		('decimal', '21,9'),
 			'Int':			('int', '11'),
 			'Long Int':		('bigint', '20'),
-			'Float':		('decimal', '18,6'),
-			'Percent':		('decimal', '18,6'),
+			'Float':		('decimal', '21,9'),
+			'Percent':		('decimal', '21,9'),
 			'Check':		('int', '1'),
 			'Small Text':	('text', ''),
 			'Long Text':	('longtext', ''),
@@ -51,7 +51,7 @@ class MariaDBDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('longtext', ''),
 			'Geolocation':	('longtext', ''),
-			'Duration':		('decimal', '18,6')
+			'Duration':		('decimal', '21,9')
 		}
 
 	def get_connection(self):

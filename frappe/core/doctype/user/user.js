@@ -263,6 +263,7 @@ frappe.ui.form.on('User', {
 			callback: function(r) {
 				if (r.message) {
 					frappe.msgprint(__("Save API Secret: {0}", [r.message.api_secret]));
+					frm.reload_doc();
 				}
 			}
 		});

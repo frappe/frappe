@@ -85,6 +85,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		add_attachments(comm.name, attachments)
 
 	if cint(send_email):
+		# Raise error if outgoing email account is missing
+		_ = frappe.email.smtp.get_outgoing_email_account(append_to=comm.doctype, sender=comm.sender)
 		frappe.flags.print_letterhead = cint(print_letterhead)
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
@@ -138,7 +140,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 			recipients=recipients, cc=cc, bcc=None)
 	else:
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
-			communication_name=doc.name,
+			enqueue_after_commit=True, communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, bcc=bcc, lang=frappe.local.lang,
 			session=frappe.local.session, print_letterhead=frappe.flags.print_letterhead)

@@ -141,7 +141,7 @@ class Leaderboard {
 	}
 
 	create_date_range_field() {
-		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title=${__('Timespan')}]`);
+		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title="${__('Timespan')}"]`);
 		this.date_range_field = $(`<div class="from-date-field"></div>`).insertAfter(timespan_field).hide();
 
 		let date_field = frappe.ui.form.make_control({

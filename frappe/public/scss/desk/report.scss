@@ -84,37 +84,15 @@
 	margin-bottom: 10px;
 }
 
-.layout-main-section {
-	--report-filter-height: 0px;
-	--report-total-height: 275px;
-}
-
 .report-wrapper {
 	overflow: auto;
-
-	.datatable {
-		height: calc(100vh - var(--report-filter-height) - 205px);
-
-		.dt-scrollable {
-			height: calc(100vh - var(--report-filter-height) - var(--report-total-height));
-		}
-	}
 }
 
 .report-view {
 	.result {
-		min-height: 50vh !important;
 		.dt-row:last-child:not(.dt-row-filter) {
 			.dt-cell {
 				border-bottom: 1px solid var(--border-color);
-			}
-		}
-
-		.datatable {
-			height: calc(100vh - var(--report-filter-height) - 225px);
-
-			.dt-scrollable {
-				height: calc(100vh - var(--report-filter-height) - 295px);
 			}
 		}
 	}

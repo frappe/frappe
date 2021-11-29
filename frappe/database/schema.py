@@ -305,6 +305,8 @@ def get_definition(fieldtype, precision=None, length=None):
 	size = d[1] if d[1] else None
 
 	if size:
+		# This check needs to exist for backward compatibility.
+		# Till V13, default size used for float, currency and percent are (18, 6).
 		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
 			size = '21,9'
 

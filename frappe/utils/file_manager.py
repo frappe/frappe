@@ -308,6 +308,9 @@ def get_file(fname):
 
 def get_file_path(file_name):
 	"""Returns file path from given file name"""
+	if '../' in file_name:
+		return
+
 	f = frappe.db.sql("""select file_url from `tabFile`
 		where name=%s or file_name=%s""", (file_name, file_name))
 	if f:

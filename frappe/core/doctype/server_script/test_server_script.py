@@ -62,6 +62,16 @@ conditions = '1 = 1'
 		script = '''
 frappe.method_that_doesnt_exist("do some magic")
 '''
+	),
+	dict(
+		name='test_todo_commit',
+		script_type = 'DocType Event',
+		doctype_event = 'Before Save',
+		reference_doctype = 'ToDo',
+		disabled = 1,
+		script = '''
+frappe.db.commit()
+'''
 	)
 ]
 class TestServerScript(unittest.TestCase):
@@ -121,3 +131,13 @@ class TestServerScript(unittest.TestCase):
 
 		self.assertTrue("invalid python code" in str(se.exception).lower(),
 				msg="Python code validation not working")
+
+	def test_commit_in_doctype_event(self):
+		server_script = frappe.get_doc('Server Script', 'test_todo_commit')
+		server_script.disabled = 0
+		server_script.save()
+
+		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype='ToDo', description='test me')).insert)
+
+		server_script.disabled = 1
+		server_script.save()

@@ -166,6 +166,7 @@ frappe.views.TreeView = Class.extend({
 			after_make_node_element: this.opts.after_make_node_element,
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
+			on_get_node: this.opts.on_get_node,
 			on_click: (node) => { this.select_node(node); },
 		});
 
