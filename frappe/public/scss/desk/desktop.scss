@@ -905,6 +905,10 @@ body {
 				padding-left: 0;
 				padding-right: 0;
 
+				b span {
+					font-weight: 700 !important;
+				}
+
 				&.ce-block--selected {
 					.ce-block__content {
 						background-color: inherit;
@@ -1049,6 +1053,10 @@ body {
 			.icon {
 				fill: currentColor;
 			}
+
+			svg {
+				stroke: none;
+			}
 		}
 
 		@media (min-width: 1199px) {
@@ -1083,4 +1091,62 @@ body {
 		}
 
 	}
+
+	.cdx-marker {
+		background: rgba(245,235,111,0.29);
+		padding: 3px 0;
+	}
+
+	.header-inline-tool {
+		border: none;
+		background-color: transparent;
+		margin-bottom: 2px;
+	}
+
+	.header-level-select {
+		display: flex;
+		flex-direction: column;
+		padding: 6px;
+	}
+
+	.header-level-select .header-level {
+		border: none;
+		background-color: transparent;
+		border-radius: var(--border-radius-sm);
+		padding: 6px;
+		margin: 2px 0px;
+
+		&:hover {
+			background-color: var(--fg-hover-color);
+		}
+	}
+
+	.dropdown-btn {
+		position: relative;
+	}
+
+	.dropdown-list {
+		position: absolute;
+		background-color: white;
+		box-shadow: var(--shadow-base);
+		border-radius: var(--border-radius-sm);
+		padding: 6px;
+		top: 30px;
+		right: 0;
+		width: 150px;
+		z-index: 1;
+	}
+
+	.dropdown-list .dropdown-item {
+		cursor: pointer;
+		padding: 6px 10px;
+		font-size: small;
+		border-radius: var(--border-radius-sm);
+		margin: 1px 0px;	
+	}
+
+	.dropdown-item-icon {
+		margin-right: 5px;
+	}
+
 }

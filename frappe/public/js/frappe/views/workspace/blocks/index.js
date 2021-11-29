@@ -9,6 +9,7 @@ import Onboarding from "./onboarding";
 
 // import tunes
 import SpacingTune from "./spacing_tune";
+import HeaderSize from "./header_size";
 
 frappe.provide("frappe.wspace_block");
 
@@ -23,5 +24,6 @@ frappe.wspace_block.blocks = {
 };
 
 frappe.wspace_block.tunes = {
-	spacing_tune: SpacingTune
+	spacing_tune: SpacingTune,
+	header_size: HeaderSize,
 };

@@ -433,7 +433,7 @@ frappe.views.Workspace = class Workspace {
 				sidebar_control
 			);
 			frappe.utils.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
+				frappe.utils.icon('delete-active', 'xs'),
 				() => this.delete_page(item),
 				"delete-page",
 				`${__('Delete')}`,
@@ -643,14 +643,14 @@ frappe.views.Workspace = class Workspace {
 		this.tools = {
 			header: {
 				class: this.blocks['header'],
-				inlineToolbar: true,
+				inlineToolbar: ['HeaderSize', 'bold', 'italic', 'link'],
 				config: {
-					defaultLevel: 4
+					default_size: 4
 				}
 			},
 			paragraph: {
 				class: this.blocks['paragraph'],
-				inlineToolbar: true
+				inlineToolbar: ['HeaderSize', 'bold', 'italic', 'link']
 			},
 			chart: {
 				class: this.blocks['chart'],
@@ -677,7 +677,7 @@ frappe.views.Workspace = class Workspace {
 				}
 			},
 			spacer: this.blocks['spacer'],
-			spacingTune: frappe.wspace_block.tunes['spacing_tune'],
+			HeaderSize: frappe.wspace_block.tunes['header_size'],
 		};
 		this.editor = new EditorJS({
 			data: {
@@ -685,7 +685,6 @@ frappe.views.Workspace = class Workspace {
 			},
 			tools: this.tools,
 			autofocus: false,
-			tunes: ['spacingTune'],
 			readOnly: true,
 			logLevel: 'ERROR'
 		});

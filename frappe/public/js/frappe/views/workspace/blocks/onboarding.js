@@ -56,7 +56,7 @@ export default class Onboarding extends Block {
 				this.block_widget.customize(this.options);
 				this.wrapper.setAttribute(block_name, this.block_widget.label || this.block_widget.onboarding_name);
 				this.new_block_widget = this.block_widget.get_config();
-				this.add_tune_button();
+				this.add_settings_button();
 			},
 		});
 
@@ -106,7 +106,7 @@ export default class Onboarding extends Block {
 		}
 
 		if (!this.readOnly) {
-			this.add_tune_button();
+			// this.add_tune_button();
 		}
 		$(this.wrapper).css("padding-bottom", "20px");
 		return this.wrapper;

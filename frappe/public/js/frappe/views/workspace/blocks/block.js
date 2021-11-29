@@ -82,6 +82,164 @@ export default class Block {
 		}
 	}
 
+	new(block, widget_type = block) {
+		const dialog_class = get_dialog_constructor(widget_type);
+		let block_name = block+'_name';
+		this.dialog = new dialog_class({
+			label: this.label,
+			type: widget_type,
+			primary_action: (widget) => {
+				widget.in_customize_mode = 1;
+				this.block_widget = frappe.widget.make_widget({
+					...widget,
+					widget_type: widget_type,
+					container: this.wrapper,
+					options: {
+						...this.options,
+						on_delete: () => this.api.blocks.delete(),
+						on_edit: () => this.on_edit(this.block_widget)
+					}
+				});
+				this.block_widget.customize(this.options);
+				this.wrapper.setAttribute(block_name, this.block_widget.label);
+				this.new_block_widget = this.block_widget.get_config();
+				this.add_settings_button();
+			},
+		});
+
+		if (!this.readOnly && this.data && !this.data[block_name]) {
+			this.dialog.make();
+		}
+	}
+
+	on_edit(block_obj) {
+		let block_name = block_obj.edit_dialog.type+'_name';
+		if (block_obj.edit_dialog.type == 'links') {
+			block_name = 'card_name';
+		}
+		let block = block_obj.get_config();
+		this.block_widget.widgets = block;
+		this.wrapper.setAttribute(block_name, block.label);
+		this.new_block_widget = block_obj.get_config();
+	}
+
+	add_settings_button() {
+		this.dropdown_list = [
+			{
+				label: 'Delete',
+				title: 'Delete Block',
+				icon: frappe.utils.icon('delete-active', 'sm'),
+				action: () => this.api.blocks.delete()
+			},
+			{
+				label: 'Move Up',
+				title: 'Move Up',
+				icon: frappe.utils.icon('up-arrow', 'sm'),
+				action: () => this.move_block('up')
+			},
+			{
+				label: 'Move Down',
+				title: 'Move Down',
+				icon: frappe.utils.icon('down-arrow', 'sm'),
+				action: () => this.move_block('down')
+			},
+			{
+				label: 'Expand',
+				title: 'Expand Block',
+				icon: frappe.utils.icon('expand-alt', 'sm'),
+				action: () => this.increase_width()
+			},
+			{
+				label: 'Shrink',
+				title: 'Shrink Block',
+				icon: frappe.utils.icon('shrink', 'sm'),
+				action: () => this.decrease_width()
+			}
+		]
+
+		let $widget_control = $(this.wrapper).find('.widget-control');
+
+		let $button = $(`
+			<div class="dropdown-btn">
+				<button class="btn btn-secondary btn-xs setting-btn" title="${__('Setting')}">
+					${frappe.utils.icon('dot-horizontal', 'xs')}
+				</button>
+				<div class="dropdown-list hidden"></div>
+			</div>
+		`);
+
+
+		let dropdown_item = function(label, title, icon, action) {
+			let html = $(`
+				<div class="dropdown-item" title="${title}">
+					<span class="dropdown-item-icon">${icon}</span>
+					<span class="dropdown-item-label">${label}</span>
+				</div>
+			`);
+
+			html.click(event => {
+				event.stopPropagation();
+				action && action();
+			});
+
+			return html;
+		}
+
+		$button.click(event => {
+			event.stopPropagation();
+			$button.find('.dropdown-list').toggleClass('hidden');
+		});
+
+		$(document).click(event => {
+			$button.find('.dropdown-list').addClass('hidden');
+		})
+
+		$widget_control.prepend($button);
+
+		this.dropdown_list.forEach((item) => {
+			$button.find('.dropdown-list').append(dropdown_item(item.label, item.title, item.icon, item.action));
+		})
+	}
+
+	add_tune_button() {
+		let $widget_control = $(this.wrapper).find('.widget-control');
+		frappe.utils.add_custom_button(
+			frappe.utils.icon('dot-horizontal', 'xs'),
+			(event) => {
+				let evn = event;
+				!$('.ce-settings.ce-settings--opened').length &&
+				setTimeout(() => {
+					this.api.toolbar.toggleBlockSettings();
+					var position = $(evn.target).offset();
+					$('.ce-settings.ce-settings--opened').offset({
+						top: position.top + 25,
+						left: position.left - 77
+					});
+				}, 50);
+			},
+			"tune-btn",
+			`${__('Tune')}`,
+			null,
+			$widget_control,
+			true
+		);
+	}
+
+	get_col() {
+		let col = this.col || 12;
+		let class_name = "col-12";
+		let wrapper = this.wrapper.closest('.ce-block');
+		const col_class = new RegExp(/\bcol-.+?\b/, "g");
+		if (wrapper && wrapper.className.match(col_class)) {
+			wrapper.classList.forEach(function (cn) {
+				cn.match(col_class) && (class_name = cn);
+			});
+			let parts = class_name.split("-");
+			col = parseInt(parts[1]);
+		}
+		return col;
+	}
+
 	decrease_width() {
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
@@ -146,83 +304,9 @@ export default class Block {
 		}
 	}
 
-	new(block, widget_type = block) {
-		const dialog_class = get_dialog_constructor(widget_type);
-		let block_name = block+'_name';
-		this.dialog = new dialog_class({
-			label: this.label,
-			type: widget_type,
-			primary_action: (widget) => {
-				widget.in_customize_mode = 1;
-				this.block_widget = frappe.widget.make_widget({
-					...widget,
-					widget_type: widget_type,
-					container: this.wrapper,
-					options: {
-						...this.options,
-						on_delete: () => this.api.blocks.delete(),
-						on_edit: () => this.on_edit(this.block_widget)
-					}
-				});
-				this.block_widget.customize(this.options);
-				this.wrapper.setAttribute(block_name, this.block_widget.label);
-				this.new_block_widget = this.block_widget.get_config();
-				this.add_tune_button();
-			},
-		});
-
-		if (!this.readOnly && this.data && !this.data[block_name]) {
-			this.dialog.make();
-		}
-	}
-
-	on_edit(block_obj) {
-		let block_name = block_obj.edit_dialog.type+'_name';
-		if (block_obj.edit_dialog.type == 'links') {
-			block_name = 'card_name';
-		}
-		let block = block_obj.get_config();
-		this.block_widget.widgets = block;
-		this.wrapper.setAttribute(block_name, block.label);
-		this.new_block_widget = block_obj.get_config();
-	}
-
-	add_tune_button() {
-		let $widget_control = $(this.wrapper).find('.widget-control');
-		frappe.utils.add_custom_button(
-			frappe.utils.icon('dot-horizontal', 'xs'),
-			(event) => {
-				let evn = event;
-				!$('.ce-settings.ce-settings--opened').length &&
-				setTimeout(() => {
-					this.api.toolbar.toggleBlockSettings();
-					var position = $(evn.target).offset();
-					$('.ce-settings.ce-settings--opened').offset({
-						top: position.top + 25,
-						left: position.left - 77
-					});
-				}, 50);
-			},
-			"tune-btn",
-			`${__('Tune')}`,
-			null,
-			$widget_control,
-			true
-		);
-	}
-
-	get_col() {
-		let col = this.col || 12;
-		let class_name = "col-12";
-		let wrapper = this.wrapper.closest('.ce-block');
-		const col_class = new RegExp(/\bcol-.+?\b/, "g");
-		if (wrapper && wrapper.className.match(col_class)) {
-			wrapper.classList.forEach(function (cn) {
-				cn.match(col_class) && (class_name = cn);
-			});
-			let parts = class_name.split("-");
-			col = parseInt(parts[1]);
-		}
-		return col;
+	move_block(direction) {
+		let current_index = this.api.blocks.getCurrentBlockIndex();
+		let new_index = current_index + (direction == 'down' ? 1 : -1);
+		this.api.blocks.move(new_index, current_index);
 	}
 }

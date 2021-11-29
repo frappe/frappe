@@ -55,7 +55,7 @@ export default class Paragraph extends Block {
 	render() {
 		this.wrapper = document.createElement('div');
 		if (!this.readOnly) {
-			let $para_control = $(`<div class="paragraph-control"></div>`);
+			let $para_control = $(`<div class="widget-control paragraph-control"></div>`);
 
 			this.wrapper.appendChild(this._element);
 			this._element.classList.remove('widget');
@@ -63,25 +63,26 @@ export default class Paragraph extends Block {
 			
 			this.wrapper.classList.add('widget', 'paragraph');
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('dot-horizontal', 'xs'),
-				(event) => {
-					let evn = event;
-					!$('.ce-settings.ce-settings--opened').length &&
-					setTimeout(() => {
-						this.api.toolbar.toggleBlockSettings();
-						var position = $(evn.target).offset();
-						$('.ce-settings.ce-settings--opened').offset({
-							top: position.top + 25,
-							left: position.left - 77
-						});
-					}, 50);
-				},
-				"tune-btn",
-				`${__('Tune')}`,
-				null,
-				$para_control
-			);
+			this.add_settings_button();
+			// frappe.utils.add_custom_button(
+			// 	frappe.utils.icon('dot-horizontal', 'xs'),
+			// 	(event) => {
+			// 		let evn = event;
+			// 		!$('.ce-settings.ce-settings--opened').length &&
+			// 		setTimeout(() => {
+			// 			this.api.toolbar.toggleBlockSettings();
+			// 			var position = $(evn.target).offset();
+			// 			$('.ce-settings.ce-settings--opened').offset({
+			// 				top: position.top + 25,
+			// 				left: position.left - 77
+			// 			});
+			// 		}, 50);
+			// 	},
+			// 	"tune-btn",
+			// 	`${__('Tune')}`,
+			// 	null,
+			// 	$para_control
+			// );
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
@@ -92,14 +93,14 @@ export default class Paragraph extends Block {
 				$para_control
 			);
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
-				() => this.api.blocks.delete(),
-				"delete-paragraph",
-				`${__('Delete')}`,
-				null,
-				$para_control
-			);
+			// frappe.utils.add_custom_button(
+			// 	frappe.utils.icon('delete-active', 'xs'),
+			// 	() => this.api.blocks.delete(),
+			// 	"delete-paragraph",
+			// 	`${__('Delete')}`,
+			// 	null,
+			// 	$para_control
+			// );
 
 			return this.wrapper;
 		}
@@ -144,12 +145,12 @@ export default class Paragraph extends Block {
 		this.data = data;
 	}
 
-	static get conversionConfig() {
-		return {
-			export: 'text', // to convert Paragraph to other block, use 'text' property of saved data
-			import: 'text' // to covert other block's exported string to Paragraph, fill 'text' property of tool data
-		};
-	}
+	// static get conversionConfig() {
+	// 	return {
+	// 		export: 'text', // to convert Paragraph to other block, use 'text' property of saved data
+	// 		import: 'text' // to covert other block's exported string to Paragraph, fill 'text' property of tool data
+	// 	};
+	// }
 
 	static get sanitize() {
 		return {
@@ -157,7 +158,8 @@ export default class Paragraph extends Block {
 				br: true,
 				b: true,
 				i: true,
-				a: true
+				a: true,
+				span: true
 			}
 		};
 	}

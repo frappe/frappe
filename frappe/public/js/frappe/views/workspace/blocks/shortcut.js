@@ -34,7 +34,7 @@ export default class Shortcut extends Block {
 		}
 
 		if (!this.readOnly) {
-			this.add_tune_button();
+			this.add_settings_button();
 		}
 		return this.wrapper;
 	}

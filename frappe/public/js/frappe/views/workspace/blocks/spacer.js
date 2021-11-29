@@ -33,25 +33,26 @@ export default class Spacer extends Block {
 
 			let $widget_control = $spacer.find('.widget-control');
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('dot-horizontal', 'xs'),
-				(event) => {
-					let evn = event;
-					!$('.ce-settings.ce-settings--opened').length &&
-					setTimeout(() => {
-						this.api.toolbar.toggleBlockSettings();
-						var position = $(evn.target).offset();
-						$('.ce-settings.ce-settings--opened').offset({
-							top: position.top + 25,
-							left: position.left - 77
-						});
-					}, 50);
-				},
-				"tune-btn",
-				`${__('Tune')}`,
-				null,
-				$widget_control
-			);
+			this.add_settings_button();
+			// frappe.utils.add_custom_button(
+			// 	frappe.utils.icon('dot-horizontal', 'xs'),
+			// 	(event) => {
+			// 		let evn = event;
+			// 		!$('.ce-settings.ce-settings--opened').length &&
+			// 		setTimeout(() => {
+			// 			this.api.toolbar.toggleBlockSettings();
+			// 			var position = $(evn.target).offset();
+			// 			$('.ce-settings.ce-settings--opened').offset({
+			// 				top: position.top + 25,
+			// 				left: position.left - 77
+			// 			});
+			// 		}, 50);
+			// 	},
+			// 	"tune-btn",
+			// 	`${__('Tune')}`,
+			// 	null,
+			// 	$widget_control
+			// );
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
@@ -62,14 +63,14 @@ export default class Spacer extends Block {
 				$widget_control
 			);
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
-				() => this.api.blocks.delete(),
-				"delete-spacer",
-				`${__('Delete')}`,
-				null,
-				$widget_control
-			);
+			// frappe.utils.add_custom_button(
+			// 	frappe.utils.icon('delete-active', 'xs'),
+			// 	() => this.api.blocks.delete(),
+			// 	"delete-spacer",
+			// 	`${__('Delete')}`,
+			// 	null,
+			// 	$widget_control
+			// );
 		}
 		return this.wrapper;
 	}
