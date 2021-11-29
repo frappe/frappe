@@ -325,7 +325,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let parent_names = this.child_datatable.rowmanager.checkMap.reduce((parent_names, checked, index) => {
 			if (checked == 1) {
 				const parent_name = this.child_results[index].parent;
-				parent_names.push(parent_name);
+				if (!parent_names.includes(parent_name)) {
+					parent_names.push(parent_name);
+				}
 			}
 			return parent_names;
 		}, []);
