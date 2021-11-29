@@ -567,8 +567,8 @@ class BaseDocument(object):
 				if not frappe.get_meta(doctype).get('is_virtual'):
 					if not fields_to_fetch:
 						# cache a single value type
-						values = frappe._dict(name=frappe.db.get_value(doctype, docname,
-							'name', cache=True))
+						values = frappe.db.get_value(doctype, docname,
+							'name', cache=True, as_dict = True)
 					else:
 						values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1].lower() #lowercase column for postgres
 							for _df in fields_to_fetch]
