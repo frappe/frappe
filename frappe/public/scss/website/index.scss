@@ -190,8 +190,8 @@ h5.modal-title {
 }
 
 .hidden-xs {
-	@extend .d-none;
-	@extend .d-sm-block;
+	@extend .d-block;
+	@extend .d-sm-none;
 }
 
 .visible-xs {
@@ -212,6 +212,10 @@ h5.modal-title {
 
 .pull-right {
 	float: right;
+}
+
+.pull-left {
+	float: left;
 }
 
 .image-with-blur {

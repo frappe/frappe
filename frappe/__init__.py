@@ -35,7 +35,7 @@ from frappe.query_builder import get_query_builder, patch_query_execute
 # Lazy imports
 faker = lazy_import('faker')
 
-__version__ = '13.11.0'
+__version__ = '13.15.0'
 
 __title__ = "Frappe Framework"
 
@@ -46,7 +46,8 @@ class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		ret = self.get(key)
-		if not ret and key.startswith("__"):
+		# "__deepcopy__" exception added to fix frappe#14833 via DFP
+		if not ret and key.startswith("__") and key != "__deepcopy__":
 			raise AttributeError()
 		return ret
 	def __setattr__(self, key, value):
@@ -233,12 +234,13 @@ def connect_replica():
 	from frappe.database import get_db
 	user = local.conf.db_name
 	password = local.conf.db_password
+	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password)
+	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -487,11 +489,11 @@ def get_request_header(key, default=None):
 	:param default: Default value."""
 	return request.headers.get(key, default)
 
-def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
+def sendmail(recipients=None, sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, add_unsubscribe_link=1,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None, queue_separately=False,
-		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
+		cc=None, bcc=None, message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
 		inline_images=None, template=None, args=None, header=None, print_letterhead=False, with_container=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
@@ -521,6 +523,14 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
 	"""
+
+	if recipients is None:
+		recipients = []
+	if cc is None:
+		cc = []
+	if bcc is None:
+		bcc = []
+
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
@@ -1474,7 +1484,10 @@ def get_value(*args, **kwargs):
 
 def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
-	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	try:
+		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	except TypeError:
+		return json.dumps(obj, indent=indent, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint

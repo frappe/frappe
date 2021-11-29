@@ -39,6 +39,7 @@ frappe.ui.Tree = class {
 				method: this.method,
 				args: args,
 				callback: (r) => {
+					this.on_get_node && this.on_get_node(r.message);
 					resolve(r.message);
 				}
 			});
@@ -58,6 +59,7 @@ frappe.ui.Tree = class {
 				method: 'frappe.desk.treeview.get_all_nodes',
 				args: args,
 				callback: (r) => {
+					this.on_get_node && this.on_get_node(r.message, true);
 					resolve(r.message);
 				}
 			});
