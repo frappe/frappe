@@ -1,8 +1,12 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
+
 import frappe
+from frappe.deferred_insert import deferred_insert
 from frappe.model.document import Document
+
 
 class RouteHistory(Document):
 	pass
@@ -35,3 +39,19 @@ def flush_old_route_records():
 			"modified": ("<=", last_record_to_keep[0].modified),
 			"user": user
 		})
+
+@frappe.whitelist()
+def deferred_insert_route_history(routes):
+	routes_record = []
+
+	if isinstance(routes, str):
+		routes = json.loads(routes)
+
+	for route_doc in routes:
+		routes_record.append({
+			"user": frappe.session.user,
+			"route": route_doc.get("route"),
+			"creation": route_doc.get("creation")
+		})
+
+	deferred_insert("Route History", json.dumps(routes_record))
