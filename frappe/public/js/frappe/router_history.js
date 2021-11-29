@@ -5,14 +5,6 @@ const routes_to_skip = ['Form', 'social', 'setup-wizard'];
 const save_routes = frappe.utils.debounce(() => {
 	const routes = frappe.route_history_queue;
 	frappe.route_history_queue = [];
-<<<<<<< HEAD
-	frappe.xcall('frappe.deferred_insert.deferred_insert', {
-		'doctype': 'Route History',
-		'records': routes
-	}).catch(() => {
-		frappe.route_history_queue.concat(routes);
-	});
-=======
 
 	if (!routes.length) return;
 
@@ -22,7 +14,6 @@ const save_routes = frappe.utils.debounce(() => {
 		frappe.route_history_queue.concat(routes);
 	});
 
->>>>>>> 0e32d52e3a (fix: Use separate API to insert route history)
 }, 10000);
 
 frappe.route.on('change', () => {

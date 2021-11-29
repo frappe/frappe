@@ -2,12 +2,10 @@
 # Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-<<<<<<< HEAD
 from __future__ import unicode_literals
-=======
+
 import json
 
->>>>>>> 0e32d52e3a (fix: Use separate API to insert route history)
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
@@ -47,9 +45,6 @@ def flush_old_route_records():
 		''', {
 			"modified": last_record_to_keep[0].modified,
 			"user": user
-<<<<<<< HEAD
-		})
-=======
 		})
 
 @frappe.whitelist()
@@ -65,10 +60,4 @@ def deferred_insert(routes):
 			"route": route_doc.get("route"),
 			"creation": route_doc.get("creation")
 		})
-
-<<<<<<< HEAD
-	deferred_insert("Route History", json.dumps(routes_record))
->>>>>>> 0e32d52e3a (fix: Use separate API to insert route history)
-=======
 	_deferred_insert("Route History", json.dumps(routes_record))
->>>>>>> aa40abadb1 (refactor: Simplify method naming)
