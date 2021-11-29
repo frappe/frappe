@@ -67,3 +67,14 @@ def patch_query_execute():
 		raise BuilderIdentificationFailed
 
 	builder_class.run = execute_query
+
+
+def patch_query_aggregation():
+	"""Patch aggregation functions to frappe.qb
+	"""
+	from frappe.query_builder.functions import _max, _min, _avg, _sum
+
+	frappe.qb.max = _max
+	frappe.qb.min = _min
+	frappe.qb.avg = _avg
+	frappe.qb.sum = _sum
