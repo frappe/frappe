@@ -95,6 +95,7 @@
    "fieldname": "time_zone",
    "fieldtype": "Select",
    "label": "Time Zone",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -467,7 +468,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-10-21 19:24:15.232430",
+ "modified": "2021-11-29 17:49:20.950033",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
