@@ -520,7 +520,13 @@ frappe.Application = Class.extend({
 		};
 	},
 
+<<<<<<< HEAD
 	show_update_available: () => {
+=======
+	show_update_available() {
+		if (frappe.boot.sysdefaults.disable_system_update_notification) return;
+
+>>>>>>> db4476fc5f (fix: reduce api call)
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
 		});

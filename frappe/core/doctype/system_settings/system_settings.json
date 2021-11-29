@@ -494,6 +494,7 @@
    "label": "Encrypt Backups"
   },
   {
+   "collapsible": 1,
    "fieldname": "system_updates_section",
    "fieldtype": "Section Break",
    "label": "System Updates"
@@ -510,10 +511,14 @@
  "issingle": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2021-08-11 09:04:43.856970",
 =======
  "modified": "2021-11-27 01:17:05.228959",
 >>>>>>> ae31a0d6fb (feat: add option to disable notification)
+=======
+ "modified": "2021-11-29 18:09:53.601629",
+>>>>>>> db4476fc5f (fix: reduce api call)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
