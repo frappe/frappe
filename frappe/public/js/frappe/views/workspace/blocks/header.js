@@ -36,7 +36,6 @@ export default class Header extends Block {
 
 	render() {
 		this.wrapper = document.createElement('div');
-		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
 		if (!this.readOnly) {
 			let $widget_head = $(`<div class="widget-head"></div>`);
 			let $widget_control = $(`<div class="widget-control"></div>`);
@@ -146,16 +145,17 @@ export default class Header extends Block {
 		return blockData.text.trim() !== '';
 	}
 
-	save(toolsContent) {
+	save() {
 		this.wrapper = this._element;
 		return {
-			text: toolsContent.innerText,
+			text: this.wrapper.innerText,
 			level: this.currentLevel.number,
 			col: this.get_col()
 		};
 	}
 
 	rendered() {
+		!this.readOnly && this.resizer(this._element);
 		var e = this._element.closest('.ce-block');
 		e.classList.add("col-" + this.get_col());
 	}

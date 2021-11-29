@@ -143,6 +143,7 @@ body {
 				font-weight: 500;
 				line-height: 1.3em;
 				color: var(--heading-color);
+				cursor: default;
 
 				svg {
 					flex: none;
@@ -923,10 +924,23 @@ body {
 						pointer-events: none;
 					}
 
+					.resizer {
+						width: 10px; 
+						height: 100%;
+						position:absolute; 
+						right: 0; 
+						bottom: 0; 
+						cursor: col-resize; 
+					}
+
 					.ce-header {
 						padding: 0 !important;
 						margin-bottom: 0 !important;
 						flex: 1;
+
+						&:focus { 
+							outline: none; 
+						}
 					}
 
 					.widget{
@@ -940,6 +954,7 @@ body {
 							box-shadow: none;
 							background-color: var(--control-bg);
 							color: var(--text-muted);
+							cursor: text;
 						}
 
 						&:focus {
@@ -952,6 +967,10 @@ body {
 
 						&.ce-paragraph {
 							display: block;
+						}
+
+						&.paragraph {
+							cursor: text;
 						}
 
 						.paragraph-control {

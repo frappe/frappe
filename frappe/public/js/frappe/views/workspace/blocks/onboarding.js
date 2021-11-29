@@ -30,6 +30,7 @@ export default class Onboarding extends Block {
 		if (this.readOnly && !$(this.wrapper).find('.onboarding-widget-box').is(':visible')) {
 			$(e).hide();
 		}
+		!this.readOnly && this.resizer();
 		e.classList.add("col-" + this.get_col());
 	}
 
@@ -119,9 +120,9 @@ export default class Onboarding extends Block {
 		return true;
 	}
 
-	save(blockContent) {
+	save() {
 		return {
-			onboarding_name: blockContent.getAttribute('onboarding_name'),
+			onboarding_name: this.wrapper.getAttribute('onboarding_name'),
 			col: this.get_col(),
 			new: this.new_block_widget
 		};

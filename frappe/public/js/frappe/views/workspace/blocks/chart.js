@@ -49,9 +49,9 @@ export default class Chart extends Block {
 		return true;
 	}
 
-	save(blockContent) {
+	save() {
 		return {
-			chart_name: blockContent.getAttribute('chart_name'),
+			chart_name: this.wrapper.getAttribute('chart_name'),
 			col: this.get_col(),
 			new: this.new_block_widget
 		};

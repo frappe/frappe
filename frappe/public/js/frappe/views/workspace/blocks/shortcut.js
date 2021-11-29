@@ -47,9 +47,9 @@ export default class Shortcut extends Block {
 		return true;
 	}
 
-	save(blockContent) {
+	save() {
 		return {
-			shortcut_name: blockContent.getAttribute('shortcut_name'),
+			shortcut_name: this.wrapper.getAttribute('shortcut_name'),
 			col: this.get_col(),
 			new: this.new_block_widget
 		};

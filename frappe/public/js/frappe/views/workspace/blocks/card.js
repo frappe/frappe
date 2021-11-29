@@ -49,9 +49,9 @@ export default class Card extends Block {
 		return true;
 	}
 
-	save(blockContent) {
+	save() {
 		return {
-			card_name: blockContent.getAttribute('card_name'),
+			card_name: this.wrapper.getAttribute('card_name'),
 			col: this.get_col(),
 			new: this.new_block_widget
 		};

@@ -29,8 +29,121 @@ export default class Block {
 	}
 
 	rendered() {
+		!this.readOnly && this.resizer();
 		var e = this.wrapper.closest('.ce-block');
 		e.classList.add("col-" + this.get_col());
+	}
+
+	resizer(wrapper) {
+		if (wrapper) this.wrapper = wrapper;
+		this.wrapper.className = this.wrapper.className + ' resizable';
+		var resizer = document.createElement('div');
+		resizer.className = 'resizer';
+		this.wrapper.parentElement.appendChild(resizer);
+		resizer.addEventListener('mousedown', init_drag, false);
+		let me = this;
+		var startX, startWidth;
+
+		function init_drag(e) {
+			startX = e.clientX;
+			startWidth = this.parentElement.offsetWidth;
+			document.documentElement.addEventListener('mousemove', do_drag, false);
+			document.documentElement.addEventListener('mouseup', stop_drag, false);
+		}
+		
+		function do_drag(e) {
+			$(this).css("cursor", "col-resize");
+			$('.widget').css("pointer-events", "none");
+			un_focus();
+			if ((startWidth + e.clientX - startX) - startWidth > 60) {
+				startX = e.clientX;
+				me.increase_width();
+			} else if ((startWidth + e.clientX - startX) - startWidth < -60) {
+				startX = e.clientX;
+				me.decrease_width();
+			}
+		}
+
+		// disable text selection on mousedown (on drag)
+		function un_focus() {
+			if (document.selection) {
+				document.selection.empty()
+			} else {
+				window.getSelection().removeAllRanges()
+			}
+		} 
+
+		function stop_drag(e) {
+			$(this).css("cursor", "default");
+			$('.widget').css("pointer-events", "auto");
+
+			document.documentElement.removeEventListener('mousemove', do_drag, false);
+			document.documentElement.removeEventListener('mouseup', stop_drag, false);
+		}
+	}
+
+	decrease_width() {
+		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
+
+		if (currentBlockIndex < 0) {
+			return;
+		}
+
+		let currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
+		if (!currentBlock) {
+			return;
+		}
+
+		let currentBlockElement = currentBlock.holder;
+
+		let className = 'col-12';
+		let colClass = new RegExp(/\bcol-.+?\b/, 'g');
+		if (currentBlockElement.className.match(colClass)) {
+			currentBlockElement.classList.forEach( cn => {
+				if (cn.match(colClass)) {
+					className = cn;
+				}
+			});
+			let parts = className.split('-');
+			let width = parseInt(parts[1]);
+			if (width >= 4) {
+				currentBlockElement.classList.remove('col-'+width);
+				width = width - 1;
+				currentBlockElement.classList.add('col-'+width);
+			}
+		}
+	}
+
+	increase_width() {
+		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
+
+		if (currentBlockIndex < 0) {
+			return;
+		}
+
+		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
+		if (!currentBlock) {
+			return;
+		}
+
+		const currentBlockElement = currentBlock.holder;
+
+		let className = 'col-12';
+		const colClass = new RegExp(/\bcol-.+?\b/, 'g');
+		if (currentBlockElement.className.match(colClass)) {
+			currentBlockElement.classList.forEach( cn => {
+				if (cn.match(colClass)) {
+					className = cn;
+				}
+			});
+			let parts = className.split('-');
+			let width = parseInt(parts[1]);
+			if (width <= 11) {
+				currentBlockElement.classList.remove('col-'+width);
+				width = width + 1;
+				currentBlockElement.classList.add('col-'+width);
+			}
+		}
 	}
 
 	new(block, widget_type = block) {

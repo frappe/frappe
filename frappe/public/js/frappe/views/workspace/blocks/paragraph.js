@@ -54,7 +54,6 @@ export default class Paragraph extends Block {
 
 	render() {
 		this.wrapper = document.createElement('div');
-		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
 		if (!this.readOnly) {
 			let $para_control = $(`<div class="paragraph-control"></div>`);
 
@@ -62,7 +61,7 @@ export default class Paragraph extends Block {
 			this._element.classList.remove('widget');
 			$para_control.appendTo(this.wrapper);
 			
-			this.wrapper.classList.add('widget');
+			this.wrapper.classList.add('widget', 'paragraph');
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('dot-horizontal', 'xs'),
@@ -132,6 +131,7 @@ export default class Paragraph extends Block {
 	}
 
 	rendered() {
+		!this.readOnly && this.resizer(this._element);
 		var e = this._element.closest('.ce-block');
 		e.classList.add("col-" + this.get_col());
 	}
