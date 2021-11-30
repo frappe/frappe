@@ -199,8 +199,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$wrapper.removeClass('modal-minimize');
 
 		if (this.minimizable && this.is_minimized) {
-			$(".modal-backdrop").toggle()
-			this.is_minimized = false
+			$(".modal-backdrop").toggle();
+			this.is_minimized = false;
 		}
 
 		// clear any message
