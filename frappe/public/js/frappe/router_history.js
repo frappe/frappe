@@ -4,9 +4,9 @@ const routes_to_skip = ['Form', 'social', 'setup-wizard'];
 
 const save_routes = frappe.utils.debounce(() => {
 	const routes = frappe.route_history_queue;
-	frappe.route_history_queue = [];
-
 	if (!routes.length) return;
+
+	frappe.route_history_queue = [];
 
 	frappe.xcall('frappe.desk.doctype.route_history.route_history.deferred_insert', {
 		'routes': routes
