@@ -35,6 +35,7 @@ export default class Card extends Block {
 		}
 
 		if (!this.readOnly) {
+			$(this.wrapper).find('.widget').addClass('links edit-mode');
 			this.add_settings_button();
 			this.add_new_block_button();
 		}

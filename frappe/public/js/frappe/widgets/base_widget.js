@@ -100,9 +100,7 @@ export default class Widget {
 	}
 
 	make_widget() {
-		this.widget = $(`<div class="widget
-			${ this.shadow ? "widget-shadow" : " " }
-		" data-widget-name="${this.name ? this.name : ''}">
+		this.widget = $(`<div class="widget" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
 				<div class="widget-label">
 					<div class="widget-title"></div>
@@ -110,10 +108,8 @@ export default class Widget {
 				</div>
 				<div class="widget-control"></div>
 			</div>
-			<div class="widget-body">
-		    </div>
-		    <div class="widget-footer">
-		    </div>
+			<div class="widget-body"></div>
+			<div class="widget-footer"></div>
 		</div>`);
 
 		this.title_field = this.widget.find(".widget-title");

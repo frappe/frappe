@@ -13,7 +13,7 @@ export default class Shortcut extends Block {
 
 	constructor({ data, api, config, readOnly, block }) {
 		super({ data, api, config, readOnly, block });
-		this.col = this.data.col ? this.data.col : "4";
+		this.col = this.data.col ? this.data.col : "3";
 		this.allow_customization = !this.readOnly;
 		this.options = {
 			allow_sorting: this.allow_customization,
@@ -34,8 +34,14 @@ export default class Shortcut extends Block {
 		}
 
 		if (!this.readOnly) {
+			$(this.wrapper).find('.widget').addClass('shortcut edit-mode');
 			this.add_settings_button();
 			this.add_new_block_button();
+		} else {
+			let $shortcut_icon = frappe.utils.icon('arrow-up-right', 'sm', '', 'stroke: grey');
+			$(this.wrapper).find('.widget .widget-title').append($shortcut_icon);
+
+			$(this.wrapper).append($(`<div class="divider"></div>`));
 		}
 		return this.wrapper;
 	}

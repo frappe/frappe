@@ -35,6 +35,7 @@ export default class Chart extends Block {
 		}
 
 		if (!this.readOnly) {
+			$(this.wrapper).find('.widget').addClass('chart edit-mode');
 			this.add_settings_button();
 			this.add_new_block_button();
 		}

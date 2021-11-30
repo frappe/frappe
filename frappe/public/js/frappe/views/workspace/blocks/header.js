@@ -35,7 +35,7 @@ export default class Header extends Block {
 			$widget_control.appendTo($widget_head);
 			$widget_head.appendTo(this.wrapper);
 
-			this.wrapper.classList.add('widget', 'header');
+			this.wrapper.classList.add('widget', 'header', 'edit-mode');
 
 			this.add_settings_button();
 			this.add_new_block_button();

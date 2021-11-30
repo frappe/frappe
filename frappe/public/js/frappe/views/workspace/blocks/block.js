@@ -104,6 +104,7 @@ export default class Block {
 				});
 				this.block_widget.customize(this.options);
 				this.wrapper.setAttribute(block_name, this.block_widget.label);
+				$(this.wrapper).find('.widget').addClass(`${widget_type} edit-mode`);
 				this.new_block_widget = this.block_widget.get_config();
 				this.add_settings_button();
 			},
@@ -134,7 +135,7 @@ export default class Block {
 
 		$new_button.click(event => {
 			event.stopPropagation();
-			let index = this.api.blocks.getCurrentBlockIndex();
+			let index = this.api.blocks.getCurrentBlockIndex() + 1;
 			this.api.blocks.insert('paragraph', {}, {}, index);
 			this.api.caret.setToBlock(index);
 		});
