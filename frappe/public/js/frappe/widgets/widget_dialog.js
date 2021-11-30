@@ -9,6 +9,7 @@ class WidgetDialog {
 		this.setup_dialog_events();
 		this.dialog.show();
 
+		window.cur_dialog = this.dialog;
 		this.editing && this.set_default_values();
 	}
 
