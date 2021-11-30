@@ -260,7 +260,7 @@ def _delete_modules(modules: List[str], dry_run: bool) -> List[str]:
 		print(f"Deleting Module '{module_name}'")
 
 		for doctype in frappe.get_all(
-			"DocType", filters={"module": module_name}, fields=["name", "issingle"]
+			"DocType", filters={"module": module_name, "is_virtual": 0}, fields=["name", "issingle"]
 		):
 			print(f"* removing DocType '{doctype.name}'...")
 
