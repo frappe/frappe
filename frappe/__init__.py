@@ -28,7 +28,11 @@ from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
 
-from frappe.query_builder import get_query_builder, patch_query_execute
+from frappe.query_builder import (
+	get_query_builder,
+	patch_query_execute,
+	patch_query_aggregation,
+)
 
 __version__ = '14.0.0-dev'
 
@@ -211,6 +215,7 @@ def init(site, sites_path=None, new_site=False):
 
 	setup_module_map()
 	patch_query_execute()
+	patch_query_aggregation()
 
 	local.initialised = True
 
@@ -790,7 +795,9 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
 	def get_tables():
-		return db.sql_list("select name from tabDocType where istable=1")
+		return db.get_values(
+			"DocType", filters={"istable": 1}, order_by=None, pluck=True
+		)
 
 	tables = cache().get_value("is_table", get_tables)
 	return doctype in tables
