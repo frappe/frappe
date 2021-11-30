@@ -122,7 +122,7 @@ export default class Header extends Block {
 		const tag = document.createElement('DIV');
 
 		let text = this._data.text || '&nbsp';
-		tag.innerHTML = `<span class="h${this._settings.default_size}">${text}</span>`;
+		tag.innerHTML = `<span class="h${this._settings.default_size}"><b>${text}</b></span>`;
 
 		tag.classList.add('ce-header');
 

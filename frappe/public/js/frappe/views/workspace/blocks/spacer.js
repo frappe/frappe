@@ -18,6 +18,7 @@ export default class Spacer extends Block {
 
 	render() {
 		this.wrapper = document.createElement('div');
+		this.wrapper.classList.add('widget','spacer');
 		if (!this.readOnly) {
 			let $spacer = $(`
 				<div class="widget-head">
@@ -28,7 +29,7 @@ export default class Spacer extends Block {
 			`);
 			$spacer.appendTo(this.wrapper);
 
-			this.wrapper.classList.add('widget', 'spacer', 'edit-mode');
+			this.wrapper.classList.add('edit-mode');
 			this.wrapper.style.minHeight = 40 + 'px';
 
 			let $widget_control = $spacer.find('.widget-control');

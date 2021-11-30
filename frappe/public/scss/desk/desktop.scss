@@ -544,13 +544,13 @@ body {
 				color: var(--blue-500) !important;
 			}
 
-			svg.icon-sm {
+			svg.icon-xs {
 				stroke: var(--blue-500) !important;
 			}
 		}
 
 		.widget-title {
-			gap: 10px;
+			cursor: pointer !important;
 		}
 
 		.indicator-pill {
@@ -816,6 +816,10 @@ body {
 				}
 			}
 
+			.layout-side-section {
+				padding-right: 15px;
+			}
+
 			.layout-main-section {
 				background-color: white;
 				border-radius: var(--border-radius-md);
@@ -941,13 +945,13 @@ body {
 				padding-left: 0;
 				padding-right: 0;
 
-				b span {
-					font-weight: 700 !important;
+				.ce-header b {
+					font-weight: 600 !important;
 				}
 
 				.new-block-button {
 					position: absolute;
-					top: 16px;
+					top: 14px;
 					left: -22px;
 					cursor: pointer;
 					visibility: hidden;
@@ -1090,17 +1094,19 @@ body {
 						}
 
 						&.spacer {
-							align-items: inherit;
-							color: var(--text-muted);
-							border: 1px dashed var(--gray-400);
-							cursor: pointer;
+							&.edit-mode {
+								align-items: inherit;
+								color: var(--text-muted);
+								border: 1px dashed var(--gray-400);
+								cursor: pointer;
 
-							.widget-control > * {
-								width: auto;
-							}
+								.widget-control > * {
+									width: auto;
+								}
 
-							.spacer-left {
-								min-width: 74px;
+								.spacer-left {
+									min-width: 74px;
+								}
 							}
 						}
 
@@ -1122,6 +1128,12 @@ body {
 
 						&.paragraph {
 							cursor: text;
+
+							&.edit-mode {
+								.ce-paragraph {
+									padding: 2px;
+								}
+							}
 						}
 
 						.paragraph-control {
