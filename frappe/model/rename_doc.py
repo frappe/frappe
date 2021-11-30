@@ -80,6 +80,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	rename_versions(doctype, old, new)
 
+	rename_eps_records(doctype, old, new)
+
 	# call after_rename
 	new_doc = frappe.get_doc(doctype, new)
 
@@ -178,6 +180,16 @@ def update_attachments(doctype, old, new):
 def rename_versions(doctype, old, new):
 	frappe.db.sql("""UPDATE `tabVersion` SET `docname`=%s WHERE `ref_doctype`=%s AND `docname`=%s""",
 		(new, doctype, old))
+
+def rename_eps_records(doctype, old, new):
+	epl = frappe.qb.DocType("Energy Point Log")
+	(frappe.qb.update(epl)
+		.set(epl.reference_name, new)
+		.where(
+			(epl.reference_doctype == doctype)
+			& (epl.reference_name == old)
+		)
+	).run()
 
 def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
