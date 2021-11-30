@@ -54,7 +54,7 @@ export default class Block {
 		function do_drag(e) {
 			$(this).css("cursor", "col-resize");
 			$('.widget').css("pointer-events", "none");
-			$(me.wrapper.parentElement).find('.resizer').css("border-right", "3px solid lightgray");
+			$(me.wrapper.parentElement).find('.resizer').css("border-right", "3px solid var(--gray-400)");
 			un_focus();
 			if ((startWidth + e.clientX - startX) - startWidth > 60) {
 				startX = e.clientX;

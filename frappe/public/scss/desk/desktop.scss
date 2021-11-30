@@ -112,7 +112,7 @@ body {
 	position: absolute;
 	top: 18px;
 	right: 0;
-	border-right: 1px solid lightgrey;
+	border-right: 1px solid var(--gray-400);
 }
 
 .widget {
@@ -343,7 +343,7 @@ body {
 		background-color: var(--bg-light-gray);
 
 		&.edit-mode:hover {
-			background-color: white;
+			background-color: var(--fg-color);
 
 			.onboarding-step {
 				&.active,
@@ -440,7 +440,7 @@ body {
 
 				&.active,
 				&:hover {
-					background-color: white;
+					background-color: var(--fg-color);
 
 					.step-index {
 						background-color: var(--bg-light-gray);
@@ -460,7 +460,7 @@ body {
 					height: 20px;
 					width: 20px;
 					color: var(--text-on-light-gray);
-					background-color: white;
+					background-color: var(--fg-color);
 
 					margin-right: var(--margin-sm);
 					border-radius: var(--border-radius-full);
@@ -473,7 +473,7 @@ body {
 						display: none;
 						background-color: var(--primary);
 						.icon use {
-							stroke: var(--white);
+							stroke: var(--var(--fg-color));
 						}
 					}
 
@@ -821,7 +821,7 @@ body {
 			}
 
 			.layout-main-section {
-				background-color: white;
+				background-color: var(--fg-color);
 				border-radius: var(--border-radius-md);
 				padding: var(--padding-sm) var(--padding-md);
 				margin-bottom: var(--margin-sm);
@@ -978,7 +978,7 @@ body {
 
 				&.ce-block--focused {
 					.widget {
-						box-shadow: var(--card-shadow) !important;
+						box-shadow: var(--shadow-base) !important;
 
 						.widget-control > * {
 							width: auto;
@@ -991,7 +991,7 @@ body {
 						}
 
 						&.onboarding {
-							background-color: white;
+							background-color: var(--fg-color);
 
 							.onboarding-step {
 								&.active,
@@ -1041,7 +1041,7 @@ body {
 						transition: border-color 0.3s ease-in-out;
 
 						&:hover {
-							border-right: 3px solid lightgray !important;
+							border-right: 3px solid var(--gray-400) !important;
 						}
 					}
 
@@ -1071,10 +1071,56 @@ body {
 						opacity: 1;
 					}
 
-					.widget{
+					.widget {
+						&.edit-mode {
+							padding: 7px 12px;
 
-						&.edit-mode:hover {
-							box-shadow: var(--shadow-base);
+							&:hover {
+								box-shadow: var(--shadow-base);
+								background-color: var(--fg-color);
+							}
+
+							&.spacer {
+								align-items: inherit;
+								color: var(--text-muted);
+								border: 1px dashed var(--gray-400);
+								cursor: pointer;
+	
+								.widget-control > * {
+									width: auto;
+								}
+	
+								.spacer-left {
+									min-width: 74px;
+								}
+							}
+						}
+
+						&.ce-paragraph {
+							display: block;
+						}
+
+						&.paragraph {
+							cursor: text;
+
+							.ce-paragraph {
+								padding: 2px;
+							}
+
+							.paragraph-control {
+								display: flex;
+								flex-direction: row-reverse;
+								position: absolute;
+								right: 20px;
+								gap: 5px;
+								background-color: var(--card-bg);
+								padding-left: 5px;
+	
+								.drag-handle {
+									cursor: all-scroll;
+									cursor: grabbing;
+								}
+							}
 						}
 
 						&.header {
@@ -1088,67 +1134,17 @@ body {
 							color: var(--text-muted);
 							cursor: text;
 
-							&.edit-mode:hover {
-								background-color: var(--fg-color);
-							}
-						}
-
-						&.spacer {
-							&.edit-mode {
-								align-items: inherit;
-								color: var(--text-muted);
-								border: 1px dashed var(--gray-400);
-								cursor: pointer;
-
-								.widget-control > * {
-									width: auto;
-								}
-
-								.spacer-left {
-									min-width: 74px;
-								}
+							.ce-header {
+								padding-left: 14px !important;
 							}
 						}
 
 						&.shortcut {
 							background-color: var(--control-bg);
-
-							&:hover {
-								background-color: var(--fg-color);
-							}
 						}
 
 						&:focus {
 							outline: none;
-						}
-
-						&.ce-paragraph {
-							display: block;
-						}
-
-						&.paragraph {
-							cursor: text;
-
-							&.edit-mode {
-								.ce-paragraph {
-									padding: 2px;
-								}
-							}
-						}
-
-						.paragraph-control {
-							display: flex;
-							flex-direction: row-reverse;
-							position: absolute;
-							right: 20px;
-							gap: 5px;
-							background-color: var(--card-bg);
-							padding-left: 5px;
-
-							.drag-handle {
-								cursor: all-scroll;
-								cursor: grabbing;
-							}
 						}
 					}
 				}
@@ -1312,7 +1308,7 @@ body {
 
 	.dropdown-list {
 		position: absolute;
-		background-color: white;
+		background-color: var(--fg-color);
 		box-shadow: var(--shadow-base);
 		border-radius: var(--border-radius-sm);
 		padding: 6px;
