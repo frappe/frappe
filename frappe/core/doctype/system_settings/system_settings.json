@@ -66,7 +66,9 @@
   "attach_view_link",
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
-  "prepared_report_expiry_period"
+  "prepared_report_expiry_period",
+  "system_updates_section",
+  "disable_system_update_notification"
  ],
  "fields": [
   {
@@ -463,12 +465,24 @@
    "fieldname": "encrypt_backup",
    "fieldtype": "Check",
    "label": "Encrypt Backups"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "system_updates_section",
+   "fieldtype": "Section Break",
+   "label": "System Updates"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_system_update_notification",
+   "fieldtype": "Check",
+   "label": "Disable System Update Notification"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-11-29 17:49:20.950033",
+ "modified": "2021-11-29 18:09:53.601629",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
