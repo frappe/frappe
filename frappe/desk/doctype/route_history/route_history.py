@@ -52,12 +52,6 @@ def deferred_insert(routes):
 	routes = [
 		{
 			"user": frappe.session.user,
-<<<<<<< HEAD
-			"route": route_doc.get("route"),
-			"creation": route_doc.get("creation")
-		})
-	_deferred_insert("Route History", json.dumps(routes_record))
-=======
 			"route": route.get("route"),
 			"creation": route.get("creation"),
 		}
@@ -65,4 +59,3 @@ def deferred_insert(routes):
 	]
 
 	_deferred_insert("Route History", json.dumps(routes))
->>>>>>> 7047cb8301 (refactor: Deferred insert for route history (#15120))
