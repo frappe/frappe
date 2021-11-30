@@ -134,20 +134,23 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_user: function(val, only_time = false) {
-		if(!val) return "";
+		if (!val) return "";
+		const user_time_fmt = frappe.datetime.get_user_time_fmt();
+		let date_obj = moment(val);
+		let user_format = user_time_fmt;
 
-		var user_time_fmt = frappe.datetime.get_user_time_fmt();
-		if(only_time) {
-			return moment(val, frappe.defaultTimeFormat)
-				.format(user_time_fmt);
-		}
-
-		var user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-		if(typeof val !== "string" || val.indexOf(" ")===-1) {
-			return moment(val).format(user_date_fmt);
+		if (only_time) {
+			date_obj = moment(val, frappe.defaultTimeFormat);
 		} else {
-			return moment(val, "YYYY-MM-DD HH:mm:ss").format(user_date_fmt + " " + user_time_fmt);
+			let user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+			if (typeof val !== "string" || val.indexOf(" ")===-1) {
+				date_obj = moment(val);
+			} else {
+				date_obj = moment(val, "YYYY-MM-DD HH:mm:ss");
+				user_format = user_date_fmt + " " + user_time_fmt;
+			}
 		}
+		return date_obj.tz(frappe.boot.time_zone.user).format(user_format);
 	},
 
 	get_datetime_as_string: function(d) {
