@@ -45,15 +45,15 @@ def get_unseen_likes():
 
 	comment_doctype = DocType("Comment")
 	return frappe.db.count(comment_doctype,
-					filters=(
-						(comment_doctype.comment_type == "Like")
-						& (comment_doctype.modified >= Now() - Interval(years=1))
-						& (comment_doctype.owner.notnull())
-						& (comment_doctype.owner != frappe.session.user)
-						& (comment_doctype.reference_owner == frappe.session.user)
-						& (comment_doctype.seen == 0)
-					)
-				)
+		filters=(
+			(comment_doctype.comment_type == "Like")
+			& (comment_doctype.modified >= Now() - Interval(years=1))
+			& (comment_doctype.owner.notnull())
+			& (comment_doctype.owner != frappe.session.user)
+			& (comment_doctype.reference_owner == frappe.session.user)
+			& (comment_doctype.seen == 0)
+		)
+	)
 
 
 def get_unread_emails():
@@ -68,7 +68,8 @@ def get_unread_emails():
 		.distinct()
 	)
 
-	return frappe.db.count(communication_doctype, filters=(
+	return frappe.db.count(communication_doctype,
+		filters=(
 			(communication_doctype.communication_type == "Communication")
 			& (communication_doctype.communication_medium == "Email")
 			& (communication_doctype.sent_or_received == "Received")
@@ -76,4 +77,5 @@ def get_unread_emails():
 			& (communication_doctype.email_account.isin(distinct_email_accounts))
 			& (communication_doctype.modified >= Now() - Interval(years=1))
 			& (communication_doctype.seen == 0)
-	))
+		)
+	)
