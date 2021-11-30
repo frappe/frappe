@@ -49,16 +49,13 @@ def flush_old_route_records():
 
 @frappe.whitelist()
 def deferred_insert(routes):
-	routes_record = []
-
-	if isinstance(routes, str):
-		routes = json.loads(routes)
-
-	for route_doc in routes:
-		routes_record.append({
+	routes = [
+		{
 			"user": frappe.session.user,
-			"route": route_doc.get("route"),
-			"creation": route_doc.get("creation")
-		})
+			"route": route.get("route"),
+			"creation": route.get("creation"),
+		}
+		for route in frappe.parse_json(routes)
+	]
 
-	_deferred_insert("Route History", json.dumps(routes_record))
+	_deferred_insert("Route History", json.dumps(routes))
