@@ -364,7 +364,11 @@ class User(Document):
 		# delete todos
 		frappe.db.delete("ToDo", {"owner": self.name})
 		todo_table = DocType("ToDo")
-		frappe.qb.update(todo_table).set(todo_table.assigned_by, None).where(todo_table.assigned_by == self.name).run()
+		(
+			frappe.qb.update(todo_table)
+			.set(todo_table.assigned_by, None)
+			.where(todo_table.assigned_by == self.name)
+		).run()
 
 		# delete events
 		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})

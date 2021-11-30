@@ -61,7 +61,12 @@ def get_unread_emails():
 
 	communication_doctype = DocType("Communication")
 	user_doctype = DocType("User")
-	distinct_email_accounts = frappe.qb.from_(user_doctype).select(user_doctype.email_account).where(user_doctype.parent == frappe.session.user).distinct()
+	distinct_email_accounts = (
+		frappe.qb.from_(user_doctype)
+		.select(user_doctype.email_account)
+		.where(user_doctype.parent == frappe.session.user)
+		.distinct()
+	)
 
 	return frappe.db.count(communication_doctype, filters=(
 			(communication_doctype.communication_type == "Communication")
