@@ -129,7 +129,23 @@ frappe.ui.form.on('DocType', {
 		}
 
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
-	}
+	},
+
+	max_attachments: function(frm) {
+		if (!frm.doc.max_attachments) {
+			return;
+		}
+		const is_attach_field = (f) => ["Attach", "Attach Image"].includes(f.fieldtype);
+		const no_of_attach_fields = frm.doc.fields.filter(is_attach_field).length;
+
+		if (no_of_attach_fields > frm.doc.max_attachments) {
+			frm.set_value("max_attachments", no_of_attach_fields);
+			const label = frm.get_docfield("max_attachments").label;
+			frappe.show_alert(
+				__("Number of attachment fields are more than {}, limit updated to {}.", [label, no_of_attach_fields]));
+		}
+	},
+
 });
 
 frappe.ui.form.on("DocField", {
@@ -217,5 +233,9 @@ frappe.ui.form.on("DocField", {
 			$doctype_select.val(curr_value.doctype);
 			update_fieldname_options();
 		}
+	},
+
+	fieldtype: function(frm) {
+		frm.trigger("max_attachments");
 	}
 });
