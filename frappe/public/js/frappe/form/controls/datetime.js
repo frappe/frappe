@@ -40,9 +40,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	format_for_input(value) {
 		if (!value) return "";
 
-		if (!frappe.datetime.is_system_time_zone()) {
-			value = frappe.datetime.convert_to_user_tz(value, true);
-		}
 
 		return frappe.datetime.str_to_user(value, false);
 	}
