@@ -75,7 +75,7 @@ class PersonalDataDeletionRequest(Document):
 
 		frappe.sendmail(
 			recipients=self.email,
-			subject=_("Confirm Deletion of Data"),
+			subject=_("Confirm Deletion of Account"),
 			template="delete_data_confirmation",
 			args={
 				"email": self.email,
@@ -83,7 +83,7 @@ class PersonalDataDeletionRequest(Document):
 				"host_name": frappe.local.site,
 				"link": url,
 			},
-			header=[_("Confirm Deletion of Data"), "green"],
+			header=[_("Confirm Deletion of Account"), "green"],
 		)
 
 	def notify_system_managers(self):
@@ -109,6 +109,7 @@ class PersonalDataDeletionRequest(Document):
 		self.validate_data_anonymization()
 		self.disable_user()
 		self.anonymize_data()
+		self.notify_user_after_deletion()
 
 	def anonymize_data(self):
 		return frappe.enqueue_doc(
@@ -118,6 +119,18 @@ class PersonalDataDeletionRequest(Document):
 			queue="long",
 			timeout=3000,
 			now=frappe.flags.in_test,
+		)
+
+	def notify_user_after_deletion(self):
+		frappe.sendmail(
+			recipients=self.email,
+			subject=_("Your account has been deleted"),
+			template="account_deletion_notification",
+			args={
+				"email": self.email,
+				"app_name": frappe.db.get_single_value("Website Settings", "app_name"),
+			},
+			header=[_("Your account has been deleted"), "green"],
 		)
 
 	def add_deletion_steps(self):
