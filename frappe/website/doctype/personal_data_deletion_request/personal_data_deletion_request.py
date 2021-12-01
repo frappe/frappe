@@ -80,7 +80,7 @@ class PersonalDataDeletionRequest(Document):
 			args={
 				"email": self.email,
 				"name": self.name,
-				"host_name": frappe.local.site,
+				"host_name": frappe.utils.get_url(),
 				"link": url,
 			},
 			header=[_("Confirm Deletion of Account"), "green"],
@@ -128,7 +128,7 @@ class PersonalDataDeletionRequest(Document):
 			template="account_deletion_notification",
 			args={
 				"email": self.email,
-				"app_name": frappe.db.get_single_value("Website Settings", "app_name"),
+				"host_name": frappe.utils.get_url(),
 			},
 			header=[_("Your account has been deleted"), "green"],
 			now=True
@@ -351,7 +351,7 @@ def confirm_deletion(email, name, host_name):
 		return
 
 	doc = frappe.get_doc("Personal Data Deletion Request", name)
-	host_name = frappe.local.site
+	host_name = frappe.utils.get_url()
 
 	if doc.status == "Pending Verification":
 		doc.status = "Pending Approval"
