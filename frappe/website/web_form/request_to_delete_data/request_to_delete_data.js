@@ -9,6 +9,6 @@ frappe.ready(function() {
 					intro_wrapper.html(intro_wrapper.html() + sla_description);
 				}
 			}
-		})
-	}
+		});
+	};
 });
