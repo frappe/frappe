@@ -131,6 +131,7 @@ class PersonalDataDeletionRequest(Document):
 				"app_name": frappe.db.get_single_value("Website Settings", "app_name"),
 			},
 			header=[_("Your account has been deleted"), "green"],
+			now=True
 		)
 
 	def add_deletion_steps(self):
