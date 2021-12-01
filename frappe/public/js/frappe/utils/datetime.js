@@ -17,14 +17,15 @@ $.extend(frappe.datetime, {
 		// system time zone and then convert the string to user time zone(from User doctype).
 		let date_obj = null;
 		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
-			date_obj = moment.tz(date, frappe.boot.time_zone.system)
+			date_obj = moment(date)
+				.tz(frappe.boot.time_zone.system)
 				.clone()
 				.tz(frappe.boot.time_zone.user);
 		} else {
 			date_obj = moment(date);
 		}
 
-		return format===false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		return format === false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
 	},
 
 	convert_to_system_tz: function(date, format) {
@@ -113,11 +114,11 @@ $.extend(frappe.datetime, {
 		return moment().endOf("quarter").format();
 	},
 
-	year_start: function(){
+	year_start: function() {
 		return moment().startOf("year").format();
 	},
 
-	year_end: function(){
+	year_end: function() {
 		return moment().endOf("year").format();
 	},
 
@@ -135,22 +136,23 @@ $.extend(frappe.datetime, {
 
 	str_to_user: function(val, only_time = false) {
 		if (!val) return "";
+		const user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
 		const user_time_fmt = frappe.datetime.get_user_time_fmt();
-		let date_obj = moment(val);
 		let user_format = user_time_fmt;
 
 		if (only_time) {
-			date_obj = moment(val, frappe.defaultTimeFormat);
+			let date_obj = moment(val, frappe.defaultTimeFormat);
+			return date_obj.format(user_format);
 		} else {
-			let user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-			if (typeof val !== "string" || val.indexOf(" ")===-1) {
-				date_obj = moment(val);
+			let date_obj = moment(val);
+			if (typeof val !== "string" || val.indexOf(" ") === -1) {
+				user_format = user_date_fmt;
 			} else {
 				date_obj = moment(val, "YYYY-MM-DD HH:mm:ss");
 				user_format = user_date_fmt + " " + user_time_fmt;
 			}
+			return date_obj.tz(frappe.boot.time_zone.user).format(user_format);
 		}
-		return date_obj.tz(frappe.boot.time_zone.user).format(user_format);
 	},
 
 	get_datetime_as_string: function(d) {
@@ -217,9 +219,9 @@ $.extend(frappe.datetime, {
 		return as_obj ? frappe.datetime.moment_to_date_obj(date) : date.format(format);
 	},
 
-	moment_to_date_obj: function(moment) {
+	moment_to_date_obj: function(moment_obj) {
 		const date_obj = new Date();
-		const date_array = moment.toArray();
+		const date_array = moment_obj.toArray();
 		date_obj.setFullYear(date_array[0]);
 		date_obj.setMonth(date_array[1]);
 		date_obj.setDate(date_array[2]);
