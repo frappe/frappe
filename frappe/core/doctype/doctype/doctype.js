@@ -1,16 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// -------------
-// Menu Display
-// -------------
-
-// $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
-// 	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-// 		$(grid_row.row).css({"font-weight": "bold"});
-// 	}
-// })
-
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
 		frm.set_query('role', 'permissions', function(doc) {
@@ -130,22 +120,6 @@ frappe.ui.form.on('DocType', {
 
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	},
-
-	max_attachments: function(frm) {
-		if (!frm.doc.max_attachments) {
-			return;
-		}
-		const is_attach_field = (f) => ["Attach", "Attach Image"].includes(f.fieldtype);
-		const no_of_attach_fields = frm.doc.fields.filter(is_attach_field).length;
-
-		if (no_of_attach_fields > frm.doc.max_attachments) {
-			frm.set_value("max_attachments", no_of_attach_fields);
-			const label = frm.get_docfield("max_attachments").label;
-			frappe.show_alert(
-				__("Number of attachment fields are more than {}, limit updated to {}.", [label, no_of_attach_fields]));
-		}
-	},
-
 });
 
 frappe.ui.form.on("DocField", {
@@ -239,3 +213,5 @@ frappe.ui.form.on("DocField", {
 		frm.trigger("max_attachments");
 	}
 });
+
+extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({frm: cur_frm}));
