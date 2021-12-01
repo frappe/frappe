@@ -835,14 +835,14 @@ class Column:
 	seen = []
 	fields_column_map = {}
 
-	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=[]):
+	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None):
 		self.index = index
 		self.column_number = index + 1
 		self.doctype = doctype
 		self.header_title = header
 		self.column_values = column_values
 		self.map_to_field = map_to_field
-		self.seen = seen
+		self.seen = seen or []
 
 		self.date_format = None
 		self.df = None
