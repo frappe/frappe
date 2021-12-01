@@ -53,7 +53,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		let date_format = sysdefaults && sysdefaults.date_format
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
-		let now_date = new Date();
+		let now_date = new Date(this.get_now_date());
 
 		this.today_text = __("Today");
 		this.date_format = frappe.defaultDateFormat;
@@ -112,7 +112,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.datepicker.update('position', position);
 	}
 	get_now_date() {
-		return frappe.datetime.now_date(true);
+		return frappe.datetime.convert_to_system_tz(frappe.datetime.now_date(true));
 	}
 	set_t_for_today() {
 		var me = this;
