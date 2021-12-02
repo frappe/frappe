@@ -716,11 +716,9 @@ def delete_file(path):
 			os.remove(path)
 
 
-
-
+@frappe.whitelist()
 def get_max_file_size():
 	return cint(conf.get('max_file_size')) or 10485760
-
 
 
 def has_permission(doc, ptype=None, user=None):
@@ -942,20 +940,14 @@ def get_files_by_search_text(text):
 
 def update_existing_file_docs(doc):
 	# Update is private and file url of all file docs that point to the same file
-	frappe.db.sql("""
-		UPDATE `tabFile`
-		SET
-			file_url = %(file_url)s,
-			is_private = %(is_private)s
-		WHERE
-			content_hash = %(content_hash)s
-			and name != %(file_name)s
-	""", dict(
-		file_url=doc.file_url,
-		is_private=doc.is_private,
-		content_hash=doc.content_hash,
-		file_name=doc.name
-	))
+	file_doctype = frappe.qb.DocType("File")
+	(
+		frappe.qb.update(file_doctype)
+		.set(file_doctype.file_url, doc.file_url)
+		.set(file_doctype.is_private, doc.is_private)
+		.where(file_doctype.content_hash == doc.content_hash)
+		.where(file_doctype.name != doc.name)
+	).run()
 
 def attach_files_to_document(doc, event):
 	""" Runs on on_update hook of all documents.

@@ -260,6 +260,7 @@ class Database(object):
 		self.commit()
 		self.sql(query, debug=debug)
 
+
 	def check_transaction_status(self, query):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
@@ -335,7 +336,7 @@ class Database(object):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, cache=False, for_update=False, run=True):
+		debug=False, order_by="KEEP_DEFAULT_ORDERING", cache=False, for_update=False, run=True, pluck=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -362,7 +363,7 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update, run=run)
+			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck)
 
 		if not run:
 			return ret
@@ -370,7 +371,8 @@ class Database(object):
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, update=None, cache=False, for_update=False, run=True):
+		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
+		run=True, pluck=False):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -395,8 +397,7 @@ class Database(object):
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if isinstance(filters, list):
-			order_by = order_by or "modified_desc"
-			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug, run=run)
+			out = self._get_value_for_many_names(doctype, filters, fieldname, order_by, debug=debug, run=run, pluck=pluck)
 
 		else:
 			fields = fieldname
@@ -408,9 +409,19 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					order_by = order_by or "modified"
+					if order_by:
+						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
 					out = self._get_values_from_table(
-						fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update, run=run
+						fields,
+						filters,
+						doctype,
+						as_dict,
+						debug,
+						order_by,
+						update,
+						for_update=for_update,
+						run=run,
+						pluck=pluck,
 					)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -423,14 +434,24 @@ class Database(object):
 					else:
 						raise
 			else:
-				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run)
+				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck)
 
 		if cache and isinstance(filters, str):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
 
-	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None, run=True):
+	def get_values_from_single(
+		self,
+		fields,
+		filters,
+		doctype,
+		as_dict=False,
+		debug=False,
+		update=None,
+		run=True,
+		pluck=False,
+	):
 		"""Get values from `tabSingles` (Single DocTypes) (internal).
 
 		:param fields: List of fields,
@@ -456,10 +477,16 @@ class Database(object):
 				return [map(values.get, fields)]
 
 		else:
-			r = self.sql("""select field, value
+			r = self.sql(
+				"""select field, value
 				from `tabSingles` where field in (%s) and doctype=%s"""
-					% (', '.join(['%s'] * len(fields)), '%s'),
-					tuple(fields) + (doctype,), as_dict=False, debug=debug, run=run)
+				% (", ".join(["%s"] * len(fields)), "%s"),
+				tuple(fields) + (doctype,),
+				as_dict=False,
+				debug=debug,
+				run=run,
+				pluck=pluck,
+			)
 			if not run:
 				return r
 			if as_dict:
@@ -539,8 +566,19 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None,
-								update=None, for_update=False, run=True):
+	def _get_values_from_table(
+		self,
+		fields,
+		filters,
+		doctype,
+		as_dict,
+		debug,
+		order_by=None,
+		update=None,
+		for_update=False,
+		run=True,
+		pluck=False,
+	):
 		field_objects = []
 
 		if not isinstance(fields, Criterion):
@@ -550,29 +588,39 @@ class Database(object):
 				else:
 					field_objects.append(field)
 
-		criterion = self.query.build_conditions(
-			table=doctype, filters=filters, orderby=order_by, for_update=for_update
+		query = self.query.get_sql(
+			table=doctype,
+			filters=filters,
+			orderby=order_by,
+			for_update=for_update,
+			field_objects=field_objects,
+			fields=fields,
 		)
-		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*field_objects)
+		if (
+			fields == "*"
+			and not isinstance(fields, (list, tuple))
+			and not isinstance(fields, Criterion)
+		):
+			as_dict = True
 
-		elif isinstance(fields, Criterion):
-			query = criterion.select(fields)
-
-		else:
-			if fields=="*":
-				query = criterion.select(fields)
-				as_dict = True
-		r = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run)
+		r = self.sql(
+			query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck
+		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, debug=False, run=True):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False):
 		names = list(filter(None, names))
 		if names:
-			return self.get_all(doctype,
+			return self.get_all(
+				doctype,
 				fields=field,
 				filters=names,
-				debug=debug, as_list=1, run=run)
+				order_by=order_by,
+				pluck=pluck,
+				debug=debug,
+				as_list=1,
+				run=run,
+			)
 		else:
 			return {}
 
@@ -787,18 +835,6 @@ class Database(object):
 				return self.get_all(dt['doctype'], filters=conditions, as_list=1)
 			except Exception:
 				return None
-
-	def min(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Min(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def max(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Max(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def avg(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Avg(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def sum(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Sum(Column(fieldname))).run(**kwargs)[0][0] or 0
 
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""

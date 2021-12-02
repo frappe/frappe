@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\": \"header\", \"data\": {\"text\": \"Your Shortcuts\", \"level\": 4, \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Customize Form\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Custom Role\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Client Script\", \"col\": 4}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Server Script\", \"col\": 4}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"Reports & Masters\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Dashboards\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Form Customization\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Other\", \"col\": 4}}]",
+ "content": "[{\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Customization\",\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"Your Shortcuts\\n\\t\\t\\t\\n\\t\\t\\n\\t\\t\\t\\n\\t\\t\\n\\t\\t\\t\\n\\t\\t\",\"level\":4,\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Custom Role\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":4}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"Reports &amp; Masters\\n\\t\\t\\t\\n\\t\\t\\n\\t\\t\\t\\n\\t\\t\\n\\t\\t\\t\\n\\t\\t\",\"level\":4,\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Dashboards\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Form Customization\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Other\",\"col\":4}}]",
  "creation": "2020-03-02 15:15:03.839594",
  "docstatus": 0,
  "doctype": "Workspace",
@@ -123,7 +123,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-08-05 12:15:57.486113",
+ "modified": "2021-11-24 16:20:03.500885",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",

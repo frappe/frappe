@@ -5,8 +5,9 @@ import gzip
 import json
 import os
 import shlex
+import shutil
 import subprocess
-import sys
+from typing import List
 import unittest
 import glob
 
@@ -17,37 +18,11 @@ from frappe.installer import add_to_installed_apps, remove_app
 from frappe.utils import add_to_date, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
-
-# TODO: check frappe.cli.coloured_output to set coloured output!
-def supports_color():
-	"""
-	Returns True if the running system's terminal supports color, and False
-	otherwise.
-	"""
-	plat = sys.platform
-	supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
-	# isatty is not always implemented, #6223.
-	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-	return supported_platform and is_a_tty
+# imports - third party imports
+import click
 
 
-class color(dict):
-	nc = "\033[0m"
-	blue = "\033[94m"
-	green = "\033[92m"
-	yellow = "\033[93m"
-	red = "\033[91m"
-	silver = "\033[90m"
-
-	def __getattr__(self, key):
-		if supports_color():
-			ret = self.get(key)
-		else:
-			ret = ""
-		return ret
-
-
-def clean(value):
+def clean(value) -> str:
 	"""Strips and converts bytes to str
 
 	Args:
@@ -63,7 +38,7 @@ def clean(value):
 	return value
 
 
-def missing_in_backup(doctypes, file):
+def missing_in_backup(doctypes: List, file: os.PathLike) -> List:
 	"""Returns list of missing doctypes in the backup.
 
 	Args:
@@ -85,7 +60,7 @@ def missing_in_backup(doctypes, file):
 			if predicate.format(doctype).lower() not in content]
 
 
-def exists_in_backup(doctypes, file):
+def exists_in_backup(doctypes: List, file: os.PathLike) -> bool:
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
 	Args:
@@ -102,14 +77,25 @@ def exists_in_backup(doctypes, file):
 class BaseTestCommands(unittest.TestCase):
 	def execute(self, command, kwargs=None):
 		site = {"site": frappe.local.site}
+		cmd_input = None
 		if kwargs:
+			cmd_input = kwargs.get("cmd_input", None)
+			if cmd_input:
+				if not isinstance(cmd_input, bytes):
+					raise Exception(
+						f"The input should be of type bytes, not {type(cmd_input).__name__}"
+					)
+
+				del kwargs["cmd_input"]
 			kwargs.update(site)
 		else:
 			kwargs = site
+
 		self.command = " ".join(command.split()).format(**kwargs)
-		print("{0}$ {1}{2}".format(color.silver, self.command, color.nc))
+		click.secho(self.command, fg="bright_black")
+
 		command = shlex.split(self.command)
-		self._proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		self._proc = subprocess.run(command, input=cmd_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		self.stdout = clean(self._proc.stdout)
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
@@ -465,6 +451,28 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password('Administrator', 'test2'), 'Administrator')
+
+	def test_make_app(self):
+		user_input = [
+			b"Test App", # title
+			b"This app's description contains 'single quotes' and \"double quotes\".", # description
+			b"Test Publisher", # publisher
+			b"example@example.org", # email
+			b"", # icon
+			b"", # color
+			b"MIT" # app_license
+		]
+		app_name = "testapp0"
+		apps_path = os.path.join(frappe.utils.get_bench_path(), "apps")
+		test_app_path = os.path.join(apps_path, app_name)
+		self.execute(f"bench make-app {apps_path} {app_name}", {"cmd_input": b'\n'.join(user_input)})
+		self.assertEqual(self.returncode, 0)
+		self.assertTrue(
+			os.path.exists(test_app_path)
+		)
+
+		# cleanup
+		shutil.rmtree(test_app_path)
 
 
 class RemoveAppUnitTests(unittest.TestCase):

@@ -191,7 +191,7 @@ class Exporter:
 					[format_column_name(df) for df in self.fields if df.parent == child_table_doctype]
 				)
 			)
-			data = frappe.db.get_list(
+			data = frappe.db.get_all(
 				child_table_doctype,
 				filters={
 					"parent": ("in", parent_names),
