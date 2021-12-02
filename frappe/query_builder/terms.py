@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict
+from typing import Any, List, Optional, Dict
 from pypika.terms import ValueWrapper
 from pypika.utils import format_alias_sql
 
@@ -8,10 +8,10 @@ class NamedParameterWrapper():
 		self.parameters = parameters
 
 	def update_parameters(self, param_key: Any, param_value: Any, **kwargs):
-		self.parameters[param_key[1:]] = param_value
+		self.parameters[param_key[2:-2]] = param_value
 
 	def get_sql(self, **kwargs):
-		return f'@param{len(self.parameters) + 1}'
+		return f'%(param{len(self.parameters) + 1})s'
 
 
 class ParameterizedValueWrapper(ValueWrapper):
@@ -20,7 +20,7 @@ class ParameterizedValueWrapper(ValueWrapper):
 			sql = self.get_value_sql(quote_char=quote_char, secondary_quote_char=secondary_quote_char, **kwargs)
 			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 		else:
-			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
+			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs) if not isinstance(self.value,int) else self.value
 			param_sql = param_wrapper.get_sql(**kwargs)
 			param_wrapper.update_parameters(param_key=param_sql, param_value=value_sql, **kwargs)
 
