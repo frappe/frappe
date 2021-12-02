@@ -206,7 +206,7 @@ def get_filters_for(doctype):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_open_count(doctype, name, items=[]):
+def get_open_count(doctype, name, items=None):
 	'''Get open count for given transactions and filters
 
 	:param doctype: Reference DocType
@@ -218,6 +218,9 @@ def get_open_count(doctype, name, items=[]):
 		return {
 			"count": []
 		}
+
+	if items is None:
+		items = []
 
 	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 

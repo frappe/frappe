@@ -1,5 +1,7 @@
-
-import os, json, inspect
+import os
+import copy
+import inspect
+import json
 import mimetypes
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
@@ -82,7 +84,7 @@ def get_safe_globals():
 				csrf_token = frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
 			socketio_port = frappe.conf.socketio_port,
-			get_hooks = frappe.get_hooks,
+			get_hooks = get_hooks,
 		),
 		style = frappe._dict(
 			border_color = '#d1d8dd'
@@ -129,6 +131,11 @@ def get_safe_globals():
 	out.sorted = sorted
 
 	return out
+
+
+def get_hooks(hook=None, default=None, app_name=None):
+	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
+	return copy.deepcopy(hooks)
 
 def _getitem(obj, key):
 	# guard function for RestrictedPython
