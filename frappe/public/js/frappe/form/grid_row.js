@@ -368,8 +368,13 @@ export default class GridRow {
 	prepare_columns_for_dialog(selected_fields) {
 		let fields = [];
 
+		const blocked_fields = frappe.model.no_value_type;
+		const always_allow = ["Button"];
+
+		const show_field = (f) => always_allow.includes(f) || !blocked_fields.includes(f);
+
 		this.docfields.forEach(column => {
-			if (!column.hidden && !in_list(frappe.model.no_value_type, column.fieldtype)) {
+			if (!column.hidden && show_field(column.fieldtype)) {
 				fields.push({
 					label: column.label,
 					value: column.fieldname,
