@@ -217,7 +217,15 @@ export default class OnboardingWidget extends Widget {
 						label: () => __("Continue"),
 					},
 				});
+<<<<<<< HEAD
 			});
+=======
+			};
+			const tour_name = step.form_tour;
+			frm.tour
+				.init({ tour_name, on_finish })
+				.then(() => frm.tour.start());
+>>>>>>> 2fe2db5f94 (fix: form tour field in onboarding step)
 		};
 
 		frappe.set_route(route);
@@ -295,7 +303,19 @@ export default class OnboardingWidget extends Widget {
 					message: __("Awesome, now try making an entry yourself"),
 					title: __("Great"),
 				});
+<<<<<<< HEAD
 			});
+=======
+
+				frappe.msg_dialog.custom_onhide = () => {
+					this.mark_complete(step);
+				};
+			};
+			const tour_name = step.form_tour
+			frm.tour
+				.init({ tour_name, on_finish })
+				.then(() => frm.tour.start());
+>>>>>>> 2fe2db5f94 (fix: form tour field in onboarding step)
 		};
 
 		let callback = () => {
