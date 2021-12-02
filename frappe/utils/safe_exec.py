@@ -53,7 +53,6 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 	# build globals
 	exec_globals = get_safe_globals()
 	if _globals:
-		_globals = frappe._dict(_globals)
 		exec_globals.update(_globals)
 
 	if restrict_commit_rollback:
@@ -79,7 +78,9 @@ def get_safe_globals():
 
 	add_data_utils(datautils)
 
-	if "_" in getattr(frappe.local, 'form_dict', {}):
+	form_dict = getattr(frappe.local, 'form_dict', {})
+
+	if "_" in form_dict:
 		del frappe.local.form_dict["_"]
 
 	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
@@ -101,7 +102,7 @@ def get_safe_globals():
 			date_format=date_format,
 			time_format=time_format,
 			format_date=frappe.utils.data.global_date_format,
-			form_dict=getattr(frappe.local, 'form_dict', {}),
+			form_dict=frappe._dict(form_dict),
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
@@ -219,14 +220,12 @@ def execute_enqueued_cmd(cmd, **kwargs):
 		Executes in a background worker
 		Executes the method if it is a whitelisted method or server script api
 	'''
-	try:
-		# run server script if `cmd` is a server script of type API
-		is_server_script_api = run_server_script_api(cmd, kwargs)
+	# update form_dict, to use as `kwargs` in frappe.call
+	form_dict = getattr(frappe.local, 'form_dict', {})
+	form_dict['args'] = frappe._dict(kwargs)
 
-		if not is_server_script_api:
-			# update form_dict, to use as `kwargs` in frappe.call
-			frappe.form_dict.update(kwargs)
-			execute_cmd(cmd)
+	try:
+		execute_cmd(cmd)
 
 	except Exception:
 		frappe.db.rollback()

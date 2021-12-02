@@ -84,8 +84,11 @@ class ServerScript(Document):
 		if frappe.session.user == "Guest" and not self.allow_guest:
 			raise frappe.PermissionError
 
+		form_dict = getattr(frappe.local, 'form_dict', {})
+		form_dict['args'] = frappe._dict(kwargs)
+
 		# output can be stored in flags
-		_globals, _locals = safe_exec(self.script, _globals={"args": kwargs})
+		_globals, _locals = safe_exec(self.script)
 		return _globals.frappe.flags
 
 	def execute_doc(self, doc: Document):
