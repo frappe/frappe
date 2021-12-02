@@ -186,12 +186,13 @@ class Newsletter(WebsiteGenerator):
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
 
 	def get_message(self) -> str:
-		if self.content_type == "HTML":
-			return frappe.render_template(self.message_html, {"doc": self.as_dict()})
+		message = self.message
 		if self.content_type == "Markdown":
-			return frappe.utils.markdown(self.message_md)
-		# fallback to Rich Text
-		return self.message
+			message = frappe.utils.md_to_html(self.message_md)
+		if self.content_type == "HTML":
+			message = self.message_html
+
+		return frappe.render_template(message, {"doc": self.as_dict()})
 
 	def get_recipients(self) -> List[str]:
 		"""Get recipients from Email Group"""
