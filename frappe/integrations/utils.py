@@ -60,6 +60,7 @@ def create_request_log(data, integration_type, service_name, name=None, error=No
 
 	return integration_request
 
+# TODO: Need to take this out after figuring out what to do with web form
 def get_payment_gateway_controller(payment_gateway):
 	'''Return payment gateway controller'''
 	gateway = frappe.get_doc("Payment Gateway", payment_gateway)
@@ -73,32 +74,6 @@ def get_payment_gateway_controller(payment_gateway):
 			return frappe.get_doc(gateway.gateway_settings, gateway.gateway_controller)
 		except Exception:
 			frappe.throw(_("{0} Settings not found").format(payment_gateway))
-
-
-@frappe.whitelist(allow_guest=True, xss_safe=True)
-def get_checkout_url(**kwargs):
-	try:
-		if kwargs.get('payment_gateway'):
-			doc = frappe.get_doc("{0} Settings".format(kwargs.get('payment_gateway')))
-			return doc.get_payment_url(**kwargs)
-		else:
-			raise Exception
-	except Exception:
-		frappe.respond_as_web_page(_("Something went wrong"),
-			_("Looks like something is wrong with this site's payment gateway configuration. No payment has been made."),
-			indicator_color='red',
-			http_status_code=frappe.ValidationError.http_status_code)
-
-def create_payment_gateway(gateway, settings=None, controller=None):
-	# NOTE: we don't translate Payment Gateway name because it is an internal doctype
-	if not frappe.db.exists("Payment Gateway", gateway):
-		payment_gateway = frappe.get_doc({
-			"doctype": "Payment Gateway",
-			"gateway": gateway,
-			"gateway_settings": settings,
-			"gateway_controller": controller
-		})
-		payment_gateway.insert(ignore_permissions=True)
 
 def json_handler(obj):
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
