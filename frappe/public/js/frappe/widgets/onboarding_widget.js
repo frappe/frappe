@@ -329,7 +329,7 @@ export default class OnboardingWidget extends Widget {
 					this.mark_complete(step);
 				};
 			};
-			const tour_name = step.form_tour
+			const tour_name = step.form_tour;
 			frm.tour
 				.init({ tour_name, on_finish })
 				.then(() => frm.tour.start());
