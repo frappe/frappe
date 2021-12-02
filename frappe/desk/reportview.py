@@ -31,14 +31,16 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 
 	is_report = data.get('view') == 'Report'
-
-	data.pop('cmd', None)
-	data.pop('data', None)
-	data.pop('ignore_permissions', None)
-	data.pop('view', None)
-
-	if "csrf_token" in data:
-		del data["csrf_token"]
+	for param in (
+		"cmd",
+		"data",
+		"ignore_permissions",
+		"view",
+		"user",
+		"csrf_token",
+		"join"
+	):
+		data.pop(param, None)
 
 	if isinstance(data.get("filters"), string_types):
 		data["filters"] = json.loads(data["filters"])
@@ -82,11 +84,13 @@ def get_form_params():
 
 	return data
 
-def compress(data, args = {}):
+def compress(data, args = None):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
 
 	if not data: return data
+	if args is None:
+		args = {}
 	values = []
 	keys = list(data[0])
 	for row in data:
@@ -266,15 +270,19 @@ def delete_bulk(doctype, items):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=[]):
+def get_sidebar_stats(stats, doctype, filters=None):
 
-	return {"stats": get_stats(stats, doctype, filters)}
+	return {"stats": get_stats(stats, doctype, filters or [])}
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=[]):
+def get_stats(stats, doctype, filters=None):
 	"""get tag info"""
 	import json
+
+	if filters is None:
+		filters = []
+
 	tags = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)
@@ -310,9 +318,12 @@ def get_stats(stats, doctype, filters=[]):
 	return stats
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=[]):
+def get_filter_dashboard_data(stats, doctype, filters=None):
 	"""get tags info"""
 	import json
+
+	if filters is None:
+		filters = []
 	tags = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)

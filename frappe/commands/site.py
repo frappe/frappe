@@ -285,6 +285,7 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 		try:
 			migrate(context.verbose, rebuild_website=rebuild_website, skip_failing=skip_failing)
 		finally:
+			print()
 			frappe.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError

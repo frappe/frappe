@@ -132,6 +132,9 @@ def get_new_chat_message(user, room, content, type = "Content"):
 
 @frappe.whitelist(allow_guest = True)
 def send(user, room, content, type = "Content"):
+	# user should not be other than session user
+	user = frappe.session.user
+
 	mess = get_new_chat_message(user, room, content, type)
 
 	frappe.publish_realtime('frappe.chat.message:create', mess, room = room,
@@ -165,6 +168,9 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 		order_by = 'creation'
 	)
 
+	# validate chat room members
+	validate_members(room)
+
 	if not fields or 'seen' in fields:
 		for m in mess:
 			m['seen'] = json.loads(m._seen) if m._seen else [ ]
@@ -191,6 +197,19 @@ def mark_messages_as_seen(message_names, user):
 		frappe.db.set_value('Chat Message', name, '_seen', seen, update_modified=False)
 
 	frappe.db.commit()
+
+def validate_members(room):
+	user = frappe.session.user
+
+	if user == room.owner:
+		return
+
+	user_in_room = [member for member in room.users if member.user == user]
+
+	if user_in_room:
+		return
+
+	frappe.throw(_("Chat Room {} not found").format(room))
 
 
 @frappe.whitelist()

@@ -858,23 +858,23 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = 1
-		self.save()
+		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = 2
-		self.save()
+		return self.save()
 
 	@whitelist.__func__
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self._submit()
+		return self._submit()
 
 	@whitelist.__func__
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
-		self._cancel()
+		return self._cancel()
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
