@@ -24,7 +24,34 @@ class TestDB(unittest.TestCase):
 		self.assertNotEquals(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
+<<<<<<< HEAD
 
+=======
+		self.assertEqual(
+			frappe.db.get_value("User", {}, ["Max(name)"], order_by=None),
+			frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0],
+		)
+		self.assertEqual(
+			frappe.db.get_value("User", {}, "Min(name)", order_by=None),
+			frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0],
+		)
+		self.assertIn(
+			"for update",
+			frappe.db.get_value(
+				"User", Field("name") == "Administrator", for_update=True, run=False
+			).lower(),
+		)
+		doctype = frappe.qb.DocType("User")
+		self.assertEqual(
+			frappe.qb.from_(doctype).select(doctype.name, doctype.email).run(),
+			frappe.db.get_values(
+				doctype,
+				filters={},
+				fieldname=[doctype.name, doctype.email],
+				order_by=None,
+			),
+		)
+>>>>>>> e862ae83da (fix: fixed list of Field objects as fields in get_values)
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
 

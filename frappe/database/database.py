@@ -582,12 +582,34 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
+<<<<<<< HEAD
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
 				if "(" in f or " as " in f: # function
 					fl.append(f)
+=======
+	def _get_values_from_table(
+		self,
+		fields,
+		filters,
+		doctype,
+		as_dict,
+		debug,
+		order_by=None,
+		update=None,
+		for_update=False,
+		run=True,
+		pluck=False,
+	):
+		field_objects = []
+
+		if not isinstance(fields, Criterion):
+			for field in fields:
+				if "(" in str(field) or " as " in str(field):
+					field_objects.append(PseudoColumn(field))
+>>>>>>> e862ae83da (fix: fixed list of Field objects as fields in get_values)
 				else:
 					fl.append("`" + f + "`")
 			fl = ", ".join(fl)
@@ -841,6 +863,10 @@ class Database(object):
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
+<<<<<<< HEAD
+=======
+		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"))
+>>>>>>> e862ae83da (fix: fixed list of Field objects as fields in get_values)
 		if filters:
 			conditions, filters = self.build_conditions(filters)
 			count = self.sql("""select count(*)
