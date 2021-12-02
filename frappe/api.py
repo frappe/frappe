@@ -168,8 +168,10 @@ def validate_auth():
 	authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
 
 	if len(authorization_header) == 2:
-		validate_oauth(authorization_header)
-		validate_auth_via_api_keys(authorization_header)
+		authenticated = validate_oauth(authorization_header)
+
+		if not authenticated:
+			validate_auth_via_api_keys(authorization_header)
 
 	validate_auth_via_hooks()
 
@@ -203,6 +205,8 @@ def validate_oauth(authorization_header):
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
 			frappe.local.form_dict = form_dict
+			return True
+
 	except AttributeError:
 		pass
 
