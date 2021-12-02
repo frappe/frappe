@@ -12,7 +12,7 @@ from frappe.model import default_fields, optional_fields
 from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.utils import cstr, format_duration
+from frappe.utils import cstr, format_duration,now
 from frappe.model.base_document import get_controller
 
 
@@ -325,7 +325,7 @@ def export_query():
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(data, doctype)
 
-		frappe.response['filename'] = title + '.xlsx'
+		frappe.response['filename'] = title +"_"+now()[:19] + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
