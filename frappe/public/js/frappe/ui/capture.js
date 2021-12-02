@@ -54,7 +54,7 @@ frappe.ui.Capture = class {
 	}
 
 	render() {
-		return navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+		return navigator.mediaDevices.getUserMedia({ video: true, facingMode: "environment" }).then(stream => {
 			this.stream = stream;
 
 			this.dialog = new frappe.ui.Dialog({
