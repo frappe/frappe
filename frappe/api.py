@@ -229,6 +229,8 @@ def validate_auth_via_api_keys(authorization_header):
 		frappe.throw(_("Failed to decode token, please provide a valid base64-encoded token."), frappe.InvalidAuthorizationToken)
 	except (AttributeError, TypeError, ValueError):
 		pass
+	except Exception:
+		pass
 
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
