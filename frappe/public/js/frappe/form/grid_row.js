@@ -291,6 +291,11 @@ export default class GridRow {
 			this.grid_settings_dialog.hide();
 		});
 
+		this.grid_settings_dialog.set_secondary_action_label(__("Reset to default"));
+		this.grid_settings_dialog.set_secondary_action(() => {
+			this.reset_user_settings_for_grid();
+			this.grid_settings_dialog.hide();
+		});
 	}
 
 	setup_columns_for_dialog() {
@@ -368,8 +373,13 @@ export default class GridRow {
 	prepare_columns_for_dialog(selected_fields) {
 		let fields = [];
 
+		const blocked_fields = frappe.model.no_value_type;
+		const always_allow = ["Button"];
+
+		const show_field = (f) => always_allow.includes(f) || !blocked_fields.includes(f);
+
 		this.docfields.forEach(column => {
-			if (!column.hidden && !in_list(frappe.model.no_value_type, column.fieldtype)) {
+			if (!column.hidden && show_field(column.fieldtype)) {
 				fields.push({
 					label: column.label,
 					value: column.fieldname,
@@ -504,6 +514,14 @@ export default class GridRow {
 		let value = {};
 		value[this.grid.doctype] = this.selected_columns_for_grid;
 		frappe.model.user_settings.save(this.frm.doctype, 'GridView', value)
+			.then((r) => {
+				frappe.model.user_settings[this.frm.doctype] = r.message || r;
+				this.grid.reset_grid();
+			});
+	}
+
+	reset_user_settings_for_grid() {
+		frappe.model.user_settings.save(this.frm.doctype, 'GridView', null)
 			.then((r) => {
 				frappe.model.user_settings[this.frm.doctype] = r.message || r;
 				this.grid.reset_grid();
