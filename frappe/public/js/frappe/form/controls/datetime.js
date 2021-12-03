@@ -8,9 +8,14 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		} else if (value === "Today") {
 			value = this.get_now_date();
 		}
+		value = this.format_for_input(value);
+		this.$input && this.$input.val(value);
+		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+	}
 
-		this.$input && this.$input.val(this.format_for_input(value));
-		this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+	get_start_date() {
+		let value = frappe.datetime.convert_to_user_tz(this.value);
+		return frappe.datetime.str_to_obj(value);
 	}
 	set_date_options() {
 		super.set_date_options();

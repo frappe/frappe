@@ -17,8 +17,7 @@ $.extend(frappe.datetime, {
 		// system time zone and then convert the string to user time zone(from User doctype).
 		let date_obj = null;
 		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
-			date_obj = moment(date)
-				.tz(frappe.boot.time_zone.system)
+			date_obj = moment.tz(date, frappe.boot.time_zone.system)
 				.clone()
 				.tz(frappe.boot.time_zone.user);
 		} else {
@@ -144,14 +143,16 @@ $.extend(frappe.datetime, {
 			let date_obj = moment(val, frappe.defaultTimeFormat);
 			return date_obj.format(user_format);
 		} else {
-			let date_obj = moment(val);
+			let date_obj = moment.tz(val, frappe.boot.time_zone.system);
 			if (typeof val !== "string" || val.indexOf(" ") === -1) {
 				user_format = user_date_fmt;
 			} else {
-				date_obj = moment(val, "YYYY-MM-DD HH:mm:ss");
 				user_format = user_date_fmt + " " + user_time_fmt;
 			}
-			return date_obj.tz(frappe.boot.time_zone.user).format(user_format);
+			return date_obj
+				.clone()
+				.tz(frappe.boot.time_zone.user)
+				.format(user_format);
 		}
 	},
 
@@ -207,7 +208,7 @@ $.extend(frappe.datetime, {
 
 	_date: function(format, as_obj = false) {
 		/**
-		 * Whenever we are getting now_date/datetime, always make sure dates are fetched using usertime zone.
+		 * Whenever we are getting now_date/datetime, always make sure dates are fetched using user time zone.
 		 * This is to make sure that time is as per user time zone set in User doctype, If a user had to change the timezone,
 		 * we will end up having multiple timezone by not honouring timezone in User doctype.
 		 * This will make sure that at any point we know which timezone the user if following and not have random timezone
