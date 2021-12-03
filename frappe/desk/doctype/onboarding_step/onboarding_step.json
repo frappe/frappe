@@ -20,6 +20,7 @@
   "reference_document",
   "show_full_form",
   "show_form_tour",
+  "form_tour",
   "is_single",
   "reference_report",
   "report_reference_doctype",
@@ -206,13 +207,21 @@
    "fieldname": "show_form_tour",
    "fieldtype": "Check",
    "label": "Show Form Tour"
+  },
+  {
+   "depends_on": "show_form_tour",
+   "fieldname": "form_tour",
+   "fieldtype": "Link",
+   "label": "Form Tour",
+   "options": "Form Tour"
   }
  ],
  "links": [],
- "modified": "2020-10-30 14:54:06.646513",
+ "modified": "2021-12-02 10:56:04.448580",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
