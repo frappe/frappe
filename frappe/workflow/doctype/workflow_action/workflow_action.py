@@ -270,12 +270,21 @@ def filter_allowed_users(users, doc, transition):
 	"""Filters list of users by checking if user has access to doc and
 	if the user satisfies 'workflow transision self approval' condition
 	"""
-	from frappe.permissions import has_permission
+	from frappe.permissions import has_permission, get_perms_for
 	filtered_users = []
 	for user in users:
 		if (has_approval_access(user, doc, transition)
 			and has_permission(doctype=doc, user=user)):
 			filtered_users.append(user)
+
+	# Filtering results based on if owner enabled
+	allowed_role = transition.allowed
+	perms = get_perms_for([allowed_role])
+	custom_docperms = get_perms_for([allowed_role], 'Custom DocPerm')
+	perms.extend(custom_docperms)
+	for permission in perms:
+		if permission.parent == doc.doctype and permission.if_owner == 1:
+			return [doc.get('owner') or '']
 	return filtered_users
 
 def get_common_email_args(doc):
