@@ -1,16 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// -------------
-// Menu Display
-// -------------
-
-// $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
-// 	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-// 		$(grid_row.row).css({"font-weight": "bold"});
-// 	}
-// })
-
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
 		frm.set_query('role', 'permissions', function(doc) {
@@ -129,7 +119,7 @@ frappe.ui.form.on('DocType', {
 		}
 
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
-	}
+	},
 });
 
 frappe.ui.form.on("DocField", {
@@ -217,5 +207,11 @@ frappe.ui.form.on("DocField", {
 			$doctype_select.val(curr_value.doctype);
 			update_fieldname_options();
 		}
+	},
+
+	fieldtype: function(frm) {
+		frm.trigger("max_attachments");
 	}
 });
+
+extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({frm: cur_frm}));
