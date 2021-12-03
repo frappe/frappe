@@ -647,12 +647,5 @@ $(document).on("page-change", function() {
 
 frappe.ready(function() {
 	frappe.show_language_picker();
-	if (window.is_chat_enabled) {
-		frappe.require(['/assets/js/moment-bundle.min.js', "/assets/css/frappe-chat-web.css", "/assets/frappe/js/lib/socket.io.min.js"], () => {
-			frappe.require('/assets/js/chat.js', () => {
-				frappe.chat.setup();
-			});
-		});
-	}
 	frappe.socketio.init(window.socketio_port);
 });
