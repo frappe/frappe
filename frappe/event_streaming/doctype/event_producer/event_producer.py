@@ -54,6 +54,11 @@ class EventProducer(Document):
 			self.db_set('incoming_change', 0)
 			self.reload()
 
+	def on_trash(self):
+		last_update = frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name))
+		if last_update:
+			frappe.delete_doc('Event Producer Last Update', last_update)
+
 	def check_url(self):
 		valid_url_schemes = ("http", "https")
 		frappe.utils.validate_url(self.producer_url, throw=True, valid_schemes=valid_url_schemes)
