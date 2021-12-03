@@ -492,6 +492,8 @@ frappe.views.BaseList = class BaseList {
 		} else {
 			this.data = this.data.concat(data);
 		}
+
+		this.data = this.data.uniqBy((d) => d.name);
 	}
 
 	freeze() {
