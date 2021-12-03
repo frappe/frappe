@@ -253,7 +253,7 @@ class DocType(Document):
 		parent_list = frappe.db.get_all('DocField', 'parent',
 			dict(fieldtype=['in', frappe.model.table_fields], options=self.name))
 		for p in parent_list:
-			frappe.db.sql('UPDATE `tabDocType` SET modified=%s WHERE `name`=%s', (now(), p.parent))
+			frappe.db.update("DocType", p.parent, {}, for_update=False)
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""

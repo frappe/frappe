@@ -42,7 +42,6 @@ class Communication(Document, CommunicationEmailMixin):
 				"action": "Read",
 				"communication": self.name,
 				"uid": self.uid,
-				"imap_folder": self.imap_folder,
 				"email_account": self.email_account
 			}).insert(ignore_permissions=True)
 			frappe.db.commit()
