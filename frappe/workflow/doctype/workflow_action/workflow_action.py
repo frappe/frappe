@@ -284,7 +284,7 @@ def filter_allowed_users(users, doc, transition):
 	perms.extend(custom_docperms)
 	for permission in perms:
 		if permission.parent == doc.doctype and permission.if_owner == 1:
-			return [doc.get('owner') or '']
+			return [doc.get('owner').lower() or '']
 	return filtered_users
 
 def get_common_email_args(doc):
