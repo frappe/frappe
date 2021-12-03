@@ -30,10 +30,30 @@ class Newsletter(WebsiteGenerator):
 		return self._recipients
 
 	@frappe.whitelist()
-	def test_send(self):
-		test_emails = frappe.utils.split_emails(self.test_email_id)
+	def send_test_email(self, email):
+		test_emails = frappe.utils.split_emails(email)
 		self.queue_all(test_emails=test_emails)
-		frappe.msgprint(_("Test email sent to {0}").format(self.test_email_id))
+		frappe.msgprint(_("Test email sent to {0}").format(email), alert=True)
+
+	@frappe.whitelist()
+	def find_broken_links(self):
+		from bs4 import BeautifulSoup
+		import requests
+
+		html = self.get_message()
+		soup = BeautifulSoup(html, "html.parser")
+		links = soup.find_all("a")
+		images = soup.find_all("img")
+		broken_links = []
+		for el in links + images:
+			url = el.attrs.get("href") or el.attrs.get("src")
+			try:
+				response = requests.head(url, verify=False, timeout=5)
+				if response.status_code >= 400:
+					broken_links.append(url)
+			except:
+				broken_links.append(url)
+		return broken_links
 
 	@frappe.whitelist()
 	def send_emails(self):
@@ -75,8 +95,9 @@ class Newsletter(WebsiteGenerator):
 	def validate_sender_address(self):
 		"""Validate self.send_from is a valid email address or not.
 		"""
-		if self.send_from:
-			frappe.utils.validate_email_address(self.send_from, throw=True)
+		if self.sender_email:
+			frappe.utils.validate_email_address(self.sender_email, throw=True)
+			self.send_from = f"{self.sender_name} <{self.sender_email}>" if self.sender_name else self.sender_email
 
 	def validate_recipient_address(self):
 		"""Validate if self.newsletter_recipients are all valid email addresses or not.
