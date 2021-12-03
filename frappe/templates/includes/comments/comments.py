@@ -44,17 +44,14 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 			comment.name,
 			_("View Comment")))
 
-	if doc.doctype == "Blog Post" and not doc.enable_email_notification:
-		pass
-	else:
-		# notify creator
-		frappe.sendmail(
-			recipients=frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
-			subject=_('New Comment on {0}: {1}').format(doc.doctype, doc.name),
-			message=content,
-			reference_doctype=doc.doctype,
-			reference_name=doc.name
-		)
+	# notify creator
+	frappe.sendmail(
+		recipients=frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
+		subject=_('New Comment on {0}: {1}').format(doc.doctype, doc.name),
+		message=content,
+		reference_doctype=doc.doctype,
+		reference_name=doc.name
+	)
 
 	# revert with template if all clear (no backlinks)
 	template = frappe.get_template("templates/includes/comments/comment.html")

@@ -13,8 +13,10 @@
   "enable_email_mention",
   "enable_email_assignment",
   "enable_email_energy_point",
+  "column_break_8",
   "enable_email_share",
   "enable_email_event_reminders",
+  "enable_feedback_notification",
   "user",
   "seen",
   "system_notifications_section",
@@ -105,12 +107,23 @@
    "fieldname": "enable_email_event_reminders",
    "fieldtype": "Check",
    "label": "Event Reminders"
+  },
+  {
+   "default": "1",
+   "description": "It enables email notification for feedback received on blog post",
+   "fieldname": "enable_feedback_notification",
+   "fieldtype": "Check",
+   "label": "Feedback Notification"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-24 14:45:31.931154",
+ "modified": "2021-11-25 20:45:47.415497",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
