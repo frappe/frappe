@@ -14,4 +14,4 @@ import "./frappe/form/controls/control.js";
 import "./frappe/views/formview.js";
 import "./frappe/form/form.js";
 import "./frappe/meta_tag.js";
-
+import "./frappe/doctype/"

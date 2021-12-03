@@ -171,10 +171,10 @@ class Database(object):
 				frappe.errprint(query)
 
 			elif self.is_deadlocked(e):
-				raise frappe.QueryDeadlockError
+				raise frappe.QueryDeadlockError(e)
 
 			elif self.is_timedout(e):
-				raise frappe.QueryTimeoutError
+				raise frappe.QueryTimeoutError(e)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
@@ -583,7 +583,7 @@ class Database(object):
 
 		if not isinstance(fields, Criterion):
 			for field in fields:
-				if "(" in field or " as " in field:
+				if "(" in str(field) or " as " in str(field):
 					field_objects.append(PseudoColumn(field))
 				else:
 					field_objects.append(field)
@@ -842,7 +842,7 @@ class Database(object):
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = self.query.build_conditions(table=dt, filters=filters).select(Count("*"))
+		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"))
 		if filters:
 			count = self.sql(query, debug=debug)[0][0]
 			return count
