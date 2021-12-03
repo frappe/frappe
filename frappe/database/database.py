@@ -836,18 +836,6 @@ class Database(object):
 			except Exception:
 				return None
 
-	def min(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Min(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def max(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Max(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def avg(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Avg(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def sum(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Sum(Column(fieldname))).run(**kwargs)[0][0] or 0
-
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
