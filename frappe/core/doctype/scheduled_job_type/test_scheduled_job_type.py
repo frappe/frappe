@@ -10,7 +10,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 class TestScheduledJobType(unittest.TestCase):
 	def setUp(self):
 		frappe.db.rollback()
-		frappe.db.sql('truncate `tabScheduled Job Type`')
+		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
 		frappe.db.commit()
 

@@ -332,3 +332,4 @@ frappe.customize_form.clear_locals_and_refresh = function(frm) {
 	frm.refresh();
 }
 
+extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({frm: cur_frm}));
