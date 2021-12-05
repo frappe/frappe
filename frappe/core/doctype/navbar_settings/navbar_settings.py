@@ -14,6 +14,9 @@ class NavbarSettings(Document):
 	def validate_standard_navbar_items(self):
 		doc_before_save = self.get_doc_before_save()
 
+		if not doc_before_save:
+			return
+
 		before_save_items = [item for item in \
 			doc_before_save.help_dropdown + doc_before_save.settings_dropdown if item.is_standard]
 
@@ -33,7 +36,3 @@ def get_app_logo():
 def get_navbar_settings():
 	navbar_settings = frappe.get_single('Navbar Settings')
 	return navbar_settings
-
-
-
-

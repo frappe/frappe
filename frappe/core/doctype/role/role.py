@@ -3,15 +3,22 @@
 
 from __future__ import unicode_literals
 import frappe
-
 from frappe.model.document import Document
 
 desk_properties = ("search_bar", "notifications", "chat", "list_sidebar",
 	"bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard")
 
+STANDARD_ROLES = (
+	"Administrator",
+	"System Manager",
+	"Script Manager",
+	"All",
+	"Guest"
+)
+
 class Role(Document):
 	def before_rename(self, old, new, merge=False):
-		if old in ("Guest", "Administrator", "System Manager", "All"):
+		if old in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
 
 	def after_insert(self):
@@ -24,7 +31,7 @@ class Role(Document):
 			self.set_desk_properties()
 
 	def disable_role(self):
-		if self.name in ("Guest", "Administrator", "System Manager", "All"):
+		if self.name in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be disabled"))
 		else:
 			self.remove_roles()

@@ -239,6 +239,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
+		frappe.get_single('Installed Applications').update_versions()
 		frappe.db.commit()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
