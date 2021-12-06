@@ -11,21 +11,18 @@ frappe.ui.form.on('Newsletter', {
 			}, __('Preview'));
 
 			frm.add_custom_button(__('Check broken links'), () => {
+				frm.dashboard.set_headline(__('Checking broken links...'));
 				frm.call('find_broken_links').then(r => {
+					frm.dashboard.set_headline('');
 					let links = r.message;
-					if (links) {
+					if (links && links.length) {
 						let html = '<ul>' + links.map(link => `<li>${link}</li>`).join('') + '</ul>';
-						frappe.msgprint({
-							title: __("Broken Links"),
-							message: __("Following links are broken in the email content: {0}", [html]),
-							indicator: "red"
-						})
+						frm.dashboard.set_headline(__("Following links are broken in the email content: {0}", [html]));
 					} else {
-						frappe.msgprint({
-							title: _("No Broken Links"),
-							message: _("No broken links found in the email content"),
-							indicator: "green"
-						})
+						frm.dashboard.set_headline(__("No broken links found in the email content"));
+						setTimeout(() => {
+							frm.dashboard.set_headline('');
+						}, 3000);
 					}
 				})
 			}, __('Preview'));
