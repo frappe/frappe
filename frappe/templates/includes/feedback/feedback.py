@@ -33,6 +33,8 @@ def give_feedback(reference_doctype, reference_name, like):
 	doc.like = like
 	doc.save(ignore_permissions=True)
 
+	return doc
+
 def get_yesterdays_feedback():
 	yesterday = add_days(today(), -1)
 
@@ -69,7 +71,7 @@ def get_feedback_data(reference_doctype, reference_name):
 
 	user_feedback = feedback[0].like if feedback else ''
 
-	return { "like_count": like_count, "like": user_feedback }
+	return {"like_count": like_count, "like": user_feedback}
 
 @frappe.whitelist(allow_guest=True)
 def send_daily_feedback_summary():
@@ -83,9 +85,9 @@ def send_daily_feedback_summary():
 		blog = frappe.get_doc(feedback.reference_doctype, feedback.reference_name)
 
 		if blog.owner not in recipients:
-			recipients[blog.owner] = { blog.name: 1 }
+			recipients[blog.owner] = {blog.name: 1}
 		elif (blog.name not in recipients[blog.owner]):
-			recipients[blog.owner].update({ blog.name: 1 })
+			recipients[blog.owner].update({blog.name: 1})
 		else:
 			recipients[blog.owner][blog.name] += 1
 
