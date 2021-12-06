@@ -35,6 +35,8 @@ login.bind_events = function () {
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
 		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
+		args.country = $("#signup-country").val();
+		args.age = $("#signup-age").prop("checked") && 1;
 		if (!args.email || !validate_email(args.email) || !args.full_name) {
 			login.set_status('{{ _("Valid email and name required") }}', 'red');
 			return false;

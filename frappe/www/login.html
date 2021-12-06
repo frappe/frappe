@@ -81,7 +81,7 @@
 				<div class="page-card-body">
 					<form class="form-signin form-login" role="form">
 						{{ email_login_body() }}
-					</form>	
+					</form>
 					<div class="social-logins text-center">
 						<p class="text-muted login-divider">{{ _("or") }}</p>
 						<div class="social-login-buttons">
@@ -143,6 +143,35 @@
 						<input type="email" id="signup_email" class="form-control"
 							placeholder="{{ _('jane@example.com') }}" required>
 					</div>
+					{% if show_country %}
+					<div class="form-group">
+						<div class="control-input-wrapper">
+							<div class="control-input flex align-center">
+								<select type="text" autocomplete="off" data-fieldtype="Select" data-fieldname="country"
+									class="input-with-feedback form-control ellipsis bold" id="signup-country" required>
+								<option value="">Your Country</option>
+								{% for country in countries %}
+								<option value="{{ country }}"> {{ country }} </option>
+								{% endfor %}
+								</select>
+							</div>
+						</div>
+					</div>
+					{% endif %}
+					{% if verify_age %}
+					<div class="form-group">
+						<div class="checkbox">
+							<label>
+								<span class="input-area">
+									<input type="checkbox" autocomplete="off" class="input-with-feedback"
+										data-fieldtype="Check" data-fieldname="age" id="signup-age" required>
+									</span>
+								<span class="label-area">I confirm that I am 18 years old or above</span>
+							</label>
+							<p class="help-box small text-muted"></p>
+						</div>
+					</div>
+					{% endif %}
 				</div>
 				<div class="page-card-actions">
 					<button class="btn btn-sm btn-primary btn-block btn-signup"

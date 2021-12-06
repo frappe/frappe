@@ -58,7 +58,10 @@
   "misc_section",
   "app_name",
   "app_logo",
+  "column_break_56",
   "disable_signup",
+  "show_country",
+  "verify_age",
   "section_break_38",
   "subdomain",
   "head_html",
@@ -386,6 +389,22 @@
    "fieldname": "app_logo",
    "fieldtype": "Attach Image",
    "label": "App Logo"
+  },
+  {
+   "fieldname": "column_break_56",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_country",
+   "fieldtype": "Check",
+   "label": "Show Country dropdown during Signup"
+  },
+  {
+   "default": "0",
+   "fieldname": "verify_age",
+   "fieldtype": "Check",
+   "label": "Verify Age during Signup"
   }
  ],
  "icon": "fa fa-cog",
@@ -394,7 +413,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2021-08-23 21:39:51.702248",
+ "modified": "2021-12-02 11:52:15.648720",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

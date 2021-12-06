@@ -35,6 +35,11 @@ def get_context(context):
 	context["title"] = "Login"
 	context["provider_logins"] = []
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_single_value("Website Settings", "disable_signup"))
+
+	context["show_country"] = frappe.db.get_single_value("Website Settings", "show_country")
+	context["verify_age"] = frappe.db.get_single_value("Website Settings", "verify_age")
+	context["countries"] = frappe.db.get_all("Country", pluck="name")
+
 	context["logo"] = (frappe.db.get_single_value('Website Settings', 'app_logo') or
 		frappe.get_hooks("app_logo_url")[-1])
 	context["app_name"] = (frappe.db.get_single_value('Website Settings', 'app_name') or

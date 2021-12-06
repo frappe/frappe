@@ -39,6 +39,8 @@
   "mute_sounds",
   "column_break_22",
   "mobile_no",
+  "country",
+  "age",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -606,6 +608,18 @@
    "fieldtype": "Link",
    "label": "Module Profile",
    "options": "Module Profile"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  },
+  {
+   "default": "0",
+   "fieldname": "age",
+   "fieldtype": "Check",
+   "label": "Age is 18 years old or above"
   }
  ],
  "icon": "fa fa-user",
@@ -669,7 +683,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-11-17 17:17:16.098457",
+ "modified": "2021-12-02 20:21:21.873269",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
