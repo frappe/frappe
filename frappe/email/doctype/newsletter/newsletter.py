@@ -164,18 +164,7 @@ class Newsletter(WebsiteGenerator):
 	def get_newsletter_attachments(self) -> List[Dict[str, str]]:
 		"""Get list of attachments on current Newsletter
 		"""
-		attachments = []
-
-		if self.send_attachments:
-			files = frappe.get_all(
-				"File",
-				filters={"attached_to_doctype": "Newsletter", "attached_to_name": self.name},
-				order_by="creation desc",
-				pluck="name",
-			)
-			attachments.extend({"fid": file} for file in files)
-
-		return attachments
+		return [{"file_url": row.attachment} for row in self.attachments]
 
 	def send_newsletter(self, emails: List[str]):
 		"""Trigger email generation for `emails` and add it in Email Queue.

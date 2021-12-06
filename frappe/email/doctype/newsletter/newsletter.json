@@ -18,14 +18,13 @@
   "email_sent",
   "subject_section",
   "subject",
-  "preview_text",
   "newsletter_content",
   "content_type",
   "message",
   "message_md",
   "message_html",
   "send_unsubscribe_link",
-  "send_attachments",
+  "attachments",
   "send_webview_link",
   "schedule_settings_section",
   "scheduled_to_send",
@@ -117,12 +116,6 @@
    "read_only_depends_on": "eval: doc.email_sent"
   },
   {
-   "default": "0",
-   "fieldname": "send_attachments",
-   "fieldtype": "Check",
-   "label": "Send Attachments"
-  },
-  {
    "fieldname": "content_type",
    "fieldtype": "Select",
    "label": "Content Type",
@@ -187,12 +180,6 @@
    "label": "Subject"
   },
   {
-   "description": "Preview Text appears in the inbox after the subject line",
-   "fieldname": "preview_text",
-   "fieldtype": "Data",
-   "label": "Preview Text"
-  },
-  {
    "fieldname": "publish_as_a_web_page_section",
    "fieldtype": "Section Break",
    "label": "Publish as a web page"
@@ -202,6 +189,12 @@
    "fieldname": "schedule_settings_section",
    "fieldtype": "Section Break",
    "label": "Scheduled Sending"
+  },
+  {
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Newsletter Attachment"
   }
  ],
  "has_web_view": 1,
@@ -211,7 +204,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2021-12-03 17:50:12.028162",
+ "modified": "2021-12-06 17:01:32.353153",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",
