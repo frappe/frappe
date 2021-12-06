@@ -1130,12 +1130,16 @@ class Document(BaseDocument):
 		collated in one dict and returned. Ideally, don't return values in hookable
 		methods, set properties in the document."""
 		def add_to_return_value(self, new_return_value):
+			if new_return_value is None:
+				self._return_value = self.get("_return_value")
+				return
+
 			if isinstance(new_return_value, dict):
 				if not self.get("_return_value"):
 					self._return_value = {}
 				self._return_value.update(new_return_value)
 			else:
-				self._return_value = new_return_value or self.get("_return_value")
+				self._return_value = new_return_value
 
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
