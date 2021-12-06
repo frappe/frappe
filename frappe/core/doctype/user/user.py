@@ -778,6 +778,7 @@ def sign_up(email, full_name, redirect_to, country=None, age=0):
 		})
 		user.flags.ignore_permissions = True
 		user.flags.ignore_password_policy = True
+		user.dont_update_if_missing = ["country"]
 		user.insert()
 
 		# set default signup role as per Portal Settings

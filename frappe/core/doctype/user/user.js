@@ -1,11 +1,10 @@
 frappe.ui.form.on('User', {
-
-	setup: function() {
-		console.log(frappe.meta.get_field("User", "country"))
-		frappe.meta.get_field('User', 'country').no_default = true;
-	},
-
 	before_load: function(frm) {
+
+		if (frm.is_new()) {
+			frm.set_value("country", "");		// Using default country for every new user created doesn't make sense
+		}
+
 		var update_tz_select = function(user_language) {
 			frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
 		};
