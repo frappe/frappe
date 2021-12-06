@@ -1,8 +1,10 @@
 import operator
+import re
 from typing import Any, Dict, List, Tuple, Union
 
 import frappe
-from frappe.query_builder import Criterion, Order, Field
+from frappe import _
+from frappe.query_builder import Criterion, Field, Order
 
 
 def like(key: str, value: str) -> frappe.qb:
@@ -224,6 +226,7 @@ class Query:
 		"""
 		conditions = self.get_condition(table, **kwargs)
 		if not filters:
+			conditions = self.add_conditions(conditions, **kwargs)
 			return conditions
 
 		for key in filters:
@@ -245,7 +248,12 @@ class Query:
 		conditions = self.add_conditions(conditions, **kwargs)
 		return conditions
 
-	def build_conditions(self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None, **kwargs) -> frappe.qb:
+	def build_conditions(
+		self,
+		table: str,
+		filters: Union[Dict[str, Union[str, int]], str, int] = None,
+		**kwargs
+	) -> frappe.qb:
 		"""Build conditions for sql query
 
 		Args:
@@ -255,13 +263,68 @@ class Query:
 		Returns:
 			frappe.qb: frappe.qb conditions object
 		"""
-		if isinstance(filters, Criterion):
-			return self.criterion_query(table, filters, **kwargs)
-
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
 
-		if isinstance(filters, (list, tuple)):
-			return self.misc_query(table, filters, **kwargs)
+		if isinstance(filters, Criterion):
+			criterion = self.criterion_query(table, filters, **kwargs)
 
-		return self.dict_query(filters=filters, table=table, **kwargs)
+		elif isinstance(filters, (list, tuple)):
+			criterion = self.misc_query(table, filters, **kwargs)
+
+		else:
+			criterion = self.dict_query(filters=filters, table=table, **kwargs)
+
+		return criterion
+
+	def get_sql(
+		self,
+		table: str,
+		fields: Union[List, Tuple],
+		filters: Union[Dict[str, Union[str, int]], str, int] = None,
+		**kwargs
+	):
+		criterion = self.build_conditions(table, filters, **kwargs)
+		if isinstance(fields, (list, tuple)):
+			query = criterion.select(*kwargs.get("field_objects"))
+
+		elif isinstance(fields, Criterion):
+			query = criterion.select(fields)
+
+		else:
+			if fields=="*":
+				query = criterion.select(fields)
+
+		return query
+
+
+class Permission:
+	@classmethod
+	def check_permissions(cls, query, **kwargs):
+		if not isinstance(query, str):
+			query = query.get_sql()
+
+		doctype = cls.get_tables_from_query(query)
+		if isinstance(doctype, str):
+			doctype = [doctype]
+
+		for dt in doctype:
+			dt = re.sub("tab", "", dt)
+			if not frappe.has_permission(
+				dt,
+				"select",
+				user=kwargs.get("user"),
+				parent_doctype=kwargs.get("parent_doctype"),
+			) and not frappe.has_permission(
+				dt,
+				"read",
+				user=kwargs.get("user"),
+				parent_doctype=kwargs.get("parent_doctype"),
+			):
+				frappe.throw(
+					_("Insufficient Permission for {0}").format(frappe.bold(dt))
+				)
+
+	@staticmethod
+	def get_tables_from_query(query: str):
+		return [table for table in re.findall(r"\w+", query) if table.startswith("tab")]

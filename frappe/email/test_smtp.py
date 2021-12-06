@@ -16,11 +16,12 @@ class TestSMTP(unittest.TestCase):
 			make_server(port, 0, 1)
 
 	def test_get_email_account(self):
-		existing_email_accounts = frappe.get_all("Email Account", fields = ["name", "enable_outgoing", "default_outgoing", "append_to"])
+		existing_email_accounts = frappe.get_all("Email Account", fields = ["name", "enable_outgoing", "default_outgoing","append_to", "use_imap"])
 		unset_details = {
 			"enable_outgoing": 0,
 			"default_outgoing": 0,
-			"append_to": None
+			"append_to": None,
+			"use_imap": 0
 		}
 		for email_account in existing_email_accounts:
 			frappe.db.set_value('Email Account', email_account['name'], unset_details)
@@ -60,7 +61,8 @@ def create_email_account(email_id, password, enable_outgoing, default_outgoing=0
 		"enable_incoming": 1,
 		"append_to":append_to,
 		"is_dummy_password": 1,
-		"smtp_server": "localhost"
+		"smtp_server": "localhost",
+		"use_imap": 0
 	}
 
 	email_account = frappe.new_doc('Email Account')

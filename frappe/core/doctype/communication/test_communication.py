@@ -291,6 +291,7 @@ def create_email_account():
 		"unreplied_for_mins": 20,
 		"send_notification_to": "test_comm@example.com",
 		"pop3_server": "pop.test.example.com",
+		"imap_folder": [{"folder_name": "INBOX", "append_to": "ToDo"}],
 		"no_remaining":"0",
 		"enable_automatic_linking": 1
 	}).insert(ignore_permissions=True)

@@ -4,7 +4,6 @@
 		"is_global": 1,
 		"doctype": "Email Account",
 		"domain":"example.com",
-		"append_to": "ToDo",
 		"email_account_name": "_Test Email Account 1",
 		"enable_outgoing": 1,
 		"smtp_server": "test.example.com",
@@ -20,6 +19,8 @@
 		"send_notification_to": "test_unreplied@example.com",
 		"pop3_server": "pop.test.example.com",
 		"no_remaining":"0",
+		"append_to": "ToDo",
+		"imap_folder": [{"folder_name": "INBOX", "append_to": "ToDo"}],
 		"track_email_status": 1
 	},
 	{

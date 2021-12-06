@@ -85,6 +85,7 @@ def get_safe_globals():
 			loads=json.loads,
 			dumps=json.dumps
 		),
+		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
 		_dict=frappe._dict,
@@ -164,10 +165,6 @@ def get_safe_globals():
 			get_default=frappe.db.get_default,
 			exists=frappe.db.exists,
 			count=frappe.db.count,
-			min=frappe.db.min,
-			max=frappe.db.max,
-			avg=frappe.db.avg,
-			sum=frappe.db.sum,
 			escape=frappe.db.escape,
 			sql=read_sql,
 			commit=frappe.db.commit,

@@ -11,11 +11,26 @@ class AccessLog(Document):
 
 
 @frappe.whitelist()
+def make_access_log(
+	doctype=None,
+	document=None,
+	method=None,
+	file_type=None,
+	report_name=None,
+	filters=None,
+	page=None,
+	columns=None,
+):
+	_make_access_log(
+		doctype, document, method, file_type, report_name, filters, page, columns,
+	)
+
+
 @frappe.write_only()
 @retry(
 	stop=stop_after_attempt(3), retry=retry_if_exception_type(frappe.DuplicateEntryError)
 )
-def make_access_log(
+def _make_access_log(
 	doctype=None,
 	document=None,
 	method=None,
@@ -42,6 +57,7 @@ def make_access_log(
 	}).db_insert()
 
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
-	# dont commit in test mode
+	# dont commit in test mode. It must be tempting to put this block along with the in_request in the
+	# whitelisted method...yeah, don't do it. That part would be executed possibly on a read only DB conn
 	if not frappe.flags.in_test or in_request:
 		frappe.db.commit()
