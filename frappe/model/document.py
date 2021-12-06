@@ -751,8 +751,10 @@ class Document(BaseDocument):
 			elif self.docstatus==1:
 				self._action = "submit"
 				self.check_permission("submit")
+			elif self.docstatus==2:
+				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
-				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 to 2"))
+				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif docstatus==1:
 			if self.docstatus==1:
@@ -761,8 +763,10 @@ class Document(BaseDocument):
 			elif self.docstatus==2:
 				self._action = "cancel"
 				self.check_permission("cancel")
+			elif self.docstatus==0:
+				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
-				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 to 0"))
+				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif docstatus==2:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
