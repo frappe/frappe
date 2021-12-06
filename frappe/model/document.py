@@ -17,6 +17,8 @@ from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.utils.data import get_absolute_url
 
+from frappe.utils.password import get_hash
+
 # once_only validation
 # methods
 
@@ -1261,7 +1263,8 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+		# using creation since it is only the immutable value of a doc
+		return get_hash(get_datetime_str(self.creation))
 
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)

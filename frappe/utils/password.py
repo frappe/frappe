@@ -3,6 +3,9 @@
 
 import string
 import frappe
+import hmac
+import hashlib
+
 from frappe import _
 from frappe.query_builder import Table
 from frappe.utils import cstr, encode
@@ -243,3 +246,11 @@ def get_encryption_key():
 
 def get_password_reset_limit():
 	return frappe.db.get_single_value("System Settings", "password_reset_limit") or 0
+
+def get_hash(txt):
+	hmac_obj = hmac.new(
+		bytes(get_encryption_key(), "utf-8"),
+		msg=frappe.safe_encode(txt),
+		digestmod=hashlib.sha256
+	)
+	return hmac_obj.hexdigest()[-16:]
