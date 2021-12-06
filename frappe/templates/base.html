@@ -96,11 +96,9 @@
 
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
-<<<<<<< HEAD
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 	<script type="text/javascript" src="/assets/js/frappe-web.min.js?ver={{ build_version }}"></script>
 	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
-=======
 	<script>
 		frappe.boot = {
 			sysdefaults: {
@@ -114,7 +112,6 @@
 	<script type="text/javascript" src="/assets/frappe/node_modules/moment/min/moment-with-locales.min.js"></script>
 	<script type="text/javascript" src="/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
 	{{ include_script('frappe-web.bundle.js') }}
->>>>>>> 8aa977c5f0 (fix: discussions template and time)
 	{% endblock %}
 
 	{%- for link in web_include_js %}
