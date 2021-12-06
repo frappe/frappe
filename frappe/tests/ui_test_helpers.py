@@ -142,8 +142,6 @@ def insert_contact(first_name, phone_number):
 	})
 	doc.append('phone_nos', {'phone': phone_number})
 	doc.insert()
-<<<<<<< HEAD
-=======
 
 @frappe.whitelist()
 def create_form_tour():
@@ -244,13 +242,3 @@ def create_topic_and_reply(web_page):
 		})
 
 		reply.save()
-<<<<<<< HEAD
-
-
-
-
-
-
->>>>>>> dc73dea318 (test: ui)
-=======
->>>>>>> fd57185bc9 (style: indentation, etc)
