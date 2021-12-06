@@ -24,6 +24,7 @@
 @import 'doc';
 @import 'navbar';
 @import 'footer';
+@import 'error-state';
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -253,4 +254,15 @@ h5.modal-title {
 }
 .about-footer {
 	padding-top: 1rem;
+}
+
+.login-content.container {
+	background-color: var(--fg-color);
+	padding-bottom: 45px;
+	padding-top: 45px;
+	box-shadow: var(--shadow-base);
+	border-radius: var(--border-radius-md);
+	max-width: 400px;
+	margin: 70px auto;
+	font-size: $font-size-sm;
 }
