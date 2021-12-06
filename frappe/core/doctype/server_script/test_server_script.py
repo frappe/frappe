@@ -76,7 +76,7 @@ class TestServerScript(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		frappe.db.commit()
-		frappe.db.sql('truncate `tabServer Script`')
+		frappe.db.truncate("Server Script")
 		frappe.get_doc('User', 'Administrator').add_roles('Script Manager')
 		for script in scripts:
 			script_doc = frappe.get_doc(doctype ='Server Script')
@@ -88,7 +88,7 @@ class TestServerScript(unittest.TestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.commit()
-		frappe.db.sql('truncate `tabServer Script`')
+		frappe.db.truncate("Server Script")
 		frappe.cache().delete_value('server_script_map')
 
 	def setUp(self):

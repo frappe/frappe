@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import cint, now_datetime
 
+
 class TransactionLog(Document):
 	def before_insert(self):
 		index = get_current_index()
@@ -29,18 +30,15 @@ class TransactionLog(Document):
 	def hash_line(self):
 		sha = hashlib.sha256()
 		sha.update(
-			frappe.safe_encode(str(self.row_index)) + \
-			frappe.safe_encode(str(self.timestamp)) + \
-			frappe.safe_encode(str(self.data))
+			frappe.safe_encode(str(self.row_index))
+			+ frappe.safe_encode(str(self.timestamp))
+			+ frappe.safe_encode(str(self.data))
 		)
 		return sha.hexdigest()
 
 	def hash_chain(self):
 		sha = hashlib.sha256()
-		sha.update(
-			frappe.safe_encode(str(self.transaction_hash)) + \
-			frappe.safe_encode(str(self.previous_hash))
-		)
+		sha.update(frappe.safe_encode(str(self.transaction_hash)) + frappe.safe_encode(str(self.previous_hash)))
 		return sha.hexdigest()
 
 
