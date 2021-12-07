@@ -56,7 +56,7 @@ def patch_query_execute():
 	"""
 	def execute_query(query, *args, **kwargs):
 		query, params = prepare_query(query)
-		return frappe.db.sql(query, params, *args, **kwargs)
+		return frappe.db.sql(query, params, *args, **kwargs) # nosemgrep
 
 	def prepare_query(query):
 		params = {}
