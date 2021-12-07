@@ -3,7 +3,6 @@ import copy
 import inspect
 import json
 import mimetypes
-import traceback
 
 import RestrictedPython.Guards
 from html2text import html2text
@@ -15,14 +14,12 @@ import frappe.integrations.utils
 import frappe.utils
 import frappe.utils.data
 from frappe import _
+from frappe.handler import execute_cmd
 from frappe.frappeclient import FrappeClient
 from frappe.modules import scrub
 from frappe.website.utils import get_next_link, get_shade, get_toc
 from frappe.www.printview import get_visible_columns
-from frappe.handler import execute_cmd
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
-
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
@@ -78,7 +75,7 @@ def get_safe_globals():
 
 	add_data_utils(datautils)
 
-	form_dict = getattr(frappe.local, 'form_dict', {})
+	form_dict = getattr(frappe.local, 'form_dict', frappe._dict())
 
 	if "_" in form_dict:
 		del frappe.local.form_dict["_"]
@@ -96,13 +93,14 @@ def get_safe_globals():
 		log=frappe.log,
 		_dict=frappe._dict,
 		frappe=NamespaceDict(
+			call=call_whitelisted_function,
 			flags=frappe._dict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
 			date_format=date_format,
 			time_format=time_format,
 			format_date=frappe.utils.data.global_date_format,
-			form_dict=frappe._dict(form_dict),
+			form_dict=form_dict,
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
@@ -195,48 +193,39 @@ def get_safe_globals():
 
 	return out
 
-def safe_enqueue(cmd, queue='default', job_name=None, **kwargs):
+def safe_enqueue(function, queue='default', job_name=None, **kwargs):
 	'''
-		Enqueue method to be executed using a background worker if not already queued
+		Enqueue function to be executed using a background worker if not already queued
 
-		:param cmd: whitelised method or server script api method
+		:param function: whitelised function or server script of type API
 		:param queue: should be either long, default or short
 		:param job_name: used to identify an enqueue call, used to prevent duplicate calls
 	'''
 
-	job_name = job_name or cmd
+	job_name = job_name or function
 
 	site = frappe.local.site
 	queued_jobs = get_jobs(site=site, queue=queue, key='job_name').get(site) or []
 
 	if job_name not in queued_jobs:
 		return enqueue(
-			'frappe.utils.safe_exec.execute_enqueued_cmd',
-			cmd=cmd, job_name=job_name, queue=queue, **kwargs
+			'frappe.utils.safe_exec.call_whitelisted_function',
+			job_name=job_name, queue=queue, function=function, **kwargs
 		)
 
-def execute_enqueued_cmd(cmd, **kwargs):
+def call_whitelisted_function(function, **kwargs):
 	'''
-		Executes in a background worker
-		Executes the method if it is a whitelisted method or server script api
+	Executes the function if it is whitelisted or a server script of type API
 	'''
+
 	# update form_dict, to use as `kwargs` in frappe.call
 	form_dict = getattr(frappe.local, 'form_dict', {})
-	form_dict['args'] = frappe._dict(kwargs)
+	frappe.local.form_dict = frappe._dict(kwargs or {})
 
 	try:
-		execute_cmd(cmd)
-
-	except Exception:
-		frappe.db.rollback()
-		context = f"Failed to execute enqueued method: {cmd}"
-		context += f"\nArgs:\n {json.dumps(kwargs, indent=2, default=str)}"
-		context += f"\n\nTraceback:\n {traceback.format_exc()}"
-
-		frappe.log_error(
-			message=context,
-			title="Enqueued Execution Failed"
-		)
+		return execute_cmd(function)
+	finally:
+		frappe.local.form_dict = form_dict
 
 def get_hooks(hook=None, default=None, app_name=None):
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
@@ -249,9 +238,16 @@ def read_sql(query, *args, **kwargs):
 		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 	return frappe.db.sql(query, *args, **kwargs)
 
-def run_script(script, kwargs=None):
+def run_script(script, **kwargs):
 	'''run another server script'''
-	return frappe.get_doc('Server Script', script).execute_method(kwargs=kwargs)
+
+	form_dict = getattr(frappe.local, 'form_dict', {})
+	frappe.local.form_dict = frappe._dict(kwargs or {})
+
+	try:
+		return frappe.get_doc('Server Script', script).execute_method()
+	finally:
+		frappe.local.form_dict = form_dict
 
 def _getitem(obj, key):
 	# guard function for RestrictedPython

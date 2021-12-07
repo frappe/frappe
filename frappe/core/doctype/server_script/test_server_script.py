@@ -70,16 +70,7 @@ frappe.method_that_doesnt_exist("do some magic")
 		script = '''
 frappe.db.commit()
 '''
-	),
-	dict(
-		name='test_accessing_kwargs',
-		script_type = 'API',
-		api_method = 'test_accessing_kwargs',
-		allow_guest = 1,
-		script = '''
-frappe.flags = frappe.form_dict.args.my_param
-'''
-	),
+	)
 ]
 class TestServerScript(unittest.TestCase):
 	@classmethod
@@ -119,15 +110,6 @@ class TestServerScript(unittest.TestCase):
 
 	def test_api_return(self):
 		self.assertEqual(frappe.get_doc('Server Script', 'test_return_value').execute_method(), 'hello')
-
-	def test_accessing_kwargs(self):
-		# check if the passed argument is returned back
-		self.assertEqual(
-			frappe
-				.get_doc('Server Script', 'test_accessing_kwargs')
-				.execute_method({'my_param': 'test_value'}),
-			'test_value'
-		)
 
 	def test_permission_query(self):
 		self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', run=False))

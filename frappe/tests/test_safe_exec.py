@@ -35,10 +35,13 @@ class TestSafeExec(unittest.TestCase):
 
 	def test_enqueue_job(self):
 		# enqueue non_whitelisted_method
-		safe_exec('''frappe.enqueue("frappe.tests.test_safe_exec.non_whitelisted_method", now=True)''')
-
-		error_log = frappe.get_last_doc('Error Log', {'method': 'Enqueued Execution Failed'})
-		self.assertTrue('Not permitted' in error_log.error)
+		self.assertRaises(
+			frappe.PermissionError,
+			safe_exec,
+			"""frappe.enqueue(
+				"frappe.tests.test_safe_exec.non_whitelisted_method", now=True
+			)"""
+		)
 
 		# enqueue whitelisted_method
 		safe_exec('''frappe.enqueue("frappe.tests.test_safe_exec.whitelisted_method", now=True)''')

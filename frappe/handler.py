@@ -12,7 +12,7 @@ from frappe.utils.response import build_response
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.image import optimize_image
 from mimetypes import guess_type
-from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 
 ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
@@ -43,12 +43,15 @@ def handle():
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
-	cmd = get_overridden_method(cmd)
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+		# override using the first hook
+		cmd = hook
+		break
 
 	# via server script
-	if run_server_script_api(cmd):
-		return None
-
+	server_script = get_server_script_map().get('_api', {}).get(cmd)
+	if server_script:
+		return run_server_script(server_script)
 
 	try:
 		method = get_attr(cmd)
@@ -64,12 +67,11 @@ def execute_cmd(cmd, from_async=False):
 
 	return frappe.call(method, **frappe.form_dict)
 
-def get_overridden_method(cmd):
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
-		# override using the first hook
-		return hook
 
-	return cmd
+def run_server_script(server_script):
+	response = frappe.get_doc('Server Script', server_script).execute_method()
+	if response != {}:
+		return response
 
 def is_valid_http_method(method):
 	if frappe.flags.in_safe_exec:

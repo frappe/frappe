@@ -66,7 +66,7 @@ class ServerScript(Document):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
 
-	def execute_method(self, kwargs: Dict = None) -> Dict:
+	def execute_method(self) -> Dict:
 		"""Specific to API endpoint Server Scripts
 
 		Raises:
@@ -83,9 +83,6 @@ class ServerScript(Document):
 		# validate if guest is allowed
 		if frappe.session.user == "Guest" and not self.allow_guest:
 			raise frappe.PermissionError
-
-		form_dict = getattr(frappe.local, 'form_dict', {})
-		form_dict['args'] = frappe._dict(kwargs)
 
 		# output can be stored in flags
 		_globals, _locals = safe_exec(self.script)
