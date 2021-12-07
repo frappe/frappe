@@ -7,7 +7,7 @@ import re
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, date_diff, get_datetime
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 import json
@@ -280,6 +280,13 @@ class PersonalDataDeletionRequest(Document):
 
 		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
 		self.db_set("status", "Deleted")
+		account_deletion_sla = frappe.db.get_single_value("Website Settings", "account_deletion_sla")
+		if account_deletion_sla > 0 and self.sla_status == "Open":
+			if date_diff(get_datetime(), self.creation) > account_deletion_sla:
+				self.db_set("sla_status", "Failed")
+			elif date_diff(get_datetime(), self.creation) <= account_deletion_sla:
+				self.db_set("sla_status", "Fulfilled")
+
 		if commit:
 			frappe.db.commit()
 
@@ -344,6 +351,20 @@ def remove_unverified_record():
 		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
 	)
 
+def update_sla():
+	account_deletion_sla = frappe.db.get_single_value("Website Settings", "account_deletion_sla")
+	if account_deletion_sla < 1:
+		return
+
+	requests = frappe.get_all("Personal Data Deletion Request",
+				filters = {
+					"sla_status": "Open"
+				},
+				fields = ["name", "creation", "status"])
+
+	for request in requests:
+		if date_diff(get_datetime(), request.creation) > account_deletion_sla and request.status != "Deleted":
+			frappe.db.set_value("Personal Data Deletion Request", request.name, "sla_status", "Failed")
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):

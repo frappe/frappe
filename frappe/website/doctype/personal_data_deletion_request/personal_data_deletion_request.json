@@ -7,6 +7,9 @@
  "field_order": [
   "email",
   "status",
+  "column_break_3",
+  "sla_status",
+  "section_break_5",
   "anonymization_matrix",
   "deletion_steps"
  ],
@@ -42,10 +45,28 @@
    "fieldtype": "Table",
    "label": "Deletion Steps ",
    "options": "Personal Data Deletion Step"
+  },
+  {
+   "default": "Open",
+   "fieldname": "sla_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "SLA Status",
+   "options": "Open\nFulfilled\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
   }
  ],
  "links": [],
- "modified": "2021-04-23 13:25:53.629308",
+ "modified": "2021-12-07 10:48:06.194408",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Personal Data Deletion Request",

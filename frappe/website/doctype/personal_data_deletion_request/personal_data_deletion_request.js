@@ -18,5 +18,13 @@ frappe.ui.form.on("Personal Data Deletion Request", {
 				});
 			});
 		}
+	},
+
+	before_load: function(frm) {
+		frappe.db.get_single_value("Website Settings", "account_deletion_sla").then((data) => {
+			if (data < 1) {
+				frm.set_df_property("sla_status", "hidden", 1);
+			}
+		});
 	}
 });
