@@ -1,0 +1,38 @@
+{% for topic in topics %}
+{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name},
+["reply", "owner", "creation"], order_by="creation")%}
+
+{% if replies %}
+<div class="collapse discussion-on-page" id="t{{ topic.name }}" data-topic="{{ topic.name }}"
+	data-parent="#discussion-group">
+
+	<div class="button is-default back">
+		{{ _("Back") }}
+	</div>
+
+	<div class="course-home-headings p-0">{{ topic.title }}</div>
+	{% for reply in replies %}
+	{% include "frappe/templates/discussions/reply_card.html" %}
+
+	{% if loop.index != replies | length %}
+	<div class="card-divider-dark mb-8"></div>
+	{% endif %}
+	{% endfor %}
+
+	{% if frappe.session.user == "Guest" or (condition is defined and not condition) %}
+	<div class="d-flex flex-column align-items-center small">
+		{{ _("Want to join the discussion?") }}
+		{% if frappe.session.user == "Guest" %}
+		<div class="button is-primary mt-3 mb-3" id="login-from-discussion">{{ _("Log In") }}</div>
+		{% elif not condition %}
+		<div class="button is-primary mt-3 mb-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">{{ button_name }}
+		</div>
+		{% endif %}
+	</div>
+	{% else %}
+	{% include "frappe/templates/discussions/comment_box.html" %}
+	{% endif %}
+
+</div>
+{% endif %}
+{% endfor %}

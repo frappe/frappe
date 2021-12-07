@@ -99,6 +99,18 @@
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 	<script type="text/javascript" src="/assets/js/frappe-web.min.js?ver={{ build_version }}"></script>
 	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+	<script>
+		frappe.boot = {
+			sysdefaults: {
+				float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
+				date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+			}
+		};
+		// for backward compatibility of some libs
+		frappe.sys_defaults = frappe.boot.sysdefaults;
+	</script>
+	<script type="text/javascript" src="/assets/frappe/node_modules/moment/min/moment-with-locales.min.js"></script>
+	<script type="text/javascript" src="/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
 	{% endblock %}
 
 	{%- for link in web_include_js %}
