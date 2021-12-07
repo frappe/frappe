@@ -66,8 +66,6 @@
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
-  "chat",
-  "enable_chat",
   "document_naming_section",
   "use_original_name_for_amended_document",
   "system_updates_section",
@@ -384,18 +382,6 @@
    "fieldname": "hide_footer_in_auto_email_reports",
    "fieldtype": "Check",
    "label": "Hide footer in auto email reports"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "chat",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_chat",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
   },
   {
    "fieldname": "column_break_21",
