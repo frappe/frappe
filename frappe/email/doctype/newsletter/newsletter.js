@@ -28,7 +28,13 @@ frappe.ui.form.on('Newsletter', {
 			}, __('Preview'));
 
 			frm.add_custom_button(__('Send now'), () => {
-				frappe.confirm(__("Do you really want to send this email newsletter?"), function () {
+				if (frm.doc.schedule_send) {
+					frappe.confirm(__("This newsletter was scheduled to send on a later date. Are you sure you want to send it now?"), function () {
+						frm.call('send_emails').then(() => frm.refresh());
+					});
+					return;
+				}
+				frappe.confirm(__("Are you sure you want to send this newsletter now?"), function () {
 					frm.call('send_emails').then(() => frm.refresh());
 				});
 			}, __('Send'));
@@ -46,6 +52,8 @@ frappe.ui.form.on('Newsletter', {
 			frm.set_value('sender_email', email);
 			frm.set_value('sender_name', fullname);
 		}
+
+		frm.trigger('update_schedule_message');
 	},
 
 	schedule_send_dialog(frm) {
@@ -74,8 +82,16 @@ frappe.ui.form.on('Newsletter', {
 			primary_action_label: __('Schedule'),
 			primary_action({ date, time }) {
 				frm.set_value('schedule_sending', 1);
-				frm.set_value('schedule_send', `${date} ${time}`);
+				frm.set_value('schedule_send', `${date} ${time}:00`);
 				d.hide();
+				frm.save();
+			},
+			secondary_action_label: __('Cancel Scheduling'),
+			secondary_action() {
+				frm.set_value('schedule_sending', 0);
+				frm.set_value('schedule_send', '');
+				d.hide();
+				frm.save();
 			}
 		});
 		if (frm.doc.schedule_sending) {
@@ -83,7 +99,7 @@ frappe.ui.form.on('Newsletter', {
 			if (parts.length === 2) {
 				let [date, time] = parts;
 				d.set_value('date', date);
-				d.set_value('time', time);
+				d.set_value('time', time.slice(0, 5));
 			}
 		}
 		d.show();
@@ -191,5 +207,13 @@ frappe.ui.form.on('Newsletter', {
 			frm.sending_status = null;
 		}
 	},
+
+	update_schedule_message(frm) {
+		if (!frm.doc.email_sent && frm.doc.schedule_send) {
+			let datetime = frappe.datetime.global_date_format(frm.doc.schedule_send);
+			frm.dashboard.set_headline_alert(__('This newsletter is scheduled to be sent on {0}', [datetime.bold()]));
+		} else {
+			frm.dashboard.clear_headline();
+		}
 	}
 });
