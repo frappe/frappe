@@ -7,6 +7,12 @@
  "document_type": "Other",
  "engine": "InnoDB",
  "field_order": [
+  "status_section",
+  "email_sent_at",
+  "column_break_3",
+  "total_recipients",
+  "column_break_12",
+  "email_sent",
   "from_section",
   "sender_name",
   "column_break_5",
@@ -15,7 +21,6 @@
   "send_from",
   "recipients",
   "email_group",
-  "email_sent",
   "subject_section",
   "subject",
   "newsletter_content",
@@ -23,8 +28,8 @@
   "message",
   "message_md",
   "message_html",
-  "send_unsubscribe_link",
   "attachments",
+  "send_unsubscribe_link",
   "send_webview_link",
   "schedule_settings_section",
   "scheduled_to_send",
@@ -39,8 +44,9 @@
    "fieldname": "email_group",
    "fieldtype": "Table",
    "in_standard_filter": 1,
-   "label": "Email Group",
-   "options": "Newsletter Email Group"
+   "label": "Audience",
+   "options": "Newsletter Email Group",
+   "reqd": 1
   },
   {
    "fieldname": "send_from",
@@ -53,6 +59,7 @@
    "default": "0",
    "fieldname": "email_sent",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Email Sent",
    "no_copy": 1,
    "read_only": 1
@@ -91,6 +98,7 @@
    "label": "Published"
   },
   {
+   "depends_on": "published",
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route",
@@ -144,7 +152,6 @@
   },
   {
    "default": "0",
-   "depends_on": "published",
    "fieldname": "send_webview_link",
    "fieldtype": "Check",
    "label": "Send Web View Link"
@@ -195,6 +202,32 @@
    "fieldtype": "Table",
    "label": "Attachments",
    "options": "Newsletter Attachment"
+  },
+  {
+   "fieldname": "email_sent_at",
+   "fieldtype": "Datetime",
+   "label": "Email Sent At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recipients",
+   "fieldtype": "Int",
+   "label": "Total Recipients",
+   "read_only": 1
+  },
+  {
+   "depends_on": "email_sent",
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
@@ -204,7 +237,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2021-12-06 17:01:32.353153",
+ "modified": "2021-12-06 20:09:37.963141",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

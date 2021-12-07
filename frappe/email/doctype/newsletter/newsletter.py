@@ -15,13 +15,11 @@ from .exceptions import NewsletterAlreadySentError, NoRecipientFoundError, Newsl
 
 
 class Newsletter(WebsiteGenerator):
-	def onload(self):
-		self.setup_newsletter_status()
-
 	def validate(self):
 		self.route = f"newsletters/{self.name}"
 		self.validate_sender_address()
 		self.validate_recipient_address()
+		self.validate_publishing()
 
 	@property
 	def newsletter_recipients(self) -> List[str]:
@@ -48,8 +46,8 @@ class Newsletter(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def send_test_email(self, email):
-		test_emails = frappe.utils.split_emails(email)
-		self.queue_all(test_emails=test_emails)
+		test_emails = frappe.utils.validate_email_address(email, throw=True)
+		self.send_newsletter(emails=test_emails)
 		frappe.msgprint(_("Test email sent to {0}").format(email), alert=True)
 
 	@frappe.whitelist()
@@ -74,22 +72,11 @@ class Newsletter(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def send_emails(self):
-		"""send emails to leads and customers"""
+		"""queue sending emails to recipients"""
+		self.schedule_sending = False
+		self.schedule_send = None
 		self.queue_all()
-		frappe.msgprint(_("Email queued to {0} recipients").format(len(self.newsletter_recipients)))
-
-	def setup_newsletter_status(self):
-		"""Setup analytical status for current Newsletter. Can be accessible from desk.
-		"""
-		if self.email_sent:
-			status_count = frappe.get_all("Email Queue",
-				filters={"reference_doctype": self.doctype, "reference_name": self.name},
-				fields=["status", "count(name)"],
-				group_by="status",
-				order_by="status",
-				as_list=True,
-			)
-			self.get("__onload").status_count = dict(status_count)
+		frappe.msgprint(_("Email queued to {0} recipients").format(self.total_recipients))
 
 	def validate_send(self):
 		"""Validate if Newsletter can be sent.
@@ -121,6 +108,10 @@ class Newsletter(WebsiteGenerator):
 		"""
 		for recipient in self.newsletter_recipients:
 			frappe.utils.validate_email_address(recipient, throw=True)
+
+	def validate_publishing(self):
+		if self.send_webview_link and not self.published:
+			frappe.throw(_("Newsletter must be published to send webview link in email"))
 
 	def get_linked_email_queue(self) -> List[str]:
 		"""Get list of email queue linked to this newsletter.
@@ -154,29 +145,19 @@ class Newsletter(WebsiteGenerator):
 			x for x in self.newsletter_recipients if x not in self.get_success_recipients()
 		]
 
-	def queue_all(self, test_emails: List[str] = None):
-		"""Queue Newsletter to all the recipients generated from the `Email Group`
-		table
-
-		Args:
-			test_email (List[str], optional): Send test Newsletter to the passed set of emails.
-			Defaults to None.
+	def queue_all(self):
+		"""Queue Newsletter to all the recipients generated from the `Email Group` table
 		"""
-		if test_emails:
-			for test_email in test_emails:
-				frappe.utils.validate_email_address(test_email, throw=True)
-		else:
-			self.validate()
-			self.validate_send()
+		self.validate()
+		self.validate_send()
 
-		newsletter_recipients = test_emails or self.get_pending_recipients()
-		self.send_newsletter(emails=newsletter_recipients)
+		recipients = self.get_pending_recipients()
+		self.send_newsletter(emails=recipients)
 
-		if not test_emails:
-			self.email_sent = True
-			self.schedule_send = frappe.utils.now_datetime()
-			self.scheduled_to_send = len(newsletter_recipients)
-			self.save()
+		self.email_sent = True
+		self.email_sent_at = frappe.utils.now()
+		self.total_recipients = len(recipients)
+		self.save()
 
 	def get_newsletter_attachments(self) -> List[Dict[str, str]]:
 		"""Get list of attachments on current Newsletter
@@ -250,21 +231,6 @@ class Newsletter(WebsiteGenerator):
 				"is_private": 0,
 			},
 		)
-
-	def get_context(self, context):
-		newsletters = get_newsletter_list("Newsletter", None, None, 0)
-		if newsletters:
-			newsletter_list = [d.name for d in newsletters]
-			if self.name not in newsletter_list:
-				frappe.redirect_to_message(
-					_("Permission Error"), _("You are not permitted to view the newsletter.")
-				)
-				frappe.local.flags.redirect_location = frappe.local.response.location
-				raise frappe.Redirect
-			else:
-				context.attachments = self.get_attachments()
-		context.no_cache = 1
-		context.show_sidebar = True
 
 
 @frappe.whitelist(allow_guest=True)
@@ -348,33 +314,12 @@ def confirm_subscription(email, email_group=_("Website")):
 
 def get_list_context(context=None):
 	context.update({
-		"show_sidebar": True,
 		"show_search": True,
-		'no_breadcrumbs': True,
-		"title": _("Newsletter"),
-		"get_list": get_newsletter_list,
+		"no_breadcrumbs": True,
+		"title": _("Newsletters"),
+		"filters": {"published": 1},
 		"row_template": "email/doctype/newsletter/templates/newsletter_row.html",
 	})
-
-
-def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
-	email_group_list = frappe.db.sql('''SELECT eg.name
-		FROM `tabEmail Group` eg, `tabEmail Group Member` egm
-		WHERE egm.unsubscribed=0
-		AND eg.name=egm.email_group
-		AND egm.email = %s''', frappe.session.user)
-	email_group_list = [d[0] for d in email_group_list]
-
-	if email_group_list:
-		return frappe.db.sql('''SELECT n.name, n.subject, n.message, n.modified
-			FROM `tabNewsletter` n, `tabNewsletter Email Group` neg
-			WHERE n.name = neg.parent
-			AND n.email_sent=1
-			AND n.published=1
-			AND neg.email_group in ({0})
-			ORDER BY n.modified DESC LIMIT {1} OFFSET {2}
-			'''.format(','.join(['%s'] * len(email_group_list)),
-					limit_page_length, limit_start), email_group_list, as_dict=1)
 
 
 def send_scheduled_email():
