@@ -30,6 +30,23 @@ class Newsletter(WebsiteGenerator):
 		return self._recipients
 
 	@frappe.whitelist()
+	def get_sending_status(self):
+		count_by_status = frappe.get_all("Email Queue",
+			filters={"reference_doctype": self.doctype, "reference_name": self.name},
+			fields=["status", "count(name) as count"],
+			group_by="status",
+			order_by="status"
+		)
+		sent = 0
+		total = 0
+		for row in count_by_status:
+			if row.status == "Sent":
+				sent = row.count
+			total += row.count
+
+		return {'sent': sent, 'total': total}
+
+	@frappe.whitelist()
 	def send_test_email(self, email):
 		test_emails = frappe.utils.split_emails(email)
 		self.queue_all(test_emails=test_emails)

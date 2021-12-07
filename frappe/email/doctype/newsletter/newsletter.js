@@ -39,6 +39,7 @@ frappe.ui.form.on('Newsletter', {
 		}
 
 		frm.events.setup_dashboard(frm);
+		frm.events.setup_sending_status(frm);
 
 		if (frm.is_new() && !doc.sender_email) {
 			let { fullname, email } = frappe.user_info(doc.owner);
@@ -145,5 +146,50 @@ frappe.ui.form.on('Newsletter', {
 				]);
 			}
 		}
+	},
+
+	setup_sending_status(frm) {
+		frm.call('get_sending_status').then(r => {
+			if (r.message) {
+				frm.events.update_sending_progress(frm, r.message.sent, r.message.total);
+			}
+			if (r.message.sent >= r.message.total) {
+				return;
+			}
+			if (frm.sending_status) return;
+
+			frm.sending_status = setInterval(() => {
+				if (frm.doc.email_sent && frm.$wrapper.is(':visible')) {
+					frm.call('get_sending_status').then(r => {
+						if (r.message) {
+							let { sent, total } = r.message;
+							frm.events.update_sending_progress(frm, sent, total);
+
+							if (sent >= total) {
+								clearInterval(frm.sending_status);
+								frm.sending_status = null;
+								return;
+							}
+						}
+					});
+				}
+			}, 5000);
+		});
+	},
+
+	update_sending_progress(frm, sent, total) {
+		if (sent >= total) {
+			frm.dashboard.hide_progress();
+			return;
+		}
+		frm.dashboard.show_progress(__('Sending emails'), sent * 100 / total, __("{0} of {1} sent", [sent, total]));
+	},
+
+	on_hide(frm) {
+		if (frm.sending_status) {
+			clearInterval(frm.sending_status);
+			frm.sending_status = null;
+		}
+	},
 	}
 });
