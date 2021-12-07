@@ -24,7 +24,7 @@ frappe.ui.form.on('Newsletter', {
 							frm.dashboard.set_headline('');
 						}, 3000);
 					}
-				})
+				});
 			}, __('Preview'));
 
 			frm.add_custom_button(__('Send now'), () => {
