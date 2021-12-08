@@ -143,11 +143,10 @@ frappe.ui.form.on("DocField", {
 			curr_value.doctype = doctype;
 			curr_value.fieldname = fieldname;
 		}
-		let curr_df_link_doctype = row.fieldtype == "Link" ? row.options : null;
 
 		let doctypes = frm.doc.fields
 			.filter(df => df.fieldtype == "Link")
-			.filter(df => df.options && df.options != curr_df_link_doctype)
+			.filter(df => df.options && df.fieldname != row.fieldname)
 			.map(df => ({
 				label: `${df.options} (${df.fieldname})`,
 				value: df.fieldname
