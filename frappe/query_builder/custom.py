@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 from pypika.functions import DistinctOptionFunction
 from pypika.terms import Term
-from pypika.utils import builder, format_alias_sql
+from pypika.utils import builder, format_alias_sql, format_quotes
 
 import frappe
 
@@ -85,8 +85,15 @@ class TO_TSVECTOR(DistinctOptionFunction):
 
 
 class ConstantColumn(Term):
+	alias = None
+	
 	def __init__(self, name: str) -> None:
 		self.name = name
 
 	def get_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
-		return format_alias_sql('"{name}"'.format(name=self.name), self.alias, quote_char=quote_char, **kwargs)
+		return format_alias_sql(
+					format_quotes(self.name,kwargs.get("secondary_quote_char") or ""),
+					self.alias or self.name,
+					quote_char=quote_char,
+					**kwargs
+				)
