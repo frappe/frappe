@@ -78,9 +78,22 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""
+<<<<<<< HEAD
 	validate_email_add will be renamed to the validate_email_address in v12
 	"""
 	return validate_email_address(email_str, throw=False)
+=======
+	if not name:
+		return False
+
+	name = name.strip()
+	match = re.match(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$", name)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
+
+	return bool(match)
+>>>>>>> 2f99306d63 (Fix ReDoS bug: GHSL-2021-122 (#15201))
 
 def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
