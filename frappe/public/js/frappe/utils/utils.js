@@ -957,7 +957,7 @@ Object.assign(frappe.utils, {
 		return decoded;
 	},
 	copy_to_clipboard(string) {
-		let input = $("<input>");
+		let input = $("<textarea>");
 		$("body").append(input);
 		input.val(string).select();
 
