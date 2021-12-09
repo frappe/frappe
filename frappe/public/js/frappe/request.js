@@ -481,6 +481,24 @@ frappe.request.report_error = function(xhr, request_opts) {
 		exc = "";
 	}
 
+	const copy_markdown_to_clipboard = () => {
+		const code_block = snippet => '```\n' + snippet + '\n```';
+		const traceback_info = [
+			'### App Versions',
+			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
+			'### Route',
+			code_block(frappe.get_route_str()),
+			'### Trackeback',
+			code_block(exc),
+			'### Request Data',
+			code_block(JSON.stringify(request_opts, null, "\t")),
+			'### Response Data',
+			code_block(JSON.stringify(data, null, '\t')),
+		].join("\n");
+		frappe.utils.copy_to_clipboard(traceback_info);
+	};
+
+
 	var show_communication = function() {
 		var error_report_message = [
 			'<h5>Please type some additional information that could help us reproduce this issue:</h5>',
@@ -531,6 +549,11 @@ frappe.request.report_error = function(xhr, request_opts) {
 					} else {
 						frappe.msgprint(__('Support Email Address Not Specified'));
 					}
+					frappe.error_dialog.hide();
+				},
+				secondary_action_label: __('Copy error to clipboard'),
+				secondary_action: () => {
+					copy_markdown_to_clipboard();
 					frappe.error_dialog.hide();
 				}
 			});
