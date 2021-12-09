@@ -316,7 +316,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 	get_scroll_position: function(element, additional_offset) {
-		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
+		let header_offset = $(".navbar").height() + $(".page-head:visible").height() || $(".navbar").height();
 		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
 		return scroll_top;
 	},
