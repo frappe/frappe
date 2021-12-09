@@ -200,7 +200,7 @@ class Importer:
 		new_doc = frappe.new_doc(self.doctype)
 		new_doc.update(doc)
 
-		if (meta.autoname or "").lower() != "prompt":
+		if not doc.name and (meta.autoname or "").lower() != "prompt":
 			# name can only be set directly if autoname is prompt
 			new_doc.set("name", None)
 
