@@ -184,7 +184,8 @@ class Meta(Document):
 			"fields": "DocField",
 			"permissions": "DocPerm",
 			"actions": "DocType Action",
-			'links': 'DocType Link'
+			"links": "DocType Link",
+			"states": "DocType State",
 		}.get(fieldname)
 
 	def get_field(self, fieldname):
@@ -571,6 +572,7 @@ DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
 	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
 	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
+	frappe._dict({"fieldname": "states", "options": "DocType State"}),
 ]
 
 #######
