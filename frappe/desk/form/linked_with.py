@@ -437,7 +437,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 						# dynamic link
 						if link.get("doctype_fieldname"):
 							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-						ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, or_filters=or_filters)
+						ret = frappe.get_all(doctype=dt, fields=fields, filters=filters, or_filters=or_filters)
 
 					else:
 						ret = None
