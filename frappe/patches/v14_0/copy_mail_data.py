@@ -3,6 +3,9 @@ import frappe
 
 
 def execute():
+	frappe.reload_doc("email", "doctype", "imap_folder")
+	frappe.reload_doc("email", "doctype", "email_account")
+
 	# patch for all Email Account with the flag use_imap
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1, "use_imap": 1}):
 		# get all data from Email Account
@@ -19,8 +22,3 @@ def execute():
 			})
 
 			doc.save()
-		EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
-		frappe.qb.update(EmailFlagQueue) \
-			.set(EmailFlagQueue.imap_folder, "INBOX") \
-			.where(EmailFlagQueue.email_account == doc.name) \
-			.where(EmailFlagQueue.imap_folder.isnull()).run()
