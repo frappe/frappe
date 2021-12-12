@@ -112,9 +112,30 @@
 }
 
 .breadcrumb {
-	padding: 0;
+	padding-left: 0;
+	padding-right: 0;
 	font-size: $font-size-sm;
-	background-color: $breadcrumb-bg;
+}
+
+.breadcrumb-item {
+	+ .breadcrumb-item
+	 {
+		font-size: $font-size-sm;
+		&::before {
+			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			display: inline-block;
+		}
+	}
+	a {
+		color: var(--text-color)
+	}
+	
+	li.disabled {
+		a {
+			color: var(--text-muted);
+			pointer-events: none;
+		}
+	}
 }
 
 a.card {
