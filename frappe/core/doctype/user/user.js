@@ -50,7 +50,7 @@ frappe.ui.form.on('User', {
 						let d = frm.add_child("block_modules");
 						d.module = v.module;
 					});
-					frm.module_editor && frm.module_editor.refresh();
+					frm.module_editor && frm.module_editor.show();
 				}
 			});
 		}
@@ -180,7 +180,7 @@ frappe.ui.form.on('User', {
 				frm.roles_editor.show();
 			}
 
-			frm.module_editor && frm.module_editor.refresh();
+			frm.module_editor && frm.module_editor.show();
 
 			if(frappe.session.user==doc.name) {
 				// update display settings

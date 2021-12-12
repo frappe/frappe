@@ -189,7 +189,7 @@ def update_modified(original_modified, doc):
 		).set(
 			singles_table.value,original_modified
 		).where(
-			singles_table.field == "modified"
+			singles_table["field"] == "modified",  # singles_table.field is a method of pypika Selectable
 		).where(
 			singles_table.doctype == doc["name"]
 		).run()

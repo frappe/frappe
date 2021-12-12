@@ -7,48 +7,59 @@
  "document_type": "Other",
  "engine": "InnoDB",
  "field_order": [
+  "status_section",
+  "email_sent_at",
+  "column_break_3",
+  "total_recipients",
+  "column_break_12",
+  "email_sent",
+  "from_section",
+  "sender_name",
+  "column_break_5",
+  "sender_email",
+  "column_break_7",
   "send_from",
-  "schedule_sending",
-  "schedule_send",
   "recipients",
   "email_group",
-  "email_sent",
-  "newsletter_content",
+  "subject_section",
   "subject",
+  "newsletter_content",
   "content_type",
   "message",
   "message_md",
   "message_html",
-  "section_break_13",
+  "attachments",
   "send_unsubscribe_link",
-  "send_attachments",
-  "column_break_9",
-  "published",
   "send_webview_link",
-  "route",
-  "test_the_newsletter",
-  "test_email_id",
-  "test_send",
-  "scheduled_to_send"
+  "schedule_settings_section",
+  "scheduled_to_send",
+  "schedule_sending",
+  "schedule_send",
+  "publish_as_a_web_page_section",
+  "published",
+  "route"
  ],
  "fields": [
   {
    "fieldname": "email_group",
    "fieldtype": "Table",
    "in_standard_filter": 1,
-   "label": "Email Group",
-   "options": "Newsletter Email Group"
+   "label": "Audience",
+   "options": "Newsletter Email Group",
+   "reqd": 1
   },
   {
    "fieldname": "send_from",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
-   "label": "Sender"
+   "label": "Sender",
+   "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "email_sent",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Email Sent",
    "no_copy": 1,
    "read_only": 1
@@ -87,31 +98,11 @@
    "label": "Published"
   },
   {
+   "depends_on": "published",
    "fieldname": "route",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Route",
    "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "test_the_newsletter",
-   "fieldtype": "Section Break",
-   "label": "Testing"
-  },
-  {
-   "description": "A Lead with this Email Address should exist",
-   "fieldname": "test_email_id",
-   "fieldtype": "Data",
-   "label": "Test Email Address",
-   "options": "Email"
-  },
-  {
-   "depends_on": "eval: doc.test_email_id",
-   "fieldname": "test_send",
-   "fieldtype": "Button",
-   "label": "Test",
-   "options": "test_send"
   },
   {
    "fieldname": "scheduled_to_send",
@@ -122,20 +113,15 @@
   {
    "fieldname": "recipients",
    "fieldtype": "Section Break",
-   "label": "Recipients"
+   "label": "To"
   },
   {
    "depends_on": "eval: doc.schedule_sending",
    "fieldname": "schedule_send",
    "fieldtype": "Datetime",
-   "label": "Schedule Send",
+   "label": "Send Email At",
+   "read_only": 1,
    "read_only_depends_on": "eval: doc.email_sent"
-  },
-  {
-   "default": "0",
-   "fieldname": "send_attachments",
-   "fieldtype": "Check",
-   "label": "Send Attachments"
   },
   {
    "fieldname": "content_type",
@@ -161,23 +147,87 @@
    "default": "0",
    "fieldname": "schedule_sending",
    "fieldtype": "Check",
-   "label": "Schedule Sending",
+   "label": "Schedule sending at a later time",
    "read_only_depends_on": "eval: doc.email_sent"
   },
   {
-   "fieldname": "column_break_9",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
-   "depends_on": "published",
    "fieldname": "send_webview_link",
    "fieldtype": "Check",
    "label": "Send Web View Link"
   },
   {
-   "fieldname": "section_break_13",
-   "fieldtype": "Section Break"
+   "fieldname": "from_section",
+   "fieldtype": "Section Break",
+   "label": "From"
+  },
+  {
+   "fieldname": "sender_name",
+   "fieldtype": "Data",
+   "label": "Sender Name"
+  },
+  {
+   "fieldname": "sender_email",
+   "fieldtype": "Data",
+   "label": "Sender Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subject_section",
+   "fieldtype": "Section Break",
+   "label": "Subject"
+  },
+  {
+   "fieldname": "publish_as_a_web_page_section",
+   "fieldtype": "Section Break",
+   "label": "Publish as a web page"
+  },
+  {
+   "depends_on": "schedule_sending",
+   "fieldname": "schedule_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Scheduled Sending"
+  },
+  {
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Newsletter Attachment"
+  },
+  {
+   "fieldname": "email_sent_at",
+   "fieldtype": "Datetime",
+   "label": "Email Sent At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recipients",
+   "fieldtype": "Int",
+   "label": "Total Recipients",
+   "read_only": 1
+  },
+  {
+   "depends_on": "email_sent",
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
@@ -187,7 +237,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2021-02-22 14:33:56.095380",
+ "modified": "2021-12-06 20:09:37.963141",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

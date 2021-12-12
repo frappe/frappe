@@ -2,6 +2,7 @@ import unittest
 from typing import Callable
 
 import frappe
+from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Coalesce, GroupConcat, Match
 from frappe.query_builder.utils import db_type_is
 
@@ -23,7 +24,9 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 			" MATCH('Notes') AGAINST ('+text*' IN BOOLEAN MODE)", query.get_sql()
 		)
 
-
+	def test_constant_column(self):
+		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
+		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(unittest.TestCase):
 	def test_concat(self):
@@ -35,6 +38,9 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 			"TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql()
 		)
 
+	def test_constant_column(self):
+		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
+		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
 
 class TestBuilderBase(object):
 	def test_adding_tabs(self):
