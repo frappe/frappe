@@ -240,7 +240,9 @@ def get_traceback() -> str:
 		return ""
 
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	return "".join(cstr(t) for t in trace_list)
+	bench_path = get_bench_path()
+
+	return "".join(cstr(t) for t in trace_list).replace(bench_path, "")
 
 def log(event, details):
 	frappe.logger().info(details)
