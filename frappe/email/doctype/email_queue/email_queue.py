@@ -121,9 +121,9 @@ class EmailQueue(Document):
 					continue
 
 				message = ctx.build_message(recipient.recipient)
-				method = get_hook_method('send_mime_mail')
+				method = get_hook_method('override_email_send')
 				if method:
-					method(self, recipient.recipient, message)
+					method(self, self.sender, recipient.recipient, message)
 				else:
 					if not frappe.flags.in_test:
 						ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)

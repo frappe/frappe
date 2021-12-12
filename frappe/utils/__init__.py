@@ -59,7 +59,9 @@ def get_formatted_email(user, mail=None):
 	
 	method = get_hook_method('get_sender_details')
 	if method:
-		fullname, mail = method()
+		sender_name, mail = method()
+		# if method exists but sender_name is ""
+		fullname = sender_name or fullname
 
 	if not mail:
 		mail = get_email_address(user) or validate_email_address(user)
