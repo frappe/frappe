@@ -75,6 +75,10 @@ frappe.ui.form.Form = class FrappeForm {
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
 
+		this.$wrapper.on("hide", () => {
+			this.script_manager.trigger("on_hide");
+		});
+
 		this.toolbar = new frappe.ui.form.Toolbar({
 			frm: this,
 			page: this.page
