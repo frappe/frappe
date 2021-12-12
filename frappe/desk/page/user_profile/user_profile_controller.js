@@ -68,8 +68,7 @@ class UserProfile {
 			primary_action_label: __('Go'),
 			primary_action: ({ user }) => {
 				dialog.hide();
-				this.user_id = user;
-				this.make_user_profile();
+				frappe.set_route('user-profile', user);
 			}
 		});
 		dialog.show();
