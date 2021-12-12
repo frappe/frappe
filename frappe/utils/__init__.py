@@ -65,6 +65,16 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+<<<<<<< HEAD
+=======
+	
+	method = get_hook_method('get_sender_details')
+	if method:
+		sender_name, mail = method()
+		# if method exists but sender_name is ""
+		fullname = sender_name or fullname
+
+>>>>>>> 1ec54c87c8 (feat: patched frappe email to work with frappecloud mail app (#15248))
 	if not mail:
 		mail = get_email_address(user)
 	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
