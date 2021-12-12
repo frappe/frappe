@@ -357,10 +357,10 @@ def update_sla():
 		return
 
 	requests = frappe.get_all("Personal Data Deletion Request",
-				filters = {
-					"sla_status": "Open"
-				},
-				fields = ["name", "creation", "status"])
+		filters = {
+			"sla_status": "Open"
+		},
+		fields = ["name", "creation", "status"])
 
 	for request in requests:
 		if date_diff(get_datetime(), request.creation) > account_deletion_sla and request.status != "Deleted":
