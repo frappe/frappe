@@ -242,6 +242,7 @@ frappe.views.TreeView = class TreeView {
 					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
 						node.$tree_link.find('a').text(new_name);
 						node.label = new_name;
+						me.tree.refresh();
 					});
 				},
 				btnClass: "hidden-xs"
