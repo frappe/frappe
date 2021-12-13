@@ -1865,12 +1865,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (!doctype) return;
 		frappe.provide("frappe.views.trees");
 
-		// refresh tree view
-		if (frappe.views.trees[doctype]) {
-			frappe.views.trees[doctype].tree.refresh();
-			return;
-		}
-
 		// refresh list view
 		const page_name = frappe.get_route_str();
 		const list_view = frappe.views.list_view[page_name];
