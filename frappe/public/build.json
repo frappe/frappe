@@ -1,15 +1,9 @@
 {
 	"css/frappe-web-b4.css": "public/scss/website.scss",
-	"css/frappe-chat-web.css": [
-		"public/css/font-awesome.css",
-		"public/css/octicons/octicons.css",
-		"public/less/chat.less"
-	],
 	"concat:js/moment-bundle.min.js": [
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
 	],
-	"js/chat.js": "public/js/frappe/chat.js",
 	"js/frappe-recorder.min.js": "public/js/frappe/recorder/recorder.js",
 	"js/checkout.min.js": "public/js/integrations/razorpay.js",
 	"js/frappe-web.min.js": [
@@ -63,7 +57,6 @@
 		"public/less/module.less",
 		"public/less/mobile.less",
 		"public/less/controls.less",
-		"public/less/chat.less",
 		"public/css/fonts/inter/inter.css",
 		"node_modules/frappe-charts/dist/frappe-charts.min.css",
 		"node_modules/plyr/dist/plyr.css",
@@ -187,7 +180,6 @@
 
 		"public/js/frappe/ui/comment.js",
 
-		"public/js/frappe/chat.js",
 		"public/js/frappe/utils/energy_point_utils.js",
 		"public/js/frappe/utils/dashboard_utils.js",
 		"public/js/frappe/ui/chart.js",
