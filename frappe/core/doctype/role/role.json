@@ -17,7 +17,6 @@
   "navigation_settings_section",
   "search_bar",
   "notifications",
-  "chat",
   "list_settings_section",
   "list_sidebar",
   "bulk_actions",
@@ -84,12 +83,6 @@
    "fieldname": "search_bar",
    "fieldtype": "Check",
    "label": "Search Bar"
-  },
-  {
-   "default": "1",
-   "fieldname": "chat",
-   "fieldtype": "Check",
-   "label": "Chat"
   },
   {
    "fieldname": "list_settings_section",

@@ -349,7 +349,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	async set_values_from_last_edited_communication() {
-		if (this.txt) return;
+		if (this.txt || this.message) return;
 
 		const last_edited = this.get_last_edited_communication();
 		if (!last_edited.content) return;
@@ -711,7 +711,7 @@ frappe.views.CommunicationComposer = class {
 	async set_content() {
 		if (this.content_set) return;
 
-		let message = this.txt || "";
+		let message = this.txt || this.message || "";
 		if (!message && this.frm) {
 			const { doctype, docname } = this.frm;
 			message = await localforage.getItem(doctype + docname) || "";
@@ -725,7 +725,7 @@ frappe.views.CommunicationComposer = class {
 
 		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
 		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
-			this.message = `
+			message = `
 				<p>${__('Dear {0},', [this.real_name], 'Salutation in new email')},</p>
 				${SALUTATION_END_COMMENT}<br>
 				${message}
