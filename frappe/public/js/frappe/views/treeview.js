@@ -318,10 +318,7 @@ frappe.views.TreeView = Class.extend({
 				args: args,
 				callback: function(r) {
 					if(!r.exc) {
-						if(node.expanded) {
-							me.tree.toggle_node(node);
-						}
-						me.tree.load_children(node, true);
+						me.tree.load_children(node);
 					}
 				},
 				always: function() {
