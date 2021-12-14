@@ -114,6 +114,7 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
+			frm.page.set_title(__('Customize Form - {0}', [frm.doc.doc_type]));
 			frappe.customize_form.set_primary_action(frm);
 
 			frm.add_custom_button(
@@ -271,6 +272,21 @@ frappe.ui.form.on("DocType Action", {
 		}
 	},
 	actions_add: function(frm, cdt, cdn) {
+		let f = frappe.model.get_doc(cdt, cdn);
+		f.custom = 1;
+	}
+});
+
+// can't delete standard states
+frappe.ui.form.on("DocType State", {
+	before_states_remove: function(frm, doctype, name) {
+		let row = frappe.get_doc(doctype, name);
+		if (!(row.custom || row.__islocal)) {
+			frappe.msgprint(__("Cannot delete standard document state."));
+			throw "cannot delete standard document state";
+		}
+	},
+	states_add: function(frm, cdt, cdn) {
 		let f = frappe.model.get_doc(cdt, cdn);
 		f.custom = 1;
 	}
