@@ -18,7 +18,7 @@ from frappe import _, safe_encode, task
 from frappe.model.document import Document
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.email_body import add_attachment, get_formatted_html, get_email
-from frappe.utils import cint, split_emails, add_days, nowdate, cstr
+from frappe.utils import cint, split_emails, add_days, nowdate, cstr, get_hook_method
 from frappe.email.doctype.email_account.email_account import EmailAccount
 
 
@@ -121,9 +121,13 @@ class EmailQueue(Document):
 					continue
 
 				message = ctx.build_message(recipient.recipient)
-				if not frappe.flags.in_test:
-					ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
-				ctx.add_to_sent_list(recipient)
+				method = get_hook_method('override_email_send')
+				if method:
+					method(self, self.sender, recipient.recipient, message)
+				else:
+					if not frappe.flags.in_test:
+						ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
+					ctx.add_to_sent_list(recipient)
 
 			if frappe.flags.in_test:
 				frappe.flags.sent_mail = message
@@ -283,9 +287,14 @@ class SendMailContext:
 			if attachment.get('fcontent'):
 				continue
 
-			fid = attachment.get("fid")
-			if fid:
-				_file = frappe.get_doc("File", fid)
+			file_filters = {}
+			if attachment.get('fid'):
+				file_filters['name'] = attachment.get('fid')
+			elif attachment.get('file_url'):
+				file_filters['file_url'] = attachment.get('file_url')
+
+			if file_filters:
+				_file = frappe.get_doc("File", file_filters)
 				fcontent = _file.get_content()
 				attachment.update({
 					'fname': _file.file_name,
@@ -293,6 +302,7 @@ class SendMailContext:
 					'parent': message_obj
 				})
 				attachment.pop("fid", None)
+				attachment.pop("file_url", None)
 				add_attachment(**attachment)
 
 			elif attachment.get("print_format_attachment") == 1:
@@ -503,7 +513,7 @@ class QueueBuilder:
 		if self._attachments:
 			# store attachments with fid or print format details, to be attached on-demand later
 			for att in self._attachments:
-				if att.get('fid'):
+				if att.get('fid') or att.get('file_url'):
 					attachments.append(att)
 				elif att.get("print_format_attachment") == 1:
 					if not att.get('lang', None):

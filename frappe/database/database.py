@@ -171,10 +171,10 @@ class Database(object):
 				frappe.errprint(query)
 
 			elif self.is_deadlocked(e):
-				raise frappe.QueryDeadlockError
+				raise frappe.QueryDeadlockError(e)
 
 			elif self.is_timedout(e):
-				raise frappe.QueryTimeoutError
+				raise frappe.QueryTimeoutError(e)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
@@ -511,14 +511,10 @@ class Database(object):
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		result = self.sql("""
-			SELECT field, value
-			FROM   `tabSingles`
-			WHERE  doctype = %s
-		""", doctype)
-
+		result = self.query.get_sql(
+			"Singles", filters={"doctype": doctype}, fields=["field", "value"]
+		).run()
 		dict_  = frappe._dict(result)
-
 		return dict_
 
 	@staticmethod
@@ -547,8 +543,11 @@ class Database(object):
 		if fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.sql("""select `value` from
-			`tabSingles` where `doctype`=%s and `field`=%s""", (doctype, fieldname))
+		val = self.query.get_sql(
+			table="Singles",
+			filters={"doctype": doctype, "field": fieldname},
+			fields="value",
+		).run()
 		val = val[0][0] if val else None
 
 		df = frappe.get_meta(doctype).get_field(fieldname)
@@ -583,7 +582,7 @@ class Database(object):
 
 		if not isinstance(fields, Criterion):
 			for field in fields:
-				if "(" in field or " as " in field:
+				if "(" in str(field) or " as " in str(field):
 					field_objects.append(PseudoColumn(field))
 				else:
 					field_objects.append(field)
@@ -842,7 +841,7 @@ class Database(object):
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = self.query.build_conditions(table=dt, filters=filters).select(Count("*"))
+		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"))
 		if filters:
 			count = self.sql(query, debug=debug)[0][0]
 			return count

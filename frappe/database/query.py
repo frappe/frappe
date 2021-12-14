@@ -286,14 +286,13 @@ class Query:
 	):
 		criterion = self.build_conditions(table, filters, **kwargs)
 		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*kwargs.get("field_objects"))
+			query = criterion.select(*kwargs.get("field_objects", fields))
 
 		elif isinstance(fields, Criterion):
 			query = criterion.select(fields)
 
 		else:
-			if fields=="*":
-				query = criterion.select(fields)
+			query = criterion.select(fields)
 
 		return query
 

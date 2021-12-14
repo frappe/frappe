@@ -34,11 +34,17 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2021-01-03 15:36:52.622696",
+ "links": [
+  {
+   "link_doctype": "User",
+   "link_fieldname": "module_profile"
+  }
+ ],
+ "modified": "2021-12-03 15:47:21.296443",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Profile",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
