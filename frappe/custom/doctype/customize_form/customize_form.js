@@ -277,6 +277,21 @@ frappe.ui.form.on("DocType Action", {
 	}
 });
 
+// can't delete standard states
+frappe.ui.form.on("DocType State", {
+	before_states_remove: function(frm, doctype, name) {
+		let row = frappe.get_doc(doctype, name);
+		if (!(row.custom || row.__islocal)) {
+			frappe.msgprint(__("Cannot delete standard document state."));
+			throw "cannot delete standard document state";
+		}
+	},
+	states_add: function(frm, cdt, cdn) {
+		let f = frappe.model.get_doc(cdt, cdn);
+		f.custom = 1;
+	}
+});
+
 frappe.customize_form.set_primary_action = function(frm) {
 	frm.page.set_primary_action(__("Update"), function() {
 		if (frm.doc.doc_type) {

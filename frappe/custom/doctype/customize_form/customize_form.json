@@ -285,6 +285,8 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "states",
+   "depends_on": "doc_type",
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
@@ -302,7 +304,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-12-14 12:50:55.638258",
+ "modified": "2021-12-14 16:45:04.308690",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
