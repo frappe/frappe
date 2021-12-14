@@ -316,7 +316,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 	get_scroll_position: function(element, additional_offset) {
-		let header_offset = $(".navbar").height() + $(".page-head:visible").height();
+		let header_offset = $(".navbar").height() + $(".page-head:visible").height() || $(".navbar").height();
 		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
 		return scroll_top;
 	},
@@ -957,17 +957,24 @@ Object.assign(frappe.utils, {
 		return decoded;
 	},
 	copy_to_clipboard(string) {
-		let input = $("<input>");
-		$("body").append(input);
-		input.val(string).select();
+		const show_success_alert = () => {
+			frappe.show_alert({
+				indicator: 'green',
+				message: __('Copied to clipboard.')
+			});
+		};
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(string).then(show_success_alert);
+		} else {
+			let input = $("<textarea>");
+			$("body").append(input);
+			input.val(string).select();
 
-		document.execCommand("copy");
-		input.remove();
+			document.execCommand("copy");
+			show_success_alert();
+			input.remove();
+		}
 
-		frappe.show_alert({
-			indicator: 'green',
-			message: __('Copied to clipboard.')
-		});
 	},
 	is_rtl(lang=null) {
 		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
@@ -1376,5 +1383,18 @@ Object.assign(frappe.utils, {
 			return array;
 		}
 		return undefined;
+	},
+
+	// simple implementation of python's range
+	range(start, end) {
+		if (!end) {
+			end = start;
+			start = 0;
+		}
+		let arr = [];
+		for (let i = start; i < end; i++) {
+			arr.push(i);
+		}
+		return arr;
 	}
 });
