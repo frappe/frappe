@@ -64,6 +64,13 @@ frappe.get_indicator = function(doc, doctype) {
 		return [__("Cancelled"), "red", "docstatus,=,2"];
 	}
 
+	// based on document state
+	if (doc.status && meta && meta.states && meta.states.find(d => d.title === doc.status)) {
+		let state = meta.states.find(d => d.title === doc.status);
+		let color_class = frappe.scrub(state.color, '-');
+		return [__(doc.status), color_class, "status,=," + doc.status];
+	}
+
 	if(settings.get_indicator) {
 		var indicator = settings.get_indicator(doc);
 		if(indicator) return indicator;
@@ -72,12 +79,6 @@ frappe.get_indicator = function(doc, doctype) {
 	// if submittable
 	if(is_submittable && doc.docstatus==1) {
 		return [__("Submitted"), "blue", "docstatus,=,1"];
-	}
-
-	// based on document state
-	if (doc.status && meta && meta.states && meta.states.find(d => d.title === doc.status)) {
-		let state = meta.states.find(d => d.title === doc.status)
-		return [__(doc.status), frappe.scrub(state.color, '-'), "status,=," + doc.status];
 	}
 
 	// based on status
