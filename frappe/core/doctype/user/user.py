@@ -807,6 +807,7 @@ def reset_password(user):
 		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
 
 	except frappe.DoesNotExistError:
+		frappe.local.response['http_status_code'] = 400
 		frappe.clear_messages()
 		return 'not found'
 
