@@ -18,7 +18,7 @@ from frappe import _, safe_encode, task
 from frappe.model.document import Document
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.email_body import add_attachment, get_formatted_html, get_email
-from frappe.utils import cint, split_emails, add_days, nowdate, cstr
+from frappe.utils import cint, split_emails, add_days, nowdate, cstr, get_hook_method
 from frappe.email.doctype.email_account.email_account import EmailAccount
 
 
@@ -121,9 +121,13 @@ class EmailQueue(Document):
 					continue
 
 				message = ctx.build_message(recipient.recipient)
-				if not frappe.flags.in_test:
-					ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
-				ctx.add_to_sent_list(recipient)
+				method = get_hook_method('override_email_send')
+				if method:
+					method(self, self.sender, recipient.recipient, message)
+				else:
+					if not frappe.flags.in_test:
+						ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
+					ctx.add_to_sent_list(recipient)
 
 			if frappe.flags.in_test:
 				frappe.flags.sent_mail = message
