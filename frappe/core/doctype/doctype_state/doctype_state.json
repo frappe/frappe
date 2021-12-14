@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "color"
+  "color",
+  "custom"
  ],
  "fields": [
   {
@@ -22,14 +23,21 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Color",
-   "options": "Blue\nCyan\nGray\nGreen\nLight Blue\nOrange\nPink\nPurple\nRed\nRed\nYellow",
+   "options": "Blue\nCyan\nGray\nGreen\nLight Blue\nOrange\nPink\nPurple\nRed\nYellow",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Custom"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-12-14 13:08:38.441775",
+ "modified": "2021-12-14 14:14:55.716378",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType State",
