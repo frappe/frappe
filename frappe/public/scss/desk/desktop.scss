@@ -337,10 +337,9 @@ body {
 	}
 
 	&.onboarding-widget-box {
-		margin-top: var(--margin-xs);
 		margin-bottom: var(--margin-2xl);
-		padding: var(--padding-lg);
-		background-color: var(--bg-light-gray);
+		padding: var(--padding-lg) !important;
+		background-color: var(--bg-color);
 
 		&.edit-mode:hover {
 			background-color: var(--fg-color);
@@ -348,7 +347,7 @@ body {
 			.onboarding-step {
 				&.active,
 				&:hover {
-					background-color: var(--bg-light-gray);
+					background-color: var(--bg-color);
 
 					.step-index.step-pending {
 						background-color: var(--fg-color);
@@ -356,7 +355,7 @@ body {
 				}
 
 				.step-index {
-					background-color: var(--bg-light-gray);
+					background-color: var(--bg-color);
 				}
 			}
 		}
@@ -443,7 +442,7 @@ body {
 					background-color: var(--fg-color);
 
 					.step-index {
-						background-color: var(--bg-light-gray);
+						background-color: var(--bg-color);
 					}
 
 					.step-skip {
@@ -551,6 +550,7 @@ body {
 
 		.widget-title {
 			cursor: pointer !important;
+			font-size: var(--text-base) !important;
 		}
 
 		.indicator-pill {
@@ -792,6 +792,25 @@ body {
 	}
 }
 
+.workspace-sidebar-skeleton {
+	transition: ease;
+	.sidebar-box {
+		height: 40px;
+		margin-bottom: 10px;
+		margin-left: 10px;
+		background-color: var(--skeleton-bg);
+
+		&.child {
+			margin-left: 30px;
+		}
+
+		&.section {
+			height: 25px;
+			margin-left: 0px;
+		}
+	}
+}
+
 [data-page-route="Workspaces"] {
 	@media (min-width: map-get($grid-breakpoints, "lg")) {
 		.layout-main {
@@ -822,8 +841,8 @@ body {
 
 			.layout-main-section {
 				background-color: var(--fg-color);
-				border-radius: var(--border-radius-md);
-				padding: var(--padding-sm) var(--padding-md);
+				border-radius: var(--border-radius-lg);
+				padding: var(--padding-md);
 				margin-bottom: var(--margin-sm);
 			}
 
@@ -844,7 +863,6 @@ body {
 		padding: 0px;
 
 		.sidebar-item-control {
-
 			> * {
 				align-self: center;
 				margin-left: 3px;
@@ -857,7 +875,7 @@ body {
 				display: none;
 			}
 
-			.delete-page {
+			.setting-btn {
 				display: none;
 			}
 
@@ -871,6 +889,10 @@ body {
 
 			svg {
 				margin-right: 0;
+			}
+
+			.dropdown-list {
+				top: 42px;
 			}
 		}
 
@@ -887,6 +909,7 @@ body {
 	}
 
 	.sidebar-item-container {
+		position: relative;
 		.sidebar-item-container{
 			margin-left: 10px;
 
@@ -904,7 +927,7 @@ body {
 					display: inline-block;
 				}
 
-				.delete-page {
+				.setting-btn {
 					display: inline-block;
 					margin-right: 8px;
 				}
@@ -916,7 +939,7 @@ body {
 
 				.drop-icon {
 					padding: 10px 8px 10px 2px;
-					margin-left: -4px;
+					margin-left: -8px;
 				}
 			}
 
@@ -996,7 +1019,7 @@ body {
 							.onboarding-step {
 								&.active,
 								&:hover {
-									background-color: var(--bg-light-gray);
+									background-color: var(--bg-color);
 
 									.step-index.step-pending {
 										background-color: var(--fg-color);
@@ -1004,7 +1027,7 @@ body {
 								}
 
 								.step-index {
-									background-color: var(--bg-light-gray);
+									background-color: var(--bg-color);
 								}
 							}
 						}
@@ -1094,6 +1117,10 @@ body {
 									min-width: 74px;
 								}
 							}
+						}
+
+						&.spacer {
+							height: 18px !important;
 						}
 
 						&.ce-paragraph {
@@ -1309,7 +1336,7 @@ body {
 	.dropdown-list {
 		position: absolute;
 		background-color: var(--fg-color);
-		box-shadow: var(--shadow-base);
+		box-shadow: var(--shadow-base) !important;
 		border-radius: var(--border-radius-sm);
 		padding: 6px;
 		top: 30px;

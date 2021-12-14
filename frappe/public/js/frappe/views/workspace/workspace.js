@@ -26,7 +26,6 @@ frappe.views.Workspace = class Workspace {
 		this.pages = {};
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
-		this.deleted_sidebar_items = [];
 		this.current_page = {};
 		this.sidebar_items = {
 			'public': {},
@@ -52,6 +51,8 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	async setup_pages(reload) {
+		this.create_page_skeleton();
+		this.create_sidebar_skeleton();
 		this.sidebar_pages = !this.discard ? await this.get_pages() : this.sidebar_pages;
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
@@ -70,13 +71,16 @@ frappe.views.Workspace = class Workspace {
 			}
 			if (this.new_page && this.new_page.name) {
 				if (!frappe.workspaces[frappe.router.slug(this.new_page.label)]) {
-					this.new_page = { name: this.all_pages[0].title, public: this.all_pages[0].public };
+					this.new_page = { 
+						name: this.all_pages[0].title, 
+						public: this.all_pages[0].public 
+					};
 				}
-				if (this.new_page.public) {
-					frappe.set_route(`${frappe.router.slug(this.new_page.name)}`);
-				} else {
-					frappe.set_route(`private/${frappe.router.slug(this.new_page.name)}`);
-				}
+
+				let pre_url = this.new_page.public ? '' : 'private/';
+				let route = pre_url + frappe.router.slug(this.new_page.name);
+				frappe.set_route(route);
+
 				this.new_page = null;
 			}
 			this.make_sidebar();
@@ -101,6 +105,7 @@ frappe.views.Workspace = class Workspace {
 					</a>
 					<div class="sidebar-item-control"></div>
 				</div>
+				<div class="sidebar-child-item nested-container"></div>
 			</div>
 		`);
 	}
@@ -119,8 +124,10 @@ frappe.views.Workspace = class Workspace {
 		});
 
 		// Scroll sidebar to selected page if it is not in viewport.
-		!frappe.dom.is_element_in_viewport(this.sidebar.find('.selected'))
+		this.sidebar.find('.selected').length && !frappe.dom.is_element_in_viewport(this.sidebar.find('.selected'))
 			&& this.sidebar.find('.selected')[0].scrollIntoView();
+
+		this.remove_sidebar_skeleton();
 	}
 
 	build_sidebar_section(title, root_pages) {
@@ -164,7 +171,8 @@ frappe.views.Workspace = class Workspace {
 
 		let child_items = pages.filter(page => page.parent_page == item.title);
 		if (child_items.length > 0) {
-			let child_container = $(`<div class="sidebar-child-item hidden nested-container"></div>`);
+			let child_container = $item_container.find('.sidebar-child-item');
+			child_container.addClass('hidden');
 			this.prepare_sidebar(child_items, child_container, $item_container);
 		}
 
@@ -179,8 +187,13 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	add_drop_icon(item, sidebar_control, item_container) {
+		let drop_icon = 'small-down';
+		if (item_container.find(`[item-name="${this.current_page.name}"]`).length) {
+			drop_icon = 'small-up';
+		}
+
 		let $child_item_section = item_container.find('.sidebar-child-item');
-		let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon("small-down", "sm")}</span>`)
+		let $drop_icon = $(`<span class="drop-icon hidden">${frappe.utils.icon(drop_icon, "sm")}</span>`)
 			.appendTo(sidebar_control);
 		let pages = item.public ? this.public_pages : this.private_pages;
 		if (pages.some(e => e.parent_page == item.title)) {
@@ -203,7 +216,35 @@ frappe.views.Workspace = class Workspace {
 		let page = this.get_page_to_show();
 		this.page.set_title(`${__(page.name)}`);
 
+		this.update_selected_sidebar(this.current_page, false); //remove selected from old page
+		this.update_selected_sidebar(page, true); //add selected on new page
+
 		this.show_page(page);
+	}
+
+	update_selected_sidebar(page, add) {
+		let section = page.public ? 'public' : 'private';
+		if (this.sidebar && this.sidebar_items[section] && this.sidebar_items[section][page.name]) {
+			let $sidebar = this.sidebar_items[section][page.name];
+			let pages = page.public ? this.public_pages : this.private_pages;
+			let sidebar_page = pages.find(p => p.title == page.name);
+
+			if (add) {
+				$sidebar[0].firstElementChild.classList.add("selected");
+				if (sidebar_page) sidebar_page.selected = true;
+
+				// open child sidebar section if closed 
+				$sidebar.parent().hasClass('hidden') &&
+					$sidebar.parent().removeClass('hidden');
+
+				this.current_page = { name: page.name, public: page.public };
+				localStorage.current_page = page.name;
+				localStorage.is_current_page_public = page.public;
+			} else {
+				$sidebar[0].firstElementChild.classList.remove("selected");
+				if (sidebar_page) sidebar_page.selected = false;
+			}
+		}
 	}
 
 	get_data(page) {
@@ -249,49 +290,32 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	async show_page(page) {
-		let section = this.current_page.public ? 'public' : 'private';
-		if (this.sidebar_items && this.sidebar_items[section] && this.sidebar_items[section][this.current_page.name]) {
-			this.sidebar_items[section][this.current_page.name][0].firstElementChild.classList.remove("selected");
-			this.sidebar_items[page.public ? 'public':'private'][page.name][0].firstElementChild.classList.add("selected");
-
-			if (this.sidebar_items[page.public ? 'public':'private'][page.name].parents('.sidebar-item-container')[0]) {
-				this.sidebar_items[page.public ? 'public':'private'][page.name]
-					.parents('.sidebar-item-container')
-					.find('.drop-icon use')
-					.attr("href", "#icon-small-up");
-			}
-		}
-
-		this.current_page = { name: page.name, public: page.public };
-		localStorage.current_page = page.name;
-		localStorage.is_current_page_public = page.public;
-
 		if (!this.body.find('#editorjs')[0]) {
 			this.$page = $(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
 			`).appendTo(this.body);
 		}
-		this.create_skeleton();
 
 		if (this.all_pages) {
+			this.create_page_skeleton();
 			let pages = page.public ? this.public_pages : this.private_pages;
-			let this_page = pages.filter(p => p.title == page.name)[0];
+			let current_page = pages.filter(p => p.title == page.name)[0];
 			this.setup_actions(page);
-			this.content = this_page && JSON.parse(this_page.content);
+			this.content = current_page && JSON.parse(current_page.content);
 
 			this.add_custom_cards_in_content();
 
 			$('.item-anchor').addClass('disable-click');
 
-			if (this.pages && this.pages[this_page.name]) {
-				this.page_data = this.pages[this_page.name];
+			if (this.pages && this.pages[current_page.name]) {
+				this.page_data = this.pages[current_page.name];
 			} else {
-				await this.get_data(this_page);
+				await this.get_data(current_page);
 			}
 
 			this.prepare_editorjs();
 			$('.item-anchor').removeClass('disable-click');
-			this.remove_skeleton();
+			this.remove_page_skeleton();
 		}
 	}
 
@@ -329,9 +353,7 @@ frappe.views.Workspace = class Workspace {
 			return;
 		}
 
-		this.page.clear_primary_action();
-		this.page.clear_secondary_action();
-		this.page.clear_inner_toolbar();
+		this.clear_page_actions();
 
 		current_page.is_editable && this.page.set_secondary_action(__("Edit"), async () => {
 			if (!this.editor || !this.editor.readOnly) return;
@@ -357,18 +379,19 @@ frappe.views.Workspace = class Workspace {
 		this.undo.readOnly = false;
 	}
 
-	setup_customization_buttons(page) {
-		let me = this;
+	clear_page_actions() {
 		this.page.clear_primary_action();
 		this.page.clear_secondary_action();
 		this.page.clear_inner_toolbar();
+	}
+
+	setup_customization_buttons(page) {
+		this.clear_page_actions();
 
 		page.is_editable && this.page.set_primary_action(
 			__("Save Customizations"),
 			() => {
-				this.page.clear_primary_action();
-				this.page.clear_secondary_action();
-				this.page.clear_inner_toolbar();
+				this.clear_page_actions();
 				this.undo.readOnly = true;
 				this.save_page();
 				this.editor.readOnly.toggle();
@@ -382,9 +405,7 @@ frappe.views.Workspace = class Workspace {
 			__("Discard"),
 			async () => {
 				this.discard = true;
-				this.page.clear_primary_action();
-				this.page.clear_secondary_action();
-				this.page.clear_inner_toolbar();
+				this.clear_page_actions();
 				await this.editor.readOnly.toggle();
 				this.is_read_only = true;
 				this.reload();
@@ -420,21 +441,277 @@ frappe.views.Workspace = class Workspace {
 				null,
 				sidebar_control
 			);
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('delete-active', 'xs'),
-				() => this.delete_page(item),
-				"delete-page",
-				`${__('Delete')}`,
-				null,
-				sidebar_control
-			);
+
+			this.add_settings_button(item, sidebar_control);
 		}
 	}
 
-	delete_page(item) {
-		frappe.confirm(__("Are you sure you want to delete page {0}?", [item.title]), () => {
-			this.deleted_sidebar_items.push(item);
-			this.sidebar.find(`.standard-sidebar-section [item-name="${item.title}"][item-public="${item.public}"]`).addClass('hidden');
+	edit_page(item) {
+		this.public_parent_pages = ['', ...this.public_pages.filter(page => !page.parent_page).map(page => page.title)];
+		this.private_parent_pages = ['', ...this.private_pages.filter(page => !page.parent_page).map(page => page.title)];
+		var me = this;
+		let old_item = item;
+		const d = new frappe.ui.Dialog({
+			title: __('Update Details'),
+			fields: [
+				{
+					label: __('Title'),
+					fieldtype: 'Data',
+					fieldname: 'title',
+					reqd: 1,
+					default: item.title
+				},
+				{
+					label: __('Parent'),
+					fieldtype: 'Select',
+					fieldname: 'parent',
+					options: item.public ? this.public_parent_pages : this.private_parent_pages,
+					default: item.parent_page
+				},
+				{
+					label: __('Public'),
+					fieldtype: 'Check',
+					fieldname: 'is_public',
+					depends_on: `eval:${this.has_access}`,
+					default: item.public,
+					onchange: function() {
+						d.set_df_property('parent', 'options',
+							this.get_value() ? me.public_parent_pages : me.private_parent_pages);
+					}
+				},
+				{
+					fieldtype: 'Column Break'
+				},
+				{
+					label: __('Icon'),
+					fieldtype: 'Icon',
+					fieldname: 'icon',
+					default: item.icon
+				},
+			],
+			primary_action_label: __('Update'),
+			primary_action: (values) => {
+				let is_title_changed = values.title != old_item.title;
+				let is_section_changed = values.is_public != old_item.public;
+				if ((is_title_changed || is_section_changed) && !this.validate_page(values, old_item)) return;
+				d.hide();
+
+				frappe.call({
+					method: "frappe.desk.doctype.workspace.workspace.update_page",
+					args: {
+						name: old_item.name,
+						title: values.title,
+						icon: values.icon || '',
+						parent: values.parent || '',
+						public: values.is_public || 0,
+					}
+				});
+
+				this.update_sidebar(old_item, values);
+
+				if (this.make_page_selected) {
+					let pre_url = values.is_public ? '' : 'private/';
+					let route = pre_url + frappe.router.slug(values.title);
+					frappe.set_route(route);
+
+					this.make_page_selected = false;
+				}
+
+				this.make_sidebar();
+				this.show_sidebar_actions();
+			}
+		});
+		d.show();
+	}
+
+	update_sidebar(old_item, new_item) {
+		let is_section_changed = old_item.public != (new_item.is_public || 0);
+		let is_title_changed = old_item.title != new_item.title;
+		let new_updated_item = {...old_item};
+
+		let pages = old_item.public ? this.public_pages : this.private_pages;
+
+		let child_items = pages.filter(page => page.parent_page == old_item.title);
+
+		this.make_page_selected = old_item.selected;
+
+		new_updated_item.title = new_item.title;
+		new_updated_item.icon = new_item.icon;
+		new_updated_item.parent_page = new_item.parent || "";
+		new_updated_item.public = new_item.is_public;
+
+		if (is_title_changed || is_section_changed){
+			if (new_item.is_public) {
+				new_updated_item.name = new_item.title;
+				new_updated_item.label = new_item.title;
+				new_updated_item.for_user = "";
+			} else {
+				let user = frappe.session.user;
+				new_updated_item.name = `${new_item.title}-${user}`;
+				new_updated_item.label = `${new_item.title}-${user}`;
+				new_updated_item.for_user = user;
+			}
+
+			this.update_cached_values(old_item, new_updated_item);
+		}
+
+		if (child_items.length) {
+			child_items.forEach(child => {
+				child.parent_page = new_item.title;
+				is_section_changed && this.update_child_sidebar(child, new_item);
+			});
+		}
+	}
+
+	update_child_sidebar(child, new_item) {
+		let old_child = {...child};
+		this.make_page_selected = child.selected;
+
+		child.public = new_item.is_public;
+		if (new_item.is_public) {
+			child.name = child.title;
+			child.label = child.title;
+			child.for_user = "";
+		} else {
+			let user = frappe.session.user;
+			child.name = `${child.title}-${user}`;
+			child.label = `${child.title}-${user}`;
+			child.for_user = user;
+		}
+
+		this.update_cached_values(old_child, child);
+	}
+
+	update_cached_values(old_item, new_item) {
+		let [from_pages, to_pages] = old_item.public ? 
+			[this.public_pages, this.private_pages] : [this.private_pages, this.public_pages];
+		
+		let old_item_index = from_pages.findIndex(page => page.title == old_item.title);
+
+		// update frappe.workspaces
+		if (frappe.workspaces[frappe.router.slug(old_item.name)]) {
+			delete frappe.workspaces[frappe.router.slug(old_item.name)];
+			if (new_item) {
+				frappe.workspaces[frappe.router.slug(new_item.name)] = {'title': new_item.title};
+			}
+		}
+
+		// update page block data
+		if (this.pages && this.pages[old_item.name]) {
+			if (new_item) {
+				this.pages[new_item.name] = this.pages[old_item.name];
+			}
+			delete this.pages[old_item.name];
+		}
+
+		// update public and private pages
+		if (new_item) {
+			let is_section_changed = old_item.public != (new_item.is_public || new_item.public || 0);
+
+			if (is_section_changed) {
+				from_pages.splice(old_item_index, 1);
+				to_pages.push(new_item);
+			} else {
+				from_pages.splice(old_item_index, 1, new_item);
+			}
+		} else {
+			from_pages.splice(old_item_index, 1);
+		}
+
+		this.sidebar_pages.pages = [...this.public_pages, ...this.private_pages];
+	}
+
+	add_settings_button(item, sidebar_control) {
+		this.dropdown_list = [
+			{
+				label: 'Edit',
+				title: 'Edit Workspace',
+				icon: frappe.utils.icon('edit', 'sm'),
+				action: () => this.edit_page(item)
+			},
+			{
+				label: 'Delete',
+				title: 'Delete Workspace',
+				icon: frappe.utils.icon('delete-active', 'sm'),
+				action: () => this.delete_page(item)
+			},
+			{
+				label: 'Duplicate',
+				title: 'Duplicate Workspace',
+				icon: frappe.utils.icon('duplicate', 'sm'),
+				action: () => this.duplicate_page(item)
+			},
+			{
+				label: 'Settings',
+				title: 'Settings',
+				icon: frappe.utils.icon('setting-gear', 'sm'),
+				action: () => frappe.set_route(`workspace/${item.name}`)
+			},
+		]
+
+		let $button = $(`
+			<div class="btn btn-secondary btn-xs setting-btn dropdown-btn" title="${__('Setting')}">
+				${frappe.utils.icon('dot-horizontal', 'xs')}
+			</div>
+			<div class="dropdown-list hidden"></div>
+		`);
+
+		let dropdown_item = function(label, title, icon, action) {
+			let html = $(`
+				<div class="dropdown-item" title="${title}">
+					<span class="dropdown-item-icon">${icon}</span>
+					<span class="dropdown-item-label">${label}</span>
+				</div>
+			`);
+
+			html.click(event => {
+				event.stopPropagation();
+				action && action();
+			});
+
+			return html;
+		}
+
+		$button.filter('.dropdown-btn').click(event => {
+			event.stopPropagation();
+			if ($button.filter('.dropdown-list.hidden').length) {
+				$('.dropdown-list:not(.hidden)').addClass('hidden');
+			}
+			$button.filter('.dropdown-list').toggleClass('hidden');
+		});
+
+		$(document).click(event => {
+			event.stopPropagation();
+			$('.dropdown-list:not(.hidden)').addClass('hidden');
+		})
+
+		sidebar_control.append($button);
+
+		this.dropdown_list.forEach((i) => {
+			$button.filter('.dropdown-list').append(dropdown_item(i.label, i.title, i.icon, i.action));
+		})
+	}
+
+	delete_page(page) {
+		frappe.confirm(__("Are you sure you want to delete page {0}?", [page.title]), () => {
+			let me = this;
+			this.sidebar
+				.find(`.standard-sidebar-section [item-name="${page.title}"][item-public="${page.public}"]`)
+				.addClass('hidden');
+
+			frappe.call({
+				method: "frappe.desk.doctype.workspace.workspace.delete_page",
+				args: {
+					page: page
+				},
+				callback: function(res) {
+					res.message && me.update_cached_values(res.message);
+				}
+			});
+
+			if (this.current_page.name == page.title && this.current_page.public == page.public) {
+				frappe.set_route('/');
+			}
 		});
 	}
 
@@ -500,7 +777,7 @@ frappe.views.Workspace = class Workspace {
 		this.private_parent_pages = ['', ...this.private_pages.filter(page => !page.parent_page).map(page => page.title)];
 		var me = this;
 		const d = new frappe.ui.Dialog({
-			title: __('Set Title'),
+			title: __('New Workspace'),
 			fields: [
 				{
 					label: __('Title'),
@@ -544,15 +821,10 @@ frappe.views.Workspace = class Workspace {
 				this.parent = values.parent;
 				this.public = values.is_public;
 				this.editor.render({
-					blocks: [
-						{
-							type: "header",
-							data: {
-								text: this.title,
-								level: 4
-							}
-						}
-					]
+					blocks: [{
+						type: "header",
+						data: { text: this.title }
+					}]
 				}).then(async () => {
 					if (this.editor.configuration.readOnly) {
 						this.is_read_only = false;
@@ -563,24 +835,43 @@ frappe.views.Workspace = class Workspace {
 					this.make_sidebar_sortable();
 					this.make_blocks_sortable();
 					this.prepare_sorted_sidebar(values.is_public);
+
+					this.update_selected_sidebar(this.current_page, false); //remove selected from old page
 				});
 			}
 		});
 		d.show();
 	}
 
-	validate_page(values) {
+	validate_page(new_page, old_page) {
 		let message = "";
-		let pages = values.is_public ? this.public_pages : this.private_pages;
+		let [from_pages, to_pages] = new_page.is_public ? 
+			[this.private_pages, this.public_pages] : [this.public_pages, this.private_pages];
 
-		if (pages && pages.filter(p => p.title == values.title)[0]) {
-			message = "Page with title '{0}' already exist.";
-		} else if (frappe.router.doctype_route_exist(frappe.router.slug(values.title))) {
+		let section = this.sidebar_categories[new_page.is_public];
+
+		if (to_pages && to_pages.filter(p => p.title == new_page.title)[0]) {
+			message = `Page with title ${new_page.title} already exist.`;
+		} 
+		
+		if (frappe.router.doctype_route_exist(frappe.router.slug(new_page.title))) {
 			message = "Doctype with same route already exist. Please choose different title.";
 		}
 
+		let child_pages = old_page && from_pages.filter(p => p.parent_page == old_page.title);
+		if (child_pages) {
+			child_pages.every(child_page => {
+				if(to_pages && to_pages.find(p => p.title == child_page.title)) {
+					message = `One of the child page with name <b>${child_page.title}</b> already exist in <b>${section}</b> Section. Please update the name of the child page first before moving`;
+					cur_dialog.hide();
+					return false;
+				}
+				return true;
+			});
+		}
+
 		if (message) {
-			frappe.throw(__(message, [__(values.title)]));
+			frappe.throw(__(message));
 			return false;
 		}
 		return true;
@@ -592,7 +883,8 @@ frappe.views.Workspace = class Workspace {
 			title: title,
 			icon: icon,
 			parent_page: parent,
-			public: is_public
+			public: is_public,
+			selected: true
 		};
 		let $sidebar_item = this.sidebar_item_container(item);
 		$sidebar_item.addClass('is-draggable');
@@ -605,6 +897,7 @@ frappe.views.Workspace = class Workspace {
 			null,
 			$sidebar_item.find('.sidebar-item-control')
 		);
+
 		$sidebar_item.find('.sidebar-item-control .drag-handle').css('margin-right', '8px');
 
 		let $sidebar_section = is_public ? $sidebar[1] : $sidebar[0];
@@ -683,19 +976,21 @@ frappe.views.Workspace = class Workspace {
 
 	save_page() {
 		frappe.dom.freeze();
-		this.create_skeleton();
+		this.create_page_skeleton();
+		let me = this;
 		let save = true;
+
 		if (!this.title && this.current_page) {
-			let pages = this.current_page.public ? this.public_pages : this.private_pages;
 			this.title = this.current_page.name;
-			this.public = pages.filter(p => p.title == this.title)[0].public;
+			this.public = this.current_page.public;
 			save = false;
 		} else {
 			this.current_page = { name: this.title, public: this.public };
 		}
-		let me = this;
+
 		this.editor.save().then((outputData) => {
 			let new_widgets = {};
+
 			outputData.blocks.forEach(item => {
 				if (item.data.new) {
 					if (!new_widgets[item.type]) {
@@ -708,8 +1003,8 @@ frappe.views.Workspace = class Workspace {
 
 			let blocks = outputData.blocks.filter(
 				item => item.type != 'card' ||
-				(item.data.card_name !== 'Custom Documents' &&
-				item.data.card_name !== 'Custom Reports')
+					(item.data.card_name !== 'Custom Documents' &&
+					item.data.card_name !== 'Custom Reports')
 			);
 
 			frappe.call({
@@ -721,7 +1016,6 @@ frappe.views.Workspace = class Workspace {
 					public: me.public || 0,
 					sb_public_items: me.sorted_public_items,
 					sb_private_items: me.sorted_private_items,
-					deleted_pages: me.deleted_sidebar_items,
 					new_widgets: new_widgets,
 					blocks: JSON.stringify(blocks),
 					save: save
@@ -749,20 +1043,32 @@ frappe.views.Workspace = class Workspace {
 		this.public = false;
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
-		this.deleted_sidebar_items = [];
-		this.create_skeleton();
 		this.setup_pages(true);
 		this.discard = false;
 		this.undo.readOnly = true;
 	}
 
-	create_skeleton() {
-		this.$page.prepend(frappe.render_template('workspace_loading_skeleton'));
-		this.$page.find('.codex-editor').addClass('hidden');
+	create_page_skeleton() {
+		if ($('.layout-main-section').find('.workspace-skeleton').length) return;
+
+		$('.layout-main-section').prepend(frappe.render_template('workspace_loading_skeleton'));
+		$('.layout-main-section').find('.codex-editor').addClass('hidden');
 	}
 
-	remove_skeleton() {
-		this.$page.find('.codex-editor').removeClass('hidden');
-		this.$page.find('.workspace-skeleton').remove();
+	remove_page_skeleton() {
+		$('.layout-main-section').find('.codex-editor').removeClass('hidden');
+		$('.layout-main-section').find('.workspace-skeleton').remove();
+	}
+
+	create_sidebar_skeleton() {
+		if ($('.list-sidebar').find('.workspace-sidebar-skeleton').length) return;
+
+		$('.list-sidebar').prepend(frappe.render_template('workspace_sidebar_loading_skeleton'));
+		$('.desk-sidebar').addClass('hidden');
+	}
+
+	remove_sidebar_skeleton() {
+		$('.desk-sidebar').removeClass('hidden');
+		$('.list-sidebar').find('.workspace-sidebar-skeleton').remove();
 	}
 };
