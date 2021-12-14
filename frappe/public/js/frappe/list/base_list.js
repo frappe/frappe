@@ -362,7 +362,7 @@ frappe.views.BaseList = class BaseList {
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
 			.addClass("btn-info");
 
-		this.$paging_area.on("click", ".btn-paging, .btn-more", async (e) => {
+		this.$paging_area.on("click", ".btn-paging, .btn-more", (e) => {
 			const $this = $(e.currentTarget);
 
 			if ($this.is(".btn-paging")) {
