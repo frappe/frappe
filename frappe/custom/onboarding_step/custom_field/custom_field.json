@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Learn how to add Custom Fields",
+ "creation": "2021-11-23 12:21:09.479808",
+ "description": "Every form in ERPNext has a standard set of fields. If you need to capture some information, but there is no standard Field available for it, you can insert Custom Field for it.\n\nOnce custom fields are added, you can use them for reports and analytics charts as well.\n",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-23 12:21:09.479808",
+ "modified_by": "Administrator",
+ "name": "Custom Field",
+ "owner": "Administrator",
+ "reference_document": "Custom Field",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Create Custom Fields",
+ "validate_action": 1
+}
