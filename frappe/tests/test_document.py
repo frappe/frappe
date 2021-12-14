@@ -165,31 +165,23 @@ class TestDocument(unittest.TestCase):
 		d = self.test_insert()
 
 		# script
-		xss = '<script>alert("XSS")</script>'
-		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
+		xss = '<script>alert("XSS")</script>test<img src=x onerror=alert(1)'
+		escaped_xss = 'alert("XSS")test'
 		d.subject += xss
 		d.save()
 		d.reload()
 
 		self.assertTrue(xss not in d.subject)
-		self.assertTrue(escaped_xss not in d.subject)
+		self.assertTrue(escaped_xss in d.subject)
 
 		# not allowed tags are stripped only for fieldtype Data, Text, Small Text
-		d.description = xss
-		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
+		xss_description = 'test<script>alert("XSS")</script>'
+		d.description = xss_description
+		escaped_xss = xss_description.replace('<', '&lt;').replace('>', '&gt;')
 		d.save()
 		d.reload()
 
 		self.assertTrue(escaped_xss in d.description)
-
-		xss2 = 'test;<img src=x onerror=alert(1)'
-		filtered_xss = 'test;'
-		d.subject += xss2
-		d.save()
-		d.reload()
-
-		self.assertTrue(xss2 not in d.subject)
-		self.assertTrue(filtered_xss in d.subject)
 
 		# onload
 		xss = '<div onload="alert("XSS")">Test</div>'

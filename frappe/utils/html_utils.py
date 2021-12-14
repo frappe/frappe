@@ -68,15 +68,9 @@ def sanitize_html(html, strip=False):
 	elif is_json(html):
 		return html
 
-	# regex for finding unicode characters like %3E, %3c
-	regex = re.compile(r"%[0-9]?[0-9a-zA-Z]?")
-	char_list = set(regex.findall(html))
-
 	if (u"<" not in html and u">" not in html) \
-		and not bool(char_list) and not bool(BeautifulSoup(html, 'html.parser').find()):
+		and not bool(BeautifulSoup(html, 'html.parser').find()):
 		return html
-
-	html = strip_encoded_chars(html, char_list) if bool(char_list) else html
 
 	tags = (acceptable_elements + svg_elements + mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
@@ -125,11 +119,6 @@ def get_icon_html(icon, small=False):
 def unescape_html(value):
 	from html import unescape
 	return unescape(value)
-
-def strip_encoded_chars(html, char_list):
-	for d in char_list:
-		html = html.replace(d, '')
-	return html
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [
