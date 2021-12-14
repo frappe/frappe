@@ -35,18 +35,6 @@ def give_feedback(reference_doctype, reference_name, like):
 
 	return doc
 
-def get_yesterdays_feedback():
-	yesterday = add_days(today(), -1)
-
-	feedbacks = frappe.get_all("Feedback",
-		fields = ["reference_doctype", "reference_name"],
-		filters = {
-			"modified": ("between", [yesterday, yesterday]),
-			"like": 1
-		}
-	)
-	return feedbacks
-
 @frappe.whitelist(allow_guest=True)
 def get_feedback_data(reference_doctype, reference_name):
 	like_count = 0
@@ -72,6 +60,18 @@ def get_feedback_data(reference_doctype, reference_name):
 	user_feedback = feedback[0].like if feedback else ''
 
 	return {"like_count": like_count, "like": user_feedback}
+
+def get_yesterdays_feedback():
+	yesterday = add_days(today(), -1)
+
+	feedbacks = frappe.get_all("Feedback",
+		fields = ["reference_doctype", "reference_name"],
+		filters = {
+			"modified": ("between", [yesterday, yesterday]),
+			"like": 1
+		}
+	)
+	return feedbacks
 
 @frappe.whitelist(allow_guest=True)
 def send_daily_feedback_summary():
@@ -99,28 +99,20 @@ def send_daily_feedback_summary():
 			send_feedback_summary_mail(recipient, blogs)
 
 def send_feedback_summary_mail(recipient, blogs):
-	multiple_blogs = len(blogs.keys()) > 1
-	message = "<p>Hey,</p>"
-
-	if multiple_blogs:
-		message += "<p>Here is the feedback summary of your Blog Posts for today. You have recieved</p>"
-	else:
-		message += "<p>You have recieved "
+	message = ""
 
 	for blog, value in blogs.items():
 		blog = frappe.get_doc('Blog Post', blog)
 
 		blog_with_url = "<a href='{0}/{1}'>{2}</a>".format(get_request_site_address(), blog.route, blog.title)
-		is_plural = ""
-		if value == 1:
-			value = "a"
-			is_plural = "s"
 
-		msg = "{0} ❤️ heart{1} on your blog post <b>{2}</b>.</p>".format(value, is_plural, blog_with_url)
-		message += "<p>{0}".format(msg) if multiple_blogs else msg
+		if value == 1:
+			message += "<p>You have received a like on your blog post <b>{0}</b>.</p>".format(blog_with_url)
+		else:
+			message += "<p><b>{0}</b> people liked your blog post <b>{1}</b>.</p>".format(value, blog_with_url)
 
 	frappe.sendmail(
 		recipients=recipient,
-		subject=_('Blog feedback summary for today'),
+		subject=_('Blog Feedback Summary'),
 		message= message
 	)
