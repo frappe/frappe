@@ -18,16 +18,6 @@ class Base:
 		table_name = get_table_name(table_name)
 		return Table(table_name, *args, **kwargs)
 
-
-class MariaDB(Base, MySQLQuery):
-	Field = terms.Field
-
-	@classmethod
-	def from_(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().from_(table, *args, **kwargs)
-
 	@classmethod
 	def into(cls, table, *args, **kwargs):
 		if isinstance(table, str):
@@ -39,6 +29,17 @@ class MariaDB(Base, MySQLQuery):
 		if isinstance(table, str):
 			table = cls.DocType(table)
 		return super().update(table, *args, **kwargs)
+
+
+class MariaDB(Base, MySQLQuery):
+	Field = terms.Field
+
+	@classmethod
+	def from_(cls, table, *args, **kwargs):
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().from_(table, *args, **kwargs)
+
 
 class Postgres(Base, PostgreSQLQuery):
 	field_translation = {"table_name": "relname", "table_rows": "n_tup_ins"}
@@ -69,15 +70,3 @@ class Postgres(Base, PostgreSQLQuery):
 			table = cls.DocType(table)
 
 		return super().from_(table, *args, **kwargs)
-
-	@classmethod
-	def into(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().into(table, *args, **kwargs)
-
-	@classmethod
-	def update(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().update(table, *args, **kwargs)

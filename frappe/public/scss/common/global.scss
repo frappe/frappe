@@ -119,7 +119,7 @@ input[type="checkbox"] {
 }
 
 .frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {
-	select {
+	.color-select {
 		padding-left: 40px;
 	}
 

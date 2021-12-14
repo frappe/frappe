@@ -255,7 +255,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		response = doc.run_method(method, **args)
 
 	frappe.response.docs.append(doc)
-	if not response:
+	if response is None:
 		return
 
 	# build output as csv
