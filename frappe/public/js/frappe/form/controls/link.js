@@ -471,7 +471,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			docname: value,
 			fields: columns_to_fetch,
 		}).then((response) => {
-			if (!response || !response.name) return "";
+			if (!response || !response.name) return null;
 			if (!docname || !columns_to_fetch.length) return response.name;
 
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
