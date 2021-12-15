@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
@@ -8,13 +8,25 @@ from frappe.utils.testutils import add_custom_field, clear_custom_fields
 from frappe.desk.form.assign_to import add as assign_to
 
 class TestEnergyPointLog(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		settings = frappe.get_single('Energy Point Settings')
+		settings.enabled = 1
+		settings.save()
+
+	@classmethod
+	def tearDownClass(cls):
+		settings = frappe.get_single('Energy Point Settings')
+		settings.enabled = 0
+		settings.save()
+
 	def setUp(self):
 		frappe.cache().delete_value('energy_point_rule_map')
 
 	def tearDown(self):
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Log`')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Rule`')
+		frappe.db.delete("Energy Point Log")
+		frappe.db.delete("Energy Point Rule")
 		frappe.cache().delete_value('energy_point_rule_map')
 
 	def test_user_energy_point(self):

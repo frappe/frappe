@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import frappe
 from frappe.desk.notifications import clear_notifications
 from frappe.cache_manager import clear_defaults_cache, common_default_keys
+from frappe.query_builder import DocType
 
 # Note: DefaultValue records are identified by parenttype
 # __default, __global or 'User Permission'
@@ -116,14 +117,11 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	if frappe.db.sql('''
-		select
-			defkey
-		from
-			`tabDefaultValue`
-		where
-			defkey=%s and parent=%s
-		for update''', (key, parent)):
+	table = DocType("DefaultValue")
+	key_exists = frappe.qb.from_(table).where(
+		(table.defkey == key) & (table.parent == parent)
+	).select(table.defkey).for_update().run()
+	if key_exists:
 		frappe.db.delete("DefaultValue", {
 			"defkey": key,
 			"parent": parent
@@ -191,8 +189,12 @@ def get_defaults_for(parent="__default"):
 
 	if defaults==None:
 		# sort descending because first default must get precedence
-		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`
-			where parent = %s order by creation""", (parent,), as_dict=1)
+		table = DocType("DefaultValue")
+		res = frappe.qb.from_(table).where(
+			table.parent == parent
+		).select(
+			table.defkey, table.defvalue
+		).orderby("creation").run(as_dict=True)
 
 		defaults = frappe._dict({})
 		for d in res:

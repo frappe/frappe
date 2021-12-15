@@ -5,49 +5,24 @@ import gzip
 import json
 import os
 import shlex
+import shutil
 import subprocess
-import sys
+from typing import List
 import unittest
 import glob
 
 # imports - module imports
 import frappe
 import frappe.recorder
-from frappe.installer import add_to_installed_apps
+from frappe.installer import add_to_installed_apps, remove_app
 from frappe.utils import add_to_date, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
-
-# TODO: check frappe.cli.coloured_output to set coloured output!
-def supports_color():
-	"""
-	Returns True if the running system's terminal supports color, and False
-	otherwise.
-	"""
-	plat = sys.platform
-	supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
-	# isatty is not always implemented, #6223.
-	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-	return supported_platform and is_a_tty
+# imports - third party imports
+import click
 
 
-class color(dict):
-	nc = "\033[0m"
-	blue = "\033[94m"
-	green = "\033[92m"
-	yellow = "\033[93m"
-	red = "\033[91m"
-	silver = "\033[90m"
-
-	def __getattr__(self, key):
-		if supports_color():
-			ret = self.get(key)
-		else:
-			ret = ""
-		return ret
-
-
-def clean(value):
+def clean(value) -> str:
 	"""Strips and converts bytes to str
 
 	Args:
@@ -63,7 +38,29 @@ def clean(value):
 	return value
 
 
-def exists_in_backup(doctypes, file):
+def missing_in_backup(doctypes: List, file: os.PathLike) -> List:
+	"""Returns list of missing doctypes in the backup.
+
+	Args:
+		doctypes (list): List of DocTypes to be checked
+		file (str): Path of the database file
+
+	Returns:
+		doctypes(list): doctypes that are missing in backup
+	"""
+	predicate = (
+		'COPY public."tab{}"'
+		if frappe.conf.db_type == "postgres"
+		else "CREATE TABLE `tab{}`"
+	)
+	with gzip.open(file, "rb") as f:
+		content = f.read().decode("utf8").lower()
+
+	return [doctype for doctype in doctypes
+			if predicate.format(doctype).lower() not in content]
+
+
+def exists_in_backup(doctypes: List, file: os.PathLike) -> bool:
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
 	Args:
@@ -73,27 +70,32 @@ def exists_in_backup(doctypes, file):
 	Returns:
 		bool: True if all tables exist
 	"""
-	predicate = (
-		'COPY public."tab{}"'
-		if frappe.conf.db_type == "postgres"
-		else "CREATE TABLE `tab{}`"
-	)
-	with gzip.open(file, "rb") as f:
-		content = f.read().decode("utf8")
-	return all(predicate.format(doctype).lower() in content.lower() for doctype in doctypes)
+	missing_doctypes = missing_in_backup(doctypes, file)
+	return len(missing_doctypes) == 0
 
 
 class BaseTestCommands(unittest.TestCase):
 	def execute(self, command, kwargs=None):
 		site = {"site": frappe.local.site}
+		cmd_input = None
 		if kwargs:
+			cmd_input = kwargs.get("cmd_input", None)
+			if cmd_input:
+				if not isinstance(cmd_input, bytes):
+					raise Exception(
+						f"The input should be of type bytes, not {type(cmd_input).__name__}"
+					)
+
+				del kwargs["cmd_input"]
 			kwargs.update(site)
 		else:
 			kwargs = site
+
 		self.command = " ".join(command.split()).format(**kwargs)
-		print("{0}$ {1}{2}".format(color.silver, self.command, color.nc))
+		click.secho(self.command, fg="bright_black")
+
 		command = shlex.split(self.command)
-		self._proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		self._proc = subprocess.run(command, input=cmd_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		self.stdout = clean(self._proc.stdout)
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
@@ -222,7 +224,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
-		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
+		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
 
 		# test 8: take a backup with frappe.conf.backup.excludes
 		self.execute(
@@ -233,7 +235,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
-		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
+		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
 
 		# test 9: take a backup with --include (with frappe.conf.excludes still set)
 		self.execute(
@@ -242,7 +244,7 @@ class TestCommands(BaseTestCommands):
 		)
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups(partial=True)["database"]
-		self.assertTrue(exists_in_backup(backup["includes"]["includes"], database))
+		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
 
 		# test 10: take a backup with --exclude
 		self.execute(
@@ -257,7 +259,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} backup --ignore-backup-conf")
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
-		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
+		self.assertEqual([], missing_in_backup(backup["excludes"]["excludes"], database))
 
 	def test_restore(self):
 		# step 0: create a site to run the test on
@@ -436,3 +438,85 @@ class TestCommands(BaseTestCommands):
 
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
+
+	def test_set_password(self):
+		from frappe.utils.password import check_password
+
+		self.execute("bench --site {site} set-password Administrator test1")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password('Administrator', 'test1'), 'Administrator')
+		# to release the lock taken by check_password
+		frappe.db.commit()
+
+		self.execute("bench --site {site} set-admin-password test2")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password('Administrator', 'test2'), 'Administrator')
+
+	def test_make_app(self):
+		user_input = [
+			b"Test App", # title
+			b"This app's description contains 'single quotes' and \"double quotes\".", # description
+			b"Test Publisher", # publisher
+			b"example@example.org", # email
+			b"", # icon
+			b"", # color
+			b"MIT" # app_license
+		]
+		app_name = "testapp0"
+		apps_path = os.path.join(frappe.utils.get_bench_path(), "apps")
+		test_app_path = os.path.join(apps_path, app_name)
+		self.execute(f"bench make-app {apps_path} {app_name}", {"cmd_input": b'\n'.join(user_input)})
+		self.assertEqual(self.returncode, 0)
+		self.assertTrue(
+			os.path.exists(test_app_path)
+		)
+
+		# cleanup
+		shutil.rmtree(test_app_path)
+
+
+class RemoveAppUnitTests(unittest.TestCase):
+	def test_delete_modules(self):
+		from frappe.installer import (
+				_delete_doctypes,
+				_delete_modules,
+				_get_module_linked_doctype_field_map,
+		)
+
+		test_module = frappe.new_doc("Module Def")
+
+		test_module.update({"module_name": "RemoveThis", "app_name": "frappe"})
+		test_module.save()
+
+		module_def_linked_doctype = frappe.get_doc({
+			"doctype": "DocType",
+			"name": "Doctype linked with module def",
+			"module": "RemoveThis",
+			"custom": 1,
+			"fields": [{
+				"label": "Modulen't",
+				"fieldname": "notmodule",
+				"fieldtype": "Link",
+				"options": "Module Def"
+			}]
+		}).insert()
+
+		doctype_to_link_field_map = _get_module_linked_doctype_field_map()
+
+		self.assertIn("Report", doctype_to_link_field_map)
+		self.assertIn(module_def_linked_doctype.name, doctype_to_link_field_map)
+		self.assertEqual(doctype_to_link_field_map[module_def_linked_doctype.name], "notmodule")
+		self.assertNotIn("DocType", doctype_to_link_field_map)
+
+		doctypes_to_delete = _delete_modules([test_module.module_name], dry_run=False)
+		self.assertEqual(len(doctypes_to_delete), 1)
+
+		_delete_doctypes(doctypes_to_delete, dry_run=False)
+		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
+		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
+
+	def test_dry_run(self):
+		"""Check if dry run in not destructive."""
+
+		# nothing to assert, if this fails rest of the test suite will crumble.
+		remove_app("frappe", dry_run=True, yes=True, no_backup=True)

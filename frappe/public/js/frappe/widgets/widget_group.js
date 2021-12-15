@@ -186,4 +186,50 @@ export default class WidgetGroup {
 	}
 }
 
+export class SingleWidgetGroup {
+	constructor(opts) {
+		Object.assign(this, opts);
+		this.widgets_list = [];
+		this.widgets_dict = {};
+		this.make();
+	}
+
+	make() {
+		this.add_widget(this.widgets);
+	}
+
+	add_widget(widget) {
+		let widget_object = frappe.widget.make_widget({
+			...widget,
+			widget_type: this.type,
+			container: this.container,
+			height: this.height || null,
+			options: {
+				...this.options,
+				on_delete: () => this.on_delete(),
+				on_edit: () => this.on_edit(widget_object)
+			}
+		});
+		this.widgets_list.push(widget_object);
+		this.widgets_dict[widget.name] = widget_object;
+
+		return widget_object;
+	}
+
+	on_delete() {
+		this.api.blocks.delete();
+	}
+
+	on_edit(widget_object) {
+		this.block.call("on_edit", widget_object);
+	}
+
+	customize() {
+		this.widgets_list.forEach((wid) => {
+			wid.customize(this.options);
+		});
+	}
+}
+
 frappe.widget.WidgetGroup = WidgetGroup;
+frappe.widget.SingleWidgetGroup = SingleWidgetGroup;

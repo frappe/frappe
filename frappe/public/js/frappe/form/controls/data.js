@@ -15,11 +15,6 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
 
-		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
-			this.df.fieldtype)) {
-			this.$input.attr("maxlength", this.df.length || 140);
-		}
-
 		this.$input.on('paste', (e) => {
 			let pasted_data = frappe.utils.get_clipboard_data(e);
 			let maxlength = this.$input.attr('maxlength');
@@ -67,6 +62,10 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (this.df.options == 'URL') {
 			this.setup_url_field();
 		}
+
+		if (this.df.options == 'Barcode') {
+			this.setup_barcode_field();
+		}
 	}
 
 	setup_url_field() {
@@ -113,6 +112,32 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		});
 	}
 
+	setup_barcode_field() {
+		this.$wrapper.find('.control-input').append(
+			`<span class="link-btn">
+				<a class="btn-open no-decoration" title="${__("Scan")}">
+					${frappe.utils.icon('scan', 'sm')}
+				</a>
+			</span>`
+		);
+
+		this.$scan_btn = this.$wrapper.find('.link-btn');
+		this.$scan_btn.toggle(true);
+
+		const me = this;
+		this.$scan_btn.on('click', 'a', () => {
+			new frappe.ui.Scanner({
+				dialog: true,
+				multiple: false,
+				on_scan(data) {
+					if (data && data.result && data.result.text) {
+						me.set_value(data.result.text);
+					}
+				}
+			});
+		});
+	}
+
 	bind_change_event() {
 		const change_handler = e => {
 			if (this.change) this.change(e);
@@ -122,7 +147,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			}
 		};
 		this.$input.on("change", change_handler);
-		if (this.constructor.trigger_change_on_input_event) {
+		if (this.constructor.trigger_change_on_input_event && !this.in_grid()) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
@@ -158,6 +183,13 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		}
 	}
 	set_input_attributes() {
+		if (in_list(
+			['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only'],
+			this.df.fieldtype
+		)) {
+			this.$input.attr("maxlength", this.df.length || 140);
+		}
+
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
@@ -225,5 +257,8 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	toggle_container_scroll(el_class, scroll_class, add=false) {
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
+	}
+	in_grid() {
+		return this.grid || this.layout && this.layout.grid;
 	}
 };

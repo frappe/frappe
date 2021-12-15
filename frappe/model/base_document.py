@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 import frappe
 import datetime
 from frappe import _
@@ -267,7 +267,12 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+			if convert_dates_to_str and isinstance(d[fieldname], (
+				datetime.datetime,
+				datetime.date,
+				datetime.time,
+				datetime.timedelta
+			)):
 				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:
@@ -307,7 +312,7 @@ class BaseDocument(object):
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls) for d in children]
+			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls, no_default_fields=no_default_fields) for d in children]
 
 		if no_nulls:
 			for k in list(doc):
@@ -333,7 +338,7 @@ class BaseDocument(object):
 			return self.meta.get_field(fieldname).options
 		except AttributeError:
 			if self.doctype == 'DocType':
-				return dict(links='DocType Link', actions='DocType Action').get(fieldname)
+				return dict(links='DocType Link', actions='DocType Action', states='DocType State').get(fieldname)
 			raise
 
 	def get_parentfield_of_doctype(self, doctype):
@@ -727,6 +732,18 @@ class BaseDocument(object):
 				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
 
+	def _validate_code_fields(self):
+		for field in self.meta.get_code_fields():
+			code_string = self.get(field.fieldname)
+			language = field.get("options")
+
+			if language == "Python":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
+
+			elif language == "PythonExpression":
+				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
+
 	def throw_length_exceeded_error(self, df, max_length, value):
 		if self.parentfield and self.idx:
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
@@ -862,7 +879,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -886,7 +903,7 @@ class BaseDocument(object):
 		if (absolute_value or doc.get('absolute_value')) and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
 
-		return format_value(val, df=df, doc=doc, currency=currency)
+		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
@@ -957,7 +974,7 @@ class BaseDocument(object):
 		return self.cast(val, df)
 
 	def cast(self, value, df):
-		return cast_fieldtype(df.fieldtype, value)
+		return cast_fieldtype(df.fieldtype, value, show_warning=False)
 
 	def _extract_images_from_text_editor(self):
 		from frappe.core.doctype.file.file import extract_images_from_doc

@@ -89,9 +89,11 @@
 }
 
 .report-view {
-	.dt-row:last-child:not(.dt-row-filter) {
-		.dt-cell {
-			border-bottom: 1px solid var(--border-color);
+	.result {
+		.dt-row:last-child:not(.dt-row-filter) {
+			.dt-cell {
+				border-bottom: 1px solid var(--border-color);
+			}
 		}
 	}
 }

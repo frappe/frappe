@@ -1,5 +1,5 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 
 def resolve_class(classes):
@@ -66,6 +66,13 @@ def web_blocks(blocks):
 		html += "<script>{}</script>".format(script)
 
 	return html
+
+
+def get_dom_id(seed=None):
+	from frappe import generate_hash
+	if not seed:
+		seed = 'DOM'
+	return 'id-' + generate_hash(seed, 12)
 
 
 def include_script(path):

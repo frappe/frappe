@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import json
 import os
@@ -18,6 +18,7 @@ from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.search.website_search import build_index_for_all_routes
+from frappe.database.schema import add_column
 
 
 def migrate(verbose=True, skip_failing=False, skip_search_index=False):
@@ -26,9 +27,10 @@ def migrate(verbose=True, skip_failing=False, skip_search_index=False):
 	- run patches
 	- sync doctypes (schema)
 	- sync dashboards
+	- sync jobs
 	- sync fixtures
-	- sync desktop icons
-	- sync web pages (from /www)
+	- sync customizations
+	- sync languages
 	- sync web pages (from /www)
 	- run after migrate hooks
 	'''
@@ -51,6 +53,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		os.remove(touched_tables_file)
 
 	try:
+		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
 		frappe.flags.touched_tables = set()
 		frappe.flags.in_migrate = True
 
@@ -65,7 +68,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		frappe.modules.patch_handler.run_all(skip_failing)
 
 		# sync
-		frappe.model.sync.sync_all(verbose=verbose)
+		frappe.model.sync.sync_all()
 		frappe.translate.clear_cache()
 		sync_jobs()
 		sync_fixtures()

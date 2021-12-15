@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import functools
 import hashlib
@@ -16,6 +16,8 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 from werkzeug.test import Client
+from redis.exceptions import ConnectionError
+from collections.abc import MutableMapping, MutableSequence, Sequence
 
 import frappe
 # utility functions like cint, int, flt, etc.
@@ -54,6 +56,12 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+	
+	method = get_hook_method('get_sender_details')
+	if method:
+		sender_name, mail = method()
+		# if method exists but sender_name is ""
+		fullname = sender_name or fullname
 
 	if not mail:
 		mail = get_email_address(user) or validate_email_address(user)
@@ -92,7 +100,7 @@ def validate_name(name, throw=False):
 		return False
 
 	name = name.strip()
-	match = re.match(r"^[\w][\w\'\-]*([ \w][\w\'\-]+)*$", name)
+	match = re.match(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$", name)
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
@@ -238,7 +246,9 @@ def get_traceback() -> str:
 		return ""
 
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	return "".join(cstr(t) for t in trace_list)
+	bench_path = get_bench_path() + "/"
+
+	return "".join(cstr(t) for t in trace_list).replace(bench_path, "")
 
 def log(event, details):
 	frappe.logger().info(details)
@@ -786,16 +796,24 @@ def get_build_version():
 def get_assets_json():
 	if not hasattr(frappe.local, "assets_json"):
 		cache = frappe.cache()
+
 		# using .get instead of .get_value to avoid pickle.loads
-		assets_json = cache.get("assets_json")
 		try:
-			assets_json = assets_json.decode('utf-8')
-		except (UnicodeDecodeError, AttributeError):
+			assets_json = cache.get("assets_json")
+		except ConnectionError:
 			assets_json = None
+
+		# if value found, decode it
+		if assets_json is not None:
+			try:
+				assets_json = assets_json.decode('utf-8')
+			except (UnicodeDecodeError, AttributeError):
+				assets_json = None
 
 		if not assets_json:
 			assets_json = frappe.read_file("assets/assets.json")
 			cache.set_value("assets_json", assets_json, shared=True)
+
 		frappe.local.assets_json = frappe.safe_decode(assets_json)
 
 	return frappe.parse_json(frappe.local.assets_json)
@@ -852,3 +870,31 @@ def groupby_metric(iterable: typing.Dict[str, list], key: str):
 
 def get_table_name(table_name: str) -> str:
 	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+def squashify(what):
+	if isinstance(what, Sequence) and len(what) == 1:
+		return what[0]
+
+	return what
+
+def safe_json_loads(*args):
+	results = []
+
+	for arg in args:
+		try:
+			arg = json.loads(arg)
+		except Exception:
+			pass
+
+		results.append(arg)
+
+	return squashify(results)
+
+def dictify(arg):
+	if isinstance(arg, MutableSequence):
+		for i, a in enumerate(arg):
+			arg[i] = dictify(a)
+	elif isinstance(arg, MutableMapping):
+		arg = frappe._dict(arg)
+
+	return arg

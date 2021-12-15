@@ -175,7 +175,7 @@ frappe.form.formatters = {
 				m = m.tz(frappe.boot.sysdefaults.time_zone);
 			}
 			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase()
-				+  ' ' + frappe.boot.sysdefaults.time_format);
+				+  ' ' + (frappe.boot.sysdefaults.time_format || 'HH:mm:ss'));
 		} else {
 			return "";
 		}
@@ -305,6 +305,12 @@ frappe.form.formatters = {
 		return value ? `<div>
 			<div class="selected-color" style="background-color: ${value}"></div>
 			<span class="color-value">${value}</span>
+		</div>` : '';
+	},
+	Icon: (value) => {
+		return value ? `<div>
+			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
+			<span class="icon-value">${value}</span>
 		</div>` : '';
 	}
 };

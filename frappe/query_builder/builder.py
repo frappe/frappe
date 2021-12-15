@@ -1,17 +1,34 @@
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.queries import Schema, Table
 from frappe.utils import get_table_name
-
+from pypika.terms import Function
 
 class Base:
 	terms = terms
 	desc = Order.desc
 	Schema = Schema
+	Table = Table
 
 	@staticmethod
-	def Table(table_name: str, *args, **kwargs) -> Table:
+	def functions(name: str, *args, **kwargs) -> Function:
+		return Function(name, *args, **kwargs)
+
+	@staticmethod
+	def DocType(table_name: str, *args, **kwargs) -> Table:
 		table_name = get_table_name(table_name)
 		return Table(table_name, *args, **kwargs)
+
+	@classmethod
+	def into(cls, table, *args, **kwargs):
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().into(table, *args, **kwargs)
+
+	@classmethod
+	def update(cls, table, *args, **kwargs):
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().update(table, *args, **kwargs)
 
 
 class MariaDB(Base, MySQLQuery):
@@ -20,7 +37,7 @@ class MariaDB(Base, MySQLQuery):
 	@classmethod
 	def from_(cls, table, *args, **kwargs):
 		if isinstance(table, str):
-			table = cls.Table(table)
+			table = cls.DocType(table)
 		return super().from_(table, *args, **kwargs)
 
 
@@ -50,6 +67,6 @@ class Postgres(Base, PostgreSQLQuery):
 					table = cls.schema_translation[table._table_name]
 
 		elif isinstance(table, str):
-			table = cls.Table(table)
+			table = cls.DocType(table)
 
 		return super().from_(table, *args, **kwargs)

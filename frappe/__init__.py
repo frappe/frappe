@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
 
@@ -28,10 +28,11 @@ from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 from .utils.lazy_loader import lazy_import
 
-from frappe.query_builder import get_query_builder
-
-# Lazy imports
-faker = lazy_import('faker')
+from frappe.query_builder import (
+	get_query_builder,
+	patch_query_execute,
+	patch_query_aggregation,
+)
 
 __version__ = '14.0.0-dev'
 
@@ -44,7 +45,8 @@ class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		ret = self.get(key)
-		if not ret and key.startswith("__"):
+		# "__deepcopy__" exception added to fix frappe#14833 via DFP
+		if not ret and key.startswith("__") and key != "__deepcopy__":
 			raise AttributeError()
 		return ret
 	def __setattr__(self, key, value):
@@ -140,7 +142,11 @@ lang = local("lang")
 if typing.TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.query_builder.builder import MariaDB, Postgres
+
 	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+	qb: typing.Union[MariaDB, Postgres]
+
 # end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):
@@ -208,6 +214,8 @@ def init(site, sites_path=None, new_site=False):
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
+	patch_query_execute()
+	patch_query_aggregation()
 
 	local.initialised = True
 
@@ -230,12 +238,13 @@ def connect_replica():
 	from frappe.database import get_db
 	user = local.conf.db_name
 	password = local.conf.db_password
+	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password)
+	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -484,11 +493,11 @@ def get_request_header(key, default=None):
 	:param default: Default value."""
 	return request.headers.get(key, default)
 
-def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
+def sendmail(recipients=None, sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, add_unsubscribe_link=1,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None, queue_separately=False,
-		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
+		cc=None, bcc=None, message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
 		inline_images=None, template=None, args=None, header=None, print_letterhead=False, with_container=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
@@ -518,6 +527,14 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
 	"""
+
+	if recipients is None:
+		recipients = []
+	if cc is None:
+		cc = []
+	if bcc is None:
+		bcc = []
+
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
@@ -613,12 +630,33 @@ def read_only():
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
-			except:
-				raise
 			finally:
 				if local and hasattr(local, 'primary_db'):
 					local.db.close()
 					local.db = local.primary_db
+
+			return retval
+		return wrapper_fn
+	return innfn
+
+def write_only():
+	# if replica connection exists, we have to replace it momentarily with the primary connection
+	def innfn(fn):
+		def wrapper_fn(*args, **kwargs):
+			primary_db = getattr(local, "primary_db", None)
+			replica_db = getattr(local, "replica_db", None)
+			in_read_only = getattr(local, "db", None) != primary_db
+
+			# switch to primary connection
+			if in_read_only and primary_db:
+				local.db = local.primary_db
+
+			try:
+				retval = fn(*args, **get_newargs(fn, kwargs))
+			finally:
+				# switch back to replica connection
+				if in_read_only and replica_db:
+					local.db = replica_db
 
 			return retval
 		return wrapper_fn
@@ -694,18 +732,20 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	else:
 		return False
 
-def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
+def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False, parent_doctype=None):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
-	:param user: [optional] Check for given user. Default: current user."""
+	:param user: [optional] Check for given user. Default: current user.
+	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
 	if not doctype and doc:
 		doctype = doc.doctype
 
 	import frappe.permissions
-	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user, raise_exception=throw)
+	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user,
+		raise_exception=throw, parent_doctype=parent_doctype)
 	if throw and not out:
 		if doc:
 			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
@@ -755,7 +795,9 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
 	def get_tables():
-		return db.sql_list("select name from tabDocType where istable=1")
+		return db.get_values(
+			"DocType", filters={"istable": 1}, order_by=None, pluck=True
+		)
 
 	tables = cache().get_value("is_table", get_tables)
 	return doctype in tables
@@ -1453,7 +1495,10 @@ def get_value(*args, **kwargs):
 
 def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
-	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	try:
+		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	except TypeError:
+		return json.dumps(obj, indent=indent, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint
@@ -1485,8 +1530,8 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None,
-	html=None, as_pdf=False, doc=None, output=None, no_letterhead=0, password=None):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
+	as_pdf=False, doc=None, output=None, no_letterhead=0, password=None, pdf_options=None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1505,15 +1550,15 @@ def get_print(doctype=None, name=None, print_format=None, style=None,
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
 
-	options = None
+	pdf_options = pdf_options or {}
 	if password:
-		options = {'password': password}
+		pdf_options['password'] = password
 
 	if not html:
 		html = get_response_content("printview")
 
 	if as_pdf:
-		return get_pdf(html, output = output, options = options)
+		return get_pdf(html, options=pdf_options, output=output)
 	else:
 		return html
 
@@ -1760,7 +1805,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 			'limit': limit
 		}, as_list=1)
 
-		from frappe.chat.util import squashify, dictify, safe_json_loads
+		from frappe.utils import squashify, dictify, safe_json_loads
 
 		versions = []
 
@@ -1808,6 +1853,7 @@ def parse_json(val):
 	return parse_json(val)
 
 def mock(type, size=1, locale='en'):
+	import faker
 	results = []
 	fake = faker.Faker(locale)
 	if type not in dir(fake):
@@ -1817,7 +1863,7 @@ def mock(type, size=1, locale='en'):
 			data = getattr(fake, type)()
 			results.append(data)
 
-	from frappe.chat.util import squashify
+	from frappe.utils import squashify
 	return squashify(results)
 
 def validate_and_sanitize_search_inputs(fn):

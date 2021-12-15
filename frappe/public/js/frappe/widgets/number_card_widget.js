@@ -211,7 +211,7 @@ export default class NumberCardWidget extends Widget {
 		const symbol = number_parts[1] || '';
 		const formatted_number = $(frappe.format(number_parts[0], df)).text();
 
-		this.formatted_number = formatted_number + ' ' + symbol;
+		this.formatted_number = formatted_number + ' ' + __(symbol);
 	}
 
 	render_number() {

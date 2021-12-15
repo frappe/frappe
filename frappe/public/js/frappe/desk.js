@@ -64,6 +64,19 @@ frappe.Application = class Application {
 			}
 		});
 
+		frappe.ui.add_system_theme_switch_listener();
+		const root = document.documentElement;
+
+		const observer = new MutationObserver(() => {
+			frappe.ui.set_theme();
+		});
+		observer.observe(root, {
+			attributes: true,
+			attributeFilter: ['data-theme-mode']
+		});
+
+		frappe.ui.set_theme();
+
 		// page container
 		this.make_page_container();
 		this.set_route();
@@ -230,7 +243,7 @@ frappe.Application = class Application {
 			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
 			s.show();
 			frappe.call({
-				method: 'frappe.core.doctype.user.user.set_email_password',
+				method: 'frappe.email.doctype.email_account.email_account.set_email_password',
 				args: {
 					"email_account": email_account[i]["email_account"],
 					"user": user,
@@ -284,10 +297,6 @@ frappe.Application = class Application {
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module]=page;
 			frappe.workspaces[frappe.router.slug(page.name)] = page;
-		}
-		if (!frappe.workspaces['home']) {
-			// default workspace is settings for Frappe
-			frappe.workspaces['home'] = frappe.workspaces[Object.keys(frappe.workspaces)[0]];
 		}
 	}
 
@@ -522,6 +531,8 @@ frappe.Application = class Application {
 	}
 
 	show_update_available() {
+		if (frappe.boot.sysdefaults.disable_system_update_notification) return;
+
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
 		});

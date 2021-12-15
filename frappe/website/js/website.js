@@ -46,6 +46,20 @@ $.extend(frappe, {
 	hide_message: function() {
 		$('.message-overlay').remove();
 	},
+	xcall: function(method, params) {
+		return new Promise((resolve, reject) => {
+			frappe.call({
+				method: method,
+				args: params,
+				callback: (r) => {
+					resolve(r.message);
+				},
+				error: (r) => {
+					reject(r.message);
+				}
+			});
+		});
+	},
 	call: function(opts) {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		if (typeof arguments[0]==='string') {
@@ -633,17 +647,5 @@ $(document).on("page-change", function() {
 
 frappe.ready(function() {
 	frappe.show_language_picker();
-	if (window.is_chat_enabled) {
-		frappe.require([
-			"/assets/frappe/node_modules/moment/min/moment-with-locales.min.js",
-			"/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
-			"chat.bundle.css",
-			"/assets/frappe/js/lib/socket.io.min.js"
-		], () => {
-			frappe.require('chat.bundle.js', () => {
-				frappe.chat.setup();
-			});
-		});
-	}
 	frappe.socketio.init(window.socketio_port);
 });

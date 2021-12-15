@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # model __init__.py
 import frappe
@@ -34,12 +34,19 @@ data_fieldtypes = (
 	'Color',
 	'Barcode',
 	'Geolocation',
-	'Duration'
+	'Duration',
+	'Icon'
+)
+
+attachment_fieldtypes = (
+	'Attach',
+	'Attach Image',
 )
 
 no_value_fields = (
 	'Section Break',
 	'Column Break',
+	'Tab Break',
 	'HTML',
 	'Table',
 	'Table MultiSelect',
@@ -52,6 +59,7 @@ no_value_fields = (
 display_fieldtypes = (
 	'Section Break',
 	'Column Break',
+	'Tab Break',
 	'HTML',
 	'Button',
 	'Image',
@@ -71,7 +79,8 @@ data_field_options = (
 	'Email',
 	'Name',
 	'Phone',
-	'URL'
+	'URL',
+	'Barcode'
 )
 
 default_fields = (

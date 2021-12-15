@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 from urllib.parse import quote
 
 import frappe
@@ -23,7 +23,7 @@ class WebsiteSettings(Document):
 			return
 		from frappe.website.path_resolver import PathResolver
 		if self.home_page and not PathResolver(self.home_page).is_valid_path():
-			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
+			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - home, login, products, blog, about, contact)")
 			self.home_page = ''
 
 	def validate_top_bar_items(self):
@@ -120,8 +120,7 @@ def get_website_settings(context=None):
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
 		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
-		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker",
-		"chat_enable"]:
+		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 

@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# License: MIT. See LICENSE
 
 import os
 import email
@@ -25,6 +25,7 @@ class TestEmailAccount(unittest.TestCase):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 		email_account.db_set("enable_auto_reply", 1)
+		email_account.db_set("use_imap", 1)
 
 	@classmethod
 	def tearDownClass(cls):
@@ -34,8 +35,8 @@ class TestEmailAccount(unittest.TestCase):
 	def setUp(self):
 		frappe.flags.mute_emails = False
 		frappe.flags.sent_mail = None
-		frappe.db.sql('delete from `tabEmail Queue`')
-		frappe.db.sql('delete from `tabUnhandled Email`')
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Unhandled Email")
 
 	def get_test_mail(self, fname):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname), "r") as f:
@@ -60,7 +61,7 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
 
-		frappe.db.sql("DELETE FROM `tabEmail Queue`")
+		frappe.db.delete("Email Queue")
 		notify_unreplied()
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
 			"reference_name": comm.reference_name, "status":"Not Sent"}))
@@ -183,7 +184,7 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_threading_by_message_id(self):
 		cleanup()
-		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.delete("Email Queue")
 
 		# reference document for testing
 		event = frappe.get_doc(dict(doctype='Event', subject='test-message')).insert()
@@ -229,6 +230,22 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {'message_id': message_id}))
 
+	def test_imap_folder(self):
+		# assert tests if imap_folder >= 1 and imap is checked
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+
+		self.assertTrue(email_account.use_imap)
+		self.assertTrue(email_account.enable_incoming)
+		self.assertTrue(len(email_account.imap_folder) > 0)
+
+	def test_imap_folder_missing(self):
+		# Test the Exception in validate() that verifies the imap_folder list
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.imap_folder = []
+
+		with self.assertRaises(Exception):
+			email_account.validate()
+
 class TestInboundMail(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -242,8 +259,8 @@ class TestInboundMail(unittest.TestCase):
 
 	def setUp(self):
 		cleanup()
-		frappe.db.sql('delete from `tabEmail Queue`')
-		frappe.db.sql('delete from `tabToDo`')
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("ToDo")
 
 	def get_test_mail(self, fname):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname), "r") as f:

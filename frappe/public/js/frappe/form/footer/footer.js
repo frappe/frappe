@@ -30,7 +30,7 @@ frappe.ui.form.Footer = class FormFooter {
 				fieldname: 'comment'
 			},
 			on_submit: (comment) => {
-				if (strip_html(comment).trim() != "") {
+				if (strip_html(comment).trim() != "" || comment.includes('img')) {
 					this.frm.comment_box.disable();
 					frappe.xcall("frappe.desk.form.utils.add_comment", {
 						reference_doctype: this.frm.doctype,

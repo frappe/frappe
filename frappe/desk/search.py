@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Search
 import frappe, json
@@ -299,6 +299,7 @@ def get_users_for_mentions():
 			'name': ['not in', ('Administrator', 'Guest')],
 			'allowed_in_mentions': True,
 			'user_type': 'System User',
+			'enabled': True,
 		})
 
 def get_user_groups():

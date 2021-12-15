@@ -2,6 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Onboarding Step", {
+
+	setup: function(frm) {
+		frm.set_query("form_tour", function() {
+			return {
+				filters: {
+					reference_doctype: frm.doc.reference_document
+				}
+			};
+		});
+	},
+
 	refresh: function(frm) {
 		frappe.boot.developer_mode &&
 			frm.set_intro(

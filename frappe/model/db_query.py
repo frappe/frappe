@@ -1,8 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 """build query for doclistview and return results"""
 
+from typing import List
 import frappe.defaults
+from frappe.query_builder.utils import Column
 import frappe.share
 from frappe import _
 import frappe.permissions
@@ -27,16 +29,16 @@ class DatabaseQuery(object):
 		self.reference_doctype = None
 
 	def execute(self, fields=None, filters=None, or_filters=None,
-		docstatus=None, group_by=None, order_by=None, limit_start=False,
+		docstatus=None, group_by=None, order_by="KEEP_DEFAULT_ORDERING", limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None, ignore_ddl=False):
+		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
 		if not ignore_permissions and \
-			not frappe.has_permission(self.doctype, "select", user=user) and \
-			not frappe.has_permission(self.doctype, "read", user=user):
+			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
+			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
 
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -85,7 +87,7 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		self.return_query = return_query
+		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
 
@@ -102,8 +104,6 @@ class DatabaseQuery(object):
 		if not self.columns: return []
 
 		result = self.build_and_run()
-		if return_query:
-			return result
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -135,11 +135,8 @@ class DatabaseQuery(object):
 			%(order_by)s
 			%(limit)s""" % args
 
-		if self.return_query:
-			return query
-		else:
-			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
-				update=self.update, ignore_ddl=self.ignore_ddl)
+		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
+				update=self.update, ignore_ddl=self.ignore_ddl, run=self.run)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -321,7 +318,8 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
 
-		if not self.flags.ignore_permissions and not frappe.has_permission(doctype, ptype=ptype):
+		if not self.flags.ignore_permissions and \
+			not frappe.has_permission(doctype, ptype=ptype, parent_doctype=self.doctype):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 
@@ -492,7 +490,7 @@ class DatabaseQuery(object):
 
 			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
 				value = cstr(f.value)
-				fallback = "NULL"
+				fallback = "'0001-01-01 00:00:00'"
 
 			elif f.operator.lower() in ('between') and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
@@ -546,8 +544,13 @@ class DatabaseQuery(object):
 				value = flt(f.value)
 				fallback = 0
 
+			if isinstance(f.value, Column):
+				can_be_null = False	# added to avoid the ifnull/coalesce addition
+				quote = '"' if frappe.conf.db_type == 'postgres' else "`"
+				value = f"{tname}.{quote}{f.value.name}{quote}"
+
 			# escape value
-			if isinstance(value, str) and not f.operator.lower() == 'between':
+			elif isinstance(value, str) and not f.operator.lower() == 'between':
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
@@ -591,8 +594,8 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			#if has if_owner permission skip user perm check
-			if role_permissions.get("has_if_owner_enabled") and role_permissions.get("if_owner", {}):
+			# skip user perm check if owner constraint is required
+			if requires_owner_constraint(role_permissions):
 				self.match_conditions.append(
 					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
 				)
@@ -700,7 +703,7 @@ class DatabaseQuery(object):
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
 
-		if self.order_by:
+		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
@@ -726,11 +729,13 @@ class DatabaseQuery(object):
 				else:
 					sort_field = meta.sort_field or 'modified'
 					sort_order = (meta.sort_field and meta.sort_order) or 'desc'
-					args.order_by = f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+					if self.order_by:
+						args.order_by = f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
 
 				# draft docs always on top
 				if hasattr(meta, 'is_submittable') and meta.is_submittable:
-					args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
+					if self.order_by:
+						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
 	def validate_order_by_and_group_by(self, parameters):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
@@ -889,3 +894,22 @@ def get_date_range(operator, value):
 	timespan = period_map[operator] + ' ' + timespan_map[value] if operator != 'timespan' else value
 
 	return get_timespan_date_range(timespan)
+
+def requires_owner_constraint(role_permissions):
+	"""Returns True if "select" or "read" isn't available without being creator."""
+
+	if not role_permissions.get("has_if_owner_enabled"):
+		return
+
+	if_owner_perms = role_permissions.get("if_owner")
+	if not if_owner_perms:
+		return
+
+	# has select or read without if owner, no need for constraint
+	for perm_type in ("select", "read"):
+		if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
+			return
+
+	# not checking if either select or read if present in if_owner_perms
+	# because either of those is required to perform a query
+	return True

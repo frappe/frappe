@@ -42,6 +42,8 @@
   "actions",
   "document_links_section",
   "links",
+  "document_states_section",
+  "states",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -283,6 +285,20 @@
    "label": "Auto Name"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "states",
+   "depends_on": "doc_type",
+   "fieldname": "document_states_section",
+   "fieldtype": "Section Break",
+   "label": "Document States"
+  },
+  {
+   "fieldname": "states",
+   "fieldtype": "Table",
+   "label": "States",
+   "options": "DocType State"
+  },
+  {
    "default": "0",
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
@@ -295,10 +311,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-08-03 13:43:27.938781",
+ "modified": "2021-12-15 16:45:04.308690",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -315,5 +332,6 @@
  "search_fields": "doc_type",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

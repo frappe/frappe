@@ -5,12 +5,12 @@ from frappe.utils import set_request
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import (build_response, clear_website_cache, get_home_page)
 
-
 class TestWebsite(unittest.TestCase):
 	def setUp(self):
 		frappe.set_user('Guest')
 
 	def tearDown(self):
+		frappe.db.delete('Access Log')
 		frappe.set_user('Administrator')
 
 	def test_home_page(self):
@@ -197,7 +197,7 @@ class TestWebsite(unittest.TestCase):
 		frappe.cache().delete_key('app_hooks')
 
 	def test_printview_page(self):
-		content = get_response_content('/Language/en')
+		content = get_response_content('/Language/ru')
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn('<div>Language</div>', content)
 
@@ -279,6 +279,16 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
 
 		frappe.flags.force_website_cache = False
+
+	def test_safe_render(self):
+		content = get_response_content('/_test/_test_safe_render_on')
+		self.assertNotIn("Safe Render On", content)
+		self.assertIn("frappe.exceptions.ValidationError: Illegal template", content)
+
+		content = get_response_content('/_test/_test_safe_render_off')
+		self.assertIn("Safe Render Off", content)
+		self.assertIn("test.__test", content)
+		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
 
 
 def set_home_page_hook(key, value):

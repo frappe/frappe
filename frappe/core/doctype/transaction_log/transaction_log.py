@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2021, Frappe Technologies and contributors
+# License: MIT. See LICENSE
+
+import hashlib
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import DocType
 from frappe.utils import cint, now_datetime
-import hashlib
+
 
 class TransactionLog(Document):
 	def before_insert(self):
@@ -14,10 +16,9 @@ class TransactionLog(Document):
 		self.row_index = index
 		self.timestamp = now_datetime()
 		if index != 1:
-			prev_hash = frappe.db.sql(
-				"SELECT `chaining_hash` FROM `tabTransaction Log` WHERE `row_index` = '{0}'".format(index - 1))
+			prev_hash = frappe.get_all("Transaction Log", filters={"row_index":str(index-1)}, pluck="chaining_hash", limit=1)
 			if prev_hash:
-				self.previous_hash = prev_hash[0][0]
+				self.previous_hash = prev_hash[0]
 			else:
 				self.previous_hash = "Indexing broken"
 		else:
@@ -29,26 +30,27 @@ class TransactionLog(Document):
 	def hash_line(self):
 		sha = hashlib.sha256()
 		sha.update(
-			frappe.safe_encode(str(self.row_index)) + \
-			frappe.safe_encode(str(self.timestamp)) + \
-			frappe.safe_encode(str(self.data))
+			frappe.safe_encode(str(self.row_index))
+			+ frappe.safe_encode(str(self.timestamp))
+			+ frappe.safe_encode(str(self.data))
 		)
 		return sha.hexdigest()
 
 	def hash_chain(self):
 		sha = hashlib.sha256()
-		sha.update(
-			frappe.safe_encode(str(self.transaction_hash)) + \
-			frappe.safe_encode(str(self.previous_hash))
-		)
+		sha.update(frappe.safe_encode(str(self.transaction_hash)) + frappe.safe_encode(str(self.previous_hash)))
 		return sha.hexdigest()
 
 
 def get_current_index():
-	current = frappe.db.sql("""SELECT `current`
-		FROM `tabSeries`
-		WHERE `name` = 'TRANSACTLOG'
-		FOR UPDATE""")
+	series = DocType("Series")
+	current = (
+		frappe.qb.from_(series)
+		.where(series.name == "TRANSACTLOG")
+		.for_update()
+		.select("current")
+	).run()
+
 	if current and current[0][0] is not None:
 		current = current[0][0]
 

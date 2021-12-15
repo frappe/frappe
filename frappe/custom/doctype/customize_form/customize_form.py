@@ -72,7 +72,7 @@ class CustomizeForm(Document):
 				new_d[prop] = d.get(prop)
 			self.append("fields", new_d)
 
-		for fieldname in ('links', 'actions'):
+		for fieldname in ('links', 'actions', 'states'):
 			for d in meta.get(fieldname):
 				self.append(fieldname, d)
 
@@ -193,6 +193,16 @@ class CustomizeForm(Document):
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
+		elif prop == "length":
+			old_value_length = cint(meta_df[0].get(prop))
+			new_value_length = cint(df.get(prop))
+
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': meta_df[0].get(prop)})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
+
 		elif prop == "allow_on_submit" and df.get(prop):
 			if not frappe.db.get_value("DocField",
 				{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):
@@ -248,7 +258,8 @@ class CustomizeForm(Document):
 		'''
 		for doctype, fieldname, field_map in (
 				('DocType Link', 'links', doctype_link_properties),
-				('DocType Action', 'actions', doctype_action_properties)
+				('DocType Action', 'actions', doctype_action_properties),
+				('DocType State', 'states', doctype_state_properties),
 			):
 			has_custom = False
 			items = []
@@ -557,6 +568,11 @@ doctype_action_properties = {
 	'action': 'Small Text',
 	'group': 'Data',
 	'hidden': 'Check'
+}
+
+doctype_state_properties = {
+	'title': 'Data',
+	'color': 'Select'
 }
 
 

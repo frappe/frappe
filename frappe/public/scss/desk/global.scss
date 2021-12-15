@@ -1,5 +1,4 @@
 html {
-	height: 100%;
 	background-color: var(--bg-color);
 }
 
@@ -122,6 +121,12 @@ pre {
 
 .hidden-lg {
 	@include media-breakpoint-up(md) {
+		display: none !important;
+	}
+}
+
+.hidden-xl {
+	@include media-breakpoint-up(lg) {
 		display: none !important;
 	}
 }
@@ -554,6 +559,44 @@ details > summary:focus {
 
 .popover-title {
 	display: none;
+}
+
+.highlight {
+	transition: 0.5s ease background-color;
+	box-shadow: var(--highlight-shadow) !important;
+}
+
+.dropdown-menu.small {
+	font-size: var(--text-sm);
+	min-width: 140px;
+	.dropdown-item {
+		padding: var(--padding-xs);
+	}
+}
+
+.diffview {
+	font-family: monospace;
+	white-space: pre;
+	word-wrap: break-word;
+	color: var(--text-color);
+}
+
+
+.diffview .insert {
+	background-color: var(--green-100);
+}
+
+.diffview .delete {
+	background-color: var(--red-100);
+}
+
+[data-theme="dark"] {
+	.diffview .insert {
+		background-color: var(--green-800);
+	}
+	.diffview .delete {
+		background-color: var(--red-800);
+	}
 }
 
 // REDESIGN TODO: Handling of broken images?

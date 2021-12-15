@@ -3,32 +3,22 @@
 {%- block title -%}{{_("Not Found")}}{%- endblock -%}
 
 {% block page_content %}
-<style>
-.hero-and-content {
-	background-color: #f5f7fa;
-}
-header, footer {
-	display: none;
-}
-html, body {
-	background-color: #f5f7fa;
-}
-{% include "templates/styles/card_style.css" %}
-</style>
+
 <script>
 	window.is_404 = true;
 </script>
-<div class='page-card'>
-	<div class='page-card-head'>
-		<span class='indicator gray'>{{_("Page Missing or Moved")}}</span>
+
+<div class="error-page">
+	<img class="img-404" src="/assets/frappe/images/ui-states/404.png" />
+	<div>
+		<h2 class="mb-1 mt-4">
+			{{ _("There's nothing here") }}
+		</h2>
+		<div class="text-muted error-text">
+			{{ _("The page you are looking for have gone missing.") }}
+		</div>
+		<div class="mt-6 back-to-home"><a href='/' class='btn btn-primary'>{{ _("Back to Home") }}</a></div>
 	</div>
-	<p>{{_("The page you are looking for is missing. This could be because it is moved or there is a typo in the link.")}}</p>
-	<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
 </div>
-<p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Error Code: {0}").format('404') }}</p>
-<style>
-.hero-and-content {
-	background-color: #f5f7fa;
-}
-</style>
+
 {% endblock %}
