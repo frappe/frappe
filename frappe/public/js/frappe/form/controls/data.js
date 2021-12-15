@@ -133,20 +133,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				}
 			});
 		});
-<<<<<<< HEAD
-
-		this.$input.on("blur", () => {
-			setTimeout(() => {
-				this.$scan_btn.toggle(false);
-			}, 500);
-		});
 	},
 	bind_change_event: function() {
-=======
-	}
-
-	bind_change_event() {
->>>>>>> 62a1f6586d (fix(ux): always show scan barcode button)
 		const change_handler = e => {
 			if (this.change) this.change(e);
 			else {
