@@ -8,7 +8,7 @@
 		<a class="button-links {% if loop.index == 1 %} ml-2 {% endif %}" {% if get_profile_url %} href="{{ get_profile_url(member.username) }}" {% endif %}>
 			{{ member.full_name }}
 		</a>
-		<div class="ml-3 frappe-timestamp" data-timestamp="{{ reply.creation }}"> {{ frappe.utils.pretty_date(reply.creation) }} </div>
+		<div class="ml-3 frappe-timestamp" data-timestamp="{{ reply.creation }}"> {{ frappe.utils.format_datetime(reply.creation, "dd-mm-yyyy HH:mm") }} </div>
 	</div>
 	<div class="reply-text">{{ frappe.utils.md_to_html(reply.reply) }}</div>
 </div>
