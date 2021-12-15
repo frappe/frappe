@@ -179,5 +179,5 @@ def get_items(parentfield):
 	return top_items
 
 @frappe.whitelist(allow_guest=True)
-def get_account_deletion_sla():
-	return frappe.db.get_single_value("Website Settings", "account_deletion_sla")
+def get_auto_account_deletion():
+	return frappe.db.get_single_value("Website Settings", "auto_account_deletion")

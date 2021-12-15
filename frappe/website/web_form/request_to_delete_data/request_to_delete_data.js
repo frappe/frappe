@@ -1,7 +1,7 @@
 frappe.ready(function() {
 	frappe.web_form.after_load = () => {
 		frappe.call({
-			method: "frappe.website.doctype.website_settings.website_settings.get_account_deletion_sla",
+			method: "frappe.website.doctype.website_settings.website_settings.get_auto_account_deletion",
 			callback: (data) => {
 				if (data.message) {
 					const intro_wrapper = $('#introduction .ql-editor.read-mode');
