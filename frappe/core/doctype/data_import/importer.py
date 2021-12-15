@@ -1015,6 +1015,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	]
 
 	for doctype, table_df in doctypes:
+		translated_table_label = _(table_df.label) if table_df else None
+
 		# name field
 		name_df = frappe._dict(
 			{
@@ -1036,7 +1038,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 			name_headers = (
 				"{0}.name".format(table_df.fieldname), # fieldname
 				"ID ({0})".format(table_df.label), # label
-				"{0} ({1})".format(_("ID"), _(table_df.label)), # translated label
+				"{0} ({1})".format(_("ID"), translated_table_label), # translated label
 			)
 
 			name_df.is_child_table_field = True
@@ -1044,14 +1046,6 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 		for header in name_headers:
 			out[header] = name_df
-
-		# other fields
-		table_fields = parent_meta.get(
-			"fields", {"fieldtype": ["in", table_fieldtypes]}
-		)
-
-		for table_field in table_fields:
-			table_field.translated_label = _(table_field.label)
 
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
 		for df in fields:
@@ -1086,29 +1080,24 @@ def build_fields_dict_for_column_matching(parent_doctype):
 				# Label (Table Field Label)
 				# table_field.fieldname
 
+				# create a new df object to avoid mutation problems
+				if isinstance(df, dict):
+					new_df = frappe._dict(df.copy())
+				else:
+					new_df = df.as_dict()
 
-				for table_field in table_fields:
-					if table_field.options != parent:
-						continue
+				new_df.is_child_table_field = True
+				new_df.child_table_df = table_df
 
-					# create a new df object to avoid mutation problems
-					if isinstance(df, dict):
-						new_df = frappe._dict(df.copy())
-					else:
-						new_df = df.as_dict()
-
-					new_df.is_child_table_field = True
-					new_df.child_table_df = table_field
-
-					for header in (
-						# fieldname
-						"{0}.{1}".format(table_field.fieldname, df.fieldname),
-						# label
-						"{0} ({1})".format(label, table_field.label),
-						# translated label
-						"{0} ({1})".format(translated_label, table_field.translated_label),
-					):
-						out[header] = new_df
+				for header in (
+					# fieldname
+					"{0}.{1}".format(table_df.fieldname, df.fieldname),
+					# label
+					"{0} ({1})".format(label, table_df.label),
+					# translated label
+					"{0} ({1})".format(translated_label, translated_table_label),
+				):
+					out[header] = new_df
 
 	# if autoname is based on field
 	# add an entry for "ID (Autoname Field)"
