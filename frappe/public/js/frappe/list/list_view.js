@@ -1682,7 +1682,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							this.clear_checked_items();
 							this.refresh();
 						}
-					)
+					);
 				},
 				standard: true,
 			};
@@ -1700,7 +1700,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							this.clear_checked_items();
 							this.refresh();
 						}
-					)
+					);
 				},
 				standard: true,
 			};
@@ -1718,7 +1718,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							this.clear_checked_items();
 							this.refresh();
 						}
-					)
+					);
 				},
 				standard: true,
 			};
@@ -1773,7 +1773,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 										this.clear_checked_items();
 										this.refresh();
 									}
-								)
+								);
 							});
 					}
 				},
@@ -1799,7 +1799,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 										this.clear_checked_items();
 										this.refresh();
 									}
-								)
+								);
 							}
 						);
 					}
