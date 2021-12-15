@@ -357,7 +357,7 @@ class DataExporter:
 		self.append_field_column(frappe._dict({
 			"fieldname": "name" if dt else self.name_field,
 			"parent": dt or "",
-			"label": "ID",
+			"label": _("ID"),
 			"fieldtype": "Data",
 			"reqd": 1,
 		}), True)
