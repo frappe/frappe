@@ -616,11 +616,14 @@ export default class Grid {
 		});
 	}
 
-	add_new_row(idx, callback, show, copy_doc, go_to_last_page = false) {
+	add_new_row(idx, callback, show, copy_doc, go_to_last_page = false, go_to_first_page = false) {
 		if (this.is_editable()) {
 			if (go_to_last_page) {
 				this.grid_pagination.go_to_last_page_to_add_row();
+			} else if (go_to_first_page) {
+				this.grid_pagination.go_to_page(1);
 			}
+
 			if (this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
 				if (copy_doc) {
@@ -684,7 +687,7 @@ export default class Grid {
 	}
 
 	set_focus_on_row(idx) {
-		if (!idx) {
+		if (!idx && idx !== 0) {
 			idx = this.grid_rows.length - 1;
 		}
 
