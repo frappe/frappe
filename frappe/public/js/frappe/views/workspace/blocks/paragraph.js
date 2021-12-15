@@ -27,7 +27,10 @@ export default class Paragraph extends Block {
 	}
 
 	onKeyUp(e) {
-		$(this.wrapper.parentElement).find('.block-list-container.dropdown-list').hide();
+		if (!this.wrapper) return;
+		let $block_list_container = $(this.wrapper.parentElement).find('.block-list-container.dropdown-list');
+
+		$block_list_container.addClass('hidden');
 		if (e.code !== 'Backspace' && e.code !== 'Delete') {
 			return;
 		}
@@ -35,7 +38,7 @@ export default class Paragraph extends Block {
 		const {textContent} = this._element;
 
 		if (textContent === '') {
-			$(this.wrapper.parentElement).find('.block-list-container.dropdown-list').show();
+			$block_list_container .removeClass('hidden');
 			this._element.innerHTML = '';
 		}
 	}
@@ -53,11 +56,11 @@ export default class Paragraph extends Block {
 				if (textContent !== '') return;
 				let $wrapper = $(this.wrapper).hasClass('ce-paragraph') ? $(this.wrapper.parentElement) : $(this.wrapper);
 				let $block_list_container = $wrapper.find('.block-list-container.dropdown-list');
-				$block_list_container.show();
+				$block_list_container.removeClass('hidden');
 			});
 			div.addEventListener('blur', () => {
 				let $block_list_container = $(this.wrapper.parentElement).find('.block-list-container.dropdown-list');
-				setTimeout(() => $block_list_container.hide(), 1);
+				setTimeout(() => $block_list_container.addClass('hidden'), 1);
 			});
 			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
@@ -93,7 +96,7 @@ export default class Paragraph extends Block {
 			$block_list_container.append($block_list_item);
 		});
 
-		$block_list_container.hide();
+		$block_list_container.addClass('hidden');
 		$block_list_container.appendTo(this.wrapper);
 	}
 
