@@ -89,7 +89,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (this.parse) value = this.parse(value, label);
 		if (label) {
 			this.label = label;
-			frappe.add_link_title(this.doctype, value, label);
+			frappe.add_link_title(this.df.options, value, label);
 		}
 
 		return this.validate_and_set_in_model(value, e);
