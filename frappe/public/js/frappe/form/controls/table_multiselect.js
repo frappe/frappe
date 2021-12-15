@@ -49,7 +49,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 	setup_buttons() {
 		this.$input_area.find('.link-btn').remove();
 	}
-	parse(value) {
+	parse(value, label) {
 		const link_field = this.get_link_field();
 
 		if (value) {
@@ -128,8 +128,8 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 	}
 	get_pill_html(value) {
 		const link_field = this.get_link_field();
-		const encoded_value = encodeURIComponent(value.name);
-		const pill_name = frappe.get_link_title(link_field.options, value[link_field.fieldname]) || value.name;
+		const encoded_value = encodeURIComponent(value);
+		const pill_name = frappe.get_link_title(link_field.options, value) || value;
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
 				<span class="btn-link-to-form">${__(pill_name)}</span>
