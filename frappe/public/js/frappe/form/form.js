@@ -146,19 +146,19 @@ frappe.ui.form.Form = class FrappeForm {
 			},
 			{
 				'shortcut': 'Ctrl+up',
-				'description': __('Add a row at above the current row')
+				'description': __('Add a row above the current row')
 			},
 			{
 				'shortcut': 'Ctrl+down',
-				'description': __('Add a row at below the current row')
+				'description': __('Add a row below the current row')
 			},
 			{
 				'shortcut': 'Ctrl+shift+up',
-				'description': __('Add a row on top of the table')
+				'description': __('Add a row at the top')
 			},
 			{
 				'shortcut': 'Ctrl+shift+down',
-				'description': __('Add a row on bottom of the table')
+				'description': __('Add a row at the bottom')
 			},
 			{
 				'shortcut': 'shift+alt+down',
