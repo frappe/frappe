@@ -394,6 +394,7 @@ frappe.views.BaseList = class BaseList {
 				this.page_length = $this.data().value;
 			} else if ($this.is(".btn-more")) {
 				this.start = this.start + this.page_length;
+				this.page_length = 20;
 			}
 			this.refresh();
 		});
