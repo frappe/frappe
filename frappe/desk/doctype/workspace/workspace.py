@@ -133,21 +133,20 @@ def save_page(title, icon, parent, public, sb_public_items, sb_private_items, ne
 		doc.icon = icon
 		doc.content = blocks
 		doc.parent_page = parent
-
-		if public:
-			doc.label = title
-			doc.public = 1
-		else:
+		doc.label = title
+		doc.for_user = ''
+		doc.public = 1
+		if not public:
 			doc.label = title + "-" + frappe.session.user
 			doc.for_user = frappe.session.user
+			doc.public = 0
 		doc.save(ignore_permissions=True)
 	else:
-		if public:
-			filters = {
-				'public': public,
-				'label': title
-			}
-		else:
+		filters = {
+			'public': public,
+			'label': title
+		}
+		if not public:
 			filters = {
 				'for_user': frappe.session.user,
 				'label': title + "-" + frappe.session.user
@@ -202,6 +201,31 @@ def update_page(name, title, icon, parent, public):
 				child_doc.save(ignore_permissions=True)
 
 	return {"name": doc.title, "public": doc.public, "label": doc.label}
+
+@frappe.whitelist()
+def duplicate_page(page_name, new_page):
+	if not loads(new_page):
+		return
+
+	new_page = loads(new_page)
+
+	if new_page.get("is_public") and not is_workspace_manager():
+		return
+
+	old_doc = frappe.get_doc("Workspace", page_name)
+	doc = frappe.copy_doc(old_doc)
+	doc.title = new_page.get('title')
+	doc.icon = new_page.get('icon')
+	doc.parent_page = new_page.get('parent') or ''
+	doc.public = new_page.get('is_public')
+	doc.for_user = ''
+	doc.label = doc.title
+	if not doc.public:
+		doc.for_user = doc.for_user or frappe.session.user
+		doc.label = '{0}-{1}'.format(doc.title, doc.for_user)
+	doc.name = doc.label
+	doc.sequence_id += 0.1
+	doc.insert(ignore_permissions=True)
 
 @frappe.whitelist()
 def delete_page(page):
