@@ -140,39 +140,39 @@ frappe.ui.form.Form = class FrappeForm {
 		let grid_shortcut_keys = [
 			{
 				'shortcut': 'Up Arrow',
-				'description': 'Move cursor to above row'
+				'description': __('Move cursor to above row')
 			},
 			{
 				'shortcut': 'Down Arrow',
-				'description': 'Move cursor to below row'
+				'description': __('Move cursor to below row')
 			},
 			{
 				'shortcut': 'tab',
-				'description': 'Move cursor to next column'
+				'description': __('Move cursor to next column')
 			},
 			{
 				'shortcut': 'shift+tab',
-				'description': 'Move cursor to previous column'
+				'description': __('Move cursor to previous column')
 			},
 			{
 				'shortcut': 'Ctrl+up',
-				'description': 'Add a row at above the current row'
+				'description': __('Add a row at above the current row')
 			},
 			{
 				'shortcut': 'Ctrl+down',
-				'description': 'Add a row at below the current row'
+				'description': __('Add a row at below the current row')
 			},
 			{
 				'shortcut': 'Ctrl+shift+up',
-				'description': 'Add a row on top of the table'
+				'description': __('Add a row on top of the table')
 			},
 			{
 				'shortcut': 'Ctrl+shift+down',
-				'description': 'Add a row on bottom of the table'
+				'description': __('Add a row on bottom of the table')
 			},
 			{
 				'shortcut': 'shift+alt+down',
-				'description': 'To duplcate current row'
+				'description': __('To duplcate current row')
 			}
 		];
 
