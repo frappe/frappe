@@ -771,6 +771,7 @@ frappe.views.Workspace = class Workspace {
 
 				new_page.title = values.title;
 				new_page.name = values.title;
+				new_page.icon = values.icon;
 				new_page.public = values.is_public;
 				new_page.parent_page = values.parent || '';
 				new_page.for_user = '';
