@@ -46,7 +46,7 @@
 			if (!window.frappe) window.frappe = {};
 
 			frappe.boot = {{ boot }};
-			frappe._messages = Object.assign({}, frappe.boot["__messages"]);
+			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
 		</script>
 
