@@ -796,7 +796,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 		frappe.qb.update(UserEmail) \
 			.set(UserEmail.awaiting_password, (awaiting_password or 0)) \
 			.set(UserEmail.enable_outgoing, enable_outgoing) \
-			.where(UserEmail.email_account == email_account).run(debug=1)
+			.where(UserEmail.email_account == email_account).run()
 
 	else:
 		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
