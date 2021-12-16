@@ -196,12 +196,9 @@ def get_python_builtins():
 		'all': all,
 		'any': any,
 		'bool': bool,
-		'delattr': delattr,
 		'dict': dict,
 		'enumerate': enumerate,
 		'filter': filter,
-		'getattr': getattr,
-		'hasattr': hasattr,
 		'isinstance': isinstance,
 		'issubclass': issubclass,
 		'list': list,
@@ -210,11 +207,9 @@ def get_python_builtins():
 		'min': min,
 		'range': range,
 		'set': set,
-		'setattr': setattr,
 		'sorted': sorted,
 		'sum': sum,
 		'tuple': tuple,
-		'type': type,
 	}
 
 def get_hooks(hook=None, default=None, app_name=None):
