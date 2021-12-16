@@ -41,7 +41,13 @@ def run_server_script_for_doc_event(doc, event):
 	if scripts:
 		# run all scripts for this doctype + event
 		for script_name in scripts:
-			frappe.get_doc('Server Script', script_name).execute_doc(doc)
+			try:
+				frappe.get_doc('Server Script', script_name).execute_doc(doc)
+			except Exception:
+				message = frappe._('Error executing Server Script {0}. Open Browser Console to see traceback.').format(
+					frappe.utils.get_link_to_form('Server Script', script_name)
+				)
+				frappe.throw(title=frappe._('Server Script Error'), msg=message)
 
 def get_server_script_map():
 	# fetch cached server script methods
