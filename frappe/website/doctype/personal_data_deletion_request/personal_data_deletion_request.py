@@ -336,6 +336,21 @@ class PersonalDataDeletionRequest(Document):
 			{"name": self.full_name, "email": self.email},
 		)
 
+		def auto_delete(self):
+			auto_account_deletion = frappe.db.get_single_value("Website Settings", "auto_account_deletion")
+			if auto_account_deletion < 1:
+				return
+
+			requests = frappe.get_all("Personal Data Deletion Request",
+				filters = {
+					"status": "Pending Approval"
+				},
+				fields = ["name", "creation", "status"])
+
+			for request in requests:
+				if date_diff(get_datetime(), request.creation) >= auto_account_deletion:
+					self.trigger_data_deletion()
+
 
 def remove_unverified_record():
 	frappe.db.sql(
@@ -344,21 +359,6 @@ def remove_unverified_record():
 		WHERE `status` = 'Pending Verification'
 		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
 	)
-
-def auto_delete():
-	auto_account_deletion = frappe.db.get_single_value("Website Settings", "auto_account_deletion")
-	if auto_account_deletion < 1:
-		return
-
-	requests = frappe.get_all("Personal Data Deletion Request",
-		filters = {
-			"status": "Pending Approval"
-		},
-		fields = ["name", "creation", "status"])
-
-	for request in requests:
-		if date_diff(get_datetime(), request.creation) >= auto_account_deletion:
-			self.trigger_data_deletion()
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):
