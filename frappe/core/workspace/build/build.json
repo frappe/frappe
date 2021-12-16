@@ -1,6 +1,6 @@
 {
  "cards_label": "Elements",
- "category": "Modules",
+ "category": "Administration",
  "charts": [],
  "creation": "2021-01-02 10:51:16.579957",
  "developer_mode_only": 0,
@@ -16,6 +16,7 @@
  "label": "Build",
  "links": [
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Modules",
@@ -25,6 +26,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Module Def",
@@ -35,6 +37,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Workspace",
@@ -45,6 +48,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Module Onboarding",
@@ -55,6 +59,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Block Module",
@@ -65,6 +70,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Models",
@@ -74,6 +80,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "DocType",
@@ -84,6 +91,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Workflow",
@@ -94,6 +102,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Views",
@@ -103,6 +112,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Report",
@@ -113,6 +123,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Print Format",
@@ -123,6 +134,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Workspace",
@@ -133,6 +145,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Dashboard",
@@ -143,6 +156,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Scripting",
@@ -152,6 +166,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Server Script",
@@ -162,6 +177,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Client Script",
@@ -172,6 +188,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Scheduled Job Type",
@@ -182,7 +199,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-08-29 17:20:12.551474",
+ "modified": "2021-12-01 10:09:12.664410",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",

@@ -381,6 +381,7 @@
    "label": "Permission Rules"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "permissions",
    "fieldtype": "Table",
    "label": "Permissions",
@@ -628,7 +629,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-03-22 12:26:41.031135",
+ "modified": "2021-12-07 09:36:51.153685",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

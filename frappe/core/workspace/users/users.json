@@ -3,7 +3,7 @@
  "charts": [],
  "creation": "2020-03-02 15:12:16.754449",
  "developer_mode_only": 0,
- "disable_user_customization": 0,
+ "disable_user_customization": 1,
  "docstatus": 0,
  "doctype": "Workspace",
  "extends_another_page": 0,
@@ -15,6 +15,7 @@
  "label": "Users",
  "links": [
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Users",
@@ -22,6 +23,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -32,6 +34,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -42,6 +45,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -52,6 +56,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Logs",
@@ -59,6 +64,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -69,6 +75,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -79,6 +86,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Permissions",
@@ -86,6 +94,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -96,6 +105,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -106,6 +116,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -116,6 +127,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "User",
    "hidden": 0,
    "is_query_report": 1,
@@ -126,6 +138,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "DocShare",
    "hidden": 0,
    "is_query_report": 0,
@@ -136,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-08-29 17:20:10.515830",
+ "modified": "2021-12-01 12:51:24.071584",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",
