@@ -13,33 +13,48 @@ frappe.provide("frappe.datetime");
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
-		if(frappe.sys_defaults.time_zone) {
-			var date_obj = moment.tz(date, frappe.sys_defaults.time_zone).local();
+		// Converts the datetime string to system time zone first since the database only stores datetime in
+		// system time zone and then convert the string to user time zone(from User doctype).
+		let date_obj = null;
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+			date_obj = moment.tz(date, frappe.boot.time_zone.system)
+				.clone()
+				.tz(frappe.boot.time_zone.user);
 		} else {
-			var date_obj = moment(date);
+			date_obj = moment(date);
 		}
 
-		return (format===false) ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		return format === false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
 	},
 
 	convert_to_system_tz: function(date, format) {
 		// format defaults to true
-
-		if(frappe.sys_defaults.time_zone) {
-			var date_obj = moment(date).tz(frappe.sys_defaults.time_zone);
+		// Converts the datetime string to user time zone (from User doctype) first since this fn is called in datetime which accepts datetime
+		// in user time zone then convert the string to user time zone.
+		// This is done so that only one timezone is present in database and we do not end up storing local timezone since it changes
+		// as per the location of user.
+		let date_obj = null;
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+			date_obj = moment.tz(date, frappe.boot.time_zone.user)
+				.clone()
+				.tz(frappe.boot.time_zone.system);
 		} else {
-			var date_obj = moment(date);
+			date_obj = moment(date);
 		}
 
-		return (format===false) ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		return format===false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+	},
+
+	is_system_time_zone: function() {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+			return moment().tz(frappe.boot.time_zone.system).utcOffset() === moment().tz(frappe.boot.time_zone.user).utcOffset();
+		}
+
+		return true;
 	},
 
 	is_timezone_same: function() {
-		if(frappe.sys_defaults.time_zone) {
-			return moment().tz(frappe.sys_defaults.time_zone).utcOffset() === moment().utcOffset();
-		} else {
-			return true;
-		}
+		return frappe.datetime.is_system_time_zone();
 	},
 
 	str_to_obj: function(d) {
@@ -98,11 +113,11 @@ $.extend(frappe.datetime, {
 		return moment().endOf("quarter").format();
 	},
 
-	year_start: function(){
+	year_start: function() {
 		return moment().startOf("year").format();
 	},
 
-	year_end: function(){
+	year_end: function() {
 		return moment().endOf("year").format();
 	},
 
@@ -119,19 +134,25 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_user: function(val, only_time = false) {
-		if(!val) return "";
+		if (!val) return "";
+		const user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+		const user_time_fmt = frappe.datetime.get_user_time_fmt();
+		let user_format = user_time_fmt;
 
-		var user_time_fmt = frappe.datetime.get_user_time_fmt();
-		if(only_time) {
-			return moment(val, frappe.defaultTimeFormat)
-				.format(user_time_fmt);
-		}
-
-		var user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-		if(typeof val !== "string" || val.indexOf(" ")===-1) {
-			return moment(val).format(user_date_fmt);
+		if (only_time) {
+			let date_obj = moment(val, frappe.defaultTimeFormat);
+			return date_obj.format(user_format);
 		} else {
-			return moment(val, "YYYY-MM-DD HH:mm:ss").format(user_date_fmt + " " + user_time_fmt);
+			let date_obj = moment.tz(val, frappe.boot.time_zone.system);
+			if (typeof val !== "string" || val.indexOf(" ") === -1) {
+				user_format = user_date_fmt;
+			} else {
+				user_format = user_date_fmt + " " + user_time_fmt;
+			}
+			return date_obj
+				.clone()
+				.tz(frappe.boot.time_zone.user)
+				.format(user_format);
 		}
 	},
 
@@ -186,23 +207,22 @@ $.extend(frappe.datetime, {
 	},
 
 	_date: function(format, as_obj = false) {
-		const time_zone = frappe.sys_defaults && frappe.sys_defaults.time_zone;
-		let date;
-		if (time_zone) {
-			date = moment.tz(time_zone);
-		} else {
-			date = moment();
-		}
-		if (as_obj) {
-			return frappe.datetime.moment_to_date_obj(date);
-		} else {
-			return date.format(format);
-		}
+		/**
+		 * Whenever we are getting now_date/datetime, always make sure dates are fetched using user time zone.
+		 * This is to make sure that time is as per user time zone set in User doctype, If a user had to change the timezone,
+		 * we will end up having multiple timezone by not honouring timezone in User doctype.
+		 * This will make sure that at any point we know which timezone the user if following and not have random timezone
+		 * when the timezone of the local machine changes.
+		 */
+		let time_zone = frappe.boot.time_zone ? frappe.boot.time_zone.user || frappe.boot.time_zone.system : frappe.sys_defaults.time_zone;
+		let date = moment.tz(time_zone);
+
+		return as_obj ? frappe.datetime.moment_to_date_obj(date) : date.format(format);
 	},
 
-	moment_to_date_obj: function(moment) {
+	moment_to_date_obj: function(moment_obj) {
 		const date_obj = new Date();
-		const date_array = moment.toArray();
+		const date_array = moment_obj.toArray();
 		date_obj.setFullYear(date_array[0]);
 		date_obj.setMonth(date_array[1]);
 		date_obj.setDate(date_array[2]);
