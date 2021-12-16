@@ -34,16 +34,6 @@ export default class Widget {
 				this.action_area
 			);
 
-		// options.allow_delete &&
-			// frappe.utils.add_custom_button(
-			// 	frappe.utils.icon('delete-active', 'xs'),
-			// 	() => this.delete(),
-			// 	"",
-			// 	`${__('Delete')}`,
-			// 	null,
-			// 	this.action_area
-			// );
-
 		if (options.allow_hiding) {
 			if (this.hidden) {
 				this.widget.removeClass("hidden");

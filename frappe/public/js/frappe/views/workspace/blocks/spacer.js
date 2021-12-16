@@ -18,7 +18,7 @@ export default class Spacer extends Block {
 
 	render() {
 		this.wrapper = document.createElement('div');
-		this.wrapper.classList.add('widget','spacer');
+		this.wrapper.classList.add('widget', 'spacer');
 		if (!this.readOnly) {
 			let $spacer = $(`
 				<div class="widget-head">

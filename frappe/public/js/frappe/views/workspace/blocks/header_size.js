@@ -49,7 +49,7 @@ export default class HeaderSize {
 	}
 
 	change_size(range, size) {
-		if (!range) return
+		if (!range) return;
 
 		let span = document.createElement('SPAN');
 
@@ -68,11 +68,11 @@ export default class HeaderSize {
 		let selected_text = span.innerText;
 		let parent_tag = parent_node.parentElement;
 
-		if(diff !== selected_text) {
+		if (diff !== selected_text) {
 			parent_tag = parent_node;
 		}
 
-		if(parent_tag.innerText == selected_text) {
+		if (parent_tag.innerText == selected_text) {
 			if (!parent_tag.classList.contains('ce-header') && !parent_tag.classList.contains('ce-paragraph')) {
 				this.remove_parent_tag(range, parent_node.parentElement, span);
 				parent_tag.remove();

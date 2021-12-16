@@ -545,7 +545,7 @@ frappe.views.Workspace = class Workspace {
 		new_updated_item.parent_page = new_item.parent || "";
 		new_updated_item.public = new_item.is_public;
 
-		if (is_title_changed || is_section_changed){
+		if (is_title_changed || is_section_changed) {
 			if (new_item.is_public) {
 				new_updated_item.name = new_item.title;
 				new_updated_item.label = new_item.title;
@@ -652,7 +652,7 @@ frappe.views.Workspace = class Workspace {
 				icon: frappe.utils.icon('setting-gear', 'sm'),
 				action: () => frappe.set_route(`workspace/${item.name}`)
 			},
-		]
+		];
 
 		let $button = $(`
 			<div class="btn btn-secondary btn-xs setting-btn dropdown-btn" title="${__('Setting')}">
@@ -675,7 +675,7 @@ frappe.views.Workspace = class Workspace {
 			});
 
 			return html;
-		}
+		};
 
 		$button.filter('.dropdown-btn').click(event => {
 			event.stopPropagation();
@@ -688,13 +688,13 @@ frappe.views.Workspace = class Workspace {
 		$(document).click(event => {
 			event.stopPropagation();
 			$('.dropdown-list:not(.hidden)').addClass('hidden');
-		})
+		});
 
 		sidebar_control.append($button);
 
 		this.dropdown_list.forEach((i) => {
 			$button.filter('.dropdown-list').append(dropdown_item(i.label, i.title, i.icon, i.action));
-		})
+		});
 	}
 
 	delete_page(page) {
@@ -937,7 +937,7 @@ frappe.views.Workspace = class Workspace {
 		let child_pages = old_page && from_pages.filter(p => p.parent_page == old_page.title);
 		if (child_pages) {
 			child_pages.every(child_page => {
-				if(to_pages && to_pages.find(p => p.title == child_page.title)) {
+				if (to_pages && to_pages.find(p => p.title == child_page.title)) {
 					message = `One of the child page with name <b>${child_page.title}</b> already exist in <b>${section}</b> Section. Please update the name of the child page first before moving`;
 					cur_dialog.hide();
 					return false;

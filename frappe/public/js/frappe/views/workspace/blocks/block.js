@@ -68,13 +68,13 @@ export default class Block {
 		// disable text selection on mousedown (on drag)
 		function un_focus() {
 			if (document.selection) {
-				document.selection.empty()
+				document.selection.empty();
 			} else {
-				window.getSelection().removeAllRanges()
+				window.getSelection().removeAllRanges();
 			}
 		} 
 
-		function stop_drag(e) {
+		function stop_drag() {
 			$(this).css("cursor", "default");
 			$('.widget').css("pointer-events", "auto");
 			$(me.wrapper.parentElement).find('.resizer').css("border-right", "0px solid transparent");
@@ -173,7 +173,7 @@ export default class Block {
 				icon: frappe.utils.icon('down-arrow', 'sm'),
 				action: () => this.move_block('down')
 			}
-		]
+		];
 
 		let $widget_control = $(this.wrapper).find('.widget-control');
 
@@ -201,22 +201,22 @@ export default class Block {
 			});
 
 			return html;
-		}
+		};
 
 		$button.click(event => {
 			event.stopPropagation();
 			$button.find('.dropdown-list').toggleClass('hidden');
 		});
 
-		$(document).click(event => {
+		$(document).click(() => {
 			$button.find('.dropdown-list').addClass('hidden');
-		})
+		});
 
 		$widget_control.prepend($button);
 
 		this.dropdown_list.forEach((item) => {
 			$button.find('.dropdown-list').append(dropdown_item(item.label, item.title, item.icon, item.action));
-		})
+		});
 	}
 
 	add_tune_button() {

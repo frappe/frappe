@@ -69,7 +69,7 @@ export default class Header extends Block {
 	save() {
 		this.wrapper = this._element;
 		return {
-			text: this.wrapper.innerHTML.replace(/&nbsp;/gi,''),
+			text: this.wrapper.innerHTML.replace(/&nbsp;/gi, ''),
 			col: this.get_col()
 		};
 	}
