@@ -133,7 +133,7 @@ class SubmittableDocumentTree:
 		"""Returns list of submittable doctypes.
 		"""
 		if not self._submittable_doctypes:
-			self._submittable_doctypes = frappe.db.get_list('DocType', {'is_submittable': 1}, pluck='name')
+			self._submittable_doctypes = frappe.db.get_all('DocType', {'is_submittable': 1}, pluck='name')
 		return self._submittable_doctypes
 
 
