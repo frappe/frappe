@@ -392,12 +392,14 @@ frappe.setup.slides_settings = [
 		fields: [
 			{
 				fieldname: "country", label: __("Your Country"), reqd: 1,
-				fieldtype: "Select"
+				fieldtype: "Autocomplete",
+				placeholder: __('Select Country')
 			},
 			{ fieldtype: "Section Break" },
 			{
 				fieldname: "timezone", label: __("Time Zone"), reqd: 1,
-				fieldtype: "Select"
+				fieldtype: "Select",
+
 			},
 			{ fieldtype: "Column Break" },
 			{
@@ -529,16 +531,19 @@ frappe.setup.utils = {
 
 		var country_field = slide.get_field('country');
 
-		slide.get_input("country").empty()
-			.add_options([""].concat(Object.keys(data.country_info).sort()));
 
-		slide.get_input("currency").empty()
-			.add_options(frappe.utils.unique([""].concat(
-				$.map(data.country_info, opts => opts.currency)
-			)).sort());
+		country_field.set_data(Object.keys(data.country_info).sort());
+
+		slide.get_input("currency")
+			.empty()
+			.add_options(
+				frappe.utils.unique(
+					["Select Currency"].concat($.map(data.country_info, opts => opts.currency).sort())
+				)
+			);
 
 		slide.get_input("timezone").empty()
-			.add_options([""].concat(data.all_timezones));
+			.add_options(["Select Timezone"].concat(data.all_timezones));
 
 		// set values if present
 		if (frappe.wizard.values.country) {
@@ -590,7 +595,7 @@ frappe.setup.utils = {
 			$timezone.empty();
 
 			// add country specific timezones first
-			if (country) {
+			if (country !== "Select Country" ) {
 				var timezone_list = data.country_info[country].timezones || [];
 				$timezone.add_options(timezone_list.sort());
 				slide.get_field("currency").set_input(data.country_info[country].currency);
@@ -598,7 +603,7 @@ frappe.setup.utils = {
 			}
 
 			// add all timezones at the end, so that user has the option to change it to any timezone
-			$timezone.add_options([""].concat(data.all_timezones));
+			$timezone.add_options(["Select Timezone"].concat(data.all_timezones));
 
 			slide.get_field("timezone").set_input($timezone.val());
 
@@ -609,7 +614,7 @@ frappe.setup.utils = {
 
 		slide.get_input("currency").on("change", function () {
 			var currency = slide.get_input("currency").val();
-			if (!currency) return;
+			if (currency === "Select Currency") return;
 			frappe.model.with_doc("Currency", currency, function () {
 				frappe.provide("locals.:Currency." + currency);
 				var currency_doc = frappe.model.get_doc("Currency", currency);
