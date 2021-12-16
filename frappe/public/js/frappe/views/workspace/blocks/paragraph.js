@@ -58,10 +58,6 @@ export default class Paragraph extends Block {
 				let $block_list_container = $wrapper.find('.block-list-container.dropdown-list');
 				$block_list_container.removeClass('hidden');
 			});
-			div.addEventListener('blur', () => {
-				let $block_list_container = $(this.wrapper.parentElement).find('.block-list-container.dropdown-list');
-				setTimeout(() => $block_list_container.addClass('hidden'), 1);
-			});
 			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
 		}
