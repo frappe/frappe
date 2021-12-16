@@ -338,7 +338,7 @@ class BaseDocument(object):
 			return self.meta.get_field(fieldname).options
 		except AttributeError:
 			if self.doctype == 'DocType':
-				return dict(links='DocType Link', actions='DocType Action').get(fieldname)
+				return dict(links='DocType Link', actions='DocType Action', states='DocType State').get(fieldname)
 			raise
 
 	def get_parentfield_of_doctype(self, doctype):

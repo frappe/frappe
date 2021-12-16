@@ -75,6 +75,7 @@ class DocType(Document):
 		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_website()
+		self.ensure_minimum_max_attachment_limit()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -246,6 +247,22 @@ class DocType(Document):
 			# clear website cache
 			clear_cache()
 
+	def ensure_minimum_max_attachment_limit(self):
+		"""Ensure that max_attachments is *at least* bigger than number of attach fields."""
+		from frappe.model import attachment_fieldtypes
+
+
+		if not self.max_attachments:
+			return
+
+		total_attach_fields = len([d for d in self.fields if d.fieldtype in attachment_fieldtypes])
+		if total_attach_fields > self.max_attachments:
+			self.max_attachments = total_attach_fields
+			field_label = frappe.bold(self.meta.get_field("max_attachments").label)
+			frappe.msgprint(_("Number of attachment fields are more than {}, limit updated to {}.")
+					.format(field_label, total_attach_fields),
+					title=_("Insufficient attachment limit"), alert=True)
+
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
@@ -253,7 +270,7 @@ class DocType(Document):
 		parent_list = frappe.db.get_all('DocField', 'parent',
 			dict(fieldtype=['in', frappe.model.table_fields], options=self.name))
 		for p in parent_list:
-			frappe.db.sql('UPDATE `tabDocType` SET modified=%s WHERE `name`=%s', (now(), p.parent))
+			frappe.db.update("DocType", p.parent, {}, for_update=False)
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""

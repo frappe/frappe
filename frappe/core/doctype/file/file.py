@@ -569,6 +569,24 @@ class File(Document):
 		frappe.local.rollback_observers.append(self)
 		self.save()
 
+	@staticmethod
+	def zip_files(files):
+		from six import string_types
+
+		zip_file = io.BytesIO()
+		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
+		for _file in files:
+			if isinstance(_file, string_types):
+				_file = frappe.get_doc("File", _file)
+			if not isinstance(_file, File):
+				continue
+			if _file.is_folder:
+				continue
+			zf.writestr(_file.file_name, _file.get_content())
+		zf.close()
+		return zip_file.getvalue()
+
+
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
@@ -611,6 +629,16 @@ def move_file(file_list, new_parent, old_parent):
 	# recalculate sizes
 	frappe.get_doc("File", old_parent).save()
 	frappe.get_doc("File", new_parent).save()
+
+
+@frappe.whitelist()
+def zip_files(files):
+	files = frappe.parse_json(files)
+	zipped_files = File.zip_files(files)
+	frappe.response["filename"] = "files.zip"
+	frappe.response["filecontent"] = zipped_files
+	frappe.response["type"] = "download"
+
 
 def setup_folder_path(filename, new_parent):
 	file = frappe.get_doc("File", filename)
@@ -940,20 +968,14 @@ def get_files_by_search_text(text):
 
 def update_existing_file_docs(doc):
 	# Update is private and file url of all file docs that point to the same file
-	frappe.db.sql("""
-		UPDATE `tabFile`
-		SET
-			file_url = %(file_url)s,
-			is_private = %(is_private)s
-		WHERE
-			content_hash = %(content_hash)s
-			and name != %(file_name)s
-	""", dict(
-		file_url=doc.file_url,
-		is_private=doc.is_private,
-		content_hash=doc.content_hash,
-		file_name=doc.name
-	))
+	file_doctype = frappe.qb.DocType("File")
+	(
+		frappe.qb.update(file_doctype)
+		.set(file_doctype.file_url, doc.file_url)
+		.set(file_doctype.is_private, doc.is_private)
+		.where(file_doctype.content_hash == doc.content_hash)
+		.where(file_doctype.name != doc.name)
+	).run()
 
 def attach_files_to_document(doc, event):
 	""" Runs on on_update hook of all documents.

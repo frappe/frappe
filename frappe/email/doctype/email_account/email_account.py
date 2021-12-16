@@ -578,10 +578,9 @@ class EmailAccount(Document):
 		EmailFlagQ = frappe.qb.DocType("Email Flag Queue")
 		flags = (
 			frappe.qb.from_(EmailFlagQ)
-			.select(EmailFlagQ.name, EmailFlagQ.communication, EmailFlagQ.uid, EmailFlagQ.action, EmailFlagQ.imap_folder)
+			.select(EmailFlagQ.name, EmailFlagQ.communication, EmailFlagQ.uid, EmailFlagQ.action)
 			.where(EmailFlagQ.is_completed == 0)
 			.where(EmailFlagQ.email_account == frappe.db.escape(self.name))
-			.where(EmailFlagQ.folder_name == frappe.db.escape(folder_name))
 		).run(as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }

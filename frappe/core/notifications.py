@@ -2,6 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
+
 
 def get_notification_config():
 	return {
@@ -39,28 +42,40 @@ def get_todays_events(as_list=False):
 
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
-	return frappe.db.sql("""select count(*) from `tabComment`
-		where
-			comment_type='Like'
-			and modified >= (NOW() - INTERVAL '1' YEAR)
-			and owner is not null and owner!=%(user)s
-			and reference_owner=%(user)s
-			and seen=0
-			""", {"user": frappe.session.user})[0][0]
+
+	comment_doctype = DocType("Comment")
+	return frappe.db.count(comment_doctype,
+		filters=(
+			(comment_doctype.comment_type == "Like")
+			& (comment_doctype.modified >= Now() - Interval(years=1))
+			& (comment_doctype.owner.notnull())
+			& (comment_doctype.owner != frappe.session.user)
+			& (comment_doctype.reference_owner == frappe.session.user)
+			& (comment_doctype.seen == 0)
+		)
+	)
+
 
 def get_unread_emails():
-	"returns unread emails for a user"
+	"returns count of unread emails for a user"
 
-	return frappe.db.sql("""\
-		SELECT count(*)
-		FROM `tabCommunication`
-		WHERE communication_type='Communication'
-		AND communication_medium='Email'
-		AND sent_or_received='Received'
-		AND email_status not in ('Spam', 'Trash')
-		AND email_account in (
-			SELECT distinct email_account from `tabUser Email` WHERE parent=%(user)s
+	communication_doctype = DocType("Communication")
+	user_doctype = DocType("User")
+	distinct_email_accounts = (
+		frappe.qb.from_(user_doctype)
+		.select(user_doctype.email_account)
+		.where(user_doctype.parent == frappe.session.user)
+		.distinct()
+	)
+
+	return frappe.db.count(communication_doctype,
+		filters=(
+			(communication_doctype.communication_type == "Communication")
+			& (communication_doctype.communication_medium == "Email")
+			& (communication_doctype.sent_or_received == "Received")
+			& (communication_doctype.email_status.notin(["spam", "Trash"]))
+			& (communication_doctype.email_account.isin(distinct_email_accounts))
+			& (communication_doctype.modified >= Now() - Interval(years=1))
+			& (communication_doctype.seen == 0)
 		)
-		AND modified >= (NOW() - INTERVAL '1' YEAR)
-		AND seen=0
-		""", {"user": frappe.session.user})[0][0]
+	)
