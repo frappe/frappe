@@ -1074,7 +1074,6 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					out[header] = df
 
 			else:
-				# in case there are multiple table fields with the same doctype
 				# for child doctypes keys will be
 				# Label (Table Field Label)
 				# table_field.fieldname
