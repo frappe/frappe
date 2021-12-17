@@ -43,7 +43,7 @@ class MariaDBDatabase(Database):
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
 			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
-			'Rating':		('int', '1'),
+			'Rating':		('decimal', '3,2'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
 			'Attach':		('text', ''),
 			'Attach Image':	('text', ''),
