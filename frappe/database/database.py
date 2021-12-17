@@ -348,6 +348,7 @@ class Database(object):
 		for_update=False,
 		run=True,
 		pluck=False,
+		distinct=False,
 	):
 		"""Returns a document property or list of properties.
 
@@ -375,7 +376,7 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck)
+			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct)
 
 		if not run:
 			return ret

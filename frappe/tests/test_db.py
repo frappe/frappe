@@ -55,12 +55,16 @@ class TestDB(unittest.TestCase):
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
 		self.assertEqual(
 			frappe.db.get_values(
-				"User", filters={"name": "Administrator"}, distinct=True, fieldname="*"
+				"User",
+				filters={"name": "Administrator"},
+				distinct=True,
+				fieldname="email",
 			),
 			frappe.qb.from_(user_doctype)
 			.where(user_doctype.name == "Administrator")
-			.select("*")
-			.distinct(),
+			.select("email")
+			.distinct()
+			.run(),
 		)
 
 		self.assertIn(
