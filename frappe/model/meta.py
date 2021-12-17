@@ -120,6 +120,11 @@ class Meta(Document):
 					or (not no_nulls and value is None)):
 					out[key] = value
 
+			# set empty lists for unset table fields
+			for table_field in DOCTYPE_TABLE_FIELDS:
+				if not out.get(table_field.fieldname):
+					out[table_field.fieldname] = []
+
 			return out
 
 		return serialize(self)
