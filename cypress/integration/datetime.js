@@ -92,15 +92,15 @@ context('Control Date, Time and DateTime', () => {
 				date_format: 'dd.mm.yyyy',
 				time_format: 'HH:mm:ss',
 				value: '   02.12.2019 11:00:12',
-				doc_value: '2019-12-02 11:00:12',
-				input_value: '02.12.2019 11:00:12'
+				doc_value: '2019-12-02 00:30:12', // system timezone (America/New_York)
+				input_value: '02.12.2019 11:00:12' // admin timezone (Asia/Kolkata)
 			},
 			{
 				date_format: 'mm-dd-yyyy',
 				time_format: 'HH:mm',
 				value: '   12-02-2019 11:00:00',
-				doc_value: '2019-12-02 11:00:00',
-				input_value: '12-02-2019 11:00'
+				doc_value: '2019-12-02 00:30:00', // system timezone (America/New_York)
+				input_value: '12-02-2019 11:00' // admin timezone (Asia/Kolkata)
 			}
 		];
 		datetime_formats.forEach(d => {

@@ -37,7 +37,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Applied On",
-   "options": "\nDocField\nDocType\nDocType Link\nDocType Action",
+   "options": "\nDocField\nDocType\nDocType Link\nDocType Action\nDocType State",
    "read_only_depends_on": "eval:!doc.__islocal",
    "reqd": 1
   },
@@ -109,7 +109,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-04 12:46:17.860769",
+ "modified": "2021-12-14 14:15:41.929071",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Property Setter",
@@ -141,5 +141,6 @@
  "search_fields": "doc_type,property",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

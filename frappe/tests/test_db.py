@@ -24,15 +24,48 @@ class TestDB(unittest.TestCase):
 		self.assertNotEqual(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
-		self.assertEqual(frappe.db.get_value("User", {}, ["Max(name)"]), frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0])
-		self.assertEqual(frappe.db.get_value("User", {}, "Min(name)"), frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0])
-		self.assertIn("for update", frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower())
-
+		self.assertEqual(
+			frappe.db.get_value("User", {}, ["Max(name)"], order_by=None),
+			frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0],
+		)
+		self.assertEqual(
+			frappe.db.get_value("User", {}, "Min(name)", order_by=None),
+			frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0],
+		)
+		self.assertIn(
+			"for update",
+			frappe.db.get_value(
+				"User", Field("name") == "Administrator", for_update=True, run=False
+			).lower(),
+		)
+		user_doctype = frappe.qb.DocType("User")
+		self.assertEqual(
+			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email).run(),
+			frappe.db.get_values(
+				user_doctype,
+				filters={},
+				fieldname=[user_doctype.name, user_doctype.email],
+				order_by=None,
+			),
+		)
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
+		self.assertEqual(
+			frappe.db.get_values(
+				"User",
+				filters={"name": "Administrator"},
+				distinct=True,
+				fieldname="email",
+			),
+			frappe.qb.from_(user_doctype)
+			.where(user_doctype.name == "Administrator")
+			.select("email")
+			.distinct()
+			.run(),
+		)
 
 		self.assertIn(
 			"concat_ws",

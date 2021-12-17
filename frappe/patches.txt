@@ -2,6 +2,7 @@ frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
 execute:frappe.reload_doc('core', 'doctype', 'doctype_action', force=True) #2019-09-23
 execute:frappe.reload_doc('core', 'doctype', 'doctype_link', force=True) #2020-10-17
+execute:frappe.reload_doc('core', 'doctype', 'doctype_state', force=True) #2021-12-15
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2018-02-20
 frappe.patches.v11_0.drop_column_apply_user_permissions
@@ -183,5 +184,9 @@ frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.rename_cancelled_documents
+frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
+frappe.patches.v14_0.remove_db_aggregation
+frappe.patches.v14_0.save_ratings_in_fraction
+frappe.patches.v14_0.update_color_names_in_kanban_board_column
