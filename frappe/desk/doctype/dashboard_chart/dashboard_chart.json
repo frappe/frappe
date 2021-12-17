@@ -17,6 +17,7 @@
   "y_axis",
   "source",
   "document_type",
+  "parent_document_type",
   "based_on",
   "value_based_on",
   "group_by_type",
@@ -268,10 +269,18 @@
    "fieldname": "use_report_chart",
    "fieldtype": "Check",
    "label": "Use Report Chart"
+  },
+  {
+   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
+   "description": "The document type selected is a child table, so the parent document type is required.",
+   "fieldname": "parent_document_type",
+   "fieldtype": "Link",
+   "label": "Parent Document Type",
+   "options": "DocType"
   }
  ],
  "links": [],
- "modified": "2020-07-23 11:10:33.509497",
+ "modified": "2021-11-09 17:18:11.456145",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

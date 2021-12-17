@@ -15,8 +15,8 @@ from email import policy
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None, cc=[], bcc=[], email_account=None, expose_recipients=None,
-	inline_images=[], header=None):
+	content=None, reply_to=None, cc=None, bcc=None, email_account=None, expose_recipients=None,
+	inline_images=None, header=None):
 	""" Prepare an email with the following format:
 		- multipart/mixed
 			- multipart/alternative
@@ -27,6 +27,14 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 				- attachment
 	"""
 	content = content or msg
+
+	if cc is None:
+		cc = []
+	if bcc is None:
+		bcc = []
+	if inline_images is None:
+		inline_images = []
+
 	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, bcc=bcc, email_account=email_account, expose_recipients=expose_recipients)
 
 	if not content.strip().startswith("<"):

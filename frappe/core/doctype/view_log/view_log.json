@@ -125,7 +125,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2019-09-05 14:22:27.664645",
+ "modified": "2021-10-25 14:22:27.664645",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "View Log",
@@ -158,7 +158,6 @@
  "show_name_in_global_search": 0,
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1,
  "track_seen": 0,
  "track_views": 0
 }
