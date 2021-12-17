@@ -81,7 +81,7 @@
 				<div class="page-card-body">
 					<form class="form-signin form-login" role="form">
 						{{ email_login_body() }}
-					</form>	
+					</form>
 					<div class="social-logins text-center">
 						<p class="text-muted login-divider">{{ _("or") }}</p>
 						<div class="social-login-buttons">
@@ -131,6 +131,10 @@
 		<div class="login-content page-card">
 			{{ logo_section() }}
 			{%- if not disable_signup -%}
+
+			{% if custom_signup_form %}
+			{{ custom_signup_form }}
+			{% else %}
 			<form class="form-signin form-signup hide" role="form">
 				<div class="page-card-body">
 					<div class="form-group">
@@ -153,6 +157,8 @@
 					</p>
 				</div>
 			</form>
+			{% endif %}
+
 			{%- else -%}
 			<div class='page-card-head mb-2'>
 				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
