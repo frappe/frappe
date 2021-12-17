@@ -63,10 +63,10 @@ frappe.search.utils = {
 				}
 			} else if (['List', 'Tree', 'Workspaces', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
 				var type = match[1][0], label = type;
-				if(type==='Workspaces') label = 'Workspace';
-				else if(type==='query-report' || match[1][2] ==='Report') label = 'Report';
-				out.label = __(`{0} ${label}`, [__(match[1][1]).bold()])
-				out.value = __(`{0} ${label}`, [__(match[1][1])])
+				if (type==='Workspaces') label = 'Workspace';
+				else if (type==='query-report' || match[1][2] ==='Report') label = 'Report';
+				out.label = __(`{0} ${label}`, [__(match[1][1]).bold()]);
+				out.value = __(`{0} ${label}`, [__(match[1][1])]);
 
 			} else if (match[0]) {
 				out.label = match[0].bold();
