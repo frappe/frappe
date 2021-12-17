@@ -340,7 +340,7 @@ class PersonalDataDeletionRequest(Document):
 	def put_on_hold(self):
 		self.db_set("status", "On Hold")
 
-def auto_delete():
+def process_data_deletion_request():
 	auto_account_deletion = frappe.db.get_single_value("Website Settings", "auto_account_deletion")
 	if auto_account_deletion < 1:
 		return
@@ -354,6 +354,7 @@ def auto_delete():
 	for request in requests:
 		doc = frappe.get_doc("Personal Data Deletion Request", request)
 		if date_diff(get_datetime(), doc.creation) >= auto_account_deletion:
+			doc.add_comment("Comment", _("The User record for this request has been auto-deleted due to inactivity."))
 			doc.trigger_data_deletion()
 
 def remove_unverified_record():
