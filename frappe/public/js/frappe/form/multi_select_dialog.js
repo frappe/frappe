@@ -506,7 +506,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			txt: this.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: filter_fields,
-			page_length: this.page_length + 1,
+			page_length: this.page_length + 5,
 			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
 		};
@@ -520,9 +520,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			args: args,
 		});
 		const more = res.values.length && res.values.length > this.page_length ? 1 : 0;
-		if (more) {
-			res.values.pop();
-		}
 
 		return [res, more];
 	}
@@ -530,6 +527,10 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	async get_results() {
 		const args = this.get_args_for_search();
 		const [res, more] = await this.perform_search(args);
+
+		if (more) {
+			res.values = res.values.splice(0, this.page_length);
+		}
 
 		this.results = [];
 		if (res.values.length) {
@@ -584,7 +585,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				filters: filters,
 				fields: ['name', 'parent', ...this.child_columns],
 				parent: this.doctype,
-				limit_page_length: this.child_page_length + 1,
+				limit_page_length: this.child_page_length + 5,
 				order_by: 'parent'
 			}
 		});

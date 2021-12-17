@@ -57,8 +57,9 @@ context('MultiSelectDialog', () => {
 
 		cy.get_open_dialog()
 			.get(`.frappe-control[data-fieldname="allow_child_item_selection"]`)
+			.find('input[data-fieldname="allow_child_item_selection"]')
 			.should('exist')
-			.click();
+			.click({force: true});
 
 		cy.get_open_dialog()
 			.get(`.frappe-control[data-fieldname="child_selection_area"]`)
@@ -84,7 +85,7 @@ context('MultiSelectDialog', () => {
 			expect($rows).to.have.length(20);
 		});
 
-		cy.get('@more-btn').find('button').click();
+		cy.get('@more-btn').find('button').click({force: true});
 		cy.wait(1000);
 
 		cy.get_open_dialog().get('.list-item-container').should(($rows) => {
