@@ -13,6 +13,8 @@
   "standard",
   "custom_format",
   "disabled",
+  "condition_for_default",
+  "priority",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -253,7 +255,22 @@
    "fieldtype": "Select",
    "label": "Page Number",
    "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
-  }
+  },
+  {
+    "fieldname": "condition_for_default",
+    "fieldtype": "Code",
+    "options": "PythonExpression",
+    "label": "Condition for Default",
+    "description": "Context variable: doc and frappe.session.user, function get_roles can be used"
+   },
+   {
+    "fieldname": "priority",
+    "fieldtype": "Int",
+    "insert_after": "condition_for_default",
+    "default": 100,
+    "label": "Priority",
+    "description":"Smaller number higher priority"
+   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
