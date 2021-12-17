@@ -192,6 +192,8 @@ frappe.ui.form.PrintView = class {
 		this.frm = frm;
 		this.set_title();
 		this.set_breadcrumbs();
+        this.page && this.page.sidebar && this.page.sidebar.empty();
+        this.setup_sidebar();		
 		this.setup_customize_dialog();
 
 		// print format builder beta
@@ -749,11 +751,22 @@ frappe.ui.form.PrintView = class {
 			&& this.print_sel.val(print_format_select_val);
 	}
 
-	selected_format() {
-		return (
-			this.print_sel.val() || this.frm.meta.default_print_format || 'Standard'
-		);
-	}
+    selected_format() {
+        let current_print_format = this.print_sel.val();
+        if (current_print_format){
+            return current_print_format
+        }
+        else {
+            frappe.call({
+                method: 'frappe.utils.print_format.get_print_format',
+                args: {doc: this.frm.doc}
+            }).then((r) =>{
+                //console.log('r.message=', r.message);
+                this.print_sel.val(r.message || this.frm.meta.default_print_format || 'Standard');
+                this.refresh_print_format();
+            })
+        }
+    }
 
 	is_raw_printing(format) {
 		return this.get_print_format(format).raw_printing === 1;
