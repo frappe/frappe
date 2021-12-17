@@ -66,7 +66,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link')
+	special_doctypes = ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link', 'DocType State')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -119,6 +119,11 @@ class Meta(Document):
 				if (isinstance(value, (str, int, float, datetime, list, tuple))
 					or (not no_nulls and value is None)):
 					out[key] = value
+
+			# set empty lists for unset table fields
+			for table_field in DOCTYPE_TABLE_FIELDS:
+				if not out.get(table_field.fieldname):
+					out[table_field.fieldname] = []
 
 			return out
 
@@ -184,7 +189,8 @@ class Meta(Document):
 			"fields": "DocField",
 			"permissions": "DocPerm",
 			"actions": "DocType Action",
-			'links': 'DocType Link'
+			"links": "DocType Link",
+			"states": "DocType State",
 		}.get(fieldname)
 
 	def get_field(self, fieldname):
@@ -343,8 +349,14 @@ class Meta(Document):
 						d.set(ps.property, cast(ps.property_type, ps.value))
 						break
 
+			elif ps.doctype_or_field=='DocType State':
+				for d in self.states:
+					if d.name == ps.row_name:
+						d.set(ps.property, cast(ps.property_type, ps.value))
+						break
+
 	def add_custom_links_and_actions(self):
-		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions')):
+		for doctype, fieldname in (('DocType Link', 'links'), ('DocType Action', 'actions'), ('DocType State', 'states')):
 			# ignore_ddl because the `custom` column was added later via a patch
 			for d in frappe.get_all(doctype, fields='*', filters=dict(parent=self.name, custom=1), ignore_ddl=True):
 				self.append(fieldname, d)
@@ -571,6 +583,7 @@ DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
 	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
 	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
+	frappe._dict({"fieldname": "states", "options": "DocType State"}),
 ]
 
 #######

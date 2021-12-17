@@ -7,18 +7,13 @@ context('List View', () => {
 		});
 	});
 
-	it('Keep checkbox checked after Bulk Update', () => {
+	it('Keep checkbox checked after Refresh', () => {
 		cy.go_to_list('ToDo');
 		cy.get('.list-row-container .list-row-checkbox').click({ multiple: true, force: true });
-		cy.get('.actions-btn-group button').contains('Actions').should('be.visible').click();
-		cy.get('.dropdown-menu li:visible .dropdown-item .menu-item-label[data-label="Edit"]').click();
-
-		cy.get('.modal-body .form-control[data-fieldname="field"]').first().select('Priority').wait(200);
-
-		cy.get('.modal-footer .standard-actions .btn-primary').click();
-		cy.wait(500);
-
-		cy.get('.actions-btn-group button').contains('Actions').should('be.visible').click();
+		cy.get('.actions-btn-group button').contains('Actions').should('be.visible');
+		cy.intercept('/api/method/frappe.desk.reportview.get').as('list-refresh');
+		cy.get('button[data-original-title="Refresh"]').click();
+		cy.wait('@list-refresh');
 		cy.get('.list-row-container .list-row-checkbox:checked').should('be.visible');
 	});
 

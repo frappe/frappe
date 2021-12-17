@@ -14,8 +14,10 @@ coverage:
     patch:
       default: false
       server:
-        target: auto
-        threshold: 85%
+        target: 85%
+        threshold: 0%
+        only_pulls: true
+        if_ci_failed: ignore
         flags:
           - server
 

@@ -30,6 +30,9 @@ def strip_exif_data(content, content_type):
 
 	original_image = Image.open(io.BytesIO(content))
 	output = io.BytesIO()
+	# ref: https://stackoverflow.com/a/48248432
+	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):
+		original_image = original_image.convert("RGB")
 
 	new_image = Image.new(original_image.mode, original_image.size)
 	new_image.putdata(list(original_image.getdata()))

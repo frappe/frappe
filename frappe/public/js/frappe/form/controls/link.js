@@ -470,10 +470,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			docname: value,
 			fields: columns_to_fetch,
 		}).then((response) => {
+			if (!response || !response.name) return null;
 			if (!docname || !columns_to_fetch.length) return response.name;
 
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
-				if(value) field_value = response[source_field];
+				if (value) field_value = response[source_field];
 				
 				frappe.model.set_value(
 					df.parent,
