@@ -128,3 +128,18 @@ def print_by_server(doctype, name, printer_setting, print_format=None, doc=None,
 		frappe.throw(_("Printing failed"))
 	finally:
 		return
+
+@frappe.whitelist()
+def get_print_format(doc):
+    if isinstance(doc, str):
+        doc = json.loads(doc)
+    doc = frappe.get_doc(doc)
+    print_format_list =  frappe.get_all('Print Format',
+                                        filters = {'doc_type': doc.doctype,
+                                                   'disabled': 0},
+                                        fields = ['name', 'condition_for_default'],
+                                        order_by = 'priority', as_list = 1)
+
+    for (print_format, condition) in print_format_list:
+        if condition and frappe.safe_eval(condition, None, dict(doc=doc, get_roles = frappe.get_roles)):
+            return print_format
