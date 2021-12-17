@@ -335,8 +335,21 @@ class Database(object):
 		"""Returns `get_value` with fieldname='*'"""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by="KEEP_DEFAULT_ORDERING", cache=False, for_update=False, run=True, pluck=False):
+	def get_value(
+		self,
+		doctype,
+		filters=None,
+		fieldname="name",
+		ignore=None,
+		as_dict=False,
+		debug=False,
+		order_by="KEEP_DEFAULT_ORDERING",
+		cache=False,
+		for_update=False,
+		run=True,
+		pluck=False,
+		distinct=False,
+	):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -363,7 +376,7 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck)
+			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct)
 
 		if not run:
 			return ret
@@ -372,7 +385,7 @@ class Database(object):
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
 		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
-		run=True, pluck=False):
+		run=True, pluck=False, distinct=False):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -381,7 +394,8 @@ class Database(object):
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
-		:param order_by: Column to order by
+		:param order_by: Column to order by,
+		:param distinct: Get Distinct results.
 
 		Example:
 
@@ -396,8 +410,20 @@ class Database(object):
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
+		if distinct:
+			order_by = None
+
 		if isinstance(filters, list):
-			out = self._get_value_for_many_names(doctype, filters, fieldname, order_by, debug=debug, run=run, pluck=pluck)
+			out = self._get_value_for_many_names(
+				doctype,
+				filters,
+				fieldname,
+				order_by,
+				debug=debug,
+				run=run,
+				pluck=pluck,
+				distinct=distinct,
+			)
 
 		else:
 			fields = fieldname
@@ -422,6 +448,7 @@ class Database(object):
 						for_update=for_update,
 						run=run,
 						pluck=pluck,
+						distinct=distinct
 					)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -429,12 +456,12 @@ class Database(object):
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
-						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run)
+						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run, distinct=distinct)
 
 					else:
 						raise
 			else:
-				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck)
+				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck, distinct=distinct)
 
 		if cache and isinstance(filters, str):
 			self.value_cache[(doctype, filters, fieldname)] = out
@@ -451,6 +478,7 @@ class Database(object):
 		update=None,
 		run=True,
 		pluck=False,
+		distinct=False,
 	):
 		"""Get values from `tabSingles` (Single DocTypes) (internal).
 
@@ -477,16 +505,13 @@ class Database(object):
 				return [map(values.get, fields)]
 
 		else:
-			r = self.sql(
-				"""select field, value
-				from `tabSingles` where field in (%s) and doctype=%s"""
-				% (", ".join(["%s"] * len(fields)), "%s"),
-				tuple(fields) + (doctype,),
-				as_dict=False,
-				debug=debug,
-				run=run,
-				pluck=pluck,
-			)
+			r = self.query.get_sql(
+				"Singles",
+				filters={"field": ("in", tuple(fields)), "doctype": doctype},
+				fields=["field", "value"],
+				distinct=distinct,
+			).run(pluck=pluck, debug=debug, as_dict=False)
+
 			if not run:
 				return r
 			if as_dict:
@@ -577,6 +602,7 @@ class Database(object):
 		for_update=False,
 		run=True,
 		pluck=False,
+		distinct=False,
 	):
 		field_objects = []
 
@@ -594,6 +620,7 @@ class Database(object):
 			for_update=for_update,
 			field_objects=field_objects,
 			fields=fields,
+			distinct=distinct,
 		)
 		if (
 			fields == "*"
@@ -607,7 +634,7 @@ class Database(object):
 		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
@@ -619,6 +646,7 @@ class Database(object):
 				debug=debug,
 				as_list=1,
 				run=run,
+				distinct=distinct,
 			)
 		else:
 			return {}
