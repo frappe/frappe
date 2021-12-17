@@ -335,8 +335,20 @@ class Database(object):
 		"""Returns `get_value` with fieldname='*'"""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by="KEEP_DEFAULT_ORDERING", cache=False, for_update=False, run=True, pluck=False):
+	def get_value(
+		self,
+		doctype,
+		filters=None,
+		fieldname="name",
+		ignore=None,
+		as_dict=False,
+		debug=False,
+		order_by="KEEP_DEFAULT_ORDERING",
+		cache=False,
+		for_update=False,
+		run=True,
+		pluck=False,
+	):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
