@@ -13,9 +13,9 @@ context('MultiSelectDialog', () => {
 					"is_primary": 0
 				}
 			]
-		}
+		};
 		const promises = Array.from({length: 25})
-			.map(_ => cy.insert_doc('Contact', contact_template, true));
+			.map(() => cy.insert_doc('Contact', contact_template, true));
 		Promise.all(promises);
 	});
 
@@ -89,7 +89,7 @@ context('MultiSelectDialog', () => {
 
 		cy.get_open_dialog().get('.list-item-container').should(($rows) => {
 			if ($rows.length <= 20) {
-				throw new Error("More button doesn't work")
+				throw new Error("More button doesn't work");
 			}
 		});
 
