@@ -467,7 +467,7 @@ frappe.provide("frappe.views");
 				'kanban_column', {
 					title: column.title,
 					doctype: store.getState().doctype,
-					indicator: column.indicator
+					indicator: frappe.scrub(column.indicator, '-')
 				})).appendTo(wrapper);
 			self.$kanban_cards = self.$kanban_column.find('.kanban-cards');
 		}
@@ -581,13 +581,12 @@ frappe.provide("frappe.views");
 					}
 				});
 			get_column_indicators(function(indicators) {
-				var html = '<li class="button-group">';
-				html += indicators.reduce(function(prev, curr) {
-					return prev + '<div \
-						data-action="indicator" data-indicator="'+curr+'"\
-						class="btn btn-default btn-xs indicator-pill ' + curr + '"></div>';
-				}, "");
-				html += '</li>';
+				let html = `<li class="button-group">${
+					indicators.map(indicator => {
+						let classname = frappe.scrub(indicator, '-');
+						return `<div data-action="indicator" data-indicator="${indicator}" class="btn btn-default btn-xs indicator-pill ${classname}"></div>`
+					}).join('')
+				}</li>`;
 				self.$kanban_column.find(".column-options .dropdown-menu")
 					.append(html);
 			});

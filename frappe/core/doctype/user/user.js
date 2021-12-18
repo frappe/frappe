@@ -50,7 +50,7 @@ frappe.ui.form.on('User', {
 						let d = frm.add_child("block_modules");
 						d.module = v.module;
 					});
-					frm.module_editor && frm.module_editor.refresh();
+					frm.module_editor && frm.module_editor.show();
 				}
 			});
 		}
@@ -77,7 +77,12 @@ frappe.ui.form.on('User', {
 		}
 	},
 	refresh: function(frm) {
-		var doc = frm.doc;
+		let doc = frm.doc;
+
+		if (frm.is_new()) {
+			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
+		}
+
 		if (in_list(['System User', 'Website User'], frm.doc.user_type)
 			&& !frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
 			frm.reload_doc();
@@ -180,7 +185,7 @@ frappe.ui.form.on('User', {
 				frm.roles_editor.show();
 			}
 
-			frm.module_editor && frm.module_editor.refresh();
+			frm.module_editor && frm.module_editor.show();
 
 			if(frappe.session.user==doc.name) {
 				// update display settings
@@ -267,6 +272,12 @@ frappe.ui.form.on('User', {
 				}
 			}
 		});
+	},
+	on_update: function(frm) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.user !== frm.doc.time_zone) {
+			// Clear cache after saving to refresh the values of boot.
+			frappe.ui.toolbar.clear_cache();
+		}
 	}
 });
 

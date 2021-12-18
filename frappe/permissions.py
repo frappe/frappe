@@ -108,7 +108,7 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	meta = frappe.get_meta(doc.doctype)
 
 	def is_user_owner():
-		return (doc.get("owner") or "").lower() == frappe.session.user.lower()
+		return (doc.get("owner") or "").lower() == user.lower()
 
 	if has_controller_permissions(doc, ptype, user=user) is False:
 		push_perm_check_log('Not allowed via controller permission check')

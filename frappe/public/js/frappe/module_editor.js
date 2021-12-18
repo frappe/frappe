@@ -1,38 +1,54 @@
 frappe.ModuleEditor = class ModuleEditor {
 	constructor(frm, wrapper) {
-		this.wrapper = $('<div class="row module-block-list"></div>').appendTo(wrapper);
 		this.frm = frm;
-		this.make();
-	}
-	make() {
-		var me = this;
-		this.frm.doc.__onload.all_modules.forEach(function(m) {
-			$(repl('<div class="col-sm-6"><div class="checkbox">\
-				<label><input type="checkbox" class="block-module-check" data-module="%(module)s">\
-				%(module)s</label></div></div>', {module: m})).appendTo(me.wrapper);
+		this.wrapper = wrapper;
+		const block_modules = this.frm.doc.block_modules.map(row => row.module);
+		this.multicheck = frappe.ui.form.make_control({
+			parent: wrapper,
+			df: {
+				fieldname: "block_modules",
+				fieldtype: "MultiCheck",
+				select_all: true,
+				columns: 3,
+				get_data: () => {
+					return this.frm.doc.__onload.all_modules.map(module => {
+						return {
+							label: __(module),
+							value: module,
+							checked: !block_modules.includes(module),
+						};
+					});
+				},
+				on_change: () => {
+					this.set_modules_in_table();
+					this.frm.dirty();
+				}
+			},
+			render_input: true
 		});
-		this.bind();
 	}
-	refresh() {
-		var me = this;
-		this.wrapper.find(".block-module-check").prop("checked", true);
-		$.each(this.frm.doc.block_modules, function(i, d) {
-			me.wrapper.find(".block-module-check[data-module='"+ d.module +"']").prop("checked", false);
+
+	show() {
+		const block_modules = this.frm.doc.block_modules.map(row => row.module);
+		const all_modules = this.frm.doc.__onload.all_modules;
+		this.multicheck.selected_options = all_modules.filter(m => !block_modules.includes(m));
+		this.multicheck.refresh_input();
+	}
+
+	set_modules_in_table() {
+		let block_modules = this.frm.doc.block_modules || [];
+		let unchecked_options = this.multicheck.get_unchecked_options();
+
+		block_modules.map(module_doc => {
+			if (!unchecked_options.includes(module_doc.module)) {
+				frappe.model.clear_doc(module_doc.doctype, module_doc.name);
+			}
 		});
-	}
-	bind() {
-		var me = this;
-		this.wrapper.on("change", ".block-module-check", function() {
-			var module = $(this).attr('data-module');
-			if ($(this).prop("checked")) {
-				// remove from block_modules
-				me.frm.doc.block_modules = $.map(me.frm.doc.block_modules || [], function(d) {
-					if (d.module != module) {
-						return d;
-					}
-				});
-			} else {
-				me.frm.add_child("block_modules", {"module": module});
+
+		unchecked_options.map(module => {
+			if (!block_modules.find(d => d.module === module)) {
+				let module_doc = frappe.model.add_child(this.frm.doc, "Block Module", "block_modules");
+				module_doc.module = module;
 			}
 		});
 	}

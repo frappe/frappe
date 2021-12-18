@@ -53,8 +53,6 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		let date_format = sysdefaults && sysdefaults.date_format
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
-		let now_date = new Date();
-
 		this.today_text = __("Today");
 		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
@@ -62,7 +60,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			autoClose: true,
 			todayButton: true,
 			dateFormat: date_format,
-			startDate: now_date,
+			startDate: this.get_start_date(),
 			keyboardNav: false,
 			onSelect: () => {
 				this.$input.trigger('change');
@@ -73,9 +71,15 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 					.text(this.today_text);
 
 				this.update_datepicker_position();
-			}
+			},
+			...(this.get_df_options())
 		};
 	}
+
+	get_start_date() {
+		return new Date(this.get_now_date());
+	}
+
 	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
@@ -112,7 +116,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.datepicker.update('position', position);
 	}
 	get_now_date() {
-		return frappe.datetime.now_date(true);
+		return frappe.datetime.convert_to_system_tz(frappe.datetime.now_date(true));
 	}
 	set_t_for_today() {
 		var me = this;
@@ -149,5 +153,20 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			return '';
 		}
 		return value;
+	}
+	get_df_options() {
+		let options = {};
+		let df_options = this.df.options || '';
+		if (typeof df_options === 'string') {
+			try {
+				options = JSON.parse(df_options);
+			} catch (error) {
+				console.warn(`Invalid JSON in options of "${this.df.fieldname}"`);
+			}
+		}
+		else if (typeof df_options === 'object') {
+			options = df_options;
+		}
+		return options;
 	}
 };

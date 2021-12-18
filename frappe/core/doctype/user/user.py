@@ -7,7 +7,7 @@ import frappe.defaults
 import frappe.permissions
 from frappe.model.document import Document
 from frappe.utils import (cint, flt, has_gravatar, escape_html, format_datetime,
-	now_datetime, get_formatted_email, today)
+	now_datetime, get_formatted_email, today, get_time_zone)
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password, check_password, get_password_reset_limit
 from frappe.desk.notifications import clear_notifications
@@ -74,6 +74,7 @@ class User(Document):
 		self.validate_roles()
 		self.validate_allowed_modules()
 		self.validate_user_image()
+		self.set_time_zone()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -227,11 +228,11 @@ class User(Document):
 	def validate_share(self, docshare):
 		pass
 		# if docshare.user == self.name:
-		# 	if self.user_type=="System User":
-		# 		if docshare.share != 1:
-		# 			frappe.throw(_("Sorry! User should have complete access to their own record."))
-		# 	else:
-		# 		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
+		#	if self.user_type=="System User":
+		#		if docshare.share != 1:
+		#			frappe.throw(_("Sorry! User should have complete access to their own record."))
+		#	else:
+		#		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
 
 	def send_password_notification(self, new_password):
 		try:
@@ -596,6 +597,10 @@ class User(Document):
 
 		return user
 
+	def set_time_zone(self):
+		if not self.time_zone:
+			self.time_zone = get_time_zone()
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz
@@ -808,6 +813,7 @@ def reset_password(user):
 		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
 
 	except frappe.DoesNotExistError:
+		frappe.local.response['http_status_code'] = 400
 		frappe.clear_messages()
 		return 'not found'
 

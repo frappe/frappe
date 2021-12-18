@@ -116,7 +116,7 @@ function get_version_timeline_content(version_doc, frm) {
 						frm.perm);
 
 					if (field_display_status === 'Read' || field_display_status === 'Write') {
-						return frappe.meta.get_label(frm.doctype, p[0]);
+						return __(frappe.meta.get_label(frm.doctype, p[0]));
 					}
 				}
 			});
