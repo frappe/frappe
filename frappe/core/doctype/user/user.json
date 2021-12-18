@@ -9,6 +9,10 @@
  "field_order": [
   "enabled",
   "section_break_3",
+  "user_roles",
+  "role_detail",
+  "role_unit",
+  "column_break_6",
   "email",
   "last_name",
   "company_name",
@@ -81,7 +85,9 @@
   "api_key",
   "generate_keys",
   "column_break_65",
-  "api_secret"
+  "api_secret",
+  "signature_section",
+  "signature"
  ],
  "fields": [
   {
@@ -612,6 +618,38 @@
    "fieldtype": "Link",
    "label": "Company Name",
    "options": "Supplier"
+  },
+  {
+   "fieldname": "signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "signature_section",
+   "fieldtype": "Section Break",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "user_roles",
+   "fieldtype": "Link",
+   "label": "User Roles",
+   "options": "Role Profile",
+   "read_only": 1
+  },
+  {
+   "fieldname": "role_detail",
+   "fieldtype": "Data",
+   "label": "Role Detail"
+  },
+  {
+   "fieldname": "role_unit",
+   "fieldtype": "Data",
+   "label": "Role Unit"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-user",
@@ -685,7 +723,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-11-25 12:17:00.760483",
+ "modified": "2021-12-08 21:01:34.329341",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

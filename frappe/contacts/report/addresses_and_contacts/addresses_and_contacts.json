@@ -1,32 +1,38 @@
 {
- "add_total_row": 0, 
- "apply_user_permissions": 1, 
- "creation": "2017-01-19 12:57:22.881566", 
- "disabled": 0, 
- "docstatus": 0, 
- "doctype": "Report", 
- "idx": 2, 
- "is_standard": "Yes", 
- "modified": "2017-04-10 15:04:12.498920", 
- "modified_by": "Administrator", 
- "module": "Contacts", 
- "name": "Addresses And Contacts", 
- "owner": "Administrator", 
- "ref_doctype": "Address", 
- "report_name": "Addresses And Contacts", 
- "report_type": "Script Report", 
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2017-01-19 12:57:22.881566",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 2,
+ "is_standard": "Yes",
+ "modified": "2021-12-09 09:47:37.632021",
+ "modified_by": "Administrator",
+ "module": "Contacts",
+ "name": "Addresses And Contacts",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Address",
+ "report_name": "Addresses And Contacts",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "Sales User"
-  }, 
+  },
   {
    "role": "Purchase User"
-  }, 
+  },
   {
    "role": "Maintenance User"
-  }, 
+  },
   {
    "role": "Accounts User"
+  },
+  {
+   "role": "Sales Manager"
   }
  ]
 }

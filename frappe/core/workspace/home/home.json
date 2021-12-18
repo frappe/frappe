@@ -1,0 +1,47 @@
+{
+ "category": "Modules",
+ "charts": [],
+ "creation": "2020-01-23 13:46:38.833076",
+ "developer_mode_only": 0,
+ "disable_user_customization": 0,
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "extends_another_page": 0,
+ "hide_custom": 0,
+ "icon": "getting-started",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "label": "Home",
+ "links": [],
+ "modified": "2021-12-08 21:36:46.499196",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Home",
+ "owner": "Administrator",
+ "pin_to_bottom": 0,
+ "pin_to_top": 1,
+ "shortcuts": [
+  {
+   "label": "Item",
+   "link_to": "Item",
+   "type": "DocType"
+  },
+  {
+   "label": "Customer",
+   "link_to": "Customer",
+   "type": "DocType"
+  },
+  {
+   "label": "Supplier",
+   "link_to": "Supplier",
+   "type": "DocType"
+  },
+  {
+   "label": "Sales Invoice",
+   "link_to": "Sales Invoice",
+   "type": "DocType"
+  }
+ ],
+ "shortcuts_label": "    "
+}

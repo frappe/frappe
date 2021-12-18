@@ -3,7 +3,7 @@
  "charts": [],
  "creation": "2020-03-02 14:53:24.980279",
  "developer_mode_only": 0,
- "disable_user_customization": 0,
+ "disable_user_customization": 1,
  "docstatus": 0,
  "doctype": "Workspace",
  "extends_another_page": 0,
@@ -15,6 +15,7 @@
  "label": "Tools",
  "links": [
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Tools",
@@ -22,6 +23,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -32,6 +34,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -42,6 +45,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -52,6 +56,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -62,6 +67,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -72,6 +78,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Email",
@@ -79,6 +86,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -89,6 +97,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -99,6 +108,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Automation",
@@ -106,6 +116,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -116,6 +127,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -126,6 +138,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -136,6 +149,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "is_query_report": 0,
    "label": "Event Streaming",
@@ -143,6 +157,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -153,6 +168,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -163,6 +179,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -173,6 +190,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -183,6 +201,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -193,7 +212,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-08-29 17:20:10.377780",
+ "modified": "2021-12-01 12:51:24.135399",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",
