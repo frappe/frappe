@@ -85,8 +85,9 @@ context('MultiSelectDialog', () => {
 			expect($rows).to.have.length(20);
 		});
 
+		cy.intercept('POST', 'api/method/frappe.client.get_list').as('get-more-records');
 		cy.get('@more-btn').find('button').click({force: true});
-		cy.wait(1000);
+		cy.wait('@get-more-records');
 
 		cy.get_open_dialog().get('.list-item-container').should(($rows) => {
 			if ($rows.length <= 20) {
