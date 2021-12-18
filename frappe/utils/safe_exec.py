@@ -219,8 +219,9 @@ def call_whitelisted_function(function, **kwargs):
 	'''
 
 	# update form_dict, to use as `kwargs` in frappe.call
-	form_dict = getattr(frappe.local, 'form_dict', {})
-	frappe.local.form_dict = frappe._dict(kwargs or {})
+	form_dict = getattr(frappe.local, 'form_dict', frappe._dict())
+	if kwargs:
+		frappe.local.form_dict = form_dict.copy().update(kwargs)
 
 	try:
 		return execute_cmd(function)
@@ -241,8 +242,9 @@ def read_sql(query, *args, **kwargs):
 def run_script(script, **kwargs):
 	'''run another server script'''
 
-	form_dict = getattr(frappe.local, 'form_dict', {})
-	frappe.local.form_dict = frappe._dict(kwargs or {})
+	form_dict = getattr(frappe.local, 'form_dict', frappe._dict())
+	if kwargs:
+		frappe.local.form_dict = form_dict.copy().update(kwargs)
 
 	try:
 		return frappe.get_doc('Server Script', script).execute_method()
