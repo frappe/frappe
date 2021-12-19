@@ -244,3 +244,10 @@ def create_topic_and_reply(web_page):
 		})
 
 		reply.save()
+
+
+@frappe.whitelist()
+def update_webform_to_multistep():
+	doc = frappe.get_doc("Web Form", "edit-profile")
+	doc.is_multi_step_form = 1
+	doc.save()
