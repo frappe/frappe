@@ -1,6 +1,6 @@
 context('Web Form', () => {
 	before(() => {
-		cy.login('Administrator', 'frappe')
+		cy.login();
 	});
 
 	it('Navigate and Submit a WebForm', () => {
@@ -12,7 +12,7 @@ context('Web Form', () => {
 	});
 
 	it('Timeline should have submit and cancel activity information', () => {
-		cy.call('frappe.tests.ui_test_helpers.update_webform_to_multistep').then(r => {
+		cy.call('frappe.tests.ui_test_helpers.update_webform_to_multistep').then(() => {
 			cy.visit('/update-profile');
 			cy.get_field('last_name', 'Data').type('_Test User', {force: true}).wait(200);
 			cy.get('.btn-next').should('be.visible');

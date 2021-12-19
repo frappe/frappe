@@ -90,12 +90,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 			if (!is_validated) return;
 
-			for (let idx = me.current_section; idx < me.sections.length; idx--) {
+			for (let idx = me.current_section; idx < me.sections.length; idx--) { // eslint-disable-line no-console
 				let is_empty = me.is_previous_section_empty(idx);
 				me.current_section = me.current_section > 0 ? me.current_section - 1 : me.current_section;
 
 				if (!is_empty) {
-					break
+					break;
 				}
 			}
 			me.toggle_section();
@@ -111,7 +111,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				me.current_section = me.current_section < me.sections.length ? me.current_section + 1 : me.current_section;
 
 				if (!is_empty) {
-					break
+					break;
 				}
 			}
 			me.toggle_section();
@@ -186,7 +186,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.allow_incomplete) return true;
 
 		let fields = $(`.form-section:eq(${this.current_section}) .form-control`);
-		let errors = []
+		let errors = [];
 
 		for (let field of fields) {
 			let fieldname = $(field).attr("data-fieldname");
