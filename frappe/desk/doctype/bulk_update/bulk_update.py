@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.utils import cint
 
+
 class BulkUpdate(Document):
 	pass
 
@@ -22,7 +23,7 @@ def update(doctype, field, value, condition='', limit=500):
 		frappe.throw(_('; not allowed in condition'))
 
 	docnames = frappe.db.sql_list(
-		'''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype, condition, limit)
+		'''select name from `tab{0}`{1} limit {2} offset 0'''.format(doctype, condition, limit)
 	)
 	data = {}
 	data[field] = value
