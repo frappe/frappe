@@ -90,7 +90,15 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 			if (!is_validated) return;
 
-			for (let idx = me.current_section; idx < me.sections.length; idx--) { // eslint-disable-line no-console
+			/*
+				eslint cannot figure out if this is an infinite loop in backwards and
+				throws an error. Disabling for-direction just for this section.
+				for-direction doesnt throw an error if the values are hardcoded in the
+				reverse for-loop, but in this case its a dynamic loop.
+				https://eslint.org/docs/rules/for-direction
+			*/
+			/* eslint-disable for-direction */
+			for (let idx = me.current_section; idx < me.sections.length; idx--) {
 				let is_empty = me.is_previous_section_empty(idx);
 				me.current_section = me.current_section > 0 ? me.current_section - 1 : me.current_section;
 
@@ -98,6 +106,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					break;
 				}
 			}
+			/* eslint-enable for-direction */
 			me.toggle_section();
 		});
 
