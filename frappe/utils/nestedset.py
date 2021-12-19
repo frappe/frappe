@@ -16,6 +16,9 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Order
+from pypika import CustomFunction
+
+Replace = CustomFunction('REPLACE', ['input', 'substr_to_replace', 'substr_to_replace_with'])
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -88,7 +91,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab{0}`
-			where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
+		where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
 
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
@@ -107,8 +110,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
-			where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
-
+		where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
 
 		# set parent lft, rgt
 		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
@@ -134,6 +136,7 @@ def update_move_node(doc, parent_field):
 	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s
 		where lft < 0""".format(doc.doctype), (new_diff, new_diff))
 
+
 @frappe.whitelist()
 def rebuild_tree(doctype, parent_field):
 	"""
@@ -148,13 +151,12 @@ def rebuild_tree(doctype, parent_field):
 	right = 1
 	table = DocType(doctype)
 	column = getattr(table, parent_field)
-
 	result = (
 		frappe.qb.from_(table)
 		.where(
 			(column == "") | (column.isnull())
 		)
-		.orderby(table.name, order=Order.asc)
+		.orderby(Replace(table.name, '_', ''), order=Order.asc)
 		.select(table.name)
 	).run()
 
@@ -177,7 +179,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 	column = getattr(table, parent_field)
 
 	result = (
-		frappe.qb.from_(table).where(column == parent).select(table.name)
+		frappe.qb.from_(table).where(column == parent).select(table.name).orderby(Replace(table.name, '_', ''), order=Order.asc)
 	).run()
 
 	for r in result:

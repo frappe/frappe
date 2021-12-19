@@ -13,8 +13,9 @@ class Dashboard(Document):
 	def on_update(self):
 		if self.is_default:
 			# make all other dashboards non-default
-			frappe.db.sql('''update
-				`tabDashboard` set is_default = 0 where name != %s''', self.name)
+			DashBoard = frappe.qb.DocType("Dashboard")
+			
+			frappe.qb.update(DashBoard).set(DashBoard.is_default, 0).where(DashBoard.name != self.name).run()
 
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[['Dashboard', self.name, self.module + ' Dashboard']], record_module=self.module)
