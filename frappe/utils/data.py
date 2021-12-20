@@ -1333,7 +1333,7 @@ def get_filter(doctype, f, filters_config=None):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of",
+		"between", "descendants of", "descendants of including self", "ancestors of", "not descendants of", "not ancestors of",
 		"timespan", "previous", "next")
 
 	if filters_config:

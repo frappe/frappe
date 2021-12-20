@@ -422,7 +422,8 @@ class DatabaseQuery(object):
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		# prepare in condition
-		if f.operator.lower() in ('ancestors of', 'descendants of', 'not ancestors of', 'not descendants of'):
+		nested_set_operators = ('ancestors of', 'descendants of', 'descendants of including self', 'not ancestors of', 'not descendants of')
+		if f.operator.lower() in nested_set_operators:
 			values = f.value or ''
 
 			# TODO: handle list and tuple
@@ -441,12 +442,13 @@ class DatabaseQuery(object):
 				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
-			if f.operator.lower() in ('descendants of', 'not descendants of') :
-				result = frappe.get_all(ref_doctype, filters={
-					'lft': ['>', lft],
-					'rgt': ['<', rgt]
-				}, order_by='`lft` ASC')
-			else :
+			if f.operator.lower() in ('descendants of', 'not descendants of', 'descendants of including self'):
+				if 'including self' in f.operator.lower():
+					filters = {'lft': ['>=', lft], 'rgt': ['<=', rgt]}
+				else:
+					filters = {'lft': ['>', lft], 'rgt': ['<', rgt]}
+				result = frappe.get_all(ref_doctype, filters=filters, order_by='`lft` ASC')
+			else:
 				# Get ancestor elements of a DocType with a tree structure
 				result = frappe.get_all(ref_doctype, filters={
 					'lft': ['<', lft],

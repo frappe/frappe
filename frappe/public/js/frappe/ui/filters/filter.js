@@ -30,6 +30,7 @@ frappe.ui.Filter = class {
 
 		this.nested_set_conditions = [
 			['descendants of', __('Descendants Of')],
+			['descendants of including self', __('Descendants Of Including Self')],
 			['not descendants of', __('Not Descendants Of')],
 			['ancestors of', __('Ancestors Of')],
 			['not ancestors of', __('Not Ancestors Of')],
@@ -508,6 +509,7 @@ frappe.ui.filter_utils = {
 				'=',
 				'!=',
 				'descendants of',
+				'descendants of including self',
 				'ancestors of',
 				'not descendants of',
 				'not ancestors of',

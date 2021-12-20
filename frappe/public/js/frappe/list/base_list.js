@@ -766,6 +766,9 @@ class FilterArea {
 							options = options.join("\n");
 						}
 					}
+					if (df.fieldtype == "Link" && df.options && frappe.boot.treeviews.includes(df.options)) {
+						condition = "descendants of including self";
+					}
 					let default_value =
 						fieldtype === "Link"
 							? frappe.defaults.get_user_default(options)
