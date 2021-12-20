@@ -90,9 +90,10 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                                 };
                             })(markerPoint, markerLabel, infowindow));
 
-                            google.maps.event.addListener(this.marker, 'mouseout', (function (markerPoint, markerLabel, infowindow) {
-                                infowindow.close(map, markerPoint)
-                            })(markerPoint, markerLabel, infowindow));
+                            google.maps.event.addListener(this.marker, 'mouseout', function () {
+                                console.log("mouseout")
+                                infowindow.close()
+                            })
                         }
                     }
                 }
