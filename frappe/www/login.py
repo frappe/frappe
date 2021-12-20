@@ -12,6 +12,7 @@ from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
 from frappe.integrations.oauth2_logins import decoder_compat
 from frappe.website.utils import get_home_page
+from frappe.utils.jinja import guess_is_path
 
 no_cache = True
 
@@ -40,9 +41,15 @@ def get_context(context):
 	context["app_name"] = (frappe.db.get_single_value('Website Settings', 'app_name') or
 		frappe.get_system_settings("app_name") or _("Frappe"))
 
-	custom_signup = frappe.get_hooks("custom_signup_form")
-	if custom_signup and len(custom_signup) and custom_signup[0]:
-		context["custom_signup_form"] = frappe.get_template(custom_signup[0]).render()
+	signup_form_template = frappe.get_hooks("signup_form_template")
+	if signup_form_template and len(signup_form_template) and signup_form_template[0]:
+		path = signup_form_template[0]
+		if not guess_is_path(path):
+			path = frappe.get_attr(signup_form_template[0])()
+	else:
+		path = "frappe/templates/signup.html"
+	if path:
+		context["signup_form_template"] = frappe.get_template(path).render()
 
 	providers = [i.name for i in frappe.get_all("Social Login Key", filters={"enable_social_login":1}, order_by="name")]
 	for provider in providers:
