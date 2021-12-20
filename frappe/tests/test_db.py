@@ -246,6 +246,28 @@ class TestDB(unittest.TestCase):
 		clear_custom_fields(test_doctype)
 
 
+	def test_savepoints(self):
+		frappe.db.rollback()
+		save_point = "todonope"
+
+		created_docs = []
+		failed_docs = []
+
+		for _ in range(5):
+			frappe.db.savepoint(save_point)
+			doc_gone = frappe.get_doc(doctype="ToDo", description="nope").save()
+			failed_docs.append(doc_gone.name)
+			frappe.db.rollback(save_point=save_point)
+			doc_kept = frappe.get_doc(doctype="ToDo", description="nope").save()
+			created_docs.append(doc_kept.name)
+		frappe.db.commit()
+
+		for d in failed_docs:
+			self.assertFalse(frappe.db.exists("ToDo", d))
+		for d in created_docs:
+			self.assertTrue(frappe.db.exists("ToDo", d))
+
+
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"
