@@ -95,6 +95,7 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                             })
 
                             this.marker.addListener('mouseover', () => {
+                                console.log("marker", markerPoint)
                                 infowindow.open({
                                     anchor: markerPoint
                                 })
