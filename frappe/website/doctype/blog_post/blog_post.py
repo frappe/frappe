@@ -159,10 +159,10 @@ class BlogPost(WebsiteGenerator):
 		like_count = 0
 
 		if frappe.db.count('Feedback'):
-			like_count = frappe.db.count('Feedback', 
+			like_count = frappe.db.count('Feedback',
 				filters = dict(
-					reference_doctype = self.doctype, 
-					reference_name = self.name, 
+					reference_doctype = self.doctype,
+					reference_name = self.name,
 					like = True
 				)
 			)
@@ -183,7 +183,6 @@ def get_list_context(context=None):
 		get_list = get_blog_list,
 		no_breadcrumbs = True,
 		hide_filters = True,
-		children = get_children(),
 		# show_search = True,
 		title = _('Blog')
 	)
@@ -208,17 +207,28 @@ def get_list_context(context=None):
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
-	list_context.update(frappe.get_doc("Blog Settings").as_dict(no_default_fields=True))
+	blog_settings = frappe.get_doc("Blog Settings").as_dict(no_default_fields=True)
+	list_context.update(blog_settings)
+
+	if blog_settings.browse_by_category:
+		list_context.blog_categories = get_blog_categories()
 
 	return list_context
 
-def get_children():
-	return frappe.db.sql("""select route as name,
-		title from `tabBlog Category`
-		where published = 1
-		and exists (select name from `tabBlog Post`
-			where `tabBlog Post`.blog_category=`tabBlog Category`.name and published=1)
-		order by title asc""", as_dict=1)
+
+def get_blog_categories():
+	return frappe.db.sql("""
+		SELECT `name`, `route`, `title`
+		FROM `tabBlog Category`
+		WHERE `published` = 1
+			AND EXISTS (
+				SELECT `name`
+				FROM `tabBlog Post`
+				WHERE `tabBlog Post`.`blog_category` = `tabBlog Category`.`name`
+					AND `published` = 1
+			)
+		ORDER BY `title` asc
+	""", as_dict=1)
 
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select route from
