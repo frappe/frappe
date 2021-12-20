@@ -11,9 +11,13 @@ frappe.user_info = function(uid) {
 	}
 
 	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
+<<<<<<< HEAD
 		var user_info = {
 			fullname: frappe.utils.to_title_case(uid.split("@")[0]) || "Unknown"
 		};
+=======
+		var user_info = {fullname: uid || "Unknown"};
+>>>>>>> f8356141a9 (fix(ui): Rendering forms created by disabled users)
 	} else {
 		var user_info = frappe.boot.user_info[uid];
 	}
