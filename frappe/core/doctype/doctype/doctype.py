@@ -381,7 +381,7 @@ class DocType(Document):
 		document_cls_tag = f"class {despaced_name}(Document)"
 		document_import_tag = "from frappe.model.document import Document"
 		website_generator_cls_tag = f"class {despaced_name}(WebsiteGenerator)"
-		website_generator_import_tag = "from frappe.website.generators.website_generator import WebsiteGenerator"
+		website_generator_import_tag = "from frappe.website.website_generator import WebsiteGenerator"
 
 		with open(controller_path) as f:
 			code = f.read()
