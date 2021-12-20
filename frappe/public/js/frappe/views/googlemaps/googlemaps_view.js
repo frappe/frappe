@@ -24,20 +24,20 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
         this.get_google_coords()
             .then(() => {
                 this.get_google_icons()
-                .then(() => {
-                    this.render_map_view();
-                });
+                    .then(() => {
+                        this.render_map_view();
+                    });
             });
         this.$paging_area.find('.level-left').append('<div></div>');
     }
 
     render_map_view() {
         self = this;
-		this.map_id = 'map';
+        this.map_id = 'map';
         this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 
         this.map = new google.maps.Map(document.getElementById("map"), {
-            center: {lat:0.21901832756664624, lng:119.1115301972551},
+            center: { lat: 0.21901832756664624, lng: 119.1115301972551 },
             mapTypeId: "terrain",
             zoom: 5,
         });
@@ -56,7 +56,7 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
                     for (z = 0; z < this.markers.length; z++) {
 
-                        if (this.markers[z].properties.point_type === 'marker'){
+                        if (this.markers[z].properties.point_type === 'marker') {
                             this.icon_url = default_icon_url;
                             for (y = 0; y < this.icons.length; y++) {
                                 if (this.icons[y].name1 === this.markers[z].properties.icon) {
@@ -78,23 +78,26 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                             var infowindow = new google.maps.InfoWindow();
                             var markerLabel = this.markers[z].properties.name;
                             var markerPoint = this.marker;
-                            google.maps.event.addListener(this.marker,'click', (function(markerPoint,markerLabel,infowindow){ 
-                                return function() {
-                                   infowindow.setContent(markerLabel);
-                                   infowindow.open(map,markerPoint);
+                            google.maps.event.addListener(this.marker, 'click', (function (markerPoint, markerLabel, infowindow) {
+                                return function () {
+                                    infowindow.setContent(markerLabel);
+                                    infowindow.open(map, markerPoint);
                                 };
-                            })(markerPoint,markerLabel,infowindow)); 
+                            })(markerPoint, markerLabel, infowindow));
 
-                            google.maps.event.addListener(this.marker, 'mouseover', function() {
-                                infowindow.open(map, markerPoint)
-                            })
+                            google.maps.event.addListener(this.marker, 'mouseover', (function (markerPoint, markerLabel, infowindow) {
+                                return function () {
+                                    infowindow.setContent(markerLabel);
+                                    infowindow.open(map, markerPoint);
+                                };
+                            })(markerPoint, markerLabel, infowindow));
 
-                            google.maps.event.addListener(this.marker, 'mouseout', function() {
+                            google.maps.event.addListener(this.marker, 'mouseout', function () {
                                 infowindow.close()
                             })
-                        }   
+                        }
                     }
-                } 
+                }
             }
         }
     }
