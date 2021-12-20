@@ -68,7 +68,7 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                                 scaledSize: new google.maps.Size(30, 30)
                             };
 
-                            const marker = new google.maps.Marker({
+                            this.marker = new google.maps.Marker({
                                 position: new google.maps.LatLng(this.markers[z].geometry.coordinates[1], this.markers[z].geometry.coordinates[0]),
                                 map: this.map,
                                 icon: icon,
@@ -94,13 +94,12 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                                 this.map.setZoom(16)
                             })
 
-                            marker.addListener('mouseover', () => {
-                                infowindow.open({
-                                    anchor: marker,
-                                    map,
-                                    shouldFocus: false,
-                                })
-                            })
+                            google.maps.event.addListener(this.marker, 'mouseover', (function (markerPoint, markerLabel, infowindow) {
+                                return function () {
+                                    infowindow.setContent(markerLabel);
+                                    infowindow.open(map, markerPoint);
+                                };
+                            })(markerPoint, markerLabel, infowindow));
 
                             google.maps.event.addListener(this.marker, 'mouseout', function () {
                                 console.log("mouser")
