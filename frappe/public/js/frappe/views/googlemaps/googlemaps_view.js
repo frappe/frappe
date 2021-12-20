@@ -101,10 +101,11 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                                 };
                             })(markerPoint, markerLabel, infowindow));
 
-                            google.maps.event.addListener(this.marker, 'mouseout', function () {
-                                console.log("mouser")
-                                infowindow.close()
-                            })
+                            google.maps.event.addListener(this.marker, 'mouseout', (function (markerPoint, markerLabel, infowindow) {
+                                return function () {
+                                    infowindow.close();
+                                };
+                            })(markerPoint, markerLabel, infowindow));
                         }
                     }
                 }
