@@ -84,6 +84,14 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                                    infowindow.open(map,markerPoint);
                                 };
                             })(markerPoint,markerLabel,infowindow)); 
+
+                            google.maps.event.addListener(this.marker, 'mouseover', function() {
+                                infowindow.open(map, markerPoint)
+                            })
+
+                            google.maps.event.addListener(this.marker, 'mouseout', function() {
+                                infowindow.close()
+                            })
                         }   
                     }
                 } 
