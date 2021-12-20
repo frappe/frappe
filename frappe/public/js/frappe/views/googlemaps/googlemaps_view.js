@@ -75,9 +75,9 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                             });
 
 
-                            var infowindow = new google.maps.InfoWindow({
-                                content: this.markers[z].properties.name
-                            });
+                            var infowindow = new google.maps.InfoWindow();
+                               
+                            var markerLabel = this.markers[z].properties.name
 
                             var markerPoint = this.marker;
                             let map = this.map
