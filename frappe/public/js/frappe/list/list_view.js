@@ -760,6 +760,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						: value;
 			}
 
+			if (df.fieldtype === "Rating") {
+				let out_of_ratings = df.options || 5;
+				_value = _value * out_of_ratings;
+			}
+
 			if (df.fieldtype === "Image") {
 				html = df.options ? `<img src="${doc[df.options]}"
 					style="max-height: 30px; max-width: 100%;">`
