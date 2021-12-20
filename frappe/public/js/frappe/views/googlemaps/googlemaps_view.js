@@ -81,6 +81,7 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                             });
 
                             var markerPoint = this.marker;
+                            let map = this.map
 
                             // google.maps.event.addListener(this.marker, 'click', (function (markerPoint, markerLabel, infowindow) {
                             //     return function () {
@@ -97,7 +98,9 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                             this.marker.addListener('mouseover', () => {
                                 console.log("marker", markerPoint)
                                 infowindow.open({
-                                    anchor: markerPoint
+                                    anchor: markerPoint,
+                                    map,
+                                    shouldFocus: false,
                                 })
                             })
 
