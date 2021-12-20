@@ -32,5 +32,11 @@ frappe.ui.form.on("System Settings", {
 				frm.set_value('prepared_report_expiry_period', 7);
 			}
 		}
+	},
+	on_update: function(frm) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system !== frm.doc.time_zone) {
+			// Clear cache after saving to refresh the values of boot.
+			frappe.ui.toolbar.clear_cache();
+		}
 	}
 });

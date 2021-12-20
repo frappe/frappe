@@ -1,7 +1,7 @@
+import "./frappe/provide.js";
 import "./frappe/translate.js";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
-import "./frappe/provide.js";
 import "./frappe/assets.js";
 import "./frappe/format.js";
 import "./frappe/form/formatters.js";

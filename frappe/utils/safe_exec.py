@@ -184,9 +184,31 @@ def get_safe_globals():
 	# allow iterators and list comprehension
 	out._getiter_ = iter
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
-	out.sorted = sorted
+
+	# add common python builtins
+	out.update(get_python_builtins())
 
 	return out
+
+def get_python_builtins():
+	return {
+		'abs': abs,
+		'all': all,
+		'any': any,
+		'bool': bool,
+		'dict': dict,
+		'enumerate': enumerate,
+		'isinstance': isinstance,
+		'issubclass': issubclass,
+		'list': list,
+		'max': max,
+		'min': min,
+		'range': range,
+		'set': set,
+		'sorted': sorted,
+		'sum': sum,
+		'tuple': tuple,
+	}
 
 def get_hooks(hook=None, default=None, app_name=None):
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
