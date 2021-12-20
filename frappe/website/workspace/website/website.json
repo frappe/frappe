@@ -1,10 +1,6 @@
 {
- "category": "Modules",
- "charts": [
-  {
-   "chart_name": "Website Analytics"
-  }
- ],
+ "category": "Administration",
+ "charts": [],
  "creation": "2020-03-02 14:13:51.089373",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
@@ -14,10 +10,12 @@
  "hide_custom": 0,
  "icon": "website",
  "idx": 0,
+ "is_default": 0,
  "is_standard": 1,
  "label": "Website",
  "links": [
   {
+   "collapsible": 0,
    "hidden": 0,
    "icon": "setting",
    "is_query_report": 0,
@@ -26,6 +24,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -36,6 +35,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -46,6 +46,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -56,6 +57,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -66,6 +68,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -76,6 +79,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "icon": "",
    "is_query_report": 0,
@@ -84,6 +88,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -94,6 +99,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -104,6 +110,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -114,6 +121,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "icon": "website",
    "is_query_report": 0,
@@ -122,6 +130,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -132,6 +141,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -142,6 +152,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -152,6 +163,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -162,6 +174,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -172,6 +185,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "icon": "website",
    "is_query_report": 0,
@@ -180,6 +194,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -190,6 +205,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "hidden": 0,
    "icon": "project",
    "is_query_report": 0,
@@ -198,6 +214,7 @@
    "type": "Card Break"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -208,6 +225,7 @@
    "type": "Link"
   },
   {
+   "collapsible": 0,
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -218,7 +236,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:39.556588",
+ "modified": "2021-12-19 10:13:51.217015",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",

@@ -242,6 +242,8 @@
   {
    "fieldname": "company_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Company Name"
   }
  ],
@@ -250,7 +252,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-27 14:12:09.906719",
+ "modified": "2021-12-18 14:43:51.533646",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
@@ -329,7 +331,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Accounts Manager",
+   "role": "Accounting Manager",
    "share": 1,
    "write": 1
   },
