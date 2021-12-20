@@ -1059,7 +1059,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 			if parent_doctype == doctype:
 				# for parent doctypes keys will be
-				# Label, fielname, Label (fieldname)
+				# Label, fieldname, Label (fieldname)
 
 				for header in (label, translated_label):
 					# if Label is already set, don't set it again
