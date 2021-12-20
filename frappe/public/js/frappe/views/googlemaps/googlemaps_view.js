@@ -78,12 +78,10 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                             var infowindow = new google.maps.InfoWindow();
                             var markerLabel = this.markers[z].properties.name;
                             var markerPoint = this.marker;
-                            google.maps.event.addListener(this.marker, 'click', (function (markerPoint, markerLabel, infowindow) {
-                                return function () {
-                                    infowindow.setContent(markerLabel);
-                                    infowindow.open(map, markerPoint);
-                                };
-                            })(markerPoint, markerLabel, infowindow));
+                            google.maps.event.addListener(this.marker, 'click', function () {
+                                this.map.panTo(this.getPosition())
+                                this.map.setZoom(16)
+                            })
 
                             google.maps.event.addListener(this.marker, 'mouseover', (function (markerPoint, markerLabel, infowindow) {
                                 return function () {
@@ -92,9 +90,9 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                                 };
                             })(markerPoint, markerLabel, infowindow));
 
-                            google.maps.event.addListener(this.marker, 'mouseout', function () {
-                                infowindow.close()
-                            })
+                            google.maps.event.addListener(this.marker, 'mouseout', (function (markerPoint, markerLabel, infowindow) {
+                                infowindow.close(map, markerPoint)
+                            })(markerPoint, markerLabel, infowindow));
                         }
                     }
                 }

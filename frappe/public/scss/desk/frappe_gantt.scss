@@ -65,7 +65,15 @@
 	min-width: 9rem;
 	border-radius: var(--border-radius);
 	font-size: var(--text-sm);
-
+	position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.8) !important;
+    padding: 10px !important;
+    color: #959da5;
+    border-radius: 10px;
+    border: 1px solid #959da5 !important;
+	
 	.title {
 		color: white;
 		border-bottom: none;
