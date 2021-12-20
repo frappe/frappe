@@ -73,14 +73,12 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 		let out_of_ratings = this.df.options || 5;
 		value = value * out_of_ratings;
 		let el = $(this.input_area).find('svg');
-		let is_half = value % 1 == 0.5;
 		el.children('svg').prevObject.each( function(e) {
 			if (e < value) {
 				$(this).find('.left-half, .right-half').addClass('star-click');
-				if (e == Math.floor(value) && is_half) {
-					$(this).find('.left-half').addClass('star-click');
-					$(this).find('.right-half').removeClass('star-click');
-				}
+
+				let is_half = e == Math.floor(value) && value % 1 == 0.5;
+				is_half && $(this).find('.right-half').removeClass('star-click');
 			} else {
 				$(this).find('.left-half, .right-half').removeClass('star-click');
 			}
