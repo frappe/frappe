@@ -217,18 +217,24 @@ def get_list_context(context=None):
 
 
 def get_blog_categories():
-	return frappe.db.sql("""
-		SELECT `name`, `route`, `title`
-		FROM `tabBlog Category`
-		WHERE `published` = 1
-			AND EXISTS (
-				SELECT `name`
-				FROM `tabBlog Post`
-				WHERE `tabBlog Post`.`blog_category` = `tabBlog Category`.`name`
-					AND `published` = 1
+	from pypika import Order
+	from pypika.terms import ExistsCriterion
+
+	post, category = frappe.qb.DocType("Blog Post"), frappe.qb.DocType("Blog Category")
+	return (
+		frappe.qb.from_(category)
+		.select(category.name, category.route, category.title)
+		.where(
+			(category.published == 1)
+			& ExistsCriterion(
+				frappe.qb.from_(post)
+				.select("name")
+				.where((post.published == 1) & (post.blog_category == category.name))
 			)
-		ORDER BY `title` asc
-	""", as_dict=1)
+		)
+		.orderby(category.title, order=Order.asc)
+		.run(as_dict=1)
+	)
 
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select route from
