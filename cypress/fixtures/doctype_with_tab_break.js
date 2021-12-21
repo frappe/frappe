@@ -12,9 +12,9 @@ export default {
 			options: 'Name'
 		},
 		{
-			fieldname: 'tab',
+			fieldname: 'tab_1',
 			fieldtype: 'Tab Break',
-			label: 'Tab 2',
+			label: 'Tab 1',
 		},
 		{
 			fieldname: 'Phone',
@@ -22,6 +22,16 @@ export default {
 			label: 'Phone',
 			options: 'Phone',
 			reqd: 1
+		},
+		{
+			fieldname: 'tab_2',
+			fieldtype: 'Tab Break',
+			label: 'Tab 2',
+		},
+		{
+			fieldname: 'Address',
+			fieldtype: 'Data',
+			label: 'Address'
 		},
 	],
 	links: [

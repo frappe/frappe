@@ -10,9 +10,9 @@ context("Form Tab Break", () => {
 		cy.new_form(doctype_name);
 		// test tab switch
 		cy.findByRole("tab", {name: "Tab 2"}).click();
+		cy.findByText("Address");
+		cy.findByRole("tab", {name: "Tab 1"}).click();
 		cy.findByText("Phone");
-		cy.findByRole("tab", {name: "Details"}).click();
-		cy.findByText("Name");
 
 		// form should switch to the tab with un-filled mandatory field
 		cy.fill_field("username", "Test");
