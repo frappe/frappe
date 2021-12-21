@@ -63,7 +63,10 @@
   "subdomain",
   "head_html",
   "robots_txt",
-  "route_redirects"
+  "route_redirects",
+  "account_deletion_settings_section",
+  "show_account_deletion_link",
+  "auto_account_deletion"
  ],
  "fields": [
   {
@@ -386,6 +389,23 @@
    "fieldname": "app_logo",
    "fieldtype": "Attach Image",
    "label": "App Logo"
+  },
+  {
+   "fieldname": "account_deletion_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Account Deletion Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_account_deletion_link",
+   "fieldtype": "Check",
+   "label": "Show Account Deletion Link in My Account Page"
+  },
+  {
+   "default": "3",
+   "fieldname": "auto_account_deletion",
+   "fieldtype": "Int",
+   "label": "Auto Account Deletion within (Days)"
   }
  ],
  "icon": "fa fa-cog",
@@ -394,7 +414,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2021-08-23 21:39:51.702248",
+ "modified": "2021-12-15 17:28:59.255184",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

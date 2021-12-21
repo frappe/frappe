@@ -10,6 +10,9 @@
 			<li><a href="/update-password">{{ _("Reset Password") }}</a></li>
 			<li><a href="/update-profile?name={{ user }}">{{ _("Edit Profile") }}</a></li>
 			<li><a href="/third_party_apps">{{ _("Manage Third Party Apps") }}</a></li>
+			{% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %}
+			<li><a href="/request-for-account-deletion?new=1">{{ _("Request for Account Deletion") }}</a></li>
+			{% endif %}
 		</ul>
 	</div>
 </div>

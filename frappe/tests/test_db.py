@@ -38,13 +38,13 @@ class TestDB(unittest.TestCase):
 				"User", Field("name") == "Administrator", for_update=True, run=False
 			).lower(),
 		)
-		doctype = frappe.qb.DocType("User")
+		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
-			frappe.qb.from_(doctype).select(doctype.name, doctype.email).run(),
+			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email).run(),
 			frappe.db.get_values(
-				doctype,
+				user_doctype,
 				filters={},
-				fieldname=[doctype.name, doctype.email],
+				fieldname=[user_doctype.name, user_doctype.email],
 				order_by=None,
 			),
 		)
@@ -53,6 +53,19 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
+		self.assertEqual(
+			frappe.db.get_values(
+				"User",
+				filters={"name": "Administrator"},
+				distinct=True,
+				fieldname="email",
+			),
+			frappe.qb.from_(user_doctype)
+			.where(user_doctype.name == "Administrator")
+			.select("email")
+			.distinct()
+			.run(),
+		)
 
 		self.assertIn(
 			"concat_ws",
