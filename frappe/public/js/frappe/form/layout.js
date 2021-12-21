@@ -26,6 +26,8 @@ frappe.ui.form.Layout = class Layout {
 			this.fields = this.get_doctype_fields();
 		}
 
+		this.untabbed_content = $(`<div class="form-untabbed-content"></div>`).appendTo(this.page);
+
 		if (this.is_tabbed_layout()) {
 			this.setup_tabbed_layout();
 		}
@@ -119,14 +121,6 @@ frappe.ui.form.Layout = class Layout {
 
 		if (this.no_opening_section() && !this.is_tabbed_layout()) {
 			this.fields.unshift({fieldtype: 'Section Break'});
-		}
-
-		if (this.is_tabbed_layout()) {
-			let default_tab = {label: __('Details'), fieldname: 'details', fieldtype: "Tab Break"};
-			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
-			if (!first_tab) {
-				this.fields.splice(1, 0, default_tab);
-			}
 		}
 
 		fields.forEach(df => {
@@ -245,7 +239,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_section(df) {
-		this.section = new Section(this.current_tab ? this.current_tab.wrapper : this.page, df, this.card_layout, this);
+		this.section = new Section(this.current_tab ? this.current_tab.wrapper : this.untabbed_content, df, this.card_layout, this);
 
 		// append to layout fields
 		if (df) {
