@@ -263,7 +263,7 @@ class Importer:
 		rows = [header_row]
 		rows += [row.data for row in self.import_file.data if row.row_number in row_indexes]
 
-		build_csv_response(rows, self.doctype)
+		build_csv_response(rows, _(self.doctype))
 
 	def print_import_log(self, import_log):
 		failed_records = [log for log in import_log if not log.success]
@@ -1010,18 +1010,14 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	out = {}
 
 	# doctypes and fieldname if it is a child doctype
-	doctypes = [[parent_doctype, None]] + [
-		[df.options, df] for df in parent_meta.get_table_fields()
+	doctypes = [(parent_doctype, None)] + [
+		(df.options, df) for df in parent_meta.get_table_fields()
 	]
 
 	for doctype, table_df in doctypes:
+		translated_table_label = _(table_df.label) if table_df else None
+
 		# name field
-		name_by_label = (
-			"ID" if doctype == parent_doctype else "ID ({0})".format(table_df.label)
-		)
-		name_by_fieldname = (
-			"name" if doctype == parent_doctype else "{0}.name".format(table_df.fieldname)
-		)
 		name_df = frappe._dict(
 			{
 				"fieldtype": "Data",
@@ -1032,63 +1028,90 @@ def build_fields_dict_for_column_matching(parent_doctype):
 			}
 		)
 
-		if doctype != parent_doctype:
+		if doctype == parent_doctype:
+			name_headers = (
+				"name", # fieldname
+				"ID", # label
+				_("ID"), # translated label
+			)
+		else:
+			name_headers = (
+				"{0}.name".format(table_df.fieldname), # fieldname
+				"ID ({0})".format(table_df.label), # label
+				"{0} ({1})".format(_("ID"), translated_table_label), # translated label
+			)
+
 			name_df.is_child_table_field = True
 			name_df.child_table_df = table_df
 
-		out[name_by_label] = name_df
-		out[name_by_fieldname] = name_df
+		for header in name_headers:
+			out[header] = name_df
 
-		# other fields
 		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
 		for df in fields:
-			label = (df.label or "").strip()
 			fieldtype = df.fieldtype or "Data"
+			if fieldtype in no_value_fields:
+				continue
+
+			label = (df.label or "").strip()
+			translated_label = _(label)
 			parent = df.parent or parent_doctype
-			if fieldtype not in no_value_fields:
-				if parent_doctype == doctype:
-					# for parent doctypes keys will be
-					# Label
-					# label
-					# Label (label)
-					if not out.get(label):
-						# if Label is already set, don't set it again
-						# in case of duplicate column headers
-						out[label] = df
-					out[df.fieldname] = df
-					label_with_fieldname = "{0} ({1})".format(label, df.fieldname)
-					out[label_with_fieldname] = df
+
+			if parent_doctype == doctype:
+				# for parent doctypes keys will be
+				# Label, fieldname, Label (fieldname)
+
+				for header in (label, translated_label):
+					# if Label is already set, don't set it again
+					# in case of duplicate column headers
+					if header not in out:
+						out[header] = df
+
+				for header in (
+					df.fieldname,
+					f"{label} ({df.fieldname})",
+					f"{translated_label} ({df.fieldname})"
+				):
+					out[header] = df
+
+			else:
+				# for child doctypes keys will be
+				# Label (Table Field Label)
+				# table_field.fieldname
+
+				# create a new df object to avoid mutation problems
+				if isinstance(df, dict):
+					new_df = frappe._dict(df.copy())
 				else:
-					# in case there are multiple table fields with the same doctype
-					# for child doctypes keys will be
-					# Label (Table Field Label)
-					# table_field.fieldname
-					table_fields = parent_meta.get(
-						"fields", {"fieldtype": ["in", table_fieldtypes], "options": parent}
-					)
-					for table_field in table_fields:
-						by_label = "{0} ({1})".format(label, table_field.label)
-						by_fieldname = "{0}.{1}".format(table_field.fieldname, df.fieldname)
+					new_df = df.as_dict()
 
-						# create a new df object to avoid mutation problems
-						if isinstance(df, dict):
-							new_df = frappe._dict(df.copy())
-						else:
-							new_df = df.as_dict()
+				new_df.is_child_table_field = True
+				new_df.child_table_df = table_df
 
-						new_df.is_child_table_field = True
-						new_df.child_table_df = table_field
-						out[by_label] = new_df
-						out[by_fieldname] = new_df
+				for header in (
+					# fieldname
+					"{0}.{1}".format(table_df.fieldname, df.fieldname),
+					# label
+					"{0} ({1})".format(label, table_df.label),
+					# translated label
+					"{0} ({1})".format(translated_label, translated_table_label),
+				):
+					out[header] = new_df
 
 	# if autoname is based on field
 	# add an entry for "ID (Autoname Field)"
 	autoname_field = get_autoname_field(parent_doctype)
 	if autoname_field:
-		out["ID ({})".format(autoname_field.label)] = autoname_field
-		# ID field should also map to the autoname field
-		out["ID"] = autoname_field
-		out["name"] = autoname_field
+		for header in (
+			"ID ({})".format(autoname_field.label), # label
+			"{0} ({1})".format(_("ID"), _(autoname_field.label)), # translated label
+
+			# ID field should also map to the autoname field
+			"ID",
+			_("ID"),
+			"name",
+		):
+			out[header] = autoname_field
 
 	return out
 
