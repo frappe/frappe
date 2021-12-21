@@ -1,9 +1,6 @@
-<<<<<<< HEAD:frappe/public/scss/print.bundle.scss
 @import "frappe/public/css/bootstrap.css";
-=======
->>>>>>> 175721bc53 (fix: Barcode rendering in server side printing (#15383)):frappe/public/scss/print.scss
-@import './common/quill';
-@import './desk/css_variables';
+@import "./common/quill";
+@import "./desk/css_variables";
 
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
