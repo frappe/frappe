@@ -109,8 +109,18 @@ frappe.ui.form.on('Data Import', {
 		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
 			if (!frm.is_new() && (frm.has_import_file())) {
-				let label =
-					frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
+				let label = ''
+				if (frm.doc.status === 'Pending') {
+					let import_log = JSON.parse(frm.doc.import_log || '[]');
+					if (import_log) {
+						label = __('Continue Import')
+					} else {
+						label = __('Start Import')
+					}
+				} else {
+					label = __('Retry')
+				}
+
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
 			} else {
 				frm.page.set_primary_action(__('Save'), () => frm.save());
@@ -132,6 +142,13 @@ frappe.ui.form.on('Data Import', {
 		let successful_records = import_log.filter(log => log.success);
 		let failed_records = import_log.filter(log => !log.success);
 		if (successful_records.length === 0) return;
+
+		if (frm.doc.status == 'Pending' && import_log) {
+			frm.page.set_indicator(__('Partially Completed'), 'orange');
+			
+			// Do not allow changing file for partially completed imports
+			frm.set_df_property('import_file', 'read_only', 1);
+		}
 
 		let message;
 		if (failed_records.length === 0) {

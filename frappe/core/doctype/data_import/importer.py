@@ -85,14 +85,16 @@ class Importer:
 		else:
 			import_log = []
 
-		# remove previous failures from import log
-		import_log = [log for log in import_log if log.get("success")]
+		# Do not remove rows in case of retry after an error or pending data import
+		if self.data_import.status == 'Partial Success':
+			# remove previous failures from import log only in case of retry after partial success
+			import_log = [log for log in import_log if log.get("success")]
 
 		# get successfully imported rows
 		imported_rows = []
 		for log in import_log:
 			log = frappe._dict(log)
-			if log.success:
+			if log.success or self.data_import.status == 'Pending':
 				imported_rows += log.row_indexes
 
 		# start import
@@ -150,6 +152,12 @@ class Importer:
 					import_log.append(
 						frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
 					)
+
+					# Update import log after every successful import
+					# This is done for cases where the background job might get terminated due to timeout
+					# In such cases the job can be rerun only for pending rows by referring to import logs
+					self.data_import.db_set("import_log", json.dumps(import_log))
+					
 					# commit after every successful import
 					frappe.db.commit()
 
