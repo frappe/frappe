@@ -66,8 +66,8 @@ class DataImport(Document):
 		if self.name not in enqueued_jobs:
 			enqueue(
 				start_import,
-				queue="default",
-				timeout=6000,
+				queue="long",
+				timeout=10000,
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,

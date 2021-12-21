@@ -1,6 +1,7 @@
 let imports_in_progress = [];
 
 frappe.listview_settings['Data Import'] = {
+	add_fields: ["import_log"],
 	onload(listview) {
 		frappe.realtime.on('data_import_progress', data => {
 			if (!imports_in_progress.includes(data.data_import)) {
@@ -19,17 +20,24 @@ frappe.listview_settings['Data Import'] = {
 			'Pending': 'orange',
 			'Not Started': 'orange',
 			'Partial Success': 'orange',
+			'Partial Completed': 'orange',
 			'Success': 'green',
 			'In Progress': 'orange',
 			'Error': 'red'
 		};
 		let status = doc.status;
+		let import_log = JSON.parse(doc.import_log || '[]');
+
 		if (imports_in_progress.includes(doc.name)) {
 			status = 'In Progress';
 		}
 		if (status == 'Pending') {
 			status = 'Not Started';
 		}
+		if (doc.status == 'Pending' && import_log.length > 0) {
+			status = 'Partially Completed'
+		}
+
 		return [__(status), colors[status], 'status,=,' + doc.status];
 	},
 	formatters: {
