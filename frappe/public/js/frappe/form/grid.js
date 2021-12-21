@@ -368,6 +368,7 @@ export default class Grid {
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
 				grid_row.doc = d;
+				grid_row.docfields = this.docfields;
 				grid_row.refresh();
 			} else {
 				var grid_row = new GridRow({
