@@ -141,7 +141,7 @@ def update_system_settings(args):
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
 		"country": args.get("country"),
-		"language": get_language_code(args.get("language")),
+		"language": get_language_code(args.get("language")) or 'en',
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
