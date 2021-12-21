@@ -108,9 +108,10 @@ body {
 	padding: 15px;
 	border-radius: var(--border-radius-md);
 	height: 100%;
-	box-shadow: var(--card-shadow);
+	border: 1px solid #C2D1E5;
+	// box-shadow: var(--card-shadow);
 	background-color: var(--card-bg);
-	border-left: 4px solid var(--pin1si-dashboard-text);
+	// border-left: 4px solid var(--pin1si-dashboard-text);
 
 	.btn {
 		box-shadow: none;
