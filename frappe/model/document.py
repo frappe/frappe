@@ -1386,6 +1386,21 @@ class Document(BaseDocument):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
+	def get_new_document_key(self):
+		doc = frappe.new_doc("Document Key")
+		doc.reference_doctype = self.doctype
+		doc.reference_docname = self.name
+		doc.key = frappe.generate_hash(length=32)
+		doc.insert(ignore_permissions=True)
+		return doc.key
+
+	def is_document_key_valid(self, key):
+		return frappe.db.exists("Document Key", {
+			"reference_doctype": self.doctype,
+			"reference_docname": self.name,
+			"key": key
+		})
+
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)
 		if liked_by:
