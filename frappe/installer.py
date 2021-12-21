@@ -323,7 +323,7 @@ def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
 			frappe.delete_doc("DocType", doctype, ignore_on_trash=True)
-			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
 
 
 def post_install(rebuild_website=False):

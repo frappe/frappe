@@ -26,6 +26,12 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          check-latest: true
+
       - name: Check if build should be run
         id: check-build
         run: |

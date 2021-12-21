@@ -10,7 +10,7 @@ def execute():
 			select
 				* from `__UserSettings`
 			where
-				user="{user}"
+				user='{user}'
 		'''.format(user = user.user), as_dict=True)
 
 		for setting in user_settings:

@@ -1,13 +1,13 @@
-// @import "~bootstrap/scss/bootstrap";
 @import './common/quill';
-@import "./desk/css_variables";
+@import './desk/css_variables';
 
-
-// .print-format {
-// 	.ql-snow .ql-editor {
-// 		height: auto;
-// 		min-height: 0;
-// 		// max-height: 0;
-// 	}
-// }
-
+// !! PDF Barcode hack !!
+// Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
+@media print {
+	svg[data-barcode-value] > rect {
+		fill: white !important;
+	}
+	svg[data-barcode-value] > g {
+		fill: black !important;
+	}
+}

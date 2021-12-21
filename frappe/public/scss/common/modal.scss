@@ -152,6 +152,8 @@ body.modal-open[style^="padding-right"] {
 
 .modal-minimize {
 	position: initial;
+	height: 0;
+	width: 0;
 
 	.modal-dialog {
 		position: fixed;

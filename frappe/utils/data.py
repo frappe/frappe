@@ -1594,7 +1594,7 @@ def get_user_info_for_avatar(user_id):
 	}
 	try:
 		user_info["email"] = frappe.get_cached_value("User", user_id, "email")
-		user_info["name"] = frappe.get_cached_value("User", user_id, "fullname")
+		user_info["name"] = frappe.get_cached_value("User", user_id, "full_name")
 		user_info["image"] = frappe.get_cached_value("User", user_id, "user_image")
 	except Exception:
 		frappe.local.message_log = []
