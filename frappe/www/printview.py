@@ -227,7 +227,7 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 
 def validate_print_permission(doc):
 	if frappe.form_dict.get("key"):
-		if frappe.form_dict.key == doc.get_signature():
+		if doc.is_document_key_valid(frappe.form_dict.key):
 			return
 
 	for ptype in ("read", "print"):
