@@ -1,9 +1,12 @@
 frappe.provide('frappe.ui.misc');
 frappe.ui.misc.about = function() {
 	if(!frappe.ui.misc.about_dialog) {
-		var d = new frappe.ui.Dialog({title: __('Frappe Framework')});
+		var d = new frappe.ui.Dialog({title: __('About Frappe Technologies Pvt. Ltd')});
 
 		$(d.body).html(repl("<div>\
+		<p>"+__("Frappe Framework is an open source project started and maintained by Frappe Technolgies Pvt. Ltd., Mumbai, India. It's a meta data driven framework, which helps in rapid application development. ERPNext is most well known and open source developed using Frappe Framework, driven by the community.")+"</p>  \
+		<p><a href='https://frappe.io/story' target='_blank'>Learn more</a> about the history of Frappe and ERPNext history.</p>\
+		<hr>\
 		<p>"+__("Open Source Applications for the Web")+"</p>  \
 		<p><i class='fa fa-globe fa-fw'></i>\
 			Website: <a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>\
