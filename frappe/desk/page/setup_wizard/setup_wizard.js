@@ -590,6 +590,7 @@ frappe.setup.utils = {
 
 			$timezone.empty();
 
+			if (!country) return;
 			// add country specific timezones first
 			const timezone_list = data.country_info[country].timezones || [];
 			$timezone.add_options(timezone_list.sort());
@@ -607,6 +608,7 @@ frappe.setup.utils = {
 
 		slide.get_input("currency").on("change", function () {
 			var currency = slide.get_input("currency").val();
+			if (!currency) return;
 			frappe.model.with_doc("Currency", currency, function () {
 				frappe.provide("locals.:Currency." + currency);
 				var currency_doc = frappe.model.get_doc("Currency", currency);
