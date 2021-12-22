@@ -94,9 +94,23 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 	import_db_from_sql(source_sql, verbose)
 
 	frappe.connect(db_name=db_name)
+<<<<<<< HEAD
 	if not 'tabDefaultValue' in frappe.db.get_tables():
 		print('''Database not installed, this can due to lack of permission, or that the database name exists.
 			Check your mysql root password, or use --force to reinstall''')
+=======
+	if 'tabDefaultValue' not in frappe.db.get_tables(cached=False):
+		from click import secho
+
+		secho(
+			"Table 'tabDefaultValue' missing in the restored site. "
+			"Database not installed correctly, this can due to lack of "
+			"permission, or that the database name exists. Check your mysql"
+			" root password, validity of the backup file or use --force to"
+			" reinstall",
+			fg="red"
+		)
+>>>>>>> d334379b02 (fix(restore): Repopulate db_tables cache after database restore)
 		sys.exit(1)
 
 def import_db_from_sql(source_sql=None, verbose=False):
