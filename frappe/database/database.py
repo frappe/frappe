@@ -837,9 +837,9 @@ class Database(object):
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		tables = frappe.cache().get_value('db_tables')
-		if not tables:
+		if not tables or not cached:
 			table_rows = self.sql("""
 				SELECT table_name
 				FROM information_schema.tables
