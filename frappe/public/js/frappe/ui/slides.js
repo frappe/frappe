@@ -289,6 +289,7 @@ frappe.ui.Slides = class Slides {
 				}
 			} else {
 				if (this.made_slide_ids.includes(id + "")) {
+					this.slide_dict[id].done = false;
 					this.slide_dict[id].destroy();
 					this.slide_dict[id].make();
 				}
