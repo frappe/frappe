@@ -198,3 +198,18 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 def format_message_for_assign_to(users):
 	return "<br><br>" + "<br>".join(users)
+
+def update_todo_status(doctype, doc):
+	'''update todo doc status when reference's status changes''''
+	if hasattr(doctype, 'status') and doctype.status in ['Completed', 'Closed']:
+		todo_list = frappe.get_all('ToDo', ['name', 'status'], {'reference_name': doctype.name})
+
+		for todo in todo_list:
+			if todo.status == doctype.status:
+				return
+		
+			else:
+				frappe.db.set_value('ToDo', {'name': todo.name}, 'status', 'Closed')
+
+
+
