@@ -35,7 +35,7 @@ frappe.listview_settings['Data Import'] = {
 			status = 'Not Started';
 		}
 		if (doc.status == 'Pending' && import_log.length > 0) {
-			status = 'Partially Completed'
+			status = 'Partially Completed';
 		}
 
 		return [__(status), colors[status], 'status,=,' + doc.status];
