@@ -261,7 +261,6 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None, ignore
 		controller.prepare_for_import(docdict)
 
 	doc = frappe.get_doc(docdict)
-	print("doc doc", doc)
 
 	reset_tree_properties(doc)
 	load_code_properties(doc, path)

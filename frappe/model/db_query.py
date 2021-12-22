@@ -135,8 +135,6 @@ class DatabaseQuery(object):
 			%(order_by)s
 			%(limit)s""" % args
 
-		print(query)
-
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
 				update=self.update, ignore_ddl=self.ignore_ddl, run=self.run)
 

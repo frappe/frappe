@@ -145,9 +145,6 @@ class Database(object):
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				print(query)
-				print("\n")
-				print(values)
 				self._cursor.execute(query, values)
 
 				if frappe.flags.in_migrate:

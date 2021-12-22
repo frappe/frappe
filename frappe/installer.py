@@ -58,8 +58,7 @@ def _new_site(
 	make_site_dirs()
 
 	installing = touch_file(get_site_path("locks", "installing.lock"))
-	# import pdb
-	# pdb.set_trace()
+
 	install_db(
 		root_login=mariadb_root_username,
 		root_password=mariadb_root_password,
