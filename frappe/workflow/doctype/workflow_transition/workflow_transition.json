@@ -1,100 +1,129 @@
 {
- "actions": [],
- "creation": "2013-02-22 01:27:36",
- "description": "Defines actions on states and the next step and allowed roles.",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "state",
-  "action",
-  "next_state",
-  "allowed",
-  "allow_self_approval",
-  "conditions",
-  "condition",
-  "column_break_7",
-  "example"
- ],
- "fields": [
-  {
-   "fieldname": "state",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "State",
-   "options": "Workflow State",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
-  },
-  {
-   "fieldname": "action",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Action",
-   "options": "Workflow Action Master",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
-  },
-  {
-   "fieldname": "next_state",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Next State",
-   "options": "Workflow State",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
-  },
-  {
-   "fieldname": "allowed",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Allowed",
-   "options": "Role",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
-  },
-  {
-   "default": "1",
-   "description": "Allow approval for creator of the document",
-   "fieldname": "allow_self_approval",
-   "fieldtype": "Check",
-   "label": "Allow Self Approval"
-  },
-  {
-   "fieldname": "conditions",
-   "fieldtype": "Section Break",
-   "label": "Conditions"
-  },
-  {
-   "fieldname": "condition",
-   "fieldtype": "Code",
-   "label": "Condition",
-   "options": "PythonExpression"
-  },
-  {
-   "fieldname": "column_break_7",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "example",
-   "fieldtype": "HTML",
-   "label": "Example",
-   "options": "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n<p>Allowed functions: \n</p><ul>\n<li>frappe.db.get_value</li>\n<li>frappe.db.get_list</li>\n<li>frappe.session</li>\n<li>frappe.utils.now_datetime</li>\n<li>frappe.utils.get_datetime</li>\n<li>frappe.utils.add_to_date</li>\n<li>frappe.utils.now</li>\n</ul>\n<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
-  }
- ],
- "idx": 1,
- "istable": 1,
- "links": [],
- "modified": "2021-07-21 13:24:59.084836",
- "modified_by": "Administrator",
- "module": "Workflow",
- "name": "Workflow Transition",
- "owner": "Administrator",
- "permissions": [],
- "sort_field": "modified",
- "sort_order": "DESC"
+"actions": [],
+"creation": "2013-02-22 01:27:36",
+"description": "Defines actions on states and the next step and allowed roles.",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"state",
+"action",
+"next_state",
+"allowed",
+"allow_self_approval",
+"conditions",
+"condition",
+"column_break_7",
+"example"
+],
+"fields": [
+{
+"fieldname": "state",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "State",
+"options": "Workflow State",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
+},
+{
+"fieldname": "action",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Action",
+"options": "Workflow Action Master",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
+},
+{
+"fieldname": "next_state",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Next State",
+"options": "Workflow State",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
+},
+{
+"fieldname": "allowed",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Allowed",
+"options": "Role",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
+},
+{
+"default": "1",
+"description": "Allow approval for creator of the document",
+"fieldname": "allow_self_approval",
+"fieldtype": "Check",
+"label": "Allow Self Approval"
+},
+{
+"fieldname": "conditions",
+"fieldtype": "Section Break",
+"label": "Conditions"
+},
+{
+"fieldname": "condition",
+"fieldtype": "Code",
+"label": "Condition",
+"options": "PythonExpression"
+},
+{
+"fieldname": "column_break_7",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "example",
+"fieldtype": "HTML",
+"label": "Example",
+"options": "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n<p>Allowed functions: \n</p><ul>\n<li>frappe.db.get_value</li>\n<li>frappe.db.get_list</li>\n<li>frappe.session</li>\n<li>frappe.utils.now_datetime</li>\n<li>frappe.utils.get_datetime</li>\n<li>frappe.utils.add_to_date</li>\n<li>frappe.utils.now</li>\n</ul>\n<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
+},
+{
+"label": "Parent",
+"fieldtype": "Data",
+"fieldname": "parent",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Field",
+"fieldtype": "Data",
+"fieldname": "parentfield",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Type",
+"fieldtype": "Data",
+"fieldname": "parenttype",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "IDX",
+"fieldtype": "Int",
+"fieldname": "idx",
+"read_only": 1,
+"hidden": 1,
+"default": 0
+}
+],
+"idx": 1,
+"istable": 1,
+"links": [],
+"modified": "2021-12-22 13:06:01.700632",
+"modified_by": "Administrator",
+"module": "Workflow",
+"name": "Workflow Transition",
+"owner": "Administrator",
+"permissions": [],
+"sort_field": "modified",
+"sort_order": "DESC"
 }

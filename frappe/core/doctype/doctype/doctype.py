@@ -74,6 +74,7 @@ class DocType(Document):
 		self.make_amendable()
 		self.make_repeatable()
 		self.validate_nestedset()
+		self.validate_child_table()
 		self.validate_website()
 		self.ensure_minimum_max_attachment_limit()
 		validate_links_table_fieldnames(self)
@@ -274,8 +275,9 @@ class DocType(Document):
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
-		restricted = ('name','parent','creation','modified','modified_by',
-			'parentfield','parenttype','file_list', 'flags', 'docstatus')
+		restricted = ['name','creation','modified','modified_by','file_list', 'flags', 'docstatus']
+		# if not self.get("istable"):
+		# 	restricted += ["parent", 'parentfield', 'parenttype']
 		for d in self.get("fields"):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
@@ -694,6 +696,47 @@ class DocType(Document):
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""",
 			self.name)
 		return max_idx and max_idx[0][0] or 0
+
+	def validate_child_table(self):
+		if not self.get('istable'):
+			return
+
+		self.add_child_table_fields()
+
+	def add_child_table_fields(self):
+		fieldnames = [df.fieldname for df in self.fields]
+		if 'parent' in fieldnames:
+			return
+
+		self.append("fields", {
+			"label": "Parent",
+			"fieldtype": "Data",
+			"fieldname": "parent",
+			"read_only": 1,
+			"hidden": 1
+		})
+		self.append("fields", {
+			"label": "Parent Field",
+			"fieldtype": "Data",
+			"fieldname": "parentfield",
+			"read_only": 1,
+			"hidden": 1
+		})
+		self.append("fields", {
+			"label": "Parent Type",
+			"fieldtype": "Data",
+			"fieldname": "parenttype",
+			"read_only": 1,
+			"hidden": 1
+		})
+		self.append("fields", {
+			"label": "IDX",
+			"fieldtype": "Int",
+			"fieldname": "idx",
+			"read_only": 1,
+			"hidden": 1,
+			"default": 0
+		})
 
 	def validate_name(self, name=None):
 		if not name:

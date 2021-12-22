@@ -6,7 +6,7 @@
 import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
-from frappe.model import default_fields, optional_fields
+from frappe.model import default_fields, optional_fields, child_table_fields
 from frappe import _
 from io import StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -142,7 +142,7 @@ def raise_invalid_field(fieldname):
 def is_standard(fieldname):
 	if '.' in fieldname:
 		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
-	return fieldname in default_fields or fieldname in optional_fields
+	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 def extract_fieldname(field):
 	for text in (',', '/*', '#'):

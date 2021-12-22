@@ -1,43 +1,72 @@
 {
- "actions": [],
- "creation": "2020-04-30 07:39:33.095554",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "social_link_type",
-  "color",
-  "background_color"
- ],
- "fields": [
-  {
-   "fieldname": "social_link_type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Social Link Type",
-   "options": "\nfacebook\nlinkedin\ntwitter\nemail"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Color",
-   "in_list_view": 1,
-   "label": "Color"
-  },
-  {
-   "fieldname": "background_color",
-   "fieldtype": "Color",
-   "in_list_view": 1,
-   "label": "Background Color"
-  }
- ],
- "istable": 1,
- "links": [],
- "modified": "2020-05-01 23:55:04.731518",
- "modified_by": "Administrator",
- "module": "Website",
- "name": "Social Link Settings",
- "owner": "Administrator",
- "permissions": [],
- "sort_field": "modified",
- "sort_order": "DESC"
+"actions": [],
+"creation": "2020-04-30 07:39:33.095554",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"social_link_type",
+"color",
+"background_color"
+],
+"fields": [
+{
+"fieldname": "social_link_type",
+"fieldtype": "Select",
+"in_list_view": 1,
+"label": "Social Link Type",
+"options": "\nfacebook\nlinkedin\ntwitter\nemail"
+},
+{
+"fieldname": "color",
+"fieldtype": "Color",
+"in_list_view": 1,
+"label": "Color"
+},
+{
+"fieldname": "background_color",
+"fieldtype": "Color",
+"in_list_view": 1,
+"label": "Background Color"
+},
+{
+"label": "Parent",
+"fieldtype": "Data",
+"fieldname": "parent",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Field",
+"fieldtype": "Data",
+"fieldname": "parentfield",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Type",
+"fieldtype": "Data",
+"fieldname": "parenttype",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "IDX",
+"fieldtype": "Int",
+"fieldname": "idx",
+"read_only": 1,
+"hidden": 1,
+"default": 0
+}
+],
+"istable": 1,
+"links": [],
+"modified": "2021-12-22 13:05:55.123679",
+"modified_by": "Administrator",
+"module": "Website",
+"name": "Social Link Settings",
+"owner": "Administrator",
+"permissions": [],
+"sort_field": "modified",
+"sort_order": "DESC"
 }

@@ -1,33 +1,62 @@
 {
- "actions": [],
- "creation": "2021-01-24 03:05:24.634719",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "module"
- ],
- "fields": [
-  {
-   "fieldname": "module",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Module",
-   "options": "Module Def",
-   "reqd": 1
-  }
- ],
- "index_web_pages_for_search": 1,
- "istable": 1,
- "links": [],
- "modified": "2021-01-24 03:07:43.602927",
- "modified_by": "Administrator",
- "module": "Core",
- "name": "User Type Module",
- "owner": "Administrator",
- "permissions": [],
- "quick_entry": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+"actions": [],
+"creation": "2021-01-24 03:05:24.634719",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"module"
+],
+"fields": [
+{
+"fieldname": "module",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Module",
+"options": "Module Def",
+"reqd": 1
+},
+{
+"label": "Parent",
+"fieldtype": "Data",
+"fieldname": "parent",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Field",
+"fieldtype": "Data",
+"fieldname": "parentfield",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Type",
+"fieldtype": "Data",
+"fieldname": "parenttype",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "IDX",
+"fieldtype": "Int",
+"fieldname": "idx",
+"read_only": 1,
+"hidden": 1,
+"default": 0
+}
+],
+"index_web_pages_for_search": 1,
+"istable": 1,
+"links": [],
+"modified": "2021-12-21 22:46:29.111951",
+"modified_by": "Administrator",
+"module": "Core",
+"name": "User Type Module",
+"owner": "Administrator",
+"permissions": [],
+"quick_entry": 1,
+"sort_field": "modified",
+"sort_order": "DESC",
+"track_changes": 1
 }

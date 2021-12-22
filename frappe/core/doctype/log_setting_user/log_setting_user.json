@@ -1,34 +1,63 @@
 {
- "actions": [],
- "autoname": "field:user",
- "creation": "2020-10-08 13:09:36.034430",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "user"
- ],
- "fields": [
-  {
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "User",
-   "options": "User",
-   "reqd": 1,
-   "unique": 1
-  }
- ],
- "index_web_pages_for_search": 1,
- "istable": 1,
- "links": [],
- "modified": "2020-10-08 17:22:04.690348",
- "modified_by": "Administrator",
- "module": "Core",
- "name": "Log Setting User",
- "owner": "Administrator",
- "permissions": [],
- "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+"actions": [],
+"autoname": "field:user",
+"creation": "2020-10-08 13:09:36.034430",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"user"
+],
+"fields": [
+{
+"fieldname": "user",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "User",
+"options": "User",
+"reqd": 1,
+"unique": 1
+},
+{
+"label": "Parent",
+"fieldtype": "Data",
+"fieldname": "parent",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Field",
+"fieldtype": "Data",
+"fieldname": "parentfield",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Type",
+"fieldtype": "Data",
+"fieldname": "parenttype",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "IDX",
+"fieldtype": "Int",
+"fieldname": "idx",
+"read_only": 1,
+"hidden": 1,
+"default": 0
+}
+],
+"index_web_pages_for_search": 1,
+"istable": 1,
+"links": [],
+"modified": "2021-12-21 22:46:23.579846",
+"modified_by": "Administrator",
+"module": "Core",
+"name": "Log Setting User",
+"owner": "Administrator",
+"permissions": [],
+"sort_field": "modified",
+"sort_order": "DESC",
+"track_changes": 1
 }

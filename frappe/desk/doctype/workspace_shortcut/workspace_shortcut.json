@@ -1,112 +1,141 @@
 {
- "actions": [],
- "creation": "2020-01-23 13:44:59.248426",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "type",
-  "link_to",
-  "doc_view",
-  "column_break_4",
-  "label",
-  "icon",
-  "restrict_to_domain",
-  "section_break_5",
-  "stats_filter",
-  "column_break_3",
-  "color",
-  "format"
- ],
- "fields": [
-  {
-   "fieldname": "type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Type",
-   "options": "DocType\nReport\nPage\nDashboard",
-   "reqd": 1
-  },
-  {
-   "fieldname": "link_to",
-   "fieldtype": "Dynamic Link",
-   "in_list_view": 1,
-   "label": "Link To",
-   "options": "type",
-   "reqd": 1
-  },
-  {
-   "depends_on": "eval:doc.type == \"DocType\"",
-   "description": "Which view of the associated DocType should this shortcut take you to?",
-   "fieldname": "doc_view",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "DocType View",
-   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "label",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Label",
-   "reqd": 1
-  },
-  {
-   "depends_on": "eval:frappe.boot.developer_mode",
-   "fieldname": "icon",
-   "fieldtype": "Data",
-   "label": "Icon"
-  },
-  {
-   "depends_on": "eval:frappe.boot.developer_mode",
-   "fieldname": "restrict_to_domain",
-   "fieldtype": "Link",
-   "label": "Restrict to Domain",
-   "options": "Domain"
-  },
-  {
-   "depends_on": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
-   "fieldname": "section_break_5",
-   "fieldtype": "Section Break",
-   "label": "Count Filter"
-  },
-  {
-   "fieldname": "stats_filter",
-   "fieldtype": "Code",
-   "label": "Count Filter",
-   "options": "JSON"
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Color",
-   "label": "Color"
-  },
-  {
-   "description": "For example: {} Open",
-   "fieldname": "format",
-   "fieldtype": "Data",
-   "label": "Format"
-  }
- ],
- "index_web_pages_for_search": 1,
- "istable": 1,
- "links": [],
- "modified": "2021-01-12 13:13:17.571324",
- "modified_by": "Administrator",
- "module": "Desk",
- "name": "Workspace Shortcut",
- "owner": "Administrator",
- "permissions": [],
- "quick_entry": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+"actions": [],
+"creation": "2020-01-23 13:44:59.248426",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"type",
+"link_to",
+"doc_view",
+"column_break_4",
+"label",
+"icon",
+"restrict_to_domain",
+"section_break_5",
+"stats_filter",
+"column_break_3",
+"color",
+"format"
+],
+"fields": [
+{
+"fieldname": "type",
+"fieldtype": "Select",
+"in_list_view": 1,
+"label": "Type",
+"options": "DocType\nReport\nPage\nDashboard",
+"reqd": 1
+},
+{
+"fieldname": "link_to",
+"fieldtype": "Dynamic Link",
+"in_list_view": 1,
+"label": "Link To",
+"options": "type",
+"reqd": 1
+},
+{
+"depends_on": "eval:doc.type == \"DocType\"",
+"description": "Which view of the associated DocType should this shortcut take you to?",
+"fieldname": "doc_view",
+"fieldtype": "Select",
+"in_list_view": 1,
+"label": "DocType View",
+"options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar"
+},
+{
+"fieldname": "column_break_4",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "label",
+"fieldtype": "Data",
+"in_list_view": 1,
+"label": "Label",
+"reqd": 1
+},
+{
+"depends_on": "eval:frappe.boot.developer_mode",
+"fieldname": "icon",
+"fieldtype": "Data",
+"label": "Icon"
+},
+{
+"depends_on": "eval:frappe.boot.developer_mode",
+"fieldname": "restrict_to_domain",
+"fieldtype": "Link",
+"label": "Restrict to Domain",
+"options": "Domain"
+},
+{
+"depends_on": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
+"fieldname": "section_break_5",
+"fieldtype": "Section Break",
+"label": "Count Filter"
+},
+{
+"fieldname": "stats_filter",
+"fieldtype": "Code",
+"label": "Count Filter",
+"options": "JSON"
+},
+{
+"fieldname": "column_break_3",
+"fieldtype": "Column Break"
+},
+{
+"fieldname": "color",
+"fieldtype": "Color",
+"label": "Color"
+},
+{
+"description": "For example: {} Open",
+"fieldname": "format",
+"fieldtype": "Data",
+"label": "Format"
+},
+{
+"label": "Parent",
+"fieldtype": "Data",
+"fieldname": "parent",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Field",
+"fieldtype": "Data",
+"fieldname": "parentfield",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Type",
+"fieldtype": "Data",
+"fieldname": "parenttype",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "IDX",
+"fieldtype": "Int",
+"fieldname": "idx",
+"read_only": 1,
+"hidden": 1,
+"default": 0
+}
+],
+"index_web_pages_for_search": 1,
+"istable": 1,
+"links": [],
+"modified": "2021-12-21 22:46:20.246939",
+"modified_by": "Administrator",
+"module": "Desk",
+"name": "Workspace Shortcut",
+"owner": "Administrator",
+"permissions": [],
+"quick_entry": 1,
+"sort_field": "modified",
+"sort_order": "DESC",
+"track_changes": 1
 }

@@ -26,12 +26,7 @@ class MariaDBTable(DBTable):
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus int(1) not null default '0',
-			parent varchar({varchar_len}),
-			parentfield varchar({varchar_len}),
-			parenttype varchar({varchar_len}),
-			idx int(8) not null default '0',
 			{additional_definitions}
-			index parent(parent),
 			index modified(modified))
 			ENGINE={engine}
 			ROW_FORMAT=DYNAMIC

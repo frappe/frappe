@@ -1,53 +1,82 @@
 {
- "actions": [],
- "creation": "2021-09-21 11:38:13.521979",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "folder_name",
-  "append_to",
-  "uidvalidity",
-  "uidnext"
- ],
- "fields": [
-  {
-   "fieldname": "folder_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Folder Name",
-   "reqd": 1
-  },
-  {
-   "fieldname": "append_to",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Append To",
-   "options": "DocType"
-  },
-  {
-   "fieldname": "uidvalidity",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "UIDVALIDITY"
-  },
-  {
-   "fieldname": "uidnext",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "UIDNEXT"
-  }
- ],
- "index_web_pages_for_search": 1,
- "istable": 1,
- "links": [],
- "modified": "2021-09-21 11:53:00.811236",
- "modified_by": "Administrator",
- "module": "Email",
- "name": "IMAP Folder",
- "owner": "Administrator",
- "permissions": [],
- "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+"actions": [],
+"creation": "2021-09-21 11:38:13.521979",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+"folder_name",
+"append_to",
+"uidvalidity",
+"uidnext"
+],
+"fields": [
+{
+"fieldname": "folder_name",
+"fieldtype": "Data",
+"in_list_view": 1,
+"label": "Folder Name",
+"reqd": 1
+},
+{
+"fieldname": "append_to",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Append To",
+"options": "DocType"
+},
+{
+"fieldname": "uidvalidity",
+"fieldtype": "Data",
+"hidden": 1,
+"label": "UIDVALIDITY"
+},
+{
+"fieldname": "uidnext",
+"fieldtype": "Data",
+"hidden": 1,
+"label": "UIDNEXT"
+},
+{
+"label": "Parent",
+"fieldtype": "Data",
+"fieldname": "parent",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Field",
+"fieldtype": "Data",
+"fieldname": "parentfield",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "Parent Type",
+"fieldtype": "Data",
+"fieldname": "parenttype",
+"read_only": 1,
+"hidden": 1
+},
+{
+"label": "IDX",
+"fieldtype": "Int",
+"fieldname": "idx",
+"read_only": 1,
+"hidden": 1,
+"default": 0
+}
+],
+"index_web_pages_for_search": 1,
+"istable": 1,
+"links": [],
+"modified": "2021-12-22 13:06:05.732633",
+"modified_by": "Administrator",
+"module": "Email",
+"name": "IMAP Folder",
+"owner": "Administrator",
+"permissions": [],
+"sort_field": "modified",
+"sort_order": "DESC",
+"track_changes": 1
 }

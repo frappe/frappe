@@ -178,6 +178,53 @@ def read_doc_from_file(path):
 	else:
 		raise IOError("%s missing" % path)
 
+	#TODO: remove this
+	# if doc.get("istable", 0) == 1 and doc["name"] not in ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link'):
+	# 	e = False
+	# 	for x in doc["fields"]:
+	# 		if x["fieldname"] == "parent":
+	# 			e = True
+	# 			break
+
+	# 	if not e:
+	# 		doc["fields"].extend([
+	# 			{
+	# 				"label": "Parent",
+	# 				"fieldtype": "Data",
+	# 				"fieldname": "parent",
+	# 				"read_only": 1,
+	# 				"hidden": 1
+	# 			},
+	# 			{
+	# 				"label": "Parent Field",
+	# 				"fieldtype": "Data",
+	# 				"fieldname": "parentfield",
+	# 				"read_only": 1,
+	# 				"hidden": 1
+	# 			},
+	# 			{
+	# 				"label": "Parent Type",
+	# 				"fieldtype": "Data",
+	# 				"fieldname": "parenttype",
+	# 				"read_only": 1,
+	# 				"hidden": 1
+	# 			},
+	# 			{
+	# 				"label": "IDX",
+	# 				"fieldtype": "Int",
+	# 				"fieldname": "idx",
+	# 				"read_only": 1,
+	# 				"hidden": 1,
+	# 				"default": 0
+	# 			}
+	# 		])
+
+	# 		doc["modified"] = now()
+
+	# 		if os.path.exists(path):
+	# 			with open(path, "w") as f:
+	# 				json.dump(doc, f, indent="")
+
 	return doc
 
 
@@ -214,6 +261,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None, ignore
 		controller.prepare_for_import(docdict)
 
 	doc = frappe.get_doc(docdict)
+	print("doc doc", doc)
 
 	reset_tree_properties(doc)
 	load_code_properties(doc, path)
