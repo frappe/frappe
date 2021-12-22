@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe, os, copy, json, re
-from frappe import _
+from frappe import _, get_module_path
 
 from frappe.modules import get_doc_path
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -251,8 +251,9 @@ def get_print_format(doctype, print_format):
 			frappe.DoesNotExistError)
 
 	# server, find template
-	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
-		"Print Format", print_format.name), frappe.scrub(print_format.name) + ".html")
+	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
+	path = os.path.join(get_module_path(module, "Print Format",print_format.name),
+		frappe.scrub(print_format.name) + ".html")
 
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
