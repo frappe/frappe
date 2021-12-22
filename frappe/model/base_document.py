@@ -3,7 +3,7 @@
 import frappe
 import datetime
 from frappe import _
-from frappe.model import default_fields, table_fields
+from frappe.model import default_fields, default_fields_set, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -18,7 +18,7 @@ max_positive_value = {
 	'bigint': 2 ** 63
 }
 
-DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
+DOCTYPES_FOR_DOCTYPE = {'DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link'}
 
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
@@ -71,6 +71,9 @@ def get_controller(doctype):
 
 	return site_controllers[doctype]
 
+# This is default value constant for performance improvement in BaseDocument methods.
+_DEFAULT_VAL = object()
+
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
@@ -104,12 +107,13 @@ class BaseDocument(object):
 		"""
 		# first set default field values of base document
 		for key in default_fields:
-			_val = d.get(key)
-			if _val:
-				self.set(key, _val)
+			value = d.get(key, _DEFAULT_VAL)
+			if value is not _DEFAULT_VAL:
+				self.set(key, value)
 
 		for key, value in d.items():
-			self.set(key, value)
+			if key not in default_fields_set:
+				self.set(key, value)
 
 		return self
 
@@ -292,16 +296,18 @@ class BaseDocument(object):
 				self.__dict__[key] = None
 
 	def get_valid_columns(self):
-		if self.doctype not in frappe.local.valid_columns:
-			if self.doctype in DOCTYPES_FOR_DOCTYPE:
-				from frappe.model.meta import get_table_columns
-				valid = get_table_columns(self.doctype)
-			else:
-				valid = self.meta.get_valid_columns()
+		_cached_valid_columns = frappe.local.valid_columns.get(self.doctype, _DEFAULT_VAL)
+		if _cached_valid_columns is not _DEFAULT_VAL:
+			return _cached_valid_columns
 
-			frappe.local.valid_columns[self.doctype] = valid
+		if self.doctype in DOCTYPES_FOR_DOCTYPE:
+			from frappe.model.meta import get_table_columns
+			valid = get_table_columns(self.doctype)
+		else:
+			valid = self.meta.get_valid_columns()
 
-		return frappe.local.valid_columns[self.doctype]
+		frappe.local.valid_columns[self.doctype] = valid
+		return valid
 
 	def is_new(self):
 		return self.get("__islocal")

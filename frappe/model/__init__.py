@@ -96,6 +96,7 @@ default_fields = (
 	'idx',
 	'docstatus'
 )
+default_fields_set = set(default_fields)
 
 optional_fields = (
 	"_user_tags",
