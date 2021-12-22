@@ -4,7 +4,6 @@
 import frappe, os, copy, json, re
 from frappe import _, get_module_path
 
-from frappe.modules import get_doc_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cint, sanitize_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
