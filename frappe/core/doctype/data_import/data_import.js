@@ -109,16 +109,16 @@ frappe.ui.form.on('Data Import', {
 		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
 			if (!frm.is_new() && (frm.has_import_file())) {
-				let label = ''
+				let label = '';
 				if (frm.doc.status === 'Pending') {
 					let import_log = JSON.parse(frm.doc.import_log || '[]');
-					if (import_log) {
-						label = __('Continue Import')
+					if (import_log.length > 0) {
+						label = __('Continue Import');
 					} else {
-						label = __('Start Import')
+						label = __('Start Import');
 					}
 				} else {
-					label = __('Retry')
+					label = __('Retry');
 				}
 
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
