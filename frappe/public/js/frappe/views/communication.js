@@ -420,9 +420,15 @@ frappe.views.CommunicationComposer = class {
 
 		// select print format
 		$(fields.select_print_format.wrapper).toggle(false);
-
+		
 		if (this.frm) {
 			const print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
+			$(fields.select_print_format.input)
+			.empty()
+			.add_options(print_formats)
+			.val(print_formats[0]);
+		} else if(this.report) {
+			const print_formats = frappe.meta.get_print_formats("Customer", "Standard");
 			$(fields.select_print_format.input)
 				.empty()
 				.add_options(print_formats)
