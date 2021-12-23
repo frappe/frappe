@@ -523,12 +523,18 @@ frappe.setup.utils = {
 		/*
 			Set a slide's country, timezone and currency fields
 		*/
-		var data = frappe.setup.data.regional_data;
+		let data = frappe.setup.data.regional_data;
+		let country_field = slide.get_field('country');
+		let translated_countries = [];
 
-		var country_field = slide.get_field('country');
+		Object.keys(data.country_info).sort().forEach(country => {
+			translated_countries.push({
+				label: __(country),
+				value: country
+			});
+		})
 
-
-		country_field.set_data(Object.keys(data.country_info).sort());
+		country_field.set_data(translated_countries);
 
 		slide.get_input("currency")
 			.empty()
