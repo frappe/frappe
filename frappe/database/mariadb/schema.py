@@ -18,6 +18,17 @@ class MariaDBTable(DBTable):
 		if index_defs:
 			additional_definitions += ',\n'.join(index_defs) + ',\n'
 
+		# child table columns
+		if self.meta.get("istable") or 0:
+			additional_definitions += ',\n'.join(
+				(
+					f"parent varchar({varchar_len})",
+					f"parentfield varchar({varchar_len})",
+					f"parenttype varchar({varchar_len})",
+					"idx int(8) not null default '0'"
+				)
+			) + ',\n'
+
 		# create table
 		query = f"""create table `{self.table_name}` (
 			name varchar({varchar_len}) not null primary key,
@@ -26,12 +37,7 @@ class MariaDBTable(DBTable):
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus int(1) not null default '0',
-			parent varchar({varchar_len}),
-			parentfield varchar({varchar_len}),
-			parenttype varchar({varchar_len}),
-			idx int(8) not null default '0',
 			{additional_definitions}
-			index parent(parent),
 			index modified(modified))
 			ENGINE={engine}
 			ROW_FORMAT=DYNAMIC

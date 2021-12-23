@@ -118,7 +118,6 @@ class WebsiteGenerator(Document):
 			"doc": self,
 			"page_or_generator": "Generator",
 			"ref_doctype":self.doctype,
-			"idx": self.idx,
 			"docname": self.name,
 			"controller": get_module_name(self.doctype, self.meta.module),
 		})

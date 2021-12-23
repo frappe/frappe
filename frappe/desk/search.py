@@ -147,7 +147,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			from frappe.model.db_query import get_order_by
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			# 2 is the index of _relevance column
-			order_by = "_relevance, {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
+			order_by = "_relevance, {0}".format(order_by_based_on_meta)
 
 			ptype = 'select' if frappe.only_has_select_perm(doctype) else 'read'
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype, ptype=ptype))

@@ -94,7 +94,8 @@ def handle():
 						"data": doc.save().as_dict()
 					})
 
-					if doc.parenttype and doc.parent:
+					# check for child table doctype
+					if doc.get("parenttype"):
 						frappe.get_doc(doc.parenttype, doc.parent).save()
 
 					frappe.db.commit()

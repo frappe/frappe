@@ -10,8 +10,7 @@ $.extend(frappe.model, {
 	layout_fields: ['Section Break', 'Column Break', 'Tab Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
-		'parent', 'parenttype', 'parentfield', 'idx'],
+		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus'],
 
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
@@ -20,7 +19,6 @@ $.extend(frappe.model, {
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
 		{fieldname:'owner', fieldtype:'Link', label:__('Created By'), options: 'User'},
-		{fieldname:'idx', fieldtype:'Int', label:__('Index')},
 		{fieldname:'creation', fieldtype:'Date', label:__('Created On')},
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
 		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
