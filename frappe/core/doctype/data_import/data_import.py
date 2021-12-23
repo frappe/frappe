@@ -29,6 +29,10 @@ class DataImport(Document):
 		self.validate_google_sheets_url()
 
 	def validate_import_file(self):
+		
+		if self.status == 'Pending' and self.import_log:
+			frappe.throw(_("File cannot be changed for partially completed imports. Either continue import or make a fresh import"))
+
 		if self.import_file:
 			# validate template
 			self.get_importer()
@@ -66,7 +70,7 @@ class DataImport(Document):
 		if self.name not in enqueued_jobs:
 			enqueue(
 				start_import,
-				queue="long",
+				queue="default",
 				timeout=10000,
 				event="data_import",
 				job_name=self.name,

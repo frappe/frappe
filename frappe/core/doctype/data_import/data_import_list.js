@@ -20,7 +20,7 @@ frappe.listview_settings['Data Import'] = {
 			'Pending': 'orange',
 			'Not Started': 'orange',
 			'Partial Success': 'orange',
-			'Partial Completed': 'orange',
+			'Partially Completed': 'orange',
 			'Success': 'green',
 			'In Progress': 'orange',
 			'Error': 'red'
