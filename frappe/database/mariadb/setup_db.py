@@ -129,7 +129,7 @@ def check_database_settings():
 	# Check each expected value vs. actuals:
 	result = True
 	for key, expected_value in expected_variables.items():
-		if mariadb_variables.get(key) != expected_value:
+		if mariadb_variables.get(key) != expected_value and key != 'collation_server':
 			print("For key %s. Expected value %s, found value %s" %
 				  (key, expected_value, mariadb_variables.get(key)))
 			result = False
