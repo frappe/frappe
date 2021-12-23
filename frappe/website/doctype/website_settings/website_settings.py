@@ -177,3 +177,7 @@ def get_items(parentfield):
 					t['child_items'].append(d)
 					break
 	return top_items
+
+@frappe.whitelist(allow_guest=True)
+def get_auto_account_deletion():
+	return frappe.db.get_single_value("Website Settings", "auto_account_deletion")

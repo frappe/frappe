@@ -38,13 +38,13 @@ class TestDB(unittest.TestCase):
 				"User", Field("name") == "Administrator", for_update=True, run=False
 			).lower(),
 		)
-		doctype = frappe.qb.DocType("User")
+		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
-			frappe.qb.from_(doctype).select(doctype.name, doctype.email).run(),
+			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email).run(),
 			frappe.db.get_values(
-				doctype,
+				user_doctype,
 				filters={},
-				fieldname=[doctype.name, doctype.email],
+				fieldname=[user_doctype.name, user_doctype.email],
 				order_by=None,
 			),
 		)
@@ -53,6 +53,19 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
+		self.assertEqual(
+			frappe.db.get_values(
+				"User",
+				filters={"name": "Administrator"},
+				distinct=True,
+				fieldname="email",
+			),
+			frappe.qb.from_(user_doctype)
+			.where(user_doctype.name == "Administrator")
+			.select("email")
+			.distinct()
+			.run(),
+		)
 
 		self.assertIn(
 			"concat_ws",
@@ -231,6 +244,28 @@ class TestDB(unittest.TestCase):
 		for doc in created_docs:
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
+
+
+	def test_savepoints(self):
+		frappe.db.rollback()
+		save_point = "todonope"
+
+		created_docs = []
+		failed_docs = []
+
+		for _ in range(5):
+			frappe.db.savepoint(save_point)
+			doc_gone = frappe.get_doc(doctype="ToDo", description="nope").save()
+			failed_docs.append(doc_gone.name)
+			frappe.db.rollback(save_point=save_point)
+			doc_kept = frappe.get_doc(doctype="ToDo", description="nope").save()
+			created_docs.append(doc_kept.name)
+		frappe.db.commit()
+
+		for d in failed_docs:
+			self.assertFalse(frappe.db.exists("ToDo", d))
+		for d in created_docs:
+			self.assertTrue(frappe.db.exists("ToDo", d))
 
 
 @run_only_if(db_type_is.MARIADB)

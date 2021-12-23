@@ -28,7 +28,8 @@ Object.defineProperty(Object.prototype, "setDefault", {
 	value: function(key, default_value) {
 		if (!(key in this)) this[key] = default_value;
 		return this[key];
-	}
+	},
+	writable: true
 });
 
 // Pluralize

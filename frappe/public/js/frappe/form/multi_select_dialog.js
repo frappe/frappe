@@ -12,7 +12,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	init() {
 		this.page_length = 20;
-		this.start = 0;
+		this.child_page_length = 20;
 		this.fields = this.get_fields();
 
 		this.make();
@@ -29,7 +29,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_result_fields() {
 		const show_next_page = () => {
-			this.start += 20;
+			this.page_length += 20;
 			this.get_results();
 		};
 		return [
@@ -58,7 +58,15 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	get_child_selection_fields() {
 		const fields = [];
 		if (this.allow_child_item_selection && this.child_fieldname) {
+			const show_more_child_results = () => {
+				this.child_page_length += 20;
+				this.show_child_results();
+			};
 			fields.push({ fieldtype: "HTML", fieldname: "child_selection_area" });
+			fields.push({
+				fieldtype: "Button", fieldname: "more_child_btn", hidden: 1,
+				label: __("More"), click: show_more_child_results.bind(this)
+			});
 		}
 		return fields;
 	}
@@ -124,23 +132,27 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	setup_results() {
 		this.$parent = $(this.dialog.body);
-		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results mt-3"
+		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results my-3"
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
 
 		this.$results = this.$wrapper.find('.results');
 		this.$results.append(this.make_list_row());
 	}
 
+	show_child_results() {
+		this.get_child_result().then(r => {
+			this.child_results = r.message || [];
+			this.render_child_datatable();
+
+			this.$wrapper.addClass('hidden');
+			this.$child_wrapper.removeClass('hidden');
+			this.dialog.fields_dict.more_btn.$wrapper.hide();
+		});
+	}
+
 	toggle_child_selection() {
 		if (this.dialog.fields_dict['allow_child_item_selection'].get_value()) {
-			this.get_child_result().then(r => {
-				this.child_results = r.message || [];
-				this.render_child_datatable();
-
-				this.$wrapper.addClass('hidden');
-				this.$child_wrapper.removeClass('hidden');
-				this.dialog.fields_dict.more_btn.$wrapper.hide();
-			});
+			this.show_child_results();
 		} else {
 			this.child_results = [];
 			this.get_results();
@@ -157,6 +169,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				this.child_datatable.rowmanager.checkMap = [];
 				this.child_datatable.refresh(this.get_child_datatable_rows());
 				this.$child_wrapper.find('.dt-scrollable').css('height', '300px');
+				this.$child_wrapper.find('.dt-scrollable').css('overflow-y', 'scroll');
 			}, 500);
 		}
 	}
@@ -167,14 +180,21 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_child_datatable_rows() {
-		return this.child_results.map(d => Object.values(d).slice(1)); // slice name field
+		if (this.child_results.length > this.child_page_length) {
+			this.dialog.fields_dict.more_child_btn.toggle(true);
+		} else {
+			this.dialog.fields_dict.more_child_btn.toggle(false);
+		}
+		return this.child_results
+			.slice(0, this.child_page_length)
+			.map(d => Object.values(d).slice(1)); // slice name field
 	}
 
 	setup_child_datatable() {
 		const header_columns = this.get_child_datatable_columns();
 		const rows = this.get_child_datatable_rows();
 		this.$child_wrapper = this.dialog.fields_dict.child_selection_area.$wrapper;
-		this.$child_wrapper.addClass('mt-3');
+		this.$child_wrapper.addClass('my-3');
 
 		this.child_datatable = new frappe.DataTable(this.$child_wrapper.get(0), {
 			columns: header_columns,
@@ -412,7 +432,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			this.empty_list();
 		}
 		more_btn.hide();
-		$(".modal-dialog .list-item--head").css("z-index", 0);
+		$(".modal-dialog .list-item--head").css("z-index", 1);
 
 		if (results.length === 0) return;
 		if (more) more_btn.show();
@@ -425,7 +445,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				me.$results.append(me.make_list_row(result));
 			});
 
-		this.$results.find(".list-item--head").css("z-index", 0);
+		this.$results.find(".list-item--head").css("z-index", 1);
 
 		if (frappe.flags.auto_scroll) {
 			this.$results.animate({ scrollTop: me.$results.prop('scrollHeight') }, 500);
@@ -486,8 +506,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			txt: this.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: filter_fields,
-			start: this.start,
-			page_length: this.page_length + 1,
+			page_length: this.page_length + 5,
 			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
 		};
@@ -501,9 +520,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			args: args,
 		});
 		const more = res.values.length && res.values.length > this.page_length ? 1 : 0;
-		if (more) {
-			res.values.pop();
-		}
 
 		return [res, more];
 	}
@@ -511,6 +527,10 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	async get_results() {
 		const args = this.get_args_for_search();
 		const [res, more] = await this.perform_search(args);
+
+		if (more) {
+			res.values = res.values.splice(0, this.page_length);
+		}
 
 		this.results = [];
 		if (res.values.length) {
@@ -565,6 +585,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				filters: filters,
 				fields: ['name', 'parent', ...this.child_columns],
 				parent: this.doctype,
+				limit_page_length: this.child_page_length + 5,
 				order_by: 'parent'
 			}
 		});
