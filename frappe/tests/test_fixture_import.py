@@ -53,3 +53,30 @@ class TestFixtureImport(unittest.TestCase):
 			imported_data.add(item["member_name"])
 
 		self.assertEqual(set(dummy_name_list), imported_data)
+
+	def test_singles_fixtures_import(self):
+		self.assertFalse(frappe.db.exists("DocType", "temp_singles"))
+
+		self.create_new_doctype("temp_singles")
+
+		dummy_name_list = ["Phoebe"]
+		path_to_exported_fixtures = self.insert_dummy_data_and_export("temp_singles", dummy_name_list)
+
+		singles_doctype = frappe.qb.DocType("Singles")
+		truncate_query = (
+							frappe.qb.from_(singles_doctype)
+							.delete()
+							.where(
+								singles_doctype.doctype == "temp_singles")
+						 )
+		truncate_query.run()
+
+		import_doc(path_to_exported_fixtures)
+
+		delete_doc("DocType", "temp_singles", delete_permanently=True)
+		os.remove(path_to_exported_fixtures)
+
+		data = frappe.db.get_single_value("temp_singles", "member_name")
+		truncate_query.run()
+
+		self.assertEqual(data, dummy_name_list[0])
