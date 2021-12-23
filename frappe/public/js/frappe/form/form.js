@@ -211,12 +211,24 @@ frappe.ui.form.Form = class FrappeForm {
 		this.fields = this.layout.fields_list;
 
 		let dashboard_parent = $('<div class="form-dashboard">');
+		let dashboard_added = false;
 
 		if (this.layout.tabs.length) {
-			this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+			this.layout.tabs.every(tab => {
+				if (tab.df.options === 'Dashboard') {
+					tab.wrapper.prepend(dashboard_parent);
+					dashboard_added = true;
+					return false;
+				}
+				return true;
+			});
+			if (!dashboard_added) {
+				this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+			}
 		} else {
 			dashboard_parent.insertAfter(this.layout.wrapper.find('.form-message'));
 		}
+
 		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({
