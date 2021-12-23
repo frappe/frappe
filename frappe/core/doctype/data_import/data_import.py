@@ -70,7 +70,7 @@ class DataImport(Document):
 		if self.name not in enqueued_jobs:
 			enqueue(
 				start_import,
-				queue="long",
+				queue="default",
 				timeout=10000,
 				event="data_import",
 				job_name=self.name,
@@ -83,6 +83,9 @@ class DataImport(Document):
 
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()
+
+	def download_import_log(self):
+		return self.get_importer().export_import_log()
 
 	def get_importer(self):
 		return Importer(self.reference_doctype, data_import=self)
@@ -148,6 +151,11 @@ def download_template(
 def download_errored_template(data_import_name):
 	data_import = frappe.get_doc("Data Import", data_import_name)
 	data_import.export_errored_rows()
+
+@frappe.whitelist()
+def download_import_log(data_import_name):
+	data_import = frappe.get_doc("Data Import", data_import_name)
+	data_import.download_import_log()
 
 
 def import_file(

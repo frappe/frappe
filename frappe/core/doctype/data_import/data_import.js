@@ -333,6 +333,15 @@ frappe.ui.form.on('Data Import', {
 		);
 	},
 
+	export_import_log(frm) {
+		open_url_post(
+			'/api/method/frappe.core.doctype.data_import.data_import.download_import_log',
+			{
+				data_import_name: frm.doc.name
+			}
+		);
+	},
+
 	show_import_warnings(frm, preview_data) {
 		let columns = preview_data.columns;
 		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
@@ -419,7 +428,9 @@ frappe.ui.form.on('Data Import', {
 			return;
 		}
 
-		let rows = logs
+		// Show import logs only if rows are less than 5000
+		if (logs.length < 5000) {
+			let rows = logs
 			.map(log => {
 				let html = '';
 				if (log.success) {
@@ -495,5 +506,10 @@ frappe.ui.form.on('Data Import', {
 				${rows}
 			</table>
 		`);
+		} else if (logs.length > 0) {
+			frm.add_custom_button(__('Export Import Log'), () =>
+				frm.trigger('export_import_log')
+			);
+		}
 	},
 });

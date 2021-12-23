@@ -273,6 +273,26 @@ class Importer:
 
 		build_csv_response(rows, _(self.doctype))
 
+	def export_import_log(self):
+		from frappe.utils.csvutils import build_csv_response
+
+		if not self.data_import:
+			return
+		import_log = frappe.parse_json(self.data_import.import_log or "[]")
+		header_row = ["Row Numbers", "Status", "Message", "Exception"]
+
+		rows = [header_row]
+
+		for log in import_log:
+			row_number = log.get("row_indexes")[0]
+			status = "Success" if log.get('success') else "Failure"
+			message = "Successfully Imported {0}".format(log.get('docname')) if log.get('success') else \
+				log.get("messages")
+			exception = frappe.utils.cstr(log.get("exception", ''))
+			rows += [[row_number, status, message, exception]]
+
+		build_csv_response(rows, self.doctype)
+
 	def print_import_log(self, import_log):
 		failed_records = [log for log in import_log if not log.success]
 		successful_records = [log for log in import_log if log.success]
