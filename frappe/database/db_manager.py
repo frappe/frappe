@@ -38,7 +38,7 @@ class DbManager:
 		if target in self.get_database_list():
 			self.drop_database(target)
 
-		self.db.sql("CREATE DATABASE `%s` ;" % target)
+		self.db.sql("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" % target)
 
 	def drop_database(self, target):
 		self.db.sql("DROP DATABASE IF EXISTS `%s`;" % target)
@@ -50,7 +50,8 @@ class DbManager:
 		if frappe.conf.get('rds_db', 0) == 1:
 			self.db.sql("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 		else:
-			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+			self.db.sql("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP,  INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, REFERENCES, GRANT OPTION, ALTER ROUTINE, TRIGGER ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+            # self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
 	def flush_privileges(self):
 		self.db.sql("FLUSH PRIVILEGES")
