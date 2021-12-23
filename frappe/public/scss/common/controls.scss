@@ -1,5 +1,6 @@
 @import "grid";
 @import "color_picker";
+@import "icon_picker";
 @import "datepicker";
 
 // password
@@ -230,6 +231,16 @@ textarea.form-control {
 	background-color: var(--control-bg);
 	border-radius: var(--border-radius);
 	padding: var(--padding-md);
+
+	svg > rect {
+		fill: var(--control-bg) !important;
+	}
+	svg > g {
+		fill: var(--text-color) !important;
+	}
+	svg > text {
+		font-family: var(--font-stack) !important;
+	}
 }
 
 @media (min-width: 768px) {

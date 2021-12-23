@@ -54,6 +54,14 @@ class Report(Document):
 			and not frappe.flags.in_patch):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role('report', self.name)
+		self.delete_prepared_reports()
+
+	def delete_prepared_reports(self):
+		prepared_reports = frappe.get_all("Prepared Report", filters={'ref_report_doctype': self.name}, pluck='name')
+
+		for report in prepared_reports:
+			frappe.delete_doc("Prepared Report", report, ignore_missing=True, force=True,
+					delete_permanently=True)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields = True) for d in self.columns]
@@ -108,7 +116,7 @@ class Report(Document):
 		if not self.query.lower().startswith("select"):
 			frappe.throw(_("Query must be a SELECT"), title=_('Report Document Error'))
 
-		result = [list(t) for t in frappe.db.sql(self.query, filters, debug=True)]
+		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
 
 		return [columns, result]

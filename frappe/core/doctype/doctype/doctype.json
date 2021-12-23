@@ -147,7 +147,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "1",
+   "default": "0",
    "depends_on": "eval:!doc.istable",
    "description": "If enabled, changes to the document are tracked and shown in timeline",
    "fieldname": "track_changes",
@@ -628,7 +628,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-08-31 15:26:19.077164",
+ "modified": "2021-11-01 15:26:19.077164",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

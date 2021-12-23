@@ -228,6 +228,7 @@ CREATE TABLE "tabDocType" (
   "email_append_to" smallint NOT NULL DEFAULT 0,
   "subject_field" varchar(255) DEFAULT NULL,
   "sender_field" varchar(255) DEFAULT NULL,
+  "migration_hash" varchar(255) DEFAULT NULL,
   PRIMARY KEY ("name")
 ) ;
 

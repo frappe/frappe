@@ -16,7 +16,7 @@ from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
@@ -123,7 +123,7 @@ def validate_filters(data, filters):
 
 def setup_group_by(data):
 	'''Add columns for aggregated values e.g. count(name)'''
-	if data.group_by:
+	if data.group_by and data.aggregate_function:
 		if data.aggregate_function.lower() not in ('count', 'sum', 'avg'):
 			frappe.throw(_('Invalid aggregate function'))
 
@@ -182,15 +182,16 @@ def update_wildcard_field_param(data):
 
 
 def clean_params(data):
-	data.pop('cmd', None)
-	data.pop('data', None)
-	data.pop('ignore_permissions', None)
-	data.pop('view', None)
-	data.pop('user', None)
-
-	if "csrf_token" in data:
-		del data["csrf_token"]
-
+	for param in (
+		"cmd",
+		"data",
+		"ignore_permissions",
+		"view",
+		"user",
+		"csrf_token",
+		"join"
+	):
+		data.pop(param, None)
 
 def parse_json(data):
 	if isinstance(data.get("filters"), string_types):
@@ -216,11 +217,13 @@ def get_parenttype_and_fieldname(field, data):
 
 	return parenttype, fieldname
 
-def compress(data, args = {}):
+def compress(data, args=None):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
 
 	if not data: return data
+	if args is None:
+		args = {}
 	values = []
 	keys = list(data[0])
 	for row in data:
@@ -425,15 +428,20 @@ def delete_bulk(doctype, items):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=[]):
+def get_sidebar_stats(stats, doctype, filters=None):
+	if filters is None:
+		filters = []
 
 	return {"stats": get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=[]):
+def get_stats(stats, doctype, filters=None):
 	"""get tag info"""
 	import json
+
+	if filters is None:
+		filters = []
 	tags = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)
@@ -482,12 +490,11 @@ def get_stats(stats, doctype, filters=[]):
 	return stats
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=[]):
+def get_filter_dashboard_data(stats, doctype, filters=None):
 	"""get tags info"""
 	import json
 	tags = json.loads(stats)
-	if filters:
-		filters = json.loads(filters)
+	filters = json.loads(filters or [])
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)

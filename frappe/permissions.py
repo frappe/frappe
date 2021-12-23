@@ -109,13 +109,9 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	meta = frappe.get_meta(doc.doctype)
 
 	def is_user_owner():
-		doc_owner = doc.get('owner') or ''
-		doc_owner = doc_owner.lower()
-		session_user = frappe.session.user.lower()
-		return doc_owner == session_user
+		return (doc.get("owner") or "").lower() == frappe.session.user.lower()
 
-
-	if has_controller_permissions(doc, ptype, user=user) == False :
+	if has_controller_permissions(doc, ptype, user=user) is False:
 		push_perm_check_log('Not allowed via controller permission check')
 		return {ptype: 0}
 
@@ -184,22 +180,23 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 
 		applicable_permissions = list(filter(is_perm_applicable, getattr(doctype_meta, 'permissions', [])))
 		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
-
 		perms['has_if_owner_enabled'] = has_if_owner_enabled
 
 		for ptype in rights:
 			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
 			# check if any perm object allows perm type
 			perms[ptype] = cint(pvalue)
-			if (pvalue
-				and has_if_owner_enabled
-				and not has_permission_without_if_owner_enabled(ptype)
-				and ptype != 'create'):
+			if (
+					pvalue
+					and has_if_owner_enabled
+					and not has_permission_without_if_owner_enabled(ptype)
+					and ptype != 'create'
+			):
 				perms['if_owner'][ptype] = cint(pvalue and is_owner)
 				# has no access if not owner
 				# only provide select or read access so that user is able to at-least access list
 				# (and the documents will be filtered based on owner sin further checks)
-				perms[ptype] = 1 if ptype in ['select', 'read'] else 0
+				perms[ptype] = 1 if ptype in ('select', 'read') else 0
 
 		frappe.local.role_permissions[cache_key] = perms
 

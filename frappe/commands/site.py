@@ -309,6 +309,7 @@ def migrate(context, skip_failing=False, skip_search_index=False):
 				skip_search_index=skip_search_index
 			)
 		finally:
+			print()
 			frappe.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError

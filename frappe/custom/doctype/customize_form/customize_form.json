@@ -279,16 +279,6 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
-  },
-  {
-   "fieldname": "default_email_template",
-   "fieldtype": "Link",
-   "label": "Default Email Template",
-   "options": "Email Template"
-  },
-  {
-   "fieldname": "column_break_26",
-   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -297,7 +287,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-06-21 19:01:06.920663",
+ "modified": "2021-10-19 15:20:55.393272",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

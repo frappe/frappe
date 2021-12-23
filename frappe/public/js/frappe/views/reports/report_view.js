@@ -49,8 +49,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_columns();
 		super.setup_new_doc_event();
 		this.page.main.addClass('report-view');
-		this.page.body[0].style.setProperty('--report-filter-height', this.page.page_form.css('height'));
-		this.page.body.parent().css('margin-bottom', 'unset');
 	}
 
 	toggle_side_bar() {
@@ -107,8 +105,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_args() {
 		const args = super.get_args();
+		delete args.group_by;
 		this.group_by_control.set_args(args);
-
 		return args;
 	}
 
@@ -388,6 +386,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.$charts_wrapper.addClass('hidden');
 			this.save_view_user_settings(
 				{ chart_args: null });
+			this.chart_args = null;
 		}
 	}
 

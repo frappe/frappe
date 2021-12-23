@@ -77,7 +77,7 @@ def get_submitted_linked_docs(doctype, name, docs=None, visited=None):
 
 
 @frappe.whitelist()
-def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=[]):
+def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=None):
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
@@ -85,6 +85,8 @@ def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=[]):
 		docs (json str) - It contains list of dictionaries of a linked documents.
 		ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
 	"""
+	if ignore_doctypes_on_cancel_all is None:
+		ignore_doctypes_on_cancel_all = []
 
 	docs = json.loads(docs)
 	if isinstance(ignore_doctypes_on_cancel_all, string_types):
@@ -96,7 +98,7 @@ def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=[]):
 		frappe.publish_progress(percent=i/len(docs) * 100, title=_("Cancelling documents"))
 
 
-def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=[]):
+def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
 	"""
 	Validate a document to be submitted and non-exempted from auto-cancel.
 
@@ -109,7 +111,7 @@ def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=[]):
 	"""
 
 	#ignore doctype to cancel
-	if docinfo.get("doctype") in ignore_doctypes_on_cancel_all:
+	if docinfo.get("doctype") in (ignore_doctypes_on_cancel_all or []):
 		return False
 
 	# skip non-submittable doctypes since they don't need to be cancelled
@@ -181,11 +183,11 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 			try:
 				if link.get("filters"):
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=link.get("filters"))
+					ret = frappe.get_all(doctype=dt, fields=fields, filters=link.get("filters"))
 
 				elif link.get("get_parent"):
 					if me and me.parent and me.parenttype == dt:
-						ret = frappe.get_list(doctype=dt, fields=fields,
+						ret = frappe.get_all(doctype=dt, fields=fields,
 							filters=[[dt, "name", '=', me.parent]])
 					else:
 						ret = None
@@ -197,7 +199,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					if link.get("doctype_fieldname"):
 						filters.append([link.get('child_doctype'), link.get("doctype_fieldname"), "=", doctype])
 
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, or_filters=or_filters, distinct=True)
+					ret = frappe.get_all(doctype=dt, fields=fields, filters=filters, or_filters=or_filters, distinct=True)
 
 				else:
 					link_fieldnames = link.get("fieldname")
@@ -207,7 +209,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 						# dynamic link
 						if link.get("doctype_fieldname"):
 							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-						ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, or_filters=or_filters)
+						ret = frappe.get_all(doctype=dt, fields=fields, filters=filters, or_filters=or_filters)
 
 					else:
 						ret = None
