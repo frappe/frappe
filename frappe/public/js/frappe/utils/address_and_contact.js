@@ -29,7 +29,7 @@ $.extend(frappe.contacts, {
 		}
 	},
 	get_last_doc: function(frm) {
-		const reverse_routes = frappe.route_history.reverse();
+		const reverse_routes = frappe.route_history.slice().reverse();
 		const last_route = reverse_routes.find(route => {
 			return route[0] === 'Form' && route[1] !== frm.doctype
 		})
