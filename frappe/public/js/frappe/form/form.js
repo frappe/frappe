@@ -190,7 +190,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	setup_std_layout() {
 		this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
-		this.body = $('<div></div>').appendTo(this.form_wrapper);
+		this.body = $('<div class="std-form-layout"></div>').appendTo(this.form_wrapper);
 
 		// only tray
 		this.meta.section_style='Simple'; // always simple!
@@ -226,7 +226,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.layout.tabs[0].wrapper.prepend(dashboard_parent);
 			}
 		} else {
-			dashboard_parent.insertAfter(this.layout.wrapper.find('.form-message'));
+			this.layout.wrapper.find('.form-page').prepend(dashboard_parent);
 		}
 
 		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
