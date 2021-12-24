@@ -26,16 +26,12 @@ frappe.listview_settings['Data Import'] = {
 			'Error': 'red'
 		};
 		let status = doc.status;
-		let import_log = JSON.parse(doc.import_log || '[]');
 
 		if (imports_in_progress.includes(doc.name)) {
 			status = 'In Progress';
 		}
 		if (status == 'Pending') {
 			status = 'Not Started';
-		}
-		if (doc.status == 'Pending' && import_log.length > 0) {
-			status = 'Partially Completed';
 		}
 
 		return [__(status), colors[status], 'status,=,' + doc.status];
