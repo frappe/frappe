@@ -81,8 +81,9 @@ frappe.ui.form.PrintView = class {
 		);
 
 		this.page.add_button(
-			frappe.utils.icon('refresh'),
-			() => this.refresh_print_format()
+			__('Refresh'),
+			() => this.refresh_print_format(),
+			{ icon: 'refresh' }
 		);
 	}
 
