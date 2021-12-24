@@ -24,28 +24,15 @@ def execute():
 		):
 			continue
 
-		# update NULL values to 0 to avoid data truncated error (temp)
-		# commit for upcoming DLL
-		frappe.qb.update(doctype).set(
-			doctype[field], 0
-		).where(
-			doctype[field].isnull()
-		).run()
+		# commit any changes so far for upcoming DDL
 		frappe.db.commit()
 
 		# alter column types for rating fieldtype
-		frappe.db.change_column_type(doctype_name, column=field, type=RATING_FIELD_TYPE)
+		frappe.db.change_column_type(doctype_name, column=field, type=RATING_FIELD_TYPE, nullable=True)
 
 		# update data: int => decimal
 		frappe.qb.update(doctype).set(
 			doctype[field], doctype[field] / 5
-		).run()
-
-		# revert 0 to NULL conversion
-		frappe.qb.update(doctype).set(
-			doctype[field], None
-		).where(
-			doctype[field] == 0
 		).run()
 
 		# commit to flush updated rows
