@@ -15,9 +15,10 @@
   "provider_name",
   "client_secret",
   "sb_identity_details",
-  "icon",
-  "column_break_1",
   "base_url",
+  "azure_tenant_id",
+  "column_break_1",
+  "icon",
   "client_urls",
   "authorize_url",
   "access_token_url",
@@ -50,7 +51,7 @@
    "fieldname": "social_login_provider",
    "fieldtype": "Select",
    "label": "Social Login Provider",
-   "options": "Custom\nFacebook\nFrappe\nGitHub\nGoogle\nOffice 365\nSalesforce\nfairlogin",
+   "options": "Azure B2C\nFacebook\nfairlogin\nFrappe\nGitHub\nGoogle\nOffice 365\nSalesforce\nCustom",
    "set_only_once": 1
   },
   {
@@ -157,11 +158,19 @@
    "fieldname": "user_id_property",
    "fieldtype": "Data",
    "label": "User ID Property"
+  },
+  {
+   "depends_on": "eval:doc.social_login_provider == \"Azure B2C\"",
+   "description": "The tenant ID is used to form the \"Authorize URL\" and \"Access Token URL\" endpoints",
+   "fieldname": "azure_tenant_id",
+   "fieldtype": "Data",
+   "label": "Azure Tenant ID",
+   "mandatory_depends_on": "eval:doc.social_login_provider == \"Azure B2C\""
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-30 14:37:13.616002",
+ "modified": "2021-12-24 03:00:27.267539",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",

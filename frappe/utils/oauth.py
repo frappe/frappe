@@ -146,7 +146,7 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 			email_dict = list(filter(lambda x: x.get("primary"), emails))[0]
 			info["email"] = email_dict.get("email")
 
-	if not (info.get("email_verified") or info.get("email")):
+	if not (info.get("email_verified") or get_email(info)):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
@@ -303,7 +303,12 @@ def get_last_name(data):
 	return data.get("last_name") or data.get("family_name")
 
 def get_email(data):
-	return data.get("email") or data.get("upn") or data.get("unique_name")
+	return (
+		data.get("email")
+		or data.get("upn")
+		or data.get("unique_name")
+		or data.get("preferred_username")  # key in Azure B2C's payload
+	)
 
 def redirect_post_login(desk_user, redirect_to=None, provider=None):
 	# redirect!
