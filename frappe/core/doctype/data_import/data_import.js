@@ -507,6 +507,8 @@ frappe.ui.form.on('Data Import', {
 			</table>
 		`);
 		} else if (logs.length > 0) {
+			frm.toggle_display('import_log_section', false);
+
 			frm.add_custom_button(__('Export Import Log'), () =>
 				frm.trigger('export_import_log')
 			);
