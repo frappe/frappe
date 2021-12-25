@@ -21,6 +21,8 @@ export default class LinksWidget extends Widget {
 		this.options = {};
 		this.options.links = this.links;
 		this.widget.addClass("links-widget-box");
+		this.body.addClass("hide")
+
 		const is_link_disabled = item => {
 			return item.dependencies && item.incomplete_dependencies;
 		};
@@ -40,9 +42,8 @@ export default class LinksWidget extends Widget {
 
 		const get_link_for_item = item => {
 			if (is_link_disabled(item)) {
-				return `<span class="link-content ellipsis disabled-link">${
-					item.label ? item.label : item.name
-				}</span>
+				return `<span class="link-content ellipsis disabled-link">${item.label ? item.label : item.name
+					}</span>
 					<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
 						<div class="arrow"></div>
 						<h3 class="popover-title" style="display: none;"></h3>
@@ -74,18 +75,33 @@ export default class LinksWidget extends Widget {
 
 			const route = frappe.utils.generate_route(opts);
 
-			return $(`<a href="${route}" class="link-item ellipsis ${
-				item.onboard ? "onboard-spotlight" : ""
-			} ${disabled_dependent(item)}" type="${item.type}">
+			return $(`<a href="${route}" class="link-item ellipsis ${item.onboard ? "onboard-spotlight" : ""
+				} ${disabled_dependent(item)}" type="${item.type}">
 					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</a>`);
 		});
 
 		this.link_list.forEach(link => link.appendTo(this.body));
+		this.show = $(`<i class="fa fa-eye-slash" aria-hidden="true"></i>`,)
+		this.show.appendTo(this.action_area)
 	}
 
 	setup_events() {
+		this.widget.click(() => {
+			if (this.body.hasClass('hide')) {
+				this.body.removeClass('hide')
+				this.action_area.empty()
+				this.hide = $(`<i class="fa fa-eye" aria-hidden="true"></i>`,)
+				this.hide.appendTo(this.action_area)
+			} else {
+				this.body.addClass('hide')
+				this.action_area.empty()
+				this.show = $(`<i class="fa fa-eye-slash" aria-hidden="true"></i>`,)
+				this.show.appendTo(this.action_area)
+			}
+		})
+
 		this.link_list.forEach(link => {
 			// Bind Popver Event
 			const link_label = link.find(".link-content");
