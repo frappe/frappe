@@ -57,7 +57,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 					for (z = 0; z < this.icons.length; z++) {
 						if (points[i].properties.icon === this.icons[z].name1) {
 							this.icon_url = this.icons[z].icon_image;
-							console.log("Ini diliat bro", this.icon_url);
+							// console.log("Ini diliat bro", this.icon_url);
 
 							break;
 						} 
