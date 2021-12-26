@@ -57,7 +57,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 					for (z = 0; z < this.icons.length; z++) {
 						if (points[i].properties.icon === this.icons[z].name1) {
 							this.icon_url = this.icons[z].icon_image;
-							console.log("Ini diliat bro", this.icon_url);
+							// console.log("Ini diliat bro", this.icon_url);
 
 							break;
 						} 
@@ -117,11 +117,11 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 					this.markersZoom = 18;
 				}
 
-				this.smoothZoom(map, this.markersZoom, map.getZoom()); // call smoothZoom, parameters map, final zoomLevel, and starting zoom level
+				// this.smoothZoom(map, this.markersZoom, map.getZoom()); // call smoothZoom, parameters map, final zoomLevel, and starting zoom level
 
 				if (docstatus === 1) {
 					this.drawingManager = new google.maps.drawing.DrawingManager({
-						drawingMode: google.maps.drawing.OverlayType.MARKER,
+						// drawingMode: google.maps.drawing.OverlayType.MARKER,
 						drawingControl: true,
 						drawingControlOptions: {
 						  position: google.maps.ControlPosition.TOP_CENTER,
@@ -144,13 +144,13 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 				} else {
 					this.drawingManager = new google.maps.drawing.DrawingManager({
-						drawingMode: google.maps.drawing.OverlayType.MARKER,
+						// drawingMode: google.maps.drawing.OverlayType.MARKER,
 						drawingControl: true,
 						drawingControlOptions: {
 						  position: google.maps.ControlPosition.TOP_CENTER,
 						  drawingModes: [
-							google.maps.drawing.OverlayType.MARKER,
-							google.maps.drawing.OverlayType.CIRCLE,
+							// google.maps.drawing.OverlayType.MARKER,
+							// google.maps.drawing.OverlayType.CIRCLE,
 						  ],
 						},
 						markerOptions: {
@@ -230,7 +230,7 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 			if (docstatus === 1) {
 				this.drawingManager = new google.maps.drawing.DrawingManager({
-					drawingMode: google.maps.drawing.OverlayType.MARKER,
+					// drawingMode: google.maps.drawing.OverlayType.MARKER,
 					drawingControl: true,
 					drawingControlOptions: {
 					  position: google.maps.ControlPosition.TOP_CENTER,
@@ -251,13 +251,13 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 				});
 			} else {
 				this.drawingManager = new google.maps.drawing.DrawingManager({
-					drawingMode: google.maps.drawing.OverlayType.MARKER,
+					// drawingMode: google.maps.drawing.OverlayType.MARKER,
 					drawingControl: true,
 					drawingControlOptions: {
 					  position: google.maps.ControlPosition.TOP_CENTER,
 					  drawingModes: [
-						google.maps.drawing.OverlayType.MARKER,
-						google.maps.drawing.OverlayType.CIRCLE
+						// google.maps.drawing.OverlayType.MARKER,
+						// google.maps.drawing.OverlayType.CIRCLE
 					  ],
 					},
 					markerOptions: {
@@ -398,35 +398,35 @@ frappe.ui.form.ControlGooglemaps = frappe.ui.form.ControlData.extend({
 
 	custom_control(controlDiv, map) {
 
-		// Set CSS for the control border
-		var controlUI = document.createElement('div');
-		controlUI.style.backgroundColor = '#fff';
-		controlUI.style.borderStyle = 'solid';
-		controlUI.style.borderWidth = '1px';
-		controlUI.style.borderColor = '#ccc';
-		controlUI.style.marginTop = '4px';
-		controlUI.style.marginLeft = '-6px';
-		controlUI.style.cursor = 'pointer';
-		controlUI.style.textAlign = 'center';
-		controlUI.title = 'Click to clear map drawer';
-		controlDiv.appendChild(controlUI);
+		// // Set CSS for the control border
+		// var controlUI = document.createElement('div');
+		// controlUI.style.backgroundColor = '#fff';
+		// controlUI.style.borderStyle = 'solid';
+		// controlUI.style.borderWidth = '1px';
+		// controlUI.style.borderColor = '#ccc';
+		// controlUI.style.marginTop = '4px';
+		// controlUI.style.marginLeft = '-6px';
+		// controlUI.style.cursor = 'pointer';
+		// controlUI.style.textAlign = 'center';
+		// controlUI.title = 'Click to clear map drawer';
+		// controlDiv.appendChild(controlUI);
 
-		// Set CSS for the control interior
-		var controlText = document.createElement('div');
-		controlText.style.fontFamily = 'Arial,sans-serif';
-		controlText.style.fontSize = '9px';
-		controlText.style.paddingLeft = '4px';
-		controlText.style.paddingRight = '4px';
-		controlText.style.paddingTop = '7px';
-		controlText.style.paddingBottom = '7px';
-		controlText.innerHTML = '<img src="https://cdn3.iconfinder.com/data/icons/linecons-free-vector-icons-pack/32/trash-512.png" width="14">';
-		controlUI.appendChild(controlText);
+		// // Set CSS for the control interior
+		// var controlText = document.createElement('div');
+		// controlText.style.fontFamily = 'Arial,sans-serif';
+		// controlText.style.fontSize = '9px';
+		// controlText.style.paddingLeft = '4px';
+		// controlText.style.paddingRight = '4px';
+		// controlText.style.paddingTop = '7px';
+		// controlText.style.paddingBottom = '7px';
+		// controlText.innerHTML = '<img src="https://cdn3.iconfinder.com/data/icons/linecons-free-vector-icons-pack/32/trash-512.png" width="14">';
+		// controlUI.appendChild(controlText);
 
-		// Setup the click event listeners
-		google.maps.event.addDomListener(controlUI, 'click', function () {
-			var data_layers = undefined;
-			self.set_value(data_layers);
-		});
+		// // Setup the click event listeners
+		// google.maps.event.addDomListener(controlUI, 'click', function () {
+		// 	var data_layers = undefined;
+		// 	self.set_value(data_layers);
+		// });
 	},
 
     make_wrapper() {
