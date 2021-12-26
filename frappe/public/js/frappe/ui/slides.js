@@ -345,11 +345,11 @@ frappe.ui.Slides = class Slides {
 
 		$(`<div class="row">
 			<div class="col-sm-4 text-left prev-div">
-				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__("Previous")}</button>
+				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__("Previous", null, "Go to previous slide"))}</button>
 			</div>
 			<div class="col-sm-8 text-right next-div">
-				<button class="complete-btn btn btn-sm primary">${__("Complete Setup")}</button>
-				<button class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next")}</button>
+				<button class="complete-btn btn btn-sm primary">${__("Complete Setup", null, "Finish the setup wizard")}</button>
+				<button class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next"), null, "Go to next slide"}</button>
 			</div>
 		</div>`).appendTo(this.$footer);
 
