@@ -287,6 +287,9 @@ def validate_print_permission(doc):
 		if doc.is_document_key_valid(frappe.form_dict.key):
 			return
 
+		if frappe.form_dict.key == doc.get_signature():
+			return
+
 	for ptype in ("read", "print"):
 		if not frappe.has_permission(doc.doctype, ptype, doc) and not frappe.has_website_permission(doc):
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
