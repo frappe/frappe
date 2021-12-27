@@ -220,13 +220,13 @@ class Document(BaseDocument):
 
 		self.set("__islocal", True)
 
-		self.check_permission("create")
 		self._set_defaults()
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
-		self.run_method("before_insert")
 		self._validate_links()
+		self.check_permission("create")
+		self.run_method("before_insert")
 		self.set_new_name(set_name=set_name, set_child_names=set_child_names)
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
