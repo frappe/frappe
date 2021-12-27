@@ -5,6 +5,7 @@
 import typing
 
 import frappe
+from frappe import _
 from frappe.model import (
 	display_fieldtypes,
 	no_value_fields,
@@ -215,9 +216,9 @@ class Exporter:
 		for df in self.fields:
 			is_parent = not df.is_child_table_field
 			if is_parent:
-				label = df.label
+				label = _(df.label)
 			else:
-				label = "{0} ({1})".format(df.label, df.child_table_df.label)
+				label = "{0} ({1})".format(_(df.label), _(df.child_table_df.label))
 
 			if label in header:
 				# this label is already in the header,
@@ -227,6 +228,7 @@ class Exporter:
 					label = "{0}".format(df.fieldname)
 				else:
 					label = "{0}.{1}".format(df.child_table_df.fieldname, df.fieldname)
+
 			header.append(label)
 
 		self.csv_array.append(header)
@@ -253,10 +255,10 @@ class Exporter:
 			self.build_xlsx_response()
 
 	def build_csv_response(self):
-		build_csv_response(self.get_csv_array_for_export(), self.doctype)
+		build_csv_response(self.get_csv_array_for_export(), _(self.doctype))
 
 	def build_xlsx_response(self):
-		build_xlsx_response(self.get_csv_array_for_export(), self.doctype)
+		build_xlsx_response(self.get_csv_array_for_export(), _(self.doctype))
 
 	def group_children_data_by_parent(self, children_data: typing.Dict[str, list]):
 		return groupby_metric(children_data, key='parent')

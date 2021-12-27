@@ -20,12 +20,13 @@ context('Control Rating', () => {
 
 		cy.get('div.rating')
 			.children('svg')
+			.find('.right-half')
 			.first()
 			.click()
 			.should('have.class', 'star-click');
 		cy.get('@dialog').then(dialog => {
 			var value = dialog.get_value('rate');
-			expect(value).to.equal(1);
+			expect(value).to.equal(1/7);
 			dialog.hide();
 		});
 	});
@@ -35,6 +36,7 @@ context('Control Rating', () => {
 
 		cy.get('div.rating')
 			.children('svg')
+			.find('.right-half')
 			.first()
 			.invoke('trigger', 'mouseenter')
 			.should('have.class', 'star-hover')
