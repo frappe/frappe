@@ -3,7 +3,7 @@
 import frappe
 import datetime
 from frappe import _
-from frappe.model import default_fields, default_fields_set, table_fields
+from frappe.model import default_fields, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -18,7 +18,7 @@ max_positive_value = {
 	'bigint': 2 ** 63
 }
 
-DOCTYPES_FOR_DOCTYPE = {'DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link'}
+DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
 
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
@@ -71,9 +71,6 @@ def get_controller(doctype):
 
 	return site_controllers[doctype]
 
-# This is default value constant for performance improvement in BaseDocument methods.
-_DEFAULT_VAL = object()
-
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
@@ -81,9 +78,8 @@ class BaseDocument(object):
 		self.update(d)
 		self.dont_update_if_missing = []
 
-		_setup_attr = getattr(self, "__setup__", None)
-		if _setup_attr:
-			_setup_attr()
+		if hasattr(self, "__setup__"):
+			self.__setup__()
 
 	@property
 	def meta(self):
@@ -107,13 +103,11 @@ class BaseDocument(object):
 		"""
 		# first set default field values of base document
 		for key in default_fields:
-			value = d.get(key, _DEFAULT_VAL)
-			if value is not _DEFAULT_VAL:
-				self.set(key, value)
+			if key in d:
+				self.set(key, d[key])
 
 		for key, value in d.items():
-			if key not in default_fields_set:
-				self.set(key, value)
+			self.set(key, value)
 
 		return self
 
@@ -178,9 +172,20 @@ class BaseDocument(object):
 				...
 			})
 		"""
-		if value is None:
-			value = {}
-		elif not isinstance(value, (dict, BaseDocument)):
+		if value==None:
+			value={}
+		if isinstance(value, (dict, BaseDocument)):
+			if not self.__dict__.get(key):
+				self.__dict__[key] = []
+			value = self._init_child(value, key)
+			self.__dict__[key].append(value)
+
+			# reference parent document
+			value.parent_doc = self
+
+			return value
+		else:
+
 			# metaclasses may have arbitrary lists
 			# which we can ignore
 			if (getattr(self, '_metaclass', None)
@@ -191,15 +196,6 @@ class BaseDocument(object):
 				'Document for field "{0}" attached to child table of "{1}" must be a dict or BaseDocument, not {2} ({3})'.format(key,
 					self.name, str(type(value))[1:-1], value)
 			)
-
-		self.__dict__.setdefault(key, [])
-		value = self._init_child(value, key)
-		self.__dict__[key].append(value)
-
-		# reference parent document
-		value.parent_doc = self
-
-		return value
 
 	def extend(self, key, value):
 		if isinstance(value, list):
@@ -215,14 +211,12 @@ class BaseDocument(object):
 		if not self.doctype:
 			return value
 		if not isinstance(value, BaseDocument):
-			_doctype = value.get("doctype")
-			if not _doctype:
-				_doctype = self.get_table_field_doctype(key)
-				if not _doctype:
+			if "doctype" not in value or value['doctype'] is None:
+				value["doctype"] = self.get_table_field_doctype(key)
+				if not value["doctype"]:
 					raise AttributeError(key)
-				value['doctype'] = _doctype
 
-			value = get_controller(_doctype)(value)
+			value = get_controller(value["doctype"])(value)
 			value.init_valid_columns()
 
 		value.parent = self.name
@@ -296,18 +290,16 @@ class BaseDocument(object):
 				self.__dict__[key] = None
 
 	def get_valid_columns(self):
-		_cached_valid_columns = frappe.local.valid_columns.get(self.doctype, _DEFAULT_VAL)
-		if _cached_valid_columns is not _DEFAULT_VAL:
-			return _cached_valid_columns
+		if self.doctype not in frappe.local.valid_columns:
+			if self.doctype in DOCTYPES_FOR_DOCTYPE:
+				from frappe.model.meta import get_table_columns
+				valid = get_table_columns(self.doctype)
+			else:
+				valid = self.meta.get_valid_columns()
 
-		if self.doctype in DOCTYPES_FOR_DOCTYPE:
-			from frappe.model.meta import get_table_columns
-			valid = get_table_columns(self.doctype)
-		else:
-			valid = self.meta.get_valid_columns()
+			frappe.local.valid_columns[self.doctype] = valid
 
-		frappe.local.valid_columns[self.doctype] = valid
-		return valid
+		return frappe.local.valid_columns[self.doctype]
 
 	def is_new(self):
 		return self.get("__islocal")
