@@ -146,12 +146,12 @@ frappe.ui.form.on('Data Import', {
 				let failed_records = cint(r.message.failed);
 				let total_records = cint(r.message.total_records);
 
-				if (!total_records) return
+				if (!total_records) return;
 
 				let message;
 				if (failed_records === 0) {
 					let message_args = [successful_records];
-					if (me.frm.doc.import_type === 'Insert New Records') {
+					if (frm.doc.import_type === 'Insert New Records') {
 						message =
 							successful_records > 1
 								? __('Successfully imported {0} records.', message_args)
@@ -428,7 +428,12 @@ frappe.ui.form.on('Data Import', {
 				'page_limit_length': 5000
 			},
 			callback: function(r) {
-				let logs = r.message
+				let logs = r.message;
+
+				if (logs.length === 0) return;
+
+				frm.toggle_display('import_log_section', true);
+
 				let rows = logs
 					.map(log => {
 						let html = '';
@@ -451,7 +456,7 @@ frappe.ui.form.on('Data Import', {
 								]);
 							}
 						} else {
-							let messages = (log.messages || [])
+							let messages = (JSON.parse(log.messages || '[]'))
 								.map(JSON.parse)
 								.map(m => {
 									let title = m.title ? `<strong>${m.title}</strong>` : '';
@@ -505,11 +510,13 @@ frappe.ui.form.on('Data Import', {
 						${rows}
 					</table>
 				`);
-					}
-				});
+			}
+		});
 	},
 
 	show_import_log(frm) {
+		frm.toggle_display('import_log_section', false);
+
 		if (frm.import_in_progress) {
 			return;
 		}
@@ -524,7 +531,7 @@ frappe.ui.form.on('Data Import', {
 			},
 			'callback': function(r) {
 				let count = r.message;
-				if(count < 5000) {
+				if (count < 5000) {
 					frm.trigger('render_import_log');
 				} else {
 					frm.toggle_display('import_log_section', false);
