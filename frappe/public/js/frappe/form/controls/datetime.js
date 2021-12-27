@@ -81,6 +81,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 
 	get_model_value() {
 		let value = super.get_model_value();
+		if (!value && !this.doc) {
+			value = this.last_value;
+		}
 		return frappe.datetime.get_datetime_as_string(value);
 	}
 };

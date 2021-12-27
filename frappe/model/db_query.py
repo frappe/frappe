@@ -36,10 +36,12 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
 		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
-		if not ignore_permissions and \
-			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
-			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
 
+		if (
+			not ignore_permissions
+			and not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype)
+			and not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype)
+		):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
@@ -787,12 +789,15 @@ class DatabaseQuery(object):
 def check_parent_permission(parent, child_doctype):
 	if parent:
 		# User may pass fake parent and get the information from the child table
-		if child_doctype and not frappe.db.exists('DocField',
-			{'parent': parent, 'options': child_doctype}):
+		if child_doctype and not (
+			frappe.db.exists('DocField', {'parent': parent, 'options': child_doctype})
+			or frappe.db.exists('Custom Field', {'dt': parent, 'options': child_doctype})
+		):
 			raise frappe.PermissionError
 
 		if frappe.permissions.has_permission(parent):
 			return
+
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
 
