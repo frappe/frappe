@@ -54,8 +54,19 @@ class PrintFormat(Document):
 
 		self.export_doc()
 
+	def after_rename(self, old: str, new: str, *args, **kwargs):
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
+
+		# update property setter default_print_format if set
+		frappe.db.set_value("Property Setter", {
+			"doctype_or_field": "DocType",
+			"doc_type": self.doc_type,
+			"property": "default_print_format",
+			"value": old,
+		}, "value", new)
+
 	def export_doc(self):
-		# export
 		from frappe.modules.utils import export_module_json
 		export_module_json(self, self.standard == 'Yes', self.module)
 
