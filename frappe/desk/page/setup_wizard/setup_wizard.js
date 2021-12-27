@@ -532,7 +532,7 @@ frappe.setup.utils = {
 				label: __(country),
 				value: country
 			});
-		})
+		});
 
 		country_field.set_data(translated_countries);
 
