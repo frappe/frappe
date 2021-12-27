@@ -25,7 +25,6 @@
   "section_import_preview",
   "import_preview",
   "import_log_section",
-  "import_log",
   "show_failed_logs",
   "import_log_preview"
  ],
@@ -54,7 +53,7 @@
    "fieldtype": "Attach",
    "in_list_view": 1,
    "label": "Import File",
-   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
+   "read_only_depends_on": "eval: ['Success', 'Partial Success', 'Partially Completed'].includes(doc.status)"
   },
   {
    "fieldname": "import_preview",
@@ -79,12 +78,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "import_log",
-   "fieldtype": "Code",
-   "label": "Import Log",
-   "options": "JSON"
-  },
-  {
    "fieldname": "import_log_section",
    "fieldtype": "Section Break",
    "label": "Import Log"
@@ -100,7 +93,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Pending\nSuccess\nPartial Success\nError",
+   "options": "Pending\nSuccess\nPartial Success\nError\nPartially Completed",
    "read_only": 1
   },
   {
@@ -169,7 +162,7 @@
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2021-04-11 01:50:42.074623",
+ "modified": "2021-12-26 23:51:00.280093",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",

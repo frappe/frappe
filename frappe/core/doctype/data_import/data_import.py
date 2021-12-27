@@ -29,10 +29,6 @@ class DataImport(Document):
 		self.validate_google_sheets_url()
 
 	def validate_import_file(self):
-		
-		if self.status == 'Pending' and self.import_log:
-			frappe.throw(_("File cannot be changed for partially completed imports. Either continue import or make a fresh import"))
-
 		if self.import_file:
 			# validate template
 			self.get_importer()
@@ -93,9 +89,19 @@ class DataImport(Document):
 
 @frappe.whitelist()
 def get_preview_from_template(data_import, import_file=None, google_sheets_url=None):
-	return frappe.get_doc("Data Import", data_import).get_preview_from_template(
+	preview_data = frappe.get_doc("Data Import", data_import).get_preview_from_template(
 		import_file, google_sheets_url
 	)
+
+	# get first 10 import log if any
+	import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes"],
+		filters={"data_import": data_import},
+		order_by="log_index", limit=10)
+
+	return {
+		'preview_data': preview_data,
+		'import_log': import_log
+	}
 
 
 @frappe.whitelist()
@@ -157,6 +163,23 @@ def download_import_log(data_import_name):
 	data_import = frappe.get_doc("Data Import", data_import_name)
 	data_import.download_import_log()
 
+@frappe.whitelist()
+def get_import_status(data_import_name):
+	import_status = {}
+
+	logs = frappe.get_all('Data Import Log', fields=['count(*) as count', 'success'],
+		filters={'data_import': data_import_name},
+		group_by='success')
+
+	for log in logs:
+		if log.get('success'):
+			import_status['success'] = log.get('count')
+		else:
+			import_status['failed'] = log.get('count')
+
+	import_status['total_records'] = len(logs)
+
+	return import_status
 
 def import_file(
 	doctype, file_path, import_type, submit_after_import=False, console=False
