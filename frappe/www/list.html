@@ -23,11 +23,9 @@
 {% endblock %}
 
 {% block page_content %}
-	<div class="list-container">
-		{% if introduction %}<p>{{ introduction }}</p>{% endif %}
-		{% include list_template or "templates/includes/list/list.html" %}
-		{% if list_footer %}{{ list_footer }}{% endif %}
-	</div>
+	{% if introduction %}<p>{{ introduction }}</p>{% endif %}
+	{% include list_template or "templates/includes/list/list.html" %}
+	{% if list_footer %}{{ list_footer }}{% endif %}
 {% endblock %}
 
 {% block script %}
