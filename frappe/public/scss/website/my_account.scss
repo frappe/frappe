@@ -1,7 +1,7 @@
 //styles for my account and edit-profile page
 @include media-breakpoint-up(sm) {
     body[data-path="me"], body[data-path="list"] {
-        background-color: var(--bg-gray);
+        background-color: var(--bg-color);
     }
 }
 
