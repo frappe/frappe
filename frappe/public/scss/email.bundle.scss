@@ -341,3 +341,109 @@ blockquote {
 		margin: 5px 0;
 	}
 }
+
+.text-uppercase {
+	text-transform: uppercase;
+}
+
+.small {
+	font-size: 85%;
+	font-weight: 400;
+}
+
+h6 {
+	margin-top: 3.5px;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+	line-height: 1.2;
+	font-size: 1rem;
+}
+
+.cards {
+	margin-top: 1rem;
+
+	.stretched-link {
+		text-decoration: none;
+	}
+
+	.blog-card {
+		margin-bottom: 1rem;
+
+		.card {
+			border: 1px solid $gray-300;
+			height: 100%;
+			position: relative;
+			word-wrap: break-word;
+			background-color: #fff;
+			background-clip: border-box;
+			border-radius: 0.75rem;
+			min-width: 0;
+		}
+
+		.like-count {
+			width: 40px;
+			background-color: $blue-500;
+			font-size: 1.5rem;
+			font-weight: 700;
+			color: white;
+			height: 40px;
+			padding: 4px;
+			border-radius: 50%;
+			text-align: center;
+			margin-left: -20px;
+			margin-top: -20px;
+		}
+	
+		.card-body {
+			padding: 1rem;
+
+			.post-title {
+				color: $text-color;
+			}
+
+			.post-description {
+				font-size: 0.8rem;
+			}
+
+			.post-count {
+				float: right;
+
+				span {
+					text-align: center;
+					background-color: dodgerblue;
+					color: white;
+					border-radius: 8px;
+					padding: 5px;
+					font-size: 1rem;
+				}
+			}
+		}
+	
+		.card-img-top {
+			width: 100%;
+			overflow: hidden;
+			height: 12rem;
+			border-top-left-radius: 0.75rem;
+			border-top-right-radius: 0.75rem;
+			display: table;
+	
+			img {
+				min-height: 12rem;
+				min-width: 100%;
+				width: 0;
+				height: 0;
+				object-fit: cover;
+			}
+	
+			.default-cover {
+				display: table-cell;
+				padding: 1rem;
+				padding-top: 5rem;
+				background: $gray-200;
+				font-size: 1rem;
+				font-weight: 500;
+				color: $gray-600;
+			}
+		}
+	}
+}

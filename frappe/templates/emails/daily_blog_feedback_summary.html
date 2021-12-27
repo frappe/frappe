@@ -1,0 +1,38 @@
+<div class="gray-container">
+	<div class="mail-description text-center">{{ description }}</div>
+	<div class="cards">
+		{% for post in blogs %}
+			{% set count = blog_count[post.name] %}
+			<a class="stretched-link" href="/{{ post.route }}">
+				<div class="blog-card">
+					<div class="card h-100">
+						<div class="card-img-top">
+							{% if post.cover_image %}
+								<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
+							{% else %}
+								<div class="default-cover text-center">
+									<span>{{ post.title }}</span>
+								</div>
+							{% endif %}
+						</div>
+						<div class="card-body">
+							<div>
+								<div class="text-muted small text-uppercase">
+									{%- if post.featured -%}
+										<span class="text-body">{{ _('Featured') }} &middot; </span>
+									{%- endif -%}
+									<span>{{ post.category.title }}</span>
+									<div class="post-count">
+										<span>{{ count }} Like{% if count!=1 %}s{% endif %}</span>
+									</div>
+								</div>
+								<h6 class="post-title mt-1"><span class="text-dark">{{ post.title }}</span></h6>
+								<p class="post-description text-muted">{{ post.intro }}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</a>
+		{% endfor %}
+	</div>
+</div>

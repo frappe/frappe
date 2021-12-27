@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe import _
-from frappe.utils import add_days, today, get_request_site_address
+from frappe.utils import add_days, today
 from frappe.rate_limiter import rate_limit
+from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.doctype.blog_settings.blog_settings import get_feedback_limit
 
 @frappe.whitelist(allow_guest=True)
@@ -91,28 +92,30 @@ def send_daily_feedback_summary():
 		else:
 			recipients[blog.owner][blog.name] += 1
 
-	for recipient, blogs in recipients.items():
+	for recipient, blog_counts in recipients.items():
 		recipient = frappe.db.get_value('User', recipient, 'email') or recipient
 		is_email_notification_enabled = frappe.db.get_value('Notification Settings', recipient, 'enable_feedback_notification')
 		
 		if is_email_notification_enabled:
-			send_feedback_summary_mail(recipient, blogs)
+			send_feedback_summary_mail(recipient, blog_counts)
 
-def send_feedback_summary_mail(recipient, blogs):
-	message = ""
+def send_feedback_summary_mail(recipient, blog_counts):
+	description = _("Below is the summary of likes recieved on your Blog Post today")
 
-	for blog, value in blogs.items():
-		blog = frappe.get_doc('Blog Post', blog)
+	blog_list = get_blog_list('Blog Post')
+	blog_posts = []
 
-		blog_with_url = "<a href='{0}/{1}'>{2}</a>".format(get_request_site_address(), blog.route, blog.title)
-
-		if value == 1:
-			message += "<p>You have received a like on your blog post <b>{0}</b>.</p>".format(blog_with_url)
-		else:
-			message += "<p><b>{0}</b> people liked your blog post <b>{1}</b>.</p>".format(value, blog_with_url)
+	for blog, value in blog_counts.items():
+		[blog_posts.append(b) for b in blog_list if b.name == blog]
 
 	frappe.sendmail(
 		recipients=recipient,
-		subject=_('Blog Feedback Summary'),
-		message= message
+		subject=_("Blog Feedback Summary"),
+		template="daily_blog_feedback_summary",
+		args=dict(
+			description=description,
+			blogs=blog_posts,
+			blog_count=blog_counts
+		),
+		header=_("Blog Feedback Summary")
 	)
