@@ -59,7 +59,6 @@ class Importer:
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
-		self.data_import.db_set("status", "Pending")
 		self.data_import.db_set("template_warnings", "")
 
 	def import_data(self):
@@ -80,13 +79,14 @@ class Importer:
 			return
 
 		# setup import log
-		if self.data_import.import_log:
-			import_log = frappe.parse_json(self.data_import.import_log)
-		else:
-			import_log = []
+		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success", "log_index"],
+			filters={"data_import": self.data_import.name},
+			order_by="log_index")
+
+		log_index = 0
 
 		# Do not remove rows in case of retry after an error or pending data import
-		if self.data_import.status == 'Partial Success':
+		if self.data_import.status == "Partial Success":
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
 
@@ -94,8 +94,10 @@ class Importer:
 		imported_rows = []
 		for log in import_log:
 			log = frappe._dict(log)
-			if log.success or self.data_import.status == 'Pending':
-				imported_rows += log.row_indexes
+			if log.success or self.data_import.status == "Partially Completed":
+				imported_rows += json.loads(log.row_indexes)
+
+			log_index = log.log_index
 
 		# start import
 		total_payload_count = len(payloads)
@@ -149,33 +151,39 @@ class Importer:
 							},
 						)
 
-					import_log.append(
-						frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
-					)
+					import_log.append(create_import_log(self.data_import.name, log_index, {
+						'success': True,
+						'docname': doc.name,
+						'row_indexes': row_indexes
+					}))
 
-					# Update import log after every successful import
-					# This is done for cases where the background job might get terminated due to timeout
-					# In such cases the job can be rerun only for pending rows by referring to import logs
-					self.data_import.db_set("import_log", json.dumps(import_log))
+					log_index += 1
+
+					if not self.data_import.status == "Partially Completed":
+						self.data_import.db_set("status", "Partially Completed")
 					
 					# commit after every successful import
 					frappe.db.commit()
 
 				except Exception:
-					import_log.append(
-						frappe._dict(
-							success=False,
-							exception=frappe.get_traceback(),
-							messages=frappe.local.message_log,
-							row_indexes=row_indexes,
-						)
-					)
 					frappe.clear_messages()
 					# rollback if exception
 					frappe.db.rollback()
 
+					import_log.append(create_import_log(self.data_import.name, log_index, {
+						'success': False,
+						'exception': frappe.get_traceback(),
+						'messages': frappe.local.message_log,
+						'row_indexes': row_indexes
+					}))
+
+					# commit after creating log for failure
+					frappe.db.commit()
+					log_index += 1
+
 		# set status
 		failures = [log for log in import_log if not log.get("success")]
+		print(failures, "$#$#$#")
 		if len(failures) == total_payload_count:
 			status = "Pending"
 		elif len(failures) > 0:
@@ -187,7 +195,6 @@ class Importer:
 			self.print_import_log(import_log)
 		else:
 			self.data_import.db_set("status", status)
-			self.data_import.db_set("import_log", json.dumps(import_log))
 
 		self.after_import()
 
@@ -278,13 +285,17 @@ class Importer:
 
 		if not self.data_import:
 			return
-		import_log = frappe.parse_json(self.data_import.import_log or "[]")
+
+		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success", "messages", "exception", "docname"],
+			filters={"data_import": self.data_import.name},
+			order_by="log_index")
+
 		header_row = ["Row Numbers", "Status", "Message", "Exception"]
 
 		rows = [header_row]
 
 		for log in import_log:
-			row_number = log.get("row_indexes")[0]
+			row_number = json.loads(log.get("row_indexes"))[0]
 			status = "Success" if log.get('success') else "Failure"
 			message = "Successfully Imported {0}".format(log.get('docname')) if log.get('success') else \
 				log.get("messages")
@@ -1201,3 +1212,17 @@ def df_as_json(df):
 
 def get_select_options(df):
 	return [d for d in (df.options or "").split("\n") if d]
+
+def create_import_log(data_import, log_index, log_details):
+	return frappe.get_doc({
+		'doctype': 'Data Import Log',
+		'log_index': log_index,
+		'success': log_details.get('success'),
+		'data_import': data_import,
+		'row_indexes': json.dumps(log_details.get('row_indexes')),
+		'docname': log_details.get('docname'),
+		'message': json.dumps(log_details.get('messages')) if log_details.get('messages') else None,
+		'exception': log_details.get('exception')
+	}).insert(ignore_permissions=True)
+
+
