@@ -81,7 +81,7 @@ class Importer:
 		# setup import log
 		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success", "log_index"],
 			filters={"data_import": self.data_import.name},
-			order_by="log_index")
+			order_by="log_index") or []
 
 		log_index = 0
 
@@ -183,7 +183,6 @@ class Importer:
 
 		# set status
 		failures = [log for log in import_log if not log.get("success")]
-		print(failures, "$#$#$#")
 		if len(failures) == total_payload_count:
 			status = "Pending"
 		elif len(failures) > 0:
