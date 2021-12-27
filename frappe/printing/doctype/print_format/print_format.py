@@ -54,7 +54,7 @@ class PrintFormat(Document):
 
 		self.export_doc()
 
-	def after_rename(self, old: str, new: str, *args, **kwargs):
+	def after_rename(self, old, new, *args, **kwargs):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
