@@ -165,14 +165,16 @@ class Importer:
 					frappe.db.commit()
 
 				except Exception:
+					messages = frappe.local.message_log
 					frappe.clear_messages()
+
 					# rollback if exception
 					frappe.db.rollback()
 
 					import_log.append(create_import_log(self.data_import.name, log_index, {
 						'success': False,
 						'exception': frappe.get_traceback(),
-						'messages': frappe.local.message_log,
+						'messages': messages,
 						'row_indexes': row_indexes
 					}))
 
@@ -262,11 +264,14 @@ class Importer:
 		if not self.data_import:
 			return
 
-		import_log = frappe.parse_json(self.data_import.import_log or "[]")
+		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success"],
+			filters={"data_import": self.data_import.name},
+			order_by="log_index") or []
+
 		failures = [log for log in import_log if not log.get("success")]
 		row_indexes = []
 		for f in failures:
-			row_indexes.extend(f.get("row_indexes", []))
+			row_indexes.extend(json.loads(f.get("row_indexes", [])))
 
 		# de duplicate
 		row_indexes = list(set(row_indexes))
@@ -1219,7 +1224,7 @@ def create_import_log(data_import, log_index, log_details):
 		'data_import': data_import,
 		'row_indexes': json.dumps(log_details.get('row_indexes')),
 		'docname': log_details.get('docname'),
-		'message': json.dumps(log_details.get('messages')) if log_details.get('messages') else None,
+		'messages': json.dumps(log_details.get('messages', '[]')),
 		'exception': log_details.get('exception')
 	}).insert(ignore_permissions=True)
 
