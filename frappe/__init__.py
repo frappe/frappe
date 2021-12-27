@@ -730,14 +730,6 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
-<<<<<<< HEAD
-	:param user: [optional] Check for given user. Default: current user."""
-	if not doctype and doc:
-		doctype = doc.doctype
-
-	import frappe.permissions
-	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user, raise_exception=throw)
-=======
 	:param user: [optional] Check for given user. Default: current user.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
 	import frappe.permissions
@@ -748,7 +740,6 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user,
 		raise_exception=throw, parent_doctype=parent_doctype)
 
->>>>>>> 84ebdabe49 (refactor(minor): frappe.has_permission)
 	if throw and not out:
 		# mimics frappe.throw
 		document_label = f"{doc.doctype} {doc.name}" if doc else doctype
