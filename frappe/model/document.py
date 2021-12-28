@@ -190,7 +190,7 @@ class Document(BaseDocument):
 		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
