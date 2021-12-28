@@ -458,9 +458,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 
 	validate_link_and_fetch(df, options, docname, value) {
+<<<<<<< HEAD
 		if (!value) return;
 
 		const fetch_map = this.get_fetch_map();
+=======
+		if (!options) return;
+
+		let field_value = "";
+		const fetch_map = this.fetch_map;
+>>>>>>> 0fd20c7862 (fix: do not validate if options is undefined)
 		const columns_to_fetch = Object.values(fetch_map);
 
 		// if default and no fetch, no need to validate
