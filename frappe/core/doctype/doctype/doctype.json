@@ -5,6 +5,7 @@
  "creation": "2013-02-18 13:36:19",
  "description": "DocType is a Table / Form in the application.",
  "doctype": "DocType",
+ "document_key_expiry": 90,
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
@@ -56,6 +57,7 @@
   "color",
   "show_preview_popup",
   "show_name_in_global_search",
+  "document_key_expiry",
   "email_settings_sb",
   "default_email_template",
   "column_break_51",
@@ -582,6 +584,13 @@
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
+  },
+  {
+   "default": "90",
+   "description": "Set number of days after which a document key will be expired",
+   "fieldname": "document_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Key Expiry (in Days)"
   }
  ],
  "icon": "fa fa-bolt",
@@ -663,10 +672,11 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-12-09 14:53:10.717788",
+ "modified": "2021-12-28 03:19:19.033347",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -696,5 +706,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -4,12 +4,15 @@
  "autoname": "format:DOCUMENT-KEY-{########}",
  "creation": "2021-12-20 03:34:58.744797",
  "doctype": "DocType",
+ "document_key_expiry": 90,
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "reference_doctype",
   "reference_docname",
-  "key"
+  "key",
+  "expires_on",
+  "status"
  ],
  "fields": [
   {
@@ -33,12 +36,30 @@
    "fieldtype": "Data",
    "label": "Key",
    "read_only": 1
+  },
+  {
+   "fieldname": "expires_on",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Expires On",
+   "read_only": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nExpired",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-12-20 04:24:19.320505",
+ "modified": "2021-12-28 00:43:57.811188",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Key",

@@ -82,6 +82,7 @@ class DocstatusTransitionError(ValidationError): pass
 class TimestampMismatchError(ValidationError): pass
 class EmptyTableError(ValidationError): pass
 class LinkExistsError(ValidationError): pass
+class LinkExpiredError(ValidationError): pass
 class InvalidEmailAddressError(ValidationError): pass
 class InvalidNameError(ValidationError): pass
 class InvalidPhoneNumberError(ValidationError): pass

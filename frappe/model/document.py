@@ -1271,11 +1271,12 @@ class Document(BaseDocument):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
-	def get_new_document_key(self):
+	@frappe.whitelist()
+	def get_new_document_key(self, expires_on=None):
 		doc = frappe.new_doc("Document Key")
 		doc.reference_doctype = self.doctype
 		doc.reference_docname = self.name
-		doc.key = frappe.generate_hash(length=32)
+		doc.expires_on = expires_on
 		doc.insert(ignore_permissions=True)
 		return doc.key
 
@@ -1283,6 +1284,7 @@ class Document(BaseDocument):
 		return frappe.db.exists("Document Key", {
 			"reference_doctype": self.doctype,
 			"reference_docname": self.name,
+			"status": "Active",
 			"key": key
 		})
 
