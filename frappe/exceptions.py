@@ -91,6 +91,7 @@ class ImproperDBConfigurationError(Exception):
 		super(ImproperDBConfigurationError, self).__init__(msg)
 		self.reason = reason
 
+<<<<<<< HEAD
 
 class DuplicateEntryError(NameError):
 	pass
@@ -252,6 +253,48 @@ class TooManyWritesError(Exception):
 	pass
 
 
+=======
+class DuplicateEntryError(NameError):pass
+class DataError(ValidationError): pass
+class UnknownDomainError(Exception): pass
+class MappingMismatchError(ValidationError): pass
+class InvalidStatusError(ValidationError): pass
+class MandatoryError(ValidationError): pass
+class NonNegativeError(ValidationError): pass
+class InvalidSignatureError(ValidationError): pass
+class RateLimitExceededError(ValidationError): pass
+class CannotChangeConstantError(ValidationError): pass
+class CharacterLengthExceededError(ValidationError): pass
+class UpdateAfterSubmitError(ValidationError): pass
+class LinkValidationError(ValidationError): pass
+class CancelledLinkError(LinkValidationError): pass
+class DocstatusTransitionError(ValidationError): pass
+class TimestampMismatchError(ValidationError): pass
+class EmptyTableError(ValidationError): pass
+class LinkExistsError(ValidationError): pass
+class LinkExpiredError(ValidationError): pass
+class InvalidEmailAddressError(ValidationError): pass
+class InvalidNameError(ValidationError): pass
+class InvalidPhoneNumberError(ValidationError): pass
+class TemplateNotFoundError(ValidationError): pass
+class UniqueValidationError(ValidationError): pass
+class AppNotInstalledError(ValidationError): pass
+class IncorrectSitePath(NotFound): pass
+class ImplicitCommitError(ValidationError): pass
+class RetryBackgroundJobError(Exception): pass
+class DocumentLockedError(ValidationError): pass
+class CircularLinkingError(ValidationError): pass
+class SecurityException(Exception): pass
+class InvalidColumnName(ValidationError): pass
+class IncompatibleApp(ValidationError): pass
+class InvalidDates(ValidationError): pass
+class DataTooLongException(ValidationError): pass
+class FileAlreadyAttachedException(Exception): pass
+class DocumentAlreadyRestored(ValidationError): pass
+class AttachmentLimitReached(ValidationError): pass
+class QueryTimeoutError(Exception): pass
+class QueryDeadlockError(Exception): pass
+>>>>>>> 64985a5d1a (feat: Document key expiry)
 # OAuth exceptions
 class InvalidAuthorizationHeader(CSRFTokenError):
 	pass

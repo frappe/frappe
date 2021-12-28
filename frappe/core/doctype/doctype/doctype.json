@@ -5,6 +5,7 @@
  "creation": "2013-02-18 13:36:19",
  "description": "DocType is a Table / Form in the application.",
  "doctype": "DocType",
+ "document_key_expiry": 90,
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
@@ -55,6 +56,7 @@
   "color",
   "show_preview_popup",
   "show_name_in_global_search",
+  "document_key_expiry",
   "email_settings_sb",
   "default_email_template",
   "column_break_51",
@@ -547,6 +549,46 @@
   {
    "fieldname": "column_break_51",
    "fieldtype": "Column Break"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "depends_on": "has_web_view",
+   "fieldname": "website_search_field",
+   "fieldtype": "Data",
+   "label": "Website Search Field"
+  },
+  {
+   "fieldname": "naming_rule",
+   "fieldtype": "Select",
+   "label": "Naming Rule",
+   "length": 40,
+   "options": "\nSet by user\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nBy script"
+  },
+  {
+   "fieldname": "migration_hash",
+   "fieldtype": "Data",
+   "hidden": 1
+  },
+  {
+   "fieldname": "states",
+   "fieldtype": "Table",
+   "label": "States",
+   "options": "DocType State"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "document_states_section",
+   "fieldtype": "Section Break",
+   "label": "Document States"
+  },
+  {
+   "default": "90",
+   "description": "Set number of days after which a document key will be expired",
+   "fieldname": "document_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Key Expiry (in Days)"
+>>>>>>> 64985a5d1a (feat: Document key expiry)
   }
  ],
  "icon": "fa fa-bolt",
@@ -628,10 +670,15 @@
    "link_fieldname": "reference_doctype"
   }
  ],
+<<<<<<< HEAD
  "modified": "2021-11-01 15:26:19.077164",
+=======
+ "modified": "2021-12-28 03:19:19.033347",
+>>>>>>> 64985a5d1a (feat: Document key expiry)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -661,5 +708,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
