@@ -196,6 +196,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		let fields = $(`.form-section:eq(${this.current_section}) .form-control`);
 		let errors = [];
+		let invalid_values = [];
 
 		for (let field of fields) {
 			let fieldname = $(field).attr("data-fieldname");
@@ -208,20 +209,29 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (field.df.reqd && is_null(typeof value === 'string' ? strip_html(value) : value)) errors.push(__(field.df.label));
 
 				if (field.df.reqd && field.df.fieldtype === 'Text Editor' && is_null(strip_html(cstr(value)))) errors.push(__(field.df.label));
+
+				if (field.df.invalid) invalid_values.push(__(field.df.label));
 			}
 		}
 
-		if (errors.length) {
-			frappe.msgprint({
-				title: __('Missing Values Required'),
-				message: __('Following fields have missing values:') +
-					'<br><br><ul><li>' + errors.join('<li>') + '</ul>',
-				indicator: 'orange'
-			});
-			return false;
+		let message = '';
+		if (invalid_values.length) {
+			message += __('Invalid values for fields:') + '<br><br><ul><li>' + invalid_values.join('<li>') + '</ul>';
 		}
 
-		return true;
+		if (errors.length) {
+			message += __('Mandatory fields required:') + '<br><br><ul><li>' + errors.join('<li>') + '</ul>';
+		}
+
+		if (invalid_values.length || errors.length) {
+			frappe.msgprint({
+				title: __('Error'),
+				message: message,
+				indicator: 'orange'
+			});
+		}
+
+		return !(errors.length || invalid_values.length);
 	}
 
 	toggle_section() {
