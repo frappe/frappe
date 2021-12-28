@@ -294,14 +294,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	set_formatted_input(value) {
 		if (!value) return;
 
-		this.label = __(value);
-		this.data_value = value
-
-		this.$input && this.$input.val(this.label);
+		this.$input && this.$input.val(__(value));
 	}
 
 	get_input_value() {
-		return this.$input && this.$input.val() && this.data_value ? this.data_value : "";
+		return this.$input && this.$input.val() && this.value ? this.value : "";
 	}
 
 	get_label_value() {
