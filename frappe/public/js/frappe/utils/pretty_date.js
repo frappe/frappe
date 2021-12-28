@@ -6,7 +6,7 @@ function prettyDate(date, mini) {
 		date = new Date((date || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
 	}
 
-	let diff = (((new Date()).getTime() - date.getTime()) / 1000);
+	let diff = (((new Date(frappe.datetime.now_datetime())).getTime() - date.getTime()) / 1000);
 	let day_diff = Math.floor(diff / 86400);
 
 	if (isNaN(day_diff) || day_diff < 0) return '';

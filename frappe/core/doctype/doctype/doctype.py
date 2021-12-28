@@ -381,7 +381,7 @@ class DocType(Document):
 		document_cls_tag = f"class {despaced_name}(Document)"
 		document_import_tag = "from frappe.model.document import Document"
 		website_generator_cls_tag = f"class {despaced_name}(WebsiteGenerator)"
-		website_generator_import_tag = "from frappe.website.generators.website_generator import WebsiteGenerator"
+		website_generator_import_tag = "from frappe.website.website_generator import WebsiteGenerator"
 
 		with open(controller_path) as f:
 			code = f.read()
@@ -1074,6 +1074,11 @@ def validate_fields(meta):
 		if getattr(docfield, 'max_height', None) and (docfield.max_height[-2:] not in ('px', 'em')):
 			frappe.throw('Max for {} height must be in px, em, rem'.format(frappe.bold(docfield.fieldname)))
 
+	def check_no_of_ratings(docfield):
+		if docfield.fieldtype == "Rating":
+			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
+				frappe.throw(_('Options for Rating field can range from 3 to 10'))
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1107,6 +1112,7 @@ def validate_fields(meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 		check_max_height(d)
+		check_no_of_ratings(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)

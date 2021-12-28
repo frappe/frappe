@@ -19,13 +19,6 @@ EVENT_MAP = {
 	'on_update_after_submit': 'After Save (Submitted Document)'
 }
 
-def run_server_script_api(method):
-	# called via handler, execute an API script
-	script_name = get_server_script_map().get('_api', {}).get(method)
-	if script_name:
-		frappe.get_doc('Server Script', script_name).execute_method()
-		return True
-
 def run_server_script_for_doc_event(doc, event):
 	# run document event method
 	if not event in EVENT_MAP:
@@ -41,7 +34,19 @@ def run_server_script_for_doc_event(doc, event):
 	if scripts:
 		# run all scripts for this doctype + event
 		for script_name in scripts:
-			frappe.get_doc('Server Script', script_name).execute_doc(doc)
+			try:
+				frappe.get_doc('Server Script', script_name).execute_doc(doc)
+			except Exception as e:
+				message = frappe._('Error executing Server Script {0}. Open Browser Console to see traceback.').format(
+					frappe.utils.get_link_to_form('Server Script', script_name)
+				)
+				exception = type(e)
+				if getattr(frappe, 'request', None):
+					# all exceptions throw 500 which is internal server error
+					# however server script error is a user error
+					# so we should throw 417 which is expectation failed
+					exception.http_status_code = 417
+				frappe.throw(title=frappe._('Server Script Error'), msg=message, exc=exception)
 
 def get_server_script_map():
 	# fetch cached server script methods

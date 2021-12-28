@@ -24,7 +24,7 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		email_queue = frappe.get_all("Email Queue", fields=["*"], order_by="creation desc", limit=1)
 
 		self.assertEqual(self.delete_request.status, "Pending Verification")
-		self.assertTrue("Subject: Confirm Deletion of Data" in email_queue[0].message)
+		self.assertTrue("Subject: Confirm Deletion of Account" in email_queue[0].message)
 
 	def test_anonymized_data(self):
 		self.delete_request.status = "Pending Approval"
