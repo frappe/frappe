@@ -29,6 +29,7 @@ from frappe import _, conf, safe_decode
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 from frappe.utils.image import strip_exif_data, optimize_image
+from frappe.utils.file_manager import safe_b64decode
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -436,7 +437,7 @@ class File(Document):
 
 			if b"," in self.content:
 				self.content = self.content.split(b",")[1]
-			self.content = base64.b64decode(self.content)
+			self.content = safe_b64decode(self.content)
 
 		if not self.is_private:
 			self.is_private = 0
@@ -852,7 +853,7 @@ def extract_images_from_html(doc, content, is_private=False):
 			content = content.encode("utf-8")
 		if b"," in content:
 			content = content.split(b",")[1]
-		content = base64.b64decode(content)
+		content = safe_b64decode(content)
 
 		content = optimize_image(content, mtype)
 

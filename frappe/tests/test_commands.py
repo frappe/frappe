@@ -474,6 +474,24 @@ class TestCommands(BaseTestCommands):
 		# cleanup
 		shutil.rmtree(test_app_path)
 
+	def disable_test_bench_drop_site_should_archive_site(self):
+		site = 'test_site.localhost'
+
+		self.execute(
+			f"bench new-site {site} --force --verbose --admin-password {frappe.conf.admin_password} "
+			f"--mariadb-root-password {frappe.conf.root_password}"
+		)
+		self.assertEqual(self.returncode, 0)
+
+		self.execute(f"bench drop-site {site} --force --root-password {frappe.conf.root_password}")
+		self.assertEqual(self.returncode, 0)
+
+		bench_path = frappe.utils.get_bench_path()
+		site_directory = os.path.join(bench_path, f'sites/{site}')
+		self.assertFalse(os.path.exists(site_directory))
+		archive_directory = os.path.join(bench_path, f'archived/sites/{site}')
+		self.assertTrue(os.path.exists(archive_directory))
+
 
 class RemoveAppUnitTests(unittest.TestCase):
 	def test_delete_modules(self):
