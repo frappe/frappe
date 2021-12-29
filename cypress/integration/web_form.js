@@ -11,7 +11,7 @@ context('Web Form', () => {
 		cy.get('.modal.show > .modal-dialog').should('be.visible');
 	});
 
-	it('Timeline should have submit and cancel activity information', () => {
+	it('Navigate and Submit a MultiStep WebForm', () => {
 		cy.call('frappe.tests.ui_test_helpers.update_webform_to_multistep').then(() => {
 			cy.visit('/update-profile');
 			cy.get_field('last_name', 'Data').type('_Test User', {force: true}).wait(200);

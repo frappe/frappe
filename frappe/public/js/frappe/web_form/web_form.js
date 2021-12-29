@@ -90,8 +90,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 			if (!is_validated) return;
 
-			/*
-				eslint cannot figure out if this is an infinite loop in backwards and
+			/**
+				The eslint utility cannot figure out if this is an infinite loop in backwards and
 				throws an error. Disabling for-direction just for this section.
 				for-direction doesnt throw an error if the values are hardcoded in the
 				reverse for-loop, but in this case its a dynamic loop.
