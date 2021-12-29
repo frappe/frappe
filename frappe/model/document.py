@@ -193,7 +193,7 @@ class Document(BaseDocument):
 		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -304,8 +304,7 @@ class Document(BaseDocument):
 		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
-			self.insert()
-			return
+			return self.insert()
 
 		self.check_permission("write", "save")
 

@@ -82,10 +82,10 @@
 		"public/js/lib/leaflet/easy-button.js"
 	],
 	"js/desk.min.js": [
+		"public/js/frappe/provide.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
-		"public/js/frappe/provide.js",
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
