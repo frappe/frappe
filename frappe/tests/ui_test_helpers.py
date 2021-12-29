@@ -249,5 +249,9 @@ def create_topic_and_reply(web_page):
 @frappe.whitelist()
 def update_webform_to_multistep():
 	doc = frappe.get_doc("Web Form", "edit-profile")
-	doc.is_multi_step_form = 1
-	doc.save()
+	_doc = frappe.copy_doc(doc)
+	_doc.is_multi_step_form = 1
+	_doc.title = "update-profile-duplicate"
+	_doc.route = "update-profile-duplicate"
+	_doc.is_standard = False
+	_doc.save()
