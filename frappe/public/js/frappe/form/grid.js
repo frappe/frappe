@@ -368,7 +368,7 @@ export default class Grid {
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
 				grid_row.doc = d;
-				grid_row.docfields = this.docfields;
+				grid_row.set_docfields(this.docfields);
 				grid_row.refresh();
 			} else {
 				var grid_row = new GridRow({
@@ -556,17 +556,23 @@ export default class Grid {
 	}
 
 	toggle_reqd(fieldname, reqd) {
-		this.get_docfield(fieldname).reqd = reqd;
+		let field = this.get_docfield(fieldname);
+		field.reqd = reqd;
+		field.override_mandatory_depends_on = !field.reqd;
 		this.debounced_refresh();
 	}
 
 	toggle_enable(fieldname, enable) {
-		this.get_docfield(fieldname).read_only = enable ? 0 : 1;
+		let field = this.get_docfield(fieldname);
+		field.read_only = enable ? 0 : 1;
+		field.override_read_only_depends_on = !field.read_only;
 		this.debounced_refresh();
 	}
 
 	toggle_display(fieldname, show) {
-		this.get_docfield(fieldname).hidden = show ? 0 : 1;
+		let field = this.get_docfield(fieldname);
+		field.hidden = show ? 0 : 1;
+		field.override_hidden_depends_on = !field.hidden;
 		this.debounced_refresh();
 	}
 

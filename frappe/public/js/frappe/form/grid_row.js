@@ -6,9 +6,7 @@ export default class GridRow {
 		this.on_grid_fields = [];
 		$.extend(this, opts);
 		if (this.doc && this.parent_df.options) {
-			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
-			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
-			this.docfields = docfields.length ? docfields : opts.docfields;
+			this.set_docfields();
 		}
 		this.columns = {};
 		this.columns_list = [];
@@ -40,6 +38,13 @@ export default class GridRow {
 		if(this.doc) {
 			this.set_data();
 		}
+	}
+	set_docfields(_docfields) {
+		if (_docfields) this.docfields = _docfields;
+
+		frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
+		const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
+		this.docfields = docfields.length ? docfields : this.docfields;
 	}
 	set_data() {
 		this.wrapper.data({

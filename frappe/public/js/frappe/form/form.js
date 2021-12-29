@@ -1365,6 +1365,13 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_df_property(fieldname, property, value, docname, table_field, table_row_name=null) {
 		let df;
+		let override_depends_on_properties_map = {
+			"reqd": "override_mandatory_depends_on",
+			"read_only": "override_read_only_depends_on",
+			"hidden": "override_depends_on"
+		};
+		let override_property = override_depends_on_properties_map[property];
+
 		if (!docname || !table_field) {
 			df = this.get_docfield(fieldname);
 		} else {
@@ -1374,8 +1381,11 @@ frappe.ui.form.Form = class FrappeForm {
 				df = frappe.meta.get_docfield(filtered_fields[0].parent, table_field, table_row_name);
 			}
 		}
+
 		if (df && df[property] != value) {
 			df[property] = value;
+			if (override_property) df[override_property] = value;
+
 			if (table_field && table_row_name) {
 				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
 					this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name].refresh_field(fieldname);
@@ -1389,18 +1399,21 @@ frappe.ui.form.Form = class FrappeForm {
 	toggle_enable(fnames, enable) {
 		this.field_map(fnames, function(field) {
 			field.read_only = enable ? 0 : 1;
+			field.override_read_only_depends_on = !field.read_only;
 		});
 	}
 
 	toggle_reqd(fnames, mandatory) {
 		this.field_map(fnames, function(field) {
 			field.reqd = mandatory ? true : false;
+			field.override_mandatory_depends_on = !field.reqd;
 		});
 	}
 
 	toggle_display(fnames, show) {
 		this.field_map(fnames, function(field) {
 			field.hidden = show ? 0 : 1;
+			field.override_hidden_depends_on = !field.hidden;
 		});
 	}
 

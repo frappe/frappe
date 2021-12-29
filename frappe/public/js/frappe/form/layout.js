@@ -399,8 +399,8 @@ frappe.ui.form.Layout = class Layout {
 				fieldobj.doc = me.doc;
 				fieldobj.doctype = me.doc.doctype;
 				fieldobj.docname = me.doc.name;
-				fieldobj.df = fieldobj.df || frappe.meta.get_docfield(me.doc.doctype,
-					fieldobj.df.fieldname, me.doc.name);
+				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,
+					fieldobj.df.fieldname, me.doc.name) || fieldobj.df;
 
 				// on form change, permissions can change
 				if (me.frm) {
@@ -547,9 +547,18 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	refresh_dependency() {
-		// Resolve "depends_on" and show / hide accordingly
+		/**
+			Resolve "depends_on" and show / hide accordingly
+			build dependants' dictionary
 
-		// build dependants' dictionary
+			Allows to override depends_on, mandatory_depends_on and read_only_depends_on
+			if either of the override_depends_on, override_mandatory_depends_on and override_read_only_depends_on
+			flags are set in df.
+
+			The override flag is set in in grid and form js when we try and override df property.
+
+		*/
+
 		let has_dep = false;
 
 		for (let fkey in this.fields_list) {
@@ -566,7 +575,7 @@ frappe.ui.form.Layout = class Layout {
 		for (let i = this.fields_list.length - 1; i >= 0; i--) {
 			let f = this.fields_list[i];
 			f.guardian_has_value = true;
-			if (f.df.depends_on) {
+			if (f.df.depends_on && !f.df.override_hidden_depends_on) {
 				// evaluate guardian
 
 				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
@@ -585,11 +594,11 @@ frappe.ui.form.Layout = class Layout {
 				}
 			}
 
-			if (f.df.mandatory_depends_on) {
+			if (f.df.mandatory_depends_on && !f.df.override_mandatory_depends_on) {
 				this.set_dependant_property(f.df.mandatory_depends_on, f.df.fieldname, 'reqd');
 			}
 
-			if (f.df.read_only_depends_on) {
+			if (f.df.read_only_depends_on && !f.df.override_read_only_depends_on) {
 				this.set_dependant_property(f.df.read_only_depends_on, f.df.fieldname, 'read_only');
 			}
 		}
