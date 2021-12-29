@@ -183,9 +183,12 @@ class PostgresDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
 
-	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+	def change_column_type(self, doctype: str, column: str, type: str, nullable: bool = False) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
-		return self.sql(f'ALTER TABLE "{table_name}" ALTER COLUMN "{column}" TYPE {type}')
+		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
+		return self.sql(f"""ALTER TABLE "{table_name}"
+								ALTER COLUMN "{column}" TYPE {type},
+								ALTER COLUMN "{column}" {null_constraint}""")
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (
