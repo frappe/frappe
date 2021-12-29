@@ -660,16 +660,16 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 
 @click.command('drop-site')
 @click.argument('site')
-@click.option('--root-login', default='root')
-@click.option('--root-password')
+@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
+@click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--archived-sites-path')
 @click.option('--no-backup', is_flag=True, default=False)
 @click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
-	_drop_site(site, root_login, root_password, archived_sites_path, force, no_backup)
+def drop_site(site, mariadb_root_username='root', mariadb_root_password=None, archived_sites_path=None, force=False, no_backup=False):
+	_drop_site(site, mariadb_root_username, mariadb_root_username, archived_sites_path, force, no_backup)
 
 
-def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
+def _drop_site(site, mariadb_root_username='root', mariadb_root_password=None, archived_sites_path=None, force=False, no_backup=False):
 	"Remove site from database and filesystem"
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
@@ -694,7 +694,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 			click.echo("\n".join(messages))
 			sys.exit(1)
 
-	drop_user_and_database(frappe.conf.db_name, root_login, root_password)
+	drop_user_and_database(frappe.conf.db_name, mariadb_root_username, mariadb_root_password)
 
 	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
 
