@@ -36,20 +36,15 @@ class UserType(Document):
 		if not self.user_doctypes:
 			return
 
-		DocType = frappe.qb.DocType("DocType")
+		modules = frappe.get_all("DocType",
+			filters={"name": ("in", [d.document_type for d in self.user_doctypes])},
+			distinct=True,
+			pluck="module",
+		)
 
-		document_types = [d.document_type for d in self.user_doctypes] or ['']
-		modules = (frappe.qb.from_(DocType)
-					.select(DocType.module)
-					.where(DocType.name.isin(document_types))
-					.groupby(DocType.module)
-					.distinct()).run()
-
-		self.set('user_type_modules', [])
-		for row in modules:
-			self.append('user_type_modules', {
-				'module': row[0]
-			})
+		self.set("user_type_modules", [])
+		for module in modules:
+			self.append("user_type_modules", {"module": module})
 
 	def validate_document_type_limit(self):
 		limit = frappe.conf.get('user_type_doctype_limit', {}).get(frappe.scrub(self.name))

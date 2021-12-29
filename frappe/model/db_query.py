@@ -213,8 +213,11 @@ class DatabaseQuery(object):
 			order_field = order_field.replace(r, "")
 
 		if order_field not in args.fields:
-			order_fieldm = order_field.replace("`", '"')
-			args.fields += f", MAX({order_fieldm}) as `{order_fieldm}`"
+			order_fieldm = order_field.replace("`", "")
+			if "." in order_fieldm:
+				args.fields += ", MAX(" + order_fieldm.split(".")[1] + ") as `" + order_fieldm + "`"
+			else:
+				args.fields += ", MAX(" + order_fieldm + ") as `" + order_fieldm + "`"
 			args.order_by = args.order_by.replace(order_field, "`" + order_fieldm + "`")
 
 		return args

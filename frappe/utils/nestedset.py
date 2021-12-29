@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # Tree (Hierarchical) Nested Set Model (nsm)
@@ -16,9 +16,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Order
-from pypika import CustomFunction
-
-Replace = CustomFunction('REPLACE', ['input', 'substr_to_replace', 'substr_to_replace_with'])
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -91,7 +88,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab{0}`
-		where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
+			where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
 
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
@@ -110,7 +107,7 @@ def update_move_node(doc, parent_field):
 
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
-		where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
+			where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
 
 		# set parent lft, rgt
 		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
@@ -156,7 +153,7 @@ def rebuild_tree(doctype, parent_field):
 		.where(
 			(column == "") | (column.isnull())
 		)
-		.orderby(Replace(table.name, '_', ''), order=Order.asc)
+		.orderby(table.name, order=Order.asc)
 		.select(table.name)
 	).run()
 
@@ -179,7 +176,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 	column = getattr(table, parent_field)
 
 	result = (
-		frappe.qb.from_(table).where(column == parent).select(table.name).orderby(Replace(table.name, '_', ''), order=Order.asc)
+		frappe.qb.from_(table).where(column == parent).select(table.name)
 	).run()
 
 	for r in result:
