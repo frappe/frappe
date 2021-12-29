@@ -242,6 +242,7 @@ frappe.views.TreeView = Class.extend({
 					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
 						node.$tree_link.find('a').text(new_name);
 						node.label = new_name;
+						me.tree.refresh();
 					});
 				},
 				btnClass: "hidden-xs"
@@ -317,10 +318,7 @@ frappe.views.TreeView = Class.extend({
 				args: args,
 				callback: function(r) {
 					if(!r.exc) {
-						if(node.expanded) {
-							me.tree.toggle_node(node);
-						}
-						me.tree.load_children(node, true);
+						me.tree.load_children(node);
 					}
 				},
 				always: function() {

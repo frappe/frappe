@@ -773,14 +773,27 @@ class Database(object):
 
 		frappe.local.realtime_log = []
 
-	def rollback(self):
-		"""`ROLLBACK` current transaction."""
-		self.sql("rollback")
-		self.begin()
-		for obj in frappe.local.rollback_observers:
-			if hasattr(obj, "on_rollback"):
-				obj.on_rollback()
-		frappe.local.rollback_observers = []
+	def savepoint(self, save_point):
+		"""Savepoints work as a nested transaction.
+
+		Changes can be undone to a save point by doing frappe.db.rollback(save_point)
+
+		Note: rollback watchers can not work with save points.
+			so only changes to database are undone when rolling back to a savepoint.
+			Avoid using savepoints when writing to filesystem."""
+		self.sql(f"savepoint {save_point}")
+
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.sql("rollback")
+			self.begin()
+			for obj in frappe.local.rollback_observers:
+				if hasattr(obj, "on_rollback"):
+					obj.on_rollback()
+			frappe.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -796,9 +809,9 @@ class Database(object):
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		tables = frappe.cache().get_value('db_tables')
-		if not tables:
+		if not tables or not cached:
 			table_rows = self.sql("""
 				SELECT table_name
 				FROM information_schema.tables
