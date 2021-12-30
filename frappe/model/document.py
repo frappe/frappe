@@ -396,6 +396,7 @@ class Document(BaseDocument):
 				"parenttype": self.doctype,
 				"parentfield": fieldname
 			})
+
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -468,9 +469,11 @@ class Document(BaseDocument):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
-		if not self.creation:
+
+		# We'd probably want the creation and owner to be set via API
+		# or Data import at some point, that'd have to be handled here
+		if self.is_new():
 			self.creation = self.modified
-		if not self.owner:
 			self.owner = self.modified_by
 
 		for d in self.get_all_children():
