@@ -35,7 +35,7 @@ class Picker {
 	setup_icons() {
 
 		Object.entries(this.countries).forEach(([country, info]) => {
-		let $country = $(`<div id="${country}" class="phone-wrapper">${frappe.utils.flag(info.code, "md")}<span class="country">${country}</span></div>`);
+		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code, "md")}<span class="country">${country}</span></div>`);
 		this.icon_wrapper.append($country);
 		const set_values = () => {
 			this.set_country(country);
@@ -49,7 +49,7 @@ class Picker {
 		 });
 		this.search_input.keydown((e) => {
 			const key_code = e.keyCode;
-			if ([13, 32].includes(key_code)) {
+			if ([13].includes(key_code)) {
 				e.preventDefault();
 				set_values();
 			}
@@ -71,7 +71,7 @@ class Picker {
 			this.icon_wrapper.find(".phone-wrapper").removeClass('hidden');
 		} else {
 			this.icon_wrapper.find(".phone-wrapper").addClass('hidden');
-			this.icon_wrapper.find(`.phone-wrapper[id*='${value}']`).removeClass('hidden');
+			this.icon_wrapper.find(`.phone-wrapper[id*='${value.toLowerCase()}']`).removeClass('hidden');
 		}
 	}
 
