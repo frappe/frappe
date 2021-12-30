@@ -198,6 +198,21 @@ class TestPermissions(unittest.TestCase):
 		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(doc.has_permission("read"))
 
+	def test_set_standard_fields_manually(self):
+		# check that creation and owner cannot be set manually
+		from datetime import timedelta
+
+		fake_creation = now_datetime() + timedelta(days=-7)
+		fake_owner = frappe.db.get_value("User", {"name": ("!=", frappe.session.user)})
+
+		d = frappe.new_doc("ToDo")
+		d.description = "ToDo created via test_set_standard_fields_manually"
+		d.creation = fake_creation
+		d.owner = fake_owner
+		d.save()
+		self.assertNotEqual(d.creation, fake_creation)
+		self.assertNotEqual(d.owner, fake_owner)
+
 	def test_dont_change_standard_constants(self):
 		# check that Document.creation cannot be changed
 		user = frappe.get_doc("User", frappe.session.user)
