@@ -71,11 +71,11 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
 	query = (
-        session_id.select(session.sid)
-        .offset(offset)
-        .limit(100)
-        .orderby(session.lastupdate, order=Order.desc)
-    )
+		session_id.select(session.sid)
+		.offset(offset)
+		.limit(100)
+		.orderby(session.lastupdate, order=Order.desc)
+	)
 
 	return query.run(pluck=True)
 
