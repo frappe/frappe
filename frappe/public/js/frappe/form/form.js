@@ -1384,7 +1384,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		if (df && df[property] != value) {
 			df[property] = value;
-			if (override_property) df[override_property] = value;
+			if (override_property) df[override_property] = true;
 
 			if (table_field && table_row_name) {
 				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
@@ -1399,21 +1399,21 @@ frappe.ui.form.Form = class FrappeForm {
 	toggle_enable(fnames, enable) {
 		this.field_map(fnames, function(field) {
 			field.read_only = enable ? 0 : 1;
-			field.override_read_only_depends_on = !field.read_only;
+			field.override_read_only_depends_on = true;
 		});
 	}
 
 	toggle_reqd(fnames, mandatory) {
 		this.field_map(fnames, function(field) {
 			field.reqd = mandatory ? true : false;
-			field.override_mandatory_depends_on = !field.reqd;
+			field.override_mandatory_depends_on = true;
 		});
 	}
 
 	toggle_display(fnames, show) {
 		this.field_map(fnames, function(field) {
 			field.hidden = show ? 0 : 1;
-			field.override_hidden_depends_on = !field.hidden;
+			field.override_hidden_depends_on = true;
 		});
 	}
 

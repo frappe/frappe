@@ -558,21 +558,21 @@ export default class Grid {
 	toggle_reqd(fieldname, reqd) {
 		let field = this.get_docfield(fieldname);
 		field.reqd = reqd;
-		field.override_mandatory_depends_on = !field.reqd;
+		field.override_mandatory_depends_on = true;
 		this.debounced_refresh();
 	}
 
 	toggle_enable(fieldname, enable) {
 		let field = this.get_docfield(fieldname);
 		field.read_only = enable ? 0 : 1;
-		field.override_read_only_depends_on = !field.read_only;
+		field.override_read_only_depends_on = true;
 		this.debounced_refresh();
 	}
 
 	toggle_display(fieldname, show) {
 		let field = this.get_docfield(fieldname);
 		field.hidden = show ? 0 : 1;
-		field.override_hidden_depends_on = !field.hidden;
+		field.override_hidden_depends_on = true;
 		this.debounced_refresh();
 	}
 
