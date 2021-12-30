@@ -1156,6 +1156,19 @@ Object.assign(frappe.utils, {
 		</svg>`;
 	},
 
+	flag(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
+		let size_class = "";
+
+		if (typeof size == "object") {
+			icon_style += ` width: ${size.width}; height: ${size.height}`;
+		} else {
+			size_class = `flag-${size}`;
+		}
+		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
+			<use class="${icon_class}" href="#${icon_name}"></use>
+		</svg>`;
+	},
+
 	make_chart(wrapper, custom_options={}) {
 		let chart_args = {
 			type: 'bar',

@@ -58,6 +58,7 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
+	get_country_codes(bootinfo)
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):
@@ -324,3 +325,9 @@ def get_desk_settings():
 
 def get_notification_settings():
 	return frappe.get_cached_doc('Notification Settings', frappe.session.user)
+
+def get_country_codes(bootinfo):
+	country_codes = {
+		"United States": {"isd":"+1","code":"us" },
+		"India": {"isd":"+91","code":"in" }}
+	bootinfo.country_codes = frappe._dict(country_codes)

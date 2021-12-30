@@ -11,6 +11,7 @@ from frappe.model import display_fieldtypes
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
+import phonenumbers as ph
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -652,6 +653,17 @@ class BaseDocument(object):
 		from frappe.core.doctype.user.user import STANDARD_USERS
 
 		# data_field options defined in frappe.model.data_field_options
+		for phone_field in self.meta.get_phone_fields():
+			phone = self.get(phone_field.fieldname)
+			try:
+				phone = ph.parse(phone)
+			except Exception as e:
+				if e.error_type == 1:
+					frappe.throw(_("The entered value is not a phone number."), title="Invalid Number")
+				frappe.throw(_("Please select a country code."), title = _("Country Code Required"))
+			if not ph.is_valid_number(phone):
+				frappe.throw('This is not a valid phone number', title = "Invalid Number")
+
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
 			data_field_options = data_field.get("options")
