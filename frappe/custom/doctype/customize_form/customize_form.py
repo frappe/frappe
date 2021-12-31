@@ -377,7 +377,7 @@ class CustomizeForm(Document):
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None,
 		apply_on=None, row_name = None):
-		delete_property_setter(self.doc_type, prop, fieldname)
+		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 
