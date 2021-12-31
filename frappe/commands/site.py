@@ -698,8 +698,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
 
-	if not os.path.exists(archived_sites_path):
-		os.mkdir(archived_sites_path)
+	os.makedirs(archived_sites_path, exist_ok=True)
 
 	move(archived_sites_path, site)
 
