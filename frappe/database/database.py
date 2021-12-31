@@ -646,19 +646,17 @@ class Database(object):
 			to_update.update({field: val})
 
 		if dn and dt!=dn:
-			# with table
-			conditions, values = self.build_conditions(dn)
-
-			values.update(to_update)
-
 			set_values = []
 			for key in to_update:
 				set_values.append('`{0}`=%({0})s'.format(key))
 
-			self.sql("""update `tab{0}`
-				set {1} where {2}""".format(dt, ', '.join(set_values), conditions),
-				values, debug=debug)
+			for name in self.get_values(dt, dn, 'name', debug=debug):
+				values = dict(name=name[0])
+				values.update(to_update)
 
+				self.sql("""update `tab{0}`
+					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
+					values, debug=debug)
 		else:
 			# for singles
 			keys = list(to_update)
