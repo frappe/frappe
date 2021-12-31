@@ -17,7 +17,7 @@
                 background-color: var(--fg-color);
 
                 @include media-breakpoint-up(sm) {
-                    padding: 1.8rem 1.8rem 3.4rem;
+                    padding: 1.8rem 1.8rem;
                     border-radius: var(--border-radius-md);
                     box-shadow: var(--card-shadow);
                 }
@@ -50,5 +50,26 @@
         &:last-child {
             padding-right: 0;
         }
+    }
+}
+
+.web-form-wrapper~#datatable {
+    .table {
+        thead {
+            th {
+                border: 0;
+                font-weight: normal;
+                color: var(--text-muted)
+            }
+        }
+
+        tr {
+            color: var(--text-color);
+
+            td {
+                border-top: 1px solid var(--border-color);
+            }
+        }
+
     }
 }

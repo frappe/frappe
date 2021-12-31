@@ -29,8 +29,8 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	{% if is_list %}
 	{# web form list #}
 	<div class="web-form-wrapper" {{ container_attributes() }}></div>
-	<div id="list-filters" class="row"></div>
-	<div id="datatable" class="pt-4"></div>
+	<div id="list-filters" class="row mt-4"></div>
+	<div id="datatable" class="pt-4 overflow-auto"></div>
 	<div class="list-view-footer text-right"></div>
 	{% else %}
 	{# web form #}
@@ -38,7 +38,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 		<div id="introduction" class="text-muted"></div>
 		<hr>
 		<div class="web-form-wrapper" {{ container_attributes() }}></div>
-		<div class="web-form-footer pull-right"></div>
+		<div class="web-form-footer text-right"></div>
 	</div>
 
 	{% if show_attachments and not frappe.form_dict.new and attachments %}
