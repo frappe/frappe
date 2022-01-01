@@ -1,19 +1,29 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import io
 import unittest
-import frappe
+from PIL import Image
+from datetime import datetime, timedelta, date
+from decimal import Decimal
+from mimetypes import guess_type
 
-from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
-from frappe.utils import validate_url, validate_email_address
-from frappe.utils import ceil, floor
+import frappe
+from frappe.utils import (
+	ceil,
+	floor,
+	flt,
+	evaluate_filters,
+	money_in_words,
+	scrub_urls,
+	get_url,
+	validate_url,
+	validate_email_address
+)
 from frappe.utils.data import cast, validate_python_code
 from frappe.utils.diff import get_version_diff, version_query, _get_value_from_version
-
-from PIL import Image
 from frappe.utils.image import strip_exif_data, optimize_image
-import io
-from mimetypes import guess_type
-from datetime import datetime, timedelta, date
+from hypothesis import given
+from hypothesis import strategies as st
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -306,3 +316,41 @@ class TestDiffUtils(unittest.TestCase):
 		diff = get_version_diff(old_version, latest_version)
 		self.assertIn('-2;', diff)
 		self.assertIn('+42;', diff)
+
+class TestRounding(unittest.TestCase):
+
+	def test_bankers_rounding(self):
+		self.assertEqual(flt("what"), 0)
+
+		self.assertEqual(flt("0.5", 0), 0)
+		self.assertEqual(flt("0.3"), 0.3)
+
+		self.assertEqual(flt("1.5", 0), 2)
+
+		# positive rounding to integers
+		self.assertEqual(flt(0.4, 0), 0)
+		self.assertEqual(flt(0.5, 0), 0)
+		self.assertEqual(flt(1.455, 0), 1)
+		self.assertEqual(flt(1.5, 0), 2)
+
+		# negative rounding to integers
+		self.assertEqual(flt(-0.5, 0), 0)
+		self.assertEqual(flt(-1.5, 0), -2)
+
+		# negative precision i.e. round to nearest 10th
+		self.assertEquals(flt(123, -1), 120)
+		self.assertEquals(flt(125, -1), 120)
+		self.assertEquals(flt(134.45, -1), 130)
+		self.assertEquals(flt(135, -1), 140)
+
+		# # positive multiple digit rounding
+		self.assertEqual(flt(1.25, 1), 1.2)
+		self.assertEqual(flt(0.15, 1), 0.2)
+
+		# # negative multiple digit rounding
+		self.assertEqual(flt(-1.25, 1), -1.2)
+		self.assertEqual(flt(-0.15, 1), -0.2)
+
+	@given(st.decimals(min_value=-1e10, max_value=1e10), st.integers(min_value=-3, max_value=6))
+	def test_rounding_correctness(self, number, precision):
+		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
