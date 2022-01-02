@@ -139,6 +139,10 @@ class PostgresDatabase(Database):
 		return isinstance(e, psycopg2.extensions.QueryCanceledError)
 
 	@staticmethod
+	def is_syntax_error(e):
+		return isinstance(e, psycopg2.errors.SyntaxError)
+
+	@staticmethod
 	def is_table_missing(e):
 		return getattr(e, 'pgcode', None) == '42P01'
 
