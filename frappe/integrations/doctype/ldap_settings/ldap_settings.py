@@ -59,9 +59,9 @@ class LDAPSettings(Document):
 			import ssl
 
 			if self.require_trusted_certificate == 'Yes':
-				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLSv1)
+				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLS_CLIENT)
 			else:
-				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1)
+				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
 
 			if self.local_private_key_file:
 				tls_configuration.private_key_file = self.local_private_key_file
