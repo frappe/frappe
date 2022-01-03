@@ -1,7 +1,7 @@
 .phone-picker {
 	font-size: var(--text-xs);
 	color: var(--text-muted);
-	--phone-picker-width: 210px;
+	--phone-picker-width: 250px;
 	width: var(--phone-picker-width);
 	.phones {
 		margin-top: 10px;
@@ -22,7 +22,7 @@
 
 		.phone-wrapper {
 			display: flex;
-			width: 210px;
+			width: 250px;
 			height: 30px;
 			text-align: center;
 			align-items: center;
@@ -61,13 +61,13 @@
 .frappe-control[data-fieldtype='Phone']
  {
 	input {
-		padding-left: 70px;
+		padding-left: 80px;
 	}
 	.selected-phone {
 		display: flex;
 		cursor: pointer;
-		width: 52px;
-		height: 18px;
+		width: 66px;
+		height: 20px;
 		border-radius: 5px;
 		position: absolute;
 		top: calc(50% + 2.6px);
@@ -77,6 +77,7 @@
 		.country {
 			display: flex;
 			margin-left: 0.6rem;
+			align-items: flex-end;
 			flex-grow: 1;
 		}
 

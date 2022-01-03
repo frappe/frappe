@@ -13,7 +13,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		// Replaces code when selected and removes previously selected.
 		this.picker.on_change = (country) => {
 			const country_code = frappe.boot.country_codes[country].code;
-			const country_isd = frappe.boot.country_codes[country].isd;
+			const country_isd = frappe.boot.country_codes[country].iso;
 			this.selected_icon.find('use').attr('href', '#'+country_code)
 			this.$icon = this.selected_icon.find('svg');
 			if (this.$icon.hasClass('icon-sm')) {
@@ -25,7 +25,6 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			} else {
 				this.$isd.text(country_isd)
 			}
-			// this.selected_icon.text('+' + this.get_country(country))
 			if(this.$input.val()) {
 				this.set_formatted_input(this.get_country(country) +'-'+ this.$input.val())
 			}
@@ -134,10 +133,6 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.$input && value && this.$input.val(value.split("-").pop())
 	}
 
-	reset_icon() {
-
-	}
-
 	change_flag(country_code) {
 		this.selected_icon.find('use').attr('href', '#'+country_code)
 		this.$icon = this.selected_icon.find('svg');
@@ -149,7 +144,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	get_country(country=null) {
 		const country_codes = frappe.boot.country_codes;
-		return country_codes[country].isd;
+		return country_codes[country].iso;
 	}
 	get_country_flag(country) {
 		const country_codes = frappe.boot.country_codes;
