@@ -422,6 +422,7 @@ frappe.views.Calendar = class Calendar {
 			name: event[this.field_map.id]
 		};
 
+		args[this.field_map.schedule_date] = me.get_system_datetime(event.start);
 		args[this.field_map.start] = me.get_system_datetime(event.start);
 
 		if(this.field_map.allDay)
