@@ -106,7 +106,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 		
-		let route_options = {}
+		let route_options = {};
 		route_options = Object.assign(route_options, frappe.route_options);
 
 		if (this.report_name !== frappe.get_route()[1]) {
@@ -531,7 +531,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	set_route_filters(route_options) {
 		if (!route_options) route_options = frappe.route_options;
 
-		if(route_options) {
+		if (route_options) {
 			const fields = Object.keys(route_options);
 
 			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
