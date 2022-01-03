@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.csvutils import validate_google_sheets_url
+from frappe.utils import cint
 
 
 class DataImport(Document):
@@ -177,7 +178,8 @@ def get_import_status(data_import_name):
 		else:
 			import_status['failed'] = log.get('count')
 
-	import_status['total_records'] = len(logs)
+	import_status['total_records'] = cint(import_status.get('success')) + \
+		cint(import_status.get('failed'))
 
 	return import_status
 
