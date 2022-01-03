@@ -4,7 +4,6 @@
 import frappe
 from frappe import _
 import json
-from datetime import datetime
 
 @frappe.whitelist()
 def update_event(args, field_map):
@@ -14,8 +13,7 @@ def update_event(args, field_map):
 	w = frappe.get_doc(args.doctype, args.name)
 	w.set(field_map.start, args[field_map.start])
 	w.set(field_map.end, args.get(field_map.end))
-	date_obj = datetime.strptime(args.get(field_map.schedule_date), "%Y-%m-%d %H:%M:%S")
-	w.set(field_map.schedule_date, date_obj)
+	w.set(field_map.schedule_date, args.get(field_map.schedule_date))
 	w.save()
 
 def get_event_conditions(doctype, filters=None):
