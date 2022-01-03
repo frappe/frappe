@@ -245,11 +245,16 @@ def update_link_field_values(link_fields, old, new, doctype):
 			if parent == new and doctype == "DocType":
 				parent = old
 
+<<<<<<< HEAD
 			frappe.db.sql("""
 				update `tab{table_name}` set `{fieldname}`=%s
 				where `{fieldname}`=%s""".format(
 					table_name=parent,
 					fieldname=field['fieldname']), (new, old))
+=======
+			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
+
+>>>>>>> b0b19d7a09 (fix: renaming a document updates the modified timestamp)
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
 			field['parent'] = new
