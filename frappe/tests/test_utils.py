@@ -306,3 +306,16 @@ class TestDiffUtils(unittest.TestCase):
 		diff = get_version_diff(old_version, latest_version)
 		self.assertIn('-2;', diff)
 		self.assertIn('+42;', diff)
+
+class TestDateUtils(unittest.TestCase):
+	def test_first_day_of_week(self):
+		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"),
+			frappe.utils.getdate("2020-12-20"))
+		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-21"),
+			frappe.utils.getdate("2020-12-20"))
+
+	def test_last_day_of_week(self):
+		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-24"),
+			frappe.utils.getdate("2020-12-26"))
+		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
+			frappe.utils.getdate("2021-01-02"))
