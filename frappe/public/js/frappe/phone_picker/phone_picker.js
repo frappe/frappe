@@ -14,7 +14,7 @@ class Picker {
 	}
 
 	setup_picker() {
-		this.icon_picker_wrapper = $(`
+		this.phone_picker_wrapper = $(`
 			<div class="phone-picker">
 				<div class="search-phones">
 					<input type="search" placeholder="Search for countries.." class="form-control">
@@ -25,18 +25,19 @@ class Picker {
 				</div>
 			</div>
 		`);
-		this.parent.append(this.icon_picker_wrapper);
-		this.icon_wrapper = this.icon_picker_wrapper.find('.phones');
-		this.search_input = this.icon_picker_wrapper.find('.search-phones > input');
+		this.parent.append(this.phone_picker_wrapper);
+		this.phone_wrapper = this.phone_picker_wrapper.find('.phones');
+		this.search_input = this.phone_picker_wrapper.find('.search-phones > input');
 		this.refresh();
-		this.setup_icons();
+		this.setup_countries();
 	}
 
-	setup_icons() {
+	setup_countries() {
 
 		Object.entries(this.countries).forEach(([country, info]) => {
-		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code, "md")}<span class="country">${country}</span></div>`);
-		this.icon_wrapper.append($country);
+		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code, "md")}
+			<span class="country">${country} (${info.isd})</span></div>`);
+		this.phone_wrapper.append($country);
 		const set_values = () => {
 			this.set_country(country);
 			this.update_icon_selected();
@@ -68,10 +69,10 @@ class Picker {
 	filter_icons() {
 		let value = this.search_input.val();
 		if (!value) {
-			this.icon_wrapper.find(".phone-wrapper").removeClass('hidden');
+			this.phone_wrapper.find(".phone-wrapper").removeClass('hidden');
 		} else {
-			this.icon_wrapper.find(".phone-wrapper").addClass('hidden');
-			this.icon_wrapper.find(`.phone-wrapper[id*='${value.toLowerCase()}']`).removeClass('hidden');
+			this.phone_wrapper.find(".phone-wrapper").addClass('hidden');
+			this.phone_wrapper.find(`.phone-wrapper[id*='${value.toLowerCase()}']`).removeClass('hidden');
 		}
 	}
 
