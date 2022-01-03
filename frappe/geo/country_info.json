@@ -8,7 +8,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Kabul"
-  ]
+  ],
+  "iso": "+93"
  },
  "Albania": {
   "code": "al",
@@ -20,7 +21,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Tirane"
-  ]
+  ],
+  "iso": "+355"
  },
  "Algeria": {
   "code": "dz",
@@ -32,11 +34,13 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Algiers"
-  ]
+  ],
+  "iso": "+213"
  },
  "American Samoa": {
   "code": "as",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+1684"
  },
  "Andorra": {
   "code": "ad",
@@ -48,7 +52,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Andorra"
-  ]
+  ],
+  "iso": "+376"
  },
  "Angola": {
   "code": "ao",
@@ -60,7 +65,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Luanda"
-  ]
+  ],
+  "iso": "+244"
  },
  "Anguilla": {
   "code": "ai",
@@ -72,7 +78,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Anguilla"
-  ]
+  ],
+  "iso": "+1264"
  },
  "Antarctica": {
   "code": "aq",
@@ -88,7 +95,8 @@
    "Antarctica/Rothera",
    "Antarctica/Syowa",
    "Antarctica/Vostok"
-  ]
+  ],
+  "iso": "+672"
  },
  "Antigua and Barbuda": {
   "code": "ag",
@@ -100,7 +108,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Antigua"
-  ]
+  ],
+  "iso": "+1268"
  },
  "Argentina": {
   "code": "ar",
@@ -123,7 +132,8 @@
    "America/Argentina/San_Luis",
    "America/Argentina/Tucuman",
    "America/Argentina/Ushuaia"
-  ]
+  ],
+  "iso": "+54"
  },
  "Armenia": {
   "code": "am",
@@ -135,7 +145,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Yerevan"
-  ]
+  ],
+  "iso": "+374"
  },
  "Aruba": {
   "code": "aw",
@@ -147,7 +158,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Aruba"
-  ]
+  ],
+  "iso": "+297"
  },
  "Australia": {
   "code": "au",
@@ -170,7 +182,8 @@
    "Australia/Melbourne",
    "Australia/Perth",
    "Australia/Sydney"
-  ]
+  ],
+  "iso": "+61"
  },
  "Austria": {
   "code": "at",
@@ -182,7 +195,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Vienna"
-  ]
+  ],
+  "iso": "+43"
  },
  "Azerbaijan": {
   "code": "az",
@@ -192,7 +206,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Baku"
-  ]
+  ],
+  "iso": "+994"
  },
  "Bahamas": {
   "code": "bs",
@@ -201,7 +216,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Nassau"
-  ]
+  ],
+  "iso": "+1242"
  },
  "Bahrain": {
   "code": "bh",
@@ -213,7 +229,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Bahrain"
-  ]
+  ],
+  "iso": "+973"
  },
  "Bangladesh": {
   "code": "bd",
@@ -225,7 +242,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Dhaka"
-  ]
+  ],
+  "iso": "+880"
  },
  "Barbados": {
   "code": "bb",
@@ -237,7 +255,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Barbados"
-  ]
+  ],
+  "iso": "+1246"
  },
  "Belarus": {
   "code": "by",
@@ -247,7 +266,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Minsk"
-  ]
+  ],
+  "iso": "+375"
  },
  "Belgium": {
   "code": "be",
@@ -259,7 +279,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Brussels"
-  ]
+  ],
+  "iso": "+32"
  },
  "Belize": {
   "code": "bz",
@@ -272,7 +293,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Belize"
-  ]
+  ],
+  "iso": "+501"
  },
  "Benin": {
   "code": "bj",
@@ -284,7 +306,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Porto-Novo"
-  ]
+  ],
+  "iso": "+229"
  },
  "Bermuda": {
   "code": "bm",
@@ -296,7 +319,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Atlantic/Bermuda"
-  ]
+  ],
+  "iso": "+1441"
  },
  "Bhutan": {
   "code": "bt",
@@ -308,13 +332,15 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Thimphu"
-  ]
+  ],
+  "iso": "+975"
  },
  "Bolivia, Plurinational State of": {
   "code": "bo",
   "currency": "BOB",
   "currency_name": "Boliviano",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+591"
  },
  "Bonaire, Sint Eustatius and Saba": {
   "code": "bq",
@@ -329,7 +355,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Sarajevo"
-  ]
+  ],
+  "iso": "+387"
  },
  "Botswana": {
   "code": "bw",
@@ -341,11 +368,13 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Gaborone"
-  ]
+  ],
+  "iso": "+267"
  },
  "Bouvet Island": {
   "code": "bv",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+47"
  },
  "Brazil": {
   "code": "br",
@@ -372,7 +401,8 @@
    "America/Rio_Branco",
    "America/Santarem",
    "America/Sao_Paulo"
-  ]
+  ],
+  "iso": "+55"
  },
  "British Indian Ocean Territory": {
   "code": "io",
@@ -382,7 +412,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Chagos"
-  ]
+  ],
+  "iso": "+246"
  },
  "Brunei Darussalam": {
   "code": "bn",
@@ -391,7 +422,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Brunei"
-  ]
+  ],
+  "iso": "+673"
  },
  "Bulgaria": {
   "code": "bg",
@@ -403,7 +435,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Sofia"
-  ]
+  ],
+  "iso": "+359"
  },
  "Burkina Faso": {
   "code": "bf",
@@ -415,7 +448,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Ouagadougou"
-  ]
+  ],
+  "iso": "+226"
  },
  "Burundi": {
   "code": "bi",
@@ -427,7 +461,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bujumbura"
-  ]
+  ],
+  "iso": "+257"
  },
  "Cambodia": {
   "code": "kh",
@@ -439,7 +474,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Phnom_Penh"
-  ]
+  ],
+  "iso": "+855"
  },
  "Cameroon": {
   "code": "cm",
@@ -451,7 +487,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Douala"
-  ]
+  ],
+  "iso": "+237"
  },
  "Canada": {
   "code": "ca",
@@ -491,7 +528,8 @@
    "America/Whitehorse",
    "America/Winnipeg",
    "America/Yellowknife"
-  ]
+  ],
+  "iso": "+1"
  },
  "Cape Verde": {
   "code": "cv",
@@ -503,7 +541,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Atlantic/Cape_Verde"
-  ]
+  ],
+  "iso": "+238"
  },
  "Cayman Islands": {
   "code": "ky",
@@ -515,7 +554,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Cayman"
-  ]
+  ],
+  "iso": "+ 345"
  },
  "Central African Republic": {
   "code": "cf",
@@ -527,7 +567,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bangui"
-  ]
+  ],
+  "iso": "+236"
  },
  "Chad": {
   "code": "td",
@@ -539,7 +580,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Ndjamena"
-  ]
+  ],
+  "iso": "+235"
  },
  "Chile": {
   "code": "cl",
@@ -552,7 +594,8 @@
   "timezones": [
    "America/Santiago",
    "Pacific/Easter"
-  ]
+  ],
+  "iso": "+56"
  },
  "China": {
   "code": "cn",
@@ -568,14 +611,16 @@
    "Asia/Kashgar",
    "Asia/Shanghai",
    "Asia/Urumqi"
-  ]
+  ],
+  "iso": "+86"
  },
  "Christmas Island": {
   "code": "cx",
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Christmas"
-  ]
+  ],
+  "iso": "+61"
  },
  "Cocos (Keeling) Islands": {
   "code": "cc",
@@ -585,7 +630,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Cocos"
-  ]
+  ],
+  "iso": "+61"
  },
  "Colombia": {
   "code": "co",
@@ -597,7 +643,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "America/Bogota"
-  ]
+  ],
+  "iso": "+57"
  },
  "Comoros": {
   "code": "km",
@@ -609,7 +656,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Comoro"
-  ]
+  ],
+  "iso": "+269"
  },
  "Congo": {
   "code": "cg",
@@ -618,7 +666,8 @@
   "currency_name": "Central African CFA Franc",
   "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
-  "currency_fraction_units": 100
+  "currency_fraction_units": 100,
+  "iso": "+242"
  },
  "Congo, The Democratic Republic of the": {
   "code": "cd",
@@ -627,7 +676,8 @@
   "currency_name": "Congolese franc",
   "currency_symbol": "FC",
   "currency_fraction": "Centime",
-  "currency_fraction_units": 100
+  "currency_fraction_units": 100,
+  "iso": "+243"
  },
  "Cook Islands": {
   "code": "ck",
@@ -637,7 +687,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Rarotonga"
-  ]
+  ],
+  "iso": "+682"
  },
  "Costa Rica": {
   "code": "cr",
@@ -649,7 +700,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "America/Costa_Rica"
-  ]
+  ],
+  "iso": "+506"
  },
  "Croatia": {
   "code": "hr",
@@ -661,7 +713,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Zagreb"
-  ]
+  ],
+  "iso": "+385"
  },
  "Cuba": {
   "code": "cu",
@@ -673,7 +726,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Havana"
-  ]
+  ],
+  "iso": "+53"
  },
  "Cura\u00e7ao": {
   "code": "cw",
@@ -692,7 +746,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Asia/Nicosia"
-  ]
+  ],
+  "iso": "+357"
  },
  "Czech Republic": {
   "code": "cz",
@@ -704,7 +759,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Prague"
-  ]
+  ],
+  "iso": "+420"
  },
  "Denmark": {
   "code": "dk",
@@ -716,7 +772,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Copenhagen"
-  ]
+  ],
+  "iso": "+45"
  },
  "Djibouti": {
   "code": "dj",
@@ -728,7 +785,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Djibouti"
-  ]
+  ],
+  "iso": "+253"
  },
  "Dominica": {
   "code": "dm",
@@ -740,7 +798,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Dominica"
-  ]
+  ],
+  "iso": "+1767"
  },
  "Dominican Republic": {
   "code": "do",
@@ -752,7 +811,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Santo_Domingo"
-  ]
+  ],
+  "iso": "+1849"
  },
  "Ecuador": {
   "code": "ec",
@@ -763,7 +823,8 @@
   "timezones": [
    "America/Guayaquil",
    "Pacific/Galapagos"
-  ]
+  ],
+  "iso": "+593"
  },
  "Egypt": {
   "code": "eg",
@@ -775,7 +836,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Cairo"
-  ]
+  ],
+  "iso": "+20"
  },
  "El Salvador": {
   "code": "sv",
@@ -789,7 +851,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/El_Salvador"
-  ]
+  ],
+  "iso": "+503"
  },
  "Equatorial Guinea": {
   "code": "gq",
@@ -801,7 +864,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Malabo"
-  ]
+  ],
+  "iso": "+240"
  },
  "Eritrea": {
   "code": "er",
@@ -813,7 +877,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Asmara"
-  ]
+  ],
+  "iso": "+291"
  },
  "Estonia": {
   "code": "ee",
@@ -825,7 +890,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Tallinn"
-  ]
+  ],
+  "iso": "+372"
  },
  "Ethiopia": {
   "code": "et",
@@ -837,13 +903,15 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Addis_Ababa"
-  ]
+  ],
+  "iso": "+251"
  },
  "Falkland Islands (Malvinas)": {
   "code": "fk",
   "currency": "FKP",
   "currency_name": "Falkland Islands Pound",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+500"
  },
  "Faroe Islands": {
   "code": "fo",
@@ -853,7 +921,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Atlantic/Faroe"
-  ]
+  ],
+  "iso": "+298"
  },
  "Fiji": {
   "code": "fj",
@@ -865,7 +934,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Fiji"
-  ]
+  ],
+  "iso": "+679"
  },
  "Finland": {
   "code": "fi",
@@ -877,7 +947,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Helsinki"
-  ]
+  ],
+  "iso": "+358"
  },
  "France": {
   "code": "fr",
@@ -890,14 +961,16 @@
   "date_format": "dd/mm/yyyy",
   "timezones": [
    "Europe/Paris"
-  ]
+  ],
+  "iso": "+33"
  },
  "French Guiana": {
   "code": "gf",
   "number_format": "#,###.##",
   "timezones": [
    "America/Cayenne"
-  ]
+  ],
+  "iso": "+594"
  },
  "French Polynesia": {
   "code": "pf",
@@ -909,11 +982,13 @@
    "Pacific/Gambier",
    "Pacific/Marquesas",
    "Pacific/Tahiti"
-  ]
+  ],
+  "iso": "+689"
  },
  "French Southern Territories": {
   "code": "tf",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+262"
  },
  "Gabon": {
   "code": "ga",
@@ -925,7 +1000,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Libreville"
-  ]
+  ],
+  "iso": "+241"
  },
  "Gambia": {
   "code": "gm",
@@ -934,7 +1010,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Banjul"
-  ]
+  ],
+  "iso": "+220"
  },
  "Georgia": {
   "code": "ge",
@@ -944,7 +1021,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Tbilisi"
-  ]
+  ],
+  "iso": "+995"
  },
  "Germany": {
   "code": "de",
@@ -956,7 +1034,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Berlin"
-  ]
+  ],
+  "iso": "+49"
  },
  "Ghana": {
   "code": "gh",
@@ -967,7 +1046,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Accra"
-  ]
+  ],
+  "iso": "+233"
  },
  "Gibraltar": {
   "code": "gi",
@@ -979,7 +1059,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Gibraltar"
-  ]
+  ],
+  "iso": "+350"
  },
  "Greece": {
   "code": "gr",
@@ -991,7 +1072,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Athens"
-  ]
+  ],
+  "iso": "+30"
  },
  "Greenland": {
   "code": "gl",
@@ -1001,7 +1083,8 @@
    "America/Godthab",
    "America/Scoresbysund",
    "America/Thule"
-  ]
+  ],
+  "iso": "+299"
  },
  "Grenada": {
   "code": "gd",
@@ -1013,21 +1096,24 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Grenada"
-  ]
+  ],
+  "iso": "+1473"
  },
  "Guadeloupe": {
   "code": "gp",
   "number_format": "#,###.##",
   "timezones": [
    "America/Guadeloupe"
-  ]
+  ],
+  "iso": "+590"
  },
  "Guam": {
   "code": "gu",
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Guam"
-  ]
+  ],
+  "iso": "+1671"
  },
  "Guatemala": {
   "code": "gt",
@@ -1039,7 +1125,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Guatemala"
-  ]
+  ],
+  "iso": "+502"
  },
  "Guernsey": {
   "code": "gg",
@@ -1049,7 +1136,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/London"
-  ]
+  ],
+  "iso": "+44"
  },
  "Guinea": {
   "code": "gn",
@@ -1061,7 +1149,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Conakry"
-  ]
+  ],
+  "iso": "+224"
  },
  "Guinea-Bissau": {
   "code": "gw",
@@ -1073,7 +1162,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bissau"
-  ]
+  ],
+  "iso": "+245"
  },
  "Guyana": {
   "code": "gy",
@@ -1085,7 +1175,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Guyana"
-  ]
+  ],
+  "iso": "+592"
  },
  "Haiti": {
   "code": "ht",
@@ -1098,15 +1189,18 @@
   "timezones": [
    "America/Guatemala",
    "America/Port-au-Prince"
-  ]
+  ],
+  "iso": "+509"
  },
  "Heard Island and McDonald Islands": {
   "code": "hm",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+0"
  },
  "Holy See (Vatican City State)": {
   "code": "va",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+379"
  },
  "Honduras": {
   "code": "hn",
@@ -1118,7 +1212,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Tegucigalpa"
-  ]
+  ],
+  "iso": "+504"
  },
  "Hong Kong": {
   "code": "hk",
@@ -1130,7 +1225,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Hong_Kong"
-  ]
+  ],
+  "iso": "+852"
  },
  "Hungary": {
   "code": "hu",
@@ -1143,7 +1239,8 @@
   "number_format": "#.###",
   "timezones": [
    "Europe/Budapest"
-  ]
+  ],
+  "iso": "+36"
  },
  "Iceland": {
   "code": "is",
@@ -1155,7 +1252,8 @@
   "number_format": "#.###",
   "timezones": [
    "Atlantic/Reykjavik"
-  ]
+  ],
+  "iso": "+354"
  },
  "India": {
   "code": "in",
@@ -1167,7 +1265,8 @@
   "number_format": "#,##,###.##",
   "timezones": [
    "Asia/Kolkata"
-  ]
+  ],
+  "iso": "+91"
  },
  "Indonesia": {
   "code": "id",
@@ -1182,7 +1281,8 @@
    "Asia/Jayapura",
    "Asia/Makassar",
    "Asia/Pontianak"
-  ]
+  ],
+  "iso": "+62"
  },
  "Iran": {
   "code": "ir",
@@ -1192,7 +1292,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Tehran"
-  ]
+  ],
+  "iso": "+98"
  },
  "Iraq": {
   "code": "iq",
@@ -1204,7 +1305,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Baghdad"
-  ]
+  ],
+  "iso": "+964"
  },
  "Ireland": {
   "code": "ie",
@@ -1216,7 +1318,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Dublin"
-  ]
+  ],
+  "iso": "+353"
  },
  "Isle of Man": {
   "code": "im",
@@ -1226,7 +1329,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/London"
-  ]
+  ],
+  "iso": "+44"
  },
  "Israel": {
   "code": "il",
@@ -1238,7 +1342,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Jerusalem"
-  ]
+  ],
+  "iso": "+972"
  },
  "Italy": {
   "code": "it",
@@ -1251,7 +1356,8 @@
   "date_format": "dd/mm/yyyy",
   "timezones": [
    "Europe/Rome"
-  ]
+  ],
+  "iso": "+39"
  },
  "Ivory Coast": {
   "code": "ci",
@@ -1263,7 +1369,8 @@
   "number_format": "#,###.##",
   "timeszones": [
    "Africa/Abidjan"
-  ]
+  ],
+  "iso": "+225"
  },
  "Jamaica": {
   "code": "jm",
@@ -1275,7 +1382,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Jamaica"
-  ]
+  ],
+  "iso": "+1876"
  },
  "Japan": {
   "code": "jp",
@@ -1287,7 +1395,8 @@
   "number_format": "#,###",
   "timezones": [
    "Asia/Tokyo"
-  ]
+  ],
+  "iso": "+81"
  },
  "Jersey": {
   "code": "je",
@@ -1297,7 +1406,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/London"
-  ]
+  ],
+  "iso": "+44"
  },
  "Jordan": {
   "code": "jo",
@@ -1309,7 +1419,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Amman"
-  ]
+  ],
+  "iso": "+962"
  },
  "Kazakhstan": {
   "code": "kz",
@@ -1325,7 +1436,8 @@
    "Asia/Aqtobe",
    "Asia/Oral",
    "Asia/Qyzylorda"
-  ]
+  ],
+  "iso": "+7"
  },
  "Kenya": {
   "code": "ke",
@@ -1337,7 +1449,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Nairobi"
-  ]
+  ],
+  "iso": "+254"
  },
  "Kiribati": {
   "code": "ki",
@@ -1349,19 +1462,22 @@
    "Pacific/Enderbury",
    "Pacific/Kiritimati",
    "Pacific/Tarawa"
-  ]
+  ],
+  "iso": "+686"
  },
  "Korea, Democratic Peoples Republic of": {
   "code": "kp",
   "currency": "KPW",
   "currency_name": "North Korean Won",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+850"
  },
  "Korea, Republic of": {
   "code": "kr",
   "currency": "KRW",
   "currency_name": "Won",
-  "number_format": "#,###"
+  "number_format": "#,###",
+  "iso": "+82"
  },
  "Kuwait": {
   "code": "kw",
@@ -1373,7 +1489,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Kuwait"
-  ]
+  ],
+  "iso": "+965"
  },
  "Kyrgyzstan": {
   "code": "kg",
@@ -1385,16 +1502,18 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Bishkek"
-  ]
+  ],
+  "iso": "+996"
  },
  "Lao Peoples Democratic Republic": {
   "code": "la",
   "currency": "LAK",
   "currency_name": "Kip",
   "number_format": "#,###.##",
-  "timezones":[
-      "Asia/Vientiane"
-  ]
+  "timezones": [
+   "Asia/Vientiane"
+  ],
+  "iso": "+856"
  },
  "Latvia": {
   "code": "lv",
@@ -1406,7 +1525,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Riga"
-  ]
+  ],
+  "iso": "+371"
  },
  "Lebanon": {
   "code": "lb",
@@ -1418,7 +1538,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Beirut"
-  ]
+  ],
+  "iso": "+961"
  },
  "Lesotho": {
   "code": "ls",
@@ -1430,7 +1551,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Maseru"
-  ]
+  ],
+  "iso": "+266"
  },
  "Liberia": {
   "code": "lr",
@@ -1442,7 +1564,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Monrovia"
-  ]
+  ],
+  "iso": "+231"
  },
  "Libya": {
   "code": "ly",
@@ -1454,7 +1577,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Africa/Tripoli"
-  ]
+  ],
+  "iso": "+218"
  },
  "Liechtenstein": {
   "code": "li",
@@ -1464,7 +1588,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Vaduz"
-  ]
+  ],
+  "iso": "+423"
  },
  "Lithuania": {
   "code": "lt",
@@ -1477,7 +1602,8 @@
   "number_format": "# ###,##",
   "timezones": [
    "Europe/Vilnius"
-  ]
+  ],
+  "iso": "+370"
  },
  "Luxembourg": {
   "code": "lu",
@@ -1489,13 +1615,15 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Luxembourg"
-  ]
+  ],
+  "iso": "+352"
  },
  "Macao": {
   "code": "mo",
   "currency": "MOP",
   "currency_name": "Pataca",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+853"
  },
  "Macedonia": {
   "code": "mk",
@@ -1504,7 +1632,8 @@
   "currency_fraction_units": 100,
   "currency_name": "Denar",
   "currency_symbol": "\u0434\u0435\u043d",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+389"
  },
  "Madagascar": {
   "code": "mg",
@@ -1514,7 +1643,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Antananarivo"
-  ]
+  ],
+  "iso": "+261"
  },
  "Malawi": {
   "code": "mw",
@@ -1526,7 +1656,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Blantyre"
-  ]
+  ],
+  "iso": "+265"
  },
  "Malaysia": {
   "code": "my",
@@ -1539,7 +1670,8 @@
   "timezones": [
    "Asia/Kuala_Lumpur",
    "Asia/Kuching"
-  ]
+  ],
+  "iso": "+60"
  },
  "Maldives": {
   "code": "mv",
@@ -1551,7 +1683,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Maldives"
-  ]
+  ],
+  "iso": "+960"
  },
  "Mali": {
   "code": "ml",
@@ -1563,7 +1696,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bamako"
-  ]
+  ],
+  "iso": "+223"
  },
  "Malta": {
   "code": "mt",
@@ -1575,7 +1709,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Malta"
-  ]
+  ],
+  "iso": "+356"
  },
  "Marshall Islands": {
   "code": "mh",
@@ -1586,14 +1721,16 @@
   "timezones": [
    "Pacific/Kwajalein",
    "Pacific/Majuro"
-  ]
+  ],
+  "iso": "+692"
  },
  "Martinique": {
   "code": "mq",
   "number_format": "#,###.##",
   "timezones": [
    "America/Martinique"
-  ]
+  ],
+  "iso": "+596"
  },
  "Mauritania": {
   "code": "mr",
@@ -1605,7 +1742,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Nouakchott"
-  ]
+  ],
+  "iso": "+222"
  },
  "Mauritius": {
   "code": "mu",
@@ -1617,14 +1755,16 @@
   "number_format": "#,###",
   "timezones": [
    "Indian/Mauritius"
-  ]
+  ],
+  "iso": "+230"
  },
  "Mayotte": {
   "code": "yt",
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Mayotte"
-  ]
+  ],
+  "iso": "+262"
  },
  "Mexico": {
   "code": "mx",
@@ -1647,17 +1787,20 @@
    "America/Ojinaga",
    "America/Santa_Isabel",
    "America/Tijuana"
-  ]
+  ],
+  "iso": "+52"
  },
  "Micronesia, Federated States of": {
   "code": "fm",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+691"
  },
  "Moldova, Republic of": {
   "code": "md",
   "currency": "MDL",
   "currency_name": "Moldovan Leu",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+373"
  },
  "Monaco": {
   "code": "mc",
@@ -1669,7 +1812,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Monaco"
-  ]
+  ],
+  "iso": "+377"
  },
  "Mongolia": {
   "code": "mn",
@@ -1684,7 +1828,8 @@
    "Asia/Choibalsan",
    "Asia/Hovd",
    "Asia/Ulaanbaatar"
-  ]
+  ],
+  "iso": "+976"
  },
  "Montenegro": {
   "code": "me",
@@ -1696,7 +1841,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Belgrade"
-  ]
+  ],
+  "iso": "+382"
  },
  "Montserrat": {
   "code": "ms",
@@ -1708,7 +1854,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Montserrat"
-  ]
+  ],
+  "iso": "+1664"
  },
  "Morocco": {
   "code": "ma",
@@ -1720,7 +1867,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Casablanca"
-  ]
+  ],
+  "iso": "+212"
  },
  "Mozambique": {
   "code": "mz",
@@ -1731,7 +1879,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Maputo"
-  ]
+  ],
+  "iso": "+258"
  },
  "Myanmar": {
   "code": "mm",
@@ -1740,7 +1889,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Rangoon"
-  ]
+  ],
+  "iso": "+95"
  },
  "Namibia": {
   "code": "na",
@@ -1752,7 +1902,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Windhoek"
-  ]
+  ],
+  "iso": "+264"
  },
  "Nauru": {
   "code": "nr",
@@ -1762,7 +1913,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Nauru"
-  ]
+  ],
+  "iso": "+674"
  },
  "Nepal": {
   "code": "np",
@@ -1774,7 +1926,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Kathmandu"
-  ]
+  ],
+  "iso": "+977"
  },
  "Netherlands": {
   "code": "nl",
@@ -1786,7 +1939,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Amsterdam"
-  ]
+  ],
+  "iso": "+31"
  },
  "New Caledonia": {
   "code": "nc",
@@ -1796,7 +1950,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Noumea"
-  ]
+  ],
+  "iso": "+687"
  },
  "New Zealand": {
   "code": "nz",
@@ -1809,7 +1964,8 @@
   "timezones": [
    "Pacific/Auckland",
    "Pacific/Chatham"
-  ]
+  ],
+  "iso": "+64"
  },
  "Nicaragua": {
   "code": "ni",
@@ -1821,7 +1977,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Managua"
-  ]
+  ],
+  "iso": "+505"
  },
  "Niger": {
   "code": "ne",
@@ -1833,7 +1990,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Niamey"
-  ]
+  ],
+  "iso": "+227"
  },
  "Nigeria": {
   "code": "ng",
@@ -1845,7 +2003,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Lagos"
-  ]
+  ],
+  "iso": "+234"
  },
  "Niue": {
   "code": "nu",
@@ -1855,21 +2014,24 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Niue"
-  ]
+  ],
+  "iso": "+683"
  },
  "Norfolk Island": {
   "code": "nf",
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Norfolk"
-  ]
+  ],
+  "iso": "+672"
  },
  "Northern Mariana Islands": {
   "code": "mp",
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Saipan"
-  ]
+  ],
+  "iso": "+1670"
  },
  "Norway": {
   "code": "no",
@@ -1881,7 +2043,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Oslo"
-  ]
+  ],
+  "iso": "+47"
  },
  "Oman": {
   "code": "om",
@@ -1893,7 +2056,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Muscat"
-  ]
+  ],
+  "iso": "+968"
  },
  "Pakistan": {
   "code": "pk",
@@ -1905,7 +2069,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Karachi"
-  ]
+  ],
+  "iso": "+92"
  },
  "Palau": {
   "code": "pw",
@@ -1916,11 +2081,13 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Palau"
-  ]
+  ],
+  "iso": "+680"
  },
  "Palestinian Territory, Occupied": {
   "code": "ps",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+970"
  },
  "Panama": {
   "code": "pa",
@@ -1930,7 +2097,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Panama"
-  ]
+  ],
+  "iso": "+507"
  },
  "Papua New Guinea": {
   "code": "pg",
@@ -1942,7 +2110,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Port_Moresby"
-  ]
+  ],
+  "iso": "+675"
  },
  "Paraguay": {
   "code": "py",
@@ -1954,7 +2123,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Asuncion"
-  ]
+  ],
+  "iso": "+595"
  },
  "Peru": {
   "code": "pe",
@@ -1966,7 +2136,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Lima"
-  ]
+  ],
+  "iso": "+51"
  },
  "Philippines": {
   "code": "ph",
@@ -1979,14 +2150,16 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Manila"
-  ]
+  ],
+  "iso": "+63"
  },
  "Pitcairn": {
   "code": "pn",
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Pitcairn"
-  ]
+  ],
+  "iso": "+64"
  },
  "Poland": {
   "code": "pl",
@@ -1997,7 +2170,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Warsaw"
-  ]
+  ],
+  "iso": "+48"
  },
  "Portugal": {
   "code": "pt",
@@ -2011,14 +2185,16 @@
    "Atlantic/Azores",
    "Atlantic/Madeira",
    "Europe/Lisbon"
-  ]
+  ],
+  "iso": "+351"
  },
  "Puerto Rico": {
   "code": "pr",
   "number_format": "#,###.##",
   "timezones": [
    "America/Puerto_Rico"
-  ]
+  ],
+  "iso": "+1939"
  },
  "Qatar": {
   "code": "qa",
@@ -2030,7 +2206,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Qatar"
-  ]
+  ],
+  "iso": "+974"
  },
  "Romania": {
   "code": "ro",
@@ -2042,13 +2219,15 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Bucharest"
-  ]
+  ],
+  "iso": "+40"
  },
  "Russian Federation": {
   "code": "ru",
   "currency": "RUB",
   "currency_name": "Russian Ruble",
-  "number_format": "#.###,##"
+  "number_format": "#.###,##",
+  "iso": "+7"
  },
  "Rwanda": {
   "code": "rw",
@@ -2060,21 +2239,25 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Kigali"
-  ]
+  ],
+  "iso": "+250"
  },
  "R\u00e9union": {
   "code": "re",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+262"
  },
  "Saint Barth\u00e9lemy": {
   "code": "bl",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+590"
  },
  "Saint Helena, Ascension and Tristan da Cunha": {
   "code": "sh",
   "currency": "SHP",
   "currency_name": "Saint Helena Pound",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+290"
  },
  "Saint Kitts and Nevis": {
   "code": "kn",
@@ -2086,7 +2269,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Kitts"
-  ]
+  ],
+  "iso": "+1869"
  },
  "Saint Lucia": {
   "code": "lc",
@@ -2098,15 +2282,18 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Lucia"
-  ]
+  ],
+  "iso": "+1758"
  },
  "Saint Martin (French part)": {
   "code": "mf",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+590"
  },
  "Saint Pierre and Miquelon": {
   "code": "pm",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+508"
  },
  "Saint Vincent and the Grenadines": {
   "code": "vc",
@@ -2118,7 +2305,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Vincent"
-  ]
+  ],
+  "iso": "+1784"
  },
  "Samoa": {
   "code": "ws",
@@ -2130,7 +2318,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Apia"
-  ]
+  ],
+  "iso": "+685"
  },
  "San Marino": {
   "code": "sm",
@@ -2142,13 +2331,15 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Rome"
-  ]
+  ],
+  "iso": "+378"
  },
  "Sao Tome and Principe": {
   "code": "st",
   "currency": "STD",
   "currency_name": "Dobra",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+239"
  },
  "Saudi Arabia": {
   "code": "sa",
@@ -2160,7 +2351,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Riyadh"
-  ]
+  ],
+  "iso": "+966"
  },
  "Senegal": {
   "code": "sn",
@@ -2172,7 +2364,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Dakar"
-  ]
+  ],
+  "iso": "+221"
  },
  "Serbia": {
   "code": "rs",
@@ -2184,7 +2377,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Belgrade"
-  ]
+  ],
+  "iso": "+381"
  },
  "Seychelles": {
   "code": "sc",
@@ -2196,7 +2390,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Indian/Mahe"
-  ]
+  ],
+  "iso": "+248"
  },
  "Sierra Leone": {
   "code": "sl",
@@ -2208,7 +2403,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Freetown"
-  ]
+  ],
+  "iso": "+232"
  },
  "Singapore": {
   "code": "sg",
@@ -2220,7 +2416,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Singapore"
-  ]
+  ],
+  "iso": "+65"
  },
  "Sint Maarten (Dutch part)": {
   "code": "sx",
@@ -2236,7 +2433,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Bratislava"
-  ]
+  ],
+  "iso": "+421"
  },
  "Slovenia": {
   "code": "si",
@@ -2248,7 +2446,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Belgrade"
-  ]
+  ],
+  "iso": "+386"
  },
  "Solomon Islands": {
   "code": "sb",
@@ -2260,7 +2459,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Guadalcanal"
-  ]
+  ],
+  "iso": "+677"
  },
  "Somalia": {
   "code": "so",
@@ -2272,7 +2472,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Mogadishu"
-  ]
+  ],
+  "iso": "+252"
  },
  "South Africa": {
   "code": "za",
@@ -2285,14 +2486,16 @@
   "number_format": "# ###.##",
   "timezones": [
    "Africa/Johannesburg"
-  ]
+  ],
+  "iso": "+27"
  },
  "South Georgia and the South Sandwich Islands": {
   "code": "gs",
   "currency_fraction": "Penny",
   "currency_fraction_units": 100,
   "currency_symbol": "\u00a3",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+500"
  },
  "South Sudan": {
   "code": "ss",
@@ -2302,7 +2505,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Juba"
-  ]
+  ],
+  "iso": "+211"
  },
  "Spain": {
   "code": "es",
@@ -2316,7 +2520,8 @@
    "Africa/Ceuta",
    "Atlantic/Canary",
    "Europe/Madrid"
-  ]
+  ],
+  "iso": "+34"
  },
  "Sri Lanka": {
   "code": "lk",
@@ -2328,7 +2533,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Colombo"
-  ]
+  ],
+  "iso": "+94"
  },
  "Sudan": {
   "code": "sd",
@@ -2338,7 +2544,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Khartoum"
-  ]
+  ],
+  "iso": "+249"
  },
  "Suriname": {
   "code": "sr",
@@ -2349,11 +2556,13 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Paramaribo"
-  ]
+  ],
+  "iso": "+597"
  },
  "Svalbard and Jan Mayen": {
   "code": "sj",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+47"
  },
  "Swaziland": {
   "code": "sz",
@@ -2365,7 +2574,8 @@
   "number_format": "#, ###.##",
   "timezones": [
    "Africa/Mbabane"
-  ]
+  ],
+  "iso": "+268"
  },
  "Sweden": {
   "code": "se",
@@ -2377,7 +2587,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Stockholm"
-  ]
+  ],
+  "iso": "+46"
  },
  "Switzerland": {
   "code": "ch",
@@ -2390,19 +2601,22 @@
   "number_format": "#'###.##",
   "timezones": [
    "Europe/Zurich"
-  ]
+  ],
+  "iso": "+41"
  },
  "Syria": {
   "code": "sy",
   "currency": "SYP",
   "currency_name": "Syrian Pound",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+963"
  },
  "Taiwan": {
   "code": "tw",
   "currency": "TWD",
   "date_format": "yyyy-mm-dd",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+886"
  },
  "Tajikistan": {
   "code": "tj",
@@ -2412,13 +2626,15 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Dushanbe"
-  ]
+  ],
+  "iso": "+992"
  },
  "Tanzania": {
   "code": "tz",
   "currency": "TZS",
   "currency_name": "Tanzanian Shilling",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+255"
  },
  "Thailand": {
   "code": "th",
@@ -2430,11 +2646,13 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Bangkok"
-  ]
+  ],
+  "iso": "+66"
  },
  "Timor-Leste": {
   "code": "tl",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+670"
  },
  "Togo": {
   "code": "tg",
@@ -2446,14 +2664,16 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Lome"
-  ]
+  ],
+  "iso": "+228"
  },
  "Tokelau": {
   "code": "tk",
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Fakaofo"
-  ]
+  ],
+  "iso": "+690"
  },
  "Tonga": {
   "code": "to",
@@ -2465,7 +2685,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Tongatapu"
-  ]
+  ],
+  "iso": "+676"
  },
  "Trinidad and Tobago": {
   "code": "tt",
@@ -2477,7 +2698,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Port_of_Spain"
-  ]
+  ],
+  "iso": "+1868"
  },
  "Tunisia": {
   "code": "tn",
@@ -2489,7 +2711,8 @@
   "number_format": "#,###.###",
   "timezones": [
    "Africa/Tunis"
-  ]
+  ],
+  "iso": "+216"
  },
  "Turkey": {
   "code": "tr",
@@ -2500,7 +2723,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Istanbul"
-  ]
+  ],
+  "iso": "+90"
  },
  "Turkmenistan": {
   "code": "tm",
@@ -2512,14 +2736,16 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Ashgabat"
-  ]
+  ],
+  "iso": "+993"
  },
  "Turks and Caicos Islands": {
   "code": "tc",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+1649"
  },
  "Tuvalu": {
   "code": "tv",
@@ -2529,7 +2755,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Pacific/Funafuti"
-  ]
+  ],
+  "iso": "+688"
  },
  "Uganda": {
   "code": "ug",
@@ -2541,7 +2768,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Kampala"
-  ]
+  ],
+  "iso": "+256"
  },
  "Ukraine": {
   "code": "ua",
@@ -2556,7 +2784,8 @@
    "Europe/Simferopol",
    "Europe/Uzhgorod",
    "Europe/Zaporozhye"
-  ]
+  ],
+  "iso": "+380"
  },
  "United Arab Emirates": {
   "code": "ae",
@@ -2568,7 +2797,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Dubai"
-  ]
+  ],
+  "iso": "+971"
  },
  "United Kingdom": {
   "code": "gb",
@@ -2580,7 +2810,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Europe/London"
-  ]
+  ],
+  "iso": "+44"
  },
  "United States": {
   "code": "us",
@@ -2623,7 +2854,8 @@
    "America/Sitka",
    "America/Yakutat",
    "Pacific/Honolulu"
-  ]
+  ],
+  "iso": "+1"
  },
  "United States Minor Outlying Islands": {
   "code": "um",
@@ -2639,7 +2871,8 @@
   "number_format": "#.###,##",
   "timezones": [
    "America/Montevideo"
-  ]
+  ],
+  "iso": "+598"
  },
  "Uzbekistan": {
   "code": "uz",
@@ -2652,7 +2885,8 @@
   "timezones": [
    "Asia/Samarkand",
    "Asia/Tashkent"
-  ]
+  ],
+  "iso": "+998"
  },
  "Vanuatu": {
   "code": "vu",
@@ -2664,7 +2898,8 @@
   "number_format": "#,###",
   "timezones": [
    "Pacific/Efate"
-  ]
+  ],
+  "iso": "+678"
  },
  "Venezuela, Bolivarian Republic of": {
   "code": "ve",
@@ -2672,28 +2907,33 @@
   "currency": "VEF",
   "currency_symbol": "Bs.",
   "currency_fraction": "Centimos",
-  "currency_fraction_units": 100
+  "currency_fraction_units": 100,
+  "iso": "+58"
  },
  "Vietnam": {
   "code": "vn",
   "currency": "VND",
   "currency_name": "Dong",
-  "number_format": "#.###"
+  "number_format": "#.###",
+  "iso": "+84"
  },
  "Virgin Islands, British": {
   "code": "vg",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+1284"
  },
  "Virgin Islands, U.S.": {
   "code": "vi",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+1340"
  },
  "Wallis and Futuna": {
   "code": "wf",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
   "currency_symbol": "Fr",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+681"
  },
  "Western Sahara": {
   "code": "eh",
@@ -2713,7 +2953,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Aden"
-  ]
+  ],
+  "iso": "+967"
  },
  "Zambia": {
   "code": "zm",
@@ -2725,7 +2966,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Lusaka"
-  ]
+  ],
+  "iso": "+260"
  },
  "Zimbabwe": {
   "code": "zw",
@@ -2737,10 +2979,12 @@
   "number_format": "# ###.##",
   "timezones": [
    "Africa/Harare"
-  ]
+  ],
+  "iso": "+263"
  },
  "\u00c5land Islands": {
   "code": "ax",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "iso": "+358"
  }
 }

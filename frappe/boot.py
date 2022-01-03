@@ -17,6 +17,7 @@ from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_p
 from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
+from frappe.geo.country_info import get_all
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -327,7 +328,5 @@ def get_notification_settings():
 	return frappe.get_cached_doc('Notification Settings', frappe.session.user)
 
 def get_country_codes(bootinfo):
-	country_codes = {
-		"United States": {"isd":"+1","code":"us" },
-		"India": {"isd":"+91","code":"in" }}
+	country_codes = get_all()
 	bootinfo.country_codes = frappe._dict(country_codes)
