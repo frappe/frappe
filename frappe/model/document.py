@@ -305,7 +305,7 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		if self.docstatus == 2:
+		if self.is_cancelled():
 			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
