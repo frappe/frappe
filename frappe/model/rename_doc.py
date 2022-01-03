@@ -284,7 +284,7 @@ def update_link_field_values(link_fields, old, new, doctype):
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.set_value(parent, {docfield: old}, docfield, new)
+			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
 
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
