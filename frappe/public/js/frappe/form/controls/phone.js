@@ -92,7 +92,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		super.refresh();
 
 		// Previously opened doc values get fetched.
-		if(!this.value && this.frm.is_new()) {
+		if(!this.value) {
 			this.$input.val("");
 			this.$wrapper.find('.country').text("")
 			this.selected_icon.find('use').attr('href', '#icon-down')
