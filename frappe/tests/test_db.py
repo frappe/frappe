@@ -13,6 +13,11 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
+<<<<<<< HEAD
+=======
+from frappe.query_builder import Field
+from frappe.database import savepoint
+>>>>>>> e08b41964c (feat: savepoint contextmanager)
 
 from .test_query_builder import run_only_if, db_type_is
 
@@ -215,6 +220,36 @@ class TestDB(unittest.TestCase):
 		for d in created_docs:
 			self.assertTrue(frappe.db.exists("ToDo", d))
 
+<<<<<<< HEAD
+=======
+	def test_savepoints_wrapper(self):
+		frappe.db.rollback()
+
+		class SpecificExc(Exception):
+			pass
+
+		created_docs = []
+		failed_docs = []
+
+		for _ in range(5):
+			with savepoint(catch=SpecificExc):
+				doc_kept = frappe.get_doc(doctype="ToDo", description="nope").save()
+				created_docs.append(doc_kept.name)
+
+			with savepoint(catch=SpecificExc):
+				doc_gone = frappe.get_doc(doctype="ToDo", description="nope").save()
+				failed_docs.append(doc_gone.name)
+				raise SpecificExc
+
+		frappe.db.commit()
+
+		for d in failed_docs:
+			self.assertFalse(frappe.db.exists("ToDo", d))
+		for d in created_docs:
+			self.assertTrue(frappe.db.exists("ToDo", d))
+
+
+>>>>>>> e08b41964c (feat: savepoint contextmanager)
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"

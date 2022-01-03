@@ -4,7 +4,11 @@
 # Database Module
 # --------------------
 
+<<<<<<< HEAD
 from __future__ import unicode_literals
+=======
+from frappe.database.database import savepoint
+>>>>>>> e08b41964c (feat: savepoint contextmanager)
 
 def setup_database(force, source_sql=None, verbose=None, no_mariadb_socket=False):
 	import frappe
