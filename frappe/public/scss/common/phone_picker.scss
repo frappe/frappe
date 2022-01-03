@@ -1,7 +1,7 @@
 .phone-picker {
 	font-size: var(--text-xs);
 	color: var(--text-muted);
-	--phone-picker-width: 250px;
+	--phone-picker-width: 290px;
 	width: var(--phone-picker-width);
 	.phones {
 		margin-top: 10px;
@@ -22,7 +22,7 @@
 
 		.phone-wrapper {
 			display: flex;
-			width: 250px;
+			width: 290px;
 			height: 30px;
 			text-align: center;
 			align-items: center;
@@ -33,6 +33,7 @@
 				display: flex;
 				margin-left: 0.6rem;
 				flex-grow: 1;
+				width: 290px;
 			}
 		}
 	}
@@ -53,6 +54,7 @@
 	}
 }
 .phone-picker-popover {
+	max-width: 325px;
     left: -20px !important;
 	.picker-arrow {
 		left: 15px !important;
