@@ -304,6 +304,15 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
+	def is_draft(self):
+		return self.docstatus == 0
+
+	def is_submitted(self):
+		return self.docstatus == 1
+
+	def is_cancelled(self):
+		return self.docstatus == 2
+
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
