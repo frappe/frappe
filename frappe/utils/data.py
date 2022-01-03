@@ -246,7 +246,7 @@ def get_quarter_start(dt, as_str=False):
 
 def get_first_day_of_week(dt, as_str=False):
 	dt = getdate(dt)
-	date = dt - datetime.timedelta(days=dt.weekday())
+	date = dt - datetime.timedelta(days=(dt.weekday() + 1) % 7)
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 def get_year_start(dt, as_str=False):
