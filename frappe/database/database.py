@@ -164,10 +164,7 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if frappe.conf.db_type == 'postgres':
-				self.rollback()
-
-			elif self.is_syntax_error(e):
+			if self.is_syntax_error(e):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
@@ -177,6 +174,9 @@ class Database(object):
 
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e)
+
+			elif frappe.conf.db_type == 'postgres':
+				raise
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
