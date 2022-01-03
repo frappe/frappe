@@ -20,6 +20,7 @@
   "search_index",
   "column_break_18",
   "options",
+  "show_dashboard",
   "defaults_section",
   "default",
   "column_break_6",
@@ -526,13 +527,20 @@
   {
    "fieldname": "column_break_35",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype===\"Tab Break\"",
+   "fieldname": "show_dashboard",
+   "fieldtype": "Check",
+   "label": "Show Dashboard"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-01-02 18:49:21.322889",
+ "modified": "2022-01-03 11:56:19.812863",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
