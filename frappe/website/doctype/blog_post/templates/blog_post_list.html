@@ -4,16 +4,34 @@
 
 {% block page_content %}
 
-{{ web_block("Hero",
-	values={
-		'title': blog_title or _("Blog"),
-		'subtitle': blog_introduction or '',
-	},
-	add_container=0,
-	add_top_padding=0,
-	add_bottom_padding=0,
-	css_class="py-5"
-) }}
+<div class="row py-8">
+	<div class="col-md-8">
+		<div class="hero">
+			<div class="hero-content">
+				<h1 class="hero-title">{{ blog_title or _('Blog') }}</h1>
+				<p class="hero-subtitle mb-0">{{ blog_introduction or '' }}</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4 align-self-end">
+		{%- if browse_by_category -%}
+		<label for="category-select" class="sr-only">{{ _("Browse by category") }}</label>
+		<select id="category-select" class="custom-select" onchange="window.location.pathname = this.value">
+			<option value="" {{ not frappe.form_dict.category and "selected" or "" }} disabled>
+				{{ _("Browse by category") }}
+			</option>
+			{%- if frappe.form_dict.category -%}
+			<option value="blog">{{ _("Show all blogs") }}</option>
+			{%- endif -%}
+			{%- for category in blog_categories -%}
+			<option value="{{ category.route }}" {{ frappe.form_dict.category == category.name and "selected" or "" }}>
+				{{ _(category.title) }}
+			</option>
+			{%- endfor -%}
+		</select>
+		{%- endif -%}
+	</div>
+</div>
 
 <div class="blog-list-content">
 	<div class="website-list" data-doctype="{{ doctype }}" data-txt="{{ txt or '[notxt]' | e }}">
