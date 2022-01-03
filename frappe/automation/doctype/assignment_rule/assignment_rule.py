@@ -3,14 +3,14 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.model.document import Document
-from frappe.desk.form import assign_to
-import frappe.cache_manager
 from frappe import _
+from frappe.cache_manager import clear_doctype_map, get_doctype_map
+from frappe.desk.form import assign_to
 from frappe.model import log_types
+from frappe.model.document import Document
+
 
 class AssignmentRule(Document):
-
 	def validate(self):
 		assignment_days = self.get_assignment_days()
 		if not len(set(assignment_days)) == len(assignment_days):
@@ -19,14 +19,10 @@ class AssignmentRule(Document):
 		if self.document_type == 'ToDo':
 			frappe.throw(_('Assignment Rule is not allowed on {0} document type').format(frappe.bold("ToDo")))
 
-	def on_update(self):
-		clear_assignment_rule_cache(self)
-
-	def after_rename(self, old, new, merge):
-		clear_assignment_rule_cache(self)
-
-	def on_trash(self):
-		clear_assignment_rule_cache(self)
+	def clear_cache(self):
+		super().clear_cache()
+		clear_doctype_map(self.doctype, self.document_type)
+		clear_doctype_map(self.doctype, f"due_date_rules_for_{self.document_type}")
 
 	def apply_unassign(self, doc, assignments):
 		if (self.unassign_condition and
@@ -34,7 +30,6 @@ class AssignmentRule(Document):
 			return self.clear_assignment(doc)
 
 		return False
-
 
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
@@ -296,6 +291,3 @@ def get_repeated(values):
 				diff.append(str(value))
 	return " ".join(diff)
 
-def clear_assignment_rule_cache(rule):
-	frappe.cache_manager.clear_doctype_map('Assignment Rule', rule.document_type)
-	frappe.cache_manager.clear_doctype_map('Assignment Rule', 'due_date_rules_for_' + rule.document_type)
