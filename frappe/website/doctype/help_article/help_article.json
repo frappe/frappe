@@ -15,8 +15,7 @@
   "section_break_7",
   "content",
   "likes",
-  "route",
-  "owner"
+  "route"
  ],
  "fields": [
   {
@@ -79,13 +78,6 @@
    "fieldtype": "Data",
    "in_global_search": 1,
    "label": "Route"
-  },
-  {
-   "default": "user",
-   "fieldname": "owner",
-   "fieldtype": "Link",
-   "label": "Owner",
-   "options": "User"
   }
  ],
  "has_web_view": 1,
@@ -93,7 +85,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-07-21 16:25:18.577325",
+ "modified": "2022-01-04 16:25:18.577325",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Help Article",
