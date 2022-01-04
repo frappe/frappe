@@ -69,15 +69,13 @@ class ToDo(Document):
 			return
 
 		try:
-			assignments = [d[0] for d in frappe.get_all("ToDo",
-				filters={
-					"reference_type": self.reference_type,
-					"reference_name": self.reference_name,
-					"status": ("!=", "Cancelled")
-				},
-				fields=["allocated_to"], as_list=True)]
-
+			assignments = frappe.get_all("ToDo", filters={
+				"reference_type": self.reference_type,
+				"reference_name": self.reference_name,
+				"status": ("!=", "Cancelled")
+			}, pluck="allocated_to")
 			assignments.reverse()
+
 			frappe.db.set_value(self.reference_type, self.reference_name,
 				"_assign", json.dumps(assignments), update_modified=False)
 
