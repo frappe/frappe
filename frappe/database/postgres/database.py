@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 import frappe
@@ -69,7 +69,7 @@ class PostgresDatabase(Database):
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
-		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
+		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
 
