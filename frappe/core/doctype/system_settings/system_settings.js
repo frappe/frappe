@@ -10,6 +10,10 @@ frappe.ui.form.on("System Settings", {
 					frm.set_value(key, val);
 					frappe.sys_defaults[key] = val;
 				});
+				if (frm.re_setup_moment) {
+					frappe.app.setup_moment();
+					delete frm.re_setup_moment;
+				}
 			}
 		});
 	},
@@ -32,5 +36,18 @@ frappe.ui.form.on("System Settings", {
 				frm.set_value('prepared_report_expiry_period', 7);
 			}
 		}
+<<<<<<< HEAD
 	}
+=======
+	},
+	on_update: function(frm) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system !== frm.doc.time_zone) {
+			// Clear cache after saving to refresh the values of boot.
+			frappe.ui.toolbar.clear_cache();
+		}
+	},
+	week_starts_on(frm) {
+		frm.re_setup_moment = true;
+	},
+>>>>>>> 53b2c472a6 (fix: Re-setup moment object whenever `week_starts_on` is changed)
 });
