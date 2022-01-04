@@ -930,7 +930,7 @@ frappe.views.Workspace = class Workspace {
 				let blocks = [{
 					type: "header",
 					data: { text: values.title }
-				}]
+				}];
 
 				let new_page = {
 					content: JSON.stringify(blocks),
@@ -943,7 +943,7 @@ frappe.views.Workspace = class Workspace {
 					parent_page: values.parent || '',
 					is_editable: true,
 					selected: true
-				}
+				};
 
 				this.editor.render({
 					blocks: blocks

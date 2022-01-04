@@ -62,8 +62,8 @@ export default class Paragraph extends Block {
 				this.show_hide_block_list();
 			});
 			div.addEventListener('blur', () => {
-				setTimeout(() => { this.show_hide_block_list(true) }, 10);
-			})
+				setTimeout(() => this.show_hide_block_list(true), 10);
+			});
 			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
 		}
