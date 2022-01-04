@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "creation": "2021-12-23 09:21:42.431341",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ticket_date",
+  "issue_type",
+  "column_break_3",
+  "issue_subject",
+  "status",
+  "priority",
+  "description_section",
+  "issue_description",
+  "screenshot",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "ticket_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Ticket Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "issue_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Issue Type",
+   "options": "\nBug\nSupport Assistance",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "issue_subject",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Issue Subject",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nOpen\nWIP\nClosed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Priority",
+   "options": "\nLow\nMedium\nHigh",
+   "reqd": 1
+  },
+  {
+   "description": "Please briefly elaborate your issue here.",
+   "fieldname": "description_section",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "issue_description",
+   "fieldtype": "Text Editor",
+   "label": "Issue Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "screenshot",
+   "fieldtype": "Attach Image",
+   "label": "Screenshot"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Support Ticket CRM",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-12-23 11:10:55.657930",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Support Ticket CRM",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

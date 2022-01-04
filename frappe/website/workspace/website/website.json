@@ -3,7 +3,7 @@
  "charts": [],
  "creation": "2020-03-02 14:13:51.089373",
  "developer_mode_only": 0,
- "disable_user_customization": 0,
+ "disable_user_customization": 1,
  "docstatus": 0,
  "doctype": "Workspace",
  "extends_another_page": 0,
@@ -236,7 +236,7 @@
    "type": "Link"
   }
  ],
- "modified": "2021-12-19 10:13:51.217015",
+ "modified": "2021-12-23 14:50:52.659573",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
