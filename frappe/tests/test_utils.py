@@ -15,6 +15,8 @@ from frappe.utils.image import strip_exif_data
 import io
 from datetime import datetime, timedelta, date
 
+from unittest.mock import patch
+
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open'}, {'status': 'Open'}))
@@ -298,6 +300,14 @@ class TestDiffUtils(unittest.TestCase):
 
 class TestDateUtils(unittest.TestCase):
 	def test_first_day_of_week(self):
+		# Monday as start of the week
+		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+			self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"),
+				frappe.utils.getdate("2020-12-21"))
+			self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-20"),
+				frappe.utils.getdate("2020-12-14"))
+
+		# Sunday as start of the week
 		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"),
 			frappe.utils.getdate("2020-12-20"))
 		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-21"),
