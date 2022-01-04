@@ -18,8 +18,4 @@ frappe.ui.form.on('System Console', {
 			frm.execute_action('Execute');
 		});
 	},
-
-	week_starts_on() {
-		frappe.app.setup_moment();
-	}
 });
