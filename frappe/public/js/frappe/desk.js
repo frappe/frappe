@@ -262,11 +262,7 @@ frappe.Application = Class.extend({
 			this.set_globals();
 			this.sync_pages();
 			frappe.router.setup();
-			moment.locale("en");
-			moment.user_utc_offset = moment().utcOffset();
-			if(frappe.boot.timezone_info) {
-				moment.tz.add(frappe.boot.timezone_info);
-			}
+			this.setup_moment();
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
@@ -622,7 +618,24 @@ frappe.Application = Class.extend({
 			}
 		});
 	}
+<<<<<<< HEAD
 });
+=======
+
+	setup_moment() {
+		moment.updateLocale('en', {
+			week : {
+				dow : frappe.datetime.get_week_starts_on_index(),
+			}
+		});
+		moment.locale("en");
+		moment.user_utc_offset = moment().utcOffset();
+		if(frappe.boot.timezone_info) {
+			moment.tz.add(frappe.boot.timezone_info);
+		}
+	}
+}
+>>>>>>> 42e1c15c18 (feat: Add setting to configure the day on which week starts)
 
 frappe.get_module = function(m, default_module) {
 	var module = frappe.modules[m] || default_module;

@@ -17,10 +17,11 @@
   "date_and_number_format",
   "date_format",
   "time_format",
-  "column_break_7",
   "number_format",
+  "column_break_7",
   "float_precision",
   "currency_precision",
+  "week_starts_on",
   "sec_backup_limit",
   "backup_limit",
   "background_workers",
@@ -484,12 +485,23 @@
    "fieldname": "disable_system_update_notification",
    "fieldtype": "Check",
    "label": "Disable System Update Notification"
+  },
+  {
+   "default": "Sunday",
+   "fieldname": "week_starts_on",
+   "fieldtype": "Select",
+   "label": "Week Starts On",
+   "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-12-13 12:07:26.860735",
+=======
+ "modified": "2022-01-04 11:28:34.881192",
+>>>>>>> 42e1c15c18 (feat: Add setting to configure the day on which week starts)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -506,5 +518,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }
