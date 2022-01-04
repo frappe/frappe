@@ -254,6 +254,11 @@ $.extend(frappe.datetime, {
 		], true).isValid();
 	},
 
+	get_week_starts_on_index() {
+		const week_starts_on = frappe.sys_defaults.week_starts_on || "Sunday";
+		return moment.weekdays().indexOf(week_starts_on);
+	}
+
 });
 
 // Proxy for dateutil and get_today
