@@ -4,19 +4,18 @@
 # Database Module
 # --------------------
 
-import re
-import time
-import string
-import random
-from typing import Dict, List, Union, Tuple, Optional
-import frappe
 import datetime
+import random
+import re
+import string
+from contextlib import contextmanager
+from time import time
+from typing import Dict, List, Union, Tuple
+
+import frappe
 import frappe.defaults
 import frappe.model.meta
-from contextlib import contextmanager
-
 from frappe import _
-from time import time
 from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
