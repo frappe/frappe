@@ -4,6 +4,7 @@
 # Database Module
 # --------------------
 
+<<<<<<< HEAD
 from __future__ import unicode_literals
 
 import re
@@ -12,14 +13,26 @@ import string
 import random
 from typing import Dict, List, Union, Tuple, Optional
 import frappe
+=======
+>>>>>>> 3c83043301 (chore: sort imports)
 import datetime
+import random
+import re
+import string
+from contextlib import contextmanager
+from time import time
+from typing import Dict, List, Union, Tuple
+
+import frappe
 import frappe.defaults
 import frappe.model.meta
-from contextlib import contextmanager
-
 from frappe import _
+<<<<<<< HEAD
 from time import time
 from frappe.utils import now, getdate, cast, get_datetime, get_table_name
+=======
+from frappe.utils import now, getdate, cast, get_datetime
+>>>>>>> 3c83043301 (chore: sort imports)
 from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports
