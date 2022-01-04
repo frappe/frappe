@@ -259,8 +259,8 @@ class PostgresDatabase(Database):
 			key=key
 		)
 
-	def check_transaction_status(self, query):
-		pass
+	def check_implicit_commit(self, query):
+		pass # postgres can run DDL in transactions without implicit commits
 
 	def has_index(self, table_name, index_name):
 		return self.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
