@@ -504,6 +504,7 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
+		self.validate_owner()
 
 		children = self.get_all_children()
 		for d in children:
@@ -545,6 +546,11 @@ class Document(BaseDocument):
 			validate_workflow(self)
 			if not self._action == 'save':
 				set_workflow_state_on_action(self, workflow, self._action)
+
+	def validate_owner(self):
+		"""Validate if the owner of the Document has changed"""
+		if not self.is_new() and self.has_value_changed('owner'):
+			frappe.throw(_('Document owner cannot be changed'))
 
 	def validate_set_only_once(self):
 		"""Validate that fields are not changed if not in insert"""
@@ -1348,15 +1354,15 @@ class Document(BaseDocument):
 			), frappe.exceptions.InvalidDates)
 
 	def get_assigned_users(self):
-		assignments = frappe.get_all('ToDo',
-			fields=['owner'],
+		assigned_users = frappe.get_all('ToDo',
+			fields=['allocated_to'],
 			filters={
 				'reference_type': self.doctype,
 				'reference_name': self.name,
 				'status': ('!=', 'Cancelled'),
-			})
+			}, pluck='allocated_to')
 
-		users = set([assignment.owner for assignment in assignments])
+		users = set(assigned_users)
 		return users
 
 	def add_tag(self, tag):
