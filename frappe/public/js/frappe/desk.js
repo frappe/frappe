@@ -624,13 +624,13 @@ frappe.Application = Class.extend({
 
 	setup_moment() {
 		moment.updateLocale('en', {
-			week : {
-				dow : frappe.datetime.get_week_starts_on_index(),
+			week: {
+				dow: frappe.datetime.get_week_starts_on_index(),
 			}
 		});
 		moment.locale("en");
 		moment.user_utc_offset = moment().utcOffset();
-		if(frappe.boot.timezone_info) {
+		if (frappe.boot.timezone_info) {
 			moment.tz.add(frappe.boot.timezone_info);
 		}
 	}
