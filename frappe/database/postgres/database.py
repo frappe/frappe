@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 import frappe
@@ -69,7 +69,7 @@ class PostgresDatabase(Database):
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
-		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
+		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
 
@@ -137,6 +137,10 @@ class PostgresDatabase(Database):
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
 		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+
+	@staticmethod
+	def is_syntax_error(e):
+		return isinstance(e, psycopg2.errors.SyntaxError)
 
 	@staticmethod
 	def is_table_missing(e):
@@ -255,8 +259,8 @@ class PostgresDatabase(Database):
 			key=key
 		)
 
-	def check_transaction_status(self, query):
-		pass
+	def check_implicit_commit(self, query):
+		pass # postgres can run DDL in transactions without implicit commits
 
 	def has_index(self, table_name, index_name):
 		return self.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
