@@ -21,7 +21,8 @@ export default class Onboarding extends Block {
 			allow_create: this.allow_customization,
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
-			allow_edit: true
+			allow_edit: true,
+			allow_resize: false
 		};
 	}
 
@@ -30,7 +31,6 @@ export default class Onboarding extends Block {
 		if (this.readOnly && !$(this.wrapper).find('.onboarding-widget-box').is(':visible')) {
 			$(e).hide();
 		}
-		!this.readOnly && this.resizer();
 		e.classList.add("col-" + this.get_col());
 	}
 

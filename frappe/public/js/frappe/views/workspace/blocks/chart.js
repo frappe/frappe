@@ -21,7 +21,9 @@ export default class Chart extends Block {
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
 			allow_edit: true,
-			max_widget_count: 2,
+			allow_resize: true,
+			min_width: 6,
+			max_widget_count: 2
 		};
 	}
 

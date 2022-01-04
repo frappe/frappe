@@ -22,6 +22,7 @@ export default class Card extends Block {
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
 			allow_edit: true,
+			allow_resize: true
 		};
 	}
 

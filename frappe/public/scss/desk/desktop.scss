@@ -875,16 +875,12 @@ body {
 				display: none;
 			}
 
-			.setting-btn {
+			.setting-btn, .duplicate-page {
 				display: none;
 			}
 
 			.drop-icon {
 				padding: 10px 12px 10px 2px;
-			}
-
-			.sidebar-info {
-				display: none;
 			}
 
 			svg {
@@ -927,12 +923,7 @@ body {
 					display: inline-block;
 				}
 
-				.setting-btn {
-					display: inline-block;
-					margin-right: 8px;
-				}
-
-				.sidebar-info {
+				.setting-btn, .duplicate-page {
 					display: inline-block;
 					margin-right: 8px;
 				}
@@ -988,6 +979,10 @@ body {
 						visibility: hidden;
 						opacity: 0;
 						transition: visibility 0s, opacity 0.5s ease-in-out;
+					}
+
+					.link-item {
+						pointer-events: none;
 					}
 				}
 

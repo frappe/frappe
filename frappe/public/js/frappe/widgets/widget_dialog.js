@@ -182,19 +182,16 @@ class CardDialog extends WidgetDialog {
 						fieldtype: "Select",
 						in_list_view: 1,
 						label: "Link Type",
-						options: ["DocType", "Page", "Report"],
-						onchange: (e) => {
-							me.link_to = e.currentTarget.value;
-						}
+						options: ["DocType", "Page", "Report"]
 					},
 					{
 						fieldname: "link_to",
 						fieldtype: "Dynamic Link",
 						in_list_view: 1,
 						label: "Link To",
-						options: "link_type",
-						get_options: () => {
-							return me.link_to;
+						get_options: (df) => {
+							return df.doc.link_type;
+
 						}
 					},
 					{
@@ -507,7 +504,7 @@ class NumberCardDialog extends WidgetDialog {
 
 	setup_dialog_events() {
 		if (!this.document_type) {
-			if (this.default_values['doctype']) {
+			if (this.default_values && this.default_values['doctype']) {
 				this.document_type = this.default_values['doctype'];
 				this.setup_filter(this.default_values['doctype']);
 				this.set_aggregate_function_fields();
@@ -519,7 +516,7 @@ class NumberCardDialog extends WidgetDialog {
 
 	set_aggregate_function_fields() {
 		let aggregate_function_fields = [];
-		if (this.document_type) {
+		if (this.document_type && frappe.get_meta(this.document_type)) {
 			frappe.get_meta(this.document_type).fields.map(df => {
 				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
 					if (df.fieldtype == 'Currency') {
@@ -538,7 +535,7 @@ class NumberCardDialog extends WidgetDialog {
 		if (data.new_or_existing == 'Existing Card') {
 			data.name = data.card;
 		}
-		data.stats_filter = JSON.stringify(this.filter_group.get_filters());
+		data.stats_filter = this.filter_group && JSON.stringify(this.filter_group.get_filters());
 		data.document_type = this.document_type;
 
 		return data;

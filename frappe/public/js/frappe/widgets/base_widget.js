@@ -66,22 +66,6 @@ export default class Widget {
 				null,
 				this.action_area
 			);
-
-		if (options.allow_resize) {
-			const title = this.width == 'Full'? `${__('Collapse')}` : `${__('Expand')}`;
-			frappe.utils.add_custom_button(
-				'<i class="fa fa-expand" aria-hidden="true"></i>',
-				() => this.toggle_width(),
-				"resize-button",
-				title,
-				null,
-				this.action_area
-			);
-
-			this.resize_button = this.action_area.find(
-				".resize-button"
-			);
-		}
 	}
 
 	make() {

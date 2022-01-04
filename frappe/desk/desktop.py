@@ -453,25 +453,24 @@ def get_custom_report_list(module):
 	return out
 
 def save_new_widget(doc, page, blocks, new_widgets):
+	if loads(new_widgets):
+		widgets = _dict(loads(new_widgets))
 
-	widgets = _dict(loads(new_widgets))
-
-	if widgets.chart:
-		doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
-	if widgets.shortcut:
-		doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
-	if widgets.card:
-		doc.build_links_table_from_card(widgets.card)
+		if widgets.chart:
+			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
+		if widgets.shortcut:
+			doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
+		if widgets.card:
+			doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	if widgets:
-		clean_up(doc, blocks)
+	clean_up(doc, blocks)
 
 	try:
 		doc.save(ignore_permissions=True)
 	except (ValidationError, TypeError) as e:
 		# Create a json string to log
-		json_config = dumps(widgets, sort_keys=True, indent=4)
+		json_config = widgets and dumps(widgets, sort_keys=True, indent=4)
 
 		# Error log body
 		log = \

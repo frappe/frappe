@@ -22,7 +22,6 @@ frappe.views.Workspace = class Workspace {
 		this.page = wrapper.page;
 		this.blocks = frappe.wspace_block.blocks;
 		this.is_read_only = true;
-		this.new_page = null;
 		this.pages = {};
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
@@ -51,9 +50,10 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	async setup_pages(reload) {
-		this.create_page_skeleton();
-		this.create_sidebar_skeleton();
+		!this.discard && this.create_page_skeleton();
+		!this.discard && this.create_sidebar_skeleton();
 		this.sidebar_pages = !this.discard ? await this.get_pages() : this.sidebar_pages;
+		this.cached_pages = $.extend(true, {}, this.sidebar_pages);
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
 
@@ -68,20 +68,6 @@ frappe.views.Workspace = class Workspace {
 			frappe.workspaces = {};
 			for (let page of this.all_pages) {
 				frappe.workspaces[frappe.router.slug(page.name)] = {title: page.title};
-			}
-			if (this.new_page && this.new_page.name) {
-				if (!frappe.workspaces[frappe.router.slug(this.new_page.label)]) {
-					this.new_page = { 
-						name: this.all_pages[0].title, 
-						public: this.all_pages[0].public 
-					};
-				}
-
-				let pre_url = this.new_page.public ? '' : 'private/';
-				let route = pre_url + frappe.router.slug(this.new_page.name);
-				frappe.set_route(route);
-
-				this.new_page = null;
 			}
 			this.make_sidebar();
 			reload && this.show();
@@ -392,10 +378,12 @@ frappe.views.Workspace = class Workspace {
 			__("Save Customizations"),
 			() => {
 				this.clear_page_actions();
-				this.undo.readOnly = true;
-				this.save_page();
-				this.editor.readOnly.toggle();
-				this.is_read_only = true;
+				this.save_page(page).then((saved) => {
+					if (!saved) return;
+					this.undo.readOnly = true;
+					this.editor.readOnly.toggle();
+					this.is_read_only = true;
+				});
 			},
 			null,
 			__("Saving")
@@ -408,6 +396,7 @@ frappe.views.Workspace = class Workspace {
 				this.clear_page_actions();
 				await this.editor.readOnly.toggle();
 				this.is_read_only = true;
+				this.sidebar_pages = this.cached_pages;
 				this.reload();
 				frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 			}
@@ -425,14 +414,21 @@ frappe.views.Workspace = class Workspace {
 
 	add_sidebar_actions(item, sidebar_control, is_new) {
 		if (!item.is_editable) {
-			$(`<span class="sidebar-info">${frappe.utils.icon("lock", "sm")}</span>`)
-				.appendTo(sidebar_control);
 			sidebar_control.parent().click(() => {
 				!this.is_read_only && frappe.show_alert({
 					message: __("Only Workspace Manager can sort or edit this page"),
 					indicator: 'info'
 				}, 5);
 			});
+
+			frappe.utils.add_custom_button(
+				frappe.utils.icon('duplicate', 'sm'),
+				() => this.duplicate_page(item),
+				"duplicate-page",
+				`${__('Duplicate Workspace')}`,
+				null,
+				sidebar_control
+			);
 		} else {
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
@@ -586,7 +582,7 @@ frappe.views.Workspace = class Workspace {
 		this.update_cached_values(old_child, child);
 	}
 
-	update_cached_values(old_item, new_item, duplicate) {
+	update_cached_values(old_item, new_item, duplicate, new_page) {
 		let [from_pages, to_pages] = old_item.public ? 
 			[this.public_pages, this.private_pages] : [this.private_pages, this.public_pages];
 		
@@ -594,7 +590,7 @@ frappe.views.Workspace = class Workspace {
 		duplicate && old_item_index++;
 
 		// update frappe.workspaces
-		if (frappe.workspaces[frappe.router.slug(old_item.name)]) {
+		if (frappe.workspaces[frappe.router.slug(old_item.name)] || new_page) {
 			!duplicate && delete frappe.workspaces[frappe.router.slug(old_item.name)];
 			if (new_item) {
 				frappe.workspaces[frappe.router.slug(new_item.name)] = {'title': new_item.title};
@@ -602,9 +598,9 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		// update page block data
-		if (this.pages && this.pages[old_item.name]) {
+		if (this.pages && this.pages[old_item.name] || new_page) {
 			if (new_item) {
-				this.pages[new_item.name] = this.pages[old_item.name];
+				this.pages[new_item.name] = this.pages[old_item.name] || {};
 			}
 			!duplicate && delete this.pages[old_item.name];
 		}
@@ -616,6 +612,8 @@ frappe.views.Workspace = class Workspace {
 			if (is_section_changed) {
 				!duplicate && from_pages.splice(old_item_index, 1);
 				to_pages.push(new_item);
+			} else if (new_page) {
+				from_pages.push(new_item);
 			} else {
 				from_pages.splice(old_item_index, duplicate ? 0 : 1, new_item);
 			}
@@ -624,6 +622,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		this.sidebar_pages.pages = [...this.public_pages, ...this.private_pages];
+		this.cached_pages = this.sidebar_pages;
 	}
 
 	add_settings_button(item, sidebar_control) {
@@ -770,16 +769,14 @@ frappe.views.Workspace = class Workspace {
 				let new_page = {...page};
 
 				new_page.title = values.title;
-				new_page.name = values.title;
-				new_page.icon = values.icon;
-				new_page.public = values.is_public;
-				new_page.parent_page = values.parent || '';
-				new_page.for_user = '';
-				if (!values.is_public) {
-					new_page.name += '-' + frappe.session.user;
-					new_page.for_user = frappe.session.user;
-				}
+				new_page.public = values.is_public || 0;
+				new_page.name = values.title + new_page.public ? '' : '-' + frappe.session.user;
 				new_page.label = new_page.name;
+				new_page.icon = values.icon;
+				new_page.parent_page = values.parent || '';
+				new_page.for_user = new_page.public ? '' : frappe.session.user;
+				new_page.is_editable = !new_page.public;
+				new_page.selected = true;
 
 				this.update_cached_values(page, new_page, true);
 
@@ -807,33 +804,67 @@ frappe.views.Workspace = class Workspace {
 				onEnd: function (evt) {
 					let is_public = $(evt.item).attr('item-public') == '1';
 					me.prepare_sorted_sidebar(is_public);
+					me.update_sorted_sidebar();
 				}
 			});
 		});
 	}
 
 	prepare_sorted_sidebar(is_public) {
+		let pages = is_public ? this.public_pages : this.private_pages;
 		if (is_public) {
-			this.sorted_public_items = this.sort_sidebar(this.sidebar.find('.standard-sidebar-section').last());
+			this.sorted_public_items = this.sort_sidebar(this.sidebar.find('.standard-sidebar-section').last(), pages);
 		} else {
-			this.sorted_private_items = this.sort_sidebar(this.sidebar.find('.standard-sidebar-section').first());
+			this.sorted_private_items = this.sort_sidebar(this.sidebar.find('.standard-sidebar-section').first(), pages);
 		}
+
+		this.sidebar_pages.pages = [...this.public_pages, ...this.private_pages];
+		this.cached_pages = this.sidebar_pages;
 	}
 
-	sort_sidebar($sidebar_section) {
+	sort_sidebar($sidebar_section, pages) {
 		let sorted_items = [];
-		for (let page of $sidebar_section.find('.sidebar-item-container')) {
+		Array.from($sidebar_section.find('.sidebar-item-container')).forEach((page, i) => {
 			let parent_page = "";
+
 			if (page.closest('.nested-container').classList.contains('sidebar-child-item')) {
 				parent_page = page.parentElement.parentElement.attributes["item-name"].value;
 			}
+
 			sorted_items.push({
 				title: page.attributes['item-name'].value,
 				parent_page: parent_page,
 				public: page.attributes['item-public'].value
 			});
-		}
+
+			let $drop_icon = $(page).find('.sidebar-item-control .drop-icon').first(); 
+			if ($(page).find('.sidebar-child-item > *').length != 0) {
+				$drop_icon.removeClass('hidden');
+			} else {
+				$drop_icon.addClass('hidden');
+			}
+
+			let from_index = pages.findIndex(p => p.title == page.attributes['item-name'].value);
+			let element = pages[from_index];
+			element.parent_page = parent_page;
+			if (from_index != i) {
+				pages.splice(from_index, 1);
+				pages.splice(i, 0, element);
+			}
+		});
 		return sorted_items;
+	}
+
+	update_sorted_sidebar() {
+		if (this.sorted_public_items || this.sorted_private_items) {
+			frappe.call({
+				method: "frappe.desk.doctype.workspace.workspace.sort_pages",
+				args: {
+					sb_public_items: this.sorted_public_items,
+					sb_private_items: this.sorted_private_items,
+				}
+			});
+		}
 	}
 
 	make_blocks_sortable() {
@@ -894,26 +925,49 @@ frappe.views.Workspace = class Workspace {
 				d.hide();
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons({is_editable: true});
-				this.title = values.title;
-				this.icon = values.icon;
-				this.parent = values.parent;
-				this.public = values.is_public;
+
+				let name = values.title + (values.is_public ? '' : '-' + frappe.session.user);
+				let blocks = [{
+					type: "header",
+					data: { text: values.title }
+				}]
+
+				let new_page = {
+					content: JSON.stringify(blocks),
+					name: name,
+					label: name,
+					title: values.title,
+					public: values.is_public || 0,
+					for_user: values.is_public ? '' : frappe.session.user,
+					icon: values.icon,
+					parent_page: values.parent || '',
+					is_editable: true,
+					selected: true
+				}
+
 				this.editor.render({
-					blocks: [{
-						type: "header",
-						data: { text: this.title }
-					}]
+					blocks: blocks
 				}).then(async () => {
 					if (this.editor.configuration.readOnly) {
 						this.is_read_only = false;
 						await this.editor.readOnly.toggle();
 					}
-					this.add_page_to_sidebar(values);
-					this.show_sidebar_actions();
-					this.make_blocks_sortable();
-					this.prepare_sorted_sidebar(values.is_public);
 
-					this.update_selected_sidebar(this.current_page, false); //remove selected from old page
+					frappe.call({
+						method: "frappe.desk.doctype.workspace.workspace.new_page",
+						args: {
+							new_page: new_page
+						}
+					});
+			
+					this.update_cached_values(new_page, new_page, true, true);
+			
+					let pre_url = new_page.public ? '' : 'private/';
+					let route = pre_url + frappe.router.slug(new_page.title);
+					frappe.set_route(route);
+			
+					this.make_sidebar();
+					this.show_sidebar_actions();
 				});
 			}
 		});
@@ -1047,21 +1101,11 @@ frappe.views.Workspace = class Workspace {
 		});
 	}
 
-	save_page() {
-		frappe.dom.freeze();
-		this.create_page_skeleton();
+	save_page(page) {
 		let me = this;
-		let save = true;
+		this.current_page = { name: page.title, public: page.public };
 
-		if (!this.title && this.current_page) {
-			this.title = this.current_page.name;
-			this.public = this.current_page.public;
-			save = false;
-		} else {
-			this.current_page = { name: this.title, public: this.public };
-		}
-
-		this.editor.save().then((outputData) => {
+		return this.editor.save().then((outputData) => {
 			let new_widgets = {};
 
 			outputData.blocks.forEach(item => {
@@ -1080,29 +1124,32 @@ frappe.views.Workspace = class Workspace {
 					item.data.card_name !== 'Custom Reports')
 			);
 
+			if (page.content == JSON.stringify(blocks)) {
+				this.setup_customization_buttons(page);
+				frappe.show_alert({ message: __("No changes made on the page"), indicator: "warning" });
+				return false;
+			}
+
+			this.create_page_skeleton();
+			page.content = JSON.stringify(blocks);
 			frappe.call({
 				method: "frappe.desk.doctype.workspace.workspace.save_page",
 				args: {
-					title: me.title,
-					icon: me.icon || '',
-					parent: me.parent || '',
-					public: me.public || 0,
-					sb_public_items: me.sorted_public_items,
-					sb_private_items: me.sorted_private_items,
+					title: page.title,
+					public: page.public || 0,
 					new_widgets: new_widgets,
-					blocks: JSON.stringify(blocks),
-					save: save
+					blocks: JSON.stringify(blocks)
 				},
 				callback: function(res) {
-					frappe.dom.unfreeze();
 					if (res.message) {
-						me.new_page = res.message;
-						me.pages[res.message.label] && delete me.pages[res.message.label];
+						me.discard = true;
+						me.update_cached_values(page, page);
 						me.reload();
 						frappe.show_alert({ message: __("Page Saved Successfully"), indicator: "green" });
 					}
 				}
 			});
+			return true;
 		}).catch((error) => {
 			error;
 			// console.log('Saving failed: ', error);
@@ -1110,10 +1157,6 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	reload() {
-		this.title = '';
-		this.icon = '';
-		this.parent = '';
-		this.public = false;
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
 		this.setup_pages(true);

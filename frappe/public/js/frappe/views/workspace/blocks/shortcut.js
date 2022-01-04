@@ -20,7 +20,8 @@ export default class Shortcut extends Block {
 			allow_create: this.allow_customization,
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
-			allow_edit: true
+			allow_edit: true,
+			allow_resize: true
 		};
 	}
 

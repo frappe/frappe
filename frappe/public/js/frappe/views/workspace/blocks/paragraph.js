@@ -28,9 +28,7 @@ export default class Paragraph extends Block {
 
 	onKeyUp(e) {
 		if (!this.wrapper) return;
-		let $block_list_container = $(this.wrapper.parentElement).find('.block-list-container.dropdown-list');
-
-		$block_list_container.addClass('hidden');
+		this.show_hide_block_list(true);
 		if (e.code !== 'Backspace' && e.code !== 'Delete') {
 			return;
 		}
@@ -38,9 +36,16 @@ export default class Paragraph extends Block {
 		const {textContent} = this._element;
 
 		if (textContent === '') {
-			$block_list_container .removeClass('hidden');
+			this.show_hide_block_list();
 			this._element.innerHTML = '';
 		}
+	}
+
+	show_hide_block_list(hide) {
+		let $wrapper = $(this.wrapper).hasClass('ce-paragraph') ? $(this.wrapper.parentElement) : $(this.wrapper);
+		let $block_list_container = $wrapper.find('.block-list-container.dropdown-list');
+		$block_list_container.removeClass('hidden');
+		hide && $block_list_container.addClass('hidden');
 	}
 
 	drawView() {
@@ -54,10 +59,11 @@ export default class Paragraph extends Block {
 			div.addEventListener('focus', () => {
 				const {textContent} = this._element;
 				if (textContent !== '') return;
-				let $wrapper = $(this.wrapper).hasClass('ce-paragraph') ? $(this.wrapper.parentElement) : $(this.wrapper);
-				let $block_list_container = $wrapper.find('.block-list-container.dropdown-list');
-				$block_list_container.removeClass('hidden');
+				this.show_hide_block_list();
 			});
+			div.addEventListener('blur', () => {
+				setTimeout(() => { this.show_hide_block_list(true) }, 10);
+			})
 			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
 		}

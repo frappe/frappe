@@ -142,6 +142,7 @@ export default class Block {
 	}
 
 	add_settings_button() {
+		let me = this;
 		this.dropdown_list = [
 			{
 				label: 'Delete',
@@ -215,6 +216,10 @@ export default class Block {
 		$widget_control.prepend($button);
 
 		this.dropdown_list.forEach((item) => {
+			if ((item.label == 'Expand' || item.label == 'Shrink') && 
+				me.options && !me.options.allow_resize) {
+				return;
+			}
 			$button.find('.dropdown-list').append(dropdown_item(item.label, item.title, item.icon, item.action));
 		});
 	}
@@ -259,6 +264,7 @@ export default class Block {
 	}
 
 	decrease_width() {
+		let min_width = this.options && this.options.min_width || 3;
 		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
 
 		if (currentBlockIndex < 0) {
@@ -282,7 +288,7 @@ export default class Block {
 			});
 			let parts = className.split('-');
 			let width = parseInt(parts[1]);
-			if (width >= 4) {
+			if (width > min_width) {
 				currentBlockElement.classList.remove('col-'+width);
 				width = width - 1;
 				currentBlockElement.classList.add('col-'+width);
