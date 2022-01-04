@@ -487,7 +487,7 @@ class Document(BaseDocument):
 
 	def set_docstatus(self):
 		if self.docstatus is None:
-			self.docstatus = DocumentStatus.draft
+			self.docstatus = DocumentStatus.draft.value
 
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
@@ -744,7 +744,7 @@ class Document(BaseDocument):
 
 		"""
 		if not self.docstatus:
-			self.docstatus = DocumentStatus.draft
+			self.docstatus = DocumentStatus.draft.value
 
 		if to_docstatus == DocumentStatus.draft:
 			if self.is_draft:
@@ -923,14 +923,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.docstatus = DocumentStatus.submitted
+		self.docstatus = DocumentStatus.submitted.value
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
-		self.docstatus = DocumentStatus.cancelled
+		self.docstatus = DocumentStatus.cancelled.value
 		return self.save()
 
 	@whitelist.__func__
@@ -948,7 +948,7 @@ class Document(BaseDocument):
 		frappe.delete_doc(self.doctype, self.name, ignore_permissions = ignore_permissions, flags=self.flags)
 
 	def run_before_save_methods(self):
-		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:
+		"""Run standard methods before	`INSERT` or `UPDATE`. Standard Methods are:
 
 		- `validate`, `before_save` for **Save**.
 		- `validate`, `before_submit` for **Submit**.
