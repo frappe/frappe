@@ -103,6 +103,6 @@ frappe.ui.form.on('System Console', {
 	},
 
 	week_starts_on() {
-		frappe.app.setup_moment()
+		frappe.app.setup_moment();
 	}
 });
