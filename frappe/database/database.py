@@ -4,16 +4,18 @@
 # Database Module
 # --------------------
 
-import re
-import time
-from typing import Dict, List, Union
-import frappe
 import datetime
+import random
+import re
+import string
+from contextlib import contextmanager
+from time import time
+from typing import Dict, List, Union, Tuple
+
+import frappe
 import frappe.defaults
 import frappe.model.meta
-
 from frappe import _
-from time import time
 from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
@@ -811,6 +813,9 @@ class Database(object):
 			Avoid using savepoints when writing to filesystem."""
 		self.sql(f"savepoint {save_point}")
 
+	def release_savepoint(self, save_point):
+		self.sql(f"release savepoint {save_point}")
+
 	def rollback(self, *, save_point=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
@@ -1097,3 +1102,28 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
+
+@contextmanager
+def savepoint(catch: Union[type, Tuple[type, ...]] = Exception):
+	""" Wrapper for wrapping blocks of DB operations in a savepoint.
+
+		as contextmanager:
+
+		for doc in docs:
+			with savepoint(catch=DuplicateError):
+				doc.insert()
+
+		as decorator (wraps FULL function call):
+
+		@savepoint(catch=DuplicateError)
+		def process_doc(doc):
+			doc.insert()
+	"""
+	try:
+		savepoint = ''.join(random.sample(string.ascii_lowercase, 10))
+		frappe.db.savepoint(savepoint)
+		yield # control back to calling function
+	except catch:
+		frappe.db.rollback(save_point=savepoint)
+	else:
+		frappe.db.release_savepoint(savepoint)
