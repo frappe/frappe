@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from enum import IntEnum
+
 import frappe
 import datetime
 from frappe import _
@@ -19,6 +21,13 @@ max_positive_value = {
 }
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
+
+
+class DocumentStatus(IntEnum):
+	draft = 0
+	submitted = 1
+	cancelled = 2
+
 
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
@@ -224,7 +233,7 @@ class BaseDocument(object):
 		value.parentfield = key
 
 		if value.docstatus is None:
-			value.docstatus = 0
+			value.docstatus = DocumentStatus.draft
 
 		if not getattr(value, "idx", None):
 			value.idx = len(self.get(key) or []) + 1
@@ -305,13 +314,13 @@ class BaseDocument(object):
 		return self.get("__islocal")
 
 	def is_draft(self):
-		return self.docstatus == 0
+		return self.docstatus == DocumentStatus.draft
 
 	def is_submitted(self):
-		return self.docstatus == 1
+		return self.docstatus == DocumentStatus.submitted
 
 	def is_cancelled(self):
-		return self.docstatus == 2
+		return self.docstatus == DocumentStatus.cancelled
 
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)

@@ -16,6 +16,8 @@ from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.utils.data import get_absolute_url
+from frappe.model.base_document import DocumentStatus
+
 
 # once_only validation
 # methods
@@ -484,8 +486,8 @@ class Document(BaseDocument):
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
-		if self.docstatus==None:
-			self.docstatus=0
+		if self.docstatus is None:
+			self.docstatus = DocumentStatus.draft
 
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
@@ -731,7 +733,7 @@ class Document(BaseDocument):
 		else:
 			self.check_docstatus_transition(0)
 
-	def check_docstatus_transition(self, docstatus):
+	def check_docstatus_transition(self, to_docstatus):
 		"""Ensures valid `docstatus` transition.
 		Valid transitions are (number in brackets is `docstatus`):
 
@@ -742,9 +744,9 @@ class Document(BaseDocument):
 
 		"""
 		if not self.docstatus:
-			self.docstatus = 0
-		if docstatus==0:
-			if self.docstatus==0:
+			self.docstatus = DocumentStatus.draft
+
+		if to_docstatus == DocumentStatus.draft:
 				self._action = "save"
 			elif self.docstatus==1:
 				self._action = "submit"
@@ -754,8 +756,7 @@ class Document(BaseDocument):
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif docstatus==1:
-			if self.docstatus==1:
+		elif to_docstatus == DocumentStatus.submitted:
 				self._action = "update_after_submit"
 				self.check_permission("submit")
 			elif self.docstatus==2:
@@ -766,7 +767,7 @@ class Document(BaseDocument):
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif docstatus==2:
+		elif to_docstatus == DocumentStatus.cancelled:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
@@ -920,14 +921,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.docstatus = 1
+		self.docstatus = DocumentStatus.submitted
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
-		self.docstatus = 2
+		self.docstatus = DocumentStatus.cancelled
 		return self.save()
 
 	@whitelist.__func__
