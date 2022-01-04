@@ -182,6 +182,7 @@ frappe.patches.v13_0.queryreport_columns
 execute:frappe.reload_doc('core', 'doctype', 'doctype')
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
+frappe.patches.v13_0.set_week_starts_on
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.rename_cancelled_documents
 frappe.patches.v14_0.copy_mail_data #08.03.21
