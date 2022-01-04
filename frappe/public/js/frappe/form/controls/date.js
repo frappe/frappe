@@ -62,6 +62,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			dateFormat: date_format,
 			startDate: this.get_start_date(),
 			keyboardNav: false,
+			firstDay: frappe.datetime.get_week_starts_on_index(),
 			onSelect: () => {
 				this.$input.trigger('change');
 			},
