@@ -307,7 +307,7 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		if self.is_cancelled():
+		if self.is_cancelled:
 			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
@@ -747,22 +747,24 @@ class Document(BaseDocument):
 			self.docstatus = DocumentStatus.draft
 
 		if to_docstatus == DocumentStatus.draft:
+			if self.is_draft:
 				self._action = "save"
-			elif self.docstatus==1:
+			elif self.is_submitted:
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.docstatus==2:
+			elif self.is_cancelled:
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif to_docstatus == DocumentStatus.submitted:
+			if self.is_submitted:
 				self._action = "update_after_submit"
 				self.check_permission("submit")
-			elif self.docstatus==2:
+			elif self.is_cancelled:
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.docstatus==0:
+			elif self.is_draft:
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)

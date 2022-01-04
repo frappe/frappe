@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.model.base_document import DocumentStatus
 from frappe.utils import cint
 from frappe import _
 import json
@@ -102,13 +103,13 @@ def apply_workflow(doc, action):
 		doc.set(next_state.update_field, next_state.update_value)
 
 	new_docstatus = cint(next_state.doc_status)
-	if doc.docstatus == 0 and new_docstatus == 0:
+	if doc.is_draft and new_docstatus == DocumentStatus.draft:
 		doc.save()
-	elif doc.docstatus == 0 and new_docstatus == 1:
+	elif doc.is_draft and new_docstatus == DocumentStatus.submitted:
 		doc.submit()
-	elif doc.docstatus == 1 and new_docstatus == 1:
+	elif doc.is_submitted and new_docstatus == DocumentStatus.submitted:
 		doc.save()
-	elif doc.docstatus == 1 and new_docstatus == 2:
+	elif doc.is_submitted and new_docstatus == DocumentStatus.cancelled:
 		doc.cancel()
 	else:
 		frappe.throw(_('Illegal Document Status for {0}').format(next_state.state))

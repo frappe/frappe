@@ -137,7 +137,7 @@ def get_context(context):
 
 		if self.set_property_after_alert:
 			allow_update = True
-			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
+			if doc.is_submitted and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
 				allow_update = False
 			try:
 				if allow_update and not doc.flags.in_notification_update:

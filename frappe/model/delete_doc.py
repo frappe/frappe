@@ -211,7 +211,7 @@ def check_permission_and_not_submitted(doc):
 			.format(doc.doctype, doc.name), raise_exception=frappe.PermissionError)
 
 	# check if submitted
-	if doc.docstatus == 1:
+	if doc.is_submitted:
 		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(_(doc.doctype), doc.name, "<a href='https://docs.erpnext.com//docs/user/manual/en/setting-up/articles/delete-submitted-document' target='_blank'>", "</a>"),
 			raise_exception=True)
 
