@@ -101,8 +101,4 @@ frappe.ui.form.on('System Console', {
 				<tbody>${rows}</thead>`);
 		});
 	},
-
-	week_starts_on() {
-		frappe.app.setup_moment();
-	}
 });
