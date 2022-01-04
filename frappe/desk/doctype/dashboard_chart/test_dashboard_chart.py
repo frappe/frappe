@@ -8,6 +8,7 @@ from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from unittest.mock import patch
 
 class TestDashboardChart(unittest.TestCase):
 	def test_period_ending(self):
@@ -15,8 +16,9 @@ class TestDashboardChart(unittest.TestCase):
 			getdate('2019-04-10'))
 
 		# week starts on monday
-		self.assertEqual(get_period_ending('2019-04-10', 'Weekly'),
-			getdate('2019-04-14'))
+		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+			self.assertEqual(get_period_ending('2019-04-10', 'Weekly'),
+				getdate('2019-04-14'))
 
 		self.assertEqual(get_period_ending('2019-04-10', 'Monthly'),
 			getdate('2019-04-30'))
@@ -200,13 +202,14 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		result = get(chart_name ='Test Weekly Dashboard Chart', refresh = 1)
+		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+			result = get(chart_name ='Test Weekly Dashboard Chart', refresh = 1)
 
-		self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 300.0, 800.0, 0.0])
-		self.assertEqual(
-			result.get('labels'),
-			['30-12-18', '06-01-19', '13-01-19', '20-01-19']
-		)
+			self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 300.0, 800.0, 0.0])
+			self.assertEqual(
+				result.get('labels'),
+				['30-12-18', '06-01-19', '13-01-19', '20-01-19']
+			)
 
 		frappe.db.rollback()
 
@@ -231,13 +234,13 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		result = get(chart_name='Test Average Dashboard Chart', refresh = 1)
-
-		self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 150.0, 266.6666666666667, 0.0])
-		self.assertEqual(
-			result.get('labels'),
-			['30-12-18', '06-01-19', '13-01-19', '20-01-19']
-		)
+		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+			result = get(chart_name='Test Average Dashboard Chart', refresh = 1)
+			self.assertEqual(
+				result.get('labels'),
+				['30-12-18', '06-01-19', '13-01-19', '20-01-19']
+			)
+			self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 150.0, 266.6666666666667, 0.0])
 
 		frappe.db.rollback()
 
