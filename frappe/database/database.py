@@ -704,6 +704,8 @@ class Database(object):
 				self.sql("""update `tab{0}`
 					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
 					values, debug=debug)
+
+				frappe.clear_document_cache(dt, values['name'])
 		else:
 			# for singles
 			keys = list(to_update)
@@ -716,10 +718,11 @@ class Database(object):
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
+			frappe.clear_document_cache(dt, dn)
+
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-		frappe.clear_document_cache(dt, dn)
 
 	@staticmethod
 	def set(doc, field, val):
