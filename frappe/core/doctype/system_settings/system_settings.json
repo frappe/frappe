@@ -21,7 +21,7 @@
   "column_break_7",
   "float_precision",
   "currency_precision",
-  "week_starts_on",
+  "first_day_of_the_week",
   "sec_backup_limit",
   "backup_limit",
   "background_workers",
@@ -488,9 +488,9 @@
   },
   {
    "default": "Sunday",
-   "fieldname": "week_starts_on",
+   "fieldname": "first_day_of_the_week",
    "fieldtype": "Select",
-   "label": "Week Starts On",
+   "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   }
  ],

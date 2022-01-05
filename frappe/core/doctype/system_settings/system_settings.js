@@ -46,7 +46,7 @@ frappe.ui.form.on("System Settings", {
 			frappe.ui.toolbar.clear_cache();
 		}
 	},
-	week_starts_on(frm) {
+	first_day_of_the_week(frm) {
 		frm.re_setup_moment = true;
 	},
 >>>>>>> 53b2c472a6 (fix: Re-setup moment object whenever `week_starts_on` is changed)
