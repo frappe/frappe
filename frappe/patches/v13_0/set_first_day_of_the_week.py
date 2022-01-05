@@ -2,6 +2,6 @@ import frappe
 
 def execute():
 	frappe.reload_doctype("System Settings")
-	# setting week_starts_on value as "Monday" to avoid breaking change
+	# setting first_day_of_the_week value as "Monday" to avoid breaking change
 	# because before the configuration was introduced, system used to consider "Monday" as start of the week
-	frappe.db.set_value("System Settings", "System Settings", "week_starts_on", "Monday")
+	frappe.db.set_value("System Settings", "System Settings", "first_day_of_the_week", "Monday")

@@ -625,7 +625,7 @@ frappe.Application = Class.extend({
 	setup_moment() {
 		moment.updateLocale('en', {
 			week: {
-				dow: frappe.datetime.get_week_starts_on_index(),
+				dow: frappe.datetime.get_first_day_of_the_week_index(),
 			}
 		});
 		moment.locale("en");
