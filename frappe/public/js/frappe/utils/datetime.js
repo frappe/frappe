@@ -254,9 +254,9 @@ $.extend(frappe.datetime, {
 		], true).isValid();
 	},
 
-	get_week_starts_on_index() {
-		const week_starts_on = frappe.sys_defaults.week_starts_on || "Sunday";
-		return moment.weekdays().indexOf(week_starts_on);
+	get_first_day_of_the_week_index() {
+		const first_day_of_the_week = frappe.sys_defaults.first_day_of_the_week || "Sunday";
+		return moment.weekdays().indexOf(first_day_of_the_week);
 	}
 
 });

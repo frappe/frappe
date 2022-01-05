@@ -16,7 +16,7 @@ class TestDashboardChart(unittest.TestCase):
 			getdate('2019-04-10'))
 
 		# week starts on monday
-		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			self.assertEqual(get_period_ending('2019-04-10', 'Weekly'),
 				getdate('2019-04-14'))
 
@@ -202,7 +202,7 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			result = get(chart_name ='Test Weekly Dashboard Chart', refresh = 1)
 
 			self.assertEqual(result.get('datasets')[0].get('values'), [50.0, 300.0, 800.0, 0.0])
@@ -234,7 +234,7 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		with patch.object(frappe.utils.data, "get_week_starts_on", return_value="Monday"):
+		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			result = get(chart_name='Test Average Dashboard Chart', refresh = 1)
 			self.assertEqual(
 				result.get('labels'),

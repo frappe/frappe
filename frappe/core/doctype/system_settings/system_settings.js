@@ -43,7 +43,7 @@ frappe.ui.form.on("System Settings", {
 			frappe.ui.toolbar.clear_cache();
 		}
 	},
-	week_starts_on(frm) {
+	first_day_of_the_week(frm) {
 		frm.re_setup_moment = true;
 	},
 });

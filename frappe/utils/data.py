@@ -26,11 +26,11 @@ class Weekday(Enum):
 	Friday = 5
 	Saturday = 6
 
-def get_week_starts_on():
-	return frappe.get_system_settings('week_starts_on') or "Sunday"
+def get_first_day_of_the_week():
+	return frappe.get_system_settings('first_day_of_the_week') or "Sunday"
 
 def get_start_of_week_index():
-	return Weekday[get_week_starts_on()].value
+	return Weekday[get_first_day_of_the_week()].value
 
 def is_invalid_date_string(date_string):
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
