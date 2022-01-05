@@ -91,6 +91,26 @@ class TestAuth(unittest.TestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	def test_deny_multiple_login(self):
+		self.set_system_settings('deny_multiple_sessions', 1)
+
+		first_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+		first_login.get_list("ToDo")
+
+		second_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+
+		second_login.get_list("ToDo")
+		with self.assertRaises(Exception):
+			first_login.get_list("ToDo")
+
+		third_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+
+		with self.assertRaises(Exception):
+			first_login.get_list("ToDo")
+		with self.assertRaises(Exception):
+			second_login.get_list("ToDo")
+		third_login.get_list("ToDo")
+
 
 class TestLoginAttemptTracker(unittest.TestCase):
 	def test_account_lock(self):
