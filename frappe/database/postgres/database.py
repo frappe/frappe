@@ -69,6 +69,7 @@ class PostgresDatabase(Database):
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
+		conn.set_session(autocommit=False)
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
