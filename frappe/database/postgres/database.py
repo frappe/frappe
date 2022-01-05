@@ -103,7 +103,7 @@ class PostgresDatabase(Database):
 
 		return super(PostgresDatabase, self).sql(*args, **kwargs)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		return [d[0] for d in self.sql("""select table_name
 			from information_schema.tables
 			where table_catalog='{0}'
