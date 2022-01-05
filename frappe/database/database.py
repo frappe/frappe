@@ -838,9 +838,9 @@ class Database(object):
 			'parent': dt
 		})
 
-	def table_exists(self, doctype):
+	def table_exists(self, doctype, cached=True):
 		"""Returns True if table for given doctype exists."""
-		return ("tab" + doctype) in self.get_tables()
+		return ("tab" + doctype) in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
