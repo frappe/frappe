@@ -372,7 +372,7 @@ def get_contacts(email_strings, auto_create_contact=False):
 
 	for email_string in email_strings:
 		if email_string:
-			result = getaddresses(email_string)
+			result = getaddresses([email_string])
 			for email in result:
 				email_addrs.append(email[1])
 
