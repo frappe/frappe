@@ -2,11 +2,11 @@ context('Grid Keyboard Shortcut', () => {
 	let total_count = 0;
 	before(() => {
 		cy.login();
-	})
+	});
 	beforeEach(() => {
 		cy.reload();
 		cy.visit('/app/contact/new-contact-1');
-		cy.get('.frappe-control[data-fieldname="email_ids"]').find(".grid-add-row").click()
+		cy.get('.frappe-control[data-fieldname="email_ids"]').find(".grid-add-row").click();
 	});
 	it('Insert new row at the end', () => {
 		cy.add_new_row_in_grid('{ctrl}{shift}{downarrow}', (cy, total_count) => {
