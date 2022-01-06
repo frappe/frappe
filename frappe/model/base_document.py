@@ -101,13 +101,10 @@ class BaseDocument(object):
 				"balance": 42000
 			})
 		"""
-		if "doctype" in d:
-			self.set("doctype", d.get("doctype"))
-
 		# first set default field values of base document
 		for key in default_fields:
 			if key in d:
-				self.set(key, d.get(key))
+				self.set(key, d[key])
 
 		for key, value in d.items():
 			self.set(key, value)

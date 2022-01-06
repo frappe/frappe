@@ -396,6 +396,7 @@ class Document(BaseDocument):
 				"parenttype": self.doctype,
 				"parentfield": fieldname
 			})
+
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -468,9 +469,11 @@ class Document(BaseDocument):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
-		if not self.creation:
+
+		# We'd probably want the creation and owner to be set via API
+		# or Data import at some point, that'd have to be handled here
+		if self.is_new():
 			self.creation = self.modified
-		if not self.owner:
 			self.owner = self.modified_by
 
 		for d in self.get_all_children():
@@ -562,8 +565,12 @@ class Document(BaseDocument):
 					fail = value != original_value
 
 				if fail:
-					frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(field.fieldname)),
-						frappe.CannotChangeConstantError)
+					frappe.throw(
+						_("Value cannot be changed for {0}").format(
+							frappe.bold(self.meta.get_label(field.fieldname))
+						),
+						exc=frappe.CannotChangeConstantError
+					)
 
 		return False
 
@@ -1341,15 +1348,15 @@ class Document(BaseDocument):
 			), frappe.exceptions.InvalidDates)
 
 	def get_assigned_users(self):
-		assignments = frappe.get_all('ToDo',
-			fields=['owner'],
+		assigned_users = frappe.get_all('ToDo',
+			fields=['allocated_to'],
 			filters={
 				'reference_type': self.doctype,
 				'reference_name': self.name,
 				'status': ('!=', 'Cancelled'),
-			})
+			}, pluck='allocated_to')
 
-		users = set([assignment.owner for assignment in assignments])
+		users = set(assigned_users)
 		return users
 
 	def add_tag(self, tag):

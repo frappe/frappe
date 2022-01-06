@@ -215,7 +215,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		if (this.layout.tabs.length) {
 			this.layout.tabs.every(tab => {
-				if (tab.df.options === 'Dashboard') {
+				if (tab.df.show_dashboard) {
 					tab.wrapper.prepend(dashboard_parent);
 					dashboard_added = true;
 					return false;

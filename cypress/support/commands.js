@@ -30,7 +30,7 @@ Cypress.Commands.add('login', (email, password) => {
 		email = 'Administrator';
 	}
 	if (!password) {
-		password = Cypress.config('adminPassword');
+		password = Cypress.env('adminPassword');
 	}
 	cy.request({
 		url: '/api/method/login',
@@ -161,7 +161,7 @@ Cypress.Commands.add('remove_doc', (doctype, name) => {
 
 Cypress.Commands.add('create_records', doc => {
 	return cy
-		.call('frappe.tests.ui_test_helpers.create_if_not_exists', {doc})
+		.call('frappe.tests.ui_test_helpers.create_if_not_exists', {doc: JSON.stringify(doc)})
 		.then(r => r.message);
 });
 
