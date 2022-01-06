@@ -12,15 +12,9 @@ from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
-<<<<<<< HEAD
-from email.utils import parseaddr
-from six.moves.urllib.parse import unquote
 from collections import Counter
-=======
 from email.utils import getaddresses
-from urllib.parse import unquote
-from frappe.utils.user import is_system_user
->>>>>>> 6afa5c8da3 (fix: email_string parsing when pulling email)
+from six.moves.urllib.parse import unquote
 from frappe.contacts.doctype.contact.contact import get_contact_name
 
 exclude_from_linked_with = True
@@ -352,7 +346,7 @@ def get_contacts(email_strings):
 
 	for email_string in email_strings:
 		if email_string:
-			result = getaddresses(email_string)
+			result = getaddresses([email_string])
 			for email in result:
 				email_addrs.append(email[1])
 
