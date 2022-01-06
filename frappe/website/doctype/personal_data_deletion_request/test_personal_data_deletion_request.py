@@ -50,11 +50,10 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 	def test_unverified_record_removal(self):
 		date_time_obj = datetime.strptime(
 			self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f"
-		)
-		date_time_obj += timedelta(days=-7)
-		self.delete_request.creation = date_time_obj
-		self.status = "Pending Verification"
-		self.delete_request.save()
+		) + timedelta(days=-7)
+		self.delete_request.db_set("creation", date_time_obj)
+		self.delete_request.db_set("status", "Pending Verification")
+
 		remove_unverified_record()
 		self.assertFalse(
 			frappe.db.exists("Personal Data Deletion Request", self.delete_request.name)
