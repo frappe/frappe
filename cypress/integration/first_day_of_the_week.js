@@ -12,7 +12,7 @@ context("First Day of the Week", () => {
 	});
 
 	it("Date control starts with same day as selected in System Settings", () => {
-		cy.intercept('POST', '/api/method/frappe.core.doctype.system_settings.system_settings.load').as("load_settings")
+		cy.intercept('POST', '/api/method/frappe.core.doctype.system_settings.system_settings.load').as("load_settings");
 		cy.fill_field('first_day_of_the_week', 'Tuesday', 'Select');
 		cy.findByRole('button', {name: 'Save'}).click();
 		cy.wait("@load_settings");
@@ -31,7 +31,7 @@ context("First Day of the Week", () => {
 	});
 
 	it("Calendar view starts with same day as selected in System Settings", () => {
-		cy.intercept('POST', '/api/method/frappe.core.doctype.system_settings.system_settings.load').as("load_settings")
+		cy.intercept('POST', '/api/method/frappe.core.doctype.system_settings.system_settings.load').as("load_settings");
 		cy.fill_field('first_day_of_the_week', 'Monday', 'Select');
 		cy.findByRole('button', {name: 'Save'}).click();
 		cy.wait("@load_settings");
@@ -45,4 +45,4 @@ context("First Day of the Week", () => {
 		cy.fill_field('first_day_of_the_week', 'Sunday', 'Select');
 		cy.findByRole('button', {name: 'Save'}).click();
 	});
-})
+});
