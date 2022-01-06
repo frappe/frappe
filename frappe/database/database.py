@@ -164,10 +164,7 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if frappe.conf.db_type == 'postgres':
-				self.rollback()
-
-			elif self.is_syntax_error(e):
+			if self.is_syntax_error(e):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
@@ -177,6 +174,9 @@ class Database(object):
 
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e)
+
+			elif frappe.conf.db_type == 'postgres':
+				raise
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
@@ -267,9 +267,7 @@ class Database(object):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
-		if self.transaction_writes and \
-			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
-			raise Exception('This statement can cause implicit commit')
+		self.check_implicit_commit(query)
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
@@ -281,6 +279,11 @@ class Database(object):
 					self.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
+
+	def check_implicit_commit(self, query):
+		if self.transaction_writes and \
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
+			raise Exception('This statement can cause implicit commit')
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
@@ -701,6 +704,8 @@ class Database(object):
 				self.sql("""update `tab{0}`
 					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
 					values, debug=debug)
+
+				frappe.clear_document_cache(dt, values['name'])
 		else:
 			# for singles
 			keys = list(to_update)
@@ -713,10 +718,11 @@ class Database(object):
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
+			frappe.clear_document_cache(dt, dn)
+
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-		frappe.clear_document_cache(dt, dn)
 
 	@staticmethod
 	def set(doc, field, val):
@@ -835,9 +841,9 @@ class Database(object):
 			'parent': dt
 		})
 
-	def table_exists(self, doctype):
+	def table_exists(self, doctype, cached=True):
 		"""Returns True if table for given doctype exists."""
-		return ("tab" + doctype) in self.get_tables()
+		return ("tab" + doctype) in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
