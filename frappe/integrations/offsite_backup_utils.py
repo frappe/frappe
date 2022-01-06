@@ -66,8 +66,8 @@ def get_latest_backup_file(with_files=False):
 
 
 def get_file_size(file_path, unit):
-	if not unit:
-		unit = "MB"
+	if not file_path:
+		return 0
 
 	file_size = os.path.getsize(file_path)
 
@@ -99,7 +99,7 @@ def get_chunk_site(file_size):
 def validate_file_size():
 	frappe.flags.create_new_backup = True
 	latest_file, site_config = get_latest_backup_file()
-	file_size = get_file_size(latest_file, unit="GB")
+	file_size = get_file_size(latest_file, unit="GB") if latest_file else 0
 
 	if file_size > 1:
 		frappe.flags.create_new_backup = False
