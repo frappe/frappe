@@ -4700,3 +4700,7 @@ Value cannot be negative for {0}: {1},Der Wert kann für {0} nicht negativ sein:
 Negative Value,Negativer Wert,
 Authentication failed while receiving emails from Email Account: {0}.,Die Authentifizierung ist beim Empfang von E-Mails vom E-Mail-Konto fehlgeschlagen: {0}.,
 Message from server: {0},Nachricht vom Server: {0},
+Reset sorting,Sortierung zurücksetzen,
+Sort Ascending,Aufsteigend sortieren,
+Sort Descending,Absteigend sortieren,
+Remove column,Spalte entfernen,
