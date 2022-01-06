@@ -100,9 +100,8 @@
 //center wrt to outer most container and not immediate parent
 .empty-apps-state {
 	position: relative;
-	padding-top: 18rem;
+	padding-top: 10rem;
 	margin-left: -250px;
-	margin-top: -150px;
 	text-align: center;
 
 	@include media-breakpoint-down(sm) {
