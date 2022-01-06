@@ -6,9 +6,6 @@ context("First Day of the Week", () => {
 	beforeEach(() => {
 		cy.visit('/app/system-settings');
 		cy.findByText('Date and Number Format').click();
-		cy.fill_field('first_day_of_the_week', 'Sunday', 'Select');
-		cy.findByRole('button', {name: 'Save'}).click();
-		cy.findByText('Date and Number Format').click();
 	});
 
 	it("Date control starts with same day as selected in System Settings", () => {
