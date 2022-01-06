@@ -109,6 +109,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends fra
 		let value = decodeURIComponent($selectable_item.data().value);
 
 		if ($selectable_item.hasClass('selected')) {
+			this.values = this.values.slice();
 			this.values.push(value);
 		} else {
 			this.values = this.values.filter(val => val !== value);

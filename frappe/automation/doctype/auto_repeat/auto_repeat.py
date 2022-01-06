@@ -96,7 +96,15 @@ class AutoRepeat(Document):
 		auto_repeat_days = self.get_auto_repeat_days()
 		if not len(set(auto_repeat_days)) == len(auto_repeat_days):
 			repeated_days = get_repeated(auto_repeat_days)
-			frappe.throw(_('Auto Repeat Day {0} has been repeated.').format(frappe.bold(repeated_days)))
+			plural = "s" if len(repeated_days) > 1 else ""
+
+			frappe.throw(
+				_("Auto Repeat Day{0} {1} has been repeated.").format(
+					plural,
+					frappe.bold(", ".join(repeated_days))
+				)
+			)
+
 
 	def update_auto_repeat_id(self):
 		#check if document is already on auto repeat
