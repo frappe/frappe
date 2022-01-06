@@ -35,7 +35,7 @@ from frappe.query_builder import get_query_builder, patch_query_execute
 # Lazy imports
 faker = lazy_import('faker')
 
-__version__ = '13.17.1'
+__version__ = '13.18.0'
 
 __title__ = "Frappe Framework"
 
@@ -1191,7 +1191,7 @@ def read_file(path, raise_not_found=False):
 def get_attr(method_string):
 	"""Get python method object from its name."""
 	app_name = method_string.split(".")[0]
-	if not local.flags.in_install and app_name not in get_installed_apps():
+	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 
 	modulename = '.'.join(method_string.split('.')[:-1])

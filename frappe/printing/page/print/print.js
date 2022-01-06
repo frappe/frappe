@@ -48,8 +48,8 @@ frappe.ui.form.PrintView = class {
 			':Print Settings',
 			'Print Settings'
 		);
-		this.setup_toolbar();
 		this.setup_menu();
+		this.setup_toolbar();
 		this.setup_sidebar();
 		this.setup_keyboard_shortcuts();
 	}
@@ -77,8 +77,9 @@ frappe.ui.form.PrintView = class {
 		);
 
 		this.page.add_button(
-			frappe.utils.icon('refresh'),
-			() => this.refresh_print_format()
+			__('Refresh'),
+			() => this.refresh_print_format(),
+			{ icon: 'refresh' }
 		);
 	}
 

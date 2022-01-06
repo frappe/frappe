@@ -119,12 +119,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		);
 
 		this.$scan_btn = this.$wrapper.find('.link-btn');
-
-		this.$input.on("focus", () => {
-			setTimeout(() => {
-				this.$scan_btn.toggle(true);
-			}, 500);
-		});
+		this.$scan_btn.toggle(true);
 
 		const me = this;
 		this.$scan_btn.on('click', 'a', () => {
@@ -137,12 +132,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 					}
 				}
 			});
-		});
-
-		this.$input.on("blur", () => {
-			setTimeout(() => {
-				this.$scan_btn.toggle(false);
-			}, 500);
 		});
 	},
 	bind_change_event: function() {

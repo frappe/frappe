@@ -190,11 +190,14 @@ h5.modal-title {
 
 .btn-xs {
 	@extend .btn-sm;
+
 }
 
 .hidden-xs {
 	@extend .d-block;
-	@extend .d-sm-none;
+	@include media-breakpoint-between(xs, sm) {
+		display: none !important;
+	}
 }
 
 .visible-xs {
