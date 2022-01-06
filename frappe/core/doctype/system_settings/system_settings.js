@@ -36,9 +36,6 @@ frappe.ui.form.on("System Settings", {
 				frm.set_value('prepared_report_expiry_period', 7);
 			}
 		}
-<<<<<<< HEAD
-	}
-=======
 	},
 	on_update: function(frm) {
 		if (frappe.boot.time_zone && frappe.boot.time_zone.system !== frm.doc.time_zone) {
@@ -49,5 +46,4 @@ frappe.ui.form.on("System Settings", {
 	first_day_of_the_week(frm) {
 		frm.re_setup_moment = true;
 	},
->>>>>>> 53b2c472a6 (fix: Re-setup moment object whenever `week_starts_on` is changed)
 });

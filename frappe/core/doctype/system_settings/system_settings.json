@@ -497,11 +497,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-12-13 12:07:26.860735",
-=======
  "modified": "2022-01-04 11:28:34.881192",
->>>>>>> 42e1c15c18 (feat: Add setting to configure the day on which week starts)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

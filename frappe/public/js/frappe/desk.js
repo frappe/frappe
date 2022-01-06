@@ -617,10 +617,7 @@ frappe.Application = Class.extend({
 				//
 			}
 		});
-	}
-<<<<<<< HEAD
-});
-=======
+	},
 
 	setup_moment() {
 		moment.updateLocale('en', {
@@ -634,8 +631,7 @@ frappe.Application = Class.extend({
 			moment.tz.add(frappe.boot.timezone_info);
 		}
 	}
-}
->>>>>>> 42e1c15c18 (feat: Add setting to configure the day on which week starts)
+});
 
 frappe.get_module = function(m, default_module) {
 	var module = frappe.modules[m] || default_module;
