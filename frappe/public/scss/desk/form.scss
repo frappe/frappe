@@ -54,7 +54,7 @@
 
 .form-section.card-section,
 .form-dashboard-section {
-	border-bottom: 1px solid var(--gray-200);
+	border-bottom: 1px solid var(--border-color);
 	padding: var(--padding-xs);
 }
 
@@ -316,12 +316,12 @@
 
 .form-tabs-list {
 	padding-left: var(--padding-xs);
-	border-bottom: 1px solid var(--gray-200);
+	border-bottom: 1px solid var(--border-color);
 
 	.form-tabs {
 		.nav-item {
 			.nav-link {
-				color: var(--gray-700);
+				color: var(--text-muted);
 				padding: var(--padding-md) 0;
 				margin: 0 var(--margin-md);
 
