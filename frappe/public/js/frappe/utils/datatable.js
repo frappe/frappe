@@ -19,4 +19,4 @@ frappe.utils.datatable.get_translations = function () {
 	};
 
 	return translations;
-}
+};
