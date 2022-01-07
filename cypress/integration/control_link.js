@@ -65,18 +65,16 @@ context('Control Link', () => {
 		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 		cy.get('@todos').then(todos => {
-			cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
+			cy.get('.frappe-control[data-fieldname=link] input').as('input');
+			cy.get('@input').focus();
 			cy.wait('@search_link');
-			cy.get('@input').type(todos[0]);
-			cy.wait('@search_link');
-			cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
-			cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
+			cy.get('@input').type(todos[0]).blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
 			cy.findByTitle('Open Link')
 				.should('be.visible')
 				.click();
-			cy.location('hash').should('eq', `#Form/ToDo/${todos[0]}`);
+			cy.location('pathname').should('eq', `/app/todo/${todos[0]}`);
 		});
 	});
 
