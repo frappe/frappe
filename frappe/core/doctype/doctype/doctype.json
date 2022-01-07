@@ -588,7 +588,7 @@
    "default": "0",
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
-   "label": "Show Title in Link and Table MultiSelect Field"
+   "label": "Show Title in Link Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -670,7 +670,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-12-15 14:53:10.717788",
+ "modified": "2022-01-07 16:07:06.196534",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
