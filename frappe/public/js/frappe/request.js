@@ -291,7 +291,7 @@ frappe.request.call = function(opts) {
 		})
 		.fail(function(xhr, textStatus) {
 			try {
-				if (xhr.responseText) {
+				if (xhr.getResponseHeader('content-type') == 'application/json' && xhr.responseText) {
 					var data;
 					try {
 						data = JSON.parse(xhr.responseText);
