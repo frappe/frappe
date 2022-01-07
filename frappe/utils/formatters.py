@@ -83,9 +83,14 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return frappe.utils.markdown(value)
 
 	elif df.get("fieldtype") == "Table MultiSelect":
+		values = []
 		meta = frappe.get_meta(df.options)
 		link_field = [df for df in meta.fields if df.fieldtype == 'Link'][0]
-		values = [v.get(link_field.fieldname, 'asdf') for v in value]
+		for v in value:
+			v.update({'__link_titles': doc.get('__link_titles')})
+			formatted_value = frappe.format_value(v.get(link_field.fieldname, ''), link_field, v)
+			values.append(formatted_value)
+
 		return ', '.join(values)
 
 	elif df.get("fieldtype") == "Duration":
