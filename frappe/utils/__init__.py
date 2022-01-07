@@ -17,6 +17,7 @@ from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 from werkzeug.test import Client
 from redis.exceptions import ConnectionError
+import phonenumbers as ph
 
 import frappe
 # utility functions like cint, int, flt, etc.
@@ -70,6 +71,21 @@ def extract_email_id(email):
 	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
+
+def validate_phone_number_with_isd(phone, throw=False):
+	if not phone:
+		return
+	try:
+		phone = ph.parse(phone)
+	except Exception as e:
+		if e.error_type == 1:
+			frappe.throw(frappe._("The entered value is not a phone number."), frappe.InvalidPhoneNumberError,
+				title=frappe._("Invalid Number"))
+		frappe.throw(frappe._("Please select a country code."), frappe.InvalidPhoneNumberError,
+			title = frappe._("Country Code Required"))
+	if not ph.is_valid_number(phone):
+		frappe.throw(frappe._("This is not a valid phone number"), frappe.InvalidPhoneNumberError,
+		title = frappe._("Invalid Number"))
 
 def validate_phone_number(phone_number, throw=False):
 	"""Returns True if valid phone number"""

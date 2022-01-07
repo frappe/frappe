@@ -128,7 +128,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	change_flag(country_code) {
 		this.selected_icon.find('img').attr('src', 'https://flagcdn.com/h20/'+country_code+'.png')
 		this.$icon = this.selected_icon.find('img');
-		// this.$icon.hasClass('hide') && this.$icon.toggleClass('hide');
+		this.$icon.hasClass('hide') && this.$icon.toggleClass('hide');
 	}
 
 	// country_code for India is 'in'
