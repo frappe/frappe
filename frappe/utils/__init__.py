@@ -56,8 +56,8 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-	
 	method = get_hook_method('get_sender_details')
+
 	if method:
 		sender_name, mail = method()
 		# if method exists but sender_name is ""

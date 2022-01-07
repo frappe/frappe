@@ -1,16 +1,16 @@
 from enum import Enum
-from typing import Any, Callable, Dict, Union, get_type_hints
 from importlib import import_module
+from typing import Any, Callable, Dict, Union, get_type_hints
 
 from pypika import Query
 from pypika.queries import Column
-
-import frappe
-
-from .builder import MariaDB, Postgres
 from pypika.terms import PseudoColumn
 
+import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
+
+from .builder import MariaDB, Postgres
+
 
 class db_type_is(Enum):
 	MARIADB = "mariadb"
@@ -60,7 +60,7 @@ def patch_query_execute():
 
 	def prepare_query(query):
 		params = {}
-		query = query.get_sql(param_wrapper = NamedParameterWrapper(params))
+		query = query.get_sql(param_wrapper=NamedParameterWrapper(params))
 		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
 			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 		return query, params
@@ -78,7 +78,7 @@ def patch_query_execute():
 def patch_query_aggregation():
 	"""Patch aggregation functions to frappe.qb
 	"""
-	from frappe.query_builder.functions import _max, _min, _avg, _sum
+	from frappe.query_builder.functions import _avg, _max, _min, _sum
 
 	frappe.qb.max = _max
 	frappe.qb.min = _min
