@@ -301,8 +301,8 @@ frappe.request.call = function(opts) {
 						console.log(e);
 					}
 					if (data && data.exception) {
-						// frappe.exceptions.CustomError -> CustomError
-						var exception = data.exception.split('.').at(-1);
+						// frappe.exceptions.CustomError: (1024, ...) -> CustomError
+						var exception = data.exception.split('.').at(-1).split(':').at(0);
 						var exception_handler = exception_handlers[exception];
 						if (exception_handler) {
 							exception_handler(data);
