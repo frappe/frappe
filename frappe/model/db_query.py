@@ -127,8 +127,8 @@ class DatabaseQuery(object):
 		if self.distinct:
 			args.fields = 'distinct ' + args.fields
 			args.order_by = '' # TODO: recheck for alternative
-			
-		# Postgres requires any field that appears in the select clause to also 
+
+		# Postgres requires any field that appears in the select clause to also
 		# appear in the order by and group by clause
 		if frappe.db.db_type == 'postgres' and args.order_by and args.group_by:
 			args = self.prepare_select_args(args)
@@ -207,18 +207,15 @@ class DatabaseQuery(object):
 		return args
 
 	def prepare_select_args(self, args):
-		order_field = args.order_by
-
-		for r in (" order by ", " asc", " ASC", " desc", " DESC"):
-			order_field = order_field.replace(r, "")
+		order_field = re.sub(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", "", args.order_by)
 
 		if order_field not in args.fields:
-			order_fieldm = order_field.replace("`", "")
-			if "." in order_fieldm:
-				args.fields += ", MAX(" + order_fieldm.split(".")[1] + ") as `" + order_fieldm + "`"
-			else:
-				args.fields += ", MAX(" + order_fieldm + ") as `" + order_fieldm + "`"
-			args.order_by = args.order_by.replace(order_field, "`" + order_fieldm + "`")
+			extracted_column = order_column = order_field.replace("`", "")
+			if "." in extracted_column:
+				extracted_column = extracted_column.split(".")[1]
+
+			args.fields += f", MAX({extracted_column}) as `{order_column}`"
+			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
 
