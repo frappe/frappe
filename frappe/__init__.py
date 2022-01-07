@@ -141,9 +141,16 @@ lang = local("lang")
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if typing.TYPE_CHECKING:
+	from frappe.utils.redis_wrapper import RedisWrapper
+
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.query_builder.builder import MariaDB, Postgres
+
 	db: typing.Union[MariaDBDatabase, PostgresDatabase]
+	qb: typing.Union[MariaDB, Postgres]
+
+
 # end: static analysis hack
 
 def init(site, sites_path=None, new_site=False):
@@ -306,7 +313,7 @@ def destroy():
 
 # memcache
 redis_server = None
-def cache():
+def cache() -> "RedisWrapper":
 	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
