@@ -8,8 +8,8 @@
  "field_order": [
   "user",
   "allow",
-  "column_break_3",
   "for_value",
+  "column_break_3",
   "is_default",
   "advanced_control_section",
   "apply_to_all_doctypes",
@@ -36,10 +36,6 @@
    "label": "Allow",
    "options": "DocType",
    "reqd": 1
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "for_value",
@@ -87,10 +83,14 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Hide Descendants"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
   }
  ],
  "links": [],
- "modified": "2021-01-21 18:14:10.839381",
+ "modified": "2022-01-03 11:25:03.726150",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Permission",
@@ -111,6 +111,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "user",
  "track_changes": 1
 }

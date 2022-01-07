@@ -67,6 +67,10 @@ class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
 	special_doctypes = ("DocField", "DocPerm", "DocType", "Module Def", 'DocType Action', 'DocType Link', 'DocType State')
+	standard_set_once_fields = [
+		frappe._dict(fieldname="creation", fieldtype="Datetime"),
+		frappe._dict(fieldname="owner", fieldtype="Data"),
+	]
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -154,6 +158,12 @@ class Meta(Document):
 		'''Return fields with `set_only_once` set'''
 		if not hasattr(self, "_set_only_once_fields"):
 			self._set_only_once_fields = self.get("fields", {"set_only_once": 1})
+			fieldnames = [d.fieldname for d in self._set_only_once_fields]
+
+			for df in self.standard_set_once_fields:
+				if df.fieldname not in fieldnames:
+					self._set_only_once_fields.append(df)
+
 		return self._set_only_once_fields
 
 	def get_table_fields(self):

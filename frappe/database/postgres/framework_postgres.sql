@@ -27,6 +27,7 @@ CREATE TABLE "tabDocField" (
   "search_index" smallint NOT NULL DEFAULT 0,
   "hidden" smallint NOT NULL DEFAULT 0,
   "set_only_once" smallint NOT NULL DEFAULT 0,
+  "show_dashboard" smallint NOT NULL DEFAULT 0,
   "allow_in_quick_entry" smallint NOT NULL DEFAULT 0,
   "print_hide" smallint NOT NULL DEFAULT 0,
   "report_hide" smallint NOT NULL DEFAULT 0,

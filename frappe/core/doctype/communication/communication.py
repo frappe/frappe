@@ -488,10 +488,12 @@ def update_parent_document_on_communication(doc):
 def update_first_response_time(parent, communication):
 	if parent.meta.has_field("first_response_time") and not parent.get("first_response_time"):
 		if is_system_user(communication.sender):
-			first_responded_on = communication.creation
-			if parent.meta.has_field("first_responded_on") and communication.sent_or_received == "Sent":
-				parent.db_set("first_responded_on", first_responded_on)
-			parent.db_set("first_response_time", round(time_diff_in_seconds(first_responded_on, parent.creation), 2))
+			if communication.sent_or_received == "Sent":
+				first_responded_on = communication.creation
+				if parent.meta.has_field("first_responded_on"):
+					parent.db_set("first_responded_on", first_responded_on)
+				first_response_time = round(time_diff_in_seconds(first_responded_on, parent.creation), 2)
+				parent.db_set("first_response_time", first_response_time)
 
 def set_avg_response_time(parent, communication):
 	if parent.meta.has_field("avg_response_time") and communication.sent_or_received == "Sent":

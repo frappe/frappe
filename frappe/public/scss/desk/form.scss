@@ -1,6 +1,12 @@
 @import "../common/form.scss";
 @import '~cropperjs/dist/cropper.min';
 
+.std-form-layout > .form-layout > .form-page {
+	border-radius: var(--border-radius-md);
+	box-shadow: var(--card-shadow);
+	background-color: var(--card-bg);
+}
+
 .form-section, .form-dashboard-section {
 	margin: 0px;
 
@@ -12,6 +18,7 @@
 
 	.section-head {
 		@extend .head-title;
+		font-size: var(--text-base);
 		width: 100%;
 		padding: var(--padding-sm) var(--padding-md);
 		margin: 0;
@@ -47,8 +54,12 @@
 
 .form-section.card-section,
 .form-dashboard-section {
-	margin-bottom: var(--margin-lg);
-	@extend .frappe-card;
+	border-bottom: 1px solid var(--border-color);
+	padding: var(--padding-xs);
+}
+
+.row.form-section.card-section.visible-section:last-child {
+	border-bottom: none;
 }
 
 .form-dashboard-section {
@@ -57,9 +68,8 @@
 	}
 	.section-body {
 		display: block;
-		padding-left: var(--padding-md);
-		padding-right: var(--padding-md);
-		padding-bottom: var(--padding-md);
+		padding: var(--padding-md);
+		padding-top: 0;
 	}
 }
 
@@ -85,7 +95,8 @@
 
 .comment-box {
 	@include card();
-	padding: 25px var(--padding-xl);
+	margin-top: var(--margin-lg);
+	padding: var(--padding-lg);
 	.comment-input-header {
 		@extend .head-title;
 		margin-bottom: var(--margin-sm);
@@ -304,19 +315,18 @@
 }
 
 .form-tabs-list {
-	margin-bottom: var(--margin-lg);
+	padding-left: var(--padding-xs);
+	border-bottom: 1px solid var(--border-color);
 
 	.form-tabs {
 		.nav-item {
 			.nav-link {
-				padding-bottom: var(--padding-md);
-				color: var(--gray-700);
-				padding-left: 0;
-				padding-right: 0;
-				margin-right: var(--margin-xl);
+				color: var(--text-muted);
+				padding: var(--padding-md) 0;
+				margin: 0 var(--margin-md);
 
 				&.active {
-					font-weight: 500;
+					font-weight: 600;
 					border-bottom: 1px solid var(--primary);
 					color: var(--text-color);
 				}
