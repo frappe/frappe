@@ -1,13 +1,14 @@
 from enum import Enum
-from typing import Any, Callable, Dict, get_type_hints
 from importlib import import_module
+from typing import Any, Callable, Dict, get_type_hints
 
 from pypika import Query
 
 import frappe
+from frappe.query_builder.terms import NamedParameterWrapper
+
 from .builder import MariaDB, Postgres
 
-from frappe.query_builder.terms import NamedParameterWrapper
 
 class db_type_is(Enum):
 	MARIADB = "mariadb"
@@ -57,7 +58,7 @@ def patch_query_execute():
 
 	def prepare_query(query):
 		params = {}
-		query = query.get_sql(param_wrapper = NamedParameterWrapper(params))
+		query = query.get_sql(param_wrapper=NamedParameterWrapper(params))
 		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
 			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 		return query, params
