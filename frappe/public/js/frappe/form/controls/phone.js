@@ -13,7 +13,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		// Replaces code when selected and removes previously selected.
 		this.picker.on_change = (country) => {
 			const country_code = frappe.boot.country_codes[country].code;
-			const country_isd = frappe.boot.country_codes[country].iso;
+			const country_isd = frappe.boot.country_codes[country].isd;
 			this.change_flag(country_code);
 			this.$icon = this.selected_icon.find('svg');
 			this.$flag = this.selected_icon.find('img');
@@ -151,7 +151,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 	get_country(country) {
 		const country_codes = frappe.boot.country_codes;
-		return country_codes[country].iso;
+		return country_codes[country].isd;
 	}
 	get_country_flag(country) {
 		const country_codes = frappe.boot.country_codes;

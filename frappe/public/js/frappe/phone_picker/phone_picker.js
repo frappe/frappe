@@ -34,11 +34,11 @@ class Picker {
 
 	setup_countries() {
 		Object.entries(this.countries).forEach(([country, info]) => {
-		if (!info.iso) {
+		if (!info.isd) {
 			return
 		}
 		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code)}
-			<span class="country">${country} (${info.iso})</span></div>`);
+			<span class="country">${country} (${info.isd})</span></div>`);
 		this.phone_wrapper.append($country);
 		const set_values = () => {
 			this.set_country(country);
