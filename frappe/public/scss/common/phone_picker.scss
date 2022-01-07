@@ -29,6 +29,9 @@
 			border-radius: 0.375rem;
 			padding: 0.5rem;
 
+			img {
+				height: 15px;
+			}
 			.country {
 				display: flex;
 				margin-left: 0.6rem;
@@ -75,12 +78,17 @@
 		top: calc(50% + 2.6px);
 		left: 8px;
 		content: ' ';
+		align-items: center;
 
 		.country {
 			display: flex;
 			margin-left: 0.6rem;
 			align-items: flex-end;
 			flex-grow: 1;
+		}
+
+		img {
+			height: 15px;
 		}
 
 	}

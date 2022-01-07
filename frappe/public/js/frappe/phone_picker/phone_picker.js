@@ -37,7 +37,7 @@ class Picker {
 		if (!info.iso) {
 			return
 		}
-		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code, "md")}
+		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code)}
 			<span class="country">${country} (${info.iso})</span></div>`);
 		this.phone_wrapper.append($country);
 		const set_values = () => {
@@ -49,7 +49,7 @@ class Picker {
 		});
 		$country.hover(() => {
 			$country.toggleClass("bg-gray-100");
-		 });
+		});
 		this.search_input.keydown((e) => {
 			const key_code = e.keyCode;
 			if ([13].includes(key_code)) {
@@ -87,7 +87,6 @@ class Picker {
 	}
 
 	get_country() {
-		if (!this.country) return frappe.utils.icon("down", "sm")
 		return this.country;
 	}
 }

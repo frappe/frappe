@@ -14,19 +14,22 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.picker.on_change = (country) => {
 			const country_code = frappe.boot.country_codes[country].code;
 			const country_isd = frappe.boot.country_codes[country].iso;
-			this.selected_icon.find('use').attr('href', '#'+country_code)
+			this.change_flag(country_code);
 			this.$icon = this.selected_icon.find('svg');
-			if (this.$icon.hasClass('icon-sm')) {
-				this.$icon.removeClass('icon-sm');
-				this.selected_icon.find('svg').addClass('flag-md')
+			this.$flag = this.selected_icon.find('img');
+			if (!this.$icon.hasClass('hide')){
+				this.$icon.toggleClass('hide');
+			}
+			if (!this.$flag.length) {
+				this.selected_icon.prepend(this.get_country_flag(country));
 			}
 			if (!this.$isd.length) {
-			this.selected_icon.append($(`<span class= "country"> ${country_isd}</span>`))
+				this.selected_icon.append($(`<span class= "country"> ${country_isd}</span>`));
 			} else {
-				this.$isd.text(country_isd)
+				this.$isd.text(country_isd);
 			}
 			if(this.$input.val()) {
-				this.set_formatted_input(this.get_country(country) +'-'+ this.$input.val())
+				this.set_formatted_input(this.get_country(country) +'-'+ this.$input.val());
 			}
 		};
 
@@ -76,14 +79,14 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 		// Default icon when nothing is selected.
 		this.selected_icon = this.$wrapper.find('.selected-phone');
-		let input_value = this.get_input_value()
+		let input_value = this.get_input_value();
 		if (!this.selected_icon.length) {
 			this.selected_icon = $(`<div class="selected-phone">${frappe.utils.icon("down", "sm")}</div>`);
 			this.selected_icon.insertAfter(this.$input);
-			this.selected_icon.append($(`<span class= "country"></span>`))
+			this.selected_icon.append($(`<span class= "country"></span>`));
 			this.$isd = this.selected_icon.find('.country');
 			if(input_value && input_value.split("-").length == 2) {
-				this.$isd.text(this.value.split("-")[0])
+				this.$isd.text(this.value.split("-")[0]);
 			}
 		}
 	}
@@ -94,26 +97,15 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		// Previously opened doc values get fetched.
 		if(!this.value) {
 			this.$input.val("");
-			this.$wrapper.find('.country').text("")
-			this.selected_icon.find('use').attr('href', '#icon-down')
-			this.flag = this.selected_icon.find('svg');
-			let has_flag = this.flag.hasClass('flag-md');
-			if (has_flag) {
-				this.flag.toggleClass('flag-md');
-				this.flag.toggleClass('icon-sm');
+			this.$wrapper.find('.country').text("");
+			if (this.selected_icon.find('svg').hasClass('hide')) {
+				this.selected_icon.find('svg').toggleClass('hide');
+				this.selected_icon.find('img').addClass('hide');
 			}
 		}
-
 		if(this.value && this.value.split("-").length == 2) {
 			let isd = this.value.split("-")[0];
-			let country_data = frappe.boot.country_codes;
-
-			for (const country in country_data) {
-				if (Object.values(country_data[country]).includes(isd)) {
-					let code = country_data[country].code;
-					this.change_flag(code);
-				  }
-			 }
+			this.get_country_code_and_change_flag(isd);
 			this.picker.set_country(isd);
 			this.picker.refresh();
 			if (this.picker.country && this.picker.country !== this.$isd.text()) {
@@ -125,30 +117,45 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	set_formatted_input(value) {
 		if(value && value.includes('-')) {
-			this.set_model_value(value)
+			this.set_model_value(value);
+			this.$input.val(value.split("-").pop());
 		} else if(this.$isd.text().trim() && this.value) {
 			let code_number = this.$isd.text() + '-' + value;
-			this.set_model_value(code_number)
+			this.set_model_value(code_number);
 		}
-		this.$input && value && this.$input.val(value.split("-").pop())
 	}
 
 	change_flag(country_code) {
-		this.selected_icon.find('use').attr('href', '#'+country_code)
-		this.$icon = this.selected_icon.find('svg');
-		if (this.$icon.hasClass('icon-sm')) {
-			this.$icon.removeClass('icon-sm');
-			this.selected_icon.find('svg').addClass('flag-md')
-		}
+		this.selected_icon.find('img').attr('src', 'https://flagcdn.com/h20/'+country_code+'.png')
+		this.$icon = this.selected_icon.find('img');
+		// this.$icon.hasClass('hide') && this.$icon.toggleClass('hide');
 	}
 
-	get_country(country=null) {
+	// country_code for India is 'in'
+	get_country_code_and_change_flag(isd) {
+		let country_data = frappe.boot.country_codes;
+		let flag = this.selected_icon.find('img');
+		for (const country in country_data) {
+			if (Object.values(country_data[country]).includes(isd)) {
+				let code = country_data[country].code;
+				flag = this.selected_icon.find('img');
+				if (!flag.length) {
+					this.selected_icon.prepend(this.get_country_flag(country));
+					this.selected_icon.find('svg').addClass('hide');
+				}
+				else {
+					this.change_flag(code);
+				}
+			}
+		}
+	}
+	get_country(country) {
 		const country_codes = frappe.boot.country_codes;
 		return country_codes[country].iso;
 	}
 	get_country_flag(country) {
 		const country_codes = frappe.boot.country_codes;
 		let code = country_codes[country].code;
-		return frappe.utils.flag(code, "md")
+		return frappe.utils.flag(code);
 	}
 };

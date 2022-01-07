@@ -1164,9 +1164,9 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `flag-${size}`;
 		}
-		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
-			<use class="${icon_class}" href="#${icon_name}"></use>
-		</svg>`;
+		return `<img
+		src="https://flagcdn.com/${icon_name}.svg"
+		width="20" height="15">`
 	},
 
 	make_chart(wrapper, custom_options={}) {
