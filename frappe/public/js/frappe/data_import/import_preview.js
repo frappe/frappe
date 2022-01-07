@@ -142,6 +142,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			columns: this.columns,
 			layout: this.columns.length < 10 ? 'fluid' : 'fixed',
 			cellHeight: 35,
+			language: frappe.boot.lang,
+			translations: frappe.utils.datatable.get_translations(),
 			serialNoColumn: false,
 			checkboxColumn: false,
 			noDataMessage: __('No Data'),
@@ -343,11 +345,11 @@ function get_fields_as_options(doctype, column_map) {
 	return [].concat(
 		...keys.map(key => {
 			return column_map[key].map(df => {
-				let label = df.label;
+				let label = __(df.label);
 				let value = df.fieldname;
 				if (doctype !== key) {
 					let table_field = frappe.meta.get_docfield(doctype, key);
-					label = `${df.label} (${table_field.label})`;
+					label = `${__(df.label)} (${__(table_field.label)})`;
 					value = `${table_field.fieldname}.${df.fieldname}`;
 				}
 				return {

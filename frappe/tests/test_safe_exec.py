@@ -32,3 +32,26 @@ class TestSafeExec(unittest.TestCase):
 
 	def test_safe_query_builder(self):
 		self.assertRaises(frappe.PermissionError, safe_exec, '''frappe.qb.from_("User").delete().run()''')
+
+	def test_call(self):
+		# call non whitelisted method
+		self.assertRaises(
+			frappe.PermissionError,
+			safe_exec,
+			"""frappe.call("frappe.get_user")"""
+		)
+
+		# call whitelisted method
+		safe_exec("""frappe.call("ping")""")
+
+
+	def test_enqueue(self):
+		# enqueue non whitelisted method
+		self.assertRaises(
+			frappe.PermissionError,
+			safe_exec,
+			"""frappe.enqueue("frappe.get_user", now=True)"""
+		)
+
+		# enqueue whitelisted method
+		safe_exec("""frappe.enqueue("ping", now=True)""")

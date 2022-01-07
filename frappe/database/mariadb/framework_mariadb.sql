@@ -25,6 +25,7 @@ CREATE TABLE `tabDocField` (
   `oldfieldtype` varchar(255) DEFAULT NULL,
   `options` text,
   `search_index` int(1) NOT NULL DEFAULT 0,
+  `show_dashboard` int(1) NOT NULL DEFAULT 0,
   `hidden` int(1) NOT NULL DEFAULT 0,
   `set_only_once` int(1) NOT NULL DEFAULT 0,
   `allow_in_quick_entry` int(1) NOT NULL DEFAULT 0,

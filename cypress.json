@@ -9,5 +9,7 @@
   "retries": {
     "runMode": 2,
     "openMode": 2
-  }
+  },
+  "integrationFolder": ".",
+  "testFiles": ["cypress/integration/*.js", "**/ui_test_*.js"]
 }

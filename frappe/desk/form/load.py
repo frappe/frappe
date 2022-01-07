@@ -253,7 +253,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 
 def get_assignments(dt, dn):
 	cl = frappe.get_all("ToDo",
-		fields=['name', 'owner', 'description', 'status'],
+		fields=['name', 'allocated_to as owner', 'description', 'status'],
 		filters={
 			'reference_type': dt,
 			'reference_name': dn,

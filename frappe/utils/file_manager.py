@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import frappe
@@ -15,6 +15,20 @@ from frappe.utils.image import optimize_image
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
+
+
+def safe_b64decode(binary: bytes) -> bytes:
+	"""Adds padding if doesn't already exist before decoding.
+
+	This attempts to avoid the `binascii.Error: Incorrect padding` error raised
+	when the number of trailing = is simply not enough :crie:. Although, it may
+	be an indication of corrupted data.
+
+	Refs:
+		* https://en.wikipedia.org/wiki/Base64
+		* https://stackoverflow.com/questions/2941995/python-ignore-incorrect-padding-error-when-base64-decoding
+	"""
+	return base64.b64decode(binary + b"===")
 
 
 def get_file_url(file_data_name):
@@ -112,7 +126,7 @@ def get_uploaded_content():
 	if 'filedata' in frappe.form_dict:
 		if "," in frappe.form_dict.filedata:
 			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
-		frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
+		frappe.uploaded_content = safe_b64decode(frappe.form_dict.filedata)
 		frappe.uploaded_filename = frappe.form_dict.filename
 		return frappe.uploaded_filename, frappe.uploaded_content
 	else:
@@ -126,7 +140,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 		if b"," in content:
 			content = content.split(b",")[1]
-		content = base64.b64decode(content)
+		content = safe_b64decode(content)
 
 	file_size = check_max_file_size(content)
 	content_hash = get_content_hash(content)
