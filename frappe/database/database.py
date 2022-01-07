@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # Database Module
@@ -6,26 +6,23 @@
 
 from __future__ import unicode_literals
 
+import datetime
 import re
 import time
+from time import time
 from typing import Dict, List, Union
+
+from pypika.terms import NullValue
+from six import integer_types, string_types, text_type
+
 import frappe
-import datetime
 import frappe.defaults
 import frappe.model.meta
-
 from frappe import _
-from time import time
-from frappe.utils import now, getdate, cast, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.utils import DocType
-from pypika.terms import NullValue
+from frappe.utils import cast, get_datetime, get_table_name, getdate, now
 
-from six import (
-	integer_types,
-	string_types,
-	text_type,
-)
 
 class Database(object):
 	"""
@@ -666,19 +663,26 @@ class Database(object):
 					.columns("doctype", "field", "value")
 					.insert(*singles_data)
 			).run(debug=debug)
-			frappe.clear_document_cache(dt, dn)
+			frappe.clear_document_cache(dt, dt)
 
 		else:
 			table = DocType(dt)
 
 			if for_update:
 				docnames = tuple(
-					x[0] for x in self.get_values(dt, dn, "name", debug=debug, for_update=for_update)
+					self.get_values(dt, dn, "name", debug=debug, for_update=for_update, pluck=True)
 				) or (NullValue(),)
 				query = frappe.qb.update(table).where(table.name.isin(docnames))
 
+				for docname in docnames:
+					frappe.clear_document_cache(dt, docname)
+
 			else:
 				query = self.query.build_conditions(table=dt, filters=dn, update=True)
+				# TODO: Fix this; doesn't work rn - gavin@frappe.io
+				# frappe.cache().hdel_keys(dt, "document_cache")
+				# Workaround: clear all document caches
+				frappe.cache().delete_value('document_cache')
 
 			for column, value in to_update.items():
 				query = query.set(column, value)
@@ -887,8 +891,9 @@ class Database(object):
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
-		from frappe.utils import now_datetime
 		from dateutil.relativedelta import relativedelta
+
+		from frappe.utils import now_datetime
 
 		return self.sql("""select count(name) from `tab{doctype}`
 			where creation >= %s""".format(doctype=doctype),
