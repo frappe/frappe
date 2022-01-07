@@ -120,8 +120,7 @@ def get_website_settings(context=None):
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
 		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
-		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker",
-		"chat_enable"]:
+		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -178,3 +177,7 @@ def get_items(parentfield):
 					t['child_items'].append(d)
 					break
 	return top_items
+
+@frappe.whitelist(allow_guest=True)
+def get_auto_account_deletion():
+	return frappe.db.get_single_value("Website Settings", "auto_account_deletion")

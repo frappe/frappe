@@ -307,10 +307,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	update_checkbox(target) {
+		if (!this.$checkbox_actions) return;
+
 		let $check_all_checkbox = this.$checkbox_actions.find(".list-check-all");
 
 		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
-			$check_all_checkbox.prop("checked", false); 
+			$check_all_checkbox.prop("checked", false);
 		}
 
 		$check_all_checkbox.prop("checked", this.$checks.length === this.data.length);
@@ -756,6 +758,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					typeof value === "string"
 						? frappe.utils.escape_html(value)
 						: value;
+			}
+
+			if (df.fieldtype === "Rating") {
+				let out_of_ratings = df.options || 5;
+				_value = _value * out_of_ratings;
 			}
 
 			if (df.fieldtype === "Image") {
@@ -1315,7 +1322,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		frappe.realtime.on("list_update", (data) => {
-			if (this.filter_area.is_being_edited()) {
+			if (this.avoid_realtime_update()) {
 				return;
 			}
 
@@ -1377,6 +1384,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	avoid_realtime_update() {
+		if (this.filter_area.is_being_edited()) {
+			return true;
+		}
+		// this is set when a bulk operation is called from a list view which might update the list view
+		// this is to avoid the list view from refreshing a lot of times
+		// the list view is updated once after the bulk operation is complete
+		if (this.disable_list_update) {
+			return true;
+		}
+		return false;
+	}
+
 	set_rows_as_checked() {
 		$.each(this.$checks, (i, el) => {
 			let docname = $(el).attr("data-name");
@@ -1431,6 +1451,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return this.data.filter((d) => docnames.includes(d.name));
 	}
 
+	clear_checked_items() {
+		this.$checks && this.$checks.prop("checked", false);
+		this.on_row_checked();
+	}
+
 	save_view_user_settings(obj) {
 		return frappe.model.user_settings.save(
 			this.doctype,
@@ -1475,6 +1500,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					read_only: 1,
 				},
 			],
+			primary_action_label: __("Copy to clipboard"),
+			primary_action: () => {
+				frappe.utils.copy_to_clipboard(this.get_share_url());
+				d.hide();
+			},
 		});
 		d.show();
 	}
@@ -1483,7 +1513,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
-		if (frappe.model.can_import(doctype)) {
+		if (frappe.model.can_import(doctype, null, this.meta)) {
 			items.push({
 				label: __("Import"),
 				action: () =>
@@ -1653,11 +1683,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_assignment = () => {
 			return {
 				label: __("Assign To"),
-				action: () =>
+				action: () => {
+					this.disable_list_update = true;
 					bulk_operations.assign(
 						this.get_checked_items(true),
-						this.refresh
-					),
+						() => {
+							this.disable_list_update = false;
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
 				standard: true,
 			};
 		};
@@ -1665,11 +1701,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_assignment_rule = () => {
 			return {
 				label: __("Apply Assignment Rule"),
-				action: () =>
+				action: () => {
+					this.disable_list_update = true;
 					bulk_operations.apply_assignment_rule(
 						this.get_checked_items(true),
-						this.refresh
-					),
+						() => {
+							this.disable_list_update = false;
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
 				standard: true,
 			};
 		};
@@ -1677,11 +1719,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_add_tags = () => {
 			return {
 				label: __("Add Tags"),
-				action: () =>
+				action: () => {
+					this.disable_list_update = true;
 					bulk_operations.add_tags(
 						this.get_checked_items(true),
-						this.refresh
-					),
+						() => {
+							this.disable_list_update = false;
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
 				standard: true,
 			};
 		};
@@ -1703,7 +1751,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					);
 					frappe.confirm(
 						__("Delete {0} items permanently?", [docnames.length]),
-						() => bulk_operations.delete(docnames, this.refresh)
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.delete(docnames, () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						}
 					);
 				},
 				standard: true,
@@ -1718,13 +1773,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (docnames.length > 0) {
 						frappe.confirm(
 							__("Cancel {0} documents?", [docnames.length]),
-							() =>
+							() => {
+								this.disable_list_update = true;
 								bulk_operations.submit_or_cancel(
 									docnames,
 									"cancel",
-									this.refresh
-								)
-						);
+									() => {
+										this.disable_list_update = false;
+										this.clear_checked_items();
+										this.refresh();
+									}
+								);
+							});
 					}
 				},
 				standard: true,
@@ -1739,12 +1799,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (docnames.length > 0) {
 						frappe.confirm(
 							__("Submit {0} documents?", [docnames.length]),
-							() =>
+							() => {
+								this.disable_list_update = true;
 								bulk_operations.submit_or_cancel(
 									docnames,
 									"submit",
-									this.refresh
-								)
+									() => {
+										this.disable_list_update = false;
+										this.clear_checked_items();
+										this.refresh();
+									}
+								);
+							}
 						);
 					}
 				},
@@ -1767,12 +1833,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						}
 					});
 
-					const docnames = this.get_checked_items(true);
-
+					this.disable_list_update = true;
 					bulk_operations.edit(
-						docnames,
+						this.get_checked_items(true),
 						field_mappings,
-						this.refresh
+						() => {
+							this.disable_list_update = false;
+							this.clear_checked_items();
+							this.refresh();
+						}
 					);
 				},
 				standard: true,
@@ -1907,12 +1976,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = data.doctype;
 		if (!doctype) return;
 		frappe.provide("frappe.views.trees");
-
-		// refresh tree view
-		if (frappe.views.trees[doctype]) {
-			frappe.views.trees[doctype].tree.refresh();
-			return;
-		}
 
 		// refresh list view
 		const page_name = frappe.get_route_str();

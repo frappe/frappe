@@ -15,6 +15,10 @@ from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError,
 # test_records = frappe.get_test_records('DocType')
 
 class TestDocType(unittest.TestCase):
+
+	def tearDown(self):
+		frappe.db.rollback()
+
 	def test_validate_name(self):
 		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
@@ -42,6 +46,7 @@ class TestDocType(unittest.TestCase):
 
 		doc1.insert()
 		self.assertRaises(frappe.UniqueValidationError, doc2.insert)
+		frappe.db.rollback()
 
 		dt.fields[0].unique = 0
 		dt.save()

@@ -18,6 +18,7 @@ from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 from frappe.geo.country_info import get_all
+from frappe.utils import get_time_zone
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -60,6 +61,7 @@ def get_bootinfo():
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
 	get_country_codes(bootinfo)
+	set_time_zone(bootinfo)
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):
@@ -222,8 +224,8 @@ def load_translations(bootinfo):
 	bootinfo["__messages"] = messages
 
 def get_user_info():
-	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image',
-		'gender', 'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions', 'user_type'],
+	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image', 'gender',
+		'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions', 'user_type', 'time_zone'],
 		filters=dict(enabled=1))
 
 	user_info_map = {d.name: d for d in user_info}
@@ -330,3 +332,9 @@ def get_notification_settings():
 def get_country_codes(bootinfo):
 	country_codes = get_all()
 	bootinfo.country_codes = frappe._dict(country_codes)
+
+def set_time_zone(bootinfo):
+	bootinfo.time_zone = {
+		"system": get_time_zone(),
+		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None) or get_time_zone()
+	}

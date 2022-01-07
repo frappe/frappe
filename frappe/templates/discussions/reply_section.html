@@ -9,13 +9,13 @@
 	{% if topic %} id="t{{ topic.name }}" data-topic="{{ topic.name }}" {% endif %}>
 
 	{% if not single_thread %}
-	<div class="button is-default back">
+	<div class="btn btn-md btn-default ellipsis back">
 		{{ _("Back") }}
 	</div>
 	{% endif %}
 
 	{% if topic and topic.title %}
-	<div class="course-home-headings p-0">{{ topic.title }}</div>
+	<div class="discussion-heading p-0">{{ topic.title }}</div>
 	{% endif %}
 
 	{% for reply in replies %}
@@ -30,9 +30,9 @@
 	<div class="d-flex flex-column align-items-center small">
 		{{ _("Want to join the discussion?") }}
 		{% if frappe.session.user == "Guest" %}
-		<div class="button is-primary mt-3 mb-3" id="login-from-discussion">{{ _("Log In") }}</div>
+		<div class="btn btn-default btn-md mt-3 mb-3" id="login-from-discussion">{{ _("Login") }}</div>
 		{% elif not condition %}
-		<div class="button is-primary mt-3 mb-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">{{ button_name }}
+		<div class="btn btn-default btn-md mt-3 mb-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">{{ button_name }}
 		</div>
 		{% endif %}
 	</div>

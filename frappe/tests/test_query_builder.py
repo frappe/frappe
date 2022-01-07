@@ -2,7 +2,8 @@ import unittest
 from typing import Callable
 
 import frappe
-from frappe.query_builder.functions import GroupConcat, Match
+from frappe.query_builder.custom import ConstantColumn
+from frappe.query_builder.functions import Coalesce, GroupConcat, Match
 from frappe.query_builder.utils import db_type_is
 
 
@@ -23,7 +24,9 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 			" MATCH('Notes') AGAINST ('+text*' IN BOOLEAN MODE)", query.get_sql()
 		)
 
-
+	def test_constant_column(self):
+		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
+		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(unittest.TestCase):
 	def test_concat(self):
@@ -35,6 +38,9 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 			"TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql()
 		)
 
+	def test_constant_column(self):
+		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
+		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
 
 class TestBuilderBase(object):
 	def test_adding_tabs(self):
@@ -49,6 +55,25 @@ class TestBuilderBase(object):
 		self.assertIsInstance(query.run, Callable)
 		self.assertIsInstance(data, list)
 
+	def test_walk(self):
+		DocType = frappe.qb.DocType('DocType')
+		query = (
+			frappe.qb.from_(DocType)
+			.select(DocType.name)
+			.where((DocType.owner == "Administrator' --")
+					& (Coalesce(DocType.search_fields == "subject"))
+			)
+		)
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("%(param2)s", query)
+		self.assertIn("param1",params)
+		self.assertEqual(params["param1"],"Administrator' --")
+		self.assertEqual(params["param2"],"subject")
+
+
 @run_only_if(db_type_is.MARIADB)
 class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
 	def test_adding_tabs_in_from(self):
@@ -58,7 +83,6 @@ class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
 		self.assertEqual(
 			"SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql()
 		)
-
 
 @run_only_if(db_type_is.POSTGRES)
 class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):

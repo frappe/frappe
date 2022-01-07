@@ -8,7 +8,9 @@ from pypika.queries import Column
 import frappe
 
 from .builder import MariaDB, Postgres
+from pypika.terms import PseudoColumn
 
+from frappe.query_builder.terms import NamedParameterWrapper
 
 class db_type_is(Enum):
 	MARIADB = "mariadb"
@@ -52,12 +54,16 @@ def patch_query_execute():
 	This excludes the use of `frappe.db.sql` method while
 	executing the query object
 	"""
-
 	def execute_query(query, *args, **kwargs):
-		query = str(query)
+		query, params = prepare_query(query)
+		return frappe.db.sql(query, params, *args, **kwargs) # nosemgrep
+
+	def prepare_query(query):
+		params = {}
+		query = query.get_sql(param_wrapper = NamedParameterWrapper(params))
 		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
 			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
-		return frappe.db.sql(query, *args, **kwargs)
+		return query, params
 
 	query_class = get_attr(str(frappe.qb).split("'")[1])
 	builder_class = get_type_hints(query_class._builder).get('return')
@@ -66,3 +72,15 @@ def patch_query_execute():
 		raise BuilderIdentificationFailed
 
 	builder_class.run = execute_query
+	builder_class.walk = prepare_query
+
+
+def patch_query_aggregation():
+	"""Patch aggregation functions to frappe.qb
+	"""
+	from frappe.query_builder.functions import _max, _min, _avg, _sum
+
+	frappe.qb.max = _max
+	frappe.qb.min = _min
+	frappe.qb.avg = _avg
+	frappe.qb.sum = _sum

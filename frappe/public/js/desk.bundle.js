@@ -1,7 +1,7 @@
+import "./frappe/provide.js";
 import "./frappe/translate.js";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
-import "./frappe/provide.js";
 import "./frappe/assets.js";
 import "./frappe/format.js";
 import "./frappe/form/formatters.js";
@@ -62,6 +62,8 @@ import "./frappe/utils/help_links.js";
 import "./frappe/utils/address_and_contact.js";
 import "./frappe/utils/preview_email.js";
 import "./frappe/utils/file_manager.js";
+import "./frappe/utils/diffview";
+import "./frappe/utils/datatable.js";
 
 import "./frappe/upload.js";
 import "./frappe/ui/tree.js";
@@ -99,7 +101,6 @@ import "./frappe/query_string.js";
 
 // import "./frappe/ui/comment.js";
 
-import "./frappe/chat.js";
 import "./frappe/utils/energy_point_utils.js";
 import "./frappe/utils/dashboard_utils.js";
 import "./frappe/ui/chart.js";

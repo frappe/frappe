@@ -64,6 +64,19 @@ frappe.Application = class Application {
 			}
 		});
 
+		frappe.ui.add_system_theme_switch_listener();
+		const root = document.documentElement;
+
+		const observer = new MutationObserver(() => {
+			frappe.ui.set_theme();
+		});
+		observer.observe(root, {
+			attributes: true,
+			attributeFilter: ['data-theme-mode']
+		});
+
+		frappe.ui.set_theme();
+
 		// page container
 		this.make_page_container();
 		this.set_route();
@@ -258,16 +271,11 @@ frappe.Application = class Application {
 		if(frappe.boot) {
 			this.setup_workspaces();
 			frappe.model.sync(frappe.boot.docs);
-			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
 			frappe.router.setup();
-			moment.locale("en");
-			moment.user_utc_offset = moment().utcOffset();
-			if(frappe.boot.timezone_info) {
-				moment.tz.add(frappe.boot.timezone_info);
-			}
+			this.setup_moment();
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
@@ -518,6 +526,8 @@ frappe.Application = class Application {
 	}
 
 	show_update_available() {
+		if (frappe.boot.sysdefaults.disable_system_update_notification) return;
+
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
 		});
@@ -613,6 +623,19 @@ frappe.Application = class Application {
 				//
 			}
 		});
+	}
+
+	setup_moment() {
+		moment.updateLocale('en', {
+			week: {
+				dow: frappe.datetime.get_first_day_of_the_week_index(),
+			}
+		});
+		moment.locale("en");
+		moment.user_utc_offset = moment().utcOffset();
+		if (frappe.boot.timezone_info) {
+			moment.tz.add(frappe.boot.timezone_info);
+		}
 	}
 }
 

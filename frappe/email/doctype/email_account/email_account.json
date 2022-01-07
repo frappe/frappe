@@ -31,6 +31,8 @@
   "attachment_limit",
   "email_sync_option",
   "initial_sync_count",
+  "section_break_25",
+  "imap_folder",
   "section_break_12",
   "append_emails_to_sent_folder",
   "append_to",
@@ -204,7 +206,7 @@
    "label": "Attachment Limit (MB)"
   },
   {
-   "depends_on": "enable_incoming",
+   "depends_on": "eval: doc.enable_incoming && !doc.use_imap",
    "description": "Append as communication against this DocType (must have fields, \"Status\", \"Subject\")",
    "fieldname": "append_to",
    "fieldtype": "Link",
@@ -562,15 +564,28 @@
    "fieldname": "account_section",
    "fieldtype": "Section Break",
    "label": "Account"
+  },
+  {
+   "depends_on": "eval: doc.use_imap && doc.enable_incoming",
+   "fieldname": "imap_folder",
+   "fieldtype": "Table",
+   "label": "IMAP Folder",
+   "options": "IMAP Folder"
+  },
+  {
+   "fieldname": "section_break_25",
+   "fieldtype": "Section Break",
+   "label": "IMAP Details"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-21 16:44:25.728637",
+ "modified": "2021-11-30 09:03:25.728637",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

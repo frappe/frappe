@@ -8,8 +8,7 @@ class TestFeedback(unittest.TestCase):
 	def tearDown(self):
 		frappe.form_dict.reference_doctype = None
 		frappe.form_dict.reference_name = None
-		frappe.form_dict.rating = None
-		frappe.form_dict.feedback = None
+		frappe.form_dict.like = None
 		frappe.local.request_ip = None
 
 	def test_feedback_creation_updation(self):
@@ -18,23 +17,22 @@ class TestFeedback(unittest.TestCase):
 
 		frappe.db.delete("Feedback", {"reference_doctype": "Blog Post"})
 
-		from frappe.templates.includes.feedback.feedback import add_feedback, update_feedback
+		from frappe.templates.includes.feedback.feedback import give_feedback
 
 		frappe.form_dict.reference_doctype = 'Blog Post'
 		frappe.form_dict.reference_name = test_blog.name
-		frappe.form_dict.rating = 5
-		frappe.form_dict.feedback = 'New feedback'
+		frappe.form_dict.like = True
 		frappe.local.request_ip = '127.0.0.1'
 
-		feedback = add_feedback()
+		feedback = give_feedback()
 
-		self.assertEqual(feedback.feedback, 'New feedback')
-		self.assertEqual(feedback.rating, 5)
+		self.assertEqual(feedback.like, True)
 
-		updated_feedback = update_feedback('Blog Post', test_blog.name, 6, 'Updated feedback')
+		frappe.form_dict.like = False
 
-		self.assertEqual(updated_feedback.feedback, 'Updated feedback')
-		self.assertEqual(updated_feedback.rating, 6)
+		updated_feedback = give_feedback()
+
+		self.assertEqual(updated_feedback.like, False)
 
 		frappe.db.delete("Feedback", {"reference_doctype": "Blog Post"})
 

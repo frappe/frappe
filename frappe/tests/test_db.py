@@ -12,8 +12,10 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
 from frappe.query_builder import Field
+from frappe.database import savepoint
 
 from .test_query_builder import run_only_if, db_type_is
+from frappe.query_builder.functions import Concat_ws
 
 
 class TestDB(unittest.TestCase):
@@ -23,15 +25,64 @@ class TestDB(unittest.TestCase):
 		self.assertNotEqual(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
-		self.assertEqual(frappe.db.get_value("User", {}, ["Max(name)"]), frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0])
-		self.assertEqual(frappe.db.get_value("User", {}, "Min(name)"), frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0])
-		self.assertIn("for update", frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower())
-
+		self.assertEqual(
+			frappe.db.get_value("User", {}, ["Max(name)"], order_by=None),
+			frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0],
+		)
+		self.assertEqual(
+			frappe.db.get_value("User", {}, "Min(name)", order_by=None),
+			frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0],
+		)
+		self.assertIn(
+			"for update",
+			frappe.db.get_value(
+				"User", Field("name") == "Administrator", for_update=True, run=False
+			).lower(),
+		)
+		user_doctype = frappe.qb.DocType("User")
+		self.assertEqual(
+			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email).run(),
+			frappe.db.get_values(
+				user_doctype,
+				filters={},
+				fieldname=[user_doctype.name, user_doctype.email],
+				order_by=None,
+			),
+		)
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
+		self.assertEqual(
+			frappe.db.get_values(
+				"User",
+				filters={"name": "Administrator"},
+				distinct=True,
+				fieldname="email",
+			),
+			frappe.qb.from_(user_doctype)
+			.where(user_doctype.name == "Administrator")
+			.select("email")
+			.distinct()
+			.run(),
+		)
+
+		self.assertIn(
+			"concat_ws",
+			frappe.db.get_value(
+				"User",
+				filters={"name": "Administrator"},
+				fieldname=Concat_ws(" ", "LastName"),
+				run=False,
+			).lower(),
+		)
+		self.assertEqual(
+			frappe.db.sql("select email from tabUser where name='Administrator' order by modified DESC"),
+			frappe.db.get_values(
+				"User", filters=[["name", "=", "Administrator"]], fieldname="email"
+			),
+		)
 
 	def test_set_value(self):
 		todo1 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 1')).insert()
@@ -194,6 +245,54 @@ class TestDB(unittest.TestCase):
 		for doc in created_docs:
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
+
+
+	def test_savepoints(self):
+		frappe.db.rollback()
+		save_point = "todonope"
+
+		created_docs = []
+		failed_docs = []
+
+		for _ in range(5):
+			frappe.db.savepoint(save_point)
+			doc_gone = frappe.get_doc(doctype="ToDo", description="nope").save()
+			failed_docs.append(doc_gone.name)
+			frappe.db.rollback(save_point=save_point)
+			doc_kept = frappe.get_doc(doctype="ToDo", description="nope").save()
+			created_docs.append(doc_kept.name)
+		frappe.db.commit()
+
+		for d in failed_docs:
+			self.assertFalse(frappe.db.exists("ToDo", d))
+		for d in created_docs:
+			self.assertTrue(frappe.db.exists("ToDo", d))
+
+	def test_savepoints_wrapper(self):
+		frappe.db.rollback()
+
+		class SpecificExc(Exception):
+			pass
+
+		created_docs = []
+		failed_docs = []
+
+		for _ in range(5):
+			with savepoint(catch=SpecificExc):
+				doc_kept = frappe.get_doc(doctype="ToDo", description="nope").save()
+				created_docs.append(doc_kept.name)
+
+			with savepoint(catch=SpecificExc):
+				doc_gone = frappe.get_doc(doctype="ToDo", description="nope").save()
+				failed_docs.append(doc_gone.name)
+				raise SpecificExc
+
+		frappe.db.commit()
+
+		for d in failed_docs:
+			self.assertFalse(frappe.db.exists("ToDo", d))
+		for d in created_docs:
+			self.assertTrue(frappe.db.exists("ToDo", d))
 
 
 @run_only_if(db_type_is.MARIADB)

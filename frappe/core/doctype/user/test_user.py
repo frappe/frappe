@@ -70,7 +70,7 @@ class TestUser(unittest.TestCase):
 		delete_contact("_test@example.com")
 		delete_doc("User", "_test@example.com")
 
-		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where owner=%s""",
+		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where allocated_to=%s""",
 			("_test@example.com",)))
 
 		from frappe.core.doctype.role.test_role import test_records as role_records
@@ -251,7 +251,7 @@ class TestUser(unittest.TestCase):
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
-		self.assertEqual(res1.status_code, 200)
+		self.assertEqual(res1.status_code, 400)
 		self.assertEqual(res2.status_code, 417)
 
 	def test_user_rename(self):

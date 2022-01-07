@@ -4,6 +4,8 @@
 # Database Module
 # --------------------
 
+from frappe.database.database import savepoint
+
 def setup_database(force, source_sql=None, verbose=None, no_mariadb_socket=False):
 	import frappe
 	if frappe.conf.db_type == 'postgres':

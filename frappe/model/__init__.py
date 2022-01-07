@@ -39,6 +39,11 @@ data_fieldtypes = (
 	'Phone'
 )
 
+attachment_fieldtypes = (
+	'Attach',
+	'Attach Image',
+)
+
 no_value_fields = (
 	'Section Break',
 	'Column Break',

@@ -10,6 +10,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     name: Patch Test
 
@@ -30,6 +31,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          check-latest: true
 
       - name: Check if build should be run
         id: check-build
@@ -106,16 +113,14 @@ jobs:
           source env/bin/activate
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
-          git fetch --all --tags
 
-          taglist=$(git tag --sort version:refname | grep -v "beta")
-          last_release=$(echo "$taglist" | tail -1 | cut -d . -f 1 | cut -c 2-)
-
-          for version in $(seq 12 "$last_release")
+          for version in $(seq 12 13)
           do
-              last_tag=$(echo "$taglist" | grep "v$version" | tail -1)
-              echo "Updating to $last_tag"
-              git checkout -q -f "$last_tag"
+              echo "Updating to v$version"
+              branch_name="version-$version-hotfix"
+              git fetch --depth 1 upstream $branch_name:$branch_name
+
+              git checkout -q -f $branch_name
               pip install -q -r requirements.txt
               bench --site test_site migrate
           done

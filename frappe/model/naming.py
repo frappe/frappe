@@ -17,6 +17,7 @@ from frappe import _
 from frappe.utils import now_datetime, cint, cstr
 import re
 from frappe.model import log_types
+from frappe.query_builder import DocType
 
 
 def set_new_name(doc):
@@ -174,6 +175,8 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = today.strftime("%d")
 		elif e == 'YYYY':
 			part = today.strftime('%Y')
+		elif e == 'WW':
+			part = determine_consecutive_week_number(today)
 		elif e == 'timestamp':
 			part = str(today)
 		elif e == 'FY':
@@ -192,9 +195,30 @@ def parse_naming_series(parts, doctype='', doc=''):
 	return n
 
 
+def determine_consecutive_week_number(datetime):
+	"""Determines the consecutive calendar week"""
+	m = datetime.month
+	# ISO 8601 calandar week
+	w = datetime.strftime('%V')
+	# Ensure consecutiveness for the first and last days of a year
+	if m == 1 and int(w) >= 52:
+		w = '00'
+	elif m == 12 and int(w) <= 1:
+		w = '53'
+	return w
+
+
 def getseries(key, digits):
 	# series created ?
-	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (key,))
+	# Using frappe.qb as frappe.get_values does not allow order_by=None
+	series = DocType("Series")
+	current = (
+		frappe.qb.from_(series)
+		.where(series.name == key)
+		.for_update()
+		.select("current")
+	).run()
+
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
@@ -260,7 +284,13 @@ def revert_series_if_last(key, name, doc=None):
 		prefix = parse_naming_series(prefix.split('.'), doc=doc)
 
 	count = cint(name.replace(prefix, ""))
-	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (prefix,))
+	series = DocType("Series")
+	current = (
+		frappe.qb.from_(series)
+		.where(series.name == prefix)
+		.for_update()
+		.select("current")
+	).run()
 
 	if current and current[0][0]==count:
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)

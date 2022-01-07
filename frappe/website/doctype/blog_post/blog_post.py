@@ -104,7 +104,7 @@ class BlogPost(WebsiteGenerator):
 		context.parents = [{"name": _("Home"), "route":"/"},
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
-		context.guest_allowed = True
+		context.guest_allowed = frappe.db.get_single_value("Blog Settings", "allow_guest_to_comment")
 
 	def fetch_cta(self):
 		if frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True):
@@ -139,26 +139,36 @@ class BlogPost(WebsiteGenerator):
 		context.comment_list = get_comment_list(self.doctype, self.name)
 
 		if not context.comment_list:
-			context.comment_text = _('No comments yet')
+			context.comment_text = 0
 		else:
-			if(len(context.comment_list)) == 1:
-				context.comment_text = _('1 comment')
-			else:
-				context.comment_text = _('{0} comments').format(len(context.comment_list))
+			context.comment_text = len(context.comment_list)
 
 	def load_feedback(self, context):
 		user = frappe.session.user
-		if user == 'Guest':
-			user = ''
+
 		feedback = frappe.get_all('Feedback',
-			fields=['feedback', 'rating'],
+			fields=['like'],
 			filters=dict(
 				reference_doctype=self.doctype,
 				reference_name=self.name,
+				ip_address=frappe.local.request_ip,
 				owner=user
 			)
 		)
+
+		like_count = 0
+
+		if frappe.db.count('Feedback'):
+			like_count = frappe.db.count('Feedback',
+				filters = dict(
+					reference_doctype = self.doctype,
+					reference_name = self.name,
+					like = True
+				)
+			)
+
 		context.user_feedback = feedback[0] if feedback else ''
+		context.like_count = like_count
 
 	def set_read_time(self):
 		content = self.content or self.content_html or ''
@@ -173,7 +183,6 @@ def get_list_context(context=None):
 		get_list = get_blog_list,
 		no_breadcrumbs = True,
 		hide_filters = True,
-		children = get_children(),
 		# show_search = True,
 		title = _('Blog')
 	)
@@ -198,17 +207,34 @@ def get_list_context(context=None):
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
-	list_context.update(frappe.get_doc("Blog Settings").as_dict(no_default_fields=True))
+	blog_settings = frappe.get_doc("Blog Settings").as_dict(no_default_fields=True)
+	list_context.update(blog_settings)
+
+	if blog_settings.browse_by_category:
+		list_context.blog_categories = get_blog_categories()
 
 	return list_context
 
-def get_children():
-	return frappe.db.sql("""select route as name,
-		title from `tabBlog Category`
-		where published = 1
-		and exists (select name from `tabBlog Post`
-			where `tabBlog Post`.blog_category=`tabBlog Category`.name and published=1)
-		order by title asc""", as_dict=1)
+
+def get_blog_categories():
+	from pypika import Order
+	from pypika.terms import ExistsCriterion
+
+	post, category = frappe.qb.DocType("Blog Post"), frappe.qb.DocType("Blog Category")
+	return (
+		frappe.qb.from_(category)
+		.select(category.name, category.route, category.title)
+		.where(
+			(category.published == 1)
+			& ExistsCriterion(
+				frappe.qb.from_(post)
+				.select("name")
+				.where((post.published == 1) & (post.blog_category == category.name))
+			)
+		)
+		.orderby(category.title, order=Order.asc)
+		.run(as_dict=1)
+	)
 
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select route from

@@ -1,0 +1,22 @@
+<form class="form-signin form-signup hide" role="form">
+    <div class="page-card-body">
+        <div class="form-group">
+            <label class="form-label sr-only" for="signup_fullname">{{ _("Full Name") }}</label>
+            <input type="text" id="signup_fullname" class="form-control" placeholder="{{ _('Jane Doe') }}"
+                required autofocus>
+        </div>
+        <div class="form-group">
+            <label class="form-label sr-only" for="signup_email">{{ _("Email") }}</label>
+            <input type="email" id="signup_email" class="form-control"
+                placeholder="{{ _('jane@example.com') }}" required>
+        </div>
+    </div>
+    <div class="page-card-actions">
+        <button class="btn btn-sm btn-primary btn-block btn-signup"
+            type="submit">{{ _("Sign up") }}</button>
+
+        <p class="text-center sign-up-message">
+            <a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
+        </p>
+    </div>
+</form>

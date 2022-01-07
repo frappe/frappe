@@ -17,6 +17,8 @@ import redis
 from urllib.parse import unquote
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order, DocType
+from frappe.query_builder.utils import PseudoColumn
+from frappe.query_builder.functions import Now
 
 
 @frappe.whitelist()
@@ -97,12 +99,23 @@ def clear_all_sessions(reason=None):
 
 def get_expired_sessions():
 	'''Returns list of expired sessions'''
+	sessions = DocType("Sessions")
+
 	expired = []
 	for device in ("desktop", "mobile"):
-		expired += frappe.db.sql_list("""SELECT `sid`
-				FROM `tabSessions`
-				WHERE (NOW() - `lastupdate`) > %s
-				AND device = %s""", (get_expiry_period_for_query(device), device))
+		expired.extend(
+			frappe.db.get_values(
+				sessions,
+				filters=(
+					PseudoColumn(f"({Now() - sessions.lastupdate})")
+					> get_expiry_period_for_query(device)
+				)
+				& (sessions.device == device),
+				fieldname="sid",
+				order_by=None,
+				pluck=True,
+			)
+		)
 
 	return expired
 
@@ -157,6 +170,8 @@ def get():
 
 	bootinfo["setup_complete"] = cint(frappe.db.get_single_value('System Settings', 'setup_complete'))
 	bootinfo["is_first_startup"] = cint(frappe.db.get_single_value('System Settings', 'is_first_startup'))
+
+	bootinfo['desk_theme'] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or 'Light'
 
 	return bootinfo
 
@@ -305,14 +320,21 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		self.device = frappe.db.sql('SELECT `device` FROM `tabSessions` WHERE `sid`=%s', self.sid)
-		self.device = self.device and self.device[0][0] or 'desktop'
+		sessions = DocType("Sessions")
 
-		rec = frappe.db.sql("""
-			SELECT `user`, `sessiondata`
-			FROM `tabSessions` WHERE `sid`=%s AND
-			(NOW() - lastupdate) < %s
-			""", (self.sid, get_expiry_period_for_query(self.device)))
+		self.device = frappe.db.get_value(
+			sessions, filters=sessions.sid == self.sid, fieldname="device", order_by=None,
+		) or "desktop"
+		rec = frappe.db.get_values(
+			sessions,
+			filters=(sessions.sid == self.sid)
+			& (
+				PseudoColumn(f"({Now() - sessions.lastupdate})")
+				< get_expiry_period_for_query(self.device)
+			),
+			fieldname=["user", "sessiondata"],
+			order_by=None,
+		)
 
 		if rec:
 			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or '{}'))

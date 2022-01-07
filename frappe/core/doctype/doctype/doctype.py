@@ -75,6 +75,7 @@ class DocType(Document):
 		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_website()
+		self.ensure_minimum_max_attachment_limit()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -246,6 +247,22 @@ class DocType(Document):
 			# clear website cache
 			clear_cache()
 
+	def ensure_minimum_max_attachment_limit(self):
+		"""Ensure that max_attachments is *at least* bigger than number of attach fields."""
+		from frappe.model import attachment_fieldtypes
+
+
+		if not self.max_attachments:
+			return
+
+		total_attach_fields = len([d for d in self.fields if d.fieldtype in attachment_fieldtypes])
+		if total_attach_fields > self.max_attachments:
+			self.max_attachments = total_attach_fields
+			field_label = frappe.bold(self.meta.get_field("max_attachments").label)
+			frappe.msgprint(_("Number of attachment fields are more than {}, limit updated to {}.")
+					.format(field_label, total_attach_fields),
+					title=_("Insufficient attachment limit"), alert=True)
+
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
@@ -253,7 +270,7 @@ class DocType(Document):
 		parent_list = frappe.db.get_all('DocField', 'parent',
 			dict(fieldtype=['in', frappe.model.table_fields], options=self.name))
 		for p in parent_list:
-			frappe.db.sql('UPDATE `tabDocType` SET modified=%s WHERE `name`=%s', (now(), p.parent))
+			frappe.db.update("DocType", p.parent, {}, for_update=False)
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
@@ -364,7 +381,7 @@ class DocType(Document):
 		document_cls_tag = f"class {despaced_name}(Document)"
 		document_import_tag = "from frappe.model.document import Document"
 		website_generator_cls_tag = f"class {despaced_name}(WebsiteGenerator)"
-		website_generator_import_tag = "from frappe.website.generators.website_generator import WebsiteGenerator"
+		website_generator_import_tag = "from frappe.website.website_generator import WebsiteGenerator"
 
 		with open(controller_path) as f:
 			code = f.read()
@@ -1057,6 +1074,11 @@ def validate_fields(meta):
 		if getattr(docfield, 'max_height', None) and (docfield.max_height[-2:] not in ('px', 'em')):
 			frappe.throw('Max for {} height must be in px, em, rem'.format(frappe.bold(docfield.fieldname)))
 
+	def check_no_of_ratings(docfield):
+		if docfield.fieldtype == "Rating":
+			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
+				frappe.throw(_('Options for Rating field can range from 3 to 10'))
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1090,6 +1112,7 @@ def validate_fields(meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 		check_max_height(d)
+		check_no_of_ratings(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
@@ -1260,7 +1283,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		roles = [p.role for p in doc.get("permissions") or []] + default_roles
 
 		for role in list(set(roles)):
-			if not frappe.db.exists("Role", role):
+			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
 				r = frappe.get_doc(dict(doctype= "Role", role_name=role, desk_access=1))
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
