@@ -409,7 +409,9 @@ frappe.views.TreeView = Class.extend({
 			},
 		];
 
-		if (frappe.user.has_role('System Manager')) {
+		if (frappe.user.has_role('System Manager') &&
+			frappe.meta.has_field(me.doctype, "lft") &&
+			frappe.meta.has_field(me.doctype, "rgt")) {
 			this.menu_items.push(
 				{
 					label: __('Rebuild Tree'),

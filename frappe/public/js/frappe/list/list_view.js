@@ -1446,6 +1446,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					read_only: 1,
 				},
 			],
+			primary_action_label: __("Copy to clipboard"),
+			primary_action: () => {
+				frappe.utils.copy_to_clipboard(this.get_share_url());
+				d.hide();
+			},
 		});
 		d.show();
 	}
