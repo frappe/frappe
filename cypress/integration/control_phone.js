@@ -4,7 +4,7 @@ context('Control Phone', () => {
 		cy.visit('/app/website');
 	});
 
-	function get_dialog_with_phone(s) {
+	function get_dialog_with_phone() {
 		return cy.dialog({
 			title: 'Phone',
 			fields: [{
@@ -19,10 +19,10 @@ context('Control Phone', () => {
 		cy.get('.selected-phone').click();
 		cy.get('.phone-picker .phone-wrapper[id="afghanistan"]').click();
 		cy.get('.phone-picker .phone-wrapper[id="india"]').click();
-		cy.get('.selected-phone .country').should('have.text', '+91')
-		cy.get('.selected-phone > .icon > use').should('have.attr', 'href').and('include', '#in')
+		cy.get('.selected-phone .country').should('have.text', '+91');
+		cy.get('.selected-phone > img').should('have.attr', 'src').and('include', '/in.png');
 
-		let phone_number = '9312672712'
+		let phone_number = '9312672712';
 		cy.get('.selected-phone').click().first();
 		cy.get('.frappe-control[data-fieldname=phone] input')
 			.first()
