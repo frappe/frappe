@@ -10,6 +10,8 @@ frappe.has_indicator = function(doctype) {
 	} else if(frappe.meta.has_field(doctype, 'enabled')
 		|| frappe.meta.has_field(doctype, 'disabled')) {
 		return true;
+	} else if (frappe.meta.has_field(doctype, 'status') && frappe.get_meta(doctype).states.length) {
+		return true;
 	}
 	return false;
 }
@@ -21,6 +23,7 @@ frappe.get_indicator = function(doc, doctype) {
 
 	if(!doctype) doctype = doc.doctype;
 
+	let meta = frappe.get_meta(doctype);
 	var workflow = frappe.workflow.workflows[doctype];
 	var without_workflow = workflow ? workflow['override_status'] : true;
 
@@ -59,6 +62,13 @@ frappe.get_indicator = function(doc, doctype) {
 	// cancelled
 	if(is_submittable && doc.docstatus==2 && !settings.has_indicator_for_cancelled) {
 		return [__("Cancelled"), "red", "docstatus,=,2"];
+	}
+
+	// based on document state
+	if (doc.status && meta && meta.states && meta.states.find(d => d.title === doc.status)) {
+		let state = meta.states.find(d => d.title === doc.status);
+		let color_class = frappe.scrub(state.color, '-');
+		return [__(doc.status), color_class, "status,=," + doc.status];
 	}
 
 	if(settings.get_indicator) {

@@ -17,7 +17,6 @@
   "navigation_settings_section",
   "search_bar",
   "notifications",
-  "chat",
   "list_settings_section",
   "list_sidebar",
   "bulk_actions",
@@ -86,12 +85,6 @@
    "label": "Search Bar"
   },
   {
-   "default": "1",
-   "fieldname": "chat",
-   "fieldtype": "Check",
-   "label": "Chat"
-  },
-  {
    "fieldname": "list_settings_section",
    "fieldtype": "Section Break",
    "label": "List Settings"
@@ -155,10 +148,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-01-27 10:35:37.638350",
+ "modified": "2021-10-08 14:06:55.729364",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

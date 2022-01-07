@@ -39,6 +39,7 @@
 			padding: var(--padding-sm);
 			color: var(--text-color);
 			border-radius: var(--border-radius);
+			white-space: unset;
 			@extend .ellipsis;
 			&:not(:last-child) {
 				margin-bottom: var(--margin-xs);

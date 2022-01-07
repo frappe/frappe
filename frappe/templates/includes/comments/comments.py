@@ -3,11 +3,14 @@
 import frappe
 import re
 from frappe.website.utils import clear_cache
+from frappe.rate_limiter import rate_limit
 from frappe.utils import add_to_date, now
+from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
 
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='reference_name', limit=get_comment_limit, seconds=60*60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	doc = frappe.get_doc(reference_doctype, reference_name)
 
@@ -23,16 +26,6 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 
 	if url_regex.search(comment) or email_regex.search(comment):
 		frappe.msgprint(_('Comments cannot have links or email addresses'))
-		return False
-
-	comments_count = frappe.db.count("Comment", {
-		"comment_type": "Comment",
-		"comment_email": comment_email,
-		"creation": (">", add_to_date(now(), hours=-1))
-	})
-
-	if comments_count > 20:
-		frappe.msgprint(_('Hourly comment limit reached for: {0}').format(frappe.bold(comment_email)))
 		return False
 
 	comment = doc.add_comment(
@@ -51,14 +44,17 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 			comment.name,
 			_("View Comment")))
 
-	# notify creator
-	frappe.sendmail(
-		recipients=frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
-		subject=_('New Comment on {0}: {1}').format(doc.doctype, doc.name),
-		message=content,
-		reference_doctype=doc.doctype,
-		reference_name=doc.name
-	)
+	if doc.doctype == "Blog Post" and not doc.enable_email_notification:
+		pass
+	else:
+		# notify creator
+		frappe.sendmail(
+			recipients=frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
+			subject=_('New Comment on {0}: {1}').format(doc.doctype, doc.name),
+			message=content,
+			reference_doctype=doc.doctype,
+			reference_name=doc.name
+		)
 
 	# revert with template if all clear (no backlinks)
 	template = frappe.get_template("templates/includes/comments/comment.html")

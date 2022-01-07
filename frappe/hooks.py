@@ -76,8 +76,6 @@ before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
 
-get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
-
 calendars = ["Event"]
 
 leaderboards = "frappe.desk.leaderboard.get_leaderboards"
@@ -242,7 +240,8 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
 		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
-		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up"
+		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -281,11 +280,6 @@ sounds = [
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
 	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
-
-	# frappe.chat sounds
-	{ "name": "chat-message", 	   "src": "/assets/frappe/sounds/chat-message.mp3",      "volume": 0.1 },
-	{ "name": "chat-notification", "src": "/assets/frappe/sounds/chat-notification.mp3", "volume": 0.1 }
-	# frappe.chat sounds
 ]
 
 bot_parsers = [

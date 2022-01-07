@@ -1,0 +1,20 @@
+{
+ "action": "Watch Video",
+ "creation": "2021-11-23 13:57:45.091427",
+ "description": "Each document created in ERPNext can have a unique ID generated for it, using a prefix defined for it. Though each document has some prefix pre-configured, you can further customize it using tools like Naming Series Tool and Document Naming Rule.\n",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-24 15:04:14.662684",
+ "modified_by": "Administrator",
+ "name": "Naming Series",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Setup Naming Series",
+ "validate_action": 1,
+ "video_url": "https://youtu.be/IGyISSfI1qU"
+}

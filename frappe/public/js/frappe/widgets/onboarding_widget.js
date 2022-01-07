@@ -234,8 +234,9 @@ export default class OnboardingWidget extends Widget {
 					},
 				});
 			};
+			const tour_name = step.form_tour;
 			frm.tour
-				.init({ on_finish })
+				.init({ tour_name, on_finish })
 				.then(() => frm.tour.start());
 		};
 
@@ -304,8 +305,9 @@ export default class OnboardingWidget extends Widget {
 		frappe.set_route("Form", step.reference_document);
 	}
 
-	create_entry(step) {
+	async create_entry(step) {
 		let current_route = frappe.get_route();
+		let docname = await this.get_first_document(step.reference_document);
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
@@ -313,10 +315,23 @@ export default class OnboardingWidget extends Widget {
 				frappe.msgprint({
 					message: __("Awesome, now try making an entry yourself"),
 					title: __("Great"),
+					primary_action: {
+						action: () => {
+							frappe.set_route(current_route).then(() => {
+								this.mark_complete(step);
+							});
+						},
+						label: __("Continue"),
+					}
 				});
+
+				frappe.msg_dialog.custom_onhide = () => {
+					this.mark_complete(step);
+				};
 			};
+			const tour_name = step.form_tour;
 			frm.tour
-				.init({ on_finish })
+				.init({ tour_name, on_finish })
 				.then(() => frm.tour.start());
 		};
 
@@ -351,7 +366,7 @@ export default class OnboardingWidget extends Widget {
 			frappe.route_hooks.after_save = callback;
 		}
 
-		frappe.set_route('Form', step.reference_document, 'new');
+		frappe.set_route('Form', step.reference_document, docname);
 	}
 
 	show_quick_entry(step) {
@@ -551,5 +566,20 @@ export default class OnboardingWidget extends Widget {
 						});
 				}
 			});
+	}
+
+	async get_first_document(doctype) {
+		const { message } = await frappe.db.get_value('Form Tour', { 'reference_doctype': doctype }, ["first_document"]);
+		let docname;
+
+		if (message.first_document) {
+			await frappe.db.get_list(doctype, { order_by: "creation" }).then(res => {
+				if (Array.isArray(res) && res.length)
+					docname = res[0].name;
+			});
+		}
+
+
+		return docname || 'new';
 	}
 }

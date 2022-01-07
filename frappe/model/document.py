@@ -190,7 +190,7 @@ class Document(BaseDocument):
 		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -220,13 +220,13 @@ class Document(BaseDocument):
 
 		self.set("__islocal", True)
 
-		self.check_permission("create")
 		self._set_defaults()
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
-		self.run_method("before_insert")
 		self._validate_links()
+		self.check_permission("create")
+		self.run_method("before_insert")
 		self.set_new_name(set_name=set_name, set_child_names=set_child_names)
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
@@ -301,10 +301,12 @@ class Document(BaseDocument):
 		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
-			self.insert()
-			return
+			return self.insert()
 
 		self.check_permission("write", "save")
+
+		if self.docstatus == 2:
+			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
 		self.set_docstatus()
@@ -394,6 +396,7 @@ class Document(BaseDocument):
 				"parenttype": self.doctype,
 				"parentfield": fieldname
 			})
+
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -466,9 +469,11 @@ class Document(BaseDocument):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
-		if not self.creation:
+
+		# We'd probably want the creation and owner to be set via API
+		# or Data import at some point, that'd have to be handled here
+		if self.is_new():
 			self.creation = self.modified
-		if not self.owner:
 			self.owner = self.modified_by
 
 		for d in self.get_all_children():
@@ -560,8 +565,12 @@ class Document(BaseDocument):
 					fail = value != original_value
 
 				if fail:
-					frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(field.fieldname)),
-						frappe.CannotChangeConstantError)
+					frappe.throw(
+						_("Value cannot be changed for {0}").format(
+							frappe.bold(self.meta.get_label(field.fieldname))
+						),
+						exc=frappe.CannotChangeConstantError
+					)
 
 		return False
 
@@ -747,8 +756,10 @@ class Document(BaseDocument):
 			elif self.docstatus==1:
 				self._action = "submit"
 				self.check_permission("submit")
+			elif self.docstatus==2:
+				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
-				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 to 2"))
+				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif docstatus==1:
 			if self.docstatus==1:
@@ -757,8 +768,10 @@ class Document(BaseDocument):
 			elif self.docstatus==2:
 				self._action = "cancel"
 				self.check_permission("cancel")
+			elif self.docstatus==0:
+				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
-				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 to 0"))
+				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif docstatus==2:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
@@ -915,27 +928,24 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = 1
-		self.save()
+		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
 		self.docstatus = 2
-		new_name = gen_new_name_for_cancelled_doc(self)
-		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
-		self.name = new_name
-		self.save()
+		return self.save()
 
 	@whitelist.__func__
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self._submit()
+		return self._submit()
 
 	@whitelist.__func__
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
-		self._cancel()
+		return self._cancel()
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
@@ -1126,12 +1136,16 @@ class Document(BaseDocument):
 		collated in one dict and returned. Ideally, don't return values in hookable
 		methods, set properties in the document."""
 		def add_to_return_value(self, new_return_value):
+			if new_return_value is None:
+				self._return_value = self.get("_return_value")
+				return
+
 			if isinstance(new_return_value, dict):
 				if not self.get("_return_value"):
 					self._return_value = {}
 				self._return_value.update(new_return_value)
 			else:
-				self._return_value = new_return_value or self.get("_return_value")
+				self._return_value = new_return_value
 
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
@@ -1334,15 +1348,15 @@ class Document(BaseDocument):
 			), frappe.exceptions.InvalidDates)
 
 	def get_assigned_users(self):
-		assignments = frappe.get_all('ToDo',
-			fields=['owner'],
+		assigned_users = frappe.get_all('ToDo',
+			fields=['allocated_to'],
 			filters={
 				'reference_type': self.doctype,
 				'reference_name': self.name,
 				'status': ('!=', 'Cancelled'),
-			})
+			}, pluck='allocated_to')
 
-		users = set([assignment.owner for assignment in assignments])
+		users = set(assigned_users)
 		return users
 
 	def add_tag(self, tag):
@@ -1354,6 +1368,11 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
+	def _rename_doc_on_cancel(self):
+		new_name = gen_new_name_for_cancelled_doc(self)
+		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
+		self.name = new_name
 
 	def __repr__(self):
 		name = self.name or "unsaved"

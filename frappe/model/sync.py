@@ -30,7 +30,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 
 		FRAPPE_PATH = frappe.get_app_path("frappe")
 
-		for core_module in ["docfield", "docperm", "doctype_action", "doctype_link", "role", "has_role", "doctype"]:
+		for core_module in ["docfield", "docperm", "doctype_action", "doctype_link", "doctype_state", "role", "has_role", "doctype"]:
 			files.append(os.path.join(FRAPPE_PATH, "core", "doctype", core_module, f"{core_module}.json"))
 
 		for custom_module in ["custom_field", "property_setter"]:

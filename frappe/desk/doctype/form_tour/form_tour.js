@@ -15,10 +15,13 @@ frappe.ui.form.on('Form Tour', {
 
 		frm.add_custom_button(__('Show Tour'), async () => {
 			const issingle = await check_if_single(frm.doc.reference_doctype);
+			const name = await get_first_document(frm.doc.reference_doctype);
 			let route_changed = null;
 
 			if (issingle) {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype);
+			} else if (frm.doc.first_document) {
+				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, name);
 			} else {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, 'new');
 			}
@@ -120,4 +123,15 @@ function get_child_field(child_table, child_name, fieldname) {
 async function check_if_single(doctype) {
 	const { message } = await frappe.db.get_value('DocType', doctype, 'issingle');
 	return message.issingle || 0;
+}
+
+async function get_first_document(doctype) {
+	let docname;
+
+	await frappe.db.get_list(doctype, { order_by: "creation" }).then(res => {
+		if (Array.isArray(res) && res.length)
+			docname = res[0].name;
+	});
+
+	return docname || 'new';
 }

@@ -102,13 +102,10 @@ class BaseDocument(object):
 				"balance": 42000
 			})
 		"""
-		if "doctype" in d:
-			self.set("doctype", d.get("doctype"))
-
 		# first set default field values of base document
 		for key in default_fields:
 			if key in d:
-				self.set(key, d.get(key))
+				self.set(key, d[key])
 
 		for key, value in d.items():
 			self.set(key, value)
@@ -339,7 +336,7 @@ class BaseDocument(object):
 			return self.meta.get_field(fieldname).options
 		except AttributeError:
 			if self.doctype == 'DocType':
-				return dict(links='DocType Link', actions='DocType Action').get(fieldname)
+				return dict(links='DocType Link', actions='DocType Action', states='DocType State').get(fieldname)
 			raise
 
 	def get_parentfield_of_doctype(self, doctype):

@@ -41,6 +41,8 @@
   "actions",
   "document_links_section",
   "links",
+  "document_states_section",
+  "states",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -280,6 +282,20 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "states",
+   "depends_on": "doc_type",
+   "fieldname": "document_states_section",
+   "fieldtype": "Section Break",
+   "label": "Document States"
+  },
+  {
+   "fieldname": "states",
+   "fieldtype": "Table",
+   "label": "States",
+   "options": "DocType State"
   }
  ],
  "hide_toolbar": 1,
@@ -288,10 +304,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-06-21 19:01:06.920663",
+ "modified": "2021-12-14 16:45:04.308690",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -308,5 +325,6 @@
  "search_fields": "doc_type",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

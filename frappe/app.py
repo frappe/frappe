@@ -120,6 +120,8 @@ def init_request(request):
 	else:
 		frappe.connect(set_admin_as_user=False)
 
+	request.max_content_length = frappe.local.conf.get('max_file_size') or 10 * 1024 * 1024
+
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
@@ -183,7 +185,9 @@ def make_form_dict(request):
 	if 'application/json' in (request.content_type or '') and request_data:
 		args = json.loads(request_data)
 	else:
-		args = request.form or request.args
+		args = {}
+		args.update(request.args or {})
+		args.update(request.form or {})
 
 	if not isinstance(args, dict):
 		frappe.throw(_("Invalid request arguments"))

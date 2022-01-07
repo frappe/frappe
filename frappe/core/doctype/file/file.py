@@ -29,6 +29,7 @@ from frappe import _, conf, safe_decode
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 from frappe.utils.image import strip_exif_data, optimize_image
+from frappe.utils.file_manager import safe_b64decode
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -436,7 +437,7 @@ class File(Document):
 
 			if b"," in self.content:
 				self.content = self.content.split(b",")[1]
-			self.content = base64.b64decode(self.content)
+			self.content = safe_b64decode(self.content)
 
 		if not self.is_private:
 			self.is_private = 0
@@ -569,6 +570,24 @@ class File(Document):
 		frappe.local.rollback_observers.append(self)
 		self.save()
 
+	@staticmethod
+	def zip_files(files):
+		from six import string_types
+
+		zip_file = io.BytesIO()
+		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
+		for _file in files:
+			if isinstance(_file, string_types):
+				_file = frappe.get_doc("File", _file)
+			if not isinstance(_file, File):
+				continue
+			if _file.is_folder:
+				continue
+			zf.writestr(_file.file_name, _file.get_content())
+		zf.close()
+		return zip_file.getvalue()
+
+
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
@@ -611,6 +630,16 @@ def move_file(file_list, new_parent, old_parent):
 	# recalculate sizes
 	frappe.get_doc("File", old_parent).save()
 	frappe.get_doc("File", new_parent).save()
+
+
+@frappe.whitelist()
+def zip_files(files):
+	files = frappe.parse_json(files)
+	zipped_files = File.zip_files(files)
+	frappe.response["filename"] = "files.zip"
+	frappe.response["filecontent"] = zipped_files
+	frappe.response["type"] = "download"
+
 
 def setup_folder_path(filename, new_parent):
 	file = frappe.get_doc("File", filename)
@@ -716,11 +745,9 @@ def delete_file(path):
 			os.remove(path)
 
 
-
-
+@frappe.whitelist()
 def get_max_file_size():
 	return cint(conf.get('max_file_size')) or 10485760
-
 
 
 def has_permission(doc, ptype=None, user=None):
@@ -826,7 +853,7 @@ def extract_images_from_html(doc, content, is_private=False):
 			content = content.encode("utf-8")
 		if b"," in content:
 			content = content.split(b",")[1]
-		content = base64.b64decode(content)
+		content = safe_b64decode(content)
 
 		content = optimize_image(content, mtype)
 
@@ -942,20 +969,14 @@ def get_files_by_search_text(text):
 
 def update_existing_file_docs(doc):
 	# Update is private and file url of all file docs that point to the same file
-	frappe.db.sql("""
-		UPDATE `tabFile`
-		SET
-			file_url = %(file_url)s,
-			is_private = %(is_private)s
-		WHERE
-			content_hash = %(content_hash)s
-			and name != %(file_name)s
-	""", dict(
-		file_url=doc.file_url,
-		is_private=doc.is_private,
-		content_hash=doc.content_hash,
-		file_name=doc.name
-	))
+	file_doctype = frappe.qb.DocType("File")
+	(
+		frappe.qb.update(file_doctype)
+		.set(file_doctype.file_url, doc.file_url)
+		.set(file_doctype.is_private, doc.is_private)
+		.where(file_doctype.content_hash == doc.content_hash)
+		.where(file_doctype.name != doc.name)
+	).run()
 
 def attach_files_to_document(doc, event):
 	""" Runs on on_update hook of all documents.

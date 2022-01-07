@@ -26,6 +26,7 @@
 @import 'doc';
 @import 'navbar';
 @import 'footer';
+@import 'error-state';
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -99,15 +100,42 @@
 	}
 }
 
+.page-header-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 .breadcrumb-container {
 	margin-top: 1rem;
 	padding-top:  0.25rem;
 }
 
 .breadcrumb {
-	padding: 0;
+	padding-left: 0;
+	padding-right: 0;
 	font-size: $font-size-sm;
-	background-color: $breadcrumb-bg;
+}
+
+.breadcrumb-item {
+	+ .breadcrumb-item
+	 {
+		font-size: $font-size-sm;
+		&::before {
+			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			display: inline-block;
+		}
+	}
+	a {
+		color: var(--text-color)
+	}
+	
+	li.disabled {
+		a {
+			color: var(--text-muted);
+			pointer-events: none;
+		}
+	}
 }
 
 a.card {
@@ -189,11 +217,14 @@ h5.modal-title {
 
 .btn-xs {
 	@extend .btn-sm;
+
 }
 
 .hidden-xs {
 	@extend .d-block;
-	@extend .d-sm-none;
+	@include media-breakpoint-between(xs, sm) {
+		display: none !important;
+	}
 }
 
 .visible-xs {
@@ -255,4 +286,15 @@ h5.modal-title {
 }
 .about-footer {
 	padding-top: 1rem;
+}
+
+.login-content.container {
+	background-color: var(--fg-color);
+	padding-bottom: 45px;
+	padding-top: 45px;
+	box-shadow: var(--shadow-base);
+	border-radius: var(--border-radius-md);
+	max-width: 400px;
+	margin: 70px auto;
+	font-size: $font-size-sm;
 }

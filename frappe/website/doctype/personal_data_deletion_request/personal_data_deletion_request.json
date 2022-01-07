@@ -27,7 +27,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Pending Verification\nPending Approval\nDeleted",
+   "options": "Pending Verification\nPending Approval\nOn Hold\nDeleted",
    "read_only": 1
   },
   {
@@ -45,7 +45,7 @@
   }
  ],
  "links": [],
- "modified": "2021-04-23 13:25:53.629308",
+ "modified": "2021-12-16 10:39:27.058371",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Personal Data Deletion Request",

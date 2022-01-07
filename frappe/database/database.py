@@ -4,23 +4,25 @@
 # Database Module
 # --------------------
 
-import re
-import time
-from typing import Dict, List, Union
-import frappe
 import datetime
+import random
+import re
+import string
+from contextlib import contextmanager
+from time import time
+from typing import Dict, List, Union, Tuple
+
+import frappe
 import frappe.defaults
 import frappe.model.meta
-
 from frappe import _
-from time import time
 from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.functions import Min, Max, Avg, Sum
 from frappe.query_builder.utils import Column
 from .query import Query
-from pypika.terms import PseudoColumn
+from pypika.terms import Criterion, PseudoColumn
 
 
 class Database(object):
@@ -162,19 +164,19 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if frappe.conf.db_type == 'postgres':
-				self.rollback()
-
-			elif self.is_syntax_error(e):
+			if self.is_syntax_error(e):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
 
 			elif self.is_deadlocked(e):
-				raise frappe.QueryDeadlockError
+				raise frappe.QueryDeadlockError(e)
 
 			elif self.is_timedout(e):
-				raise frappe.QueryTimeoutError
+				raise frappe.QueryTimeoutError(e)
+
+			elif frappe.conf.db_type == 'postgres':
+				raise
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
@@ -260,13 +262,12 @@ class Database(object):
 		self.commit()
 		self.sql(query, debug=debug)
 
+
 	def check_transaction_status(self, query):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
-		if self.transaction_writes and \
-			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
-			raise Exception('This statement can cause implicit commit')
+		self.check_implicit_commit(query)
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
@@ -278,6 +279,11 @@ class Database(object):
 					self.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
+
+	def check_implicit_commit(self, query):
+		if self.transaction_writes and \
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
+			raise Exception('This statement can cause implicit commit')
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
@@ -334,8 +340,21 @@ class Database(object):
 		"""Returns `get_value` with fieldname='*'"""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, cache=False, for_update=False, run=True):
+	def get_value(
+		self,
+		doctype,
+		filters=None,
+		fieldname="name",
+		ignore=None,
+		as_dict=False,
+		debug=False,
+		order_by="KEEP_DEFAULT_ORDERING",
+		cache=False,
+		for_update=False,
+		run=True,
+		pluck=False,
+		distinct=False,
+	):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -362,7 +381,7 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update, run=run)
+			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct)
 
 		if not run:
 			return ret
@@ -370,7 +389,8 @@ class Database(object):
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, update=None, cache=False, for_update=False, run=True):
+		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
+		run=True, pluck=False, distinct=False):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -379,7 +399,8 @@ class Database(object):
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
-		:param order_by: Column to order by
+		:param order_by: Column to order by,
+		:param distinct: Get Distinct results.
 
 		Example:
 
@@ -394,9 +415,20 @@ class Database(object):
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
+		if distinct:
+			order_by = None
+
 		if isinstance(filters, list):
-			order_by = order_by or "modified_desc"
-			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug, run=run)
+			out = self._get_value_for_many_names(
+				doctype,
+				filters,
+				fieldname,
+				order_by,
+				debug=debug,
+				run=run,
+				pluck=pluck,
+				distinct=distinct,
+			)
 
 		else:
 			fields = fieldname
@@ -408,9 +440,20 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					order_by = order_by or "modified"
+					if order_by:
+						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
 					out = self._get_values_from_table(
-						fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update, run=run
+						fields,
+						filters,
+						doctype,
+						as_dict,
+						debug,
+						order_by,
+						update,
+						for_update=for_update,
+						run=run,
+						pluck=pluck,
+						distinct=distinct
 					)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -418,19 +461,30 @@ class Database(object):
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
-						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run)
+						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run, distinct=distinct)
 
 					else:
 						raise
 			else:
-				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run)
+				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck, distinct=distinct)
 
 		if cache and isinstance(filters, str):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
 
-	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None, run=True):
+	def get_values_from_single(
+		self,
+		fields,
+		filters,
+		doctype,
+		as_dict=False,
+		debug=False,
+		update=None,
+		run=True,
+		pluck=False,
+		distinct=False,
+	):
 		"""Get values from `tabSingles` (Single DocTypes) (internal).
 
 		:param fields: List of fields,
@@ -456,10 +510,13 @@ class Database(object):
 				return [map(values.get, fields)]
 
 		else:
-			r = self.sql("""select field, value
-				from `tabSingles` where field in (%s) and doctype=%s"""
-					% (', '.join(['%s'] * len(fields)), '%s'),
-					tuple(fields) + (doctype,), as_dict=False, debug=debug, run=run)
+			r = self.query.get_sql(
+				"Singles",
+				filters={"field": ("in", tuple(fields)), "doctype": doctype},
+				fields=["field", "value"],
+				distinct=distinct,
+			).run(pluck=pluck, debug=debug, as_dict=False)
+
 			if not run:
 				return r
 			if as_dict:
@@ -484,14 +541,10 @@ class Database(object):
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		result = self.sql("""
-			SELECT field, value
-			FROM   `tabSingles`
-			WHERE  doctype = %s
-		""", doctype)
-
+		result = self.query.get_sql(
+			"Singles", filters={"doctype": doctype}, fields=["field", "value"]
+		).run()
 		dict_  = frappe._dict(result)
-
 		return dict_
 
 	@staticmethod
@@ -520,8 +573,11 @@ class Database(object):
 		if fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.sql("""select `value` from
-			`tabSingles` where `doctype`=%s and `field`=%s""", (doctype, fieldname))
+		val = self.query.get_sql(
+			table="Singles",
+			filters={"doctype": doctype, "field": fieldname},
+			fields="value",
+		).run()
 		val = val[0][0] if val else None
 
 		df = frappe.get_meta(doctype).get_field(fieldname)
@@ -539,37 +595,64 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None,
-								update=None, for_update=False, run=True):
+	def _get_values_from_table(
+		self,
+		fields,
+		filters,
+		doctype,
+		as_dict,
+		debug,
+		order_by=None,
+		update=None,
+		for_update=False,
+		run=True,
+		pluck=False,
+		distinct=False,
+	):
 		field_objects = []
 
-		for field in fields:
-			if "(" in field or " as " in field:
-				field_objects.append(PseudoColumn(field))
-			else:
-				field_objects.append(field)
+		if not isinstance(fields, Criterion):
+			for field in fields:
+				if "(" in str(field) or " as " in str(field):
+					field_objects.append(PseudoColumn(field))
+				else:
+					field_objects.append(field)
 
-		criterion = self.query.build_conditions(
-			table=doctype, filters=filters, orderby=order_by, for_update=for_update
+		query = self.query.get_sql(
+			table=doctype,
+			filters=filters,
+			orderby=order_by,
+			for_update=for_update,
+			field_objects=field_objects,
+			fields=fields,
+			distinct=distinct,
 		)
+		if (
+			fields == "*"
+			and not isinstance(fields, (list, tuple))
+			and not isinstance(fields, Criterion)
+		):
+			as_dict = True
 
-		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*field_objects)
-		else:
-			if fields=="*":
-				query = criterion.select(fields)
-				as_dict = True
-		r = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run)
+		r = self.sql(
+			query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck
+		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, debug=False, run=True):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False):
 		names = list(filter(None, names))
-
 		if names:
-			return self.get_all(doctype,
-				fields=['name', field],
-				filters=[['name', 'in', names]],
-				debug=debug, as_list=1, run=run)
+			return self.get_all(
+				doctype,
+				fields=field,
+				filters=names,
+				order_by=order_by,
+				pluck=pluck,
+				debug=debug,
+				as_list=1,
+				run=run,
+				distinct=distinct,
+			)
 		else:
 			return {}
 
@@ -621,6 +704,8 @@ class Database(object):
 				self.sql("""update `tab{0}`
 					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
 					values, debug=debug)
+
+				frappe.clear_document_cache(dt, values['name'])
 		else:
 			# for singles
 			keys = list(to_update)
@@ -633,10 +718,11 @@ class Database(object):
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
+			frappe.clear_document_cache(dt, dn)
+
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-		frappe.clear_document_cache(dt, dn)
 
 	@staticmethod
 	def set(doc, field, val):
@@ -723,14 +809,30 @@ class Database(object):
 
 		frappe.local.realtime_log = []
 
-	def rollback(self):
-		"""`ROLLBACK` current transaction."""
-		self.sql("rollback")
-		self.begin()
-		for obj in frappe.local.rollback_observers:
-			if hasattr(obj, "on_rollback"):
-				obj.on_rollback()
-		frappe.local.rollback_observers = []
+	def savepoint(self, save_point):
+		"""Savepoints work as a nested transaction.
+
+		Changes can be undone to a save point by doing frappe.db.rollback(save_point)
+
+		Note: rollback watchers can not work with save points.
+			so only changes to database are undone when rolling back to a savepoint.
+			Avoid using savepoints when writing to filesystem."""
+		self.sql(f"savepoint {save_point}")
+
+	def release_savepoint(self, save_point):
+		self.sql(f"release savepoint {save_point}")
+
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.sql("rollback")
+			self.begin()
+			for obj in frappe.local.rollback_observers:
+				if hasattr(obj, "on_rollback"):
+					obj.on_rollback()
+			frappe.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -739,16 +841,16 @@ class Database(object):
 			'parent': dt
 		})
 
-	def table_exists(self, doctype):
+	def table_exists(self, doctype, cached=True):
 		"""Returns True if table for given doctype exists."""
-		return ("tab" + doctype) in self.get_tables()
+		return ("tab" + doctype) in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		tables = frappe.cache().get_value('db_tables')
-		if not tables:
+		if not tables or not cached:
 			table_rows = self.sql("""
 				SELECT table_name
 				FROM information_schema.tables
@@ -785,25 +887,13 @@ class Database(object):
 			except Exception:
 				return None
 
-	def min(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Min(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def max(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Max(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def avg(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Avg(Column(fieldname))).run(**kwargs)[0][0] or 0
-
-	def sum(self, dt, fieldname, filters=None, **kwargs):
-		return self.query.build_conditions(dt, filters=filters).select(Sum(Column(fieldname))).run(**kwargs)[0][0] or 0
-
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
 			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = self.query.build_conditions(table=dt, filters=filters).select(Count("*"))
+		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"))
 		if filters:
 			count = self.sql(query, debug=debug)[0][0]
 			return count
@@ -1018,3 +1108,28 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
+
+@contextmanager
+def savepoint(catch: Union[type, Tuple[type, ...]] = Exception):
+	""" Wrapper for wrapping blocks of DB operations in a savepoint.
+
+		as contextmanager:
+
+		for doc in docs:
+			with savepoint(catch=DuplicateError):
+				doc.insert()
+
+		as decorator (wraps FULL function call):
+
+		@savepoint(catch=DuplicateError)
+		def process_doc(doc):
+			doc.insert()
+	"""
+	try:
+		savepoint = ''.join(random.sample(string.ascii_lowercase, 10))
+		frappe.db.savepoint(savepoint)
+		yield # control back to calling function
+	except catch:
+		frappe.db.rollback(save_point=savepoint)
+	else:
+		frappe.db.release_savepoint(savepoint)

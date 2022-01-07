@@ -37,7 +37,7 @@
 }
 
 .no-discussions {
-	width: 250px;
+	width: 500px;
 	margin: 0 auto;
 	text-align: center;
 }
@@ -103,7 +103,7 @@
 }
 
 .discussion-topic-title {
-	color: var(--text-color);
+	color: var(--gray-900);
 }
 
 .discussion-on-page .topic-title {
@@ -137,64 +137,23 @@
 	align-items: center;
 }
 
-.course-home-headings {
+.discussion-heading {
 	font-weight: 600;
 	font-size: 22px;
 	line-height: 146%;
 	letter-spacing: -0.0175em;
-	color: #192734;
+	color: var(--gray-900);
 	margin-bottom: 1rem;
 	padding: 0 1rem;
 }
 
-.common-card-style {
+.card-style {
 	display: flex;
-	background: #FFFFFF;
+	background: white;
 	border-radius: 8px;
 	position: relative;
-	border: 1px solid #EEF0F2;
-	box-shadow: 0 0px 4px 2px #19273405;
+	border: 1px solid var(--gray-200);
 }
-
-.button {
-	box-shadow: var(--btn-shadow);
-	border-radius: 4px;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: fit-content;
-	padding: 8px 12px 8px;
-	font-size: 12px;
-	line-height: 135%;
-	letter-spacing: -0.011em;
-	border: none;
-}
-
-.is-primary {
-	background: var(--primary-color);
-	color: #FFFFFF;
-}
-
-.is-primary:hover {
-	text-decoration: none;
-	color: #FFFFFF;
-}
-
-.is-secondary {
-	background: #FFFFFF;
-}
-
-.is-secondary:hover {
-	text-decoration: none;
-	color: inherit;
-}
-
-.is-default {
-	background: #F4F5F6;
-	color: #1F272E;
-}
-
 
 .discussions-card {
 	display: grid;
@@ -233,19 +192,35 @@
 	}
 }
 
-.course-instructor {
+.reply-author {
 	margin: 0px 8px;
 	font-size: 12px;
 	line-height: 135%;
-	color: var(--text-color);
+	color: var(--gray-900);
 }
 
 .card-divider {
-	border: 1px solid var(--gray-200);
+	border-top: 1px solid var(--gray-200);
 	margin-bottom: 1rem;
 }
 
 .card-divider-dark {
-	border: 1px solid var(--gray-300);
+	border-top: 1px solid var(--gray-300);
 	margin-bottom: 1rem;
+}
+
+.empty-state {
+	background: var(--gray-200);
+	border: 1px dashed var(--gray-400);
+	box-sizing: border-box;
+	border-radius: 8px;
+	padding: 2.5rem;
+}
+
+.discussions-parent .btn-default {
+	color: var(--gray-700);
+}
+
+.discussions-header .btn {
+	float: right;
 }

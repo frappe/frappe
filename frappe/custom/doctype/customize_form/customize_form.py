@@ -72,7 +72,7 @@ class CustomizeForm(Document):
 				new_d[prop] = d.get(prop)
 			self.append("fields", new_d)
 
-		for fieldname in ('links', 'actions'):
+		for fieldname in ('links', 'actions', 'states'):
 			for d in meta.get(fieldname):
 				self.append(fieldname, d)
 
@@ -258,7 +258,8 @@ class CustomizeForm(Document):
 		'''
 		for doctype, fieldname, field_map in (
 				('DocType Link', 'links', doctype_link_properties),
-				('DocType Action', 'actions', doctype_action_properties)
+				('DocType Action', 'actions', doctype_action_properties),
+				('DocType State', 'states', doctype_state_properties),
 			):
 			has_custom = False
 			items = []
@@ -515,6 +516,7 @@ docfield_properties = {
 	'options': 'Text',
 	'fetch_from': 'Small Text',
 	'fetch_if_empty': 'Check',
+	'show_dashboard': 'Check',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
@@ -566,6 +568,11 @@ doctype_action_properties = {
 	'action': 'Small Text',
 	'group': 'Data',
 	'hidden': 'Check'
+}
+
+doctype_state_properties = {
+	'title': 'Data',
+	'color': 'Select'
 }
 
 

@@ -1,16 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// -------------
-// Menu Display
-// -------------
-
-// $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
-// 	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-// 		$(grid_row.row).css({"font-weight": "bold"});
-// 	}
-// })
-
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
 		frm.set_query('role', 'permissions', function(doc) {
@@ -129,7 +119,7 @@ frappe.ui.form.on('DocType', {
 		}
 
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
-	}
+	},
 });
 
 frappe.ui.form.on("DocField", {
@@ -153,11 +143,10 @@ frappe.ui.form.on("DocField", {
 			curr_value.doctype = doctype;
 			curr_value.fieldname = fieldname;
 		}
-		let curr_df_link_doctype = row.fieldtype == "Link" ? row.options : null;
 
 		let doctypes = frm.doc.fields
 			.filter(df => df.fieldtype == "Link")
-			.filter(df => df.options && df.options != curr_df_link_doctype)
+			.filter(df => df.options && df.fieldname != row.fieldname)
 			.map(df => ({
 				label: `${df.options} (${df.fieldname})`,
 				value: df.fieldname
@@ -217,5 +206,11 @@ frappe.ui.form.on("DocField", {
 			$doctype_select.val(curr_value.doctype);
 			update_fieldname_options();
 		}
+	},
+
+	fieldtype: function(frm) {
+		frm.trigger("max_attachments");
 	}
 });
+
+extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({frm: cur_frm}));

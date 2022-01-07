@@ -8,6 +8,8 @@ from frappe.utils import cint
 from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Concat_ws
 
 class UserPermissions:
 	"""
@@ -208,8 +210,13 @@ class UserPermissions:
 		return get_allowed_reports()
 
 def get_user_fullname(user):
-	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
-	return fullname and fullname[0][0] or ''
+	user_doctype = DocType("User")
+	fullname = frappe.get_value(
+		user_doctype,
+		filters={"name": user},
+		fieldname=Concat_ws(" ", user_doctype.first_name, user_doctype.last_name),
+	)
+	return fullname or ''
 
 def get_fullname_and_avatar(user):
 	first_name, last_name, avatar, name = frappe.db.get_value("User",

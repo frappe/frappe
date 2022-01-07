@@ -51,6 +51,7 @@
   "email_inbox",
   "message_id",
   "uid",
+  "imap_folder",
   "email_status",
   "has_attachment",
   "feedback_section",
@@ -382,12 +383,19 @@
    "label": "Timeline Links",
    "options": "Communication Link",
    "permlevel": 2
+  },
+  {
+   "fieldname": "imap_folder",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "IMAP Folder",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2021-03-25 09:44:28.963538",
+ "modified": "2021-11-30 09:03:25.728637",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

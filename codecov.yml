@@ -11,6 +11,15 @@ coverage:
         threshold: 0.5%
         flags:
           - server
+    patch:
+      default: false
+      server:
+        target: 85%
+        threshold: 0%
+        only_pulls: true
+        if_ci_failed: ignore
+        flags:
+          - server
 
 comment:
   layout: "diff, flags"

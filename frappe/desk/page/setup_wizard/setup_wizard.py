@@ -54,9 +54,17 @@ def setup_complete(args):
 		return {'status': 'ok'}
 
 	args = parse_args(args)
-
 	stages = get_setup_stages(args)
+	is_background_task = frappe.conf.get('trigger_site_setup_in_background')
 
+	if is_background_task:
+		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True)
+		return {'status': 'registered'}
+	else:
+		return process_setup_stages(stages, args)
+
+@frappe.task()
+def process_setup_stages(stages, user_input, is_background_task=False):
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -68,11 +76,16 @@ def setup_complete(args):
 				current_task = task
 				task.get('fn')(task.get('args'))
 	except Exception:
-		handle_setup_exception(args)
-		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
+		handle_setup_exception(user_input)
+		if not is_background_task:
+			return {'status': 'fail', 'fail': current_task.get('fail_msg')}
+		frappe.publish_realtime('setup_task',
+			{'status': 'fail', "fail_msg": current_task.get('fail_msg')}, user=frappe.session.user)
 	else:
-		run_setup_success(args)
-		return {'status': 'ok'}
+		run_setup_success(user_input)
+		if not is_background_task:
+			return {'status': 'ok'}
+		frappe.publish_realtime('setup_task', {"status": 'ok'}, user=frappe.session.user)
 	finally:
 		frappe.flags.in_setup_wizard = False
 
@@ -138,7 +151,7 @@ def update_system_settings(args):
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
 		"country": args.get("country"),
-		"language": get_language_code(args.get("language")),
+		"language": get_language_code(args.get("language")) or 'en',
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
