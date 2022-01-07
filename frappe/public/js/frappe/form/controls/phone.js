@@ -17,7 +17,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.change_flag(country_code);
 			this.$icon = this.selected_icon.find('svg');
 			this.$flag = this.selected_icon.find('img');
-			if (!this.$icon.hasClass('hide')){
+			if (!this.$icon.hasClass('hide')) {
 				this.$icon.toggleClass('hide');
 			}
 			if (!this.$flag.length) {
@@ -28,7 +28,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			} else {
 				this.$isd.text(country_isd);
 			}
-			if(this.$input.val()) {
+			if (this.$input.val()) {
 				this.set_formatted_input(this.get_country(country) +'-'+ this.$input.val());
 			}
 		};
@@ -85,7 +85,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.selected_icon.insertAfter(this.$input);
 			this.selected_icon.append($(`<span class= "country"></span>`));
 			this.$isd = this.selected_icon.find('.country');
-			if(input_value && input_value.split("-").length == 2) {
+			if (input_value && input_value.split("-").length == 2) {
 				this.$isd.text(this.value.split("-")[0]);
 			}
 		}
@@ -95,7 +95,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		super.refresh();
 
 		// Previously opened doc values get fetched.
-		if(!this.value) {
+		if (!this.value) {
 			this.$input.val("");
 			this.$wrapper.find('.country').text("");
 			if (this.selected_icon.find('svg').hasClass('hide')) {
@@ -103,30 +103,30 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				this.selected_icon.find('img').addClass('hide');
 			}
 		}
-		if(this.value && this.value.split("-").length == 2) {
+		if (this.value && this.value.split("-").length == 2) {
 			let isd = this.value.split("-")[0];
 			this.get_country_code_and_change_flag(isd);
 			this.picker.set_country(isd);
 			this.picker.refresh();
 			if (this.picker.country && this.picker.country !== this.$isd.text()) {
-				this.$isd.length && this.$isd.text(isd)
+				this.$isd.length && this.$isd.text(isd);
 			}
 		}
 	}
 
 
 	set_formatted_input(value) {
-		if(value && value.includes('-')) {
+		if (value && value.includes('-')) {
 			this.set_model_value(value);
 			this.$input.val(value.split("-").pop());
-		} else if(this.$isd.text().trim() && this.value) {
+		} else if (this.$isd.text().trim() && this.value) {
 			let code_number = this.$isd.text() + '-' + value;
 			this.set_model_value(code_number);
 		}
 	}
 
 	change_flag(country_code) {
-		this.selected_icon.find('img').attr('src', 'https://flagcdn.com/h20/'+country_code+'.png')
+		this.selected_icon.find('img').attr('src', 'https://flagcdn.com/'+country_code+'.svg');
 		this.$icon = this.selected_icon.find('img');
 		this.$icon.hasClass('hide') && this.$icon.toggleClass('hide');
 	}
@@ -142,8 +142,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				if (!flag.length) {
 					this.selected_icon.prepend(this.get_country_flag(country));
 					this.selected_icon.find('svg').addClass('hide');
-				}
-				else {
+				} else {
 					this.change_flag(code);
 				}
 			}

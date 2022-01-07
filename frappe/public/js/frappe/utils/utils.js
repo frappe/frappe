@@ -1164,17 +1164,10 @@ Object.assign(frappe.utils, {
 		</svg>`;
 	},
 
-	flag(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
-		let size_class = "";
-
-		if (typeof size == "object") {
-			icon_style += ` width: ${size.width}; height: ${size.height}`;
-		} else {
-			size_class = `flag-${size}`;
-		}
+	flag(country_code) {
 		return `<img
-		src="https://flagcdn.com/${icon_name}.svg"
-		width="20" height="15">`
+		src="https://flagcdn.com/${country_code}.svg"
+		width="20" height="15">`;
 	},
 
 	make_chart(wrapper, custom_options={}) {

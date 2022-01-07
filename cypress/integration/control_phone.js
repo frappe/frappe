@@ -20,7 +20,7 @@ context('Control Phone', () => {
 		cy.get('.phone-picker .phone-wrapper[id="afghanistan"]').click();
 		cy.get('.phone-picker .phone-wrapper[id="india"]').click();
 		cy.get('.selected-phone .country').should('have.text', '+91');
-		cy.get('.selected-phone > img').should('have.attr', 'src').and('include', '/in.png');
+		cy.get('.selected-phone > img').should('have.attr', 'src').and('include', '/in.svg');
 
 		let phone_number = '9312672712';
 		cy.get('.selected-phone').click().first();

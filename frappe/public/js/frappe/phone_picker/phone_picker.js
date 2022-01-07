@@ -34,38 +34,38 @@ class Picker {
 
 	setup_countries() {
 		Object.entries(this.countries).forEach(([country, info]) => {
-		if (!info.isd) {
-			return
-		}
-		let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code)}
-			<span class="country">${country} (${info.isd})</span></div>`);
-		this.phone_wrapper.append($country);
-		const set_values = () => {
-			this.set_country(country);
-			this.update_icon_selected();
-		};
-		$country.on('click', () => {
-			set_values();
-		});
-		$country.hover(() => {
-			$country.toggleClass("bg-gray-100");
-		});
-		this.search_input.keydown((e) => {
-			const key_code = e.keyCode;
-			if ([13].includes(key_code)) {
-				e.preventDefault();
-				set_values();
+			if (!info.isd) {
+				return;
 			}
-		});
-		this.search_input.keyup((e) => {
-			e.preventDefault();
-			this.filter_icons();
-		});
+			let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code)}
+				<span class="country">${country} (${info.isd})</span></div>`);
+			this.phone_wrapper.append($country);
+			const set_values = () => {
+				this.set_country(country);
+				this.update_icon_selected();
+			};
+			$country.on('click', () => {
+				set_values();
+			});
+			$country.hover(() => {
+				$country.toggleClass("bg-gray-100");
+			});
+			this.search_input.keydown((e) => {
+				const key_code = e.keyCode;
+				if ([13].includes(key_code)) {
+					e.preventDefault();
+					set_values();
+				}
+			});
+			this.search_input.keyup((e) => {
+				e.preventDefault();
+				this.filter_icons();
+			});
 
-		this.search_input.on('search', () => {
-			this.filter_icons();
+			this.search_input.on('search', () => {
+				this.filter_icons();
+			});
 		});
-	});
 	}
 
 	filter_icons() {
