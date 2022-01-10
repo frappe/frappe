@@ -3,7 +3,7 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.queries import Schema, Table
 from frappe.utils import get_table_name
 
-from pypika.terms import Function
+from pypika.queries import QueryBuilder, Schema, Table
 
 from frappe.query_builder.terms import ParameterizedValueWrapper
 from frappe.utils import get_table_name
@@ -19,6 +19,18 @@ class Base:
 	def DocType(table_name: str, *args, **kwargs) -> Table:
 		table_name = get_table_name(table_name)
 		return Table(table_name, *args, **kwargs)
+
+	@classmethod
+	def into(cls, table, *args, **kwargs) -> QueryBuilder:
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().into(table, *args, **kwargs)
+
+	@classmethod
+	def update(cls, table, *args, **kwargs) -> QueryBuilder:
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().update(table, *args, **kwargs)
 
 
 class MariaDB(Base, MySQLQuery):
