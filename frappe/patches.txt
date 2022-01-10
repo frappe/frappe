@@ -123,6 +123,7 @@ frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
+frappe.patches.v13_0.validate_options_for_data_field
 frappe.patches.v13_0.website_theme_custom_scss
 frappe.patches.v13_0.make_user_type
 frappe.patches.v13_0.set_existing_dashboard_charts_as_public
@@ -192,4 +193,3 @@ frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
 frappe.patches.v14_0.transform_todo_schema
-frappe.patches.v13_0.validate_options_for_data_field
