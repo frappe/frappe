@@ -21,7 +21,10 @@ class ParameterizedValueWrapper(ValueWrapper):
 			sql = self.get_value_sql(quote_char=quote_char, secondary_quote_char=secondary_quote_char, **kwargs)
 			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 		else:
-			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs) if not isinstance(self.value,int) else self.value
+			if isinstance(self.value, str):
+				value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
+			else:
+				value_sql = self.value
 			param_sql = param_wrapper.get_sql(**kwargs)
 			param_wrapper.update_parameters(param_key=param_sql, param_value=value_sql, **kwargs)
 		return format_alias_sql(param_sql, self.alias, quote_char=quote_char, **kwargs)
