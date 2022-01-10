@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from bs4 import BeautifulSoup
+from datetime import timedelta
 import frappe
 import frappe.share
 import frappe.defaults
@@ -265,6 +266,7 @@ class User(Document):
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
+		self.db_set("reset_password_key_datetime", now_datetime())
 
 		url = "/update-password?key=" + key
 		if password_expired:
@@ -728,8 +730,14 @@ def _get_user_for_update_password(key, old_password):
 	# verify old password
 	result = frappe._dict()
 	if key:
-		result.user = frappe.db.get_value("User", {"reset_password_key": key})
-		if not result.user:
+		user = frappe.db.get_value("User", {"reset_password_key": key}, ["name", "reset_password_key_datetime"])
+		result.user, res_pass_key_datetime = user if user else (None, None)
+
+		if result.user:
+			res_pass_link_exp_sec = frappe.db.get_single_value("System Settings", "reset_password_link_expiry_seconds")
+			if res_pass_link_exp_sec and now_datetime() > res_pass_key_datetime + timedelta(seconds=res_pass_link_exp_sec):
+				result.message = _("The Link specified has been expired")
+		else:
 			result.message = _("The Link specified has either been used before or Invalid")
 
 	elif old_password:
