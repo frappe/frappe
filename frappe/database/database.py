@@ -21,7 +21,7 @@ import frappe.model.meta
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, get_table_name, getdate, now
+from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
 
 
 class Database(object):
@@ -655,7 +655,7 @@ class Database(object):
 				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
 			)
 
-			singles_data = ((dt, key, str(value) if value else value) for key, value in to_update.items())
+			singles_data = ((dt, key, sbool(value)) for key, value in to_update.items())
 			query = (
 				frappe.qb.into("Singles")
 					.columns("doctype", "field", "value")
