@@ -42,6 +42,7 @@
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "password_settings",
+  "reset_password_link_expiry_seconds",
   "logout_on_password_reset",
   "force_user_to_reset_password",
   "password_reset_limit",
@@ -485,7 +486,14 @@
    "fieldtype": "Select",
    "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
-  }
+  },
+  {
+    "default": "1200",
+    "fieldname": "reset_password_link_expiry_seconds",
+    "fieldtype": "Int",
+    "label": "Reset Password Link Expiry Seconds",
+    "non_negative": 1
+   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,

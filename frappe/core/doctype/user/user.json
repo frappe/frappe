@@ -43,6 +43,7 @@
   "new_password",
   "logout_all_sessions",
   "reset_password_key",
+  "reset_password_key_datetime",
   "last_password_reset_date",
   "redirect_url",
   "document_follow_notifications_section",
@@ -606,7 +607,13 @@
    "fieldtype": "Link",
    "label": "Module Profile",
    "options": "Module Profile"
-  }
+  },
+  {
+    "fieldname": "reset_password_key_datetime",
+    "fieldtype": "Datetime",
+    "label": "Reset Password Key Generation Datetime",
+    "read_only": 1
+   }
  ],
  "icon": "fa fa-user",
  "idx": 413,
