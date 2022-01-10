@@ -542,6 +542,20 @@ class Database(object):
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
+	def set_single_value(self, doctype, fieldname, value, *args, **kwargs):
+		"""Set field value of Single DocType.
+
+		:param doctype: DocType of the single object
+		:param fieldname: `fieldname` of the property
+		:param value: `value` of the property
+
+		Example:
+
+			# Update the `deny_multiple_sessions` field in System Settings DocType.
+			company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		"""
+		return self.set_value(doctype, doctype, fieldname, value, *args, **kwargs)
+
 	def get_single_value(self, doctype, fieldname, cache=False):
 		"""Get property of Single DocType. Cache locally by default
 
@@ -557,7 +571,7 @@ class Database(object):
 		if not doctype in self.value_cache:
 			self.value_cache[doctype] = {}
 
-		if fieldname in self.value_cache[doctype]:
+		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
 		val = self.sql("""select `value` from
