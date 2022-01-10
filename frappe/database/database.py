@@ -657,7 +657,7 @@ class Database(object):
 				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
 			)
 
-			singles_data = ((dt, key, str(value)) for key, value in to_update.items())
+			singles_data = ((dt, key, str(value) if value else value) for key, value in to_update.items())
 			query = (
 				frappe.qb.into("Singles")
 					.columns("doctype", "field", "value")
