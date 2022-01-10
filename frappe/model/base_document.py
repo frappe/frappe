@@ -1011,15 +1011,17 @@ def _filter(data, filters, limit=None):
 			_filters[f] = fval
 
 	for d in data:
+<<<<<<< HEAD
 		add = True
 		for f, fval in iteritems(_filters):
+=======
+		for f, fval in _filters.items():
+>>>>>>> d1852242a0 (fix: limit in `Document.get`)
 			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
-				add = False
 				break
-
-		if add:
+		else:
 			out.append(d)
-			if limit and (len(out)-1)==limit:
+			if limit and len(out) >= limit:
 				break
 
 	return out
