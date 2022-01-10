@@ -107,20 +107,25 @@ class CustomizeForm(Document):
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
-		if current:
-			if self.label and current.translated_text != self.label:
-				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
-				frappe.translate.clear_cache()
-			else:
-				# clear translation
+		if not self.label:
+			if current:
 				frappe.delete_doc('Translation', current.name)
+			return
 
-		else:
-			if self.label:
-				frappe.get_doc(dict(doctype='Translation',
-					source_text=self.doc_type,
-					translated_text=self.label,
-					language_code=frappe.local.lang or 'en')).insert()
+		if not current:
+			frappe.get_doc(
+				{
+					"doctype": 'Translation',
+					"source_text": self.doc_type,
+					"translated_text": self.label,
+					"language_code": frappe.local.lang or 'en'
+				}
+			).insert()
+			return
+
+		if self.label != current.translated_text:
+			frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
+			frappe.translate.clear_cache()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
