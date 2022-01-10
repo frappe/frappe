@@ -1,5 +1,5 @@
 # Copyright (c) 2022, Frappe and Contributors
-# License: GNU General Public License v3. See license.txt
+# License: MIT. See LICENSE
 
 
 import frappe
