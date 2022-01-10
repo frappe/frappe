@@ -46,6 +46,14 @@ frappe.pages['setup-wizard'].on_page_load = function (wrapper) {
 					slide_class: frappe.setup.SetupWizardSlide,
 					unidirectional: 1,
 					done_state: 1,
+					before_load: ($footer) => {
+						$footer.find('.next-btn').removeClass('btn-default')
+							.addClass('btn-primary');
+						$footer.find('.text-right').prepend(
+							$(`<button class="complete-btn btn btn-sm primary">
+						${__("Complete Setup")}</button>`));
+
+					}
 				}
 				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
 				frappe.setup.run_event("after_load");
@@ -89,7 +97,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		super.make();
 		this.container.addClass("container setup-wizard-slide with-form");
 		this.$next_btn.addClass('action');
-		this.$complete_btn.addClass('action');
+		this.$complete_btn = this.$footer.find('.complete-btn').addClass('action');
 		this.setup_keyboard_nav();
 	}
 
@@ -137,6 +145,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			this.$next_btn.removeClass("btn-primary").hide();
 			this.$complete_btn.addClass("btn-primary").show()
 				.on('click', () => this.action_on_complete());
+
 		} else {
 			this.$next_btn.addClass("btn-primary").show();
 			this.$complete_btn.removeClass("btn-primary").hide();
@@ -169,7 +178,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.setup();
 
 		this.show_slide(this.current_id);
-		this.refresh(this.current_id);
 		setTimeout(() => {
 			this.container.find('.form-control').first().focus();
 		}, 200);
@@ -334,6 +342,7 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 
 // Frappe slides settings
 // ======================================================
+
 frappe.setup.slides_settings = [
 	{
 		// Welcome (language) slide
@@ -351,10 +360,10 @@ frappe.setup.slides_settings = [
 
 		onload: function (slide) {
 			this.setup_fields(slide);
-			let browser_language = frappe.setup.utils.get_language_name_from_code(navigator.language);
-			let language_field = slide.get_field("language");
 
-			language_field.set_input(browser_language || "English");
+			var language_field = slide.get_field("language");
+
+			language_field.set_input(frappe.setup.data.default_language || "English");
 
 			if (!frappe.setup._from_load_messages) {
 				language_field.$input.trigger("change");
@@ -511,26 +520,17 @@ frappe.setup.utils = {
 		/*
 			Set a slide's country, timezone and currency fields
 		*/
-		let data = frappe.setup.data.regional_data;
-		let country_field = slide.get_field('country');
-		let translated_countries = [];
+		var data = frappe.setup.data.regional_data;
 
-		Object.keys(data.country_info).sort().forEach(country => {
-			translated_countries.push({
-				label: __(country),
-				value: country
-			});
-		});
+		var country_field = slide.get_field('country');
 
-		country_field.set_data(translated_countries);
+		slide.get_input("country").empty()
+			.add_options([""].concat(Object.keys(data.country_info).sort()));
 
-		slide.get_input("currency")
-			.empty()
-			.add_options(
-				frappe.utils.unique(
-					$.map(data.country_info, opts => opts.currency).sort()
-				)
-			);
+		slide.get_input("currency").empty()
+			.add_options(frappe.utils.unique([""].concat(
+				$.map(data.country_info, opts => opts.currency)
+			)).sort());
 
 		slide.get_input("timezone").empty()
 			.add_options([""].concat(data.all_timezones));
@@ -571,10 +571,6 @@ frappe.setup.utils = {
 				});
 			}, 500);
 		});
-	},
-
-	get_language_name_from_code: function (language_code) {
-		return frappe.setup.data.lang.codes_to_names[language_code] || "English";
 	},
 
 	bind_region_events: function (slide) {
