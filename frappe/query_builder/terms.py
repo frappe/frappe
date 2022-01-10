@@ -8,11 +8,10 @@ class NamedParameterWrapper():
 	def __init__(self) -> None:
 		self.parameters={}
 
-	def update_parameters(self, param_key: Any, param_value: Any, **kwargs)->None:
+	def get_sql(self, param_value , **kwargs)->str:
+		param_key = f'%(param{len(self.parameters) + 1})s'
 		self.parameters[param_key[2:-2]] = param_value
-
-	def get_sql(self, **kwargs)->str:
-		return f'%(param{len(self.parameters) + 1})s'
+		return param_key
 
 	def get_parameters(self)->Dict[str, Any]:
 		return self.parameters
@@ -24,12 +23,10 @@ class ParameterizedValueWrapper(ValueWrapper):
 			sql = self.get_value_sql(quote_char=quote_char, secondary_quote_char=secondary_quote_char, **kwargs)
 			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 		else:
+			value_sql = self.value
 			if isinstance(self.value, str):
 				value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
-			else:
-				value_sql = self.value
-			param_sql = param_wrapper.get_sql(**kwargs)
-			param_wrapper.update_parameters(param_key=param_sql, param_value=value_sql, **kwargs)
+			param_sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
 		return format_alias_sql(param_sql, self.alias, quote_char=quote_char, **kwargs)
 
 
