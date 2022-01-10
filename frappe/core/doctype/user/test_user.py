@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
+import time
 import unittest
 from unittest.mock import patch
 
@@ -371,6 +372,18 @@ class TestUser(unittest.TestCase):
 		doc = frappe.response.docs[0]
 		self.assertListEqual(doc.get("__onload").get('all_modules', []),
 			[m.get("module_name") for m in get_modules_from_all_apps()])
+	
+	def test_reset_password_link_expiry(self):
+		new_password = "new_password"
+
+		frappe.db.set_value("System Settings", "System Settings", "reset_password_link_expiry_seconds", 1)
+		frappe.db.commit()
+
+		frappe.set_user("testpassword@example.com")
+		test_user = frappe.get_doc("User", "testpassword@example.com")
+		test_user.reset_password()
+		time.sleep(1)  # sleep for 1 sec to expire the reset link
+		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "The Link specified has been expired")
 
 
 def delete_contact(user):
