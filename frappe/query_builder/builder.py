@@ -1,6 +1,6 @@
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
-from pypika.queries import Schema, Table
+from pypika.queries import QueryBuilder, Schema, Table
 from pypika.terms import Function
 
 from frappe.query_builder.terms import ParameterizedValueWrapper
@@ -23,13 +23,13 @@ class Base:
 		return Table(table_name, *args, **kwargs)
 
 	@classmethod
-	def into(cls, table, *args, **kwargs):
+	def into(cls, table, *args, **kwargs) -> QueryBuilder:
 		if isinstance(table, str):
 			table = cls.DocType(table)
 		return super().into(table, *args, **kwargs)
 
 	@classmethod
-	def update(cls, table, *args, **kwargs):
+	def update(cls, table, *args, **kwargs) -> QueryBuilder:
 		if isinstance(table, str):
 			table = cls.DocType(table)
 		return super().update(table, *args, **kwargs)
