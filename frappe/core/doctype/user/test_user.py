@@ -376,6 +376,7 @@ class TestUser(unittest.TestCase):
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 
+		# set the reset password expir to 1 second
 		frappe.db.set_value("System Settings", "System Settings", "reset_password_link_expiry_seconds", 1)
 		frappe.db.commit()
 
