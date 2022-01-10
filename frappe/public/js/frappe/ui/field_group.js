@@ -115,6 +115,9 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			});
 			return null;
 		}
+		if (this.$custom_input) {
+			ret["save_setting"] = this.$custom_input.checked;
+		}
 		return ret;
 	}
 

@@ -259,6 +259,27 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		action && action_button.click(action);
 	}
+
+	add_custom_checkbox(label) {
+		this.footer.removeClass('hide');
+		let checkbox = $(`<div class="form-group frappe-control">
+			<div class="checkbox">
+				<label>
+					<span class="input-area"></span>
+					<span class="disp-area"></span>
+					<span class="label-area">${label}</span>
+				</label>
+				<p class="help-box small text-muted"></p>
+			</div>
+		</div>`).appendTo(this.custom_actions);
+		this.input_area = checkbox.find(".input-area").get(0);
+		this.$input = $("<input>")
+			.attr("type", "checkbox")
+			.attr("autocomplete", "off")
+			.addClass("input-with-feedback")
+			.prependTo(this.input_area);
+		this.$custom_input = this.$input.get(0)
+	}
 };
 
 frappe.ui.hide_open_dialog = () => {
