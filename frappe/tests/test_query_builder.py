@@ -66,24 +66,47 @@ class TestBuilderBase(object):
 		self.assertIsInstance(query.run, Callable)
 		self.assertIsInstance(data, list)
 
-	def test_walk(self):
+
+class TestParameterization(unittest.TestCase):
+	def test_where_conditions(self):
 		DocType = frappe.qb.DocType("DocType")
 		query = (
 			frappe.qb.from_(DocType)
 			.select(DocType.name)
-			.where(
-				(DocType.owner == "Administrator' --")
-				& (Coalesce(DocType.search_fields == "subject"))
-			)
+			.where((DocType.owner == "Administrator' --"))
 		)
 		self.assertTrue("walk" in dir(query))
 		query, params = query.walk()
 
 		self.assertIn("%(param1)s", query)
-		self.assertIn("%(param2)s", query)
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "Administrator' --")
-		self.assertEqual(params["param2"], "subject")
+
+	def test_set_cnoditions(self):
+		DocType = frappe.qb.DocType("DocType")
+		query = frappe.qb.update(DocType).set(DocType.value, "some_value")
+
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "some_value")
+
+	def test_where_conditions_functions(self):
+		DocType = frappe.qb.DocType("DocType")
+		query = (
+			frappe.qb.from_(DocType)
+			.select(DocType.name)
+			.where(Coalesce(DocType.search_fields == "subject"))
+		)
+
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "subject")
 
 
 @run_only_if(db_type_is.MARIADB)
