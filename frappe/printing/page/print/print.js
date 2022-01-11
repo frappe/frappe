@@ -76,42 +76,7 @@ frappe.ui.form.PrintView = class {
 
 		this.page.add_button(
 			__('PDF'),
-			() => {
-				if (this.frm) {
-					let d = new frappe.ui.Dialog({
-						title: __('Merge PDFs'),
-						fields: [],
-						primary_action: (values) => {
-							let merge_pdfs = [];
-							for (let file in values) {
-								if (values[file]) {
-									merge_pdfs.push(file);
-								}
-							}
-							this.render_page(`/api/method/frappe.utils.print_format.download_pdf?merge_pdfs=${merge_pdfs.join(',')}&`);
-						}
-					});
-					d.show();
-
-					frappe.db.get_list('File', {
-						fields: ['name', 'file_name', 'file_url', 'is_private'],
-						filters: {
-							attached_to_name: this.frm.docname,
-							attached_to_doctype: this.frm.doctype,
-						}
-					}).then(files => {
-						console.log(files)
-						d.add_fields(files.map(file => {
-							return {
-								fieldname: file.name,
-								fieldtype: 'Check',
-								label: file.file_name,
-							}
-						}))
-					});
-					// this.render_pdf()
-				}
-			},
+			() => this.generate_pdf(),
 			{ icon: 'small-file' }
 		);
 
@@ -647,6 +612,59 @@ frappe.ui.form.PrintView = class {
 				}
 			},
 		});
+	}
+
+	generate_pdf() {
+		let merge_pdf_doctypes = this.print_settings.merge_pdf_doctypes.map(doc => doc.document_type);
+		if (this.frm && merge_pdf_doctypes.includes(this.frm.doc.doctype)) {
+			let $files = $('<div>');
+			let d = new frappe.ui.Dialog({
+				title: __('Add PDF Documents'),
+				primary_action_label: __('Generate PDF'),
+				primary_action: () => {
+					let merge_pdfs = $files.find('input[type="checkbox"]:checked')
+						.map((i, el) => $(el).data('file'))
+						.toArray();
+					this.render_page(`/api/method/frappe.utils.print_format.download_pdf?merge_pdfs=${merge_pdfs.join(',')}&`);
+				}
+			});
+			d.show();
+
+			d.$body.html(__('Fetching PDF files...'));
+			frappe.db.get_list('File', {
+				fields: ['name', 'file_name', 'file_url', 'is_private'],
+				filters: {
+					attached_to_name: this.frm.docname,
+					attached_to_doctype: this.frm.doctype,
+				}
+			}).then(files => {
+				$files.html(`
+				<label class="control-label">
+					${__('Select PDF files to add to the generated PDF')}
+				</label>
+				<div class="list-group">
+					${files.map(file => {
+						if (!file.file_name.endsWith('.pdf')) return '';
+
+						return `<div class="list-group-item">
+							<label>
+								<input type="checkbox" data-file="${file.name}">
+								${file.file_name}
+							</label>
+						</div>
+					`;
+				}).join('')}
+				</div>
+				<p class="help-box small text-muted">
+					${__('Drag to reorder files. Check files to include them.')}
+				</p>
+				`);
+				d.$body.html($files);
+				Sortable.create($files.find('.list-group').get(0), { animation: 150 });
+			});
+		} else {
+			this.render_pdf();
+		}
 	}
 
 	render_pdf() {

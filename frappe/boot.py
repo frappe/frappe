@@ -263,7 +263,7 @@ def add_timezone_info(bootinfo):
 	frappe.utils.momentjs.update(system, bootinfo.timezone_info)
 
 def load_print(bootinfo, doclist):
-	print_settings = frappe.db.get_singles_dict("Print Settings")
+	print_settings = frappe.get_doc("Print Settings").as_dict()
 	print_settings.doctype = ":Print Settings"
 	doclist.append(print_settings)
 	load_print_css(bootinfo, print_settings)

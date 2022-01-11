@@ -6,12 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "pdf_settings",
+  "pdf_page_size",
   "send_print_as_pdf",
   "repeat_header_footer",
   "column_break_4",
-  "pdf_page_size",
   "pdf_page_height",
   "pdf_page_width",
+  "merge_pdf_doctypes",
   "view_link_in_email",
   "with_letterhead",
   "allow_print_for_draft",
@@ -170,13 +171,20 @@
    "fieldname": "pdf_page_width",
    "fieldtype": "Float",
    "label": "PDF Page Width (in mm)"
+  },
+  {
+   "description": "When you generate a PDF for a document of these doctypes, you will have the option to merge other attached PDF files",
+   "fieldname": "merge_pdf_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Enable Merge PDF for DocTypes",
+   "options": "Select DocType"
   }
  ],
  "icon": "fa fa-cog",
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-09-17 12:59:14.783694",
+ "modified": "2022-01-11 22:41:42.445466",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
@@ -193,5 +201,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
