@@ -143,25 +143,6 @@ def new_page(new_page):
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
-def last_sequence_id(doc):
-	doc_exists = frappe.db.exists({
-		'doctype': 'Workspace',
-		'public': doc.public,
-		'for_user': doc.for_user
-	})
-
-	if not doc_exists:
-		return 0
-
-	return frappe.db.get_list('Workspace', 
-		fields=['sequence_id'],
-		filters={
-			'public': doc.public,
-			'for_user': doc.for_user
-		},
-		order_by="sequence_id desc"
-	)[0].sequence_id
-
 @frappe.whitelist()
 def save_page(title, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
@@ -245,7 +226,10 @@ def duplicate_page(page_name, new_page):
 		doc.for_user = doc.for_user or frappe.session.user
 		doc.label = '{0}-{1}'.format(doc.title, doc.for_user)
 	doc.name = doc.label
-	doc.sequence_id += 0.1
+	if old_doc.public == doc.public:
+		doc.sequence_id += 0.1
+	else:
+		doc.sequence_id = last_sequence_id(doc) + 1
 	doc.insert(ignore_permissions=True)
 
 @frappe.whitelist()
@@ -289,6 +273,25 @@ def sort_page(wspace_pages, pages):
 				doc.parent_page = d.get('parent_page') or ""
 				doc.save(ignore_permissions=True)
 				break
+
+def last_sequence_id(doc):
+	doc_exists = frappe.db.exists({
+		'doctype': 'Workspace',
+		'public': doc.public,
+		'for_user': doc.for_user
+	})
+
+	if not doc_exists:
+		return 0
+
+	return frappe.db.get_list('Workspace', 
+		fields=['sequence_id'],
+		filters={
+			'public': doc.public,
+			'for_user': doc.for_user
+		},
+		order_by="sequence_id desc"
+	)[0].sequence_id
 
 def get_page_list(fields, filters):
 	return frappe.get_list("Workspace", fields=fields, filters=filters, order_by='sequence_id asc')
