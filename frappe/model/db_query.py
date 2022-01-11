@@ -130,6 +130,11 @@ class DatabaseQuery(object):
 			args.fields = 'distinct ' + args.fields
 			args.order_by = '' # TODO: recheck for alternative
 
+		# Postgres requires any field that appears in the select clause to also
+		# appear in the order by and group by clause
+		if frappe.db.db_type == 'postgres' and args.order_by and args.group_by:
+			args = self.prepare_select_args(args)
+
 		query = """select %(fields)s
 			from %(tables)s
 			%(conditions)s
@@ -200,6 +205,19 @@ class DatabaseQuery(object):
 
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
+
+		return args
+
+	def prepare_select_args(self, args):
+		order_field = re.sub(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", "", args.order_by)
+
+		if order_field not in args.fields:
+			extracted_column = order_column = order_field.replace("`", "")
+			if "." in extracted_column:
+				extracted_column = extracted_column.split(".")[1]
+
+			args.fields += f", MAX({extracted_column}) as `{order_column}`"
+			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
 
