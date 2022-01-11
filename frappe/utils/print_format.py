@@ -1,9 +1,10 @@
 import frappe, os
 from frappe import _
 
+import io
 from frappe.utils.pdf import get_pdf,cleanup
 from frappe.core.doctype.access_log.access_log import make_access_log
-from PyPDF2 import PdfFileWriter
+from PyPDF2 import PdfFileWriter, PdfFileMerger
 
 no_cache = 1
 
@@ -87,10 +88,26 @@ def read_multi_pdf(output):
 	return filedata
 
 @frappe.whitelist()
-def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
+def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0, merge_pdfs=None):
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
+	print_format_pdf = get_pdf(html)
+
+	merge_pdfs = merge_pdfs.split(',') if merge_pdfs else []
+	if merge_pdfs:
+		merger = PdfFileMerger()
+		merger.append(io.BytesIO(print_format_pdf))
+		for fname in merge_pdfs:
+			pdf_file = frappe.get_doc('File', fname)
+			merger.append(io.BytesIO(pdf_file.get_content()))
+
+		pdf_content = io.BytesIO()
+		merger.write(pdf_content)
+		merger.close()
+	else:
+		pdf_content = io.BytesIO(print_format_pdf)
+
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
-	frappe.local.response.filecontent = get_pdf(html)
+	frappe.local.response.filecontent = pdf_content.getvalue()
 	frappe.local.response.type = "pdf"
 
 @frappe.whitelist()

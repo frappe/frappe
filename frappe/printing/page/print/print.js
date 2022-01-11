@@ -76,7 +76,42 @@ frappe.ui.form.PrintView = class {
 
 		this.page.add_button(
 			__('PDF'),
-			() => this.render_pdf(),
+			() => {
+				if (this.frm) {
+					let d = new frappe.ui.Dialog({
+						title: __('Merge PDFs'),
+						fields: [],
+						primary_action: (values) => {
+							let merge_pdfs = [];
+							for (let file in values) {
+								if (values[file]) {
+									merge_pdfs.push(file);
+								}
+							}
+							this.render_page(`/api/method/frappe.utils.print_format.download_pdf?merge_pdfs=${merge_pdfs.join(',')}&`);
+						}
+					});
+					d.show();
+
+					frappe.db.get_list('File', {
+						fields: ['name', 'file_name', 'file_url', 'is_private'],
+						filters: {
+							attached_to_name: this.frm.docname,
+							attached_to_doctype: this.frm.doctype,
+						}
+					}).then(files => {
+						console.log(files)
+						d.add_fields(files.map(file => {
+							return {
+								fieldname: file.name,
+								fieldtype: 'Check',
+								label: file.file_name,
+							}
+						}))
+					});
+					// this.render_pdf()
+				}
+			},
 			{ icon: 'small-file' }
 		);
 
