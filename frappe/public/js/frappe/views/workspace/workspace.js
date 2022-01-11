@@ -443,15 +443,21 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
-	get_parent_pages() {
-		this.public_parent_pages = ['', ...this.public_pages.filter(page => !page.parent_page).map(page => page.title)];
-		this.private_parent_pages = ['', ...this.private_pages.filter(page => !page.parent_page).map(page => page.title)];
+	get_parent_pages(page) {
+		this.public_parent_pages = ['', ...this.public_pages.filter(p => !p.parent_page).map(p => p.title)];
+		this.private_parent_pages = ['', ...this.private_pages.filter(p => !p.parent_page).map(p => p.title)];
+
+		if(page) {
+			return page.public ? this.public_parent_pages : this.private_parent_pages;
+		}
 	}
 
 	edit_page(item) {
 		var me = this;
 		let old_item = item;
-		this.get_parent_pages();
+		let parent_pages = this.get_parent_pages(item);
+		let idx = parent_pages.findIndex(x => x == item.title);
+		if (idx !== -1) parent_pages.splice(idx, 1);
 		const d = new frappe.ui.Dialog({
 			title: __('Update Details'),
 			fields: [
@@ -466,7 +472,7 @@ frappe.views.Workspace = class Workspace {
 					label: __('Parent'),
 					fieldtype: 'Select',
 					fieldname: 'parent',
-					options: item.public ? this.public_parent_pages : this.private_parent_pages,
+					options: parent_pages,
 					default: item.parent_page
 				},
 				{
@@ -716,7 +722,7 @@ frappe.views.Workspace = class Workspace {
 
 	duplicate_page(page) {
 		var me = this;
-		this.get_parent_pages();
+		let parent_pages = this.get_parent_pages(page);
 		const d = new frappe.ui.Dialog({
 			title: __('Create Duplicate'),
 			fields: [
@@ -730,7 +736,7 @@ frappe.views.Workspace = class Workspace {
 					label: __('Parent'),
 					fieldtype: 'Select',
 					fieldname: 'parent',
-					options: page.public ? this.public_parent_pages : this.private_parent_pages,
+					options: parent_pages,
 					default: page.parent_page
 				},
 				{
@@ -770,7 +776,7 @@ frappe.views.Workspace = class Workspace {
 
 				new_page.title = values.title;
 				new_page.public = values.is_public || 0;
-				new_page.name = values.title + new_page.public ? '' : '-' + frappe.session.user;
+				new_page.name = values.title + (new_page.public ? '' : '-' + frappe.session.user);
 				new_page.label = new_page.name;
 				new_page.icon = values.icon;
 				new_page.parent_page = values.parent || '';
