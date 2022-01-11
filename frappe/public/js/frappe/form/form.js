@@ -983,7 +983,7 @@ frappe.ui.form.Form = class FrappeForm {
 			$.each(this.fields_dict, function(fieldname, field) {
 				if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
 					// triggers add fetch, sets value in model and runs triggers
-					field.set_value(this.doc[fieldname]);
+					field.set_value(this.doc[fieldname], true);
 				}
 			});
 
