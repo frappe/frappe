@@ -2,74 +2,73 @@
 
 
 [data-doctype="Web Form"] {
-    .page-content-wrapper {
+	.page-content-wrapper {
 		
-        .breadcrumb-container.container {
-            @include media-breakpoint-up(sm) {
-                padding-left: var(--padding-sm);
-            }
-        }
+		.breadcrumb-container.container {
+			@include media-breakpoint-up(sm) {
+				padding-left: var(--padding-sm);
+			}
+		}
 
-        .container {
-            max-width: 800px;
+		.container {
+			max-width: 800px;
 
-            &.my-4 {
-                background-color: var(--fg-color);
+			&.my-4 {
+				background-color: var(--fg-color);
 
-                @include media-breakpoint-up(sm) {
-                    padding: 1.8rem;
-                    border-radius: var(--border-radius-md);
-                    box-shadow: var(--card-shadow);
-                }
-            }
-        }
-    }
+					@include media-breakpoint-up(sm) {
+						padding: 1.8rem;
+						border-radius: var(--border-radius-md);
+						box-shadow: var(--card-shadow);
+					}
+			}
+		}
+	}
 }
 
 .web-form-wrapper {
-    .form-control {
-        color: var(--text-color);
-        background-color: var(--control-bg);
-    }
+	.form-control {
+		color: var(--text-color);
+		background-color: var(--control-bg);
+	}
 
-    .form-section {
-        .section-head {
-            font-weight: bold;
-            font-size: var(--text-xl);
-            padding: var(--padding-md) 0;
-        }
-    }
+	.form-section {
+		.section-head {
+			font-weight: bold;
+			font-size: var(--text-xl);
+			padding: var(--padding-md) 0;
+		}
+	}
 
-    .form-column {
-        padding: 0 var(--padding-md);
+	.form-column {
+		padding: 0 var(--padding-md);
 
-        &:first-child {
-            padding-left: 0;
-        }
+		&:first-child {
+			padding-left: 0;
+		}
 
-        &:last-child {
-            padding-right: 0;
-        }
-    }
+		&:last-child {
+			padding-right: 0;
+		}
+	}
 }
 
 .web-form-wrapper~#datatable {
-    .table {
-        thead {
-            th {
-                border: 0;
-                font-weight: normal;
-                color: var(--text-muted)
-            }
-        }
+	.table {
+		thead {
+			th {
+				border: 0;
+				font-weight: normal;
+				color: var(--text-muted)
+			}
+		}
 
-        tr {
-            color: var(--text-color);
+		tr {
+			color: var(--text-color);
 
-            td {
-                border-top: 1px solid var(--border-color);
-            }
-        }
-
-    }
+		td {
+			border-top: 1px solid var(--border-color);
+		}
+		}
+	}
 }
