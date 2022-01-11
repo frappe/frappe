@@ -254,3 +254,8 @@ class TestDocument(unittest.TestCase):
 			'currency': 100000
 		})
 		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+
+	def test_limit_for_get(self):
+		doc = frappe.get_doc("DocType", "DocType")
+		# assuming DocType has more that 3 Data fields
+		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
