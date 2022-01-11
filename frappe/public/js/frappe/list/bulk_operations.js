@@ -4,7 +4,7 @@ export default class BulkOperations {
 		this.doctype = doctype;
 	}
 
-	print(docs) {
+	print (docs) {
 		const print_settings = frappe.model.get_doc(':Print Settings', 'Print Settings');
 		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		const is_submittable = frappe.model.is_submittable(this.doctype);
@@ -24,47 +24,108 @@ export default class BulkOperations {
 			return;
 		}
 
-		if (valid_docs.length > 0) {
-			const dialog = new frappe.ui.Dialog({
-				title: __('Print Documents'),
-				fields: [{
-					'fieldtype': 'Check',
-					'label': __('With Letterhead'),
-					'fieldname': 'with_letterhead'
-				},
-				{
-					'fieldtype': 'Select',
-					'label': __('Print Format'),
-					'fieldname': 'print_sel',
-					options: frappe.meta.get_print_formats(this.doctype)
-				}]
-			});
-
-			dialog.set_primary_action(__('Print'), args => {
-				if (!args) return;
-				const default_print_format = frappe.get_meta(this.doctype).default_print_format;
-				const with_letterhead = args.with_letterhead ? 1 : 0;
-				const print_format = args.print_sel ? args.print_sel : default_print_format;
-				const json_string = JSON.stringify(valid_docs);
-
-				const w = window.open('/api/method/frappe.utils.print_format.download_multi_pdf?' +
-					'doctype=' + encodeURIComponent(this.doctype) +
-					'&name=' + encodeURIComponent(json_string) +
-					'&format=' + encodeURIComponent(print_format) +
-					'&no_letterhead=' + (with_letterhead ? '0' : '1'));
-				if (!w) {
-					frappe.msgprint(__('Please enable pop-ups'));
-					return;
-				}
-			});
-
-			dialog.show();
-		} else {
+		if (valid_docs.length === 0) {
 			frappe.msgprint(__('Select atleast 1 record for printing'));
+			return;
 		}
+
+		const dialog = new frappe.ui.Dialog({
+			title: __('Print Documents'),
+			fields: [{
+				fieldtype: 'Select',
+				label: __('Letter Head'),
+				fieldname: 'letter_sel',
+				default: __('No Letterhead'),
+				options: this.get_letterhead_options()
+			},
+			{
+				fieldtype: 'Select',
+				label: __('Print Format'),
+				fieldname: 'print_sel',
+				options: frappe.meta.get_print_formats(this.doctype)
+			},
+			{
+				fieldtype: 'Select',
+				label: __('Page Size'),
+				fieldname: 'page_size',
+				options: frappe.meta.get_print_sizes(),
+				default: print_settings.pdf_page_size
+			},
+			{
+				fieldtype: 'Float',
+				label: __('Page Height (in mm)'),
+				fieldname: 'page_height',
+				depends_on: 'eval:doc.page_size == "Custom"',
+				default: print_settings.pdf_page_height
+			},
+			{
+				fieldtype: 'Float',
+				label: __('Page Width (in mm)'),
+				fieldname: 'page_width',
+				depends_on: 'eval:doc.page_size == "Custom"',
+				default: print_settings.pdf_page_width
+			}]
+		});
+
+		dialog.set_primary_action(__('Print'), args => {
+			if (!args) return;
+			const default_print_format = frappe.get_meta(this.doctype).default_print_format;
+			const with_letterhead = args.letter_sel == __("No Letterhead") ? 0 : 1;
+			const print_format = args.print_sel ? args.print_sel : default_print_format;
+			const json_string = JSON.stringify(valid_docs);
+			const letterhead = args.letter_sel;
+
+			let pdf_options;
+			if (args.page_size === "Custom") {
+				if (args.page_height === 0 || args.page_width === 0) {
+					frappe.throw(__('Page height and width cannot be zero'));
+				}
+				pdf_options = JSON.stringify({ "page-height": args.page_height, "page-width": args.page_width });
+			} else {
+				pdf_options = JSON.stringify({ "page-size": args.page_size });
+			}
+
+			const w = window.open(
+				'/api/method/frappe.utils.print_format.download_multi_pdf?' +
+				'doctype=' + encodeURIComponent(this.doctype) +
+				'&name=' + encodeURIComponent(json_string) +
+				'&format=' + encodeURIComponent(print_format) +
+				'&no_letterhead=' + (with_letterhead ? '0' : '1') +
+				'&letterhead=' + encodeURIComponent(letterhead) +
+				'&options=' + encodeURIComponent(pdf_options)
+			);
+
+			if (!w) {
+				frappe.msgprint(__('Please enable pop-ups'));
+				return;
+			}
+		});
+
+		dialog.show();
 	}
 
-	delete(docnames, done = null) {
+	get_letterhead_options () {
+		const letterhead_options = [__("No Letterhead")];
+		frappe.call({
+			method: "frappe.client.get_list",
+			args: {
+				doctype: 'Letter Head',
+				fields: ['name', 'is_default'],
+				limit_page_length: 0
+			},
+			async: false,
+			callback (r) {
+				if (r.message) {
+					r.message.forEach(letterhead => {
+						letterhead_options.push(letterhead.name);
+					});
+				}
+			}
+		});
+		return letterhead_options;
+	}
+
+	delete (docnames, done = null) {
 		frappe
 			.call({
 				method: 'frappe.desk.reportview.delete_items',
@@ -88,7 +149,7 @@ export default class BulkOperations {
 			});
 	}
 
-	assign(docnames, done) {
+	assign (docnames, done) {
 		if (docnames.length > 0) {
 			const assign_to = new frappe.ui.form.AssignToDialog({
 				obj: this,
@@ -106,7 +167,7 @@ export default class BulkOperations {
 		}
 	}
 
-	apply_assignment_rule(docnames, done) {
+	apply_assignment_rule (docnames, done) {
 		if (docnames.length > 0) {
 			frappe.call('frappe.automation.doctype.assignment_rule.assignment_rule.bulk_apply', {
 				doctype: this.doctype,
@@ -115,7 +176,7 @@ export default class BulkOperations {
 		}
 	}
 
-	submit_or_cancel(docnames, action='submit', done=null) {
+	submit_or_cancel (docnames, action = 'submit', done = null) {
 		action = action.toLowerCase();
 		frappe
 			.call({
@@ -140,7 +201,7 @@ export default class BulkOperations {
 			});
 	}
 
-	edit(docnames, field_mappings, done) {
+	edit (docnames, field_mappings, done) {
 		let field_options = Object.keys(field_mappings).sort();
 		const status_regex = /status/i;
 
@@ -198,16 +259,16 @@ export default class BulkOperations {
 
 		if (default_field) set_value_field(dialog); // to set `Value` df based on default `Field`
 
-		function set_value_field(dialogObj) {
+		function set_value_field (dialogObj) {
 			const new_df = Object.assign({},
 				field_mappings[dialogObj.get_value('field')]);
 			/* if the field label has status in it and
 			if it has select fieldtype with no default value then
 			set a default value from the available option. */
-			if(new_df.label.match(status_regex) &&
+			if (new_df.label.match(status_regex) &&
 				new_df.fieldtype === 'Select' && !new_df.default) {
 				let options = [];
-				if(typeof new_df.options==="string") {
+				if (typeof new_df.options === "string") {
 					options = new_df.options.split("\n");
 				}
 				//set second option as default if first option is an empty string
@@ -224,7 +285,7 @@ export default class BulkOperations {
 	}
 
 
-	add_tags(docnames, done) {
+	add_tags (docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __('Add Tags'),
 			fields: [
@@ -233,7 +294,7 @@ export default class BulkOperations {
 					fieldname: 'tags',
 					label: __("Tags"),
 					reqd: true,
-					get_data: function(txt) {
+					get_data: function (txt) {
 						return frappe.db.get_link_options("Tag", txt);
 					}
 				},

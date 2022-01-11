@@ -17,21 +17,15 @@ class UserProfile {
 	show() {
 		let route = frappe.get_route();
 		this.user_id = route[1] || frappe.session.user;
-
-		//validate if user
-		if (route.length > 1) {
-			frappe.dom.freeze(__('Loading user profile') + '...');
-			frappe.db.exists('User', this.user_id).then(exists => {
-				frappe.dom.unfreeze();
-				if (exists) {
-					this.make_user_profile();
-				} else {
-					frappe.msgprint(__('User does not exist'));
-				}
-			});
-		} else {
-			frappe.set_route('user-profile', frappe.session.user);
-		}
+		frappe.dom.freeze(__('Loading user profile') + '...');
+		frappe.db.exists('User', this.user_id).then(exists => {
+			frappe.dom.unfreeze();
+			if (exists) {
+				this.make_user_profile();
+			} else {
+				frappe.msgprint(__('User does not exist'));
+			}
+		});
 	}
 
 	make_user_profile() {
@@ -74,8 +68,7 @@ class UserProfile {
 			primary_action_label: __('Go'),
 			primary_action: ({ user }) => {
 				dialog.hide();
-				this.user_id = user;
-				this.make_user_profile();
+				frappe.set_route('user-profile', user);
 			}
 		});
 		dialog.show();

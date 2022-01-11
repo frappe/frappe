@@ -8,6 +8,8 @@
 @import "../common/flex";
 @import "../common/buttons";
 @import "../common/modal";
+@import "../desk/toast";
+@import "../common/css_variables.scss";
 @import "../common/indicator";
 @import "../common/controls";
 @import "../common/awesomeplete";
@@ -24,6 +26,7 @@
 @import 'doc';
 @import 'navbar';
 @import 'footer';
+@import 'error-state';
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -187,11 +190,14 @@ h5.modal-title {
 
 .btn-xs {
 	@extend .btn-sm;
+
 }
 
 .hidden-xs {
-	@extend .d-none;
-	@extend .d-sm-block;
+	@extend .d-block;
+	@include media-breakpoint-between(xs, sm) {
+		display: none !important;
+	}
 }
 
 .visible-xs {
@@ -212,6 +218,10 @@ h5.modal-title {
 
 .pull-right {
 	float: right;
+}
+
+.pull-left {
+	float: left;
 }
 
 .image-with-blur {
@@ -249,4 +259,15 @@ h5.modal-title {
 }
 .about-footer {
 	padding-top: 1rem;
+}
+
+.login-content.container {
+	background-color: var(--fg-color);
+	padding-bottom: 45px;
+	padding-top: 45px;
+	box-shadow: var(--shadow-base);
+	border-radius: var(--border-radius-md);
+	max-width: 400px;
+	margin: 70px auto;
+	font-size: $font-size-sm;
 }

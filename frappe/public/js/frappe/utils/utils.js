@@ -23,6 +23,15 @@ if (!Array.prototype.uniqBy) {
 	});
 }
 
+// Python's dict.setdefault ported for JS objects
+Object.defineProperty(Object.prototype, "setDefault", {
+	value: function(key, default_value) {
+		if (!(key in this)) this[key] = default_value;
+		return this[key];
+	},
+	writable: true
+});
+
 // Pluralize
 String.prototype.plural = function(revert) {
 	const plural = {
@@ -925,20 +934,36 @@ Object.assign(frappe.utils, {
 		// decodes base64 to string
 		let parts = dataURI.split(',');
 		const encoded_data = parts[1];
-		return decodeURIComponent(escape(atob(encoded_data)));
+		let decoded = atob(encoded_data);
+		try {
+			const escaped = escape(decoded);
+			decoded = decodeURIComponent(escaped);
+
+		} catch (e) {
+			// pass decodeURIComponent failure
+			// just return atob response
+		}
+		return decoded;
 	},
 	copy_to_clipboard(string) {
-		let input = $("<input>");
-		$("body").append(input);
-		input.val(string).select();
+		const show_success_alert = () => {
+			frappe.show_alert({
+				indicator: 'green',
+				message: __('Copied to clipboard.')
+			});
+		};
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(string).then(show_success_alert);
+		} else {
+			let input = $("<textarea>");
+			$("body").append(input);
+			input.val(string).select();
 
-		document.execCommand("copy");
-		input.remove();
+			document.execCommand("copy");
+			show_success_alert();
+			input.remove();
+		}
 
-		frappe.show_alert({
-			indicator: 'green',
-			message: __('Copied to clipboard.')
-		});
 	},
 	is_rtl(lang=null) {
 		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
@@ -1028,18 +1053,20 @@ Object.assign(frappe.utils, {
 		return duration;
 	},
 
-	seconds_to_duration(value, duration_options) {
-		let secs = value;
-		let total_duration = {
-			days: Math.floor(secs / (3600 * 24)),
-			hours: Math.floor(secs % (3600 * 24) / 3600),
-			minutes: Math.floor(secs % 3600 / 60),
-			seconds: Math.floor(secs % 60)
+	seconds_to_duration(seconds, duration_options) {
+		const round = seconds > 0 ? Math.floor : Math.ceil;
+		const total_duration = {
+			days: round(seconds / 86400), // 60 * 60 * 24
+			hours: round(seconds % 86400 / 3600),
+			minutes: round(seconds % 3600 / 60),
+			seconds: round(seconds % 60)
 		};
+
 		if (duration_options.hide_days) {
-			total_duration.hours = Math.floor(secs / 3600);
+			total_duration.hours = round(seconds / 3600);
 			total_duration.days = 0;
 		}
+
 		return total_duration;
 	},
 
@@ -1112,15 +1139,15 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	icon(icon_name, size="sm", icon_class="") {
+	icon(icon_name, size="sm", icon_class="", icon_style="", svg_class="") {
 		let size_class = "";
-		let icon_style = "";
+
 		if (typeof size == "object") {
-			icon_style = `width: ${size.width}; height: ${size.height}`;
+			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${size_class}" style="${icon_style}">
+		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
 	},
@@ -1321,5 +1348,12 @@ Object.assign(frappe.utils, {
 		let e = clipboard_paste_event;
 		let clipboard_data = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 		return clipboard_data.getData('Text');
+	},
+
+	parse_array(array) {
+		if (array && array.length !== 0) {
+			return array;
+		}
+		return undefined;
 	}
 });

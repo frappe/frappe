@@ -8,7 +8,12 @@ if (!window.frappe) window.frappe = {};
 function flt(v, decimals, number_format) {
 	if (v == null || v == '') return 0;
 
-	if (typeof v !== "number") {
+	if (!(typeof v === "number" || String(parseFloat(v)) == v)) {
+		// cases in which this block should not run
+		// 1. 'v' is already a number
+		// 2. v is already parsed but in string form
+		// if (typeof v !== "number") {
+
 		v = v + "";
 
 		// strip currency symbol if exists
@@ -25,6 +30,7 @@ function flt(v, decimals, number_format) {
 			v = 0;
 	}
 
+	v = parseFloat(v);
 	if (decimals != null)
 		return _round(v, decimals);
 	return v;

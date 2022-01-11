@@ -1,5 +1,4 @@
 html {
-	height: 100%;
 	background-color: var(--bg-color);
 }
 
@@ -122,6 +121,12 @@ pre {
 
 .hidden-lg {
 	@include media-breakpoint-up(md) {
+		display: none !important;
+	}
+}
+
+.hidden-xl {
+	@include media-breakpoint-up(lg) {
 		display: none !important;
 	}
 }

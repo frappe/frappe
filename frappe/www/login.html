@@ -154,11 +154,11 @@
 				</div>
 			</form>
 			{%- else -%}
-			<div class='page-card-head'>
+			<div class='page-card-head mb-2'>
 				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
+				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
+				<div><a href='/' class='btn btn-primary btn-md'>{{ _("Home") }}</a></div>
 			</div>
-			<p>{{_("Signups have been disabled for this website.")}}</p>
-			<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
 			{%- endif -%}
 		</div>
 

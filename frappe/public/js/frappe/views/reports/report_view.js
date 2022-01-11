@@ -105,8 +105,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_args() {
 		const args = super.get_args();
+		delete args.group_by;
 		this.group_by_control.set_args(args);
-
 		return args;
 	}
 
@@ -386,6 +386,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.$charts_wrapper.addClass('hidden');
 			this.save_view_user_settings(
 				{ chart_args: null });
+			this.chart_args = null;
 		}
 	}
 
@@ -1399,7 +1400,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					];
 
-					if (this.total_count > args.page_length) {
+					if (this.total_count > this.count_without_children || args.page_length) {
 						fields.push({
 							fieldtype: 'Check',
 							fieldname: 'export_all_rows',

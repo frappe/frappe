@@ -8,8 +8,7 @@ context('Form', () => {
 	});
 	it('create a new form', () => {
 		cy.visit('/app/todo/new');
-		cy.fill_field('description', 'this is a test todo', 'Text Editor');
-		cy.wait(300);
+		cy.get_field('description', 'Text Editor').type('this is a test todo', {force: true}).wait(200);
 		cy.get('.page-title').should('contain', 'Not Saved');
 		cy.intercept({
 			method: 'POST',
@@ -17,28 +16,34 @@ context('Form', () => {
 		}).as('form_save');
 		cy.get('.primary-action').click();
 		cy.wait('@form_save').its('response.statusCode').should('eq', 200);
+
 		cy.visit('/app/todo');
-		cy.get('.title-text').should('be.visible').and('contain', 'To Do');
+		cy.get('.page-head').findByTitle('To Do').should('exist');
 		cy.get('.list-row').should('contain', 'this is a test todo');
 	});
+
 	it('navigates between documents with child table list filters applied', () => {
 		cy.visit('/app/contact');
-		cy.add_filter();
-		cy.get('.filter-field .input-with-feedback.form-control').type('123', { force: true });
-		cy.get('.filter-popover .apply-filters').click({ force: true });
-		cy.visit('/app/contact/Test Form Contact 3');
+
+		cy.clear_filters();
+		cy.get('.standard-filter-section [data-fieldname="name"] input').type('Test Form Contact 3').blur();
+		cy.click_listview_row_item(0);
+
 		cy.get('.prev-doc').should('be.visible').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
 		cy.hide_dialog();
-		cy.get('.next-doc').click();
-		cy.wait(200);
+
+		cy.get('.next-doc').should('be.visible').click();
+		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
 		cy.hide_dialog();
-		cy.contains('Test Form Contact 2').should('not.exist');
-		cy.get('.title-text').should('contain', 'Test Form Contact 3');
+
+		cy.get('#page-Contact .page-head').findByTitle('Test Form Contact 3').should('exist');
+
 		// clear filters
 		cy.visit('/app/contact');
 		cy.clear_filters();
 	});
+
 	it('validates behaviour of Data options validations in child table', () => {
 		// test email validations for set_invalid controller
 		let website_input = 'website.in';

@@ -111,6 +111,7 @@ class Page(Document):
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				self.script = render_include(f.read())
+				self.script += f"\n\n//# sourceURL={page_name}.js"
 
 		# css
 		fpath = os.path.join(path, page_name + '.css')

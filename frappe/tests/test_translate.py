@@ -16,7 +16,9 @@ from frappe.utils import set_request
 dirname = os.path.dirname(__file__)
 translation_string_file = os.path.join(dirname, 'translation_test_file.txt')
 first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
-	frappe.get_all("Language", pluck="name"), k=5
+	# skip "en*" since it is a default language
+	frappe.get_all("Language", pluck="name", filters=[["name", "not like", "en%"]]),
+	k=5
 )
 
 class TestTranslate(unittest.TestCase):
@@ -65,11 +67,12 @@ class TestTranslate(unittest.TestCase):
 		Case 2: frappe.form_dict._lang is not set, but preferred_language cookie is
 		"""
 
-		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value=second_lang):
-			set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
+		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value='fr'):
+			set_request(method="POST", path="/", headers=[("Accept-Language", 'hr')])
 			return_val = get_language()
-
-		self.assertNotIn(return_val, [second_lang, get_parent_language(second_lang)])
+			# system default language
+			self.assertEqual(return_val, 'en')
+			self.assertNotIn(return_val, [second_lang, get_parent_language(second_lang)])
 
 	def test_guest_request_language_resolution_with_cookie(self):
 		"""Test for frappe.translate.get_language

@@ -54,9 +54,8 @@
 		if (!window.frappe) window.frappe = {};
 
 		frappe.boot = {{ boot }};
-
+		frappe._messages = frappe.boot["__messages"];
 		frappe.csrf_token = "{{ csrf_token }}";
-
 	</script>
 
 	{% for include in include_js %}
@@ -67,14 +66,14 @@
 
 	{% for sound in (sounds or []) %}
 	<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>
-		<source src="{{ sound.src }}">
-		</source>
+		<source src="{{ sound.src }}"></source>
 	</audio>
 	{% endfor %}
 
 	<script
 		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzohjFMFhN0UvCtciHQ8BDxCxiyocT7K8&callback=initMap&libraries=drawing,places&v=weekly&channel=2"
-		async></script>
+		async>
+	</script>
 </body>
 
 </html>

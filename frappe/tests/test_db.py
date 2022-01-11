@@ -14,6 +14,8 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
 
+from .test_query_builder import run_only_if, db_type_is
+
 
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
@@ -75,7 +77,7 @@ class TestDB(unittest.TestCase):
 			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
 			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
-		#teardown 
+		#teardown
 		clear_custom_fields("Print Settings")
 
 	def test_log_touched_tables(self):
@@ -148,7 +150,7 @@ class TestDB(unittest.TestCase):
 
 		# Create documents under that doctype and query them via ORM
 		for _ in range(10):
-			docfields = { key.lower(): random_string(10) for key in fields }
+			docfields = {key.lower(): random_string(10) for key in fields}
 			doc = frappe.get_doc({"doctype": test_doctype, "description": random_string(20), **docfields})
 			doc.insert()
 			created_docs.append(doc.name)
@@ -191,3 +193,119 @@ class TestDB(unittest.TestCase):
 		for doc in created_docs:
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
+
+	def test_savepoints(self):
+		frappe.db.rollback()
+		save_point = "todonope"
+
+		created_docs = []
+		failed_docs = []
+
+		for _ in range(5):
+			frappe.db.savepoint(save_point)
+			doc_gone = frappe.get_doc(doctype="ToDo", description="nope").save()
+			failed_docs.append(doc_gone.name)
+			frappe.db.rollback(save_point=save_point)
+			doc_kept = frappe.get_doc(doctype="ToDo", description="nope").save()
+			created_docs.append(doc_kept.name)
+		frappe.db.commit()
+
+		for d in failed_docs:
+			self.assertFalse(frappe.db.exists("ToDo", d))
+		for d in created_docs:
+			self.assertTrue(frappe.db.exists("ToDo", d))
+
+@run_only_if(db_type_is.MARIADB)
+class TestDDLCommandsMaria(unittest.TestCase):
+	test_table_name = "TestNotes"
+
+	def setUp(self) -> None:
+		frappe.db.commit()
+		frappe.db.sql(
+			f"""
+			CREATE TABLE `tab{self.test_table_name}` (`id` INT NULL,PRIMARY KEY (`id`));
+			"""
+		)
+
+	def tearDown(self) -> None:
+		frappe.db.sql(f"DROP TABLE tab{self.test_table_name};")
+		self.test_table_name = "TestNotes"
+
+	def test_rename(self) -> None:
+		new_table_name = f"{self.test_table_name}_new"
+		frappe.db.rename_table(self.test_table_name, new_table_name)
+		check_exists = frappe.db.sql(
+			f"""
+			SELECT * FROM INFORMATION_SCHEMA.TABLES
+			WHERE TABLE_NAME = N'tab{new_table_name}';
+			"""
+		)
+		self.assertGreater(len(check_exists), 0)
+		self.assertIn(f"tab{new_table_name}", check_exists[0])
+
+		# * so this table is deleted after the rename
+		self.test_table_name = new_table_name
+
+	def test_describe(self) -> None:
+		self.assertEqual(
+			(("id", "int(11)", "NO", "PRI", None, ""),),
+			frappe.db.describe(self.test_table_name),
+		)
+
+	def test_change_type(self) -> None:
+		frappe.db.change_column_type("TestNotes", "id", "varchar(255)")
+		test_table_description = frappe.db.sql(f"DESC tab{self.test_table_name};")
+		self.assertGreater(len(test_table_description), 0)
+		self.assertIn("varchar(255)", test_table_description[0])
+
+
+@run_only_if(db_type_is.POSTGRES)
+class TestDDLCommandsPost(unittest.TestCase):
+	test_table_name = "TestNotes"
+
+	def setUp(self) -> None:
+		frappe.db.sql(
+			f"""
+			CREATE TABLE "tab{self.test_table_name}" ("id" INT NULL,PRIMARY KEY ("id"))
+			"""
+		)
+
+	def tearDown(self) -> None:
+		frappe.db.sql(f'DROP TABLE "tab{self.test_table_name}"')
+		self.test_table_name = "TestNotes"
+
+	def test_rename(self) -> None:
+		new_table_name = f"{self.test_table_name}_new"
+		frappe.db.rename_table(self.test_table_name, new_table_name)
+		check_exists = frappe.db.sql(
+			f"""
+			SELECT EXISTS (
+			SELECT FROM information_schema.tables
+			WHERE  table_name = 'tab{new_table_name}'
+			);
+			"""
+		)
+		self.assertTrue(check_exists[0][0])
+
+		# * so this table is deleted after the rename
+		self.test_table_name = new_table_name
+
+	def test_describe(self) -> None:
+		self.assertEqual([("id",)], frappe.db.describe(self.test_table_name))
+
+	def test_change_type(self) -> None:
+		frappe.db.change_column_type(self.test_table_name, "id", "varchar(255)")
+		check_change = frappe.db.sql(
+			f"""
+			SELECT
+				table_name,
+				column_name,
+				data_type
+			FROM
+				information_schema.columns
+			WHERE
+				table_name = 'tab{self.test_table_name}'
+			"""
+		)
+		self.assertGreater(len(check_change), 0)
+		self.assertIn("character varying", check_change[0])

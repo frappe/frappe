@@ -13,7 +13,7 @@ import glob
 # imports - module imports
 import frappe
 import frappe.recorder
-from frappe.installer import add_to_installed_apps
+from frappe.installer import add_to_installed_apps, remove_app
 from frappe.utils import add_to_date, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
@@ -436,3 +436,50 @@ class TestCommands(BaseTestCommands):
 		
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
+
+
+class RemoveAppUnitTests(unittest.TestCase):
+	def test_delete_modules(self):
+		from frappe.installer import (
+				_delete_doctypes,
+				_delete_modules,
+				_get_module_linked_doctype_field_map,
+		)
+
+		test_module = frappe.new_doc("Module Def")
+
+		test_module.update({"module_name": "RemoveThis", "app_name": "frappe"})
+		test_module.save()
+
+		module_def_linked_doctype = frappe.get_doc({
+			"doctype": "DocType",
+			"name": "Doctype linked with module def",
+			"module": "RemoveThis",
+			"custom": 1,
+			"fields": [{
+				"label": "Modulen't",
+				"fieldname": "notmodule",
+				"fieldtype": "Link",
+				"options": "Module Def"
+			}]
+		}).insert()
+
+		doctype_to_link_field_map = _get_module_linked_doctype_field_map()
+
+		self.assertIn("Report", doctype_to_link_field_map)
+		self.assertIn(module_def_linked_doctype.name, doctype_to_link_field_map)
+		self.assertEqual(doctype_to_link_field_map[module_def_linked_doctype.name], "notmodule")
+		self.assertNotIn("DocType", doctype_to_link_field_map)
+
+		doctypes_to_delete = _delete_modules([test_module.module_name], dry_run=False)
+		self.assertEqual(len(doctypes_to_delete), 1)
+
+		_delete_doctypes(doctypes_to_delete, dry_run=False)
+		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
+		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
+
+	def test_dry_run(self):
+		"""Check if dry run in not destructive."""
+
+		# nothing to assert, if this fails rest of the test suite will crumble.
+		remove_app("frappe", dry_run=True, yes=True, no_backup=True)

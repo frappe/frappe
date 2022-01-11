@@ -21,6 +21,9 @@ class WebsiteSearch(FullTextSearch):
 			title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
 		)
 
+	def get_fields_to_search(self):
+		return ["title", "content"]
+
 	def get_id(self):
 		return "path"
 

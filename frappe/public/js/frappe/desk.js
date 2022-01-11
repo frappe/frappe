@@ -230,7 +230,7 @@ frappe.Application = Class.extend({
 			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
 			s.show();
 			frappe.call({
-				method: 'frappe.core.doctype.user.user.set_email_password',
+				method: 'frappe.email.doctype.email_account.email_account.set_email_password',
 				args: {
 					"email_account": email_account[i]["email_account"],
 					"user": user,
@@ -258,7 +258,6 @@ frappe.Application = Class.extend({
 		if(frappe.boot) {
 			this.setup_workspaces();
 			frappe.model.sync(frappe.boot.docs);
-			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
@@ -521,6 +520,8 @@ frappe.Application = Class.extend({
 	},
 
 	show_update_available: () => {
+		if (frappe.boot.sysdefaults.disable_system_update_notification) return;
+
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
 		});

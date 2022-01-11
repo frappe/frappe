@@ -34,11 +34,18 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 
 	return docname
 
-def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True):
-	"""
-		Renames a doc(dt, old) to doc(dt, new) and
-		updates all linked fields of type "Link"
-	"""
+def rename_doc(
+	doctype,
+	old,
+	new,
+	force=False,
+	merge=False,
+	ignore_permissions=False,
+	ignore_if_exists=False,
+	show_alert=True,
+	rebuild_search=True
+):
+	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
 	if not frappe.db.exists(doctype, old):
 		return
 
@@ -80,6 +87,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	rename_versions(doctype, old, new)
 
+	rename_eps_records(doctype, old, new)
+
 	# call after_rename
 	new_doc = frappe.get_doc(doctype, new)
 
@@ -104,7 +113,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		frappe.delete_doc(doctype, old)
 
 	frappe.clear_cache()
-	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+	if rebuild_search:
+		frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 
 	if show_alert:
 		frappe.msgprint(_('Document renamed from {0} to {1}').format(bold(old), bold(new)), alert=True, indicator='green')
@@ -178,6 +188,16 @@ def update_attachments(doctype, old, new):
 def rename_versions(doctype, old, new):
 	frappe.db.sql("""UPDATE `tabVersion` SET `docname`=%s WHERE `ref_doctype`=%s AND `docname`=%s""",
 		(new, doctype, old))
+
+def rename_eps_records(doctype, old, new):
+	epl = frappe.qb.DocType("Energy Point Log")
+	(frappe.qb.update(epl)
+		.set(epl.reference_name, new)
+		.where(
+			(epl.reference_doctype == doctype)
+			& (epl.reference_name == old)
+		)
+	).run()
 
 def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
@@ -475,7 +495,7 @@ def bulk_rename(doctype, rows=None, via_console = False):
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
 			try:
-				if rename_doc(doctype, row[0], row[1]):
+				if rename_doc(doctype, row[0], row[1], rebuild_search=False):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])
 					frappe.db.commit()
 				else:

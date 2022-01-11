@@ -278,7 +278,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	refresh(refresh_header=false) {
 		super.refresh().then(() => {
 			this.render_header(refresh_header);
+			this.update_checkbox();
 		});
+	}
+
+	update_checkbox(target) {
+		if (!this.$checkbox_actions) return;
+
+		let $check_all_checkbox = this.$checkbox_actions.find(".list-check-all");
+
+		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
+			$check_all_checkbox.prop("checked", false); 
+		}
+
+		$check_all_checkbox.prop("checked", this.$checks.length === this.data.length);
 	}
 
 	setup_freeze_area() {
@@ -367,6 +380,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			!this.settings.hide_name_column &&
+			this.meta.title_field &&
 			this.meta.title_field !== 'name'
 		) {
 			this.columns.push({
@@ -547,6 +561,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	render() {
 		this.render_list();
+		this.set_rows_as_checked();
 		this.on_row_checked();
 		this.render_count();
 	}
@@ -582,9 +597,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const subject_field = this.columns[0].df;
 		let subject_html = `
-			<input class="level-item list-check-all hidden-xs" type="checkbox"
+			<input class="level-item list-check-all" type="checkbox"
 				title="${__("Select All")}">
-			<span class="level-item list-liked-by-me">
+			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Likes")}">${frappe.utils.icon('heart', 'sm', 'like-icon')}</span>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
@@ -621,7 +636,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
-						<input class="level-item list-check-all hidden-xs" type="checkbox"
+						<input class="level-item list-check-all" type="checkbox"
 							title="${__("Select All")}">
 						<span class="level-item list-header-meta"></span>
 					</div>
@@ -867,8 +882,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			filters: this.get_filters_for_args()
 		}).then(total_count => {
 			this.total_count = total_count || current_count;
+			this.count_without_children = count_without_children !== current_count ? count_without_children : undefined;
 			let str = __('{0} of {1}', [current_count, this.total_count]);
-			if (count_without_children !== current_count) {
+			if (this.count_without_children) {
 				str = __('{0} of {1} ({2} rows with children)', [count_without_children, this.total_count, current_count]);
 			}
 			return str;
@@ -928,9 +944,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let subject_html = `
 			<span class="level-item select-like">
-				<input class="list-row-checkbox hidden-xs" type="checkbox"
+				<input class="list-row-checkbox" type="checkbox"
 					data-name="${escape(doc.name)}">
-				<span class="list-row-like style="margin-bottom: 1px;">
+				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
 					${this.get_like_html(doc)}
 				</span>
 			</span>
@@ -1130,6 +1146,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (
 				$target.hasClass("filterable") ||
 				$target.hasClass("select-like") ||
+				$target.hasClass("file-select") ||
 				$target.hasClass("list-row-like") ||
 				$target.is(":checkbox")
 			) {
@@ -1218,6 +1235,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.$checkbox_cursor = $target;
+
+			this.update_checkbox($target);
 		});
 	}
 
@@ -1363,6 +1382,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$checkbox_actions.show();
 			this.$list_head_subject.hide();
 		}
+		this.update_checkbox();
 		this.toggle_actions_menu_button(this.$checks.length > 0);
 	}
 
@@ -1844,12 +1864,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = data.doctype;
 		if (!doctype) return;
 		frappe.provide("frappe.views.trees");
-
-		// refresh tree view
-		if (frappe.views.trees[doctype]) {
-			frappe.views.trees[doctype].tree.refresh();
-			return;
-		}
 
 		// refresh list view
 		const page_name = frappe.get_route_str();

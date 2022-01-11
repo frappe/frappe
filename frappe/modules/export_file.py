@@ -26,13 +26,7 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 	newdoc = doc.as_dict(no_nulls=True)
 	doc.run_method("before_export", newdoc)
 
-	# strip out default fields from children
-	for df in doc.meta.get_table_fields():
-		for d in newdoc.get(df.fieldname):
-			for fieldname in frappe.model.default_fields:
-				if fieldname in d:
-					del d[fieldname]
-
+	newdoc = strip_default_fields(doc, newdoc)
 	module = record_module or get_module_name(doc)
 
 	# create folder
@@ -43,8 +37,21 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 
 	# write the data file
 	fname = scrub(doc.name)
-	with open(os.path.join(folder, fname + ".json"), 'w+') as txtfile:
+	with open(os.path.join(folder, f"{fname}.json"), 'w+') as txtfile:
 		txtfile.write(frappe.as_json(newdoc))
+
+def strip_default_fields(doc, newdoc):
+	# strip out default fields from children
+	if doc.doctype == "DocType" and doc.migration_hash:
+		del newdoc["migration_hash"]
+
+	for df in doc.meta.get_table_fields():
+		for d in newdoc.get(df.fieldname):
+			for fieldname in frappe.model.default_fields:
+				if fieldname in d:
+					del d[fieldname]
+
+	return newdoc
 
 def get_module_name(doc):
 	if doc.doctype  == 'Module Def':

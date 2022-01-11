@@ -7,6 +7,7 @@ from six import iteritems, string_types
 
 """build query for doclistview and return results"""
 
+from typing import List
 import frappe.defaults
 import frappe.share
 from frappe import _
@@ -38,7 +39,7 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		return_query=False, strict=True, pluck=None, ignore_ddl=False):
+		return_query=False, strict=True, pluck=None, ignore_ddl=False) -> List:
 		if not ignore_permissions and \
 			not frappe.has_permission(self.doctype, "select", user=user) and \
 			not frappe.has_permission(self.doctype, "read", user=user):
@@ -588,10 +589,12 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			#if has if_owner permission skip user perm check
-			if role_permissions.get("has_if_owner_enabled") and role_permissions.get("if_owner", {}):
-				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
-					frappe.db.escape(self.user, percent=False)))
+			# skip user perm check if owner constraint is required
+			if requires_owner_constraint(role_permissions):
+				self.match_conditions.append(
+					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
+				)
+
 			# add user permission only if role has read perm
 			elif role_permissions.get("read") or role_permissions.get("select"):
 				# get user permissions
@@ -896,3 +899,22 @@ def get_date_range(operator, value):
 	timespan = period_map[operator] + ' ' + timespan_map[value] if operator != 'timespan' else value
 
 	return get_timespan_date_range(timespan)
+
+def requires_owner_constraint(role_permissions):
+	"""Returns True if "select" or "read" isn't available without being creator."""
+
+	if not role_permissions.get("has_if_owner_enabled"):
+		return
+
+	if_owner_perms = role_permissions.get("if_owner")
+	if not if_owner_perms:
+		return
+
+	# has select or read without if owner, no need for constraint
+	for perm_type in ("select", "read"):
+		if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
+			return
+
+	# not checking if either select or read if present in if_owner_perms
+	# because either of those is required to perform a query
+	return True

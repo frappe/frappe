@@ -1,3 +1,5 @@
+from typing import List, Tuple, Union
+
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
 from pymysql.converters import conversions, escape_string
@@ -5,7 +7,7 @@ from pymysql.converters import conversions, escape_string
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime
+from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
 
 class MariaDBDatabase(Database):
@@ -20,11 +22,11 @@ class MariaDBDatabase(Database):
 	def setup_type_map(self):
 		self.db_type = 'mariadb'
 		self.type_map = {
-			'Currency':		('decimal', '18,6'),
+			'Currency':		('decimal', '21,9'),
 			'Int':			('int', '11'),
 			'Long Int':		('bigint', '20'),
-			'Float':		('decimal', '18,6'),
-			'Percent':		('decimal', '18,6'),
+			'Float':		('decimal', '21,9'),
+			'Percent':		('decimal', '21,9'),
 			'Check':		('int', '1'),
 			'Small Text':	('text', ''),
 			'Long Text':	('longtext', ''),
@@ -49,8 +51,9 @@ class MariaDBDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('longtext', ''),
 			'Geolocation':	('longtext', ''),
-			'Duration':		('decimal', '18,6'),
-			'Googlemaps' :  ('longtext', '')
+			'Googlemaps' :  ('longtext', ''),
+			'Duration':		('decimal', '21,9'),
+			'Icon':			('varchar', self.VARCHAR_LEN)
 		}
 
 	def get_connection(self):
@@ -123,6 +126,19 @@ class MariaDBDatabase(Database):
 	@staticmethod
 	def is_type_datetime(code):
 		return code in (pymysql.DATE, pymysql.DATETIME)
+
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+		old_name = get_table_name(old_name)
+		new_name = get_table_name(new_name)
+		return self.sql(f"RENAME TABLE `{old_name}` TO `{new_name}`")
+
+	def describe(self, doctype: str) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		return self.sql(f"DESC `{table_name}`")
+
+	def change_column_type(self, table: str, column: str, type: str) -> Union[List, Tuple]:
+		table_name = get_table_name(table)
+		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
 
 	# exception types
 	@staticmethod

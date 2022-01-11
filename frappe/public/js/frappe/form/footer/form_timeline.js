@@ -136,6 +136,7 @@ class FormTimeline extends BaseTimeline {
 			this.timeline_items.push(...this.get_energy_point_timeline_contents());
 			this.timeline_items.push(...this.get_version_timeline_contents());
 			this.timeline_items.push(...this.get_share_timeline_contents());
+			this.timeline_items.push(...this.get_workflow_timeline_contents());
 			this.timeline_items.push(...this.get_like_timeline_contents());
 			this.timeline_items.push(...this.get_custom_timeline_contents());
 			this.timeline_items.push(...this.get_assignment_timeline_contents());
@@ -146,7 +147,9 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_user_link(user) {
-		const user_display_text = (frappe.user_info(user).fullname || '').bold();
+		const user_display_text = (
+			(frappe.session.user == user ? __("You") : frappe.user_info(user).fullname) || ''
+		).bold();
 		return frappe.utils.get_form_link('User', user, true, user_display_text);
 	}
 
@@ -168,9 +171,11 @@ class FormTimeline extends BaseTimeline {
 
 	get_communication_timeline_contents() {
 		let communication_timeline_contents = [];
+		let icon_set = {Email: "mail", Phone: "call", Meeting: "calendar", Other: "dot-horizontal"};
 		(this.doc_info.communications|| []).forEach(communication => {
+			let medium = communication.communication_medium;
 			communication_timeline_contents.push({
-				icon: 'mail',
+				icon: icon_set[medium],
 				icon_size: 'sm',
 				creation: communication.creation,
 				is_card: true,
@@ -296,7 +301,7 @@ class FormTimeline extends BaseTimeline {
 		(this.doc_info.info_logs || []).forEach(info_log => {
 			info_timeline_contents.push({
 				creation: info_log.creation,
-				content: `${this.get_user_link(info_log.comment_email)} ${info_log.content}`,
+				content: `${this.get_user_link(info_log.owner)} ${info_log.content}`,
 			});
 		});
 		return info_timeline_contents;
@@ -339,9 +344,24 @@ class FormTimeline extends BaseTimeline {
 				icon_size: 'sm',
 				creation: like_log.creation,
 				content: __('{0} Liked', [this.get_user_link(like_log.owner)]),
+				title: "Like",
 			});
 		});
 		return like_timeline_contents;
+	}
+
+	get_workflow_timeline_contents() {
+		let workflow_timeline_contents = [];
+		(this.doc_info.workflow_logs || []).forEach(workflow_log => {
+			workflow_timeline_contents.push({
+				icon: 'branch',
+				icon_size: 'sm',
+				creation: workflow_log.creation,
+				content: `${this.get_user_link(workflow_log.owner)} ${__(workflow_log.content)}`,
+				title: "Workflow",
+			});
+		});
+		return workflow_timeline_contents;
 	}
 
 	get_custom_timeline_contents() {

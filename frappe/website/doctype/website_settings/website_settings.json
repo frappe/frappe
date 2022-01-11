@@ -56,19 +56,14 @@
   "google_analytics_id",
   "google_analytics_anonymize_ip",
   "misc_section",
-  "subdomain",
+  "app_name",
+  "app_logo",
   "disable_signup",
   "section_break_38",
+  "subdomain",
   "head_html",
   "robots_txt",
-  "route_redirects",
-  "section_break_39",
-  "chat_enable",
-  "chat_enable_from",
-  "chat_enable_to",
-  "chat_room_name",
-  "chat_welcome_message",
-  "chat_operators"
+  "route_redirects"
  ],
  "fields": [
   {
@@ -224,7 +219,7 @@
    "collapsible": 1,
    "fieldname": "misc_section",
    "fieldtype": "Section Break",
-   "label": "Disable Signup"
+   "label": "Login Page"
   },
   {
    "description": "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]",
@@ -235,7 +230,7 @@
   {
    "description": "Sub-domain provided by erpnext.com",
    "fieldname": "subdomain",
-   "fieldtype": "Text",
+   "fieldtype": "Small Text",
    "label": "Subdomain",
    "read_only": 1
   },
@@ -263,51 +258,6 @@
    "fieldname": "robots_txt",
    "fieldtype": "Code",
    "label": "Robots.txt"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_39",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "0",
-   "fieldname": "chat_enable",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
-  },
-  {
-   "depends_on": "chat_enable",
-   "fieldname": "chat_enable_from",
-   "fieldtype": "Time",
-   "label": "From"
-  },
-  {
-   "depends_on": "chat_enable",
-   "fieldname": "chat_enable_to",
-   "fieldtype": "Time",
-   "label": "To"
-  },
-  {
-   "default": "Support",
-   "depends_on": "chat_enable",
-   "fieldname": "chat_room_name",
-   "fieldtype": "Data",
-   "label": "Chat Room Name"
-  },
-  {
-   "default": "Hi, how may I help you?",
-   "depends_on": "chat_enable",
-   "fieldname": "chat_welcome_message",
-   "fieldtype": "Data",
-   "label": "Welcome Message"
-  },
-  {
-   "depends_on": "chat_enable",
-   "fieldname": "chat_operators",
-   "fieldtype": "Table",
-   "label": "Chat Operators",
-   "options": "Chat Room User"
   },
   {
    "fieldname": "route_redirects",
@@ -425,6 +375,17 @@
    "fieldname": "navbar_template_section",
    "fieldtype": "Section Break",
    "label": "Navbar Template"
+  },
+  {
+   "default": "Frappe",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
+  },
+  {
+   "fieldname": "app_logo",
+   "fieldtype": "Attach Image",
+   "label": "App Logo"
   }
  ],
  "icon": "fa fa-cog",
@@ -433,7 +394,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2021-07-15 17:39:56.609771",
+ "modified": "2021-08-23 21:39:51.702248",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

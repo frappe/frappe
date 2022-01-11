@@ -146,8 +146,8 @@ def upload_file():
 	file_url = frappe.form_dict.file_url
 	folder = frappe.form_dict.folder or 'Home'
 	method = frappe.form_dict.method
+	filename = frappe.form_dict.file_name
 	content = None
-	filename = None
 
 	if 'file' in files:
 		file = files['file']
@@ -157,7 +157,7 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
+	if not file_url and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
 		import mimetypes
 		filetype = mimetypes.guess_type(filename)[0]
 		if filetype not in ALLOWED_MIMETYPES:
@@ -211,7 +211,10 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc = frappe.get_doc(dt, dn)
 
 	else:
-		doc = frappe.get_doc(json.loads(docs))
+		if isinstance(docs, str):
+			docs = json.loads(docs)
+
+		doc = frappe.get_doc(docs)
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
@@ -245,7 +248,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	# build output as csv
 	if cint(frappe.form_dict.get('as_csv')):
-		build_csv_response(response, doc.doctype.replace(' ', ''))
+		build_csv_response(response, _(doc.doctype).replace(' ', ''))
 		return
 
 	frappe.response['message'] = response

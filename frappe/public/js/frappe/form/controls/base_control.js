@@ -131,7 +131,7 @@ frappe.ui.form.Control = Class.extend({
 				if (!this.doc.__islocal) {
 					new frappe.views.TranslationManager({
 						'df': this.df,
-						'source_text': value,
+						'source_text': this.value,
 						'target_language': this.doc.language,
 						'doc': this.doc
 					});
@@ -167,10 +167,12 @@ frappe.ui.form.Control = Class.extend({
 		}
 
 		this.inside_change_event = true;
-		var set = function(value) {
+		function set(value) {
 			me.inside_change_event = false;
 			return frappe.run_serially([
+				() => me._validated = true,
 				() => me.set_model_value(value),
+				() => delete me._validated,
 				() => {
 					me.set_mandatory && me.set_mandatory(value);
 

@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 import os
 import re
 import json
 import shutil
+from subprocess import getoutput
 from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
 
@@ -15,12 +15,20 @@ import click
 import psutil
 from urllib.parse import urlparse
 from simple_chalk import green
+from requests import head
+from requests.exceptions import HTTPError
 
 
 timestamps = {}
 app_paths = None
 sites_path = os.path.abspath(os.getcwd())
 
+
+class AssetsNotDownloadedError(Exception):
+	pass
+
+class AssetsDontExistError(HTTPError):
+	pass
 
 def download_file(url, prefix):
 	from requests import get
@@ -67,26 +75,61 @@ def build_missing_files():
 		check_call(command, cwd=os.path.join("..", "apps", "frappe"))
 
 
-def get_assets_link(frappe_head):
-	from subprocess import getoutput
-	from requests import head
-
+def get_assets_link(frappe_head) -> str:
 	tag = getoutput(
-			r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
-			r" refs/tags/,,' -e 's/\^{}//'"
-			% frappe_head
-		)
+		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
+		r" refs/tags/,,' -e 's/\^{}//'"
+		% frappe_head
+	)
 
 	if tag:
 		# if tag exists, download assets from github release
-		url = "https://github.com/frappe/frappe/releases/download/{0}/assets.tar.gz".format(tag)
+		url = f"https://github.com/frappe/frappe/releases/download/{tag}/assets.tar.gz"
 	else:
-		url = "http://assets.frappeframework.com/{0}.tar.gz".format(frappe_head)
+		url = f"http://assets.frappeframework.com/{frappe_head}.tar.gz"
 
 	if not head(url):
-		raise ValueError("URL {0} doesn't exist".format(url))
+		reference = f"Release {tag}" if tag else f"Commit {frappe_head}"
+		raise AssetsDontExistError(f"Assets for {reference} don't exist")
 
 	return url
+
+
+def fetch_assets(url, frappe_head):
+	click.secho("Retrieving assets...", fg="yellow")
+
+	prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
+	assets_archive = download_file(url, prefix)
+
+	if not assets_archive:
+		raise AssetsNotDownloadedError(f"Assets could not be retrived from {url}")
+
+	print(f"\n{green('✔')} Downloaded Frappe assets from {url}")
+
+	return assets_archive
+
+
+def setup_assets(assets_archive):
+	import tarfile
+	directories_created = set()
+
+	click.secho("\nExtracting assets...\n", fg="yellow")
+	with tarfile.open(assets_archive) as tar:
+		for file in tar:
+			if not file.isdir():
+				dest = "." + file.name.replace("./frappe-bench/sites", "")
+				asset_directory = os.path.dirname(dest)
+				show = dest.replace("./assets/", "")
+
+				if asset_directory not in directories_created:
+					if not os.path.exists(asset_directory):
+						os.makedirs(asset_directory, exist_ok=True)
+					directories_created.add(asset_directory)
+
+				tar.makefile(file, dest)
+				print("{0} Restored {1}".format(green('✔'), show))
+
+	return directories_created
 
 
 def download_frappe_assets(verbose=True):
@@ -94,54 +137,32 @@ def download_frappe_assets(verbose=True):
 	commit HEAD.
 	Returns True if correctly setup else returns False.
 	"""
-	from subprocess import getoutput
-
-	assets_setup = False
 	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
 
-	if frappe_head:
+	if not frappe_head:
+		return False
+
+	try:
+		url = get_assets_link(frappe_head)
+		assets_archive = fetch_assets(url, frappe_head)
+		setup_assets(assets_archive)
+		build_missing_files()
+		return True
+
+	except AssetsDontExistError as e:
+		click.secho(str(e), fg="yellow")
+
+	except Exception as e:
+		# TODO: log traceback in bench.log
+		click.secho(str(e), fg="red")
+
+	finally:
 		try:
-			url = get_assets_link(frappe_head)
-			click.secho("Retrieving assets...", fg="yellow")
-			prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
-			assets_archive = download_file(url, prefix)
-			print("\n{0} Downloaded Frappe assets from {1}".format(green('✔'), url))
-
-			if assets_archive:
-				import tarfile
-				directories_created = set()
-
-				click.secho("\nExtracting assets...\n", fg="yellow")
-				with tarfile.open(assets_archive) as tar:
-					for file in tar:
-						if not file.isdir():
-							dest = "." + file.name.replace("./frappe-bench/sites", "")
-							asset_directory = os.path.dirname(dest)
-							show = dest.replace("./assets/", "")
-
-							if asset_directory not in directories_created:
-								if not os.path.exists(asset_directory):
-									os.makedirs(asset_directory, exist_ok=True)
-								directories_created.add(asset_directory)
-
-							tar.makefile(file, dest)
-							print("{0} Restored {1}".format(green('✔'), show))
-
-				build_missing_files()
-				return True
-			else:
-				raise
+			shutil.rmtree(os.path.dirname(assets_archive))
 		except Exception:
-			# TODO: log traceback in bench.log
-			click.secho("An Error occurred while downloading assets...", fg="red")
-			assets_setup = False
-		finally:
-			try:
-				shutil.rmtree(os.path.dirname(assets_archive))
-			except Exception:
-				pass
+			pass
 
-	return assets_setup
+	return False
 
 
 def symlink(target, link_name, overwrite=False):
@@ -224,7 +245,7 @@ def bundle(no_compress, app=None, hard_link=False, verbose=False, skip_frappe=Fa
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
 def watch(no_compress):

@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.form.assign_to import add as assign_task
 import unittest
 
@@ -56,7 +57,4 @@ def get_todo():
 	return frappe.get_cached_doc('ToDo', res[0].name)
 
 def get_user():
-	users = frappe.db.get_all('User',
-		filters={'name': ('not in', ['Administrator', 'Guest'])},
-		fields='name', limit=1)
-	return users[0].name
+	return get_system_users(limit=1)[0]

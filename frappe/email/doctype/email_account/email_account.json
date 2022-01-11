@@ -7,30 +7,34 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "account_section",
   "email_id",
-  "login_id_is_different",
-  "login_id",
+  "email_account_name",
+  "column_break_3",
+  "domain",
+  "service",
+  "authentication_column",
   "password",
   "awaiting_password",
   "ascii_encode_password",
-  "email_account_name",
-  "email_settings",
-  "domain",
-  "service",
+  "column_break_10",
+  "login_id_is_different",
+  "login_id",
   "mailbox_settings",
   "enable_incoming",
-  "use_imap",
-  "email_server",
-  "use_ssl",
-  "append_emails_to_sent_folder",
-  "incoming_port",
-  "attachment_limit",
-  "append_to",
   "default_incoming",
+  "use_imap",
+  "use_ssl",
+  "email_server",
+  "incoming_port",
+  "column_break_18",
+  "attachment_limit",
   "email_sync_option",
   "initial_sync_count",
-  "create_contact",
   "section_break_12",
+  "append_emails_to_sent_folder",
+  "append_to",
+  "create_contact",
   "enable_automatic_linking",
   "section_break_13",
   "notify_if_unreplied",
@@ -42,6 +46,7 @@
   "use_tls",
   "use_ssl_for_outgoing",
   "smtp_port",
+  "column_break_38",
   "default_outgoing",
   "always_use_account_email_id_as_sender",
   "always_use_account_name_as_sender_name",
@@ -80,7 +85,7 @@
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Use Different Email Login ID"
+   "label": "Use different login"
   },
   {
    "depends_on": "login_id_is_different",
@@ -123,12 +128,6 @@
    "unique": 1
   },
   {
-   "fieldname": "email_settings",
-   "fieldtype": "Section Break",
-   "hide_days": 1,
-   "hide_seconds": 1
-  },
-  {
    "depends_on": "eval:!doc.service",
    "fieldname": "domain",
    "fieldtype": "Link",
@@ -136,7 +135,7 @@
    "hide_seconds": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Domain",
+   "label": "Domain (optional)",
    "options": "Email Domain"
   },
   {
@@ -145,18 +144,18 @@
    "fieldtype": "Select",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Service",
+   "label": "Service (optional)",
    "options": "\nGMail\nSendgrid\nSparkPost\nYahoo Mail\nOutlook.com\nYandex.Mail"
   },
   {
    "fieldname": "mailbox_settings",
    "fieldtype": "Section Break",
    "hide_days": 1,
-   "hide_seconds": 1
+   "hide_seconds": 1,
+   "label": "Incoming (POP/IMAP) Settings"
   },
   {
    "default": "0",
-   "description": "Check this to pull emails from your mailbox",
    "fieldname": "enable_incoming",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -227,7 +226,7 @@
   },
   {
    "default": "UNSEEN",
-   "depends_on": "eval: doc.enable_incoming",
+   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
    "fieldname": "email_sync_option",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -237,6 +236,7 @@
   },
   {
    "default": "250",
+   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
    "description": "Total number of emails to sync in initial sync process ",
    "fieldname": "initial_sync_count",
    "fieldtype": "Select",
@@ -248,7 +248,7 @@
   {
    "depends_on": "enable_incoming",
    "fieldname": "section_break_13",
-   "fieldtype": "Section Break",
+   "fieldtype": "Column Break",
    "hide_days": 1,
    "hide_seconds": 1
   },
@@ -282,7 +282,8 @@
    "fieldname": "outgoing_mail_settings",
    "fieldtype": "Section Break",
    "hide_days": 1,
-   "hide_seconds": 1
+   "hide_seconds": 1,
+   "label": "Outgoing (SMTP) Settings"
   },
   {
    "default": "0",
@@ -336,22 +337,20 @@
   {
    "default": "0",
    "depends_on": "enable_outgoing",
-   "description": "Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ",
    "fieldname": "always_use_account_email_id_as_sender",
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Always use Account's Email Address as Sender"
+   "label": "Always use this email address as sender address"
   },
   {
    "default": "0",
    "depends_on": "enable_outgoing",
-   "description": "Uses the Email Address Name mentioned in this Account as the Sender's Name for all emails sent using this Account.",
    "fieldname": "always_use_account_name_as_sender_name",
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Always use Account's Name as Sender's Name"
+   "label": "Always use this name as sender name"
   },
   {
    "default": "1",
@@ -379,10 +378,13 @@
    "label": "Disable SMTP server authentication"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "add_signature",
    "fieldname": "signature_section",
    "fieldtype": "Section Break",
    "hide_days": 1,
-   "hide_seconds": 1
+   "hide_seconds": 1,
+   "label": "Signature"
   },
   {
    "default": "0",
@@ -401,10 +403,13 @@
    "label": "Signature"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "enable_auto_reply",
    "fieldname": "auto_reply",
    "fieldtype": "Section Break",
    "hide_days": 1,
-   "hide_seconds": 1
+   "hide_seconds": 1,
+   "label": "Auto Reply"
   },
   {
    "default": "0",
@@ -424,17 +429,20 @@
    "label": "Auto Reply Message"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:frappe.utils.html2text(doc.footer || '')!=''",
    "fieldname": "set_footer",
    "fieldtype": "Section Break",
    "hide_days": 1,
-   "hide_seconds": 1
+   "hide_seconds": 1,
+   "label": "Footer"
   },
   {
    "fieldname": "footer",
    "fieldtype": "Text Editor",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Footer"
+   "label": "Footer Content"
   },
   {
    "fieldname": "uidvalidity",
@@ -477,7 +485,8 @@
    "fieldname": "section_break_12",
    "fieldtype": "Section Break",
    "hide_days": 1,
-   "hide_seconds": 1
+   "hide_seconds": 1,
+   "label": "Document Linking"
   },
   {
    "default": "0",
@@ -527,12 +536,38 @@
    "fieldname": "brand_logo",
    "fieldtype": "Attach Image",
    "label": "Brand Logo"
+  },
+  {
+   "fieldname": "authentication_column",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account_section",
+   "fieldtype": "Section Break",
+   "label": "Account"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-01-21 10:05:24.820597",
+ "modified": "2021-09-22 11:09:15.603556",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

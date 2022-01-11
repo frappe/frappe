@@ -54,6 +54,11 @@ class EventProducer(Document):
 			self.db_set('incoming_change', 0)
 			self.reload()
 
+	def on_trash(self):
+		last_update = frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name))
+		if last_update:
+			frappe.delete_doc('Event Producer Last Update', last_update)
+
 	def check_url(self):
 		valid_url_schemes = ("http", "https")
 		frappe.utils.validate_url(self.producer_url, throw=True, valid_schemes=valid_url_schemes)
@@ -408,8 +413,9 @@ def sync_dependencies(document, producer_site):
 			child_table = doc.get(df.fieldname)
 			for entry in child_table:
 				child_doc = producer_site.get_doc(entry.doctype, entry.name)
-				child_doc = frappe._dict(child_doc)
-				set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
+				if child_doc:
+					child_doc = frappe._dict(child_doc)
+					set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
 
 	def sync_link_dependencies(doc, link_fields, producer_site):
 		set_dependencies(doc, link_fields, producer_site)

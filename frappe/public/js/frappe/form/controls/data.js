@@ -13,11 +13,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
 
-		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
-			this.df.fieldtype)) {
-			this.$input.attr("maxlength", this.df.length || 140);
-		}
-
 		this.$input.on('paste', (e) => {
 			let pasted_data = frappe.utils.get_clipboard_data(e);
 			let maxlength = this.$input.attr('maxlength');
@@ -32,7 +27,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 					let doctype_edit_link = null;
 					if (this.frm.meta.custom) {
 						doctype_edit_link = frappe.utils.get_form_link(
-							'DocType', 
+							'DocType',
 							this.frm.doctype, true,
 							__('this form')
 						);
@@ -78,7 +73,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				</a>
 			</span>`
 		);
-		
+
 		this.$link = this.$wrapper.find('.link-btn');
 		this.$link_open = this.$link.find('.btn-open');
 		this.$input[0].style.paddingRight = "24px"; // To prevent text-icon mixup
@@ -86,7 +81,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.$input.on("focus", () => {
 			setTimeout(() => {
 				let inputValue = this.get_input_value();
-				
+
 				if (inputValue && validate_url(inputValue)) {
 					this.$link.toggle(true);
 					this.$link_open.attr('href', this.get_input_value());
@@ -105,7 +100,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				this.$link.toggle(false);
 			}
 		});
-		
+
 		this.$input.on("blur", () => {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
@@ -124,12 +119,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		);
 
 		this.$scan_btn = this.$wrapper.find('.link-btn');
-
-		this.$input.on("focus", () => {
-			setTimeout(() => {
-				this.$scan_btn.toggle(true);
-			}, 500);
-		});
+		this.$scan_btn.toggle(true);
 
 		const me = this;
 		this.$scan_btn.on('click', 'a', () => {
@@ -143,12 +133,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				}
 			});
 		});
-
-		this.$input.on("blur", () => {
-			setTimeout(() => {
-				this.$scan_btn.toggle(false);
-			}, 500);
-		});
 	},
 	bind_change_event: function() {
 		const change_handler = e => {
@@ -159,7 +143,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			}
 		};
 		this.$input.on("change", change_handler);
-		if (this.trigger_change_on_input_event) {
+		if (this.trigger_change_on_input_event && !this.in_grid()) {
 			// debounce to avoid repeated validations on value change
 			this.$input.on("input", frappe.utils.debounce(change_handler, 500));
 		}
@@ -195,6 +179,13 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		}
 	},
 	set_input_attributes: function() {
+		if (in_list(
+			['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only'],
+			this.df.fieldtype
+		)) {
+			this.$input.attr("maxlength", this.df.length || 140);
+		}
+
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
@@ -262,5 +253,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	toggle_container_scroll: function(el_class, scroll_class, add=false) {
 		let el = this.$input.parents(el_class)[0];
 		if (el) $(el).toggleClass(scroll_class, add);
+	},
+
+	in_grid() {
+		return this.grid || this.layout && this.layout.grid;
 	}
 });
