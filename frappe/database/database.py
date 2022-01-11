@@ -556,7 +556,7 @@ class Database(object):
 		"""
 		return self.set_value(doctype, doctype, fieldname, value, *args, **kwargs)
 
-	def get_single_value(self, doctype, fieldname, cache=False):
+	def get_single_value(self, doctype, fieldname, cache=True):
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
