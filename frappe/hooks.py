@@ -18,7 +18,8 @@ app_email = "developers@frappe.io"
 
 docs_app = "frappe_docs"
 
-translator_url = "https://translate.erpnext.com"
+translator_url = "http://sl.erpnext.local:8002"
+translations_url = "http://sl.erpnext.local:8002/translations/frappe/frappe/develop"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"

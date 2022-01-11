@@ -266,7 +266,7 @@ def load_lang(lang, apps=None):
 	if not out:
 		out = {}
 		for app in (apps or frappe.get_all_apps(True)):
-			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
+			path = os.path.join("sites", "translations", "app", lang + ".csv")
 			out.update(get_translation_dict_from_file(path, lang, app) or {})
 
 		if '-' in lang:

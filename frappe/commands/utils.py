@@ -917,7 +917,6 @@ def download_translations(app=None, apps=None):
 	import requests, tarfile
 	from frappe.utils import get_bench_path
 	for app in apps:
-		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
 
 		url = getattr(app_hooks, 'translations_url', None)
@@ -927,7 +926,7 @@ def download_translations(app=None, apps=None):
 			return
 
 		print('downloading translations for', app, end=' ')
-		translations_dir = os.path.join(get_bench_path(), 'apps', app, app, 'translations')
+		translations_dir = os.path.join('.', 'translations', app)
 		if not os.path.exists(translations_dir):
 			os.makedirs(translations_dir)
 
