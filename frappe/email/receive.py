@@ -28,8 +28,6 @@ from frappe.utils.html_utils import clean_email_html
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 20480
 
-# fix due to a python bug in poplib that limits it to 2048
-poplib._MAXLINE = 20480
 
 
 class EmailSizeExceededError(frappe.ValidationError): pass
