@@ -59,9 +59,9 @@ class EnergyPointRule(Document):
 			# indicates that this was a new doc
 			return doc.get_doc_before_save() is None
 		if self.for_doc_event == 'Submit':
-			return doc.is_submitted
+			return doc.docstatus.is_submitted()
 		if self.for_doc_event == 'Cancel':
-			return doc.is_cancelled
+			return doc.docstatus.is_cancelled()
 		if self.for_doc_event == 'Value Change':
 			field_to_check = self.field_to_check
 			if not field_to_check: return False
@@ -96,7 +96,7 @@ def process_energy_points(doc, state):
 	old_doc = doc.get_doc_before_save()
 
 	# check if doc has been cancelled
-	if old_doc and old_doc.is_submitted and doc.is_cancelled:
+	if old_doc and old_doc.docstatus.is_submitted() and doc.docstatus.is_cancelled():
 		return revert_points_for_cancelled_doc(doc)
 
 	for d in frappe.cache_manager.get_doctype_map('Energy Point Rule', doc.doctype,

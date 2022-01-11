@@ -16,7 +16,7 @@ from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.utils.data import get_absolute_url
-from frappe.model.base_document import DocumentStatus
+from frappe.model.base_document import DocStatus
 
 
 # once_only validation
@@ -307,7 +307,7 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		if self.is_cancelled:
+		if self.doctstatus.is_cancelled():
 			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
@@ -487,7 +487,7 @@ class Document(BaseDocument):
 
 	def set_docstatus(self):
 		if self.docstatus is None:
-			self.docstatus = DocumentStatus.draft.value
+			self.docstatus = DocStatus.draft()
 
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
@@ -744,32 +744,32 @@ class Document(BaseDocument):
 
 		"""
 		if not self.docstatus:
-			self.docstatus = DocumentStatus.draft.value
+			self.docstatus = DocStatus.draft()
 
-		if to_docstatus == DocumentStatus.draft:
-			if self.is_draft:
+		if to_docstatus == DocStatus.draft():
+			if self.doctstatus.is_draft():
 				self._action = "save"
-			elif self.is_submitted:
+			elif self.doctstatus.is_submitted():
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.is_cancelled:
+			elif self.doctstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif to_docstatus == DocumentStatus.submitted:
-			if self.is_submitted:
+		elif to_docstatus == DocStatus.submitted():
+			if self.doctstatus.is_submitted():
 				self._action = "update_after_submit"
 				self.check_permission("submit")
-			elif self.is_cancelled:
+			elif self.doctstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.is_draft:
+			elif self.doctstatus.is_draft():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif to_docstatus == DocumentStatus.cancelled:
+		elif to_docstatus == DocStatus.cancelled():
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
@@ -923,14 +923,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.docstatus = DocumentStatus.submitted.value
+		self.docstatus = DocStatus.submitted()
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
-		self.docstatus = DocumentStatus.cancelled.value
+		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
 	@whitelist.__func__
