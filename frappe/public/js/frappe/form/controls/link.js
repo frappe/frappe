@@ -82,7 +82,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return;
 		}
 
-		this.$input.val(__(link_display));
+		this.$input.val(link_display);
 		this.data_value = value;
 	}
 	parse_validate_and_set_in_model(value, label, e) {
@@ -96,26 +96,34 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	validate_and_set_in_model(value, e) {
 		var me = this;
-		if (this.inside_change_event) {
+		let force_value_set = (this.doc && this.doc.__run_link_triggers);
+		let is_value_same = (this.get_model_value() === value);
+
+		if (this.inside_change_event || (!force_value_set && is_value_same)) {
 			return Promise.resolve();
 		}
+
 		this.inside_change_event = true;
-		var set = function(value) {
+		function set(value) {
 			me.inside_change_event = false;
 			return frappe.run_serially([
+				() => me._validated = true,
 				() => me.set_model_value(value),
+				() => delete me._validated,
 				() => {
 					me.set_mandatory && me.set_mandatory(value);
 
-					if (me.df.change || me.df.onchange) {
+					if(me.df.change || me.df.onchange) {
 						// onchange event specified in df
 						frappe.set_link_title(me);
-						return (me.df.change || me.df.onchange).apply(me, [e]);
+						let set = (me.df.change || me.df.onchange).apply(me, [e]);
+						me.set_invalid && me.set_invalid();
+						return set;
 					}
+					me.set_invalid && me.set_invalid();
 				}
 			]);
 		};
-
 		value = this.validate(value);
 		if (value && value.then) {
 			// got a promise
@@ -132,7 +140,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.$input ? this.$input.val() : "";
 	}
 	set_input_label(label) {
-		this.$input && this.$input.val(__(label));
+		this.$input && this.$input.val(label);
 	}
 	reset_value() {
 		if (!this.$input) {
@@ -542,6 +550,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (!value) {
 			this.reset_value();
 			this.reset_fetch_values(df, docname);
+			return;
 		};
 
 
