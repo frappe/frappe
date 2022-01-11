@@ -608,7 +608,7 @@ def cast(fieldtype, value=None):
 		value = flt(value)
 
 	elif fieldtype in ("Int", "Check"):
-		value = cint(value)
+		value = cint(sbool(value))
 
 	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
 		"Text Editor", "Select", "Link", "Dynamic Link"):
