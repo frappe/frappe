@@ -554,9 +554,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001196, caniuse-lite@^1.0.30001219:
-  version "1.0.30001272"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001272.tgz"
-  integrity sha512-DV1j9Oot5dydyH1v28g25KoVm7l8MTxazwuiH3utWiAS6iL/9Nh//TGwqFEeqqN8nnWYQ8HHhUq+o4QPt9kvYw==
+  version "1.0.30001296"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001296.tgz"
+  integrity sha512-WfrtPEoNSoeATDlf4y3QvkwiELl9GyPLISV5GejTbbQRtQx4LhsXmc9IQ6XCL2d7UxCyEzToEZNMeqR79OUw8Q==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -1601,10 +1601,10 @@ frappe-charts@^2.0.0-rc13:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc13.tgz#fdb251d7ae311c41e38f90a3ae108070ec6b9072"
   integrity sha512-Bv7IfllIrjRbKWHn5b769dOSenqdBixAr6m5kurf8ZUOJSLOgK4HOXItJ7BA8n9PvviH9/k5DaloisjLM2Bm1w==
 
-frappe-datatable@^1.15.4:
-  version "1.15.4"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.4.tgz#dc2e5e5d8a0a7cb8ee658f2d39966af1d4405401"
-  integrity sha512-eW3upPvverm1GNBL4+IcPDvjm5xbJc5ZXW8TYEUZt/QQ2W75K/T6736pSzi9D6mX9sn3BtZ7Ige7MS45SGrgzQ==
+frappe-datatable@^1.16.0:
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.16.0.tgz#822dbcaaf48e5171f47ce2909da88e9a31bb2cbc"
+  integrity sha512-FkeHcaxxz4+BQLhwiegk94602PlnWNG4LiBPehgKdEL+OpJcwl8oNKWb/wPNw9lgW25u0LaaQwq/11sw7mnEbA==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"

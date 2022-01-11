@@ -19,11 +19,11 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	return frappe.get_all('ToDo', fields=['allocated_to', 'name'], filters=dict(
-		reference_type = args.get('doctype'),
-		reference_name = args.get('name'),
-		status = ('!=', 'Cancelled')
-	), limit=5)
+	return frappe.get_all("ToDo", fields=["allocated_to as owner", "name"], filters={
+		"reference_type": args.get("doctype"),
+		"reference_name": args.get("name"),
+		"status": ("!=", "Cancelled")
+	}, limit=5)
 
 @frappe.whitelist()
 def add(args=None):

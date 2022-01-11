@@ -110,6 +110,7 @@ def rename_doc(
 	if merge:
 		frappe.delete_doc(doctype, old)
 
+	new_doc.clear_cache()
 	frappe.clear_cache()
 	if rebuild_search:
 		frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
