@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 
 # imports - standard imports
 import gzip
@@ -132,134 +132,6 @@ class TestCommands(BaseTestCommands):
 		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
-
-	def test_backup(self):
-		backup = {
-			"includes": {
-				"includes": [
-					"ToDo",
-					"Note",
-				]
-			},
-			"excludes": {
-				"excludes": [
-					"Activity Log",
-					"Access Log",
-					"Error Log"
-				]
-			}
-		}
-		home = os.path.expanduser("~")
-		site_backup_path = frappe.utils.get_site_path("private", "backups")
-
-		# test 1: take a backup
-		before_backup = fetch_latest_backups()
-		self.execute("bench --site {site} backup")
-		after_backup = fetch_latest_backups()
-
-		self.assertEqual(self.returncode, 0)
-		self.assertIn("successfully completed", self.stdout)
-		self.assertNotEqual(before_backup["database"], after_backup["database"])
-
-		# test 2: take a backup with --with-files
-		before_backup = after_backup.copy()
-		self.execute("bench --site {site} backup --with-files")
-		after_backup = fetch_latest_backups()
-
-		self.assertEqual(self.returncode, 0)
-		self.assertIn("successfully completed", self.stdout)
-		self.assertIn("with files", self.stdout)
-		self.assertNotEqual(before_backup, after_backup)
-		self.assertIsNotNone(after_backup["public"])
-		self.assertIsNotNone(after_backup["private"])
-
-		# test 3: take a backup with --backup-path
-		backup_path = os.path.join(home, "backups")
-		self.execute("bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path})
-
-		self.assertEqual(self.returncode, 0)
-		self.assertTrue(os.path.exists(backup_path))
-		self.assertGreaterEqual(len(os.listdir(backup_path)), 2)
-
-		# test 4: take a backup with --backup-path-db, --backup-path-files, --backup-path-private-files, --backup-path-conf
-		kwargs = {
-			key: os.path.join(home, key, value)
-			for key, value in {
-				"db_path": "database.sql.gz",
-				"files_path": "public.tar",
-				"private_path": "private.tar",
-				"conf_path": "config.json",
-			}.items()
-		}
-
-		self.execute(
-			"""bench
-			--site {site} backup --with-files
-			--backup-path-db {db_path}
-			--backup-path-files {files_path}
-			--backup-path-private-files {private_path}
-			--backup-path-conf {conf_path}""",
-			kwargs,
-		)
-
-		self.assertEqual(self.returncode, 0)
-		for path in kwargs.values():
-			self.assertTrue(os.path.exists(path))
-
-		# test 5: take a backup with --compress
-		self.execute("bench --site {site} backup --with-files --compress")
-		self.assertEqual(self.returncode, 0)
-		compressed_files = glob.glob(site_backup_path + "/*.tgz")
-		self.assertGreater(len(compressed_files), 0)
-
-		# test 6: take a backup with --verbose
-		self.execute("bench --site {site} backup --verbose")
-		self.assertEqual(self.returncode, 0)
-
-		# test 7: take a backup with frappe.conf.backup.includes
-		self.execute(
-			"bench --site {site} set-config backup '{includes}' --parse",
-			{"includes": json.dumps(backup["includes"])},
-		)
-		self.execute("bench --site {site} backup --verbose")
-		self.assertEqual(self.returncode, 0)
-		database = fetch_latest_backups(partial=True)["database"]
-		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
-
-		# test 8: take a backup with frappe.conf.backup.excludes
-		self.execute(
-			"bench --site {site} set-config backup '{excludes}' --parse",
-			{"excludes": json.dumps(backup["excludes"])},
-		)
-		self.execute("bench --site {site} backup --verbose")
-		self.assertEqual(self.returncode, 0)
-		database = fetch_latest_backups(partial=True)["database"]
-		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
-		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
-
-		# test 9: take a backup with --include (with frappe.conf.excludes still set)
-		self.execute(
-			"bench --site {site} backup --include '{include}'",
-			{"include": ",".join(backup["includes"]["includes"])},
-		)
-		self.assertEqual(self.returncode, 0)
-		database = fetch_latest_backups(partial=True)["database"]
-		self.assertEqual([], missing_in_backup(backup["includes"]["includes"], database))
-
-		# test 10: take a backup with --exclude
-		self.execute(
-			"bench --site {site} backup --exclude '{exclude}'",
-			{"exclude": ",".join(backup["excludes"]["excludes"])},
-		)
-		self.assertEqual(self.returncode, 0)
-		database = fetch_latest_backups(partial=True)["database"]
-		self.assertFalse(exists_in_backup(backup["excludes"]["excludes"], database))
-
-		# test 11: take a backup with --ignore-backup-conf
-		self.execute("bench --site {site} backup --ignore-backup-conf")
-		self.assertEqual(self.returncode, 0)
-		database = fetch_latest_backups()["database"]
-		self.assertEqual([], missing_in_backup(backup["excludes"]["excludes"], database))
 
 	def test_restore(self):
 		# step 0: create a site to run the test on
@@ -474,7 +346,7 @@ class TestCommands(BaseTestCommands):
 		# cleanup
 		shutil.rmtree(test_app_path)
 
-	def disable_test_bench_drop_site_should_archive_site(self):
+	def test_bench_drop_site_should_archive_site(self):
 		site = 'test_site.localhost'
 
 		self.execute(
@@ -493,7 +365,158 @@ class TestCommands(BaseTestCommands):
 		self.assertTrue(os.path.exists(archive_directory))
 
 
-class RemoveAppUnitTests(unittest.TestCase):
+class TestBackups(BaseTestCommands):
+	backup_map = {
+		"includes": {
+			"includes": [
+				"ToDo",
+				"Note",
+			]
+		},
+		"excludes": {
+			"excludes": [
+				"Activity Log",
+				"Access Log",
+				"Error Log"
+			]
+		}
+	}
+	home = os.path.expanduser("~")
+	site_backup_path = frappe.utils.get_site_path("private", "backups")
+
+	def setUp(self):
+		self.files_to_trash = []
+
+	def tearDown(self):
+		if self._testMethodName == "test_backup":
+			for file in self.files_to_trash:
+				os.remove(file)
+				try:
+					os.rmdir(os.path.dirname(file))
+				except OSError:
+					pass
+
+	def test_backup_no_options(self):
+		# test 1: take a backup
+		before_backup = fetch_latest_backups()
+		self.execute("bench --site {site} backup")
+		after_backup = fetch_latest_backups()
+
+		self.assertEqual(self.returncode, 0)
+		self.assertIn("successfully completed", self.stdout)
+		self.assertNotEqual(before_backup["database"], after_backup["database"])
+
+	def test_backup_with_files(self):
+		# test 2: take a backup with --with-files
+		before_backup = fetch_latest_backups()
+		self.execute("bench --site {site} backup --with-files")
+		after_backup = fetch_latest_backups()
+
+		self.assertEqual(self.returncode, 0)
+		self.assertIn("successfully completed", self.stdout)
+		self.assertIn("with files", self.stdout)
+		self.assertNotEqual(before_backup, after_backup)
+		self.assertIsNotNone(after_backup["public"])
+		self.assertIsNotNone(after_backup["private"])
+
+	def test_backup_with_custom_path(self):
+		# test 3: take a backup with --backup-path
+		backup_path = os.path.join(self.home, "backups")
+		self.execute("bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path})
+
+		self.assertEqual(self.returncode, 0)
+		self.assertTrue(os.path.exists(backup_path))
+		self.assertGreaterEqual(len(os.listdir(backup_path)), 2)
+
+	def test_backup_with_different_file_paths(self):
+		# test 4: take a backup with --backup-path-db, --backup-path-files, --backup-path-private-files, --backup-path-conf
+		kwargs = {
+			key: os.path.join(self.home, key, value)
+			for key, value in {
+				"db_path": "database.sql.gz",
+				"files_path": "public.tar",
+				"private_path": "private.tar",
+				"conf_path": "config.json",
+			}.items()
+		}
+
+		self.execute(
+			"""bench
+			--site {site} backup --with-files
+			--backup-path-db {db_path}
+			--backup-path-files {files_path}
+			--backup-path-private-files {private_path}
+			--backup-path-conf {conf_path}""",
+			kwargs,
+		)
+
+		self.assertEqual(self.returncode, 0)
+		for path in kwargs.values():
+			self.assertTrue(os.path.exists(path))
+
+	def test_backup_compress_files(self):
+		# test 5: take a backup with --compress
+		self.execute("bench --site {site} backup --with-files --compress")
+		self.assertEqual(self.returncode, 0)
+		compressed_files = glob.glob(f"{self.site_backup_path}/*.tgz")
+		self.assertGreater(len(compressed_files), 0)
+
+	def test_backup_verbose(self):
+		# test 6: take a backup with --verbose
+		self.execute("bench --site {site} backup --verbose")
+		self.assertEqual(self.returncode, 0)
+
+	def test_backup_only_specific_doctypes(self):
+		# test 7: take a backup with frappe.conf.backup.includes
+		self.execute(
+			"bench --site {site} set-config backup '{includes}' --parse",
+			{"includes": json.dumps(self.backup_map["includes"])},
+		)
+		self.execute("bench --site {site} backup --verbose")
+		self.assertEqual(self.returncode, 0)
+		database = fetch_latest_backups(partial=True)["database"]
+		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
+
+	def test_backup_excluding_specific_doctypes(self):
+		# test 8: take a backup with frappe.conf.backup.excludes
+		self.execute(
+			"bench --site {site} set-config backup '{excludes}' --parse",
+			{"excludes": json.dumps(self.backup_map["excludes"])},
+		)
+		self.execute("bench --site {site} backup --verbose")
+		self.assertEqual(self.returncode, 0)
+		database = fetch_latest_backups(partial=True)["database"]
+		self.assertFalse(exists_in_backup(self.backup_map["excludes"]["excludes"], database))
+		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
+
+		# test 9: take a backup with --exclude
+		self.execute(
+			"bench --site {site} backup --exclude '{exclude}'",
+			{"exclude": ",".join(self.backup_map["excludes"]["excludes"])},
+		)
+		self.assertEqual(self.returncode, 0)
+		database = fetch_latest_backups(partial=True)["database"]
+		self.assertFalse(exists_in_backup(self.backup_map["excludes"]["excludes"], database))
+
+	def test_selective_backup_priority_resolution(self):
+		# test 10: take a backup with --include (with frappe.conf.excludes still set)
+		self.execute(
+			"bench --site {site} backup --include '{include}'",
+			{"include": ",".join(self.backup_map["includes"]["includes"])},
+		)
+		self.assertEqual(self.returncode, 0)
+		database = fetch_latest_backups(partial=True)["database"]
+		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
+
+	def test_dont_backup_conf(self):
+		# test 11: take a backup with --ignore-backup-conf
+		self.execute("bench --site {site} backup --ignore-backup-conf")
+		self.assertEqual(self.returncode, 0)
+		database = fetch_latest_backups()["database"]
+		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
+
+
+class TestRemoveApp(unittest.TestCase):
 	def test_delete_modules(self):
 		from frappe.installer import (
 				_delete_doctypes,
