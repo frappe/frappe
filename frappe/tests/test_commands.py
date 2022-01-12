@@ -474,7 +474,7 @@ class TestCommands(BaseTestCommands):
 		# cleanup
 		shutil.rmtree(test_app_path)
 
-	def disable_test_bench_drop_site_should_archive_site(self):
+	def test_bench_drop_site_should_archive_site(self):
 		site = 'test_site.localhost'
 
 		self.execute(
