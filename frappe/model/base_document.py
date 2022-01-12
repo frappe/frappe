@@ -264,9 +264,9 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if d[fieldname] == None:
+				if d[fieldname] is None:
 					_val = getattr(self, fieldname, None)
-					if not callable(_val):
+					if _val and not callable(_val):
 						d[fieldname] = _val
 
 			if convert_dates_to_str and isinstance(d[fieldname], (
