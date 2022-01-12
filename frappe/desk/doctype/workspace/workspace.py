@@ -255,18 +255,18 @@ def sort_pages(sb_public_items, sb_private_items):
 	sb_public_items = loads(sb_public_items)
 	sb_private_items = loads(sb_private_items)
 
-	wspace_public_pages = get_page_list(['name', 'title'], {'public': 1})
-	wspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
+	workspace_public_pages = get_page_list(['name', 'title'], {'public': 1})
+	workspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
 
 	if sb_private_items:
-		sort_page(wspace_private_pages, sb_private_items)
+		sort_page(workspace_private_pages, sb_private_items)
 
 	if sb_public_items and is_workspace_manager():
-		sort_page(wspace_public_pages, sb_public_items)
+		sort_page(workspace_public_pages, sb_public_items)
 
-def sort_page(wspace_pages, pages):
+def sort_page(workspace_pages, pages):
 	for seq, d in enumerate(pages):
-		for page in wspace_pages:
+		for page in workspace_pages:
 			if page.title == d.get('title'):
 				doc = frappe.get_doc('Workspace', page.name)
 				doc.sequence_id = seq + 1

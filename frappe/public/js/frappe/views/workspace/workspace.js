@@ -20,7 +20,7 @@ frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
-		this.blocks = frappe.wspace_block.blocks;
+		this.blocks = frappe.workspace_block.blocks;
 		this.is_read_only = true;
 		this.pages = {};
 		this.sorted_public_items = [];
@@ -75,7 +75,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_pages() {
-		return frappe.xcall("frappe.desk.desktop.get_wspace_sidebar_items");
+		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items");
 	}
 
 	sidebar_item_container(item) {
@@ -447,7 +447,7 @@ frappe.views.Workspace = class Workspace {
 		this.public_parent_pages = ['', ...this.public_pages.filter(p => !p.parent_page).map(p => p.title)];
 		this.private_parent_pages = ['', ...this.private_pages.filter(p => !p.parent_page).map(p => p.title)];
 
-		if(page) {
+		if (page) {
 			return page.public ? this.public_parent_pages : this.private_parent_pages;
 		}
 	}
@@ -1094,7 +1094,7 @@ frappe.views.Workspace = class Workspace {
 				}
 			},
 			spacer: this.blocks['spacer'],
-			HeaderSize: frappe.wspace_block.tunes['header_size'],
+			HeaderSize: frappe.workspace_block.tunes['header_size'],
 		};
 		this.editor = new EditorJS({
 			data: {

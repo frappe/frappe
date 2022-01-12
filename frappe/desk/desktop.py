@@ -346,20 +346,20 @@ def get_desktop_page(page):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		wspace = Workspace(loads(page))
-		wspace.build_workspace()
+		workspace = Workspace(loads(page))
+		workspace.build_workspace()
 		return {
-			'charts': wspace.charts,
-			'shortcuts': wspace.shortcuts,
-			'cards': wspace.cards,
-			'onboardings': wspace.onboardings
+			'charts': workspace.charts,
+			'shortcuts': workspace.shortcuts,
+			'cards': workspace.cards,
+			'onboardings': workspace.onboardings
 		}
 	except DoesNotExistError:
 		frappe.log_error(frappe.get_traceback())
 		return {}
 
 @frappe.whitelist()
-def get_wspace_sidebar_items():
+def get_workspace_sidebar_items():
 	"""Get list of sidebar items for desk"""
 	has_access = "Workspace Manager" in frappe.get_roles()
 
@@ -385,8 +385,8 @@ def get_wspace_sidebar_items():
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
-			wspace = Workspace(page, True)
-			if wspace.is_permitted() and wspace.is_page_allowed() or has_access:
+			workspace = Workspace(page, True)
+			if workspace.is_permitted() and workspace.is_page_allowed() or has_access:
 				if page.public:
 					pages.append(page)
 				elif page.for_user == frappe.session.user:

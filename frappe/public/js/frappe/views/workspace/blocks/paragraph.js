@@ -78,7 +78,7 @@ export default class Paragraph extends Block {
 			</div>
 		`);
 
-		let all_blocks = frappe.wspace_block.blocks;
+		let all_blocks = frappe.workspace_block.blocks;
 		Object.keys(all_blocks).forEach(key => {
 			let $block_list_item = $(`
 				<div class="block-list-item dropdown-item">
