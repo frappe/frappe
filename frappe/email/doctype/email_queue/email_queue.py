@@ -475,28 +475,20 @@ class QueueBuilder:
 		if self._unsubscribed_user_emails is not None:
 			return self._unsubscribed_user_emails
 
-		all_ids = tuple(set(self.recipients + self.cc))
+		all_ids = list(set(self.recipients + self.cc))
 
-		unsubscribed = frappe.db.sql_list('''
-			SELECT
-				distinct email
-			from
-				`tabEmail Unsubscribe`
-			where
-				email in %(all_ids)s
-				and (
-					(
-						reference_doctype = %(reference_doctype)s
-						and reference_name = %(reference_name)s
-					)
-					or global_unsubscribe = 1
-				)
-		''', {
-			'all_ids': all_ids,
-			'reference_doctype': self.reference_doctype,
-			'reference_name': self.reference_name,
-		})
+		EmailUnsubscribe = frappe.qb.DocType("Email Unsubscribe")
 
+		unsubscribed = (frappe.qb.from_(EmailUnsubscribe)
+						.select(EmailUnsubscribe.email)
+						.where(EmailUnsubscribe.email.isin(all_ids) & 	
+									(
+										(
+											(EmailUnsubscribe.reference_doctype == self.reference_doctype) & (EmailUnsubscribe.reference_name == self.reference_name)
+										) | EmailUnsubscribe.global_unsubscribe == 1
+									)
+								).distinct()
+						).run(pluck=True)
 		self._unsubscribed_user_emails = unsubscribed or []
 		return self._unsubscribed_user_emails
 

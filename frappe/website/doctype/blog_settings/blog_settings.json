@@ -11,6 +11,7 @@
   "enable_social_sharing",
   "show_cta_in_blog",
   "allow_guest_to_comment",
+  "browse_by_category",
   "cta_section",
   "title",
   "subtitle",
@@ -110,14 +111,20 @@
    "default": "1",
    "fieldname": "allow_guest_to_comment",
    "fieldtype": "Check",
-   "label": "Allow guest to comment"
+   "label": "Allow Guest to comment"
+  },
+  {
+   "default": "0",
+   "fieldname": "browse_by_category",
+   "fieldtype": "Check",
+   "label": "Browse by category"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-10-28 20:44:44.143193",
+ "modified": "2021-12-20 13:40:32.312459",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",
@@ -142,5 +149,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

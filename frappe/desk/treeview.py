@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 
+
 @frappe.whitelist()
 def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	'''Recursively gets all data from tree nodes'''
@@ -40,8 +41,8 @@ def get_children(doctype, parent='', **filters):
 
 def _get_children(doctype, parent='', ignore_permissions=False):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	filters = [['ifnull(`{0}`,"")'.format(parent_field), '=', parent],
-		['docstatus', '<' ,'2']]
+	filters = [["ifnull(`{0}`,'')".format(parent_field), '=', parent],
+		['docstatus', '<' ,2]]
 
 	meta = frappe.get_meta(doctype)
 

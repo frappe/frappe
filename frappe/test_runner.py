@@ -335,7 +335,10 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
+		if doctype in frappe.local.test_objects:
+			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
+		else: 
+			frappe.local.test_objects[doctype] = make_test_objects(doctype, test_module.test_records, verbose, force)
 
 	else:
 		test_records = frappe.get_test_records(doctype)
