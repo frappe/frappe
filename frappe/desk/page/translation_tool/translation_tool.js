@@ -267,13 +267,18 @@ class TranslationTool {
 					</div>`;
 				} else {
 					return `<div>
+						${position.app ? 'Application: ' + position.app + '<br>' : ''}
+						${position.app_version ? 'Application Version: ' + position.app_version + '<br>' : ''}
+						${position.module ? 'Module: ' + position.module + '<br>' : ''}
+						${position.type ? 'Document Type: ' + position.type + '<br>' : ''}
+						${position.document_name ? 'Document Name: ' + position.document_name + '<br>' : ''}
 						<a
 							class="text-muted"
 							target="_blank"
-							href="${this.get_code_url(position.path, position.line_no, position.app)}">
-							${position.path}
-						</a>
-					</div>`;
+							href="${this.get_code_url(position.path, position.line_no, position.app, position.app_version )}">
+						<i class="octicon octicon-mark-github"></i>
+						</a> <br>
+					</div> <br>`;
 				}
 			}).join('');
 		}
@@ -458,8 +463,8 @@ class TranslationTool {
 		return message_obj.contribution_status == 'Pending' ? 'orange' : 'green';
 	}
 
-	get_code_url(path, line_no, app) {
+	get_code_url(path, line_no, app, app_version) {
 		const code_path = path.substring(`apps/${app}`.length);
-		return `https://github.com/frappe/${app}/blob/develop/${code_path}#L${line_no}`;
+		return `https://github.com/frappe/${app}/blob/${app_version}/${code_path}#L${line_no}`;
 	}
 }
