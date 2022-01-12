@@ -41,6 +41,7 @@ class TestAuth(unittest.TestCase):
 
 	def set_system_settings(self, k, v):
 		frappe.db.set_value("System Settings", "System Settings", k, v)
+		frappe.clear_cache()
 		frappe.db.commit()
 
 	def test_allow_login_using_mobile(self):
@@ -98,13 +99,11 @@ class TestAuth(unittest.TestCase):
 		first_login.get_list("ToDo")
 
 		second_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
-
 		second_login.get_list("ToDo")
 		with self.assertRaises(Exception):
 			first_login.get_list("ToDo")
 
 		third_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
-
 		with self.assertRaises(Exception):
 			first_login.get_list("ToDo")
 		with self.assertRaises(Exception):
