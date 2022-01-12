@@ -131,7 +131,7 @@ acceptable_elements = [
 	'p', 'pre', 'progress', 'q', 's', 'samp', 'section', 'select',
 	'small', 'sound', 'source', 'spacer', 'span', 'strike', 'strong',
 	'sub', 'sup', 'table', 'tbody', 'td', 'textarea', 'time', 'tfoot',
-	'th', 'thead', 'tr', 'tt', 'u', 'ul', 'var', 'video'
+	'th', 'thead', 'tr', 'tt', 'u', 'ul', 'var', 'video', 'iframe', 'object'
 ]
 
 mathml_elements = [
