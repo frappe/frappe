@@ -12,6 +12,7 @@
   "restrict_to_domain",
   "column_break_4",
   "disabled",
+  "is_custom",
   "desk_access",
   "two_factor_auth",
   "navigation_settings_section",
@@ -24,8 +25,7 @@
   "form_settings_section",
   "form_sidebar",
   "timeline",
-  "dashboard",
-  "is_custom"
+  "dashboard"
  ],
  "fields": [
   {
@@ -148,7 +148,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-01-27 10:35:37.638350",
+=======
+ "modified": "2022-01-12 20:18:18.496230",
+>>>>>>> b878b71e37 (fix(minor): Is Custom field placement in Role form)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -169,5 +173,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }
