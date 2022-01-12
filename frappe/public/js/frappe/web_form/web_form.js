@@ -185,26 +185,27 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		window.location.href = window.location.pathname;
 	}
 
-	handle_success(data) {
-		if (this.accept_payment && !this.doc.paid) {
-			window.location.href = data;
-		}
+    handle_success(data) {
+        if (this.accept_payment && !this.doc.paid) {
+            window.location.href = data;
+        }
 
-		const success_dialog = new frappe.ui.Dialog({
-			title: __("Saved Successfully"),
-			secondary_action: () => {
-				if (this.success_url) {
-					window.location.href = this.success_url;
-				} else if(this.login_required) {
-					window.location.href =
-						window.location.pathname + "?name=" + data.name;
-				}
-			}
-		});
+        const success_dialog = new frappe.ui.Dialog({
+            title: __("Saved Successfully"),
+            primary_action_label: 'Continue',
+            primary_action: () => {
+                if (this.success_url) {
+                    window.location.href = this.success_url;
+                } else if(this.login_required) {
+                    window.location.href =
+                        window.location.pathname + "?name=" + data.name;
+                }
+            }
+        });
 
-		success_dialog.show();
-		const success_message =
-			this.success_message || __("Your information has been submitted");
-		success_dialog.set_message(success_message);
-	}
+        success_dialog.show();
+        const success_message =
+            this.success_message || __("Your information has been submitted");
+        success_dialog.set_message(success_message);
+    }
 }
