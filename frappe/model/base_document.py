@@ -617,7 +617,7 @@ class BaseDocument(object):
 					setattr(self, df.fieldname, values.name)
 
 					for _df in fields_to_fetch:
-						if self.is_new() or not self.doctstatus.is_submitted() or _df.allow_on_submit:
+						if self.is_new() or not self.docstatus.is_submitted() or _df.allow_on_submit:
 							self.set_fetch_from_value(doctype, _df, values)
 
 					notify_link_count(doctype, docname)
@@ -841,8 +841,8 @@ class BaseDocument(object):
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 
 				# cancelled and submit but not update after submit should be ignored
-				or self.doctstatus.is_cancelled()
-				or (self.doctstatus.is_submitted() and not df.get("allow_on_submit"))):
+				or self.docstatus.is_cancelled()
+				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))):
 				continue
 
 			else:
