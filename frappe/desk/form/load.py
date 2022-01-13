@@ -149,7 +149,7 @@ def add_comments(doc, docinfo):
 		elif c.comment_type in ('Assignment Completed', 'Assigned'):
 			docinfo.assignment_logs.append(c)
 
-		elif c.comment_type == ('Attachment', 'Attachment Removed'):
+		elif c.comment_type in ('Attachment', 'Attachment Removed'):
 			docinfo.attachment_logs.append(c)
 
 		elif c.comment_type in ('Info', 'Edit', 'Label'):
