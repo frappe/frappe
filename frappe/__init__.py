@@ -740,17 +740,26 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
+	import frappe.permissions
+
 	if not doctype and doc:
 		doctype = doc.doctype
 
-	import frappe.permissions
 	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user,
 		raise_exception=throw, parent_doctype=parent_doctype)
+
 	if throw and not out:
-		if doc:
-			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
-		else:
-			frappe.throw(_("No permission for {0}").format(doctype))
+		# mimics frappe.throw
+		document_label = f"{doc.doctype} {doc.name}" if doc else doctype
+		msgprint(
+			_("No permission for {0}").format(document_label),
+			raise_exception=ValidationError,
+			title=None,
+			indicator='red',
+			is_minimizable=None,
+			wide=None,
+			as_list=False
+		)
 
 	return out
 
@@ -1203,7 +1212,7 @@ def read_file(path, raise_not_found=False):
 def get_attr(method_string):
 	"""Get python method object from its name."""
 	app_name = method_string.split(".")[0]
-	if not local.flags.in_install and app_name not in get_installed_apps():
+	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 
 	modulename = '.'.join(method_string.split('.')[:-1])

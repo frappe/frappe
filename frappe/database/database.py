@@ -4,16 +4,18 @@
 # Database Module
 # --------------------
 
-import re
-import time
-from typing import Dict, List, Union
-import frappe
 import datetime
+import random
+import re
+import string
+from contextlib import contextmanager
+from time import time
+from typing import Dict, List, Union, Tuple
+
+import frappe
 import frappe.defaults
 import frappe.model.meta
-
 from frappe import _
-from time import time
 from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
@@ -162,10 +164,7 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if frappe.conf.db_type == 'postgres':
-				self.rollback()
-
-			elif self.is_syntax_error(e):
+			if self.is_syntax_error(e):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
@@ -175,6 +174,9 @@ class Database(object):
 
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e)
+
+			elif frappe.conf.db_type == 'postgres':
+				raise
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
@@ -265,9 +267,7 @@ class Database(object):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
-		if self.transaction_writes and \
-			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
-			raise Exception('This statement can cause implicit commit')
+		self.check_implicit_commit(query)
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
@@ -279,6 +279,11 @@ class Database(object):
 					self.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
+
+	def check_implicit_commit(self, query):
+		if self.transaction_writes and \
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
+			raise Exception('This statement can cause implicit commit')
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
@@ -699,6 +704,8 @@ class Database(object):
 				self.sql("""update `tab{0}`
 					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
 					values, debug=debug)
+
+				frappe.clear_document_cache(dt, values['name'])
 		else:
 			# for singles
 			keys = list(to_update)
@@ -711,10 +718,11 @@ class Database(object):
 				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
+			frappe.clear_document_cache(dt, dn)
+
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-		frappe.clear_document_cache(dt, dn)
 
 	@staticmethod
 	def set(doc, field, val):
@@ -801,14 +809,30 @@ class Database(object):
 
 		frappe.local.realtime_log = []
 
-	def rollback(self):
-		"""`ROLLBACK` current transaction."""
-		self.sql("rollback")
-		self.begin()
-		for obj in frappe.local.rollback_observers:
-			if hasattr(obj, "on_rollback"):
-				obj.on_rollback()
-		frappe.local.rollback_observers = []
+	def savepoint(self, save_point):
+		"""Savepoints work as a nested transaction.
+
+		Changes can be undone to a save point by doing frappe.db.rollback(save_point)
+
+		Note: rollback watchers can not work with save points.
+			so only changes to database are undone when rolling back to a savepoint.
+			Avoid using savepoints when writing to filesystem."""
+		self.sql(f"savepoint {save_point}")
+
+	def release_savepoint(self, save_point):
+		self.sql(f"release savepoint {save_point}")
+
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.sql("rollback")
+			self.begin()
+			for obj in frappe.local.rollback_observers:
+				if hasattr(obj, "on_rollback"):
+					obj.on_rollback()
+			frappe.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -817,16 +841,16 @@ class Database(object):
 			'parent': dt
 		})
 
-	def table_exists(self, doctype):
+	def table_exists(self, doctype, cached=True):
 		"""Returns True if table for given doctype exists."""
-		return ("tab" + doctype) in self.get_tables()
+		return ("tab" + doctype) in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		tables = frappe.cache().get_value('db_tables')
-		if not tables:
+		if not tables or not cached:
 			table_rows = self.sql("""
 				SELECT table_name
 				FROM information_schema.tables
@@ -1084,3 +1108,28 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
+
+@contextmanager
+def savepoint(catch: Union[type, Tuple[type, ...]] = Exception):
+	""" Wrapper for wrapping blocks of DB operations in a savepoint.
+
+		as contextmanager:
+
+		for doc in docs:
+			with savepoint(catch=DuplicateError):
+				doc.insert()
+
+		as decorator (wraps FULL function call):
+
+		@savepoint(catch=DuplicateError)
+		def process_doc(doc):
+			doc.insert()
+	"""
+	try:
+		savepoint = ''.join(random.sample(string.ascii_lowercase, 10))
+		frappe.db.savepoint(savepoint)
+		yield # control back to calling function
+	except catch:
+		frappe.db.rollback(save_point=savepoint)
+	else:
+		frappe.db.release_savepoint(savepoint)

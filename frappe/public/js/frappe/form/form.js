@@ -190,7 +190,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	setup_std_layout() {
 		this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
-		this.body = $('<div></div>').appendTo(this.form_wrapper);
+		this.body = $('<div class="std-form-layout"></div>').appendTo(this.form_wrapper);
 
 		// only tray
 		this.meta.section_style='Simple'; // always simple!
@@ -211,12 +211,24 @@ frappe.ui.form.Form = class FrappeForm {
 		this.fields = this.layout.fields_list;
 
 		let dashboard_parent = $('<div class="form-dashboard">');
+		let dashboard_added = false;
 
 		if (this.layout.tabs.length) {
-			this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+			this.layout.tabs.every(tab => {
+				if (tab.df.show_dashboard) {
+					tab.wrapper.prepend(dashboard_parent);
+					dashboard_added = true;
+					return false;
+				}
+				return true;
+			});
+			if (!dashboard_added) {
+				this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+			}
 		} else {
-			dashboard_parent.insertAfter(this.layout.wrapper.find('.form-message'));
+			this.layout.wrapper.find('.form-page').prepend(dashboard_parent);
 		}
+
 		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({
@@ -971,7 +983,7 @@ frappe.ui.form.Form = class FrappeForm {
 			$.each(this.fields_dict, function(fieldname, field) {
 				if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
 					// triggers add fetch, sets value in model and runs triggers
-					field.set_value(this.doc[fieldname]);
+					field.set_value(this.doc[fieldname], true);
 				}
 			});
 

@@ -381,7 +381,7 @@ class DocType(Document):
 		document_cls_tag = f"class {despaced_name}(Document)"
 		document_import_tag = "from frappe.model.document import Document"
 		website_generator_cls_tag = f"class {despaced_name}(WebsiteGenerator)"
-		website_generator_import_tag = "from frappe.website.generators.website_generator import WebsiteGenerator"
+		website_generator_import_tag = "from frappe.website.website_generator import WebsiteGenerator"
 
 		with open(controller_path) as f:
 			code = f.read()
@@ -1283,7 +1283,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		roles = [p.role for p in doc.get("permissions") or []] + default_roles
 
 		for role in list(set(roles)):
-			if not frappe.db.exists("Role", role):
+			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
 				r = frappe.get_doc(dict(doctype= "Role", role_name=role, desk_access=1))
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
