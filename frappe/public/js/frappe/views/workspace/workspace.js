@@ -288,7 +288,6 @@ frappe.views.Workspace = class Workspace {
 			let current_page = pages.filter(p => p.title == page.name)[0];
 			this.content = current_page && JSON.parse(current_page.content);
 
-			this.setup_actions(page);
 			this.add_custom_cards_in_content();
 
 			$('.item-anchor').addClass('disable-click');
@@ -298,6 +297,8 @@ frappe.views.Workspace = class Workspace {
 			} else {
 				await frappe.after_ajax(() => this.get_data(current_page));
 			}
+
+			this.setup_actions(page);
 
 			this.prepare_editorjs();
 			$('.item-anchor').removeClass('disable-click');
@@ -709,6 +710,7 @@ frappe.views.Workspace = class Workspace {
 				args: { page: page }
 			});
 
+			this.page.clear_primary_action();
 			this.update_cached_values(page);
 
 			if (this.current_page.name == page.title && this.current_page.public == page.public) {
