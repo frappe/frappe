@@ -226,7 +226,7 @@ def get_title_field_query(meta):
 def build_for_autosuggest(res, doctype):
 	results = []
 	meta = frappe.get_meta(doctype)
-	if not (meta.title_field and meta.show_title_field_in_link) or doctype in (frappe.get_hooks().standard_queries or {}):
+	if not (meta.title_field and meta.show_title_field_in_link):
 		for r in res:
 			r = list(r)
 			results.append({
