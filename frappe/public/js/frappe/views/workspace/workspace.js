@@ -512,6 +512,12 @@ frappe.views.Workspace = class Workspace {
 						icon: values.icon || '',
 						parent: values.parent || '',
 						public: values.is_public || 0,
+					},
+					callback: function(res) {
+						if (res.message) {
+							let message = `Workspace <b>${old_item.title}</b> Edited Successfully`;
+							frappe.show_alert({ message: __(message), indicator: "green" });
+						}
 					}
 				});
 
@@ -707,7 +713,14 @@ frappe.views.Workspace = class Workspace {
 		frappe.confirm(__("Are you sure you want to delete page {0}?", [page.title]), () => {
 			frappe.call({
 				method: "frappe.desk.doctype.workspace.workspace.delete_page",
-				args: { page: page }
+				args: { page: page },
+				callback: function(res) {
+					if (res.message) {
+						let page = res.message;
+						let message = `Workspace <b>${page.title}</b> Deleted Successfully`;
+						frappe.show_alert({ message: __(message), indicator: "green" });
+					}
+				}
 			});
 
 			this.page.clear_primary_action();
@@ -771,6 +784,13 @@ frappe.views.Workspace = class Workspace {
 					args: {
 						page_name: page.name,
 						new_page: values
+					},
+					callback: function(res) {
+						if (res.message) {
+							let new_page = res.message;
+							let message = `Duplicate of <b>${page.title}</b> named as <b>${new_page.title}</b> is created successfully`;
+							frappe.show_alert({ message: __(message), indicator: "green" });
+						}
 					}
 				});
 
@@ -870,6 +890,12 @@ frappe.views.Workspace = class Workspace {
 				args: {
 					sb_public_items: this.sorted_public_items,
 					sb_private_items: this.sorted_private_items,
+				},
+				callback: function(res) {
+					if (res.message) {
+						let message = `Sidebar Updated Successfully`;
+						frappe.show_alert({ message: __(message), indicator: "green" });
+					}
 				}
 			});
 		}
@@ -965,6 +991,12 @@ frappe.views.Workspace = class Workspace {
 						method: "frappe.desk.doctype.workspace.workspace.new_page",
 						args: {
 							new_page: new_page
+						},
+						callback: function(res) {
+							if (res.message) {
+								let message = `Workspace <b>${new_page.title}</b> Created Successfully`;
+								frappe.show_alert({ message: __(message), indicator: "green" });
+							}
 						}
 					});
 			

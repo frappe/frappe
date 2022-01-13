@@ -143,6 +143,8 @@ def new_page(new_page):
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
+	return doc
+
 @frappe.whitelist()
 def save_page(title, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
@@ -232,6 +234,8 @@ def duplicate_page(page_name, new_page):
 		doc.sequence_id = last_sequence_id(doc) + 1
 	doc.insert(ignore_permissions=True)
 
+	return doc
+
 @frappe.whitelist()
 def delete_page(page):
 	if not loads(page):
@@ -259,10 +263,12 @@ def sort_pages(sb_public_items, sb_private_items):
 	workspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
 
 	if sb_private_items:
-		sort_page(workspace_private_pages, sb_private_items)
+		return sort_page(workspace_private_pages, sb_private_items)
 
 	if sb_public_items and is_workspace_manager():
-		sort_page(workspace_public_pages, sb_public_items)
+		return sort_page(workspace_public_pages, sb_public_items)
+
+	return False
 
 def sort_page(workspace_pages, pages):
 	for seq, d in enumerate(pages):
@@ -273,6 +279,8 @@ def sort_page(workspace_pages, pages):
 				doc.parent_page = d.get('parent_page') or ""
 				doc.save(ignore_permissions=True)
 				break
+
+	return True
 
 def last_sequence_id(doc):
 	doc_exists = frappe.db.exists({
