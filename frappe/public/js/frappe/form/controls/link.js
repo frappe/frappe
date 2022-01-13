@@ -75,7 +75,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		super.set_formatted_input();
 		if (!value) return;
 		let doctype = this.get_options();
-		this.set_data_value(frappe.get_link_title(doctype, value) || value, value);
+		this.set_data_value(frappe.utils.get_link_title(doctype, value) || value, value);
 	}
 	set_data_value(link_display, value) {
 		if (!this.$input) {
@@ -89,7 +89,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (this.parse) value = this.parse(value, label);
 		if (label) {
 			this.label = label;
-			frappe.add_link_title(this.df.options, value, label);
+			frappe.utils.add_link_title(this.df.options, value, label);
 		}
 
 		return this.validate_and_set_in_model(value, e);
@@ -115,7 +115,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 					if(me.df.change || me.df.onchange) {
 						// onchange event specified in df
-						frappe.set_link_title(me);
+						frappe.utils.set_link_title(me);
 						let set = (me.df.change || me.df.onchange).apply(me, [e]);
 						me.set_invalid && me.set_invalid();
 						return set;

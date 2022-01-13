@@ -1397,5 +1397,31 @@ Object.assign(frappe.utils, {
 			arr.push(i);
 		}
 		return arr;
+	},
+
+	get_link_title(doctype, name) {
+		if (!doctype || !name) {
+			return;
+		}
+
+		if (!frappe._link_titles) {
+			// for link titles
+			frappe._link_titles = {};
+		}
+	
+		return frappe._link_titles[doctype + "::" + name];
+	},
+
+	add_link_title(doctype, name, value) {
+		if (!doctype || !name) {
+			return;
+		}
+
+		if (!frappe._link_titles) {
+			// for link titles
+			frappe._link_titles = {};
+		}
+	
+		frappe._link_titles[doctype + "::" + name] = value;
 	}
 });

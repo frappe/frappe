@@ -257,14 +257,14 @@ frappe.ui.form.update_calling_link = (newdoc) => {
 				$.each(frappe._from_link.frm.fields_dict[doc.parentfield].grid.grid_rows, function (index, field) {
 					if (field.doc && field.doc.name === frappe._from_link.docname) {
 						if (meta.title_field && meta.show_title_field_in_link) {
-							frappe.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
+							frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
 						}
 						frappe._from_link.set_value(newdoc.name);
 					}
 				});
 			} else {
 				if (meta.title_field && meta.show_title_field_in_link) {
-					frappe.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
+					frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
 				}
 				frappe._from_link.set_value(newdoc.name);
 			}
