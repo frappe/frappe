@@ -33,7 +33,7 @@ Object.assign(frappe.model, {
 				}
 
 				if(d.localname) {
-					frappe.model.rename_after_save(d);
+					frappe.model.rename_after_save(d, i);
 				}
 			}
 		}
@@ -42,7 +42,7 @@ Object.assign(frappe.model, {
 
 	},
 
-	rename_after_save: (d) => {
+	rename_after_save: (d, i) => {
 		frappe.model.new_names[d.localname] = d.name;
 		$(document).trigger('rename', [d.doctype, d.localname, d.name]);
 		delete locals[d.doctype][d.localname];

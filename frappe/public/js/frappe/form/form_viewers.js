@@ -47,9 +47,9 @@ frappe.ui.form.FormViewers.set_users = function(data, type) {
 		) {
 			cur_frm.viewers.refresh(true, type);
 		}
-	}
+	};
 
-	let unknown_users = []
+	let unknown_users = [];
 	for (let user of users) {
 		if (!frappe.boot.user_info[user]) unknown_users.push(user);
 	}
@@ -61,6 +61,6 @@ frappe.ui.form.FormViewers.set_users = function(data, type) {
 		frappe.xcall('frappe.desk.form.load.get_user_info_for_viewers', {users: unknown_users}).then((data) => {
 			Object.assign(frappe.boot.user_info, data);
 			set_and_refresh();
-		})
+		});
 	}
 };
