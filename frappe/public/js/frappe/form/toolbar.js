@@ -265,6 +265,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 			});
 		}
 
+		// share print view link
+		if (frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
+			this.page.add_menu_item(__("Share Link", [me.frm.doctype]), function() {
+				me.frm.share_doc_link();
+			}, true);
+		}
+
 		// go to field modal
 		this.page.add_menu_item(__("Jump to field"), function() {
 			me.show_jump_to_field_dialog();

@@ -1286,7 +1286,7 @@ class Document(BaseDocument):
 			"reference_docname": self.name,
 			"status": "Active",
 			"key": key
-		})
+		}, cache=True)
 
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)

@@ -62,6 +62,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			dateFormat: date_format,
 			startDate: this.get_start_date(),
 			keyboardNav: false,
+			minDate: this.df.min_date,
+			maxDate: this.df.max_date,
 			onSelect: () => {
 				this.$input.trigger('change');
 			},
