@@ -313,6 +313,6 @@ def get_link_title(doctype, docname):
 	meta = frappe.get_meta(doctype)
 
 	if meta.title_field and meta.show_title_field_in_link:
-		return frappe.get_cached_value(doctype, docname, meta.title_field)
+		return frappe.db.get_value(doctype, docname, meta.title_field)
 
 	return docname
