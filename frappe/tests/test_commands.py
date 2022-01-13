@@ -349,15 +349,22 @@ class TestCommands(BaseTestCommands):
 		shutil.rmtree(test_app_path)
 
 	@skipIf(
-		not (frappe.conf.root_password and frappe.conf.admin_password),
+		not (
+			frappe.conf.root_password
+			and frappe.conf.admin_password
+			and frappe.conf.db_type == "mariadb"
+		),
 		"DB Root password and Admin password not set in config"
 	)
 	def test_bench_drop_site_should_archive_site(self):
+		# TODO: Make this test postgres compatible
 		site = 'test_site.localhost'
 
 		self.execute(
-			f"bench new-site {site} --force --verbose --admin-password {frappe.conf.admin_password} "
-			f"--mariadb-root-password {frappe.conf.root_password}"
+			f"bench new-site {site} --force --verbose "
+			f"--admin-password {frappe.conf.admin_password} "
+			f"--mariadb-root-password {frappe.conf.root_password} "
+			f"--db-type {frappe.conf.db_type or 'mariadb'} "
 		)
 		self.assertEqual(self.returncode, 0)
 
