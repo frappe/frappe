@@ -74,16 +74,31 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	set_formatted_input(value) {
 		super.set_formatted_input();
 		if (!value) return;
-		let doctype = this.get_options();
-		this.set_data_value(frappe.utils.get_link_title(doctype, value) || value, value);
-	}
-	set_data_value(link_display, value) {
-		if (!this.$input) {
-			return;
-		}
 
-		this.$input.val(link_display);
+		this.set_link_title(value);
 		this.data_value = value;
+	}
+	set_link_title(value) {
+		let doctype = this.get_options();
+
+		if (!doctype) return;
+		if (!in_list(frappe.boot.link_title_doctypes, doctype)) return;
+
+		let link_title = frappe.utils.get_link_title(doctype, value);
+		if (!link_title) {
+			frappe.xcall("frappe.desk.search.get_link_title", {
+				"doctype": doctype,
+				"docname": value
+			}).then(link_title => {
+				if (link_title && value !== link_title) {
+					this.set_input_value(link_title);
+				} else {
+					this.set_input_value(value);
+				}
+			});
+		} else {
+			this.set_input_value(link_title);
+		}
 	}
 	parse_validate_and_set_in_model(value, label, e) {
 		if (this.parse) value = this.parse(value, label);
@@ -94,53 +109,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		return this.validate_and_set_in_model(value, e);
 	}
-	validate_and_set_in_model(value, e) {
-		var me = this;
-		let force_value_set = (this.doc && this.doc.__run_link_triggers);
-		let is_value_same = (this.get_model_value() === value);
-
-		if (this.inside_change_event || (!force_value_set && is_value_same)) {
-			return Promise.resolve();
-		}
-
-		this.inside_change_event = true;
-		function set(value) {
-			me.inside_change_event = false;
-			return frappe.run_serially([
-				() => me._validated = true,
-				() => me.set_model_value(value),
-				() => delete me._validated,
-				() => {
-					me.set_mandatory && me.set_mandatory(value);
-
-					if(me.df.change || me.df.onchange) {
-						// onchange event specified in df
-						frappe.utils.set_link_title(me);
-						let set = (me.df.change || me.df.onchange).apply(me, [e]);
-						me.set_invalid && me.set_invalid();
-						return set;
-					}
-					me.set_invalid && me.set_invalid();
-				}
-			]);
-		};
-		value = this.validate(value);
-		if (value && value.then) {
-			// got a promise
-			return value.then((value) => set(value));
-		} else {
-			// all clear
-			return set(value);
-		}
-	}
 	get_input_value() {
 		return (this.$input && this.data_value && this.$input.val()) ? this.data_value : "";
 	}
 	get_label_value() {
 		return this.$input ? this.$input.val() : "";
 	}
-	set_input_label(label) {
-		this.$input && this.$input.val(label);
+	set_input_value(value) {
+		this.$input && this.$input.val(value);
 	}
 	reset_value() {
 		if (!this.$input) {
