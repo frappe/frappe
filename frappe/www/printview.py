@@ -37,6 +37,7 @@ def get_context(context):
 
 	make_access_log(doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type='PDF', method='Print')
 
+	link_expired = False
 	try:
 		body = get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
@@ -44,6 +45,7 @@ def get_context(context):
 			settings=settings)
 	except frappe.exceptions.LinkExpiredError:
 		body = "Link Expired"
+		link_expired = True
 
 	return {
 		"body": body,
@@ -51,7 +53,8 @@ def get_context(context):
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
 		"lang": frappe.local.lang,
-		"layout_direction": "rtl" if is_rtl() else "ltr"
+		"layout_direction": "rtl" if is_rtl() else "ltr",
+		"link_expired": link_expired
 	}
 
 def get_print_format_doc(print_format_name, meta):
