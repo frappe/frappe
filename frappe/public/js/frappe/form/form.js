@@ -843,7 +843,7 @@ frappe.ui.form.Form = class FrappeForm {
 		} else {
 			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
 		}
-	};
+	}
 
 	savetrash() {
 		this.validate_form_action("Delete");
@@ -1126,8 +1126,8 @@ frappe.ui.form.Form = class FrappeForm {
 				click: () => {
 					this.call("get_new_document_key").then(res => {
 						let key = res.message;
-						share_document_url_dialog.set_value("link", this.get_share_link(key))
-					})
+						share_document_url_dialog.set_value("link", this.get_share_link(key));
+					});
 				}
 			}, {
 				fieldname: "link",
@@ -1138,8 +1138,8 @@ frappe.ui.form.Form = class FrappeForm {
 			}],
 			size: "small",
 			title: __("Share {} Link", [this.doctype]),
-		})
-		share_document_url_dialog.show()
+		});
+		share_document_url_dialog.show();
 	}
 
 	get_share_link(key) {
