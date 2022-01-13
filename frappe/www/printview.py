@@ -52,6 +52,7 @@ def get_context(context):
 		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
 	)
 
+<<<<<<< HEAD
 	return {
 		"body": get_rendered_template(
 			doc,
@@ -62,6 +63,18 @@ def get_context(context):
 			letterhead=letterhead,
 			settings=settings,
 		),
+=======
+	try:
+		body = get_rendered_template(doc, print_format = print_format,
+			meta=meta, trigger_print = frappe.form_dict.trigger_print,
+			no_letterhead=frappe.form_dict.no_letterhead, letterhead=letterhead,
+			settings=settings)
+	except frappe.exceptions.LinkExpiredError:
+		body = "Link Expired"
+
+	return {
+		"body": body,
+>>>>>>> 4ee99ce7e1 (feat: Set expiry to document link)
 		"css": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name,

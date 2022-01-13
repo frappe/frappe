@@ -291,13 +291,25 @@ textarea.form-control {
 	position: relative;
 }
 
-.link-btn {
-	position: absolute;
-	top: 4px;
-	right: 4px;
-	padding: 3px;
-	display: none;
-	z-index: 3;
+.frappe-control {
+	.action-btn {
+		position: absolute;
+		top: 4px;
+		right: 4px;
+		padding: 3px;
+		z-index: 3;
+	}
+
+	button.action-btn {
+		padding: 3px 5px;
+		background-color: var(--fg-color);
+	}
+
+	.link-btn {
+		@extend .action-btn;
+		background-color: none;
+		display: none;
+	}
 }
 
 .phone-btn {

@@ -1105,6 +1105,47 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
+	share_doc_link() {
+		const share_document_url_dialog = new frappe.ui.Dialog({
+			fields: [{
+				fieldname: "visibility",
+				label: "Visibility",
+				fieldtype: "Select",
+				options: "Public\nPrivate",
+				default: "Public",
+				read_only_depends_on: "eval: doc.link"
+			}, {
+				fieldname: "link_expiration_date",
+				label: "Link Expiration Date",
+				fieldtype: "Date",
+				min_date: new Date(),
+				read_only_depends_on: "eval: doc.link"
+			}, {
+				fieldtype: "Button",
+				label: "Generate Link",
+				click: () => {
+					this.call("get_new_document_key").then(res => {
+						let key = res.message;
+						share_document_url_dialog.set_value("link", this.get_share_link(key))
+					})
+				}
+			}, {
+				fieldname: "link",
+				label: "Link",
+				fieldtype: "Data",
+				depends_on: "eval: doc.link",
+				with_copy_button: true
+			}],
+			size: "small",
+			title: __("Share {} Link", [this.doctype]),
+		})
+		share_document_url_dialog.show()
+	}
+
+	get_share_link(key) {
+		return `${window.origin}/${this.doctype}/${this.docname}?key=${key}`;
+	}
+
 	copy_doc(onload, from_amend) {
 		this.validate_form_action("Create");
 		var newdoc = frappe.model.copy_doc(this.doc, from_amend);

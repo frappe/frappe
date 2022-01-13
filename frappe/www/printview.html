@@ -11,11 +11,16 @@
 	</style>
 </head>
 <body>
-	<div class="print-format-gutter">
-	    <div class="print-format">
-		{{ body }}
-	    </div>
+	<div class="hidden-print w-100 bg-secondary text-center" style="padding: 10px">
+		{{ _("Your key has been expired!") }}
 	</div>
+	{% if hideewe %}
+	<div class="print-format-gutter">
+		<div class="print-format">
+			{{ body }}
+		</div>
+	</div>
+	{% endif %}
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
 			const page_div = document.querySelector('.page-break');

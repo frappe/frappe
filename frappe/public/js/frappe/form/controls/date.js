@@ -64,7 +64,12 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			dateFormat: date_format,
 			startDate: now_date,
 			keyboardNav: false,
+<<<<<<< HEAD
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
+=======
+			minDate: this.df.min_date,
+			maxDate: this.df.max_date,
+>>>>>>> 4ee99ce7e1 (feat: Set expiry to document link)
 			onSelect: () => {
 				this.$input.trigger('change');
 			},
