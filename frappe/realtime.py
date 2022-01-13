@@ -101,6 +101,8 @@ def can_subscribe_doc(doctype, docname):
 	if os.environ.get('CI'):
 		return True
 
+	print (frappe.session.user, doctype, docname)
+
 	from frappe.sessions import Session
 	from frappe.exceptions import PermissionError
 	session = Session(None, resume=True).get_session_data()

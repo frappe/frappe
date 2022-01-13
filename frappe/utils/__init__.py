@@ -56,7 +56,7 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-	
+
 	method = get_hook_method('get_sender_details')
 	if method:
 		sender_name, mail = method()
@@ -623,12 +623,11 @@ def get_installed_apps_info():
 	return out
 
 def get_site_info():
-	from frappe.core.doctype.user.user import STANDARD_USERS
 	from frappe.email.queue import get_emails_sent_this_month
 	from frappe.utils.user import get_system_managers
 
 	# only get system users
-	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
+	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', frappe.STANDARD_USERS)},
 		fields=['name', 'enabled', 'last_login', 'last_active', 'language', 'time_zone'])
 	system_managers = get_system_managers(only_name=True)
 	for u in users:
@@ -898,3 +897,14 @@ def dictify(arg):
 		arg = frappe._dict(arg)
 
 	return arg
+
+def add_user_info(user, user_info):
+	if user not in user_info:
+		info = frappe.db.get_value("User",
+			user, ["full_name", "user_image", "name", 'email'], as_dict=True)
+		user_info[user] = frappe._dict(
+			fullname = info.full_name,
+			image = info.user_image,
+			name = user,
+			email = info.email
+		)
