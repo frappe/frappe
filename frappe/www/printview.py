@@ -53,6 +53,7 @@ def get_context(context):
 	)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return {
 		"body": get_rendered_template(
 			doc,
@@ -64,6 +65,9 @@ def get_context(context):
 			settings=settings,
 		),
 =======
+=======
+	link_expired = False
+>>>>>>> f0ebd13c84 (fix: Logic to show link expired message)
 	try:
 		body = get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
@@ -71,6 +75,7 @@ def get_context(context):
 			settings=settings)
 	except frappe.exceptions.LinkExpiredError:
 		body = "Link Expired"
+		link_expired = True
 
 	return {
 		"body": body,
@@ -80,6 +85,10 @@ def get_context(context):
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
+<<<<<<< HEAD
+=======
+		"link_expired": link_expired
+>>>>>>> f0ebd13c84 (fix: Logic to show link expired message)
 	}
 
 
