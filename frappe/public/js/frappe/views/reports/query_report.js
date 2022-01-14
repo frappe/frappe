@@ -1601,7 +1601,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
-									columns: this.get_visible_columns()
+									json: JSON.stringify({
+										filters: this.get_filter_values(),
+										columns: this.get_visible_columns(),
+									})
 								},
 								callback: function(r) {
 									this.show_save = false;
