@@ -646,8 +646,6 @@ class BaseDocument(object):
 					value, comma_options))
 
 	def _validate_data_fields(self):
-		from frappe.core.doctype.user.user import STANDARD_USERS
-
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
@@ -658,7 +656,7 @@ class BaseDocument(object):
 				continue
 
 			if data_field_options == "Email":
-				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
 					continue
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
