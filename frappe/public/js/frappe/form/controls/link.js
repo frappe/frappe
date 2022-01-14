@@ -82,7 +82,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let doctype = this.get_options();
 
 		if (!doctype) return;
-		if (!in_list(frappe.boot.link_title_doctypes, doctype)) return;
+
+		if (!in_list(frappe.boot.link_title_doctypes, doctype)) {
+			this.set_input_value(value);
+			return;
+		}
 
 		let link_title = frappe.utils.get_link_title(doctype, value);
 		if (!link_title) {
