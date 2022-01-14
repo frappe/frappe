@@ -66,9 +66,6 @@ def get_latest_backup_file(with_files=False):
 
 
 def get_file_size(file_path, unit):
-	if not file_path:
-		return 0
-
 	file_size = os.path.getsize(file_path)
 
 	memory_size_unit_mapper = {"KB": 1, "MB": 2, "GB": 3, "TB": 4}
