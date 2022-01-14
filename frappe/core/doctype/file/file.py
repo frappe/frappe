@@ -29,7 +29,7 @@ from frappe import _, conf, safe_decode
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 from frappe.utils.image import strip_exif_data, optimize_image
-from frappe.utils.file_manager import safe_b64decode
+from frappe.utils.file_manager import is_safe_path, safe_b64decode
 
 if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
@@ -411,6 +411,9 @@ class File(Document):
 
 		elif not self.file_url:
 			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
+
+		if not is_safe_path(file_path):
+			frappe.throw(f"Cannot access file path {file_path}")
 
 		return file_path
 
