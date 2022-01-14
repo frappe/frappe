@@ -259,7 +259,7 @@ Object.assign(frappe.utils, {
 			'&#x2F;': '/',
 			'&#x60;': '`',
 			'&#x3D;': '='
-		}
+		};
 
 		return String(txt).replace(
 			/&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g, 
