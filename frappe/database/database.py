@@ -278,6 +278,9 @@ class Database(object):
 				if self.auto_commit_on_many_writes:
 					self.commit()
 				else:
+					frappe.db.rollback()
+					frappe.utils.log_call_stack()
+					frappe.db.commit()
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
 
 	def check_implicit_commit(self, query):

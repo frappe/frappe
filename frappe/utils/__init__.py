@@ -250,6 +250,22 @@ def get_traceback() -> str:
 
 	return "".join(cstr(t) for t in trace_list).replace(bench_path, "")
 
+def get_callstack() -> str:
+	call_stack = traceback.format_stack()
+
+	if not call_stack:
+		return ""
+
+	bench_path = get_bench_path() + "/"
+
+	return "".join(cstr(t) for t in call_stack if 'apps/' in cstr(t)).replace(bench_path, "")
+
+def log_call_stack(title=None):
+	title = title or "Call Stack Log"
+	message = "Call Stack: \n\n"
+	message += get_callstack()
+	frappe.log_error(message, title=title)
+
 def log(event, details):
 	frappe.logger().info(details)
 
