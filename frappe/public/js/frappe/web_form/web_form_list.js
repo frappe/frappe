@@ -139,8 +139,6 @@ export default class WebFormList {
 	make_table_head() {
 		// Create Heading
 		let thead = this.table.createTHead();
-		thead.style.backgroundColor = "#f7fafc";
-		thead.style.color = "#8d99a6";
 		let row = thead.insertRow();
 
 		let th = document.createElement("th");
