@@ -926,7 +926,7 @@ def download_translations(app=None, apps=None):
 			return
 
 		print('downloading translations for', app, end=' ')
-		translations_dir = os.path.join('.', 'translations', app)
+		translations_dir = os.path.join(get_bench_path(), 'apps', app, app, 'translations')
 		if not os.path.exists(translations_dir):
 			os.makedirs(translations_dir)
 

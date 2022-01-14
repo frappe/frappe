@@ -70,8 +70,7 @@ coverage.xml
 .cypress-coverage
 
 # Translations
-*.mo
-*.pot
+frappe/translations/
 
 # Django stuff:
 *.log
