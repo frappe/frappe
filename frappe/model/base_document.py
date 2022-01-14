@@ -646,8 +646,6 @@ class BaseDocument(object):
 					value, comma_options))
 
 	def _validate_data_fields(self):
-		from frappe.core.doctype.user.user import STANDARD_USERS
-
 		# data_field options defined in frappe.model.data_field_options
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
@@ -662,7 +660,7 @@ class BaseDocument(object):
 				continue
 
 			if data_field_options == "Email":
-				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
 					continue
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
@@ -772,7 +770,9 @@ class BaseDocument(object):
 
 				else:
 					self_value = self.get_value(key)
-
+				# Postgres stores values as `datetime.time`, MariaDB as `timedelta`
+				if isinstance(self_value, datetime.timedelta) and isinstance(db_value, datetime.time):
+					db_value = datetime.timedelta(hours=db_value.hour, minutes=db_value.minute, seconds=db_value.second, microseconds=db_value.microsecond)
 				if self_value != db_value:
 					frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 						frappe.UpdateAfterSubmitError)
@@ -1012,15 +1012,12 @@ def _filter(data, filters, limit=None):
 			_filters[f] = fval
 
 	for d in data:
-		add = True
 		for f, fval in _filters.items():
 			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
-				add = False
 				break
-
-		if add:
+		else:
 			out.append(d)
-			if limit and (len(out)-1)==limit:
+			if limit and len(out) >= limit:
 				break
 
 	return out

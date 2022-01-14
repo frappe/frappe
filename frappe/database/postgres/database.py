@@ -75,9 +75,15 @@ class PostgresDatabase(Database):
 		return conn
 
 	def escape(self, s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
+				
+		# MariaDB's driver treats None as an empty string
+		# So Postgres should do the same
+
+		if s is None: 
+			s = ''
 
 		if percent:
 			s = s.replace("%", "%%")

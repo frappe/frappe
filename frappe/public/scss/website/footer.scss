@@ -94,6 +94,8 @@
 			max-width: 300px;
 			border: 1px solid var(--dark-border-color);
 			box-shadow: none;
+			border-radius: var(--border-radius);
+			font-size: $font-size-sm;
 		}
 	}
 }
