@@ -427,12 +427,12 @@ frappe.views.CommunicationComposer = class {
 			.empty()
 			.add_options(print_formats)
 			.val(print_formats[0]);
-		// } else if(this.report) {
-		// 	const print_formats = frappe.meta.get_print_formats("Customer", "Standard");
-		// 	$(fields.select_print_format.input)
-		// 		.empty()
-		// 		.add_options(print_formats)
-		// 		.val(print_formats[0]);
+		} else if(this.report) {
+			const print_formats = frappe.meta.get_print_formats("Customer", "Standard");
+			$(fields.select_print_format.input)
+				.empty()
+				.add_options(print_formats)
+				.val(print_formats[0]);
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
