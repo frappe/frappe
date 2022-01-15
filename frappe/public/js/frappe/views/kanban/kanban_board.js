@@ -400,9 +400,16 @@ frappe.provide("frappe.views");
 			let draggable = self.$kanban_board[0];
 
 			draggable.addEventListener('mousedown', (e) => {
-				// don't trigger scroll if one of the ancesstors of the
-				// selected element is a card
-				if (e.target.closest('.kanban-card-wrapper')) return;
+				// don't trigger scroll if one of the ancestors of the
+				// clicked element matches any of these selectors
+				let ignoreEl = [
+					'.kanban-column .kanban-column-header',
+					'.kanban-column .add-card',
+					'.kanban-column .kanban-card.new-card-area',
+					'.kanban-card-wrapper',
+				];
+				if (ignoreEl.some((el) => e.target.closest(el))) return;
+
 				isDown = true;
 				draggable.classList.add('clickdrag-active');
 				startX = e.pageX - draggable.offsetLeft;
