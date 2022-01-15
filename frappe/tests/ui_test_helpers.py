@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.utils import add_to_date, now
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 
 @frappe.whitelist()
 def create_if_not_exists(doc):
@@ -244,3 +245,7 @@ def create_topic_and_reply(web_page):
 		})
 
 		reply.save()
+
+@frappe.whitelist()
+def create_users():
+	create_user("testcontrollink@example.com")

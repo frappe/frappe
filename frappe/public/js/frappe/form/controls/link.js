@@ -27,25 +27,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.set_input_attributes();
 		this.$input.on("focus", function() {
 			setTimeout(function() {
-				if(me.$input.val() && me.get_options()) {
+				if(me.get_input_value() && me.get_options()) {
 					let doctype = me.get_options();
-					let name = me.$input.val();
+					let name = me.get_input_value();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
-				if(!me.$input.val()) {
-					me.$input.val("").trigger("input");
+				if(!me.get_input_value() || !me.get_label_value()) {
+					me.reset_value();
+					me.$input.trigger("input");
 				}
 			}, 500);
 		});
-		this.$input.on("blur", function() {
-			// if this disappears immediately, the user's click
-			// does not register, hence timeout
-			setTimeout(function() {
-				me.$link.toggle(false);
-			}, 500);
-		});
+
 		this.$input.attr('data-target', this.df.options);
 		this.input = this.$input.get(0);
 		this.has_input = true;
@@ -235,12 +230,18 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}, 500));
 
 		this.$input.on("blur", function() {
-			if(me.selected) {
+			// if this disappears immediately, the user's click
+			// does not register, hence timeout
+			setTimeout(function() {
+				me.$link.toggle(false);
+			}, 500);
+
+			if (me.selected) {
 				me.selected = false;
 				return;
 			}
-			var value = me.get_input_value();
-			if(value!==me.last_value) {
+			let value = me.get_input_value();
+			if (value!==me.last_value) {
 				me.parse_validate_and_set_in_model(value);
 			}
 		});
@@ -482,7 +483,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!options) return;
-
+		let me = this;
 		let field_value = "";
 		const fetch_map = this.fetch_map;
 		const columns_to_fetch = Object.values(fetch_map);
@@ -497,7 +498,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			docname: value,
 			fields: columns_to_fetch,
 		}).then((response) => {
-			if (!docname || !columns_to_fetch.length) return response.name;
+			if (!docname || !columns_to_fetch.length) {
+				if (!response.name) me.reset_value();
+				return response.name;
+			}
 
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
 				if (value) field_value = response[source_field];
