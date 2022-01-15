@@ -230,7 +230,6 @@ def get_fullname_and_avatar(user):
 def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils
-	from frappe.core.doctype.user.user import STANDARD_USERS
 	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
 		CONCAT_WS(' ',
 			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name` END,
@@ -245,8 +244,8 @@ def get_system_managers(only_name=False):
 				FROM `tabHas Role` AS ur
 				WHERE ur.parent = p.name
 				AND ur.role='System Manager')
-		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(STANDARD_USERS))),
-			STANDARD_USERS, as_dict=True)
+		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(frappe.STANDARD_USERS))),
+			frappe.STANDARD_USERS, as_dict=True)
 
 	if only_name:
 		return [p.name for p in system_managers]

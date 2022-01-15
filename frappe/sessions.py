@@ -68,9 +68,14 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	session = DocType("Sessions")
 	session_id = frappe.qb.from_(session).where((session.user == user) & (session.device.isin(device)))
 	if keep_current:
-		session_id = session_id.where(session.sid != frappe.db.escape(frappe.session.sid))
+		session_id = session_id.where(session.sid != frappe.session.sid)
 
-	query = session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
+	query = (
+		session_id.select(session.sid)
+		.offset(offset)
+		.limit(100)
+		.orderby(session.lastupdate, order=Order.desc)
+	)
 
 	return query.run(pluck=True)
 

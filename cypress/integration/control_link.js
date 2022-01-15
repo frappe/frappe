@@ -1,6 +1,6 @@
 context('Control Link', () => {
 	before(() => {
-		cy.login('administrator', 'frappe');
+		cy.login();
 		cy.visit('/app/website');
 	});
 
@@ -68,7 +68,8 @@ context('Control Link', () => {
 			cy.get('.frappe-control[data-fieldname=link] input').as('input');
 			cy.get('@input').focus();
 			cy.wait('@search_link');
-			cy.get('@input').type(todos[0]).type('{enter}').blur();
+			cy.get('@input').type(todos[0]).type('{enter}', { delay: 100 })
+			cy.get('@input').blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
 			cy.findByTitle('Open Link')

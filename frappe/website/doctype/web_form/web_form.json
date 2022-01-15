@@ -11,6 +11,7 @@
   "module",
   "column_break_4",
   "is_standard",
+  "is_multi_step_form",
   "published",
   "login_required",
   "route_to_success_link",
@@ -355,13 +356,19 @@
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
    "label": "Apply Document Permissions"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_multi_step_form",
+   "fieldtype": "Check",
+   "label": "Is Multi Step Form"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2020-08-07 13:12:03.945686",
+ "modified": "2021-11-15 14:12:44.624573",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
