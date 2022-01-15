@@ -39,21 +39,24 @@ class ParameterizedValueWrapper(ValueWrapper):
 	Adds functionality to parameterize queries when a `param wrapper` is passed in get_sql()
 	"""
 
-	def get_sql(self, quote_char: Optional[str] = None, secondary_quote_char: str = "'", param_wrapper: Optional[NamedParameterWrapper] = None, **kwargs: Any) -> str:
-		if param_wrapper is None:
+	def get_sql(
+		self,
+		quote_char: Optional[str] = None,
+		secondary_quote_char: str = "'",
+		param_wrapper: Optional[NamedParameterWrapper] = None,
+		**kwargs: Any,
+	) -> str:
+		if param_wrapper and isinstance(self.value, str):
+			# add quotes if it's a string value
+			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
+			sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
+		else:
 			sql = self.get_value_sql(
 				quote_char=quote_char,
 				secondary_quote_char=secondary_quote_char,
 				**kwargs,
 			)
-			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
-		else:
-			value_sql = self.value
-			if isinstance(self.value, str):
-				# add quotes if it's a string value
-				value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
-			param_sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
-		return format_alias_sql(param_sql, self.alias, quote_char=quote_char, **kwargs)
+		return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 
 
 class ParameterizedFunction(Function):
@@ -62,6 +65,7 @@ class ParameterizedFunction(Function):
 
 	Only to pass `param_wrapper` in `get_function_sql`.
 	"""
+
 	def get_sql(self, **kwargs: Any) -> str:
 		with_alias = kwargs.pop("with_alias", False)
 		with_namespace = kwargs.pop("with_namespace", False)
