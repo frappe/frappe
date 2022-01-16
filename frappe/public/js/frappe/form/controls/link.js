@@ -311,7 +311,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return;
 		}
 		this.$input.val("");
-		this.data_value = null;
+		this.value = null;
 	}
 
 	merge_duplicates(results) {
