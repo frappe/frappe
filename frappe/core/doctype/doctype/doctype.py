@@ -175,8 +175,8 @@ class DocType(Document):
 		if frappe.flags.in_patch or frappe.flags.in_test:
 			return
 
-		if not frappe.conf.get("developer_mode") and not self.custom:
-			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
+		# if not frappe.conf.get("developer_mode") and not self.custom:
+		# 	frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
 
 		if self.is_virtual and self.custom:
 			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
