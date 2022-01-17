@@ -57,7 +57,6 @@
 		window.dev_server = {{ dev_server }};
 		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
 		window.show_language_picker = {{ show_language_picker }};
-		window.is_chat_enabled = {{ chat_enable }};
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
@@ -99,6 +98,16 @@
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 	<script type="text/javascript" src="/assets/js/frappe-web.min.js?ver={{ build_version }}"></script>
 	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+	<script>
+		frappe.boot = {
+			sysdefaults: {
+				float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
+				date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+			}
+		};
+		// for backward compatibility of some libs
+		frappe.sys_defaults = frappe.boot.sysdefaults;
+	</script>
 	{% endblock %}
 
 	{%- for link in web_include_js %}

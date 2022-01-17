@@ -66,10 +66,10 @@
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
-  "chat",
-  "enable_chat",
   "document_naming_section",
-  "use_original_name_for_amended_document"
+  "use_original_name_for_amended_document",
+  "system_updates_section",
+  "disable_system_update_notification"
  ],
  "fields": [
   {
@@ -384,18 +384,6 @@
    "label": "Hide footer in auto email reports"
   },
   {
-   "collapsible": 1,
-   "fieldname": "chat",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_chat",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -483,13 +471,25 @@
    "fieldname": "use_original_name_for_amended_document",
    "fieldtype": "Check",
    "label": "Use original name for amended document",
-   "read_only_depends_on": "eval:doc.use_original_name_for_amended_document==1"
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "system_updates_section",
+   "fieldtype": "Section Break",
+   "label": "System Updates"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_system_update_notification",
+   "fieldtype": "Check",
+   "label": "Disable System Update Notification"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-08-11 09:04:43.856970",
+ "modified": "2021-12-13 12:07:26.860735",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

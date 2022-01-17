@@ -74,7 +74,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 			awesomplete.list = me.deduplicate(me.options);
 
-		}, 500));
+		}, 100));
 
 		var open_recent = function() {
 			if (!this.autocomplete_open) {

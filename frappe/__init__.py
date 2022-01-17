@@ -35,7 +35,7 @@ from frappe.query_builder import get_query_builder, patch_query_execute
 # Lazy imports
 faker = lazy_import('faker')
 
-__version__ = '13.15.0'
+__version__ = '13.18.0'
 
 __title__ = "Frappe Framework"
 
@@ -1191,7 +1191,7 @@ def read_file(path, raise_not_found=False):
 def get_attr(method_string):
 	"""Get python method object from its name."""
 	app_name = method_string.split(".")[0]
-	if not local.flags.in_install and app_name not in get_installed_apps():
+	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 
 	modulename = '.'.join(method_string.split('.')[:-1])
@@ -1519,8 +1519,8 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None,
-	html=None, as_pdf=False, doc=None, output=None, no_letterhead=0, password=None):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
+	as_pdf=False, doc=None, output=None, no_letterhead=0, password=None, pdf_options=None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1539,15 +1539,15 @@ def get_print(doctype=None, name=None, print_format=None, style=None,
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
 
-	options = None
+	pdf_options = pdf_options or {}
 	if password:
-		options = {'password': password}
+		pdf_options['password'] = password
 
 	if not html:
 		html = build_page("printview")
 
 	if as_pdf:
-		return get_pdf(html, output = output, options = options)
+		return get_pdf(html, options=pdf_options, output=output)
 	else:
 		return html
 
@@ -1797,7 +1797,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 			'limit': limit
 		}, as_list=1)
 
-		from frappe.chat.util import squashify, dictify, safe_json_loads
+		from frappe.utils import squashify, dictify, safe_json_loads
 
 		versions = []
 
@@ -1854,7 +1854,7 @@ def mock(type, size=1, locale='en'):
 			data = getattr(fake, type)()
 			results.append(data)
 
-	from frappe.chat.util import squashify
+	from frappe.utils import squashify
 	return squashify(results)
 
 def validate_and_sanitize_search_inputs(fn):

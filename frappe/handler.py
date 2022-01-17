@@ -248,7 +248,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	# build output as csv
 	if cint(frappe.form_dict.get('as_csv')):
-		build_csv_response(response, doc.doctype.replace(' ', ''))
+		build_csv_response(response, _(doc.doctype).replace(' ', ''))
 		return
 
 	frappe.response['message'] = response

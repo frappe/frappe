@@ -9,7 +9,7 @@ import frappe
 
 def run_webhooks(doc, method):
 	'''Run webhooks for this method'''
-	if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+	if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_migrate:
 		return
 
 	if frappe.flags.webhooks_executed is None:

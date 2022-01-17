@@ -508,10 +508,10 @@ def get_timespan_date_range(timespan):
 		"yesterday": lambda: (add_to_date(today, days=-1),) * 2,
 		"today": lambda: (today, today),
 		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
-		"this week": lambda: (get_first_day_of_week(today), today),
-		"this month": lambda: (get_first_day(today), today),
-		"this quarter": lambda: (get_quarter_start(today), today),
-		"this year": lambda: (get_year_start(today), today),
+		"this week": lambda: (get_first_day_of_week(today), get_last_day_of_week(today)),
+		"this month": lambda: (get_first_day(today), get_last_day(today)),
+		"this quarter": lambda: (get_quarter_start(today), get_quarter_ending(today)),
+		"this year": lambda: (get_year_start(today), get_year_ending(today)),
 		"next week": lambda: (get_first_day_of_week(add_to_date(today, days=7)), get_last_day_of_week(add_to_date(today, days=7))),
 		"next month": lambda: (get_first_day(add_to_date(today, months=1)), get_last_day(add_to_date(today, months=1))),
 		"next quarter": lambda: (get_quarter_start(add_to_date(today, months=3)), get_quarter_ending(add_to_date(today, months=3))),
@@ -1594,7 +1594,7 @@ def get_user_info_for_avatar(user_id):
 	}
 	try:
 		user_info["email"] = frappe.get_cached_value("User", user_id, "email")
-		user_info["name"] = frappe.get_cached_value("User", user_id, "fullname")
+		user_info["name"] = frappe.get_cached_value("User", user_id, "full_name")
 		user_info["image"] = frappe.get_cached_value("User", user_id, "user_image")
 	except Exception:
 		frappe.local.message_log = []

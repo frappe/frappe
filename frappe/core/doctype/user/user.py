@@ -420,9 +420,6 @@ class User(Document):
 					WHERE `%s` = %s""" %
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
-		if frappe.db.exists("Chat Profile", old_name):
-			frappe.rename_doc("Chat Profile", old_name, new_name, force=True, show_alert=False)
-
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
@@ -810,6 +807,7 @@ def reset_password(user):
 		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
 
 	except frappe.DoesNotExistError:
+		frappe.local.response['http_status_code'] = 400
 		frappe.clear_messages()
 		return 'not found'
 

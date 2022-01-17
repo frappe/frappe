@@ -72,6 +72,9 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 	let current_page_shortcuts = standard_shortcuts.filter(
 		shortcut => shortcut.page && shortcut.page === window.cur_page.page.page);
 
+	let grid_shortcuts = standard_shortcuts.filter(
+		shortcut => shortcut.page && shortcut.page === window.cur_page.page.frm);
+
 	function generate_shortcuts_html(shortcuts, heading) {
 		if (!shortcuts.length) {
 			return '';
@@ -100,6 +103,7 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 
 	let global_shortcuts_html = generate_shortcuts_html(global_shortcuts, __('Global Shortcuts'));
 	let current_page_shortcuts_html = generate_shortcuts_html(current_page_shortcuts, __('Page Shortcuts'));
+	let grid_shortcuts_html = generate_shortcuts_html(grid_shortcuts, __('Grid Shortcuts'));
 
 	let dialog = new frappe.ui.Dialog({
 		title: __('Keyboard Shortcuts'),
@@ -110,6 +114,7 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 
 	dialog.$body.append(global_shortcuts_html);
 	dialog.$body.append(current_page_shortcuts_html);
+	dialog.$body.append(grid_shortcuts_html);
 	dialog.$body.append(`
 		<div class="text-muted">
 			${__('Press Alt Key to trigger additional shortcuts in Menu and Sidebar')}
