@@ -234,7 +234,7 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 		return wrapper_raise_error_on_no_output
 	return decorator_raise_error_on_no_output
 
-def get_app_details_from_stack(skip_frames=0, ignore_files=()):
+def get_app_details_from_stack(skip_frames=1, ignore_files=()):
 	""" get name of app, filename and calling function from stack.
 		args:
 			skip_frames - number of stack frames to skip
