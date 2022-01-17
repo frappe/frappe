@@ -12,11 +12,26 @@ from six import iteritems, text_type, string_types, integer_types
 from code import compile_command
 from frappe.desk.utils import slug
 from click import secho
+from enum import Enum
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
+class Weekday(Enum):
+	Sunday = 0
+	Monday = 1
+	Tuesday = 2
+	Wednesday = 3
+	Thursday = 4
+	Friday = 5
+	Saturday = 6
+
+def get_first_day_of_the_week():
+	return frappe.get_system_settings('first_day_of_the_week') or "Sunday"
+
+def get_start_of_week_index():
+	return Weekday[get_first_day_of_the_week()].value
 
 def is_invalid_date_string(date_string):
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
@@ -247,8 +262,21 @@ def get_quarter_start(dt, as_str=False):
 
 def get_first_day_of_week(dt, as_str=False):
 	dt = getdate(dt)
-	date = dt - datetime.timedelta(days=dt.weekday())
+	date = dt - datetime.timedelta(days=get_week_start_offset_days(dt))
 	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_week_start_offset_days(dt):
+	current_day_index = get_normalized_weekday_index(dt)
+	start_of_week_index = get_start_of_week_index()
+
+	if current_day_index >= start_of_week_index:
+		return current_day_index - start_of_week_index
+	else:
+		return 7 - (start_of_week_index - current_day_index)
+
+def get_normalized_weekday_index(dt):
+	# starts Sunday with 0
+	return (dt.weekday() + 1) % 7
 
 def get_year_start(dt, as_str=False):
 	dt = getdate(dt)
