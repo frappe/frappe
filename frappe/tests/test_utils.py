@@ -335,7 +335,7 @@ class TestErrorUtils(unittest.TestCase):
 	def test_fetch_app_detials(self):
 		from frappe.utils.error import get_app_details_from_stack
 
-		app_details = get_app_details_from_stack()
+		app_details = get_app_details_from_stack(skip_frames=0)
 
 		self.assertEqual(app_details.app, "frappe")
 		self.assertEqual(app_details.filename, "test_utils.py")
