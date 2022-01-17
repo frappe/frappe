@@ -314,7 +314,6 @@ def destroy():
 
 	release_local(local)
 
-# memcache
 redis_server = None
 def cache() -> "RedisWrapper":
 	"""Returns redis connection."""
