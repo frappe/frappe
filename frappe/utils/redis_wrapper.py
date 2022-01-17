@@ -22,7 +22,7 @@ class RedisWrapper(redis.Redis):
 		if shared:
 			return key
 		if user:
-			if user == True:
+			if user is True:
 				user = frappe.session.user
 
 			key = "user:{0}:{1}".format(user, key)
