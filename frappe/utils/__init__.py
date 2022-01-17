@@ -290,7 +290,7 @@ def remove_blanks(d):
 	"""
 	empty_keys = []
 	for key in d:
-		if d[key]=='' or d[key]==None:
+		if d[key] == "" or d[key] is None:
 			# del d[key] raises runtime exception, using a workaround
 			empty_keys.append(key)
 	for key in empty_keys:

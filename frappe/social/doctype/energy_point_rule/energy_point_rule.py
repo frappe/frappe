@@ -57,7 +57,7 @@ class EnergyPointRule(Document):
 	def rule_condition_satisfied(self, doc):
 		if self.for_doc_event == 'New':
 			# indicates that this was a new doc
-			return doc.get_doc_before_save() == None
+			return doc.get_doc_before_save() is None
 		if self.for_doc_event == 'Submit':
 			return doc.docstatus == 1
 		if self.for_doc_event == 'Cancel':

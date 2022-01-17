@@ -374,7 +374,7 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-		if force or (time_diff==None) or (time_diff > 600):
+		if force or (time_diff is None) or (time_diff > 600):
 			# update sessions table
 			frappe.db.sql("""update `tabSessions` set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
