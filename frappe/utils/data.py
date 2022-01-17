@@ -735,12 +735,15 @@ def sbool(x):
 		x (str): String to be converted to Bool
 
 	Returns:
-		object: Returns Boolean or type(x)
+		object: Returns Boolean or x
 	"""
-	from distutils.util import strtobool
-
 	try:
-		return bool(strtobool(x))
+		val = x.lower()
+		if val in ('true', '1'):
+			return True
+		elif val in ('false', '0'):
+			return False
+		return bool(x)
 	except Exception:
 		return x
 
