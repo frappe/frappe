@@ -112,7 +112,7 @@ def get_expired_sessions():
 			frappe.db.get_values(
 				sessions,
 				filters=(
-					PseudoColumn(f"({Now() - sessions.lastupdate})")
+					PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
 					> get_expiry_period_for_query(device)
 				)
 				& (sessions.device == device),
@@ -334,7 +334,7 @@ class Session:
 			sessions,
 			filters=(sessions.sid == self.sid)
 			& (
-				PseudoColumn(f"({Now() - sessions.lastupdate})")
+				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
 				< get_expiry_period_for_query(self.device)
 			),
 			fieldname=["user", "sessiondata"],
