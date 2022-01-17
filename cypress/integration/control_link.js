@@ -68,7 +68,7 @@ context('Control Link', () => {
 			cy.get('.frappe-control[data-fieldname=link] input').as('input');
 			cy.get('@input').focus();
 			cy.wait('@search_link');
-			cy.get('@input').type(todos[0]).type('{enter}', { delay: 100 });
+			cy.get('@input').type(todos[0], { delay: 100 }).type('{enter}');
 			cy.get('@input').blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
@@ -80,20 +80,16 @@ context('Control Link', () => {
 	});
 
 	it('should fetch valid value', () => {
-		cy.window().its('frappe').then(frappe => {
-			frappe.xcall('frappe.tests.ui_test_helpers.create_users').then(() => {
-				cy.get('@todos').then(todos => {
-					cy.visit(`/app/todo/${todos[0]}`);
-					cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
+		cy.get('@todos').then(todos => {
+			cy.visit(`/app/todo/${todos[0]}`);
+			cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
 
-					cy.get('.frappe-control[data-fieldname=assigned_by] input').focus().as('input');
-					cy.get('@input').type('testcontrollink@example.com', {delay: 100}).blur();
-					cy.wait('@validate_link');
-					cy.get('.frappe-control[data-fieldname=assigned_by_full_name] .control-value').should(
-						'contain', 'testcontrollink@example.com'
-					);
-				});
-			});
+			cy.get('.frappe-control[data-fieldname=assigned_by] input').focus().as('input');
+			cy.get('@input').type('Administrator', {delay: 100}).blur();
+			cy.wait('@validate_link');
+			cy.get('.frappe-control[data-fieldname=assigned_by_full_name] .control-value').should(
+				'contain', 'Administrator'
+			);
 		});
 	});
 
