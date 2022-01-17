@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-$.extend(frappe.model, {
+Object.assign(frappe.model, {
 	docinfo: {},
 	sync: function(r) {
 		/* docs:
@@ -33,22 +33,28 @@ $.extend(frappe.model, {
 				}
 
 				if(d.localname) {
-					frappe.model.new_names[d.localname] = d.name;
-					$(document).trigger('rename', [d.doctype, d.localname, d.name]);
-					delete locals[d.doctype][d.localname];
-
-					// update docinfo to new dict keys
-					if(i===0) {
-						frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
-						frappe.model.docinfo[d.doctype][d.localname] = undefined;
-					}
+					frappe.model.rename_after_save(d, i);
 				}
 			}
-
-
-
 		}
 
+		frappe.model.sync_docinfo(r);
+
+	},
+
+	rename_after_save: (d, i) => {
+		frappe.model.new_names[d.localname] = d.name;
+		$(document).trigger('rename', [d.doctype, d.localname, d.name]);
+		delete locals[d.doctype][d.localname];
+
+		// update docinfo to new dict keys
+		if(i===0) {
+			frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
+			frappe.model.docinfo[d.doctype][d.localname] = undefined;
+		}
+	},
+
+	sync_docinfo: (r) => {
 		// set docinfo (comments, assign, attachments)
 		if(r.docinfo) {
 			var doc;
@@ -62,10 +68,14 @@ $.extend(frappe.model, {
 					frappe.model.docinfo[doc.doctype] = {};
 				frappe.model.docinfo[doc.doctype][doc.name] = r.docinfo;
 			}
+
+			// copy values to frappe.boot.user_info
+			Object.assign(frappe.boot.user_info, r.docinfo.user_info);
 		}
 
 		return r.docs;
 	},
+
 	add_to_locals: function(doc) {
 		if(!locals[doc.doctype])
 			locals[doc.doctype] = {};
@@ -100,6 +110,7 @@ $.extend(frappe.model, {
 			}
 		}
 	},
+
 	update_in_locals: function(doc) {
 		// update values in the existing local doc instead of replacing
 		let local_doc = locals[doc.doctype][doc.name];

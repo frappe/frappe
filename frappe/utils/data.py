@@ -113,6 +113,9 @@ def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 def to_timedelta(time_str):
 	from dateutil import parser
 
+	if isinstance(time_str, datetime.time):
+		time_str = str(time_str)
+
 	if isinstance(time_str, str):
 		t = parser.parse(time_str)
 		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)

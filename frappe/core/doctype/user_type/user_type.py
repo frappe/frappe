@@ -37,16 +37,14 @@ class UserType(Document):
 			return
 
 		modules = frappe.get_all("DocType",
-			fields=["module"],
 			filters={"name": ("in", [d.document_type for d in self.user_doctypes])},
 			distinct=True,
+			pluck="module",
 		)
 
-		self.set('user_type_modules', [])
-		for row in modules:
-			self.append('user_type_modules', {
-				'module': row.module
-			})
+		self.set("user_type_modules", [])
+		for module in modules:
+			self.append("user_type_modules", {"module": module})
 
 	def validate_document_type_limit(self):
 		limit = frappe.conf.get('user_type_doctype_limit', {}).get(frappe.scrub(self.name))

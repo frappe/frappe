@@ -198,6 +198,7 @@ class TestWebsite(unittest.TestCase):
 		frappe.cache().delete_key('app_hooks')
 
 	def test_printview_page(self):
+		frappe.db.value_cache[('DocType', 'Language', 'name')] = (('Language',),)
 		content = get_response_content('/Language/ru')
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn('<div>Language</div>', content)
