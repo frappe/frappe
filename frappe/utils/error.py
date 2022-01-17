@@ -233,3 +233,34 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 			return response
 		return wrapper_raise_error_on_no_output
 	return decorator_raise_error_on_no_output
+
+def get_app_details_from_stack(skip_frames=0, ignore_files=()):
+	""" get name of app, filename and calling function from stack.
+		args:
+			skip_frames - number of stack frames to skip
+			ignore_files - file names to ignore while checking stack
+
+		returns: [optional] dictionary with results.
+	"""
+	import inspect
+	from frappe.utils import get_bench_path
+
+	try:
+		# skip one frame extra to remove frame representing *this* function call
+		callstack = inspect.stack()[skip_frames+1:]
+
+		# find first file that is not ignored.
+		for frame in callstack:
+			# skip ignored files
+			if any(file in frame.filename for file in ignore_files):
+				continue
+			break
+
+		if ".py" not in frame.filename:
+			return
+
+		filepath = frame.filename.replace(get_bench_path() + "/apps/", "").split("/")
+		return frappe._dict(app=filepath[0], filename=filepath[-1], function=frame.function)
+
+	except Exception:
+		pass

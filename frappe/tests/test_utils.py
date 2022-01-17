@@ -329,3 +329,16 @@ class TestDateUtils(unittest.TestCase):
 			frappe.utils.getdate("2020-12-26"))
 		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
 			frappe.utils.getdate("2021-01-02"))
+
+class TestErrorUtils(unittest.TestCase):
+
+	def test_fetch_app_detials(self):
+		from frappe.utils.error import get_app_details_from_stack
+
+		app_details = get_app_details_from_stack()
+
+		self.assertEqual(app_details.app, "frappe")
+		self.assertEqual(app_details.filename, "test_utils.py")
+
+		app_details = get_app_details_from_stack(ignore_files=("test_utils.py"))
+		self.assertNotEqual(app_details.filename, "test_utils.py")
