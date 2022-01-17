@@ -148,6 +148,7 @@
 		"context": true,
 		"before": true,
 		"beforeEach": true,
+		"after": true,
 		"qz": true,
 		"localforage": true
 	}

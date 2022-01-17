@@ -208,6 +208,12 @@ class DbColumn:
 		if not current_def:
 			self.fieldname = validate_column_name(self.fieldname)
 			self.table.add_column.append(self)
+
+			if column_type not in ('text', 'longtext'):
+				if self.unique:
+					self.table.add_unique.append(self)
+				if self.set_index:
+					self.table.add_index.append(self)
 			return
 
 		# type

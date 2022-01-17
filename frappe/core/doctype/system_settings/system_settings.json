@@ -17,10 +17,11 @@
   "date_and_number_format",
   "date_format",
   "time_format",
-  "column_break_7",
   "number_format",
+  "column_break_7",
   "float_precision",
   "currency_precision",
+  "first_day_of_the_week",
   "sec_backup_limit",
   "backup_limit",
   "background_workers",
@@ -484,12 +485,19 @@
    "fieldname": "disable_system_update_notification",
    "fieldtype": "Check",
    "label": "Disable System Update Notification"
+  },
+  {
+   "default": "Sunday",
+   "fieldname": "first_day_of_the_week",
+   "fieldtype": "Select",
+   "label": "First Day of the Week",
+   "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2021-12-13 12:07:26.860735",
+ "modified": "2022-01-04 11:28:34.881192",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -506,5 +514,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

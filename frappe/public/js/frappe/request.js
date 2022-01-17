@@ -291,11 +291,18 @@ frappe.request.call = function(opts) {
 		})
 		.fail(function(xhr, textStatus) {
 			try {
-				if (xhr.responseText) {
-					var data = JSON.parse(xhr.responseText);
-					if (data.exception) {
-						// frappe.exceptions.CustomError -> CustomError
-						var exception = data.exception.split('.').at(-1);
+				if (xhr.getResponseHeader('content-type') == 'application/json' && xhr.responseText) {
+					var data;
+					try {
+						data = JSON.parse(xhr.responseText);
+					} catch (e) {
+						console.log("Unable to parse reponse text");
+						console.log(xhr.responseText);
+						console.log(e);
+					}
+					if (data && data.exception) {
+						// frappe.exceptions.CustomError: (1024, ...) -> CustomError
+						var exception = data.exception.split('.').at(-1).split(':').at(0);
 						var exception_handler = exception_handlers[exception];
 						if (exception_handler) {
 							exception_handler(data);
