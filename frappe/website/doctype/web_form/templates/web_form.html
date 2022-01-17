@@ -3,7 +3,7 @@
 {% block title %}{{ _(title) }}{% endblock %}
 
 {% block header %}
-<h2>{{ _(title) }}</h2>
+<h3>{{ _(title) }}</h3>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -29,8 +29,8 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	{% if is_list %}
 	{# web form list #}
 	<div class="web-form-wrapper" {{ container_attributes() }}></div>
-	<div id="list-filters" class="row"></div>
-	<div id="datatable" class="pt-4"></div>
+	<div id="list-filters" class="row mt-4"></div>
+	<div id="datatable" class="pt-4 overflow-auto"></div>
 	<div class="list-view-footer text-right"></div>
 	{% else %}
 	{# web form #}
@@ -38,7 +38,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 		<div id="introduction" class="text-muted"></div>
 		<hr>
 		<div class="web-form-wrapper" {{ container_attributes() }}></div>
-		<div class="web-form-footer pull-right"></div>
+		<div class="web-form-footer text-right"></div>
 	</div>
 
 	{% if show_attachments and not frappe.form_dict.new and attachments %}
@@ -78,6 +78,10 @@ frappe.boot = {
 	sysdefaults: {
 		float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
 		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+	},
+	time_zone: {
+		system: "{{ frappe.utils.get_time_zone() }}",
+		user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
 	}
 };
 // for backward compatibility of some libs

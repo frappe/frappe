@@ -1,7 +1,9 @@
 @import "./desk/variables";
 
 body {
-	background-color: var(--bg-light-gray);
+	@include media-breakpoint-up(sm) {
+		background-color: var(--bg-light-gray);
+	}
 }
 
 .for-forgot,

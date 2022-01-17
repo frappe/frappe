@@ -117,7 +117,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doctype=doc.doctype, name=doc.name,
 					is_async=False if frappe.flags.in_test else True)
 
-
+		# clear cache for Document
+		doc.clear_cache()
 		# delete global search entry
 		delete_for_document(doc)
 		# delete tag link entry
