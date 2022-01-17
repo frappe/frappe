@@ -216,7 +216,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 				# Exception is	raised manually and not from msgprint or throw
 				message = "{0}".format(e.__class__.__name__)
 				if e.args:
-					message +=	" : {0}".format(e.args[0])
+					message += " : {0}".format(e.args[0])
 				message_dict = {"docname": docname, "message": message}
 				failed_transactions[docname].append(message_dict)
 
