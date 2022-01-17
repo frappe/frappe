@@ -262,6 +262,9 @@ frappe.request.call = function(opts) {
 
 				// sync link titles
 				if (data._link_titles) {
+					if (!frappe._link_titles) {
+						frappe._link_titles = {};
+					}
 					$.extend(frappe._link_titles, data._link_titles);
 				}
 
