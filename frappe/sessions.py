@@ -101,10 +101,26 @@ def get_expired_sessions():
 	'''Returns list of expired sessions'''
 	expired = []
 	for device in ("desktop", "mobile"):
+<<<<<<< HEAD
 		expired += frappe.db.sql_list("""SELECT `sid`
 				FROM `tabSessions`
 				WHERE (NOW() - `lastupdate`) > %s
 				AND device = %s""", (get_expiry_period_for_query(device), device))
+=======
+		expired.extend(
+			frappe.db.get_values(
+				sessions,
+				filters=(
+					PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
+					> get_expiry_period_for_query(device)
+				)
+				& (sessions.device == device),
+				fieldname="sid",
+				order_by=None,
+				pluck=True,
+			)
+		)
+>>>>>>> b6cb0fc1e7 (fix: Pass SQL string of lastupdate instead of normal string)
 
 	return expired
 
@@ -304,11 +320,27 @@ class Session:
 		self.device = frappe.db.sql('SELECT `device` FROM `tabSessions` WHERE `sid`=%s', self.sid)
 		self.device = self.device and self.device[0][0] or 'desktop'
 
+<<<<<<< HEAD
 		rec = frappe.db.sql("""
 			SELECT `user`, `sessiondata`
 			FROM `tabSessions` WHERE `sid`=%s AND
 			(NOW() - lastupdate) < %s
 			""", (self.sid, get_expiry_period_for_query(self.device)))
+=======
+		self.device = frappe.db.get_value(
+			sessions, filters=sessions.sid == self.sid, fieldname="device", order_by=None,
+		) or "desktop"
+		rec = frappe.db.get_values(
+			sessions,
+			filters=(sessions.sid == self.sid)
+			& (
+				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
+				< get_expiry_period_for_query(self.device)
+			),
+			fieldname=["user", "sessiondata"],
+			order_by=None,
+		)
+>>>>>>> b6cb0fc1e7 (fix: Pass SQL string of lastupdate instead of normal string)
 
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
