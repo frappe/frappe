@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe, unittest
+import frappe
+import datetime
+import unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
@@ -379,6 +381,22 @@ class TestReportview(unittest.TestCase):
 	def test_pluck_any_field(self):
 		owners = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="owner")
 		self.assertEqual(owners, ["Administrator"])
+
+	def test_prepare_select_args(self):
+		# frappe.get_all inserts modified field into order_by clause
+		# test to make sure this is inserted into select field when postgres
+		doctypes = frappe.get_all("DocType",
+			filters={"docstatus": 0, "document_type": ("!=", "")},
+			group_by="document_type",
+			fields=["document_type", "sum(is_submittable) as is_submittable"],
+			limit=1,
+			as_list=True,
+		)
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue(len(doctypes[0]) == 2)
+		else:
+			self.assertTrue(len(doctypes[0]) == 3)
+			self.assertTrue(isinstance(doctypes[0][2], datetime.datetime))
 
 	def test_column_comparison(self):
 		"""Test DatabaseQuery.execute to test column comparison

@@ -12,7 +12,7 @@ from io import StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
-
+from frappe.utils import add_user_info
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -219,6 +219,8 @@ def compress(data, args=None):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
 
+	user_info = {}
+
 	if not data: return data
 	if args is None:
 		args = {}
@@ -230,13 +232,19 @@ def compress(data, args=None):
 			new_row.append(row.get(key))
 		values.append(new_row)
 
+		# add user info for assignments (avatar)
+		if row._assign:
+			for user in json.loads(row._assign):
+				add_user_info(user, user_info)
+
 	if args.get("add_total_row"):
 		meta = frappe.get_meta(args.doctype)
 		values = add_total_row(values, keys, meta)
 
 	return {
 		"keys": keys,
-		"values": values
+		"values": values,
+		"user_info": user_info
 	}
 
 @frappe.whitelist()

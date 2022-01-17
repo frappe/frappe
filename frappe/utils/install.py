@@ -220,6 +220,12 @@ def add_standard_navbar_items():
 			'is_standard': 1
 		},
 		{
+			'item_label': 'Toggle Theme',
+			'item_type': 'Action',
+			'action': 'new frappe.ui.ThemeSwitcher().show()',
+			'is_standard': 1
+		},
+		{
 			'item_label': 'Background Jobs',
 			'item_type': 'Route',
 			'route': '/app/background_jobs',

@@ -305,7 +305,7 @@ def get_context(context):
 				if not section:
 					section = add_section()
 					column = None
-				if column==None:
+				if column is None:
 					column = add_column()
 				column.append(df)
 
