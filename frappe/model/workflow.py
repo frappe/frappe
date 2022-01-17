@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 
 import frappe
-from frappe.model.base_document import DocStatus
-from frappe.utils import cint
 from frappe import _
-import json
+from frappe.utils import cint
+from frappe.model.docstatus import DocStatus
 
 class WorkflowStateError(frappe.ValidationError): pass
 class WorkflowTransitionError(frappe.ValidationError): pass
@@ -213,10 +213,10 @@ def bulk_workflow_approval(docnames, doctype, action):
 			frappe.db.commit()
 		except Exception as e:
 			if not frappe.message_log:
-				# Exception is  raised manually and not from msgprint or throw
+				# Exception is	raised manually and not from msgprint or throw
 				message = "{0}".format(e.__class__.__name__)
 				if e.args:
-					message +=  " : {0}".format(e.args[0])
+					message +=	" : {0}".format(e.args[0])
 				message_dict = {"docname": docname, "message": message}
 				failed_transactions[docname].append(message_dict)
 

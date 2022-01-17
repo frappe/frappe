@@ -12,6 +12,7 @@ from frappe.model import display_fieldtypes
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
+from frappe.model.docstatus import DocStatus
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -20,29 +21,6 @@ max_positive_value = {
 }
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
-
-
-class DocStatus(int):
-	def is_draft(self):
-		return self == self.draft()
-
-	def is_submitted(self):
-		return self == self.submitted()
-
-	def is_cancelled(self):
-		return self == self.cancelled()
-
-	@classmethod
-	def draft(cls):
-		return cls(0)
-
-	@classmethod
-	def submitted(cls):
-		return cls(1)
-
-	@classmethod
-	def cancelled(cls):
-		return cls(2)
 
 
 def get_controller(doctype):
