@@ -172,7 +172,7 @@ class BaseDocument(object):
 				...
 			})
 		"""
-		if value==None:
+		if value is None:
 			value={}
 		if isinstance(value, (dict, BaseDocument)):
 			if not self.__dict__.get(key):
@@ -272,7 +272,7 @@ class BaseDocument(object):
 			)):
 				d[fieldname] = str(d[fieldname])
 
-			if d[fieldname] == None and ignore_nulls:
+			if d[fieldname] is None and ignore_nulls:
 				del d[fieldname]
 
 		return d

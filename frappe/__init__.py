@@ -102,7 +102,7 @@ def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
 	if isinstance(text, str):
 		return text
-	elif text==None:
+	elif text is None:
 		return ''
 	elif isinstance(text, bytes):
 		return str(text, encoding)
@@ -294,7 +294,7 @@ def get_conf(site=None):
 
 class init_site:
 	def __init__(self, site=None):
-		'''If site==None, initialize it for empty site ('') to load common_site_config.json'''
+		'''If site is None, initialize it for empty site ('') to load common_site_config.json'''
 		self.site = site or ''
 
 	def __enter__(self):
@@ -1661,7 +1661,7 @@ def local_cache(namespace, key, generator, regenerate_if_none=False):
 	if key not in local.cache[namespace]:
 		local.cache[namespace][key] = generator()
 
-	elif local.cache[namespace][key]==None and regenerate_if_none:
+	elif local.cache[namespace][key] is None and regenerate_if_none:
 		# if key exists but the previous result was None
 		local.cache[namespace][key] = generator()
 

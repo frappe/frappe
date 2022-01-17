@@ -206,7 +206,7 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 	:param messages: List of untranslated messages
 	"""
 	out = {}
-	if full_dict==None:
+	if full_dict is None:
 		if load_user_translation:
 			full_dict = get_full_dict(frappe.local.lang)
 		else:
