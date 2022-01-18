@@ -10,6 +10,7 @@ from frappe import msgprint, _, safe_decode, safe_encode, enqueue
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
+from frappe.utils import get_hook_method
 from html2text import html2text
 from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
@@ -439,7 +440,13 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 
 			message = prepare_message(email, recipient.recipient, recipients_list)
 			if not frappe.flags.in_test:
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
+				method = get_hook_method("override_email_send")
+				if method:
+					queue = frappe.get_doc("Email Queue", email.name)
+					method(queue, email.sender, recipient.recipient, message)
+					return
+				else:
+					smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
