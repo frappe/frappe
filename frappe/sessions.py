@@ -112,7 +112,7 @@ def get_expired_sessions():
 			frappe.db.get_values(
 				sessions,
 				filters=(
-					PseudoColumn(f"({Now() - sessions.lastupdate})")
+					PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
 					> get_expiry_period_for_query(device)
 				)
 				& (sessions.device == device),
@@ -334,7 +334,7 @@ class Session:
 			sessions,
 			filters=(sessions.sid == self.sid)
 			& (
-				PseudoColumn(f"({Now() - sessions.lastupdate})")
+				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
 				< get_expiry_period_for_query(self.device)
 			),
 			fieldname=["user", "sessiondata"],
@@ -374,7 +374,7 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-		if force or (time_diff==None) or (time_diff > 600):
+		if force or (time_diff is None) or (time_diff > 600):
 			# update sessions table
 			frappe.db.sql("""update `tabSessions` set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),

@@ -19,7 +19,7 @@ from frappe.core.doctype.user_type.user_type import user_linked_with_permission_
 from frappe.query_builder import DocType
 
 
-STANDARD_USERS = ("Guest", "Administrator")
+STANDARD_USERS = frappe.STANDARD_USERS
 
 class User(Document):
 	__new_password = None
@@ -344,7 +344,7 @@ class User(Document):
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
 			template=template, args=args, header=[subject, "green"],
-			delayed=(not now) if now!=None else self.flags.delay_emails, retry=3)
+			delayed=(not now) if now is not None else self.flags.delay_emails, retry=3)
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():

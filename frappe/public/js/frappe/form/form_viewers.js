@@ -27,19 +27,40 @@ frappe.ui.form.FormViewers.set_users = function(data, type) {
 	const users = data.users || [];
 	const new_users = users.filter(user => !past_users.includes(user));
 
-	frappe.model.set_docinfo(doctype, docname, type, {
-		past: past_users.concat(new_users),
-		new: new_users,
-		current: users
-	});
+	if (new_users.length===0) return;
 
-	if (
-		cur_frm &&
-		cur_frm.doc &&
-		cur_frm.doc.doctype === doctype &&
-		cur_frm.doc.name == docname &&
-		cur_frm.viewers
-	) {
-		cur_frm.viewers.refresh(true, type);
+	const set_and_refresh = () => {
+		const info = {
+			past: past_users.concat(new_users),
+			new: new_users,
+			current: users
+		};
+
+		frappe.model.set_docinfo(doctype, docname, type, info);
+
+		if (
+			cur_frm &&
+			cur_frm.doc &&
+			cur_frm.doc.doctype === doctype &&
+			cur_frm.doc.name == docname &&
+			cur_frm.viewers
+		) {
+			cur_frm.viewers.refresh(true, type);
+		}
+	};
+
+	let unknown_users = [];
+	for (let user of users) {
+		if (!frappe.boot.user_info[user]) unknown_users.push(user);
+	}
+
+	if (unknown_users.length===0) {
+		set_and_refresh();
+	} else {
+		// load additional user info
+		frappe.xcall('frappe.desk.form.load.get_user_info_for_viewers', {users: unknown_users}).then((data) => {
+			Object.assign(frappe.boot.user_info, data);
+			set_and_refresh();
+		});
 	}
 };
