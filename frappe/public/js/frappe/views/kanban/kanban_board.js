@@ -424,7 +424,7 @@ frappe.provide("frappe.views");
 				draggable.classList.remove('clickdrag-active');
 			});
 			draggable.addEventListener('mousemove', (e) => {
-				if(!isDown) return;
+				if (!isDown) return;
 				e.preventDefault();
 				const x = e.pageX - draggable.offsetLeft;
 				const walk = (x - startX);
