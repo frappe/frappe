@@ -27,20 +27,26 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.set_input_attributes();
 		this.$input.on("focus", function() {
 			setTimeout(function() {
-				if(me.get_input_value() && me.get_options()) {
+				if (me.get_input_value() && me.get_options()) {
 					let doctype = me.get_options();
 					let name = me.get_input_value();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
-				if(!me.get_input_value() || !me.get_label_value()) {
+				if (!me.get_label_value()) {
 					me.reset_value();
 					me.$input.trigger("input");
 				}
 			}, 500);
 		});
-
+		this.$input.on("blur", function() {
+			// if this disappears immediately, the user's click
+			// does not register, hence timeout
+			setTimeout(function() {
+				me.$link.toggle(false);
+			}, 500);
+		});
 		this.$input.attr('data-target', this.df.options);
 		this.input = this.$input.get(0);
 		this.has_input = true;
@@ -230,12 +236,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}, 500));
 
 		this.$input.on("blur", function() {
-			// if this disappears immediately, the user's click
-			// does not register, hence timeout
-			setTimeout(function() {
-				me.$link.toggle(false);
-			}, 500);
-
 			if (me.selected) {
 				me.selected = false;
 				return;
