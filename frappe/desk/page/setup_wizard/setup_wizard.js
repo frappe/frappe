@@ -378,17 +378,24 @@ frappe.setup.slides_settings = [
 		fields: [
 			{
 				fieldname: "country", label: __("Your Country"), reqd: 1,
-				fieldtype: "Select"
+				fieldtype: "Autocomplete",
+				placeholder: __('Select Country')
 			},
 			{ fieldtype: "Section Break" },
 			{
-				fieldname: "timezone", label: __("Time Zone"), reqd: 1,
-				fieldtype: "Select"
+				fieldname: "timezone",
+				label: __("Time Zone"),
+				placeholder: __('Select Time Zone'),
+				reqd: 1,
+				fieldtype: "Select",
 			},
 			{ fieldtype: "Column Break" },
 			{
-				fieldname: "currency", label: __("Currency"), reqd: 1,
-				fieldtype: "Select"
+				fieldname: "currency",
+				label: __("Currency"),
+				placeholder: __('Select Currency'),
+				reqd: 1,
+				fieldtype: "Select",
 			}
 		],
 
@@ -498,7 +505,7 @@ frappe.setup.utils = {
 				frappe.setup.data.email = r.message.email;
 				callback(slide);
 			}
-		})
+		});
 	},
 
 	setup_language_field: function (slide) {
@@ -533,7 +540,7 @@ frappe.setup.utils = {
 			);
 
 		slide.get_input("timezone").empty()
-			.add_options([""].concat(data.all_timezones));
+			.add_options(data.all_timezones);
 
 		// set values if present
 		if (frappe.wizard.values.country) {
@@ -542,13 +549,9 @@ frappe.setup.utils = {
 			country_field.set_input(data.default_country);
 		}
 
-		if (frappe.wizard.values.currency) {
-			slide.get_field("currency").set_input(frappe.wizard.values.currency);
-		}
+		slide.get_field("currency").set_input(frappe.wizard.values.currency);
 
-		if (frappe.wizard.values.timezone) {
-			slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
-		}
+		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
 
 	},
 
@@ -588,17 +591,15 @@ frappe.setup.utils = {
 
 			$timezone.empty();
 
+			if (!country) return;
 			// add country specific timezones first
-			if (country) {
-				var timezone_list = data.country_info[country].timezones || [];
-				$timezone.add_options(timezone_list.sort());
-				slide.get_field("currency").set_input(data.country_info[country].currency);
-				slide.get_field("currency").$input.trigger("change");
-			}
+			const timezone_list = data.country_info[country].timezones || [];
+			$timezone.add_options(timezone_list.sort());
+			slide.get_field("currency").set_input(data.country_info[country].currency);
+			slide.get_field("currency").$input.trigger("change");
 
 			// add all timezones at the end, so that user has the option to change it to any timezone
-			$timezone.add_options([""].concat(data.all_timezones));
-
+			$timezone.add_options(data.all_timezones);
 			slide.get_field("timezone").set_input($timezone.val());
 
 			// temporarily set date format
@@ -616,7 +617,7 @@ frappe.setup.utils = {
 				if (number_format === "#.###") {
 					number_format = "#.###,##";
 				} else if (number_format === "#,###") {
-					number_format = "#,###.##"
+					number_format = "#,###.##";
 				}
 
 				frappe.boot.sysdefaults.number_format = number_format;

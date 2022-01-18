@@ -22,6 +22,9 @@ from frappe.core.doctype.file.file import (MaxFileSizeReachedError,
 from frappe.utils import (cint, convert_utc_to_user_timezone, cstr,
 	extract_email_id, markdown, now, parse_addr, strip)
 
+# fix due to a python bug in poplib that limits it to 2048
+poplib._MAXLINE = 20480
+
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass

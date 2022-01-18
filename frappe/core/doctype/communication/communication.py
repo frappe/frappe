@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 
 from __future__ import unicode_literals, absolute_import
 from collections import Counter
@@ -12,7 +12,7 @@ from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
-from email.utils import parseaddr
+from email.utils import getaddresses
 from six.moves.urllib.parse import unquote
 from frappe.utils.user import is_system_user
 from frappe.contacts.doctype.contact.contact import get_contact_name
@@ -344,10 +344,9 @@ def get_contacts(email_strings, auto_create_contact=False):
 
 	for email_string in email_strings:
 		if email_string:
-			for email in email_string.split(","):
-				parsed_email = parseaddr(email)[1]
-				if parsed_email:
-					email_addrs.append(parsed_email)
+			result = getaddresses([email_string])
+			for email in result:
+				email_addrs.append(email[1])
 
 	contacts = []
 	for email in email_addrs:

@@ -43,8 +43,7 @@
   {
    "fieldname": "context",
    "fieldtype": "Data",
-   "label": "Context",
-   "read_only": 1
+   "label": "Context"
   },
   {
    "default": "0",
@@ -83,7 +82,7 @@
   }
  ],
  "links": [],
- "modified": "2020-03-12 13:28:48.223409",
+ "modified": "2021-12-31 10:19:52.541055",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Translation",
