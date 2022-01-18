@@ -11,10 +11,5 @@ class DocumentKey(Document):
 			meta = frappe.get_meta("DocType", self.reference_doctype)
 			self.expires_on = frappe.utils.add_days(None, days=meta.get("document_key_expiry") or 90)
 
-
-def expire_document_keys():
-	# called from hooks
-	frappe.db.set_value("Document Key", {
-		"expired_on": ["<", frappe.utils.nowdate()],
-		"status": "Active"
-	}, "status", "Expired")
+	def is_expired(self):
+		return self.expires_on < frappe.utils.getdate()

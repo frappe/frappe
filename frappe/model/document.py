@@ -1395,14 +1395,6 @@ class Document(BaseDocument):
 		doc.insert(ignore_permissions=True)
 		return doc.key
 
-	def is_document_key_valid(self, key):
-		return frappe.db.exists("Document Key", {
-			"reference_doctype": self.doctype,
-			"reference_docname": self.name,
-			"status": "Active",
-			"key": key
-		}, cache=True)
-
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)
 		if liked_by:

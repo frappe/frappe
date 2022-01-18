@@ -306,8 +306,16 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 
 def validate_print_permission(doc):
 	if frappe.form_dict.get("key"):
-		if doc.is_document_key_valid(frappe.form_dict.key):
-			return
+		document_key = frappe.db.exists("Document Key", {
+			"reference_doctype": doc.doctype,
+			"reference_docname": doc.name,
+			"key": frappe.form_dict.key
+		}, cache=True)
+		if document_key:
+			if frappe.get_cached_doc("Document Key", document_key).is_expired():
+				raise frappe.exceptions.LinkExpiredError
+			else:
+				return
 
 		if frappe.form_dict.key == doc.get_signature():
 			return

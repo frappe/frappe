@@ -226,8 +226,11 @@ scheduler_events = {
 		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		"frappe.core.doctype.document_key.document_key.expire_document_keys",
+=======
+>>>>>>> afeddbb96d (fix: Document key expiry logic)
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request"
 >>>>>>> 64985a5d1a (feat: Document key expiry)
 	],
