@@ -83,31 +83,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		if (!doctype) return;
 
-		if (!in_list(frappe.boot.link_title_doctypes, doctype)) {
-			this.set_input_value(value);
-			return;
-		}
-
-		let link_title = frappe.utils.get_link_title(doctype, value);
-		if (!link_title) {
-			try {
-				frappe.xcall("frappe.desk.search.get_link_title", {
-					"doctype": doctype,
-					"docname": value
-				}).then(link_title => {
-					if (link_title && value !== link_title) {
+		if (in_list(frappe.boot.link_title_doctypes, doctype)) {
+			let link_title = frappe.utils.get_link_title(doctype, value);
+			if (!link_title) {
+				link_title = frappe.utils
+					.fetch_link_title(doctype, value)
+					.then(link_title => {
 						this.set_input_value(link_title);
-					} else {
-						this.set_input_value(value);
-					}
-				});
-			} catch (error) {
-				console.log('Error while fetching link title.');
-				console.log(error);
-				this.set_input_value(value);
+					});
+			} else {
+				this.set_input_value(link_title);
 			}
 		} else {
-			this.set_input_value(link_title);
+			this.set_input_value(value);
 		}
 	}
 	parse_validate_and_set_in_model(value, label, e) {

@@ -1400,15 +1400,10 @@ Object.assign(frappe.utils, {
 	},
 
 	get_link_title(doctype, name) {
-		if (!doctype || !name) {
+		if (!doctype || !name || !frappe._link_titles) {
 			return;
 		}
 
-		if (!frappe._link_titles) {
-			// for link titles
-			frappe._link_titles = {};
-		}
-	
 		return frappe._link_titles[doctype + "::" + name];
 	},
 
@@ -1423,5 +1418,18 @@ Object.assign(frappe.utils, {
 		}
 	
 		frappe._link_titles[doctype + "::" + name] = value;
+	},
+
+	fetch_link_title(doctype, name) {
+		try {
+			return frappe.xcall("frappe.desk.search.get_link_title", {
+				"doctype": doctype,
+				"docname": name
+			});
+		} catch (error) {
+			console.log('Error while fetching link title.');
+			console.log(error);
+			return Promise.resolve(name);
+		}
 	}
 });
