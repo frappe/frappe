@@ -257,5 +257,5 @@ def update_webform_to_multistep():
 	_doc.save()
 
 @frappe.whitelist()
-def create_users():
-	create_user("testcontrollink@example.com")
+def create_users(email):
+	create_user(email)

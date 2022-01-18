@@ -6,14 +6,20 @@ context('Table MultiSelect', () => {
 	let name = 'table multiselect' + Math.random().toString().slice(2, 8);
 
 	it('select value from multiselect dropdown', () => {
+		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
+
 		cy.new_form('Assignment Rule');
 		cy.fill_field('__newname', name);
 		cy.fill_field('document_type', 'Blog Post');
+		cy.wait('@search_link');
+		cy.get('@input').type('{enter}');
 		cy.get('.section-head').contains('Assignment Rules').scrollIntoView();
 		cy.fill_field('assign_condition', 'status=="Open"', 'Code');
 		cy.get('input[data-fieldname="users"]').focus().as('input');
 		cy.get('input[data-fieldname="users"] + ul').should('be.visible');
 		cy.get('@input').type('test{enter}', { delay: 100 });
+		cy.wait('@search_link');
+		cy.get('@input').type('{enter}', { delay: 100 });
 		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value .btn-link-to-form')
 			.as('selected-value');
 		cy.get('@selected-value').should('contain', 'test@erpnext.com');
