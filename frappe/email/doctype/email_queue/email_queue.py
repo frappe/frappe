@@ -11,6 +11,7 @@ from frappe.utils import now_datetime
 
 
 class EmailQueue(Document):
+	DOCTYPE = "Email Queue"
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
@@ -29,6 +30,17 @@ class EmailQueue(Document):
 		duplicate = frappe.get_doc(values)
 		duplicate.set_recipients(recipients)
 		return duplicate
+
+	def update_db(self, commit=False, **kwargs):
+		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
+		if commit:
+			frappe.db.commit()
+
+	def update_status(self, status, commit=False, **kwargs):
+		self.update_db(status = status, commit = commit, **kwargs)
+		if self.communication:
+			communication_doc = frappe.get_doc('Communication', self.communication)
+			communication_doc.set_delivery_status(commit=commit)
 
 @frappe.whitelist()
 def retry_sending(name):
