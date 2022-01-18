@@ -251,7 +251,7 @@ def get_print_format(doctype, print_format):
 
 	# server, find template
 	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
-	path = os.path.join(get_module_path(module, "Print Format",print_format.name),
+	path = os.path.join(get_module_path(module, "Print Format", print_format.name),
 		frappe.scrub(print_format.name) + ".html")
 
 	if os.path.exists(path):
