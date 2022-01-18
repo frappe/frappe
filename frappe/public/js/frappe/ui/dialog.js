@@ -57,8 +57,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
 		if (this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {
-			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"),
-				this.primary_action || this.action.primary.onsubmit);
+			this.set_primary_action(
+				this.primary_action_label || this.action.primary.label || __("Submit", null, "Primary action in dialog"),
+				this.primary_action || this.action.primary.onsubmit
+			);
 		}
 
 		if (this.secondary_action) {
