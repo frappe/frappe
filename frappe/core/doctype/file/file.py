@@ -663,6 +663,13 @@ def get_web_image(file_url):
 	extn = get_extension(filename, extn, r.content)
 	filename = "/files/" + strip(unquote(filename))
 
+	# Get image extension from response object 'r'
+	if not extn:
+		content_type = r.headers.get("Content-Type") 
+		
+		if content_type:
+			extn = content_type.split("/")[1]
+
 	return image, filename, extn
 
 
