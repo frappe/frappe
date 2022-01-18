@@ -545,7 +545,7 @@ class DatabaseQuery(object):
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, str) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
-					value = "" if f.value==None else f.value
+					value = "" if f.value is None else f.value
 					fallback = "''"
 
 					if f.operator.lower() in ("like", "not like") and isinstance(value, str):
