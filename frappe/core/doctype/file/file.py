@@ -650,8 +650,14 @@ def setup_folder_path(filename, new_parent):
 		from frappe.model.rename_doc import rename_doc
 		rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
 
-def get_extension(filename, extn, content):
+def get_extension(filename, extn, content: bytes = None, response: "Response" = None) -> str:
 	mimetype = None
+
+	if response:
+		content_type = response.headers.get("Content-Type")
+
+		if content_type:
+			return mimetypes.guess_extension(content_type)[1:]
 
 	if extn:
 		# remove '?' char and parameters from extn if present
@@ -721,7 +727,7 @@ def get_web_image(file_url):
 		filename = get_random_filename()
 		extn = None
 
-	extn = get_extension(filename, extn, r.content)
+	extn = get_extension(filename, extn, response=r)
 	filename = "/files/" + strip(unquote(filename))
 
 	return image, filename, extn
