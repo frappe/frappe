@@ -177,6 +177,8 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = today.strftime("%d")
 		elif e == 'YYYY':
 			part = today.strftime('%Y')
+		elif e == 'WW':
+			part = determine_consecutive_week_number(today)
 		elif e == 'timestamp':
 			part = str(today)
 		elif e == 'FY':
@@ -193,6 +195,19 @@ def parse_naming_series(parts, doctype='', doc=''):
 			n += part
 
 	return n
+
+
+def determine_consecutive_week_number(datetime):
+	"""Determines the consecutive calendar week"""
+	m = datetime.month
+	# ISO 8601 calandar week
+	w = datetime.strftime('%V')
+	# Ensure consecutiveness for the first and last days of a year
+	if m == 1 and int(w) >= 52:
+		w = '00'
+	elif m == 12 and int(w) <= 1:
+		w = '53'
+	return w
 
 
 def getseries(key, digits):

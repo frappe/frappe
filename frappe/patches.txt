@@ -23,6 +23,8 @@ frappe.patches.v11_0.change_email_signature_fieldtype
 execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
+execute:frappe.reload_doc('social', 'doctype', 'energy_point_log')
+execute:frappe.reload_doc('social', 'doctype', 'energy_point_rule')
 frappe.patches.v13_0.rename_custom_client_script
 execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
 execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27

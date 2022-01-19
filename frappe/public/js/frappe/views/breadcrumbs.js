@@ -120,7 +120,9 @@ frappe.breadcrumbs = {
 
 			// set workspace
 			if (breadcrumbs.module_info && frappe.boot.module_page_map[breadcrumbs.module]) {
-				const last_visited_workspace = frappe.route_history.reverse().find(_ => _[0] === 'Workspaces');
+				const route_history_as_boolean_array = frappe.route_history.map(_ => _[0] === 'Workspaces');
+				const index_of_last__visited_workspace = route_history_as_boolean_array.lastIndexOf(true);
+				const last_visited_workspace = frappe.route_history[index_of_last__visited_workspace];
 				if(last_visited_workspace !== undefined){
 					breadcrumbs.workspace = last_visited_workspace[1]
 				}

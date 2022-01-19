@@ -644,7 +644,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		frappe.commands.popen("yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 --no-lockfile")
 
 	# run for headless mode
-	run_or_open = 'run --browser firefox --record' if headless else 'open'
+	run_or_open = 'run --browser chrome --record' if headless else 'open'
 	command = '{site_env} {password_env} {cypress} {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, cypress=cypress_path, run_or_open=run_or_open)
 

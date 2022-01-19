@@ -267,7 +267,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	render_edit_in_full_page_link: function() {
 		var me = this;
 		this.dialog.add_custom_action(
-			`${frappe.utils.icon('edit', 'xs')} ${__("Edit in full page")}`,
+			`${__("Edit in full page")}`,
 			() => me.open_doc(true)
 		);
 	},

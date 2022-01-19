@@ -8,22 +8,18 @@ context('Timeline', () => {
 
 	it('Adding new ToDo, adding new comment, verifying comment addition & deletion and deleting ToDo', () => {
 		//Adding new ToDo
+		cy.visit('/app/todo/new-todo-1');
+		cy.get('[data-fieldname="description"] .ql-editor.ql-blank').type('Test ToDo', {force: true}).wait(200);
+		cy.get('.page-head .page-actions').findByRole('button', {name: 'Save'}).click();
+
 		cy.visit('/app/todo');
-		cy.click_listview_primary_button('Add ToDo');
-		cy.findByRole('button', {name: 'Edit in full page'}).click();
-		cy.findByTitle('New ToDo').should('be.visible');
-		cy.get('[data-fieldname="description"] .ql-editor').eq(0).type('Test ToDo', {force: true});
-		cy.wait(200);
-		cy.findByRole('button', {name: 'Save'}).click();
-		cy.wait(700);
-		cy.visit('/app/todo');
-		cy.get('.level-item.ellipsis').eq(0).click();
+		cy.click_listview_row_item(0);
 
 		//To check if the comment box is initially empty and tying some text into it
 		cy.get('[data-fieldname="comment"] .ql-editor').should('contain', '').type('Testing Timeline');
 
 		//Adding new comment
-		cy.findByRole('button', {name: 'Comment'}).click();
+		cy.get('.comment-box').findByRole('button', {name: 'Comment'}).click();
 
 		//To check if the commented text is visible in the timeline content
 		cy.get('.timeline-content').should('contain', 'Testing Timeline');
@@ -38,20 +34,16 @@ context('Timeline', () => {
 
 		//Discarding comment
 		cy.click_timeline_action_btn("Edit");
-		cy.findByRole('button', {name: 'Dismiss'}).click();
+		cy.click_timeline_action_btn("Dismiss");
 
 		//To check if after discarding the timeline content is same as previous
 		cy.get('.timeline-content').should('contain', 'Testing Timeline 123');
 
 		//Deleting the added comment
-		cy.get('.actions > .btn > .icon').first().click();
-		cy.findByRole('button', {name: 'Yes'}).click();
-		cy.click_modal_primary_button('Yes');
+		cy.get('.timeline-message-box .actions > .action-btn > svg').click(); // Delete (x) button
+		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click({ force: true });
 
-		//Deleting the added ToDo
-		cy.get('[id="page-ToDo"] .menu-btn-group button').eq(1).click();
-		cy.get('[id="page-ToDo"] .menu-btn-group [data-label="Delete"]').click();
-		cy.findByRole('button', {name: 'Yes'}).click();
+		cy.get('.timeline-content').should('not.contain', 'Testing Timeline 123');
 	});
 
 	it('Timeline should have submit and cancel activity information', () => {
@@ -65,31 +57,31 @@ context('Timeline', () => {
 
 		//Adding a new entry for the created custom doctype
 		cy.fill_field('title', 'Test');
-		cy.findByRole('button', {name: 'Save'}).click();
-		cy.findByRole('button', {name: 'Submit'}).click();
+		cy.click_modal_primary_button('Save');
+		cy.click_modal_primary_button('Submit');
 		cy.visit('/app/custom-submittable-doctype');
-		cy.get('.list-subject > .bold > .ellipsis').eq(0).click();
+		cy.click_listview_row_item(0);
 
 		//To check if the submission of the documemt is visible in the timeline content
 		cy.get('.timeline-content').should('contain', 'Administrator submitted this document');
-		cy.findByRole('button', {name: 'Cancel'}).click({delay: 900});
-		cy.findByRole('button', {name: 'Yes'}).click();
+		cy.get('[id="page-Custom Submittable DocType"] .page-actions').findByRole('button', {name: 'Cancel'}).click();
+		cy.get_open_dialog().findByRole('button', {name: 'Yes'}).click();
 
 		//To check if the cancellation of the documemt is visible in the timeline content
 		cy.get('.timeline-content').should('contain', 'Administrator cancelled this document');
 
 		//Deleting the document
 		cy.visit('/app/custom-submittable-doctype');
-		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
-		cy.findByRole('button', {name: 'Actions'}).click();
-		cy.get('.actions-btn-group > .dropdown-menu > li > .dropdown-item').contains("Delete").click();
-		cy.click_modal_primary_button('Yes', {force: true, delay: 700});
+		cy.select_listview_row_checkbox(0);
+		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
+		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
+		cy.click_modal_primary_button('Yes');
 
 		//Deleting the custom doctype
 		cy.visit('/app/doctype');
-		cy.get('.list-subject > .select-like > .list-row-checkbox').eq(0).click();
-		cy.findByRole('button', {name: 'Actions'}).click();
-		cy.get('.actions-btn-group [data-label="Delete"]').click();
+		cy.select_listview_row_checkbox(0);
+		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
+		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
 		cy.click_modal_primary_button('Yes');
 	});
 });

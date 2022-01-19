@@ -54,6 +54,14 @@ class Report(Document):
 			and not frappe.flags.in_patch):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role('report', self.name)
+		self.delete_prepared_reports()
+
+	def delete_prepared_reports(self):
+		prepared_reports = frappe.get_all("Prepared Report", filters={'ref_report_doctype': self.name}, pluck='name')
+
+		for report in prepared_reports:
+			frappe.delete_doc("Prepared Report", report, ignore_missing=True, force=True,
+					delete_permanently=True)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields = True) for d in self.columns]

@@ -291,6 +291,11 @@ export default class GridRow {
 			this.grid_settings_dialog.hide();
 		});
 
+		this.grid_settings_dialog.set_secondary_action_label(__("Reset to default"));
+		this.grid_settings_dialog.set_secondary_action(() => {
+			this.reset_user_settings_for_grid();
+			this.grid_settings_dialog.hide();
+		});
 	}
 
 	setup_columns_for_dialog() {
@@ -320,7 +325,7 @@ export default class GridRow {
 				</div>
 				<p class='help-box small text-muted hidden-xs'>
 					<a class='add-new-fields text-muted'>
-						+ Add / Remove Columns
+						+ ${__('Add / Remove Columns')}
 					</a>
 				</p>
 			</div>
@@ -368,8 +373,13 @@ export default class GridRow {
 	prepare_columns_for_dialog(selected_fields) {
 		let fields = [];
 
+		const blocked_fields = frappe.model.no_value_type;
+		const always_allow = ["Button"];
+
+		const show_field = (f) => always_allow.includes(f) || !blocked_fields.includes(f);
+
 		this.docfields.forEach(column => {
-			if (!column.hidden && !in_list(frappe.model.no_value_type, column.fieldtype)) {
+			if (!column.hidden && show_field(column.fieldtype)) {
 				fields.push({
 					label: column.label,
 					value: column.fieldname,
@@ -397,7 +407,7 @@ export default class GridRow {
 								<a style='cursor: grabbing;'>${frappe.utils.icon('drag', 'xs')}</a>
 							</div>
 							<div class='col-md-7' style='padding-left:0px;'>
-								${docfield.label}
+								${__(docfield.label)}
 							</div>
 							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__('Columns')}'>
 								<input class='form-control column-width input-xs text-right'
@@ -504,6 +514,14 @@ export default class GridRow {
 		let value = {};
 		value[this.grid.doctype] = this.selected_columns_for_grid;
 		frappe.model.user_settings.save(this.frm.doctype, 'GridView', value)
+			.then((r) => {
+				frappe.model.user_settings[this.frm.doctype] = r.message || r;
+				this.grid.reset_grid();
+			});
+	}
+
+	reset_user_settings_for_grid() {
+		frappe.model.user_settings.save(this.frm.doctype, 'GridView', null)
 			.then((r) => {
 				frappe.model.user_settings[this.frm.doctype] = r.message || r;
 				this.grid.reset_grid();
@@ -705,6 +723,7 @@ export default class GridRow {
 
 	set_arrow_keys(field) {
 		var me = this;
+		let ignore_fieldtypes = ['Text', 'Small Text', 'Code', 'Text Editor', 'HTML Editor'];
 		if (field.$input) {
 			field.$input.on('keydown', function(e) {
 				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
@@ -716,8 +735,20 @@ export default class GridRow {
 				var fieldname = $(this).attr('data-fieldname');
 				var fieldtype = $(this).attr('data-fieldtype');
 
+				let ctrl_key = e.metaKey || e.ctrlKey;
+				if (!in_list(ignore_fieldtypes, fieldtype)
+					&& ctrl_key && e.which !== TAB) {
+					me.add_new_row_using_keys(e);
+					return;
+				}
+
+				if (e.shiftKey && e.altKey && DOWN_ARROW === e.which) {
+					me.duplicate_row_using_keys();
+					return;
+				}
+
 				var move_up_down = function(base) {
-					if (in_list(['Text', 'Small Text', 'Code', 'Text Editor', 'HTML Editor'], fieldtype) && !e.altKey) {
+					if (in_list(ignore_fieldtypes, fieldtype) && !e.altKey) {
 						return false;
 					}
 					if (field.autocomplete_open) {
@@ -769,6 +800,40 @@ export default class GridRow {
 				}
 
 			});
+		}
+	}
+
+	duplicate_row_using_keys() {
+		setTimeout(() => {
+			this.insert(false, true, true);
+			this.grid.grid_rows[this.doc.idx].toggle_editable_row();
+			this.grid.set_focus_on_row(this.doc.idx);
+		}, 100);
+	}
+
+	add_new_row_using_keys(e) {
+		let idx = '';
+
+		let ctrl_key = e.metaKey || e.ctrlKey;
+		let is_down_arrow_key_press = (e.which === 40);
+
+		// Add new row at the end or start of the table
+		if (ctrl_key && e.shiftKey)  {
+			idx = is_down_arrow_key_press ? null : 1;
+			this.grid.add_new_row(idx, null, is_down_arrow_key_press,
+				false, is_down_arrow_key_press, !is_down_arrow_key_press);
+			idx = is_down_arrow_key_press ? (cint(this.grid.grid_rows.length) - 1) : 0;
+
+		} else if (ctrl_key) {
+			idx = is_down_arrow_key_press ? this.doc.idx : (this.doc.idx - 1);
+			this.insert(false, is_down_arrow_key_press);
+		}
+
+		if (idx !== '') {
+			setTimeout(() => {
+				this.grid.grid_rows[idx].toggle_editable_row();
+				this.grid.set_focus_on_row(idx);
+			}, 100);
 		}
 	}
 
