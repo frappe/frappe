@@ -726,13 +726,12 @@ frappe.ui.form.Form = class FrappeForm {
 			btn && $(btn).prop("disabled", true);
 			frappe.ui.form.close_grid_form();
 			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
-		})
-			.then(() => {
-				me.show_success_action();
-			})
-			.catch((e) => {
-				console.error(e); // eslint-disable-line
-			});
+		}).then(() => {
+			me.show_success_action();
+		}).catch((e) => {
+			console.error(e); // eslint-disable-line
+			throw e;
+		});
 	}
 
 	validate_and_save(save_action, callback, btn, on_error, resolve, reject) {
