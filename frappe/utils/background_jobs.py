@@ -23,7 +23,7 @@ from frappe.utils.commands import log
 common_site_config = frappe.get_file_json("common_site_config.json")
 custom_workers_config = common_site_config.get("workers", {})
 default_timeout = 300
-queue_timeout = queue_timeout = {
+queue_timeout = {
 	"default": default_timeout,
 	"short": default_timeout,
 	"long": 1500,
