@@ -668,7 +668,9 @@ def get_web_image(file_url):
 		content_type = r.headers.get("Content-Type") 
 		
 		if content_type:
-			extn = content_type.split("/")[1]
+			from mimetypes import guess_extension
+
+			extn = guess_extension(content_type)[1:]
 
 	return image, filename, extn
 
