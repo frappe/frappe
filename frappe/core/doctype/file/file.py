@@ -673,6 +673,9 @@ def get_web_image(file_url: str) -> Tuple["ImageFile", str, str]:
 		extn = None
 
 	extn = get_extension(filename, extn, response=r)
+	if extn == "bin":
+		extn = get_extension(filename, extn, content=r.content) or "png"
+
 	filename = "/files/" + strip(unquote(filename))
 
 	return image, filename, extn
