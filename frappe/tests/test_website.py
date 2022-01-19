@@ -1,12 +1,19 @@
 from __future__ import unicode_literals
 
 import unittest
+from unittest.mock import patch
 
 import frappe
 from frappe.website import render
 from frappe.website.utils import get_home_page
 from frappe.utils import set_request
+<<<<<<< HEAD
 
+=======
+from frappe.website.page_renderers.static_page import StaticPage
+from frappe.website.serve import get_response, get_response_content
+from frappe.website.utils import (build_response, clear_website_cache, get_home_page)
+>>>>>>> 897b8a5b66 (test: Add test for hosting binary file using StaticPage resolver)
 
 class TestWebsite(unittest.TestCase):
 
@@ -54,7 +61,58 @@ class TestWebsite(unittest.TestCase):
 
 		self.assertTrue('// login.js' in html)
 		self.assertTrue('<!-- login.html -->' in html)
+<<<<<<< HEAD
 		frappe.set_user('Administrator')
+=======
+
+	def test_static_page(self):
+		set_request(method='GET', path='/_test/static-file-test.png')
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		set_request(method="GET", path="/_test/assets/image.jpg")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		set_request(method="GET", path="/_test/assets/image")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		with patch.object(StaticPage, "render") as static_render:
+			set_request(method="GET", path="/_test/assets/image")
+			response = get_response()
+			static_render.assert_called()
+
+	def test_error_page(self):
+		set_request(method='GET', path='/_test/problematic_page')
+		response = get_response()
+		self.assertEqual(response.status_code, 500)
+
+	def test_login(self):
+		set_request(method='GET', path='/login')
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		html = frappe.safe_decode(response.get_data())
+
+		self.assertTrue('// login.js' in html)
+		self.assertTrue('<!-- login.html -->' in html)
+
+	def test_app(self):
+		frappe.set_user('Administrator')
+		set_request(method='GET', path='/app')
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		html = frappe.safe_decode(response.get_data())
+		self.assertTrue('window.app = true;' in html)
+		frappe.local.session_obj = None
+
+	def test_not_found(self):
+		set_request(method='GET', path='/_test/missing')
+		response = get_response()
+		self.assertEqual(response.status_code, 404)
+>>>>>>> 897b8a5b66 (test: Add test for hosting binary file using StaticPage resolver)
 
 	def test_redirect(self):
 		import frappe.hooks
