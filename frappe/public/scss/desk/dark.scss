@@ -164,4 +164,26 @@
 		color: var(--text-color);
 		background: var(--gray-500);
 	}
+
+	.desk-alert {
+		&.red {
+			--toast-bg: var(--red-900);
+		}
+
+		&.yellow {
+			--toast-bg: var(--yellow-900);
+		}
+
+		&.orange {
+			--toast-bg: var(--orange-900);
+		}
+
+		&.blue {
+			--toast-bg: var(--blue-900);
+		}
+
+		&.green {
+			--toast-bg: var(--green-900);
+		}
+	}
 }
