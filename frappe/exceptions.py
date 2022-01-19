@@ -296,6 +296,7 @@ class QueryTimeoutError(Exception): pass
 class QueryDeadlockError(Exception): pass
 >>>>>>> 64985a5d1a (feat: Document key expiry)
 # OAuth exceptions
+<<<<<<< HEAD
 class InvalidAuthorizationHeader(CSRFTokenError):
 	pass
 
@@ -314,3 +315,12 @@ class InvalidDatabaseFile(ValidationError):
 
 class ExecutableNotFound(FileNotFoundError):
 	pass
+=======
+class InvalidAuthorizationHeader(CSRFTokenError): pass
+class InvalidAuthorizationPrefix(CSRFTokenError): pass
+class InvalidAuthorizationToken(CSRFTokenError): pass
+class InvalidDatabaseFile(ValidationError): pass
+class ExecutableNotFound(FileNotFoundError): pass
+
+class InvalidKey(ValidationError): pass
+>>>>>>> 4aab56edfc (refactor: Permission validation for print view)

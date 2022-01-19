@@ -5,23 +5,29 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
+<<<<<<< HEAD
 	{{ include_style("printview.css") }}
 	<style>
 	{{ css }}
 	</style>
+=======
+	{{ include_style('print.bundle.css') }}
+	{% if print_style %}
+		<style>
+		{{ print_style }}
+		</style>
+	{% endif %}
+>>>>>>> 4aab56edfc (refactor: Permission validation for print view)
 </head>
 <body>
-	{% if link_expired %}
-	<div class="hidden-print w-100 bg-secondary text-center" style="padding: 10px">
-		{{ _("Your key has been expired!") }}
-	</div>
+	{% if is_invalid_print %}
+	{{ body }}
 	{% else %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}
 		</div>
 	</div>
-	{% endif %}
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
 			const page_div = document.querySelector('.page-break');
@@ -36,6 +42,7 @@
 			footer_html.style.marginTop = '20px';
 		});
 	</script>
+	{% endif %}
 </body>
 {%- if comment -%}
 <!-- {{ comment }} -->
