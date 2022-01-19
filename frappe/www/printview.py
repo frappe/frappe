@@ -37,24 +37,31 @@ def get_context(context):
 
 	make_access_log(doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type='PDF', method='Print')
 
-	link_expired = False
+	is_invalid_print = False
+	print_style = None
 	try:
 		body = get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
 			no_letterhead=frappe.form_dict.no_letterhead, letterhead=letterhead,
 			settings=settings)
+		print_style = get_print_style(frappe.form_dict.style, print_format)
 	except frappe.exceptions.LinkExpiredError:
-		body = "Link Expired"
-		link_expired = True
+		body = frappe.get_template("templates/print_format/print_key_expired.html").render({})
+		context.http_status_code = 410
+		is_invalid_print = True
+	except frappe.exceptions.InvalidKey:
+		body = frappe.get_template("templates/print_format/print_key_invalid.html").render({})
+		context.http_status_code = 401
+		is_invalid_print = True
 
 	return {
 		"body": body,
-		"css": get_print_style(frappe.form_dict.style, print_format),
+		"print_style": print_style,
 		"comment": frappe.session.user,
-		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
+		"title": frappe.utils.strip_html(doc.get_title()),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
-		"link_expired": link_expired
+		"is_invalid_print": is_invalid_print
 	}
 
 def get_print_format_doc(print_format_name, meta):
@@ -234,25 +241,33 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 	}
 
 def validate_print_permission(doc):
-	if frappe.form_dict.get("key"):
-		document_key = frappe.db.exists("Document Key", {
-			"reference_doctype": doc.doctype,
-			"reference_docname": doc.name,
-			"key": frappe.form_dict.key
-		}, cache=True)
-		if document_key:
-			if frappe.get_cached_doc("Document Key", document_key).is_expired():
-				raise frappe.exceptions.LinkExpiredError
-			else:
-				return
-
-		if frappe.form_dict.key == doc.get_signature():
+	for ptype in ("read", "print"):
+		if (frappe.has_permission(doc.doctype, ptype, doc) or frappe.has_website_permission(doc)):
 			return
 
-	for ptype in ("read", "print"):
-		if (not frappe.has_permission(doc.doctype, ptype, doc)
-			and not frappe.has_website_permission(doc)):
-			raise frappe.PermissionError(_("No {0} permission").format(ptype))
+	key = frappe.form_dict.get("key")
+	if key:
+		validate_key(key, doc)
+	else:
+		raise frappe.PermissionError(_("You do not have permission to view this document"))
+
+def validate_key(key, doc):
+	document_key = frappe.db.exists("Document Key", {
+		"reference_doctype": doc.doctype,
+		"reference_docname": doc.name,
+		"key": key
+	}, cache=True)
+	if document_key:
+		if frappe.get_cached_doc("Document Key", document_key).is_expired():
+			raise frappe.exceptions.LinkExpiredError
+		else:
+			return
+
+	# TODO: Deprecate this! kept it for backward compatibility
+	if key == doc.get_signature():
+		return
+
+	raise frappe.exceptions.InvalidKey
 
 def get_letter_head(doc, no_letterhead, letterhead=None):
 	if no_letterhead:

@@ -110,3 +110,5 @@ class InvalidAuthorizationPrefix(CSRFTokenError): pass
 class InvalidAuthorizationToken(CSRFTokenError): pass
 class InvalidDatabaseFile(ValidationError): pass
 class ExecutableNotFound(FileNotFoundError): pass
+
+class InvalidKey(ValidationError): pass

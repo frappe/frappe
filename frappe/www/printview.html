@@ -6,22 +6,21 @@
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
 	{{ include_style('print.bundle.css') }}
-	<style>
-	{{ css }}
-	</style>
+	{% if print_style %}
+		<style>
+		{{ print_style }}
+		</style>
+	{% endif %}
 </head>
 <body>
-	{% if link_expired %}
-	<div class="hidden-print w-100 bg-secondary text-center" style="padding: 10px">
-		{{ _("Your key has been expired!") }}
-	</div>
+	{% if is_invalid_print %}
+	{{ body }}
 	{% else %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}
 		</div>
 	</div>
-	{% endif %}
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
 			const page_div = document.querySelector('.page-break');
@@ -36,6 +35,7 @@
 			footer_html.style.marginTop = '20px';
 		});
 	</script>
+	{% endif %}
 </body>
 {%- if comment -%}
 <!-- {{ comment }} -->
