@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
 import json
 import frappe
 import os
 import unittest
+from unittest.mock import patch
+
 from frappe import _
-from frappe.core.doctype.file.file import get_attached_images, move_file, get_files_in_folder, unzip_file
+from frappe.core.doctype.file.file import get_attached_images, get_web_image, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
-# test_records = frappe.get_test_records('File')
 
 test_content1 = 'Hello'
 test_content2 = 'Hello World'
@@ -406,6 +406,16 @@ class TestFile(unittest.TestCase):
 
 		test_file.make_thumbnail()
 		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+
+		# test web image without extension
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": frappe.utils.get_url('/_test/assets/image'),
+		}).insert(ignore_permissions=True)
+
+		test_file.make_thumbnail()
+		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpeg"))
 
 		# test local image
 		test_file.db_set('thumbnail_url', None)
