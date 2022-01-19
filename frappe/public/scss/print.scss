@@ -1,6 +1,12 @@
 @import "./common/quill";
+<<<<<<< HEAD:frappe/public/scss/print.scss
 @import "./desk/css_variables";
 @import "./element/checkbox";
+=======
+
+@import "./desk/variables";
+@import "~bootstrap/scss/utilities/spacing";
+>>>>>>> 14c37e05e6 (feat: Templates for invalid and expired key):frappe/public/scss/print.bundle.scss
 
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
@@ -10,5 +16,15 @@
 	}
 	svg[data-barcode-value] > g {
 		fill: black !important;
+	}
+}
+
+
+.invalid-state {
+	display: grid;
+	place-content: center;
+	height: 100vh;
+	img {
+		margin: auto;
 	}
 }
