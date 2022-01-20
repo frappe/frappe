@@ -179,6 +179,16 @@
 	--text-on-pink: var(--pink-500);
 	--text-on-cyan: var(--cyan-600);
 
+	// alert colors
+	--alert-text-danger: var(--red-600);
+	--alert-text-warning: var(--yellow-700);
+	--alert-text-info: var(--blue-700);
+	--alert-text-success: var(--green-700);
+	--alert-bg-danger: var(--red-50);
+	--alert-bg-warning: var(--yellow-50);
+	--alert-bg-info: var(--blue-50);
+	--alert-bg-success: var(--green-50);
+
 	// Layout Colors
 	--bg-color: var(--gray-50);
 	--fg-color: white;

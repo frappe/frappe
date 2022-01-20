@@ -4,6 +4,7 @@
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
+@import "../common/alert";
 @import 'base';
 @import "../common/flex";
 @import "../common/buttons";
@@ -108,7 +109,31 @@
 .breadcrumb {
 	padding: 0;
 	font-size: $font-size-sm;
+<<<<<<< HEAD
 	background-color: $breadcrumb-bg;
+=======
+}
+
+.breadcrumb-item {
+	+ .breadcrumb-item
+	 {
+		font-size: $font-size-sm;
+		&::before {
+			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			display: inline-block;
+		}
+	}
+	a {
+		color: var(--text-color)
+	}
+
+	li.disabled {
+		a {
+			color: var(--text-muted);
+			pointer-events: none;
+		}
+	}
+>>>>>>> 377eb88198 (fix: Update alert colors according to the new design)
 }
 
 a.card {
