@@ -255,11 +255,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	set_primary_action() {
 		if (this.can_create) {
-			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype)
+			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
 
 			// Better style would be __("Add {0}", [doctype_name], "Primary action in list view")
 			// Keeping it like this to not disrupt existing translations
-			const label = `${__("Add", null, "Primary action in list view")} ${doctype_name}`
+			const label = `${__("Add", null, "Primary action in list view")} ${doctype_name}`;
 			this.page.set_primary_action(
 				label,
 				() => {
