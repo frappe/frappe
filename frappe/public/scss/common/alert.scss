@@ -1,0 +1,12 @@
+// Color overrides for https://getbootstrap.com/docs/4.0/components/alerts
+$alert-types: info, success, warning, danger;
+
+.alert {
+	@each $alert-type in $alert-types {
+		&.alert-#{$alert-type} {
+			color: var(--alert-text-#{$alert-type});
+			background-color: var(--alert-bg-#{$alert-type});
+			border: none;
+		}
+	}
+}
