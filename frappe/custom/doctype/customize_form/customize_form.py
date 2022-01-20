@@ -109,6 +109,7 @@ class CustomizeForm(Document):
 		current = self.get_name_translation()
 		if not self.label:
 			if current:
+				# clear translation
 				frappe.delete_doc('Translation', current.name)
 			return
 
