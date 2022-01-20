@@ -11,23 +11,23 @@
 
 .desk-alert {
 	&.red {
-		--toast-bg: var(--red-100);
+		--toast-bg: var(--alert-bg-danger);
 	}
 
 	&.yellow {
-		--toast-bg: var(--yellow-50);
+		--toast-bg: var(--alert-bg-warning);
 	}
 
 	&.orange {
-		--toast-bg: var(--orange-50);
+		--toast-bg: var(--alert-bg-warning);
 	}
 
 	&.blue {
-		--toast-bg: var(--blue-50);
+		--toast-bg: var(--alert-bg-info);
 	}
 
 	&.green {
-		--toast-bg: var(--green-50);
+		--toast-bg: var(--alert-bg-success);
 	}
 
 	box-shadow: var(--modal-shadow);
@@ -66,7 +66,7 @@
 		.alert-subtitle {
 			font-size: var(--text-md);
 			padding-left: 34px;
-			color: var(--text-muted);
+			color: var(--text-light);
 		}
 	}
 
