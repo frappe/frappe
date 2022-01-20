@@ -390,7 +390,7 @@ frappe.show_alert = frappe.toast = function(message, seconds=7, actions={}) {
 	const indicator = message.indicator || 'blue';
 
 	const div = $(`
-		<div class="alert desk-alert ${indicator}">
+		<div class="alert desk-alert ${indicator}" role="alert">
 			<div class="alert-message-container">
 				<div class="alert-title-container">
 					<div>${frappe.utils.icon(icon, 'lg')}</div>
