@@ -365,7 +365,7 @@ frappe.show_alert = frappe.toast = function(message, seconds=7, actions={}) {
 	let indicator_icon_map = {
 		'orange': "solid-warning",
 		'yellow': "solid-warning",
-		'blue': "solid-success",
+		'blue': "solid-info",
 		'green': "solid-success",
 		'red': "solid-error"
 	};
@@ -387,8 +387,10 @@ frappe.show_alert = frappe.toast = function(message, seconds=7, actions={}) {
 		icon = 'solid-info';
 	}
 
+	const indicator = message.indicator || 'blue';
+
 	const div = $(`
-		<div class="alert desk-alert">
+		<div class="alert desk-alert ${indicator}" role="alert">
 			<div class="alert-message-container">
 				<div class="alert-title-container">
 					<div>${frappe.utils.icon(icon, 'lg')}</div>
@@ -398,7 +400,8 @@ frappe.show_alert = frappe.toast = function(message, seconds=7, actions={}) {
 			</div>
 			<div class="alert-body" style="display: none"></div>
 			<a class="close">${frappe.utils.icon('close-alt')}</a>
-		</div>`);
+		</div>
+	`);
 
 	div.hide().appendTo("#alert-container").show();
 
