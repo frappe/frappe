@@ -902,7 +902,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	amend_doc() {
 		if (!this.fields_dict['amended_from']) {
-			frappe.msgprint(__('The "amended_from" field must be present to do an amendment.'));
+			frappe.msgprint(__('"amended_from" field must be present to do an amendment.'));
 			return;
 		}
 
@@ -944,17 +944,9 @@ frappe.ui.form.Form = class FrappeForm {
 				resolve();
 			}
 
-			const error_message = {
-				"Create": __("No permission to create this {1}", [__(this.doc.doctype)], "Permission error in form"),
-				"Save": __("No permission to save this {1}", [__(this.doc.doctype)], "Permission error in form"),
-				"Submit": __("No permission to submit this {1}", [__(this.doc.doctype)], "Permission error in form"),
-				"Update": __("No permission to update this {1}", [__(this.doc.doctype)], "Permission error in form"),
-				"Cancel": __("No permission to cancel this {1}", [__(this.doc.doctype)], "Permission error in form"),
-				"Amend": __("No permission to amend this {1}", [__(this.doc.doctype)], "Permission error in form"),
-				"Delete": __("No permission to delete this {1}", [__(this.doc.doctype)], "Permission error in form"),
-			}[toTitle(action)];
-
-			frappe.throw(error_message);
+			frappe.throw(
+				__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)], "{0} = verb, {1} = object")
+			);
 		}
 	}
 

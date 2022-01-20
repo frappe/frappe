@@ -255,8 +255,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	set_primary_action() {
 		if (this.can_create) {
+			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype)
+
+			// Better style would be __("Add {0}", [doctype_name], "Primary action in list view")
+			// Keeping it like this to not disrupt existing translations
+			const label = `${__("Add", null, "Primary action in list view")} ${doctype_name}`
 			this.page.set_primary_action(
-				__("Add {0}", [frappe.router.doctype_layout || __(this.doctype)], "Primary action in list view"),
+				label,
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
@@ -321,7 +326,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_freeze_area() {
 		this.$freeze = $(
 			`<div class="freeze flex justify-center align-center text-muted">
-				${__("Loading...", null, "Freeze area in list view")}
+				${__("Loading")}...
 			</div>`
 		).hide();
 		this.$result.append(this.$freeze);

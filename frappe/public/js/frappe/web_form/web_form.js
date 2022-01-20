@@ -216,18 +216,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		let message = '';
 		if (invalid_values.length) {
-			message += __('Invalid values for fields:', null, "Error message in web form");
+			message += __('Invalid values for fields:', null, 'Error message in web form');
 			message += '<br><br><ul><li>' + invalid_values.join('<li>') + '</ul>';
 		}
 
 		if (errors.length) {
-			message += __('Mandatory fields required:', null, "Error message in web form");
+			message += __('Mandatory fields required:', null, 'Error message in web form');
 			message += '<br><br><ul><li>' + errors.join('<li>') + '</ul>';
 		}
 
 		if (invalid_values.length || errors.length) {
 			frappe.msgprint({
-				title: __('Error', null, "Title of error message in web form"),
+				title: __('Error', null, 'Title of error message in web form'),
 				message: message,
 				indicator: 'orange'
 			});
