@@ -176,7 +176,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			frappe.render_template("list_view_permission_restrictions", {
 				condition_list: match_rules_list,
 			}),
-			__("Restrictions")
+			__("Restrictions", null, "Title of message showing restrictions in list view")
 		);
 	}
 
@@ -231,8 +231,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	set_primary_action() {
 		if (this.can_create) {
+			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
+
+			// Better style would be __("Add {0}", [doctype_name], "Primary action in list view")
+			// Keeping it like this to not disrupt existing translations
+			const label = `${__("Add", null, "Primary action in list view")} ${doctype_name}`;
 			this.page.set_primary_action(
-				`${__("Add")} ${frappe.router.doctype_layout || __(this.doctype)}`,
+				label,
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
@@ -296,9 +301,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_freeze_area() {
 		this.$freeze = $(
-			`<div class="freeze flex justify-center align-center text-muted">${__(
-				"Loading"
-			)}...</div>`
+			`<div class="freeze flex justify-center align-center text-muted">
+				${__("Loading")}...
+			</div>`
 		).hide();
 		this.$result.append(this.$freeze);
 	}
@@ -436,8 +441,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? __("No {0} found", [__(this.doctype)])
 			: __("You haven't created a {0} yet", [__(this.doctype)]);
 		let new_button_label = filters && filters.length
-			? __("Create a new {0}", [__(this.doctype)])
-			: __("Create your first {0}", [__(this.doctype)]);
+			? __("Create a new {0}", [__(this.doctype)], "Create a new document from list view")
+			: __("Create your first {0}", [__(this.doctype)], "Create a new document from list view");
 		let empty_state_image =
 			this.settings.empty_state_image ||
 			"/assets/frappe/images/ui-states/list-empty-state.svg";
@@ -445,7 +450,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const new_button = this.can_create
 			? `<p><button class="btn btn-primary btn-sm btn-new-doc hidden-xs">
 				${new_button_label}
-			</button> <button class="btn btn-primary btn-new-doc visible-xs">${__('Create New')}</button></p>`
+			</button> <button class="btn btn-primary btn-new-doc visible-xs">
+				${__("Create New", null, "Create a new document from list view")}
+			</button></p>`
 			: "";
 
 		return `<div class="msg-box no-border">
@@ -462,7 +469,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings && !this.list_view_settings.disable_count) {
 			this.$result
 				.find(".list-count")
-				.html(`<span>${__("Refreshing")}...</span>`);
+				.html(`<span>${__("Refreshing", null, "Document count in list view")}...</span>`);
 		}
 	}
 
@@ -1045,14 +1052,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "down",
 			action: () => handle_navigation("down"),
-			description: __("Navigate list down"),
+			description: __("Navigate list down", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: "up",
 			action: () => handle_navigation("up"),
-			description: __("Navigate list up"),
+			description: __("Navigate list up", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
@@ -1064,7 +1071,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				check_row($list_row);
 				focus_next();
 			},
-			description: __("Select multiple list items"),
+			description: __("Select multiple list items", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
@@ -1076,7 +1083,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				check_row($list_row);
 				focus_prev();
 			},
-			description: __("Select multiple list items"),
+			description: __("Select multiple list items", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
@@ -1090,7 +1097,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}
 				return false;
 			},
-			description: __("Open list item"),
+			description: __("Open list item", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
@@ -1104,7 +1111,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}
 				return false;
 			},
-			description: __("Select list item"),
+			description: __("Select list item", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 	}
@@ -1461,7 +1468,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (frappe.model.can_import(doctype)) {
 			items.push({
-				label: __("Import"),
+				label: __("Import", null, "Button in list view menu"),
 				action: () =>
 					frappe.set_route("list", "data-import", {
 						reference_doctype: doctype,
@@ -1472,7 +1479,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (frappe.model.can_set_user_permissions(doctype)) {
 			items.push({
-				label: __("User Permissions"),
+				label: __("User Permissions", null, "Button in list view menu"),
 				action: () =>
 					frappe.set_route("list", "user-permission", {
 						allow: doctype,
@@ -1483,7 +1490,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
-				label: __("Role Permissions Manager"),
+				label: __("Role Permissions Manager", null, "Button in list view menu"),
 				action: () =>
 					frappe.set_route("permission-manager", {
 						doctype,
@@ -1492,7 +1499,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 
 			items.push({
-				label: __("Customize"),
+				label: __("Customize", null, "Button in list view menu"),
 				action: () => {
 					if (!this.meta) return;
 					if (this.meta.custom) {
@@ -1509,7 +1516,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		items.push({
-			label: __("Toggle Sidebar"),
+			label: __("Toggle Sidebar", null, "Button in list view menu"),
 			action: () => this.toggle_side_bar(),
 			condition: () => !this.hide_sidebar,
 			standard: true,
@@ -1517,7 +1524,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 
 		items.push({
-			label: __("Share URL"),
+			label: __("Share URL", null, "Button in list view menu"),
 			action: () => this.share_url(),
 			standard: true,
 			shortcut: "Ctrl+L",
@@ -1529,7 +1536,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		) {
 			// edit doctype
 			items.push({
-				label: __("Edit DocType"),
+				label: __("Edit DocType", null, "Button in list view menu"),
 				action: () => frappe.set_route("form", "doctype", doctype),
 				standard: true,
 			});
@@ -1537,7 +1544,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (frappe.user.has_role("System Manager")) {
 			items.push({
-				label: __("List Settings"),
+				label: __("List Settings", null, "Button in list view menu"),
 				action: () => this.show_list_settings(),
 				standard: true,
 			});
@@ -1628,7 +1635,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// utility
 		const bulk_assignment = () => {
 			return {
-				label: __("Assign To"),
+				label: __("Assign To", null, "Button in list view actions menu"),
 				action: () =>
 					bulk_operations.assign(
 						this.get_checked_items(true),
@@ -1640,7 +1647,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_assignment_rule = () => {
 			return {
-				label: __("Apply Assignment Rule"),
+				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
 				action: () =>
 					bulk_operations.apply_assignment_rule(
 						this.get_checked_items(true),
@@ -1652,7 +1659,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_add_tags = () => {
 			return {
-				label: __("Add Tags"),
+				label: __("Add Tags", null, "Button in list view actions menu"),
 				action: () =>
 					bulk_operations.add_tags(
 						this.get_checked_items(true),
@@ -1664,7 +1671,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_printing = () => {
 			return {
-				label: __("Print"),
+				label: __("Print", null, "Button in list view actions menu"),
 				action: () => bulk_operations.print(this.get_checked_items()),
 				standard: true,
 			};
@@ -1672,13 +1679,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_delete = () => {
 			return {
-				label: __("Delete"),
+				label: __("Delete", null, "Button in list view actions menu"),
 				action: () => {
 					const docnames = this.get_checked_items(true).map(
 						(docname) => docname.toString()
 					);
 					frappe.confirm(
-						__("Delete {0} items permanently?", [docnames.length]),
+						__("Delete {0} items permanently?", [docnames.length], "Title of confirmation dialog"),
 						() => bulk_operations.delete(docnames, this.refresh)
 					);
 				},
@@ -1688,12 +1695,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_cancel = () => {
 			return {
-				label: __("Cancel"),
+				label: __("Cancel", null, "Button in list view actions menu"),
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
 						frappe.confirm(
-							__("Cancel {0} documents?", [docnames.length]),
+							__("Cancel {0} documents?", [docnames.length], "Title of confirmation dialog"),
 							() =>
 								bulk_operations.submit_or_cancel(
 									docnames,
@@ -1709,12 +1716,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_submit = () => {
 			return {
-				label: __("Submit"),
+				label: __("Submit", null, "Button in list view actions menu"),
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
 						frappe.confirm(
-							__("Submit {0} documents?", [docnames.length]),
+							__("Submit {0} documents?", [docnames.length], "Title of confirmation dialog"),
 							() =>
 								bulk_operations.submit_or_cancel(
 									docnames,
@@ -1730,7 +1737,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const bulk_edit = () => {
 			return {
-				label: __("Edit"),
+				label: __("Edit", null, "Button in list view actions menu"),
 				action: () => {
 					let field_mappings = {};
 
