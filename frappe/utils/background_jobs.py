@@ -20,11 +20,17 @@ from frappe.utils.redis_queue import RedisQueue
 from frappe.utils.commands import log
 
 
+common_site_config = frappe.get_file_json("common_site_config.json")
+custom_workers_config = common_site_config.get("workers", {})
 default_timeout = 300
 queue_timeout = {
-	'long': 1500,
-	'default': 300,
-	'short': 300
+	"default": default_timeout,
+	"short": default_timeout,
+	"long": 1500,
+	**{
+		worker: config.get("timeout", default_timeout)
+		for worker, config in custom_workers_config.items()
+	}
 }
 
 redis_connection = None
