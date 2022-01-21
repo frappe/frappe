@@ -20,7 +20,7 @@ class PropertySetter(Document):
 	def validate(self):
 		self.validate_fieldtype_change()
 		if self.is_new():
-			delete_property_setter(self.doc_type, self.property, self.field_name)
+			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
 
 		# clear cache
 		frappe.clear_cache(doctype = self.doc_type)
@@ -84,11 +84,13 @@ def make_property_setter(doctype, fieldname, property, value, property_type, for
 	property_setter.insert()
 	return property_setter
 
-def delete_property_setter(doc_type, property, field_name=None):
+def delete_property_setter(doc_type, property, field_name=None, row_name=None):
 	"""delete other property setters on this, if this is new"""
-	filters = dict(doc_type = doc_type, property=property)
+	filters = dict(doc_type=doc_type, property=property)
 	if field_name:
 		filters['field_name'] = field_name
+	if row_name:
+		filters["row_name"] = row_name
 
 	frappe.db.delete('Property Setter', filters)
 
