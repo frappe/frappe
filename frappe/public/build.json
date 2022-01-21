@@ -184,6 +184,7 @@
 		"public/js/frappe/utils/dashboard_utils.js",
 		"public/js/frappe/ui/chart.js",
 		"public/js/frappe/ui/datatable.js",
+		"public/js/frappe/utils/datatable.js",
 		"public/js/frappe/ui/driver.js",
 		"public/js/frappe/ui/plyr.js",
 		"public/js/frappe/barcode_scanner/index.js",
