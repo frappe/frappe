@@ -77,11 +77,11 @@ class PostgresDatabase(Database):
 		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
-				
+
 		# MariaDB's driver treats None as an empty string
 		# So Postgres should do the same
 
-		if s is None: 
+		if s is None:
 			s = ''
 
 		if percent:
@@ -308,18 +308,20 @@ class PostgresDatabase(Database):
 				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
-			COUNT(b.indexdef) AS Index,
+			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN
-				(SELECT indexdef, tablename, indexdef LIKE '%UNIQUE INDEX%' AS unique
+				(SELECT indexdef, tablename,
+					indexdef LIKE '%UNIQUE INDEX%' AS unique,
+					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
 					FROM pg_indexes
 					WHERE tablename='{table_name}') b
-					ON SUBSTRING(b.indexdef, '\(.*\)') LIKE CONCAT('%', a.column_name, '%')
+				ON SUBSTRING(b.indexdef, '\(.*\)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;'''
-			.format(table_name=table_name), as_dict=1)
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+		'''.format(table_name=table_name), as_dict=1)
 
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
