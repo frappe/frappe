@@ -65,7 +65,7 @@ class MariaDBTable(DBTable):
 				if unique_constraint_changed and not col.unique:
 					unique_index_record = frappe.db.sql("""
 						SHOW INDEX FROM `{0}`
-						WHERE Column_name=%s
+						WHERE Key_name=%s
 						AND Non_unique=0
 					""".format(self.table_name), (col.fieldname), as_dict=1)
 					if unique_index_record:
@@ -75,9 +75,9 @@ class MariaDBTable(DBTable):
 				if index_constraint_changed and not col.set_index:
 					index_record = frappe.db.sql("""
 						SHOW INDEX FROM `{0}`
-						WHERE Column_name=%s
+						WHERE Key_name=%s
 						AND Non_unique=1
-					""".format(self.table_name), (col.fieldname), as_dict=1)
+					""".format(self.table_name), (col.fieldname + '_index'), as_dict=1)
 					if index_record:
 						drop_index_query.append("DROP INDEX `{}`".format(index_record[0].Key_name))
 

@@ -232,7 +232,7 @@ class DbColumn:
 			self.table.set_default.append(self)
 
 		# index should be applied or dropped irrespective of type change
-		if ((current_def['index'] and not self.set_index and not self.unique)
+		if ((current_def['index'] and not self.set_index)
 			or (current_def['unique'] and not self.unique)):
 			# to drop unique you have to drop index
 			self.table.drop_index.append(self)
