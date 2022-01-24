@@ -609,6 +609,7 @@
    "options": "Module Profile"
   },
   {
+    "description": "Stores the datetime when the last reset password key was generated.",
     "fieldname": "reset_password_key_datetime",
     "fieldtype": "Datetime",
     "label": "Reset Password Key Generation Datetime",
