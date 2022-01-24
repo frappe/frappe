@@ -13,4 +13,4 @@ frappe.listview_settings['Dashboard'] = {
 			frappe.set_route('dashboard-view', doc.name);
 		}
 	},
-}
+};
