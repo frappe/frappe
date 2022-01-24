@@ -234,6 +234,11 @@ $.extend(frappe.datetime, {
 		], true).isValid();
 	},
 
+	get_first_day_of_the_week_index() {
+		const first_day_of_the_week = frappe.sys_defaults.first_day_of_the_week || "Sunday";
+		return moment.weekdays().indexOf(first_day_of_the_week);
+	}
+
 });
 
 // Proxy for dateutil and get_today

@@ -24,3 +24,26 @@ class TestSafeExec(unittest.TestCase):
 		self.assertEqual(_locals['out'][0][0], 'DocType')
 
 		self.assertRaises(frappe.PermissionError, safe_exec, 'frappe.db.sql("update tabToDo set description=NULL")')
+
+	def test_call(self):
+		# call non whitelisted method
+		self.assertRaises(
+			frappe.PermissionError,
+			safe_exec,
+			"""frappe.call("frappe.get_user")"""
+		)
+
+		# call whitelisted method
+		safe_exec("""frappe.call("ping")""")
+
+
+	def test_enqueue(self):
+		# enqueue non whitelisted method
+		self.assertRaises(
+			frappe.PermissionError,
+			safe_exec,
+			"""frappe.enqueue("frappe.get_user", now=True)"""
+		)
+
+		# enqueue whitelisted method
+		safe_exec("""frappe.enqueue("ping", now=True)""")
