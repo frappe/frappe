@@ -747,7 +747,7 @@ def sbool(x: str) -> Union[bool, Any]:
 			return True
 		elif val in ('false', '0'):
 			return False
-		return bool(x)
+		return x
 	except Exception:
 		return x
 
