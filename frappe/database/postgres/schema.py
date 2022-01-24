@@ -11,8 +11,6 @@ class PostgresTable(DBTable):
 		column_defs = self.get_column_definitions()
 		if column_defs: add_text += ',\n'.join(column_defs)
 
-		# index
-		# index_defs = self.get_index_definitions()
 		# TODO: set docstatus length
 		# create table
 		frappe.db.sql("""create table `%s` (
@@ -28,7 +26,23 @@ class PostgresTable(DBTable):
 			idx bigint not null default '0',
 			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
 
+		self.create_indexes()
 		frappe.db.commit()
+
+	def create_indexes(self):
+		create_index_query = ""
+		for key, col in self.columns.items():
+			if (col.set_index
+				and col.fieldtype in frappe.db.type_map
+				and frappe.db.type_map.get(col.fieldtype)[0]
+				not in ('text', 'longtext')):
+				create_index_query += 'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}`(`{field}`);'.format(
+					index_name=col.fieldname,
+					table_name=self.table_name,
+					field=col.fieldname
+				)
+		if create_index_query:
+			frappe.db.sql(create_index_query)
 
 	def alter(self):
 		for col in self.columns.values():
