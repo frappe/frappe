@@ -86,17 +86,26 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			.find('.awesomplete ul')
 			.css('min-width', '100%');
 
-		this.$input.on(
-			'input',
-			frappe.utils.debounce(() => {
-				this.awesomplete.list = this.get_data();
-			}, 500)
-		);
+		this.$input.on('input', frappe.utils.debounce((e) => {
+			this.execute_query_if_exists(e.target.value);
+			this.awesomplete.list = this.get_data();
+		}, 500));
 
 		this.$input.on('focus', () => {
 			if (!this.$input.val()) {
 				this.$input.val('');
 				this.$input.trigger('input');
+			}
+		});
+
+		this.$input.on("blur", () => {
+			if(this.selected) {
+				this.selected = false;
+				return;
+			}
+			var value = this.get_input_value();
+			if(value!==this.last_value) {
+				this.parse_validate_and_set_in_model(value);
 			}
 		});
 
@@ -136,6 +145,58 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			options = options.map(o => ({ label: o, value: o }));
 		}
 		return options;
+	}
+
+	execute_query_if_exists(term) {
+		const args = {
+			txt: term
+		};
+		var set_nulls = function(obj) {
+			$.each(obj, function(key, value) {
+				if(value!==undefined) {
+					obj[key] = value;
+				}
+			});
+			return obj;
+		};
+		let get_query = this.get_query || this.df.get_query;
+		if(get_query) {
+			// get_query by function
+			var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
+
+			if($.isPlainObject(q)) {
+				// returns a plain object with filters
+				if(q.filters) {
+					set_nulls(q.filters);
+				}
+
+				// turn off value translation
+				if(q.translate_values !== undefined) {
+					this.translate_values = q.translate_values;
+				}
+
+				// extend args for custom functions
+				$.extend(args, q);
+
+				// add "filters" for standard query (search.py)
+				args.filters = q.filters;
+			}
+		}
+
+		if (args.query) {
+			frappe.call({
+				method: args.query,
+				args: args,
+				callback: ({ message }) => {
+					if(!this.$input.is(":focus")) {
+						return;
+					}
+					// this.$input.cache[this.df.fieldname][term] = r.results;
+					// this.awesomplete.list = this.$input.cache[this.df.fieldname][term];
+					this.set_data(message);
+				}
+			})
+		}
 	}
 
 	get_data() {
