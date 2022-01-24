@@ -379,6 +379,8 @@ def get_labels(fields, doctype):
 			df = frappe.get_meta(parenttype).get_field(fieldname)
 			label = _(df.label if df else fieldname.title())
 			if parenttype != doctype:
+				# If the column is from a child table, append the child doctype.
+				# For example, "Item Code (Sales Invoice Item)".
 				label += " (" + _(parenttype) + ")"
 
 		labels.append(label)
