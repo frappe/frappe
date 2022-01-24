@@ -315,7 +315,7 @@ class PostgresDatabase(Database):
 					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
 					FROM pg_indexes
 					WHERE tablename='{table_name}') b
-				ON SUBSTRING(b.indexdef, '\(.*\)') LIKE CONCAT('%', a.column_name, '%')
+				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
 			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
 		'''.format(table_name=table_name), as_dict=1)
