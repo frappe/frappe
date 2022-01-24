@@ -31,7 +31,7 @@ export default class Onboarding extends Block {
 		if (this.readOnly && !$(this.wrapper).find('.onboarding-widget-box').is(':visible')) {
 			$(e).hide();
 		}
-		e.classList.add("col-" + this.get_col());
+		this.set_col_class(e, this.get_col());
 	}
 
 	new(block, widget_type = block) {

@@ -31,7 +31,7 @@ export default class Block {
 	rendered() {
 		!this.readOnly && this.resizer();
 		var e = this.wrapper.closest('.ce-block');
-		e.classList.add("col-" + this.get_col());
+		this.set_col_class(e, this.get_col());
 	}
 
 	resizer(wrapper) {
@@ -224,108 +224,100 @@ export default class Block {
 		});
 	}
 
-	add_tune_button() {
-		let $widget_control = $(this.wrapper).find('.widget-control');
-		frappe.utils.add_custom_button(
-			frappe.utils.icon('dot-horizontal', 'xs'),
-			(event) => {
-				let evn = event;
-				!$('.ce-settings.ce-settings--opened').length &&
-				setTimeout(() => {
-					this.api.toolbar.toggleBlockSettings();
-					var position = $(evn.target).offset();
-					$('.ce-settings.ce-settings--opened').offset({
-						top: position.top + 25,
-						left: position.left - 77
-					});
-				}, 50);
-			},
-			"tune-btn",
-			`${__('Tune')}`,
-			null,
-			$widget_control,
-			true
-		);
-	}
-
 	get_col() {
 		let col = this.col || 12;
-		let class_name = "col-12";
+		let class_name = "col-xs-12";
 		let wrapper = this.wrapper.closest('.ce-block');
 		const col_class = new RegExp(/\bcol-.+?\b/, "g");
 		if (wrapper && wrapper.className.match(col_class)) {
 			wrapper.classList.forEach(function (cn) {
-				cn.match(col_class) && (class_name = cn);
+				if (cn.match(col_class)) {
+					class_name = cn;
+				}
 			});
 			let parts = class_name.split("-");
-			col = parseInt(parts[1]);
+			col = parseInt(parts[2]);
 		}
 		return col;
 	}
 
 	decrease_width() {
+		this.update_width('decrease');
+	}
+
+	increase_width() {
+		this.update_width('increase');
+	}
+
+	update_width(action) {
 		let min_width = this.options && this.options.min_width || 3;
-		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
-
-		if (currentBlockIndex < 0) {
+		const current_block_index = this.api.blocks.getCurrentBlockIndex();
+		if (current_block_index < 0) {
 			return;
 		}
 
-		let currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock) {
+		let current_block = this.api.blocks.getBlockByIndex(current_block_index);
+		if (!current_block) {
 			return;
 		}
 
-		let currentBlockElement = currentBlock.holder;
+		const current_block_element = current_block.holder;
 
-		let className = 'col-12';
-		let colClass = new RegExp(/\bcol-.+?\b/, 'g');
-		if (currentBlockElement.className.match(colClass)) {
-			currentBlockElement.classList.forEach( cn => {
+		let className = 'col-xs-12';
+		const colClass = new RegExp(/\bcol-.+?\b/, 'g');
+		if (current_block_element.className.match(colClass)) {
+			current_block_element.classList.forEach( cn => {
 				if (cn.match(colClass)) {
 					className = cn;
 				}
 			});
 			let parts = className.split('-');
-			let width = parseInt(parts[1]);
-			if (width > min_width) {
-				currentBlockElement.classList.remove('col-'+width);
+			let width = parseInt(parts[2]);
+
+			let condition = true;
+
+			if (action == 'increase') {
+				condition = width <= 11;
+				width = width + 1;
+			} else if (action == 'decrease') {
+				condition = width > min_width;
 				width = width - 1;
-				currentBlockElement.classList.add('col-'+width);
+			}
+
+			if (condition) {
+				this.set_col_class(current_block_element, width);
 			}
 		}
 	}
 
-	increase_width() {
-		const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
+	set_col_class(node, width) {
+		let classes = $.grep(node.classList, function (item) {
+			return item.indexOf("col-") !== 0;
+		});
 
-		if (currentBlockIndex < 0) {
-			return;
+		node.classList = '';
+
+		classes.forEach(cl => {
+			node.classList.add(cl);
+		});
+
+		let col = 'col-xs-12';
+		if (width <= 12 && width >= 7) {
+			col = 'col-xs-' + width;
+		} else if (width == 6 || width == 5) {
+			node.classList.add('col-xs-12');
+			col = 'col-sm-' + width;
+		} else if (width == 4) {
+			node.classList.add('col-xs-12');
+			node.classList.add('col-sm-6');
+			col = 'col-md-' + width;
+		} else if (width == 3) {
+			node.classList.add('col-xs-12');
+			node.classList.add('col-sm-6');
+			node.classList.add('col-md-4');
+			col = 'col-lg-' + width;
 		}
-
-		const currentBlock = this.api.blocks.getBlockByIndex(currentBlockIndex);
-		if (!currentBlock) {
-			return;
-		}
-
-		const currentBlockElement = currentBlock.holder;
-
-		let className = 'col-12';
-		const colClass = new RegExp(/\bcol-.+?\b/, 'g');
-		if (currentBlockElement.className.match(colClass)) {
-			currentBlockElement.classList.forEach( cn => {
-				if (cn.match(colClass)) {
-					className = cn;
-				}
-			});
-			let parts = className.split('-');
-			let width = parseInt(parts[1]);
-			if (width <= 11) {
-				currentBlockElement.classList.remove('col-'+width);
-				width = width + 1;
-				currentBlockElement.classList.add('col-'+width);
-			}
-		}
+		node.classList.add(col);
 	}
 
 	move_block(direction) {

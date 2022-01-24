@@ -77,7 +77,7 @@ export default class Header extends Block {
 	rendered() {
 		!this.readOnly && this.resizer(this._element);
 		var e = this._element.closest('.ce-block');
-		e.classList.add("col-" + this.get_col());
+		this.set_col_class(e, this.get_col());
 	}
 
 	static get sanitize() {

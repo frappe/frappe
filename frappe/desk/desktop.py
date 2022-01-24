@@ -386,7 +386,7 @@ def get_workspace_sidebar_items():
 	for page in all_pages:
 		try:
 			workspace = Workspace(page, True)
-			if workspace.is_permitted() and workspace.is_page_allowed() or has_access:
+			if has_access or (workspace.is_permitted() and workspace.is_page_allowed()):
 				if page.public:
 					pages.append(page)
 				elif page.for_user == frappe.session.user:

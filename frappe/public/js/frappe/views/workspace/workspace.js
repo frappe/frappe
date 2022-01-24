@@ -647,23 +647,17 @@ frappe.views.Workspace = class Workspace {
 				action: () => this.edit_page(item)
 			},
 			{
-				label: 'Delete',
-				title: 'Delete Workspace',
-				icon: frappe.utils.icon('delete-active', 'sm'),
-				action: () => this.delete_page(item)
-			},
-			{
 				label: 'Duplicate',
 				title: 'Duplicate Workspace',
 				icon: frappe.utils.icon('duplicate', 'sm'),
 				action: () => this.duplicate_page(item)
 			},
 			{
-				label: 'Settings',
-				title: 'Settings',
-				icon: frappe.utils.icon('setting-gear', 'sm'),
-				action: () => frappe.set_route(`workspace/${item.name}`)
-			},
+				label: 'Delete',
+				title: 'Delete Workspace',
+				icon: frappe.utils.icon('delete-active', 'sm'),
+				action: () => this.delete_page(item)
+			}
 		];
 
 		let $button = $(`
