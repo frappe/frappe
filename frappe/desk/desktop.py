@@ -56,31 +56,6 @@ class Workspace:
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
-	def is_page_allowed(self):
-		cards = self.doc.get_link_groups() + get_custom_reports_and_doctypes(self.doc.module)
-		shortcuts = self.doc.shortcuts
-
-		for section in cards:
-			links = loads(section.get('links')) if isinstance(section.get('links'), str) else section.get('links')
-			for item in links:
-				if self.is_item_allowed(item.get('link_to'), item.get('link_type')):
-					return True
-
-		def _in_active_domains(item):
-			if not item.restrict_to_domain:
-				return True
-			else:
-				return item.restrict_to_domain in frappe.get_active_domains()
-
-		for item in shortcuts:
-			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
-				return True
-
-		if not shortcuts and not self.doc.links:
-			return True
-
-		return False
-
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
 		from frappe.utils import has_common
@@ -386,7 +361,7 @@ def get_workspace_sidebar_items():
 	for page in all_pages:
 		try:
 			workspace = Workspace(page, True)
-			if has_access or (workspace.is_permitted() and workspace.is_page_allowed()):
+			if has_access or workspace.is_permitted():
 				if page.public:
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
