@@ -30,12 +30,6 @@
 @import 'my_account';
 
 
-body {
-	@include media-breakpoint-up(sm) {
-		background-color: var(--bg-color);
-	}
-}
-
 .ql-editor.read-mode {
 	padding: 0;
 	line-height: 1.6;
