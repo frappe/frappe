@@ -63,7 +63,7 @@ frappe.warn = function(title, message_html, proceed_action, primary_label, is_mi
 			if (proceed_action) proceed_action();
 			d.hide();
 		},
-		secondary_action_label: __("Cancel"),
+		secondary_action_label: __("Cancel", null, "Secondary button in warning dialog"),
 		secondary_action: () => d.hide(),
 		minimizable: is_minimizable
 	});
