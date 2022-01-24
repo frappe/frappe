@@ -446,7 +446,7 @@ def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None, 
 	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide, as_list=as_list)
 
 def emit_js(js, user=False, **kwargs):
-	if user == False:
+	if user is False:
 		user = session.user
 	publish_realtime('eval_js', js, user=user, **kwargs)
 

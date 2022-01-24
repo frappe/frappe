@@ -63,6 +63,16 @@
 	--text-on-light-gray: var(--gray-100);
 	--text-on-purple: var(--purple-100);
 
+	// alert colors
+	--alert-text-danger: var(--red-300);
+	--alert-text-warning: var(--yellow-300);
+	--alert-text-info: var(--blue-300);
+	--alert-text-success: var(--green-300);
+	--alert-bg-danger: var(--red-900);
+	--alert-bg-warning: var(--yellow-900);
+	--alert-bg-info: var(--blue-900);
+	--alert-bg-success: var(--green-900);
+
 	--sidebar-select-color: var(--gray-800);
 
 	--scrollbar-thumb-color: var(--gray-600);
