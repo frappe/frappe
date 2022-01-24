@@ -491,7 +491,7 @@
     "default": "1200",
     "fieldname": "reset_password_link_expiry_seconds",
     "fieldtype": "Int",
-    "label": "Reset Password Link Expiry Seconds",
+    "label": "Reset Password Link Expiry (in Seconds)",
     "non_negative": 1
    }
  ],
