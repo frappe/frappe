@@ -13,6 +13,7 @@
  "field_order": [
   "stopped",
   "method",
+  "arguments",
   "server_script",
   "frequency",
   "cron_format",
@@ -28,6 +29,14 @@
    "read_only": 1,
    "reqd": 1
   },
+  {
+    "default": "{}",
+    "fieldname": "arguments",
+    "fieldtype": "Code",
+    "label": "Arguments",
+    "options": "JSON",
+    "read_only": 1
+   },
   {
    "default": "0",
    "fieldname": "stopped",

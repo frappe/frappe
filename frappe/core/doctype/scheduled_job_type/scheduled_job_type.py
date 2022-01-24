@@ -33,7 +33,7 @@ class ScheduledJobType(Document):
 			else:
 				if not self.is_job_in_queue():
 					enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
-						queue = self.get_queue_name(), job_type=self.method)
+						queue = self.get_queue_name(), job_name=self.name, job_type=self.name)
 					return True
 
 		return False
@@ -45,7 +45,7 @@ class ScheduledJobType(Document):
 
 	def is_job_in_queue(self):
 		queued_jobs = get_jobs(site=frappe.local.site, key='job_type')[frappe.local.site]
-		return self.method in queued_jobs
+		return self.name in queued_jobs
 
 	def get_next_execution(self):
 		CRON_MAP = {
@@ -77,7 +77,8 @@ class ScheduledJobType(Document):
 				if script_name:
 					frappe.get_doc('Server Script', script_name).execute_scheduled_method()
 			else:
-				frappe.get_attr(self.method)()
+				kwargs = json.loads(self.arguments)
+				frappe.get_attr(self.method)(**kwargs)
 			frappe.db.commit()
 			self.log_status('Complete')
 		except Exception:
@@ -86,7 +87,7 @@ class ScheduledJobType(Document):
 
 	def log_status(self, status):
 		# log file
-		frappe.logger("scheduler").info(f"Scheduled Job {status}: {self.method} for {frappe.local.site}")
+		frappe.logger("scheduler").info(f"Scheduled Job {status}: {self.method} {self.name} for {frappe.local.site}")
 		self.update_scheduler_log(status)
 
 	def update_scheduler_log(self, status):
@@ -123,7 +124,7 @@ def execute_event(doc: str):
 def run_scheduled_job(job_type: str):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
 	try:
-		frappe.get_doc("Scheduled Job Type", dict(method=job_type)).execute()
+		frappe.get_doc("Scheduled Job Type", dict(name=job_type)).execute()
 	except Exception:
 		print(frappe.get_traceback())
 
