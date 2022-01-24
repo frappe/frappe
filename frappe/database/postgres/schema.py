@@ -104,18 +104,20 @@ class PostgresTable(DBTable):
 		try:
 			if query:
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))
-				if final_alter_query: frappe.db.sql(final_alter_query)
-			if create_contraint_query: frappe.db.sql(create_contraint_query)
-			if drop_contraint_query: frappe.db.sql(drop_contraint_query)
+				frappe.db.sql(final_alter_query)
+			if create_contraint_query:
+				frappe.db.sql(create_contraint_query)
+			if drop_contraint_query:
+				frappe.db.sql(drop_contraint_query)
 		except Exception as e:
 			# sanitize
 			if frappe.db.is_duplicate_fieldname(e):
 				frappe.throw(str(e))
 			elif frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
-				frappe.throw(_("""{0} field cannot be set as unique in {1},
-					as there are non-unique existing values""".format(
-					fieldname, self.table_name)))
-				raise e
+				frappe.throw(
+					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values")
+						.format(fieldname, self.table_name)
+				)
 			else:
 				raise e
