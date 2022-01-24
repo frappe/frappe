@@ -1,3 +1,4 @@
+[pre_model_sync]
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
 execute:frappe.reload_doc('core', 'doctype', 'doctype_action', force=True) #2019-09-23
@@ -87,7 +88,6 @@ frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permission
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
-frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
 frappe.patches.v12_0.replace_null_values_in_tables
 frappe.patches.v12_0.reset_home_settings
@@ -123,7 +123,7 @@ frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True)
+execute:frappe.reload_doc('core', 'doctype', 'doctype')
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
 frappe.patches.v13_0.remove_invalid_options_for_data_fields
 frappe.patches.v13_0.website_theme_custom_scss
@@ -184,12 +184,14 @@ frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
-frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.rename_cancelled_documents
-frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
+frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
+frappe.patches.v14_0.transform_todo_schema
+
+[post_model_sync]
+frappe.patches.v14_0.drop_data_import_legacy
+frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
 frappe.patches.v14_0.remove_db_aggregation
-frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
-frappe.patches.v14_0.transform_todo_schema
