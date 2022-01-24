@@ -13,8 +13,4 @@ frappe.listview_settings['Dashboard'] = {
 			frappe.set_route('dashboard-view', doc.name);
 		}
 	},
-	refresh: function (me) {
-		me.page.btn_secondary[0].classList[0] = 'pt-2'
-		console.log(me.page)
-	}
 }
