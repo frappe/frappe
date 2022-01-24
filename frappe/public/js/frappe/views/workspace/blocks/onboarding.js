@@ -35,6 +35,7 @@ export default class Onboarding extends Block {
 	}
 
 	new(block, widget_type = block) {
+		let me = this;
 		const dialog_class = get_dialog_constructor(widget_type);
 		let block_name = block+'_name';
 		this.dialog = new dialog_class({
@@ -63,6 +64,10 @@ export default class Onboarding extends Block {
 
 		if (!this.readOnly && this.data && !this.data[block_name]) {
 			this.dialog.make();
+
+			this.dialog.dialog.get_close_btn().click(() => {
+				me.wrapper.closest('.ce-block').remove();
+			});
 		}
 	}
 
