@@ -21,6 +21,9 @@ frappe.form.formatters = {
 		}
 		return value==null ? "" : value;
 	},
+	Autocomplete: function(value) {
+		return __(frappe.form.formatters["Data"](value));
+	},
 	Select: function(value) {
 		return __(frappe.form.formatters["Data"](value));
 	},

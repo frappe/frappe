@@ -15,6 +15,17 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		}
 	}
 
+	format_for_input(value) {
+		if (value == null) {
+			return "";
+		} else if (this._data && this._data.length) {
+			const item = this._data.find(i => i.value == value);
+			return item ? item.label : value;
+		} else {
+			return value;
+		}
+	}
+
 	get_awesomplete_settings() {
 		var me = this;
 		return {
