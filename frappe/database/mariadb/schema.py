@@ -67,6 +67,7 @@ class MariaDBTable(DBTable):
 				current_column = self.current_columns.get(col.fieldname.lower())
 				unique_constraint_changed = current_column.unique != col.unique
 				if unique_constraint_changed and not col.unique:
+					# nosemgrep
 					unique_index_record = frappe.db.sql("""
 						SHOW INDEX FROM `{0}`
 						WHERE Key_name=%s
@@ -77,6 +78,7 @@ class MariaDBTable(DBTable):
 				index_constraint_changed = current_column.index != col.set_index
 				# if index key exists
 				if index_constraint_changed and not col.set_index:
+					# nosemgrep
 					index_record = frappe.db.sql("""
 						SHOW INDEX FROM `{0}`
 						WHERE Key_name=%s

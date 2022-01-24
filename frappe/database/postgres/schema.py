@@ -42,6 +42,7 @@ class PostgresTable(DBTable):
 					field=col.fieldname
 				)
 		if create_index_query:
+			# nosemgrep
 			frappe.db.sql(create_index_query)
 
 	def alter(self):
@@ -118,10 +119,13 @@ class PostgresTable(DBTable):
 		try:
 			if query:
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))
+				# nosemgrep
 				frappe.db.sql(final_alter_query)
 			if create_contraint_query:
+				# nosemgrep
 				frappe.db.sql(create_contraint_query)
 			if drop_contraint_query:
+				# nosemgrep
 				frappe.db.sql(drop_contraint_query)
 		except Exception as e:
 			# sanitize
