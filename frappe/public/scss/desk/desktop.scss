@@ -850,14 +850,6 @@ body {
 		}
 	}
 
-	@media (max-width: map-get($grid-breakpoints, "sm")) {
-		.ce-block.col-xs-12 {
-			.divider {
-				border-right: none;
-			}
-		}
-	}
-
 	.layout-main-section {
 		background-color: var(--fg-color);
 		padding: var(--padding-sm);

@@ -156,9 +156,7 @@ export default class Paragraph extends Block {
 	}
 
 	rendered() {
-		!this.readOnly && this.resizer(this._element);
-		var e = this._element.closest('.ce-block');
-		this.set_col_class(e, this.get_col());
+		super.rendered(this._element);
 	}
 
 	onPaste(event) {

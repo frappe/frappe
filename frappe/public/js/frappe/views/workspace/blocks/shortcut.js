@@ -25,6 +25,27 @@ export default class Shortcut extends Block {
 		};
 	}
 
+	rendered() {
+		super.rendered();
+
+		this.remove_last_divider();
+		$(window).resize(() => {
+			this.remove_last_divider();
+		});
+	}
+
+	remove_last_divider() {
+		let block = this.wrapper.closest('.ce-block');
+		let container_offset_right = $('.layout-main-section')[0].offsetWidth;
+		let block_offset_right = block.offsetLeft + block.offsetWidth;
+
+		if (container_offset_right - block_offset_right <= 110) {
+			$(block).find('.divider').addClass('hidden');
+		} else {
+			$(block).find('.divider').removeClass('hidden');
+		}
+	}
+
 	render() {
 		this.wrapper = document.createElement('div');
 		this.new('shortcut');

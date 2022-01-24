@@ -27,11 +27,11 @@ export default class Onboarding extends Block {
 	}
 
 	rendered() {
-		var e = this.wrapper.closest('.ce-block');
+		let block = this.wrapper.closest('.ce-block');
 		if (this.readOnly && !$(this.wrapper).find('.onboarding-widget-box').is(':visible')) {
-			$(e).hide();
+			$(block).hide();
 		}
-		this.set_col_class(e, this.get_col());
+		this.set_col_class(block, this.get_col());
 	}
 
 	new(block, widget_type = block) {

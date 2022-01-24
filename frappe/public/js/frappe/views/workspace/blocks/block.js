@@ -28,14 +28,14 @@ export default class Block {
 		return true;
 	}
 
-	rendered() {
+	rendered(wrapper) {
+		if (wrapper) this.wrapper = wrapper;
 		!this.readOnly && this.resizer();
-		var e = this.wrapper.closest('.ce-block');
-		this.set_col_class(e, this.get_col());
+		let block = this.wrapper.closest('.ce-block');
+		this.set_col_class(block, this.get_col());
 	}
 
-	resizer(wrapper) {
-		if (wrapper) this.wrapper = wrapper;
+	resizer() {
 		this.wrapper.className = this.wrapper.className + ' resizable';
 		var resizer = document.createElement('div');
 		resizer.className = 'resizer';
