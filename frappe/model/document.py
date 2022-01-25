@@ -191,9 +191,11 @@ class Document(BaseDocument):
 		is not set.
 
 		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
+		import frappe.permissions
+
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""

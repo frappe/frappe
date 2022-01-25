@@ -296,7 +296,7 @@ class LDAP_TestCase():
 
 					if local_doc['require_trusted_certificate'] == 'Yes':
 						tls_validate = ssl.CERT_REQUIRED
-						tls_version = ssl.PROTOCOL_TLSv1
+						tls_version = ssl.PROTOCOL_TLS_CLIENT
 						tls_configuration = ldap3.Tls(validate=tls_validate, version=tls_version)
 
 						self.assertTrue(kwargs['auto_bind'] == ldap3.AUTO_BIND_TLS_BEFORE_BIND,
@@ -304,7 +304,7 @@ class LDAP_TestCase():
 
 					else:
 						tls_validate = ssl.CERT_NONE
-						tls_version = ssl.PROTOCOL_TLSv1
+						tls_version = ssl.PROTOCOL_TLS_CLIENT
 						tls_configuration = ldap3.Tls(validate=tls_validate, version=tls_version)
 
 						self.assertTrue(kwargs['auto_bind'],

@@ -201,19 +201,20 @@ frappe.Application = Class.extend({
 
 	email_password_prompt: function(email_account,user,i) {
 		var me = this;
+		const email_id = email_account[i]["email_id"];
 		let d = new frappe.ui.Dialog({
 			title: __('Password missing in Email Account'),
 			fields: [
 				{
 					'fieldname': 'password',
 					'fieldtype': 'Password',
-					'label': __('Please enter the password for: <b>{0}</b>', [email_account[i]["email_id"]]),
+					'label': __('Please enter the password for: <b>{0}</b>', [email_id], "Email Account"),
 					'reqd': 1
 				},
 				{
 					"fieldname": "submit",
 					"fieldtype": "Button",
-					"label": __("Submit")
+					"label": __("Submit", null, "Submit password for Email Account")
 				}
 			]
 		});
@@ -262,11 +263,7 @@ frappe.Application = Class.extend({
 			this.set_globals();
 			this.sync_pages();
 			frappe.router.setup();
-			moment.locale("en");
-			moment.user_utc_offset = moment().utcOffset();
-			if(frappe.boot.timezone_info) {
-				moment.tz.add(frappe.boot.timezone_info);
-			}
+			this.setup_moment();
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
@@ -621,6 +618,19 @@ frappe.Application = Class.extend({
 				//
 			}
 		});
+	},
+
+	setup_moment() {
+		moment.updateLocale('en', {
+			week: {
+				dow: frappe.datetime.get_first_day_of_the_week_index(),
+			}
+		});
+		moment.locale("en");
+		moment.user_utc_offset = moment().utcOffset();
+		if (frappe.boot.timezone_info) {
+			moment.tz.add(frappe.boot.timezone_info);
+		}
 	}
 });
 

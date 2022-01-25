@@ -17,5 +17,5 @@ frappe.ui.form.on('System Console', {
 		frm.page.set_primary_action(__("Execute"), () => {
 			frm.execute_action('Execute');
 		});
-	}
+	},
 });
