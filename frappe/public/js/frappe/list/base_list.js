@@ -484,6 +484,11 @@ frappe.views.BaseList = class BaseList {
 
 	prepare_data(r) {
 		let data = r.message || {};
+
+		// extract user_info for assignments
+		Object.assign(frappe.boot.user_info, data.user_info);
+		delete data.user_info;
+
 		data = !Array.isArray(data)
 			? frappe.utils.dict(data.keys, data.values)
 			: data;
