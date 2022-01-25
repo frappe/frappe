@@ -7,12 +7,12 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	$(btn).prop("disabled", true);
 
 	// specified here because there are keyboard shortcuts to save
-	var working_label = {
-		"Save": __("Saving"),
-		"Submit": __("Submitting"),
-		"Update": __("Updating"),
-		"Amend": __("Amending"),
-		"Cancel": __("Cancelling")
+	const working_label = {
+		"Save": __("Saving", null, "Freeze message while saving a document"),
+		"Submit": __("Submitting", null, "Freeze message while submitting a document"),
+		"Update": __("Updating", null, "Freeze message while updating a document"),
+		"Amend": __("Amending", null, "Freeze message while amending a document"),
+		"Cancel": __("Cancelling", null, "Freeze message while cancelling a document"),
 	}[toTitle(action)];
 
 	var freeze_message = working_label ? __(working_label) : "";
@@ -154,8 +154,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			if (error_fields.length) {
 				let meta = frappe.get_meta(doc.doctype);
 				if (meta.istable) {
-					var message = __('Mandatory fields required in table {0}, Row {1}',
-						[__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold(), doc.idx]);
+					const table_label = __(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold();
+					var message = __('Mandatory fields required in table {0}, Row {1}', [table_label, doc.idx]);
 				} else {
 					var message = __('Mandatory fields required in {0}', [__(doc.doctype)]);
 				}
@@ -276,4 +276,3 @@ frappe.ui.form.update_calling_link = (newdoc) => {
 		frappe._from_link = null;
 	}
 }
-

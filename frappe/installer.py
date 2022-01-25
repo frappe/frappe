@@ -154,7 +154,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	for before_install in app_hooks.before_install or []:
 		out = frappe.get_attr(before_install)()
-		if out==False:
+		if out is False:
 			return
 
 	if name != "frappe":

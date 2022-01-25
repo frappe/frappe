@@ -113,6 +113,9 @@ def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 def to_timedelta(time_str):
 	from dateutil import parser
 
+	if isinstance(time_str, datetime.time):
+		time_str = str(time_str)
+
 	if isinstance(time_str, str):
 		t = parser.parse(time_str)
 		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
@@ -126,7 +129,7 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 	from dateutil.parser._parser import ParserError
 	from dateutil.relativedelta import relativedelta
 
-	if date==None:
+	if date is None:
 		date = now_datetime()
 
 	if hours:

@@ -33,7 +33,7 @@ def execute():
 				continue
 			skip_for_doctype = user_permission.skip_for_doctype.split('\n')
 		else: # while migrating from v10 -> v11
-			if skip_for_doctype_map.get((user_permission.allow, user_permission.user)) == None:
+			if skip_for_doctype_map.get((user_permission.allow, user_permission.user)) is None:
 				skip_for_doctype = get_doctypes_to_skip(user_permission.allow, user_permission.user)
 				# cache skip for doctype for same user and doctype
 				skip_for_doctype_map[(user_permission.allow, user_permission.user)] = skip_for_doctype
