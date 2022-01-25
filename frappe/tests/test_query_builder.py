@@ -5,7 +5,7 @@ import frappe
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Coalesce, GroupConcat, Match
 from frappe.query_builder.utils import db_type_is
-
+from frappe.query_builder import Case
 
 def run_only_if(dbtype: db_type_is) -> Callable:
 	return unittest.skipIf(
@@ -107,6 +107,27 @@ class TestParameterization(unittest.TestCase):
 		self.assertIn("%(param1)s", query)
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "subject")
+
+	def test_case(self):
+		DocType = frappe.qb.DocType("DocType")
+		query = (
+			frappe.qb.from_(DocType)
+			.select(
+				Case()
+				.when(DocType.search_fields == "value", "other_value")
+				.when(Coalesce(DocType.search_fields == "subject_in_function"), "true_value")
+			)
+		)
+
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "value")
+		self.assertEqual(params["param2"], "other_value")
+		self.assertEqual(params["param3"], "subject_in_function")
+		self.assertEqual(params["param4"], "true_value")
 
 
 @run_only_if(db_type_is.MARIADB)
