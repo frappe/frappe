@@ -425,7 +425,8 @@ frappe.ui.form.on('Data Import', {
 					'data_import': frm.doc.name
 				},
 				'fields': ['success', 'docname', 'messages', 'exception', 'row_indexes'],
-				'page_limit_length': 5000
+				'limit_page_length': 5000,
+				'order_by': 'log_index'
 			},
 			callback: function(r) {
 				let logs = r.message;
