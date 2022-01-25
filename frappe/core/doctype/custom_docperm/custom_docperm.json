@@ -210,7 +210,7 @@
   },
   {
    "fieldname": "parent",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Reference Document Type",
    "read_only": 1
   },
@@ -222,7 +222,7 @@
   }
  ],
  "links": [],
- "modified": "2022-01-25 15:20:48.296730",
+ "modified": "2020-12-03 15:20:48.296730",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Custom DocPerm",
