@@ -55,17 +55,17 @@ context('Workspace 2.0', () => {
 		cy.get(":focus").click();
 		cy.get('.ce-block:last .setting-btn').click();
 		cy.get('.ce-block:last .dropdown-item').contains('Shrink').click();
-		cy.get(".ce-block:last").should('have.class', 'col-11');
+		cy.get(".ce-block:last").should('have.class', 'col-xs-11');
 		cy.get('.ce-block:last .dropdown-item').contains('Shrink').click();
-		cy.get(".ce-block:last").should('have.class', 'col-10');
+		cy.get(".ce-block:last").should('have.class', 'col-xs-10');
 		cy.get('.ce-block:last .dropdown-item').contains('Shrink').click();
-		cy.get(".ce-block:last").should('have.class', 'col-9');
+		cy.get(".ce-block:last").should('have.class', 'col-xs-9');
 		cy.get('.ce-block:last .dropdown-item').contains('Expand').click();
-		cy.get(".ce-block:last").should('have.class', 'col-10');
+		cy.get(".ce-block:last").should('have.class', 'col-xs-10');
 		cy.get('.ce-block:last .dropdown-item').contains('Expand').click();
-		cy.get(".ce-block:last").should('have.class', 'col-11');
+		cy.get(".ce-block:last").should('have.class', 'col-xs-11');
 		cy.get('.ce-block:last .dropdown-item').contains('Expand').click();
-		cy.get(".ce-block:last").should('have.class', 'col-12');
+		cy.get(".ce-block:last").should('have.class', 'col-xs-12');
 
 		cy.get('.standard-actions .btn-primary[data-label="Save Customizations"]').click();
 	});
