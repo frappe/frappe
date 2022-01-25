@@ -122,7 +122,7 @@ class UserType(Document):
 
 			for child_table in doc.get_table_fields():
 				child_doc = frappe.get_meta(child_table.options)
-				if not child_doc.istable:
+				if child_doc:
 					self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
 
 		if select_doctypes:
