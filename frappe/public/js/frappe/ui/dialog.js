@@ -278,7 +278,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			.attr("autocomplete", "off")
 			.addClass("input-with-feedback")
 			.prependTo(this.input_area);
-		this.$custom_input = this.$input.get(0)
+		this.$custom_input = this.$input.get(0);
 	}
 };
 
