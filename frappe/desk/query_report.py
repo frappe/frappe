@@ -33,8 +33,8 @@ def get_report_doc(report_name):
 		reference_report = custom_report_doc.reference_report
 		doc = frappe.get_doc("Report", reference_report)
 		doc.custom_report = report_name
-		if custom_report_doc.json:
-			data = json.loads(custom_report_doc.json)
+		if custom_report_doc.report_json:
+			data = json.loads(custom_report_doc.report_json)
 			if data:
 				doc.custom_columns = data["columns"]
 		doc.is_custom_report = True
@@ -544,9 +544,9 @@ def save_report(reference_report, report_name, columns):
 
 	if docname:
 		report = frappe.get_doc("Report", docname)
-		existing_jd = json.loads(report.json)
+		existing_jd = json.loads(report.report_json)
 		existing_jd["columns"] = json.loads(columns)
-		report.update({"json": json.dumps(existing_jd, separators=(',', ':'))})
+		report.update({"report_json": json.dumps(existing_jd, separators=(',', ':'))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
 
@@ -556,7 +556,7 @@ def save_report(reference_report, report_name, columns):
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": f'{{"columns":{columns}}}',
+				"report_json": f'{{"columns":{columns}}}',
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",

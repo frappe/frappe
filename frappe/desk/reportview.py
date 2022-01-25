@@ -252,7 +252,7 @@ def save_report():
 		d.ref_doctype = data['doctype']
 
 	d.report_type = "Report Builder"
-	d.json = data['json']
+	d.report_json = data['report_json']
 	frappe.get_doc(d).save()
 	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
 	return d.name
