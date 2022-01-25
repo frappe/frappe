@@ -108,6 +108,10 @@ body.modal-open[style^="padding-right"] {
 			}
 		}
 
+		.checkbox {
+			display: flex;
+		}
+
 		& > * {
 			margin: 0;
 		}
