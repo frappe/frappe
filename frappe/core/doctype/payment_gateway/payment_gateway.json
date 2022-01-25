@@ -23,15 +23,13 @@
    "fieldname": "gateway_settings",
    "fieldtype": "Link",
    "label": "Gateway Settings",
-   "options": "DocType",
-   "reqd": 1
+   "options": "DocType"
   },
   {
    "fieldname": "gateway_controller",
    "fieldtype": "Dynamic Link",
    "label": "Gateway Controller",
-   "options": "gateway_settings",
-   "reqd": 1
+   "options": "gateway_settings"
   }
  ],
  "links": [],
