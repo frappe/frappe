@@ -260,6 +260,12 @@ def make_boilerplate(template, doc, opts=None):
 		pass
 
 	def get_list(self, args):
+		pass
+
+	def get_count(self, args):
+		pass
+
+	def get_stats(self, args):
 		pass"""
 
 		with open(target_file_path, 'w') as target:
