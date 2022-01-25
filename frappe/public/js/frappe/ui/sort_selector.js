@@ -121,9 +121,13 @@ frappe.ui.SortSelector = Class.extend({
 				_options.push({'fieldname': meta.title_field});
 			}
 
-			// bold or mandatory
+			// add bold, mandatory and fields that are available in list view
 			meta.fields.forEach(function(df) {
-				if(df.mandatory || df.bold) {
+				if (
+					(df.mandatory || df.bold || df.in_list_view)
+					&& frappe.model.is_value_type(df.fieldtype)
+					&& frappe.perm.has_perm(me.doctype, df.permlevel, "read")
+				) {
 					_options.push({fieldname: df.fieldname, label: df.label});
 				}
 			});
