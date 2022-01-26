@@ -385,12 +385,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_datatable_columns() {
-		if(this.get_query && this.get_query().query && this.columns) return this.columns;
+		if (this.get_query && this.get_query().query && this.columns) return this.columns;
 
-		if(Array.isArray(this.setters))
-			return ["name", ...this.setters.map(df => df.fieldname)]
+		if (Array.isArray(this.setters))
+			return ["name", ...this.setters.map(df => df.fieldname)];
 
-		return ["name", ...Object.keys(this.setters)]
+		return ["name", ...Object.keys(this.setters)];
 	}
 
 	make_list_row(result = {}) {
