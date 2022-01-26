@@ -530,7 +530,7 @@ def get_data_for_custom_report(columns):
 
 
 @frappe.whitelist()
-def save_report(reference_report, report_name, json):
+def save_report(reference_report, report_name, report_json):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
@@ -556,7 +556,7 @@ def save_report(reference_report, report_name, json):
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": json,
+				"json": report_json,
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",
