@@ -308,7 +308,7 @@ class Permission:
 			doctype = [doctype]
 
 		for dt in doctype:
-			dt = re.sub("tab", "", dt)
+			dt = re.sub("^tab", "", dt)
 			if not frappe.has_permission(
 				dt,
 				"select",
