@@ -13,12 +13,10 @@ class DeskPermissions:
 		self.doctypes = dict()
 		self.roles = frappe.get_roles()
 		self.build_doctypes()
-		# self.build_pages_and_reports('Role Permission for Page and Report')
-		# self.build_pages_and_reports('Custom Role')
 		return dict(
 			doctypes = self.doctypes,
-			# reports = self.reports,
-			# pages = self.pages
+			reports = self.get_reports(),
+			pages = self.get_pages()
 		)
 
 	def build_doctypes(self):
@@ -60,6 +58,45 @@ class DeskPermissions:
 			fields=['parent', 'read', 'write', 'create'],
 			filters = dict(permlevel=0, role=('in', self.roles)))
 
-	def build_pages_and_reports(self, doctype):
-		rules = frappe.get_all('Has Role', ('parent'), dict(parenttype = doctype))
+	def get_pages(self):
+		HasRole = frappe.qb.DocType('Has Role')
+		Page = frappe.qb.DocType('Page')
+
+		items = (frappe.qb.from_(Page)
+			.inner_join(HasRole)
+				.on(Page.name == HasRole.parent)
+			.select(Page.name, Page.page_name, Page.title).distinct()
+			.where(HasRole.role.isin(self.roles))).run(as_dict=True)
+
+		CustomRole = frappe.qb.DocType('Custom Role')
+		items += (frappe.qb.from_(CustomRole)
+			.inner_join(HasRole)
+				.on(CustomRole.name == HasRole.parent)
+			.inner_join(Page)
+				.on(Page.name == CustomRole.page)
+			.select(Page.name, Page.page_name, Page.title).distinct()
+			.where(HasRole.role.isin(self.roles))).run(as_dict=True)
+
+		return items
+
+	def get_reports(self):
+		HasRole = frappe.qb.DocType('Has Role')
+		Report = frappe.qb.DocType('Report')
+
+		items = (frappe.qb.from_(Report)
+			.inner_join(HasRole)
+				.on(Report.name == HasRole.parent)
+			.select(Report.name, Report.report_type, Report.ref_doctype).distinct()
+			.where(HasRole.role.isin(self.roles))).run(as_dict=True)
+
+		CustomRole = frappe.qb.DocType('Custom Role')
+		items += (frappe.qb.from_(CustomRole)
+			.inner_join(HasRole)
+				.on(CustomRole.name == HasRole.parent)
+			.inner_join(Report)
+				.on(Report.name == CustomRole.report)
+			.select(Report.name, Report.report_type, Report.ref_doctype).distinct()
+			.where(HasRole.role.isin(self.roles))).run(as_dict=True)
+
+		return items
 
