@@ -3,6 +3,7 @@
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions, remove_applicable
 from frappe.permissions import has_user_permission
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 
 import frappe
 import unittest
@@ -37,7 +38,8 @@ class TestUserPermission(unittest.TestCase):
 		add_user_permissions(param)
 		#create a duplicate entry with default
 		perm_user = create_user('test_default_corectness2@example.com')
-		param = get_params(perm_user, 'Blog Post', perm_user.name, is_default=1, hide_descendants= 1)
+		test_blog = make_test_blog()
+		param = get_params(perm_user, 'Blog Post', test_blog.name, is_default=1, hide_descendants= 1)
 		add_user_permissions(param)
 
 	def test_default_user_permission(self):
