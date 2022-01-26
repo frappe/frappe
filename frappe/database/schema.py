@@ -223,6 +223,11 @@ class DbColumn:
 		# unique
 		if((self.unique and not current_def['unique']) and column_type not in ('text', 'longtext')):
 			self.table.add_unique.append(self)
+<<<<<<< HEAD
+=======
+		elif (current_def['unique'] and not self.unique) and column_type not in ('text', 'longtext'):
+			self.table.drop_unique.append(self)
+>>>>>>> 60c4e76ea2 (fix: dont auto drop manually created index on text types (#15739))
 
 		# default
 		if (self.default_changed(current_def)
@@ -232,9 +237,13 @@ class DbColumn:
 			self.table.set_default.append(self)
 
 		# index should be applied or dropped irrespective of type change
+<<<<<<< HEAD
 		if ((current_def['index'] and not self.set_index and not self.unique)
 			or (current_def['unique'] and not self.unique)):
 			# to drop unique you have to drop index
+=======
+		if (current_def['index'] and not self.set_index) and column_type not in ('text', 'longtext'):
+>>>>>>> 60c4e76ea2 (fix: dont auto drop manually created index on text types (#15739))
 			self.table.drop_index.append(self)
 
 		elif (not current_def['index'] and self.set_index) and not (column_type in ('text', 'longtext')):
