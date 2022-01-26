@@ -125,8 +125,8 @@ frappe.ui.toolbar.Toolbar = class {
 
 	setup_awesomebar() {
 		if (frappe.boot.desk_settings.search_bar) {
-			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup("#navbar-search");
+			frappe.awesome_bar = new frappe.search.AwesomeBar2();
+			frappe.awesome_bar.setup("#navbar-search");
 
 			// TODO: Remove this in v14
 			frappe.search.utils.make_function_searchable(function() {

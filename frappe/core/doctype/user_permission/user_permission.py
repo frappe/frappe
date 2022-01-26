@@ -3,7 +3,6 @@
 
 import frappe, json
 from frappe.model.document import Document
-from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
 from frappe.utils import cstr
 from frappe.core.utils import find

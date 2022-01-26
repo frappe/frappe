@@ -37,38 +37,6 @@ $.extend(frappe.user, {
 				return true;
 		}
 	},
-	get_desktop_items: function() {
-		// hide based on permission
-		var modules_list = $.map(frappe.boot.allowed_modules, function(icon) {
-			var m = icon.module_name;
-			var type = frappe.modules[m] && frappe.modules[m].type;
-
-			if(frappe.boot.user.allow_modules.indexOf(m) === -1) return null;
-
-			var ret = null;
-			if (type === "module") {
-				if(frappe.boot.user.allow_modules.indexOf(m)!=-1 || frappe.modules[m].is_help)
-					ret = m;
-			} else if (type === "page") {
-				if(frappe.boot.allowed_pages.indexOf(frappe.modules[m].link)!=-1)
-					ret = m;
-			} else if (type === "list") {
-				if(frappe.model.can_read(frappe.modules[m]._doctype))
-					ret = m;
-			} else if (type === "view") {
-				ret = m;
-			} else if (type === "setup") {
-				if(frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator"))
-					ret = m;
-			} else {
-				ret = m;
-			}
-
-			return ret;
-		});
-
-		return modules_list;
-	},
 
 	is_report_manager: function() {
 		return frappe.user.has_role(['Administrator', 'System Manager', 'Report Manager']);

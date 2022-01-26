@@ -3,6 +3,169 @@
 frappe.provide('frappe.search');
 frappe.provide('frappe.tags');
 
+// TODO
+// Global Search
+// Pages, Reports, Workspaces
+// New, List, Report, Tree
+frappe.search.AwesomeBar2 = class AwesomeBar2 {
+	setup() {
+		$('.search-bar').removeClass('hidden');
+		this.$input = $("#navbar-search");
+		this.doctypes = [];
+
+		this.awesomplete = new Awesomplete(this.$input.get(0), {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			item: function(item) {
+				var html = '<strong>' + __(item.value.label) + '</strong> ';
+				if (item.value.type) {
+					html += '<span class="small">' + __(item.value.type) + '</span>';
+				}
+
+				return $('<li></li>')
+					.prop('aria-selected', 'false')
+					.html('<a><p>' + html + '</p></a>')
+					.get(0);
+			},
+			filter: function(text, input) {
+				return text.value.filter === false ||
+					Awesomplete.FILTER_CONTAINS(text.value.label, input);
+			},
+
+		});
+
+		this.build_list();
+
+		this.$input.on("input", frappe.utils.debounce((e) => {
+			this.build_list();
+		}, 100));
+
+		this.$input.on("awesomplete-select", (e) => {
+			const o = e.originalEvent;
+			const item = o.text.value;
+			if (item.route) {
+				frappe.set_route(item.route);
+			} else if (item.onclick) {
+				item.onclick();
+			}
+		});
+
+		this.$input.on("focus", () => {
+			this.$input.trigger("input");
+		});
+
+		this.$input.on("awesomplete-open", (e) => {
+			this.autocomplete_open = e.target;
+		});
+
+		this.$input.on("awesomplete-close", (e) => {
+			this.autocomplete_open = false;
+		});
+
+		this.$input.on("awesomplete-selectcomplete", (e) => {
+			this.$input.val("");
+		});
+
+		frappe.xcall('frappe.desk.permissions.get_permissions').then((data) => {
+			this.doctypes = data.doctypes;
+		})
+	}
+	build_list() {
+		this.list = [];
+		this.add_recent_pages();
+		this.add_frequent_pages();
+		this.add_math();
+		this.add_doctypes();
+		this.deduplicate();
+		// awesomplete.list is only a setter, can't dynamically add elements
+		this.awesomplete.list = this.list;
+	}
+	add_recent_pages() {
+		for (let item of frappe.route_history) {
+			let option = frappe.router.get_route_info(item);
+			option.route = item;
+			this.list.push(option);
+		}
+	}
+	add_frequent_pages() {
+		for (let item of frappe.boot.frequently_visited_links) {
+			const route = frappe.router.parse(item.route);
+			const route_info = frappe.router.get_route_info(route);
+			this.list.push({
+				'route': route,
+				'label': route_info.label,
+				'type': route_info.type,
+				'index': item.count,
+			});
+		}
+	}
+	add_doctypes() {
+		for (let name in this.doctypes) {
+			const d = this.doctypes[name];
+			if (d.read && !d.restricted && !d.no_read) {
+				if (d.is_single) {
+					this.list.push({
+						route: ['Form', name],
+						label: __(name),
+						type: 'Open',
+						single: 1
+					});
+				} else {
+					this.list.push({
+						route: ['List', name, 'List'],
+						label: __(name),
+						type: 'List'
+					})
+
+					if (d.create) {
+						this.list.push({
+							route: ['Form', name, 'new'],
+							label: __(name),
+							type: 'New'
+						});
+					}
+				}
+			}
+		}
+	}
+	add_math() {
+		const text = this.$input.val();
+		if (text.startsWith('=')) {
+			try {
+				let val = eval(text.slice(1));
+				if (val) {
+					this.list.push({
+						'label': text.slice(1) + ` = ${val}`,
+						'filter': false
+					});
+				}
+			} catch(e) {
+				// illegal expression
+			}
+		}
+	}
+	deduplicate() {
+		let new_list = [];
+		for (let item1 of this.list) {
+			let add = true;
+			if (item1.route) {
+				for (let item2 of new_list) {
+					if (JSON.stringify(item1.route) === JSON.stringify(item2.route)) {
+						add = false;
+						break;
+					}
+				}
+			}
+			if (add) {
+				new_list.push(item1);
+			}
+		}
+		this.list = new_list;
+	}
+}
+
+
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
 		var me = this;

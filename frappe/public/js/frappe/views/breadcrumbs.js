@@ -148,9 +148,16 @@ frappe.breadcrumbs = {
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
 		const docname = frappe.get_route()[2];
-		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
-		$(`<li><a href="${form_route}">${__(docname)}</a></li>`)
-			.appendTo(this.$breadcrumbs);
+		if (docname) {
+			let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
+			$(`<li><a href="${form_route}">${__(docname)}</a></li>`)
+				.appendTo(this.$breadcrumbs);
+		} else {
+			// single
+			let form_route = `/app/${frappe.router.slug(doctype)}`;
+			$(`<li><a href="${form_route}">${__(doctype)}</a></li>`)
+				.appendTo(this.$breadcrumbs);
+			}
 
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find('li').last();

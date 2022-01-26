@@ -116,7 +116,9 @@ frappe.router = {
 	},
 
 	parse(route) {
-		route = this.get_sub_path_string(route).split('/');
+		if (!Array.isArray(route)) {
+			route = this.get_sub_path_string(route).split('/');
+		}
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
 		this.set_route_options_from_url(route);
@@ -168,7 +170,7 @@ frappe.router = {
 				route = ['Form', doctype_route.doctype, docname];
 			}
 		} else if (frappe.model.is_single(doctype_route.doctype)) {
-			route = ['Form', doctype_route.doctype, doctype_route.doctype];
+			route = ['Form', doctype_route.doctype];
 		} else {
 			route = ['List', doctype_route.doctype, 'List'];
 		}
@@ -444,6 +446,40 @@ frappe.router = {
 
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, '-');
+	},
+
+	get_route_info(route) {
+		const std_route = this.parse(route);
+		if (std_route[0]==='Form') {
+			//["Form", "Role", "System Manager"]
+			let label = route[2];
+			if (label) {
+				if (label.startsWith('new-')) {
+					// "new-print-format-1" -> "New Print Format 1"
+					label = `New ${route[1]} ${label.split('-').at(-1)}`;
+				}
+			} else {
+				// single
+				label = route[1];
+			}
+			return {
+				label: label,
+				type: route[1]
+			}
+		} else if (std_route[1]==='List') {
+			// ["List", "Role", "List"]
+			return {
+				label: route[1],
+				type: route[2] || 'List'
+			}
+		} else {
+			// ["query-report", "Settings"]
+			return {
+				label: route[1],
+				type: frappe.utils.to_title_case(route[0].replace('-', ' '))
+			}
+		}
+
 	}
 };
 
