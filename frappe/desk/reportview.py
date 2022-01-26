@@ -19,7 +19,7 @@ from frappe.utils import add_user_info
 def get():
 	args = get_form_params()
 	# If virtual doctype get data from controller het_list method
-	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = compress(controller(args.doctype).get_list(args))
 	else:
@@ -31,7 +31,7 @@ def get():
 def get_list():
 	args = get_form_params()
 
-	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = controller(args.doctype).get_list(args)
 	else:
@@ -45,7 +45,7 @@ def get_list():
 def get_count():
 	args = get_form_params()
 
-	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = controller(args.doctype).get_count(args)
 	else:
@@ -452,7 +452,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if filters is None:
 		filters = []
 
-	if frappe.db.get_value("DocType", filters={"name": doctype}, fieldname="is_virtual"):
+	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
 		data = controller(doctype).get_stats(args)
@@ -619,3 +619,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 	else:
 		cond = ''
 	return cond
+
+def is_virtual_doctype(doctype):
+	return frappe.db.get_value("DocType", doctype, "is_virtual")
+
