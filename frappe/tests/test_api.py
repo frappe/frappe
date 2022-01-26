@@ -174,3 +174,19 @@ class TestMethodAPI(unittest.TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json(), dict)
 		self.assertEqual(response.json()['message'], "pong")
+
+	def test_xss_filter(self):
+		# test 3: test for /api/method/{method_name_with_xss}
+		response = requests.get(f"{self.METHOD_URL}/frappe.realtime.get_user_info<img src=x onerror=alert(1)")
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json(), dict)
+		self.assertEqual(response.json()['message']['user'], "Guest")
+
+	def test_xss_filter2(self):
+		# test 4: test for /?cmd={method_name_with_xss}
+		response = requests.get(f"{get_site_url(frappe.local.site)}/?cmd=web_logout<img src=x onerror=alert(1)")
+		self.assertEqual(response.status_code, 200)
+
+		# test 5: test for error method
+		from frappe.handler import execute_cmd
+		self.assertRaises(frappe.ValidationError, execute_cmd,"test<img src=x onerror=alert(1)")

@@ -4,7 +4,6 @@
 
 import os
 import logging
-import re
 
 from werkzeug.local import LocalManager
 from werkzeug.wrappers import Request, Response

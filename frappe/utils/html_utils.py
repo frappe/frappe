@@ -60,7 +60,6 @@ def sanitize_html(html, strip=False):
 	"""
 	import bleach
 	from bs4 import BeautifulSoup
-	import re
 
 	if not isinstance(html, str):
 		return html
@@ -68,6 +67,7 @@ def sanitize_html(html, strip=False):
 	elif is_json(html):
 		return html
 
+	# returns false for cases like `<img src='x' alert(1)`
 	if (u"<" not in html and u">" not in html) \
 		and not bool(BeautifulSoup(html, 'html.parser').find()):
 		return html
@@ -77,7 +77,6 @@ def sanitize_html(html, strip=False):
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
 	styles = bleach_allowlist.all_styles
 	strip_comments = False
-	strip = strip
 
 	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,

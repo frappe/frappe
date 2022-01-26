@@ -230,6 +230,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		return val==null ? "" : val;
 	}
 	validate(v) {
+		var field_types = ['Data', 'Small Text', 'Text', 'Long Text'];
 		if (!v) {
 			return '';
 		}
@@ -259,6 +260,9 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		} else if (this.df.options == 'URL') {
 			this.df.invalid = !validate_url(v);
 			return v;
+		} else if (field_types.includes(this.df.fieldtype)  && !this.df.ignore_xss_filter) {
+			var sanitised_value = frappe.utils.xss_sanitise(v);
+			return sanitised_value;
 		} else {
 			return v;
 		}

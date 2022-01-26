@@ -6,7 +6,6 @@ import unittest
 import frappe
 from frappe.utils import cint
 from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
-from frappe.utils import sanitize_html
 
 
 class TestDocument(unittest.TestCase):
