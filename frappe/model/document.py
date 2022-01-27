@@ -5,7 +5,7 @@ import time
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
+from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc, validate_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
@@ -415,12 +415,12 @@ class Document(BaseDocument):
 
 		# If autoname has set as Prompt (name)
 		if self.get("__newname"):
-			self.name = self.get("__newname")
+			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
 
 		if set_name:
-			self.name = set_name
+			self.name = validate_name(self.doctype, set_name)
 		else:
 			set_new_name(self)
 
