@@ -731,11 +731,11 @@ def _get_user_for_update_password(key, old_password):
 	result = frappe._dict()
 	if key:
 		user = frappe.db.get_value("User", {"reset_password_key": key}, ["name", "reset_password_key_datetime"])
-		result.user, res_pass_key_datetime = user if user else (None, None)
+		result.user, reset_password_key_datetime = user if user else (None, None)
 
 		if result.user:
 			reset_password_link_expiry = frappe.db.get_single_value("System Settings", "reset_password_link_expiry_seconds")
-			if reset_password_link_expiry and now_datetime() > res_pass_key_datetime + timedelta(seconds=reset_password_link_expiry):
+			if reset_password_link_expiry and now_datetime() > reset_password_key_datetime + timedelta(seconds=reset_password_link_expiry):
 				result.message = _("The Link specified has been expired")
 		else:
 			result.message = _("The Link specified has either been used before or Invalid")
