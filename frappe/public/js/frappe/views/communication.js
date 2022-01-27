@@ -261,7 +261,6 @@ frappe.views.CommunicationComposer = class {
 				const subject_field = me.dialog.fields_dict.subject;
 
 				let content = content_field.get_value() || "";
-				content = content.split('<!-- salutation-ends -->')[1] || content;
 
 				content_field.set_value(`${reply.message}<br>${content}`);
 				subject_field.set_value(reply.subject);
@@ -722,15 +721,6 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		message += await this.get_signature();
-
-		const SALUTATION_END_COMMENT = "<!-- salutation-ends -->";
-		if (this.real_name && !message.includes(SALUTATION_END_COMMENT)) {
-			message = `
-				<p>${__('Dear {0},', [this.real_name], 'Salutation in new email')},</p>
-				${SALUTATION_END_COMMENT}<br>
-				${message}
-			`;
-		}
 
 		if (this.is_a_reply) {
 			message += this.get_earlier_reply();
