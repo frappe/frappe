@@ -23,11 +23,13 @@ context('Query Report', () => {
 
 			cy.get('#page-query-report input[data-fieldname="user"]').focus().as('input-user');
 			cy.wait('@search_link');
+			cy.wait(500)
 			cy.get('@input-user').type('test@erpnext.com', { delay: 100 }).blur();
 			cy.wait('@validate_link');
-			cy.wait(1000);
+
 			cy.get('#page-query-report input[data-fieldname="doctype"]').focus().as('input-role');
 			cy.wait('@search_link');
+			cy.wait(500)
 			cy.get('@input-role').type('Role', { delay: 100 }).blur();
 			cy.wait('@validate_link');
 
