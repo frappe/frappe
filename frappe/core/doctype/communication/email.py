@@ -76,16 +76,13 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0,
-		"communication_type": communication_type
+		"communication_type": communication_type,
 	}).insert(ignore_permissions=True)
-
-	comm.save(ignore_permissions=True)
-
-	if isinstance(attachments, str):
-		attachments = json.loads(attachments)
 
 	# if not committed, delayed task doesn't find the communication
 	if attachments:
+		if isinstance(attachments, str):
+			attachments = json.loads(attachments)
 		add_attachments(comm.name, attachments)
 
 	if cint(send_email):
