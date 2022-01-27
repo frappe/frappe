@@ -20,13 +20,13 @@
   "hide_custom",
   "public",
   "content",
-  "section_break_2",
+  "tab_break_2",
   "charts",
-  "section_break_15",
+  "tab_break_15",
   "shortcuts",
-  "section_break_18",
+  "tab_break_18",
   "links",
-  "roles_section",
+  "roles_tab",
   "roles"
  ],
  "fields": [
@@ -40,7 +40,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "charts",
-   "fieldname": "section_break_2",
+   "fieldname": "tab_break_2",
    "fieldtype": "Tab Break",
    "label": "Dashboards"
   },
@@ -78,14 +78,14 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "shortcuts",
-   "fieldname": "section_break_15",
+   "fieldname": "tab_break_15",
    "fieldtype": "Tab Break",
    "label": "Shortcuts"
   },
   {
    "collapsible": 1,
    "collapsible_depends_on": "links",
-   "fieldname": "section_break_18",
+   "fieldname": "tab_break_18",
    "fieldtype": "Tab Break",
    "label": "Link Cards"
   },
@@ -152,7 +152,7 @@
    "options": "Has Role"
   },
   {
-   "fieldname": "roles_section",
+   "fieldname": "roles_tab",
    "fieldtype": "Tab Break",
    "label": "Roles"
   }
@@ -189,6 +189,5 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+ "sort_order": "DESC"
 }
