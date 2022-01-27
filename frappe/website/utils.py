@@ -8,7 +8,6 @@ from functools import wraps
 from typing import Dict, Optional
 
 import yaml
-from six import iteritems
 from werkzeug.wrappers import Response
 
 import frappe
@@ -464,7 +463,7 @@ def build_response(path, data, http_status_code, headers: Optional[Dict] = None)
 
 	add_preload_headers(response)
 	if headers:
-		for key, val in iteritems(headers):
+		for key, val in headers.items():
 			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
 
 	return response

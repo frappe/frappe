@@ -11,7 +11,6 @@ import quopri
 from email.parser import Parser
 from email.policy import SMTPUTF8
 from html2text import html2text
-from six.moves import html_parser as HTMLParser
 
 import frappe
 from frappe import _, safe_encode, task
@@ -445,7 +444,7 @@ class QueueBuilder:
 
 		try:
 			text_content = html2text(self._message)
-		except HTMLParser.HTMLParseError:
+		except Exception:
 			text_content = "See html attachment"
 		return text_content + unsubscribe_text_message
 
