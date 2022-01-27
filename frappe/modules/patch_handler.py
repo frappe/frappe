@@ -109,6 +109,9 @@ def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> Li
 		parser.optionxform = str
 		parser.read(patches_txt)
 
+		# empty file
+		if not parser.sections():
+			return []
 
 		if not patch_type:
 			return [patch for patch in parser[PatchType.pre_model_sync.value]] + \
