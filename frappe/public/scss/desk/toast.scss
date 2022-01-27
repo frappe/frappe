@@ -9,7 +9,27 @@
 	}
 }
 
-#alert-container .desk-alert {
+.desk-alert {
+	&.red {
+		--toast-bg: var(--alert-bg-danger);
+	}
+
+	&.yellow {
+		--toast-bg: var(--alert-bg-warning);
+	}
+
+	&.orange {
+		--toast-bg: var(--alert-bg-warning);
+	}
+
+	&.blue {
+		--toast-bg: var(--alert-bg-info);
+	}
+
+	&.green {
+		--toast-bg: var(--alert-bg-success);
+	}
+
 	box-shadow: var(--modal-shadow);
 	width: 400px;
 	min-height: 50px;
@@ -46,7 +66,7 @@
 		.alert-subtitle {
 			font-size: var(--text-md);
 			padding-left: 34px;
-			color: var(--text-muted);
+			color: var(--text-light);
 		}
 	}
 

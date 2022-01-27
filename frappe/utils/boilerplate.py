@@ -1,6 +1,11 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe, os, re, git
+
+import git
+import os
+import re
+
+import frappe
 from frappe.utils import touch_file, cstr
 
 def make_boilerplate(dest, app_name, no_git=False):

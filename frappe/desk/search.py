@@ -107,7 +107,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 					else:
 						filters.append([doctype, f[0], "=", f[1]])
 
-			if filters==None:
+			if filters is None:
 				filters = []
 			or_filters = []
 

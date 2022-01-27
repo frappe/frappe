@@ -77,11 +77,11 @@ context('MultiSelectDialog', () => {
 
 	it('tests more button', () => {
 		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="more_btn"]`)
+			.get(`.frappe-control[data-fieldname="more_child_btn"]`)
 			.should('exist')
 			.as('more-btn');
 		
-		cy.get_open_dialog().get('.list-item-container').should(($rows) => {
+		cy.get_open_dialog().get('.datatable .dt-scrollable .dt-row').should(($rows) => {
 			expect($rows).to.have.length(20);
 		});
 
@@ -89,7 +89,7 @@ context('MultiSelectDialog', () => {
 		cy.get('@more-btn').find('button').click({force: true});
 		cy.wait('@get-more-records');
 
-		cy.get_open_dialog().get('.list-item-container').should(($rows) => {
+		cy.get_open_dialog().get('.datatable .dt-scrollable .dt-row').should(($rows) => {
 			if ($rows.length <= 20) {
 				throw new Error("More button doesn't work");
 			}

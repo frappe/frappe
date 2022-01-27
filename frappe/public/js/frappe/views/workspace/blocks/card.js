@@ -3,7 +3,7 @@ export default class Card extends Block {
 	static get toolbox() {
 		return {
 			title: 'Card',
-			icon: '<svg height="20" width="20" viewBox="2 2 20 20"><path d="M7 15h3a1 1 0 000-2H7a1 1 0 000 2zM19 5H5a3 3 0 00-3 3v9a3 3 0 003 3h14a3 3 0 003-3V8a3 3 0 00-3-3zm1 12a1 1 0 01-1 1H5a1 1 0 01-1-1v-6h16zm0-8H4V8a1 1 0 011-1h14a1 1 0 011 1z"/></svg>'
+			icon: frappe.utils.icon('card', 'sm')
 		};
 	}
 
@@ -22,6 +22,7 @@ export default class Card extends Block {
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
 			allow_edit: true,
+			allow_resize: true
 		};
 	}
 
@@ -35,7 +36,9 @@ export default class Card extends Block {
 		}
 
 		if (!this.readOnly) {
-			this.add_tune_button();
+			$(this.wrapper).find('.widget').addClass('links edit-mode');
+			this.add_settings_button();
+			this.add_new_block_button();
 		}
 
 		return this.wrapper;
@@ -49,9 +52,9 @@ export default class Card extends Block {
 		return true;
 	}
 
-	save(blockContent) {
+	save() {
 		return {
-			card_name: blockContent.getAttribute('card_name'),
+			card_name: this.wrapper.getAttribute('card_name'),
 			col: this.get_col(),
 			new: this.new_block_widget
 		};
