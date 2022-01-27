@@ -259,4 +259,7 @@ def update_webform_to_multistep():
 
 @frappe.whitelist()
 def create_users(email):
+	if not frappe.flags.in_test:
+		return
+
 	create_user(email)
