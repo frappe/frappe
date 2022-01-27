@@ -5,6 +5,7 @@ import mimetypes
 import os
 import re
 from functools import wraps
+from typing import Dict, Optional
 
 import yaml
 from six import iteritems
@@ -453,7 +454,7 @@ def cache_html(func):
 
 	return cache_html_decorator
 
-def build_response(path, data, http_status_code, headers=None):
+def build_response(path, data, http_status_code, headers: Optional[Dict] = None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)

@@ -20,6 +20,7 @@ from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.email_body import add_attachment, get_formatted_html, get_email
 from frappe.utils import cint, split_emails, add_days, nowdate, cstr, get_hook_method
 from frappe.email.doctype.email_account.email_account import EmailAccount
+from frappe.query_builder.utils import DocType
 
 
 MAX_RETRY_COUNT = 3
@@ -477,18 +478,24 @@ class QueueBuilder:
 
 		all_ids = list(set(self.recipients + self.cc))
 
-		EmailUnsubscribe = frappe.qb.DocType("Email Unsubscribe")
+		EmailUnsubscribe = DocType("Email Unsubscribe")
 
-		unsubscribed = (frappe.qb.from_(EmailUnsubscribe)
-						.select(EmailUnsubscribe.email)
-						.where(EmailUnsubscribe.email.isin(all_ids) & 	
-									(
-										(
-											(EmailUnsubscribe.reference_doctype == self.reference_doctype) & (EmailUnsubscribe.reference_name == self.reference_name)
-										) | EmailUnsubscribe.global_unsubscribe == 1
-									)
-								).distinct()
-						).run(pluck=True)
+		unsubscribed = (
+			frappe.qb.from_(EmailUnsubscribe).select(
+				EmailUnsubscribe.email
+			).where(
+				EmailUnsubscribe.email.isin(all_ids)
+				& (
+					(
+						(EmailUnsubscribe.reference_doctype == self.reference_doctype)
+						& (EmailUnsubscribe.reference_name == self.reference_name)
+					) | (
+						EmailUnsubscribe.global_unsubscribe == 1
+					)
+				)
+			).distinct()
+		).run(pluck=True)
+
 		self._unsubscribed_user_emails = unsubscribed or []
 		return self._unsubscribed_user_emails
 
