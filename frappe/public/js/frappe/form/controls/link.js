@@ -34,7 +34,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
-				if (!me.get_label_value()) {
+				if (!me.get_label_value() || !me.get_input_value()) {
 					me.reset_value();
 					me.$input.trigger("input");
 				}
@@ -131,6 +131,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return true;
 			},
 			replace: function(item) {
+				// Override Awesomeplete replace function as it is used to set the input value
+				// https://github.com/LeaVerou/awesomplete/issues/17104#issuecomment-359185403
 				this.input.value = item.label || item.value;
 			},
 			item: function (item) {
@@ -241,8 +243,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return;
 			}
 			let value = me.get_input_value();
-			if (value!==me.last_value) {
-				me.parse_validate_and_set_in_model(value);
+			let label = me.get_label_value();
+
+			if (value !== me.last_value || label !== me.label) {
+				me.parse_validate_and_set_in_model(label);
 			}
 		});
 
@@ -294,8 +298,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 	set_formatted_input(value) {
 		if (!value) return;
-
-		this.$input && this.$input.val(__(value));
+		this.label = __(value);
+		this.$input && this.$input.val(this.label);
 	}
 
 	get_input_value() {
@@ -311,6 +315,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return;
 		}
 		this.$input.val("");
+		this.label = null;
 		this.value = null;
 	}
 
@@ -487,6 +492,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let field_value = "";
 		const fetch_map = this.fetch_map;
 		const columns_to_fetch = Object.values(fetch_map);
+
+		if (!value) {
+			this.reset_value();
+			return;
+		};
 
 		// if default and no fetch, no need to validate
 		if (!columns_to_fetch.length && df.__default_value === value) {
