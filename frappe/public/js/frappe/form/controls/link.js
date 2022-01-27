@@ -131,7 +131,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return true;
 			},
 			replace: function(item) {
-				this.input.value = item.label;
+				this.input.value = item.label || item.value;
 			},
 			item: function (item) {
 				var d = this.get_item(item.value);
