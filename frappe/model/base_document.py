@@ -244,7 +244,13 @@ class BaseDocument(object):
 				continue
 
 			df = self.meta.get_field(fieldname)
-			if df:
+
+			if df and df.get("is_virtual"):
+				if d[fieldname] is None:
+					_val = getattr(self, fieldname, None)
+					if _val and not callable(_val):
+						d[fieldname] = _val
+			elif df:
 				if df.fieldtype=="Check":
 					d[fieldname] = 1 if cint(d[fieldname]) else 0
 
@@ -263,11 +269,6 @@ class BaseDocument(object):
 
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
-
-				if d[fieldname] is None:
-					_val = getattr(self, fieldname, None)
-					if _val and not callable(_val):
-						d[fieldname] = _val
 
 			if convert_dates_to_str and isinstance(d[fieldname], (
 				datetime.datetime,
