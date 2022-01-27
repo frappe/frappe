@@ -222,9 +222,10 @@ def disable_2fa():
 def toggle_2fa_all_role(state=None):
 	'''Enable or disable 2fa for 'all' role on the system.'''
 	all_role = frappe.get_doc('Role','All')
-	if state == None:
-		state = False if all_role.two_factor_auth == True else False
-	if state not in [True, False]: return
+	state = state if state is not None else False
+	if type(state) != bool:
+		return
+
 	all_role.two_factor_auth = cint(state)
 	all_role.save(ignore_permissions=True)
 	frappe.db.commit()

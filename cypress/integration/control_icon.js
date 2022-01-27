@@ -19,18 +19,18 @@ context('Control Icon', () => {
 		get_dialog_with_icon().as('dialog');
 		cy.get('.frappe-control[data-fieldname=icon]').findByRole('textbox').click();
 
-		cy.get('.icon-picker .icon-wrapper[id=active]').first().click();
-		cy.get('.frappe-control[data-fieldname=icon]').findByRole('textbox').should('have.value', 'active');
+		cy.get('.icon-picker .icon-wrapper[id=heart-active]').first().click();
+		cy.get('.frappe-control[data-fieldname=icon]').findByRole('textbox').should('have.value', 'heart-active');
 		cy.get('@dialog').then(dialog => {
 			let value = dialog.get_value('icon');
-			expect(value).to.equal('active');
+			expect(value).to.equal('heart-active');
 		});
 
-		cy.get('.icon-picker .icon-wrapper[id=resting]').first().click();
-		cy.get('.frappe-control[data-fieldname=icon]').findByRole('textbox').should('have.value', 'resting');
+		cy.get('.icon-picker .icon-wrapper[id=heart]').first().click();
+		cy.get('.frappe-control[data-fieldname=icon]').findByRole('textbox').should('have.value', 'heart');
 		cy.get('@dialog').then(dialog => {
 			let value = dialog.get_value('icon');
-			expect(value).to.equal('resting');
+			expect(value).to.equal('heart');
 		});
 	});
 

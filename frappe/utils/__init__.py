@@ -290,7 +290,7 @@ def remove_blanks(d):
 	"""
 	empty_keys = []
 	for key in d:
-		if d[key]=='' or d[key]==None:
+		if d[key] == "" or d[key] is None:
 			# del d[key] raises runtime exception, using a workaround
 			empty_keys.append(key)
 	for key in empty_keys:
@@ -901,10 +901,11 @@ def dictify(arg):
 def add_user_info(user, user_info):
 	if user not in user_info:
 		info = frappe.db.get_value("User",
-			user, ["full_name", "user_image", "name", 'email'], as_dict=True) or frappe._dict()
+			user, ["full_name", "user_image", "name", 'email', 'time_zone'], as_dict=True) or frappe._dict()
 		user_info[user] = frappe._dict(
 			fullname = info.full_name or user,
 			image = info.user_image,
 			name = user,
-			email = info.email
+			email = info.email,
+			time_zone = info.time_zone
 		)
