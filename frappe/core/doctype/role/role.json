@@ -148,11 +148,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-01-27 10:35:37.638350",
-=======
  "modified": "2022-01-12 20:18:18.496230",
->>>>>>> b878b71e37 (fix(minor): Is Custom field placement in Role form)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
