@@ -42,6 +42,7 @@
 		height: 300px;
 		border-bottom-left-radius: var(--border-radius);
 		border-bottom-right-radius: var(--border-radius);
+		resize: vertical;
 	}
 	.ql-stroke {
 		stroke: var(--icon-stroke);
