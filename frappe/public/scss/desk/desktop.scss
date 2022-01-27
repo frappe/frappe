@@ -850,10 +850,16 @@ body {
 		}
 	}
 
+	.layout-main-section-wrapper {
+		margin-top: -5px;
+		padding-top: 5px;
+	}
+
 	.layout-main-section {
 		background-color: var(--fg-color);
-		padding: var(--padding-sm);
+		box-shadow: var(--card-shadow);
 		border-radius: var(--border-radius-lg);
+		padding: var(--padding-sm);
 	}
 
 	.block-menu-item-icon svg{
