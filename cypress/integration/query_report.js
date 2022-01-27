@@ -15,18 +15,14 @@ context('Query Report', () => {
 	});
 
 	it('add custom column in report', () => {
-		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 		cy.visit('/app/query-report/Permitted Documents For User');
 
 		cy.get('.page-form.flex', { timeout: 60000 }).should('have.length', 1).then(() => {
 			cy.get('#page-query-report input[data-fieldname="user"]').as('input-user');
 			cy.get('@input-user').focus().type('test@erpnext.com', { delay: 100 }).blur();
-			cy.wait('@search_link');
-			cy.get('@input-user').type('{enter}');
+			cy.wait(300);
 			cy.get('#page-query-report input[data-fieldname="doctype"]').as('input-role');
 			cy.get('@input-role').focus().type('Role', { delay: 100 }).blur();
-			cy.wait('@search_link');
-			cy.get('@input-role').type('{enter}');
 
 			cy.get('.datatable').should('exist');
 			cy.get('#page-query-report .page-actions .menu-btn-group button').click({ force: true });

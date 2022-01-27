@@ -2,9 +2,6 @@ context('Control Link', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/app/website');
-		return cy.window().its('frappe').then(frappe => {
-			return frappe.xcall('frappe.tests.ui_test_helpers.create_users', {'email': 'johndoe@example.com'});
-		});
 	});
 
 	beforeEach(() => {
@@ -71,9 +68,7 @@ context('Control Link', () => {
 			cy.get('.frappe-control[data-fieldname=link] input').as('input');
 			cy.get('@input').focus();
 			cy.wait('@search_link');
-			cy.get('@input').type(todos[0], { delay: 100 });
-			cy.wait('@search_link');
-			cy.get('@input').type('{enter}', { delay: 100 });
+			cy.get('@input').type(todos[0]).blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
 			cy.findByTitle('Open Link')
@@ -87,15 +82,12 @@ context('Control Link', () => {
 		cy.get('@todos').then(todos => {
 			cy.visit(`/app/todo/${todos[0]}`);
 			cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
-			cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 			cy.get('.frappe-control[data-fieldname=assigned_by] input').focus().as('input');
-			cy.get('@input').type('johndoe@example.com', { delay: 100 });
-			cy.wait('@search_link');
-			cy.get('@input').type('{enter}', { delay: 100 });
+			cy.get('@input').type('Administrator', {delay: 100}).blur();
 			cy.wait('@validate_link');
 			cy.get('.frappe-control[data-fieldname=assigned_by_full_name] .control-value').should(
-				'contain', 'johndoe'
+				'contain', 'Administrator'
 			);
 		});
 	});

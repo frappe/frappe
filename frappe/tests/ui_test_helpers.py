@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 from frappe.utils import add_to_date, now
-from frappe.core.doctype.user_permission.test_user_permission import create_user
 
 @frappe.whitelist()
 def create_if_not_exists(doc):
@@ -246,6 +245,7 @@ def create_topic_and_reply(web_page):
 
 		reply.save()
 
+
 @frappe.whitelist()
 def update_webform_to_multistep():
 	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
@@ -257,9 +257,3 @@ def update_webform_to_multistep():
 		_doc.is_standard = False
 		_doc.save()
 
-@frappe.whitelist()
-def create_users(email):
-	if not frappe.flags.in_test:
-		return
-
-	create_user(email)
