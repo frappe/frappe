@@ -376,7 +376,7 @@ frappe.views.Workspace = class Workspace {
 		this.clear_page_actions();
 
 		page.is_editable && this.page.set_primary_action(
-			__("Save Customizations"),
+			__("Save"),
 			() => {
 				this.clear_page_actions();
 				this.save_page(page).then((saved) => {
