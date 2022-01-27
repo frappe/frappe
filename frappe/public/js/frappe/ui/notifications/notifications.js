@@ -287,7 +287,7 @@ class NotificationsView extends BaseNotificationsView {
 
 		item_html.on('click', () => {
 			!field.read && this.mark_as_read(field.name, item_html);
-			this.notifications_icon.trigger('click')
+			this.notifications_icon.trigger('click');
 		});
 
 		return item_html;
