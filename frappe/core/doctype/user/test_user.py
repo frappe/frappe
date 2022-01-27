@@ -378,7 +378,6 @@ class TestUser(unittest.TestCase):
 
 		# set the reset password expiry to 1 second
 		frappe.db.set_value("System Settings", "System Settings", "reset_password_link_expiry_seconds", 1)
-		frappe.db.commit() # nosemgrep: this is to set value for a test case
 
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
