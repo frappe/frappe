@@ -242,12 +242,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.selected = false;
 				return;
 			}
-			let value = me.get_input_value();
-			let label = me.get_label_value();
-
-			if (value !== me.last_value || label !== me.label) {
-				me.parse_validate_and_set_in_model(label);
-			}
+			me.update_value();
 		});
 
 		this.$input.on("awesomplete-open", () => {
@@ -294,6 +289,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.reset_value();
 			}
 		});
+	}
+
+	update_value() {
+		let value = this.get_input_value();
+		let label = this.get_label_value();
+
+		if (value !== this.last_value || label !== this.label) {
+			this.parse_validate_and_set_in_model(label);
+		}
+	}
+
+	change() {
+		this.update_value();
 	}
 
 	set_formatted_input(value) {
