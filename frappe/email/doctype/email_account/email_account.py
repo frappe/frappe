@@ -441,7 +441,7 @@ class EmailAccount(Document):
 				frappe.db.rollback()
 			except Exception:
 				frappe.db.rollback()
-				frappe.log_error('email_account.receive')
+				frappe.log_error(title="EmailAccount.receive")
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
@@ -641,7 +641,8 @@ class EmailAccount(Document):
 				message = safe_encode(message)
 				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
-				frappe.log_error()
+				frappe.log_error(title="EmailAccount.append_email_to_sent_folder")
+
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
