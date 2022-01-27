@@ -240,7 +240,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 			if err.resp.status == 410:
 				set_encrypted_password("Google Calendar", account.name, "", "next_sync_token")
 				frappe.db.commit()
-				msg += ' ' +  _('Sync token was invalid and has been resetted, Retry syncing.')
+				msg += ' ' + _('Sync token was invalid and has been resetted, Retry syncing.')
 				frappe.msgprint(msg, title='Invalid Sync Token', indicator='blue')
 			else:
 				frappe.throw(msg)
@@ -296,7 +296,7 @@ def insert_event_to_calendar(account, event, recurrence=None):
 	"""
 	calendar_event = {
 		"doctype": "Event",
-		"subject": event.get("summary") or " ",
+		"subject": event.get("summary") or _("No Subject"),
 		"description": event.get("description"),
 		"google_calendar_event": 1,
 		"google_calendar": account.name,
@@ -409,13 +409,16 @@ def delete_event_from_google_calendar(doc, method=None):
 
 def google_calendar_to_repeat_on(start, end, recurrence=None):
 	"""
-	recurrence is in the form ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH']
+	recurrence is in the form ['RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20210912T182959Z;BYDAY=FR,MO,WE']
 	has the frequency and then the days on which the event recurs
 	Both have been mapped in a dict for easier mapping.
 	"""
+	starts_on = (get_datetime(start.get("date")) if start.get("date") else get_datetime(start.get("dateTime"))).replace(tzinfo=None)
+	ends_on = (get_datetime(end.get("date")) if end.get("date") else get_datetime(end.get("dateTime"))).replace(tzinfo=None)
+
 	repeat_on = {
-		"starts_on": get_datetime(start.get("date")) if start.get("date") else parser.parse(start.get("dateTime")).utcnow(),
-		"ends_on": get_datetime(end.get("date")) if end.get("date") else parser.parse(end.get("dateTime")).utcnow(),
+		"starts_on": starts_on,
+		"ends_on": ends_on,
 		"all_day": 1 if start.get("date") else 0,
 		"repeat_this_event": 1 if recurrence else 0,
 		"repeat_on": None,
@@ -434,13 +437,14 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 		# google_calendar_frequency = RRULE:FREQ=WEEKLY, byday = BYDAY=MO,TU,TH, until = 20191028
 		google_calendar_frequency, until, byday = get_recurrence_parameters(recurrence)
 		repeat_on["repeat_on"] = google_calendar_frequencies.get(google_calendar_frequency)
+		until_time = get_datetime(until).replace(tzinfo=None) if until else None
 
 		if repeat_on["repeat_on"] == "Daily":
 			repeat_on["ends_on"] = None
-			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
+			repeat_on["repeat_till"] = until_time
 
 		if byday and repeat_on["repeat_on"] == "Weekly":
-			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
+			repeat_on["repeat_till"] = until_time
 			byday = byday.split("=")[1].split(",")
 			for repeat_day in byday:
 				repeat_on[google_calendar_days[repeat_day]] = 1
@@ -463,11 +467,11 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 			start_date = parse_google_calendar_recurrence_rule(int(repeat_day_week_number), repeat_day_name)
 			repeat_on["starts_on"] = start_date
 			repeat_on["ends_on"] = add_to_date(start_date, minutes=5)
-			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
+			repeat_on["repeat_till"] = until_time
 
 		if repeat_on["repeat_till"] == "Yearly":
 			repeat_on["ends_on"] = None
-			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
+			repeat_on["repeat_till"] = until_time
 
 	return repeat_on
 
@@ -568,7 +572,7 @@ def get_recurrence_parameters(recurrence):
 		if "RRULE:FREQ" in r:
 			frequency = r
 		elif "UNTIL" in r:
-			until = r
+			until = r.split("=")[1]
 		elif "BYDAY" in r:
 			byday = r
 		else:
