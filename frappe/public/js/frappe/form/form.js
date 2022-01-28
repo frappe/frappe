@@ -1663,17 +1663,17 @@ frappe.ui.form.Form = class FrappeForm {
 		// make new doctype from the current form
 		// will handover to `make_methods` if defined
 		// or will create and match link fields
-		var me = this;
+		let me = this;
 		if(this.make_methods && this.make_methods[doctype]) {
 			return this.make_methods[doctype](this);
 		} else if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
 			this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger('click');
 		} else {
 			frappe.model.with_doctype(doctype, function() {
-				var new_doc = frappe.model.get_new_doc(doctype, null, null, true);
+				let new_doc = frappe.model.get_new_doc(doctype, null, null, true);
 
 				// set link fields (if found)
-				me.set_link_field(doctype, new_doc, me);
+				me.set_link_field(doctype, new_doc);
 
 				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
 				// frappe.set_route('Form', doctype, new_doc.name);
@@ -1681,15 +1681,16 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	set_link_field(doctype, new_doc, me) {
+	set_link_field(doctype, new_doc) {
+		let me = this;
 		frappe.get_meta(doctype).fields.forEach(function(df) {
-			if(df.fieldtype==='Link' && df.options===me.doctype) {
+			if (df.fieldtype==='Link' && df.options===me.doctype) {
 				new_doc[df.fieldname] = me.doc.name;
 			} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
 				new_doc[df.fieldname] = me.doc[df.fieldname];
 			} else if (df.fieldtype==='Table' && df.options) {
 				let row = new_doc[df.fieldname][0];
-				me.set_link_field(df.options, row, me);
+				me.set_link_field(df.options, row);
 			}
 		});
 	}
