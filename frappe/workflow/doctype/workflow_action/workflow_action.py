@@ -156,7 +156,7 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 
 	if is_role_set(WorkflowAction, doc, allowed_roles):
 		frappe.qb.update(WorkflowAction).set(
-		WorkflowAction.status, 'Completed',
+			WorkflowAction.status, 'Completed',
 		).set(
 			WorkflowAction.completed_by, user
 		).where(
@@ -188,7 +188,8 @@ def is_role_set(WorkflowAction, doc, allowed_roles):
 
 def clear_old_workflow_actions_using_user(doc, user=None):
 	user = user if user else frappe.session.user
-	if not frappe.db.has_column('Workflow Action', 'user'): return False
+	if not frappe.db.has_column('Workflow Action', 'user'): 
+		return False
 	frappe.db.delete("Workflow Action", {
 		"reference_doctype": doc.get("doctype"),
 		"reference_name": doc.get("name"),
@@ -198,7 +199,8 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 
 def update_completed_workflow_actions_using_user(doc, user=None):
 	user = user if user else frappe.session.user
-	if not frappe.db.has_column('Workflow Action', 'user'): return False
+	if not frappe.db.has_column('Workflow Action', 'user'): 
+		return False
 	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s
 		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open'""",
 		(user, doc.get('doctype'), doc.get('name'), user))
