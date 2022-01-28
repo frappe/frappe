@@ -8,7 +8,7 @@
   "status",
   "reference_name",
   "reference_doctype",
-  "user",
+  "role",
   "workflow_state",
   "completed_by"
  ],
@@ -36,14 +36,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "User",
-   "options": "User",
-   "search_index": 1
-  },
-  {
    "fieldname": "workflow_state",
    "fieldtype": "Data",
    "hidden": 1,
@@ -55,10 +47,17 @@
    "fieldtype": "Link",
    "label": "Completed By",
    "options": "User"
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "label": "Role",
+   "options": "Role"
   }
  ],
  "links": [],
- "modified": "2021-07-01 09:07:52.848618",
+ "migration_hash": "e18bdc5dd69d4686b136389d86789298",
+ "modified": "2022-01-27 19:52:52.557645",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action",

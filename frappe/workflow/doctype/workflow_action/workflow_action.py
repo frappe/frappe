@@ -19,14 +19,15 @@ class WorkflowAction(Document):
 
 
 def on_doctype_update():
-	frappe.db.add_index("Workflow Action", ["status", "user"])
+	frappe.db.add_index("Workflow Action", ["status", "role"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
 	if user == "Administrator": return ""
 
-	return "(`tabWorkflow Action`.`user`='{user}')".format(user=user)
+	roles = frappe.get_roles(user)
+	return "(`tabWorkflow Action`.`role` in ('{roles}') )".format(roles="', '".join(roles))
 
 def has_permission(doc, user):
 	if user not in ['Administrator', doc.user]:
@@ -42,19 +43,18 @@ def process_workflow_actions(doc, state):
 
 	if is_workflow_action_already_created(doc): return
 
-	clear_old_workflow_actions(doc)
-	update_completed_workflow_actions(doc)
+	update_completed_workflow_actions(doc, workflow=workflow, workflow_state=get_doc_workflow_state(doc))
 	clear_doctype_notifications('Workflow Action')
 
 	next_possible_transitions = get_next_possible_transitions(workflow, get_doc_workflow_state(doc), doc)
 
 	if not next_possible_transitions: return
 
-	user_data_map = get_users_next_action_data(next_possible_transitions, doc)
+	user_data_map, roles = get_users_next_action_data(next_possible_transitions, doc)
 
 	if not user_data_map: return
 
-	create_workflow_actions_for_users(user_data_map.keys(), doc)
+	create_workflow_actions_for_users(roles, doc)
 
 	if send_email_alert(workflow):
 		enqueue(send_workflow_action_email, queue='short', users_data=list(user_data_map.values()), doc=doc)
@@ -132,20 +132,16 @@ def return_link_expired_page(doc, doc_workflow_state):
 				frappe.bold(frappe.get_value('User', doc.get("modified_by"), 'full_name'))
 			), indicator_color='blue')
 
-def clear_old_workflow_actions(doc, user=None):
-	user = user if user else frappe.session.user
-	frappe.db.delete("Workflow Action", {
-		"reference_doctype": doc.get("doctype"),
-		"reference_name": doc.get("name"),
-		"user": ("!=", user),
-		"status": "Open"
-	})
 
-def update_completed_workflow_actions(doc, user=None):
+def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):
 	user = user if user else frappe.session.user
+	role = frappe.get_value('Workflow Transition',
+		fieldname='allowed',
+		filters=[['parent', '=', workflow],
+		['next_state', '=', workflow_state]],)
 	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s
-		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open'""",
-		(user, doc.get('doctype'), doc.get('name'), user))
+		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `role`=%s AND `status`='Open'""",
+		(user, doc.get('doctype'), doc.get('name'), role))
 
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
@@ -167,8 +163,10 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 	return transitions_to_return
 
 def get_users_next_action_data(transitions, doc):
+	roles = set()
 	user_data_map = {}
 	for transition in transitions:
+		roles.add(transition.allowed)
 		users = get_users_with_role(transition.allowed)
 		filtered_users = filter_allowed_users(users, doc, transition)
 		for user in filtered_users:
@@ -182,18 +180,18 @@ def get_users_next_action_data(transitions, doc):
 				'action_name': transition.action,
 				'action_link': get_workflow_action_url(transition.action, doc, user)
 			}))
-	return user_data_map
+	return user_data_map, roles
 
 
-def create_workflow_actions_for_users(users, doc):
-	for user in users:
+def create_workflow_actions_for_users(roles, doc):
+	for role in roles:
 		frappe.get_doc({
 			'doctype': 'Workflow Action',
 			'reference_doctype': doc.get('doctype'),
 			'reference_name': doc.get('name'),
 			'workflow_state': get_doc_workflow_state(doc),
 			'status': 'Open',
-			'user': user
+			'role': role
 		}).insert(ignore_permissions=True)
 
 def send_workflow_action_email(users_data, doc):
