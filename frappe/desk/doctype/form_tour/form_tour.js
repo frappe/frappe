@@ -59,36 +59,27 @@ frappe.ui.form.on('Form Tour', {
 	reference_doctype(frm) {
 		if (!frm.doc.reference_doctype) return;
 
-		frappe.model.with_doctype(frm.doc.reference_doctype, () => {
-			let fields = frappe.meta
-				.get_docfields(frm.doc.reference_doctype, null, {
-					hidden: 0
-				})
-				.map(df => ({
-					label: `${df.label || 'No Label'} (${df.fieldtype})`,
-					value: df.fieldname
-				}));
-
+		frm.set_fields_as_options(
+			"fieldname",
+			frm.doc.reference_doctype,
+			df => !df.hidden
+		).then(options => {
 			frm.fields_dict.steps.grid.update_docfield_property(
 				"fieldname",
 				"options",
-				[""].concat(fields)
+				[""].concat(options)
 			);
+		});
 
-			let parent_fields = frappe.meta
-				.get_docfields(frm.doc.reference_doctype, null, {
-					fieldtype: "Table",
-					hidden: 0
-				})
-				.map(df => ({
-					label: `${df.label || 'No Label'} (${df.fieldtype})`,
-					value: df.fieldname
-				}));
-
+		frm.set_fields_as_options(
+			'parent_fieldname',
+			frm.doc.reference_doctype,
+			(df) => df.fieldtype == "Table" && !df.hidden,
+		).then(options => {
 			frm.fields_dict.steps.grid.update_docfield_property(
 				"parent_fieldname",
 				"options",
-				[""].concat(parent_fields)
+				[""].concat(options)
 			);
 		});
 
@@ -108,22 +99,16 @@ frappe.ui.form.on('Form Tour Step', {
 			.get_meta(frm.doc.reference_doctype)
 			.fields.find(df => df.fieldname == child_row.parent_fieldname);
 
-		frappe.model.with_doctype(parent_fieldname_df.options, () => {
-			let fields = frappe.meta
-				.get_docfields(parent_fieldname_df.options, null, {
-					hidden: 0
-				})
-				.map(df => ({
-					label: `${df.label || 'No Label'} (${df.fieldtype})`,
-					value: df.fieldname
-				}));
-
+		frm.set_fields_as_options(
+			'fieldname',
+			parent_fieldname_df.options,
+			(df) => !df.hidden,
+		).then(options => {
 			frm.fields_dict.steps.grid.update_docfield_property(
 				"fieldname",
 				"options",
-				[""].concat(fields)
+				[""].concat(options)
 			);
-
 			if (child_row.fieldname) {
 				frappe.model.set_value(cdt, cdn, 'fieldname', child_row.fieldname);
 			}
