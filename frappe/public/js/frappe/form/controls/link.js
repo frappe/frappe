@@ -34,7 +34,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
-				if (!me.get_label_value() || !me.get_input_value()) {
+				if (!me.get_label_value()) {
 					me.reset_value();
 					me.$input.trigger("input");
 				}

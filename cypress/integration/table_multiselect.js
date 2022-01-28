@@ -6,15 +6,9 @@ context('Table MultiSelect', () => {
 	let name = 'table multiselect' + Math.random().toString().slice(2, 8);
 
 	it('select value from multiselect dropdown', () => {
-		cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
-		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
-
 		cy.new_form('Assignment Rule');
 		cy.fill_field('__newname', name);
-		cy.get('.frappe-control[data-fieldname=document_type] input').focus().as('input');
-		cy.wait('@search_link');
-		cy.get('@input').type('Blog Post', { delay: 100 }).blur();
-		cy.wait('@validate_link');
+		cy.fill_field('document_type', 'Blog Post');
 		cy.get('.section-head').contains('Assignment Rules').scrollIntoView();
 		cy.fill_field('assign_condition', 'status=="Open"', 'Code');
 		cy.get('input[data-fieldname="users"]').focus().as('input');

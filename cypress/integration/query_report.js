@@ -18,20 +18,11 @@ context('Query Report', () => {
 		cy.visit('/app/query-report/Permitted Documents For User');
 
 		cy.get('.page-form.flex', { timeout: 60000 }).should('have.length', 1).then(() => {
-			cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
-			cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
-
-			cy.get('#page-query-report input[data-fieldname="user"]').focus().as('input-user');
-			cy.wait('@search_link');
-			cy.wait(500);
-			cy.get('@input-user').type('test@erpnext.com', { delay: 100 }).blur();
-			cy.wait('@validate_link');
-
-			cy.get('#page-query-report input[data-fieldname="doctype"]').focus().as('input-role');
-			cy.wait('@search_link');
-			cy.wait(500);
-			cy.get('@input-role').type('Role', { delay: 100 }).blur();
-			cy.wait('@validate_link');
+			cy.get('#page-query-report input[data-fieldname="user"]').as('input-user');
+			cy.get('@input-user').focus().type('test@erpnext.com', { delay: 100 }).blur();
+			cy.wait(300);
+			cy.get('#page-query-report input[data-fieldname="doctype"]').as('input-role');
+			cy.get('@input-role').focus().type('Role', { delay: 100 }).blur();
 
 			cy.get('.datatable').should('exist');
 			cy.get('#page-query-report .page-actions .menu-btn-group button').click({ force: true });
