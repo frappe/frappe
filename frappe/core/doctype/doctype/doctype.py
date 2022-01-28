@@ -1308,7 +1308,7 @@ def check_fieldname_conflicts(docfield):
 	msg = _("Fieldname {0} conflicting with meta object").format(docfield.fieldname)
 
 	if docfield.fieldname in method_list + property_list:
-		frappe.msgprint(msg, raise_exception=not docfield.read_only)
+		frappe.msgprint(msg, raise_exception=not docfield.is_virtual)
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
