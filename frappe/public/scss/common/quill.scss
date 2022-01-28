@@ -43,6 +43,7 @@
 		max-height: 600px;
 		border-bottom-left-radius: var(--border-radius);
 		border-bottom-right-radius: var(--border-radius);
+		resize: vertical;
 	}
 	.ql-stroke {
 		stroke: var(--icon-stroke);
@@ -86,10 +87,22 @@
 	margin-bottom: 8px;
 }
 
+.ql-code-block-container {
+	background-color: var(--code-block-bg);
+	color: var(--code-block-text);
+	padding: var(--padding-xs) var(--padding-sm) !important;
+	margin-bottom: var(--margin-xs) !important;
+	margin-top: var(--margin-xs)!important;
+	border-radius: var(--border-radius-sm);
+}
+
 .ql-bubble .ql-editor {
 	min-height: 100px;
 	max-height: 300px;
 	border-radius: var(--border-radius-sm);
+	.ql-code-block-container {
+		@extend .ql-code-block-container;
+	}
 }
 
 .ql-mention-list-container {
