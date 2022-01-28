@@ -7,6 +7,7 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
@@ -15,7 +16,6 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import is
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
-from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 from frappe.utils import get_time_zone, add_user_info
 
