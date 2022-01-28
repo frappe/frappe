@@ -104,11 +104,17 @@ def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 		datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
 	from dateutil import parser
+	from dateutil.parser import ParserError
 
 	time = time or "0:0:0"
 
 	try:
-		t = parser.parse(time)
+		try:
+			t = parser.parse(time)
+		except ParserError as e:
+			if "day" in e.args[1]:
+				from frappe.utils import parse_timedelta
+				return parse_timedelta(time)
 		return datetime.timedelta(
 			hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
 		)
@@ -329,7 +335,7 @@ def get_time(time_str):
 		return time_str
 	else:
 		if isinstance(time_str, datetime.timedelta):
-			time_str = str(time_str)
+			return format_timedelta(time_str)
 		return parser.parse(time_str).time()
 
 def get_datetime_str(datetime_obj):
@@ -1673,3 +1679,30 @@ class UnicodeWithAttrs(str):
 	def __init__(self, text):
 		self.toc_html = text.toc_html
 		self.metadata = text.metadata
+
+
+def format_timedelta(o: datetime.timedelta) -> str:
+	# mariadb allows a wide diff range - https://mariadb.com/kb/en/time/
+	# but frappe doesnt - i think via babel : only allows 0..23 range for hour
+	total_seconds = o.total_seconds()
+	hours, remainder = divmod(total_seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	rounded_seconds = round(seconds, 6)
+	int_seconds = int(seconds)
+
+	if rounded_seconds == int_seconds:
+		seconds = int_seconds
+	else:
+		seconds = rounded_seconds
+
+	return "{:01}:{:02}:{:02}".format(int(hours), int(minutes), seconds)
+
+
+def parse_timedelta(s: str) -> datetime.timedelta:
+	# ref: https://stackoverflow.com/a/21074460/10309266
+	if 'day' in s:
+		m = re.match(r"(?P<days>[-\d]+) day[s]*, (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)", s)
+	else:
+		m = re.match(r"(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)", s)
+
+	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})
