@@ -381,7 +381,7 @@ def get_labels(fields, doctype):
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += " (" + _(parenttype) + ")"
+				label += f" ({ _(parenttype) })"
 
 		labels.append(label)
 
