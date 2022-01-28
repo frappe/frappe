@@ -1670,21 +1670,28 @@ frappe.ui.form.Form = class FrappeForm {
 			this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger('click');
 		} else {
 			frappe.model.with_doctype(doctype, function() {
-				var new_doc = frappe.model.get_new_doc(doctype);
+				var new_doc = frappe.model.get_new_doc(doctype, null, null, true);
 
 				// set link fields (if found)
-				frappe.get_meta(doctype).fields.forEach(function(df) {
-					if(df.fieldtype==='Link' && df.options===me.doctype) {
-						new_doc[df.fieldname] = me.doc.name;
-					} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
-						new_doc[df.fieldname] = me.doc[df.fieldname];
-					}
-				});
+				me.set_link_field(doctype, new_doc, me);
 
 				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
 				// frappe.set_route('Form', doctype, new_doc.name);
 			});
 		}
+	}
+
+	set_link_field(doctype, new_doc, me) {
+		frappe.get_meta(doctype).fields.forEach(function(df) {
+			if(df.fieldtype==='Link' && df.options===me.doctype) {
+				new_doc[df.fieldname] = me.doc.name;
+			} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
+				new_doc[df.fieldname] = me.doc[df.fieldname];
+			} else if (df.fieldtype==='Table' && df.options) {
+				let row = new_doc[df.fieldname][0];
+				me.set_link_field(df.options, row, me);
+			}
+		});
 	}
 
 	update_in_all_rows(table_fieldname, fieldname, value) {
