@@ -1,26 +1,26 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from __future__ import unicode_literals
 
+import io
+import json
+import unittest
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
-import unittest
-import frappe
-
-from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
-from frappe.utils import validate_url, validate_email_address
-from frappe.utils import ceil, floor
-from frappe.utils import format_timedelta, parse_timedelta
-from frappe.utils.data import cast, validate_python_code
-
-from PIL import Image
-from frappe.utils.image import strip_exif_data
-import io
-from datetime import datetime, time, timedelta, date
-
 from unittest.mock import patch
 
 import pytz
+from PIL import Image
+
+import frappe
+from frappe.utils import ceil, evaluate_filters, floor, format_timedelta
+from frappe.utils import get_url, money_in_words, parse_timedelta, scrub_urls
+from frappe.utils import validate_email_address, validate_url
+from frappe.utils.data import cast, validate_python_code
+from frappe.utils.image import strip_exif_data
+from frappe.utils.response import json_handler
+
+
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -289,9 +289,6 @@ class TestDateUtils(unittest.TestCase):
 
 class TestResponse(unittest.TestCase):
 	def test_json_handler(self):
-		import json
-		from frappe.utils.response import json_handler
-
 		class TEST(Enum):
 			ABC = "!@)@)!"
 			BCE = "ENJD"
