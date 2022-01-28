@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Any, Dict, Optional
 
 from pypika.terms import Function, ValueWrapper
@@ -51,6 +52,9 @@ class ParameterizedValueWrapper(ValueWrapper):
 			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
 			sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
 		else:
+			# * BUG: pypika doesen't parse timedeltas
+			if isinstance(self.value, timedelta):
+				self.value = str(self.value)
 			sql = self.get_value_sql(
 				quote_char=quote_char,
 				secondary_quote_char=secondary_quote_char,
