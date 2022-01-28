@@ -137,10 +137,15 @@ def return_link_expired_page(doc, doc_workflow_state):
 def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):
 	user = user if user else frappe.session.user
 
-	role = frappe.get_value('Workflow Transition',
-		fieldname='allowed',
+	allowed_roles = frappe.get_all('Workflow Transition',
+		fields='allowed',
 		filters=[['parent', '=', workflow],
-		['next_state', '=', workflow_state]],)
+		['next_state', '=', workflow_state]],
+		pluck = 'allowed')
+
+	user_roles = set(frappe.get_roles(user))
+
+	allowed_roles = set(allowed_roles).intersection(user_roles)
 
 	WorkflowAction = DocType("Workflow Action")
 
@@ -153,7 +158,7 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 	).where(
 		WorkflowAction.reference_name == doc.get('name')
 	).where(
-		WorkflowAction.role == role
+		WorkflowAction.role.isin(list(allowed_roles))
 	).where(
 		WorkflowAction.status == 'Open',
 	).run()
