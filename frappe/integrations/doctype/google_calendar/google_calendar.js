@@ -6,7 +6,12 @@ frappe.ui.form.on("Google Calendar", {
 		if (frm.is_new()) {
 			frm.dashboard.set_headline(__("To use Google Calendar, enable {0}.", [`<a href='/app/google-settings'>${__('Google Settings')}</a>`]));
 		}
-
+		else if (frm.doc.refresh_token === undefined) {
+			frm.dashboard.set_headline(__("To sync Calendar events please 'Authorize Google Calendar Access'"));
+		}
+		if (frm.doc.last_sync_datetime !== undefined) {
+			frm.trigger("show_sync_alert");
+		}
 		frappe.realtime.on("import_google_calendar", (data) => {
 			if (data.progress) {
 				frm.dashboard.show_progress("Syncing Google Calendar", data.progress / data.total * 100,
@@ -31,6 +36,7 @@ frappe.ui.form.on("Google Calendar", {
 				}).then((r) => {
 					frappe.hide_progress();
 					frappe.msgprint(r.message);
+					frm.reload_doc();
 				});
 			});
 		}
@@ -54,5 +60,9 @@ frappe.ui.form.on("Google Calendar", {
 				}
 			}
 		});
+	},
+	show_sync_alert: function(frm) {
+		frm.dashboard.clear_headline();
+		frm.dashboard.set_headline(__("Last Synced at {0}.", [new Date(frm.doc.last_sync_datetime).toLocaleString()]));
 	}
 });

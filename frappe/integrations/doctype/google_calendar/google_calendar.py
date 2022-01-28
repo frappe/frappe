@@ -250,6 +250,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 		if not events.get("nextPageToken"):
 			if events.get("nextSyncToken"):
 				account.next_sync_token = events.get("nextSyncToken")
+				account.last_sync_datetime = now_datetime()
 				account.save()
 			break
 
