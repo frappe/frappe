@@ -211,13 +211,13 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
+		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		if ignore_links!=None:
+		if ignore_links is not None:
 			self.flags.ignore_links = ignore_links
 
-		if ignore_mandatory!=None:
+		if ignore_mandatory is not None:
 			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
@@ -297,7 +297,7 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
+		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
 		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
@@ -441,7 +441,7 @@ class Document(BaseDocument):
 			values = self.as_dict()
 			# format values
 			for key, value in values.items():
-				if value==None:
+				if value is None:
 					values[key] = ""
 			return values
 
@@ -474,7 +474,7 @@ class Document(BaseDocument):
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
-		if self.is_new():
+		if self.is_new() and not (frappe.flags.in_patch or frappe.flags.in_migrate):
 			self.creation = self.modified
 			self.owner = self.modified_by
 
@@ -489,7 +489,7 @@ class Document(BaseDocument):
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
-		if self.docstatus==None:
+		if self.docstatus is None:
 			self.docstatus=0
 
 		for d in self.get_all_children():
@@ -887,14 +887,14 @@ class Document(BaseDocument):
 		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-		if self.flags.notifications_executed==None:
+		if self.flags.notifications_executed is None:
 			self.flags.notifications_executed = []
 
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
-		if self.flags.notifications == None:
+		if self.flags.notifications is None:
 			alerts = frappe.cache().hget('notifications', self.doctype)
-			if alerts==None:
+			if alerts is None:
 				alerts = frappe.get_all('Notification', fields=['name', 'event', 'method'],
 					filters={'enabled': 1, 'document_type': self.doctype})
 				frappe.cache().hset('notifications', self.doctype, alerts)

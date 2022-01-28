@@ -112,7 +112,7 @@ def check_record(d):
 		docfield = doc.meta.get_field(key)
 		val = d[key]
 		if docfield:
-			if docfield.reqd and (val=='' or val==None):
+			if docfield.reqd and (val=='' or val is None):
 				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:

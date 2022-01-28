@@ -103,6 +103,7 @@ context('Control Date, Time and DateTime', () => {
 				input_value: '12-02-2019 11:00' // admin timezone (Asia/Kolkata)
 			}
 		];
+
 		datetime_formats.forEach(d => {
 			it(`test datetime format ${d.date_format} ${d.time_format}`, () => {
 				cy.set_value('System Settings', 'System Settings', {

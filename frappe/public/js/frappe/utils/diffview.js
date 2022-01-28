@@ -54,7 +54,7 @@ frappe.ui.DiffView = class DiffView {
 					fieldname: "diff",
 				},
 			],
-			size: "large",
+			size: "extra-large",
 		});
 		return dialog;
 	}

@@ -140,7 +140,7 @@ def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, minutes=0, se
 	from dateutil.parser._parser import ParserError
 	from dateutil.relativedelta import relativedelta
 
-	if date==None:
+	if date is None:
 		date = now_datetime()
 
 	if hours:

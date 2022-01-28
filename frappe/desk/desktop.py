@@ -56,31 +56,6 @@ class Workspace:
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
-	def is_page_allowed(self):
-		cards = self.doc.get_link_groups() + get_custom_reports_and_doctypes(self.doc.module)
-		shortcuts = self.doc.shortcuts
-
-		for section in cards:
-			links = loads(section.get('links')) if isinstance(section.get('links'), str) else section.get('links')
-			for item in links:
-				if self.is_item_allowed(item.get('link_to'), item.get('link_type')):
-					return True
-
-		def _in_active_domains(item):
-			if not item.restrict_to_domain:
-				return True
-			else:
-				return item.restrict_to_domain in frappe.get_active_domains()
-
-		for item in shortcuts:
-			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
-				return True
-
-		if not shortcuts and not self.doc.links:
-			return True
-
-		return False
-
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
 		from frappe.utils import has_common
@@ -346,20 +321,20 @@ def get_desktop_page(page):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		wspace = Workspace(loads(page))
-		wspace.build_workspace()
+		workspace = Workspace(loads(page))
+		workspace.build_workspace()
 		return {
-			'charts': wspace.charts,
-			'shortcuts': wspace.shortcuts,
-			'cards': wspace.cards,
-			'onboardings': wspace.onboardings
+			'charts': workspace.charts,
+			'shortcuts': workspace.shortcuts,
+			'cards': workspace.cards,
+			'onboardings': workspace.onboardings
 		}
 	except DoesNotExistError:
 		frappe.log_error(frappe.get_traceback())
 		return {}
 
 @frappe.whitelist()
-def get_wspace_sidebar_items():
+def get_workspace_sidebar_items():
 	"""Get list of sidebar items for desk"""
 	has_access = "Workspace Manager" in frappe.get_roles()
 
@@ -385,8 +360,8 @@ def get_wspace_sidebar_items():
 	# Filter Page based on Permission
 	for page in all_pages:
 		try:
-			wspace = Workspace(page, True)
-			if wspace.is_permitted() and wspace.is_page_allowed() or has_access:
+			workspace = Workspace(page, True)
+			if has_access or workspace.is_permitted():
 				if page.public:
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
@@ -453,25 +428,24 @@ def get_custom_report_list(module):
 	return out
 
 def save_new_widget(doc, page, blocks, new_widgets):
+	if loads(new_widgets):
+		widgets = _dict(loads(new_widgets))
 
-	widgets = _dict(loads(new_widgets))
-
-	if widgets.chart:
-		doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
-	if widgets.shortcut:
-		doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
-	if widgets.card:
-		doc.build_links_table_from_card(widgets.card)
+		if widgets.chart:
+			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
+		if widgets.shortcut:
+			doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
+		if widgets.card:
+			doc.build_links_table_from_card(widgets.card)
 
 	# remove duplicate and unwanted widgets
-	if widgets:
-		clean_up(doc, blocks)
+	clean_up(doc, blocks)
 
 	try:
 		doc.save(ignore_permissions=True)
 	except (ValidationError, TypeError) as e:
 		# Create a json string to log
-		json_config = dumps(widgets, sort_keys=True, indent=4)
+		json_config = widgets and dumps(widgets, sort_keys=True, indent=4)
 
 		# Error log body
 		log = \
