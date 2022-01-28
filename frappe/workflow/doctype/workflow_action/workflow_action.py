@@ -13,6 +13,7 @@ from frappe.model.workflow import apply_workflow, get_workflow_name, has_approva
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
 from frappe.utils.data import get_link_to_form
+from frappe.query_builder import DocType
 
 class WorkflowAction(Document):
 	pass
@@ -135,13 +136,27 @@ def return_link_expired_page(doc, doc_workflow_state):
 
 def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):
 	user = user if user else frappe.session.user
+
 	role = frappe.get_value('Workflow Transition',
 		fieldname='allowed',
 		filters=[['parent', '=', workflow],
 		['next_state', '=', workflow_state]],)
-	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s
-		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `role`=%s AND `status`='Open'""",
-		(user, doc.get('doctype'), doc.get('name'), role))
+
+	WorkflowAction = DocType("Workflow Action")
+
+	frappe.qb.update(WorkflowAction).set(
+		WorkflowAction.status, 'Completed',
+	).set(
+		WorkflowAction.completed_by, user
+	).where(
+		WorkflowAction.reference_doctype == doc.get('doctype')
+	).where(
+		WorkflowAction.reference_name == doc.get('name')
+	).where(
+		WorkflowAction.role == role
+	).where(
+		WorkflowAction.status == 'Open',
+	).run()
 
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
