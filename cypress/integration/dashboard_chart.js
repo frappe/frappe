@@ -14,7 +14,8 @@ context('Dashboard Chart', () => {
 
 		cy.get('.frappe-control[data-fieldname=document_type] input').focus().as('input');
 		cy.wait('@search_link');
-		cy.get('@input').type('Workspace Link', { delay: 100 }).blur();
+		cy.get('@input').type('Workspace Link', { delay: 100 });
+		cy.get('@input').type('{enter}', { delay: 100 });
 		cy.wait('@validate_link');
 		cy.get('@input').should('have.value', 'Workspace Link');
 
