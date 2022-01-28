@@ -11,7 +11,6 @@ import quopri
 from email.parser import Parser
 from email.policy import SMTPUTF8
 from html2text import html2text
-from six.moves import html_parser as HTMLParser
 
 import frappe
 from frappe import _, safe_encode, task
@@ -20,6 +19,7 @@ from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.email_body import add_attachment, get_formatted_html, get_email
 from frappe.utils import cint, split_emails, add_days, nowdate, cstr, get_hook_method
 from frappe.email.doctype.email_account.email_account import EmailAccount
+from frappe.query_builder.utils import DocType
 
 
 MAX_RETRY_COUNT = 3
@@ -444,7 +444,7 @@ class QueueBuilder:
 
 		try:
 			text_content = html2text(self._message)
-		except HTMLParser.HTMLParseError:
+		except Exception:
 			text_content = "See html attachment"
 		return text_content + unsubscribe_text_message
 
@@ -477,18 +477,24 @@ class QueueBuilder:
 
 		all_ids = list(set(self.recipients + self.cc))
 
-		EmailUnsubscribe = frappe.qb.DocType("Email Unsubscribe")
+		EmailUnsubscribe = DocType("Email Unsubscribe")
 
-		unsubscribed = (frappe.qb.from_(EmailUnsubscribe)
-						.select(EmailUnsubscribe.email)
-						.where(EmailUnsubscribe.email.isin(all_ids) & 	
-									(
-										(
-											(EmailUnsubscribe.reference_doctype == self.reference_doctype) & (EmailUnsubscribe.reference_name == self.reference_name)
-										) | EmailUnsubscribe.global_unsubscribe == 1
-									)
-								).distinct()
-						).run(pluck=True)
+		unsubscribed = (
+			frappe.qb.from_(EmailUnsubscribe).select(
+				EmailUnsubscribe.email
+			).where(
+				EmailUnsubscribe.email.isin(all_ids)
+				& (
+					(
+						(EmailUnsubscribe.reference_doctype == self.reference_doctype)
+						& (EmailUnsubscribe.reference_name == self.reference_name)
+					) | (
+						EmailUnsubscribe.global_unsubscribe == 1
+					)
+				)
+			).distinct()
+		).run(pluck=True)
+
 		self._unsubscribed_user_emails = unsubscribed or []
 		return self._unsubscribed_user_emails
 
