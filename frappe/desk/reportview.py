@@ -196,7 +196,7 @@ def parse_json(data):
 		data["filters"] = json.loads(data["filters"])
 	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
-	if isinstance(data.get("fields"), str):
+	if isinstance(data.get("fields"), str) and data.get('fields').startswith('['):
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
