@@ -267,8 +267,8 @@ class TestDocument(unittest.TestCase):
 		# assuming DocType has more that 3 Data fields
 		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
-	def test_dynamic_fields(self):
-		"""Read Only Dynamic fields are accessible via API and Form views, whenever .as_dict is invoked
+	def test_virtual_fields(self):
+		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
 		"""
 		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
 
@@ -283,6 +283,7 @@ class TestDocument(unittest.TestCase):
 				"fieldname": "age",
 				"fieldtype": "Data",
 				"read_only": True,
+				"is_virtual": True,
 			})
 
 			try:
