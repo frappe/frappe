@@ -1,21 +1,26 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See LICENSE
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 from __future__ import unicode_literals
 
+from decimal import Decimal
+from enum import Enum
 import unittest
 import frappe
 
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 from frappe.utils import validate_url, validate_email_address
 from frappe.utils import ceil, floor
+from frappe.utils import format_timedelta, parse_timedelta
 from frappe.utils.data import cast, validate_python_code
 
 from PIL import Image
 from frappe.utils.image import strip_exif_data
 import io
-from datetime import datetime, timedelta, date
+from datetime import datetime, time, timedelta, date
 
 from unittest.mock import patch
+
+import pytz
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -280,3 +285,59 @@ class TestDateUtils(unittest.TestCase):
 			frappe.utils.getdate("2020-12-26"))
 		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
 			frappe.utils.getdate("2021-01-02"))
+
+
+class TestResponse(unittest.TestCase):
+	def test_json_handler(self):
+		import json
+		from frappe.utils.response import json_handler
+
+		class TEST(Enum):
+			ABC = "!@)@)!"
+			BCE = "ENJD"
+
+		GOOD_OBJECT = {
+			"time_types": [
+				date(year=2020, month=12, day=2),
+				datetime(year=2020, month=12, day=2, hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
+				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
+				timedelta(days=10, hours=12, minutes=120, seconds=10),
+			],
+			"float": [
+				Decimal(29.21),
+			],
+			"doc": [
+				frappe.get_doc("System Settings"),
+			],
+			"iter": [
+				{1, 2, 3},
+				(1, 2, 3),
+				"abcdef",
+			],
+			"string": "abcdef"
+		}
+
+		BAD_OBJECT = {"Enum": TEST}
+
+		processed_object = json.loads(json.dumps(GOOD_OBJECT, default=json_handler))
+
+		self.assertTrue(all([isinstance(x, str) for x in processed_object["time_types"]]))
+		self.assertTrue(all([isinstance(x, float) for x in processed_object["float"]]))
+		self.assertTrue(all([isinstance(x, (list, str)) for x in processed_object["iter"]]))
+		self.assertIsInstance(processed_object["string"], str)
+		with self.assertRaises(TypeError):
+			json.dumps(BAD_OBJECT, default=json_handler)
+
+class TestTimeDeltaUtils(unittest.TestCase):
+	def test_format_timedelta(self):
+		self.assertEqual(format_timedelta(timedelta(seconds=0)), "0:00:00")
+		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
+		self.assertEqual(format_timedelta(timedelta(hours=100)), "100:00:00")
+		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=129)), "0:01:40.000129")
+		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=12212199129)), "3:25:12.199129")
+
+	def test_parse_timedelta(self):
+		self.assertEqual(parse_timedelta("0:0:0"), timedelta(seconds=0))
+		self.assertEqual(parse_timedelta("10:0:0"), timedelta(hours=10))
+		self.assertEqual(parse_timedelta("7 days, 0:32:18.192221"), timedelta(days=7, seconds=1938, microseconds=192221))
+		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
