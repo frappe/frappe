@@ -150,7 +150,8 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 
 	# There is no transaction leading upto this state
 	# so no older actions to complete
-	if not allowed_roles: return
+	if not allowed_roles: 
+		return
 
 	user_roles = set(frappe.get_roles(user))
 
