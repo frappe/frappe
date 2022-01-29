@@ -28,7 +28,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator": return ""
 
 	roles = frappe.get_roles(user)
-	return "(`tabWorkflow Action`.`role` in ('{roles}') AND tabWorkflow Action`.`is_deleted` = 0)".format(roles="', '".join(roles))
+	return "(`tabWorkflow Action`.`role` in ('{roles}') AND `tabWorkflow Action`.`is_deleted` = 0)".format(roles="', '".join(roles))
 
 def has_permission(doc, user):
 
@@ -200,15 +200,13 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 		return False
 	WorkflowAction = DocType("Workflow Action")
 	frappe.qb.update(WorkflowAction).set(
-		WorkflowAction.is_deleted, 1
+		WorkflowAction.is_deleted, True
 	).where(
 		WorkflowAction.reference_doctype == doc.get("doctype")
 	).where(
 		WorkflowAction.reference_name == doc.get("name")
 	).where(
 		WorkflowAction.status == "Open"
-	).where(
-		WorkflowAction.user != user
 	).run()
 
 def clear_old_workflow_actions_using_role(doc):
