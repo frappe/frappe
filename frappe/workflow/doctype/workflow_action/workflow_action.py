@@ -28,13 +28,13 @@ def get_permission_query_conditions(user):
 	if user == "Administrator": return ""
 
 	roles = frappe.get_roles(user)
-	return "(`tabWorkflow Action`.`role` in ('{roles}') )".format(roles="', '".join(roles))
+	return "(`tabWorkflow Action`.`role` in ('{roles}') AND tabWorkflow Action`.`is_deleted` = 0)".format(roles="', '".join(roles))
 
 def has_permission(doc, user):
 
 	roles = frappe.get_roles(user)
 
-	if user == 'Administrator' or doc.role in roles:
+	if user == 'Administrator' or (doc.role in roles and doc.is_deleted == 0):
 		return True
 	else:
 		return False
@@ -172,8 +172,10 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 			WorkflowAction.role.isin(list(allowed_roles))
 		).where(
 			WorkflowAction.status == 'Open',
+		).where(
+			WorkflowAction.is_deleted == 0,
 		).run()
-		clear_old_workflow_actions_using_role(doc, WorkflowAction, allowed_roles)
+		clear_old_workflow_actions_using_role(doc)
 
 	else:
 		# backwards compatibility
@@ -196,27 +198,37 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 	user = user if user else frappe.session.user
 	if not frappe.db.has_column('Workflow Action', 'user'): 
 		return False
-	frappe.db.delete("Workflow Action", {
-		"reference_doctype": doc.get("doctype"),
-		"reference_name": doc.get("name"),
-		"user": ("!=", user),
-		"status": "Open"
-	})
+	WorkflowAction = DocType("Workflow Action")
+	frappe.qb.update(WorkflowAction).set(
+		WorkflowAction.is_deleted, 1
+	).where(
+		WorkflowAction.reference_doctype == doc.get("doctype")
+	).where(
+		WorkflowAction.reference_name == doc.get("name")
+	).where(
+		WorkflowAction.status == "Open"
+	).where(
+		WorkflowAction.user != user
+	).run()
 
-def clear_old_workflow_actions_using_role(doc, user=None, WorkflowAction=None):
-	frappe.db.delete("Workflow Action", {
-		"reference_doctype": doc.get("doctype"),
-		"reference_name": doc.get("name"),
-		"status": "Open"
-	})
+def clear_old_workflow_actions_using_role(doc):
+	WorkflowAction = DocType("Workflow Action")
+	frappe.qb.update(WorkflowAction).set(WorkflowAction.is_deleted, True).where(
+		WorkflowAction.reference_doctype == doc.get("doctype")
+	).where(
+		WorkflowAction.reference_name == doc.get("name")
+	).where(
+		WorkflowAction.status == "Open"
+	).run()
+
 
 def update_completed_workflow_actions_using_user(doc, user=None):
 	user = user if user else frappe.session.user
 	if not frappe.db.has_column('Workflow Action', 'user'): 
 		return False
 	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s
-		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open'""",
-		(user, doc.get('doctype'), doc.get('name'), user))
+		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open' 
+		AND is_deleted = 0""",(user, doc.get('doctype'), doc.get('name'), user))
 
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
@@ -324,16 +336,22 @@ def is_workflow_action_already_created(doc):
 		'doctype': 'Workflow Action',
 		'reference_doctype': doc.get('doctype'),
 		'reference_name': doc.get('name'),
-		'workflow_state': get_doc_workflow_state(doc)
+		'workflow_state': get_doc_workflow_state(doc),
+		'is_deleted': 0
 	})
 
 def clear_workflow_actions(doctype, name):
 	if not (doctype and name):
 		return
-	frappe.db.delete("Workflow Action", {
-		"reference_doctype": doctype,
-		"reference_name": name
-	})
+	WorkflowAction = DocType("Workflow Action")
+	frappe.qb.update(WorkflowAction).set(
+		WorkflowAction.is_deleted, 1
+	).where(
+		WorkflowAction.reference_doctype == doctype
+	).where(
+		WorkflowAction.reference_name == name
+	).run()
+
 def get_doc_workflow_state(doc):
 	workflow_name = get_workflow_name(doc.get('doctype'))
 	workflow_state_field = get_workflow_state_field(workflow_name)
@@ -391,3 +409,6 @@ def get_state_optional_field_value(workflow_name, state):
 		'parent': workflow_name,
 		'state': state
 	}, 'is_optional_state')
+
+def cleanup_workflow_actions():
+	frappe.db.delete('Workflow Action', filters={'is_deleted': 1})

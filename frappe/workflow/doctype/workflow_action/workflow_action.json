@@ -10,7 +10,8 @@
   "reference_doctype",
   "role",
   "workflow_state",
-  "completed_by"
+  "completed_by",
+  "is_deleted"
  ],
  "fields": [
   {
@@ -53,11 +54,18 @@
    "fieldtype": "Link",
    "label": "Role",
    "options": "Role"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Deleted",
+   "search_index": 1
   }
  ],
  "links": [],
- "migration_hash": "e18bdc5dd69d4686b136389d86789298",
- "modified": "2022-01-27 19:52:52.557645",
+ "modified": "2022-01-29 14:24:52.818076",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action",
@@ -71,6 +79,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "reference_name",
  "track_changes": 1
 }
