@@ -21,7 +21,7 @@ class PrintFormatBuilder {
 				this.$component.toggle_preview();
 			}
 		);
-		this.page.add_button(__("Reset Changes"), () =>
+		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
 			this.$component.$store.reset_changes()
 		);
 		this.page.add_menu_item(__("Edit Print Format"), () => {
@@ -46,9 +46,11 @@ class PrintFormatBuilder {
 			if (value) {
 				this.page.set_indicator("Not Saved", "orange");
 				$toggle_preview_btn.hide();
+				$reset_changes_btn.show();
 			} else {
 				this.page.clear_indicator();
 				$toggle_preview_btn.show();
+				$reset_changes_btn.hide();
 			}
 		});
 		this.$component.$watch("show_preview", value => {
