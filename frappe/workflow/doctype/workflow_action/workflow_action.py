@@ -150,7 +150,7 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 
 	# There is no transaction leading upto this state
 	# so no older actions to complete
-	if not allowed_roles: 
+	if not allowed_roles:
 		return
 
 	user_roles = set(frappe.get_roles(user))
@@ -173,6 +173,7 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 		).where(
 			WorkflowAction.status == 'Open',
 		).run()
+		clear_old_workflow_actions_using_role(doc, WorkflowAction, allowed_roles)
 
 	else:
 		# backwards compatibility
@@ -199,6 +200,13 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 		"reference_doctype": doc.get("doctype"),
 		"reference_name": doc.get("name"),
 		"user": ("!=", user),
+		"status": "Open"
+	})
+
+def clear_old_workflow_actions_using_role(doc, user=None, WorkflowAction=None):
+	frappe.db.delete("Workflow Action", {
+		"reference_doctype": doc.get("doctype"),
+		"reference_name": doc.get("name"),
 		"status": "Open"
 	})
 
