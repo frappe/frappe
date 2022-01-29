@@ -36,7 +36,7 @@ data_fieldtypes = (
 	'Geolocation',
 	'Duration',
 	'Icon',
-	'Autocomplete'
+	'Autocomplete',
 )
 
 attachment_fieldtypes = (
