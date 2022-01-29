@@ -196,3 +196,4 @@ frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
 frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
+frappe.patches.v14_0.set_default_is_deleted_for_workflow
