@@ -33,7 +33,7 @@ def get_permission_query_conditions(user):
 def has_permission(doc, user):
 
 	roles = frappe.get_roles(user)
-	
+
 	if user == 'Administrator' or doc.role in roles:
 		return True
 	else:
@@ -147,6 +147,10 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 		filters=[['parent', '=', workflow],
 		['next_state', '=', workflow_state]],
 		pluck = 'allowed')
+
+	# There is no transaction leading upto this state
+	# so no older actions to complete
+	if not allowed_roles: return
 
 	user_roles = set(frappe.get_roles(user))
 
