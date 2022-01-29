@@ -82,6 +82,7 @@ def rename_doc(
 
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
+		update_customizations(old, new)
 
 	update_attachments(doctype, old, new)
 
@@ -175,6 +176,8 @@ def update_user_settings(old, new, link_fields):
 		else:
 			continue
 
+def update_customizations(old: str, new: str) -> None:
+	frappe.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
 
 def update_attachments(doctype, old, new):
 	try:
