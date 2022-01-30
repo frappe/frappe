@@ -80,6 +80,12 @@ class TestDBUpdate(unittest.TestCase):
 		self.assertFalse(restrict_ip_in_table.index)
 		self.assertTrue(restrict_ip_in_table.unique)
 
+		# explicitly make a text index
+		frappe.db.add_index(doctype, ["email_signature(200)"])
+		frappe.db.updatedb(doctype)
+		email_sig_column = get_table_column("User", "email_signature")
+		self.assertEqual(email_sig_column.index, 1)
+
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ('', 0))
 	fieldtype = fieldtuple[0]

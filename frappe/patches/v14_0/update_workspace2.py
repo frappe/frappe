@@ -5,10 +5,10 @@ from frappe import _
 def execute():
 	frappe.reload_doc('desk', 'doctype', 'workspace', force=True)
 
-	for seq, wspace in enumerate(frappe.get_all('Workspace', order_by='name asc')):
-		doc = frappe.get_doc('Workspace', wspace.name)
+	for seq, workspace in enumerate(frappe.get_all('Workspace', order_by='name asc')):
+		doc = frappe.get_doc('Workspace', workspace.name)
 		content = create_content(doc)
-		update_wspace(doc, seq, content)
+		update_workspace(doc, seq, content)
 	frappe.db.commit()
 
 def create_content(doc):
@@ -49,7 +49,7 @@ def create_content(doc):
 			del doc.links[doc.links.index(l)]
 	return content
 
-def update_wspace(doc, seq, content):
+def update_workspace(doc, seq, content):
 	if not doc.title and not doc.content and not doc.is_standard and not doc.public:
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
