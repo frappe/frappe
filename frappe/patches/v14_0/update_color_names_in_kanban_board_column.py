@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.reload_doc("desk", "doctype", "kanban_board_column")
 	indicator_map = {
 		'blue': 'Blue',
 		'orange': 'Orange',

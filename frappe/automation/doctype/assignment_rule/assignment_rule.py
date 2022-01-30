@@ -272,7 +272,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 					for todo in todos_to_close:
 						_todo = frappe.get_doc("ToDo", todo)
 						_todo.status = "Closed"
-						_todo.save()
+						_todo.save(ignore_permissions=True)
 					break
 
 				else:
