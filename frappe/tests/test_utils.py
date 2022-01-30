@@ -329,3 +329,12 @@ class TestDateUtils(unittest.TestCase):
 			frappe.utils.getdate("2020-12-26"))
 		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
 			frappe.utils.getdate("2021-01-02"))
+
+class TestXlsxUtils(unittest.TestCase):
+
+	def test_unescape(self):
+		from frappe.utils.xlsxutils import handle_html
+
+		val = handle_html("<p>html data &gt;</p>")
+		self.assertIn("html data >", val)
+		self.assertEqual("abc", handle_html("abc"))
