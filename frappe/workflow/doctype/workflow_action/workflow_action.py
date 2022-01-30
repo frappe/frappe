@@ -140,6 +140,21 @@ def return_link_expired_page(doc, doc_workflow_state):
 
 
 def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):
+	allowed_roles = get_allowed_roles(user, workflow, workflow_state)
+	# There is no transaction leading upto this state
+	# so no older actions to complete
+	if not allowed_roles:
+		return
+	if is_role_set(doc, allowed_roles):
+		update_completed_workflow_actions_using_role(doc, user, allowed_roles)
+		clear_old_workflow_actions_using_role(doc)
+	else:
+		# backwards compatibility
+		# for workflow actions saved using user
+		clear_old_workflow_actions_using_user(doc, user)
+		update_completed_workflow_actions_using_user(doc, user)
+
+def get_allowed_roles(user, workflow, workflow_state):
 	user = user if user else frappe.session.user
 
 	allowed_roles = frappe.get_all('Workflow Transition',
@@ -148,42 +163,11 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 		['next_state', '=', workflow_state]],
 		pluck = 'allowed')
 
-	# There is no transaction leading upto this state
-	# so no older actions to complete
-	if not allowed_roles:
-		return
-
 	user_roles = set(frappe.get_roles(user))
+	return set(allowed_roles).intersection(user_roles)
 
-	allowed_roles = set(allowed_roles).intersection(user_roles)
-
+def is_role_set(doc, allowed_roles):
 	WorkflowAction = DocType("Workflow Action")
-
-	if is_role_set(WorkflowAction, doc, allowed_roles):
-		frappe.qb.update(WorkflowAction).set(
-			WorkflowAction.status, 'Completed',
-		).set(
-			WorkflowAction.completed_by, user
-		).where(
-			WorkflowAction.reference_doctype == doc.get('doctype')
-		).where(
-			WorkflowAction.reference_name == doc.get('name')
-		).where(
-			WorkflowAction.role.isin(list(allowed_roles))
-		).where(
-			WorkflowAction.status == 'Open',
-		).where(
-			WorkflowAction.is_deleted == 0,
-		).run()
-		clear_old_workflow_actions_using_role(doc)
-
-	else:
-		# backwards compatibility
-		# for workflow actions saved using user
-		clear_old_workflow_actions_using_user(doc, user)
-		update_completed_workflow_actions_using_user(doc, user)
-
-def is_role_set(WorkflowAction, doc, allowed_roles):
 	return frappe.qb.from_(WorkflowAction).select(WorkflowAction.status).where(
 			WorkflowAction.reference_doctype == doc.get('doctype')
 		).where(
@@ -194,24 +178,28 @@ def is_role_set(WorkflowAction, doc, allowed_roles):
 			WorkflowAction.status == 'Open',
 		).run()
 
-def clear_old_workflow_actions_using_user(doc, user=None):
+def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles = set()):
 	user = user if user else frappe.session.user
-	if not frappe.db.has_column('Workflow Action', 'user'): 
-		return False
 	WorkflowAction = DocType("Workflow Action")
 	frappe.qb.update(WorkflowAction).set(
-		WorkflowAction.is_deleted, True
+		WorkflowAction.status, 'Completed',
+	).set(
+		WorkflowAction.completed_by, user
 	).where(
-		WorkflowAction.reference_doctype == doc.get("doctype")
+		WorkflowAction.reference_doctype == doc.get('doctype')
 	).where(
-		WorkflowAction.reference_name == doc.get("name")
+		WorkflowAction.reference_name == doc.get('name')
 	).where(
-		WorkflowAction.status == "Open"
-	).run()
+		WorkflowAction.role.isin(list(allowed_roles))
+	).where(
+		WorkflowAction.status == 'Open',
+	).where(
+		WorkflowAction.is_deleted == 0,
+	).limit(1).run()
 
 def clear_old_workflow_actions_using_role(doc):
 	WorkflowAction = DocType("Workflow Action")
-	frappe.qb.update(WorkflowAction).set(WorkflowAction.is_deleted, True).where(
+	frappe.qb.update(WorkflowAction).set(WorkflowAction.is_deleted, 1).where(
 		WorkflowAction.reference_doctype == doc.get("doctype")
 	).where(
 		WorkflowAction.reference_name == doc.get("name")
@@ -219,14 +207,41 @@ def clear_old_workflow_actions_using_role(doc):
 		WorkflowAction.status == "Open"
 	).run()
 
+def clear_old_workflow_actions_using_user(doc, user=None):
+	user = user if user else frappe.session.user
+	if not frappe.db.has_column('Workflow Action', 'user'):
+		return False
+	WorkflowAction = DocType("Workflow Action")
+	frappe.qb.update(WorkflowAction).set(
+		WorkflowAction.is_deleted, 1
+	).where(
+		WorkflowAction.reference_doctype == doc.get("doctype")
+	).where(
+		WorkflowAction.reference_name == doc.get("name")
+	).where(
+		WorkflowAction.status == "Open"
+	).run()
 
 def update_completed_workflow_actions_using_user(doc, user=None):
 	user = user if user else frappe.session.user
-	if not frappe.db.has_column('Workflow Action', 'user'): 
+	if not frappe.db.has_column('Workflow Action', 'user'):
 		return False
-	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s
-		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open' 
-		AND is_deleted = 0""",(user, doc.get('doctype'), doc.get('name'), user))
+	WorkflowAction = DocType("Workflow Action")
+	frappe.qb.update(WorkflowAction).set(
+		WorkflowAction.status, 'Completed',
+	).set(
+		WorkflowAction.completed_by, user
+	).where(
+		WorkflowAction.reference_doctype == doc.get('doctype')
+	).where(
+		WorkflowAction.reference_name == doc.get('name')
+	).where(
+		WorkflowAction.user == user
+	).where(
+		WorkflowAction.status == 'Open',
+	).where(
+		WorkflowAction.is_deleted == 0,
+	).run()
 
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
