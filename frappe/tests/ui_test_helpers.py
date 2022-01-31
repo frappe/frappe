@@ -242,3 +242,14 @@ def create_topic_and_reply(web_page):
 		})
 
 		reply.save()
+
+@frappe.whitelist()
+def update_webform_to_multistep():
+	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
+		doc = frappe.get_doc("Web Form", "edit-profile")
+		_doc = frappe.copy_doc(doc)
+		_doc.is_multi_step_form = 1
+		_doc.title = "update-profile-duplicate"
+		_doc.route = "update-profile-duplicate"
+		_doc.is_standard = False
+		_doc.save()

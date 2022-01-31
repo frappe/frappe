@@ -282,6 +282,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: this.columns,
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
+			language: frappe.boot.lang,
+			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
 			cellHeight: 35,
@@ -336,7 +338,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								options: columns_in_picker
 							},
 							{
-								label: __('Insert Column Before {0}', [datatabe_col.docfield.label.bold()]),
+								label: __('Insert Column Before {0}', [__(datatabe_col.docfield.label).bold()]),
 								fieldname: 'insert_before',
 								fieldtype: 'Check'
 							}
@@ -785,7 +787,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			} else {
 				this.fields.splice(col_index, 0, field);
 			}
-			frappe.show_alert(__('Also adding the dependent currency field {0}', [field[0].bold()]));
+			const field_label = frappe.meta.get_label(doctype, field[0]);
+			frappe.show_alert(
+				__('Also adding the dependent currency field {0}', [__(field_label).bold()])
+			);
 		}
 	}
 
@@ -795,7 +800,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const field = [col, doctype];
 			this.fields.push(field);
 			this.refresh();
-			frappe.show_alert(__('Also adding the status dependency field {0}', [field[0].bold()]));
+			const field_label = frappe.meta.get_label(doctype, field[0]);
+			frappe.show_alert(
+				__('Also adding the status dependency field {0}', [__(field_label).bold()])
+			);
 		}
 	}
 

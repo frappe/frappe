@@ -337,6 +337,7 @@ frappe.provide("frappe.views");
 
 		function bind_events() {
 			bind_add_column();
+			bind_clickdrag();
 		}
 
 		function setup_sortable() {
@@ -389,6 +390,45 @@ frappe.provide("frappe.views");
 				$(this).val('');
 				$compose_column.show();
 				$compose_column_form.hide();
+			});
+		}
+
+		function bind_clickdrag() {
+			let isDown = false;
+			let startX;
+			let scrollLeft;
+			let draggable = self.$kanban_board[0];
+
+			draggable.addEventListener('mousedown', (e) => {
+				// don't trigger scroll if one of the ancestors of the
+				// clicked element matches any of these selectors
+				let ignoreEl = [
+					'.kanban-column .kanban-column-header',
+					'.kanban-column .add-card',
+					'.kanban-column .kanban-card.new-card-area',
+					'.kanban-card-wrapper',
+				];
+				if (ignoreEl.some((el) => e.target.closest(el))) return;
+
+				isDown = true;
+				draggable.classList.add('clickdrag-active');
+				startX = e.pageX - draggable.offsetLeft;
+				scrollLeft = draggable.scrollLeft;
+			});
+			draggable.addEventListener('mouseleave', () => {
+				isDown = false;
+				draggable.classList.remove('clickdrag-active');
+			});
+			draggable.addEventListener('mouseup', () => {
+				isDown = false;
+				draggable.classList.remove('clickdrag-active');
+			});
+			draggable.addEventListener('mousemove', (e) => {
+				if (!isDown) return;
+				e.preventDefault();
+				const x = e.pageX - draggable.offsetLeft;
+				const walk = (x - startX);
+				draggable.scrollLeft = scrollLeft - walk;
 			});
 		}
 

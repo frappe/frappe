@@ -87,6 +87,11 @@
 		}
 	}
 
+	.dt-cell__resize-handle {
+		right: -3px !important;
+		left: unset !important;
+	}
+
 	.dt-row.dt-row-totalRow {
 		font-weight: bold;
 	}
