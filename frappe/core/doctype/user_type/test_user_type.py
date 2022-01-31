@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2021, Frappe Technologies and Contributors
-<<<<<<< HEAD
 # See license.txt
 from __future__ import unicode_literals
-
-# import frappe
-=======
-# License: MIT. See LICENSE
 import frappe
->>>>>>> 38393c56df (test(User Type): add select perm doctypes)
 import unittest
 
 from frappe.installer import update_site_config
