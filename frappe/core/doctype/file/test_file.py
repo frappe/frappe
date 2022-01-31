@@ -5,10 +5,9 @@ import json
 import frappe
 import os
 import unittest
-from unittest.mock import patch
 
 from frappe import _
-from frappe.core.doctype.file.file import get_attached_images, get_web_image, move_file, get_files_in_folder, unzip_file
+from frappe.core.doctype.file.file import get_attached_images, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
 
 test_content1 = 'Hello'

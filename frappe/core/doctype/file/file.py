@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 """
@@ -7,7 +7,6 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import base64
 import hashlib
 import imghdr
 import io
