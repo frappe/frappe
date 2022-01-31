@@ -1158,7 +1158,7 @@ frappe.views.Workspace = class Workspace {
 					item.data.card_name !== 'Custom Reports')
 			);
 
-			if (page.content == JSON.stringify(blocks)) {
+			if (page.content == JSON.stringify(blocks) && Object.keys(new_widgets).length === 0) {
 				this.setup_customization_buttons(page);
 				frappe.show_alert({ message: __("No changes made on the page"), indicator: "warning" });
 				return false;
