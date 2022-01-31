@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Any, Dict, Optional
+from frappe.utils.data import format_timedelta
 
 from pypika.terms import Function, ValueWrapper
 from pypika.utils import format_alias_sql
@@ -54,7 +55,7 @@ class ParameterizedValueWrapper(ValueWrapper):
 		else:
 			# * BUG: pypika doesen't parse timedeltas
 			if isinstance(self.value, timedelta):
-				self.value = str(self.value)
+				self.value = format_timedelta(self.value)
 			sql = self.get_value_sql(
 				quote_char=quote_char,
 				secondary_quote_char=secondary_quote_char,
