@@ -408,13 +408,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// add "filters" for standard query (search.py)
 					args.filters = filters;
 				}
-			} else if(typeof(get_query)==="string") {
+			} else if (typeof (get_query) === "string") {
 				args.query = get_query;
 			} else {
 				// get_query by function
 				var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
 
-				if (typeof(q)==="string") {
+				if (typeof (q) ==="string") {
 					// returns a string
 					args.query = q;
 				} else if($.isPlainObject(q)) {
@@ -458,8 +458,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!options) return;
 
+<<<<<<< HEAD
 		let field_value = "";
 		const fetch_map = this.fetch_map;
+=======
+		const fetch_map = this.get_fetch_map();
+>>>>>>> 851e66e564 (fix: Call validate_link only if "value" is passed)
 		const columns_to_fetch = Object.values(fetch_map);
 
 		// if default and no fetch, no need to validate
@@ -467,16 +471,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return value;
 		}
 
-		return frappe.xcall("frappe.client.validate_link", {
-			doctype: options,
-			docname: value,
-			fields: columns_to_fetch,
-		}).then((response) => {
-			if (!docname || !columns_to_fetch.length) return response.name;
-
+		function update_dependant_fields(response) {
+			let field_value = "";
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
 				if (value) field_value = response[source_field];
+<<<<<<< HEAD
 				
+=======
+>>>>>>> 851e66e564 (fix: Call validate_link only if "value" is passed)
 				frappe.model.set_value(
 					df.parent,
 					docname,
@@ -485,10 +487,30 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					df.fieldtype,
 				);
 			}
+		}
 
+<<<<<<< HEAD
 			return response.name;
 		});
 	}
+=======
+		// to avoid unnecessary request
+		if (value) {
+			return frappe.xcall("frappe.client.validate_link", {
+				doctype: options,
+				docname: value,
+				fields: columns_to_fetch,
+			}).then((response) => {
+				if (!docname || !columns_to_fetch.length) return response.name;
+				update_dependant_fields(response);
+				return response.name;
+			});
+		} else {
+			update_dependant_fields({});
+			return value;
+		}
+	},
+>>>>>>> 851e66e564 (fix: Call validate_link only if "value" is passed)
 
 	get fetch_map() {
 		const fetch_map = {};
