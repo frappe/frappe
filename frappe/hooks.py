@@ -241,14 +241,14 @@ scheduler_events = {
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
 		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
-		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
-		"frappe.workflow.doctype.workflow_action.workflow_action.cleanup_workflow_actions"
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
 		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
-		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
+		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
+		"frappe.workflow.doctype.workflow_action.workflow_action.cleanup_workflow_actions"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",

@@ -25,23 +25,20 @@
    "fieldname": "reference_name",
    "fieldtype": "Dynamic Link",
    "label": "Reference Name",
-   "options": "reference_doctype",
-   "search_index": 1
+   "options": "reference_doctype"
   },
   {
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Reference Document Type",
-   "options": "DocType",
-   "search_index": 1
+   "options": "DocType"
   },
   {
    "fieldname": "workflow_state",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Workflow State",
-   "search_index": 1
+   "label": "Workflow State"
   },
   {
    "fieldname": "completed_by",

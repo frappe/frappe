@@ -20,7 +20,7 @@ class WorkflowAction(Document):
 
 
 def on_doctype_update():
-	frappe.db.add_index("Workflow Action", ["status", "role"])
+	frappe.db.add_index("Workflow Action", ["status", "role", "reference_name"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
@@ -169,13 +169,13 @@ def get_allowed_roles(user, workflow, workflow_state):
 def is_role_set(doc, allowed_roles):
 	WorkflowAction = DocType("Workflow Action")
 	return frappe.qb.from_(WorkflowAction).select(WorkflowAction.status).where(
-			WorkflowAction.reference_doctype == doc.get('doctype')
-		).where(
-			WorkflowAction.reference_name == doc.get('name')
+			WorkflowAction.status == 'Open',
 		).where(
 			WorkflowAction.role.isin(list(allowed_roles))
 		).where(
-			WorkflowAction.status == 'Open',
+			WorkflowAction.reference_doctype == doc.get('doctype')
+		).where(
+			WorkflowAction.reference_name == doc.get('name')
 		).run()
 
 def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles = set()):
@@ -183,13 +183,13 @@ def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles =
 	WorkflowAction = DocType("Workflow Action")
 
 	name = frappe.qb.from_(WorkflowAction).select(WorkflowAction.name).where(
-		WorkflowAction.reference_doctype == doc.get('doctype')
-	).where(
-		WorkflowAction.reference_name == doc.get('name')
+		WorkflowAction.status == 'Open',
 	).where(
 		WorkflowAction.role.isin(list(allowed_roles))
 	).where(
-		WorkflowAction.status == 'Open',
+		WorkflowAction.reference_doctype == doc.get('doctype')
+	).where(
+		WorkflowAction.reference_name == doc.get('name')
 	).where(
 		WorkflowAction.is_deleted == 0,
 	).orderby('role').limit(1).run()
@@ -240,13 +240,13 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 	).set(
 		WorkflowAction.completed_by, user
 	).where(
+		WorkflowAction.status == 'Open',
+	).where(
 		WorkflowAction.reference_doctype == doc.get('doctype')
 	).where(
 		WorkflowAction.reference_name == doc.get('name')
 	).where(
 		WorkflowAction.user == user
-	).where(
-		WorkflowAction.status == 'Open',
 	).where(
 		WorkflowAction.is_deleted == 0,
 	).run()
@@ -431,5 +431,6 @@ def get_state_optional_field_value(workflow_name, state):
 		'state': state
 	}, 'is_optional_state')
 
+# Called via background job
 def cleanup_workflow_actions():
 	frappe.db.delete('Workflow Action', filters={'is_deleted': 1})
