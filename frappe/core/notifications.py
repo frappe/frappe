@@ -54,28 +54,3 @@ def get_unseen_likes():
 			& (comment_doctype.seen == 0)
 		)
 	)
-
-
-def get_unread_emails():
-	"returns count of unread emails for a user"
-
-	communication_doctype = DocType("Communication")
-	user_doctype = DocType("User")
-	distinct_email_accounts = (
-		frappe.qb.from_(user_doctype)
-		.select(user_doctype.email_account)
-		.where(user_doctype.parent == frappe.session.user)
-		.distinct()
-	)
-
-	return frappe.db.count(communication_doctype,
-		filters=(
-			(communication_doctype.communication_type == "Communication")
-			& (communication_doctype.communication_medium == "Email")
-			& (communication_doctype.sent_or_received == "Received")
-			& (communication_doctype.email_status.notin(["spam", "Trash"]))
-			& (communication_doctype.email_account.isin(distinct_email_accounts))
-			& (communication_doctype.modified >= Now() - Interval(years=1))
-			& (communication_doctype.seen == 0)
-		)
-	)
