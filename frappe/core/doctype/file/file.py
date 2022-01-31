@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+=======
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+>>>>>>> 8d9b46527f (chore: Remove dead imports)
 
 """
 record of files
@@ -7,9 +12,12 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
+<<<<<<< HEAD
 from __future__ import unicode_literals
 
 import base64
+=======
+>>>>>>> 8d9b46527f (chore: Remove dead imports)
 import hashlib
 import imghdr
 import io
