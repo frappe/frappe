@@ -578,12 +578,10 @@ class File(Document):
 
 	@staticmethod
 	def zip_files(files):
-		from six import string_types
-
 		zip_file = io.BytesIO()
 		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
 		for _file in files:
-			if isinstance(_file, string_types):
+			if isinstance(_file, str):
 				_file = frappe.get_doc("File", _file)
 			if not isinstance(_file, File):
 				continue

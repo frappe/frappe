@@ -5,9 +5,9 @@ import mimetypes
 import os
 import re
 from functools import cache, wraps
+from typing import Dict, Optional
 
 import yaml
-from six import iteritems
 from werkzeug.wrappers import Response
 
 import frappe
@@ -453,7 +453,7 @@ def cache_html(func):
 
 	return cache_html_decorator
 
-def build_response(path, data, http_status_code, headers=None):
+def build_response(path, data, http_status_code, headers: Optional[Dict] = None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
@@ -463,7 +463,7 @@ def build_response(path, data, http_status_code, headers=None):
 
 	add_preload_headers(response)
 	if headers:
-		for key, val in iteritems(headers):
+		for key, val in headers.items():
 			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
 
 	return response

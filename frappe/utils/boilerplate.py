@@ -62,6 +62,11 @@ def make_boilerplate(dest, app_name, no_git=False):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
 		"js"))
 
+	# add .gitkeep file so that public folder is committed to git
+	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "public", ".gitkeep"), "w") as f:
+		f.write('')
+
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(frappe.as_unicode(init_template))
 
