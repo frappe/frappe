@@ -27,7 +27,10 @@ class WebsiteGenerator(Document):
 
 	def autoname(self):
 		if not self.name and self.meta.autoname != "hash":
-			self.name = self.scrubbed_title()
+			if self.meta.autoname == "naming_series:":
+				self.name = cleanup_page_name(self.name)
+			else:
+				self.name = self.scrubbed_title()
 
 	def onload(self):
 		self.get("__onload").update({
