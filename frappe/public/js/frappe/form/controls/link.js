@@ -229,7 +229,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					me.toggle_href(doctype);
 				}
 			});
-		}, 500, true));
+		}, 50));
 
 		this.$input.on("blur", function() {
 			if(me.selected) {
