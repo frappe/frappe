@@ -112,14 +112,7 @@ frappe.ui.form.on('Data Import', {
 			if (!frm.is_new() && (frm.has_import_file())) {
 				let label =
 					frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
-
-				if (frm.doc.status == 'Partially Completed') {
-					label = __('Continue Import');
-				}
-
-				if (!frm.import_in_progress) {
-					frm.page.set_primary_action(label, () => frm.events.start_import(frm));
-				}
+				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
 			} else {
 				frm.page.set_primary_action(__('Save'), () => frm.save());
 			}
