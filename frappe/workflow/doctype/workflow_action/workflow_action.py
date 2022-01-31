@@ -181,12 +181,8 @@ def is_role_set(doc, allowed_roles):
 def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles = set()):
 	user = user if user else frappe.session.user
 	WorkflowAction = DocType("Workflow Action")
-	# postgres requires order_by for limit to Work
-	frappe.qb.update(WorkflowAction).set(
-		WorkflowAction.status, 'Completed',
-	).set(
-		WorkflowAction.completed_by, user
-	).where(
+
+	name = frappe.qb.from_(WorkflowAction).select(WorkflowAction.name).where(
 		WorkflowAction.reference_doctype == doc.get('doctype')
 	).where(
 		WorkflowAction.reference_name == doc.get('name')
@@ -197,6 +193,17 @@ def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles =
 	).where(
 		WorkflowAction.is_deleted == 0,
 	).orderby('role').limit(1).run()
+
+	if not name or not name[0]:
+		return
+
+	frappe.qb.update(WorkflowAction).set(
+		WorkflowAction.status, 'Completed',
+	).set(
+		WorkflowAction.completed_by, user
+	).where(
+		WorkflowAction.name == name[0][0],
+	).run()
 
 def clear_old_workflow_actions_using_role(doc):
 	WorkflowAction = DocType("Workflow Action")
