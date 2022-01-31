@@ -221,6 +221,13 @@ class TestNaming(unittest.TestCase):
 		})
 		self.assertRaises(frappe.NameError, tag.insert)
 
+		# case 4: no name specified
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': ''
+		})
+		self.assertRaises(frappe.ValidationError, tag.insert)
+
 
 def make_invalid_todo():
 	frappe.get_doc({
