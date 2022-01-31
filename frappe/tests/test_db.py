@@ -301,10 +301,8 @@ class TestDB(unittest.TestCase):
 		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
 		note = frappe.get_last_doc("ToDo")
 		note.description = "changed"
-		with self.assertRaises(frappe.ValidationError) as tmw:
+		with self.assertRaises(frappe.TooManyWritesError) as tmw:
 			note.save()
-
-		self.assertTrue("too many" in str(tmw.exception).lower())
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
 
