@@ -23,7 +23,6 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
 
 
-
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open'}, {'status': 'Open'}))
@@ -280,7 +279,6 @@ class TestPythonExpressions(unittest.TestCase):
 		for expr in invalid_expressions:
 			self.assertRaises(frappe.ValidationError, validate_python_code, expr)
 
-
 class TestDiffUtils(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -336,7 +334,6 @@ class TestDateUtils(unittest.TestCase):
 		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
 			frappe.utils.getdate("2021-01-02"))
 
-
 class TestResponse(unittest.TestCase):
 	def test_json_handler(self):
 		class TEST(Enum):
@@ -388,3 +385,11 @@ class TestTimeDeltaUtils(unittest.TestCase):
 		self.assertEqual(parse_timedelta("10:0:0"), timedelta(hours=10))
 		self.assertEqual(parse_timedelta("7 days, 0:32:18.192221"), timedelta(days=7, seconds=1938, microseconds=192221))
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
+
+class TestXlsxUtils(unittest.TestCase):
+	def test_unescape(self):
+		from frappe.utils.xlsxutils import handle_html
+
+		val = handle_html("<p>html data &gt;</p>")
+		self.assertIn("html data >", val)
+		self.assertEqual("abc", handle_html("abc"))
