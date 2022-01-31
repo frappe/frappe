@@ -85,7 +85,7 @@ class Importer:
 		log_index = 0
 
 		# Do not remove rows in case of retry after an error or pending data import
-		if self.data_import.status == "Partial Success":
+		if self.data_import.status == "Partial Success" and len(import_log) > len(payloads):
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
 
@@ -93,7 +93,7 @@ class Importer:
 		imported_rows = []
 		for log in import_log:
 			log = frappe._dict(log)
-			if log.success or self.data_import.status == "Partially Completed":
+			if log.success or len(import_log) < len(payloads):
 				imported_rows += json.loads(log.row_indexes)
 
 			log_index = log.log_index
@@ -158,8 +158,8 @@ class Importer:
 
 					log_index += 1
 
-					if not self.data_import.status == "Partially Completed":
-						self.data_import.db_set("status", "Partially Completed")
+					if not self.data_import.status == "Partial Success":
+						self.data_import.db_set("status", "Partial Success")
 					
 					# commit after every successful import
 					frappe.db.commit()

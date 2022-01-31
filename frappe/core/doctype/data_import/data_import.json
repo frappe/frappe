@@ -36,7 +36,9 @@
    "label": "Document Type",
    "options": "DocType",
    "reqd": 1,
-   "set_only_once": 1
+   "set_only_once": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "import_type",
@@ -45,7 +47,9 @@
    "label": "Import Type",
    "options": "\nInsert New Records\nUpdate Existing Records",
    "reqd": 1,
-   "set_only_once": 1
+   "set_only_once": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "eval:!doc.__islocal",
@@ -53,21 +57,29 @@
    "fieldtype": "Attach",
    "in_list_view": 1,
    "label": "Import File",
-   "read_only_depends_on": "eval: ['Success', 'Partial Success', 'Partially Completed'].includes(doc.status)"
+   "read_only_depends_on": "eval: ['Success', 'Partial Success', 'Partially Completed'].includes(doc.status)",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "import_preview",
    "fieldtype": "HTML",
-   "label": "Import Preview"
+   "label": "Import Preview",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "section_import_preview",
    "fieldtype": "Section Break",
-   "label": "Preview"
+   "label": "Preview",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "column_break_5",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "template_options",
@@ -75,17 +87,23 @@
    "hidden": 1,
    "label": "Template Options",
    "options": "JSON",
-   "read_only": 1
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "import_log_section",
    "fieldtype": "Section Break",
-   "label": "Import Log"
+   "label": "Import Log",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "import_log_preview",
    "fieldtype": "HTML",
-   "label": "Import Log Preview"
+   "label": "Import Log Preview",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "Pending",
@@ -93,57 +111,75 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Pending\nSuccess\nPartial Success\nError\nPartially Completed",
-   "read_only": 1
+   "options": "Pending\nSuccess\nPartial Success\nError",
+   "read_only": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "template_warnings",
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Template Warnings",
-   "options": "JSON"
+   "options": "JSON",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "submit_after_import",
    "fieldtype": "Check",
    "label": "Submit After Import",
-   "set_only_once": 1
+   "set_only_once": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "import_warnings_section",
    "fieldtype": "Section Break",
-   "label": "Import File Errors and Warnings"
+   "label": "Import File Errors and Warnings",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "fieldname": "import_warnings",
    "fieldtype": "HTML",
-   "label": "Import Warnings"
+   "label": "Import Warnings",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "eval:!doc.__islocal",
    "fieldname": "download_template",
    "fieldtype": "Button",
-   "label": "Download Template"
+   "label": "Download Template",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "1",
    "fieldname": "mute_emails",
    "fieldtype": "Check",
    "label": "Don't Send Emails",
-   "set_only_once": 1
+   "set_only_once": 1,
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "default": "0",
    "fieldname": "show_failed_logs",
    "fieldtype": "Check",
-   "label": "Show Failed Logs"
+   "label": "Show Failed Logs",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "eval:!doc.__islocal && !doc.import_file",
    "fieldname": "html_5",
    "fieldtype": "HTML",
-   "options": "<h5 class=\"text-muted uppercase\">Or</h5>"
+   "options": "<h5 class=\"text-muted uppercase\">Or</h5>",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "eval:!doc.__islocal && !doc.import_file\n",
@@ -151,18 +187,22 @@
    "fieldname": "google_sheets_url",
    "fieldtype": "Data",
    "label": "Import from Google Sheets",
-   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
+   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)",
+   "show_days": 1,
+   "show_seconds": 1
   },
   {
    "depends_on": "eval:doc.google_sheets_url && !doc.__unsaved &&  ['Success', 'Partial Success'].includes(doc.status)",
    "fieldname": "refresh_google_sheet",
    "fieldtype": "Button",
-   "label": "Refresh Google Sheet"
+   "label": "Refresh Google Sheet",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2021-12-26 23:51:00.280093",
+ "modified": "2022-01-31 10:50:13.015426",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",
