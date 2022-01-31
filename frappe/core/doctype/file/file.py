@@ -610,7 +610,9 @@ def get_extension(filename, extn, content: bytes = None, response: "Response" = 
 		content_type = response.headers.get("Content-Type")
 
 		if content_type:
-			return mimetypes.guess_extension(content_type)[1:]
+			_extn = mimetypes.guess_extension(content_type)
+			if _extn:
+				return _extn[1:]
 
 	if extn:
 		# remove '?' char and parameters from extn if present
