@@ -458,7 +458,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!options) return;
 
-		let field_value = "";
 		const fetch_map = this.fetch_map;
 		const columns_to_fetch = Object.values(fetch_map);
 
@@ -467,16 +466,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return value;
 		}
 
-		return frappe.xcall("frappe.client.validate_link", {
-			doctype: options,
-			docname: value,
-			fields: columns_to_fetch,
-		}).then((response) => {
-			if (!docname || !columns_to_fetch.length) return response.name;
-
+		function update_dependant_fields(response) {
+			let field_value = "";
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
 				if (value) field_value = response[source_field];
-				
 				frappe.model.set_value(
 					df.parent,
 					docname,
@@ -485,9 +478,23 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					df.fieldtype,
 				);
 			}
+		}
 
-			return response.name;
-		});
+		// to avoid unnecessary request
+		if (value) {
+			return frappe.xcall("frappe.client.validate_link", {
+				doctype: options,
+				docname: value,
+				fields: columns_to_fetch,
+			}).then((response) => {
+				if (!docname || !columns_to_fetch.length) return response.name;
+				update_dependant_fields(response);
+				return response.name;
+			});
+		} else {
+			update_dependant_fields({});
+			return value;
+		}
 	}
 
 	get fetch_map() {
