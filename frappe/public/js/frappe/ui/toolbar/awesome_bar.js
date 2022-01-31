@@ -11,16 +11,21 @@ frappe.search.AwesomeBar2 = class AwesomeBar2 {
 	setup() {
 		$('.search-bar').removeClass('hidden');
 		this.$input = $("#navbar-search");
-		this.doctypes = [];
+		this.data = {doctypes:[], pages:[], reports:[]};
 
 		this.awesomplete = new Awesomplete(this.$input.get(0), {
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
 			item: function(item) {
-				var html = '<strong>' + __(item.value.label) + '</strong> ';
+				let html = '<strong>' + __(item.value.label) + '</strong>';
+				let type_html = '<span class="small">' + __(item.value.type) + '</span>'
 				if (item.value.type) {
-					html += '<span class="small">' + __(item.value.type) + '</span>';
+					if (item.value.type==='List') {
+						html = html + ' ' + type_html;
+					} else {
+						html = type_html + ' ' + html
+					}
 				}
 
 				return $('<li></li>')
@@ -68,7 +73,7 @@ frappe.search.AwesomeBar2 = class AwesomeBar2 {
 		});
 
 		frappe.xcall('frappe.desk.permissions.get_permissions').then((data) => {
-			this.doctypes = data.doctypes;
+			this.data = data;
 		})
 	}
 	build_list() {
@@ -77,6 +82,8 @@ frappe.search.AwesomeBar2 = class AwesomeBar2 {
 		this.add_frequent_pages();
 		this.add_math();
 		this.add_doctypes();
+		this.add_pages();
+		this.add_reports();
 		this.deduplicate();
 		// awesomplete.list is only a setter, can't dynamically add elements
 		this.awesomplete.list = this.list;
@@ -101,8 +108,8 @@ frappe.search.AwesomeBar2 = class AwesomeBar2 {
 		}
 	}
 	add_doctypes() {
-		for (let name in this.doctypes) {
-			const d = this.doctypes[name];
+		for (let name in this.data.doctypes) {
+			const d = this.data.doctypes[name];
 			if (d.read && !d.restricted && !d.no_read) {
 				if (d.is_single) {
 					this.list.push({
@@ -126,6 +133,32 @@ frappe.search.AwesomeBar2 = class AwesomeBar2 {
 						});
 					}
 				}
+			}
+		}
+	}
+	add_pages() {
+		for (let d of this.data.pages) {
+			this.list.push({
+				route: [d.name],
+				label: __(d.title || d.page_name),
+				type: 'Open'
+			});
+		}
+	}
+	add_reports() {
+		for (let d of this.data.reports) {
+			if (d.report_type==='Report Builder') {
+				this.list.push({
+					route: ['Report', d.ref_doctype, d.name],
+					label: __(d.name),
+					type: 'Report'
+				});
+			} else {
+				this.list.push({
+					route: ['query-report', d.name],
+					label: __(d.name),
+					type: 'Report'
+				});
 			}
 		}
 	}
