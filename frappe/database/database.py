@@ -278,27 +278,14 @@ class Database(object):
 				if self.auto_commit_on_many_writes:
 					self.commit()
 				else:
-					self._raise_too_many_writes_error()
+					msg = "<br><br>" + _("Too many changes to database in single action.") + "<br>"
+					msg += _("The changes have been reverted.") + "<br>"
+					raise frappe.TooManyWritesError(msg)
 
 	def check_implicit_commit(self, query):
 		if self.transaction_writes and \
 			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
 			raise Exception('This statement can cause implicit commit')
-
-	def _raise_too_many_writes_error(self):
-		from frappe.utils.error import get_app_details_from_stack
-
-		msg = "<br><br>" + _("Too many changes to database in single action.") + "<br>"
-		msg += _("The changes have been reverted.") + "<br>"
-
-		app_details = get_app_details_from_stack(
-				ignore_files=("database.py", "base_document.py", "document.py"), skip_frames=1)
-
-		if app_details:
-			msg += _("Last change was made by {} app in {}:{}").format(
-					frappe.bold(app_details.app), app_details.filename, app_details.function)
-
-		raise frappe.TooManyWritesError(msg)
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
