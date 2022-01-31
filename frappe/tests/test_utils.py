@@ -342,3 +342,12 @@ class TestErrorUtils(unittest.TestCase):
 
 		app_details = get_app_details_from_stack(ignore_files=("test_utils.py"))
 		self.assertNotEqual(app_details.filename, "test_utils.py")
+
+class TestXlsxUtils(unittest.TestCase):
+
+	def test_unescape(self):
+		from frappe.utils.xlsxutils import handle_html
+
+		val = handle_html("<p>html data &gt;</p>")
+		self.assertIn("html data >", val)
+		self.assertEqual("abc", handle_html("abc"))
