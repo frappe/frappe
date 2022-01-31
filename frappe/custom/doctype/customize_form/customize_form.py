@@ -107,20 +107,26 @@ class CustomizeForm(Document):
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
-		if current:
-			if self.label and current.translated_text != self.label:
-				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
-				frappe.translate.clear_cache()
-			else:
+		if not self.label:
+			if current:
 				# clear translation
 				frappe.delete_doc('Translation', current.name)
+			return
 
-		else:
-			if self.label:
-				frappe.get_doc(dict(doctype='Translation',
-					source_text=self.doc_type,
-					translated_text=self.label,
-					language_code=frappe.local.lang or 'en')).insert()
+		if not current:
+			frappe.get_doc(
+				{
+					"doctype": 'Translation',
+					"source_text": self.doc_type,
+					"translated_text": self.label,
+					"language_code": frappe.local.lang or 'en'
+				}
+			).insert()
+			return
+
+		if self.label != current.translated_text:
+			frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
+			frappe.translate.clear_cache()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -376,7 +382,7 @@ class CustomizeForm(Document):
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None,
 		apply_on=None, row_name = None):
-		delete_property_setter(self.doc_type, prop, fieldname)
+		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 

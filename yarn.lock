@@ -2536,19 +2536,19 @@ frappe-charts@^2.0.0-rc13:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc13.tgz#fdb251d7ae311c41e38f90a3ae108070ec6b9072"
   integrity sha512-Bv7IfllIrjRbKWHn5b769dOSenqdBixAr6m5kurf8ZUOJSLOgK4HOXItJ7BA8n9PvviH9/k5DaloisjLM2Bm1w==
 
-frappe-datatable@^1.15.4:
-  version "1.15.4"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.15.4.tgz#dc2e5e5d8a0a7cb8ee658f2d39966af1d4405401"
-  integrity sha512-eW3upPvverm1GNBL4+IcPDvjm5xbJc5ZXW8TYEUZt/QQ2W75K/T6736pSzi9D6mX9sn3BtZ7Ige7MS45SGrgzQ==
+frappe-datatable@^1.16.1:
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.16.1.tgz#a5844b7ad8259ef45606608f492ca4b343006818"
+  integrity sha512-TRj3459YWyJdoP9MgHfOAEq7ylyoT3TVkwxLQGEmn5Xj6UAJOFa7F9j4TaWnFXW8tuoy69z/TktDclOurMeT2w==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
     sortablejs "^1.7.0"
 
-frappe-gantt@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.5.0.tgz#4dc7aa125f318efea64b4ae0e38f67a720238c1d"
-  integrity sha512-RAskVuBmnTcPJXh87oVhYmnNGy/9lvZlLHGui8QFB8yRBuUjzpZoZfZ+hKmDtBDmWNrE2/LRta06W5WmhTzzWQ==
+frappe-gantt@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.6.0.tgz#fece2fdecc0b8d6065d3c420d9681b719b827047"
+  integrity sha512-/P7s9edP6EoLD09EX2HPqsy1u0v4zYcurMy4ByExArvj7t0UDJlpxp88nISFtMkQe+aofaO9dR0fd61ZwX0O6g==
 
 fresh@0.5.2:
   version "0.5.2"

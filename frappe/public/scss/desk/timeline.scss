@@ -57,35 +57,6 @@ $threshold: 34;
 			}
 		}
 	}
-	.timeline-actions {
-		display: inline-flex;
-		width: 100%;
-		margin-bottom: var(--timeline-item-bottom-margin);
-		padding: var(--padding-sm);
-		position: relative;
-		.action-btn {
-			margin-left: var(--margin-md);
-			display: flex;
-			align-items: center;
-			line-height: var(--text-xl);
-			.icon {
-				margin-right: var(--margin-xs);
-			}
-		}
-		.action-btn:first-of-type {
-			margin-left: var(--timeline-item-left-margin);
-		}
-	}
-	.document-email-link-container {
-		@extend .ellipsis;
-		position: relative;
-		padding: var(--padding-sm);
-		font-size: var(--text-sm);
-		margin-bottom: var(--timeline-item-bottom-margin);
-		span:first-of-type {
-			margin-left: var(--timeline-item-left-margin);
-		}
-	}
 	.timeline-item {
 		font-size: var(--text-md);
 		position: relative;
@@ -93,6 +64,23 @@ $threshold: 34;
 		b {
 			color: var(--text-color);
 			font-weight: var(--text-bold);
+		}
+		.action-buttons {
+			display: inline-flex;
+			white-space: nowrap;
+			overflow: auto;
+			.action-btn {
+				margin-left: var(--margin-md);
+				display: flex;
+				align-items: center;
+				line-height: var(--text-xl);
+				.icon {
+					margin-right: var(--margin-xs);
+				}
+			}
+			.action-btn:first-of-type {
+				margin-left: 0;
+			}
 		}
 		.timeline-content {
 			max-width: var(--timeline-content-max-width);
