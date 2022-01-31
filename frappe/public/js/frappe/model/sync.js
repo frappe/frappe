@@ -39,7 +39,7 @@ Object.assign(frappe.model, {
 		}
 
 		frappe.model.sync_docinfo(r);
-
+		return r.docs;
 	},
 
 	rename_after_save: (d, i) => {

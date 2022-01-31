@@ -1,5 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
+
 import email.utils
 import functools
 import imaplib
@@ -7,6 +8,7 @@ import socket
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
+from typing import List
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
@@ -81,9 +83,6 @@ class EmailAccount(Document):
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
-
-		#if self.enable_incoming and not self.append_to:
-		#	frappe.throw(_("Append To is mandatory for incoming mails"))
 
 		if (not self.awaiting_password and not frappe.local.flags.in_install
 			and not frappe.local.flags.in_patch):
@@ -442,7 +441,7 @@ class EmailAccount(Document):
 				frappe.db.rollback()
 			except Exception:
 				frappe.db.rollback()
-				frappe.log_error('email_account.receive')
+				frappe.log_error(title="EmailAccount.receive")
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
@@ -458,7 +457,7 @@ class EmailAccount(Document):
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
 
-	def get_inbound_mails(self, test_mails=None):
+	def get_inbound_mails(self, test_mails=None) -> List[InboundMail]:
 		"""retrive and return inbound mails.
 
 		"""
@@ -625,7 +624,6 @@ class EmailAccount(Document):
 			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ('!=', self.name)}):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
-
 	def append_email_to_sent_folder(self, message):
 		email_server = None
 		try:
@@ -643,7 +641,8 @@ class EmailAccount(Document):
 				message = safe_encode(message)
 				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
-				frappe.log_error()
+				frappe.log_error(title="EmailAccount.append_email_to_sent_folder")
+
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

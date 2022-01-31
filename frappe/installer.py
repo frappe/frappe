@@ -154,7 +154,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	for before_install in app_hooks.before_install or []:
 		out = frappe.get_attr(before_install)()
-		if out==False:
+		if out is False:
 			return
 
 	if name != "frappe":
@@ -346,14 +346,15 @@ def post_install(rebuild_website=False):
 
 
 def set_all_patches_as_completed(app):
-	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")
-	if os.path.exists(patch_path):
-		for patch in frappe.get_file_items(patch_path):
-			frappe.get_doc({
-				"doctype": "Patch Log",
-				"patch": patch
-			}).insert(ignore_permissions=True)
-		frappe.db.commit()
+	from frappe.modules.patch_handler import get_patches_from_app
+
+	patches = get_patches_from_app(app)
+	for patch in patches:
+		frappe.get_doc({
+			"doctype": "Patch Log",
+			"patch": patch
+		}).insert(ignore_permissions=True)
+	frappe.db.commit()
 
 
 def init_singles():
