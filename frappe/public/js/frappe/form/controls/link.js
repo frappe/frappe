@@ -387,13 +387,12 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		};
 
 		const set_nulls = (obj) => {
-			let new_obj = {};
 			$.each(obj, (key, value) => {
-				if (is_valid_value(value, key)) {
-					new_obj[key] = value;
+				if (!is_valid_value(value, key)) {
+					delete obj[key];
 				}
 			});
-			return new_obj;
+			return obj;
 		};
 
 		if(this.get_query || this.df.get_query) {
