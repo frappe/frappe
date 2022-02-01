@@ -42,8 +42,7 @@ def getdoc(doctype, name, user=None):
 
 		# add file list
 		doc.add_viewed()
-		frappe.response["docinfo"] = get_docinfo(doc)
-
+		get_docinfo(doc)
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
@@ -119,6 +118,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	update_user_info(docinfo)
 
+	frappe.response["docinfo"] = docinfo
 	return docinfo
 
 def add_comments(doc, docinfo):
