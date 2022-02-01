@@ -374,13 +374,26 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	set_custom_query(args) {
-		var set_nulls = function(obj) {
-			$.each(obj, function(key, value) {
-				if(value!==undefined) {
-					obj[key] = value;
+		const is_valid_value = (value, key) => {
+			if (value) return true;
+			// check if empty value is valid
+			if (this.frm) {
+				let field = frappe.meta.get_docfield(this.frm.doctype, key);
+				// empty value link fields is invalid
+				return !field || !["Link", "Dynamic Link"].includes(field.fieldtype);
+			} else {
+				return value !== undefined;
+			}
+		}
+
+		const set_nulls = (obj) => {
+			let new_obj = {}
+			$.each(obj, (key, value) => {
+				if (is_valid_value(value, key)) {
+					new_obj[key] = value;
 				}
 			});
-			return obj;
+			return new_obj;
 		};
 		if(this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
