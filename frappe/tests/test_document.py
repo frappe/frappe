@@ -276,7 +276,8 @@ class TestDocument(unittest.TestCase):
 			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
 
 		@contextmanager
-		def customize_note():
+		def customize_note(with_options=False):
+			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
 			custom_field = frappe.get_doc({
 				"doctype": "Custom Field",
 				"dt": "Note",
@@ -284,6 +285,7 @@ class TestDocument(unittest.TestCase):
 				"fieldtype": "Data",
 				"read_only": True,
 				"is_virtual": True,
+				"options": options,
 			})
 
 			try:
@@ -302,5 +304,11 @@ class TestDocument(unittest.TestCase):
 			doc = frappe.get_last_doc("Note")
 			self.assertIsInstance(doc, CustomTestNote)
 			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+		with customize_note(with_options=True):
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, Note)
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
