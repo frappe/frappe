@@ -249,8 +249,11 @@ class BaseDocument(object):
 
 				if d[fieldname] is None:
 					if df.get("options"):
-						# d[fieldname] = frappe.safe_eval(df.get("options"), {**get_safe_globals, "doc": self})
-						d[fieldname] = frappe.safe_eval(df.get("options"), get_safe_globals(), {"doc": self})
+						d[fieldname] = frappe.safe_eval(
+							code=df.get("options"),
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},
+						)
 					else:
 						_val = getattr(self, fieldname, None)
 						if _val and not callable(_val):

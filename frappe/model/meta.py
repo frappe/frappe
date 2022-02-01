@@ -444,7 +444,7 @@ class Meta(Document):
 	def get_fieldnames_with_value(self, with_field_meta=False):
 		def is_value_field(docfield):
 			return not (
-				docfield.is_virtual
+				docfield.get("is_virtual")
 				or docfield.fieldtype in no_value_fields
 			)
 
