@@ -481,11 +481,11 @@ class EmailAccount(Document):
 			if self.use_imap:
 				# process all given imap folder
 				for folder in self.imap_folder:
-					email_server.select_imap_folder(folder.folder_name)
-					email_server.settings['uid_validity'] = folder.uidvalidity
-					messages = email_server.get_messages(folder=folder.folder_name) or {}
-					append_to = folder.append_to
-					process_mail(messages, append_to)
+					if email_server.select_imap_folder(folder.folder_name):
+						frappe.log_error(f'FOLDER NAME: {folder.folder_name} PRESENT')
+						email_server.settings['uid_validity'] = folder.uidvalidity
+						messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
+						process_mail(messages, folder.append_to)
 			else:
 				# process the pop3 account
 				messages = email_server.get_messages() or {}

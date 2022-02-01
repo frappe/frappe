@@ -108,7 +108,8 @@ class EmailServer:
 				raise
 
 	def select_imap_folder(self, folder):
-		self.imap.select(folder)
+		res = self.imap.select(f'"{folder}"')
+		return res[0] == 'OK'	# The folder exsits TODO: handle other resoponses too
 
 	def logout(self):
 		if cint(self.settings.use_imap):
