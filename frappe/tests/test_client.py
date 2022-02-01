@@ -101,3 +101,33 @@ class TestClient(unittest.TestCase):
 			execute_cmd,
 			frappe.local.form_dict.cmd
 		)
+
+	def test_array_values_in_request_args(self):
+		import requests
+		from frappe.auth import CookieManager, LoginManager
+
+		frappe.utils.set_request(path="/")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as('Administrator')
+		params = {
+			'doctype': 'DocType',
+			'fields': ['name', 'modified'],
+			'sid': frappe.session.sid,
+		}
+		headers = {
+			'accept': 'application/json',
+			'content-type': 'application/json',
+		}
+		url = f'http://{frappe.local.site}:{frappe.conf.webserver_port}/api/method/frappe.client.get_list'
+		res = requests.post(
+			url,
+			json=params,
+			headers=headers
+		)
+		self.assertEqual(res.status_code, 200)
+		data = res.json()
+		first_item = data['message'][0]
+		self.assertTrue('name' in first_item)
+		self.assertTrue('modified' in first_item)
+		frappe.local.login_manager.logout()
