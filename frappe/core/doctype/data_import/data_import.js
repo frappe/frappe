@@ -278,14 +278,15 @@ frappe.ui.form.on('Data Import', {
 				}
 			})
 			.then(r => {
-				let preview_data = r.message.preview_data;
-				let import_log = r.message.import_log;
-				frm.events.show_import_preview(frm, preview_data, import_log);
+				let preview_data = r.message;
+				frm.events.show_import_preview(frm, preview_data);
 				frm.events.show_import_warnings(frm, preview_data);
 			});
 	},
 
-	show_import_preview(frm, preview_data, import_log) {
+	show_import_preview(frm, preview_data) {
+		let import_log = preview_data.import_log;
+
 		if (
 			frm.import_preview &&
 			frm.import_preview.doctype === frm.doc.reference_doctype

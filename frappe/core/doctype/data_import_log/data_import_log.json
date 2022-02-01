@@ -3,7 +3,7 @@
  "creation": "2021-12-25 16:12:20.205889",
  "doctype": "DocType",
  "editable_grid": 1,
- "engine": "InnoDB",
+ "engine": "MyISAM",
  "field_order": [
   "data_import",
   "row_indexes",
@@ -60,7 +60,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-12-27 11:19:19.646076",
+ "modified": "2021-12-28 11:19:19.646076",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Log",

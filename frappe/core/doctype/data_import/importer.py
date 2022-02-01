@@ -47,7 +47,13 @@ class Importer:
 		)
 
 	def get_data_for_import_preview(self):
-		return self.import_file.get_data_for_import_preview()
+		out = self.import_file.get_data_for_import_preview()
+
+		out.import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success"],
+			filters={"data_import": self.data_import.name},
+			order_by="log_index", limit=10)
+
+		return out
 
 	def before_import(self):
 		# set user lang for translations
@@ -85,7 +91,7 @@ class Importer:
 		log_index = 0
 
 		# Do not remove rows in case of retry after an error or pending data import
-		if self.data_import.status == "Partial Success" and len(import_log) > len(payloads):
+		if self.data_import.status == "Partial Success" and len(import_log) >= self.data_import.payload_count:
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
 
@@ -93,7 +99,7 @@ class Importer:
 		imported_rows = []
 		for log in import_log:
 			log = frappe._dict(log)
-			if log.success or len(import_log) < len(payloads):
+			if log.success or len(import_log) < self.data_import.payload_count:
 				imported_rows += json.loads(log.row_indexes)
 
 			log_index = log.log_index
@@ -181,6 +187,11 @@ class Importer:
 					# commit after creating log for failure
 					frappe.db.commit()
 					log_index += 1
+
+		# Logs are db inserted directly so will have to be fetched again
+		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success", "log_index"],
+			filters={"data_import": self.data_import.name},
+			order_by="log_index") or []
 
 		# set status
 		failures = [log for log in import_log if not log.get("success")]
@@ -1217,7 +1228,7 @@ def get_select_options(df):
 	return [d for d in (df.options or "").split("\n") if d]
 
 def create_import_log(data_import, log_index, log_details):
-	return frappe.get_doc({
+	frappe.get_doc({
 		'doctype': 'Data Import Log',
 		'log_index': log_index,
 		'success': log_details.get('success'),
@@ -1226,6 +1237,6 @@ def create_import_log(data_import, log_index, log_details):
 		'docname': log_details.get('docname'),
 		'messages': json.dumps(log_details.get('messages', '[]')),
 		'exception': log_details.get('exception')
-	}).insert(ignore_permissions=True)
+	}).db_insert()
 
 
