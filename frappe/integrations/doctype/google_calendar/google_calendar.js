@@ -11,7 +11,13 @@ frappe.ui.form.on("Google Calendar", {
 		}
 		if (frm.doc.last_sync_datetime !== undefined) {
 			frm.trigger("show_sync_alert");
+			frm.add_custom_button(__("View Google Calendar"), function () {
+				window.open(
+					frappe.urllib.get_full_url("/app/event/view/calendar/default")
+				);
+			});
 		}
+
 		frappe.realtime.on("import_google_calendar", (data) => {
 			if (data.progress) {
 				frm.dashboard.show_progress("Syncing Google Calendar", data.progress / data.total * 100,
