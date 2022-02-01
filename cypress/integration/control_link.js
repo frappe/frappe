@@ -142,14 +142,31 @@ context('Control Link', () => {
 	});
 
 	it("should set default values", () => {
+		cy.insert_doc("Property Setter", {
+			"doctype_or_field": "DocField",
+			"doc_type": "ToDo",
+			"field_name": "assigned_by",
+			"property": "default",
+			"property_type": "Text",
+			"value": "Administrator"
+		}, true);
+		cy.reload();
 		cy.new_form("ToDo");
-		cy.window()
-			.its("cur_frm")
-			.then(frm => {
-				frm.set_df_property("assigned_by", "default", "Administrator");
-				cy.fill_field("description", "new", "Text Editor");
-				cy.findByRole("button", {name: "Save"}).click();
-			});
+		cy.fill_field("description", "new", "Text Editor");
+		cy.intercept("POST", "/api/method/frappe.desk.form.save.savedocs").as("save_form");
+		cy.findByRole("button", {name: "Save"}).click();
+		cy.wait("@save_form");
+		cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
+			"contain", "Administrator"
+		);
+		// if user clears default value explicitly, system should not reset default again
+		cy.get_field("assigned_by").clear().blur();
+		cy.intercept("POST", "/api/method/frappe.desk.form.save.savedocs").as("save_form");
+		cy.findByRole("button", {name: "Save"}).click();
+		cy.wait("@save_form");
+		cy.get_field("assigned_by").should("have.value", "");
+		cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
+			"contain", ""
+		);
 	});
-
 });
