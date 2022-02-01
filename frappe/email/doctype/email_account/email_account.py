@@ -467,7 +467,7 @@ class EmailAccount(Document):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages['uid_list'][index] if messages.get('uid_list') else None
 				seen_status = 1 if messages.get('seen_status', {}).get(uid) == 'SEEN' else 0
-				mails.append(InboundMail(message, self, uid, append_to, seen_status))
+				mails.append(InboundMail(message, self, uid, seen_status, append_to))
 
 		if frappe.local.flags.in_test:
 			return [InboundMail(msg, self) for msg in test_mails or []]

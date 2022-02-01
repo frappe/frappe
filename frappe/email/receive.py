@@ -582,7 +582,7 @@ class Email:
 class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers.
 	"""
-	def __init__(self, content, email_account, uid=None, append_to=None, seen_status=None):
+	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
 		super().__init__(content)
 		self.email_account = email_account
 		self.uid = uid or -1
