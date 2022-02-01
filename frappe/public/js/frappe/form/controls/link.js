@@ -393,14 +393,18 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		};
 
 		const set_nulls = (obj) => {
-			let new_obj = {};
 			$.each(obj, (key, value) => {
+<<<<<<< HEAD
 				if (is_valid_value(value, key)) {
 					new_obj[key] = value;
 >>>>>>> d2df8fa7f2 (fix: Update set_nulls code to filters out empty values for link fields)
+=======
+				if (!is_valid_value(value, key)) {
+					delete obj[key];
+>>>>>>> 6a1642e7c3 (fix: Update filter whilte removing undefined)
 				}
 			});
-			return new_obj;
+			return obj;
 		};
 
 		if(this.get_query || this.df.get_query) {
