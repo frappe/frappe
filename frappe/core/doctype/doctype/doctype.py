@@ -699,6 +699,12 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
+		# a Doctype name is the tablename created in database
+		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
+		if len(name) > (frappe.db.MAX_COLUMN_LENGTH - 3):
+			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
+			frappe.throw(_("Doctype name is limited to 61 characters ({0})").format(name))
+
 		flags = {"flags": re.ASCII}
 
 		# a DocType name should not start or end with an empty space
