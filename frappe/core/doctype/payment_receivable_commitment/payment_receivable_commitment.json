@@ -55,6 +55,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
    "label": "Date "
@@ -124,7 +125,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-31 12:48:23.060253",
+ "modified": "2022-01-31 16:35:38.765333",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Payment Receivable Commitment",

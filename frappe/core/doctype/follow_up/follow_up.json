@@ -118,7 +118,7 @@
    "label": "Age Range 1"
   },
   {
-   "default": "today",
+   "default": "Today",
    "fieldname": "report_date",
    "fieldtype": "Date",
    "label": "Posting Date"
@@ -167,7 +167,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-01-29 17:23:07.827439",
+ "modified": "2022-01-31 16:36:36.069460",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Follow Up",

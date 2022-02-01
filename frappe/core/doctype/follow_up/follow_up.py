@@ -152,9 +152,34 @@ class FollowUp(Document):
 		return True
 
 	# To Added Customer commitment
-	frappe.whitelist()
-	def on_submit_commitment(self):
+	@frappe.whitelist()
+	def on_submit_commitment(self, trans_items, customer):
 		print("Adding Commitment")
+		commit_amt = 0		
+		for i in trans_items:
+			print("thi is i ", i)
+			# print(i["commited_date"])
+			if "commited_date" in i.keys() and i["commited_amount"] > 0:
+				commit_amt += i["commited_amount"]
+				prc = frappe.new_doc("Payment Receivable Commitment")
+				prc.customer = customer
+				prc.customer_group = i["customer_group"]
+				prc.territory = i["territory"]
+				prc.due_date = i["due_date"]
+				prc.commitment_date = i["commited_date"]
+				prc.commitment_amount = i["commited_amount"]
+				prc.commitment_to = frappe.session.user
+				prc.voucher_type = i["voucher_type"]
+				prc.invoice_amount = i["invoice_amount"]
+				prc.total_outstanding = i["outstanding_amount"]
+				prc.voucher_no = i["voucher_no"]
+				prc.total_due = i["total_due"]
+				prc.age = i["age"]
+				prc.save()
+
+		if commit_amt > 0:
+			return True
+
 
 	# To send Email
 	def notify(self, args):

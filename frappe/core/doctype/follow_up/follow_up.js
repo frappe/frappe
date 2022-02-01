@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Follow Up', {
-	refresh: function (frm) {
+	refresh: function (frm,wrapper) {
 		// document.getElementsByClassName("btn btn-xs btn-default input-sm").style.backgroundColor ='#0f81f2';
 		// document.getElementByClass("btn btn-xs btn-default input-sm").style.background-color='#44bef2';
 
@@ -11,6 +11,11 @@ frappe.ui.form.on('Follow Up', {
 		// frm.fields_dict["items"].grid.wrapper.find('.grid-remove-rows').hide();
 		// $(".grid-add-row").hide();
 		// frm.set_df_property("items", 'cannot_add_rows', true)
+		// btn btn-xs btn-default input-sm
+
+		// .addClass("btn-warning").css({'color':'black','font-weight': 'bold'})
+		// console.log(wrapper)
+		// $(wrapper).find(".btn btn-xs btn-default input-sm").css({"color":"red"})
 	},
 
 	// onload_post_render: function (frm){
@@ -161,7 +166,7 @@ frappe.ui.form.on("Follow Up Item", {
 			{
 				fieldtype: 'Date',
 				fieldname: "commited_date",
-				
+				default: 0,
 				in_list_view: 1,
 				columns: 1,
 				label: __('Commited Date'),
@@ -344,10 +349,7 @@ frappe.ui.form.on("Follow Up Item", {
 				{
 					fieldtype: "Column Break"
 				},
-				{fieldtype: "Button",
-				 label: __("Done"), 
-				 fieldname : "done"
-				},
+				
 				{
 					fieldtype: "Column Break"
 				},
@@ -379,26 +381,49 @@ frappe.ui.form.on("Follow Up Item", {
 			
 			// Action button below dialog child table
 			
-			// primary_action: function () {
-			// 	const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
-			// 	frappe.call({
-			// 		method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
-			// 		freeze: true,
-			// 		args: {
-			// 			'parent_doctype': frm.doc.doctype,
-			// 			'trans_items': trans_items,
-			// 			'parent_doctype_name': frm.doc.name,
-			// 			'child_docname': child_docname
-			// 		},
-			// 		callback: function() {
-			// 			frm.reload_doc();
-			// 		}
-			// 	});
-			// 	this.hide();
-			// 	refresh_field("items");
-			// },
-			// primary_action_label: __('Update')
+			primary_action: function () {
+				// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
+				// frappe.call({
+				// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
+				// 	freeze: true,
+				// 	args: {
+				// 		'parent_doctype': frm.doc.doctype,
+				// 		'trans_items': trans_items,
+				// 		'parent_doctype_name': frm.doc.name,
+				// 		'child_docname': child_docname
+				// 	},
+				// 	callback: function() {
+				// 		frm.reload_doc();
+				// 	}
+				// });
+				// this.hide();
+				// refresh_field("items");
+				console.log(" thi is done Primary")
+			},
+			primary_action_label: __('Done'),
+
+			secondary_action: function () {
+				// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
+				// frappe.call({
+				// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
+				// 	freeze: true,
+				// 	args: {
+				// 		'parent_doctype': frm.doc.doctype,
+				// 		'trans_items': trans_items,
+				// 		'parent_doctype_name': frm.doc.name,
+				// 		'child_docname': child_docname
+				// 	},
+				// 	callback: function() {
+				// 		frm.reload_doc();
+				// 	}
+				// });
+				// this.hide();
+				// refresh_field("items");
+				console.log(" this one done Secondary")	
+			},
+			secondary_action_label: __('ONME Done')
 		});
+		// .addClass("btn-primary");
 		// var q = frappe.model.get_value('Follow Up Level', {"no_of_days": ['<=',158]}, '')
 		// frappe.model.get_value('Follow Up Level', {"no_of_days": ['<=',200]}, 'name',
   		// function(d) {
@@ -437,9 +462,17 @@ frappe.ui.form.on("Follow Up Item", {
 		// 	var batch_name = $("input[data-fieldname='student_name']").val();
 		// 	selectStudentIdFromStudentDocType(batch_name);
 		// })
+		// dialog.$body.find('commitment[data-fieldtype="Button"]').addClass('btn-secondary');
+
+		// dialog.fields_dict.commitment.$input[0].addClass= "btn btn-primary btn-xs";
+
+		// dialog.add_custom_button(__("buttonName"), function(){
+		// 	//perform desired action such as routing to new form or fetching etc.
+		//   });
 
 		dialog.fields_dict.commitment.input.onclick = function() {
 			var batch_name = dialog.fields_dict.trans_items.df.get_data()
+			var trans_items = dialog.fields_dict.trans_items.df.get_data()
 			frappe.call({
 				method: 'on_submit_commitment',
 				doc: frm.doc,
@@ -447,11 +480,18 @@ frappe.ui.form.on("Follow Up Item", {
 				args: {
 					'trans_items' : trans_items,
 					'customer' : child.customer
+				},
+				callback: function(r) {
+					// frm.reload_doc();
+					if (r.message == True){
+						frappe.msgprint("Commitment Submited Sucessfully")
+						console.log(" this is call from Commited", r.message)
+					}
 				}
 			})
 				// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
 			// selectStudentIdFromStudentDocType(batch_name);
-			console.log(" this is from inside of dialog customer", batch_name)
+			// console.log(" this is from inside of dialog customer", batch_name)
 		}
 
 		unique.forEach(d => {
