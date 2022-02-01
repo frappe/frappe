@@ -193,7 +193,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 
 		function setup_add_fetch(df) {
 			let is_read_only_field = (
-				['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check', 'Text Editor',
+				['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check', 'Text Editor', 'Attach Image',
 				'Code', 'Link', 'Float', 'Int', 'Date', 'Select', 'Duration'].includes(df.fieldtype)
 				|| df.read_only == 1
 				|| df.is_virtual == 1
