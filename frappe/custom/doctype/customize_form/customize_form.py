@@ -418,6 +418,9 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
+		if df.is_virtual:
+			return
+
 		allowed = self.allow_fieldtype_change(old_value, new_value)
 		if allowed:
 			old_value_length = cint(frappe.db.type_map.get(old_value)[1])
@@ -430,7 +433,8 @@ class CustomizeForm(Document):
 				self.validate_fieldtype_length()
 			else:
 				self.flags.update_db = True
-		if not allowed:
+
+		else:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
 	def validate_fieldtype_length(self):

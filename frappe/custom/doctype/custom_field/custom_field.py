@@ -54,7 +54,7 @@ class CustomField(Document):
 		old_fieldtype = self.db_get('fieldtype')
 		is_fieldtype_changed = (not self.is_new()) and (old_fieldtype != self.fieldtype)
 
-		if is_fieldtype_changed and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype):
+		if not self.is_virtual and is_fieldtype_changed and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype):
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1}").format(old_fieldtype, self.fieldtype))
 
 		if not self.fieldname:
