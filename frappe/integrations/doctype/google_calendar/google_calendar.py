@@ -58,6 +58,7 @@ framework_days = {
 
 
 class GoogleCalendar(Document):
+	calendar_colors = {}
 
 	def validate(self):
 		google_settings = frappe.get_single("Google Settings")
@@ -126,6 +127,7 @@ def authorize_access(g_calendar, reauthorize=None):
 			frappe.local.response["location"] = "/app/Form/{0}/{1}".format(quote("Google Calendar"), quote(google_calendar.name))
 
 			frappe.msgprint(_("Google Calendar has been configured."))
+			get_google_colors(g_calendar)
 		except Exception as e:
 			frappe.throw(e)
 
@@ -134,6 +136,11 @@ def get_authentication_url(client_id=None, redirect_uri=None):
 	return {
 		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(client_id, SCOPES, redirect_uri)
 	}
+
+def get_google_colors(g_calendar=None):
+	if not GoogleCalendar.calendar_colors:
+		google_calendar, account = get_google_calendar_object(g_calendar)
+		GoogleCalendar.calendar_colors = google_calendar.colors().get().execute()
 
 
 @frappe.whitelist()
@@ -303,7 +310,8 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"google_calendar": account.name,
 		"google_calendar_id": account.google_calendar_id,
 		"google_calendar_event_id": event.get("id"),
-		"pulled_from_google_calendar": 1
+		"pulled_from_google_calendar": 1,
+		"color": GoogleCalendar.calendar_colors.get("calendar")[event.get("colorId")]["background"] if event.get("colorId") else None
 	}
 	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
 	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
@@ -316,6 +324,7 @@ def update_event_in_calendar(account, event, recurrence=None):
 	calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
 	calendar_event.subject = event.get("summary")
 	calendar_event.description = event.get("description")
+	calendar_event.color = GoogleCalendar.calendar_colors.get("calendar")[event.get("colorId")]["background"] if event.get("colorId") else None
 	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
 	calendar_event.save(ignore_permissions=True)
 
