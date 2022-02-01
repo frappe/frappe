@@ -729,16 +729,17 @@ def validate_series(dt, autoname=None, name=None):
 
 def validate_links_table_fieldnames(meta):
 	"""Validate fieldnames in Links table"""
-	if frappe.flags.in_patch: return
-	if frappe.flags.in_fixtures: return
-	if not meta.links: return
+	if not meta.links or frappe.flags.in_patch or frappe.flags.in_fixtures:
+		return
 
+	fieldnames = tuple(field.fieldname for field in meta.fields)
 	for index, link in enumerate(meta.links):
 		link_meta = frappe.get_meta(link.link_doctype)
 		if not link_meta.get_field(link.link_fieldname):
 			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
+<<<<<<< HEAD
 		if link.is_child_table and not meta.get_field(link.table_fieldname):
 			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
@@ -752,6 +753,23 @@ def validate_links_table_fieldnames(meta):
 				message = _("Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
 				frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
+=======
+		if not link.is_child_table:
+			continue
+
+		if not link.parent_doctype:
+			message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
+			frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
+
+		if not link.table_fieldname:
+			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
+			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
+
+		if link.table_fieldname not in fieldnames:
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
+
+>>>>>>> c118334f22 (fix: attribute error in `validate_links_table_fieldnames`)
 def validate_fields_for_doctype(doctype):
 	meta = frappe.get_meta(doctype, cached=False)
 	validate_links_table_fieldnames(meta)
