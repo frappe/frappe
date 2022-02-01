@@ -463,11 +463,11 @@ class EmailAccount(Document):
 		"""
 		mails = []
 
-		def process_mail(messages):
+		def process_mail(messages, append_to=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages['uid_list'][index] if messages.get('uid_list') else None
 				seen_status = 1 if messages.get('seen_status', {}).get(uid) == 'SEEN' else 0
-				mails.append(InboundMail(message, self, uid, seen_status))
+				mails.append(InboundMail(message, self, uid, append_to, seen_status))
 
 		if frappe.local.flags.in_test:
 			return [InboundMail(msg, self) for msg in test_mails or []]
@@ -484,7 +484,8 @@ class EmailAccount(Document):
 					email_server.select_imap_folder(folder.folder_name)
 					email_server.settings['uid_validity'] = folder.uidvalidity
 					messages = email_server.get_messages(folder=folder.folder_name) or {}
-					process_mail(messages)
+					append_to = folder.append_to
+					process_mail(messages, append_to)
 			else:
 				# process the pop3 account
 				messages = email_server.get_messages() or {}
