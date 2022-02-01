@@ -96,6 +96,7 @@ import "./frappe/ui/sort_selector.js";
 
 import "./frappe/change_log.html";
 import "./frappe/ui/workspace_loading_skeleton.html";
+import "./frappe/ui/workspace_sidebar_loading_skeleton.html";
 import "./frappe/desk.js";
 import "./frappe/query_string.js";
 
