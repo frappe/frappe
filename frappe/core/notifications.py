@@ -39,18 +39,3 @@ def get_todays_events(as_list=False):
 	today = nowdate()
 	events = get_events(today, today)
 	return events if as_list else len(events)
-
-def get_unseen_likes():
-	"""Returns count of unseen likes"""
-
-	comment_doctype = DocType("Comment")
-	return frappe.db.count(comment_doctype,
-		filters=(
-			(comment_doctype.comment_type == "Like")
-			& (comment_doctype.modified >= Now() - Interval(years=1))
-			& (comment_doctype.owner.notnull())
-			& (comment_doctype.owner != frappe.session.user)
-			& (comment_doctype.reference_owner == frappe.session.user)
-			& (comment_doctype.seen == 0)
-		)
-	)
