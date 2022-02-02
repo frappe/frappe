@@ -704,7 +704,7 @@ class DocType(Document):
 		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
 		if len(name) > max_length:
 			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
-			frappe.throw(_("Doctype name is limited to {0} characters ({1})").format(max_length, name))
+			frappe.throw(_("Doctype name is limited to {0} characters ({1})").format(max_length, name), frappe.NameError)
 
 		flags = {"flags": re.ASCII}
 
