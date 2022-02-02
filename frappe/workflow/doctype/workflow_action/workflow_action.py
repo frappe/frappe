@@ -145,8 +145,8 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 	# so no older actions to complete
 	if not allowed_roles:
 		return
-	if is_role_set(doc, allowed_roles):
-		update_completed_workflow_actions_using_role(doc, user, allowed_roles)
+	if workflow_action_name := get_workflow_action_by_role(doc, allowed_roles):
+		update_completed_workflow_actions_using_role(doc, user, allowed_roles, workflow_action_name)
 		clear_old_workflow_actions_using_role(doc)
 	else:
 		# backwards compatibility
@@ -166,9 +166,9 @@ def get_allowed_roles(user, workflow, workflow_state):
 	user_roles = set(frappe.get_roles(user))
 	return set(allowed_roles).intersection(user_roles)
 
-def is_role_set(doc, allowed_roles):
+def get_workflow_action_by_role(doc, allowed_roles):
 	WorkflowAction = DocType("Workflow Action")
-	return frappe.qb.from_(WorkflowAction).select(WorkflowAction.status).where(
+	return frappe.qb.from_(WorkflowAction).select(WorkflowAction.name).where(
 			WorkflowAction.status == 'Open',
 		).where(
 			WorkflowAction.role.isin(list(allowed_roles))
@@ -176,25 +176,15 @@ def is_role_set(doc, allowed_roles):
 			WorkflowAction.reference_doctype == doc.get('doctype')
 		).where(
 			WorkflowAction.reference_name == doc.get('name')
-		).run()
+		).where(
+			WorkflowAction.is_deleted == 0,
+		).orderby('role').limit(1).run()
 
-def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles = set()):
+def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles = set(), workflow_action_name=None):
 	user = user if user else frappe.session.user
 	WorkflowAction = DocType("Workflow Action")
 
-	name = frappe.qb.from_(WorkflowAction).select(WorkflowAction.name).where(
-		WorkflowAction.status == 'Open',
-	).where(
-		WorkflowAction.role.isin(list(allowed_roles))
-	).where(
-		WorkflowAction.reference_doctype == doc.get('doctype')
-	).where(
-		WorkflowAction.reference_name == doc.get('name')
-	).where(
-		WorkflowAction.is_deleted == 0,
-	).orderby('role').limit(1).run()
-
-	if not name or not name[0]:
+	if not workflow_action_name or not workflow_action_name[0]:
 		return
 
 	frappe.qb.update(WorkflowAction).set(
@@ -202,7 +192,7 @@ def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles =
 	).set(
 		WorkflowAction.completed_by, user
 	).where(
-		WorkflowAction.name == name[0][0],
+		WorkflowAction.name == workflow_action_name[0][0],
 	).run()
 
 def clear_old_workflow_actions_using_role(doc):
