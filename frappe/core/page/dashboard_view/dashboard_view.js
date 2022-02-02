@@ -77,7 +77,7 @@ class Dashboard {
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add("Desk", "Dashboard")
+		frappe.breadcrumbs.add("Desk", "Dashboard");
 	}
 
 	refresh() {
