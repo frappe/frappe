@@ -246,6 +246,16 @@ class TestEmailAccount(unittest.TestCase):
 		with self.assertRaises(Exception):
 			email_account.validate()
 
+	def test_append_to(self):
+		email_aacount = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mail_content = self.get_test_mail(fname="incoming-2.raw")
+
+		inbound_mail = InboundMail(mail_content, email_aacount, 12345, 1, 'ToDo')
+		communication = inbound_mail.process()
+		if inbound_mail.append_to == 'ToDo':
+			self.assertEqual(communication.reference_doctype, 'ToDo')
+			self.assertTrue(communication.reference_name)
+
 class TestInboundMail(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
