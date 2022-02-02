@@ -181,12 +181,6 @@ frappe.ui.form.PrintView = class {
 				this.edit_print_format()
 			);
 		}
-
-		if (cint(this.print_settings.enable_print_server)) {
-			this.page.add_menu_item(__('Select Network Printer'), () =>
-				this.network_printer_setting_dialog()
-			);
-		}
 	}
 
 	show(frm) {
@@ -512,13 +506,7 @@ frappe.ui.form.PrintView = class {
 	printit() {
 		let me = this;
 
-		if (cint(me.print_settings.enable_print_server)) {
-			if (localStorage.getItem('network_printer')) {
-				me.print_by_server();
-			} else {
-				me.network_printer_setting_dialog(() => me.print_by_server());
-			}
-		} else if (me.get_mapped_printer().length === 1) {
+		if (me.get_mapped_printer().length === 1) {
 			// printer is already mapped in localstorage (applies for both raw and pdf )
 			if (me.is_raw_printing()) {
 				me.get_raw_commands(function(out) {
@@ -564,54 +552,6 @@ frappe.ui.form.PrintView = class {
 		} else {
 			me.render_page('/printview?', true);
 		}
-	}
-
-	print_by_server() {
-		let me = this;
-		if (localStorage.getItem('network_printer')) {
-			frappe.call({
-				method: 'frappe.utils.print_format.print_by_server',
-				args: {
-					doctype: me.frm.doc.doctype,
-					name: me.frm.doc.name,
-					printer_setting: localStorage.getItem('network_printer'),
-					print_format: me.selected_format(),
-					no_letterhead: me.with_letterhead(),
-					letterhead: me.get_letterhead(),
-				},
-				callback: function() {},
-			});
-		}
-	}
-	network_printer_setting_dialog(callback) {
-		frappe.call({
-			method: 'frappe.printing.doctype.network_printer_settings.network_printer_settings.get_network_printer_settings',
-			callback: function(r) {
-				if (r.message) {
-					let d = new frappe.ui.Dialog({
-						title: __('Select Network Printer'),
-						fields: [
-							{
-								"label": "Printer",
-								"fieldname": "printer",
-								"fieldtype": "Select",
-								"reqd": 1,
-								"options": r.message
-							}
-						],
-						primary_action: function() {
-							localStorage.setItem('network_printer', d.get_values().printer);
-							if (typeof callback == "function") {
-								callback();
-							}
-							d.hide();
-						},
-						primary_action_label: __('Select')
-					});
-					d.show();
-				}
-			},
-		});
 	}
 
 	render_pdf() {

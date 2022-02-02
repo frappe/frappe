@@ -19,8 +19,6 @@
   "column_break_10",
   "allow_page_break_inside_tables",
   "allow_print_for_cancelled",
-  "server_printer",
-  "enable_print_server",
   "raw_printing_section",
   "enable_raw_printing",
   "print_style_section",
@@ -100,19 +98,6 @@
    "label": "Allow Print for Cancelled"
   },
   {
-   "fieldname": "server_printer",
-   "fieldtype": "Section Break",
-   "label": "Print Server"
-  },
-  {
-   "default": "0",
-   "depends_on": "enable_print_server",
-   "fieldname": "enable_print_server",
-   "fieldtype": "Check",
-   "label": "Enable Print Server",
-   "mandatory_depends_on": "enable_print_server"
-  },
-  {
    "fieldname": "raw_printing_section",
    "fieldtype": "Section Break",
    "label": "Raw Printing"
@@ -176,7 +161,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-09-17 12:59:14.783694",
+ "modified": "2022-02-02 19:07:34.324739",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
@@ -193,5 +178,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
