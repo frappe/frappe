@@ -14,9 +14,9 @@ from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
-    psycopg2.extensions.DECIMAL.values,
-    'DEC2FLOAT',
-    lambda value, curs: float(value) if value is not None else None)
+	psycopg2.extensions.DECIMAL.values,
+	'DEC2FLOAT',
+	lambda value, curs: float(value) if value is not None else None)
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
@@ -161,11 +161,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return e.pgcode == '23505' and '_pkey' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_pkey' in cstr(e.args[0])
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_key' in cstr(e.args[0])
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
