@@ -335,7 +335,6 @@ class TestDateUtils(unittest.TestCase):
 			frappe.utils.getdate("2021-01-02"))
 
 	def test_get_time(self):
-		from dateutil.parser import ParserError
 		datetime_input = now_datetime()
 		timedelta_input = get_timedelta()
 		time_input = nowtime()
@@ -343,11 +342,10 @@ class TestDateUtils(unittest.TestCase):
 		self.assertIsInstance(get_time(datetime_input), time)
 		self.assertIsInstance(get_time(timedelta_input), time)
 		self.assertIsInstance(get_time(time_input), time)
+		self.assertIsInstance(get_time("100:2:12"), time)
 		self.assertIsInstance(get_time(str(datetime_input)), time)
 		self.assertIsInstance(get_time(str(timedelta_input)), time)
 		self.assertIsInstance(get_time(str(time_input)), time)
-		with self.assertRaises(ParserError):
-			get_time("100:0:0")
 
 	def test_get_timedelta(self):
 		datetime_input = now_datetime()
