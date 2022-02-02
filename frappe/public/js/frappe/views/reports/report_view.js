@@ -866,7 +866,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		doctype_fields = [{
-			label: __('ID'),
+			label: __('ID', null, 'Label of name column in report'),
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1
