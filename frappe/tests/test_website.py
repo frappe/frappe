@@ -20,6 +20,7 @@ class TestWebsite(unittest.TestCase):
 			doctype='User',
 			email='test-user-for-home-page@example.com',
 			first_name='test')).insert(ignore_if_duplicate=True)
+		user.reload()
 
 		role = frappe.get_doc(dict(
 			doctype = 'Role',
