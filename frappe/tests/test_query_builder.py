@@ -5,7 +5,7 @@ import frappe
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Coalesce, GroupConcat, Match
 from frappe.query_builder.utils import db_type_is
-
+from frappe.query_builder import Case
 
 def run_only_if(dbtype: db_type_is) -> Callable:
 	return unittest.skipIf(
@@ -25,8 +25,14 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 		)
 
 	def test_constant_column(self):
-		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
-		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
+		query = frappe.qb.from_("DocType").select(
+			"name", ConstantColumn("John").as_("User")
+		)
+		self.assertEqual(
+			query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`"
+		)
+
+
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(unittest.TestCase):
 	def test_concat(self):
@@ -39,8 +45,13 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 		)
 
 	def test_constant_column(self):
-		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
-		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
+		query = frappe.qb.from_("DocType").select(
+			"name", ConstantColumn("John").as_("User")
+		)
+		self.assertEqual(
+			query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"'
+		)
+
 
 class TestBuilderBase(object):
 	def test_adding_tabs(self):
@@ -55,23 +66,68 @@ class TestBuilderBase(object):
 		self.assertIsInstance(query.run, Callable)
 		self.assertIsInstance(data, list)
 
-	def test_walk(self):
-		DocType = frappe.qb.DocType('DocType')
+
+class TestParameterization(unittest.TestCase):
+	def test_where_conditions(self):
+		DocType = frappe.qb.DocType("DocType")
 		query = (
 			frappe.qb.from_(DocType)
 			.select(DocType.name)
-			.where((DocType.owner == "Administrator' --")
-					& (Coalesce(DocType.search_fields == "subject"))
-			)
+			.where((DocType.owner == "Administrator' --"))
 		)
 		self.assertTrue("walk" in dir(query))
 		query, params = query.walk()
 
 		self.assertIn("%(param1)s", query)
-		self.assertIn("%(param2)s", query)
-		self.assertIn("param1",params)
-		self.assertEqual(params["param1"],"Administrator' --")
-		self.assertEqual(params["param2"],"subject")
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "Administrator' --")
+
+	def test_set_cnoditions(self):
+		DocType = frappe.qb.DocType("DocType")
+		query = frappe.qb.update(DocType).set(DocType.value, "some_value")
+
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "some_value")
+
+	def test_where_conditions_functions(self):
+		DocType = frappe.qb.DocType("DocType")
+		query = (
+			frappe.qb.from_(DocType)
+			.select(DocType.name)
+			.where(Coalesce(DocType.search_fields == "subject"))
+		)
+
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "subject")
+
+	def test_case(self):
+		DocType = frappe.qb.DocType("DocType")
+		query = (
+			frappe.qb.from_(DocType)
+			.select(
+				Case()
+				.when(DocType.search_fields == "value", "other_value")
+				.when(Coalesce(DocType.search_fields == "subject_in_function"), "true_value")
+			)
+		)
+
+		self.assertTrue("walk" in dir(query))
+		query, params = query.walk()
+
+		self.assertIn("%(param1)s", query)
+		self.assertIn("param1", params)
+		self.assertEqual(params["param1"], "value")
+		self.assertEqual(params["param2"], "other_value")
+		self.assertEqual(params["param3"], "subject_in_function")
+		self.assertEqual(params["param4"], "true_value")
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -83,6 +139,7 @@ class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
 		self.assertEqual(
 			"SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql()
 		)
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):
