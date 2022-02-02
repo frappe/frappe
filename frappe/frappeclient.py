@@ -1,12 +1,12 @@
+'''
+FrappeClient is a library that helps you connect with other frappe systems
+'''
 from __future__ import print_function, unicode_literals
 import requests
 import json
 import frappe
 from six import iteritems, string_types
 
-'''
-FrappeClient is a library that helps you connect with other frappe systems
-'''
 
 class AuthError(Exception):
 	pass
@@ -36,7 +36,7 @@ class FrappeClient(object):
 
 	def _login(self, username, password):
 		'''Login/start a sesion. Called internally on init'''
-		r = self.session.post(self.url, data={
+		r = self.session.post(self.url, params={
 			'cmd': 'login',
 			'usr': username,
 			'pwd': password
@@ -260,14 +260,14 @@ class FrappeClient(object):
 	def get_api(self, method, params=None):
 		if params is None:
 			params = {}
-		res = self.session.get(self.url + "/api/method/" + method + "/",
+		res = self.session.get("{0}/api/method/{1}".format(self.url, method),
 			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
 	def post_api(self, method, params=None):
 		if params is None:
 			params = {}
-		res = self.session.post(self.url + "/api/method/" + method + "/",
+		res = self.session.post("{0}/api/method/{1}".format(self.url, method),
 			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
