@@ -587,7 +587,7 @@ class InboundMail(Email):
 		super().__init__(content)
 		self.email_account = email_account
 		self.uid = uid or -1
-		self.append_to = append_to or -1
+		self.append_to = append_to
 		self.seen_status = seen_status or 0
 
 		# System documents related to this mail
@@ -625,8 +625,8 @@ class InboundMail(Email):
 		if self.parent_communication():
 			data['in_reply_to'] = self.parent_communication().name
 
-		if self.email_account.use_imap and self.append_to:
-			if self.append_to != 'Communication':
+		if self.email_account.use_imap:
+			if self.append_to and self.append_to != 'Communication':
 				reference_doc = self._create_reference_document(self.append_to)
 				if reference_doc:
 					data['reference_doctype'] = reference_doc.doctype
