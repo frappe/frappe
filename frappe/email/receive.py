@@ -624,25 +624,18 @@ class InboundMail(Email):
 
 		if self.parent_communication():
 			data['in_reply_to'] = self.parent_communication().name
+ 
+		append_to = self.append_to if self.email_account.use_imap else self.email_account.append_to
 
-		if self.email_account.use_imap:
-			if self.append_to and self.append_to != 'Communication':
-				reference_doc = self._create_reference_document(self.append_to)
-				if reference_doc:
-					data['reference_doctype'] = reference_doc.doctype
-					data['reference_name'] = reference_doc.name
-					data['is_first'] = True
-		else: 
-			if self.reference_document():
-				data['reference_doctype'] = self.reference_document().doctype
-				data['reference_name'] = self.reference_document().name
-			elif self.email_account.append_to and self.email_account.append_to != 'Communication':
-				reference_doc = self._create_reference_document(self.email_account.append_to)
-				# TODO: here instead of using email_account.append_to, the imap_folder.append_to should be used
-				if reference_doc:
-					data['reference_doctype'] = reference_doc.doctype
-					data['reference_name'] = reference_doc.name
-					data['is_first'] = True
+		if self.reference_document():
+			data['reference_doctype'] = self.reference_document().doctype
+			data['reference_name'] = self.reference_document().name
+		elif append_to and append_to != 'Communication':
+			reference_doc = self._create_reference_document(append_to)
+			if reference_doc:
+				data['reference_doctype'] = reference_doc.doctype
+				data['reference_name'] = reference_doc.name
+				data['is_first'] = True
 
 		if self.is_notification():
 			# Disable notifications for notification.
