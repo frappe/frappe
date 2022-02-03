@@ -860,8 +860,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 			this.datatable = new DataTable(this.$report[0], datatable_options);
 
-			this.datatable.style.setStyle(`.dt-row:nth-of-type(odd) .dt-cell`, {
-				backgroundColor: "grey"
+			this.datatable.style.setStyle(`.dt-row:nth-of-type(even) .dt-cell`, {
+				backgroundColor: "#F2F6FC"
 			});
 		}
 
