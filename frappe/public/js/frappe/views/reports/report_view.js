@@ -368,10 +368,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			}]
 		});
-		
-		this.datatable.style.setStyle(`.dt-row:nth-of-type(even) .dt-cell`, {
-			backgroundColor: "#F2F6FC"
-		});
+
 	}
 
 	toggle_charts() {
