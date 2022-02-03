@@ -144,7 +144,7 @@ def update_user_settings(old, new, link_fields):
 		else:
 			continue
 
-def update_customizations(old: str, new: str) -> None:
+def update_customizations(old, new):
 	frappe.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
 
 def update_attachments(doctype, old, new):
