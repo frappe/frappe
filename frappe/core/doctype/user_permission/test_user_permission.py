@@ -40,6 +40,8 @@ class TestUserPermission(unittest.TestCase):
 		test_blog = make_test_blog()
 		param = get_params(perm_user, 'Blog Post', test_blog.name, is_default=1, hide_descendants= 1)
 		add_user_permissions(param)
+		frappe.db.delete('User Permission', filters={'for_value': test_blog.name})
+		frappe.delete_doc('Blog Post', test_blog.name)
 
 	def test_default_user_permission(self):
 		frappe.set_user('Administrator')
