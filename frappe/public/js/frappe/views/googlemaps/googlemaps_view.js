@@ -34,12 +34,74 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
     render_map_view() {
         self = this;
         this.map_id = 'map';
-        this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
+        this.$result.html(`<input id="pac-input" class="controls" type="text" placeholder="Search" /><div id="${this.map_id}" class="map-view-container"></div>`);
 
         this.map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 0.21901832756664624, lng: 119.1115301972551 },
             mapTypeId: "terrain",
             zoom: 5,
+        });
+
+        this.input = document.getElementById("pac-input");
+        this.searchBox = new google.maps.places.SearchBox(this.input);
+
+        this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(this.input);
+
+        this.map.addListener("bounds_changed", () => {
+            this.searchBox.setBounds(this.map.getBounds());
+        });
+
+        let markers = []
+
+        this.searchBox.addListener("places_changed", () => {
+            const places = this.searchBox.getPlaces();
+        
+            if (places.length == 0) {
+              return;
+            }
+        
+            // Clear out the old markers.
+            markers.forEach((marker) => {
+              marker.setMap(null);
+            });
+            markers = [];
+        
+            // For each place, get the icon, name and location.
+            const bounds = new google.maps.LatLngBounds();
+        
+            places.forEach((place) => {
+                if (!place.geometry || !place.geometry.location) {
+                    console.log("Returned place contains no geometry");
+                    return;
+                }
+            
+                const icon = {
+                    url: place.icon,
+                    size: new google.maps.Size(71, 71),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(17, 34),
+                    scaledSize: new google.maps.Size(25, 25),
+                };
+
+                let map = this.map
+            
+                // Create a marker for each place.
+                markers.push(
+                    new google.maps.Marker({
+                    map,
+                    icon,
+                    title: place.name,
+                    position: place.geometry.location,
+                    })
+                );
+                if (place.geometry.viewport) {
+                    // Only geocodes have viewport.
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+            });
+            this.map.fitBounds(bounds);
         });
 
         let i;
@@ -76,23 +138,22 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
 
                             var infowindow = new google.maps.InfoWindow();
-                               
+
                             var markerLabel = this.markers[z].properties.name
 
                             var markerPoint = this.marker;
                             let map = this.map
 
-                            // google.maps.event.addListener(this.marker, 'click', (function (markerPoint, markerLabel, infowindow) {
-                            //     return function () {
-                            //         infowindow.setContent(markerLabel);
-                            //         infowindow.open(map, markerPoint);
-                            //     };
-                            // })(markerPoint, markerLabel, infowindow));
-
-                            google.maps.event.addListener(this.marker, 'click', function () {
-                                this.map.panTo(this.getPosition())
-                                this.map.setZoom(16)
-                            })
+                            google.maps.event.addListener(this.marker, 'click', (function (markerPoint, markerLabel, infowindow) {
+                                return function () {
+                                    this.map.panTo(this.getPosition())
+                                    this.map.setZoom(16)
+                                    setTimeout(() => {
+                                        infowindow.setContent(markerLabel);
+                                        infowindow.open(map, markerPoint);
+                                    }, 500)
+                                };
+                            })(markerPoint, markerLabel, infowindow));
 
                             google.maps.event.addListener(this.marker, 'mouseover', (function (markerPoint, markerLabel, infowindow) {
                                 return function () {

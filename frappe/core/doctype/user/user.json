@@ -173,6 +173,7 @@
    "fieldname": "username",
    "fieldtype": "Data",
    "in_global_search": 1,
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Username",
    "unique": 1
@@ -200,6 +201,7 @@
    "print_hide": 1
   },
   {
+   "collapsible": 1,
    "depends_on": "eval:in_list(['System User', 'Website User'], doc.user_type) && doc.enabled == 1",
    "fieldname": "sb1",
    "fieldtype": "Section Break",
@@ -610,6 +612,8 @@
   {
    "fieldname": "module_profile",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Module Profile",
    "options": "Module Profile"
   },
@@ -645,6 +649,8 @@
   {
    "fieldname": "role_unit",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Role Unit"
   },
   {
@@ -723,7 +729,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-12-08 21:01:34.329341",
+ "modified": "2021-12-26 16:20:14.428662",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
