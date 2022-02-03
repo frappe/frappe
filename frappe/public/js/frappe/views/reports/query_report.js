@@ -828,9 +828,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	render_datatable() {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
-		this.datatable.style.setStyle(`.dt-row:nth-of-type(even) .dt-cell`, {
-			backgroundColor: "grey"
-		  });
+
 
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
@@ -861,6 +859,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
 			this.datatable = new DataTable(this.$report[0], datatable_options);
+
+			this.datatable.style.setStyle(`.dt-row:nth-of-type(even) .dt-cell`, {
+				backgroundColor: "grey"
+			});
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
