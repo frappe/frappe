@@ -75,7 +75,7 @@ class TestWorkflow(unittest.TestCase):
 		actions = get_common_transition_actions([todo1, todo2], 'ToDo')
 		self.assertListEqual(actions, ['Review'])
 
-	def test_if_workflow_actions_were_processed(self):
+	def test_if_workflow_actions_were_processed_using_role(self):
 		frappe.db.delete("Workflow Action")
 		user = frappe.get_doc('User', 'test2@example.com')
 		user.add_roles('Test Approver', 'System Manager')
@@ -92,6 +92,35 @@ class TestWorkflow(unittest.TestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, 'Completed')
 		frappe.set_user('Administrator')
+
+	def test_if_workflow_actions_were_processed_using_user(self):
+		frappe.db.delete("Workflow Action")
+		if not frappe.db.has_column('Workflow Action', 'user'):
+			frappe.db.multisql({
+				'mariadb': 'ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)',
+				'postgres': 'ALTER TABLE "tabWorkflow Action" ADD COLUMN user varchar(140)'
+			})
+			from frappe.database.schema import add_column
+			add_column('Workflow Action', "user", "Data")
+
+		user = frappe.get_doc('User', 'test2@example.com')
+		user.add_roles('Test Approver', 'System Manager')
+		frappe.set_user('test2@example.com')
+
+		doc = self.test_default_condition()
+		workflow_actions = frappe.get_all('Workflow Action', fields=['*'])
+		self.assertEqual(len(workflow_actions), 1)
+
+		# test if status of workflow actions are updated on approval
+		frappe.db.update('Workflow Action', 'user', 'test2@example.com')
+		frappe.db.update('Workflow Action', 'role', '')
+		self.test_approve(doc)
+		user.remove_roles('Test Approver', 'System Manager')
+		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		self.assertEqual(len(workflow_actions), 1)
+		self.assertEqual(workflow_actions[0].status, 'Completed')
+		frappe.set_user('Administrator')
+
 
 	def test_update_docstatus(self):
 		todo = create_new_todo()
