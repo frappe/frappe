@@ -102,7 +102,7 @@ class TestWorkflow(unittest.TestCase):
 			frappe.db.commit()
 			frappe.db.multisql({
 				'mariadb': 'ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)',
-				'postgres': 'ALTER TABLE "tabWorkflow Action" ADD COLUMN user varchar(140)'
+				'postgres': 'ALTER TABLE "tabWorkflow Action" ADD COLUMN "user" varchar(140)'
 			})
 
 		user = frappe.get_doc('User', 'test2@example.com')
@@ -117,7 +117,9 @@ class TestWorkflow(unittest.TestCase):
 		WorkflowAction = DocType("Workflow Action")
 		frappe.qb.update(WorkflowAction).set(WorkflowAction.user, 'test2@example.com').run()
 		frappe.qb.update(WorkflowAction).set(WorkflowAction.role, '').run()
+
 		self.test_approve(doc)
+
 		user.remove_roles('Test Approver', 'System Manager')
 		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
 		self.assertEqual(len(workflow_actions), 1)
