@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -16,7 +16,7 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
-from frappe.utils import cint
+from frappe.utils import cint, format_timedelta
 from urllib.parse import quote
 from frappe.core.doctype.access_log.access_log import make_access_log
 
@@ -122,11 +122,13 @@ def make_logs(response = None):
 
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
-	# serialize date
-	import collections.abc
+	from collections.abc import Iterable
 
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime, datetime.time)):
+	if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
 		return str(obj)
+
+	elif isinstance(obj, datetime.timedelta):
+		return format_timedelta(obj)
 
 	elif isinstance(obj, decimal.Decimal):
 		return float(obj)
@@ -138,7 +140,7 @@ def json_handler(obj):
 		doc = obj.as_dict(no_nulls=True)
 		return doc
 
-	elif isinstance(obj, collections.abc.Iterable):
+	elif isinstance(obj, Iterable):
 		return list(obj)
 
 	elif type(obj)==type or isinstance(obj, Exception):
