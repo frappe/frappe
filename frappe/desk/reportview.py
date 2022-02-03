@@ -319,7 +319,7 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [['Sr'] + get_labels(db_query.fields, doctype)]
+	data = [[_('Sr')] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
@@ -378,7 +378,8 @@ def get_labels(fields, doctype):
 	for key in fields:
 		key = key.split(" as ")[0]
 
-		if key.startswith(('count(', 'sum(', 'avg(')): continue
+		if key.startswith(('count(', 'sum(', 'avg(')):
+			continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -386,10 +387,16 @@ def get_labels(fields, doctype):
 			parenttype = doctype
 			fieldname = fieldname.strip("`")
 
-		df = frappe.get_meta(parenttype).get_field(fieldname)
-		label = df.label if df else fieldname.title()
-		if label in labels:
-			label = doctype + ": " + label
+		if parenttype == doctype and fieldname == "name":
+			label = _("ID", context="Label of name column in report")
+		else:
+			df = frappe.get_meta(parenttype).get_field(fieldname)
+			label = _(df.label if df else fieldname.title())
+			if parenttype != doctype:
+				# If the column is from a child table, append the child doctype.
+				# For example, "Item Code (Sales Invoice Item)".
+				label += f" ({ _(parenttype) })"
+
 		labels.append(label)
 
 	return labels
