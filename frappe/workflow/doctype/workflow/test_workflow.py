@@ -99,6 +99,7 @@ class TestWorkflow(unittest.TestCase):
 		if not frappe.db.has_column('Workflow Action', 'user'):
 			# mariadb would raise this state would create an implicit commit
 			# if we do not commit before alter statement
+			# nosemgrep
 			frappe.db.commit()
 			frappe.db.multisql({
 				'mariadb': 'ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)',
