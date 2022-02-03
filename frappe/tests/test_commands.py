@@ -3,26 +3,35 @@
 
 # imports - standard imports
 import gzip
+import importlib
 import json
 import os
 import shlex
 import shutil
 import subprocess
-from typing import List
 import unittest
+from contextlib import contextmanager
+from functools import wraps
 from glob import glob
+from typing import List
 from unittest.case import skipIf
+from unittest.mock import patch
+
+# imports - third party imports
+import click
+from click.testing import CliRunner
+from click import Command
 
 # imports - module imports
 import frappe
+import frappe.commands.site
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
-# imports - third party imports
-import click
-
+TEST_SITE = "commands-site.test"
+CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
 def clean(value) -> str:
 	"""Strips and converts bytes to str
@@ -76,7 +85,49 @@ def exists_in_backup(doctypes: List, file: os.PathLike) -> bool:
 	return len(missing_doctypes) == 0
 
 
+def restore_locals(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		pre_site = frappe.local.site
+		pre_flags = frappe.local.flags.copy()
+		pre_db = frappe.local.db
+
+		ret = f(*args, **kwargs)
+
+		post_site = getattr(frappe.local, "site", None)
+		if not post_site or post_site != pre_site:
+			frappe.init(site=pre_site)
+			frappe.local.db = pre_db
+			frappe.local.flags = pre_flags
+		return ret
+	return decorated_function
+
+
+def pass_test_context(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		return f(CLI_CONTEXT, *args, **kwargs)
+	return decorated_function
+
+
+@contextmanager
+def cli(cmd: Command):
+	patch_ctx = patch("frappe.commands.pass_context", pass_test_context)
+	_module = cmd.callback.__module__
+	_cmd = cmd.callback.__qualname__
+
+	patch_ctx.start()
+	importlib.reload(frappe.get_module(_module))
+	click_cmd = frappe.get_attr(f"{_module}.{_cmd}")
+
+	try:
+		yield CliRunner().invoke(click_cmd)
+	finally:
+		patch_ctx.stop()
+
+
 class BaseTestCommands(unittest.TestCase):
+	@classmethod
 	def execute(self, command, kwargs=None):
 		site = {"site": frappe.local.site}
 		cmd_input = None
@@ -585,3 +636,32 @@ class TestRemoveApp(unittest.TestCase):
 
 		# nothing to assert, if this fails rest of the test suite will crumble.
 		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+
+
+class TestSiteMigration(BaseTestCommands):
+	@classmethod
+	def setUpClass(cls) -> None:
+		cmd_config = {
+			"test_site": TEST_SITE,
+			"admin_password": frappe.conf.admin_password,
+			"root_login": frappe.conf.root_login,
+			"root_password": frappe.conf.root_password,
+			"db_type": frappe.conf.db_type,
+		}
+
+		if not os.path.exists(
+			os.path.join(TEST_SITE, "site_config.json")
+		):
+			cls.execute(
+				"bench new-site {test_site} --admin-password {admin_password} --db-type"
+				" {db_type}",
+				cmd_config,
+			)
+		return super().setUpClass()
+
+	@restore_locals
+	def test_migrate_cli(self):
+		with cli(frappe.commands.site.migrate) as result:
+			self.assertTrue(TEST_SITE in result.stdout)
+			self.assertEqual(result.exit_code, 0)
+			self.assertEqual(result.exception, None)
