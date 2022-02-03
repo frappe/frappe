@@ -608,17 +608,15 @@ frappe.Application = class Application {
 					// to avoid abrupt UX
 					// wait for activity feedback
 					sleep(500).then(() => {
-						let res = frappe.model.with_doctype(doc.doctype, () => {
-							let newdoc = frappe.model.copy_doc(doc);
-							newdoc.__newname = doc.name;
+						frappe.model.with_doctype(doc.doctype, () => {
 							delete doc.name;
+							let newdoc = frappe.model.copy_doc(doc);
 							newdoc.idx = null;
 							newdoc.__run_link_triggers = false;
 							frappe.set_route('Form', newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});
-						res && res.fail(frappe.dom.unfreeze);
-					});
+					}, frappe.dom.unfreeze);
 				}
 			} catch (e) {
 				//
