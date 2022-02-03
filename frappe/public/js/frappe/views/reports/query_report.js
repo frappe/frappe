@@ -828,6 +828,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	render_datatable() {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
+		datatable.style.setStyle(`.dt-row:nth-of-type(even) .dt-cell`, {
+			backgroundColor: "grey"
+		  });
 
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
