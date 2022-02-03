@@ -4,7 +4,7 @@ import json
 import mimetypes
 import os
 import re
-from functools import cache, wraps
+from functools import lru_cache, wraps
 from typing import Dict, Optional
 
 import yaml
@@ -512,7 +512,7 @@ def add_preload_headers(response):
 		import traceback
 		traceback.print_exc()
 
-@cache
+@lru_cache()
 def is_binary_file(path):
 	# ref: https://stackoverflow.com/a/7392391/10309266
 	textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
