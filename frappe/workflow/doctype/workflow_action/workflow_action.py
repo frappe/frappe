@@ -217,6 +217,8 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 	).where(
 		WorkflowAction.reference_name == doc.get("name")
 	).where(
+		WorkflowAction.user != user
+	).where(
 		WorkflowAction.status == "Open"
 	).run()
 

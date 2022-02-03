@@ -5,6 +5,7 @@ import unittest
 from frappe.utils import random_string
 from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions
 from frappe.test_runner import make_test_records
+from frappe.query_builder import DocType
 
 
 class TestWorkflow(unittest.TestCase):
@@ -113,8 +114,9 @@ class TestWorkflow(unittest.TestCase):
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
-		frappe.db.update('Workflow Action', 'user', 'test2@example.com')
-		frappe.db.update('Workflow Action', 'role', '')
+		WorkflowAction = DocType("Workflow Action")
+		frappe.qb.update(WorkflowAction).set(WorkflowAction.user, 'test2@example.com').run()
+		frappe.qb.update(WorkflowAction).set(WorkflowAction.role, '').run()
 		self.test_approve(doc)
 		user.remove_roles('Test Approver', 'System Manager')
 		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
