@@ -156,11 +156,11 @@ class Importer:
 							},
 						)
 
-					import_log.append(create_import_log(self.data_import.name, log_index, {
+					create_import_log(self.data_import.name, log_index, {
 						'success': True,
 						'docname': doc.name,
 						'row_indexes': row_indexes
-					}))
+					})
 
 					log_index += 1
 
@@ -177,15 +177,13 @@ class Importer:
 					# rollback if exception
 					frappe.db.rollback()
 
-					import_log.append(create_import_log(self.data_import.name, log_index, {
+					create_import_log(self.data_import.name, log_index, {
 						'success': False,
 						'exception': frappe.get_traceback(),
 						'messages': messages,
 						'row_indexes': row_indexes
-					}))
+					})
 
-					# commit after creating log for failure
-					frappe.db.commit()
 					log_index += 1
 
 		# Logs are db inserted directly so will have to be fetched again

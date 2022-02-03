@@ -81,7 +81,10 @@ frappe.ui.form.on('Data Import', {
 		frm.trigger('show_import_log');
 		frm.trigger('show_import_warnings');
 		frm.trigger('toggle_submit_after_import');
-		frm.trigger('show_import_status');
+
+		if (frm.doc.status != 'Pending')
+			frm.trigger('show_import_status');
+
 		frm.trigger('show_report_error_button');
 
 		if (frm.doc.status === 'Partial Success') {
@@ -164,7 +167,7 @@ frappe.ui.form.on('Data Import', {
 								: __('Successfully imported {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
 					} else {
 						message =
-							successful_records> 1
+							successful_records > 1
 								? __('Successfully updated {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
 								: __('Successfully updated {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
 					}
