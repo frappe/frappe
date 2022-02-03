@@ -96,12 +96,13 @@ class TestWorkflow(unittest.TestCase):
 	def test_if_workflow_actions_were_processed_using_user(self):
 		frappe.db.delete("Workflow Action")
 		if not frappe.db.has_column('Workflow Action', 'user'):
+			# mariadb would raise this state would create an implicit commit
+			# if we do not commit before alter statement
+			frappe.db.commit()
 			frappe.db.multisql({
 				'mariadb': 'ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)',
 				'postgres': 'ALTER TABLE "tabWorkflow Action" ADD COLUMN user varchar(140)'
 			})
-			from frappe.database.schema import add_column
-			add_column('Workflow Action', "user", "Data")
 
 		user = frappe.get_doc('User', 'test2@example.com')
 		user.add_roles('Test Approver', 'System Manager')
