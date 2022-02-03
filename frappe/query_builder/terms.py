@@ -59,6 +59,7 @@ class ParameterizedValueWrapper(ValueWrapper):
 			sql = self.get_value_sql(
 				quote_char=quote_char,
 				secondary_quote_char=secondary_quote_char,
+				param_wrapper=param_wrapper,
 				**kwargs,
 			)
 		return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
