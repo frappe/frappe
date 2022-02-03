@@ -524,7 +524,7 @@ def get_last_modified(doctype):
 				raise
 
 		# hack: save as -1 so that it is cached
-		if last_modified==None:
+		if last_modified is None:
 			last_modified = -1
 
 		return last_modified

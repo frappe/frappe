@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 import mimetypes
 import os
 import re
-from functools import wraps
+from functools import lru_cache, wraps
+from typing import Dict, Optional
 
 import yaml
-from six import iteritems
 from werkzeug.wrappers import Response
 
 import frappe
@@ -88,7 +88,7 @@ def get_home_page():
 
 			# portal default
 			if not home_page:
-				home_page = frappe.db.get_value("Portal Settings", None, "default_portal_home")
+				home_page = frappe.db.get_single_value("Portal Settings", "default_portal_home")
 
 		# by hooks
 		if not home_page:
@@ -96,7 +96,7 @@ def get_home_page():
 
 		# global
 		if not home_page:
-			home_page = frappe.db.get_value("Website Settings", None, "home_page")
+			home_page = frappe.db.get_single_value("Website Settings", "home_page")
 
 		if not home_page:
 			home_page = "login" if frappe.session.user == 'Guest' else "me"
@@ -301,7 +301,7 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 		elif content_type == 'HTML':
 			content = doc.get(fieldname + '_html')
 
-		if content == None:
+		if content is None:
 			content = ''
 
 		return content
@@ -453,7 +453,7 @@ def cache_html(func):
 
 	return cache_html_decorator
 
-def build_response(path, data, http_status_code, headers=None):
+def build_response(path, data, http_status_code, headers: Optional[Dict] = None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
@@ -463,7 +463,7 @@ def build_response(path, data, http_status_code, headers=None):
 
 	add_preload_headers(response)
 	if headers:
-		for key, val in iteritems(headers):
+		for key, val in headers.items():
 			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
 
 	return response
@@ -511,3 +511,11 @@ def add_preload_headers(response):
 	except Exception:
 		import traceback
 		traceback.print_exc()
+
+@lru_cache()
+def is_binary_file(path):
+	# ref: https://stackoverflow.com/a/7392391/10309266
+	textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
+	with open(path, 'rb') as f:
+		content = f.read(1024)
+		return bool(content.translate(None, textchars))

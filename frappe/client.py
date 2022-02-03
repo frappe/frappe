@@ -32,6 +32,7 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 
 	args = frappe._dict(
 		doctype=doctype,
+		parent_doctype=parent,
 		fields=fields,
 		filters=filters,
 		or_filters=or_filters,
@@ -97,7 +98,6 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	# and did not just result in an empty string or dict
 	if not filters:
 		filters = None
-
 
 	if frappe.get_meta(doctype).issingle:
 		value = frappe.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)

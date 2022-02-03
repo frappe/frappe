@@ -148,8 +148,9 @@ frappe.ui.form.Control = class BaseControl {
 			return this.doc[this.df.fieldname];
 		}
 	}
-	set_value(value) {
-		return this.validate_and_set_in_model(value);
+
+	set_value(value, force_set_value=false) {
+		return this.validate_and_set_in_model(value, null, force_set_value);
 	}
 	parse_validate_and_set_in_model(value, e) {
 		if(this.parse) {
@@ -157,12 +158,11 @@ frappe.ui.form.Control = class BaseControl {
 		}
 		return this.validate_and_set_in_model(value, e);
 	}
-	validate_and_set_in_model(value, e) {
-		var me = this;
-		let force_value_set = (this.doc && this.doc.__run_link_triggers);
-		let is_value_same = (this.get_model_value() === value);
+	validate_and_set_in_model(value, e, force_set_value=false) {
+		const me = this;
+		const is_value_same = (this.get_model_value() === value);
 
-		if (this.inside_change_event || (!force_value_set && is_value_same)) {
+		if (this.inside_change_event || (is_value_same && !force_set_value)) {
 			return Promise.resolve();
 		}
 
@@ -186,7 +186,6 @@ frappe.ui.form.Control = class BaseControl {
 				}
 			]);
 		};
-
 		value = this.validate(value);
 		if (value && value.then) {
 			// got a promise

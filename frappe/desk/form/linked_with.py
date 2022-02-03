@@ -133,7 +133,7 @@ class SubmittableDocumentTree:
 		"""Returns list of submittable doctypes.
 		"""
 		if not self._submittable_doctypes:
-			self._submittable_doctypes = frappe.db.get_list('DocType', {'is_submittable': 1}, pluck='name')
+			self._submittable_doctypes = frappe.db.get_all('DocType', {'is_submittable': 1}, pluck='name')
 		return self._submittable_doctypes
 
 
@@ -410,11 +410,11 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 			try:
 				if link.get("filters"):
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=link.get("filters"))
+					ret = frappe.get_all(doctype=dt, fields=fields, filters=link.get("filters"))
 
 				elif link.get("get_parent"):
 					if me and me.parent and me.parenttype == dt:
-						ret = frappe.get_list(doctype=dt, fields=fields,
+						ret = frappe.get_all(doctype=dt, fields=fields,
 							filters=[[dt, "name", '=', me.parent]])
 					else:
 						ret = None
@@ -426,7 +426,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					if link.get("doctype_fieldname"):
 						filters.append([link.get('child_doctype'), link.get("doctype_fieldname"), "=", doctype])
 
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, or_filters=or_filters, distinct=True)
+					ret = frappe.get_all(doctype=dt, fields=fields, filters=filters, or_filters=or_filters, distinct=True)
 
 				else:
 					link_fieldnames = link.get("fieldname")
@@ -437,7 +437,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 						# dynamic link
 						if link.get("doctype_fieldname"):
 							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-						ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, or_filters=or_filters)
+						ret = frappe.get_all(doctype=dt, fields=fields, filters=filters, or_filters=or_filters)
 
 					else:
 						ret = None

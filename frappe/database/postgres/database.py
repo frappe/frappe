@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
 import frappe
@@ -53,7 +53,7 @@ class PostgresDatabase(Database):
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
 			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
-			'Rating':		('smallint', None),
+			'Rating':		('decimal', '3,2'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
 			'Attach':		('text', ''),
 			'Attach Image':	('text', ''),
@@ -69,14 +69,20 @@ class PostgresDatabase(Database):
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
-		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
+		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
 
 	def escape(self, s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
+
+		# MariaDB's driver treats None as an empty string
+		# So Postgres should do the same
+
+		if s is None:
+			s = ''
 
 		if percent:
 			s = s.replace("%", "%%")
@@ -103,7 +109,7 @@ class PostgresDatabase(Database):
 
 		return super(PostgresDatabase, self).sql(*args, **kwargs)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		return [d[0] for d in self.sql("""select table_name
 			from information_schema.tables
 			where table_catalog='{0}'
@@ -139,6 +145,10 @@ class PostgresDatabase(Database):
 		return isinstance(e, psycopg2.extensions.QueryCanceledError)
 
 	@staticmethod
+	def is_syntax_error(e):
+		return isinstance(e, psycopg2.errors.SyntaxError)
+
+	@staticmethod
 	def is_table_missing(e):
 		return getattr(e, 'pgcode', None) == '42P01'
 
@@ -160,11 +170,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return e.pgcode == '23505' and '_pkey' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_pkey' in cstr(e.args[0])
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_key' in cstr(e.args[0])
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
@@ -183,9 +193,12 @@ class PostgresDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
 
-	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+	def change_column_type(self, doctype: str, column: str, type: str, nullable: bool = False) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
-		return self.sql(f'ALTER TABLE "{table_name}" ALTER COLUMN "{column}" TYPE {type}')
+		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
+		return self.sql(f"""ALTER TABLE "{table_name}"
+								ALTER COLUMN "{column}" TYPE {type},
+								ALTER COLUMN "{column}" {null_constraint}""")
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (
@@ -252,8 +265,8 @@ class PostgresDatabase(Database):
 			key=key
 		)
 
-	def check_transaction_status(self, query):
-		pass
+	def check_implicit_commit(self, query):
+		pass # postgres can run DDL in transactions without implicit commits
 
 	def has_index(self, table_name, index_name):
 		return self.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
@@ -295,18 +308,20 @@ class PostgresDatabase(Database):
 				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
-			COUNT(b.indexdef) AS Index,
+			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN
-				(SELECT indexdef, tablename, indexdef LIKE '%UNIQUE INDEX%' AS unique
+				(SELECT indexdef, tablename,
+					indexdef LIKE '%UNIQUE INDEX%' AS unique,
+					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
 					FROM pg_indexes
 					WHERE tablename='{table_name}') b
-					ON SUBSTRING(b.indexdef, '\(.*\)') LIKE CONCAT('%', a.column_name, '%')
+				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;'''
-			.format(table_name=table_name), as_dict=1)
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+		'''.format(table_name=table_name), as_dict=1)
 
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]

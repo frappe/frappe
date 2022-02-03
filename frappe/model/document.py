@@ -188,9 +188,11 @@ class Document(BaseDocument):
 		is not set.
 
 		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
+		import frappe.permissions
+
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -209,24 +211,24 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
+		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		if ignore_links!=None:
+		if ignore_links is not None:
 			self.flags.ignore_links = ignore_links
 
-		if ignore_mandatory!=None:
+		if ignore_mandatory is not None:
 			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
 
-		self.check_permission("create")
 		self._set_defaults()
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
-		self.run_method("before_insert")
 		self._validate_links()
+		self.check_permission("create")
+		self.run_method("before_insert")
 		self.set_new_name(set_name=set_name, set_child_names=set_child_names)
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
@@ -295,14 +297,13 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
+		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
 		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
-			self.insert()
-			return
+			return self.insert()
 
 		self.check_permission("write", "save")
 
@@ -397,6 +398,7 @@ class Document(BaseDocument):
 				"parenttype": self.doctype,
 				"parentfield": fieldname
 			})
+
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
@@ -439,7 +441,7 @@ class Document(BaseDocument):
 			values = self.as_dict()
 			# format values
 			for key, value in values.items():
-				if value==None:
+				if value is None:
 					values[key] = ""
 			return values
 
@@ -469,9 +471,11 @@ class Document(BaseDocument):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
-		if not self.creation:
+
+		# We'd probably want the creation and owner to be set via API
+		# or Data import at some point, that'd have to be handled here
+		if self.is_new() and not (frappe.flags.in_patch or frappe.flags.in_migrate):
 			self.creation = self.modified
-		if not self.owner:
 			self.owner = self.modified_by
 
 		for d in self.get_all_children():
@@ -485,7 +489,7 @@ class Document(BaseDocument):
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
-		if self.docstatus==None:
+		if self.docstatus is None:
 			self.docstatus=0
 
 		for d in self.get_all_children():
@@ -563,8 +567,12 @@ class Document(BaseDocument):
 					fail = value != original_value
 
 				if fail:
-					frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(field.fieldname)),
-						frappe.CannotChangeConstantError)
+					frappe.throw(
+						_("Value cannot be changed for {0}").format(
+							frappe.bold(self.meta.get_label(field.fieldname))
+						),
+						exc=frappe.CannotChangeConstantError
+					)
 
 		return False
 
@@ -879,14 +887,14 @@ class Document(BaseDocument):
 		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-		if self.flags.notifications_executed==None:
+		if self.flags.notifications_executed is None:
 			self.flags.notifications_executed = []
 
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
-		if self.flags.notifications == None:
+		if self.flags.notifications is None:
 			alerts = frappe.cache().hget('notifications', self.doctype)
-			if alerts==None:
+			if alerts is None:
 				alerts = frappe.get_all('Notification', fields=['name', 'event', 'method'],
 					filters={'enabled': 1, 'document_type': self.doctype})
 				frappe.cache().hset('notifications', self.doctype, alerts)
@@ -1342,15 +1350,15 @@ class Document(BaseDocument):
 			), frappe.exceptions.InvalidDates)
 
 	def get_assigned_users(self):
-		assignments = frappe.get_all('ToDo',
-			fields=['owner'],
+		assigned_users = frappe.get_all('ToDo',
+			fields=['allocated_to'],
 			filters={
 				'reference_type': self.doctype,
 				'reference_name': self.name,
 				'status': ('!=', 'Cancelled'),
-			})
+			}, pluck='allocated_to')
 
-		users = set([assignment.owner for assignment in assignments])
+		users = set(assigned_users)
 		return users
 
 	def add_tag(self, tag):

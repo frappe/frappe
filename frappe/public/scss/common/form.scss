@@ -1,4 +1,5 @@
 .form-control {
+	height: inherit;
 	border: none;
 	font-size: var(--text-md);
 	position: relative;
@@ -13,10 +14,9 @@
 		font-weight: normal;
 		font-size: var(--text-sm);
 	}
-	min-height: var(--input-height);
 	border-radius: $border-radius;
 	font-weight: 400;
-	padding: 8px 12px;
+	padding: 6px 12px;
 	cursor: default;
 	color: var(--disabled-text-color);
 	background-color: var(--disabled-control-bg);

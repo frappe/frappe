@@ -698,8 +698,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
 
-	if not os.path.exists(archived_sites_path):
-		os.mkdir(archived_sites_path)
+	os.makedirs(archived_sites_path, exist_ok=True)
 
 	move(archived_sites_path, site)
 
@@ -953,7 +952,7 @@ def trim_database(context, dry_run, format, no_backup):
 		doctype_tables = frappe.get_all("DocType", pluck="name")
 
 		for x in database_tables:
-			doctype = x.lstrip("tab")
+			doctype = x.replace("tab", "", 1)
 			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
 				TABLES_TO_DROP.append(x)
 
@@ -967,7 +966,7 @@ def trim_database(context, dry_run, format, no_backup):
 
 				odb = scheduled_backup(
 					ignore_conf=False,
-					include_doctypes=",".join(x.lstrip("tab") for x in TABLES_TO_DROP),
+					include_doctypes=",".join(x.replace("tab", "", 1) for x in TABLES_TO_DROP),
 					ignore_files=True,
 					force=True,
 				)

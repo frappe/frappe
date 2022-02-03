@@ -23,7 +23,7 @@ def print_has_permission_check_logs(func):
 		frappe.flags['has_permission_check_logs'] = []
 		result = func(*args, **kwargs)
 		self_perm_check = True if not kwargs.get('user') else kwargs.get('user') == frappe.session.user
-		raise_exception = False if kwargs.get('raise_exception') == False else True
+		raise_exception = False if kwargs.get('raise_exception') is False else True
 
 		# print only if access denied
 		# and if user is checking his own permission
@@ -108,7 +108,7 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	meta = frappe.get_meta(doc.doctype)
 
 	def is_user_owner():
-		return (doc.get("owner") or "").lower() == frappe.session.user.lower()
+		return (doc.get("owner") or "").lower() == user.lower()
 
 	if has_controller_permissions(doc, ptype, user=user) is False:
 		push_perm_check_log('Not allowed via controller permission check')
@@ -559,7 +559,9 @@ def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=
 	return (allowed_doc, default_doc) if with_default_doc else allowed_doc
 
 def push_perm_check_log(log):
-	if frappe.flags.get('has_permission_check_logs') == None: return
+	if frappe.flags.get('has_permission_check_logs') is None:
+		return
+
 	frappe.flags.get('has_permission_check_logs').append(_(log))
 
 def has_child_table_permission(child_doctype, ptype="read", child_doc=None,

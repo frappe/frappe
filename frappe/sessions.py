@@ -68,9 +68,14 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	session = DocType("Sessions")
 	session_id = frappe.qb.from_(session).where((session.user == user) & (session.device.isin(device)))
 	if keep_current:
-		session_id = session_id.where(session.sid != frappe.db.escape(frappe.session.sid))
+		session_id = session_id.where(session.sid != frappe.session.sid)
 
-	query = session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
+	query = (
+		session_id.select(session.sid)
+		.offset(offset)
+		.limit(100)
+		.orderby(session.lastupdate, order=Order.desc)
+	)
 
 	return query.run(pluck=True)
 
@@ -107,7 +112,7 @@ def get_expired_sessions():
 			frappe.db.get_values(
 				sessions,
 				filters=(
-					PseudoColumn(f"({Now() - sessions.lastupdate})")
+					PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
 					> get_expiry_period_for_query(device)
 				)
 				& (sessions.device == device),
@@ -329,7 +334,7 @@ class Session:
 			sessions,
 			filters=(sessions.sid == self.sid)
 			& (
-				PseudoColumn(f"({Now() - sessions.lastupdate})")
+				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
 				< get_expiry_period_for_query(self.device)
 			),
 			fieldname=["user", "sessiondata"],
@@ -369,7 +374,7 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-		if force or (time_diff==None) or (time_diff > 600):
+		if force or (time_diff is None) or (time_diff > 600):
 			# update sessions table
 			frappe.db.sql("""update `tabSessions` set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),

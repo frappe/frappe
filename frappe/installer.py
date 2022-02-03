@@ -154,7 +154,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	for before_install in app_hooks.before_install or []:
 		out = frappe.get_attr(before_install)()
-		if out==False:
+		if out is False:
 			return
 
 	if name != "frappe":
@@ -208,6 +208,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	import click
 
 	site = frappe.local.site
+	app_hooks = frappe.get_hooks(app_name=app_name)
 
 	# dont allow uninstall app if not installed unless forced
 	if not force:
@@ -233,6 +234,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	frappe.flags.in_uninstall = True
 
+	for before_uninstall in app_hooks.before_uninstall or []:
+		frappe.get_attr(before_uninstall)()
+
 	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
 
 	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
@@ -242,6 +246,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		remove_from_installed_apps(app_name)
 		frappe.get_single('Installed Applications').update_versions()
 		frappe.db.commit()
+
+	for after_uninstall in app_hooks.after_uninstall or []:
+		frappe.get_attr(after_uninstall)()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
@@ -339,14 +346,15 @@ def post_install(rebuild_website=False):
 
 
 def set_all_patches_as_completed(app):
-	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")
-	if os.path.exists(patch_path):
-		for patch in frappe.get_file_items(patch_path):
-			frappe.get_doc({
-				"doctype": "Patch Log",
-				"patch": patch
-			}).insert(ignore_permissions=True)
-		frappe.db.commit()
+	from frappe.modules.patch_handler import get_patches_from_app
+
+	patches = get_patches_from_app(app)
+	for patch in patches:
+		frappe.get_doc({
+			"doctype": "Patch Log",
+			"patch": patch
+		}).insert(ignore_permissions=True)
+	frappe.db.commit()
 
 
 def init_singles():

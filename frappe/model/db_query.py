@@ -36,10 +36,12 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
 		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
-		if not ignore_permissions and \
-			not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype) and \
-			not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype):
 
+		if (
+			not ignore_permissions
+			and not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype)
+			and not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype)
+		):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
@@ -128,6 +130,11 @@ class DatabaseQuery(object):
 			args.fields = 'distinct ' + args.fields
 			args.order_by = '' # TODO: recheck for alternative
 
+		# Postgres requires any field that appears in the select clause to also
+		# appear in the order by and group by clause
+		if frappe.db.db_type == 'postgres' and args.order_by and args.group_by:
+			args = self.prepare_select_args(args)
+
 		query = """select %(fields)s
 			from %(tables)s
 			%(conditions)s
@@ -198,6 +205,19 @@ class DatabaseQuery(object):
 
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
+
+		return args
+
+	def prepare_select_args(self, args):
+		order_field = re.sub(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", "", args.order_by)
+
+		if order_field not in args.fields:
+			extracted_column = order_column = order_field.replace("`", "")
+			if "." in extracted_column:
+				extracted_column = extracted_column.split(".")[1]
+
+			args.fields += f", MAX({extracted_column}) as `{order_column}`"
+			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
 
@@ -525,7 +545,7 @@ class DatabaseQuery(object):
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, str) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
-					value = "" if f.value==None else f.value
+					value = "" if f.value is None else f.value
 					fallback = "''"
 
 					if f.operator.lower() in ("like", "not like") and isinstance(value, str):
@@ -787,12 +807,15 @@ class DatabaseQuery(object):
 def check_parent_permission(parent, child_doctype):
 	if parent:
 		# User may pass fake parent and get the information from the child table
-		if child_doctype and not frappe.db.exists('DocField',
-			{'parent': parent, 'options': child_doctype}):
+		if child_doctype and not (
+			frappe.db.exists('DocField', {'parent': parent, 'options': child_doctype})
+			or frappe.db.exists('Custom Field', {'dt': parent, 'options': child_doctype})
+		):
 			raise frappe.PermissionError
 
 		if frappe.permissions.has_permission(parent):
 			return
+
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
 

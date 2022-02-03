@@ -5,6 +5,7 @@ import getpass
 from frappe.utils.password import update_password
 
 def before_install():
+	frappe.reload_doc("core", "doctype", "doctype_state")
 	frappe.reload_doc("core", "doctype", "docfield")
 	frappe.reload_doc("core", "doctype", "docperm")
 	frappe.reload_doc("core", "doctype", "doctype_action")
@@ -216,6 +217,12 @@ def add_standard_navbar_items():
 			'item_label': 'Toggle Full Width',
 			'item_type': 'Action',
 			'action': 'frappe.ui.toolbar.toggle_full_width()',
+			'is_standard': 1
+		},
+		{
+			'item_label': 'Toggle Theme',
+			'item_type': 'Action',
+			'action': 'new frappe.ui.ThemeSwitcher().show()',
 			'is_standard': 1
 		},
 		{

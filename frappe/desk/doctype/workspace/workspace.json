@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "field:label",
  "beta": 1,
  "creation": "2020-01-23 13:45:59.470592",
@@ -141,7 +142,7 @@
   },
   {
    "fieldname": "sequence_id",
-   "fieldtype": "Int",
+   "fieldtype": "Float",
    "label": "Sequence Id"
   },
   {
@@ -158,7 +159,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2021-09-16 12:01:06.450622",
+ "modified": "2021-12-15 19:33:00.805265",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

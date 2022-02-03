@@ -126,7 +126,7 @@ def set_default(key, value, parent, parenttype="__default"):
 			"defkey": key,
 			"parent": parent
 		})
-	if value != None:
+	if value is not None:
 		add_default(key, value, parent)
 	else:
 		_clear_cache(parent)
@@ -187,7 +187,7 @@ def get_defaults_for(parent="__default"):
 	"""get all defaults"""
 	defaults = frappe.cache().hget("defaults", parent)
 
-	if defaults==None:
+	if defaults is None:
 		# sort descending because first default must get precedence
 		table = DocType("DefaultValue")
 		res = frappe.qb.from_(table).where(

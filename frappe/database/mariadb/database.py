@@ -43,7 +43,7 @@ class MariaDBDatabase(Database):
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
 			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
-			'Rating':		('int', '1'),
+			'Rating':		('decimal', '3,2'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
 			'Attach':		('text', ''),
 			'Attach Image':	('text', ''),
@@ -135,9 +135,10 @@ class MariaDBDatabase(Database):
 		table_name = get_table_name(doctype)
 		return self.sql(f"DESC `{table_name}`")
 
-	def change_column_type(self, doctype: str, column: str, type: str) -> Union[List, Tuple]:
+	def change_column_type(self, doctype: str, column: str, type: str, nullable: bool = False) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
-		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} NOT NULL")
+		null_constraint = "NOT NULL" if not nullable else ""
+		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
 
 	# exception types
 	@staticmethod
@@ -244,9 +245,16 @@ class MariaDBDatabase(Database):
 			column_name as 'name',
 			column_type as 'type',
 			column_default as 'default',
-			column_key = 'MUL' as 'index',
+			COALESCE(
+				(select 1
+				from information_schema.statistics
+				where table_name="{table_name}"
+					and column_name=columns.column_name
+					and NON_UNIQUE=1
+					limit 1
+			), 0) as 'index',
 			column_key = 'UNI' as 'unique'
-			from information_schema.columns
+			from information_schema.columns as columns
 			where table_name = '{table_name}' '''.format(table_name=table_name), as_dict=1)
 
 	def has_index(self, table_name, index_name):

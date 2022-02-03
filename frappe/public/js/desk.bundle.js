@@ -1,7 +1,7 @@
+import "./frappe/provide.js";
 import "./frappe/translate.js";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
-import "./frappe/provide.js";
 import "./frappe/assets.js";
 import "./frappe/format.js";
 import "./frappe/form/formatters.js";
@@ -63,6 +63,7 @@ import "./frappe/utils/address_and_contact.js";
 import "./frappe/utils/preview_email.js";
 import "./frappe/utils/file_manager.js";
 import "./frappe/utils/diffview";
+import "./frappe/utils/datatable.js";
 
 import "./frappe/upload.js";
 import "./frappe/ui/tree.js";
@@ -95,6 +96,7 @@ import "./frappe/ui/sort_selector.js";
 
 import "./frappe/change_log.html";
 import "./frappe/ui/workspace_loading_skeleton.html";
+import "./frappe/ui/workspace_sidebar_loading_skeleton.html";
 import "./frappe/desk.js";
 import "./frappe/query_string.js";
 

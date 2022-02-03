@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
 import json
 import frappe
 import os
 import unittest
+
 from frappe import _
-from frappe.core.doctype.file.file import get_attached_images, move_file, get_files_in_folder, unzip_file
+from frappe.core.doctype.file.file import File, get_attached_images, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
-# test_records = frappe.get_test_records('File')
 
 test_content1 = 'Hello'
 test_content2 = 'Hello World'
@@ -18,13 +17,12 @@ test_content2 = 'Hello World'
 def make_test_doc():
 	d = frappe.new_doc('ToDo')
 	d.description = 'Test'
+	d.assigned_by = frappe.session.user
 	d.save()
 	return d.doctype, d.name
 
 
 class TestSimpleFile(unittest.TestCase):
-
-
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = test_content1
@@ -37,21 +35,13 @@ class TestSimpleFile(unittest.TestCase):
 		_file.save()
 		self.saved_file_url = _file.file_url
 
-
 	def test_save(self):
 		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
 		content = _file.get_content()
 		self.assertEqual(content, self.test_content)
 
 
-	def tearDown(self):
-		# File gets deleted on rollback, so blank
-		pass
-
-
 class TestBase64File(unittest.TestCase):
-
-
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode('utf-8'))
@@ -65,16 +55,10 @@ class TestBase64File(unittest.TestCase):
 		_file.save()
 		self.saved_file_url = _file.file_url
 
-
 	def test_saved_content(self):
 		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
 		content = _file.get_content()
 		self.assertEqual(content, test_content1)
-
-
-	def tearDown(self):
-		# File gets deleted on rollback, so blank
-		pass
 
 
 class TestSameFileName(unittest.TestCase):
@@ -129,8 +113,6 @@ class TestSameFileName(unittest.TestCase):
 
 
 class TestSameContent(unittest.TestCase):
-
-
 	def setUp(self):
 		self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
 		self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
@@ -184,10 +166,6 @@ class TestSameContent(unittest.TestCase):
 		self.assertRaises(frappe.exceptions.AttachmentLimitReached, file2.insert)
 		limit_property.delete()
 		frappe.clear_cache(doctype='ToDo')
-
-	def tearDown(self):
-		# File gets deleted on rollback, so blank
-		pass
 
 
 class TestFile(unittest.TestCase):
@@ -397,7 +375,7 @@ class TestFile(unittest.TestCase):
 
 	def test_make_thumbnail(self):
 		# test web image
-		test_file = frappe.get_doc({
+		test_file: File = frappe.get_doc({
 			"doctype": "File",
 			"file_name": 'logo',
 			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
@@ -405,6 +383,16 @@ class TestFile(unittest.TestCase):
 
 		test_file.make_thumbnail()
 		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+
+		# test web image without extension
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": frappe.utils.get_url('/_test/assets/image'),
+		}).insert(ignore_permissions=True)
+
+		test_file.make_thumbnail()
+		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpeg"))
 
 		# test local image
 		test_file.db_set('thumbnail_url', None)

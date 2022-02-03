@@ -392,9 +392,9 @@ frappe.views.BaseList = class BaseList {
 
 				this.start = 0;
 				this.page_length = $this.data().value;
-				this.refresh();
 			} else if ($this.is(".btn-more")) {
 				this.start = this.start + this.page_length;
+				this.page_length = 20;
 			}
 			this.refresh();
 		});
@@ -475,6 +475,7 @@ frappe.views.BaseList = class BaseList {
 			this.render();
 			this.after_render();
 			this.freeze(false);
+			this.reset_defaults();
 			if (this.settings.refresh) {
 				this.settings.refresh(this);
 			}
@@ -483,6 +484,11 @@ frappe.views.BaseList = class BaseList {
 
 	prepare_data(r) {
 		let data = r.message || {};
+
+		// extract user_info for assignments
+		Object.assign(frappe.boot.user_info, data.user_info);
+		delete data.user_info;
+
 		data = !Array.isArray(data)
 			? frappe.utils.dict(data.keys, data.values)
 			: data;
@@ -492,6 +498,13 @@ frappe.views.BaseList = class BaseList {
 		} else {
 			this.data = this.data.concat(data);
 		}
+
+		this.data = this.data.uniqBy((d) => d.name);
+	}
+
+	reset_defaults() {
+		this.page_length = this.page_length + this.start;
+		this.start = 0;
 	}
 
 	freeze() {

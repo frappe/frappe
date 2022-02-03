@@ -151,7 +151,7 @@ def update_system_settings(args):
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
 		"country": args.get("country"),
-		"language": get_language_code(args.get("language")),
+		"language": get_language_code(args.get("language")) or 'en',
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
@@ -388,7 +388,6 @@ def make_records(records, debug=False):
 
 	# LOG every success and failure
 	for record in records:
-
 		doctype = record.get("doctype")
 		condition = record.get('__condition')
 
@@ -405,6 +404,7 @@ def make_records(records, debug=False):
 
 		try:
 			doc.insert(ignore_permissions=True)
+			frappe.db.commit()
 
 		except frappe.DuplicateEntryError as e:
 			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
@@ -417,6 +417,7 @@ def make_records(records, debug=False):
 				raise
 
 		except Exception as e:
+			frappe.db.rollback()
 			exception = record.get('__exception')
 			if exception:
 				config = _dict(exception)

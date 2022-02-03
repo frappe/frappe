@@ -381,7 +381,7 @@ class DocType(Document):
 		document_cls_tag = f"class {despaced_name}(Document)"
 		document_import_tag = "from frappe.model.document import Document"
 		website_generator_cls_tag = f"class {despaced_name}(WebsiteGenerator)"
-		website_generator_import_tag = "from frappe.website.generators.website_generator import WebsiteGenerator"
+		website_generator_import_tag = "from frappe.website.website_generator import WebsiteGenerator"
 
 		with open(controller_path) as f:
 			code = f.read()
@@ -698,6 +698,13 @@ class DocType(Document):
 	def validate_name(self, name=None):
 		if not name:
 			name = self.name
+
+		# a Doctype name is the tablename created in database
+		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
+		if len(name) > max_length:
+			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
+			frappe.throw(_("Doctype name is limited to {0} characters ({1})").format(max_length, name), frappe.NameError)
 
 		flags = {"flags": re.ASCII}
 
@@ -1074,6 +1081,11 @@ def validate_fields(meta):
 		if getattr(docfield, 'max_height', None) and (docfield.max_height[-2:] not in ('px', 'em')):
 			frappe.throw('Max for {} height must be in px, em, rem'.format(frappe.bold(docfield.fieldname)))
 
+	def check_no_of_ratings(docfield):
+		if docfield.fieldtype == "Rating":
+			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
+				frappe.throw(_('Options for Rating field can range from 3 to 10'))
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1107,6 +1119,7 @@ def validate_fields(meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 		check_max_height(d)
+		check_no_of_ratings(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
@@ -1277,7 +1290,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		roles = [p.role for p in doc.get("permissions") or []] + default_roles
 
 		for role in list(set(roles)):
-			if not frappe.db.exists("Role", role):
+			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
 				r = frappe.get_doc(dict(doctype= "Role", role_name=role, desk_access=1))
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()

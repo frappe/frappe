@@ -12,6 +12,8 @@ Read the documentation: https://frappeframework.com/docs
 """
 import os, warnings
 
+STANDARD_USERS = ('Guest', 'Administrator')
+
 _dev_server = os.environ.get('DEV_SERVER', False)
 
 if _dev_server:
@@ -100,7 +102,7 @@ def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
 	if isinstance(text, str):
 		return text
-	elif text==None:
+	elif text is None:
 		return ''
 	elif isinstance(text, bytes):
 		return str(text, encoding)
@@ -121,6 +123,7 @@ def set_user_lang(user, user_language=None):
 	local.lang = get_user_lang(user)
 
 # local-globals
+
 db = local("db")
 qb = local("qb")
 conf = local("conf")
@@ -140,12 +143,15 @@ lang = local("lang")
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if typing.TYPE_CHECKING:
+	from frappe.utils.redis_wrapper import RedisWrapper
+
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.query_builder.builder import MariaDB, Postgres
 
 	db: typing.Union[MariaDBDatabase, PostgresDatabase]
 	qb: typing.Union[MariaDB, Postgres]
+
 
 # end: static analysis hack
 
@@ -291,7 +297,7 @@ def get_conf(site=None):
 
 class init_site:
 	def __init__(self, site=None):
-		'''If site==None, initialize it for empty site ('') to load common_site_config.json'''
+		'''If site is None, initialize it for empty site ('') to load common_site_config.json'''
 		self.site = site or ''
 
 	def __enter__(self):
@@ -308,9 +314,8 @@ def destroy():
 
 	release_local(local)
 
-# memcache
 redis_server = None
-def cache():
+def cache() -> "RedisWrapper":
 	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
@@ -443,7 +448,7 @@ def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None, 
 	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide, as_list=as_list)
 
 def emit_js(js, user=False, **kwargs):
-	if user == False:
+	if user is False:
 		user = session.user
 	publish_realtime('eval_js', js, user=user, **kwargs)
 
@@ -740,17 +745,26 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
+	import frappe.permissions
+
 	if not doctype and doc:
 		doctype = doc.doctype
 
-	import frappe.permissions
 	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user,
 		raise_exception=throw, parent_doctype=parent_doctype)
+
 	if throw and not out:
-		if doc:
-			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
-		else:
-			frappe.throw(_("No permission for {0}").format(doctype))
+		# mimics frappe.throw
+		document_label = f"{doc.doctype} {doc.name}" if doc else doctype
+		msgprint(
+			_("No permission for {0}").format(document_label),
+			raise_exception=ValidationError,
+			title=None,
+			indicator='red',
+			is_minimizable=None,
+			wide=None,
+			as_list=False
+		)
 
 	return out
 
@@ -1203,7 +1217,7 @@ def read_file(path, raise_not_found=False):
 def get_attr(method_string):
 	"""Get python method object from its name."""
 	app_name = method_string.split(".")[0]
-	if not local.flags.in_install and app_name not in get_installed_apps():
+	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 
 	modulename = '.'.join(method_string.split('.')[:-1])
@@ -1649,7 +1663,7 @@ def local_cache(namespace, key, generator, regenerate_if_none=False):
 	if key not in local.cache[namespace]:
 		local.cache[namespace][key] = generator()
 
-	elif local.cache[namespace][key]==None and regenerate_if_none:
+	elif local.cache[namespace][key] is None and regenerate_if_none:
 		# if key exists but the previous result was None
 		local.cache[namespace][key] = generator()
 

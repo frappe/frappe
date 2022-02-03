@@ -85,7 +85,7 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		// navigate records keyboard shortcuts
-		this.add_nav_keyboard_shortcuts();
+		this.add_form_keyboard_shortcuts();
 
 		// 2 column layout
 		this.setup_std_layout();
@@ -116,7 +116,8 @@ frappe.ui.form.Form = class FrappeForm {
 		this.setup_done = true;
 	}
 
-	add_nav_keyboard_shortcuts() {
+	add_form_keyboard_shortcuts() {
+		// Navigate to next record
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+ctrl+>',
 			action: () => this.navigate_records(0),
@@ -126,6 +127,7 @@ frappe.ui.form.Form = class FrappeForm {
 			condition: () => !this.is_new()
 		});
 
+		// Navigate to previous record
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+ctrl+<',
 			action: () => this.navigate_records(1),
@@ -134,11 +136,61 @@ frappe.ui.form.Form = class FrappeForm {
 			ignore_inputs: true,
 			condition: () => !this.is_new()
 		});
+
+		let grid_shortcut_keys = [
+			{
+				'shortcut': 'Up Arrow',
+				'description': __('Move cursor to above row')
+			},
+			{
+				'shortcut': 'Down Arrow',
+				'description': __('Move cursor to below row')
+			},
+			{
+				'shortcut': 'tab',
+				'description': __('Move cursor to next column')
+			},
+			{
+				'shortcut': 'shift+tab',
+				'description': __('Move cursor to previous column')
+			},
+			{
+				'shortcut': 'Ctrl+up',
+				'description': __('Add a row above the current row')
+			},
+			{
+				'shortcut': 'Ctrl+down',
+				'description': __('Add a row below the current row')
+			},
+			{
+				'shortcut': 'Ctrl+shift+up',
+				'description': __('Add a row at the top')
+			},
+			{
+				'shortcut': 'Ctrl+shift+down',
+				'description': __('Add a row at the bottom')
+			},
+			{
+				'shortcut': 'shift+alt+down',
+				'description': __('To duplcate current row')
+			}
+		];
+
+		grid_shortcut_keys.forEach(row => {
+			frappe.ui.keys.add_shortcut({
+				shortcut: row.shortcut,
+				page: this,
+				description: __(row.description),
+				ignore_inputs: true,
+				condition: () => !this.is_new()
+			});
+		});
+
 	}
 
 	setup_std_layout() {
 		this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
-		this.body = $('<div></div>').appendTo(this.form_wrapper);
+		this.body = $('<div class="std-form-layout"></div>').appendTo(this.form_wrapper);
 
 		// only tray
 		this.meta.section_style='Simple'; // always simple!
@@ -159,12 +211,24 @@ frappe.ui.form.Form = class FrappeForm {
 		this.fields = this.layout.fields_list;
 
 		let dashboard_parent = $('<div class="form-dashboard">');
+		let dashboard_added = false;
 
 		if (this.layout.tabs.length) {
-			this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+			this.layout.tabs.every(tab => {
+				if (tab.df.show_dashboard) {
+					tab.wrapper.prepend(dashboard_parent);
+					dashboard_added = true;
+					return false;
+				}
+				return true;
+			});
+			if (!dashboard_added) {
+				this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+			}
 		} else {
-			dashboard_parent.insertAfter(this.layout.wrapper.find('.form-message'));
+			this.layout.wrapper.find('.form-page').prepend(dashboard_parent);
 		}
+
 		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({
@@ -879,7 +943,10 @@ frappe.ui.form.Form = class FrappeForm {
 				// re-enable buttons
 				resolve();
 			}
-			frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
+
+			frappe.throw(
+				__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)], "{0} = verb, {1} = object")
+			);
 		}
 	}
 
@@ -919,7 +986,7 @@ frappe.ui.form.Form = class FrappeForm {
 			$.each(this.fields_dict, function(fieldname, field) {
 				if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
 					// triggers add fetch, sets value in model and runs triggers
-					field.set_value(this.doc[fieldname]);
+					field.set_value(this.doc[fieldname], true);
 				}
 			});
 
@@ -1082,8 +1149,7 @@ frappe.ui.form.Form = class FrappeForm {
 			subject: __(this.meta.name) + ': ' + this.docname,
 			recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
 			attach_document_print: true,
-			message: message,
-			real_name: this.doc.real_name || this.doc.contact_display || this.doc.contact_name
+			message: message
 		});
 	}
 
