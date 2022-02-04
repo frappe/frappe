@@ -1,9 +1,7 @@
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
-from pypika.queries import Schema, Table
-from frappe.utils import get_table_name
-
 from pypika.queries import QueryBuilder, Schema, Table
+from pypika.terms import Function
 
 from frappe.query_builder.terms import ParameterizedValueWrapper
 from frappe.utils import get_table_name
@@ -14,6 +12,10 @@ class Base:
 	desc = Order.desc
 	Schema = Schema
 	Table = Table
+
+	@staticmethod
+	def functions(name: str, *args, **kwargs) -> Function:
+		return Function(name, *args, **kwargs)
 
 	@staticmethod
 	def DocType(table_name: str, *args, **kwargs) -> Table:
@@ -46,17 +48,6 @@ class MariaDB(Base, MySQLQuery):
 			table = cls.DocType(table)
 		return super().from_(table, *args, **kwargs)
 
-	@classmethod
-	def into(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().into(table, *args, **kwargs)
-
-	@classmethod
-	def update(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().update(table, *args, **kwargs)
 
 class Postgres(Base, PostgreSQLQuery):
 	field_translation = {"table_name": "relname", "table_rows": "n_tup_ins"}
@@ -91,15 +82,3 @@ class Postgres(Base, PostgreSQLQuery):
 			table = cls.DocType(table)
 
 		return super().from_(table, *args, **kwargs)
-
-	@classmethod
-	def into(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().into(table, *args, **kwargs)
-
-	@classmethod
-	def update(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().update(table, *args, **kwargs)
