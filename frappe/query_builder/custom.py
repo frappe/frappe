@@ -89,6 +89,7 @@ class ConstantColumn(Term):
 
 	def __init__(self, value: str) -> None:
 		"""[ Returns a pseudo column with a constant value in all the rows]
+
 		Args:
 			value (str): [ Value of the column ]
 		"""

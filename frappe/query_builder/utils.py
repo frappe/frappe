@@ -1,8 +1,10 @@
 from enum import Enum
 from importlib import import_module
-from typing import Any, Callable, Dict, get_type_hints
+from typing import Any, Callable, Dict, Union, get_type_hints
 
 from pypika import Query
+from pypika.queries import Column
+from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
@@ -26,7 +28,7 @@ class BuilderIdentificationFailed(Exception):
 	def __init__(self):
 		super().__init__("Couldn't guess builder")
 
-def get_query_builder(type_of_db: str) -> Query:
+def get_query_builder(type_of_db: str) -> Union[Postgres, MariaDB]:
 	"""[return the query builder object]
 
 	Args:
@@ -71,3 +73,14 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
+
+
+def patch_query_aggregation():
+	"""Patch aggregation functions to frappe.qb
+	"""
+	from frappe.query_builder.functions import _avg, _max, _min, _sum
+
+	frappe.qb.max = _max
+	frappe.qb.min = _min
+	frappe.qb.avg = _avg
+	frappe.qb.sum = _sum
