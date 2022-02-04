@@ -472,7 +472,7 @@ class EmailAccount(Document):
 					mails.append(InboundMail(message, self, uid, seen_status, append_to))
 
 		if frappe.local.flags.in_test:
-			if self.enable_incoming and not test_mails:
+			if self.enable_incoming and not test_mails and messages:
 				for folder in self.imap_folder:
 					_messages = messages[folder.folder_name] if folder.folder_name in messages and (messages[folder.folder_name] is not None) else {}
 					process_mail(_messages, folder.append_to)
