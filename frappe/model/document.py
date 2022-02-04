@@ -1,13 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
+import hashlib
+import json
 import time
+from werkzeug.exceptions import NotFound
+
+import frappe
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
-from werkzeug.exceptions import NotFound, Forbidden
-import hashlib, json
+from frappe.model.docstatus import DocStatus
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.model.workflow import set_workflow_state_on_action
@@ -16,6 +19,7 @@ from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.utils.data import get_absolute_url
+
 
 # once_only validation
 # methods
@@ -307,7 +311,7 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		if self.docstatus == 2:
+		if self.docstatus.is_cancelled():
 			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
@@ -490,7 +494,7 @@ class Document(BaseDocument):
 
 	def set_docstatus(self):
 		if self.docstatus is None:
-			self.docstatus=0
+			self.docstatus = DocStatus.draft()
 
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
@@ -740,7 +744,7 @@ class Document(BaseDocument):
 		else:
 			self.check_docstatus_transition(0)
 
-	def check_docstatus_transition(self, docstatus):
+	def check_docstatus_transition(self, to_docstatus):
 		"""Ensures valid `docstatus` transition.
 		Valid transitions are (number in brackets is `docstatus`):
 
@@ -751,31 +755,32 @@ class Document(BaseDocument):
 
 		"""
 		if not self.docstatus:
-			self.docstatus = 0
-		if docstatus==0:
-			if self.docstatus==0:
+			self.docstatus = DocStatus.draft()
+
+		if to_docstatus == DocStatus.draft():
+			if self.docstatus.is_draft():
 				self._action = "save"
-			elif self.docstatus==1:
+			elif self.docstatus.is_submitted():
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.docstatus==2:
+			elif self.docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif docstatus==1:
-			if self.docstatus==1:
+		elif to_docstatus == DocStatus.submitted():
+			if self.docstatus.is_submitted():
 				self._action = "update_after_submit"
 				self.check_permission("submit")
-			elif self.docstatus==2:
+			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.docstatus==0:
+			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif docstatus==2:
+		elif to_docstatus == DocStatus.cancelled():
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
@@ -929,14 +934,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.docstatus = 1
+		self.docstatus = DocStatus.submitted()
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
-		self.docstatus = 2
+		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
 	@whitelist.__func__
@@ -954,7 +959,7 @@ class Document(BaseDocument):
 		frappe.delete_doc(self.doctype, self.name, ignore_permissions = ignore_permissions, flags=self.flags)
 
 	def run_before_save_methods(self):
-		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:
+		"""Run standard methods before	`INSERT` or `UPDATE`. Standard Methods are:
 
 		- `validate`, `before_save` for **Save**.
 		- `validate`, `before_submit` for **Submit**.
