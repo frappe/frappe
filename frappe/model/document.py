@@ -9,7 +9,7 @@ import frappe
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
+from frappe.model.naming import set_new_name
 from frappe.model.docstatus import DocStatus
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
@@ -310,9 +310,6 @@ class Document(BaseDocument):
 			return self.insert()
 
 		self.check_permission("write", "save")
-
-		if self.docstatus.is_cancelled():
-			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
 		self.set_docstatus()
@@ -724,6 +721,7 @@ class Document(BaseDocument):
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
 					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
+
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
 				else:
@@ -1375,11 +1373,6 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
-
-	def _rename_doc_on_cancel(self):
-		new_name = gen_new_name_for_cancelled_doc(self)
-		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
-		self.name = new_name
 
 	def __repr__(self):
 		name = self.name or "unsaved"
