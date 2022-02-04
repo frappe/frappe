@@ -150,8 +150,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 	}
 
+	is_child_selection_enabled() {
+		return this.dialog.fields_dict['allow_child_item_selection'].get_value();
+	}
+
 	toggle_child_selection() {
-		if (this.dialog.fields_dict['allow_child_item_selection'].get_value()) {
+		if (this.is_child_selection_enabled()) {
 			this.show_child_results();
 		} else {
 			this.child_results = [];
@@ -289,7 +293,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			parent: this.dialog.get_field('filter_area').$wrapper,
 			doctype: this.doctype,
 			on_change: () => {
-				this.get_results();
+				if (this.is_child_selection_enabled()) {
+					this.show_child_results();
+				} else {
+					this.get_results();
+				}
 			}
 		});
 		// 'Apply Filter' breaks since the filers are not in a popover
@@ -325,7 +333,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		this.$parent.find('.input-with-feedback').on('change', () => {
 			frappe.flags.auto_scroll = false;
-			this.get_results();
+			if (this.is_child_selection_enabled()) {
+				this.show_child_results();
+			} else {
+				this.get_results();
+			}
 		});
 
 		this.$parent.find('[data-fieldtype="Data"]').on('input', () => {
@@ -333,8 +345,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function () {
 				frappe.flags.auto_scroll = false;
-				me.empty_list();
-				me.get_results();
+				if (me.is_child_selection_enabled()) {
+					me.show_child_results();
+				} else {
+					me.empty_list();
+					me.get_results();
+				}
 			}, 300));
 		});
 	}

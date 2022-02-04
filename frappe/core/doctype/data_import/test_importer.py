@@ -60,15 +60,19 @@ class TestImporter(unittest.TestCase):
 		frappe.local.message_log = []
 		data_import.start_import()
 		data_import.reload()
-		import_log = frappe.parse_json(data_import.import_log)
-		self.assertEqual(import_log[0]['row_indexes'], [2,3])
-		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #1: Value missing for: Child Title"
-		self.assertEqual(frappe.parse_json(import_log[0]['messages'][0])['message'], expected_error)
-		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #2: Value missing for: Child Title"
-		self.assertEqual(frappe.parse_json(import_log[0]['messages'][1])['message'], expected_error)
 
-		self.assertEqual(import_log[1]['row_indexes'], [4])
-		self.assertEqual(frappe.parse_json(import_log[1]['messages'][0])['message'], "Title is required")
+		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success", "messages", "exception", "docname"],
+			filters={"data_import": data_import.name},
+			order_by="log_index")
+
+		self.assertEqual(frappe.parse_json(import_log[0]['row_indexes']), [2,3])
+		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #1: Value missing for: Child Title"
+		self.assertEqual(frappe.parse_json(frappe.parse_json(import_log[0]['messages'])[0])['message'], expected_error)
+		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #2: Value missing for: Child Title"
+		self.assertEqual(frappe.parse_json(frappe.parse_json(import_log[0]['messages'])[1])['message'], expected_error)
+
+		self.assertEqual(frappe.parse_json(import_log[1]['row_indexes']), [4])
+		self.assertEqual(frappe.parse_json(frappe.parse_json(import_log[1]['messages'])[0])['message'], "Title is required")
 
 	def test_data_import_update(self):
 		existing_doc = frappe.get_doc(
