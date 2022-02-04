@@ -27,6 +27,7 @@ class ParallelTestRunner():
 		frappe.init(site=self.site)
 		if not frappe.db:
 			frappe.connect()
+		frappe.db.begin()
 
 		frappe.flags.in_test = True
 		frappe.clear_cache()
@@ -48,6 +49,7 @@ class ParallelTestRunner():
 		elapsed = time.time() - start_time
 		elapsed = click.style(f' ({elapsed:.03}s)', fg='red')
 		click.echo(f'Before Test {elapsed}')
+		frappe.db.commit()
 
 	def run_tests(self):
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
