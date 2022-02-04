@@ -78,15 +78,12 @@ class PostgresDatabase(Database):
 		"""Excape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
-<<<<<<< HEAD
-=======
 
 		# MariaDB's driver treats None as an empty string
 		# So Postgres should do the same
 
 		if s is None:
 			s = ''
->>>>>>> 4d384f308b (fix: Unique and Index constraints)
 
 		if percent:
 			s = s.replace("%", "%%")
