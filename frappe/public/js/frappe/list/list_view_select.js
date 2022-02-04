@@ -137,6 +137,10 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					(this.list_view.meta.fields.find(i => i.fieldtype == 'Googlemaps')),
 				action: () => this.set_route("googlemaps")
 			},
+			TOBA: {
+				condition: (this.doctype == "Asset"),
+				action: () => this.set_route("toba")
+			},
 		};
 
 		frappe.views.view_modes.forEach(view => {

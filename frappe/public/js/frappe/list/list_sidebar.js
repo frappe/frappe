@@ -98,6 +98,12 @@ frappe.views.ListSidebar = class ListSidebar {
 			show_list_link = true;
 		}
 
+		if (this.list_view.settings.get_google_coords_method ||
+			(this.list_view.meta.fields.find(i => i.fieldtype == 'Googlemaps'))) {
+			this.sidebar.find('.list-link[data-view="Tobadashboard"]').removeClass('hide');
+			show_list_link = true;
+		}
+
 		if (show_list_link) {
 			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
 		}

@@ -182,6 +182,7 @@ frappe.views.BaseList = class BaseList {
 			'Dashboard': 'dashboard',
 			'Map': 'map',
 			'Googlemaps': 'map',
+			'TOBA': 'map',
 		};
 
 		if (frappe.boot.desk_settings.view_switcher) {
@@ -842,6 +843,7 @@ frappe.views.view_modes = [
 	"Tree",
 	"Map",
 	"Googlemaps",
+	"TOBA",
 ];
 frappe.views.is_valid = (view_mode) =>
 	frappe.views.view_modes.includes(view_mode);
