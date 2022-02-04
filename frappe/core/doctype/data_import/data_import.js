@@ -44,6 +44,7 @@ frappe.ui.form.on('Data Import', {
 			}
 			frm.dashboard.show_progress(__('Import Progress'), percent, message);
 			frm.page.set_indicator(__('In Progress'), 'orange');
+			frm.trigger('update_primary_action');
 
 			// hide progress when complete
 			if (data.current === data.total) {
@@ -80,7 +81,10 @@ frappe.ui.form.on('Data Import', {
 		frm.trigger('show_import_log');
 		frm.trigger('show_import_warnings');
 		frm.trigger('toggle_submit_after_import');
-		frm.trigger('show_import_status');
+
+		if (frm.doc.status != 'Pending')
+			frm.trigger('show_import_status');
+
 		frm.trigger('show_report_error_button');
 
 		if (frm.doc.status === 'Partial Success') {
@@ -128,40 +132,49 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	show_import_status(frm) {
-		let import_log = JSON.parse(frm.doc.import_log || '[]');
-		let successful_records = import_log.filter(log => log.success);
-		let failed_records = import_log.filter(log => !log.success);
-		if (successful_records.length === 0) return;
+		frappe.call({
+			'method': 'frappe.core.doctype.data_import.data_import.get_import_status',
+			'args': {
+				'data_import_name': frm.doc.name
+			},
+			'callback': function(r) {
+				let successful_records = cint(r.message.success);
+				let failed_records = cint(r.message.failed);
+				let total_records = cint(r.message.total_records);
 
-		let message;
-		if (failed_records.length === 0) {
-			let message_args = [successful_records.length];
-			if (frm.doc.import_type === 'Insert New Records') {
-				message =
-					successful_records.length > 1
-						? __('Successfully imported {0} records.', message_args)
-						: __('Successfully imported {0} record.', message_args);
-			} else {
-				message =
-					successful_records.length > 1
-						? __('Successfully updated {0} records.', message_args)
-						: __('Successfully updated {0} record.', message_args);
+				if (!total_records) return;
+
+				let message;
+				if (failed_records === 0) {
+					let message_args = [successful_records];
+					if (frm.doc.import_type === 'Insert New Records') {
+						message =
+							successful_records > 1
+								? __('Successfully imported {0} records.', message_args)
+								: __('Successfully imported {0} record.', message_args);
+					} else {
+						message =
+							successful_records > 1
+								? __('Successfully updated {0} records.', message_args)
+								: __('Successfully updated {0} record.', message_args);
+					}
+				} else {
+					let message_args = [successful_records, total_records];
+					if (frm.doc.import_type === 'Insert New Records') {
+						message =
+							successful_records > 1
+								? __('Successfully imported {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
+								: __('Successfully imported {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
+					} else {
+						message =
+							successful_records > 1
+								? __('Successfully updated {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
+								: __('Successfully updated {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
+					}
+				}
+				frm.dashboard.set_headline(message);
 			}
-		} else {
-			let message_args = [successful_records.length, import_log.length];
-			if (frm.doc.import_type === 'Insert New Records') {
-				message =
-					successful_records.length > 1
-						? __('Successfully imported {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
-						: __('Successfully imported {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
-			} else {
-				message =
-					successful_records.length > 1
-						? __('Successfully updated {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
-						: __('Successfully updated {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
-			}
-		}
-		frm.dashboard.set_headline(message);
+		});
 	},
 
 	show_report_error_button(frm) {
@@ -275,7 +288,7 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	show_import_preview(frm, preview_data) {
-		let import_log = JSON.parse(frm.doc.import_log || '[]');
+		let import_log = preview_data.import_log;
 
 		if (
 			frm.import_preview &&
@@ -310,6 +323,15 @@ frappe.ui.form.on('Data Import', {
 	export_errored_rows(frm) {
 		open_url_post(
 			'/api/method/frappe.core.doctype.data_import.data_import.download_errored_template',
+			{
+				data_import_name: frm.doc.name
+			}
+		);
+	},
+
+	export_import_log(frm) {
+		open_url_post(
+			'/api/method/frappe.core.doctype.data_import.data_import.download_import_log',
 			{
 				data_import_name: frm.doc.name
 			}
@@ -391,92 +413,131 @@ frappe.ui.form.on('Data Import', {
 		frm.trigger('show_import_log');
 	},
 
-	show_import_log(frm) {
-		let import_log = JSON.parse(frm.doc.import_log || '[]');
-		let logs = import_log;
-		frm.toggle_display('import_log', false);
-		frm.toggle_display('import_log_section', logs.length > 0);
+	render_import_log(frm) {
+		frappe.call({
+			'method': 'frappe.client.get_list',
+			'args': {
+				'doctype': 'Data Import Log',
+				'filters': {
+					'data_import': frm.doc.name
+				},
+				'fields': ['success', 'docname', 'messages', 'exception', 'row_indexes'],
+				'limit_page_length': 5000,
+				'order_by': 'log_index'
+			},
+			callback: function(r) {
+				let logs = r.message;
 
-		if (logs.length === 0) {
-			frm.get_field('import_log_preview').$wrapper.empty();
+				if (logs.length === 0) return;
+
+				frm.toggle_display('import_log_section', true);
+
+				let rows = logs
+					.map(log => {
+						let html = '';
+						if (log.success) {
+							if (frm.doc.import_type === 'Insert New Records') {
+								html = __('Successfully imported {0}', [
+									`<span class="underline">${frappe.utils.get_form_link(
+										frm.doc.reference_doctype,
+										log.docname,
+										true
+									)}<span>`
+								]);
+							} else {
+								html = __('Successfully updated {0}', [
+									`<span class="underline">${frappe.utils.get_form_link(
+										frm.doc.reference_doctype,
+										log.docname,
+										true
+									)}<span>`
+								]);
+							}
+						} else {
+							let messages = (JSON.parse(log.messages || '[]'))
+								.map(JSON.parse)
+								.map(m => {
+									let title = m.title ? `<strong>${m.title}</strong>` : '';
+									let message = m.message ? `<div>${m.message}</div>` : '';
+									return title + message;
+								})
+								.join('');
+							let id = frappe.dom.get_unique_id();
+							html = `${messages}
+								<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
+									${__('Show Traceback')}
+								</button>
+								<div class="collapse" id="${id}" style="margin-top: 15px;">
+									<div class="well">
+										<pre>${log.exception}</pre>
+									</div>
+								</div>`;
+						}
+						let indicator_color = log.success ? 'green' : 'red';
+						let title = log.success ? __('Success') : __('Failure');
+
+						if (frm.doc.show_failed_logs && log.success) {
+							return '';
+						}
+
+						return `<tr>
+							<td>${JSON.parse(log.row_indexes).join(', ')}</td>
+							<td>
+								<div class="indicator ${indicator_color}">${title}</div>
+							</td>
+							<td>
+								${html}
+							</td>
+						</tr>`;
+					})
+					.join('');
+
+				if (!rows && frm.doc.show_failed_logs) {
+					rows = `<tr><td class="text-center text-muted" colspan=3>
+						${__('No failed logs')}
+					</td></tr>`;
+				}
+
+				frm.get_field('import_log_preview').$wrapper.html(`
+					<table class="table table-bordered">
+						<tr class="text-muted">
+							<th width="10%">${__('Row Number')}</th>
+							<th width="10%">${__('Status')}</th>
+							<th width="80%">${__('Message')}</th>
+						</tr>
+						${rows}
+					</table>
+				`);
+			}
+		});
+	},
+
+	show_import_log(frm) {
+		frm.toggle_display('import_log_section', false);
+
+		if (frm.import_in_progress) {
 			return;
 		}
 
-		let rows = logs
-			.map(log => {
-				let html = '';
-				if (log.success) {
-					if (frm.doc.import_type === 'Insert New Records') {
-						html = __('Successfully imported {0}', [
-							`<span class="underline">${frappe.utils.get_form_link(
-								frm.doc.reference_doctype,
-								log.docname,
-								true
-							)}<span>`
-						]);
-					} else {
-						html = __('Successfully updated {0}', [
-							`<span class="underline">${frappe.utils.get_form_link(
-								frm.doc.reference_doctype,
-								log.docname,
-								true
-							)}<span>`
-						]);
-					}
+		frappe.call({
+			'method': 'frappe.client.get_count',
+			'args': {
+				'doctype': 'Data Import Log',
+				'filters': {
+					'data_import': frm.doc.name
+				}
+			},
+			'callback': function(r) {
+				let count = r.message;
+				if (count < 5000) {
+					frm.trigger('render_import_log');
 				} else {
-					let messages = log.messages
-						.map(JSON.parse)
-						.map(m => {
-							let title = m.title ? `<strong>${m.title}</strong>` : '';
-							let message = m.message ? `<div>${m.message}</div>` : '';
-							return title + message;
-						})
-						.join('');
-					let id = frappe.dom.get_unique_id();
-					html = `${messages}
-						<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
-							${__('Show Traceback')}
-						</button>
-						<div class="collapse" id="${id}" style="margin-top: 15px;">
-							<div class="well">
-								<pre>${log.exception}</pre>
-							</div>
-						</div>`;
+					frm.toggle_display('import_log_section', false);
+					frm.add_custom_button(__('Export Import Log'), () =>
+						frm.trigger('export_import_log')
+					);
 				}
-				let indicator_color = log.success ? 'green' : 'red';
-				let title = log.success ? __('Success') : __('Failure');
-
-				if (frm.doc.show_failed_logs && log.success) {
-					return '';
-				}
-
-				return `<tr>
-					<td>${log.row_indexes.join(', ')}</td>
-					<td>
-						<div class="indicator ${indicator_color}">${title}</div>
-					</td>
-					<td>
-						${html}
-					</td>
-				</tr>`;
-			})
-			.join('');
-
-		if (!rows && frm.doc.show_failed_logs) {
-			rows = `<tr><td class="text-center text-muted" colspan=3>
-				${__('No failed logs')}
-			</td></tr>`;
-		}
-
-		frm.get_field('import_log_preview').$wrapper.html(`
-			<table class="table table-bordered">
-				<tr class="text-muted">
-					<th width="10%">${__('Row Number')}</th>
-					<th width="10%">${__('Status')}</th>
-					<th width="80%">${__('Message')}</th>
-				</tr>
-				${rows}
-			</table>
-		`);
+			}
+		});
 	},
 });

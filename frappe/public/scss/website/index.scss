@@ -4,6 +4,7 @@
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
+@import "../common/alert";
 @import 'base';
 @import "../common/flex";
 @import "../common/buttons";
@@ -29,12 +30,6 @@
 @import 'error-state';
 @import 'my_account';
 
-
-body {
-	@include media-breakpoint-up(sm) {
-		background-color: var(--bg-color);
-	}
-}
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -137,7 +132,7 @@ body {
 	a {
 		color: var(--text-color)
 	}
-	
+
 	li.disabled {
 		a {
 			color: var(--text-muted);

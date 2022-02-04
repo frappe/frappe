@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import functools
@@ -56,8 +56,8 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-
 	method = get_hook_method('get_sender_details')
+
 	if method:
 		sender_name, mail = method()
 		# if method exists but sender_name is ""
@@ -901,10 +901,11 @@ def dictify(arg):
 def add_user_info(user, user_info):
 	if user not in user_info:
 		info = frappe.db.get_value("User",
-			user, ["full_name", "user_image", "name", 'email'], as_dict=True) or frappe._dict()
+			user, ["full_name", "user_image", "name", 'email', 'time_zone'], as_dict=True) or frappe._dict()
 		user_info[user] = frappe._dict(
 			fullname = info.full_name or user,
 			image = info.user_image,
 			name = user,
-			email = info.email
+			email = info.email,
+			time_zone = info.time_zone
 		)

@@ -23,7 +23,7 @@ def print_has_permission_check_logs(func):
 		frappe.flags['has_permission_check_logs'] = []
 		result = func(*args, **kwargs)
 		self_perm_check = True if not kwargs.get('user') else kwargs.get('user') == frappe.session.user
-		raise_exception = False if kwargs.get('raise_exception') == False else True
+		raise_exception = False if kwargs.get('raise_exception') is False else True
 
 		# print only if access denied
 		# and if user is checking his own permission
