@@ -247,14 +247,64 @@ class TestEmailAccount(unittest.TestCase):
 			email_account.validate()
 
 	def test_append_to(self):
-		email_aacount = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
 
-		inbound_mail = InboundMail(mail_content, email_aacount, 12345, 1, 'ToDo')
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, 'ToDo')
 		communication = inbound_mail.process()
-		if inbound_mail.append_to == 'ToDo':
-			self.assertEqual(communication.reference_doctype, 'ToDo')
-			self.assertTrue(communication.reference_name)
+		# the append_to for the email is set to ToDO in "_Test Email Account 1"
+		self.assertEqual(communication.reference_doctype, 'ToDo')
+		self.assertTrue(communication.reference_name)
+		self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
+
+	def test_append_to_with_imap_folders(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+
+		mail_content_1 = self.get_test_mail(fname="incoming-1.raw")
+		mail_content_2 = self.get_test_mail(fname="incoming-2.raw")
+		mail_content_3 = self.get_test_mail(fname="incoming-3.raw")
+
+		messages = {
+			'INBOX': {				# append_to = ToDo
+				'latest_messages': [
+					mail_content_1,
+					mail_content_2
+				],
+				'seen_status': {
+					0: 'UNSEEN',
+					1: 'UNSEEN'
+				},
+				'uid_list': [0,1]
+			},
+			'Test Folder': {		# append_to = Communication
+				'latest_messages': [
+					mail_content_3
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
+		mails = email_account.get_inbound_mails(messages=messages)
+		self.assertEqual(len(mails), 3)
+		
+		inbox_mails = 0
+		test_folder_mails = 0
+
+		for mail in mails:
+			communication = mail.process()
+			if mail.append_to == 'ToDo':
+				inbox_mails += 1
+				self.assertEqual(communication.reference_doctype, 'ToDo')
+				self.assertTrue(communication.reference_name)
+				self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
+			else:
+				test_folder_mails += 1
+				self.assertEqual(communication.reference_doctype, None)
+
+		self.assertEqual(inbox_mails, 2)
+		self.assertEqual(test_folder_mails, 1)
 
 class TestInboundMail(unittest.TestCase):
 	@classmethod
