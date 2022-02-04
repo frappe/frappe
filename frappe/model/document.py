@@ -8,7 +8,7 @@ from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
 from six import iteritems, string_types
-from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
+from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
@@ -714,6 +714,7 @@ class Document(BaseDocument):
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
 					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
+
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
 				else:
@@ -928,8 +929,7 @@ class Document(BaseDocument):
 
 	@whitelist.__func__
 	def _cancel(self):
-		"""Cancel the document. Sets `docstatus` = 2, then saves.
-		"""
+		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = 2
 		return self.save()
 
