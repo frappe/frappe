@@ -177,6 +177,7 @@ class Database(object):
 				raise frappe.QueryTimeoutError(e)
 
 			elif frappe.conf.db_type == 'postgres':
+				print(e)
 				raise
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
