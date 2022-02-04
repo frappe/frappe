@@ -16,7 +16,6 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
 
-from .test_query_builder import run_only_if, db_type_is
 from frappe.database.database import Database
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils import add_days, now, random_string

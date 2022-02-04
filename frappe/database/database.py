@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 
 import datetime
 import re
-import time
 from time import time
 from typing import Dict, List, Union
 
