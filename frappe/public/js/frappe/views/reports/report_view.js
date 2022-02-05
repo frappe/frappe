@@ -105,8 +105,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_args() {
 		const args = super.get_args();
+		delete args.group_by;
 		this.group_by_control.set_args(args);
-
 		return args;
 	}
 
@@ -386,6 +386,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.$charts_wrapper.addClass('hidden');
 			this.save_view_user_settings(
 				{ chart_args: null });
+			this.chart_args = null;
 		}
 	}
 

@@ -51,7 +51,8 @@ class MariaDBDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('longtext', ''),
 			'Geolocation':	('longtext', ''),
-			'Duration':		('decimal', '21,9')
+			'Duration':		('decimal', '21,9'),
+			'Icon':			('varchar', self.VARCHAR_LEN)
 		}
 
 	def get_connection(self):

@@ -15,7 +15,9 @@
   "enable_email_energy_point",
   "enable_email_share",
   "user",
-  "seen"
+  "seen",
+  "system_notifications_section",
+  "energy_points_system_notifications"
  ],
  "fields": [
   {
@@ -84,15 +86,27 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Seen"
+  },
+  {
+   "fieldname": "system_notifications_section",
+   "fieldtype": "Section Break",
+   "label": "System Notifications"
+  },
+  {
+   "default": "1",
+   "fieldname": "energy_points_system_notifications",
+   "fieldtype": "Check",
+   "label": "Energy Points"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-11-04 12:54:57.989317",
+ "modified": "2021-11-16 12:18:46.955501",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {

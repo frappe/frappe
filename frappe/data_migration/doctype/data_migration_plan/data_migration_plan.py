@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2021, Frappe Technologies and contributors
+# License: MIT. See LICENSE
 
 from __future__ import unicode_literals
 import frappe
@@ -8,6 +7,24 @@ from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.modules.export_file import export_to_files, create_init_py
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
+
+
+def get_mapping_module(module, mapping_name):
+	app_name = frappe.db.get_value("Module Def", module, "app_name")
+	mapping_name = frappe.scrub(mapping_name)
+	module = frappe.scrub(module)
+
+	try:
+		return frappe.get_module(
+			"{app_name}.{module}.data_migration_mapping.{mapping_name}".format(
+				app_name=app_name,
+				mapping_name=mapping_name,
+				module=module,
+			)
+		)
+	except ImportError:
+		return None
+
 
 class DataMigrationPlan(Document):
 	def on_update(self):
@@ -55,26 +72,14 @@ class DataMigrationPlan(Document):
 		frappe.flags.ignore_in_install = False
 
 	def pre_process_doc(self, mapping_name, doc):
-		module = self.get_mapping_module(mapping_name)
+		module = get_mapping_module(self.module, mapping_name)
 
 		if module and hasattr(module, 'pre_process'):
 			return module.pre_process(doc)
 		return doc
 
 	def post_process_doc(self, mapping_name, local_doc=None, remote_doc=None):
-		module = self.get_mapping_module(mapping_name)
+		module = get_mapping_module(self.module, mapping_name)
 
 		if module and hasattr(module, 'post_process'):
 			return module.post_process(local_doc=local_doc, remote_doc=remote_doc)
-
-	def get_mapping_module(self, mapping_name):
-		try:
-			module_def = frappe.get_doc("Module Def", self.module)
-			module = frappe.get_module('{app}.{module}.data_migration_mapping.{mapping_name}'.format(
-				app= module_def.app_name,
-				module=frappe.scrub(self.module),
-				mapping_name=frappe.scrub(mapping_name)
-			))
-			return module
-		except ImportError:
-			return None

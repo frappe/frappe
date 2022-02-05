@@ -239,6 +239,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
+		frappe.get_single('Installed Applications').update_versions()
 		frappe.db.commit()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
@@ -322,7 +323,7 @@ def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
 			frappe.delete_doc("DocType", doctype, ignore_on_trash=True)
-			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
 
 
 def post_install(rebuild_website=False):
