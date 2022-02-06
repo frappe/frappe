@@ -10,7 +10,7 @@ from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
 from frappe.utils import (cint, flt, now, cstr, strip_html,
-	sanitize_html, sanitize_email, cast_fieldtype, cast)
+	sanitize_html, sanitize_email, cast_fieldtype, cast, get_date_str, get_time_str)
 from frappe.utils.html_utils import unescape_html
 from frappe.model.docstatus import DocStatus
 
@@ -998,8 +998,9 @@ class BaseDocument(object):
 		Converts datetime string to date and time respectively for Date and Time fields
 		"""
 		for field in self.meta.get_time_fields() + self.meta.get_date_fields():
-			_value = cast(field.fieldtype, self.get(field.fieldname))
-			self.set(field.fieldname, _value)
+			value = cast(field.fieldtype, self.get(field.fieldname))
+			value = get_date_str(value) if field.fieldtype == "Date" else get_time_str(value)
+			self.set(field.fieldname, value)
 
 
 def _filter(data, filters, limit=None):
