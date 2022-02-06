@@ -10,7 +10,7 @@ from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
 from frappe.utils import (cint, flt, now, cstr, strip_html,
-	sanitize_html, sanitize_email, cast_fieldtype)
+	sanitize_html, sanitize_email, cast_fieldtype, cast)
 from frappe.utils.html_utils import unescape_html
 from frappe.model.docstatus import DocStatus
 
@@ -992,6 +992,15 @@ class BaseDocument(object):
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ('=', "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
+
+	def _cast_date_and_time_fields(self):
+		"""
+		Converts datetime string to date and time respectively for Date and Time fields
+		"""
+		for field in self.meta.get_time_fields() + self.meta.get_date_fields():
+			_value = cast(field.fieldtype, self.get(field.fieldname))
+			self.set(field.fieldname, _value)
+
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:

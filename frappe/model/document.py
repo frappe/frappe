@@ -507,6 +507,7 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
+		self._cast_date_and_time_fields()
 
 		children = self.get_all_children()
 		for d in children:
