@@ -309,7 +309,7 @@ class TestEmailAccount(unittest.TestCase):
 	@patch("frappe.local.flags.in_test", False)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
-	def mocked_get_inbound_mails(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None):
+	def mocked_get_inbound_mails(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None, mocked_in_test=None):
 		from frappe.email.receive import EmailServer
 
 		def get_mocked_messages(**kwargs):
