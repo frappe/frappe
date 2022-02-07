@@ -257,10 +257,7 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue(communication.reference_name)
 		self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
 
-	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
-	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
-	# @patch("frappe.email.receive.EmailServer.get_messages", side_effect=get_mocked_messages)
-	def test_append_to_with_imap_folders(self, mocked_logout, mocked_select_imap_folder):
+	def test_append_to_with_imap_folders(self):
 		mail_content_1 = self.get_test_mail(fname="incoming-1.raw")
 		mail_content_2 = self.get_test_mail(fname="incoming-2.raw")
 		mail_content_3 = self.get_test_mail(fname="incoming-3.raw")
@@ -287,14 +284,10 @@ class TestEmailAccount(unittest.TestCase):
 				'uid_list': [2]
 			}
 		}
-		from frappe.email.receive import EmailServer
-		def get_mocked_messages(**args):
-			return messages[args["folder"]]
 
-		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
-			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-			mails = email_account.get_inbound_mails(messages=messages)
-			self.assertEqual(len(mails), 3)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mails = TestEmailAccount.mocked_get_inbound_mails(email_account, messages)
+		self.assertEqual(len(mails), 3)
 
 		inbox_mails = 0
 		test_folder_mails = 0
@@ -312,6 +305,20 @@ class TestEmailAccount(unittest.TestCase):
 
 		self.assertEqual(inbox_mails, 2)
 		self.assertEqual(test_folder_mails, 1)
+
+	@patch("frappe.local.flags.in_test", False)
+	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	def mocked_get_inbound_mails(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None):
+		from frappe.email.receive import EmailServer
+
+		def get_mocked_messages(**kwargs):
+			return messages[kwargs["folder"]]
+
+		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+			mails = email_account.get_inbound_mails()
+
+		return mails
 
 class TestInboundMail(unittest.TestCase):
 	@classmethod

@@ -457,7 +457,7 @@ class EmailAccount(Document):
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
 
-	def get_inbound_mails(self, test_mails=None, messages=None) -> List[InboundMail]:
+	def get_inbound_mails(self, test_mails=None) -> List[InboundMail]:
 		"""retrive and return inbound mails.
 
 		"""
@@ -471,14 +471,8 @@ class EmailAccount(Document):
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
 					mails.append(InboundMail(message, self, uid, seen_status, append_to))
 
-		# if frappe.local.flags.in_test:
-		# 	if self.enable_incoming and not test_mails and messages:
-		# 		for folder in self.imap_folder:
-		# 			_messages = messages[folder.folder_name] if folder.folder_name in messages and (messages[folder.folder_name] is not None) else {}
-		# 			process_mail(_messages, folder.append_to)
-		# 		return mails
-		# 	else:
-		# 		return [InboundMail(msg, self) for msg in test_mails or []]
+		if frappe.local.flags.in_test:
+			return [InboundMail(msg, self) for msg in test_mails or []]
 
 		if not self.enable_incoming:
 			return []
