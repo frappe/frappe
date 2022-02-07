@@ -678,7 +678,7 @@ def get_default_df(fieldname):
 				fieldtype = "Datetime"
 			)
 
-		elif fieldname == "idx":
+		elif fieldname in ("idx", "docstatus"):
 			return frappe._dict(
 				fieldname = fieldname,
 				fieldtype = "Int"
