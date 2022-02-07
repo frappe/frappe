@@ -256,22 +256,46 @@ def compress(data, args=None):
 	}
 
 @frappe.whitelist()
-def save_report():
-	"""save report"""
+def save_report(name, doctype, report_settings):
+	"""save report if report type is report builder"""
 
-	data = frappe.local.form_dict
-	if frappe.db.exists('Report', data['name']):
-		d = frappe.get_doc('Report', data['name'])
+	if frappe.db.exists('Report', name):
+		d = frappe.get_doc('Report', name)
+		if d.is_standard == "Yes":
+			frappe.throw(_("Standard Reports can not be edited"))
+
+		if d.report_type != "Report Builder":
+			frappe.throw(_("Only reports of type Report Builder can be created"))
+
+		if d.owner != frappe.session.user:
+			frappe.throw(_("Only Report owner or Report Manager can save the reports"))
 	else:
 		d = frappe.new_doc('Report')
-		d.report_name = data['name']
-		d.ref_doctype = data['doctype']
+		d.report_name = name
+		d.ref_doctype = doctype
 
 	d.report_type = "Report Builder"
-	d.json = data['json']
-	frappe.get_doc(d).save()
+	d.json = report_settings
+	frappe.get_doc(d).save(ignore_permissions=True)
 	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
 	return d.name
+
+@frappe.whitelist()
+def delete_report(name):
+	"""delete report type of report builder if user is report owner or has role Report Manager"""
+	
+	report_doc = frappe.get_doc("Report", name)
+	if report_doc.is_standard == "Yes":
+		frappe.throw(_("Standard Reports can not be deleted"))
+
+	if report_doc.report_type != "Report Builder":
+		frappe.throw(_("Only reports of type Report Builder can be deleted"))
+
+	if report_doc.owner != frappe.session.user:
+		frappe.throw(_("Only Report owner or Report Manager can delete the reports"))
+
+	report_doc.delete(ignore_permissions=True)
+	frappe.msgprint(_("{0} is Deleted").format(report_doc.name), alert=True)
 
 @frappe.whitelist()
 @frappe.read_only()
