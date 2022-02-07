@@ -5,7 +5,6 @@
  "creation": "2013-02-18 13:36:19",
  "description": "DocType is a Table / Form in the application.",
  "doctype": "DocType",
- "document_share_key_expiry": 90,
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
@@ -56,7 +55,6 @@
   "color",
   "show_preview_popup",
   "show_name_in_global_search",
-  "document_share_key_expiry",
   "email_settings_sb",
   "default_email_template",
   "column_break_51",
@@ -581,6 +579,7 @@
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
+<<<<<<< HEAD
   },
   {
    "default": "90",
@@ -593,6 +592,8 @@
 =======
    "label": "Document Share Key Expiry (in Days)"
 >>>>>>> b7f156f580 (fix: Rename "Document Key" to "Document Share Key")
+=======
+>>>>>>> a0af8d577f (fix: Move document_share_key_expiry to System Settings)
   }
  ],
  "icon": "fa fa-bolt",
@@ -675,10 +676,14 @@
   }
  ],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2021-11-01 15:26:19.077164",
 =======
  "modified": "2021-12-28 03:19:19.033347",
 >>>>>>> 64985a5d1a (feat: Document key expiry)
+=======
+ "modified": "2022-02-07 03:03:03.847356",
+>>>>>>> a0af8d577f (fix: Move document_share_key_expiry to System Settings)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

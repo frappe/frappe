@@ -1,7 +1,8 @@
 {
  "actions": [],
- "creation": "2014-04-17 16:53:52.640856",
+ "creation": "2022-01-06 03:18:16.326761",
  "doctype": "DocType",
+ "document_share_key_expiry": 90,
  "document_type": "System",
  "engine": "InnoDB",
  "field_order": [
@@ -34,6 +35,7 @@
   "security",
   "session_expiry",
   "session_expiry_mobile",
+  "document_share_key_expiry",
   "column_break_13",
   "deny_multiple_sessions",
   "allow_login_using_mobile_number",
@@ -482,6 +484,7 @@
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   },
   {
+<<<<<<< HEAD
    "fieldname": "column_break_64",
    "fieldtype": "Column Break"
   },
@@ -496,12 +499,23 @@
    "fieldname": "disable_change_log_notification",
    "fieldtype": "Check",
    "label": "Disable Change Log Notification"
+=======
+   "default": "90",
+   "description": "Set number of days after which a Document Share Key will be expired",
+   "fieldname": "document_share_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Share Key Expiry (in Days)"
+>>>>>>> a0af8d577f (fix: Move document_share_key_expiry to System Settings)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-04-28 14:31:50.330954",
+=======
+ "modified": "2022-02-07 03:07:20.782827",
+>>>>>>> a0af8d577f (fix: Move document_share_key_expiry to System Settings)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
