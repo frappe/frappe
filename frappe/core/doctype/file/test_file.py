@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 from __future__ import unicode_literals
 
 import base64
@@ -8,6 +8,7 @@ import json
 import frappe
 import os
 import unittest
+
 from frappe import _
 from frappe.core.doctype.file.file import File, get_attached_images, move_file, get_files_in_folder, unzip_file
 from frappe.utils import get_files_path
@@ -380,6 +381,16 @@ class TestFile(unittest.TestCase):
 
 		test_file.make_thumbnail()
 		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+
+		# test web image without extension
+		test_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": 'logo',
+			"file_url": frappe.utils.get_url('/_test/assets/image'),
+		}).insert(ignore_permissions=True)
+
+		test_file.make_thumbnail()
+		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpeg"))
 
 		# test local image
 		test_file.db_set('thumbnail_url', None)
