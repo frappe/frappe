@@ -1388,11 +1388,20 @@ class Document(BaseDocument):
 
 	@frappe.whitelist()
 	def get_new_document_share_key(self, expires_on=None):
-		doc = frappe.new_doc("Document Share Key")
-		doc.reference_doctype = self.doctype
-		doc.reference_docname = self.name
-		doc.expires_on = expires_on
-		doc.insert(ignore_permissions=True)
+		document_key_exist = frappe.db.exists("Document Share Key", {
+			"reference_doctype": self.doctype,
+			"reference_docname": self.name,
+			"expires_on": expires_on,
+		})
+		if document_key_exist:
+			doc = frappe.get_doc("Document Share Key", document_key_exist)
+		else:
+			doc = frappe.new_doc("Document Share Key")
+			doc.reference_doctype = self.doctype
+			doc.reference_docname = self.name
+			doc.expires_on = expires_on
+			doc.insert(ignore_permissions=True)
+
 		return doc.key
 
 	def get_liked_by(self):
