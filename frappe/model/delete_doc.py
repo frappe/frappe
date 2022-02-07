@@ -117,7 +117,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				# All the linked docs should be checked beforehand
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
 					doctype=doc.doctype, name=doc.name,
-					now=frappe.flags.in_test)
+					is_async=False if frappe.flags.in_test else True)
 
 
 		# delete global search entry
