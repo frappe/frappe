@@ -115,7 +115,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				# All the linked docs should be checked beforehand
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
 					doctype=doc.doctype, name=doc.name,
-					is_async=False if frappe.flags.in_test else True)
+					now=frappe.flags.in_test)
 
 		# clear cache for Document
 		doc.clear_cache()
