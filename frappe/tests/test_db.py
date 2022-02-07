@@ -351,7 +351,7 @@ class TestDBSetValue(unittest.TestCase):
 			second_query = sql_called.call_args_list[1].args[0]
 
 			self.assertTrue(sql_called.call_count == 2)
-			self.assertTrue("FOR UPDATE" in first_query)
+			self.assertTrue("FOR UPDATE".casefold() in first_query)
 			if frappe.conf.db_type == "postgres":
 				from frappe.database.postgres.database import modify_query
 				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in second_query)
