@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import functools
@@ -56,8 +56,8 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-	
 	method = get_hook_method('get_sender_details')
+
 	if method:
 		sender_name, mail = method()
 		# if method exists but sender_name is ""
@@ -290,7 +290,7 @@ def remove_blanks(d):
 	"""
 	empty_keys = []
 	for key in d:
-		if d[key]=='' or d[key]==None:
+		if d[key] == "" or d[key] is None:
 			# del d[key] raises runtime exception, using a workaround
 			empty_keys.append(key)
 	for key in empty_keys:
@@ -623,12 +623,11 @@ def get_installed_apps_info():
 	return out
 
 def get_site_info():
-	from frappe.core.doctype.user.user import STANDARD_USERS
 	from frappe.email.queue import get_emails_sent_this_month
 	from frappe.utils.user import get_system_managers
 
 	# only get system users
-	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
+	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', frappe.STANDARD_USERS)},
 		fields=['name', 'enabled', 'last_login', 'last_active', 'language', 'time_zone'])
 	system_managers = get_system_managers(only_name=True)
 	for u in users:
@@ -898,3 +897,15 @@ def dictify(arg):
 		arg = frappe._dict(arg)
 
 	return arg
+
+def add_user_info(user, user_info):
+	if user not in user_info:
+		info = frappe.db.get_value("User",
+			user, ["full_name", "user_image", "name", 'email', 'time_zone'], as_dict=True) or frappe._dict()
+		user_info[user] = frappe._dict(
+			fullname = info.full_name or user,
+			image = info.user_image,
+			name = user,
+			email = info.email,
+			time_zone = info.time_zone
+		)

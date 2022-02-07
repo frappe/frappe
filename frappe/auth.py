@@ -111,7 +111,8 @@ class LoginManager:
 		self.user_type = None
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
-			if self.login()==False: return
+			if self.login() is False:
+				return
 			self.resume = False
 
 			# run login triggers
@@ -250,8 +251,7 @@ class LoginManager:
 		if not self.user:
 			return
 
-		from frappe.core.doctype.user.user import STANDARD_USERS
-		if self.user in STANDARD_USERS:
+		if self.user in frappe.STANDARD_USERS:
 			return False
 
 		reset_pwd_after_days = cint(frappe.db.get_single_value("System Settings",

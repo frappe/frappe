@@ -27,6 +27,7 @@ class DataImport(Document):
 
 		self.validate_import_file()
 		self.validate_google_sheets_url()
+		self.set_payload_count()
 
 	def validate_import_file(self):
 		if self.import_file:
@@ -37,6 +38,12 @@ class DataImport(Document):
 		if not self.google_sheets_url:
 			return
 		validate_google_sheets_url(self.google_sheets_url)
+
+	def set_payload_count(self):
+		if self.import_file:
+			i = self.get_importer()
+			payloads = i.import_file.get_payloads_for_import()
+			self.payload_count = len(payloads)
 
 	@frappe.whitelist()
 	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
@@ -67,7 +74,7 @@ class DataImport(Document):
 			enqueue(
 				start_import,
 				queue="default",
-				timeout=6000,
+				timeout=10000,
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
@@ -80,6 +87,9 @@ class DataImport(Document):
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()
 
+	def download_import_log(self):
+		return self.get_importer().export_import_log()
+
 	def get_importer(self):
 		return Importer(self.reference_doctype, data_import=self)
 
@@ -89,7 +99,6 @@ def get_preview_from_template(data_import, import_file=None, google_sheets_url=N
 	return frappe.get_doc("Data Import", data_import).get_preview_from_template(
 		import_file, google_sheets_url
 	)
-
 
 @frappe.whitelist()
 def form_start_import(data_import):
@@ -145,6 +154,30 @@ def download_errored_template(data_import_name):
 	data_import = frappe.get_doc("Data Import", data_import_name)
 	data_import.export_errored_rows()
 
+@frappe.whitelist()
+def download_import_log(data_import_name):
+	data_import = frappe.get_doc("Data Import", data_import_name)
+	data_import.download_import_log()
+
+@frappe.whitelist()
+def get_import_status(data_import_name):
+	import_status = {}
+
+	logs = frappe.get_all('Data Import Log', fields=['count(*) as count', 'success'],
+		filters={'data_import': data_import_name},
+		group_by='success')
+
+	total_payload_count = frappe.db.get_value('Data Import', data_import_name, 'payload_count')
+
+	for log in logs:
+		if log.get('success'):
+			import_status['success'] = log.get('count')
+		else:
+			import_status['failed'] = log.get('count')
+
+	import_status['total_records'] = total_payload_count
+
+	return import_status
 
 def import_file(
 	doctype, file_path, import_type, submit_after_import=False, console=False

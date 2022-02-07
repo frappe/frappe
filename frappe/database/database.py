@@ -10,19 +10,20 @@ import re
 import string
 from contextlib import contextmanager
 from time import time
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Tuple, Union
+
+from pypika.terms import Criterion, NullValue, PseudoColumn
 
 import frappe
 import frappe.defaults
 import frappe.model.meta
 from frappe import _
-from frappe.utils import now, getdate, cast, get_datetime
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
-from frappe.query_builder.functions import Min, Max, Avg, Sum
-from frappe.query_builder.utils import Column
+from frappe.query_builder.utils import DocType
+from frappe.utils import cast, get_datetime, getdate, now, sbool
+
 from .query import Query
-from pypika.terms import Criterion, PseudoColumn
 
 
 class Database(object):
@@ -278,7 +279,9 @@ class Database(object):
 				if self.auto_commit_on_many_writes:
 					self.commit()
 				else:
-					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
+					msg = "<br><br>" + _("Too many changes to database in single action.") + "<br>"
+					msg += _("The changes have been reverted.") + "<br>"
+					raise frappe.TooManyWritesError(msg)
 
 	def check_implicit_commit(self, query):
 		if self.transaction_writes and \
@@ -555,7 +558,21 @@ class Database(object):
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
-	def get_single_value(self, doctype, fieldname, cache=False):
+	def set_single_value(self, doctype, fieldname, value, *args, **kwargs):
+		"""Set field value of Single DocType.
+
+		:param doctype: DocType of the single object
+		:param fieldname: `fieldname` of the property
+		:param value: `value` of the property
+
+		Example:
+
+			# Update the `deny_multiple_sessions` field in System Settings DocType.
+			company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		"""
+		return self.set_value(doctype, doctype, fieldname, value, *args, **kwargs)
+
+	def get_single_value(self, doctype, fieldname, cache=True):
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
@@ -570,7 +587,7 @@ class Database(object):
 		if not doctype in self.value_cache:
 			self.value_cache[doctype] = {}
 
-		if fieldname in self.value_cache[doctype]:
+		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
 		val = self.query.get_sql(
@@ -677,52 +694,54 @@ class Database(object):
 		:param debug: Print the query in the developer / js console.
 		:param for_update: Will add a row-level lock to the value that is being set so that it can be released on commit.
 		"""
-		if not modified:
-			modified = now()
-		if not modified_by:
-			modified_by = frappe.session.user
+		is_single_doctype = not (dn and dt != dn)
+		to_update = field if isinstance(field, dict) else {field: val}
 
-		to_update = {}
 		if update_modified:
-			to_update = {"modified": modified, "modified_by": modified_by}
+			modified = modified or now()
+			modified_by = modified_by or frappe.session.user
+			to_update.update({"modified": modified, "modified_by": modified_by})
 
-		if isinstance(field, dict):
-			to_update.update(field)
+		if is_single_doctype:
+			frappe.db.delete(
+				"Singles",
+				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
+			)
+
+			singles_data = ((dt, key, sbool(value)) for key, value in to_update.items())
+			query = (
+				frappe.qb.into("Singles")
+					.columns("doctype", "field", "value")
+					.insert(*singles_data)
+			).run(debug=debug)
+			frappe.clear_document_cache(dt, dt)
+
 		else:
-			to_update.update({field: val})
+			table = DocType(dt)
 
-		if dn and dt!=dn:
-			# with table
-			set_values = []
-			for key in to_update:
-				set_values.append('`{0}`=%({0})s'.format(key))
+			if for_update:
+				docnames = tuple(
+					self.get_values(dt, dn, "name", debug=debug, for_update=for_update, pluck=True)
+				) or (NullValue(),)
+				query = frappe.qb.update(table).where(table.name.isin(docnames))
 
-			for name in self.get_values(dt, dn, 'name', for_update=for_update, debug=debug):
-				values = dict(name=name[0])
-				values.update(to_update)
+				for docname in docnames:
+					frappe.clear_document_cache(dt, docname)
 
-				self.sql("""update `tab{0}`
-					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
-					values, debug=debug)
+			else:
+				query = self.query.build_conditions(table=dt, filters=dn, update=True)
+				# TODO: Fix this; doesn't work rn - gavin@frappe.io
+				# frappe.cache().hdel_keys(dt, "document_cache")
+				# Workaround: clear all document caches
+				frappe.cache().delete_value('document_cache')
 
-				frappe.clear_document_cache(dt, values['name'])
-		else:
-			# for singles
-			keys = list(to_update)
-			self.sql('''
-				delete from `tabSingles`
-				where field in ({0}) and
-					doctype=%s'''.format(', '.join(['%s']*len(keys))),
-					list(keys) + [dt], debug=debug)
-			for key, value in to_update.items():
-				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
-					(dt, key, value), debug=debug)
+			for column, value in to_update.items():
+				query = query.set(column, value)
 
-			frappe.clear_document_cache(dt, dn)
+			query.run(debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
-
 
 	@staticmethod
 	def set(doc, field, val):

@@ -1,3 +1,4 @@
+from typing import List
 import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
@@ -194,14 +195,18 @@ class CommunicationEmailMixin:
 			return _("Leave this conversation")
 		return ''
 
-	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False):
+	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False) -> List:
 		"""List of mail id's excluded while sending mail.
 		"""
 		all_ids = self.get_all_email_addresses(exclude_displayname=True)
-		final_ids = self.mail_recipients(is_inbound_mail_communcation = is_inbound_mail_communcation) + \
-			self.mail_bcc(is_inbound_mail_communcation = is_inbound_mail_communcation) + \
-			self.mail_cc(is_inbound_mail_communcation = is_inbound_mail_communcation, include_sender=include_sender)
-		return set(all_ids) - set(final_ids)
+
+		final_ids = (
+			self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation)
+			+ self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
+			+ self.mail_cc(is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender)
+		)
+
+		return list(set(all_ids) - set(final_ids))
 
 	def get_assignees(self):
 		"""Get owners of the reference document.

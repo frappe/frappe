@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
 import frappe
 import datetime
 from frappe import _
@@ -11,6 +12,7 @@ from frappe.model import display_fieldtypes
 from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
+from frappe.model.docstatus import DocStatus
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -19,6 +21,7 @@ max_positive_value = {
 }
 
 DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
+
 
 def get_controller(doctype):
 	"""Returns the **class** object of the given DocType.
@@ -172,7 +175,7 @@ class BaseDocument(object):
 				...
 			})
 		"""
-		if value==None:
+		if value is None:
 			value={}
 		if isinstance(value, (dict, BaseDocument)):
 			if not self.__dict__.get(key):
@@ -224,7 +227,7 @@ class BaseDocument(object):
 		value.parentfield = key
 
 		if value.docstatus is None:
-			value.docstatus = 0
+			value.docstatus = DocStatus.draft()
 
 		if not getattr(value, "idx", None):
 			value.idx = len(self.get(key) or []) + 1
@@ -272,7 +275,7 @@ class BaseDocument(object):
 			)):
 				d[fieldname] = str(d[fieldname])
 
-			if d[fieldname] == None and ignore_nulls:
+			if d[fieldname] is None and ignore_nulls:
 				del d[fieldname]
 
 		return d
@@ -282,8 +285,11 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-			if key in ("idx", "docstatus") and self.__dict__[key] is None:
-				self.__dict__[key] = 0
+			if self.__dict__[key] is None:
+				if key == "docstatus":
+					self.docstatus = DocStatus.draft()
+				elif key == "idx":
+					self.__dict__[key] = 0
 
 		for key in self.get_valid_columns():
 			if key not in self.__dict__:
@@ -303,6 +309,14 @@ class BaseDocument(object):
 
 	def is_new(self):
 		return self.get("__islocal")
+
+	@property
+	def docstatus(self):
+		return DocStatus(self.get("docstatus"))
+
+	@docstatus.setter
+	def docstatus(self, value):
+		self.__dict__["docstatus"] = DocStatus(cint(value))
 
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
@@ -492,7 +506,7 @@ class BaseDocument(object):
 					self.set(df.fieldname, flt(self.get(df.fieldname)))
 
 		if self.docstatus is not None:
-			self.docstatus = cint(self.docstatus)
+			self.docstatus = DocStatus(cint(self.docstatus))
 
 	def _get_missing_mandatory_fields(self):
 		"""Get mandatory fields that do not have any values"""
@@ -581,7 +595,7 @@ class BaseDocument(object):
 					setattr(self, df.fieldname, values.name)
 
 					for _df in fields_to_fetch:
-						if self.is_new() or self.docstatus != 1 or _df.allow_on_submit:
+						if self.is_new() or not self.docstatus.is_submitted() or _df.allow_on_submit:
 							self.set_fetch_from_value(doctype, _df, values)
 
 					notify_link_count(doctype, docname)
@@ -591,7 +605,7 @@ class BaseDocument(object):
 
 					elif (df.fieldname != "amended_from"
 						and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
-						and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
+						and cint(frappe.db.get_value(doctype, docname, "docstatus")) == DocStatus.cancelled()):
 
 						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
 
@@ -646,8 +660,6 @@ class BaseDocument(object):
 					value, comma_options))
 
 	def _validate_data_fields(self):
-		from frappe.core.doctype.user.user import STANDARD_USERS
-
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
@@ -658,7 +670,7 @@ class BaseDocument(object):
 				continue
 
 			if data_field_options == "Email":
-				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
 					continue
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
@@ -807,8 +819,8 @@ class BaseDocument(object):
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 
 				# cancelled and submit but not update after submit should be ignored
-				or self.docstatus==2
-				or (self.docstatus==1 and not df.get("allow_on_submit"))):
+				or self.docstatus.is_cancelled()
+				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))):
 				continue
 
 			else:
