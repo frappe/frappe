@@ -90,14 +90,14 @@ default_fields = (
 	'creation',
 	'modified',
 	'modified_by',
-	'docstatus'
+	'docstatus',
+	'idx'
 )
 
 child_table_fields = (
 	'parent',
 	'parentfield',
-	'parenttype',
-	'idx'
+	'parenttype'
 )
 
 optional_fields = (

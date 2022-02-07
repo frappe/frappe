@@ -707,7 +707,6 @@ class DocType(Document):
 		add_column(self.name, "parent", "Data")
 		add_column(self.name, "parenttype", "Data")
 		add_column(self.name, "parentfield", "Data")
-		add_column(self.name, "idx", "Int", length=8, not_null=True, default="0")
 
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""

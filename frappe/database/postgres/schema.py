@@ -21,8 +21,7 @@ class PostgresTable(DBTable):
 				(
 					"parent varchar({varchar_len})",
 					"parentfield varchar({varchar_len})",
-					"parenttype varchar({varchar_len})",
-					"idx bigint not null default '0'"
+					"parenttype varchar({varchar_len})"
 				)
 			)
 
@@ -35,6 +34,7 @@ class PostgresTable(DBTable):
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus smallint not null default '0',
+			idx bigint not null default '0',
 			%s)""" % (self.table_name, add_text)).format(varchar_len=frappe.db.VARCHAR_LEN))
 
 		self.create_indexes()

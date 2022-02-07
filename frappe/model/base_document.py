@@ -292,15 +292,15 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-			if key == "docstatus" and self.__dict__[key] is None:
-				self.__dict__[key] = DocStatus.draft()
+			if self.__dict__[key] is None:
+				if key == "docstatus":
+					self.docstatus = DocStatus.draft()
+				elif key == "idx":
+					self.__dict__[key] = 0
 
 		for key in self.get_valid_columns():
 			if key not in self.__dict__:
 				self.__dict__[key] = None
-
-			if key == "idx" and self.__dict__[key] is None:
-				self.__dict__[key] = 0
 
 	def get_valid_columns(self):
 		if self.doctype not in frappe.local.valid_columns:

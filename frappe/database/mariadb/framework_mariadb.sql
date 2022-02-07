@@ -171,6 +171,7 @@ CREATE TABLE `tabDocType` (
   `modified_by` varchar(255) DEFAULT NULL,
   `owner` varchar(255) DEFAULT NULL,
   `docstatus` int(1) NOT NULL DEFAULT 0,
+  `idx` int(8) NOT NULL DEFAULT 0,
   `search_fields` varchar(255) DEFAULT NULL,
   `issingle` int(1) NOT NULL DEFAULT 0,
   `is_tree` int(1) NOT NULL DEFAULT 0,

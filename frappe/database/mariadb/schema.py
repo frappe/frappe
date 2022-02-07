@@ -24,8 +24,7 @@ class MariaDBTable(DBTable):
 				(
 					f"parent varchar({varchar_len})",
 					f"parentfield varchar({varchar_len})",
-					f"parenttype varchar({varchar_len})",
-					"idx int(8) not null default '0'"
+					f"parenttype varchar({varchar_len})"
 				)
 			) + ',\n'
 
@@ -37,6 +36,7 @@ class MariaDBTable(DBTable):
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus int(1) not null default '0',
+			idx int(8) not null default '0',
 			{additional_definitions}
 			index modified(modified))
 			ENGINE={engine}

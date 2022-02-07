@@ -106,6 +106,7 @@ def get_other_fields_meta(meta):
 		'modified_by': ('Data', 0),
 		'creation': ('Datetime', 0),
 		'modified': ('Datetime', 0),
+		'idx': ('Int', 8),
 		'docstatus': ('Check', 0)
 	}
 
@@ -115,8 +116,7 @@ def get_other_fields_meta(meta):
 
 	child_table_fields_map = {}
 	if meta.istable:
-		child_table_fields_map.update({field: ('Data', 0) for field in frappe.db.CHILD_TABLE_COLUMNS if field != 'idx'})
-		child_table_fields_map.update({'idx': ('Int', 8)})
+		child_table_fields_map.update({field: ('Data', 0) for field in frappe.db.CHILD_TABLE_COLUMNS})
 
 	optional_fields_map = {field: ('Text', 0) for field in optional_fields}
 	fields = dict(default_fields_map, **optional_fields_map, **child_table_fields_map)

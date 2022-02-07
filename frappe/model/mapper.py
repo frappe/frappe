@@ -184,7 +184,7 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 					target_doc.set(fmap[1], val)
 
 	# map idx
-	if source_doc.get("idx"):
+	if source_doc.idx:
 		target_doc.idx = source_doc.idx
 
 	# add fetch

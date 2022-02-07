@@ -232,7 +232,6 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			if frappe.get_meta(link_dt).istable:
 				fields.extend(["parent", "parenttype"])
 
-			# NOTE: scenario: parent doc <-(linked to) child table doc <-(linked to) doc
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name}, fields , as_dict=True):
 				# available only in child table cases
 				item_parent = getattr(item, "parent", None)
