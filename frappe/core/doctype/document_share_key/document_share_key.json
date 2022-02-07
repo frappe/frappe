@@ -1,10 +1,10 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:DOCUMENT-KEY-{########}",
+ "autoname": "format:DOCUMENT-SHARE-KEY-{########}",
  "creation": "2022-01-14 13:40:49.487646",
  "doctype": "DocType",
- "document_key_expiry": 90,
+ "document_share_key_expiry": 90,
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -50,7 +50,7 @@
  "modified": "2022-01-14 13:57:28.050678",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Document Key",
+ "name": "Document Share Key",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

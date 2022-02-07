@@ -5,7 +5,7 @@
  "creation": "2013-02-18 13:36:19",
  "description": "DocType is a Table / Form in the application.",
  "doctype": "DocType",
- "document_key_expiry": 90,
+ "document_share_key_expiry": 90,
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
@@ -56,7 +56,7 @@
   "color",
   "show_preview_popup",
   "show_name_in_global_search",
-  "document_key_expiry",
+  "document_share_key_expiry",
   "email_settings_sb",
   "default_email_template",
   "column_break_51",
@@ -584,11 +584,15 @@
   },
   {
    "default": "90",
-   "description": "Set number of days after which a document key will be expired",
-   "fieldname": "document_key_expiry",
+   "description": "Set number of days after which a Document Share Key will be expired",
+   "fieldname": "document_share_key_expiry",
    "fieldtype": "Int",
+<<<<<<< HEAD
    "label": "Document Key Expiry (in Days)"
 >>>>>>> 64985a5d1a (feat: Document key expiry)
+=======
+   "label": "Document Share Key Expiry (in Days)"
+>>>>>>> b7f156f580 (fix: Rename "Document Key" to "Document Share Key")
   }
  ],
  "icon": "fa fa-bolt",
