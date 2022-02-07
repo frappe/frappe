@@ -1,7 +1,8 @@
 {
  "actions": [],
- "creation": "2014-04-17 16:53:52.640856",
+ "creation": "2022-01-06 03:18:16.326761",
  "doctype": "DocType",
+ "document_share_key_expiry": 90,
  "document_type": "System",
  "engine": "InnoDB",
  "field_order": [
@@ -35,6 +36,7 @@
   "security",
   "session_expiry",
   "session_expiry_mobile",
+  "document_share_key_expiry",
   "column_break_13",
   "deny_multiple_sessions",
   "allow_login_using_mobile_number",
@@ -485,12 +487,19 @@
    "fieldtype": "Select",
    "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+  },
+  {
+   "default": "90",
+   "description": "Set number of days after which a Document Share Key will be expired",
+   "fieldname": "document_share_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Share Key Expiry (in Days)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-01-04 11:28:34.881192",
+ "modified": "2022-02-07 03:07:20.782827",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

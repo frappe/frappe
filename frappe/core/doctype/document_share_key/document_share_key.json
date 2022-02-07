@@ -4,7 +4,6 @@
  "autoname": "format:DOCUMENT-SHARE-KEY-{########}",
  "creation": "2022-01-14 13:40:49.487646",
  "doctype": "DocType",
- "document_share_key_expiry": 90,
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
