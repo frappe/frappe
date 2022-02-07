@@ -252,13 +252,13 @@ def validate_print_permission(doc):
 		raise frappe.PermissionError(_("You do not have permission to view this document"))
 
 def validate_key(key, doc):
-	document_key = frappe.db.exists("Document Key", {
+	document_share_key = frappe.db.exists("Document Share Key", {
 		"reference_doctype": doc.doctype,
 		"reference_docname": doc.name,
 		"key": key
 	}, cache=True)
-	if document_key:
-		if frappe.get_cached_doc("Document Key", document_key).is_expired():
+	if document_share_key:
+		if frappe.get_cached_doc("Document Share Key", document_share_key).is_expired():
 			raise frappe.exceptions.LinkExpiredError
 		else:
 			return

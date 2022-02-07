@@ -4,5 +4,5 @@
 # import frappe
 import unittest
 
-class TestDocumentKey(unittest.TestCase):
+class TestDocumentShareKey(unittest.TestCase):
 	pass

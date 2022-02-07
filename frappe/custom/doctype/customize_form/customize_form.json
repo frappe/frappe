@@ -3,7 +3,7 @@
  "autoname": "DL.####",
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
- "document_key_expiry": 90,
+ "document_share_key_expiry": 90,
  "document_type": "Document",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -32,7 +32,7 @@
   "default_print_format",
   "column_break_29",
   "show_preview_popup",
-  "document_key_expiry",
+  "document_share_key_expiry",
   "email_settings_section",
   "default_email_template",
   "column_break_26",
@@ -301,10 +301,10 @@
   },
   {
    "default": "90",
-   "description": "Set number of days after which a document key will be expired",
-   "fieldname": "document_key_expiry",
+   "description": "Set number of days after which a Document Share Key will be expired",
+   "fieldname": "document_share_key_expiry",
    "fieldtype": "Int",
-   "label": "Document Key Expiry (in Days)"
+   "label": "Document Share Key Expiry (in Days)"
   }
  ],
  "hide_toolbar": 1,

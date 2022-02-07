@@ -4,12 +4,12 @@
 import frappe
 from frappe.model.document import Document
 
-class DocumentKey(Document):
+class DocumentShareKey(Document):
 	def before_insert(self):
 		self.key = frappe.generate_hash(length=32)
 		if not self.expires_on:
 			meta = frappe.get_meta("DocType", self.reference_doctype)
-			self.expires_on = frappe.utils.add_days(None, days=meta.get("document_key_expiry") or 90)
+			self.expires_on = frappe.utils.add_days(None, days=meta.get("document_share_key_expiry") or 90)
 
 	def is_expired(self):
 		return self.expires_on < frappe.utils.getdate()

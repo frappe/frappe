@@ -1278,8 +1278,8 @@ class Document(BaseDocument):
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	@frappe.whitelist()
-	def get_new_document_key(self, expires_on=None):
-		doc = frappe.new_doc("Document Key")
+	def get_new_document_share_key(self, expires_on=None):
+		doc = frappe.new_doc("Document Share Key")
 		doc.reference_doctype = self.doctype
 		doc.reference_docname = self.name
 		doc.expires_on = expires_on

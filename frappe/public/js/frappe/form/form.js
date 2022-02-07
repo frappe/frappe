@@ -1170,7 +1170,7 @@ frappe.ui.form.Form = class FrappeForm {
 				fieldtype: "Button",
 				label: "Generate Link",
 				click: () => {
-					this.call("get_new_document_key").then(res => {
+					this.call("get_new_document_share_key").then(res => {
 						let key = res.message;
 						share_document_url_dialog.set_value("link", this.get_share_link(key));
 					});
