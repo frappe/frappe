@@ -14,10 +14,10 @@ from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 
+from unittest.mock import patch
+
 make_test_records("User")
 make_test_records("Email Account")
-
-
 
 class TestEmailAccount(unittest.TestCase):
 	@classmethod
@@ -257,15 +257,16 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue(communication.reference_name)
 		self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
 
-	def test_append_to_with_imap_folders(self):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-
+	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	# @patch("frappe.email.receive.EmailServer.get_messages", side_effect=get_mocked_messages)
+	def test_append_to_with_imap_folders(self, mocked_logout, mocked_select_imap_folder):
 		mail_content_1 = self.get_test_mail(fname="incoming-1.raw")
 		mail_content_2 = self.get_test_mail(fname="incoming-2.raw")
 		mail_content_3 = self.get_test_mail(fname="incoming-3.raw")
 
 		messages = {
-			'INBOX': {				# append_to = ToDo
+			'"INBOX"': {				# append_to = ToDo
 				'latest_messages': [
 					mail_content_1,
 					mail_content_2
@@ -276,7 +277,7 @@ class TestEmailAccount(unittest.TestCase):
 				},
 				'uid_list': [0,1]
 			},
-			'Test Folder': {		# append_to = Communication
+			'"Test Folder"': {		# append_to = Communication
 				'latest_messages': [
 					mail_content_3
 				],
@@ -286,9 +287,15 @@ class TestEmailAccount(unittest.TestCase):
 				'uid_list': [2]
 			}
 		}
-		mails = email_account.get_inbound_mails(messages=messages)
-		self.assertEqual(len(mails), 3)
-		
+		from frappe.email.receive import EmailServer
+		def get_mocked_messages(**args):
+			return messages[args["folder"]]
+
+		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			mails = email_account.get_inbound_mails(messages=messages)
+			self.assertEqual(len(mails), 3)
+
 		inbox_mails = 0
 		test_folder_mails = 0
 
@@ -373,11 +380,11 @@ class TestInboundMail(unittest.TestCase):
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
-		new_communiction = inbound_mail.process()
+		new_communication = inbound_mail.process()
 
 		# Make sure that uid is changed to new uid
-		self.assertEqual(new_communiction.uid, 12345)
-		self.assertEqual(communication.name, new_communiction.name)
+		self.assertEqual(new_communication.uid, 12345)
+		self.assertEqual(communication.name, new_communication.name)
 
 	def test_find_parent_email_queue(self):
 		"""If the mail is reply to the already sent mail, there will be a email queue record.
