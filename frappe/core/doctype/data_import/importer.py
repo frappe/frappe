@@ -618,7 +618,7 @@ class Row:
 			)
 
 		# remove standard fields and __islocal
-		for key in frappe.model.default_fields + ("__islocal",):
+		for key in frappe.model.default_fields + frappe.model.child_table_fields + ("__islocal",):
 			doc.pop(key, None)
 
 		for col, value in zip(columns, values):
