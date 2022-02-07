@@ -352,7 +352,7 @@ def validate_key(key, doc):
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 =======
 	# TODO: Deprecate this! kept it for backward compatibility
-	if key == doc.get_signature():
+	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
 		return
 
 	raise frappe.exceptions.InvalidKey
