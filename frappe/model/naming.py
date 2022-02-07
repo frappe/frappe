@@ -1,13 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 import frappe
 from frappe import _
+from frappe.database.sequence import get_next_val
 from frappe.utils import now_datetime, cint, cstr
 import re
 from frappe.model import log_types
 from frappe.query_builder import DocType
+
+if TYPE_CHECKING:
+	from frappe.model.meta import Meta
 
 
 def set_new_name(doc):
@@ -24,7 +28,8 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	autoname = frappe.get_meta(doc.doctype).autoname or ""
+	meta = frappe.get_meta(doc.doctype)
+	autoname = meta.autoname or ""
 
 	if autoname.lower() != "prompt" and not frappe.flags.in_import:
 		doc.name = None
@@ -35,6 +40,10 @@ def set_new_name(doc):
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
+
+	elif is_autoincremented(doc.doctype, meta):
+		doc.name = get_next_val(doc.doctype)
+		return
 
 	elif getattr(doc.meta, "istable", False):
 		doc.name = make_autoname("hash", doc.doctype)
@@ -66,6 +75,28 @@ def set_new_name(doc):
 		doc.name,
 		frappe.get_meta(doc.doctype).get_field("name_case")
 	)
+
+def is_autoincremented(doctype: str, meta: "Meta" = None):
+	if doctype in frappe.local.autoincremented_doctypes:
+		return True
+
+	elif doctype in log_types:
+		if frappe.db.sql(
+			f"""select data_type FROM information_schema.columns
+			where column_name = 'name' and table_name = 'tab{doctype}'"""
+		)[0][0] == "bigint":
+			frappe.local.autoincremented_doctypes.add(doctype)
+			return True
+
+	else:
+		if not meta:
+			meta = frappe.get_meta(doctype)
+
+		if meta.autoname == "autoincrement":
+			frappe.local.autoincremented_doctypes.add(doctype)
+			return True
+
+	return False
 
 def set_name_from_naming_options(autoname, doc):
 	"""
