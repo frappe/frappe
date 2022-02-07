@@ -24,7 +24,8 @@ class MariaDBTable(DBTable):
 				(
 					f"parent varchar({varchar_len})",
 					f"parentfield varchar({varchar_len})",
-					f"parenttype varchar({varchar_len})"
+					f"parenttype varchar({varchar_len})",
+					"index parent(parent)"
 				)
 			) + ',\n'
 
