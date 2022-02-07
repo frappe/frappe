@@ -86,6 +86,8 @@
   "generate_keys",
   "column_break_65",
   "api_secret",
+  "fb_token_sb",
+  "device_token",
   "signature_section",
   "signature"
  ],
@@ -213,8 +215,7 @@
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
    "label": "Role Profile",
-   "options": "Role Profile",
-   "permlevel": 1
+   "options": "Role Profile"
   },
   {
    "fieldname": "roles_html",
@@ -566,22 +567,20 @@
    "collapsible": 1,
    "fieldname": "api_access",
    "fieldtype": "Section Break",
-   "label": "API Access"
+   "label": "Api Access"
   },
   {
-   "description": "API Key cannot be regenerated",
+   "description": "API Key cannot be  regenerated",
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
-   "permlevel": 1,
    "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "generate_keys",
    "fieldtype": "Button",
-   "label": "Generate Keys",
-   "permlevel": 1
+   "label": "Generate Keys"
   },
   {
    "fieldname": "column_break_65",
@@ -592,7 +591,6 @@
    "fieldname": "api_secret",
    "fieldtype": "Password",
    "label": "API Secret",
-   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -660,6 +658,17 @@
   {
    "fieldname": "column_break_6",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fb_token_sb",
+   "fieldtype": "Section Break",
+   "label": "Firebase Token"
+  },
+  {
+   "fieldname": "device_token",
+   "fieldtype": "Text",
+   "label": "firebase",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
@@ -728,7 +737,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2021-12-26 16:20:14.428662",
+ "modified": "2022-02-02 16:35:33.560612",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
