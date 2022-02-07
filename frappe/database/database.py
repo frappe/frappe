@@ -681,7 +681,7 @@ class Database(object):
 
 			if for_update:
 				docnames = tuple(
-					self.get_values(dt, dn, "name", debug=debug, for_update=for_update, pluck=True)
+					x[0] for x in self.get_values(dt, dn, "name", debug=debug, for_update=for_update)
 				) or (NullValue(),)
 				query = frappe.qb.update(table).where(table.name.isin(docnames))
 
