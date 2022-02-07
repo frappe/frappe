@@ -213,10 +213,20 @@ class TestEmailAccount(unittest.TestCase):
 	def test_auto_reply(self):
 		cleanup("test_sender@example.com")
 
-		test_mails = [self.get_test_mail('incoming-1.raw')]
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': [
+					self.get_test_mail('incoming-1.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}	
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
@@ -319,6 +329,18 @@ class TestEmailAccount(unittest.TestCase):
 			mails = email_account.get_inbound_mails()
 
 		return mails
+	
+	@patch("frappe.local.flags.in_test", False)
+	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	def mocked_email_receive(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None, mocked_in_test=None):
+		def get_mocked_messages(**kwargs):
+			return messages[kwargs["folder"]]
+
+		from frappe.email.receive import EmailServer
+		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			email_account.receive()
 
 class TestInboundMail(unittest.TestCase):
 	@classmethod
