@@ -347,8 +347,8 @@ class TestDBSetValue(unittest.TestCase):
 				"description",
 				f"{self.todo1.description}-edit by `test_for_update`"
 			)
-			first_query = sql_called.call_args_list[0].args[0]
-			second_query = sql_called.call_args_list[1].args[0]
+			first_query = sql_called.call_args_list[0][0][0]
+			second_query = sql_called.call_args_list[1][0][0]
 
 			self.assertTrue(sql_called.call_count == 2)
 			self.assertTrue("FOR UPDATE".casefold() in first_query)
