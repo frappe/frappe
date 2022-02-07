@@ -260,12 +260,9 @@ frappe.views.CommunicationComposer = class {
 				const content_field = me.dialog.fields_dict.content;
 				const subject_field = me.dialog.fields_dict.subject;
 
-				let content = content_field.get_value() || "";
-				content = content.split('<!-- salutation-ends -->')[1] || content;
-
-				content_field.set_value(`${reply.message}<br>${content}`);
+				content_field.set_value(reply.message);
 				subject_field.set_value(reply.subject);
-
+				
 				me.reply_added = email_template;
 			}
 
