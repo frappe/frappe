@@ -2,7 +2,6 @@
  "actions": [],
  "creation": "2022-01-06 03:18:16.326761",
  "doctype": "DocType",
- "document_share_key_expiry": 90,
  "document_type": "System",
  "engine": "InnoDB",
  "field_order": [
@@ -43,6 +42,7 @@
   "allow_login_using_user_name",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
+  "allow_older_web_view_links",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -490,16 +490,22 @@
   },
   {
    "default": "90",
-   "description": "Set number of days after which a Document Share Key will be expired",
+   "description": "Number of days after which the shared document link will be expired",
    "fieldname": "document_share_key_expiry",
    "fieldtype": "Int",
    "label": "Document Share Key Expiry (in Days)"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_older_web_view_links",
+   "fieldtype": "Check",
+   "label": "Allow Older Web View Links (Insecure)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-02-07 03:07:20.782827",
+ "modified": "2022-02-07 03:36:17.319666",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
