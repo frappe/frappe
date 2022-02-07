@@ -45,10 +45,20 @@ class TestEmailAccount(unittest.TestCase):
 	def test_incoming(self):
 		cleanup("test_sender@example.com")
 
-		test_mails = [self.get_test_mail('incoming-1.raw')]
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': [
+					self.get_test_mail('incoming-1.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}	
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
@@ -72,11 +82,20 @@ class TestEmailAccount(unittest.TestCase):
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
-			test_mails = [testfile.read()]
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': [
+					self.get_test_mail('incoming-2.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}	
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
@@ -93,11 +112,20 @@ class TestEmailAccount(unittest.TestCase):
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		cleanup("test_sender@example.com")
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-3.raw"), "r") as f:
-			test_mails = [f.read()]
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': [
+					self.get_test_mail('incoming-3.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}	
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
@@ -106,11 +134,20 @@ class TestEmailAccount(unittest.TestCase):
 	def test_incoming_attached_email_from_outlook_layers(self):
 		cleanup("test_sender@example.com")
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-4.raw"), "r") as f:
-			test_mails = [f.read()]
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': [
+					self.get_test_mail('incoming-4.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}	
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
