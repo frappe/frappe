@@ -46,7 +46,8 @@ class TestEmailAccount(unittest.TestCase):
 		cleanup("test_sender@example.com")
 
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					self.get_test_mail('incoming-1.raw')
 				],
@@ -54,7 +55,7 @@ class TestEmailAccount(unittest.TestCase):
 					2: 'UNSEEN'
 				},
 				'uid_list': [2]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -83,7 +84,8 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.delete_doc("File", existing_file.name)
 
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					self.get_test_mail('incoming-2.raw')
 				],
@@ -91,7 +93,7 @@ class TestEmailAccount(unittest.TestCase):
 					2: 'UNSEEN'
 				},
 				'uid_list': [2]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -113,7 +115,8 @@ class TestEmailAccount(unittest.TestCase):
 		cleanup("test_sender@example.com")
 
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					self.get_test_mail('incoming-3.raw')
 				],
@@ -121,7 +124,7 @@ class TestEmailAccount(unittest.TestCase):
 					2: 'UNSEEN'
 				},
 				'uid_list': [2]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -135,7 +138,8 @@ class TestEmailAccount(unittest.TestCase):
 		cleanup("test_sender@example.com")
 
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					self.get_test_mail('incoming-4.raw')
 				],
@@ -143,7 +147,7 @@ class TestEmailAccount(unittest.TestCase):
 					2: 'UNSEEN'
 				},
 				'uid_list': [2]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -199,7 +203,7 @@ class TestEmailAccount(unittest.TestCase):
 					2: 'UNSEEN'
 				},
 				'uid_list': [2]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -229,7 +233,7 @@ class TestEmailAccount(unittest.TestCase):
 					3: 'UNSEEN'
 				},
 				'uid_list': [2, 3]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -257,7 +261,8 @@ class TestEmailAccount(unittest.TestCase):
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
 			messages = {
-				'"INBOX"': {		# append_to = ToDo
+				# append_to = ToDo
+				'"INBOX"': {
 					'latest_messages': [
 						f.read().replace('{{ message_id }}', last_mail.message_id)
 					],
@@ -265,11 +270,10 @@ class TestEmailAccount(unittest.TestCase):
 						2: 'UNSEEN'
 					},
 					'uid_list': [2]
-				}	
+				}
 			}
 
 		# pull the mail
-
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
@@ -284,7 +288,8 @@ class TestEmailAccount(unittest.TestCase):
 		cleanup("test_sender@example.com")
 
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					self.get_test_mail('incoming-1.raw')
 				],
@@ -292,7 +297,7 @@ class TestEmailAccount(unittest.TestCase):
 					2: 'UNSEEN'
 				},
 				'uid_list': [2]
-			}	
+			}
 		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -343,7 +348,8 @@ class TestEmailAccount(unittest.TestCase):
 		mail_content_3 = self.get_test_mail(fname="incoming-3.raw")
 
 		messages = {
-			'"INBOX"': {				# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					mail_content_1,
 					mail_content_2
@@ -354,7 +360,8 @@ class TestEmailAccount(unittest.TestCase):
 				},
 				'uid_list': [0,1]
 			},
-			'"Test Folder"': {		# append_to = Communication
+			# append_to = Communication
+			'"Test Folder"': {
 				'latest_messages': [
 					mail_content_3
 				],
@@ -392,22 +399,21 @@ class TestEmailAccount(unittest.TestCase):
 		from frappe.email.receive import EmailServer
 
 		def get_mocked_messages(**kwargs):
-			return messages[kwargs["folder"]]
+			return messages.get(kwargs["folder"], {})
 
 		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
 			mails = email_account.get_inbound_mails()
 
 		return mails
-	
+
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_email_receive(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None):
 		def get_mocked_messages(**kwargs):
-			return messages[kwargs["folder"]]
+			return messages.get(kwargs["folder"], {})
 
 		from frappe.email.receive import EmailServer
 		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
-			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 			email_account.receive()
 
 class TestInboundMail(unittest.TestCase):
