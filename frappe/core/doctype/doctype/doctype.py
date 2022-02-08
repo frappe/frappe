@@ -10,7 +10,9 @@ from frappe.cache_manager import clear_user_cache, clear_controller_cache
 import frappe
 from frappe import _
 from frappe.utils import now, cint
-from frappe.model import no_value_fields, default_fields, data_fieldtypes, table_fields, data_field_options
+from frappe.model import (
+	no_value_fields, default_fields, table_fields, data_field_options, child_table_fields
+)
 from frappe.model.document import Document
 from frappe.model.base_document import get_controller
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
@@ -74,6 +76,7 @@ class DocType(Document):
 		self.make_amendable()
 		self.make_repeatable()
 		self.validate_nestedset()
+		self.validate_child_table()
 		self.validate_website()
 		self.ensure_minimum_max_attachment_limit()
 		validate_links_table_fieldnames(self)
@@ -689,6 +692,22 @@ class DocType(Document):
 		})
 		self.nsm_parent_field = parent_field_name
 
+	def validate_child_table(self):
+		if not self.get("istable") or self.is_new():
+			# if the doctype is not a child table then return
+			# if the doctype is a new doctype and also a child table then
+			# don't move forward as it will be handled via schema
+			return
+
+		self.add_child_table_fields()
+
+	def add_child_table_fields(self):
+		from frappe.database.schema import add_column
+
+		add_column(self.name, "parent", "Data")
+		add_column(self.name, "parenttype", "Data")
+		add_column(self.name, "parentfield", "Data")
+
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""",
@@ -698,6 +717,13 @@ class DocType(Document):
 	def validate_name(self, name=None):
 		if not name:
 			name = self.name
+
+		# a Doctype name is the tablename created in database
+		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
+		if len(name) > max_length:
+			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
+			frappe.throw(_("Doctype name is limited to {0} characters ({1})").format(max_length, name), frappe.NameError)
 
 		flags = {"flags": re.ASCII}
 
@@ -1009,7 +1035,7 @@ def validate_fields(meta):
 				sort_fields = [d.split()[0] for d in meta.sort_field.split(',')]
 
 			for fieldname in sort_fields:
-				if not fieldname in fieldname_list + list(default_fields):
+				if fieldname not in (fieldname_list + list(default_fields) + list(child_table_fields)):
 					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
 						InvalidFieldNameError)
 

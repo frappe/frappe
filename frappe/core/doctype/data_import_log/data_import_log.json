@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2021-12-25 16:12:20.205889",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "MyISAM",
+ "field_order": [
+  "data_import",
+  "row_indexes",
+  "success",
+  "docname",
+  "messages",
+  "exception",
+  "log_index"
+ ],
+ "fields": [
+  {
+   "fieldname": "data_import",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Data Import",
+   "options": "Data Import"
+  },
+  {
+   "fieldname": "docname",
+   "fieldtype": "Data",
+   "label": "Reference Name"
+  },
+  {
+   "fieldname": "exception",
+   "fieldtype": "Text",
+   "label": "Exception"
+  },
+  {
+   "fieldname": "row_indexes",
+   "fieldtype": "Code",
+   "label": "Row Indexes",
+   "options": "JSON"
+  },
+  {
+   "default": "0",
+   "fieldname": "success",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Success"
+  },
+  {
+   "fieldname": "log_index",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Log Index"
+  },
+  {
+   "fieldname": "messages",
+   "fieldtype": "Code",
+   "label": "Messages",
+   "options": "JSON"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-12-29 11:19:19.646076",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Data Import Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
