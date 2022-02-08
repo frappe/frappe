@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import functools
@@ -23,9 +23,6 @@ import frappe
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from frappe.utils.html_utils import sanitize_html
-
-default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
-	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
 
 
 def get_fullname(user=None):
@@ -56,8 +53,8 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
-
 	method = get_hook_method('get_sender_details')
+
 	if method:
 		sender_name, mail = method()
 		# if method exists but sender_name is ""

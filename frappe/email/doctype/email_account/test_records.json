@@ -20,7 +20,7 @@
 		"pop3_server": "pop.test.example.com",
 		"no_remaining":"0",
 		"append_to": "ToDo",
-		"imap_folder": [{"folder_name": "INBOX", "append_to": "ToDo"}],
+		"imap_folder": [{"folder_name": "INBOX", "append_to": "ToDo"}, {"folder_name": "Test Folder", "append_to": "Communication"}],
 		"track_email_status": 1
 	},
 	{

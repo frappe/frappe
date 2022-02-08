@@ -77,7 +77,7 @@ class WebForm(WebsiteGenerator):
 
 			for prop in docfield_properties:
 				if df.fieldtype==meta_df.fieldtype and prop not in ("idx",
-					"reqd", "default", "description", "default", "options",
+					"reqd", "default", "description", "options",
 					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
