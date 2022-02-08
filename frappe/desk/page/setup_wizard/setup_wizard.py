@@ -6,7 +6,6 @@ from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.password import update_password
-from ua_parser import user_agent_parser
 from . import install_fixtures
 
 def get_setup_stages(args):
@@ -342,43 +341,19 @@ def email_setup_wizard_exception(traceback, args):
 #### Basic Information
 
 - **Site:** {site}
-- **User:** {user}
-- **Browser:** {browser}
-- **Browser Languages**: `{accept_languages}`""".format(
+- **User:** {user}""".format(
 		site=frappe.local.site,
 		traceback=traceback,
 		args="\n".join(pretty_args),
 		user=frappe.session.user,
-		browser=get_browser_string(),
 		headers=frappe.request.headers,
-		accept_languages=", ".join(frappe.request.accept_languages.values()))
+	)
 
 	frappe.sendmail(recipients=frappe.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
 		subject="Setup failed: {}".format(frappe.local.site),
 		message=message,
 		delayed=False)
-
-def get_browser_string():
-	if not frappe.request:
-		return ""
-
-	user_agent = user_agent_parser.ParseUserAgent(
-		frappe.request.headers.get('User-Agent', '')
-	)
-
-	browser = user_agent["family"]
-
-	if user_agent["major"]:
-		browser += " " + user_agent["major"]
-
-	if user_agent["minor"]:
-		browser += "." + user_agent["minor"]
-
-	if user_agent["patch"]:
-		browser += "." + user_agent["patch"]
-
-	return browser
 
 def log_setup_wizard_exception(traceback, args):
 	with open('../logs/setup-wizard.log', 'w+') as setup_log:
