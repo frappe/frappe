@@ -158,7 +158,7 @@ frappe.ui.form.Control = class BaseControl {
 		}
 		return this.validate_and_set_in_model(value, e);
 	}
-	validate_and_set_in_model(value, e, force_set_value=false) {
+	async validate_and_set_in_model(value, e, force_set_value=false) {
 		const me = this;
 		const is_value_same = (this.get_model_value() === value);
 
@@ -186,14 +186,8 @@ frappe.ui.form.Control = class BaseControl {
 				}
 			]);
 		};
-		value = this.validate(value);
-		if (value && value.then) {
-			// got a promise
-			return value.then((value) => set(value));
-		} else {
-			// all clear
-			return set(value);
-		}
+		value = await this.validate(value);
+		return set(value);
 	}
 	get_value() {
 		if(this.get_status()==='Write') {
