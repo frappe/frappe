@@ -750,7 +750,7 @@ def verify_password(password):
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name, redirect_to):
 	if is_signup_disabled():
-		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
+		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
 
 	user = frappe.db.get("User", {"email": email})
 	if user:
@@ -804,8 +804,10 @@ def reset_password(user):
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 
-		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
-
+		return frappe.msgprint(
+			msg=_("Password reset instructions have been sent to your email"),
+			title=_("Password Email Sent")
+		)
 	except frappe.DoesNotExistError:
 		frappe.local.response['http_status_code'] = 400
 		frappe.clear_messages()

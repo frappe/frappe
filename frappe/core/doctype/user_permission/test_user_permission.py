@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions, remove_applicable
 from frappe.permissions import has_user_permission
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 
 import frappe
 import unittest
@@ -29,6 +30,18 @@ class TestUserPermission(unittest.TestCase):
 		perm_user = create_user('test_user_perm@example.com')
 		param = get_params(user, 'User', perm_user.name, is_default=1)
 		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
+
+	def test_default_user_permission_corectness(self):
+		user = create_user('test_default_corectness_permission_1@example.com')
+		param = get_params(user, 'User', user.name, is_default=1, hide_descendants= 1)
+		add_user_permissions(param)
+		#create a duplicate entry with default
+		perm_user = create_user('test_default_corectness2@example.com')
+		test_blog = make_test_blog()
+		param = get_params(perm_user, 'Blog Post', test_blog.name, is_default=1, hide_descendants= 1)
+		add_user_permissions(param)
+		frappe.db.delete('User Permission', filters={'for_value': test_blog.name})
+		frappe.delete_doc('Blog Post', test_blog.name)
 
 	def test_default_user_permission(self):
 		frappe.set_user('Administrator')

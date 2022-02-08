@@ -107,7 +107,7 @@ body[data-route^="Module"] .main-menu {
 		cursor: pointer;
 
 		.sidebar-image {
-			width: 100%;
+			width: Min(100%, 170px);
 			height: auto;
 			max-height: 170px;
 			object-fit: cover;
