@@ -471,9 +471,6 @@ class EmailAccount(Document):
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
 					mails.append(InboundMail(message, self, uid, seen_status, append_to))
 
-		if frappe.local.flags.in_test:
-			return [InboundMail(msg, self) for msg in test_mails or []]
-
 		if not self.enable_incoming:
 			return []
 
