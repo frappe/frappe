@@ -352,7 +352,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, indicator=None, alert=False, primary_action=None, is_minimizable=None, wide=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, indicator=None, alert=False, primary_action=None, secondary_action=None, custom_action=None, is_minimizable=None, wide=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -415,6 +415,12 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 
 	if primary_action:
 		out.primary_action = primary_action
+
+	if secondary_action:
+		out.secondary_action = secondary_action
+
+	if custom_action:
+		out.custom_action = custom_action
 
 	if wide:
 		out.wide = wide

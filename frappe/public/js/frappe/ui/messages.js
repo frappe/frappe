@@ -209,10 +209,79 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 			frappe.msg_dialog.has_primary_action = false;
 		}
 	}
-
+	// setup and bind an action to the secondary button
 	if (data.secondary_action) {
+		if (data.secondary_action.server_action && typeof data.secondary_action.server_action === 'string') {
+			data.secondary_action.action = () => {
+				frappe.call({
+					method: data.secondary_action.server_action,
+					args: {
+						args: data.secondary_action.args
+					},
+					callback() {
+						if (data.secondary_action.hide_on_success) {
+							frappe.hide_msgprint();
+						}
+					}
+				});
+			}
+		}
+
+		if (data.secondary_action.client_action && typeof data.secondary_action.client_action === 'string') {
+			let parts = data.secondary_action.client_action.split('.');
+			let obj = window;
+			for (let part of parts) {
+				obj = obj[part];
+			}
+			data.secondary_action.action = () => {
+				if (typeof obj === 'function') {
+					if (data.secondary_action.args){
+						obj(data.secondary_action.args);
+					} else {
+						obj(data.secondary_action);
+					}
+				}
+			}
+		}
 		frappe.msg_dialog.set_secondary_action(data.secondary_action.action);
 		frappe.msg_dialog.set_secondary_action_label(__(data.secondary_action.label || "Close"));
+	}
+
+	if (data.custom_action) {
+		if (data.custom_action.server_action && typeof data.custom_action.server_action === 'string') {
+			data.custom_action.action = () => {
+				frappe.call({
+					method: data.custom_action.server_action,
+					args: {
+						args: data.custom_action.args
+					},
+					callback() {
+						if (data.custom_action.hide_on_success) {
+							frappe.hide_msgprint();
+						}
+					}
+				});
+			}
+		}
+
+		if (data.custom_action.client_action && typeof data.custom_action.client_action === 'string') {
+			let parts = data.custom_action.client_action.split('.');
+			let obj = window;
+			for (let part of parts) {
+				obj = obj[part];
+			}
+			data.custom_action.action = () => {
+				if (typeof obj === 'function') {
+					obj(data.custom_action.args);
+					frappe.hide_msgprint();
+				}
+			}
+		}
+		!frappe.msg_dialog.custom_actions.find('.btn').length &&
+			frappe.msg_dialog.add_custom_action(data.custom_action.label, data.custom_action.action);
+	}
+	if (!data.custom_action) {
+		frappe.msg_dialog.custom_actions.find('.btn').remove()
 	}
 
 	if(data.message==null) {
