@@ -611,10 +611,13 @@ $.extend(frappe.model, {
 		});
 
 		d.set_primary_action(__("Rename"), function() {
+			d.hide();
 			var args = d.get_values();
 			if(!args) return;
 			return frappe.call({
 				method:"frappe.rename_doc",
+				freeze: true,
+				freeze_message: "Updating related fields...",
 				args: {
 					doctype: doctype,
 					old: docname,
