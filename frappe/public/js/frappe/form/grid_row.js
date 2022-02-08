@@ -172,15 +172,14 @@ export default class GridRow {
 
 		// row index
 		if(!this.row_index) {
-			this.row_index = $('<div class="grid-header-check">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
+			this.row_index = $(`<div class="grid-header-check">${this.row_check_html}<span></span></div>`).appendTo(this.row);
 		}
 
 		if(this.doc) {
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
-		this.row_display = $('<div class="row-data sortable-handle template-row">'+
-			+'</div>').appendTo(this.row)
+		this.row_display = $('<div class="row-data sortable-handle template-row"></div>').appendTo(this.row)
 			.html(frappe.render(this.grid.template, {
 				doc: this.doc ? frappe.get_format_helper(this.doc) : null,
 				frm: this.frm,
