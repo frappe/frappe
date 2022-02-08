@@ -817,8 +817,14 @@ def extract_images_from_html(doc, content):
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
+		doctype = doc.doctype
+		name = doc.name
+		if doc.parent: 
+			doctype = doc.parenttype
+			name = doc.parent
+		if doc.doctype == "Comment":
+			doctype = doc.reference_doctype
+			name = doc.reference_name
 
 		_file = frappe.get_doc({
 			"doctype": "File",
