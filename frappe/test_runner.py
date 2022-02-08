@@ -27,7 +27,7 @@ def xmlrunner_wrapper(output):
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 	force=False, profile=False, junit_xml_output=None, ui_tests=False,
-	doctype_list_path=None, skip_test_records=False, failfast=False):
+	doctype_list_path=None, skip_test_records=False, failfast=False, case=None):
 	global unittest_runner
 
 	if doctype_list_path:
@@ -69,7 +69,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		if doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		elif module:
-			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output)
+			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output, case=case)
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
 
@@ -173,16 +173,16 @@ def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profil
 
 	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
-def run_tests_for_module(module, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False, case=None):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
 	frappe.db.commit()
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output, case=case)
 
-def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
+def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False, case=None):
 	frappe.db.begin()
 
 	test_suite = unittest.TestSuite()
@@ -191,7 +191,10 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=Fals
 		modules = [modules]
 
 	for module in modules:
-		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		if case:
+			module_test_cases = unittest.TestLoader().loadTestsFromTestCase(getattr(module, case))
+		else:
+			module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		if tests:
 			for each in module_test_cases:
 				for test_case in each.__dict__["_tests"]:
@@ -326,7 +329,10 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
+		if doctype in frappe.local.test_objects:
+			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
+		else:
+			frappe.local.test_objects[doctype] = make_test_objects(doctype, test_module.test_records, verbose, force)
 
 	else:
 		test_records = frappe.get_test_records(doctype)
