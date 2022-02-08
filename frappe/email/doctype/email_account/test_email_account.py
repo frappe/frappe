@@ -188,11 +188,22 @@ class TestEmailAccount(unittest.TestCase):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
 			raw = f.read()
 			raw = raw.replace("<-- in-reply-to -->", sent_mail.get("Message-Id"))
-			test_mails = [raw]
 
 		# parse reply
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': [
+					raw
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}	
+		}
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		sent = frappe.get_doc("Communication", sent_name)
 
@@ -210,8 +221,19 @@ class TestEmailAccount(unittest.TestCase):
 			test_mails.append(f.read())
 
 		# parse reply
+		messages = {
+			'"INBOX"': {		# append_to = ToDo
+				'latest_messages': test_mails,
+				'seen_status': {
+					2: 'UNSEEN',
+					3: 'UNSEEN'
+				},
+				'uid_list': [2, 3]
+			}	
+		}
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
 			fields=["name", "reference_doctype", "reference_name"])
@@ -234,11 +256,22 @@ class TestEmailAccount(unittest.TestCase):
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
-			test_mails = [f.read().replace('{{ message_id }}', last_mail.message_id)]
+			messages = {
+				'"INBOX"': {		# append_to = ToDo
+					'latest_messages': [
+						f.read().replace('{{ message_id }}', last_mail.message_id)
+					],
+					'seen_status': {
+						2: 'UNSEEN'
+					},
+					'uid_list': [2]
+				}	
+			}
 
 		# pull the mail
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
 			fields=["name", "reference_doctype", "reference_name"])
