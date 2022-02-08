@@ -171,11 +171,11 @@ export default class GridRow {
 		}
 
 		// row index
+		if(!this.row_index) {
+			this.row_index = $('<div class="grid-header-check">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
+		}
+
 		if(this.doc) {
-			if(!this.row_index) {
-				this.row_index = $('<div style="float: left; margin-left: 15px; margin-top: 8px; \
-					margin-right: -20px;">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
-			}
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
