@@ -154,7 +154,7 @@ body {
 
 				svg {
 					flex: none;
-					margin-right: 6px;
+					margin-right: var(--margin-sm);
 					box-shadow: none;
 				}
 			}
@@ -560,6 +560,8 @@ body {
 	}
 
 	&.links-widget-box {
+		padding: 16px 7px;
+
 		.link-item {
 			display: flex;
 			text-decoration: none;
@@ -601,6 +603,8 @@ body {
 
 			.indicator-pill {
 				margin-right: var(--margin-sm);
+				height: 20px;
+				padding: 3px 8px;
 			}
 		}
 	}
