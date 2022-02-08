@@ -176,7 +176,8 @@ class TestEmail(unittest.TestCase):
 
 		with open(frappe.get_app_path('frappe', 'tests', 'data', 'email_with_image.txt'), 'r') as raw:
 			messages = {
-				'"INBOX"': {		# append_to = ToDo
+				# append_to = ToDo
+				'"INBOX"': {
 					'latest_messages': [
 						raw.read()
 					],

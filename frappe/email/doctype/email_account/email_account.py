@@ -421,10 +421,10 @@ class EmailAccount(Document):
 	def get_failed_attempts_count(self):
 		return cint(frappe.cache().get('{0}:email-account-failed-attempts'.format(self.name)))
 
-	def receive(self, test_mails=None):
+	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
 		exceptions = []
-		inbound_mails = self.get_inbound_mails(test_mails=test_mails)
+		inbound_mails = self.get_inbound_mails()
 		for mail in inbound_mails:
 			try:
 				communication = mail.process()
@@ -457,7 +457,7 @@ class EmailAccount(Document):
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
 
-	def get_inbound_mails(self, test_mails=None) -> List[InboundMail]:
+	def get_inbound_mails(self) -> List[InboundMail]:
 		"""retrive and return inbound mails.
 
 		"""
@@ -466,8 +466,8 @@ class EmailAccount(Document):
 		def process_mail(messages, append_to=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages['uid_list'][index] if messages.get('uid_list') else None
-				seen_status = 1 if messages.get('seen_status', {}).get(uid) == 'SEEN' else 0
-				if not (self.email_sync_option == 'UNSEEN' and seen_status):
+				seen_status = messages.get('seen_status', {}).get(uid)
+				if self.email_sync_option != 'UNSEEN' or seen_status != "SEEN":
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
 					mails.append(InboundMail(message, self, uid, seen_status, append_to))
 

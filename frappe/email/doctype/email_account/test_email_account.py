@@ -195,7 +195,8 @@ class TestEmailAccount(unittest.TestCase):
 
 		# parse reply
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': [
 					raw
 				],
@@ -226,7 +227,8 @@ class TestEmailAccount(unittest.TestCase):
 
 		# parse reply
 		messages = {
-			'"INBOX"': {		# append_to = ToDo
+			# append_to = ToDo
+			'"INBOX"': {
 				'latest_messages': test_mails,
 				'seen_status': {
 					2: 'UNSEEN',
