@@ -375,11 +375,23 @@ class BaseDocument(object):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
 		return fieldname[0] if fieldname else None
 
-	def db_insert(self):
-		"""INSERT the document (with valid columns) in the database."""
+	def db_insert(self, ignore_if_duplicate=False):
+		"""INSERT the document (with valid columns) in the database.
+
+			args:
+				ignore_if_duplicate: ignore primary key collision
+								at database level (postgres)
+								in python (mariadb)
+		"""
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		conflict_handler = ""
+		# On postgres we can't implcitly ignore PK collision
+		# So instruct pg to ignore `name` field conflicts
+		if ignore_if_duplicate and frappe.db.db_type == "postgres":
+			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -391,10 +403,11 @@ class BaseDocument(object):
 		columns = list(d)
 		try:
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values})""".format(
-					doctype = self.doctype,
-					columns = ", ".join("`"+c+"`" for c in columns),
-					values = ", ".join(["%s"] * len(columns))
+					VALUES ({values}) {conflict_handler}""".format(
+					doctype=self.doctype,
+					columns=", ".join("`"+c+"`" for c in columns),
+					values=", ".join(["%s"] * len(columns)),
+					conflict_handler=conflict_handler
 				), list(d.values()))
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
@@ -407,8 +420,11 @@ class BaseDocument(object):
 					self.db_insert()
 					return
 
-				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
-				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+				if not ignore_if_duplicate:
+					frappe.msgprint(_("{0} {1} already exists")
+							.format(self.doctype, frappe.bold(self.name)),
+							title=_("Duplicate Name"), indicator="red")
+					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
 				# unique constraint
