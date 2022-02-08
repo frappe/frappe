@@ -71,7 +71,7 @@ context('Control Link', () => {
 		cy.window()
 			.its("cur_dialog")
 			.then((dialog) => {
-				expect(dialog.get_value("link")).to.equal('');
+				expect(dialog.get_value("link")).to.equal(null);
 			});
 	});
 
@@ -98,6 +98,7 @@ context('Control Link', () => {
 	it('should update dependant fields (via fetch_from)', () => {
 		cy.get('@todos').then(todos => {
 			cy.visit(`/app/todo/${todos[0]}`);
+			cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 			cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
 
 			cy.get('.frappe-control[data-fieldname=assigned_by] input').focus().as('input');
@@ -122,7 +123,9 @@ context('Control Link', () => {
 				.should("eq", null);
 
 			// set valid value again
-			cy.get('@input').clear().type('Administrator', {delay: 100}).blur();
+			cy.get('@input').clear().focus()
+			cy.wait('@search_link');
+			cy.get('@input').type('Administrator', {delay: 100}).blur();
 			cy.wait('@validate_link');
 
 			cy.window()
