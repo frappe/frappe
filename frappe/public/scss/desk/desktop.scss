@@ -154,7 +154,8 @@ body {
 
 				svg {
 					flex: none;
-					margin-right: var(--margin-sm);
+					margin-right: 6px;
+					margin-left: -2px;
 					box-shadow: none;
 				}
 			}
@@ -560,23 +561,29 @@ body {
 	}
 
 	&.links-widget-box {
-		padding: 16px 7px;
+		padding: 18px 12px;
 
 		.link-item {
 			display: flex;
 			text-decoration: none;
+			font-size: var(--text-md);
 			color: var(--text-color);
-			padding: var(--padding-xs);
-			margin-left: -5px;
+			padding: 4px;
+			margin-left: -4px;
+			margin-bottom: 4px;
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
 
 			&:hover {
-				background-color: var(--bg-color);
+				background-color: var(--fg-hover-color);
+
+				.indicator-pill {
+					background-color: var(--fg-color);
+				}
 			}
 
 			&:first-child {
-				margin-top: 15px;
+				margin-top: 18px;
 			}
 
 			&:last-child {
