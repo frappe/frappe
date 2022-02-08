@@ -10,6 +10,7 @@ import datetime
 import re
 from time import time
 from typing import Dict, List, Union
+from frappe.database.query import Query
 
 from pypika.terms import NullValue
 from six import integer_types, string_types, text_type
@@ -61,6 +62,7 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.query = Query()
 
 	def setup_type_map(self):
 		pass
