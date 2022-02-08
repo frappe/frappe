@@ -10,11 +10,7 @@ import os
 import unittest
 
 from frappe import _
-<<<<<<< HEAD
-from frappe.core.doctype.file.file import get_attached_images, get_web_image, move_file, get_files_in_folder, unzip_file
-=======
 from frappe.core.doctype.file.file import File, get_attached_images, move_file, get_files_in_folder, unzip_file
->>>>>>> b4c7c2bc55 (style: remove commented code, whitespaces test_file, added typing hint)
 from frappe.utils import get_files_path
 
 test_content1 = 'Hello'
