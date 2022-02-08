@@ -144,6 +144,7 @@ class TestNaming(unittest.TestCase):
 		current_index = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
 
 		self.assertEqual(current_index.get('current'), 2)
+
 		frappe.db.delete("Series", {"name": series})
 
 	def test_naming_for_cancelled_and_amended_doc(self):
@@ -166,25 +167,20 @@ class TestNaming(unittest.TestCase):
 		doc.submit()
 		doc.cancel()
 		cancelled_name = doc.name
-		self.assertEqual(cancelled_name, "{}-CANC-0".format(original_name))
+		self.assertEqual(cancelled_name, original_name)
 
 		amended_doc = frappe.copy_doc(doc)
 		amended_doc.docstatus = 0
 		amended_doc.amended_from = doc.name
 		amended_doc.save()
-		self.assertEqual(amended_doc.name, original_name)
+		self.assertEqual(amended_doc.name, "{}-1".format(original_name))
 
 		amended_doc.submit()
 		amended_doc.cancel()
-		self.assertEqual(amended_doc.name, "{}-CANC-1".format(original_name))
+		self.assertEqual(amended_doc.name, "{}-1".format(original_name))
 
 		submittable_doctype.delete()
 
-	def test_parse_naming_series_for_consecutive_week_number(self):
-		week = determine_consecutive_week_number(now_datetime())
-		name = parse_naming_series('PREFIX-.WW.-SUFFIX')
-		expected_name = 'PREFIX-{}-SUFFIX'.format(week)
-		self.assertEqual(name, expected_name)
 
 	def test_determine_consecutive_week_number(self):
 		from datetime import datetime

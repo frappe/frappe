@@ -92,18 +92,12 @@ $(".file-size").each(function() {
 });
 </script>
 {{ include_script("controls.bundle.js") }}
-{% if is_list %}
-{# web form list #}
-<script type="text/javascript" src="/assets/frappe/node_modules/moment/min/moment-with-locales.min.js"></script>
-<script type="text/javascript" src="/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
+{% if is_list %} <!-- web form list -->
 {{ include_script("dialog.bundle.js") }}
 {{ include_script("web_form.bundle.js") }}
 {{ include_script("bootstrap-4-web.bundle.js") }}
-{% else %}
-{# web form #}
+{% else %} <!-- web form -->
 {{ include_script("dialog.bundle.js") }}
-<script type="text/javascript" src="/assets/frappe/node_modules/moment/min/moment-with-locales.min.js"></script>
-<script type="text/javascript" src="/assets/frappe/node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"></script>
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 <script>
 	Vue.prototype.__ = window.__;

@@ -7,7 +7,7 @@ from frappe.website.router import get_page_info
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
 from frappe.website.router import get_base_template
 from frappe.website.utils import (extract_comment_tag, extract_title, get_next_link,
-	get_toc, get_frontmatter, cache_html, get_sidebar_items)
+	get_toc, get_frontmatter, is_binary_file, cache_html, get_sidebar_items)
 
 WEBPAGE_PY_MODULE_PROPERTIES = ("base_template_path", "template", "no_cache", "sitemap", "condition_field")
 
@@ -39,7 +39,7 @@ class TemplatePage(BaseTemplatePage):
 			for dirname in folders:
 				search_path = os.path.join(app_path, dirname, self.path)
 				for file_path in self.get_index_path_options(search_path):
-					if os.path.isfile(file_path):
+					if os.path.isfile(file_path) and not is_binary_file(file_path):
 						self.app = app
 						self.app_path = app_path
 						self.file_dir = dirname
