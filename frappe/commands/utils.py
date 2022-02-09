@@ -623,6 +623,7 @@ def transform_database(context, table, engine, row_format, failfast):
 @click.command('run-tests')
 @click.option('--app', help="For App")
 @click.option('--doctype', help="For DocType")
+@click.option('--case', help="Select particular TestCase")
 @click.option('--doctype-list-path', help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
@@ -636,7 +637,7 @@ def transform_database(context, table, engine, row_format, failfast):
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), profile=False,
 		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,
-		skip_test_records=False, skip_before_tests=False, failfast=False):
+		skip_test_records=False, skip_before_tests=False, failfast=False, case=None):
 
 	with CodeCoverage(coverage, app):
 		import frappe.test_runner
@@ -658,7 +659,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 			force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-			ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
+			ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast, case=case)
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
