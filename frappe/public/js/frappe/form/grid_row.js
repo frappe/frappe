@@ -166,16 +166,16 @@ export default class GridRow {
 	render_template() {
 		this.set_row_index();
 
-		if(this.row_display) {
+		if (this.row_display) {
 			this.row_display.remove();
 		}
 
 		// row index
-		if(!this.row_index) {
-			this.row_index = $(`<div class="grid-header-check">${this.row_check_html}<span></span></div>`).appendTo(this.row);
+		if (!this.row_index) {
+			this.row_index = $(`<div class="template-row-index">${this.row_check_html}<span></span></div>`).appendTo(this.row);
 		}
 
-		if(this.doc) {
+		if (this.doc) {
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
