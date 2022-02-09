@@ -406,7 +406,7 @@ class TestFile(unittest.TestCase):
 		test_file.reload()
 		test_file.file_url = frappe.utils.get_url('unknown.jpg')
 		test_file.make_thumbnail(suffix="xs")
-		self.assertEqual(json.loads(frappe.message_log[0]), {"message": f"File '{frappe.utils.get_url('unknown.jpg')}' not found"})
+		self.assertEqual(json.loads(frappe.message_log[0]).get("message"), f"File '{frappe.utils.get_url('unknown.jpg')}' not found")
 		self.assertEquals(test_file.thumbnail_url, None)
 
 	def test_file_unzip(self):
