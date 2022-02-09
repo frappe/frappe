@@ -1256,7 +1256,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				window.history.back();
 			}
 		});
-    }
+	}
 
 	get_column_widths() {
 		if (this.datatable) {
@@ -1494,9 +1494,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// A user with role Report Manager or Report Owner can save
 		if (can_edit_or_delete()) {
 			items.push({
-                label: __("Save"),
-                action: () => this.save_report('save')
-            });
+				label: __("Save"),
+				action: () => this.save_report('save')
+			});
 		}
 
 		// anyone can save as
@@ -1508,9 +1508,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// A user with role Report Manager or Report Owner can delete
 		if (can_edit_or_delete("delete")) {
 			items.push({
-                label: __("Delete"),
-                action: () => this.delete_report()
-            });
+				label: __("Delete"),
+				action: () => this.delete_report()
+			});
 		}
 
 		// user permissions
