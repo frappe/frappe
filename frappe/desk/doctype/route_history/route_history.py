@@ -52,3 +52,9 @@ def deferred_insert(routes):
 	]
 
 	_deferred_insert("Route History", json.dumps(routes))
+
+@frappe.whitelist()
+def frequently_visited_links():
+	return frappe.get_all('Route History', fields=['route', 'count(name) as count'], filters={
+		'user': frappe.session.user
+	}, group_by="route", order_by="count desc", limit=5)
