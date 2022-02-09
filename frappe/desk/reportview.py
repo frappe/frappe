@@ -298,7 +298,7 @@ def delete_report(name):
 
 	report = frappe.get_doc("Report", name)
 	if report.is_standard == "Yes":
-			frappe.throw(_("Standard Reports cannot be deleted"))
+		frappe.throw(_("Standard Reports cannot be deleted"))
 
 	if report.report_type != "Report Builder":
 		frappe.throw(_("Only reports of type Report Builder can be deleted"))
