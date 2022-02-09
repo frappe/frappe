@@ -11,7 +11,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
-			this._data = this.parse_options(options);
+			this.set_data(options);
 		}
 	}
 
@@ -102,7 +102,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 		this.$input.on('input', frappe.utils.debounce((e) => {
 			const cached_options = this.$input.cache[this.doctype][this.df.fieldname][e.target.value];
-			if (cached_options) {
+			if (cached_options && cached_options.length) {
 				this.set_data(cached_options);
 			} else if (this.get_query || this.df.get_query) {
 				this.execute_query_if_exists(e.target.value);
