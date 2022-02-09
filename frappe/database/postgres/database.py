@@ -170,11 +170,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return e.pgcode == '23505' and '_pkey' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_pkey' in cstr(e.args[0])
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_key' in cstr(e.args[0])
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
