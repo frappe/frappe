@@ -294,7 +294,7 @@ def save_report(name, doctype, report_settings):
 
 @frappe.whitelist()
 def delete_report(name):
-	"""Save reports of type Report Builder from Report View"""
+	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
 	if report.is_standard == "Yes":
