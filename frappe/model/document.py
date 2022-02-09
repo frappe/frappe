@@ -527,7 +527,7 @@ class Document(BaseDocument):
 
 	def _validate_non_negative(self):
 		def get_msg(df):
-			if self.parentfield:
+			if self.get("parentfield"):
 				return "{} {} #{}: {} {}".format(frappe.bold(_(self.doctype)),
 					_("Row"), self.idx, _("Value cannot be negative for"), frappe.bold(_(df.label)))
 			else:
@@ -1202,7 +1202,7 @@ class Document(BaseDocument):
 		if not frappe.compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
 			condition_str = error_condition_map.get(condition, condition)
-			if doc.parentfield:
+			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(doc.idx, label, condition_str, val2)
 			else:
 				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
@@ -1226,7 +1226,7 @@ class Document(BaseDocument):
 				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}))
 
 		for fieldname in fieldnames:
-			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
+			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
 
 	def get_url(self):
 		"""Returns Desk URL for this document."""
@@ -1379,9 +1379,11 @@ class Document(BaseDocument):
 		doctype = self.__class__.__name__
 
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		parent = f" parent={self.parent}" if self.parent else ""
+		repr_str = f"<{doctype}: {name}{docstatus}"
 
-		return f"<{doctype}: {name}{docstatus}{parent}>"
+		if not hasattr(self, "parent"):
+			return repr_str + ">"
+		return f"{repr_str} parent={self.parent}>"
 
 	def __str__(self):
 		name = self.name or "unsaved"

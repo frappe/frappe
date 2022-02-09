@@ -1362,7 +1362,7 @@ def get_filter(doctype: str, f: Union[Dict, List, Tuple], filters_config=None) -
 			"fieldtype":
 		}
 	"""
-	from frappe.model import default_fields, optional_fields
+	from frappe.model import default_fields, optional_fields, child_table_fields
 
 	if isinstance(f, dict):
 		key, value = next(iter(f.items()))
@@ -1400,7 +1400,7 @@ def get_filter(doctype: str, f: Union[Dict, List, Tuple], filters_config=None) -
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 
-	if f.doctype and (f.fieldname not in default_fields + optional_fields):
+	if f.doctype and (f.fieldname not in default_fields + optional_fields + child_table_fields):
 		# verify fieldname belongs to the doctype
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
