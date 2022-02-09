@@ -289,7 +289,11 @@ def save_report(name, doctype, report_settings):
 	report.report_type = "Report Builder"
 	report.json = report_settings
 	report.save(ignore_permissions=True)
-	frappe.msgprint(_("{0} saved").format(frappe.bold(report.name)), alert=True)
+	frappe.msgprint(
+		_("Report {0} saved").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
 	return report.name
 
 @frappe.whitelist()
@@ -314,8 +318,8 @@ def delete_report(name):
 
 	report.delete(ignore_permissions=True)
 	frappe.msgprint(
-		_("{0} deleted").format(frappe.bold(report.name)),
-		indicator="red",
+		_("Report {0} deleted").format(frappe.bold(report.name)),
+		indicator="green",
 		alert=True,
 	)
 
