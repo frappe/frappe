@@ -26,8 +26,6 @@ class FrappeAPITestCase(unittest.TestCase):
 	SITE = frappe.local.site
 	SITE_URL = get_site_url(SITE)
 	RESOURCE_URL = f"{SITE_URL}/api/resource"
-	DOCTYPE = "ToDo"
-	GENERATED_DOCUMENTS = []
 	TEST_CLIENT = get_test_client()
 
 	@property
@@ -54,20 +52,23 @@ class FrappeAPITestCase(unittest.TestCase):
 
 
 class TestResourceAPI(FrappeAPITestCase):
+	DOCTYPE = "ToDo"
+	GENERATED_DOCUMENTS = []
+
 	@classmethod
-	def setUpClass(self):
+	def setUpClass(cls):
 		frappe.set_user("Administrator")
 		for _ in range(10):
 			doc = frappe.get_doc(
 				{"doctype": "ToDo", "description": frappe.mock("paragraph")}
 			).insert()
-			self.GENERATED_DOCUMENTS.append(doc.name)
+			cls.GENERATED_DOCUMENTS.append(doc.name)
 
 	@classmethod
-	def tearDownClass(self):
+	def tearDownClass(cls):
 		frappe.set_user("Administrator")
-		for name in self.GENERATED_DOCUMENTS:
-			frappe.delete_doc_if_exists(self.DOCTYPE, name)
+		for name in cls.GENERATED_DOCUMENTS:
+			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -160,8 +161,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 
 class TestMethodAPI(FrappeAPITestCase):
-	SITE_URL = get_site_url(frappe.local.site)
-	METHOD_PATH = f"/api/method"
+	METHOD_PATH = "/api/method"
 
 	def test_version(self):
 		# test 1: test for /api/method/version

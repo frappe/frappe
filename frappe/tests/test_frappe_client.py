@@ -10,7 +10,8 @@ import requests
 import base64
 
 class TestFrappeClient(unittest.TestCase):
-	PASSWORD = "admin"
+	PASSWORD = frappe.conf.admin_password or "admin"
+
 	def test_insert_many(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		frappe.db.delete("Note", {"title": ("in", ('Sing','a','song','of','sixpence'))})
