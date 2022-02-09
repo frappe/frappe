@@ -437,10 +437,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	set_custom_query(args) {
-		var set_nulls = function(obj) {
-			$.each(obj, function(key, value) {
-				if(value!==undefined) {
-					obj[key] = value;
+		const is_valid_value = (value, key) => {
+			if (value) return true;
+			// check if empty value is valid
+			if (this.frm) {
+				let field = frappe.meta.get_docfield(this.frm.doctype, key);
+				// empty value link fields is invalid
+				return !field || !["Link", "Dynamic Link"].includes(field.fieldtype);
+			} else {
+				return value !== undefined;
+			}
+		}
+
+		const set_nulls = (obj) => {
+			$.each(obj, (key, value) => {
+				if (!is_valid_value(value, key)) {
+					delete obj[key];
 				}
 			});
 			return obj;
@@ -527,8 +539,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return;
 		};
 
-
-		let field_value = "";
 		const fetch_map = this.fetch_map;
 		const columns_to_fetch = Object.values(fetch_map);
 
@@ -537,16 +547,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return value;
 		}
 
-		return frappe.xcall("frappe.client.validate_link", {
-			doctype: options,
-			docname: value,
-			fields: columns_to_fetch,
-		}).then((response) => {
-			if (!docname || !columns_to_fetch.length) return response.name;
-
+		function update_dependant_fields(response) {
+			let field_value = "";
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
 				if (value) field_value = response[source_field];
-				
 				frappe.model.set_value(
 					df.parent,
 					docname,
@@ -555,9 +559,23 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					df.fieldtype,
 				);
 			}
+		}
 
-			return response.name;
-		});
+		// to avoid unnecessary request
+		if (value) {
+			return frappe.xcall("frappe.client.validate_link", {
+				doctype: options,
+				docname: value,
+				fields: columns_to_fetch,
+			}).then((response) => {
+				if (!docname || !columns_to_fetch.length) return response.name;
+				update_dependant_fields(response);
+				return response.name;
+			});
+		} else {
+			update_dependant_fields({});
+			return value;
+		}
 	}
 
 	get fetch_map() {

@@ -250,12 +250,6 @@ frappe.router = {
 		}
 	},
 
-	clear_re_route(doctype, docname) {
-		delete frappe.re_route[
-			`${encodeURIComponent(frappe.router.slug(doctype))}/${encodeURIComponent(docname)}`
-		];
-	},
-
 	set_title(sub_path) {
 		if (frappe.route_titles[sub_path]) {
 			frappe.utils.set_title(frappe.route_titles[sub_path]);
