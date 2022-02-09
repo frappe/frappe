@@ -4,6 +4,7 @@
 import unittest
 import frappe
 from frappe.core.doctype.data_import.importer import Importer
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils import getdate, format_duration
 
 doctype_name = 'DocType for Import'
@@ -54,6 +55,8 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(len(preview.data), 4)
 		self.assertEqual(len(preview.columns), 16)
 
+	# ignored on postgres because myisam doesn't exist on pg
+	@run_only_if(db_type_is.MARIADB)
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file('sample_import_file_without_mandatory')
 		data_import = self.get_importer(doctype_name, import_file)

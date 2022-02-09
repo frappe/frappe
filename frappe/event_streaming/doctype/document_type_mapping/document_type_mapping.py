@@ -5,7 +5,7 @@ import frappe
 import json
 from frappe import _
 from frappe.model.document import Document
-from frappe.model import default_fields
+from frappe.model import default_fields, child_table_fields
 
 class DocumentTypeMapping(Document):
 	def validate(self):
@@ -14,7 +14,7 @@ class DocumentTypeMapping(Document):
 	def validate_inner_mapping(self):
 		meta = frappe.get_meta(self.local_doctype)
 		for field_map in self.field_mapping:
-			if field_map.local_fieldname not in default_fields:
+			if field_map.local_fieldname not in (default_fields + child_table_fields):
 				field = meta.get_field(field_map.local_fieldname)
 				if not field:
 					frappe.throw(_('Row #{0}: Invalid Local Fieldname').format(field_map.idx))

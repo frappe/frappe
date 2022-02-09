@@ -59,10 +59,28 @@ def patch_query_execute():
 		return frappe.db.sql(query, params, *args, **kwargs) # nosemgrep
 
 	def prepare_query(query):
+		import inspect
+
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
 		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
-			raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+			callstack = inspect.stack()
+			if len(callstack) >= 3 and ".py" in callstack[2].filename:
+				# ignore any query builder methods called from python files
+				# assumption is that those functions are whitelisted already.
+
+				# since query objects are patched everywhere any query.run()
+				# will have callstack like this:
+				# frame0: this function prepare_query()
+				# frame1: execute_query()
+				# frame2: frame that called `query.run()`
+				#
+				# if frame2 is server script it wont have a filename and hence
+				# it shouldn't be allowed.
+				# ps. stack() returns `"<unknown>"` as filename.
+				pass
+			else:
+				raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
 		return query, param_collector.get_parameters()
 
 	query_class = get_attr(str(frappe.qb).split("'")[1])

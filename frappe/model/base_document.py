@@ -4,7 +4,7 @@
 import frappe
 import datetime
 from frappe import _
-from frappe.model import default_fields, table_fields
+from frappe.model import default_fields, table_fields, child_table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -104,6 +104,10 @@ class BaseDocument(object):
 				"balance": 42000
 			})
 		"""
+
+		# QUESTION: why do we need the 1st for loop?
+		# we're essentially setting the values in d, in the 2nd for loop (?)
+
 		# first set default field values of base document
 		for key in default_fields:
 			if key in d:
@@ -208,7 +212,10 @@ class BaseDocument(object):
 			raise ValueError
 
 	def remove(self, doc):
-		self.get(doc.parentfield).remove(doc)
+		# Usage: from the parent doc, pass the child table doc
+		# to remove that child doc from the child table, thus removing it from the parent doc
+		if doc.get("parentfield"):
+			self.get(doc.parentfield).remove(doc)
 
 	def _init_child(self, value, key):
 		if not self.doctype:
@@ -318,12 +325,19 @@ class BaseDocument(object):
 	def docstatus(self, value):
 		self.__dict__["docstatus"] = DocStatus(cint(value))
 
-	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
+	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False, no_child_table_fields=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls, no_default_fields=no_default_fields) for d in children]
+			doc[df.fieldname] = [
+				d.as_dict(
+					convert_dates_to_str=convert_dates_to_str,
+					no_nulls=no_nulls,
+					no_default_fields=no_default_fields,
+					no_child_table_fields=no_child_table_fields
+				) for d in children
+			]
 
 		if no_nulls:
 			for k in list(doc):
@@ -333,6 +347,11 @@ class BaseDocument(object):
 		if no_default_fields:
 			for k in list(doc):
 				if k in default_fields:
+					del doc[k]
+
+		if no_child_table_fields:
+			for k in list(doc):
+				if k in child_table_fields:
 					del doc[k]
 
 		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers", "__unsaved"):
@@ -514,12 +533,12 @@ class BaseDocument(object):
 			if df.fieldtype in table_fields:
 				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
 
-			elif self.parentfield:
+			# check if parentfield exists (only applicable for child table doctype)
+			elif self.get("parentfield"):
 				return "{}: {} {} #{}: {}: {}".format(_("Error"), frappe.bold(_(self.doctype)),
 					_("Row"), self.idx, _("Value missing for"), _(df.label))
 
-			else:
-				return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
+			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
 
 		missing = []
 
@@ -538,10 +557,11 @@ class BaseDocument(object):
 	def get_invalid_links(self, is_submittable=False):
 		"""Returns list of invalid links and also updates fetch values if not set"""
 		def get_msg(df, docname):
-			if self.parentfield:
+			# check if parentfield exists (only applicable for child table doctype)
+			if self.get("parentfield"):
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
-			else:
-				return "{}: {}".format(_(df.label), docname)
+
+			return "{}: {}".format(_(df.label), docname)
 
 		invalid_links = []
 		cancelled_links = []
@@ -615,11 +635,8 @@ class BaseDocument(object):
 		fetch_from_fieldname = df.fetch_from.split('.')[-1]
 		value = values[fetch_from_fieldname]
 		if df.fieldtype in ['Small Text', 'Text', 'Data']:
-			if fetch_from_fieldname in default_fields:
-				from frappe.model.meta import get_default_df
-				fetch_from_df = get_default_df(fetch_from_fieldname)
-			else:
-				fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
+			from frappe.model.meta import get_default_df
+			fetch_from_df = get_default_df(fetch_from_fieldname) or frappe.get_meta(doctype).get_field(fetch_from_fieldname)
 
 			if not fetch_from_df:
 				frappe.throw(
@@ -754,9 +771,9 @@ class BaseDocument(object):
 
 
 	def throw_length_exceeded_error(self, df, max_length, value):
-		if self.parentfield and self.idx:
+		# check if parentfield exists (only applicable for child table doctype)
+		if self.get("parentfield"):
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
-
 		else:
 			reference = "{0} {1}".format(_(self.doctype), self.name)
 
@@ -867,7 +884,7 @@ class BaseDocument(object):
 		:param parentfield: If fieldname is in child table."""
 		from frappe.model.meta import get_field_precision
 
-		if parentfield and not isinstance(parentfield, str):
+		if parentfield and not isinstance(parentfield, str) and parentfield.get("parentfield"):
 			parentfield = parentfield.parentfield
 
 		cache_key = parentfield or "main"
@@ -894,7 +911,7 @@ class BaseDocument(object):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
-		if not df and fieldname in default_fields:
+		if not df:
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
