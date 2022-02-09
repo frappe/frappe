@@ -124,6 +124,8 @@ frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True)
+execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
 frappe.patches.v13_0.remove_invalid_options_for_data_fields
 frappe.patches.v13_0.website_theme_custom_scss
 frappe.patches.v13_0.make_user_type
@@ -155,7 +157,6 @@ frappe.patches.v13_0.rename_notification_fields
 frappe.patches.v13_0.remove_duplicate_navbar_items
 frappe.patches.v13_0.set_social_icons
 frappe.patches.v12_0.set_default_password_reset_limit
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True)
 frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
@@ -175,11 +176,11 @@ execute:frappe.delete_doc_if_exists('Page', 'workspace')
 execute:frappe.delete_doc_if_exists('Page', 'dashboard', force=1)
 frappe.core.doctype.page.patches.drop_unused_pages
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
+frappe.patches.v13_0.remove_chat
 frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool
 frappe.patches.v13_0.rename_list_view_setting_to_list_view_settings
 frappe.patches.v13_0.remove_twilio_settings
 frappe.patches.v12_0.rename_uploaded_files_with_proper_name
 frappe.patches.v13_0.queryreport_columns
-execute:frappe.reload_doc('core', 'doctype', 'doctype')
 frappe.patches.v13_0.set_first_day_of_the_week

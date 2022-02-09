@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
 from __future__ import print_function, unicode_literals
 
@@ -59,6 +59,12 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+	method = get_hook_method('get_sender_details')
+
+	if method:
+		sender_name, mail = method()
+		# if method exists but sender_name is ""
+		fullname = sender_name or fullname
 
 	if not mail:
 		mail = get_email_address(user) or validate_email_address(user)
@@ -626,7 +632,7 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in iteritems(get_versions()):
+	for app, version_details in get_versions().items():
 		out.append({
 			'app_name': app,
 			'version': version_details.get('branch_version') or version_details.get('version'),
@@ -747,7 +753,7 @@ def get_safe_filters(filters):
 	try:
 		filters = json.loads(filters)
 
-		if isinstance(filters, (integer_types, float)):
+		if isinstance(filters, (int, float)):
 			filters = frappe.as_unicode(filters)
 
 	except (TypeError, ValueError):

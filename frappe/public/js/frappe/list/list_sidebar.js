@@ -183,7 +183,8 @@ frappe.views.ListSidebar = class ListSidebar {
 				filters: (me.list_view.filter_area ? me.list_view.get_filters_for_args() : me.default_filters) || []
 			},
 			callback: function(r) {
-				me.render_stat((r.message.stats || {})["_user_tags"]);
+				let stats = (r.message.stats || {})["_user_tags"] || [];
+				me.render_stat(stats);
 				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
 				frappe.utils.setup_search(stats_dropdown, '.stat-link', '.stat-label');
 			}

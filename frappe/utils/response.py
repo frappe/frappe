@@ -1,5 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
 from __future__ import unicode_literals
 import json
@@ -17,9 +17,8 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
-from frappe.utils import cint
-from six import text_type
-from six.moves.urllib.parse import quote
+from frappe.utils import cint, format_timedelta
+from urllib.parse import quote
 from frappe.core.doctype.access_log.access_log import make_access_log
 
 
@@ -124,23 +123,25 @@ def make_logs(response = None):
 
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
-	# serialize date
-	import collections.abc
+	from collections.abc import Iterable
 
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
-		return text_type(obj)
+	if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
+		return str(obj)
+
+	elif isinstance(obj, datetime.timedelta):
+		return format_timedelta(obj)
 
 	elif isinstance(obj, decimal.Decimal):
 		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
-		return text_type(obj)
+		return str(obj)
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
 		return doc
 
-	elif isinstance(obj, collections.abc.Iterable):
+	elif isinstance(obj, Iterable):
 		return list(obj)
 
 	elif type(obj)==type or isinstance(obj, Exception):

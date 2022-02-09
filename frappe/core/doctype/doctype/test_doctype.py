@@ -373,7 +373,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		link_doc.insert(ignore_if_duplicate=True)
+		link_doc.insert()
 
 		#create first parent doctype
 		test_doc_1 = new_doctype('Test Doctype 1')
@@ -388,7 +388,7 @@ class TestDocType(unittest.TestCase):
 		for data in test_doc_1.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		test_doc_1.insert(ignore_if_duplicate=True)
+		test_doc_1.insert()
 
 		#crete second parent doctype
 		doc = new_doctype('Test Doctype 2')
@@ -403,7 +403,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		doc.insert(ignore_if_duplicate=True)
+		doc.insert()
 
 		# create doctype data
 		data_link_doc_1 = frappe.new_doc('Test Linked Doctype 1')
