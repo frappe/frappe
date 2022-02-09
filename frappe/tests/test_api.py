@@ -33,7 +33,6 @@ class FrappeAPITestCase(unittest.TestCase):
 	@property
 	def sid(self):
 		if not getattr(self, "_sid", None):
-			frappe.conf.admin_password = "root"
 			r = self.TEST_CLIENT.post("/api/method/login", data={
 				"usr": "Administrator",
 				"pwd": frappe.conf.admin_password or "admin",
@@ -160,12 +159,13 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertDictEqual(response.json, {})
 
 
-class TestMethodAPI(unittest.TestCase):
-	METHOD_URL = f"{get_site_url(frappe.local.site)}/api/method"
+class TestMethodAPI(FrappeAPITestCase):
+	SITE_URL = get_site_url(frappe.local.site)
+	METHOD_PATH = f"/api/method"
 
 	def test_version(self):
 		# test 1: test for /api/method/version
-		response = requests.get(f"{self.METHOD_URL}/version")
+		response = self.get(f"{self.METHOD_PATH}/version")
 		json = frappe._dict(response.json)
 
 		self.assertEqual(response.status_code, 200)
@@ -175,7 +175,7 @@ class TestMethodAPI(unittest.TestCase):
 
 	def test_ping(self):
 		# test 2: test for /api/method/ping
-		response = requests.get(f"{self.METHOD_URL}/ping")
+		response = self.get(f"{self.METHOD_PATH}/ping")
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertEqual(response.json['message'], "pong")
