@@ -11,15 +11,9 @@ from frappe.model.naming import determine_consecutive_week_number, parse_naming_
 
 class TestNaming(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql('delete from `tabNote`')
-		frappe.db.sql('delete from `tabToDo`')
+		frappe.db.delete('Note')
 
 	def tearDown(self):
-		# Reset ToDo autoname to hash
-		todo_doctype = frappe.get_doc('DocType', 'ToDo')
-		todo_doctype.autoname = 'hash'
-		todo_doctype.save()
-
 		frappe.db.rollback()
 
 	def test_append_number_if_name_exists(self):
