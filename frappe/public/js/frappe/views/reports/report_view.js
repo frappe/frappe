@@ -1489,7 +1489,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					|| this.report_doc.owner === frappe.session.user
 				)
 			);
-		}
+		};
 
 		// A user with role Report Manager or Report Owner can save
 		if (can_edit_or_delete()) {
