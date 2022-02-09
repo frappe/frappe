@@ -184,7 +184,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 
 		function setup_add_fetch(df) {
-			if ((['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check',
+			if ((['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check', 'Attach Image',
 				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select', 'Duration'].includes(df.fieldtype) || df.read_only==1)
 				&& df.fetch_from && df.fetch_from.indexOf(".")!=-1) {
 				var parts = df.fetch_from.split(".");
