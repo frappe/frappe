@@ -263,45 +263,61 @@ def compress(data, args=None):
 
 @frappe.whitelist()
 def save_report(name, doctype, report_settings):
-	"""save report if report type is report builder"""
+	"""Save reports of type Report Builder from Report View"""
 
 	if frappe.db.exists('Report', name):
-		d = frappe.get_doc('Report', name)
-		if d.is_standard == "Yes":
-			frappe.throw(_("Standard Reports can not be edited"))
+		report = frappe.get_doc('Report', name)
+		if report.is_standard == "Yes":
+			frappe.throw(_("Standard Reports cannot be edited"))
 
-		if d.report_type != "Report Builder":
-			frappe.throw(_("Only reports of type Report Builder can be created"))
+		if report.report_type != "Report Builder":
+			frappe.throw(_("Only reports of type Report Builder can be edited"))
 
-		if d.owner != frappe.session.user:
-			frappe.throw(_("Only Report owner or Report Manager can save the reports"))
+		if (
+			report.owner != frappe.session.user
+			and not frappe.has_permission("Report", "write")
+		):
+			frappe.throw(
+				_("Insufficient Permissions for editing Report"),
+				frappe.PermissionError
+			)
 	else:
-		d = frappe.new_doc('Report')
-		d.report_name = name
-		d.ref_doctype = doctype
+		report = frappe.new_doc('Report')
+		report.report_name = name
+		report.ref_doctype = doctype
 
-	d.report_type = "Report Builder"
-	d.json = report_settings
-	frappe.get_doc(d).save(ignore_permissions=True)
-	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
-	return d.name
+	report.report_type = "Report Builder"
+	report.json = report_settings
+	report.save(ignore_permissions=True)
+	frappe.msgprint(_("{0} saved").format(frappe.bold(report.name)), alert=True)
+	return report.name
 
 @frappe.whitelist()
 def delete_report(name):
-	"""delete report type of report builder if user is report owner or has role Report Manager"""
-	
-	report_doc = frappe.get_doc("Report", name)
-	if report_doc.is_standard == "Yes":
-		frappe.throw(_("Standard Reports can not be deleted"))
+	"""Save reports of type Report Builder from Report View"""
 
-	if report_doc.report_type != "Report Builder":
+	report = frappe.get_doc("Report", name)
+	if report.is_standard == "Yes":
+			frappe.throw(_("Standard Reports cannot be deleted"))
+
+	if report.report_type != "Report Builder":
 		frappe.throw(_("Only reports of type Report Builder can be deleted"))
 
-	if report_doc.owner != frappe.session.user:
-		frappe.throw(_("Only Report owner or Report Manager can delete the reports"))
+	if (
+		report.owner != frappe.session.user
+		and not frappe.has_permission("Report", "delete")
+	):
+		frappe.throw(
+			_("Insufficient Permissions for deleting Report"),
+			frappe.PermissionError
+		)
 
-	report_doc.delete(ignore_permissions=True)
-	frappe.msgprint(_("{0} is Deleted").format(report_doc.name), alert=True)
+	report.delete(ignore_permissions=True)
+	frappe.msgprint(
+		_("{0} deleted").format(frappe.bold(report.name)),
+		indicator="red",
+		alert=True,
+	)
 
 @frappe.whitelist()
 @frappe.read_only()
