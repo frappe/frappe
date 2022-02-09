@@ -123,7 +123,7 @@ context('Control Link', () => {
 				.should("eq", null);
 
 			// set valid value again
-			cy.get('@input').clear().focus()
+			cy.get('@input').clear().focus();
 			cy.wait('@search_link');
 			cy.get('@input').type('Administrator', {delay: 100}).blur();
 			cy.wait('@validate_link');
