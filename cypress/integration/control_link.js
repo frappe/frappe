@@ -98,14 +98,26 @@ context('Control Link', () => {
 	it('show title field in link', () => {
 		get_dialog_with_link().as('dialog');
 
-		cy.server();
 		cy.insert_doc("Property Setter", {
-			property: "show_title_field_in_link",
-			doc_type: "ToDo",
-			value: 1,
-			doctype_or_field: "DocType"
+			"doctype": "Property Setter",
+			"doc_type": "ToDo",
+			"property": "show_title_field_in_link",
+			"property_type": "Check",
+			"doctype_or_field": "DocType",
+			"value": "1"
 		}, true);
-		cy.route('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
+
+		cy.window().its('frappe').then(frappe => {
+			if (!frappe.boot) {
+				frappe.boot = {
+					link_title_doctypes: ['ToDo']
+				}
+			} else {
+				frappe.boot.link_title_doctypes = ['ToDo'];
+			}
+		});
+
+		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
 		cy.wait('@search_link');
