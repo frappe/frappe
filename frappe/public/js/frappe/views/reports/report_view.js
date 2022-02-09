@@ -1479,7 +1479,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}
 		});
 
-		function can_edit_or_delete(action) {
+		const can_edit_or_delete = (action) => {
 			const method = action == "delete" ? "can_delete" : "can_write";
 			return (
 				this.report_doc
@@ -1509,7 +1509,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (can_edit_or_delete("delete")) {
 			items.push({
 				label: __("Delete"),
-				action: () => this.delete_report()
+				action: () => frappe.confirm(
+					"Are you sure you want to delete this report?",
+					() => this.delete_report(),
+				),
+				shortcut: "Shift+Ctrl+D"
 			});
 		}
 
