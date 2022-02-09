@@ -440,7 +440,15 @@ def touch_file(path):
 
 def get_test_client():
 	from frappe.app import application
-	return Client(application)
+
+	class TestClient(Client):
+		def open(self, *args, **kwargs):
+			site = frappe.local.site
+			ret = super().open(*args, **kwargs)
+			frappe.connect(site=site)
+			return ret
+
+	return TestClient(application)
 
 def get_hook_method(hook_name, fallback=None):
 	method = frappe.get_hooks().get(hook_name)
