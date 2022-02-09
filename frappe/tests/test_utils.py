@@ -17,7 +17,7 @@ import frappe
 from frappe.utils import ceil, evaluate_filters, floor, format_timedelta
 from frappe.utils import get_url, money_in_words, parse_timedelta, scrub_urls
 from frappe.utils import validate_email_address, validate_url
-from frappe.utils.data import cast, validate_python_code
+from frappe.utils.data import cast, get_time, get_timedelta, nowtime, now_datetime, validate_python_code
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
@@ -333,6 +333,32 @@ class TestDateUtils(unittest.TestCase):
 			frappe.utils.getdate("2020-12-26"))
 		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
 			frappe.utils.getdate("2021-01-02"))
+
+	def test_get_time(self):
+		datetime_input = now_datetime()
+		timedelta_input = get_timedelta()
+		time_input = nowtime()
+
+		self.assertIsInstance(get_time(datetime_input), time)
+		self.assertIsInstance(get_time(timedelta_input), time)
+		self.assertIsInstance(get_time(time_input), time)
+		self.assertIsInstance(get_time("100:2:12"), time)
+		self.assertIsInstance(get_time(str(datetime_input)), time)
+		self.assertIsInstance(get_time(str(timedelta_input)), time)
+		self.assertIsInstance(get_time(str(time_input)), time)
+
+	def test_get_timedelta(self):
+		datetime_input = now_datetime()
+		timedelta_input = get_timedelta()
+		time_input = nowtime()
+
+		self.assertIsInstance(get_timedelta(), timedelta)
+		self.assertIsInstance(get_timedelta("100:2:12"), timedelta)
+		self.assertIsInstance(get_timedelta("17:21:00"), timedelta)
+		self.assertIsInstance(get_timedelta("2012-01-19 17:21:00"), timedelta)
+		self.assertIsInstance(get_timedelta(str(datetime_input)), timedelta)
+		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
+		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
 
 class TestResponse(unittest.TestCase):
 	def test_json_handler(self):
