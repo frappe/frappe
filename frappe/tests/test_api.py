@@ -63,12 +63,14 @@ class TestResourceAPI(FrappeAPITestCase):
 				{"doctype": "ToDo", "description": frappe.mock("paragraph")}
 			).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)
+		frappe.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
+		frappe.db.commit()
 
 	def setUp(self):
 		frappe.set_user("Administrator")
