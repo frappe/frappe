@@ -11,14 +11,27 @@ class WorkflowStateError(frappe.ValidationError): pass
 class WorkflowTransitionError(frappe.ValidationError): pass
 class WorkflowPermissionError(frappe.ValidationError): pass
 
-def get_workflow_name(doctype):
-	workflow_name = frappe.cache().hget('workflow', doctype)
-	if workflow_name is None:
-		workflow_name = frappe.db.get_value("Workflow", {"document_type": doctype,
-			"is_active": 1}, "name")
-		frappe.cache().hset('workflow', doctype, workflow_name or '')
+# workflow change
 
-	return workflow_name
+def get_workflow_name(doc_or_doctype):
+	if type(doc_or_doctype) is str:
+		workflow_name = frappe.db.get_value("Workflow", {"document_type": doc_or_doctype,
+				"is_active": 1}, "name")
+		frappe.cache().hset('workflow', doc_or_doctype, workflow_name or '')
+		return workflow_name or ''
+	else:
+		workflow_name = doc_or_doctype.get('workflow')
+		if workflow_name:
+			frappe.cache().hset('workflow', doc_or_doctype.doctype, workflow_name)
+			return workflow_name
+		else:
+			workflow_name = get_workflow_name(doc_or_doctype.doctype)
+			if workflow_name:
+				frappe.cache().hset('workflow', doc_or_doctype.doctype, workflow_name)
+				return workflow_name
+			else:
+				frappe.cache().hset('workflow', doc_or_doctype.doctype, '')
+				return ''
 
 @frappe.whitelist()
 def get_transitions(doc, workflow = None, raise_exception=False):
@@ -34,7 +47,8 @@ def get_transitions(doc, workflow = None, raise_exception=False):
 	roles = frappe.get_roles()
 
 	if not workflow:
-		workflow = get_workflow(doc.doctype)
+		# workflow change
+		workflow = get_workflow(doc)
 	current_state = doc.get(workflow.workflow_state_field)
 
 	if not current_state:
@@ -76,7 +90,8 @@ def is_transition_condition_satisfied(transition, doc):
 def apply_workflow(doc, action):
 	'''Allow workflow action on the current doc'''
 	doc = frappe.get_doc(frappe.parse_json(doc))
-	workflow = get_workflow(doc.doctype)
+	# workflow change
+	workflow = get_workflow(doc)
 	transitions = get_transitions(doc, workflow)
 	user = frappe.session.user
 
@@ -119,8 +134,11 @@ def apply_workflow(doc, action):
 	return doc
 
 @frappe.whitelist()
-def can_cancel_document(doctype):
-	workflow = get_workflow(doctype)
+def can_cancel_document(doc): # args changes
+	# workflow change
+	doc = json.loads(doc)
+	doc = frappe.get_doc(doc['doctype'],doc['name'])
+	workflow = get_workflow(doc)
 	for state_doc in workflow.states:
 		if state_doc.doc_status == '2':
 			for transition in workflow.transitions:
@@ -135,7 +153,9 @@ def validate_workflow(doc):
 	- Check if user is allowed to edit in current state
 	- Check if user is allowed to transition to the next state (if changed)
 	'''
-	workflow = get_workflow(doc.doctype)
+	# workflow change
+	workflow = get_workflow(doc)
+
 
 	current_state = None
 	if getattr(doc, '_doc_before_save', None):

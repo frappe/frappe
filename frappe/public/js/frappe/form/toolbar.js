@@ -484,7 +484,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			};
 			if (this.has_workflow()) {
 				frappe.xcall('frappe.model.workflow.can_cancel_document', {
-					'doctype': this.frm.doc.doctype,
+					// Workflow change 
+					'doc': this.frm.doc, 
 				}).then((can_cancel) => {
 					if (can_cancel) {
 						add_cancel_button();
