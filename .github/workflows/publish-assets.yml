@@ -1,11 +1,13 @@
-name: 'Frappe Assets'
+name: 'Frappe Static Assets & Docker Build'
 
 on:
   push:
     branches: [ develop ]
+  release:
+    types: [ released ]
 
 jobs:
-  build-dev-and-publish:
+  build-assets-and-publish:
     name: 'Build and Publish Assets for Development'
     runs-on: ubuntu-latest
 
@@ -13,12 +15,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: 'frappe'
+
       - uses: actions/setup-node@v1
         with:
           node-version: 14
+
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+
       - name: Set up bench and build assets
         run: |
           npm install -g yarn
@@ -42,3 +47,30 @@ jobs:
           AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'
           AWS_REGION: 'fr-par'
           SOURCE_DIR: '$GITHUB_WORKSPACE/build'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+
+      - id: get_release
+        uses: bruceadams/get-release@v1.2.0
+
+      - name: Upload built Assets to Release
+        uses: actions/upload-release-asset@v1.0.2
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: build/assets.tar.gz
+          asset_name: assets.tar.gz
+          asset_content_type: application/octet-stream
+        if: github.event_name == 'release'
+
+  docker-release:
+    name: 'Trigger Docker build on release'
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+
+    steps:
+      - name: curl
+        run: |
+          apk add curl bash
+          curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/frappe/frappe_docker/actions/workflows/build_stable.yml/dispatches -d '{"ref":"main"}'
+
+    if: github.event_name == 'release'
