@@ -20,7 +20,7 @@ from frappe import _
 from frappe.utils import cstr
 
 
-@lru_cache
+@lru_cache()
 def get_queues_timeout():
 	common_site_config = frappe.get_conf()
 	custom_workers_config = common_site_config.get("workers", {})
