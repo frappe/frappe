@@ -12,7 +12,7 @@ from frappe.utils import cint
 from frappe import _, is_whitelisted
 from frappe.utils.response import build_response
 from frappe.utils.csvutils import build_csv_response
-from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 
 ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
@@ -49,8 +49,9 @@ def execute_cmd(cmd, from_async=False):
 		break
 
 	# via server script
-	if run_server_script_api(cmd):
-		return None
+	server_script = get_server_script_map().get('_api', {}).get(cmd)
+	if server_script:
+		return run_server_script(server_script)
 
 	try:
 		method = get_attr(cmd)
@@ -66,7 +67,20 @@ def execute_cmd(cmd, from_async=False):
 
 	return frappe.call(method, **frappe.form_dict)
 
+
+def run_server_script(server_script):
+	response = frappe.get_doc('Server Script', server_script).execute_method()
+
+	# some server scripts return output using flags (empty dict by default),
+	# while others directly modify frappe.response
+	# return flags if not empty dict (this overwrites frappe.response.message)
+	if response != {}:
+		return response
+
 def is_valid_http_method(method):
+	if frappe.flags.in_safe_exec:
+		return
+
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
@@ -248,7 +262,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	# build output as csv
 	if cint(frappe.form_dict.get('as_csv')):
-		build_csv_response(response, doc.doctype.replace(' ', ''))
+		build_csv_response(response, _(doc.doctype).replace(' ', ''))
 		return
 
 	frappe.response['message'] = response

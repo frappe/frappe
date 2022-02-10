@@ -207,6 +207,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	import click
 
 	site = frappe.local.site
+	app_hooks = frappe.get_hooks(app_name=app_name)
 
 	# dont allow uninstall app if not installed unless forced
 	if not force:
@@ -232,6 +233,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	frappe.flags.in_uninstall = True
 
+	for before_uninstall in app_hooks.before_uninstall or []:
+		frappe.get_attr(before_uninstall)()
+
 	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
 
 	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
@@ -241,6 +245,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		remove_from_installed_apps(app_name)
 		frappe.get_single('Installed Applications').update_versions()
 		frappe.db.commit()
+
+	for after_uninstall in app_hooks.after_uninstall or []:
+		frappe.get_attr(after_uninstall)()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False

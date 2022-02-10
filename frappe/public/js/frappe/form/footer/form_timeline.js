@@ -77,12 +77,14 @@ class FormTimeline extends BaseTimeline {
 			const message = __("Add to this activity by mailing to {0}", [link.bold()]);
 
 			this.document_email_link_wrapper = $(`
-				<div class="document-email-link-container">
+				<div class="timeline-item">
 					<div class="timeline-dot"></div>
-					<span class="ellipsis">${message}</span>
+					<div class="timeline-content">
+						<span>${message}</span>
+					</div>
 				</div>
 			`);
-			this.timeline_wrapper.append(this.document_email_link_wrapper);
+			this.timeline_actions_wrapper.append(this.document_email_link_wrapper);
 
 			this.document_email_link_wrapper
 				.find('.document-email-link')
@@ -171,9 +173,11 @@ class FormTimeline extends BaseTimeline {
 
 	get_communication_timeline_contents() {
 		let communication_timeline_contents = [];
+		let icon_set = {Email: "mail", Phone: "call", Meeting: "calendar", Other: "dot-horizontal"};
 		(this.doc_info.communications|| []).forEach(communication => {
+			let medium = communication.communication_medium;
 			communication_timeline_contents.push({
-				icon: 'mail',
+				icon: icon_set[medium],
 				icon_size: 'sm',
 				creation: communication.creation,
 				is_card: true,

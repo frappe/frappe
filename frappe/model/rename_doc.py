@@ -34,11 +34,18 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 
 	return docname
 
-def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True):
-	"""
-		Renames a doc(dt, old) to doc(dt, new) and
-		updates all linked fields of type "Link"
-	"""
+def rename_doc(
+	doctype,
+	old,
+	new,
+	force=False,
+	merge=False,
+	ignore_permissions=False,
+	ignore_if_exists=False,
+	show_alert=True,
+	rebuild_search=True
+):
+	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
 	if not frappe.db.exists(doctype, old):
 		return
 
@@ -75,6 +82,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
+		update_customizations(old, new)
 
 	update_attachments(doctype, old, new)
 
@@ -106,7 +114,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		frappe.delete_doc(doctype, old)
 
 	frappe.clear_cache()
-	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+	if rebuild_search:
+		frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 
 	if show_alert:
 		frappe.msgprint(_('Document renamed from {0} to {1}').format(bold(old), bold(new)), alert=True, indicator='green')
@@ -167,6 +176,8 @@ def update_user_settings(old, new, link_fields):
 		else:
 			continue
 
+def update_customizations(old: str, new: str) -> None:
+	frappe.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
 
 def update_attachments(doctype, old, new):
 	try:
@@ -280,7 +291,7 @@ def update_link_field_values(link_fields, old, new, doctype):
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.set_value(parent, {docfield: old}, docfield, new)
+			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
 
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
@@ -487,7 +498,7 @@ def bulk_rename(doctype, rows=None, via_console = False):
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
 			try:
-				if rename_doc(doctype, row[0], row[1]):
+				if rename_doc(doctype, row[0], row[1], rebuild_search=False):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])
 					frappe.db.commit()
 				else:

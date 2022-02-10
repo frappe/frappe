@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # Database Module
@@ -6,26 +6,23 @@
 
 from __future__ import unicode_literals
 
-import re
-import time
-from typing import Dict, List, Union
-import frappe
 import datetime
+import re
+from time import time
+from typing import Dict, List, Union
+from frappe.database.query import Query
+
+from pypika.terms import NullValue
+from six import integer_types, string_types, text_type
+
+import frappe
 import frappe.defaults
 import frappe.model.meta
-
 from frappe import _
-from time import time
-from frappe.utils import now, getdate, cast, get_datetime, get_table_name
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.query_builder.utils import DocType
+from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
 
-# imports - compatibility imports
-from six import (
-	integer_types,
-	string_types,
-	text_type,
-	iteritems
-)
 
 class Database(object):
 	"""
@@ -65,6 +62,7 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.query = Query()
 
 	def setup_type_map(self):
 		pass
@@ -545,7 +543,21 @@ class Database(object):
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
-	def get_single_value(self, doctype, fieldname, cache=False):
+	def set_single_value(self, doctype, fieldname, value, *args, **kwargs):
+		"""Set field value of Single DocType.
+
+		:param doctype: DocType of the single object
+		:param fieldname: `fieldname` of the property
+		:param value: `value` of the property
+
+		Example:
+
+			# Update the `deny_multiple_sessions` field in System Settings DocType.
+			company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		"""
+		return self.set_value(doctype, doctype, fieldname, value, *args, **kwargs)
+
+	def get_single_value(self, doctype, fieldname, cache=True):
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
@@ -560,7 +572,7 @@ class Database(object):
 		if not doctype in self.value_cache:
 			self.value_cache[doctype] = {}
 
-		if fieldname in self.value_cache[doctype]:
+		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
 		val = self.sql("""select `value` from
@@ -644,49 +656,54 @@ class Database(object):
 		:param debug: Print the query in the developer / js console.
 		:param for_update: Will add a row-level lock to the value that is being set so that it can be released on commit.
 		"""
-		if not modified:
-			modified = now()
-		if not modified_by:
-			modified_by = frappe.session.user
+		is_single_doctype = not (dn and dt != dn)
+		to_update = field if isinstance(field, dict) else {field: val}
 
-		to_update = {}
 		if update_modified:
-			to_update = {"modified": modified, "modified_by": modified_by}
+			modified = modified or now()
+			modified_by = modified_by or frappe.session.user
+			to_update.update({"modified": modified, "modified_by": modified_by})
 
-		if isinstance(field, dict):
-			to_update.update(field)
+		if is_single_doctype:
+			frappe.db.delete(
+				"Singles",
+				filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
+			)
+
+			singles_data = ((dt, key, sbool(value)) for key, value in to_update.items())
+			query = (
+				frappe.qb.into("Singles")
+					.columns("doctype", "field", "value")
+					.insert(*singles_data)
+			).run(debug=debug)
+			frappe.clear_document_cache(dt, dt)
+
 		else:
-			to_update.update({field: val})
+			table = DocType(dt)
 
-		if dn and dt!=dn:
-			# with table
-			set_values = []
-			for key in to_update:
-				set_values.append('`{0}`=%({0})s'.format(key))
+			if for_update:
+				docnames = tuple(
+					x[0] for x in self.get_values(dt, dn, "name", debug=debug, for_update=for_update)
+				) or (NullValue(),)
+				query = frappe.qb.update(table).where(table.name.isin(docnames))
 
-			for name in self.get_values(dt, dn, 'name', for_update=for_update):
-				values = dict(name=name[0])
-				values.update(to_update)
+				for docname in docnames:
+					frappe.clear_document_cache(dt, docname)
 
-				self.sql("""update `tab{0}`
-					set {1} where name=%(name)s""".format(dt, ', '.join(set_values)),
-					values, debug=debug)
-		else:
-			# for singles
-			keys = list(to_update)
-			self.sql('''
-				delete from `tabSingles`
-				where field in ({0}) and
-					doctype=%s'''.format(', '.join(['%s']*len(keys))),
-					list(keys) + [dt], debug=debug)
-			for key, value in iteritems(to_update):
-				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
-					(dt, key, value), debug=debug)
+			else:
+				query = self.query.build_conditions(table=dt, filters=dn, update=True)
+				# TODO: Fix this; doesn't work rn - gavin@frappe.io
+				# frappe.cache().hdel_keys(dt, "document_cache")
+				# Workaround: clear all document caches
+				frappe.cache().delete_value('document_cache')
+
+			for column, value in to_update.items():
+				query = query.set(column, value)
+
+			query.run(debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
-
-		frappe.clear_document_cache(dt, dn)
 
 	@staticmethod
 	def set(doc, field, val):
@@ -773,14 +790,27 @@ class Database(object):
 
 		frappe.local.realtime_log = []
 
-	def rollback(self):
-		"""`ROLLBACK` current transaction."""
-		self.sql("rollback")
-		self.begin()
-		for obj in frappe.local.rollback_observers:
-			if hasattr(obj, "on_rollback"):
-				obj.on_rollback()
-		frappe.local.rollback_observers = []
+	def savepoint(self, save_point):
+		"""Savepoints work as a nested transaction.
+
+		Changes can be undone to a save point by doing frappe.db.rollback(save_point)
+
+		Note: rollback watchers can not work with save points.
+			so only changes to database are undone when rolling back to a savepoint.
+			Avoid using savepoints when writing to filesystem."""
+		self.sql(f"savepoint {save_point}")
+
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.sql("rollback")
+			self.begin()
+			for obj in frappe.local.rollback_observers:
+				if hasattr(obj, "on_rollback"):
+					obj.on_rollback()
+			frappe.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -796,9 +826,9 @@ class Database(object):
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
 
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		tables = frappe.cache().get_value('db_tables')
-		if not tables:
+		if not tables or not cached:
 			table_rows = self.sql("""
 				SELECT table_name
 				FROM information_schema.tables
@@ -874,8 +904,9 @@ class Database(object):
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
-		from frappe.utils import now_datetime
 		from dateutil.relativedelta import relativedelta
+
+		from frappe.utils import now_datetime
 
 		return self.sql("""select count(name) from `tab{doctype}`
 			where creation >= %s""".format(doctype=doctype),

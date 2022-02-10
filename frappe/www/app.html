@@ -39,17 +39,16 @@
 		<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 
 		<script type="text/javascript">
-		window._version_number = "{{ build_version }}";
-		// browser support
-		window.app = true;
-		window.dev_server = {{ dev_server }};
+			window._version_number = "{{ build_version }}";
+			// browser support
+			window.app = true;
+			window.dev_server = {{ dev_server }};
 
-		if(!window.frappe) window.frappe = {};
+			if (!window.frappe) window.frappe = {};
 
-		frappe.boot = {{ boot }};
-
-		frappe.csrf_token = "{{ csrf_token }}";
-
+			frappe.boot = {{ boot }};
+			frappe._messages = frappe.boot["__messages"];
+			frappe.csrf_token = "{{ csrf_token }}";
 		</script>
 
 		{% for include in include_js %}

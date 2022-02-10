@@ -7,8 +7,6 @@ context('Report View', () => {
 		cy.visit('/app/website');
 		cy.insert_doc('DocType', custom_submittable_doctype, true);
 		cy.clear_cache();
-	});
-	it('Field with enabled allow_on_submit should be editable.', () => {
 		cy.insert_doc(doctype_name, {
 			'title': 'Doc 1',
 			'description': 'Random Text',
@@ -16,6 +14,8 @@ context('Report View', () => {
 			// submit document
 			'docstatus': 1
 		}, true).as('doc');
+	});
+	it('Field with enabled allow_on_submit should be editable.', () => {
 		cy.intercept('POST', 'api/method/frappe.client.set_value').as('value-update');
 		cy.visit(`/app/List/${doctype_name}/Report`);
 		// check status column added from docstatus

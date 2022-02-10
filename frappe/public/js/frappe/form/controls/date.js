@@ -64,6 +64,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			dateFormat: date_format,
 			startDate: now_date,
 			keyboardNav: false,
+			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			onSelect: () => {
 				this.$input.trigger('change');
 			},
