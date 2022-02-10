@@ -1014,9 +1014,17 @@ class BaseDocument(object):
 		"""
 		Converts datetime string to date and time respectively for Date and Time fields
 		"""
+		_parser = {
+			"Date": get_date_str,
+			"Time": get_time_str
+		}
 		for field in self.meta.get_time_fields() + self.meta.get_date_fields():
-			value = cast(field.fieldtype, self.get(field.fieldname))
-			value = get_date_str(value) if field.fieldtype == "Date" else get_time_str(value)
+			if self.get(field.fieldname) is None:
+				continue
+
+			old_value = self.get(field.fieldname)
+			new_value = cast(field.fieldtype, old_value)
+			value = _parser.get(field.fieldtype)(new_value) if isinstance(old_value, str) else new_value
 			self.set(field.fieldname, value)
 
 

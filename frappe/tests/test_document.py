@@ -257,3 +257,14 @@ class TestDocument(unittest.TestCase):
 		doc = frappe.get_doc("DocType", "DocType")
 		# assuming DocType has more that 3 Data fields
 		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
+
+	def test_date_and_time_casting(self):
+		due_date = frappe.utils.get_datetime()
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": "test_date_and_time_casting",
+			"date": due_date,
+		}).insert()
+
+		self.assertEquals(todo.date, due_date.date())
+
