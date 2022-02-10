@@ -108,7 +108,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.validate_and_set_in_model(value, e);
 	}
 	get_input_value() {
-		return (this.$input && this.data_value && this.$input.val()) ? this.data_value : "";
+		if (this.$input) {
+			return this.data_value ? this.data_value : this.$input.val();
+		}
+		return null;
 	}
 	get_label_value() {
 		return this.$input ? this.$input.val() : "";
