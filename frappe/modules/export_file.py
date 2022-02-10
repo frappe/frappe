@@ -47,7 +47,7 @@ def strip_default_fields(doc, doc_export):
 
 	for df in doc.meta.get_table_fields():
 		for d in doc_export.get(df.fieldname):
-			for fieldname in frappe.model.default_fields:
+			for fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
 				if fieldname in d:
 					del d[fieldname]
 

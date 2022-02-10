@@ -112,9 +112,9 @@ def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 		try:
 			t = parser.parse(time)
 		except ParserError as e:
-			if "day" in e.args[1]:
-				from frappe.utils import parse_timedelta
+			if "day" in e.args[1] or "hour must be in" in e.args[0]:
 				return parse_timedelta(time)
+			raise e
 		return datetime.timedelta(
 			hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
 		)
@@ -329,17 +329,24 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
-def get_time(time_str):
+def get_time(time_str: str) -> datetime.time:
 	from dateutil import parser
+	from dateutil.parser import ParserError
 
 	if isinstance(time_str, datetime.datetime):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
 		return time_str
-	else:
-		if isinstance(time_str, datetime.timedelta):
-			return format_timedelta(time_str)
+	elif isinstance(time_str, datetime.timedelta):
+		return (datetime.datetime.min + time_str).time()
+	try:
 		return parser.parse(time_str).time()
+	except ParserError as e:
+		if "day" in e.args[1] or "hour must be in" in e.args[0]:
+			return (
+				datetime.datetime.min + parse_timedelta(time_str)
+			).time()
+		raise e
 
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, str):
@@ -1355,7 +1362,7 @@ def get_filter(doctype: str, f: Union[Dict, List, Tuple], filters_config=None) -
 			"fieldtype":
 		}
 	"""
-	from frappe.model import default_fields, optional_fields
+	from frappe.model import default_fields, optional_fields, child_table_fields
 
 	if isinstance(f, dict):
 		key, value = next(iter(f.items()))
@@ -1393,7 +1400,7 @@ def get_filter(doctype: str, f: Union[Dict, List, Tuple], filters_config=None) -
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 
-	if f.doctype and (f.fieldname not in default_fields + optional_fields):
+	if f.doctype and (f.fieldname not in default_fields + optional_fields + child_table_fields):
 		# verify fieldname belongs to the doctype
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):

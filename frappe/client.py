@@ -128,7 +128,7 @@ def set_value(doctype, name, fieldname, value=None):
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict'''
 
-	if fieldname!="idx" and fieldname in frappe.model.default_fields:
+	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
 		frappe.throw(_("Cannot edit standard fields"))
 
 	if not value:
@@ -141,14 +141,15 @@ def set_value(doctype, name, fieldname, value=None):
 	else:
 		values = {fieldname: value}
 
-	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-	if doc and doc.parent and doc.parenttype:
+	# check for child table doctype
+	if not frappe.get_meta(doctype).istable:
+		doc = frappe.get_doc(doctype, name)
+		doc.update(values)
+	else:
+		doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 		doc = frappe.get_doc(doc.parenttype, doc.parent)
 		child = doc.getone({"doctype": doctype, "name": name})
 		child.update(values)
-	else:
-		doc = frappe.get_doc(doctype, name)
-		doc.update(values)
 
 	doc.save()
 
@@ -162,10 +163,10 @@ def insert(doc=None):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	if doc.get("parent") and doc.get("parenttype"):
+	if doc.get("parenttype"):
 		# inserting a child record
-		parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
-		parent.append(doc.get("parentfield"), doc)
+		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		parent.append(doc.parentfield, doc)
 		parent.save()
 		return parent.as_dict()
 	else:
@@ -186,10 +187,10 @@ def insert_many(docs=None):
 		frappe.throw(_('Only 200 inserts allowed in one request'))
 
 	for doc in docs:
-		if doc.get("parent") and doc.get("parenttype"):
+		if doc.get("parenttype"):
 			# inserting a child record
-			parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
-			parent.append(doc.get("parentfield"), doc)
+			parent = frappe.get_doc(doc.parenttype, doc.parent)
+			parent.append(doc.parentfield, doc)
 			parent.save()
 			out.append(parent.name)
 		else:

@@ -4,7 +4,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.model import default_fields, table_fields
+from frappe.model import default_fields, table_fields, child_table_fields
 from frappe.utils import cstr
 
 
@@ -149,6 +149,7 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 	no_copy_fields = set([d.fieldname for d in source_doc.meta.get("fields") if (d.no_copy==1 or d.fieldtype in table_fields)]
 		+ [d.fieldname for d in target_doc.meta.get("fields") if (d.no_copy==1 or d.fieldtype in table_fields)]
 		+ list(default_fields)
+		+ list(child_table_fields)
 		+ list(table_map.get("field_no_map", [])))
 
 	for df in target_doc.meta.get("fields"):

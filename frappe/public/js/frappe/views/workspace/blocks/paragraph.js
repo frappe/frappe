@@ -62,7 +62,7 @@ export default class Paragraph extends Block {
 				this.show_hide_block_list();
 			});
 			div.addEventListener('blur', () => {
-				setTimeout(() => this.show_hide_block_list(true), 10);
+				!this.over_block_list_item && this.show_hide_block_list(true);
 			});
 			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
@@ -93,6 +93,12 @@ export default class Paragraph extends Block {
 				this.api.blocks.delete();
 				this.api.blocks.insert(key, {}, {}, index);
 				this.api.caret.setToBlock(index);
+			});
+
+			$block_list_item.mouseenter(() => {
+				this.over_block_list_item = true;
+			}).mouseleave(() => {
+				this.over_block_list_item = false;
 			});
 
 			$block_list_container.append($block_list_item);

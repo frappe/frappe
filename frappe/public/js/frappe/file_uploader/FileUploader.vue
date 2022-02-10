@@ -534,22 +534,21 @@ export default {
 			});
 		},
 		show_google_drive_picker() {
-			let dialog = cur_dialog;
-			dialog.hide();
+			this.close_dialog = true;
 			let google_drive = new GoogleDrivePicker({
-				pickerCallback: data => this.google_drive_callback(data, dialog),
+				pickerCallback: data => this.google_drive_callback(data),
 				...this.google_drive_settings
 			});
 			google_drive.loadPicker();
 		},
-		google_drive_callback(data, dialog) {
+		google_drive_callback(data) {
 			if (data.action == google.picker.Action.PICKED) {
 				this.upload_file({
 					file_url: data.docs[0].url,
 					file_name: data.docs[0].name
 				});
 			} else if (data.action == google.picker.Action.CANCEL) {
-				dialog.show();
+				cur_frm.attachments.new_attachment()
 			}
 		},
 		url_to_file(url, filename, mime_type) {
