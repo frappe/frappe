@@ -479,21 +479,24 @@ class QueueBuilder:
 
 		EmailUnsubscribe = DocType("Email Unsubscribe")
 
-		unsubscribed = (
-			frappe.qb.from_(EmailUnsubscribe).select(
-				EmailUnsubscribe.email
-			).where(
-				EmailUnsubscribe.email.isin(all_ids)
-				& (
-					(
-						(EmailUnsubscribe.reference_doctype == self.reference_doctype)
-						& (EmailUnsubscribe.reference_name == self.reference_name)
-					) | (
-						EmailUnsubscribe.global_unsubscribe == 1
+		if len(all_ids) > 0:
+			unsubscribed = (
+				frappe.qb.from_(EmailUnsubscribe).select(
+					EmailUnsubscribe.email
+				).where(
+					EmailUnsubscribe.email.isin(all_ids)
+					& (
+						(
+							(EmailUnsubscribe.reference_doctype == self.reference_doctype)
+							& (EmailUnsubscribe.reference_name == self.reference_name)
+						) | (
+							EmailUnsubscribe.global_unsubscribe == 1
+						)
 					)
-				)
-			).distinct()
-		).run(pluck=True)
+				).distinct()
+			).run(pluck=True)
+		else:
+			unsubscribed = None
 
 		self._unsubscribed_user_emails = unsubscribed or []
 		return self._unsubscribed_user_emails

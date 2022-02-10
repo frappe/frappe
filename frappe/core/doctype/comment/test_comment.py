@@ -70,6 +70,19 @@ class TestComment(unittest.TestCase):
 			reference_name = test_blog.name
 		))), 0)
 
+		# test for filtering html and css injection elements
+		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+
+		frappe.form_dict.comment = '<script>alert(1)</script>Comment'
+		frappe.form_dict.comment_by = 'hacker'
+
+		add_comment()
+
+		self.assertEqual(frappe.get_all('Comment', fields = ['content'], filters = dict(
+			reference_doctype = test_blog.doctype,
+			reference_name = test_blog.name
+		))[0]['content'], 'Comment')
+
 		test_blog.delete()
 
 
