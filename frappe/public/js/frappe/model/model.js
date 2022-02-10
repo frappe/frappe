@@ -10,8 +10,7 @@ $.extend(frappe.model, {
 	layout_fields: ['Section Break', 'Column Break', 'Tab Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
-		'parent', 'parenttype', 'parentfield', 'idx'],
+		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus', 'idx'],
 
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
