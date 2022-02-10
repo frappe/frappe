@@ -1,9 +1,25 @@
-name: Semgrep
-
+name: 'Documentation Check & Semgrep Rules'
 on:
   pull_request: { }
 
 jobs:
+  docs-required:
+    name: 'Documentation Required'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Validate Docs
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          pip install requests --quiet
+          python $GITHUB_WORKSPACE/.github/helper/documentation.py $PR_NUMBER
+
   semgrep:
     name: Frappe Linter
     runs-on: ubuntu-latest
