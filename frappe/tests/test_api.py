@@ -2,14 +2,19 @@ import sys
 import unittest
 from contextlib import contextmanager
 from random import choice
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
+from threading import Thread
 
 import requests
 from semantic_version import Version
 
 import frappe
-from frappe.utils import get_site_url, get_test_client
+from frappe.utils import get_site_url
 
+try:
+	_site = frappe.local.site
+except Exception:
+	_site = None
 
 @contextmanager
 def suppress_stdout():
@@ -21,6 +26,36 @@ def suppress_stdout():
 	finally:
 		sys.stdout = sys.__stdout__
 
+class ThreadWithReturnValue(Thread):
+	def __init__(self, group=None, target=None, name=None,
+				args=(), kwargs={}, Verbose=None):
+		Thread.__init__(self, group, target, name, args, kwargs)
+		self._return = None
+
+	def run(self):
+		from unittest.mock import patch
+		if self._target is not None:
+			with patch("frappe.app.get_site_name", return_value=_site):
+				# print(self._args, self._kwargs)
+				self._return = self._target(*self._args, **self._kwargs)
+
+	def join(self, *args):
+		Thread.join(self, *args)
+		return self._return
+
+
+def get_test_client():
+	from frappe.app import application
+	from werkzeug.test import Client
+
+	return Client(application)
+
+
+def make_request(target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None):
+	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
+	t.start()
+	t.join()
+	return t._return
 
 class FrappeAPITestCase(unittest.TestCase):
 	SITE = frappe.local.site
@@ -31,24 +66,25 @@ class FrappeAPITestCase(unittest.TestCase):
 	@property
 	def sid(self):
 		if not getattr(self, "_sid", None):
-			r = self.TEST_CLIENT.post("/api/method/login", data={
+			r = self.post("/api/method/login", {
 				"usr": "Administrator",
 				"pwd": frappe.conf.admin_password or "admin",
 			})
 			self._sid = r.headers[2][1].split(";")[0].lstrip("sid=")
+
 		return self._sid
 
 	def get(self, path: str, params: Optional[Dict] = None):
-		return self.TEST_CLIENT.get(path, data=params)
+		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params})
 
 	def post(self, path, data):
-		return self.TEST_CLIENT.post(path, data=frappe.as_json(data))
+		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data})
 
 	def put(self, path, data):
-		return self.TEST_CLIENT.put(path, data=frappe.as_json(data))
+		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data})
 
 	def delete(self, path):
-		return self.TEST_CLIENT.delete(path)
+		return make_request(target=self.TEST_CLIENT.delete, args=(path, ))
 
 
 class TestResourceAPI(FrappeAPITestCase):
@@ -57,7 +93,6 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		frappe.set_user("Administrator")
 		for _ in range(10):
 			doc = frappe.get_doc(
 				{"doctype": "ToDo", "description": frappe.mock("paragraph")}
@@ -67,13 +102,11 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.set_user("Administrator")
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
 
 	def setUp(self):
-		frappe.set_user("Administrator")
 		# commit to ensure consistency in session (postgres CI randomly fails)
 		if frappe.conf.db_type == "postgres":
 			frappe.db.commit()
