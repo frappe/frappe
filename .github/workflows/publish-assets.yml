@@ -1,4 +1,4 @@
-name: 'Frappe Static Assets & Docker Build'
+name: 'Build'
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-assets-and-publish:
-    name: 'Build and Publish Assets for Development'
+    name: 'Publish Static Assets'
     runs-on: ubuntu-latest
 
     steps:
@@ -62,7 +62,7 @@ jobs:
         if: github.event_name == 'release'
 
   docker-release:
-    name: 'Trigger Docker build on release'
+    name: 'Publish Container Image'
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
