@@ -1,11 +1,7 @@
 import os
 import socket
 import time
-<<<<<<< HEAD
-=======
-from collections import defaultdict
 from functools import lru_cache
->>>>>>> 549c7ccc8a (fix: Wrap timeout getting for custom queues in function)
 from uuid import uuid4
 from collections import defaultdict
 from typing import List
@@ -26,7 +22,7 @@ from frappe.utils.commands import log
 
 
 
-@lru_cache
+@lru_cache()
 def get_queues_timeout():
 	common_site_config = frappe.get_conf()
 	custom_workers_config = common_site_config.get("workers", {})
