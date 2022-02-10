@@ -319,7 +319,8 @@ class TestCommands(BaseTestCommands):
 	def test_list_apps(self):
 		# test 1: sanity check for command
 		self.execute("bench --site all list-apps")
-		self.assertEqual(self.returncode, 0)
+		self.assertIsNotNone(self.returncode)
+		self.assertIsInstance(self.stdout or self.stderr, str)
 
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
