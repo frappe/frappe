@@ -263,7 +263,7 @@ def clear_workflow_actions(doctype, name):
 		"reference_name": name
 	})
 def get_doc_workflow_state(doc):
-	# workflow change
+	# workflow change 
 	workflow_name = get_workflow_name(doc)
 	workflow_state_field = get_workflow_state_field(workflow_name)
 	return doc.get(workflow_state_field)

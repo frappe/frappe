@@ -12,7 +12,6 @@ class WorkflowTransitionError(frappe.ValidationError): pass
 class WorkflowPermissionError(frappe.ValidationError): pass
 
 # workflow change
-
 def get_workflow_name(doc_or_doctype):
 	if type(doc_or_doctype) is str:
 		workflow_name = frappe.db.get_value("Workflow", {"document_type": doc_or_doctype,
