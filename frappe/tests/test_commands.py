@@ -336,14 +336,12 @@ class TestCommands(BaseTestCommands):
 		self.assertSetEqual(list_apps, installed_apps)
 
 		# test 3: parse json format
-		self.execute("bench --site all list-apps --format json")
+		self.execute("bench --site {site} list-apps --format json")
 		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(json.loads(self.stdout), dict)
 
-		self.execute("bench --site {site} list-apps --format json")
-		self.assertIsInstance(json.loads(self.stdout), dict)
-
 		self.execute("bench --site {site} list-apps -f json")
+		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(json.loads(self.stdout), dict)
 
 	def test_show_config(self):
