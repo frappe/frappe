@@ -38,16 +38,15 @@
 
 .indicator-pill::before {
 	content: none;
-	margin-right: 10px;
 }
 
 .indicator-pill {
-	margin-right: 10px;
+	margin: auto 10px 10px 0;
 }
 
 .whats-new-post-media-wrapper {
-	width: 70%;
-	padding-top: 20px;
+	width: 60%;
+	padding-top: 30px;
 	align-self: center;
 }
 
@@ -65,6 +64,11 @@ hr {
 
 
 @media only screen and (max-width:768px) {
+	.main-wrapper {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
 	.release-notes-wrapper{
 		padding-left: 20px;
 		padding-right: 20px;
@@ -78,6 +82,10 @@ hr {
 
 	.release-note-media {
 		max-width: 300px;
+	}
+
+	.whats-new-post-media-wrapper {
+		width: 100%;
 	}
 
 }
