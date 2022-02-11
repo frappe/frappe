@@ -159,10 +159,10 @@ class BlogPost(WebsiteGenerator):
 		like_count = 0
 
 		if frappe.db.count('Feedback'):
-			like_count = frappe.db.count('Feedback', 
+			like_count = frappe.db.count('Feedback',
 				filters = dict(
-					reference_doctype = self.doctype, 
-					reference_name = self.name, 
+					reference_doctype = self.doctype,
+					reference_name = self.name,
 					like = True
 				)
 			)
@@ -183,7 +183,6 @@ def get_list_context(context=None):
 		get_list = get_blog_list,
 		no_breadcrumbs = True,
 		hide_filters = True,
-		children = get_children(),
 		# show_search = True,
 		title = _('Blog')
 	)
@@ -208,17 +207,34 @@ def get_list_context(context=None):
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
-	list_context.update(frappe.get_doc("Blog Settings").as_dict(no_default_fields=True))
+	blog_settings = frappe.get_doc("Blog Settings").as_dict(no_default_fields=True)
+	list_context.update(blog_settings)
+
+	if blog_settings.browse_by_category:
+		list_context.blog_categories = get_blog_categories()
 
 	return list_context
 
-def get_children():
-	return frappe.db.sql("""select route as name,
-		title from `tabBlog Category`
-		where published = 1
-		and exists (select name from `tabBlog Post`
-			where `tabBlog Post`.blog_category=`tabBlog Category`.name and published=1)
-		order by title asc""", as_dict=1)
+
+def get_blog_categories():
+	from pypika import Order
+	from pypika.terms import ExistsCriterion
+
+	post, category = frappe.qb.DocType("Blog Post"), frappe.qb.DocType("Blog Category")
+	return (
+		frappe.qb.from_(category)
+		.select(category.name, category.route, category.title)
+		.where(
+			(category.published == 1)
+			& ExistsCriterion(
+				frappe.qb.from_(post)
+				.select("name")
+				.where((post.published == 1) & (post.blog_category == category.name))
+			)
+		)
+		.orderby(category.title, order=Order.asc)
+		.run(as_dict=1)
+	)
 
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select route from

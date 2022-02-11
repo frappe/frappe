@@ -91,33 +91,82 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			raise frappe.PermissionError
 
 	all_communications = _get_communications(doc.doctype, doc.name)
-	automated_messages = filter(lambda x: x['communication_type'] == 'Automated Message', all_communications)
-	communications_except_auto_messages = filter(lambda x: x['communication_type'] != 'Automated Message', all_communications)
+	automated_messages = [msg for msg in all_communications if msg['communication_type'] == 'Automated Message']
+	communications_except_auto_messages = [msg for msg in all_communications if msg['communication_type'] != 'Automated Message']
 
-	frappe.response["docinfo"] = {
+	docinfo = frappe._dict(user_info = {})
+
+	add_comments(doc, docinfo)
+
+	docinfo.update({
 		"attachments": get_attachments(doc.doctype, doc.name),
-		"attachment_logs": get_comments(doc.doctype, doc.name, 'attachment'),
 		"communications": communications_except_auto_messages,
 		"automated_messages": automated_messages,
-		'comments': get_comments(doc.doctype, doc.name),
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
-		"assignment_logs": get_comments(doc.doctype, doc.name, 'assignment'),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
-		"info_logs": get_comments(doc.doctype, doc.name, comment_type=['Info', 'Edit', 'Label']),
-		"share_logs": get_comments(doc.doctype, doc.name, 'share'),
-		"like_logs": get_comments(doc.doctype, doc.name, 'Like'),
-		"workflow_logs": get_comments(doc.doctype, doc.name, comment_type="Workflow"),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 		"milestones": get_milestones(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 		"tags": get_tags(doc.doctype, doc.name),
-		"document_email": get_document_email(doc.doctype, doc.name)
-	}
+		"document_email": get_document_email(doc.doctype, doc.name),
+	})
+
+	update_user_info(docinfo)
+
+	frappe.response["docinfo"] = docinfo
+	return docinfo
+
+def add_comments(doc, docinfo):
+	# divide comments into separate lists
+	docinfo.comments = []
+	docinfo.shared = []
+	docinfo.assignment_logs = []
+	docinfo.attachment_logs = []
+	docinfo.info_logs = []
+	docinfo.like_logs = []
+	docinfo.workflow_logs = []
+
+	comments = frappe.get_all("Comment",
+		fields=["name", "creation", "content", "owner", "comment_type"],
+		filters={
+			"reference_doctype": doc.doctype,
+			"reference_name": doc.name
+		}
+	)
+
+	for c in comments:
+		if c.comment_type == "Comment":
+			c.content = frappe.utils.markdown(c.content)
+			docinfo.comments.append(c)
+
+		elif c.comment_type in ('Shared', 'Unshared'):
+			docinfo.shared.append(c)
+
+		elif c.comment_type in ('Assignment Completed', 'Assigned'):
+			docinfo.assignment_logs.append(c)
+
+		elif c.comment_type in ('Attachment', 'Attachment Removed'):
+			docinfo.attachment_logs.append(c)
+
+		elif c.comment_type in ('Info', 'Edit', 'Label'):
+			docinfo.info_logs.append(c)
+
+		elif c.comment_type == "Like":
+			docinfo.like_logs.append(c)
+
+		elif c.comment_type == "Workflow":
+			docinfo.workflow_logs.append(c)
+
+		frappe.utils.add_user_info(c.owner, docinfo.user_info)
+
+
+	return comments
+
 
 def get_milestones(doctype, name):
 	return frappe.db.get_all('Milestone', fields = ['creation', 'owner', 'track_field', 'value'],
@@ -252,15 +301,13 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	return communications
 
 def get_assignments(dt, dn):
-	cl = frappe.get_all("ToDo",
-		fields=['name', 'owner', 'description', 'status'],
+	return frappe.get_all("ToDo",
+		fields=['name', 'allocated_to as owner', 'description', 'status'],
 		filters={
 			'reference_type': dt,
 			'reference_name': dn,
 			'status': ('!=', 'Cancelled'),
 		})
-
-	return cl
 
 @frappe.whitelist()
 def get_badge_info(doctypes, filters):
@@ -319,3 +366,24 @@ def get_additional_timeline_content(doctype, docname):
 		contents.extend(frappe.get_attr(method)(doctype, docname) or [])
 
 	return contents
+
+def update_user_info(docinfo):
+	for d in docinfo.communications:
+		frappe.utils.add_user_info(d.sender, docinfo.user_info)
+
+	for d in docinfo.shared:
+		frappe.utils.add_user_info(d.user, docinfo.user_info)
+
+	for d in docinfo.assignments:
+		frappe.utils.add_user_info(d.owner, docinfo.user_info)
+
+	for d in docinfo.views:
+		frappe.utils.add_user_info(d.owner, docinfo.user_info)
+
+@frappe.whitelist()
+def get_user_info_for_viewers(users):
+	user_info = {}
+	for user in json.loads(users):
+		frappe.utils.add_user_info(user, user_info)
+
+	return user_info

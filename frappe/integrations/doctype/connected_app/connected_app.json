@@ -96,7 +96,7 @@
   },
   {
    "fieldname": "authorization_uri",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Authorization URI",
    "mandatory_depends_on": "eval:doc.redirect_uri"
   },
@@ -139,7 +139,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2021-05-10 05:03:06.296863",
+ "modified": "2022-01-07 05:28:45.073041",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",

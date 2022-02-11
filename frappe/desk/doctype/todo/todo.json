@@ -13,7 +13,7 @@
   "column_break_2",
   "color",
   "date",
-  "owner",
+  "allocated_to",
   "description_section",
   "description",
   "section_break_6",
@@ -68,15 +68,6 @@
    "label": "Due Date",
    "oldfieldname": "date",
    "oldfieldtype": "Date"
-  },
-  {
-   "fieldname": "owner",
-   "fieldtype": "Link",
-   "ignore_user_permissions": 1,
-   "in_global_search": 1,
-   "in_standard_filter": 1,
-   "label": "Allocated To",
-   "options": "User"
   },
   {
    "fieldname": "description_section",
@@ -153,12 +144,21 @@
    "label": "Assignment Rule",
    "options": "Assignment Rule",
    "read_only": 1
+  },
+  {
+   "fieldname": "allocated_to",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "in_global_search": 1,
+   "in_standard_filter": 1,
+   "label": "Allocated To",
+   "options": "User"
   }
  ],
  "icon": "fa fa-check",
  "idx": 2,
  "links": [],
- "modified": "2020-01-14 17:04:36.971002",
+ "modified": "2021-09-16 11:36:34.586898",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",

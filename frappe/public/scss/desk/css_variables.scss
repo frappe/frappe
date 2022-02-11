@@ -4,15 +4,6 @@ $input-height: 28px !default;
 
 :root,
 [data-theme="light"] {
-	--text-xs: 11px;
-	--text-sm: 12px;
-	--text-md: 13px;
-	--text-base: 14px;
-	--text-lg: 16px;
-	--text-xl: 18px;
-	--text-2xl: 20px;
-	--text-3xl: 22px;
-
 	// breakpoints
 	--xxl-width: map-get($grid-breakpoints, '2xl');
 	--xl-width: map-get($grid-breakpoints, 'xl');
@@ -63,4 +54,6 @@ $input-height: 28px !default;
 	// skeleton
 	--skeleton-bg: var(--gray-100);
 
+	// progress bar
+	--progress-bar-bg: var(--primary);
 }

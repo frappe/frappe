@@ -80,7 +80,9 @@ export default class LinksWidget extends Widget {
 
 			return $(`<a href="${route}" class="link-item ellipsis ${
 				item.onboard ? "onboard-spotlight" : ""
-			} ${disabled_dependent(item)}" type="${item.type}">
+			} ${disabled_dependent(item)}" type="${item.type}" title="${
+				item.label ? item.label : item.name
+			}">
 					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</a>`);

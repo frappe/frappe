@@ -10,6 +10,10 @@ frappe.ui.form.on("System Settings", {
 					frm.set_value(key, val);
 					frappe.sys_defaults[key] = val;
 				});
+				if (frm.re_setup_moment) {
+					frappe.app.setup_moment();
+					delete frm.re_setup_moment;
+				}
 			}
 		});
 	},
@@ -38,5 +42,8 @@ frappe.ui.form.on("System Settings", {
 			// Clear cache after saving to refresh the values of boot.
 			frappe.ui.toolbar.clear_cache();
 		}
-	}
+	},
+	first_day_of_the_week(frm) {
+		frm.re_setup_moment = true;
+	},
 });

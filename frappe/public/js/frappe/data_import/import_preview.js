@@ -142,6 +142,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			columns: this.columns,
 			layout: this.columns.length < 10 ? 'fluid' : 'fixed',
 			cellHeight: 35,
+			language: frappe.boot.lang,
+			translations: frappe.utils.datatable.get_translations(),
 			serialNoColumn: false,
 			checkboxColumn: false,
 			noDataMessage: __('No Data'),
@@ -329,7 +331,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	is_row_imported(row) {
 		let serial_no = row[0].content;
 		return this.import_log.find(log => {
-			return log.success && log.row_indexes.includes(serial_no);
+			return log.success && JSON.parse(log.row_indexes || '[]').includes(serial_no);
 		});
 	}
 };

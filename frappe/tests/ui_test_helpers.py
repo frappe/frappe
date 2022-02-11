@@ -148,9 +148,6 @@ def create_form_tour():
 	if frappe.db.exists('Form Tour', {'name': 'Test Form Tour'}):
 		return
 
-	def get_docfield_name(filters):
-		return frappe.db.get_value('DocField', filters, "name")
-
 	tour = frappe.get_doc({
 		'doctype': 'Form Tour',
 		'title': 'Test Form Tour',
@@ -161,7 +158,6 @@ def create_form_tour():
 			"description": "Test Description 1",
 			"has_next_condition": 1,
 			"next_step_condition": "eval: doc.first_name",
-			"field": get_docfield_name({'parent': 'Contact', 'fieldname': 'first_name'}),
 			"fieldname": "first_name",
 			"fieldtype": "Data"
 		},{
@@ -169,21 +165,18 @@ def create_form_tour():
 			"description": "Test Description 2",
 			"has_next_condition": 1,
 			"next_step_condition": "eval: doc.last_name",
-			"field": get_docfield_name({'parent': 'Contact', 'fieldname': 'last_name'}),
 			"fieldname": "last_name",
 			"fieldtype": "Data"
 		},{
 			"title": "Test Title 3",
 			"description": "Test Description 3",
-			"field": get_docfield_name({'parent': 'Contact', 'fieldname': 'phone_nos'}),
 			"fieldname": "phone_nos",
 			"fieldtype": "Table"
 		},{
 			"title": "Test Title 4",
 			"description": "Test Description 4",
 			"is_table_field": 1,
-			"parent_field": get_docfield_name({'parent': 'Contact', 'fieldname': 'phone_nos'}),
-			"field": get_docfield_name({'parent': 'Contact Phone', 'fieldname': 'phone'}),
+			"parent_fieldname": "phone_nos",
 			"next_step_condition": "eval: doc.phone",
 			"has_next_condition": 1,
 			"fieldname": "phone",
@@ -244,3 +237,15 @@ def create_topic_and_reply(web_page):
 		})
 
 		reply.save()
+
+
+@frappe.whitelist()
+def update_webform_to_multistep():
+	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
+		doc = frappe.get_doc("Web Form", "edit-profile")
+		_doc = frappe.copy_doc(doc)
+		_doc.is_multi_step_form = 1
+		_doc.title = "update-profile-duplicate"
+		_doc.route = "update-profile-duplicate"
+		_doc.is_standard = False
+		_doc.save()

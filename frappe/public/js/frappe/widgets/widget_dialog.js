@@ -9,6 +9,7 @@ class WidgetDialog {
 		this.setup_dialog_events();
 		this.dialog.show();
 
+		window.cur_dialog = this.dialog;
 		this.editing && this.set_default_values();
 	}
 
@@ -153,7 +154,7 @@ class CardDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: "Label"
 			},
 			{
 				fieldname: 'links',
@@ -173,7 +174,7 @@ class CardDialog extends WidgetDialog {
 					},
 					{
 						fieldname: "icon",
-						fieldtype: "Data",
+						fieldtype: "Icon",
 						label: "Icon"
 					},
 					{
@@ -181,19 +182,17 @@ class CardDialog extends WidgetDialog {
 						fieldtype: "Select",
 						in_list_view: 1,
 						label: "Link Type",
-						options: ["DocType", "Page", "Report"],
-						onchange: (e) => {
-							me.link_to = e.currentTarget.value;
-						}
+						reqd: 1,
+						options: ["DocType", "Page", "Report"]
 					},
 					{
 						fieldname: "link_to",
 						fieldtype: "Dynamic Link",
 						in_list_view: 1,
 						label: "Link To",
-						options: "link_type",
-						get_options: () => {
-							return me.link_to;
+						reqd: 1,
+						get_options: (df) => {
+							return df.doc.link_type;
 						}
 					},
 					{
@@ -229,6 +228,31 @@ class CardDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
+		data.links.map((item, idx) => {
+			let message = '';
+			let row = idx+1;
+
+			if (!item.link_type) {
+				message = "Following fields have missing values: <br><br><ul>";
+				message += `<li>Link Type in Row ${row}</li>`;
+			}
+
+			if (!item.link_to) {
+				message += `<li>Link To in Row ${row}</li>`;
+			}
+
+			if (message) {
+				message += "</ul>";
+				frappe.throw({
+					message: __(message),
+					title: __("Missing Values Required"),
+					indicator: 'orange'
+				});
+			}
+
+			item.label = item.label ? item.label : item.link_to;
+		});
+
 		data.label = data.label ? data.label : data.chart_name;
 		return data;
 	}
@@ -506,7 +530,7 @@ class NumberCardDialog extends WidgetDialog {
 
 	setup_dialog_events() {
 		if (!this.document_type) {
-			if (this.default_values['doctype']) {
+			if (this.default_values && this.default_values['doctype']) {
 				this.document_type = this.default_values['doctype'];
 				this.setup_filter(this.default_values['doctype']);
 				this.set_aggregate_function_fields();
@@ -518,7 +542,7 @@ class NumberCardDialog extends WidgetDialog {
 
 	set_aggregate_function_fields() {
 		let aggregate_function_fields = [];
-		if (this.document_type) {
+		if (this.document_type && frappe.get_meta(this.document_type)) {
 			frappe.get_meta(this.document_type).fields.map(df => {
 				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
 					if (df.fieldtype == 'Currency') {
@@ -537,7 +561,7 @@ class NumberCardDialog extends WidgetDialog {
 		if (data.new_or_existing == 'Existing Card') {
 			data.name = data.card;
 		}
-		data.stats_filter = JSON.stringify(this.filter_group.get_filters());
+		data.stats_filter = this.filter_group && JSON.stringify(this.filter_group.get_filters());
 		data.document_type = this.document_type;
 
 		return data;

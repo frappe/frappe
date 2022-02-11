@@ -6,7 +6,6 @@ from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.password import update_password
-from werkzeug.useragents import UserAgent
 from . import install_fixtures
 
 def get_setup_stages(args):
@@ -315,17 +314,10 @@ def prettify_args(args):
 	return pretty_args
 
 def email_setup_wizard_exception(traceback, args):
-	if not frappe.local.conf.setup_wizard_exception_email:
+	if not frappe.conf.setup_wizard_exception_email:
 		return
 
 	pretty_args = prettify_args(args)
-
-	if frappe.local.request:
-		user_agent = UserAgent(frappe.local.request.headers.get('User-Agent', ''))
-
-	else:
-		user_agent = frappe._dict()
-
 	message = """
 
 #### Traceback
@@ -349,18 +341,15 @@ def email_setup_wizard_exception(traceback, args):
 #### Basic Information
 
 - **Site:** {site}
-- **User:** {user}
-- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
-- **Browser Languages**: `{accept_languages}`""".format(
+- **User:** {user}""".format(
 		site=frappe.local.site,
 		traceback=traceback,
 		args="\n".join(pretty_args),
 		user=frappe.session.user,
-		user_agent=user_agent,
-		headers=frappe.local.request.headers,
-		accept_languages=", ".join(frappe.local.request.accept_languages.values()))
+		headers=frappe.request.headers,
+	)
 
-	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
+	frappe.sendmail(recipients=frappe.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
 		subject="Setup failed: {}".format(frappe.local.site),
 		message=message,
@@ -388,7 +377,6 @@ def make_records(records, debug=False):
 
 	# LOG every success and failure
 	for record in records:
-
 		doctype = record.get("doctype")
 		condition = record.get('__condition')
 
@@ -405,6 +393,7 @@ def make_records(records, debug=False):
 
 		try:
 			doc.insert(ignore_permissions=True)
+			frappe.db.commit()
 
 		except frappe.DuplicateEntryError as e:
 			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
@@ -417,6 +406,7 @@ def make_records(records, debug=False):
 				raise
 
 		except Exception as e:
+			frappe.db.rollback()
 			exception = record.get('__exception')
 			if exception:
 				config = _dict(exception)
