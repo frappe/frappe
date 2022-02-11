@@ -100,5 +100,5 @@ frappe.ui.form.on('System Console', {
 				</tr></thead>
 				<tbody>${rows}</thead>`);
 		});
-	}
+	},
 });

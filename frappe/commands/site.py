@@ -952,7 +952,7 @@ def trim_database(context, dry_run, format, no_backup):
 		doctype_tables = frappe.get_all("DocType", pluck="name")
 
 		for x in database_tables:
-			doctype = x.lstrip("tab")
+			doctype = x.replace("tab", "", 1)
 			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
 				TABLES_TO_DROP.append(x)
 
@@ -966,7 +966,7 @@ def trim_database(context, dry_run, format, no_backup):
 
 				odb = scheduled_backup(
 					ignore_conf=False,
-					include_doctypes=",".join(x.lstrip("tab") for x in TABLES_TO_DROP),
+					include_doctypes=",".join(x.replace("tab", "", 1) for x in TABLES_TO_DROP),
 					ignore_files=True,
 					force=True,
 				)

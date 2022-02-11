@@ -215,7 +215,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		if (this.layout.tabs.length) {
 			this.layout.tabs.every(tab => {
-				if (tab.df.options === 'Dashboard') {
+				if (tab.df.show_dashboard) {
 					tab.wrapper.prepend(dashboard_parent);
 					dashboard_added = true;
 					return false;
@@ -860,36 +860,32 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	_cancel(btn, callback, on_error, skip_confirm) {
+		const me = this;
 		const cancel_doc = () => {
 			frappe.validated = true;
-			this.script_manager.trigger("before_cancel").then(() => {
+			me.script_manager.trigger("before_cancel").then(() => {
 				if (!frappe.validated) {
-					return this.handle_save_fail(btn, on_error);
+					return me.handle_save_fail(btn, on_error);
 				}
 
-				const original_name = this.docname;
-				const after_cancel = (r) => {
+				var after_cancel = function(r) {
 					if (r.exc) {
-						this.handle_save_fail(btn, on_error);
+						me.handle_save_fail(btn, on_error);
 					} else {
 						frappe.utils.play_sound("cancel");
+						me.refresh();
 						callback && callback();
-						this.script_manager.trigger("after_cancel");
-						frappe.run_serially([
-							() => this.rename_notify(this.doctype, original_name, r.docs[0].name),
-							() => frappe.router.clear_re_route(this.doctype, original_name),
-							() => this.refresh(),
-						]);
+						me.script_manager.trigger("after_cancel");
 					}
 				};
-				frappe.ui.form.save(this, "cancel", after_cancel, btn);
+				frappe.ui.form.save(me, "cancel", after_cancel, btn);
 			});
 		}
 
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, this.handle_save_fail(btn, on_error));
+			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
 		}
 	};
 
@@ -911,7 +907,7 @@ frappe.ui.form.Form = class FrappeForm {
 			'docname': this.doc.name
 		}).then(is_amended => {
 			if (is_amended) {
-				frappe.throw(__('This document is already amended, you cannot amend it again'));
+				frappe.throw(__('This document is already amended, you cannot ammend it again'));
 			}
 			this.validate_form_action("Amend");
 			var me = this;
@@ -943,7 +939,10 @@ frappe.ui.form.Form = class FrappeForm {
 				// re-enable buttons
 				resolve();
 			}
-			frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
+
+			frappe.throw(
+				__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)], "{0} = verb, {1} = object")
+			);
 		}
 	}
 
@@ -983,7 +982,7 @@ frappe.ui.form.Form = class FrappeForm {
 			$.each(this.fields_dict, function(fieldname, field) {
 				if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
 					// triggers add fetch, sets value in model and runs triggers
-					field.set_value(this.doc[fieldname]);
+					field.set_value(this.doc[fieldname], true);
 				}
 			});
 
@@ -1146,8 +1145,7 @@ frappe.ui.form.Form = class FrappeForm {
 			subject: __(this.meta.name) + ': ' + this.docname,
 			recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
 			attach_document_print: true,
-			message: message,
-			real_name: this.doc.real_name || this.doc.contact_display || this.doc.contact_name
+			message: message
 		});
 	}
 

@@ -14,10 +14,10 @@ from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 
+from unittest.mock import patch
+
 make_test_records("User")
 make_test_records("Email Account")
-
-
 
 class TestEmailAccount(unittest.TestCase):
 	@classmethod
@@ -45,10 +45,21 @@ class TestEmailAccount(unittest.TestCase):
 	def test_incoming(self):
 		cleanup("test_sender@example.com")
 
-		test_mails = [self.get_test_mail('incoming-1.raw')]
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					self.get_test_mail('incoming-1.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
@@ -72,11 +83,21 @@ class TestEmailAccount(unittest.TestCase):
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
-			test_mails = [testfile.read()]
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					self.get_test_mail('incoming-2.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
@@ -93,11 +114,21 @@ class TestEmailAccount(unittest.TestCase):
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		cleanup("test_sender@example.com")
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-3.raw"), "r") as f:
-			test_mails = [f.read()]
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					self.get_test_mail('incoming-3.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
@@ -106,11 +137,21 @@ class TestEmailAccount(unittest.TestCase):
 	def test_incoming_attached_email_from_outlook_layers(self):
 		cleanup("test_sender@example.com")
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-4.raw"), "r") as f:
-			test_mails = [f.read()]
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					self.get_test_mail('incoming-4.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
@@ -151,11 +192,23 @@ class TestEmailAccount(unittest.TestCase):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
 			raw = f.read()
 			raw = raw.replace("<-- in-reply-to -->", sent_mail.get("Message-Id"))
-			test_mails = [raw]
 
 		# parse reply
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					raw
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		sent = frappe.get_doc("Communication", sent_name)
 
@@ -173,8 +226,20 @@ class TestEmailAccount(unittest.TestCase):
 			test_mails.append(f.read())
 
 		# parse reply
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': test_mails,
+				'seen_status': {
+					2: 'UNSEEN',
+					3: 'UNSEEN'
+				},
+				'uid_list': [2, 3]
+			}
+		}
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
 			fields=["name", "reference_doctype", "reference_name"])
@@ -197,11 +262,22 @@ class TestEmailAccount(unittest.TestCase):
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
-			test_mails = [f.read().replace('{{ message_id }}', last_mail.message_id)]
+			messages = {
+				# append_to = ToDo
+				'"INBOX"': {
+					'latest_messages': [
+						f.read().replace('{{ message_id }}', last_mail.message_id)
+					],
+					'seen_status': {
+						2: 'UNSEEN'
+					},
+					'uid_list': [2]
+				}
+			}
 
 		# pull the mail
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
 			fields=["name", "reference_doctype", "reference_name"])
@@ -213,10 +289,21 @@ class TestEmailAccount(unittest.TestCase):
 	def test_auto_reply(self):
 		cleanup("test_sender@example.com")
 
-		test_mails = [self.get_test_mail('incoming-1.raw')]
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					self.get_test_mail('incoming-1.raw')
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.receive(test_mails=test_mails)
+		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
@@ -245,6 +332,91 @@ class TestEmailAccount(unittest.TestCase):
 
 		with self.assertRaises(Exception):
 			email_account.validate()
+
+	def test_append_to(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mail_content = self.get_test_mail(fname="incoming-2.raw")
+
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, 'ToDo')
+		communication = inbound_mail.process()
+		# the append_to for the email is set to ToDO in "_Test Email Account 1"
+		self.assertEqual(communication.reference_doctype, 'ToDo')
+		self.assertTrue(communication.reference_name)
+		self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
+
+	def test_append_to_with_imap_folders(self):
+		mail_content_1 = self.get_test_mail(fname="incoming-1.raw")
+		mail_content_2 = self.get_test_mail(fname="incoming-2.raw")
+		mail_content_3 = self.get_test_mail(fname="incoming-3.raw")
+
+		messages = {
+			# append_to = ToDo
+			'"INBOX"': {
+				'latest_messages': [
+					mail_content_1,
+					mail_content_2
+				],
+				'seen_status': {
+					0: 'UNSEEN',
+					1: 'UNSEEN'
+				},
+				'uid_list': [0,1]
+			},
+			# append_to = Communication
+			'"Test Folder"': {
+				'latest_messages': [
+					mail_content_3
+				],
+				'seen_status': {
+					2: 'UNSEEN'
+				},
+				'uid_list': [2]
+			}
+		}
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mails = TestEmailAccount.mocked_get_inbound_mails(email_account, messages)
+		self.assertEqual(len(mails), 3)
+
+		inbox_mails = 0
+		test_folder_mails = 0
+
+		for mail in mails:
+			communication = mail.process()
+			if mail.append_to == 'ToDo':
+				inbox_mails += 1
+				self.assertEqual(communication.reference_doctype, 'ToDo')
+				self.assertTrue(communication.reference_name)
+				self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
+			else:
+				test_folder_mails += 1
+				self.assertEqual(communication.reference_doctype, None)
+
+		self.assertEqual(inbox_mails, 2)
+		self.assertEqual(test_folder_mails, 1)
+
+	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	def mocked_get_inbound_mails(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None):
+		from frappe.email.receive import EmailServer
+
+		def get_mocked_messages(**kwargs):
+			return messages.get(kwargs["folder"], {})
+
+		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+			mails = email_account.get_inbound_mails()
+
+		return mails
+
+	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	def mocked_email_receive(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None):
+		def get_mocked_messages(**kwargs):
+			return messages.get(kwargs["folder"], {})
+
+		from frappe.email.receive import EmailServer
+		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+			email_account.receive()
 
 class TestInboundMail(unittest.TestCase):
 	@classmethod
@@ -313,11 +485,11 @@ class TestInboundMail(unittest.TestCase):
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
-		new_communiction = inbound_mail.process()
+		new_communication = inbound_mail.process()
 
 		# Make sure that uid is changed to new uid
-		self.assertEqual(new_communiction.uid, 12345)
-		self.assertEqual(communication.name, new_communiction.name)
+		self.assertEqual(new_communication.uid, 12345)
+		self.assertEqual(communication.name, new_communication.name)
 
 	def test_find_parent_email_queue(self):
 		"""If the mail is reply to the already sent mail, there will be a email queue record.

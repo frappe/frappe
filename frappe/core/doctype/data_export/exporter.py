@@ -314,7 +314,7 @@ class DataExporter:
 						.where(child_doctype_table.parentfield == c["parentfield"])
 						.orderby(child_doctype_table.idx)
 					)
-					for ci, child in enumerate(data_row.run()):
+					for ci, child in enumerate(data_row.run(as_dict=True)):
 						self.add_data_row(rows, c['doctype'], c['parentfield'], child, ci)
 
 			for row in rows:

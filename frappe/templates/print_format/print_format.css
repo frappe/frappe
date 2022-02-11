@@ -57,6 +57,10 @@ body {
 		padding-left: {{ print_format.margin_left | int }}mm;
 		padding-bottom: {{ print_format.margin_bottom | int }}mm;
 	}
+
+	.child-table {
+		overflow-x: auto;
+	}
 }
 
 .section:not(:first-child) {

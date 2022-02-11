@@ -8,11 +8,11 @@ import Spacer from "./spacer";
 import Onboarding from "./onboarding";
 
 // import tunes
-import SpacingTune from "./spacing_tune";
+import HeaderSize from "./header_size";
 
-frappe.provide("frappe.wspace_block");
+frappe.provide("frappe.workspace_block");
 
-frappe.wspace_block.blocks = {
+frappe.workspace_block.blocks = {
 	header: Header,
 	paragraph: Paragraph,
 	card: Card,
@@ -22,6 +22,6 @@ frappe.wspace_block.blocks = {
 	onboarding: Onboarding,
 };
 
-frappe.wspace_block.tunes = {
-	spacing_tune: SpacingTune
+frappe.workspace_block.tunes = {
+	header_size: HeaderSize,
 };

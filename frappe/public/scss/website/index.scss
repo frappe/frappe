@@ -4,6 +4,7 @@
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
+@import "../common/alert";
 @import 'base';
 @import "../common/flex";
 @import "../common/buttons";
@@ -27,6 +28,8 @@
 @import 'navbar';
 @import 'footer';
 @import 'error-state';
+@import 'my_account';
+
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -129,7 +132,7 @@
 	a {
 		color: var(--text-color)
 	}
-	
+
 	li.disabled {
 		a {
 			color: var(--text-muted);
@@ -164,6 +167,10 @@ a.card {
 
 .indicator {
 	font-size: inherit;
+}
+
+.indicator-pill {
+	font-size: var(--font-size-xs)
 }
 
 h4.modal-title {
@@ -297,4 +304,8 @@ h5.modal-title {
 	max-width: 400px;
 	margin: 70px auto;
 	font-size: $font-size-sm;
+}
+
+.empty-list-icon {
+	height: 70px;
 }

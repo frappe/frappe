@@ -18,6 +18,17 @@ class MariaDBTable(DBTable):
 		if index_defs:
 			additional_definitions += ',\n'.join(index_defs) + ',\n'
 
+		# child table columns
+		if self.meta.get("istable") or 0:
+			additional_definitions += ',\n'.join(
+				(
+					f"parent varchar({varchar_len})",
+					f"parentfield varchar({varchar_len})",
+					f"parenttype varchar({varchar_len})",
+					"index parent(parent)"
+				)
+			) + ',\n'
+
 		# create table
 		query = f"""create table `{self.table_name}` (
 			name varchar({varchar_len}) not null primary key,
@@ -26,12 +37,8 @@ class MariaDBTable(DBTable):
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus int(1) not null default '0',
-			parent varchar({varchar_len}),
-			parentfield varchar({varchar_len}),
-			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
 			{additional_definitions}
-			index parent(parent),
 			index modified(modified))
 			ENGINE={engine}
 			ROW_FORMAT=DYNAMIC
@@ -58,18 +65,34 @@ class MariaDBTable(DBTable):
 			modify_column_query.append("MODIFY `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
-			# if index key not exists
-			if not frappe.db.sql("SHOW INDEX FROM `%s` WHERE key_name = %s" %
-					(self.table_name, '%s'), col.fieldname):
-				add_index_query.append("ADD INDEX `{}`(`{}`)".format(col.fieldname, col.fieldname))
+			# if index key does not exists
+			if not frappe.db.has_index(self.table_name, col.fieldname + '_index'):
+				add_index_query.append("ADD INDEX `{}_index`(`{}`)".format(col.fieldname, col.fieldname))
 
-		for col in self.drop_index:
+		for col in self.drop_index + self.drop_unique:
 			if col.fieldname != 'name': # primary key
+				current_column = self.current_columns.get(col.fieldname.lower())
+				unique_constraint_changed = current_column.unique != col.unique
+				if unique_constraint_changed and not col.unique:
+					# nosemgrep
+					unique_index_record = frappe.db.sql("""
+						SHOW INDEX FROM `{0}`
+						WHERE Key_name=%s
+						AND Non_unique=0
+					""".format(self.table_name), (col.fieldname), as_dict=1)
+					if unique_index_record:
+						drop_index_query.append("DROP INDEX `{}`".format(unique_index_record[0].Key_name))
+				index_constraint_changed = current_column.index != col.set_index
 				# if index key exists
-				if frappe.db.sql("""SHOW INDEX FROM `{0}`
-					WHERE key_name=%s
-					AND Non_unique=%s""".format(self.table_name), (col.fieldname, col.unique)):
-					drop_index_query.append("drop index `{}`".format(col.fieldname))
+				if index_constraint_changed and not col.set_index:
+					# nosemgrep
+					index_record = frappe.db.sql("""
+						SHOW INDEX FROM `{0}`
+						WHERE Key_name=%s
+						AND Non_unique=1
+					""".format(self.table_name), (col.fieldname + '_index'), as_dict=1)
+					if index_record:
+						drop_index_query.append("DROP INDEX `{}`".format(index_record[0].Key_name))
 
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:

@@ -137,7 +137,7 @@ def get_context(context):
 
 		if self.set_property_after_alert:
 			allow_update = True
-			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
+			if doc.docstatus.is_submitted() and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
 				allow_update = False
 			try:
 				if allow_update and not doc.flags.in_notification_update:
@@ -435,8 +435,8 @@ def get_context(doc):
 def get_assignees(doc):
 	assignees = []
 	assignees = frappe.get_all('ToDo', filters={'status': 'Open', 'reference_name': doc.name,
-		'reference_type': doc.doctype}, fields=['owner'])
+		'reference_type': doc.doctype}, fields=['allocated_to'])
 
-	recipients = [d.owner for d in assignees]
+	recipients = [d.allocated_to for d in assignees]
 
 	return recipients

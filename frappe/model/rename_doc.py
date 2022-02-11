@@ -80,6 +80,7 @@ def rename_doc(
 
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
+		update_customizations(old, new)
 
 	update_attachments(doctype, old, new)
 
@@ -110,6 +111,7 @@ def rename_doc(
 	if merge:
 		frappe.delete_doc(doctype, old)
 
+	new_doc.clear_cache()
 	frappe.clear_cache()
 	if rebuild_search:
 		frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
@@ -173,6 +175,8 @@ def update_user_settings(old, new, link_fields):
 		else:
 			continue
 
+def update_customizations(old: str, new: str) -> None:
+	frappe.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
 
 def update_attachments(doctype, old, new):
 	try:
@@ -292,7 +296,7 @@ def update_link_field_values(link_fields, old, new, doctype):
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.set_value(parent, {docfield: old}, docfield, new)
+			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
 
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:

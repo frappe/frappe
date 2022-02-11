@@ -77,7 +77,7 @@ class WebForm(WebsiteGenerator):
 
 			for prop in docfield_properties:
 				if df.fieldtype==meta_df.fieldtype and prop not in ("idx",
-					"reqd", "default", "description", "default", "options",
+					"reqd", "default", "description", "options",
 					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
@@ -216,8 +216,8 @@ def get_context(context):
 				"amount": amount,
 				"title": title,
 				"description": title,
-				"reference_doctype": "Web Form",
-				"reference_docname": self.name,
+				"reference_doctype": doc.doctype,
+				"reference_docname": doc.name,
 				"payer_email": frappe.session.user,
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,
@@ -305,7 +305,7 @@ def get_context(context):
 				if not section:
 					section = add_section()
 					column = None
-				if column==None:
+				if column is None:
 					column = add_column()
 				column.append(df)
 
