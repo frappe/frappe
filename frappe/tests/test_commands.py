@@ -686,3 +686,10 @@ class TestSiteMigration(BaseTestCommands):
 			self.assertTrue(TEST_SITE in result.stdout)
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
+
+
+class TestBenchBuild(BaseTestCommands):
+	def test_build_assets(self):
+		with cli(frappe.commands.utils.build) as result:
+			self.assertEqual(result.exit_code, 0)
+			self.assertEqual(result.exception, None)
