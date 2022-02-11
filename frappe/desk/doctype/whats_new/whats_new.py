@@ -10,10 +10,20 @@ class WhatsNew(Document):
 @frappe.whitelist(allow_guest=True)
 def fetch_latest_posts():
 	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link", "tags"]
-	posts = frappe.get_all("Whats New", fields=fields)
+	try:
+		posts = frappe.get_all("Whats New", fields=fields)
+	except:
+		traceback = frappe.get_traceback()
+		frappe.log_error(title=frappe._("Error while retrieving posts"), message=traceback)
+
 	for post in posts:
-		tags = frappe.get_all("Whats New Tag", filters={"parent":post.name}, fields=["tag"])
+		try:
+			tags = frappe.get_all("Whats New Tag", filters={"parent":post.name}, fields=["tag"])
+		except:
+			traceback = frappe.get_traceback()
+			frappe.log_error(title=frappe._("Error while retrieving tags for posts"), message=traceback)
+
 		if tags:
 			post.tags = tags
-
+	print('POSTS HERE',posts)
 	return posts
