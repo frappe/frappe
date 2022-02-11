@@ -733,10 +733,14 @@ def validate_links_table_fieldnames(meta):
 		return
 
 	fieldnames = tuple(field.fieldname for field in meta.fields)
-	for index, link in enumerate(meta.links):
+	for index, link in enumerate(meta.links, 1):
 		link_meta = frappe.get_meta(link.link_doctype)
 		if not link_meta.get_field(link.link_fieldname):
+<<<<<<< HEAD
 			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+=======
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+>>>>>>> c4060d4230 (fix: enumerate from 1)
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
 <<<<<<< HEAD
@@ -758,15 +762,15 @@ def validate_links_table_fieldnames(meta):
 			continue
 
 		if not link.parent_doctype:
-			message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
+			message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index)
 			frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
 
 		if not link.table_fieldname:
-			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
+			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index)
 			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
 		if link.table_fieldname not in fieldnames:
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
 
 >>>>>>> c118334f22 (fix: attribute error in `validate_links_table_fieldnames`)
