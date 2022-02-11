@@ -211,7 +211,6 @@ def validate_oauth(authorization_header):
 		pass
 
 
-
 def validate_auth_via_api_keys(authorization_header):
 	"""
 	Authenticate request using API keys and set session user

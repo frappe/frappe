@@ -18,6 +18,7 @@ try:
 except Exception:
 	_site = None
 
+authorization_token = None
 
 @contextmanager
 def suppress_stdout():
@@ -37,6 +38,11 @@ def make_request(target: str, args: Optional[Tuple] = None, kwargs: Optional[Dic
 	return t._return
 
 
+def patch_request_header(key, *args, **kwargs):
+	if key == "Authorization":
+		return f"token {authorization_token}"
+
+
 class ThreadWithReturnValue(Thread):
 	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
 		Thread.__init__(self, group, target, name, args, kwargs)
@@ -45,7 +51,12 @@ class ThreadWithReturnValue(Thread):
 	def run(self):
 		if self._target is not None:
 			with patch("frappe.app.get_site_name", return_value=_site):
+				header_patch = patch("frappe.get_request_header", new=patch_request_header)
+				if authorization_token:
+					header_patch.start()
 				self._return = self._target(*self._args, **self._kwargs)
+				if authorization_token:
+					header_patch.stop()
 
 	def join(self, *args):
 		Thread.join(self, *args)
@@ -104,6 +115,11 @@ class TestResourceAPI(FrappeAPITestCase):
 	def setUp(self):
 		# commit to ensure consistency in session (postgres CI randomly fails)
 		if frappe.conf.db_type == "postgres":
+			frappe.db.commit()
+
+		if self._testMethodName == "test_auth_cycle":
+			from frappe.core.doctype.user.user import generate_keys
+			generate_keys("Administrator")
 			frappe.db.commit()
 
 	def test_unauthorized_call(self):
@@ -188,6 +204,24 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 404)
 		self.assertDictEqual(response.json, {})
 
+	def test_run_doc_method(self):
+		# test 10: Run whitelisted method on doc via /api/resource
+		# status_code is 403 if no other tests are run before this - it's not logged in
+		self.post("/api/resource/Website Theme/Standard", {"run_method": "get_apps"})
+		response = self.get("/api/resource/Website Theme/Standard", {"run_method": "get_apps"})
+		self.assertIn(response.status_code, (403, 200))
+
+		if response.status_code == 403:
+			self.assertTrue(set(response.json.keys()) == {'exc_type', 'exception', 'exc', '_server_messages'})
+			self.assertEqual(response.json.get('exc_type'), 'PermissionError')
+			self.assertEqual(response.json.get('exception'), 'frappe.exceptions.PermissionError: Not permitted')
+			self.assertIsInstance(response.json.get('exc'), str)
+
+		elif response.status_code == 200:
+			data = response.json.get("data")
+			self.assertIsInstance(data, list)
+			self.assertIsInstance(data[0], dict)
+
 
 class TestMethodAPI(FrappeAPITestCase):
 	METHOD_PATH = "/api/method"
@@ -207,4 +241,24 @@ class TestMethodAPI(FrappeAPITestCase):
 		response = self.get(f"{self.METHOD_PATH}/ping")
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
-		self.assertEqual(response.json['message'], "pong")
+		self.assertEqual(response.json["message"], "pong")
+
+	def test_get_user_info(self):
+		# test 3: test for /api/method/frappe.realtime.get_user_info
+		response = self.get(f"{self.METHOD_PATH}/frappe.realtime.get_user_info")
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json, dict)
+		self.assertIn(response.json.get("message").get("user"), ("Administrator", "Guest"))
+
+	def test_auth_cycle(self):
+		# test 4: Pass authorization token in request
+		global authorization_token
+		user = frappe.get_doc("User", "Administrator")
+		api_key, api_secret = user.api_key, user.get_password("api_secret")
+		authorization_token = f"{api_key}:{api_secret}"
+		response = self.get("/api/method/frappe.auth.get_logged_user")
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["message"], "Administrator")
+
+		authorization_token = None
