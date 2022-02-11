@@ -6,8 +6,11 @@ import requests
 
 @frappe.whitelist(allow_guest=True)
 def get_whats_new_posts():
-
-	res = requests.get('http://test-erp:8000/api/method/frappe.desk.doctype.whats_new.whats_new.fetch_latest_posts')
-	res.raise_for_status()
+	host = "http://test-st.frappe.cloud"
+	try:
+		res = requests.get(host + '/api/method/frappe.desk.doctype.whats_new.whats_new.fetch_latest_posts')
+	except:
+		frappe.throw('Error in establishing connection with host')
 	data = res.json()
 	return data.get('message') or []
+	# res.raise_for_status()

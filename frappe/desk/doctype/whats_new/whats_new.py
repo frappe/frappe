@@ -16,5 +16,4 @@ def fetch_latest_posts():
 		if tags:
 			post.tags = tags
 
-	print("POSTS HERE",posts)
 	return posts

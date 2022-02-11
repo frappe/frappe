@@ -7,8 +7,10 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 	new WhatsNew(page);
 }
 
+const host = "http://test-st.frappe.cloud";
 class WhatsNew {
 	constructor(page) {
+
 		this.page = page;
 		this.make_container();
 		this.fetch_posts()
@@ -54,7 +56,7 @@ class WhatsNew {
 	get_post_media(post) {
 
 		if (post.banner && post.banner != null) {
-			const src = encodeURI('http://test-erp:8000' + post.banner);
+			const src = encodeURI(host + post.banner);
 			return (`<img class='whats-new-post-media' src=${src} />`)
 		} else {
 			return ''
@@ -88,9 +90,9 @@ class WhatsNew {
 	}
 
 	render_fetched_posts() {
-		const main_url = 'http://test-erp:8000';
+		const main_url = 'http://test-st.frappe.cloud';
 		let html = this.new_posts.map(post => {
-			const src = encodeURI(main_url + post.banner);
+			const src = encodeURI(host + post.banner);
 			console.log(post.tags);
 			return `
 				<div class="whats-new-post-wrapper">
