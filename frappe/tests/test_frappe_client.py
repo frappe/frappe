@@ -170,7 +170,6 @@ class TestFrappeClient(unittest.TestCase):
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 403)
 
-
 		# random api key and api secret
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"

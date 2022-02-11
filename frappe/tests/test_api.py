@@ -2,19 +2,22 @@ import sys
 import unittest
 from contextlib import contextmanager
 from random import choice
-from typing import Dict, Optional, Tuple
 from threading import Thread
+from typing import Dict, Optional, Tuple
+from unittest.mock import patch
 
 import requests
 from semantic_version import Version
+from werkzeug.test import TestResponse
 
 import frappe
-from frappe.utils import get_site_url
+from frappe.utils import get_site_url, get_test_client
 
 try:
 	_site = frappe.local.site
 except Exception:
 	_site = None
+
 
 @contextmanager
 def suppress_stdout():
@@ -26,36 +29,28 @@ def suppress_stdout():
 	finally:
 		sys.stdout = sys.__stdout__
 
+
+def make_request(target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None) -> TestResponse:
+	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
+	t.start()
+	t.join()
+	return t._return
+
+
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None,
-				args=(), kwargs={}, Verbose=None):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
 
 	def run(self):
-		from unittest.mock import patch
 		if self._target is not None:
 			with patch("frappe.app.get_site_name", return_value=_site):
-				# print(self._args, self._kwargs)
 				self._return = self._target(*self._args, **self._kwargs)
 
 	def join(self, *args):
 		Thread.join(self, *args)
 		return self._return
 
-
-def get_test_client():
-	from frappe.app import application
-	from werkzeug.test import Client
-
-	return Client(application)
-
-
-def make_request(target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None):
-	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
-	t.start()
-	t.join()
-	return t._return
 
 class FrappeAPITestCase(unittest.TestCase):
 	SITE = frappe.local.site
@@ -64,7 +59,7 @@ class FrappeAPITestCase(unittest.TestCase):
 	TEST_CLIENT = get_test_client()
 
 	@property
-	def sid(self):
+	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
 			r = self.post("/api/method/login", {
 				"usr": "Administrator",
@@ -74,16 +69,16 @@ class FrappeAPITestCase(unittest.TestCase):
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None):
+	def get(self, path: str, params: Optional[Dict] = None) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params})
 
-	def post(self, path, data):
+	def post(self, path, data) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data})
 
-	def put(self, path, data):
+	def put(self, path, data) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data})
 
-	def delete(self, path):
+	def delete(self, path) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.delete, args=(path, ))
 
 
