@@ -145,8 +145,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_debug(self):
 		# test 5: fetch response with debug
-		with suppress_stdout():
-			response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "debug": True})
+		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "debug": True})
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("exc", response.json)
 		self.assertIsInstance(response.json["exc"], str)
