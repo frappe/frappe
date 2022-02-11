@@ -152,7 +152,7 @@ $.extend(frappe.meta, {
 			out = doctype;
 		} else {
 			frappe.meta.get_table_fields(doctype).every(function(d) {
-				if(frappe.meta.has_field(d.options, key)) {
+				if(frappe.meta.has_field(d.options, key) || in_list(frappe.model.child_table_field_list, key)) {
 					out = d.options;
 					return false;
 				}

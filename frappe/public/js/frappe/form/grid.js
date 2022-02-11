@@ -747,7 +747,8 @@ export default class Grid {
 				var df = this.visible_columns[i][0];
 				var colsize = this.visible_columns[i][1];
 				if (colsize > 1 && colsize < 11
-					&& !in_list(frappe.model.std_fields_list, df.fieldname)) {
+					&& !in_list(frappe.model.std_fields_list, df.fieldname)
+					&& !in_list(frappe.model.child_table_field_list, df.fieldname)) {
 
 					if (passes < 3 && ["Int", "Currency", "Float", "Check", "Percent"].indexOf(df.fieldtype) !== -1) {
 						// don't increase col size of these fields in first 3 passes
