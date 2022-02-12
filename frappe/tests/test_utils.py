@@ -419,3 +419,50 @@ class TestXlsxUtils(unittest.TestCase):
 		val = handle_html("<p>html data &gt;</p>")
 		self.assertIn("html data >", val)
 		self.assertEqual("abc", handle_html("abc"))
+
+
+class TestLinkTitle(unittest.TestCase):
+	def test_link_title_doctypes_in_boot_info(self):
+		"""
+		Test that doctypes are added to link_title_map in boot_info
+		"""
+		custom_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Core",
+				"custom": 1,
+				"fields": [
+					{
+						"label": "Test Field",
+						"fieldname": "test_title_field",
+						"fieldtype": "Data",
+					}
+				],
+				"show_title_field_in_link": 1,
+				"title_field": "test_title_field",
+				"permissions": [{"role": "System Manager", "read": 1}],
+				"name": "Test Custom Doctype for Link Title",
+			}
+		)
+		custom_doctype.insert()
+
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		from frappe.boot import get_link_title_doctypes
+
+		link_title_doctypes = get_link_title_doctypes()
+		self.assertTrue("User" in link_title_doctypes)
+		self.assertTrue("Test Custom Doctype for Link Title" in link_title_doctypes)
+
+		prop_setter.delete()
+		custom_doctype.delete()
+
