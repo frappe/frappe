@@ -134,6 +134,8 @@ context('Control Link', () => {
 
 				expect(value).to.eq(todos[0]);
 				expect(label).to.eq('this is a test todo for link');
+
+				cy.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link");
 			});
 		});
 	});
