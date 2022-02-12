@@ -5,7 +5,9 @@ from __future__ import unicode_literals
 import frappe, json, os
 import unittest
 from frappe.desk.query_report import run, save_report
+from frappe.desk.reportview import delete_report, save_report as _save_report
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 
 test_records = frappe.get_test_records('Report')
 test_dependencies = ['User']
@@ -30,6 +32,60 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[0].get('label'), 'Name')
 		self.assertEqual(columns[1].get('label'), 'Module')
 		self.assertTrue('User' in [d.get('name') for d in data])
+
+	def test_save_or_delete_report(self):
+		'''Test for validations when editing / deleting report of type Report Builder'''
+
+		try:
+			report = frappe.get_doc({
+				'doctype': 'Report',
+				'ref_doctype': 'User',
+				'report_name': 'Test Delete Report',
+				'report_type': 'Report Builder',
+				'is_standard': 'No',
+			}).insert()
+
+			# Check for PermissionError
+			create_user("test_report_owner@example.com", "Website Manager")
+			frappe.set_user("test_report_owner@example.com")
+			self.assertRaises(frappe.PermissionError, delete_report, report.name)
+
+			# Check for Report Type
+			frappe.set_user("Administrator")
+			report.db_set("report_type", "Custom Report")
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Only reports of type Report Builder can be deleted",
+				delete_report,
+				report.name
+			)
+
+			# Check if creating and deleting works with proper validations
+			frappe.set_user("test@example.com")
+			report_name = _save_report(
+				'Dummy Report',
+				'User',
+				json.dumps([{
+					'fieldname': 'email',
+					'fieldtype': 'Data',
+					'label': 'Email',
+					'insert_after_index': 0,
+					'link_field': 'name',
+					'doctype': 'User',
+					'options': 'Email',
+					'width': 100,
+					'id':'email',
+					'name': 'Email'
+				}])
+			)
+
+			doc = frappe.get_doc("Report", report_name)
+			delete_report(doc.name)
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.rollback()
+
 
 	def test_custom_report(self):
 		reset_customization('User')
