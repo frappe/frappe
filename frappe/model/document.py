@@ -860,8 +860,12 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
-		if "flags" in kwargs:
-			del kwargs["flags"]
+
+		kwargs.pop("flags", None)
+
+		# Cannot have a field with same name as method
+		# Validation for this already exists when saving a DocType
+		self.__dict__.pop(method, None)
 
 		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
