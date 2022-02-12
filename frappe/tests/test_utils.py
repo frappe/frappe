@@ -466,3 +466,49 @@ class TestLinkTitle(unittest.TestCase):
 		prop_setter.delete()
 		custom_doctype.delete()
 
+	def test_link_titles_on_getdoc(self):
+		"""
+		Test that link titles are added to the doctype on getdoc
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"user_type": "Website User",
+				"email": "test_user_for_link_title@example.com",
+				"send_welcome_email": 0,
+				"first_name": "Test User for Link Title",
+			}
+		).insert(ignore_permissions=True)
+
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "test-link-title-on-getdoc",
+				"allocated_to": user.name,
+			}
+		).insert()
+
+		from frappe.desk.form.load import getdoc
+
+		getdoc("ToDo", todo.name)
+		link_titles = frappe.local.response["_link_titles"]
+
+		self.assertTrue(f"{user.doctype}::{user.name}" in link_titles)
+		self.assertEqual(link_titles[f"{user.doctype}::{user.name}"], user.full_name)
+
+		todo.delete()
+		user.delete()
+		prop_setter.delete()
+
+
