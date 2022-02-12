@@ -35,8 +35,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 
 				if(!me.$input.val()) {
-					me.reset_value();
-					me.reset_fetch_values(me.df, me.docname);
 					me.$input.val("").trigger("input");
 				}
 			}, 500);
@@ -75,8 +73,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		super.set_formatted_input();
 		if (!value) return;
 
+		if (!this.title_value_map) {
+			this.title_value_map = {};
+		}
 		this.set_link_title(value);
-		this.data_value = value;
 	}
 	set_link_title(value) {
 		let doctype = this.get_options();
@@ -90,15 +90,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					.fetch_link_title(doctype, value)
 					.then(link_title => {
 						this.set_input_value(link_title);
+						this.title_value_map[link_title] = value;
 					});
 			} else {
 				this.set_input_value(link_title);
+				this.title_value_map[link_title] = value;
 			}
 		} else {
 			this.set_input_value(value);
 		}
 	}
-	parse_validate_and_set_in_model(value, label, e) {
+	parse_validate_and_set_in_model(value, e, label) {
 		if (this.parse) value = this.parse(value, label);
 		if (label) {
 			this.label = label;
@@ -109,7 +111,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	get_input_value() {
 		if (this.$input) {
-			return this.data_value ? this.data_value : this.$input.val();
+			const input_value = this.$input.val();
+			return this.title_value_map?.[input_value] || input_value;
 		}
 		return null;
 	}
@@ -118,13 +121,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	set_input_value(value) {
 		this.$input && this.$input.val(value);
-	}
-	reset_value() {
-		if (!this.$input) {
-			return;
-		}
-		this.$input.val("");
-		this.data_value = null;
 	}
 	open_advanced_search() {
 		var doctype = this.get_options();
@@ -302,7 +298,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			let label = me.get_label_value();
 
 			if (value !== me.last_value || me.label !== label) {
-				me.parse_validate_and_set_in_model(value, label);
+				me.parse_validate_and_set_in_model(value, null, label);
 			}
 		});
 
@@ -342,14 +338,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
-			me.parse_validate_and_set_in_model(item.value, item.label);
+			me.parse_validate_and_set_in_model(item.value, null, item.label);
 		});
 
 		this.$input.on("awesomplete-selectcomplete", function(e) {
 			let o = e.originalEvent;
 			if (o.text.value.indexOf("__link_option") !== -1) {
-				me.reset_value();
-				me.reset_fetch_values(me.df, me.docname);
+				me.$input.val("");
 			}
 		});
 	}
@@ -536,12 +531,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	validate_link_and_fetch(df, options, docname, value) {
 		if (!options) return;
 
-		if (!value) {
-			this.reset_value();
-			this.reset_fetch_values(df, docname);
-			return;
-		};
-
 		const fetch_map = this.fetch_map;
 		const columns_to_fetch = Object.values(fetch_map);
 
@@ -592,13 +581,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		return fetch_map;
-	}
-	reset_fetch_values(df, docname) {
-		let fields = this.frm && this.frm.fetch_dict && this.frm.fetch_dict[df.fieldname] ? this.frm.fetch_dict[df.fieldname].fields : [];
-
-		fields.forEach(field => {
-			frappe.model.set_value(df.parent, docname, field, null, df.fieldtype);
-		});
 	}
 };
 
