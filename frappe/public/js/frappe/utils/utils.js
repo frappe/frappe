@@ -1444,6 +1444,9 @@ Object.assign(frappe.utils, {
 			return frappe.xcall("frappe.desk.search.get_link_title", {
 				"doctype": doctype,
 				"docname": name
+			}).then(title => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
 			});
 		} catch (error) {
 			console.log('Error while fetching link title.');
