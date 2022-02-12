@@ -26,6 +26,14 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		}
 	}
 
+	get_input_value() {
+		if (this.$input) {
+			const label = this.$input.val();
+			const item = this._data?.find(i => i.label == label);
+			return item ? item.value : label;
+		}
+	}
+
 	get_awesomplete_settings() {
 		var me = this;
 		return {
@@ -34,7 +42,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			autoFirst: true,
 			list: this.get_data(),
 			data: function(item) {
-				if (!(item instanceof Object)) {
+				if (typeof item !== 'object') {
 					var d = { value: item };
 					item = d;
 				}
