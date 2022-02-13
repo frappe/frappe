@@ -325,7 +325,6 @@ frappe.ui.FilterGroup = class {
 	}
 
 	add_filters_to_filter_group(filters) {
-		console.log(filters);
 		if (filters.length) {
 			this.toggle_empty_filters(false);
 			filters.forEach((filter) => {
