@@ -7,7 +7,7 @@ context('Grid', () => {
 		cy.login();
 		cy.visit('/app/website');
 		return cy.window().its('frappe').then(frappe => {
-			return frappe.call("frappe.tests.ui_test_helpers.create_contacts_and_update_meta");
+			return frappe.call("frappe.tests.ui_test_helpers.create_contact_phone_nos_records");
 		});
 	});
 	it('update docfield property using update_docfield_property', () => {
