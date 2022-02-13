@@ -105,9 +105,6 @@ class BaseDocument(object):
 			})
 		"""
 
-		# QUESTION: why do we need the 1st for loop?
-		# we're essentially setting the values in d, in the 2nd for loop (?)
-
 		# first set default field values of base document
 		for key in default_fields:
 			if key in d:
