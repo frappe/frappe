@@ -15,7 +15,6 @@
   "column_break_6",
   "email",
   "last_name",
-  "company_name",
   "language",
   "column_break0",
   "first_name",
@@ -27,6 +26,12 @@
   "send_welcome_email",
   "unsubscribed",
   "user_image",
+  "sb_limitation",
+  "company_name",
+  "cb_limitation",
+  "territory",
+  "cb_limitation_2",
+  "maintenance_zone",
   "sb1",
   "role_profile_name",
   "roles_html",
@@ -606,6 +611,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Dark",
    "fieldname": "desk_theme",
    "fieldtype": "Select",
    "label": "Desk Theme",
@@ -622,7 +628,7 @@
   {
    "fieldname": "company_name",
    "fieldtype": "Link",
-   "label": "Company Name",
+   "label": "Supplier Name",
    "options": "Supplier"
   },
   {
@@ -669,6 +675,31 @@
    "fieldtype": "Text",
    "label": "firebase",
    "read_only": 1
+  },
+  {
+   "fieldname": "sb_limitation",
+   "fieldtype": "Section Break",
+   "label": "Limitation"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "cb_limitation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cb_limitation_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maintenance_zone",
+   "fieldtype": "Link",
+   "label": "Maintenance Zone",
+   "options": "Maintenance Zone Master"
   }
  ],
  "icon": "fa fa-user",
@@ -737,7 +768,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-02-02 16:35:33.560612",
+ "modified": "2022-02-11 14:09:10.077473",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
