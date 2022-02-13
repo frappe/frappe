@@ -4,8 +4,12 @@ import os
 import unittest
 
 import frappe
-from frappe.utils import cint
-from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
+from frappe.model.naming import (
+	make_autoname,
+	parse_naming_series,
+	revert_series_if_last,
+)
+from frappe.utils import cint, get_date_str, get_datetime, get_time_str, to_timedelta
 
 
 class TestDocument(unittest.TestCase):
@@ -258,13 +262,54 @@ class TestDocument(unittest.TestCase):
 		# assuming DocType has more that 3 Data fields
 		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
-	def test_date_and_time_casting(self):
-		due_date = frappe.utils.get_datetime()
+	def test_date_casting(self):
+		create_time_custom_field()
+
+		_datetime_str = "2022-02-13 12:02:33.713418"
+		_datetime = get_datetime(_datetime_str)
+
+		# Check if the system parses the string for date and time
 		todo = frappe.get_doc({
 			"doctype": "ToDo",
 			"description": "test_date_and_time_casting",
-			"date": due_date,
+			"date": _datetime_str,
+			"time": _datetime_str
 		}).insert()
 
-		self.assertEquals(todo.date, due_date.date())
+		self.assertEquals(todo.date, get_date_str(_datetime_str))
+		self.assertEquals(todo.time, get_time_str(_datetime_str))
+
+		# Check if the system parses the datetime object for date and time
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": "test_date_and_time_casting",
+			"date": _datetime,
+			"time": _datetime
+		}).insert()
+
+		self.assertEquals(todo.date, _datetime.date())
+		self.assertEquals(todo.time, to_timedelta(_datetime.time()))
+
+		# Check if the system parses the datetime object for date and time
+		todo = frappe.get_doc({
+			"doctype": "ToDo",
+			"description": "test_date_and_time_casting",
+			"date": None,
+			"time": None
+		}).insert()
+
+		self.assertEquals(todo.date, None)
+		self.assertEquals(todo.time, None)
+
+
+def create_time_custom_field():
+	if not frappe.db.exists({"doctype": "Custom Field", "dt": "ToDo", "fieldname": "time"}):
+		frappe.get_doc({
+			"doctype": "Custom Field",
+			"label": "Time",
+			"dt": "ToDo",
+			"fieldname": "time",
+			"fieldtype": "Time",
+			"insert_after": "date"
+		}).insert()
 

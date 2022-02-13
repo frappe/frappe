@@ -1,18 +1,35 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
 import datetime
+
+import frappe
 from frappe import _
-from frappe.model import default_fields, table_fields, child_table_fields
+from frappe.model import (
+	child_table_fields,
+	default_fields,
+	display_fieldtypes,
+	table_fields,
+)
+from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.model import display_fieldtypes
-from frappe.utils import (cint, flt, now, cstr, strip_html,
-	sanitize_html, sanitize_email, cast_fieldtype, cast, get_date_str, get_time_str)
+from frappe.utils import (
+	cast_fieldtype,
+	cint,
+	cstr,
+	flt,
+	get_date_str,
+	get_datetime,
+	get_time_str,
+	now,
+	sanitize_email,
+	sanitize_html,
+	strip_html,
+	to_timedelta,
+)
 from frappe.utils.html_utils import unescape_html
-from frappe.model.docstatus import DocStatus
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -847,7 +864,7 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
-		from frappe.utils.password import set_encrypted_password, remove_encrypted_password
+		from frappe.utils.password import remove_encrypted_password, set_encrypted_password
 
 		if self.flags.ignore_save_passwords is True:
 			return
@@ -1012,19 +1029,46 @@ class BaseDocument(object):
 
 	def _cast_date_and_time_fields(self):
 		"""
-		Converts datetime string to date and time respectively for Date and Time fields
+		Converts datetime/string value to date and time respectively for Date and Time fields only.
+		This is necessary since the values with which the Document class is initialized can differ.
+
+		For eg: The user initializes document with datetime values for Date and Time field, the framework
+		should parse them into correct format.
+		If the values are in datetime format, preserve it in datetime format
+		If the values are in string format, preserve it in string format
 		"""
-		_parser = {
-			"Date": get_date_str,
-			"Time": get_time_str
-		}
-		for field in self.meta.get_time_fields() + self.meta.get_date_fields():
+		self._cast_date_fields()
+		self._cast_time_fields()
+
+	def _cast_date_fields(self):
+		for field in self.meta.get_date_fields():
 			if self.get(field.fieldname) is None:
 				continue
 
-			old_value = self.get(field.fieldname)
-			new_value = cast(field.fieldtype, old_value)
-			value = _parser.get(field.fieldtype)(new_value) if isinstance(old_value, str) else new_value
+			_value = self.get(field.fieldname)
+			value = get_datetime(_value).date()
+			value = (
+				get_date_str(value)
+				if not isinstance(_value, (datetime.datetime, datetime.date))
+				else value
+			)
+
+			self.set(field.fieldname, value)
+
+	def _cast_time_fields(self):
+		for field in self.meta.get_time_fields():
+			if self.get(field.fieldname) is None:
+				continue
+
+			_value = self.get(field.fieldname)
+			value = get_datetime(_value).time()
+			value = to_timedelta(value)
+			value = (
+				get_time_str(value)
+				if not isinstance(_value, (datetime.datetime, datetime.timedelta))
+				else value
+			)
+
 			self.set(field.fieldname, value)
 
 
