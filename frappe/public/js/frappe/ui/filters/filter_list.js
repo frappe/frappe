@@ -170,8 +170,7 @@ frappe.ui.FilterGroup = class {
 	validate_args(doctype, fieldname) {
 		if (doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
-			&& !frappe.model.std_fields_list.includes(fieldname)
-			&& !frappe.model.child_table_field_list.includes(fieldname)) {
+			&& frappe.model.is_non_std_field(fieldname)) {
 
 			frappe.msgprint({
 				message: __('Invalid filter: {0}', [fieldname.bold()]),
