@@ -24,7 +24,6 @@ from frappe.utils import (
 	get_datetime,
 	get_time_str,
 	now,
-	sanitize_email,
 	sanitize_html,
 	strip_html,
 	to_timedelta,
