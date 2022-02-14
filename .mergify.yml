@@ -32,3 +32,7 @@ pull_request_rules:
     actions:
       merge:
         method: squash
+        commit_message_template: |
+            {{ title }} (#{{ number }})
+
+            {{ body }}
