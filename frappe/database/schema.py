@@ -67,7 +67,7 @@ class DBTable:
 		"""
 			get columns from docfields and custom fields
 		"""
-		fields = self.meta.get_fieldnames_with_value(True)
+		fields = self.meta.get_fieldnames_with_value(with_field_meta=True)
 
 		# optional fields like _comments
 		if not self.meta.get('istable'):
@@ -85,6 +85,9 @@ class DBTable:
 				})
 
 		for field in fields:
+			if field.get("is_virtual"):
+				continue
+
 			self.columns[field.get('fieldname')] = DbColumn(
 				self,
 				field.get('fieldname'),
