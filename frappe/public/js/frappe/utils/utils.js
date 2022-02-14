@@ -1449,8 +1449,8 @@ Object.assign(frappe.utils, {
 				return title;
 			});
 		} catch (error) {
-			console.log('Error while fetching link title.');
-			console.log(error);
+			console.log('Error while fetching link title.'); // eslint-disable-line
+			console.log(error); // eslint-disable-line
 			return Promise.resolve(name);
 		}
 	}

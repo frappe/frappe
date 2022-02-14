@@ -111,7 +111,7 @@ context('Control Link', () => {
 			if (!frappe.boot) {
 				frappe.boot = {
 					link_title_doctypes: ['ToDo']
-				}
+				};
 			} else {
 				frappe.boot.link_title_doctypes = ['ToDo'];
 			}
