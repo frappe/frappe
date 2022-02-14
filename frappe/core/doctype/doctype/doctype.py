@@ -1078,6 +1078,9 @@ def validate_fields(meta):
 			field.fetch_from = field.fetch_from.strip('\n').strip()
 
 	def validate_data_field_type(docfield):
+		if docfield.get("is_virtual"):
+			return
+
 		if docfield.fieldtype == "Data" and not (docfield.oldfieldtype and docfield.oldfieldtype != "Data"):
 			if docfield.options and (docfield.options not in data_field_options):
 				df_str = frappe.bold(_(docfield.label))
@@ -1323,10 +1326,9 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		else:
 			raise
 
-def check_fieldname_conflicts(doctype, fieldname):
+def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
-
-	doc = frappe.get_doc({"doctype": doctype})
+	doc = frappe.get_doc({"doctype": docfield.dt})
 	available_objects = [x for x in dir(doc) if isinstance(x, str)]
 	property_list = [
 		x for x in available_objects if isinstance(getattr(type(doc), x, None), property)
@@ -1334,9 +1336,10 @@ def check_fieldname_conflicts(doctype, fieldname):
 	method_list = [
 		x for x in available_objects if x not in property_list and callable(getattr(doc, x))
 	]
+	msg = _("Fieldname {0} conflicting with meta object").format(docfield.fieldname)
 
-	if fieldname in method_list + property_list:
-		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))
+	if docfield.fieldname in method_list + property_list:
+		frappe.msgprint(msg, raise_exception=not docfield.is_virtual)
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')

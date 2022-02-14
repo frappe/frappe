@@ -1672,7 +1672,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				frappe.model.is_value_type(field_doc) &&
 				field_doc.fieldtype !== "Read Only" &&
 				!field_doc.hidden &&
-				!field_doc.read_only
+				!field_doc.read_only &&
+				!field_doc.is_virtual
 			);
 		};
 

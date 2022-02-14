@@ -1,16 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 
 import frappe
-import datetime
 from frappe import _
-from frappe.model import default_fields, table_fields, child_table_fields
+from frappe.model import child_table_fields, default_fields, display_fieldtypes, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.model import display_fieldtypes
-from frappe.utils import (cint, flt, now, cstr, strip_html,
-	sanitize_html, sanitize_email, cast_fieldtype)
+from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 from frappe.model.docstatus import DocStatus
 
@@ -254,7 +252,22 @@ class BaseDocument(object):
 				continue
 
 			df = self.meta.get_field(fieldname)
-			if df:
+
+			if df and df.get("is_virtual"):
+				from frappe.utils.safe_exec import get_safe_globals
+
+				if d[fieldname] is None:
+					if df.get("options"):
+						d[fieldname] = frappe.safe_eval(
+							code=df.get("options"),
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},
+						)
+					else:
+						_val = getattr(self, fieldname, None)
+						if _val and not callable(_val):
+							d[fieldname] = _val
+			elif df:
 				if df.fieldtype=="Check":
 					d[fieldname] = 1 if cint(d[fieldname]) else 0
 
@@ -328,6 +341,7 @@ class BaseDocument(object):
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False, no_child_table_fields=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
+
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
 			doc[df.fieldname] = [
