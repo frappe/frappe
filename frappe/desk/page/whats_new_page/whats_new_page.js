@@ -7,7 +7,21 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 	new WhatsNew(page);
 }
 
-const host = "http://test-st.frappe.cloud";
+const host = "https://test-st.frappe.cloud";
+const month_list = {
+	0 : 'Jan',
+	1 : 'Feb',
+	2 : 'Mar',
+	3 : 'Apr',
+	4 : 'May',
+	5 : 'Jun',
+	6 : 'Jul',
+	7 : 'Aug',
+	8 : 'Sep',
+	9 : 'Oct',
+	10 : 'Nov',
+	11 : 'Dec'
+}
 class WhatsNew {
 	constructor(page) {
 
@@ -19,7 +33,7 @@ class WhatsNew {
 	}
 
 	make_container() {
-		this.$container = $(`<div class="main-wrapper frappe-card"></div>`)
+		this.$container = $(`<div class="main-wrapper"></div>`)
 			.appendTo(this.page.body);
 	}
 
@@ -39,10 +53,12 @@ class WhatsNew {
 			'Version Update': 'green'
 		};
 
+		if (!tag_list)
+			return ``;
 
-			let tags_html = tag_list.map(t => {
-				if (t.tag &&  t.tag != null) {
-					return `<span class="indicator-pill whitespace-nowrap ${tag_color_map[t.tag]}">${t.tag}</span>`
+		let tags_html = tag_list.map(t => {
+			if (t.tag &&  t.tag != null) {
+				return `<span class="indicator-pill whitespace-nowrap ${tag_color_map[t.tag]}">${t.tag}</span>`
 			} else {
 				return ``
 			}
@@ -54,31 +70,21 @@ class WhatsNew {
 	}
 
 	get_post_media(post) {
-
-		if (post.banner && post.banner != null) {
+		if (post.banner && post.banner != null && post.post_type != 'Upcoming Event') {
 			const src = encodeURI(host + post.banner);
-			return (`<img class='whats-new-post-media' src=${src} />`)
+			return (`
+				<div class="whats-new-post-media-wrapper">
+					<img class='whats-new-post-media' src=${src} />
+				</div>
+			`)
 		} else {
 			return ''
 		}
 	}
 
-	get_day_and_date(posting_date) {
-		const month_list = {
-			0 : 'January',
-			1 : 'February',
-			2 : 'March',
-			3 : 'April',
-			4 : 'May',
-			5 : 'June',
-			6 : 'July',
-			7 : 'August',
-			8 : 'September',
-			9 : 'October',
-			10 : 'November',
-			11 : 'December'
-		}
-		const [year, month, day] = posting_date.split("-");
+	get_day_and_date(dt) {
+
+		const [year, month, day] = dt.split("-");
 		const formatted_date = new Date(year, month - 1, day);
 		var final_date = '';
 
@@ -89,11 +95,59 @@ class WhatsNew {
 
 	}
 
+	render_event_date(post) {
+
+		if (post.event_date) {
+			const event_date = post.event_date;
+			const [year, month, day] = event_date.split("-");
+			const formatted_date = new Date(year, month - 1, day);
+			console.log(formatted_date, month_list[formatted_date.getMonth()], formatted_date.getDate())
+
+			return `
+				<div class="row1">
+					<span class="cal-icon fa fa-calendar "></span>
+				</div>
+				<div class="row2">
+					<span class="">${month_list[formatted_date.getMonth()]}</span>
+				</div>
+				<div class="row3">
+					<span class="">${formatted_date.getDate()}</span>
+				</div>
+			`
+		} else {
+			return ``
+		}
+
+	}
+
 	render_fetched_posts() {
 		const main_url = 'http://test-st.frappe.cloud';
 		let html = this.new_posts.map(post => {
 			const src = encodeURI(host + post.banner);
-			console.log(post.tags);
+
+			if (post.post_type == 'Upcoming Event') {
+				return `
+					<div class="whats-new-event-wrapper">
+						<div class="whats-new-event row">
+							<div class="whats-new-event-calendar col-md-2">
+								${this.render_event_date(post)}
+							</div>
+							<div class="col-md-10">
+								<div class="whats-new-event-tags">${this.get_tags(post.tags)}</div>
+								<div class="whats-new-event-header">
+									<h4 class="whats-new-event-title"><b>${post.name}</b></h4>
+								</div>
+								<div class="whats-new-event-content">
+									<div class="whats-new-event-description">
+										${post.description + `<p class="post-source-link">To know more about this, <a href=${post.source_link}}>click here</a>.</p>` || ''}
+									</div>
+									${this.get_post_media(post) || ''}
+								</div>
+							</div>
+						</div>
+					</div>
+				`
+			}
 			return `
 				<div class="whats-new-post-wrapper">
 					<div class="whats-new-post">
@@ -107,15 +161,14 @@ class WhatsNew {
 						</div>
 						<div class="whats-new-post-tags">${this.get_tags(post.tags)}</div>
 						<div class="whats-new-post-content">
-							<div class="whats-new-post-description">${post.description || ''}</div>
-							<div class="whats-new-post-media-wrapper">
-								${this.get_post_media(post) || ''}
+							<div class="whats-new-post-description">
+								${post.description + `<p class="post-source-link">To know more about this, <a href=${post.source_link}}>click here</a>.</p>` || ''}
 							</div>
-							<div class=""></div>
+							${this.get_post_media(post) || ''}
 						</div>
 					</div>
 				</div>
-				<hr>
+
 			`
 			}).join('');
 		this.$container.append(html);

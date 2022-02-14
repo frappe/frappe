@@ -1,37 +1,89 @@
+.page-container{
+	background: #ffffff !important;
+}
 
 .main-wrapper {
-	padding-left: 50px;
-	padding-right: 50px;
+	padding-left: 180px;
+	padding-right: 180px;
 }
 
 .whats-new-post-wrapper {
 	margin: 40px 10px;
-	padding: 15px;
-	font-size: 0.875rem;
+	font-size: 13px;
 	width: 100%;
 }
 
-.whats-new-post {
+.whats-new-event-wrapper {
+	background-color: rgba(245, 250, 255, 1);
+	border-radius: 12px;
+	margin: 40px 90px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+ }
+
+.whats-new-post{
 	max-width: 80%;
-	margin: 0 auto;
+	margin: 60px auto;
 }
 
-.whats-new-post-content {
-	margin-top: 30px;
+.whats-new-event{
+	max-width: 100%;
+	margin: 10px;
+}
+
+.whats-new-event-calendar {
+	border-radius: 6px;
+	align-items: center;
+	background: #fff;
+	display: grid;
+	grid-template-columns: 100%;
+	grid-template-rows: auto auto auto;
+	grid-template-areas:
+	"row1"
+	"row2"
+	"row3";
+	justify-items: center;
+}
+.row1 {
+	font-size: 16px;
+	grid-area: row1;
+}
+.row2 {
+	font-size: 16px;
+	grid-area: row2;
+}
+.row3 {
+	grid-area: row3;
+	font-weight: 600;
+	font-size: 20px ;
+	color: rgba(45, 149, 240, 1);
+}
+
+.cal-icon {
+	display: flex;
+	justify-content: center;
+	font-size: 20px;
+	color: rgba(104, 113, 120, 1)
+}
+
+.whats-new-post-description {
+	margin-top: 10px;
+	max-width: 100%;
 }
 
 .release-date-col {
 	align-self: top;
 	text-align: right;
+	padding-right: 0;
 }
 
-.whats-new-post-header {
+.whats-new-post-header, .whats-new-event-header {
 	display: flex;
-	justify-content: space-between;
+	justify-items: space-between;
 	margin: 0;
 }
 
-.whats-new-post-title {
+.whats-new-post-title, .whats-new-event-title {
 	align-self: center;
 	padding-left: 0;
 }
@@ -45,8 +97,10 @@
 }
 
 .whats-new-post-media-wrapper {
-	width: 60%;
-	padding-top: 30px;
+	width: 100%;
+	padding-top: 20px;
+	padding-left: 10px;
+	padding-right: 10px;
 	align-self: center;
 }
 
@@ -54,6 +108,10 @@
 	width:100%;
 	border-radius: 15px;
 	box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.1), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
+}
+
+.post-source-link {
+	margin-top: 10px;
 }
 
 hr {

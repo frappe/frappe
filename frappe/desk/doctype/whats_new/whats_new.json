@@ -7,6 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "post_details",
   "title",
   "description",
   "section_break_3",
@@ -14,10 +15,12 @@
   "post_type",
   "column_break_6",
   "posting_date",
+  "event_date",
   "source_link",
   "section_break_9",
-  "amended_from",
-  "tags"
+  "add_tags",
+  "tags",
+  "amended_from"
  ],
  "fields": [
   {
@@ -85,11 +88,28 @@
    "fieldtype": "Table MultiSelect",
    "label": "Tags",
    "options": "Whats New Tag"
+  },
+  {
+   "fieldname": "post_details",
+   "fieldtype": "Heading",
+   "label": "Post Details"
+  },
+  {
+   "fieldname": "add_tags",
+   "fieldtype": "Heading",
+   "label": "Add Tags"
+  },
+  {
+   "depends_on": "eval:doc.post_type == \"Upcoming Event\"",
+   "fieldname": "event_date",
+   "fieldtype": "Date",
+   "label": "Event Date",
+   "mandatory_depends_on": "eval: doc.post == \"Upcoming Event\""
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-10 18:26:49.082244",
+ "modified": "2022-02-14 19:17:51.369456",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Whats New",

@@ -6,7 +6,7 @@ import requests
 
 @frappe.whitelist(allow_guest=True)
 def get_whats_new_posts():
-	host = "http://test-st.frappe.cloud"
+	host = "https://test-st.frappe.cloud/"
 
 	try:
 		res = requests.get(host + '/api/method/frappe.desk.doctype.whats_new.whats_new.fetch_latest_posts')

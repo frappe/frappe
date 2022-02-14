@@ -9,7 +9,7 @@ class WhatsNew(Document):
 
 @frappe.whitelist(allow_guest=True)
 def fetch_latest_posts():
-	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link"]
+	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link", 'event_date']
 	try:
 		posts = frappe.get_all("Whats New", fields=fields)
 	except:
