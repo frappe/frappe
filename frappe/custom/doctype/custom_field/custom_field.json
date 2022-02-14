@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "creation": "2022-01-25 14:14:01.217507",
+ "creation": "2013-01-10 16:34:01",
  "description": "Adds a custom field to a DocType",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -34,6 +34,7 @@
   "non_negative",
   "reqd",
   "unique",
+  "is_virtual",
   "read_only",
   "ignore_user_permissions",
   "hidden",
@@ -242,6 +243,12 @@
   },
   {
    "default": "0",
+   "fieldname": "is_virtual",
+   "fieldtype": "Check",
+   "label": "Is Virtual"
+  },
+  {
+   "default": "0",
    "fieldname": "read_only",
    "fieldtype": "Check",
    "label": "Read Only"
@@ -424,7 +431,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-29 15:42:21.885999",
+ "modified": "2022-02-14 15:42:21.885999",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
