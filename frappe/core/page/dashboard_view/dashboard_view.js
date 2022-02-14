@@ -83,6 +83,7 @@ class Dashboard {
 	refresh() {
 		frappe.run_serially([
 			() => this.render_cards(),
+			() => this.setup_global_filters(),
 			() => this.render_charts()
 		]);
 	}
@@ -123,6 +124,17 @@ class Dashboard {
 				});
 			})
 		});
+	}
+
+	setup_global_filters() {
+
+		this.global_filter = $(
+			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
+				${frappe.utils.icon('filter', 'sm')}
+			</div><div>`
+		);
+		let container = this.wrapper.find('.widget-group');
+		this.global_filter.appendTo(container);
 	}
 
 	render_cards() {
