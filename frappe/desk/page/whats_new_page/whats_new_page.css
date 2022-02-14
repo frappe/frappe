@@ -16,7 +16,7 @@
 .whats-new-event-wrapper {
 	background-color: rgba(245, 250, 255, 1);
 	border-radius: 12px;
-	margin: 40px 90px;
+	margin: 20px 90px;
 	padding: 10px 30px;
 	padding-bottom: 10px;
  }
@@ -28,7 +28,6 @@
 
 .whats-new-event{
 	max-width: 100%;
-	margin: 10px;
 }
 
 .whats-new-event-calendar {
@@ -136,7 +135,11 @@ hr {
 
 	.whats-new-event-wrapper {
 		margin: 40px 20px;
-		padding: 20px;
+		padding: 10px;
+	}
+
+	.whats-new-event {
+		margin: 5px;
 	}
 
 	.whats-new-post-media {
