@@ -8,7 +8,7 @@
 }
 
 .whats-new-post-wrapper {
-	margin: 40px 10px;
+	margin: 40px 0px;
 	font-size: 13px;
 	width: 100%;
 }
@@ -17,7 +17,7 @@
 	background-color: rgba(245, 250, 255, 1);
 	border-radius: 12px;
 	margin: 40px 90px;
-	padding-top: 10px;
+	padding: 10px 30px;
 	padding-bottom: 10px;
  }
 
@@ -45,7 +45,6 @@
 	justify-items: center;
 }
 .row1 {
-	font-size: 16px;
 	grid-area: row1;
 }
 .row2 {
@@ -69,6 +68,10 @@
 .whats-new-post-description {
 	margin-top: 10px;
 	max-width: 100%;
+}
+
+.whats-new-event-description {
+	font-size: 13px;
 }
 
 .release-date-col {
@@ -127,23 +130,57 @@ hr {
 		padding-right: 10px;
 	}
 
-	.release-notes-wrapper{
-		padding-left: 20px;
-		padding-right: 20px;
-		font-size: 5px;
+	.whats-new-post-wrapper{
+		margin: 40px 0px;
 	}
 
-	.release-note {
-		margin: 20px;
+	.whats-new-event-wrapper {
+		margin: 40px 20px;
 		padding: 20px;
 	}
 
-	.release-note-media {
-		max-width: 300px;
+	.whats-new-post-media {
+		max-width: 400px;
 	}
 
 	.whats-new-post-media-wrapper {
 		width: 100%;
+	}
+
+	.whats-new-event-tags {
+		margin: 0;
+		padding-top: 10px;
+	}
+
+	.whats-new-event-body {
+		padding: 0;
+	}
+
+	.whats-new-event-calendar {
+		padding: 10px;
+		border-radius: 6px;
+		align-items: center;
+		background: #fff;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		/* grid-template-rows: 100%; */
+		grid-template-areas:
+		"row1 row3 row2";
+		justify-items: center;
+	}
+	.row1 {
+		font-size: 16px;
+		grid-area: row1;
+	}
+	.row2 {
+		font-size: 16px;
+		grid-area: row2;
+	}
+	.row3 {
+		grid-area: row3;
+		font-weight: 600;
+		font-size: 20px ;
+		color: rgba(45, 149, 240, 1);
 	}
 
 }

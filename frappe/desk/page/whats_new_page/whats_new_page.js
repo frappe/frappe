@@ -132,7 +132,7 @@ class WhatsNew {
 							<div class="whats-new-event-calendar col-md-2">
 								${this.render_event_date(post)}
 							</div>
-							<div class="col-md-10">
+							<div class="whats-new-event-body col-md-10">
 								<div class="whats-new-event-tags">${this.get_tags(post.tags)}</div>
 								<div class="whats-new-event-header">
 									<h4 class="whats-new-event-title"><b>${post.name}</b></h4>
