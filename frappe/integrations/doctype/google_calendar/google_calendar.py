@@ -40,10 +40,10 @@ google_calendar_days = {
 }
 
 framework_frequencies = {
-	"Daily": "RRULE:FREQ=DAILY;",
-	"Weekly": "RRULE:FREQ=WEEKLY;",
-	"Monthly": "RRULE:FREQ=MONTHLY;",
-	"Yearly": "RRULE:FREQ=YEARLY;"
+	"Daily": {"FREQ":"DAILY"},
+	"Weekly": {"FREQ":"WEEKLY"},
+	"Monthly": {"FREQ":"MONTHLY"},
+	"Yearly": {"FREQ":"FREQ=YEARLY"}
 }
 
 framework_days = {
@@ -301,19 +301,15 @@ def insert_event_in_google_calendar(doc, method=None):
 	if doc.repeat_on:
 		event.update({"recurrence": repeat_on_to_google_calendar_recurrence_rule(doc)})
 
-	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events/{}.ics?access_token={}".format(account.user,doc.name,account.get_access_token())
-	cal = Calendar() 
-	cal['PRODID'] = '-//Google Inc//Google Calendar 70.9054//EN'
-	cal['VERSION'] = '2.0'
-	cal['CALSCALE'] = account.user
-	cal['X-WR-CALNAME'] = account.user
-	cal['X-WR-TIMEZONE'] = frappe.db.get_single_value("System Settings", "time_zone")
+	caldav_url, cal = create_calendar_object(account,doc)
 	event = Event()
 	event['DTSTART'] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
 	event['DTEND'] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
 	event['SUMMARY'] = doc.subject
 	event['UID'] = uuid.uuid4()
 	event['DESCRIPTION'] = doc.description
+	if doc.repeat_on:
+		event.add('rrule',repeat_on_to_google_calendar_recurrence_rule(doc))
 	cal.add_component(event)
 	response = requests.put(url = caldav_url,data=cal.to_ical() , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
 	if response.status_code == 201:
@@ -341,21 +337,17 @@ def update_event_in_google_calendar(doc, method=None):
 
 	if not account.push_to_google_calendar:
 		return
-
+	repeat_on_to_google_calendar_recurrence_rule(doc)
 	try:
-		caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events/{}.ics?access_token={}".format(account.user,doc.name,account.get_access_token())
-		cal = Calendar() 
-		cal['PRODID'] = '-//Google Inc//Google Calendar 70.9054//EN'
-		cal['VERSION'] = '2.0'
-		cal['CALSCALE'] = account.user
-		cal['X-WR-CALNAME'] = account.user
-		cal['X-WR-TIMEZONE'] = frappe.db.get_single_value("System Settings", "time_zone")
+		caldav_url, cal = create_calendar_object(account,doc)
 		event = Event()
 		event['DTSTART'] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
 		event['DTEND'] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
 		event['SUMMARY'] = doc.subject
 		event['UID'] = doc.google_calendar_event_id
 		event['DESCRIPTION'] = doc.description
+		if doc.repeat_on:
+			event.add('rrule',repeat_on_to_google_calendar_recurrence_rule(doc))
 		cal.add_component(event)
 		response = requests.put(url = caldav_url,data=cal.to_ical() , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
 		if response.status_code == 204:
@@ -380,13 +372,7 @@ def delete_event_from_google_calendar(doc, method=None):
 		return
 
 	try:
-		caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events/{}?access_token={}".format(account.user,doc.name,account.get_access_token())
-		cal = Calendar() 
-		cal['PRODID'] = '-//Google Inc//Google Calendar 70.9054//EN'
-		cal['VERSION'] = '2.0'
-		cal['CALSCALE'] = account.user
-		cal['X-WR-CALNAME'] = account.user
-		cal['X-WR-TIMEZONE'] = frappe.db.get_single_value("System Settings", "time_zone")
+		caldav_url, cal = create_calendar_object(account,doc)
 		cal["METHOD"] = "CANCEL" 
 		event = Event()
 		event['DTSTART'] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
@@ -527,15 +513,13 @@ def repeat_on_to_google_calendar_recurrence_rule(doc):
 	"""
 	recurrence = framework_frequencies.get(doc.repeat_on)
 	weekdays = get_weekdays()
-
 	if doc.repeat_on == "Weekly":
 		byday = [framework_days.get(day.lower()) for day in weekdays if doc.get(day.lower())]
-		recurrence = recurrence + "BYDAY=" + ",".join(byday)
+		recurrence["BYDAY"] = byday
 	elif doc.repeat_on == "Monthly":
 		week_number = str(get_week_number(get_datetime(doc.starts_on)))
 		week_day = weekdays[get_datetime(doc.starts_on).weekday()].lower()
-		recurrence = recurrence + "BYDAY=" + week_number + framework_days.get(week_day)
-
+		recurrence ["BYDAY"] = week_number + framework_days.get(week_day)
 	return [recurrence]
 
 
@@ -569,6 +553,15 @@ def get_recurrence_parameters(recurrence):
 
 	return frequency, until, byday
 
+def create_calendar_object(account, doc):
+	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events/{}?access_token={}".format(account.user,doc.name,account.get_access_token())
+	cal = Calendar() 
+	cal['PRODID'] = '-//Google Inc//Google Calendar 70.9054//EN'
+	cal['VERSION'] = '2.0'
+	cal['CALSCALE'] = account.user
+	cal['X-WR-CALNAME'] = account.user
+	cal['X-WR-TIMEZONE'] = frappe.db.get_single_value("System Settings", "time_zone")
+	return caldav_url,cal 
 
 """API Response
 	{
