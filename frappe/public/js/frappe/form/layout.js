@@ -552,19 +552,21 @@ frappe.ui.form.Layout = class Layout {
 		// build dependants' dictionary
 		let has_dep = false;
 
-		for (let fkey in this.fields_list) {
-			let f = this.fields_list[fkey];
-			f.dependencies_clear = true;
+		const fields = this.fields_list.concat(this.tabs);
+
+		for (let fkey in fields) {
+			let f = fields[fkey];
 			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
 				has_dep = true;
+				break;
 			}
 		}
 
 		if (!has_dep) return;
 
 		// show / hide based on values
-		for (let i = this.fields_list.length - 1; i >= 0; i--) {
-			let f = this.fields_list[i];
+		for (let i = fields.length - 1; i >= 0; i--) {
+			let f = fields[i];
 			f.guardian_has_value = true;
 			if (f.df.depends_on) {
 				// evaluate guardian
