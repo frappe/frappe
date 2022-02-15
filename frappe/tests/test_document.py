@@ -348,23 +348,17 @@ class TestDocument(unittest.TestCase):
 		self.assertEquals(todo.time, get_time_str(_datetime_str))
 
 		# Check if the system parses the datetime object for date and time
-		todo = frappe.get_doc({
-			"doctype": "ToDo",
-			"description": "test_date_and_time_casting",
-			"date": _datetime,
-			"time": _datetime
-		}).insert()
+		todo.date = _datetime
+		todo.time = _datetime
+		todo.save()
 
 		self.assertEquals(todo.date, _datetime.date())
 		self.assertEquals(todo.time, to_timedelta(_datetime.time()))
 
 		# Check if the system parses the datetime object for date and time
-		todo = frappe.get_doc({
-			"doctype": "ToDo",
-			"description": "test_date_and_time_casting",
-			"date": None,
-			"time": None
-		}).insert()
+		todo.date = None
+		todo.time = None
+		todo.save()
 
 		self.assertEquals(todo.date, None)
 		self.assertEquals(todo.time, None)
