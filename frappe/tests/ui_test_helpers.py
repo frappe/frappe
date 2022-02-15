@@ -258,4 +258,22 @@ def update_webform_to_multistep():
 		_doc.title = "update-profile-duplicate"
 		_doc.route = "update-profile-duplicate"
 		_doc.is_standard = False
+<<<<<<< HEAD
 		_doc.save()
+=======
+		_doc.save()
+
+@frappe.whitelist()
+def update_child_table(name):
+	doc = frappe.get_doc('DocType', name)
+	if len(doc.fields) == 1:
+		doc.append('fields', {
+			'fieldname': 'doctype_to_link',
+			'fieldtype': 'Link',
+			'in_list_view': 1,
+			'label': 'Doctype to Link',
+			'options': 'Doctype to Link'
+		})
+
+		doc.save()
+>>>>>>> 39d65c5211 (test: UI test to check if linked field is populated in child table)
