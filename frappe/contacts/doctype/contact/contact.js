@@ -15,6 +15,10 @@ frappe.ui.form.on("Contact", {
 					link_doctype: frappe.dynamic_link.doctype,
 					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname]
 				});
+
+				for (let row in frappe.contact_field_mapping) {
+					frm.set_value(row, frappe.contact_field_mapping[row]);
+				}
 			}
 		}
 

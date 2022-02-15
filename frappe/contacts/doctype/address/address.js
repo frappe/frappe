@@ -3,8 +3,9 @@
 
 frappe.ui.form.on("Address", {
 	refresh: function(frm) {
-		if(frm.doc.__islocal) {
+		if(frm.is_new()) {
 			const last_doc = frappe.contacts.get_last_doc(frm);
+			console.log(last_doc);
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name == last_doc.docname) {
 				frm.set_value('links', '');
@@ -12,6 +13,10 @@ frappe.ui.form.on("Address", {
 					link_doctype: frappe.dynamic_link.doctype,
 					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname]
 				});
+
+				for (let row in frappe.address_field_mapping) {
+					frm.set_value(row, frappe.address_field_mapping[row]);
+				}
 			}
 		}
 		frm.set_query('link_doctype', "links", function() {
