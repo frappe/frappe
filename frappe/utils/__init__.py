@@ -438,7 +438,8 @@ def touch_file(path):
 		os.utime(path, None)
 	return path
 
-def get_test_client():
+def get_test_client() -> Client:
+	"""Returns an test instance of the Frappe WSGI"""
 	from frappe.app import application
 	return Client(application)
 
