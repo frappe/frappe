@@ -329,7 +329,7 @@ def get_link_title_doctypes():
 	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
 	custom_dts = frappe.get_all(
 		"Property Setter",
-		{"property": "show_title_field_in_link", "value": 1},
+		{"property": "show_title_field_in_link", "value": "1"},
 		["doc_type as name"],
 	)
 	return [d.name for d in dts + custom_dts if d]
