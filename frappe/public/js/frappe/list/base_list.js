@@ -374,7 +374,6 @@ frappe.views.BaseList = class BaseList {
 				this.page_length = $this.data().value;
 			} else if ($this.is(".btn-more")) {
 				this.start = this.start + this.page_length;
-				this.page_length = 20;
 			}
 			this.refresh();
 		});
@@ -455,7 +454,6 @@ frappe.views.BaseList = class BaseList {
 			this.render();
 			this.after_render();
 			this.freeze(false);
-			this.reset_defaults();
 			if (this.settings.refresh) {
 				this.settings.refresh(this);
 			}
@@ -475,11 +473,6 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		this.data = this.data.uniqBy((d) => d.name);
-	}
-
-	reset_defaults() {
-		this.page_length = this.page_length + this.start;
-		this.start = 0;
 	}
 
 	freeze() {
