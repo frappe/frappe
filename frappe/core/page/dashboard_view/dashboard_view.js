@@ -83,8 +83,7 @@ class Dashboard {
 	refresh() {
 		frappe.run_serially([
 			() => this.render_cards(),
-			() => this.setup_global_filters(),
-			() => this.render_charts()
+			() => this.render_charts(),
 		]);
 	}
 
@@ -122,19 +121,10 @@ class Dashboard {
 					},
 					widgets: this.charts,
 				});
+				this.setup_global_filters();
+
 			})
 		});
-	}
-
-	setup_global_filters() {
-
-		this.global_filter = $(
-			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
-				${frappe.utils.icon('filter', 'sm')}
-			</div><div>`
-		);
-		let container = this.wrapper.find('.widget-group');
-		this.global_filter.appendTo(container);
 	}
 
 	render_cards() {
@@ -176,6 +166,33 @@ class Dashboard {
 			}
 		).then(items => {
 			return items;
+		});
+	}
+
+	setup_global_filters () {
+		let filters = [];
+		this.global_filter = $(
+			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
+				${frappe.utils.icon('filter', 'sm')}
+			</div><div>`
+		);
+		let container = this.wrapper.find('.widget-group');
+		this.global_filter.appendTo(container);
+
+		this.charts.map((chart) => {
+			frappe.call({
+				method: 'frappe.client.get_value',
+				args: {
+					'doctype': 'Dashboard Chart',
+					'filters': {'name': chart.chart_name},
+					'fieldname': ['report_name']
+				},
+				callback: function(r) {
+					frappe.report_utils.get_report_filters(r.message.report_name).then(filter => {
+						filters.push(filter)
+					});
+				}
+			});
 		});
 	}
 
