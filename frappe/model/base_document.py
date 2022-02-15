@@ -242,7 +242,7 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, ignore_nulls = False):
+	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False):
 		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
@@ -254,6 +254,10 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 
 			if df and df.get("is_virtual"):
+				if ignore_virtual:
+					del d[fieldname]
+					continue
+
 				from frappe.utils.safe_exec import get_safe_globals
 
 				if d[fieldname] is None:
@@ -412,7 +416,11 @@ class BaseDocument(object):
 			self.created_by = self.modified_by = frappe.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
-		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
+		d = self.get_valid_dict(
+			convert_dates_to_str=True,
+			ignore_nulls=self.doctype in DOCTYPES_FOR_DOCTYPE,
+			ignore_virtual=True,
+		)
 
 		columns = list(d)
 		try:
@@ -766,7 +774,7 @@ class BaseDocument(object):
 
 		type_map = frappe.db.type_map
 
-		for fieldname, value in self.get_valid_dict().items():
+		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			df = self.meta.get_field(fieldname)
 
 			if not df or df.fieldtype == 'Check':
@@ -844,7 +852,7 @@ class BaseDocument(object):
 		if frappe.flags.in_install:
 			return
 
-		for fieldname, value in self.get_valid_dict().items():
+		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
 				continue
 
