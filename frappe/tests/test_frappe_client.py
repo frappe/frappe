@@ -10,7 +10,8 @@ import requests
 import base64
 
 class TestFrappeClient(unittest.TestCase):
-	PASSWORD = "admin"
+	PASSWORD = frappe.conf.admin_password or "admin"
+
 	def test_insert_many(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		frappe.db.delete("Note", {"title": ("in", ('Sing','a','song','of','sixpence'))})
@@ -168,7 +169,6 @@ class TestFrappeClient(unittest.TestCase):
 		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 403)
-
 
 		# random api key and api secret
 		api_key = "@3djdk3kld"

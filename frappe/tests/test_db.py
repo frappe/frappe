@@ -291,6 +291,16 @@ class TestDB(unittest.TestCase):
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
 
+	def test_pk_collision_ignoring(self):
+		# note has `name` generated from title
+		for _ in range(3):
+			frappe.get_doc(doctype="Note", title="duplicate name").insert(ignore_if_duplicate=True)
+
+		with savepoint():
+			self.assertRaises(frappe.DuplicateEntryError, frappe.get_doc(doctype="Note", title="duplicate name").insert)
+			# recover transaction to continue other tests
+			raise Exception
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):

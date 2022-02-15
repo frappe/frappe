@@ -159,7 +159,10 @@ def get_request_form_data():
 	else:
 		data = frappe.local.form_dict.data
 
-	return frappe.parse_json(data)
+	try:
+		return frappe.parse_json(data)
+	except ValueError:
+		return frappe.local.form_dict
 
 
 def validate_auth():
@@ -206,7 +209,6 @@ def validate_oauth(authorization_header):
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
-
 
 
 def validate_auth_via_api_keys(authorization_header):
