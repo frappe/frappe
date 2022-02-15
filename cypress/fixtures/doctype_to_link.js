@@ -42,4 +42,4 @@ export default {
 	sort_field: 'modified',
 	sort_order: 'ASC',
 	track_changes: 1
-}
+};
