@@ -2,13 +2,29 @@
 	background: #ffffff !important;
 }
 
+.page-head {
+	display: none;
+}
+
 .main-wrapper {
 	padding-left: 180px;
 	padding-right: 180px;
 }
 
+.whats-new-header {
+	font-size: 28px;
+	font-weight: 700;
+	margin-top: 45px;
+	margin-bottom: 20px;
+	margin-left: 90px;
+}
+
+.events-container {
+	margin-bottom: 100px;
+}
+
 .whats-new-post-wrapper {
-	margin: 20px 0px;
+	margin: 40px 0px;
 	font-size: 13px;
 	width: 100%;
 }
@@ -112,6 +128,24 @@
 	box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.1), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
 }
 
+.whats-new-event-cal-link {
+	font-size: 12px;
+	color: rgba(45, 149, 240, 1) !important;
+	margin-right: -10px;
+	padding: 0;
+	text-align: right;
+}
+
+.whats-new-event-cal-link a:hover {
+	text-decoration: none;
+	padding: 2px;
+	border-radius: 6px;
+}
+
+.whats-new-event-cal-link a {
+	color: rgba(45, 149, 240, 1) !important;
+}
+
 .post-source-link {
 	margin-top: 10px;
 }
@@ -120,6 +154,10 @@ hr {
 	border: 0;
 	height: 1px;
 	background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
+}
+
+.separator {
+	margin-top: 10px;
 }
 
 @media only screen and (max-width:768px) {

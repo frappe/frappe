@@ -20,3 +20,20 @@ def get_whats_new_posts():
 	event_list = data.get("message")[1] or []
 
 	return post_list, event_list
+
+
+@frappe.whitelist(allow_guest=True)
+def add_whats_new_event_to_calendar(date, time, title):
+
+	date_time = datetime.strptime((date+' '+time), "%Y-%m-%d %H:%M:%S")
+	if frappe.db.exists("Event", {"subject":title, "starts_on":date_time}):
+		frappe.throw(title=frappe._("Event Already Created"), msg=frappe._("An event for {0} scheduled on {1} already exists").format(frappe.bold(title), frappe.bold(date_time)))
+
+	calendar_event = {
+		"doctype": "Event",
+		"subject": title,
+		"starts_on": date_time,
+		"event_type": "Public"
+	}
+	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
+	return True

@@ -18,7 +18,7 @@ class WhatsNew(Document):
 def fetch_latest_posts():
 	post_list = []
 	event_list = []
-	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link", 'event_date']
+	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link", "event_date", "event_time"]
 	try:
 		posts = frappe.get_all("Whats New", fields=fields, order_by="event_date desc")
 	except:

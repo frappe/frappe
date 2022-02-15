@@ -13,9 +13,10 @@
   "section_break_3",
   "banner",
   "post_type",
+  "event_date",
+  "event_time",
   "column_break_6",
   "posting_date",
-  "event_date",
   "source_link",
   "section_break_9",
   "add_tags",
@@ -72,6 +73,7 @@
    "label": "Source Link"
   },
   {
+   "depends_on": "eval: doc.post_type != \"Upcoming Event\"",
    "fieldname": "section_break_9",
    "fieldtype": "Section Break"
   },
@@ -105,12 +107,19 @@
    "fieldname": "event_date",
    "fieldtype": "Date",
    "label": "Event Date",
-   "mandatory_depends_on": "eval: doc.post == \"Upcoming Event\""
+   "mandatory_depends_on": "eval: doc.post == \"Upcoming Event\"",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.post_type == \"Upcoming Event\"",
+   "fieldname": "event_time",
+   "fieldtype": "Time",
+   "label": "Event Time"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-15 11:53:28.412897",
+ "modified": "2022-02-15 14:37:50.068088",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Whats New",

@@ -26,17 +26,17 @@ class WhatsNew {
 	constructor(page) {
 
 		this.page = page;
+		this.$header = `<div class="whats-new-header">What's New &#10024;</div>`;
 		this.make_container();
+		this.bind_click_events();
 		this.fetch_posts()
 			.then(() => this.render_fetched_posts())
-
 	}
 
 	make_container() {
 		this.$container = $(`<div class="main-wrapper"></div>`)
 			.appendTo(this.page.body);
 	}
-
 
 	fetch_posts() {
 		return frappe.call('frappe.desk.page.whats_new_page.whats_new_page.get_whats_new_posts')
@@ -66,7 +66,6 @@ class WhatsNew {
 		}).join('');
 
 		return tags_html;
-
 	}
 
 	get_post_media(post) {
@@ -83,7 +82,6 @@ class WhatsNew {
 	}
 
 	get_day_and_date(dt) {
-
 		const [year, month, day] = dt.split("-");
 		const formatted_date = new Date(year, month - 1, day);
 		var final_date = '';
@@ -92,7 +90,6 @@ class WhatsNew {
 			final_date += d.toString() + ' ';
 		});
 		return final_date
-
 	}
 
 	render_event_date(post) {
@@ -128,8 +125,31 @@ class WhatsNew {
 		}
 	}
 
-	render_fetched_posts() {
-		let posts_html = this.new_posts.map(post => {
+	bind_click_events() {
+		$(this.$container).on("click", ".whats-new-event-cal-link", function(e){
+			const event_date = $(this).data("event_date");
+			const event_time = $(this).data("event_time");
+			const event_title = $(this).data("event_title");
+
+			frappe.call({
+				method: "frappe.desk.page.whats_new_page.whats_new_page.add_whats_new_event_to_calendar",
+				args: {
+					date :event_date,
+					time: event_time,
+					title: event_title
+				},
+				freeze:true,
+				callback: function(r) {
+					if (r.message) {
+						frappe.msgprint('Successfully Created an Event, please sync with your Google Calendar')
+					}
+				}
+			});
+		});
+	}
+
+	get_posts_html(posts) {
+		let posts_html = posts.map(post => {
 			const src = encodeURI(host + post.banner);
 
 			return `
@@ -157,15 +177,33 @@ class WhatsNew {
 			`
 		}).join('');
 
-		let events_html = this.events.map(event => {
+		return posts_html;
+	}
+
+	get_events_html(events) {
+		let events_html = events.map(event => {
 			return `
-					<div class="whats-new-event-wrapper">
+					<div class="whats-new-event-wrapper" >
 						<div class="whats-new-event row">
 							<div class="whats-new-event-calendar col-md-2">
 								${this.render_event_date(event)}
 							</div>
 							<div class="whats-new-event-body col-md-10">
-								<div class="whats-new-event-tags">${this.get_tags(event.tags)}</div>
+								<div class="row">
+									<div class="col-md-9">
+										<div class="whats-new-event-tags">
+											<span class="indicator-pill whitespace-nowrap blue">Upcoming</span>
+										</div>
+									</div>
+									<div class= "whats-new-event-cal-link col-md-3"
+										data-event_date="${event.event_date}"
+										data-event_time="${event.event_time}"
+										data-event_title="${event.title}"
+									>
+										<a> + Add to calendar </a>
+									</div>
+								</div>
+
 								<div class="whats-new-event-header">
 									<h4 class="whats-new-event-title"><b>${event.name}</b></h4>
 								</div>
@@ -182,8 +220,21 @@ class WhatsNew {
 				`
 		}).join('')
 
-		let html = events_html + `<hr style="margin-bottom:60px">` + posts_html;
-		this.$container.append(html);
+		return events_html;
 	}
 
+	render_fetched_posts() {
+		let events_html = `
+			<div class="events-container">
+				${this.get_events_html(this.events)}
+			</div>`;
+
+		let posts_html =`
+			<div class="events-container">
+				${this.get_posts_html(this.new_posts)}
+			</div>`;
+
+		let html = this.$header + events_html + `<div class="separator"></div>` + posts_html;
+		this.$container.append(html);
+	}
 }
