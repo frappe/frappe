@@ -104,7 +104,9 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-image-section {
-		width: min(100%, 170px);
+		// capital M to avoid libsass issue
+		// (https://github.com/sass/node-sass/issues/2815#issuecomment-1034454369)
+		width: Min(100%, 170px);
 		cursor: pointer;
 
 		.sidebar-image {
