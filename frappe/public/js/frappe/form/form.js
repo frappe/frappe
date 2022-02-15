@@ -1684,7 +1684,7 @@ frappe.ui.form.Form = class FrappeForm {
 				new_doc[df.fieldname] = me.doc.name;
 			} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
 				new_doc[df.fieldname] = me.doc[df.fieldname];
-			} else if (df.fieldtype === 'Table' && df.options) {
+			} else if (df.fieldtype === 'Table' && df.options && df.reqd) {
 				let row = new_doc[df.fieldname][0];
 				me.set_link_field(df.options, row);
 			}
