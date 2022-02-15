@@ -60,7 +60,7 @@ frappe.ui.form.on("Web Form", {
 							options: field.options,
 							reqd: field.reqd,
 							default: field.default,
-							read_only: field.read_only,
+							read_only: field.read_only || field.is_virtual,
 							depends_on: field.depends_on,
 							mandatory_depends_on: field.mandatory_depends_on,
 							read_only_depends_on: field.read_only_depends_on,

@@ -70,6 +70,59 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			this.$input_area.find(".link-btn").remove();
 		}
 	}
+	set_formatted_input(value) {
+		super.set_formatted_input();
+		if (!value) return;
+
+		if (!this.title_value_map) {
+			this.title_value_map = {};
+		}
+		this.set_link_title(value);
+	}
+	set_link_title(value) {
+		let doctype = this.get_options();
+
+		if (!doctype) return;
+
+		if (in_list(frappe.boot.link_title_doctypes, doctype)) {
+			let link_title = frappe.utils.get_link_title(doctype, value);
+			if (!link_title) {
+				link_title = frappe.utils
+					.fetch_link_title(doctype, value)
+					.then(link_title => {
+						this.set_input_value(link_title);
+						this.title_value_map[link_title] = value;
+					});
+			} else {
+				this.set_input_value(link_title);
+				this.title_value_map[link_title] = value;
+			}
+		} else {
+			this.set_input_value(value);
+		}
+	}
+	parse_validate_and_set_in_model(value, e, label) {
+		if (this.parse) value = this.parse(value, label);
+		if (label) {
+			this.label = label;
+			frappe.utils.add_link_title(this.df.options, value, label);
+		}
+
+		return this.validate_and_set_in_model(value, e);
+	}
+	get_input_value() {
+		if (this.$input) {
+			const input_value = this.$input.val();
+			return this.title_value_map?.[input_value] || input_value;
+		}
+		return null;
+	}
+	get_label_value() {
+		return this.$input ? this.$input.val() : "";
+	}
+	set_input_value(value) {
+		this.$input && this.$input.val(value);
+	}
 	open_advanced_search() {
 		var doctype = this.get_options();
 		if(!doctype) return;
@@ -121,6 +174,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			replace: function (suggestion) {
+				// Override Awesomeplete replace function as it is used to set the input value
+				// https://github.com/LeaVerou/awesomplete/issues/17104#issuecomment-359185403
+				this.input.value = suggestion.label || suggestion.value;
+			},
 			data: function (item) {
 				return {
 					label: __(item.label || item.value),
@@ -261,14 +319,15 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			// prevent selection on tab
 			var TABKEY = 9;
-			if(e.keyCode === TABKEY) {
+			if (e.keyCode === TABKEY) {
 				e.preventDefault();
 				me.awesomplete.close();
 				return false;
 			}
 
-			if(item.action) {
+			if (item.action) {
 				item.value = "";
+				item.label = "";
 				item.action.apply(me);
 			}
 
@@ -280,11 +339,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
-			me.parse_validate_and_set_in_model(item.value);
+			me.parse_validate_and_set_in_model(item.value, null, item.label);
 		});
 
 		this.$input.on("awesomplete-selectcomplete", function(e) {
-			var o = e.originalEvent;
+			let o = e.originalEvent;
 			if(o.text.value.indexOf("__link_option") !== -1) {
 				me.reset_value();
 			}
