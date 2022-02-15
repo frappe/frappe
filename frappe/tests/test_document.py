@@ -271,6 +271,10 @@ class TestDocument(unittest.TestCase):
 		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
 		"""
 		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
 
 		def patch_note():
 			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
