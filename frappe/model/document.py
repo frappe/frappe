@@ -249,11 +249,7 @@ class Document(BaseDocument):
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
-			try:
-				self.db_insert()
-			except frappe.DuplicateEntryError as e:
-				if not ignore_if_duplicate:
-					raise e
+			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
 		for d in self.get_all_children():
