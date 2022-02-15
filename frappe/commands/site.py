@@ -19,15 +19,15 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--db-host', help='Database Host')
 @click.option('--db-port', type=int, help='Database Port')
-@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', default='root', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--no-mariadb-socket', is_flag=True, default=False, help='Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
+def new_site(site, db_root_username=None, db_root_password=None, admin_password=None,
 			 verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
 			 install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None):
 	"Create a new site"
@@ -35,8 +35,8 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 
 	frappe.init(site=site, new_site=True)
 
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
-			  mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+	_new_site(db_name, site, db_root_username=db_root_username,
+			  db_root_password=db_root_password, admin_password=admin_password,
 			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
 			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
 			  db_port=db_port, new_site=True)

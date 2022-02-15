@@ -14,8 +14,8 @@ from frappe.defaults import _clear_cache
 def _new_site(
 	db_name,
 	site,
-	mariadb_root_username=None,
-	mariadb_root_password=None,
+	db_root_username=None,
+	db_root_password=None,
 	admin_password=None,
 	verbose=False,
 	install_apps=None,
@@ -60,8 +60,8 @@ def _new_site(
 	installing = touch_file(get_site_path("locks", "installing.lock"))
 
 	install_db(
-		root_login=mariadb_root_username,
-		root_password=mariadb_root_password,
+		root_login=db_root_username,
+		root_password=db_root_password,
 		db_name=db_name,
 		admin_password=admin_password,
 		verbose=verbose,
