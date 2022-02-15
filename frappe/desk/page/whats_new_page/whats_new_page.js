@@ -41,7 +41,8 @@ class WhatsNew {
 	fetch_posts() {
 		return frappe.call('frappe.desk.page.whats_new_page.whats_new_page.get_whats_new_posts')
 			.then(r => {
-				this.new_posts = r.message;
+				this.new_posts = r.message[0];
+				this.events = r.message[1];
 			});
 	}
 
@@ -64,7 +65,6 @@ class WhatsNew {
 			}
 		}).join('');
 
-		console.log(tags_html)
 		return tags_html;
 
 	}
@@ -101,7 +101,6 @@ class WhatsNew {
 			const event_date = post.event_date;
 			const [year, month, day] = event_date.split("-");
 			const formatted_date = new Date(year, month - 1, day);
-			console.log(formatted_date, month_list[formatted_date.getMonth()], formatted_date.getDate())
 
 			return `
 				<div class="row1">
@@ -117,37 +116,22 @@ class WhatsNew {
 		} else {
 			return ``
 		}
+	}
 
+	get_source_link(source_link) {
+		if (!source_link) {
+			return ``
+		} else {
+			return `
+				<p class="post-source-link">To know more about this, <a href=${source_link} target="_blank">click here</a>.</p>
+			`
+		}
 	}
 
 	render_fetched_posts() {
-		const main_url = 'http://test-st.frappe.cloud';
-		let html = this.new_posts.map(post => {
+		let posts_html = this.new_posts.map(post => {
 			const src = encodeURI(host + post.banner);
 
-			if (post.post_type == 'Upcoming Event') {
-				return `
-					<div class="whats-new-event-wrapper">
-						<div class="whats-new-event row">
-							<div class="whats-new-event-calendar col-md-2">
-								${this.render_event_date(post)}
-							</div>
-							<div class="whats-new-event-body col-md-10">
-								<div class="whats-new-event-tags">${this.get_tags(post.tags)}</div>
-								<div class="whats-new-event-header">
-									<h4 class="whats-new-event-title"><b>${post.name}</b></h4>
-								</div>
-								<div class="whats-new-event-content">
-									<div class="whats-new-event-description">
-										${post.description + `<p class="post-source-link">To know more about this, <a href=${post.source_link}}>click here</a>.</p>` || ''}
-									</div>
-									${this.get_post_media(post) || ''}
-								</div>
-							</div>
-						</div>
-					</div>
-				`
-			}
 			return `
 				<div class="whats-new-post-wrapper">
 					<div class="whats-new-post">
@@ -162,15 +146,43 @@ class WhatsNew {
 						<div class="whats-new-post-tags">${this.get_tags(post.tags)}</div>
 						<div class="whats-new-post-content">
 							<div class="whats-new-post-description">
-								${post.description + `<p class="post-source-link">To know more about this, <a href=${post.source_link}}>click here</a>.</p>` || ''}
+								${post.description || ''}
+								${this.get_source_link(post.source_link)}
 							</div>
 							${this.get_post_media(post) || ''}
 						</div>
 					</div>
 				</div>
-
+				<hr>
 			`
-			}).join('');
+		}).join('');
+
+		let events_html = this.events.map(event => {
+			return `
+					<div class="whats-new-event-wrapper">
+						<div class="whats-new-event row">
+							<div class="whats-new-event-calendar col-md-2">
+								${this.render_event_date(event)}
+							</div>
+							<div class="whats-new-event-body col-md-10">
+								<div class="whats-new-event-tags">${this.get_tags(event.tags)}</div>
+								<div class="whats-new-event-header">
+									<h4 class="whats-new-event-title"><b>${event.name}</b></h4>
+								</div>
+								<div class="whats-new-event-content">
+									<div class="whats-new-event-description">
+										${event.description || ''}
+										${this.get_source_link(event.source_link)}
+									</div>
+									${this.get_post_media(event) || ''}
+								</div>
+							</div>
+						</div>
+					</div>
+				`
+		}).join('')
+
+		let html = events_html + `<hr style="margin-bottom:60px">` + posts_html;
 		this.$container.append(html);
 	}
 

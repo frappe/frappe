@@ -5,13 +5,22 @@ import frappe
 from frappe.model.document import Document
 
 class WhatsNew(Document):
+
+	def on_save(self):
+		if self.post_type == "Version Update":
+			self.event_date = self.posting_date
+
 	pass
+
+
 
 @frappe.whitelist(allow_guest=True)
 def fetch_latest_posts():
+	post_list = []
+	event_list = []
 	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link", 'event_date']
 	try:
-		posts = frappe.get_all("Whats New", fields=fields)
+		posts = frappe.get_all("Whats New", fields=fields, order_by="event_date desc")
 	except:
 		traceback = frappe.get_traceback()
 		frappe.log_error(title=frappe._("Error while retrieving posts"), message=traceback)
@@ -25,5 +34,10 @@ def fetch_latest_posts():
 
 		if tags:
 			post.tags = tags
-	print('POSTS HERE',posts)
-	return posts
+
+		if post.post_type == "Version Update":
+			post_list.append(post)
+		else:
+			event_list.append(post)
+
+	return post_list, event_list

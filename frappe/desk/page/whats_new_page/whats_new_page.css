@@ -8,7 +8,7 @@
 }
 
 .whats-new-post-wrapper {
-	margin: 40px 0px;
+	margin: 20px 0px;
 	font-size: 13px;
 	width: 100%;
 }
@@ -23,7 +23,7 @@
 
 .whats-new-post{
 	max-width: 80%;
-	margin: 60px auto;
+	margin: 20px auto;
 }
 
 .whats-new-event{
@@ -121,7 +121,6 @@ hr {
 	height: 1px;
 	background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
 }
-
 
 @media only screen and (max-width:768px) {
 	.main-wrapper {

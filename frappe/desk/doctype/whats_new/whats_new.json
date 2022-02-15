@@ -42,6 +42,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval: doc.post_type != \"Upcoming Event\"",
    "fieldname": "banner",
    "fieldtype": "Attach Image",
    "label": "Banner"
@@ -109,7 +110,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-14 19:17:51.369456",
+ "modified": "2022-02-15 11:53:28.412897",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Whats New",
