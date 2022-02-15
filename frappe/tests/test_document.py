@@ -313,3 +313,11 @@ class TestDocument(unittest.TestCase):
 
 		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
 		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
+
+	def test_limit_for_get(self):
+		doc = frappe.get_doc("DocType", "DocType")
+		# assuming DocType has more than 3 Data fields
+		self.assertEquals(len(doc.get("fields", limit=3)), 3)
+
+		# limit with filters
+		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
