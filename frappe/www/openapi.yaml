@@ -1,0 +1,347 @@
+openapi: 3.0.0
+info:
+  version: "13"
+  title: Frappe / ERPNext API
+  license:
+    name: GPL-3.0
+    url: http://www.gnu.de/documents/gpl-3.0.en.html
+servers:
+- url: {{ url }}
+  description: TODO
+tags:
+  - name: DocTypes
+    description: Create, read, update or delete any document
+  - name: Whitelisted Methods
+    description: Call a server method
+paths:
+  {% for method in methods -%}
+  /api/method/{{ method.name }}:
+    get:
+      tags:
+        - Whitelisted Methods
+      parameters:
+        {% for param in method.parameters -%}
+        - in: path
+          name: {{ param.name }}
+          required: true
+          schema:
+            type: string
+            {%- if param.default %}
+            example: {{ param.default }}
+            {%- endif %}
+        {% endfor -%}
+      summary: Call a remote procedure
+      responses:
+          '200':
+            description: Successful
+          '401':
+            $ref: '#/components/responses/UnauthorizedError'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Whitelisted Methods
+      parameters:
+        {% for param in method.parameters -%}
+        - in: path
+          name: {{ param.name }}
+          required: true
+          schema:
+            type: string
+            {%- if param.default %}
+            example: {{ param.default }}
+            {%- endif %}
+        {% endfor -%}
+      summary: Post data to a remote procedure
+      responses:
+          '200':
+            description: Successful
+          '401':
+            $ref: '#/components/responses/UnauthorizedError'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+  {% endfor -%}
+  {% for resource in resources -%}
+  /api/resource/{{ resource.name }}:
+    post:
+      tags:
+        - DocTypes
+      summary: Create a new {{ resource.name }}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+      responses:
+        "200":
+          description: {{ resource.name }} created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/{{ resource.name }}'
+        '401':
+            $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      tags:
+        - DocTypes
+      summary: Get a list of {{ resource.name }}s
+      description: Returns a list of {{ resource.name }}s
+      parameters:
+        - $ref: '#/components/parameters/Fields'
+        - $ref: '#/components/parameters/Filters'
+        - $ref: '#/components/parameters/PageLength'
+        - $ref: '#/components/parameters/PageStart'
+      responses:
+        '200':
+          description: |
+            By default, only the "name" field is included in the listing, 
+            to add more fields, you can pass the fields param to GET request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        data:
+                          $ref: '#/components/schemas/{{ resource.name }}'
+        '401':
+            $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/resource/{{ resource.name }}/{DocumentName}:
+    get:
+      tags:
+        - DocTypes
+      summary: Get a specific {{ resource.name }}
+      description: Get a {{ resource.name }} by it's name
+      parameters:
+        - in: path
+          name: DocumentName
+          required: true
+          schema:
+            type: string
+          description: |
+            The name (ID) of the {{ resource.name }} you'd like to receive.
+        - $ref: '#/components/parameters/Fields'
+        - $ref: '#/components/parameters/Filters'
+      responses:
+        '200':
+          description: Found requested document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/{{ resource.name }}'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    put:
+      tags:
+        - DocTypes
+      summary: Update a specific document
+      description: TBD
+      parameters:
+        - in: path
+          name: DocumentName
+          required: true
+          schema:
+            type: string
+          description: |
+            The name (ID) of the document you'd like to update. For example EMP001 (of type Employee).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated specified document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                 data:
+                  $ref: '#/components/schemas/{{ resource.name }}'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags:
+        - DocTypes
+      summary: Delete a specific {{ resource.name }}
+      description: TBD
+      parameters:
+        - in: path
+          name: DocumentName
+          required: true
+          schema:
+            type: string
+          description: |
+            The name (ID) of the {{ resource.name }} you'd like to delete.
+      responses:
+        '202':
+          description: Deleted specified {{ resource.name }}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  {%- endfor %}
+components:
+  parameters:
+    Fields:
+      in: query
+      name: fields
+      schema:
+        type: array
+        items:
+          type: string
+        default: ["name"]
+      description: |
+        By default, only the "name" field is included in the listing, to add more fields, 
+        you can pass the fields param to GET request. For example, fields=["name","country"]
+    Filters:
+      in: query
+      name: filters
+      schema:
+        type: array
+        items:
+          type: array
+          items:
+            type: string
+      description: |
+        You can filter the listing using sql conditions by passing them as the filters GET param.
+        Each condition is an array of the format, [{doctype}, {field}, {operator}, {value}].
+        For example, filters=[["Customer", "country", "=", "India"]]
+    PageLength:
+      in: query
+      name: limit_page_length
+      schema:
+        type: integer
+        default: 20
+      description: |
+        By default, all listings are returned paginated. With this parameter you can change the 
+        page size (how many items are teturned at once).
+    PageStart:
+      in: query
+      name: limit_start
+      schema:
+        type: integer
+        default: 0
+      description: |
+        To request successive pages, pass a multiple of your limit_page_length as limit_start. 
+        For Example, to request the second page, pass limit_start as 20.
+  schemas:
+    {% for resource in resources -%}
+    {{ resource.name }}:
+      type: object
+      properties:
+        {% for property in resource.properties -%}
+        {{ property.name }}:
+          type: {{ property.type }}
+          {% if property.default -%}
+          default: {{ property.default }}
+          {%- endif %}
+          {% if property.type == "array" -%}
+          items:
+            type: object
+            properties:
+              {% for table_property in property.properties -%}
+              {{ table_property.name }}:
+                type: {{ table_property.type }}
+                {% if table_property.default -%}
+                default: {{ table_property.default }}
+                {%- endif %}
+              {%- endfor %}
+          {%- endif %}
+        {%- endfor %}
+    {%- endfor %}
+    UnauthorizedError:
+      description: Authentication information is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              exc:
+                type: string
+                example: Traceback (most recent call last) ...
+              _server_messages:
+                type: string
+                example: "[{\"message\": \"Not permitted\"}]"
+        text/html:
+          schema:
+            type: string
+    Forbidden:
+      description: Authentication information is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              locals:
+                type: string
+              exc:
+                type: string
+                example: Traceback (most recent call last) ...
+              _server_messages:
+                type: string
+                example: Incorrect password
+        text/html:
+          schema:
+            type: string
+  securitySchemes:
+    tokenAuth: # arbitrary name
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Get your API keys at User -> Api Access -> Generate Keys.
+        "headers = {'Authorization': 'token <api_key>:<api_secret>'}"
+    basicAuth: # arbitrary name
+      type: http
+      scheme: basic
+      description: |
+        Get your API keys at User -> Api Access -> Generate Keys.
+        username = api_key; password = api_secret
+        [More info](https://frappe.io/docs/user/en/guides/integration/token_based_auth)
+    oAuth2: # arbitrary name
+      type: oauth2
+      description: |
+        This API uses OAuth 2 with the authorization code flow. 
+        [More info]https://frappe.io/docs/user/en/guides/integration/using_oauth)
+      flows:
+        authorizationCode:
+          authorizationUrl: /method/frappe.integrations.oauth2.authorize
+          tokenUrl: /method/frappe.integrations.oauth2.get_token
+          refreshUrl: /method/frappe.integrations.oauth2.get_token
+          scopes:
+            all: Same permissions as the user who created the oAuth client
+externalDocs:
+  url: https://frappe.io/docs/user/en/api/rest
