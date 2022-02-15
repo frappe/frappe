@@ -1090,7 +1090,7 @@ class BaseDocument(object):
 
 	def _cast_date_fields(self):
 		for field in self.meta.get_date_fields():
-			if self.get(field.fieldname) is None:
+			if not self.get(field.fieldname):
 				continue
 
 			_value = self.get(field.fieldname)
@@ -1105,7 +1105,7 @@ class BaseDocument(object):
 
 	def _cast_time_fields(self):
 		for field in self.meta.get_time_fields():
-			if self.get(field.fieldname) is None:
+			if not self.get(field.fieldname):
 				continue
 
 			_value = self.get(field.fieldname)
