@@ -389,8 +389,6 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 		else:
 			return results
 
-	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-
 	for dt, link in linkinfo.items():
 		filters = []
 		link["doctype"] = dt
@@ -413,11 +411,16 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					ret = frappe.get_all(doctype=dt, fields=fields, filters=link.get("filters"))
 
 				elif link.get("get_parent"):
-					if me and me.parent and me.parenttype == dt:
+					ret = None
+
+					# check for child table
+					if not frappe.get_meta(doctype).istable:
+						continue
+
+					me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+					if me and me.parenttype == dt:
 						ret = frappe.get_all(doctype=dt, fields=fields,
 							filters=[[dt, "name", '=', me.parent]])
-					else:
-						ret = None
 
 				elif link.get("child_doctype"):
 					or_filters = [[link.get('child_doctype'), link_fieldnames, '=', name] for link_fieldnames in link.get("fieldname")]
@@ -473,7 +476,7 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled))
 	ret.update(get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled))
 
-	filters=[['fieldtype', 'in', frappe.model.table_fields], ['options', '=', doctype]]
+	filters = [['fieldtype', 'in', frappe.model.table_fields], ['options', '=', doctype]]
 	if without_ignore_user_permissions_enabled: filters.append(['ignore_user_permissions', '!=', 1])
 	# find links of parents
 	links = frappe.get_all("DocField", fields=["parent as dt"], filters=filters)
@@ -498,12 +501,12 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 
 def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 
-	filters=[['fieldtype','=', 'Link'], ['options', '=', doctype]]
+	filters = [['fieldtype','=', 'Link'], ['options', '=', doctype]]
 	if without_ignore_user_permissions_enabled: filters.append(['ignore_user_permissions', '!=', 1])
 
 	# find links of parents
 	links = frappe.get_all("DocField", fields=["parent", "fieldname"], filters=filters, as_list=1)
-	links+= frappe.get_all("Custom Field", fields=["dt as parent", "fieldname"], filters=filters, as_list=1)
+	links += frappe.get_all("Custom Field", fields=["dt as parent", "fieldname"], filters=filters, as_list=1)
 
 	ret = {}
 
@@ -529,34 +532,37 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	ret = {}
 
-	filters=[['fieldtype','=', 'Dynamic Link']]
+	filters = [['fieldtype','=', 'Dynamic Link']]
 	if without_ignore_user_permissions_enabled: filters.append(['ignore_user_permissions', '!=', 1])
 
 	# find dynamic links of parents
 	links = frappe.get_all("DocField", fields=["parent as doctype", "fieldname", "options as doctype_fieldname"], filters=filters)
-	links+= frappe.get_all("Custom Field", fields=["dt as doctype", "fieldname", "options as doctype_fieldname"], filters=filters)
+	links += frappe.get_all("Custom Field", fields=["dt as doctype", "fieldname", "options as doctype_fieldname"], filters=filters)
 
 	for df in links:
 		if is_single(df.doctype): continue
 
-		# optimized to get both link exists and parenttype
-		possible_link = frappe.get_all(df.doctype, filters={df.doctype_fieldname: doctype},
-		fields=['parenttype'], distinct=True)
+		is_child = frappe.get_meta(df.doctype).istable
+		possible_link = frappe.get_all(
+			df.doctype,
+			filters={df.doctype_fieldname: doctype},
+			fields=["parenttype"] if is_child else None,
+			distinct=True
+		)
 
 		if not possible_link: continue
 
-		for d in possible_link:
-			# is child
-			if d.parenttype:
+		if is_child:
+			for d in possible_link:
 				ret[d.parenttype] = {
 					"child_doctype": df.doctype,
 					"fieldname": [df.fieldname],
 					"doctype_fieldname": df.doctype_fieldname
 				}
-			else:
-				ret[df.doctype] = {
-					"fieldname": [df.fieldname],
-					"doctype_fieldname": df.doctype_fieldname
-				}
+		else:
+			ret[df.doctype] = {
+				"fieldname": [df.fieldname],
+				"doctype_fieldname": df.doctype_fieldname
+			}
 
 	return ret

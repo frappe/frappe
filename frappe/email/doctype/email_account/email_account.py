@@ -421,10 +421,10 @@ class EmailAccount(Document):
 	def get_failed_attempts_count(self):
 		return cint(frappe.cache().get('{0}:email-account-failed-attempts'.format(self.name)))
 
-	def receive(self, test_mails=None):
+	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
 		exceptions = []
-		inbound_mails = self.get_inbound_mails(test_mails=test_mails)
+		inbound_mails = self.get_inbound_mails()
 		for mail in inbound_mails:
 			try:
 				communication = mail.process()
@@ -457,20 +457,19 @@ class EmailAccount(Document):
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
 
-	def get_inbound_mails(self, test_mails=None) -> List[InboundMail]:
+	def get_inbound_mails(self) -> List[InboundMail]:
 		"""retrive and return inbound mails.
 
 		"""
 		mails = []
 
-		def process_mail(messages):
+		def process_mail(messages, append_to=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages['uid_list'][index] if messages.get('uid_list') else None
-				seen_status = 1 if messages.get('seen_status', {}).get(uid) == 'SEEN' else 0
-				mails.append(InboundMail(message, self, uid, seen_status))
-
-		if frappe.local.flags.in_test:
-			return [InboundMail(msg, self) for msg in test_mails or []]
+				seen_status = messages.get('seen_status', {}).get(uid)
+				if self.email_sync_option != 'UNSEEN' or seen_status != "SEEN":
+					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
+					mails.append(InboundMail(message, self, uid, seen_status, append_to))
 
 		if not self.enable_incoming:
 			return []
@@ -481,10 +480,10 @@ class EmailAccount(Document):
 			if self.use_imap:
 				# process all given imap folder
 				for folder in self.imap_folder:
-					email_server.select_imap_folder(folder.folder_name)
-					email_server.settings['uid_validity'] = folder.uidvalidity
-					messages = email_server.get_messages(folder=folder.folder_name) or {}
-					process_mail(messages)
+					if email_server.select_imap_folder(folder.folder_name):
+						email_server.settings['uid_validity'] = folder.uidvalidity
+						messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
+						process_mail(messages, folder.append_to)
 			else:
 				# process the pop3 account
 				messages = email_server.get_messages() or {}
@@ -494,7 +493,6 @@ class EmailAccount(Document):
 		except Exception:
 			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
-
 		return mails
 
 	def handle_bad_emails(self, uid, raw, reason):

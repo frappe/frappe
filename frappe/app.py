@@ -294,7 +294,6 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 	_sites_path = sites_path
 
 	from werkzeug.serving import run_simple
-	patch_werkzeug_reloader()
 
 	if profile or os.environ.get('USE_PROFILER'):
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
@@ -325,23 +324,3 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
 		threaded=not no_threading)
-
-def patch_werkzeug_reloader():
-	"""
-	This function monkey patches Werkzeug reloader to ignore reloading files in
-	the __pycache__ directory.
-
-	To be deprecated when upgrading to Werkzeug 2.
-	"""
-
-	from werkzeug._reloader import WatchdogReloaderLoop
-
-	trigger_reload = WatchdogReloaderLoop.trigger_reload
-
-	def custom_trigger_reload(self, filename):
-		if os.path.basename(os.path.dirname(filename)) == "__pycache__":
-			return
-
-		return trigger_reload(self, filename)
-
-	WatchdogReloaderLoop.trigger_reload = custom_trigger_reload
