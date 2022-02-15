@@ -343,7 +343,7 @@ frappe.views.TreeView = class TreeView {
 		this.ignore_fields = this.opts.ignore_fields || [];
 
 		var mandatory_fields = $.map(me.opts.meta.fields, function(d) {
-			return (d.reqd || d.bold && !d.read_only) ? d : null });
+			return (d.reqd || d.bold && !d.read_only && !!d.is_virtual) ? d : null });
 
 		var opts_field_names = this.fields.map(function(d) {
 			return d.fieldname
