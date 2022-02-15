@@ -33,13 +33,12 @@ def get_controller(doctype):
 
 		module_name, custom = frappe.db.get_value(
 			"DocType", doctype, ("module", "custom"), cache=True
-		) or ["Core", False]
+		) or ("Core", False)
 
 		if custom:
-			if frappe.db.field_exists("DocType", "is_tree"):
-				is_tree = frappe.db.get_value("DocType", doctype, "is_tree", cache=True)
-			else:
-				is_tree = False
+			is_tree = frappe.db.get_value(
+				"DocType", doctype, "is_tree", ignore=True, cache=True
+			)
 			_class = NestedSet if is_tree else Document
 		else:
 			class_overrides = frappe.get_hooks('override_doctype_class')
