@@ -233,7 +233,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 	if(data.title || !msg_exists) {
 		// set title only if it is explicitly given
 		// and no existing title exists
-		frappe.msg_dialog.set_title(data.title || __('Message'));
+		frappe.msg_dialog.set_title(data.title || __('Message', null, 'Default title of the message dialog'));
 	}
 
 	// show / hide indicator

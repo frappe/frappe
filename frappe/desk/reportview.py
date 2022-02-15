@@ -256,22 +256,66 @@ def compress(data, args=None):
 	}
 
 @frappe.whitelist()
-def save_report():
-	"""save report"""
+def save_report(name, doctype, report_settings):
+	"""Save reports of type Report Builder from Report View"""
 
-	data = frappe.local.form_dict
-	if frappe.db.exists('Report', data['name']):
-		d = frappe.get_doc('Report', data['name'])
+	if frappe.db.exists('Report', name):
+		report = frappe.get_doc('Report', name)
+		if report.is_standard == "Yes":
+			frappe.throw(_("Standard Reports cannot be edited"))
+
+		if report.report_type != "Report Builder":
+			frappe.throw(_("Only reports of type Report Builder can be edited"))
+
+		if (
+			report.owner != frappe.session.user
+			and not frappe.has_permission("Report", "write")
+		):
+			frappe.throw(
+				_("Insufficient Permissions for editing Report"),
+				frappe.PermissionError
+			)
 	else:
-		d = frappe.new_doc('Report')
-		d.report_name = data['name']
-		d.ref_doctype = data['doctype']
+		report = frappe.new_doc('Report')
+		report.report_name = name
+		report.ref_doctype = doctype
 
-	d.report_type = "Report Builder"
-	d.json = data['json']
-	frappe.get_doc(d).save()
-	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
-	return d.name
+	report.report_type = "Report Builder"
+	report.json = report_settings
+	report.save(ignore_permissions=True)
+	frappe.msgprint(
+		_("Report {0} saved").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
+	return report.name
+
+@frappe.whitelist()
+def delete_report(name):
+	"""Delete reports of type Report Builder from Report View"""
+
+	report = frappe.get_doc("Report", name)
+	if report.is_standard == "Yes":
+		frappe.throw(_("Standard Reports cannot be deleted"))
+
+	if report.report_type != "Report Builder":
+		frappe.throw(_("Only reports of type Report Builder can be deleted"))
+
+	if (
+		report.owner != frappe.session.user
+		and not frappe.has_permission("Report", "delete")
+	):
+		frappe.throw(
+			_("Insufficient Permissions for deleting Report"),
+			frappe.PermissionError
+		)
+
+	report.delete(ignore_permissions=True)
+	frappe.msgprint(
+		_("Report {0} deleted").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
 
 @frappe.whitelist()
 @frappe.read_only()

@@ -205,6 +205,20 @@ class TestDB(unittest.TestCase):
 		for d in created_docs:
 			self.assertTrue(frappe.db.exists("ToDo", d))
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_transaction_writes_error(self):
+		from frappe.database.database import Database
+		frappe.db.rollback()
+
+		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
+		note = frappe.get_last_doc("ToDo")
+		note.description = "changed"
+		with self.assertRaises(frappe.TooManyWritesError) as tmw:
+			note.save()
+
+		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
+
+
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"

@@ -21,6 +21,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("Some (DocType)").insert)
+		self.assertRaises(frappe.NameError, new_doctype("Some Doctype with a name whose length is more than 61 characters").insert)
 		for name in ("Some DocType", "Some_DocType"):
 			if frappe.db.exists("DocType", name):
 				frappe.delete_doc("DocType", name)

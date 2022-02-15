@@ -44,9 +44,16 @@ export default class GoogleDrivePicker {
 	}
 
 	handleAuthResult(authResult) {
+		let error_map = {
+			"popup_closed_by_user": __("Google Authentication was closed abruptly by the user")
+		};
+
 		if (authResult && !authResult.error) {
 			frappe.boot.user.google_drive_token = authResult.access_token;
 			this.createPicker();
+		} else {
+			let error = error_map[authResult.error] || __("Google Authentication Error");
+			frappe.throw(error);
 		}
 	}
 
@@ -58,20 +65,34 @@ export default class GoogleDrivePicker {
 	createPicker() {
 		// Create and render a Picker object for searching images.
 		if (this.pickerApiLoaded && frappe.boot.user.google_drive_token) {
-			var view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+			this.view = new google.picker.DocsView(google.picker.ViewId.DOCS)
 				.setParent('root') // show the root folder by default
 				.setIncludeFolders(true); // also show folders, not just files
 
-			var picker = new google.picker.PickerBuilder()
+			this.picker = new google.picker.PickerBuilder()
 				.setAppId(this.appId)
 				.setDeveloperKey(this.developerKey)
 				.setOAuthToken(frappe.boot.user.google_drive_token)
-				.addView(view)
+				.addView(this.view)
 				.setLocale(frappe.boot.lang)
 				.setCallback(this.pickerCallback)
 				.build();
 
-			picker.setVisible(true);
+			this.picker.setVisible(true);
+			this.setupHide();
+		}
+	}
+
+	setupHide() {
+		let bg = $(".picker-dialog-bg");
+
+		for (let el of bg) {
+			el.onclick = () => {
+				this.picker.setVisible(false);
+				this.picker.Ob({
+					action: google.picker.Action.CANCEL
+				});
+			};
 		}
 	}
 }
