@@ -2,15 +2,13 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
-<<<<<<< HEAD
 import unittest
+
 from six.moves.urllib.parse import quote
-=======
-from frappe.email.doctype.email_queue.email_queue import EmailQueue
+
+import frappe
 from frappe.core.doctype.communication.communication import get_emails
 
->>>>>>> e4ba46ae0d (fix: add test cases for email parsing)
 test_records = frappe.get_test_records('Communication')
 
 
@@ -207,8 +205,6 @@ class TestCommunication(unittest.TestCase):
 
 		self.assertIn(("Note", note.name), doc_links)
 
-<<<<<<< HEAD
-=======
 	def parse_emails(self):
 		emails = get_emails(
 			[
@@ -222,71 +218,6 @@ class TestCommunication(unittest.TestCase):
 		self.assertEqual(emails[1], "first.lastname@email.com")
 		self.assertEqual(emails[2], "test@user.com")
 
-class TestCommunicationEmailMixin(unittest.TestCase):
-	def new_communication(self, recipients=None, cc=None, bcc=None):
-		recipients = ', '.join(recipients or [])
-		cc = ', '.join(cc or [])
-		bcc = ', '.join(bcc or [])
-
-		comm = frappe.get_doc({
-			"doctype": "Communication",
-			"communication_type": "Communication",
-			"communication_medium": "Email",
-			"content": "Test content",
-			"recipients": recipients,
-			"cc": cc,
-			"bcc": bcc
-		}).insert(ignore_permissions=True)
-		return comm
-
-	def new_user(self, email, **user_data):
-		user_data.setdefault('first_name', 'first_name')
-		user = frappe.new_doc('User')
-		user.email = email
-		user.update(user_data)
-		user.insert(ignore_permissions=True, ignore_if_duplicate=True)
-		return user
-
-	def test_recipients(self):
-		to_list = ['to@test.com', 'receiver <to+1@test.com>', 'to@test.com']
-		comm = self.new_communication(recipients = to_list)
-		res = comm.get_mail_recipients_with_displayname()
-		self.assertCountEqual(res, ['to@test.com', 'receiver <to+1@test.com>'])
-		comm.delete()
-
-	def test_cc(self):
-		to_list = ['to@test.com']
-		cc_list = ['cc+1@test.com', 'cc <cc+2@test.com>', 'to@test.com']
-		user = self.new_user(email='cc+1@test.com', thread_notify=0)
-		comm = self.new_communication(recipients=to_list, cc=cc_list)
-		res = comm.get_mail_cc_with_displayname()
-		self.assertCountEqual(res, ['cc <cc+2@test.com>'])
-		user.delete()
-		comm.delete()
-
-	def test_bcc(self):
-		bcc_list = ['bcc+1@test.com', 'cc <bcc+2@test.com>', ]
-		user = self.new_user(email='bcc+2@test.com', enabled=0)
-		comm = self.new_communication(bcc=bcc_list)
-		res = comm.get_mail_bcc_with_displayname()
-		self.assertCountEqual(res, ['bcc+1@test.com'])
-		user.delete()
-		comm.delete()
-
-	def test_sendmail(self):
-		to_list = ['to <to@test.com>']
-		cc_list = ['cc <cc+1@test.com>', 'cc <cc+2@test.com>']
-
-		comm = self.new_communication(recipients=to_list, cc=cc_list)
-		comm.send_email()
-		doc = EmailQueue.find_one_by_filters(communication=comm.name)
-		mail_receivers = [each.recipient for each in doc.recipients]
-		self.assertIsNotNone(doc)
-		self.assertCountEqual(to_list+cc_list, mail_receivers)
-		doc.delete()
-		comm.delete()
-
->>>>>>> e4ba46ae0d (fix: add test cases for email parsing)
 def create_email_account():
 	frappe.delete_doc_if_exists("Email Account", "_Test Comm Account 1")
 
@@ -318,3 +249,4 @@ def create_email_account():
 	}).insert(ignore_permissions=True)
 
 	return email_account
+
