@@ -6,9 +6,9 @@ frappe.ui.form.on("Contact", {
 		frm.email_field = "email_id";
 	},
 	refresh: function(frm) {
-		if(frm.doc.__islocal) {
+		if (frm.is_new()) {
 			const last_doc = frappe.contacts.get_last_doc(frm);
-			if(frappe.dynamic_link && frappe.dynamic_link.doc
+			if (frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name == last_doc.docname) {
 				frm.set_value('links', '');
 				frm.add_child('links', {

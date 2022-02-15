@@ -3,10 +3,9 @@
 
 frappe.ui.form.on("Address", {
 	refresh: function(frm) {
-		if(frm.is_new()) {
+		if (frm.is_new()) {
 			const last_doc = frappe.contacts.get_last_doc(frm);
-			console.log(last_doc);
-			if(frappe.dynamic_link && frappe.dynamic_link.doc
+			if (frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name == last_doc.docname) {
 				frm.set_value('links', '');
 				frm.add_child('links', {
