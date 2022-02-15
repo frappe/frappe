@@ -123,6 +123,9 @@ class BaseDocument(object):
 				self.set(key, [])
 				value = self.__dict__.get(key)
 
+			if limit and isinstance(value, (list, tuple)) and len(value) > limit:
+				value = value[:limit]
+
 			return value
 		else:
 			return self.__dict__
