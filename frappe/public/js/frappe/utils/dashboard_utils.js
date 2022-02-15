@@ -15,7 +15,7 @@ frappe.dashboard_utils = {
 				`<div class="${button_class} ${filter_class} btn-group dropdown pull-right">
 					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<button class="btn btn-secondary btn-xs">
-			 				${icon_html}
+							${icon_html}
 							<span class="filter-label">${filter.label}</span>
 							${frappe.utils.icon('select', 'xs')}
 						</button>
