@@ -3,7 +3,7 @@
 
 import frappe, json, os
 import unittest
-from frappe.desk.query_report import run, save_report
+from frappe.desk.query_report import run, save_report, add_total_row
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
 test_records = frappe.get_test_records('Report')
@@ -226,3 +226,55 @@ result = [
 
 		# Set user back to administrator
 		frappe.set_user('Administrator')
+
+	def test_add_total_row_for_tree_reports(self):
+		report_settings = {
+			'tree': True,
+			'parent_field': 'parent_value'
+		}
+
+		columns = [
+			{
+				"fieldname": "parent_column",
+				"label": "Parent Column",
+				"fieldtype": "Data",
+				"width": 10
+			},
+			{
+				"fieldname": "column_1",
+				"label": "Column 1",
+				"fieldtype": "Float",
+				"width": 10
+			},
+			{
+				"fieldname": "column_2",
+				"label": "Column 2",
+				"fieldtype": "Float",
+				"width": 10
+			}
+		]
+
+		result = [
+			{
+				"parent_column": "Parent 1",
+				"column_1": 200,
+				"column_2": 150.50 
+			},
+			{
+				"parent_column": "Child 1",
+				"column_1": 100,
+				"column_2": 75.25,
+				"parent_value": "Parent 1" 
+			},
+			{
+				"parent_column": "Child 2",
+				"column_1": 100,
+				"column_2": 75.25,
+				"parent_value": "Parent 1" 
+			}
+		]
+
+		result = add_total_row(result, columns, meta=None, report_settings=report_settings)
+		self.assertEqual(result[-1][0], "Total")
+		self.assertEqual(result[-1][1], 200)
+		self.assertEqual(result[-1][2], 150.50)
