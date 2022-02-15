@@ -667,6 +667,13 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
+		# a Doctype name is the tablename created in database
+		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
+		if len(name) > max_length:
+			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
+			frappe.throw(_("Doctype name is limited to {0} characters ({1})").format(max_length, name), frappe.NameError)
+
 		flags = {"flags": re.ASCII} if six.PY3 else {}
 
 		# a DocType name should not start or end with an empty space
@@ -722,28 +729,30 @@ def validate_series(dt, autoname=None, name=None):
 
 def validate_links_table_fieldnames(meta):
 	"""Validate fieldnames in Links table"""
-	if frappe.flags.in_patch: return
-	if frappe.flags.in_fixtures: return
-	if not meta.links: return
+	if not meta.links or frappe.flags.in_patch or frappe.flags.in_fixtures:
+		return
 
-	for index, link in enumerate(meta.links):
+	fieldnames = tuple(field.fieldname for field in meta.fields)
+	for index, link in enumerate(meta.links, 1):
 		link_meta = frappe.get_meta(link.link_doctype)
 		if not link_meta.get_field(link.link_fieldname):
-			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
-		if link.is_child_table and not meta.get_field(link.table_fieldname):
-			message = _("Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+		if not link.is_child_table:
+			continue
+
+		if not link.parent_doctype:
+			message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index)
+			frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
+
+		if not link.table_fieldname:
+			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index)
+			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
+
+		if link.table_fieldname not in fieldnames:
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
-
-		if link.is_child_table:
-			if not link.parent_doctype:
-				message = _("Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
-				frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
-
-			if not link.table_fieldname:
-				message = _("Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
-				frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
 def validate_fields_for_doctype(doctype):
 	meta = frappe.get_meta(doctype, cached=False)

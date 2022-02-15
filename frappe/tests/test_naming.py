@@ -11,11 +11,11 @@ from frappe.model.naming import append_number_if_name_exists, revert_series_if_l
 from frappe.model.naming import determine_consecutive_week_number, parse_naming_series
 
 class TestNaming(unittest.TestCase):
+	def setUp(self):
+		frappe.db.delete('Note')
+
 	def tearDown(self):
-		# Reset ToDo autoname to hash
-		todo_doctype = frappe.get_doc('DocType', 'ToDo')
-		todo_doctype.autoname = 'hash'
-		todo_doctype.save()
+		frappe.db.rollback()
 
 	def test_append_number_if_name_exists(self):
 		'''
@@ -181,3 +181,50 @@ class TestNaming(unittest.TestCase):
 		dt = datetime.fromisoformat("2021-12-31")
 		w = determine_consecutive_week_number(dt)
 		self.assertEqual(w, "52")
+
+	def test_naming_validations(self):
+		# case 1: check same name as doctype
+		# set name via prompt
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': 'Tag'
+		})
+		self.assertRaises(frappe.NameError, tag.insert)
+
+		# set by passing set_name as ToDo
+		self.assertRaises(frappe.NameError, make_invalid_todo)
+
+		# set new name - Note
+		note = frappe.get_doc({
+			'doctype': 'Note',
+			'title': 'Note'
+		})
+		self.assertRaises(frappe.NameError, note.insert)
+
+		# case 2: set name with "New ---"
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': 'New Tag'
+		})
+		self.assertRaises(frappe.NameError, tag.insert)
+
+		# case 3: set name with special characters
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': 'Tag<>'
+		})
+		self.assertRaises(frappe.NameError, tag.insert)
+
+		# case 4: no name specified
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': ''
+		})
+		self.assertRaises(frappe.ValidationError, tag.insert)
+
+
+def make_invalid_todo():
+	frappe.get_doc({
+		'doctype': 'ToDo',
+		'description': 'Test'
+	}).insert(set_name='ToDo')
