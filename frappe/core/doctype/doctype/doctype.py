@@ -781,28 +781,30 @@ def validate_series(dt, autoname=None, name=None):
 
 def validate_links_table_fieldnames(meta):
 	"""Validate fieldnames in Links table"""
-	if frappe.flags.in_patch: return
-	if frappe.flags.in_fixtures: return
-	if not meta.links: return
+	if not meta.links or frappe.flags.in_patch or frappe.flags.in_fixtures:
+		return
 
-	for index, link in enumerate(meta.links):
+	fieldnames = tuple(field.fieldname for field in meta.fields)
+	for index, link in enumerate(meta.links, 1):
 		link_meta = frappe.get_meta(link.link_doctype)
 		if not link_meta.get_field(link.link_fieldname):
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
-		if link.is_child_table and not meta.get_field(link.table_fieldname):
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index+1, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+		if not link.is_child_table:
+			continue
+
+		if not link.parent_doctype:
+			message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index)
+			frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
+
+		if not link.table_fieldname:
+			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index)
+			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
+
+		if link.table_fieldname not in fieldnames:
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
-
-		if link.is_child_table:
-			if not link.parent_doctype:
-				message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(index+1)
-				frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
-
-			if not link.table_fieldname:
-				message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index+1)
-				frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
 def validate_fields_for_doctype(doctype):
 	meta = frappe.get_meta(doctype, cached=False)
@@ -1076,6 +1078,9 @@ def validate_fields(meta):
 			field.fetch_from = field.fetch_from.strip('\n').strip()
 
 	def validate_data_field_type(docfield):
+		if docfield.get("is_virtual"):
+			return
+
 		if docfield.fieldtype == "Data" and not (docfield.oldfieldtype and docfield.oldfieldtype != "Data"):
 			if docfield.options and (docfield.options not in data_field_options):
 				df_str = frappe.bold(_(docfield.label))
@@ -1321,10 +1326,9 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		else:
 			raise
 
-def check_fieldname_conflicts(doctype, fieldname):
+def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
-
-	doc = frappe.get_doc({"doctype": doctype})
+	doc = frappe.get_doc({"doctype": docfield.dt})
 	available_objects = [x for x in dir(doc) if isinstance(x, str)]
 	property_list = [
 		x for x in available_objects if isinstance(getattr(type(doc), x, None), property)
@@ -1332,9 +1336,10 @@ def check_fieldname_conflicts(doctype, fieldname):
 	method_list = [
 		x for x in available_objects if x not in property_list and callable(getattr(doc, x))
 	]
+	msg = _("Fieldname {0} conflicting with meta object").format(docfield.fieldname)
 
-	if fieldname in method_list + property_list:
-		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))
+	if docfield.fieldname in method_list + property_list:
+		frappe.msgprint(msg, raise_exception=not docfield.is_virtual)
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')

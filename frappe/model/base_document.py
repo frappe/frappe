@@ -1,16 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 
 import frappe
-import datetime
 from frappe import _
-from frappe.model import default_fields, table_fields, child_table_fields
+from frappe.model import child_table_fields, default_fields, display_fieldtypes, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.model import display_fieldtypes
-from frappe.utils import (cint, flt, now, cstr, strip_html,
-	sanitize_html, sanitize_email, cast_fieldtype)
+from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 from frappe.model.docstatus import DocStatus
 
@@ -254,7 +252,22 @@ class BaseDocument(object):
 				continue
 
 			df = self.meta.get_field(fieldname)
-			if df:
+
+			if df and df.get("is_virtual"):
+				from frappe.utils.safe_exec import get_safe_globals
+
+				if d[fieldname] is None:
+					if df.get("options"):
+						d[fieldname] = frappe.safe_eval(
+							code=df.get("options"),
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},
+						)
+					else:
+						_val = getattr(self, fieldname, None)
+						if _val and not callable(_val):
+							d[fieldname] = _val
+			elif df:
 				if df.fieldtype=="Check":
 					d[fieldname] = 1 if cint(d[fieldname]) else 0
 
@@ -328,6 +341,7 @@ class BaseDocument(object):
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False, no_child_table_fields=False):
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
+
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
 			doc[df.fieldname] = [
@@ -375,11 +389,23 @@ class BaseDocument(object):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
 		return fieldname[0] if fieldname else None
 
-	def db_insert(self):
-		"""INSERT the document (with valid columns) in the database."""
+	def db_insert(self, ignore_if_duplicate=False):
+		"""INSERT the document (with valid columns) in the database.
+
+			args:
+				ignore_if_duplicate: ignore primary key collision
+								at database level (postgres)
+								in python (mariadb)
+		"""
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		conflict_handler = ""
+		# On postgres we can't implcitly ignore PK collision
+		# So instruct pg to ignore `name` field conflicts
+		if ignore_if_duplicate and frappe.db.db_type == "postgres":
+			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -391,10 +417,11 @@ class BaseDocument(object):
 		columns = list(d)
 		try:
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values})""".format(
-					doctype = self.doctype,
-					columns = ", ".join("`"+c+"`" for c in columns),
-					values = ", ".join(["%s"] * len(columns))
+					VALUES ({values}) {conflict_handler}""".format(
+					doctype=self.doctype,
+					columns=", ".join("`"+c+"`" for c in columns),
+					values=", ".join(["%s"] * len(columns)),
+					conflict_handler=conflict_handler
 				), list(d.values()))
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
@@ -407,8 +434,11 @@ class BaseDocument(object):
 					self.db_insert()
 					return
 
-				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
-				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+				if not ignore_if_duplicate:
+					frappe.msgprint(_("{0} {1} already exists")
+							.format(self.doctype, frappe.bold(self.name)),
+							title=_("Duplicate Name"), indicator="red")
+					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
 				# unique constraint
