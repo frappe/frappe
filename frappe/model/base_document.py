@@ -101,20 +101,10 @@ class BaseDocument(object):
 				"balance": 42000
 			})
 		"""
-<<<<<<< HEAD
-		if "doctype" in d:
-			self.set("doctype", d.get("doctype"))
-
-		# first set default field values of base document
-		for key in default_fields:
-			if key in d:
-				self.set(key, d.get(key))
-=======
 
 		# set name first, as it is used a reference in child document
 		if "name" in d:
 			self.name = d["name"]
->>>>>>> 1a20f376f3 (perf: reduce loop in `doc.update`)
 
 		for key, value in iteritems(d):
 			self.set(key, value)
