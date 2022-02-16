@@ -150,6 +150,11 @@
 	margin-top: 10px;
 }
 
+.event-time {
+	margin-top: 10px;
+	font-size: 12px;
+}
+
 hr {
 	border: 0;
 	height: 1px;

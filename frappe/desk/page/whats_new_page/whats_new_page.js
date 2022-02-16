@@ -7,7 +7,7 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 	new WhatsNew(page);
 }
 
-const host = "https://test-st.frappe.cloud";
+const host = "http://test-st.frappe.cloud";
 const month_list = {
 	0 : 'Jan',
 	1 : 'Feb',
@@ -125,6 +125,23 @@ class WhatsNew {
 		}
 	}
 
+	get_event_date_time(event) {
+		if (!event.event_time) {
+			return ``
+		} else {
+			const [hr, min, sec] = (event.event_time).split(":");
+			var hour = parseInt(hr);
+			if(hour > 12) {
+				hour = hour - 12;
+			}
+
+			const am_pm = (hr >= 12) ? 'PM' : 'AM';
+			return `
+				<p class="event-time">Time: ${hour}:${min} ${am_pm} IST</p>
+			`
+		}
+	}
+
 	bind_click_events() {
 		$(this.$container).on("click", ".whats-new-event-cal-link", function(e){
 			const event_date = $(this).data("event_date");
@@ -212,7 +229,7 @@ class WhatsNew {
 										${event.description || ''}
 										${this.get_source_link(event.source_link)}
 									</div>
-									${this.get_post_media(event) || ''}
+									${this.get_event_date_time(event)}
 								</div>
 							</div>
 						</div>
