@@ -137,7 +137,7 @@ class WhatsNew {
 
 			const am_pm = (hr >= 12) ? 'PM' : 'AM';
 			return `
-				<p class="event-time">Time: ${hour}:${min} ${am_pm} IST</p>
+				<p class="event-time">Time: ${hour}:${min} ${am_pm} IST (GMT +5:30 hrs)</p>
 			`
 		}
 	}
