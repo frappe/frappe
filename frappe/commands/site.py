@@ -27,9 +27,11 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
+@click.option('--set-default', is_flag=True, default=False, help='Set the new site as default site')
 def new_site(site, db_root_username=None, db_root_password=None, admin_password=None,
 			 verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
-			 install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None):
+			 install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None,
+			 set_default=False):
 	"Create a new site"
 	from frappe.installer import _new_site
 
@@ -41,7 +43,7 @@ def new_site(site, db_root_username=None, db_root_password=None, admin_password=
 			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
 			  db_port=db_port, new_site=True)
 
-	if len(frappe.utils.get_sites()) == 1:
+	if set_default:
 		use(site)
 
 
