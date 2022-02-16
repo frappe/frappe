@@ -384,17 +384,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.throw(`Action ${action} not found`);
 			}
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if (action.action_type==='Server Action') {
 			frappe.xcall(action.action, {'doc': this.doc}).then((doc) => {
-=======
-		if (action.action_type === 'Server Action') {
-=======
-		if (action.action_type==='Server Action') {
->>>>>>> 6d4df45ab0 (revert: unrelated formatting changes)
-			return frappe.xcall(action.action, {'doc': this.doc}).then((doc) => {
->>>>>>> c64a42288d (chore: keep spaces around operators)
 				if (doc.doctype) {
 					// document is returned by the method,
 					// apply the changes locally and refresh
@@ -408,17 +399,8 @@ frappe.ui.form.Form = class FrappeForm {
 					alert: true
 				});
 			});
-<<<<<<< HEAD
-<<<<<<< HEAD
 		} else if (action.action_type==='Route') {
 			frappe.set_route(action.action);
-=======
-		} else if (action.action_type === 'Route') {
-=======
-		} else if (action.action_type==='Route') {
->>>>>>> 6d4df45ab0 (revert: unrelated formatting changes)
-			return frappe.set_route(action.action);
->>>>>>> c64a42288d (chore: keep spaces around operators)
 		}
 	}
 
@@ -532,17 +514,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
-<<<<<<< HEAD
 		if(!this.hidden) {
-=======
-		this.cscript.is_onload && this.set_first_tab_as_active();
-
-<<<<<<< HEAD
-		if (!this.hidden) {
->>>>>>> 434ab616df (fix: sider fix)
-=======
-		if(!this.hidden) {
->>>>>>> 6d4df45ab0 (revert: unrelated formatting changes)
 			this.layout.show_empty_form_message();
 		}
 
@@ -659,23 +631,8 @@ frappe.ui.form.Form = class FrappeForm {
 		this.validate_form_action(save_action, resolve);
 
 		var after_save = function(r) {
-<<<<<<< HEAD
-			if(!r.exc) {
-=======
-			// to remove hash from URL to avoid scroll after save
-			history.replaceState(null, null, ' ');
-<<<<<<< HEAD
-			if (!r.exc) {
-<<<<<<< HEAD
->>>>>>> 434ab616df (fix: sider fix)
-				if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
-=======
-				if (["Save", "Update", "Amend"].indexOf(save_action) !== -1) {
->>>>>>> ae91bfa49e (fix: sider fix)
-=======
 			if(!r.exc) {
 				if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
->>>>>>> 6d4df45ab0 (revert: unrelated formatting changes)
 					frappe.utils.play_sound("click");
 				}
 
