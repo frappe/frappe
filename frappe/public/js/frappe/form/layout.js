@@ -547,9 +547,11 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	refresh_dependency() {
-		// Resolve "depends_on" and show / hide accordingly
+		/**
+			Resolve "depends_on" and show / hide accordingly
+			build dependants' dictionary
+		*/
 
-		// build dependants' dictionary
 		let has_dep = false;
 
 		for (let fkey in this.fields_list) {
