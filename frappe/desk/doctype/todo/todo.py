@@ -67,6 +67,7 @@ class ToDo(Document):
 			return
 
 		try:
+<<<<<<< HEAD
 			assignments = [d[0] for d in frappe.get_all("ToDo",
 				filters={
 					"reference_type": self.reference_type,
@@ -74,6 +75,15 @@ class ToDo(Document):
 					"status": ("!=", "Cancelled")
 				},
 				fields=["owner"], as_list=True)]
+=======
+			assignments = frappe.get_all("ToDo", filters={
+				"reference_type": self.reference_type,
+				"reference_name": self.reference_name,
+				"status": ("!=", "Cancelled"),
+				"allocated_to": ("is", "set")
+			}, pluck="allocated_to")
+			assignments.reverse()
+>>>>>>> 762aeb32f0 (fix: Show assignments based on allocated todo only)
 
 			assignments.reverse()
 			frappe.db.set_value(self.reference_type, self.reference_name,
