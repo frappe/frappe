@@ -71,7 +71,8 @@ class ToDo(Document):
 				filters={
 					"reference_type": self.reference_type,
 					"reference_name": self.reference_name,
-					"status": ("!=", "Cancelled")
+					"status": ("!=", "Cancelled"),
+					"owner": ("is", "set")
 				},
 				fields=["owner"], as_list=True)]
 
