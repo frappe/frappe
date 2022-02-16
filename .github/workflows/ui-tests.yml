@@ -118,9 +118,7 @@ jobs:
 
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: |
-          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
-          cat ~/frappe-bench/Procfile
+        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: ui
