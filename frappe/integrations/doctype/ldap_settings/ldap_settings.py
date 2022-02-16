@@ -46,8 +46,8 @@ class LDAPSettings(Document):
 						title=_("Misconfigured"))
 
 				if self.ldap_directory_server.lower() == 'custom':
-					if not self.ldap_group_member_attribute or not self.ldap_group_mappings_section:
-						frappe.throw(_("Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'LDAP Group Mappings' are entered"),
+					if not self.ldap_group_member_attribute or not self.ldap_group_objectclass:
+						frappe.throw(_("Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"),
 						title=_("Misconfigured"))
 
 			else:
