@@ -159,13 +159,8 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		"trigger_print": cint(trigger_print),
 		"letter_head": letter_head.content,
 		"footer": letter_head.footer,
-<<<<<<< HEAD
 		"print_settings": frappe.get_doc("Print Settings")
-	}
-=======
-		"print_settings": print_settings
 	})
->>>>>>> 97bab50a58 (fix: pass `print_heading_template` as render args)
 
 	html = template.render(args, filters={"len": len})
 
