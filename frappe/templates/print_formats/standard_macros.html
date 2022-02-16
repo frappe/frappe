@@ -167,24 +167,13 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% if letter_head and not no_letterhead %}
 		<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
-<<<<<<< HEAD
-    {% if doc.print_heading_template %}
-        {{ frappe.render_template(doc.print_heading_template, {"doc":doc}) }}
+    {% if print_heading_template %}
+        {{ frappe.render_template(print_heading_template, {"doc":doc}) }}
     {% else %}
     <div class="print-heading">
 		<h2>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
 			else _(doc.doctype)) }}<br>
 			<small>{{ doc.sub_heading if doc.sub_heading != None
-=======
-	{% if print_heading_template %}
-		{{ frappe.render_template(print_heading_template, {"doc":doc}) }}
-	{% else %}
-	<div class="print-heading">
-		<h2>
-			<div>{{ _(doc.select_print_heading) or (_(doc.print_heading) if doc.print_heading != None
-				else _(doc.doctype)) }}</div>
-			<small class="sub-heading">{{ _(doc.sub_heading) if doc.sub_heading != None
->>>>>>> 97bab50a58 (fix: pass `print_heading_template` as render args)
 				else doc.name }}</small>
         </h2>
     </div>
