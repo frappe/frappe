@@ -115,14 +115,26 @@ class BaseDocument(object):
 		return self
 
 	def update_if_missing(self, d):
+		"""Set default values for fields without existing values"""
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
 
+<<<<<<< HEAD
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 		for key, value in iteritems(d):
 			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
 			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
+=======
+		for key, value in d.items():
+			if (
+				value is not None
+				and self.get(key) is None
+				# dont_update_if_missing is a list of fieldnames
+				# for which you don't want to set default value
+				and key not in self.dont_update_if_missing
+			):
+>>>>>>> 24a750c048 (chore: remove redundant code from `update_if_missing`)
 				self.set(key, value)
 
 	def get_db_value(self, key):
