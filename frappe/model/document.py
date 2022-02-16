@@ -865,10 +865,12 @@ class Document(BaseDocument):
 
 		# Cannot have a field with same name as method
 		# Validation for this already exists when saving a DocType
-		self.__dict__.pop(method, None)
+		if method in self.__dict__ and not callable(self.__dict__[method]):
+			del self.__dict__[method]
 
-		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
-			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
+		method_object = getattr(self, method, None)
+		if callable(method_object):
+			fn = lambda self, *args, **kwargs: method_object(*args, **kwargs)
 		else:
 			# hack! to run hooks even if method does not exist
 			fn = lambda self, *args, **kwargs: None
