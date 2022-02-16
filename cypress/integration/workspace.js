@@ -23,7 +23,7 @@ context('Workspace 2.0', () => {
 		// check if sidebar item is added in pubic section
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should('have.attr', 'item-public', '0');
 
-		cy.get('.standard-actions .btn-primary[data-label="Save Customizations"]').click();
+		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should('have.attr', 'item-public', '0');
 
@@ -67,7 +67,7 @@ context('Workspace 2.0', () => {
 		cy.get('.ce-block:last .dropdown-item').contains('Expand').click();
 		cy.get(".ce-block:last").should('have.class', 'col-xs-12');
 
-		cy.get('.standard-actions .btn-primary[data-label="Save Customizations"]').click();
+		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 	});
 
 	it('Delete Private Page', () => {
@@ -80,7 +80,7 @@ context('Workspace 2.0', () => {
 			.find('.dropdown-item[title="Delete Workspace"]').click({force: true});
 		cy.wait(300);
 		cy.get('.modal-footer > .standard-actions > .btn-modal-primary:visible').first().click();
-		cy.get('.standard-actions .btn-primary[data-label="Save Customizations"]').click();
+		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').should('not.exist');
 	});

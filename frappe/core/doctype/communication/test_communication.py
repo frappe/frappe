@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
+from frappe.core.doctype.communication.communication import get_emails
 
 test_records = frappe.get_test_records('Communication')
 
@@ -200,6 +201,19 @@ class TestCommunication(unittest.TestCase):
 			doc_links.append((timeline_link.link_doctype, timeline_link.link_name))
 
 		self.assertIn(("Note", note.name), doc_links)
+
+	def parse_emails(self):
+		emails = get_emails(
+			[
+				'comm_recipient+DocType+DocName@example.com',
+				'"First, LastName" <first.lastname@email.com>',
+				'test@user.com'
+			]
+		)
+
+		self.assertEqual(emails[0], "comm_recipient+DocType+DocName@example.com")
+		self.assertEqual(emails[1], "first.lastname@email.com")
+		self.assertEqual(emails[2], "test@user.com")
 
 class TestCommunicationEmailMixin(unittest.TestCase):
 	def new_communication(self, recipients=None, cc=None, bcc=None):

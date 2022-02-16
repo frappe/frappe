@@ -14,6 +14,7 @@
   "non_negative",
   "reqd",
   "unique",
+  "is_virtual",
   "in_list_view",
   "in_standard_filter",
   "in_global_search",
@@ -115,6 +116,12 @@
    "fieldname": "unique",
    "fieldtype": "Check",
    "label": "Unique"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_virtual",
+   "fieldtype": "Check",
+   "label": "Is Virtual"
   },
   {
    "default": "0",

@@ -1363,6 +1363,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_df_property(fieldname, property, value, docname, table_field, table_row_name=null) {
 		let df;
+
 		if (!docname || !table_field) {
 			df = this.get_docfield(fieldname);
 		} else {
@@ -1372,8 +1373,10 @@ frappe.ui.form.Form = class FrappeForm {
 				df = frappe.meta.get_docfield(filtered_fields[0].parent, table_field, table_row_name);
 			}
 		}
+
 		if (df && df[property] != value) {
 			df[property] = value;
+
 			if (table_field && table_row_name) {
 				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
 					this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name].refresh_field(fieldname);
