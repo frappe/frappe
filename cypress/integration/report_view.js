@@ -60,6 +60,10 @@ context('Report View', () => {
 		cy.get('.list-paging-area .btn-more').click();
 		cy.get('.list-paging-area .list-count').should('contain.text', '300 of');
 
+		// check if refresh works after load more
+		cy.get('.page-head .standard-actions [data-original-title="Refresh"]').click();
+		cy.get('.list-paging-area .list-count').should('contain.text', '300 of');
+
 		cy.get('.list-paging-area .btn-group .btn-paging[data-value="500"]').click();
 
 		cy.get('.list-paging-area .list-count').should('contain.text', '500 of');
