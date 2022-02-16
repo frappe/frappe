@@ -104,13 +104,10 @@ class BaseDocument(object):
 				"balance": 42000
 			})
 		"""
-		if "doctype" in d:
-			self.set("doctype", d.get("doctype"))
 
-		# first set default field values of base document
-		for key in default_fields:
-			if key in d:
-				self.set(key, d.get(key))
+		# set name first, as it is used a reference in child document
+		if "name" in d:
+			self.name = d["name"]
 
 		for key, value in iteritems(d):
 			self.set(key, value)
@@ -187,6 +184,7 @@ class BaseDocument(object):
 		if isinstance(value, (dict, BaseDocument)):
 			if not self.__dict__.get(key):
 				self.__dict__[key] = []
+
 			value = self._init_child(value, key)
 			self.__dict__[key].append(value)
 
@@ -220,6 +218,7 @@ class BaseDocument(object):
 	def _init_child(self, value, key):
 		if not self.doctype:
 			return value
+
 		if not isinstance(value, BaseDocument):
 			value["doctype"] = self.get_table_field_doctype(key)
 			if not value["doctype"]:
