@@ -66,8 +66,8 @@ fi
 
 if [ "$TYPE" == "ui" ]; then
     bench setup requirements --node;
-    CI=Yes bench build --app frappe &
 fi
 
+CI=Yes bench build --app frappe &
 bench start &
 bench --site test_site reinstall --yes
