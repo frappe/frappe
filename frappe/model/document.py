@@ -863,14 +863,12 @@ class Document(BaseDocument):
 
 		kwargs.pop("flags", None)
 
-		# Cannot have a field with same name as method
-		# Validation for this already exists when saving a DocType
-		if method in self.__dict__ and not callable(self.__dict__[method]):
-			del self.__dict__[method]
-
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
-			if callable(method_object):
+
+			# Cannot have a field with same name as method
+			# If method found in __dict__, expect it to be callable
+			if method in self.__dict__ or callable(method_object):
 				return method_object(*args, **kwargs)
 
 		fn.__name__ = str(method)

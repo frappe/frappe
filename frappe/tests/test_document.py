@@ -326,9 +326,8 @@ class TestDocument(unittest.TestCase):
 		# Case 1: Override with a string
 		doc.as_dict = ""
 
-		# run_method should still work
-		value = doc.run_method("as_dict")
-		self.assertIsInstance(value, dict)
+		# run_method should throw TypeError
+		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
 
 		# Case 2: Override with a function
 		def my_as_dict(*args, **kwargs):
