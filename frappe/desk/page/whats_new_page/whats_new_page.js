@@ -7,7 +7,7 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 	new WhatsNew(page);
 }
 
-const host = "http://test-st.frappe.cloud";
+const host = "http://test-erp:8000";
 const month_list = {
 	0 : 'Jan',
 	1 : 'Feb',
@@ -158,7 +158,7 @@ class WhatsNew {
 				freeze:true,
 				callback: function(r) {
 					if (r.message) {
-						frappe.msgprint('Successfully Created an Event, please sync with your Google Calendar')
+						return;
 					}
 				}
 			});

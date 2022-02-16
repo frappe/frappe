@@ -20,7 +20,7 @@ def fetch_latest_posts():
 	event_list = []
 	fields = ["name", "title", "description", "banner", "post_type", "posting_date", "source_link", "event_date", "event_time"]
 	try:
-		posts = frappe.get_all("Whats New", fields=fields, order_by="event_date desc")
+		posts = frappe.get_all("Whats New", fields=fields, filters={"docstatus":1},order_by="event_date desc")
 	except:
 		traceback = frappe.get_traceback()
 		frappe.log_error(title=frappe._("Error while retrieving posts"), message=traceback)

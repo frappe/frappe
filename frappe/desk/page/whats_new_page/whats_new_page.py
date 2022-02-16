@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.utils.data import get_link_to_form
 import requests
 from frappe import _
 from datetime import datetime, date
 
 @frappe.whitelist(allow_guest=True)
 def get_whats_new_posts():
-	host = "http://test-st.frappe.cloud"
+	host = "http://test-erp:8000"
 	post_list = []
 
 	try:
@@ -42,7 +43,8 @@ def add_whats_new_event_to_calendar(date, time, title):
 
 	date_time = datetime.strptime((date+' '+time), "%Y-%m-%d %H:%M:%S")
 	if frappe.db.exists("Event", {"subject":title, "starts_on":date_time}):
-		frappe.throw(title=_("Event Already Created"), msg=_("An event for {0} scheduled on {1} already exists").format(frappe.bold(title), frappe.bold(date_time)))
+		event_name = frappe.db.get_value("Event", {"subject":title, "starts_on": (date+' '+time)}, "name")
+		frappe.throw(title=_("Event Already Exists"), msg=_("An event {} already exists in your ERPNext system.").format(get_link_to_form("Event", event_name)))
 
 	calendar_event = {
 		"doctype": "Event",
@@ -50,5 +52,8 @@ def add_whats_new_event_to_calendar(date, time, title):
 		"starts_on": date_time,
 		"event_type": "Public"
 	}
-	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
+	event_doc = frappe.get_doc(calendar_event)
+	event_doc.insert(ignore_permissions=True)
+	frappe.msgprint(title=_("Event Created Successfully"), msg=_('Successfully Created Event {} in your ERPNext account').format(get_link_to_form("Event", event_doc.get("name"))))
+
 	return True
