@@ -868,12 +868,10 @@ class Document(BaseDocument):
 		if method in self.__dict__ and not callable(self.__dict__[method]):
 			del self.__dict__[method]
 
-		method_object = getattr(self, method, None)
-		if callable(method_object):
-			fn = lambda self, *args, **kwargs: method_object(*args, **kwargs)
-		else:
-			# hack! to run hooks even if method does not exist
-			fn = lambda self, *args, **kwargs: None
+		def fn(self, *args, **kwargs):
+			method_object = getattr(self, method, None)
+			if callable(method_object):
+				return method_object(*args, **kwargs)
 
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
