@@ -258,9 +258,6 @@ def update_webform_to_multistep():
 		_doc.title = "update-profile-duplicate"
 		_doc.route = "update-profile-duplicate"
 		_doc.is_standard = False
-<<<<<<< HEAD
-		_doc.save()
-=======
 		_doc.save()
 
 @frappe.whitelist()
@@ -276,4 +273,3 @@ def update_child_table(name):
 		})
 
 		doc.save()
->>>>>>> 39d65c5211 (test: UI test to check if linked field is populated in child table)
