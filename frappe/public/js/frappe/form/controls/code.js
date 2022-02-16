@@ -71,32 +71,20 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		if (this._autocompletion_setup) return;
 
 		const ace = window.ace;
-		const get_autocompletions = () => {
-			let getters = this._autocompletions || [];
-			let completions = [];
-			for (let getter of getters) {
-				let values = getter()
-				completions.push(...values);
-			}
-			return completions;
-		}
 
-		ace.config.loadModule("ace/ext/language_tools", langTools => {
-			this.editor.setOptions({
-				enableBasicAutocompletion: true,
-				enableLiveAutocompletion: true
-			});
-
-			langTools.addCompleter({
-				getCompletions: customGetCompletions || getCompletions
-			});
-		});
-		this._autocompletion_setup = true;
-
-		function getCompletions(editor, session, pos, prefix, callback) {
+		let getCompletions = (editor, session, pos, prefix, callback) => {
 			if (prefix.length === 0) {
 				callback(null, []);
 				return;
+			}
+			const get_autocompletions = () => {
+				let getters = this._autocompletions || [];
+				let completions = [];
+				for (let getter of getters) {
+					let values = getter({ editor, session, pos, prefix });
+					completions.push(...values);
+				}
+				return completions;
 			}
 			let autocompletions = get_autocompletions();
 			if (autocompletions.length) {
@@ -117,6 +105,18 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				);
 			}
 		}
+
+		ace.config.loadModule("ace/ext/language_tools", langTools => {
+			this.editor.setOptions({
+				enableBasicAutocompletion: true,
+				enableLiveAutocompletion: true
+			});
+
+			langTools.addCompleter({
+				getCompletions: customGetCompletions || getCompletions
+			});
+		});
+		this._autocompletion_setup = true;
 	}
 
 	refresh_height() {
