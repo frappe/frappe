@@ -54,17 +54,32 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				return this._autocompletions || [];
 			},
 			set: (value) => {
+				let getter = value
+				if (typeof getter !== 'function') {
+					getter = () => value
+				}
+				if (!this._autocompletions) {
+					this._autocompletions = [];
+				}
+				this._autocompletions.push(getter);
 				this.setup_autocompletion();
-				this.df._autocompletions = value;
 			}
 		});
 	}
 
-	setup_autocompletion() {
+	setup_autocompletion(customGetCompletions) {
 		if (this._autocompletion_setup) return;
 
 		const ace = window.ace;
-		const get_autocompletions = () => this.df.autocompletions;
+		const get_autocompletions = () => {
+			let getters = this._autocompletions || [];
+			let completions = [];
+			for (let getter of getters) {
+				let values = getter()
+				completions.push(...values);
+			}
+			return completions;
+		}
 
 		ace.config.loadModule("ace/ext/language_tools", langTools => {
 			this.editor.setOptions({
@@ -73,31 +88,35 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			});
 
 			langTools.addCompleter({
-				getCompletions: function(editor, session, pos, prefix, callback) {
-					if (prefix.length === 0) {
-						callback(null, []);
-						return;
-					}
-					let autocompletions = get_autocompletions();
-					if (autocompletions.length) {
-						callback(
-							null,
-							autocompletions.map(a => {
-								if (typeof a === 'string') {
-									a = { value: a };
-								}
-								return {
-									name: 'frappe',
-									value: a.value,
-									score: a.score
-								};
-							})
-						);
-					}
-				}
+				getCompletions: customGetCompletions || getCompletions
 			});
 		});
 		this._autocompletion_setup = true;
+
+		function getCompletions(editor, session, pos, prefix, callback) {
+			if (prefix.length === 0) {
+				callback(null, []);
+				return;
+			}
+			let autocompletions = get_autocompletions();
+			if (autocompletions.length) {
+				callback(
+					null,
+					autocompletions.map(a => {
+						if (typeof a === "string") {
+							a = { value: a };
+						}
+						return {
+							name: "frappe",
+							value: a.value,
+							score: a.score,
+							meta: a.meta,
+							caption: a.caption
+						};
+					})
+				);
+			}
+		}
 	}
 
 	refresh_height() {
