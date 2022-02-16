@@ -259,6 +259,7 @@ def get_assignments(dt, dn):
 			'reference_type': dt,
 			'reference_name': dn,
 			'status': ('!=', 'Cancelled'),
+			'owner': ("is", "set")
 		})
 
 	return cl
