@@ -2,6 +2,14 @@
 
 set -e
 
+ # install wkhtmltopdf
+wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
+tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
+sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
+sudo chmod o+x /usr/local/bin/wkhtmltopdf
+
+sudo apt-get install libcups2-dev redis-server
+
 cd ~ || exit
 
 pip install frappe-bench
@@ -12,26 +20,26 @@ mkdir ~/frappe-bench/sites/test_site
 cp "${GITHUB_WORKSPACE}/.github/helper/consumer_db/$DB.json" ~/frappe-bench/sites/test_site/site_config.json
 
 if [ "$TYPE" == "server" ]; then
-      mkdir ~/frappe-bench/sites/test_site_producer;
-      cp "${GITHUB_WORKSPACE}/.github/helper/producer_db/$DB.json" ~/frappe-bench/sites/test_site_producer/site_config.json;
+    mkdir ~/frappe-bench/sites/test_site_producer;
+    cp "${GITHUB_WORKSPACE}/.github/helper/producer_db/$DB.json" ~/frappe-bench/sites/test_site_producer/site_config.json;
 fi
 
 if [ "$DB" == "mariadb" ];then
-      sudo apt update && sudo apt install mariadb-client-10.3
-      mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+    sudo apt-get install mariadb-client-10.3
+    mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE DATABASE test_frappe_consumer";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE DATABASE test_frappe_consumer";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
 
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE DATABASE test_frappe_producer";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost'";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE DATABASE test_frappe_producer";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer'";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost'";
 
-      mysql --host 127.0.0.1 --port 3306 -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "FLUSH PRIVILEGES";
-    fi
+    mysql --host 127.0.0.1 --port 3306 -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
+    mysql --host 127.0.0.1 --port 3306 -u root -e "FLUSH PRIVILEGES";
+fi
 
 if [ "$DB" == "postgres" ];then
     echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe_consumer" -U postgres;
@@ -46,18 +54,20 @@ cd ./frappe-bench || exit
 sed -i 's/^watch:/# watch:/g' Procfile
 sed -i 's/^schedule:/# schedule:/g' Procfile
 
-if [ "$TYPE" == "server" ]; then sed -i 's/^socketio:/# socketio:/g' Procfile; fi
-if [ "$TYPE" == "server" ]; then sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile; fi
+if [ "$TYPE" == "server" ]; then
+    sed -i 's/^socketio:/# socketio:/g' Procfile;
+    sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile;
+    bench setup requirements --dev;
+    # install node-sass which is required for website theme test
+    cd ./apps/frappe || exit
+    yarn add node-sass@^7.0.0
+    cd ../..
+fi
 
-if [ "$TYPE" == "ui" ]; then bench setup requirements --node; fi
-if [ "$TYPE" == "server" ]; then bench setup requirements --dev; fi
-
-# install node-sass which is required for website theme test
-cd ./apps/frappe || exit
-yarn add node-sass@4.13.1
-cd ../..
+if [ "$TYPE" == "ui" ]; then
+    bench setup requirements --node;
+    CI=Yes bench build --app frappe &
+fi
 
 bench start &
 bench --site test_site reinstall --yes
-if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi
-CI=Yes bench build --app frappe

@@ -108,18 +108,12 @@ jobs:
             ${{ runner.os }}-cypress-
             ${{ runner.os }}-
 
-      - name: Install Dependencies
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
-        env:
-          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
-          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
-          TYPE: ui
-
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           DB: mariadb
           TYPE: ui
 

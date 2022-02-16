@@ -1,23 +1,22 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2022, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-import unittest
 import json
-from frappe.frappeclient import FrappeClient
-from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
+import subprocess
+import unittest
+
+import frappe
 from frappe.core.doctype.user.user import generate_keys
+from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
+from frappe.frappeclient import FrappeClient
 
 producer_url = 'http://test_site_producer:8000'
 
 class TestEventProducer(unittest.TestCase):
-	# @classmethod
-	# def setUpClass(cls):
-	# 	frappe.print_sql(True)
-
-	# @classmethod
-	# def tearDownClass(cls):
-	# 	frappe.print_sql(False)
+	@classmethod
+	def setUpClass(cls):
+		exit_code = subprocess.run("bench --site test_site_producer reinstall --yes", shell=True)
+		if exit_code:
+			raise unittest.SkipTest("Test Site test_site_producer failed to setup")
 
 	def setUp(self):
 		create_event_producer(producer_url)
