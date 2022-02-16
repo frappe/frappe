@@ -7,7 +7,7 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 	new WhatsNew(page);
 }
 
-const host = "http://test-erp:8000";
+const host = "https://test-st.frappe.cloud";
 const month_list = {
 	0 : 'Jan',
 	1 : 'Feb',

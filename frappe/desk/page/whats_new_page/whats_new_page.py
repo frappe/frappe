@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 @frappe.whitelist(allow_guest=True)
 def get_whats_new_posts():
-	host = "http://test-erp:8000"
+	host = "https://test-st.frappe.cloud"
 	post_list = []
 
 	try:
