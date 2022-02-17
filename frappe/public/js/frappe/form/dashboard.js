@@ -549,14 +549,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	render_graph(args) {
 		this.chart_area.show();
 		this.chart_area.body.empty();
-		$.extend({
+		$.extend(args, {
 			type: 'line',
 			colors: ['green'],
 			truncateLegends: 1,
 			axisOptions: {
 				shortenYAxisNumbers: 1
 			}
-		}, args);
+		});
 		this.show();
 
 		this.chart = new frappe.Chart('.form-graph', args);

@@ -94,7 +94,8 @@ def handle():
 						"data": doc.save().as_dict()
 					})
 
-					if doc.parenttype and doc.parent:
+					# check for child table doctype
+					if doc.get("parenttype"):
 						frappe.get_doc(doc.parenttype, doc.parent).save()
 
 					frappe.db.commit()
@@ -158,7 +159,10 @@ def get_request_form_data():
 	else:
 		data = frappe.local.form_dict.data
 
-	return frappe.parse_json(data)
+	try:
+		return frappe.parse_json(data)
+	except ValueError:
+		return frappe.local.form_dict
 
 
 def validate_auth():
@@ -205,7 +209,6 @@ def validate_oauth(authorization_header):
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
-
 
 
 def validate_auth_via_api_keys(authorization_header):
