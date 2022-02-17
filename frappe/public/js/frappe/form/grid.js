@@ -368,6 +368,8 @@ export default class Grid {
 			if (this.grid_rows[ri] && !append_row) {
 				var grid_row = this.grid_rows[ri];
 				grid_row.doc = d;
+				// reset docfield list for this row
+				grid_row.docfields = this.docfields;
 				grid_row.refresh();
 			} else {
 				var grid_row = new GridRow({
@@ -972,7 +974,6 @@ export default class Grid {
 
 		// update the parent too (for new rows)
 		this.docfields.find(d => d.fieldname === fieldname)[property] = value;
-		frappe.meta.docfield_map[this.doctype][fieldname][property] = value;
 
 		this.debounced_refresh();
 	}
