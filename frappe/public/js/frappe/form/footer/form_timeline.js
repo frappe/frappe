@@ -452,7 +452,7 @@ class FormTimeline extends BaseTimeline {
 		let content_wrapper = comment_wrapper.find('.content');
 
 		let delete_button = $();
-		if (frappe.model.can_delete("Comment")) {
+		if ((frappe.session.user == doc.owner && frappe.model.can_delete("Comment")) || frappe.session.user == 'Administrator') {
 			delete_button = $(`
 				<button class="btn btn-link action-btn">
 					${frappe.utils.icon('close', 'sm')}
