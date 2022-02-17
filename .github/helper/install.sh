@@ -62,4 +62,4 @@ cd ../..
 bench start &
 bench --site test_site reinstall --yes
 if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi
-CI=Yes bench build --app frappe
+if [ "$TYPE" == "server" ]; then CI=Yes bench build --app frappe; fi
