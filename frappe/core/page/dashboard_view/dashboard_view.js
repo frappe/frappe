@@ -173,10 +173,10 @@ class Dashboard {
 		let filters = [];
 		this.global_filter = $(
 			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
-				${frappe.utils.icon('filter', 'sm')}
+				${frappe.utils.icon('filter', 'sm')} Filter
 			</div><div>`
 		);
-		let container = this.wrapper.find('.widget-group');
+		let container = this.wrapper.find('.widget-group').first();
 		this.global_filter.appendTo(container);
 
 		this.charts.map((chart) => {
