@@ -11,7 +11,6 @@ export default class GridRow {
 		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
 		this.make();
 	}
-
 	make() {
 		var me = this;
 
@@ -39,11 +38,18 @@ export default class GridRow {
 		}
 	}
 
-	set_docfields() {
+	set_docfields(update=false) {
 		if (this.doc && this.parent_df.options) {
 			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
 			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
-			this.docfields = docfields;
+			if (update) {
+				// to maintain references
+				this.docfields.forEach(df => {
+					Object.assign(df, docfields.find(d => d.fieldname === df.fieldname));
+				});
+			} else {
+				this.docfields = docfields;
+			}
 		}
 	}
 
@@ -154,12 +160,15 @@ export default class GridRow {
 		}, __('Move To'), 'Update');
 	}
 	refresh() {
+		// update docfields for new record
+		if (this.frm && this.doc && this.doc.__islocal) {
+			this.set_docfields(true);
+		}
+
 		if(this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		}
 
-		// update docfield list
-		this.set_docfields();
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
 		} else {
