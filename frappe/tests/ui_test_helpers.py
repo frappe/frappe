@@ -257,6 +257,7 @@ def update_webform_to_multistep():
 		_doc.is_standard = False
 		_doc.save()
 
+
 @frappe.whitelist()
 def update_child_table(name):
 	doc = frappe.get_doc('DocType', name)
