@@ -129,6 +129,7 @@ def send_document_follow_mails(frequency):
 		if message:
 			send_email_alert(user, valid_document_follows, message)
 			# send an email if we have already spent resources creating	the message
+			# nosemgrep
 			frappe.db.commit()
 
 
