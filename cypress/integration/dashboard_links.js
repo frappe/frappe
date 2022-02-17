@@ -57,26 +57,6 @@ context('Dashboard links', () => {
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 	});
 
-	it('Report link in dashboard', () => {
-		cy.visit('/app/user');
-		cy.visit('/app/user/Administrator');
-		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
-		cy.findByText('Connections');
-		cy.window()
-			.its('cur_frm')
-			.then(cur_frm => {
-				cur_frm.dashboard.data.reports = [
-					{
-						'label': 'Reports',
-						'items': ['Website Analytics']
-					}
-				];
-				cur_frm.dashboard.render_report_links();
-				cy.get('[data-report="Website Analytics"]').contains('Website Analytics').click();
-				cy.findByText('Website Analytics');
-			});
-	});
-
 	it('check if child table is populated with linked field on creation from dashboard link', () => {
 		cy.new_form(doctype_to_link_name);
 		cy.fill_field("title", "Test Linking");
