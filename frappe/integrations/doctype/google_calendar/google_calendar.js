@@ -32,7 +32,7 @@ frappe.ui.form.on("Google Calendar", {
 			frm.add_custom_button(__("Sync Calendar"), function () {
 				frappe.show_alert({
 					indicator: "green",
-					message: __("Syncing")
+					message: __("Syncing. Calendar events will be imported in some time.")
 				});
 				frappe.call({
 					method: "frappe.integrations.doctype.google_calendar.google_calendar.sync",
