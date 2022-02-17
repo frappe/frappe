@@ -44,7 +44,8 @@ def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, everyone, notify=notify)
 
-	follow_document(doctype, name, user)
+	if frappe.db.get_value("User", user, "follow_shared_documents", ignore=True, cache=True):
+		follow_document(doctype, name, user)
 
 	return doc
 

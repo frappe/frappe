@@ -276,7 +276,8 @@ class Document(BaseDocument):
 			delattr(self, "__unsaved")
 
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
-			follow_document(self.doctype, self.name, frappe.session.user)
+			if frappe.db.get_value("User", frappe.session.user, "follow_created_documents", ignore=True):
+				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def save(self, *args, **kwargs):
