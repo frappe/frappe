@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from queue import Queue
 import frappe
 import unittest
 import frappe.desk.form.document_follow as document_follow
+from frappe.query_builder import DocType
 
 class TestDocumentFollow(unittest.TestCase):
 	def test_document_follow(self):
@@ -19,13 +21,23 @@ class TestDocumentFollow(unittest.TestCase):
 
 		document_follow.send_hourly_updates()
 
-		email_queue_entry_name = frappe.get_all("Email Queue", limit=1)[0].name
-		email_queue_entry_doc = frappe.get_doc("Email Queue", email_queue_entry_name)
+		EmailQueue = DocType('Email Queue')
+		EmailQueueRecipient = DocType('Email Queue Recipient')
 
-		self.assertEqual((email_queue_entry_doc.recipients[0].recipient), user.name)
 
-		self.assertIn(event_doc.doctype, email_queue_entry_doc.message)
-		self.assertIn(event_doc.name, email_queue_entry_doc.message)
+		Emails = frappe.qb.from_(EmailQueue).join(EmailQueueRecipient).on(
+				EmailQueueRecipient.parent == EmailQueue.name
+			).where(
+				EmailQueueRecipient.recipient == 'test@docsub.com',
+			).where(
+				EmailQueueRecipient.recipient.like(f'%{event_doc.doctype}%')
+			).where(
+				EmailQueueRecipient.recipient.like(f'%{event_doc.name}%')
+			).select(
+				EmailQueue.message
+			).limit(1).run()
+
+		self.assertIsNotNone(Emails)
 
 
 	def tearDown(self):

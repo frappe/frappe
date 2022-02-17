@@ -7,6 +7,7 @@ from frappe.utils import get_url_to_form
 from frappe.model import log_types
 from frappe import _
 from itertools import groupby
+from frappe.query_builder import DocType
 
 @frappe.whitelist()
 def update_follow(doctype, doc_name, following):
@@ -94,32 +95,42 @@ def send_document_follow_mails(frequency):
 		call method to send mail
 	'''
 
-	users = frappe.get_list("Document Follow",
-		fields=["*"])
+	DocumentFollow = frappe.qb.DocType('Document Follow')
+	User = frappe.qb.DocType('User')
 
-	sorted_users = sorted(users, key=lambda k: k['user'])
+	UserList = (frappe.qb.from_(DocumentFollow).join(User)
+		.on(DocumentFollow.user == User.name)
+		.where(User.document_follow_notify == True)
+		.where(User.document_follow_frequency == frequency)
+		.select(DocumentFollow.user)
+		.groupby(DocumentFollow.user)).run(pluck="user")
 
-	grouped_by_user = {}
-	for k, v in groupby(sorted_users, key=lambda k: k['user']):
-		grouped_by_user[k] = list(v)
-
-	for user in grouped_by_user:
-		user_frequency = frappe.db.get_value("User", user, "document_follow_frequency")
+	for user in UserList:
 		message = []
-		valid_document_follows = []
-		if user_frequency == frequency:
-			for d in grouped_by_user[user]:
-				content = get_message(d.ref_docname, d.ref_doctype, frequency, user)
-				if content:
-					message = message + content
-					valid_document_follows.append({
-						"reference_docname": d.ref_docname,
-						"reference_doctype": d.ref_doctype,
-						"reference_url": get_url_to_form(d.ref_doctype, d.ref_docname)
-					})
+		# at max 50 documents are sent for each user
+		latest_document_follows = (frappe.qb.from_(DocumentFollow)
+			.where(DocumentFollow.user == user)
+			.select(DocumentFollow.ref_doctype,DocumentFollow.ref_docname,)
+			.orderby(DocumentFollow.modified)
+			.limit(50)).run(as_dict=True)
 
-			if message and frappe.db.get_value("User", user, "document_follow_notify", ignore=True):
-				send_email_alert(user, valid_document_follows, message)
+		valid_document_follows = []
+
+		for d in latest_document_follows:
+			content = get_message(d.ref_docname, d.ref_doctype, frequency, user)
+			if content:
+				message = message + content
+				valid_document_follows.append({
+					"reference_docname": d.ref_docname,
+					"reference_doctype": d.ref_doctype,
+					"reference_url": get_url_to_form(d.ref_doctype, d.ref_docname)
+				})
+
+		if message:
+			send_email_alert(user, valid_document_follows, message)
+			# send an email if we have already spent resources creating	the message
+			frappe.db.commit()
+
 
 
 def get_version(doctype, doc_name, frequency, user):
