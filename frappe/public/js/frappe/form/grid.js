@@ -972,6 +972,7 @@ export default class Grid {
 
 		// update the parent too (for new rows)
 		this.docfields.find(d => d.fieldname === fieldname)[property] = value;
+		frappe.meta.docfield_map[this.doctype][fieldname][property] = value;
 
 		this.debounced_refresh();
 	}
