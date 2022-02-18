@@ -1,5 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Optional
 import frappe
 from frappe import _, bold
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -11,14 +12,32 @@ from frappe.query_builder import Field
 
 
 @frappe.whitelist()
-def update_document_title(doctype, docname, title_field=None, old_title=None, new_title=None, new_name=None, merge=False):
+def update_document_title(
+	doctype: str,
+	docname: str,
+	title_field: Optional[str] = None,
+	old_title: Optional[str] = None,
+	new_title: Optional[str] = None,
+	new_name: Optional[str] = None,
+	merge: bool = False,
+) -> str:
 	"""
 		Update title from header in form view
 	"""
-	if docname and new_name and not docname == new_name:
+	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
+	for obj in [docname, new_name, new_title, old_title]:
+		if not isinstance(obj, (str, None)):
+			frappe.throw(f"{obj} must be of type str or None")
+
+	frappe.has_permission(doctype, ptype="write", throw=True)
+
+	title_updated = old_title and new_title and (old_title != new_title)
+	name_updated = new_name and docname and (docname != new_name)
+
+	if name_updated:
 		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
 
-	if old_title and new_title and not old_title == new_title:
+	if title_updated:
 		try:
 			frappe.db.set_value(doctype, docname, title_field, new_title)
 			frappe.msgprint(_('Saved'), alert=True, indicator='green')
@@ -27,8 +46,9 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 				frappe.throw(
 					_("{0} {1} already exists").format(doctype, frappe.bold(docname)),
 					title=_("Duplicate Name"),
-					exc=frappe.DuplicateEntryError
+					exc=frappe.DuplicateEntryError,
 				)
+			raise
 
 	return docname
 
