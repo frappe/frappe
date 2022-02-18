@@ -71,7 +71,7 @@ context('Control Link', () => {
 		cy.window()
 			.its("cur_dialog")
 			.then((dialog) => {
-				expect(dialog.get_value("link")).to.equal(null);
+				expect(dialog.get_value("link")).to.equal('');
 			});
 	});
 
@@ -216,5 +216,57 @@ context('Control Link', () => {
 		cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
 			"contain", ""
 		);
+	});
+
+	it('show translated title field in link', () => {
+		cy.insert_doc("Property Setter", {
+			"doctype": "Property Setter",
+			"doc_type": "ToDo",
+			"property": "show_title_field_in_link",
+			"property_type": "Check",
+			"doctype_or_field": "DocType",
+			"value": "1"
+		}, true);
+
+		cy.insert_doc("Translation", {
+			doctype: "Translation",
+			language: "en",
+			source_text: "this is a test todo for link",
+			translated_text: "this is a translated test todo for link",
+		});
+
+		cy.window().its('frappe').then(frappe => {
+			if (!frappe.boot) {
+				frappe.boot = {
+					link_title_doctypes: ['ToDo']
+				};
+			} else {
+				frappe.boot.link_title_doctypes = ['ToDo'];
+			}
+		});
+
+		cy.reload();
+		get_dialog_with_link().as('dialog');
+		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
+
+		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
+		cy.wait('@search_link');
+		cy.get('@input').type('todo for link', { delay: 100 });
+		cy.wait('@search_link');
+		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
+		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
+		cy.get('.frappe-control[data-fieldname=link] input').blur();
+		cy.get('@dialog').then(dialog => {
+			cy.get('@todos').then(todos => {
+				let field = dialog.get_field('link');
+				let value = field.get_value();
+				let label = field.get_label_value();
+
+				expect(value).to.eq(todos[0]);
+				expect(label).to.eq('this is a translated test todo for link');
+
+				cy.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link");
+			});
+		});
 	});
 });
