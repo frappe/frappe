@@ -79,7 +79,7 @@ context('Depends On', () => {
 		cy.fill_field('test_field', 'Show Tab');
 		cy.get('body').click();
 		cy.findByRole("tab", {name: "Dependent Tab"}).should('be.visible');
-	})
+	});
 	it('should set the field as mandatory depending on other fields value', () => {
 		cy.new_form('Test Depends On');
 		cy.fill_field('test_field', 'Some Value');

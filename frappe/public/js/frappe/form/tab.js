@@ -40,7 +40,7 @@ export default class Tab {
 			hide = true;
 		}
 
-		this.toggle(!hide)
+		this.toggle(!hide);
 	}
 
 	toggle(show) {
