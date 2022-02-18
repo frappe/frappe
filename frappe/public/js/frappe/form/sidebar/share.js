@@ -218,6 +218,17 @@ frappe.ui.form.Share = class Share {
 					});
 				}
 			}, {
+				fieldtype: "Button",
+				label: __("Generate Link without Expiry"),
+				click: () => {
+					this.frm.call("get_new_document_share_key", {
+						expires_on: null
+					}).then(res => {
+						let key = res.message;
+						share_modal.set_value("link", this.frm.get_share_link(key));
+					});
+				}
+			}, {
 				fieldname: "link",
 				label: __("Link"),
 				fieldtype: "Data",
