@@ -30,7 +30,7 @@ def update_document_title(
 	"""
 	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
 	for obj in [docname, new_name, new_title, old_title]:
-		if not isinstance(obj, (str, None)):
+		if not isinstance(obj, (str, type(None))):
 			frappe.throw(f"{obj} must be of type str or None")
 
 	frappe.has_permission(doctype, ptype="write", throw=True)

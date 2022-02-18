@@ -185,7 +185,7 @@ class TestRenameDoc(unittest.TestCase):
 			new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True)
 		)
 
-	def test_update_title_api(self):
+	def test_update_document_title_api(self):
 		from frappe.model.rename_doc import update_document_title
 		allow_rename_prop = frappe.db.get_value("DocType", self.test_doctype, "allow_rename")
 		frappe.clear_cache()
