@@ -66,7 +66,7 @@ class FullTextSearch:
 
 		ix = self.get_index()
 		with ix.searcher():
-			writer = ix.writer()
+			writer = AsyncWriter(ix)
 			writer.delete_by_term(self.id, doc_name)
 			writer.commit(optimize=True)
 
@@ -98,7 +98,7 @@ class FullTextSearch:
 	def build_index(self):
 		"""Build index for all parsed documents"""
 		ix = self.create_index()
-		writer = ix.writer()
+		writer = AsyncWriter(ix)
 
 		for i, document in enumerate(self.documents):
 			if document:

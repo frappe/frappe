@@ -27,6 +27,8 @@ export default class Paragraph extends Block {
 	}
 
 	onKeyUp(e) {
+		if (!this.wrapper) return;
+		this.show_hide_block_list(true);
 		if (e.code !== 'Backspace' && e.code !== 'Delete') {
 			return;
 		}
@@ -34,8 +36,16 @@ export default class Paragraph extends Block {
 		const {textContent} = this._element;
 
 		if (textContent === '') {
+			this.show_hide_block_list();
 			this._element.innerHTML = '';
 		}
+	}
+
+	show_hide_block_list(hide) {
+		let $wrapper = $(this.wrapper).hasClass('ce-paragraph') ? $(this.wrapper.parentElement) : $(this.wrapper);
+		let $block_list_container = $wrapper.find('.block-list-container.dropdown-list');
+		$block_list_container.removeClass('hidden');
+		hide && $block_list_container.addClass('hidden');
 	}
 
 	drawView() {
@@ -43,61 +53,81 @@ export default class Paragraph extends Block {
 
 		div.classList.add(this._CSS.wrapper, this._CSS.block, 'widget');
 		div.contentEditable = false;
-		div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 
 		if (!this.readOnly) {
 			div.contentEditable = true;
+			div.addEventListener('focus', () => {
+				const {textContent} = this._element;
+				if (textContent !== '') return;
+				this.show_hide_block_list();
+			});
+			div.addEventListener('blur', () => {
+				!this.over_block_list_item && this.show_hide_block_list(true);
+			});
+			div.dataset.placeholder = this.api.i18n.t(this._placeholder);
 			div.addEventListener('keyup', this.onKeyUp);
 		}
 		return div;
 	}
 
+	open_block_list() {
+		let dropdown_title = 'Templates';
+		let $block_list_container = $(`
+			<div class="block-list-container dropdown-list">
+				<div class="dropdown-title">${dropdown_title.toUpperCase()}</div>
+			</div>
+		`);
+
+		let all_blocks = frappe.workspace_block.blocks;
+		Object.keys(all_blocks).forEach(key => {
+			let $block_list_item = $(`
+				<div class="block-list-item dropdown-item">
+					<span class="dropdown-item-icon">${all_blocks[key].toolbox.icon}</span>
+					<span class="dropdown-item-label">${__(all_blocks[key].toolbox.title)}</span>
+				</div>
+			`);
+
+			$block_list_item.click(event => {
+				event.stopPropagation();
+				const index = this.api.blocks.getCurrentBlockIndex();
+				this.api.blocks.delete();
+				this.api.blocks.insert(key, {}, {}, index);
+				this.api.caret.setToBlock(index);
+			});
+
+			$block_list_item.mouseenter(() => {
+				this.over_block_list_item = true;
+			}).mouseleave(() => {
+				this.over_block_list_item = false;
+			});
+
+			$block_list_container.append($block_list_item);
+		});
+
+		$block_list_container.addClass('hidden');
+		$block_list_container.appendTo(this.wrapper);
+	}
+
 	render() {
 		this.wrapper = document.createElement('div');
-		this.wrapper.contentEditable = this.readOnly ? 'false' : 'true';
 		if (!this.readOnly) {
-			let $para_control = $(`<div class="paragraph-control"></div>`);
+			let $para_control = $(`<div class="widget-control paragraph-control"></div>`);
 
 			this.wrapper.appendChild(this._element);
 			this._element.classList.remove('widget');
 			$para_control.appendTo(this.wrapper);
 			
-			this.wrapper.classList.add('widget');
+			this.wrapper.classList.add('widget', 'paragraph', 'edit-mode');
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('dot-horizontal', 'xs'),
-				(event) => {
-					let evn = event;
-					!$('.ce-settings.ce-settings--opened').length &&
-					setTimeout(() => {
-						this.api.toolbar.toggleBlockSettings();
-						var position = $(evn.target).offset();
-						$('.ce-settings.ce-settings--opened').offset({
-							top: position.top + 25,
-							left: position.left - 77
-						});
-					}, 50);
-				},
-				"tune-btn",
-				`${__('Tune')}`,
-				null,
-				$para_control
-			);
+			this.open_block_list();
+			this.add_new_block_button();
+			this.add_settings_button();
 
 			frappe.utils.add_custom_button(
 				frappe.utils.icon('drag', 'xs'),
 				null,
 				"drag-handle",
 				`${__('Drag')}`,
-				null,
-				$para_control
-			);
-
-			frappe.utils.add_custom_button(
-				frappe.utils.icon('delete', 'xs'),
-				() => this.api.blocks.delete(),
-				"delete-paragraph",
-				`${__('Delete')}`,
 				null,
 				$para_control
 			);
@@ -132,8 +162,7 @@ export default class Paragraph extends Block {
 	}
 
 	rendered() {
-		var e = this._element.closest('.ce-block');
-		e.classList.add("col-" + this.get_col());
+		super.rendered(this._element);
 	}
 
 	onPaste(event) {
@@ -144,20 +173,14 @@ export default class Paragraph extends Block {
 		this.data = data;
 	}
 
-	static get conversionConfig() {
-		return {
-			export: 'text', // to convert Paragraph to other block, use 'text' property of saved data
-			import: 'text' // to covert other block's exported string to Paragraph, fill 'text' property of tool data
-		};
-	}
-
 	static get sanitize() {
 		return {
 			text: {
 				br: true,
 				b: true,
 				i: true,
-				a: true
+				a: true,
+				span: true
 			}
 		};
 	}
@@ -188,8 +211,8 @@ export default class Paragraph extends Block {
 
 	static get toolbox() {
 		return {
-			icon: '<svg viewBox="0.2 -0.3 9 11.4" width="12" height="14"><path d="M0 2.77V.92A1 1 0 01.2.28C.35.1.56 0 .83 0h7.66c.28.01.48.1.63.28.14.17.21.38.21.64v1.85c0 .26-.08.48-.23.66-.15.17-.37.26-.66.26-.28 0-.5-.09-.64-.26a1 1 0 01-.21-.66V1.69H5.6v7.58h.5c.25 0 .45.08.6.23.17.16.25.35.25.6s-.08.45-.24.6a.87.87 0 01-.62.22H3.21a.87.87 0 01-.61-.22.78.78 0 01-.24-.6c0-.25.08-.44.24-.6a.85.85 0 01.61-.23h.5V1.7H1.73v1.08c0 .26-.08.48-.23.66-.15.17-.37.26-.66.26-.28 0-.5-.09-.64-.26A1 1 0 010 2.77z"/></svg>',
-			title: 'Text'
+			title: 'Text',
+			icon: frappe.utils.icon('text', 'sm')
 		};
 	}
 }

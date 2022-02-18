@@ -6,6 +6,7 @@ from werkzeug.wsgi import wrap_file
 
 import frappe
 from frappe.website.page_renderers.base_renderer import BaseRenderer
+from frappe.website.utils import is_binary_file
 
 UNSUPPORTED_STATIC_PAGE_TYPES = ('html', 'md', 'js', 'xml', 'css', 'txt', 'py', 'json')
 
@@ -20,21 +21,20 @@ class StaticPage(BaseRenderer):
 			return
 		for app in frappe.get_installed_apps():
 			file_path = frappe.get_app_path(app, 'www') + '/' + self.path
-			if os.path.isfile(file_path):
+			if os.path.isfile(file_path) and is_binary_file(file_path):
 				self.file_path = file_path
 
 	def can_render(self):
 		return self.is_valid_file_path() and self.file_path
 
 	def is_valid_file_path(self):
-		if ('.' not in self.path):
-			return False
 		extension = self.path.rsplit('.', 1)[-1]
 		if extension in UNSUPPORTED_STATIC_PAGE_TYPES:
 			return False
 		return True
 
 	def render(self):
+		# file descriptor to be left open, closed by middleware
 		f = open(self.file_path, 'rb')
 		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 		response.mimetype = mimetypes.guess_type(self.file_path)[0] or 'application/octet-stream'

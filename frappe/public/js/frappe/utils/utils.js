@@ -243,9 +243,28 @@ Object.assign(frappe.utils, {
 			'=': '&#x3D;'
 		};
 
-		return String(txt).replace(/[&<>"'`=/]/g, function(char) {
-			return escape_html_mapping[char];
-		});
+		return String(txt).replace(
+			/[&<>"'`=/]/g, 
+			char => escape_html_mapping[char] || char
+		);
+	},
+
+	unescape_html: function(txt) {
+		let unescape_html_mapping = {
+			'&amp;': '&',
+			'&lt;': '<',
+			'&gt;': '>',
+			'&quot;': '"',
+			'&#39;': "'",
+			'&#x2F;': '/',
+			'&#x60;': '`',
+			'&#x3D;': '='
+		};
+
+		return String(txt).replace(
+			/&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g, 
+			char => unescape_html_mapping[char] || char
+		);
 	},
 
 	html2text: function(html) {
@@ -1397,5 +1416,42 @@ Object.assign(frappe.utils, {
 			arr.push(i);
 		}
 		return arr;
+	},
+
+	get_link_title(doctype, name) {
+		if (!doctype || !name || !frappe._link_titles) {
+			return;
+		}
+
+		return frappe._link_titles[doctype + "::" + name];
+	},
+
+	add_link_title(doctype, name, value) {
+		if (!doctype || !name) {
+			return;
+		}
+
+		if (!frappe._link_titles) {
+			// for link titles
+			frappe._link_titles = {};
+		}
+	
+		frappe._link_titles[doctype + "::" + name] = value;
+	},
+
+	fetch_link_title(doctype, name) {
+		try {
+			return frappe.xcall("frappe.desk.search.get_link_title", {
+				"doctype": doctype,
+				"docname": name
+			}).then(title => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			});
+		} catch (error) {
+			console.log('Error while fetching link title.'); // eslint-disable-line
+			console.log(error); // eslint-disable-line
+			return Promise.resolve(name);
+		}
 	}
 });

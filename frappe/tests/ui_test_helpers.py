@@ -134,6 +134,12 @@ def create_contact_records():
 	insert_contact('Test Form Contact 2', '54321')
 	insert_contact('Test Form Contact 3', '12345')
 
+@frappe.whitelist()
+def create_multiple_contact_records():
+	if frappe.db.get_all('Contact', {'first_name': 'Multiple Contact 1'}):
+		return
+	for index in range(1001):
+		insert_contact('Multiple Contact {}'.format(index+1), '12345{}'.format(index+1))
 
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({
@@ -148,9 +154,6 @@ def create_form_tour():
 	if frappe.db.exists('Form Tour', {'name': 'Test Form Tour'}):
 		return
 
-	def get_docfield_name(filters):
-		return frappe.db.get_value('DocField', filters, "name")
-
 	tour = frappe.get_doc({
 		'doctype': 'Form Tour',
 		'title': 'Test Form Tour',
@@ -161,7 +164,6 @@ def create_form_tour():
 			"description": "Test Description 1",
 			"has_next_condition": 1,
 			"next_step_condition": "eval: doc.first_name",
-			"field": get_docfield_name({'parent': 'Contact', 'fieldname': 'first_name'}),
 			"fieldname": "first_name",
 			"fieldtype": "Data"
 		},{
@@ -169,21 +171,18 @@ def create_form_tour():
 			"description": "Test Description 2",
 			"has_next_condition": 1,
 			"next_step_condition": "eval: doc.last_name",
-			"field": get_docfield_name({'parent': 'Contact', 'fieldname': 'last_name'}),
 			"fieldname": "last_name",
 			"fieldtype": "Data"
 		},{
 			"title": "Test Title 3",
 			"description": "Test Description 3",
-			"field": get_docfield_name({'parent': 'Contact', 'fieldname': 'phone_nos'}),
 			"fieldname": "phone_nos",
 			"fieldtype": "Table"
 		},{
 			"title": "Test Title 4",
 			"description": "Test Description 4",
 			"is_table_field": 1,
-			"parent_field": get_docfield_name({'parent': 'Contact', 'fieldname': 'phone_nos'}),
-			"field": get_docfield_name({'parent': 'Contact Phone', 'fieldname': 'phone'}),
+			"parent_fieldname": "phone_nos",
 			"next_step_condition": "eval: doc.phone",
 			"has_next_condition": 1,
 			"fieldname": "phone",
@@ -248,10 +247,25 @@ def create_topic_and_reply(web_page):
 
 @frappe.whitelist()
 def update_webform_to_multistep():
-	doc = frappe.get_doc("Web Form", "edit-profile")
-	_doc = frappe.copy_doc(doc)
-	_doc.is_multi_step_form = 1
-	_doc.title = "update-profile-duplicate"
-	_doc.route = "update-profile-duplicate"
-	_doc.is_standard = False
-	_doc.save()
+	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
+		doc = frappe.get_doc("Web Form", "edit-profile")
+		_doc = frappe.copy_doc(doc)
+		_doc.is_multi_step_form = 1
+		_doc.title = "update-profile-duplicate"
+		_doc.route = "update-profile-duplicate"
+		_doc.is_standard = False
+		_doc.save()
+
+@frappe.whitelist()
+def update_child_table(name):
+	doc = frappe.get_doc('DocType', name)
+	if len(doc.fields) == 1:
+		doc.append('fields', {
+			'fieldname': 'doctype_to_link',
+			'fieldtype': 'Link',
+			'in_list_view': 1,
+			'label': 'Doctype to Link',
+			'options': 'Doctype to Link'
+		})
+
+		doc.save()

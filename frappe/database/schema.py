@@ -21,6 +21,7 @@ class DBTable:
 		self.change_name = []
 		self.add_unique = []
 		self.add_index = []
+		self.drop_unique = []
 		self.drop_index = []
 		self.set_default = []
 
@@ -66,7 +67,7 @@ class DBTable:
 		"""
 			get columns from docfields and custom fields
 		"""
-		fields = self.meta.get_fieldnames_with_value(True)
+		fields = self.meta.get_fieldnames_with_value(with_field_meta=True)
 
 		# optional fields like _comments
 		if not self.meta.get('istable'):
@@ -84,6 +85,9 @@ class DBTable:
 				})
 
 		for field in fields:
+			if field.get("is_virtual"):
+				continue
+
 			self.columns[field.get('fieldname')] = DbColumn(
 				self,
 				field.get('fieldname'),
@@ -105,6 +109,9 @@ class DBTable:
 
 		columns = [frappe._dict({"fieldname": f, "fieldtype": "Data"}) for f in
 			frappe.db.STANDARD_VARCHAR_COLUMNS]
+		if self.meta.get("istable"):
+			columns += [frappe._dict({"fieldname": f, "fieldtype": "Data"}) for f in
+				frappe.db.CHILD_TABLE_COLUMNS]
 		columns += self.columns.values()
 
 		for col in columns:
@@ -219,8 +226,10 @@ class DbColumn:
 			self.table.change_type.append(self)
 
 		# unique
-		if((self.unique and not current_def['unique']) and column_type not in ('text', 'longtext')):
+		if ((self.unique and not current_def['unique']) and column_type not in ('text', 'longtext')):
 			self.table.add_unique.append(self)
+		elif (current_def['unique'] and not self.unique) and column_type not in ('text', 'longtext'):
+			self.table.drop_unique.append(self)
 
 		# default
 		if (self.default_changed(current_def)
@@ -230,9 +239,7 @@ class DbColumn:
 			self.table.set_default.append(self)
 
 		# index should be applied or dropped irrespective of type change
-		if ((current_def['index'] and not self.set_index and not self.unique)
-			or (current_def['unique'] and not self.unique)):
-			# to drop unique you have to drop index
+		if (current_def['index'] and not self.set_index) and column_type not in ('text', 'longtext'):
 			self.table.drop_index.append(self)
 
 		elif (not current_def['index'] and self.set_index) and not (column_type in ('text', 'longtext')):
@@ -299,11 +306,12 @@ def validate_column_length(fieldname):
 def get_definition(fieldtype, precision=None, length=None):
 	d = frappe.db.type_map.get(fieldtype)
 
-	# convert int to long int if the length of the int is greater than 11
-	if fieldtype == "Int" and length and length > 11:
-		d = frappe.db.type_map.get("Long Int")
+	if not d:
+		return
 
-	if not d: return
+	if fieldtype == "Int" and length and length > 11:
+		# convert int to long int if the length of the int is greater than 11
+		d = frappe.db.type_map.get("Long Int")
 
 	coltype = d[0]
 	size = d[1] if d[1] else None
@@ -314,19 +322,44 @@ def get_definition(fieldtype, precision=None, length=None):
 		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
 			size = '21,9'
 
-		if coltype == "varchar" and length:
-			size = length
+		if length:
+			if coltype == "varchar":
+				size = length
+			elif coltype == "int" and length < 11:
+				# allow setting custom length for int if length provided is less than 11
+				# NOTE: this will only be applicable for mariadb as frappe implements int
+				# in postgres as bigint (as seen in type_map)
+				size = length
 
 	if size is not None:
 		coltype = "{coltype}({size})".format(coltype=coltype, size=size)
 
 	return coltype
 
-def add_column(doctype, column_name, fieldtype, precision=None):
+def add_column(
+	doctype,
+	column_name,
+	fieldtype,
+	precision=None,
+	length=None,
+	default=None,
+	not_null=False
+):
 	if column_name in frappe.db.get_table_columns(doctype):
 		# already exists
 		return
 
 	frappe.db.commit()
-	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
-		column_name, get_definition(fieldtype, precision)))
+
+	query = "alter table `tab%s` add column %s %s" % (
+		doctype,
+		column_name,
+		get_definition(fieldtype, precision, length)
+	)
+
+	if not_null:
+		query += " not null"
+	if default:
+		query += f" default '{default}'"
+
+	frappe.db.sql(query)
