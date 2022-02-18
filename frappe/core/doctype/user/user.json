@@ -622,35 +622,35 @@
    "depends_on": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_created_documents",
    "fieldtype": "Check",
-   "label": "Automatically Follow Documents that you create"
+   "label": "Auto follow documents that you create"
   },
   {
    "default": "0",
    "depends_on": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_commented_documents",
    "fieldtype": "Check",
-   "label": "Automatically Follow Documents that you comment on"
+   "label": "Auto follow documents that you comment on"
   },
   {
    "default": "0",
    "depends_on": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_liked_documents",
    "fieldtype": "Check",
-   "label": "Automatically Follow Documents that you Like"
+   "label": "Auto follow documents that you Like"
   },
   {
     "default": "0",
     "depends_on": "eval:(doc.document_follow_notify== 1)",
     "fieldname": "follow_shared_documents",
     "fieldtype": "Check",
-    "label": "Automatically Follow Documents that are shared with you"
+    "label": "Auto follow documents that are shared with you"
    },
   {
    "default": "0",
    "depends_on": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_assigned_documents",
    "fieldtype": "Check",
-   "label": "Automatically Follow Documents that are assigned to you"
+   "label": "Auto follow documents that are assigned to you"
   }
  ],
  "icon": "fa fa-user",
