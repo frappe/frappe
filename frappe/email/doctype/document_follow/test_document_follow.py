@@ -137,7 +137,7 @@ class TestDocumentFollow(unittest.TestCase):
 			.where(DocumentFollow.ref_docname == event_doc.name)
 			.where(DocumentFollow.user == user.name)
 			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		self.assertTrue(document_follow)
 
 	def test_do_not_follow_on_comment(self):
 		frappe.db.delete('Document Follow')
@@ -159,7 +159,7 @@ class TestDocumentFollow(unittest.TestCase):
 		frappe.set_user(user.name)
 		event_doc = get_event()
 
-		toggle_like(event_doc.doctype, event_doc.name)
+		toggle_like(event_doc.doctype, event_doc.name, add="Yes")
 
 		DocumentFollow = DocType('Document Follow')
 		document_follow = (frappe.qb.from_(DocumentFollow)
@@ -167,7 +167,7 @@ class TestDocumentFollow(unittest.TestCase):
 			.where(DocumentFollow.ref_docname == event_doc.name)
 			.where(DocumentFollow.user == user.name)
 			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		self.assertTrue(document_follow)
 
 	def test_do_not_follow_on_like(self):
 		frappe.db.delete('Document Follow')
@@ -200,7 +200,7 @@ class TestDocumentFollow(unittest.TestCase):
 			.where(DocumentFollow.ref_docname == event_doc.name)
 			.where(DocumentFollow.user == user.name)
 			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		self.assertTrue(document_follow)
 
 	def test_do_not_follow_on_assign(self):
 		frappe.db.delete('Document Follow')
@@ -237,12 +237,11 @@ class TestDocumentFollow(unittest.TestCase):
 			.where(DocumentFollow.ref_docname == event_doc.name)
 			.where(DocumentFollow.user == user.name)
 			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		self.assertTrue(document_follow)
 
 	def test_do_not_follow_on_share(self):
 		frappe.db.delete('Document Follow')
 		user = get_user()
-		frappe.set_user(user.name)
 		event_doc = get_event()
 
 		share(
@@ -271,18 +270,19 @@ def get_event():
 	return doc
 
 def get_user(document_follow=None):
+	frappe.set_user("Administrator")
 	if frappe.db.exists('User', 'test@docsub.com'):
-		doc = frappe.get_doc('User', 'test@docsub.com')
-	else:
-		doc = frappe.new_doc("User")
-		doc.email = "test@docsub.com"
-		doc.first_name = "Test"
-		doc.last_name = "User"
-		doc.send_welcome_email = 0
-		doc.document_follow_notify = 1
-		doc.document_follow_frequency = "Hourly"
-		doc.update(document_follow if document_follow else {})
-		doc.insert()
+		doc = frappe.delete_doc('User', 'test@docsub.com')
+	doc = frappe.new_doc("User")
+	doc.email = "test@docsub.com"
+	doc.first_name = "Test"
+	doc.last_name = "User"
+	doc.send_welcome_email = 0
+	doc.document_follow_notify = 1
+	doc.document_follow_frequency = "Hourly"
+	doc.__dict__.update(document_follow.__dict__ if document_follow else {})
+	doc.insert()
+	doc.add_roles('System Manager')
 	return doc
 
 

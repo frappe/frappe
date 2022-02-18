@@ -6,7 +6,6 @@ import frappe.utils
 from frappe.utils import get_url_to_form
 from frappe.model import log_types
 from frappe import _
-from itertools import groupby
 from frappe.query_builder import DocType
 
 @frappe.whitelist()
@@ -110,7 +109,7 @@ def get_user_list(frequency):
 	User = DocType('User')
 	return (frappe.qb.from_(DocumentFollow).join(User)
 		.on(DocumentFollow.user == User.name)
-		.where(User.document_follow_notify == True)
+		.where(User.document_follow_notify == 1)
 		.where(User.document_follow_frequency == frequency)
 		.select(DocumentFollow.user)
 		.groupby(DocumentFollow.user)).run(pluck="user")
