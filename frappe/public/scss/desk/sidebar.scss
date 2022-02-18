@@ -495,3 +495,11 @@ body[data-route^="Module"] .main-menu {
 .shared-user {
 	margin-bottom: 10px;
 }
+
+.share-link {
+	margin-left: 7px;
+	.avatar-frame {
+		padding: 2px;
+		border: 1px solid var(--gray-200);
+	}
+}
