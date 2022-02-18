@@ -102,12 +102,19 @@ def get_context(context):
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		"link_expired": link_expired
 >>>>>>> f0ebd13c84 (fix: Logic to show link expired message)
 =======
 		"is_invalid_print": is_invalid_print
 >>>>>>> 4aab56edfc (refactor: Permission validation for print view)
+=======
+		"is_invalid_print": is_invalid_print,
+		"doctype": frappe.form_dict.doctype,
+		"name": frappe.form_dict.name,
+		"key": frappe.form_dict.get("key")
+>>>>>>> af67849928 (feat: Option to Print or download PDF in print view)
 	}
 
 

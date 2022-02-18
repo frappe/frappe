@@ -17,8 +17,16 @@
 	svg[data-barcode-value] > g {
 		fill: black !important;
 	}
+	.print-hide {
+		display: none !important;
+	}
 }
 
+.action-banner {
+	display: flex;
+	justify-content: flex-end;
+	padding-right: 20px;
+}
 
 .invalid-state {
 	display: grid;

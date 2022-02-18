@@ -23,6 +23,13 @@
 	{% if is_invalid_print %}
 	{{ body }}
 	{% else %}
+	<div class="action-banner print-hide">
+		<a class="p-2" onclick="window.print();">Print</a>
+		<a class="p-2"
+			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype}}&name={{name}}&key={{key}}">
+			Get PDF
+		</a>
+	</div>
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}

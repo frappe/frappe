@@ -14,6 +14,10 @@ no_cache = 1
 base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
+<<<<<<< HEAD
+=======
+from frappe.www.printview import validate_print_permission
+>>>>>>> af67849928 (feat: Option to Print or download PDF in print view)
 
 @frappe.whitelist()
 def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=None):
@@ -111,9 +115,16 @@ def read_multi_pdf(output):
 
 	return filedata
 
+<<<<<<< HEAD
 
 @frappe.whitelist()
+=======
+@frappe.whitelist(allow_guest=True)
+>>>>>>> af67849928 (feat: Option to Print or download PDF in print view)
 def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
+	doc = frappe.get_doc(doctype, name)
+	doc.doctype = doctype
+	validate_print_permission(doc)
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
 	frappe.local.response.filename = "{name}.pdf".format(
 		name=name.replace(" ", "-").replace("/", "-")
