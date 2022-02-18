@@ -1387,7 +1387,7 @@ class Document(BaseDocument):
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	@frappe.whitelist()
-	def get_new_document_share_key(self, expires_on=None):
+	def get_new_document_share_key(self, expires_on=None, no_expiry=False):
 		document_key_exist = frappe.db.exists("Document Share Key", {
 			"reference_doctype": self.doctype,
 			"reference_docname": self.name,
@@ -1400,6 +1400,7 @@ class Document(BaseDocument):
 			doc.reference_doctype = self.doctype
 			doc.reference_docname = self.name
 			doc.expires_on = expires_on
+			doc.flags.no_expiry = no_expiry
 			doc.insert(ignore_permissions=True)
 
 		return doc.key
