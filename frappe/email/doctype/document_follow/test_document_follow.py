@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-from queue import Queue
 import frappe
 import unittest
 import frappe.desk.form.document_follow as document_follow
