@@ -449,7 +449,6 @@ def add_total_row(result, columns, meta=None, report_settings=None):
 		parent_field = report_settings.get('parent_field')
 
 	for i, col in enumerate(columns):
-		total_percentage_rows = 0
 		fieldtype, options, fieldname = None, None, None
 		if isinstance(col, str):
 			if meta:
@@ -483,8 +482,6 @@ def add_total_row(result, columns, meta=None, report_settings=None):
 				if not (is_tree and row.get(parent_field)):
 					total_row[i] = flt(total_row[i]) + flt(cell)
 
-				total_percentage_rows += 1
-
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)
 
@@ -500,9 +497,8 @@ def add_total_row(result, columns, meta=None, report_settings=None):
 				else result[0][i]
 			)
 
-	if total_percentage_rows:
-		for i in has_percent:
-			total_row[i] = flt(total_row[i]) / total_percentage_rows
+	for i in has_percent:
+		total_row[i] = flt(total_row[i]) / len(result)
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
