@@ -186,12 +186,12 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- endif -%}
 {% endmacro %}
 
-{%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead, footer, print_settings=None) -%}
+{%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead, footer, print_settings=None, print_heading_template=None) -%}
 	{% if letter_head and not no_letterhead %}
 		<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
-	{% if doc.print_heading_template %}
-		{{ frappe.render_template(doc.print_heading_template, {"doc":doc}) }}
+	{% if print_heading_template %}
+		{{ frappe.render_template(print_heading_template, {"doc":doc}) }}
 	{% else %}
 	<div class="print-heading">
 		<h2>

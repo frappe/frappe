@@ -33,13 +33,12 @@ def get_controller(doctype):
 
 		module_name, custom = frappe.db.get_value(
 			"DocType", doctype, ("module", "custom"), cache=True
-		) or ["Core", False]
+		) or ("Core", False)
 
 		if custom:
-			if frappe.db.field_exists("DocType", "is_tree"):
-				is_tree = frappe.db.get_value("DocType", doctype, "is_tree", cache=True)
-			else:
-				is_tree = False
+			is_tree = frappe.db.get_value(
+				"DocType", doctype, "is_tree", ignore=True, cache=True
+			)
 			_class = NestedSet if is_tree else Document
 		else:
 			class_overrides = frappe.get_hooks('override_doctype_class')
@@ -73,9 +72,12 @@ def get_controller(doctype):
 	return site_controllers[doctype]
 
 class BaseDocument(object):
-	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
+	ignore_in_setter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
 	def __init__(self, d):
+		if d.get("doctype"):
+			self.doctype = d["doctype"]
+
 		self.update(d)
 		self.dont_update_if_missing = []
 
@@ -103,13 +105,9 @@ class BaseDocument(object):
 			})
 		"""
 
-		# QUESTION: why do we need the 1st for loop?
-		# we're essentially setting the values in d, in the 2nd for loop (?)
-
-		# first set default field values of base document
-		for key in default_fields:
-			if key in d:
-				self.set(key, d[key])
+		# set name first, as it is used a reference in child document
+		if "name" in d:
+			self.name = d["name"]
 
 		for key, value in d.items():
 			self.set(key, value)
@@ -144,10 +142,14 @@ class BaseDocument(object):
 			else:
 				value = self.__dict__.get(key, default)
 
-			if value is None and key not in self.ignore_in_getter \
-				and key in (d.fieldname for d in self.meta.get_table_fields()):
-				self.set(key, [])
-				value = self.__dict__.get(key)
+			if value is None and key in (
+				d.fieldname for d in self.meta.get_table_fields()
+			):
+				value = []
+				self.set(key, value)
+
+			if limit and isinstance(value, (list, tuple)) and len(value) > limit:
+				value = value[:limit]
 
 			return value
 		else:
@@ -157,6 +159,9 @@ class BaseDocument(object):
 		return self.get(key, filters=filters, limit=1)[0]
 
 	def set(self, key, value, as_value=False):
+		if key in self.ignore_in_setter:
+			return
+
 		if isinstance(value, list) and not as_value:
 			self.__dict__[key] = []
 			self.extend(key, value)
@@ -182,6 +187,7 @@ class BaseDocument(object):
 		if isinstance(value, (dict, BaseDocument)):
 			if not self.__dict__.get(key):
 				self.__dict__[key] = []
+
 			value = self._init_child(value, key)
 			self.__dict__[key].append(value)
 
@@ -218,11 +224,11 @@ class BaseDocument(object):
 	def _init_child(self, value, key):
 		if not self.doctype:
 			return value
+
 		if not isinstance(value, BaseDocument):
-			if "doctype" not in value or value['doctype'] is None:
-				value["doctype"] = self.get_table_field_doctype(key)
-				if not value["doctype"]:
-					raise AttributeError(key)
+			value["doctype"] = self.get_table_field_doctype(key)
+			if not value["doctype"]:
+				raise AttributeError(key)
 
 			value = get_controller(value["doctype"])(value)
 			value.init_valid_columns()
