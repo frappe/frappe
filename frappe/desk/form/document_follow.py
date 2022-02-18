@@ -95,44 +95,50 @@ def send_document_follow_mails(frequency):
 		call method to send mail
 	'''
 
-	DocumentFollow = frappe.qb.DocType('Document Follow')
-	User = frappe.qb.DocType('User')
-
-	UserList = (frappe.qb.from_(DocumentFollow).join(User)
-		.on(DocumentFollow.user == User.name)
-		.where(User.document_follow_notify == True)
-		.where(User.document_follow_frequency == frequency)
-		.select(DocumentFollow.user)
-		.groupby(DocumentFollow.user)).run(pluck="user")
+	UserList = get_user_list(frequency)
 
 	for user in UserList:
-		message = []
-		# at max 50 documents are sent for each user
-		latest_document_follows = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.user == user)
-			.select(DocumentFollow.ref_doctype,DocumentFollow.ref_docname,)
-			.orderby(DocumentFollow.modified)
-			.limit(50)).run(as_dict=True)
-
-		valid_document_follows = []
-
-		for d in latest_document_follows:
-			content = get_message(d.ref_docname, d.ref_doctype, frequency, user)
-			if content:
-				message = message + content
-				valid_document_follows.append({
-					"reference_docname": d.ref_docname,
-					"reference_doctype": d.ref_doctype,
-					"reference_url": get_url_to_form(d.ref_doctype, d.ref_docname)
-				})
-
+		message, valid_document_follows = get_message_for_user(frequency, user)
 		if message:
 			send_email_alert(user, valid_document_follows, message)
 			# send an email if we have already spent resources creating	the message
 			# nosemgrep
 			frappe.db.commit()
 
+def get_user_list(frequency):
+	DocumentFollow = frappe.qb.DocType('Document Follow')
+	User = frappe.qb.DocType('User')
+	return (frappe.qb.from_(DocumentFollow).join(User)
+		.on(DocumentFollow.user == User.name)
+		.where(User.document_follow_notify == True)
+		.where(User.document_follow_frequency == frequency)
+		.select(DocumentFollow.user)
+		.groupby(DocumentFollow.user)).run(pluck="user")
 
+def get_message_for_user(frequency, user):
+	message = []
+	latest_document_follows = get_document_followed_by_user(user)
+	valid_document_follows = []
+
+	for document_follow in latest_document_follows:
+		content = get_message(document_follow.ref_docname, document_follow.ref_doctype, frequency, user)
+		if content:
+			message = message + content
+			valid_document_follows.append({
+				"reference_docname": document_follow.ref_docname,
+				"reference_doctype": document_follow.ref_doctype,
+				"reference_url": get_url_to_form(document_follow.ref_doctype, document_follow.ref_docname)
+			})
+	return message, valid_document_follows
+
+def get_document_followed_by_user(user):
+	DocumentFollow = frappe.qb.DocType('Document Follow')
+	# at max 20 documents are sent for each user
+	return (frappe.qb.from_(DocumentFollow)
+		.where(DocumentFollow.user == user)
+		.select(DocumentFollow.ref_doctype,DocumentFollow.ref_docname,)
+		.orderby(DocumentFollow.modified)
+		.limit(20)).run(as_dict=True)
 
 def get_version(doctype, doc_name, frequency, user):
 	timeline = []

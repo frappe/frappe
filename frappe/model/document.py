@@ -1128,7 +1128,8 @@ class Document(BaseDocument):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
-				follow_document(self.doctype, self.name, frappe.session.user)
+				if frappe.db.get_value("User", frappe.session.user, "follow_created_documents", ignore=True):
+					follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def hook(f):
