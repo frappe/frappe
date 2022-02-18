@@ -19,7 +19,7 @@ from frappe.integrations.doctype.google_settings.google_settings import get_auth
 from frappe.model.document import Document
 from frappe.utils import (add_days, add_to_date, get_datetime,
 	get_request_site_address, get_time_zone, get_weekdays, now_datetime, format_datetime, getdate)
-
+from frappe.utils.html_utils import unescape_html
 
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.scheduler import is_scheduler_inactive
@@ -140,6 +140,7 @@ def get_authentication_url(client_id=None, redirect_uri=None):
 		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(client_id, SCOPES, redirect_uri)
 	}
 
+
 @frappe.whitelist()
 def google_callback(code=None):
 	"""
@@ -163,6 +164,7 @@ def sync(g_calendar=None):
 
 	for g in google_calendars:
 		return sync_events_from_google_calendar(g.name)
+
 
 def get_google_calendar_object(g_calendar):
 	"""
@@ -231,6 +233,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 	cal = Calendar.from_ical(response.content)
 	enqueue_job(parse_calendar_events,calendar = cal,account = account)
 
+
 def parse_calendar_events(calendar,account):
 	event_list =[]
 	for event in calendar.walk('vevent'):
@@ -249,7 +252,7 @@ def parse_calendar_events(calendar,account):
 
 
 def get_event_id(event):
-	return "{}|{}".format(event["SUMMARY"],(event["DTSTART"].dt).strftime("%Y-%m-%d %H:%M"))
+	return "{}|{}".format(event["UID"],(event["DTSTART"].dt).strftime("%Y-%m-%d %H:%M"))
 
 def insert_event_to_calendar(account, event,attendees, recurrence=None):
 	"""
@@ -277,19 +280,24 @@ def update_event_in_calendar(account, update_event, attendees,recurrence=None):
 	calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": get_event_id(update_event)})
 	update_content = False
 	if calendar_event.subject != update_event.get("SUMMARY"):
-		calendar_event.subject != update_event.get("SUMMARY")
+		calendar_event.subject = update_event.get("SUMMARY")
 		update_content = True
-	if calendar_event.description != update_event.get("DESCRIPTION"):
-		calendar_event.description != update_event.get("DESCRIPTION")
+	if unescape_html(calendar_event.description) != unescape_html(update_event.get("DESCRIPTION")):
+		calendar_event.description = update_event.get("DESCRIPTION")
 		update_content = True
-	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=update_event.get("DTSTART").dt, end=update_event.get("DTEND").dt))
-	# calendar_event.set("event_participants",attendees)
+	# google_calendar_to_repeat_on(recurrence=recurrence, start=update_event.get("DTSTART").dt, end=update_event.get("DTEND").dt)
 	if update_content:
-		calendar_event.save(ignore_permissions=True)
+		event_doc = frappe.qb.DocType('Event') 
+		(frappe.qb.update(event_doc)
+			.set(event_doc.subject ,update_event.get("SUMMARY"))
+			.set(event_doc.description ,update_event.get("DESCRIPTION"))
+			.set(event_doc.modified ,now_datetime())
+			.where(event_doc.google_calendar_event_id == get_event_id(update_event))).run()
 
 def close_cancelled_events(confirmed_list):
 	event_doc = frappe.qb.DocType('Event') 
 	(frappe.qb.update(event_doc).set(event_doc.status , "Closed").where(event_doc.google_calendar_event_id.notin(confirmed_list))).run()
+
 
 def insert_event_in_google_calendar(doc, method=None):
 	"""
@@ -334,6 +342,7 @@ def insert_event_in_google_calendar(doc, method=None):
 		frappe.msgprint(_("Event Synced with Google Calendar."))
 	else :
 		frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.").format(account.name, response.text))
+
 
 def update_event_in_google_calendar(doc, method=None):
 	"""
@@ -577,6 +586,7 @@ def get_recurrence_parameters(recurrence):
 
 	return frequency, until, byday
 
+
 def get_event_attendees(event):
 	event_participants = []
 	for item in event.get("ATTENDEE",[]):
@@ -594,6 +604,7 @@ def get_event_attendees(event):
 			event_participants.append({"reference_doctype":"Contact","reference_docname":doc.name})
 	return event_participants
 
+
 def create_calendar_object(account, doc):
 	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events/{}?access_token={}".format(account.user,doc.name,account.get_access_token())
 	cal = Calendar() 
@@ -604,6 +615,7 @@ def create_calendar_object(account, doc):
 	cal['X-WR-TIMEZONE'] = frappe.db.get_single_value("System Settings", "time_zone")
 	return caldav_url,cal 
 
+
 def enqueue_job(job, **kwargs):
 	check_scheduler_status() 
 	account = kwargs.get('account') or {} 
@@ -611,9 +623,11 @@ def enqueue_job(job, **kwargs):
 	if not job_already_enqueued(job_name):
 		enqueue(job,**kwargs,queue="long",timeout=10000,event="Import events from google ",job_name=job_name,now=frappe.conf.developer_mode or frappe.flags.in_test)
 
+
 def check_scheduler_status():
 	if is_scheduler_inactive() and not frappe.flags.in_test:
 		frappe.throw(_("Scheduler is inactive. Cannot enqueue job."), title=_("Scheduler Inactive"))
+
 
 def job_already_enqueued(job_name):
 	enqueued_jobs = [d.get("job_name") for d in get_info()]
