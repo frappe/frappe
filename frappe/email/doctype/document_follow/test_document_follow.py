@@ -29,19 +29,15 @@ class TestDocumentFollow(unittest.TestCase):
 		EmailQueue = DocType('Email Queue')
 		EmailQueueRecipient = DocType('Email Queue Recipient')
 
-		Emails = frappe.qb.from_(EmailQueue).join(EmailQueueRecipient).on(
-				EmailQueueRecipient.parent == EmailQueue.name
-			).where(
-				EmailQueueRecipient.recipient == 'test@docsub.com',
-			).where(
-				EmailQueue.message.like(f'%{event_doc.doctype}%')
-			).where(
-				EmailQueue.message.like(f'%{event_doc.name}%')
-			).where(
-				EmailQueue.message.like('%This is a test description for sending mail%')
-			).select(
-				EmailQueue.message
-			).limit(1).run()
+		Emails = (frappe.qb.from_(EmailQueue)
+			.join(EmailQueueRecipient)
+			.on(EmailQueueRecipient.parent == EmailQueue.name)
+			.where(EmailQueueRecipient.recipient == 'test@docsub.com',)
+			.where(EmailQueue.message.like(f'%{event_doc.doctype}%'))
+			.where(EmailQueue.message.like(f'%{event_doc.name}%'))
+			.where(EmailQueue.message.like('%This is a test description for sending mail%'))
+			.select(EmailQueue.message)
+			.limit(1)).run()
 		self.assertIsNotNone(Emails)
 
 
@@ -59,19 +55,14 @@ class TestDocumentFollow(unittest.TestCase):
 
 		EmailQueue = DocType('Email Queue')
 		EmailQueueRecipient = DocType('Email Queue Recipient')
-		Emails = frappe.qb.from_(EmailQueue).join(EmailQueueRecipient).on(
-				EmailQueueRecipient.parent == EmailQueue.name
-			).where(
-				EmailQueueRecipient.recipient == 'test@docsub.com',
-			).where(
-				EmailQueue.message.like(f'%{event_doc.doctype}%')
-			).where(
-				EmailQueue.message.like(f'%{event_doc.name}%')
-			).where(
-				EmailQueue.message.like('%This is a test comment%')
-			).select(
-				EmailQueue.message
-			).limit(1).run()
+		Emails = (frappe.qb.from_(EmailQueue).join(EmailQueueRecipient)
+			.on(EmailQueueRecipient.parent == EmailQueue.name)
+			.where(EmailQueueRecipient.recipient == 'test@docsub.com',)
+			.where(EmailQueue.message.like(f'%{event_doc.doctype}%'))
+			.where(EmailQueue.message.like(f'%{event_doc.name}%'))
+			.where(EmailQueue.message.like('%This is a test comment%'))
+			.select(EmailQueue.message)
+			.limit(1)).run()
 
 		self.assertIsNotNone(Emails)
 
@@ -138,10 +129,7 @@ class TestDocumentFollow(unittest.TestCase):
 		frappe.set_user(user.name)
 		event_doc = get_event()
 
-		add_comment(event_doc.doctype,
-			event_doc.name, "This is a test comment",
-			'Administrator@example.com', 'Bosh'
-		)
+		add_comment(event_doc.doctype, event_doc.name, "This is a test comment", 'Administrator@example.com', 'Bosh')
 
 		DocumentFollow = DocType('Document Follow')
 		document_follow = (frappe.qb.from_(DocumentFollow)
@@ -156,10 +144,7 @@ class TestDocumentFollow(unittest.TestCase):
 		user = get_user()
 		frappe.set_user(user.name)
 		event_doc = get_event()
-		add_comment(event_doc.doctype,
-			event_doc.name, "This is a test comment",
-			'Administrator@example.com', 'Bosh'
-		)
+		add_comment(event_doc.doctype, event_doc.name, "This is a test comment", 'Administrator@example.com', 'Bosh')
 		DocumentFollow = DocType('Document Follow')
 		document_follow = (frappe.qb.from_(DocumentFollow)
 			.where(DocumentFollow.ref_doctype == 'Event')

@@ -106,8 +106,8 @@ def send_document_follow_mails(frequency):
 			frappe.db.commit()
 
 def get_user_list(frequency):
-	DocumentFollow = frappe.qb.DocType('Document Follow')
-	User = frappe.qb.DocType('User')
+	DocumentFollow = DocType('Document Follow')
+	User = DocType('User')
 	return (frappe.qb.from_(DocumentFollow).join(User)
 		.on(DocumentFollow.user == User.name)
 		.where(User.document_follow_notify == True)
@@ -132,11 +132,11 @@ def get_message_for_user(frequency, user):
 	return message, valid_document_follows
 
 def get_document_followed_by_user(user):
-	DocumentFollow = frappe.qb.DocType('Document Follow')
+	DocumentFollow = DocType('Document Follow')
 	# at max 20 documents are sent for each user
 	return (frappe.qb.from_(DocumentFollow)
 		.where(DocumentFollow.user == user)
-		.select(DocumentFollow.ref_doctype,DocumentFollow.ref_docname,)
+		.select(DocumentFollow.ref_doctype, DocumentFollow.ref_docname)
 		.orderby(DocumentFollow.modified)
 		.limit(20)).run(as_dict=True)
 
