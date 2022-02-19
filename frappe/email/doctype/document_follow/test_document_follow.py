@@ -97,6 +97,7 @@ class TestDocumentFollow(unittest.TestCase):
 			.select(DocumentFollow.name)).run()
 
 		self.assertIsNotNone(document_follow)
+
 	def test_do_not_follow_on_create(self):
 		user = get_user()
 		frappe.set_user(user.name)
