@@ -474,7 +474,6 @@ def add_total_row(result, columns, meta=None, report_settings=None):
 		for row in result:
 			if i >= len(row):
 				continue
-			
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(
 				cell
