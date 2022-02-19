@@ -129,23 +129,39 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	roles = frappe.get_roles()
 	has_role = {}
-	column = get_column(parent)
+
+	page_doctype = frappe.qb.DocType("Page")
+	report_doctype = frappe.qb.DocType("Report")
+
+	columns = (page_doctype.title.as_("title"),)
+	if parent == "Report":
+		columns = (
+			report_doctype.name.as_("title"),
+			report_doctype.ref_doctype,
+			report_doctype.report_type
+			)
+
+	custom_role_doctype = frappe.qb.DocType("Custom Role")
+	has_role_doctype = frappe.qb.DocType("Has Role")
+	parent_doctype = frappe.qb.DocType(parent)
 
 	# get pages or reports set on custom role
-	pages_with_custom_roles = frappe.db.sql("""
-		select
-			`tabCustom Role`.{field} as name,
-			`tabCustom Role`.modified,
-			`tabCustom Role`.ref_doctype,
-			{column}
-		from `tabCustom Role`, `tabHas Role`, `tab{parent}`
-		where
-			`tabHas Role`.parent = `tabCustom Role`.name
-			and `tab{parent}`.name = `tabCustom Role`.{field}
-			and `tabCustom Role`.{field} is not null
-			and `tabHas Role`.role in ({roles})
-	""".format(field=parent.lower(), parent=parent, column=column,
-		roles = ', '.join(['%s']*len(roles))), roles, as_dict=1)
+	pages_with_custom_roles = (
+			frappe.qb
+			.from_(custom_role_doctype)
+			.from_(has_role_doctype)
+			.from_(parent_doctype)
+			.select(
+				custom_role_doctype.field(parent.lower()).as_("name"),
+				custom_role_doctype.modified,
+				custom_role_doctype.ref_doctype,
+				*columns
+			)
+			.where(has_role_doctype.parent == custom_role_doctype.name)
+			.where(parent_doctype.name == custom_role_doctype.field(parent.lower()))
+			.where(custom_role_doctype.field(parent.lower()).isnotnull())
+			.where(has_role_doctype.role.isin(roles))
+		).run(as_dict=True)
 
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified":p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
@@ -163,7 +179,7 @@ def get_user_pages_or_reports(parent, cache=False):
 				select `tabCustom Role`.{field} from `tabCustom Role`
 				where `tabCustom Role`.{field} is not null)
 			{condition}
-		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles)),
+		""".format(parent=parent, column=columns, roles = ', '.join(['%s']*len(roles)),
 			field=parent.lower(), condition="and `tabReport`.disabled=0" if parent == "Report" else ""),
 			roles, as_dict=True)
 
@@ -182,7 +198,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			where
 				(select count(*) from `tabHas Role`
 				where `tabHas Role`.parent=`tab{parent}`.`name`) = 0
-		""".format(parent=parent, column=column), as_dict=1)
+		""".format(parent=parent, column=columns), as_dict=1)
 
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
@@ -194,19 +210,12 @@ def get_user_pages_or_reports(parent, cache=False):
 			filters={"name": ("in", has_role.keys())},
 			ignore_ifnull=True
 		)
-		for report in reports:
-			has_role[report.name]["report_type"] = report.report_type
+		for report_doctype in reports:
+			has_role[report_doctype.name]["report_type"] = report_doctype.report_type
 
 	# Expire every six hours
 	_cache.set_value('has_role:' + parent, has_role, frappe.session.user, 21600)
 	return has_role
-
-def get_column(doctype):
-	column = "`tabPage`.title as title"
-	if doctype == "Report":
-		column = "`tabReport`.`name` as title, `tabReport`.ref_doctype, `tabReport`.report_type"
-
-	return column
 
 def load_translations(bootinfo):
 	messages = frappe.get_lang_dict("boot")
