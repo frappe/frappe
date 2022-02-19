@@ -209,6 +209,14 @@ def get_defaults_for(parent="__default"):
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 
+		# load company from user permission
+		if parent not in ['__default', 'Guest', '__global']:
+			user_permission = get_user_permissions(parent).get(frappe.unscrub('company')) or []
+
+			for d in user_permission:
+				if d.is_default:
+					defaults['company'] = d.doc
+
 		frappe.cache().hset("defaults", parent, defaults)
 
 	return defaults
