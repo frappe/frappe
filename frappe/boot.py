@@ -200,14 +200,24 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	# pages with no role are allowed
 	if parent =="Page":
-		pages_with_no_roles = frappe.db.sql("""
-			select
-				`tab{parent}`.name, `tab{parent}`.modified, {column}
-			from `tab{parent}`
-			where
-				(select count(*) from `tabHas Role`
-				where `tabHas Role`.parent=`tab{parent}`.`name`) = 0
-		""".format(parent=parent, column=columns), as_dict=1)
+		from frappe.query_builder.functions import Count
+
+		pages_with_no_roles = (
+			frappe.qb
+			.from_(parent_doctype)
+			.select(
+				parent_doctype.name,
+				parent_doctype.modified,
+				*columns
+			)
+			.where(
+				(
+					frappe.qb.from_(has_role_doctype)
+					.select(Count("*"))
+					.where(has_role_doctype.parent == parent_doctype.name)
+				) == 0
+			)
+		).run(as_dict=True)
 
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
