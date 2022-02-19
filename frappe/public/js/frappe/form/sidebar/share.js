@@ -240,6 +240,7 @@ frappe.ui.form.Share = class Share {
 				fieldtype: "Table",
 				data: document_links,
 				read_only: 1,
+				hidden: 1,
 				fields: [{
 					fieldname: "key",
 					label: __("Key"),
@@ -252,8 +253,14 @@ frappe.ui.form.Share = class Share {
 					fieldtype: "Date",
 					in_list_view: true
 				}]
+			}, {
+				fieldname: "links",
+				label: __("Previous Links"),
+				fieldtype: "HTML",
+				options: `<div>Links</div>`,
 			}],
 		});
+
 		share_modal.show();
 	}
 };
