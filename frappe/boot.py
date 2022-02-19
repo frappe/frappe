@@ -166,22 +166,31 @@ def get_user_pages_or_reports(parent, cache=False):
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified":p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
 
-	pages_with_standard_roles = frappe.db.sql("""
-		select distinct
-			`tab{parent}`.name as name,
-			`tab{parent}`.modified,
-			{column}
-		from `tabHas Role`, `tab{parent}`
-		where
-			`tabHas Role`.role in ({roles})
-			and `tabHas Role`.parent = `tab{parent}`.name
-			and `tab{parent}`.`name` not in (
-				select `tabCustom Role`.{field} from `tabCustom Role`
-				where `tabCustom Role`.{field} is not null)
-			{condition}
-		""".format(parent=parent, column=columns, roles = ', '.join(['%s']*len(roles)),
-			field=parent.lower(), condition="and `tabReport`.disabled=0" if parent == "Report" else ""),
-			roles, as_dict=True)
+	subq = (
+		frappe.qb.from_(custom_role_doctype)
+		.select(custom_role_doctype.field(parent.lower()))
+		.where(custom_role_doctype.field(parent.lower()).isnotnull())
+	)
+
+	pages_with_standard_roles = (
+			frappe.qb
+			.from_(has_role_doctype)
+			.from_(parent_doctype)
+			.select(
+				parent_doctype.name.as_("name"),
+				parent_doctype.modified,
+				*columns
+			)
+			.distinct()
+			.where(has_role_doctype.role.isin(roles))
+			.where(has_role_doctype.parent == parent_doctype.name)
+			.where(parent_doctype.name.isnotin(subq))
+		)
+
+	if parent == "Report":
+		pages_with_standard_roles = pages_with_standard_roles.where(report_doctype.disabled == 0)
+
+	pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
 
 	for p in pages_with_standard_roles:
 		if p.name not in has_role:
@@ -210,8 +219,8 @@ def get_user_pages_or_reports(parent, cache=False):
 			filters={"name": ("in", has_role.keys())},
 			ignore_ifnull=True
 		)
-		for report_doctype in reports:
-			has_role[report_doctype.name]["report_type"] = report_doctype.report_type
+		for report in reports:
+			has_role[report.name]["report_type"] = report.report_type
 
 	# Expire every six hours
 	_cache.set_value('has_role:' + parent, has_role, frappe.session.user, 21600)
