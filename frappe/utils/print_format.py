@@ -124,7 +124,19 @@ def read_multi_pdf(output):
 def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
 	doc = frappe.get_doc(doctype, name)
 	doc.doctype = doctype
-	validate_print_permission(doc)
+	try:
+		validate_print_permission(doc)
+	except frappe.exceptions.LinkExpiredError:
+		frappe.local.response.http_status_code = 410
+		frappe.local.response = frappe.get_template("templates/print_format/print_key_invalid.html").render({})
+		return
+	except frappe.exceptions.InvalidKey:
+		frappe.local.response.type = "page"
+		frappe.local.response.message = frappe.get_template("templates/print_format/print_key_invalid.html").render({})
+		frappe.local.response.http_status_code = 401
+		# frappe.local.response.route = "/api/method/frappe.utils.print_format.download_pdf"
+		return
+
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
 	frappe.local.response.filename = "{name}.pdf".format(
 		name=name.replace(" ", "-").replace("/", "-")
