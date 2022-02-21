@@ -1,7 +1,7 @@
 {
  "actions": [],
  "autoname": "field:report_name",
- "creation": "2013-03-09 15:45:57",
+ "creation": "2022-02-22 05:02:16.346435",
  "doctype": "DocType",
  "document_type": "System",
  "engine": "InnoDB",
@@ -54,13 +54,12 @@
    "label": "Reference Report"
   },
   {
+   "default": "0",
    "fieldname": "is_standard",
-   "fieldtype": "Select",
+   "fieldtype": "Check",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Is Standard",
-   "options": "No\nYes",
-   "reqd": 1
+   "label": "Is Standard"
   },
   {
    "fieldname": "module",
@@ -192,7 +191,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-21 16:49:28.474274",
+ "modified": "2022-02-22 05:16:07.657299",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
@@ -242,5 +241,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
