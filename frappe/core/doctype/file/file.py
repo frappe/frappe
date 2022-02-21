@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 """
@@ -7,7 +7,6 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import base64
 import hashlib
 import imghdr
 import io
@@ -17,9 +16,10 @@ import os
 import re
 import shutil
 import zipfile
+from typing import TYPE_CHECKING, Tuple
 
 import requests
-import requests.exceptions
+from requests.exceptions import HTTPError, SSLError
 from PIL import Image, ImageFile, ImageOps
 from io import BytesIO
 from urllib.parse import quote, unquote
@@ -30,6 +30,11 @@ from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
 from frappe.utils.image import strip_exif_data, optimize_image
 from frappe.utils.file_manager import safe_b64decode
+
+if TYPE_CHECKING:
+	from PIL.ImageFile import ImageFile
+	from requests.models import Response
+
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -276,7 +281,7 @@ class File(Document):
 					image, filename, extn = get_local_image(self.file_url)
 				else:
 					image, filename, extn = get_web_image(self.file_url)
-			except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError, TypeError):
+			except (HTTPError, SSLError, IOError, TypeError):
 					return
 
 			size = width, height
@@ -648,8 +653,16 @@ def setup_folder_path(filename, new_parent):
 		from frappe.model.rename_doc import rename_doc
 		rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
 
-def get_extension(filename, extn, content):
+def get_extension(filename, extn, content: bytes = None, response: "Response" = None) -> str:
 	mimetype = None
+
+	if response:
+		content_type = response.headers.get("Content-Type")
+
+		if content_type:
+			_extn = mimetypes.guess_extension(content_type)
+			if _extn:
+				return _extn[1:]
 
 	if extn:
 		# remove '?' char and parameters from extn if present
@@ -693,14 +706,14 @@ def get_local_image(file_url):
 
 	return image, filename, extn
 
-def get_web_image(file_url):
+def get_web_image(file_url: str) -> Tuple["ImageFile", str, str]:
 	# download
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
 	try:
 		r.raise_for_status()
-	except requests.exceptions.HTTPError as e:
-		if "404" in e.args[0]:
+	except HTTPError:
+		if r.status_code == 404:
 			frappe.msgprint(_("File '{0}' not found").format(file_url))
 		else:
 			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
@@ -719,7 +732,10 @@ def get_web_image(file_url):
 		filename = get_random_filename()
 		extn = None
 
-	extn = get_extension(filename, extn, r.content)
+	extn = get_extension(filename, extn, response=r)
+	if extn == "bin":
+		extn = get_extension(filename, extn, content=r.content) or "png"
+
 	filename = "/files/" + strip(unquote(filename))
 
 	return image, filename, extn
@@ -729,7 +745,7 @@ def delete_file(path):
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
-			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
+			frappe.throw(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
 
 		parts = os.path.split(path.strip("/"))
 		if parts[0]=="files":
@@ -862,8 +878,9 @@ def extract_images_from_html(doc, content, is_private=False):
 		else:
 			filename = get_random_filename(content_type=mtype)
 
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
+		# attaching a file to a child table doc, attaches it to the parent doc
+		doctype = doc.parenttype if doc.get("parent") else doc.doctype
+		name = doc.get("parent") or doc.name
 
 		_file = frappe.get_doc({
 			"doctype": "File",

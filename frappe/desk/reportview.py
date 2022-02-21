@@ -6,7 +6,7 @@
 import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
-from frappe.model import default_fields, optional_fields
+from frappe.model import default_fields, optional_fields, child_table_fields
 from frappe import _
 from io import StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -156,7 +156,7 @@ def raise_invalid_field(fieldname):
 def is_standard(fieldname):
 	if '.' in fieldname:
 		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
-	return fieldname in default_fields or fieldname in optional_fields
+	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 def extract_fieldname(field):
 	for text in (',', '/*', '#'):
@@ -262,22 +262,66 @@ def compress(data, args=None):
 	}
 
 @frappe.whitelist()
-def save_report():
-	"""save report"""
+def save_report(name, doctype, report_settings):
+	"""Save reports of type Report Builder from Report View"""
 
-	data = frappe.local.form_dict
-	if frappe.db.exists('Report', data['name']):
-		d = frappe.get_doc('Report', data['name'])
+	if frappe.db.exists('Report', name):
+		report = frappe.get_doc('Report', name)
+		if report.is_standard == "Yes":
+			frappe.throw(_("Standard Reports cannot be edited"))
+
+		if report.report_type != "Report Builder":
+			frappe.throw(_("Only reports of type Report Builder can be edited"))
+
+		if (
+			report.owner != frappe.session.user
+			and not frappe.has_permission("Report", "write")
+		):
+			frappe.throw(
+				_("Insufficient Permissions for editing Report"),
+				frappe.PermissionError
+			)
 	else:
-		d = frappe.new_doc('Report')
-		d.report_name = data['name']
-		d.ref_doctype = data['doctype']
+		report = frappe.new_doc('Report')
+		report.report_name = name
+		report.ref_doctype = doctype
 
-	d.report_type = "Report Builder"
-	d.json = data['json']
-	frappe.get_doc(d).save()
-	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
-	return d.name
+	report.report_type = "Report Builder"
+	report.json = report_settings
+	report.save(ignore_permissions=True)
+	frappe.msgprint(
+		_("Report {0} saved").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
+	return report.name
+
+@frappe.whitelist()
+def delete_report(name):
+	"""Delete reports of type Report Builder from Report View"""
+
+	report = frappe.get_doc("Report", name)
+	if report.is_standard == "Yes":
+		frappe.throw(_("Standard Reports cannot be deleted"))
+
+	if report.report_type != "Report Builder":
+		frappe.throw(_("Only reports of type Report Builder can be deleted"))
+
+	if (
+		report.owner != frappe.session.user
+		and not frappe.has_permission("Report", "delete")
+	):
+		frappe.throw(
+			_("Insufficient Permissions for deleting Report"),
+			frappe.PermissionError
+		)
+
+	report.delete(ignore_permissions=True)
+	frappe.msgprint(
+		_("Report {0} deleted").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -319,7 +363,7 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [['Sr'] + get_labels(db_query.fields, doctype)]
+	data = [[_('Sr')] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
@@ -378,7 +422,8 @@ def get_labels(fields, doctype):
 	for key in fields:
 		key = key.split(" as ")[0]
 
-		if key.startswith(('count(', 'sum(', 'avg(')): continue
+		if key.startswith(('count(', 'sum(', 'avg(')):
+			continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -386,10 +431,16 @@ def get_labels(fields, doctype):
 			parenttype = doctype
 			fieldname = fieldname.strip("`")
 
-		df = frappe.get_meta(parenttype).get_field(fieldname)
-		label = df.label if df else fieldname.title()
-		if label in labels:
-			label = doctype + ": " + label
+		if parenttype == doctype and fieldname == "name":
+			label = _("ID", context="Label of name column in report")
+		else:
+			df = frappe.get_meta(parenttype).get_field(fieldname)
+			label = _(df.label if df else fieldname.title())
+			if parenttype != doctype:
+				# If the column is from a child table, append the child doctype.
+				# For example, "Item Code (Sales Invoice Item)".
+				label += f" ({ _(parenttype) })"
+
 		labels.append(label)
 
 	return labels

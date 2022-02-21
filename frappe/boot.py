@@ -7,6 +7,7 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
@@ -15,7 +16,6 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import is
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
-from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 from frappe.utils import get_time_zone, add_user_info
 
@@ -89,6 +89,7 @@ def get_bootinfo():
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
+	bootinfo.link_title_doctypes = get_link_title_doctypes()
 
 	return bootinfo
 
@@ -323,6 +324,15 @@ def get_desk_settings():
 
 def get_notification_settings():
 	return frappe.get_cached_doc('Notification Settings', frappe.session.user)
+
+def get_link_title_doctypes():
+	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
+	custom_dts = frappe.get_all(
+		"Property Setter",
+		{"property": "show_title_field_in_link", "value": "1"},
+		["doc_type as name"],
+	)
+	return [d.name for d in dts + custom_dts if d]
 
 def set_time_zone(bootinfo):
 	bootinfo.time_zone = {

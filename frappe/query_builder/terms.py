@@ -1,33 +1,77 @@
+from datetime import timedelta
 from typing import Any, Dict, Optional
+from frappe.utils.data import format_timedelta
 
 from pypika.terms import Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
 
-class NamedParameterWrapper():
-	def __init__(self, parameters: Dict[str, Any]):
-		self.parameters = parameters
+class NamedParameterWrapper:
+	"""Utility class to hold parameter values and keys"""
 
-	def update_parameters(self, param_key: Any, param_value: Any, **kwargs):
+	def __init__(self) -> None:
+		self.parameters = {}
+
+	def get_sql(self, param_value: Any, **kwargs) -> str:
+		"""returns SQL for a parameter, while adding the real value in a dict
+
+		Args:
+				param_value (Any): Value of the parameter
+
+		Returns:
+				str: parameter used in the SQL query
+		"""
+		param_key = f"%(param{len(self.parameters) + 1})s"
 		self.parameters[param_key[2:-2]] = param_value
+		return param_key
 
-	def get_sql(self, **kwargs):
-		return f'%(param{len(self.parameters) + 1})s'
+	def get_parameters(self) -> Dict[str, Any]:
+		"""get dict with parameters and values
+
+		Returns:
+				Dict[str, Any]: parameter dict
+		"""
+		return self.parameters
 
 
 class ParameterizedValueWrapper(ValueWrapper):
-	def get_sql(self, quote_char: Optional[str] = None, secondary_quote_char: str = "'", param_wrapper= None, **kwargs: Any) -> str:
-		if param_wrapper is None:
-			sql = self.get_value_sql(quote_char=quote_char, secondary_quote_char=secondary_quote_char, **kwargs)
-			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
+	"""
+	Class to monkey patch ValueWrapper
+
+	Adds functionality to parameterize queries when a `param wrapper` is passed in get_sql()
+	"""
+
+	def get_sql(
+		self,
+		quote_char: Optional[str] = None,
+		secondary_quote_char: str = "'",
+		param_wrapper: Optional[NamedParameterWrapper] = None,
+		**kwargs: Any,
+	) -> str:
+		if param_wrapper and isinstance(self.value, str):
+			# add quotes if it's a string value
+			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
+			sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
 		else:
-			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs) if not isinstance(self.value,int) else self.value
-			param_sql = param_wrapper.get_sql(**kwargs)
-			param_wrapper.update_parameters(param_key=param_sql, param_value=value_sql, **kwargs)
-		return format_alias_sql(param_sql, self.alias, quote_char=quote_char, **kwargs)
+			# * BUG: pypika doesen't parse timedeltas
+			if isinstance(self.value, timedelta):
+				self.value = format_timedelta(self.value)
+			sql = self.get_value_sql(
+				quote_char=quote_char,
+				secondary_quote_char=secondary_quote_char,
+				param_wrapper=param_wrapper,
+				**kwargs,
+			)
+		return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 
 
 class ParameterizedFunction(Function):
+	"""
+	Class to monkey patch pypika.terms.Functions
+
+	Only to pass `param_wrapper` in `get_function_sql`.
+	"""
+
 	def get_sql(self, **kwargs: Any) -> str:
 		with_alias = kwargs.pop("with_alias", False)
 		with_namespace = kwargs.pop("with_namespace", False)
@@ -35,15 +79,24 @@ class ParameterizedFunction(Function):
 		dialect = kwargs.pop("dialect", None)
 		param_wrapper = kwargs.pop("param_wrapper", None)
 
-		function_sql = self.get_function_sql(with_namespace=with_namespace, quote_char=quote_char, param_wrapper=param_wrapper, dialect=dialect)
+		function_sql = self.get_function_sql(
+			with_namespace=with_namespace,
+			quote_char=quote_char,
+			param_wrapper=param_wrapper,
+			dialect=dialect,
+		)
 
 		if self.schema is not None:
 			function_sql = "{schema}.{function}".format(
-				schema=self.schema.get_sql(quote_char=quote_char, dialect=dialect, **kwargs),
+				schema=self.schema.get_sql(
+					quote_char=quote_char, dialect=dialect, **kwargs
+				),
 				function=function_sql,
 			)
 
 		if with_alias:
-			return format_alias_sql(function_sql, self.alias, quote_char=quote_char, **kwargs)
+			return format_alias_sql(
+				function_sql, self.alias, quote_char=quote_char, **kwargs
+			)
 
 		return function_sql

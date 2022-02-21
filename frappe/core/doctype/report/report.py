@@ -61,7 +61,7 @@ class Report(Document):
 					delete_permanently=True)
 
 	def get_columns(self):
-		return [d.as_dict(no_default_fields = True) for d in self.columns]
+		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
 
 	@frappe.whitelist()
 	def set_doctype_roles(self):
