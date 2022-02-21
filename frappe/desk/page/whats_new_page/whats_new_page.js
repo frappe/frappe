@@ -48,7 +48,7 @@ class WhatsNew {
 
 	get_tags(tag_list) {
 		let tag_color_map = {
-			'Upcoming': 'blue',
+			'Upcoming': 'upcoming',
 			'Design': 'purple',
 			'Enhancement': 'yellow',
 			'Version Update': 'green'
@@ -174,7 +174,7 @@ class WhatsNew {
 					<div class="whats-new-post">
 						<div class="whats-new-post-header row">
 							<div class="whats-new-post-title col-md-9 col-sm-12">
-								<h4 class="whats-new-post-title"><b>${post.name}</b></h4>
+								<p class="whats-new-post-title"><b>${post.name}</b></p>
 							</div>
 							<div class="release-date-col col-md-3 col-sm-12">
 								<p class="whats-new-post-date">${this.get_day_and_date(post.posting_date) || ''}</p>
@@ -209,7 +209,7 @@ class WhatsNew {
 								<div class="row">
 									<div class="col-md-9">
 										<div class="whats-new-event-tags">
-											<span class="indicator-pill whitespace-nowrap blue">Upcoming</span>
+											<span class="indicator-pill whitespace-nowrap upcoming">Upcoming</span>
 										</div>
 									</div>
 									<div class= "whats-new-event-cal-link col-md-3"
@@ -222,7 +222,7 @@ class WhatsNew {
 								</div>
 
 								<div class="whats-new-event-header">
-									<h4 class="whats-new-event-title"><b>${event.name}</b></h4>
+									<p class="whats-new-event-title"><b>${event.name}</b></p>
 								</div>
 								<div class="whats-new-event-content">
 									<div class="whats-new-event-description">

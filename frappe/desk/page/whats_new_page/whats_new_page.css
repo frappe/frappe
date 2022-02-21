@@ -47,6 +47,7 @@
 }
 
 .whats-new-event-calendar {
+	padding: 15px;
 	border-radius: 6px;
 	align-items: center;
 	background: #fff;
@@ -81,12 +82,11 @@
 }
 
 .whats-new-post-description {
-	margin-top: 10px;
 	max-width: 100%;
 }
 
 .whats-new-event-description {
-	font-size: 13px;
+	font-size: 12px;
 }
 
 .release-date-col {
@@ -95,10 +95,43 @@
 	padding-right: 0;
 }
 
+.whats-new-event-title {
+	margin-bottom: 0;
+}
+
+.whats-new-event-header {
+	font-size: 16px;
+	margin-bottom: 0;
+	margin-top: 6px;
+}
+
+.whats-new-post-header {
+	font-size: 18px;
+	margin-top: 8px;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.whats-new-post-content {
+	margin-top: 12px;
+}
+
+.whats-new-post-content {
+	color: rgba(80, 90, 98, 1) !important;
+}
+
+.whats-new-post-date {
+	font-size: 14px;
+}
+
+.whats-new-event-content {
+	margin-top: 4px;
+	color: rgba(80, 90, 98, 1);
+}
+
 .whats-new-post-header, .whats-new-event-header {
 	display: flex;
 	justify-items: space-between;
-	margin: 0;
 }
 
 .whats-new-post-title, .whats-new-event-title {
@@ -111,8 +144,16 @@
 }
 
 .indicator-pill {
-	margin: auto 10px 10px 0;
+	margin: auto 8px 4px 0;
 }
+
+.indicator-pill.upcoming {
+	margin: auto 8px 4px 0;
+	color: rgba(45, 149, 240, 1);
+	background: white;
+	box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.1);
+}
+
 
 .whats-new-post-media-wrapper {
 	width: 100%;
@@ -157,13 +198,14 @@
 }
 
 hr {
+	margin: 28px 0;
 	border: 0;
 	height: 1px;
 	background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
 }
 
 .separator {
-	margin-top: 10px;
+	margin-top: 30px 0;
 }
 
 @media only screen and (max-width:768px) {
@@ -198,12 +240,16 @@ hr {
 		padding-top: 10px;
 	}
 
+	.whats-new-post-tags {
+		margin-top: 10px;
+	}
+
 	.whats-new-event-body {
-		padding: 0;
+		padding: 16px;
 	}
 
 	.whats-new-event-calendar {
-		padding: 10px;
+		padding: 20px;
 		border-radius: 6px;
 		align-items: center;
 		background: #fff;
