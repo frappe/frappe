@@ -225,12 +225,15 @@ class BaseDocument(object):
 		if not self.doctype:
 			return value
 
-		if not isinstance(value, BaseDocument):
-			value["doctype"] = self.get_table_field_doctype(key)
-			if not value["doctype"]:
-				raise AttributeError(key)
+		child_doctype = self.get_table_field_doctype(key)
+		if not child_doctype:
+			# probably just a list of values like __print_formats, don't init
+			# this should ideally be tested in set() above
+			return value
 
-			value = get_controller(value["doctype"])(value)
+		if not isinstance(value, BaseDocument):
+			value["doctype"] = child_doctype
+			value = get_controller(child_doctype)(value)
 			value.init_valid_columns()
 
 		value.parent = self.name
