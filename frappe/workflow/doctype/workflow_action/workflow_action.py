@@ -220,7 +220,7 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 	).run()
 
 def update_completed_workflow_actions_using_user(doc, user=None):
-	user = user if user else frappe.session.user
+	user = user or frappe.session.user
 	if not frappe.db.has_column('Workflow Action', 'user'):
 		return False
 	WorkflowAction = DocType("Workflow Action")
