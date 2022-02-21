@@ -784,10 +784,9 @@ def validate_links_table_fieldnames(meta):
 	if not meta.links or frappe.flags.in_patch or frappe.flags.in_fixtures:
 		return
 
-	fieldnames = tuple(field.fieldname for field in meta.fields)
 	for index, link in enumerate(meta.links, 1):
 		link_meta = frappe.get_meta(link.link_doctype)
-		if not link_meta.get_field(link.link_fieldname):
+		if not frappe.get_meta(link.link_doctype).has_field(link.link_fieldname):
 			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
@@ -802,7 +801,7 @@ def validate_links_table_fieldnames(meta):
 			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index)
 			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
-		if link.table_fieldname not in fieldnames:
+		if not frappe.get_meta(link.parent_doctype).has_field(link.table_fieldname):
 			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
 
