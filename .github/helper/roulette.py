@@ -41,6 +41,7 @@ if __name__ == "__main__":
 	# this is a push build, run all builds
 	if not pr_number:
 		os.system('echo "::set-output name=build::strawberry"')
+		os.system('echo "::set-output name=build-server::strawberry"')
 		sys.exit(0)
 
 	files_list = files_list or get_files_list(pr_number=pr_number, repo=repo)
