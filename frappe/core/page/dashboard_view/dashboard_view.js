@@ -30,6 +30,7 @@ class Dashboard {
 
 	show() {
 		this.route = frappe.get_route();
+		this.set_breadcrumbs();
 		if (this.route.length > 1) {
 			// from route
 			this.show_dashboard(this.route.slice(-1)[0]);
@@ -73,6 +74,10 @@ class Dashboard {
 		}
 		this.charts = {};
 		frappe.last_dashboard = current_dashboard_name;
+	}
+
+	set_breadcrumbs() {
+		frappe.breadcrumbs.add("Desk", "Dashboard");
 	}
 
 	refresh() {

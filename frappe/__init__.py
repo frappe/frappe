@@ -35,7 +35,7 @@ from frappe.query_builder import get_query_builder, patch_query_execute
 # Lazy imports
 faker = lazy_import('faker')
 
-__version__ = '13.20.2'
+__version__ = '13.21.0'
 
 __title__ = "Frappe Framework"
 
@@ -355,7 +355,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	response JSON and shown in a pop-up / modal.
 
 	:param msg: Message.
-	:param title: [optional] Message title.
+	:param title: [optional] Message title. Default: "Message".
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
@@ -392,8 +392,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	if flags.print_messages and out.message:
 		print(f"Message: {strip_html_tags(out.message)}")
 
-	if title:
-		out.title = title
+	out.title = title or _("Message", context="Default title of the message dialog")
 
 	if not indicator and raise_exception:
 		indicator = 'red'

@@ -361,6 +361,7 @@ class TestUser(unittest.TestCase):
 				json.loads(frappe.message_log[0]).get("message"), 
 				"Password reset instructions have been sent to your email"
 			)
+
 		sendmail.assert_called_once()
 		self.assertEqual(sendmail.call_args[1]["recipients"], "test2@example.com")
 
