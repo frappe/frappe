@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "creation": "2022-02-21 09:44:31.413630",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "host_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "host_url",
+   "fieldtype": "Data",
+   "label": "Host URL"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-02-21 09:44:31.413630",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "CRM Integrator Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

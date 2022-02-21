@@ -28,10 +28,13 @@
   "user_image",
   "sb_limitation",
   "company_name",
+  "buyer_type",
   "cb_limitation",
   "territory",
+  "customer",
   "cb_limitation_2",
   "maintenance_zone",
+  "customer_group",
   "sb1",
   "role_profile_name",
   "roles_html",
@@ -700,6 +703,24 @@
    "fieldtype": "Link",
    "label": "Maintenance Zone",
    "options": "Maintenance Zone Master"
+  },
+  {
+   "fieldname": "buyer_type",
+   "fieldtype": "Select",
+   "label": "Buyer Type",
+   "options": "\nConstruction\nNon-Construction"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "customer_group",
+   "fieldtype": "Link",
+   "label": "Customer Group",
+   "options": "Customer Group"
   }
  ],
  "icon": "fa fa-user",
@@ -768,7 +789,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-02-11 14:09:10.077473",
+ "modified": "2022-02-21 10:27:22.309914",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
