@@ -34,10 +34,7 @@ def has_permission(doc, user):
 
 	roles = frappe.get_roles(user)
 
-	if user == 'Administrator' or (doc.role in roles and doc.is_deleted == 0):
-		return True
-	else:
-		return False
+	return user == "Administrator" or (not doc.is_deleted and doc.role in roles)
 
 def process_workflow_actions(doc, state):
 	workflow = get_workflow_name(doc.get('doctype'))
