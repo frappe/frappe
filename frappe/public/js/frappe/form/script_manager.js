@@ -192,9 +192,18 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		}
 
 		function setup_add_fetch(df) {
-			if ((['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check', 'Attach Image',
-				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select', 'Duration'].includes(df.fieldtype) || df.read_only==1)
-				&& df.fetch_from && df.fetch_from.indexOf(".")!=-1) {
+			let is_read_only_field = (
+				['Data', 'Read Only', 'Text', 'Small Text', 'Currency', 'Check', 'Text Editor', 'Attach Image',
+				'Code', 'Link', 'Float', 'Int', 'Date', 'Select', 'Duration'].includes(df.fieldtype)
+				|| df.read_only == 1
+				|| df.is_virtual == 1
+			)
+
+			if (
+				is_read_only_field
+				&& df.fetch_from
+				&& df.fetch_from.indexOf(".") != -1
+			) {
 				var parts = df.fetch_from.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname, df.parent);
 			}

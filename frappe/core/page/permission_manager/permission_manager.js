@@ -347,6 +347,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	add_check_events() {
+		let me = this;
 		this.body.on("click", ".show-user-permissions", () => {
 			frappe.route_options = { allow: this.get_doctype() || "" };
 			frappe.set_route('List', 'User Permission');
@@ -373,7 +374,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
 					} else {
-						this.get_perm(args.role)[args.ptype] = args.value;
+						me.get_perm(args.role)[args.ptype] = args.value;
 					}
 				}
 			});
