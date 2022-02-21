@@ -4,6 +4,7 @@ import os
 import socket
 import time
 from collections import defaultdict
+from functools import lru_cache
 from uuid import uuid4
 
 import redis
@@ -18,18 +19,22 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import cstr
 
-common_site_config = frappe.get_file_json("common_site_config.json")
-custom_workers_config = common_site_config.get("workers", {})
-default_timeout = 300
-queue_timeout = {
-	"default": default_timeout,
-	"short": default_timeout,
-	"long": 1500,
-	**{
-		worker: config.get("timeout", default_timeout)
-		for worker, config in custom_workers_config.items()
+
+@lru_cache()
+def get_queues_timeout():
+	common_site_config = frappe.get_conf()
+	custom_workers_config = common_site_config.get("workers", {})
+	default_timeout = 300
+
+	return {
+		"default": default_timeout,
+		"short": default_timeout,
+		"long": 1500,
+		**{
+			worker: config.get("timeout", default_timeout)
+			for worker, config in custom_workers_config.items()
+		}
 	}
-}
 
 redis_connection = None
 
@@ -55,7 +60,7 @@ def enqueue(method, queue='default', timeout=None, event=None,
 
 	q = get_queue(queue, is_async=is_async)
 	if not timeout:
-		timeout = queue_timeout.get(queue) or 300
+		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
@@ -201,7 +206,7 @@ def get_jobs(site=None, queue=None, key='method'):
 
 def get_queue_list(queue_list=None):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
-	default_queue_list = list(queue_timeout)
+	default_queue_list = list(get_queues_timeout())
 	if queue_list:
 		if isinstance(queue_list, string_types):
 			queue_list = [queue_list]
@@ -235,7 +240,7 @@ def get_queue(queue, is_async=True):
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
-		default_queue_list = list(queue_timeout)
+		default_queue_list = list(get_queues_timeout())
 
 	if queue not in default_queue_list:
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
