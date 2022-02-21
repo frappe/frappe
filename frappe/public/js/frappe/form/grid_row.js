@@ -5,11 +5,7 @@ export default class GridRow {
 		this.on_grid_fields_dict = {};
 		this.on_grid_fields = [];
 		$.extend(this, opts);
-		if (this.doc && this.parent_df.options) {
-			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
-			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
-			this.docfields = docfields.length ? docfields : opts.docfields;
-		}
+		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
 		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
@@ -41,6 +37,22 @@ export default class GridRow {
 			this.set_data();
 		}
 	}
+
+	set_docfields(update=false) {
+		if (this.doc && this.parent_df.options) {
+			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
+			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
+			if (update) {
+				// to maintain references
+				this.docfields.forEach(df => {
+					Object.assign(df, docfields.find(d => d.fieldname === df.fieldname));
+				});
+			} else {
+				this.docfields = docfields;
+			}
+		}
+	}
+
 	set_data() {
 		this.wrapper.data({
 			"doc": this.doc
@@ -148,6 +160,11 @@ export default class GridRow {
 		}, __('Move To'), 'Update');
 	}
 	refresh() {
+		// update docfields for new record
+		if (this.frm && this.doc && this.doc.__islocal) {
+			this.set_docfields(true);
+		}
+
 		if(this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		}
