@@ -20,20 +20,23 @@ class Report(Document):
 		if not self.module:
 			self.module = frappe.db.get_value("DocType", self.ref_doctype, "module")
 
-		if not self.is_standard:
-			self.is_standard = "No"
-			if frappe.session.user=="Administrator" and getattr(frappe.local.conf, 'developer_mode',0)==1:
-				self.is_standard = "Yes"
+		if self.is_standard is None:
+			self.is_standard = 0
+			if (
+				frappe.session.user == "Administrator"
+				and getattr(frappe.local.conf, "developer_mode", 0) == 1
+			):
+				self.is_standard = 1
 
-		if self.is_standard == "No":
+		if not self.is_standard:
 			# allow only script manager to edit scripts
 			if self.report_type != 'Report Builder':
 				frappe.only_for('Script Manager', True)
 
-			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
+			if frappe.db.get_value("Report", self.name, "is_standard"):
 				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
-		if self.is_standard == "Yes" and frappe.session.user!="Administrator":
+		if self.is_standard and frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
 		if self.report_type == "Report Builder":
@@ -46,9 +49,11 @@ class Report(Document):
 		self.export_doc()
 
 	def on_trash(self):
-		if (self.is_standard == 'Yes'
-			and not cint(getattr(frappe.local.conf, 'developer_mode', 0))
-			and not frappe.flags.in_patch):
+		if (
+			self.is_standard
+			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
+			and not frappe.flags.in_patch
+		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role('report', self.name)
 		self.delete_prepared_reports()
@@ -65,7 +70,7 @@ class Report(Document):
 
 	@frappe.whitelist()
 	def set_doctype_roles(self):
-		if not self.get('roles') and self.is_standard == 'No':
+		if not self.get("roles", False) and not self.is_standard:
 			meta = frappe.get_meta(self.ref_doctype)
 			if not meta.istable:
 				roles = [{'role': d.role} for d in meta.permissions if d.permlevel==0]
@@ -95,8 +100,8 @@ class Report(Document):
 		if frappe.flags.in_import:
 			return
 
-		if self.is_standard == 'Yes' and (frappe.local.conf.get('developer_mode') or 0) == 1:
-			export_to_files(record_list=[['Report', self.name]],
+		if self.is_standard and (frappe.local.conf.get("developer_mode") or 0):
+			export_to_files(record_list=[["Report", self.name]],
 				record_module=self.module, create_init=True)
 
 			self.create_report_py()
@@ -126,7 +131,7 @@ class Report(Document):
 		start_time = datetime.datetime.now()
 
 		# The JOB
-		if self.is_standard == 'Yes':
+		if self.is_standard:
 			res = self.execute_module(filters)
 		else:
 			res = self.execute_script(filters)

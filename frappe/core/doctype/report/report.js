@@ -1,6 +1,6 @@
 frappe.ui.form.on('Report', {
 	refresh: function(frm) {
-		if (frm.doc.is_standard === "Yes" && !frappe.boot.developer_mode) {
+		if (frm.doc.is_standard === 1 && !frappe.boot.developer_mode) {
 			// make the document read-only
 			frm.disable_form();
 		} else {
@@ -25,7 +25,7 @@ frappe.ui.form.on('Report', {
 			}
 		}, "fa fa-table");
 
-		if (doc.is_standard === "Yes" && frm.perm[0].write) {
+		if (doc.is_standard === 1 && frm.perm[0].write) {
 			frm.add_custom_button(doc.disabled ? __("Enable Report") : __("Disable Report"), function() {
 				frm.call('toggle_disable', {
 					disable: doc.disabled ? 0 : 1
