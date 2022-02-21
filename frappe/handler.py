@@ -165,11 +165,18 @@ def upload_file():
 	content = None
 
 	if 'file' in files:
+		ALLOWED_EXTENSION = ['jpeg', 'jpg', 'pdf', 'txt', 'png', 'gif', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx',
+					'ods', 'odp', 'odg', 'odt', 'cvs', 'ico', 'bmp', 'xcf', 'bmp', 'mp3', 'mp4', 'mov', 'm4a', 'wav',
+					'm4v', 'wmv', 'avi', 'zip', 'gzip']
 		file = files['file']
 		content = file.stream.read()
 		filename = file.filename
+		file_ext = filename.split('.')[-1]
 
 		content_type = guess_type(filename)[0]
+		if file_ext and file_ext not in ALLOWED_EXTENSION:
+			frappe.throw(_("File is not safe to be uploaded."))
+
 		if optimize and content_type.startswith("image/"):
 			args = {
 				"content": content,
