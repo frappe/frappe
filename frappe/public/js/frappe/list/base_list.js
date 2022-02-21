@@ -488,7 +488,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	no_change(args) {
-		// returns true if arguments are same for the last 5 seconds
+		// returns true if arguments are same for the last 3 seconds
 		// this helps in throttling if called from various sources
 		if (this.last_args && JSON.stringify(args) === this.last_args) {
 			return true;
