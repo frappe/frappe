@@ -135,7 +135,7 @@ def get_dict(fortype, name=None):
 	asset_key = fortype + ":" + (name or "-")
 	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
 
-	if not asset_key in translation_assets:
+	if asset_key not in translation_assets:
 		messages = []
 		if fortype=="doctype":
 			messages = get_messages_from_doctype(name)
