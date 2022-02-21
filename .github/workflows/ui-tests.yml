@@ -141,6 +141,12 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
+      - name: Stop server
+        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+        run: |
+          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
+          sleep 5
+
       - name: Check If Coverage Report Exists
         id: check_coverage
         uses: andstor/file-existence-action@v1
@@ -156,3 +162,13 @@ jobs:
           directory: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/
           verbose: true
           flags: ui-tests
+
+      - name: Upload Server Coverage Data
+        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+        uses: codecov/codecov-action@v2
+        with:
+          name: MariaDB
+          fail_ci_if_error: true
+          files: /home/runner/frappe-bench/sites/coverage.xml
+          verbose: true
+          flags: server
