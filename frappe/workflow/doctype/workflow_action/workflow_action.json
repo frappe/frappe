@@ -8,10 +8,11 @@
   "status",
   "reference_name",
   "reference_doctype",
-  "role",
   "workflow_state",
+  "column_break_5",
+  "completed_by_role",
   "completed_by",
-  "is_deleted"
+  "permitted_roles"
  ],
  "fields": [
   {
@@ -41,28 +42,35 @@
    "label": "Workflow State"
   },
   {
+   "depends_on": "eval: doc.completed_by",
    "fieldname": "completed_by",
    "fieldtype": "Link",
-   "label": "Completed By",
-   "options": "User"
+   "label": "Completed By User",
+   "options": "User",
+   "read_only": 1
   },
   {
-   "fieldname": "role",
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.completed_by_role",
+   "fieldname": "completed_by_role",
    "fieldtype": "Link",
-   "label": "Role",
-   "options": "Role"
+   "label": "Completed By Role",
+   "options": "Role",
+   "read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "is_deleted",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Is Deleted",
-   "search_index": 1
+   "fieldname": "permitted_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Permitted Roles",
+   "options": "Workflow Action Role",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2022-01-29 14:24:52.818076",
+ "modified": "2022-02-22 00:28:03.868731",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action",
