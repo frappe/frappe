@@ -20,8 +20,7 @@ ASSET_KEYS = (
 	"__js", "__css", "__list_js", "__calendar_js", "__map_js",
 	"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 	"__form_grid_templates", "__listview_template", "__tree_js",
-	"__dashboard", "__kanban_column_fields", '__templates',
-	'__custom_js', '__custom_list_js'
+	"__dashboard", "__kanban_column_fields", '__templates', '__custom_js'
 )
 
 
@@ -74,15 +73,7 @@ class FormMeta(Meta):
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 
-<<<<<<< HEAD
-		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
-			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template", "__tree_js",
-			"__dashboard", "__kanban_column_fields", '__templates',
-			'__custom_js'):
-=======
 		for k in ASSET_KEYS:
->>>>>>> 75b6ee398c (fix: `AttributeError` when initialising `FormMeta`)
 			d[k] = self.get(k)
 
 		# d['fields'] = d.get('fields', [])
@@ -227,18 +218,9 @@ class FormMeta(Meta):
 			'Kanban Board', fields=['field_name'],
 			filters={'reference_doctype': self.name})
 
-<<<<<<< HEAD
 		fields = [x['field_name'] for x in values]
 		fields = list(set(fields))
-		self.set("__kanban_column_fields", fields, as_value=True)
-=======
-			fields = [x['field_name'] for x in values]
-			fields = list(set(fields))
-			self.set("__kanban_column_fields", fields)
-		except frappe.PermissionError:
-			# no access to kanban board
-			pass
->>>>>>> 75b6ee398c (fix: `AttributeError` when initialising `FormMeta`)
+		self.set("__kanban_column_fields", fields)
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
