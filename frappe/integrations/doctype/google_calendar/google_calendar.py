@@ -278,9 +278,9 @@ def insert_event_in_google_calendar(doc, method=None):
 	event['SUMMARY'] = doc.subject
 	event['UID'] = uuid.uuid4()
 	event['DESCRIPTION'] = doc.description
-	
+	event['ATTENDEE'] = []
 	for guest in doc.get('event_participants'):
-		event['attendee'].append('MAILTO:{}'.format(guest['reference_docname']))
+		event['ATTENDEE'].append('MAILTO:{}'.format(get_participant_email(guest)))
 	
 	if doc.repeat_on:
 		event['RRULE'] = repeat_on_to_google_calendar_recurrence_rule(doc)
@@ -326,8 +326,7 @@ def update_event_in_google_calendar(doc, method=None):
 			event['RRULE']=repeat_on_to_google_calendar_recurrence_rule(doc)
 
 		for guest in doc.get('event_participants'):
-			contact_doc = frappe.get_doc(guest.get('reference_doctype'), guest.get('reference_docname'))
-			event['ATTENDEE'].append('MAILTO:{}'.format(contact_doc.email_id))
+			event['ATTENDEE'].append('MAILTO:{}'.format(get_participant_email(guest)))
 		cal.add_component(event)
 		response = requests.put(url = caldav_url,data=cal.to_ical() , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
 		if response.status_code == 204:
@@ -539,19 +538,27 @@ def get_recurrence_parameters(recurrence):
 def get_event_attendees(event):
 	event_participants = []
 	for item in event.get("ATTENDEE",[]):
-		attendee_email = item.removeprefix("mailto:")
-		if frappe.db.exists('Contact', {'email_id': attendee_email}) :
-			event_participants.append({"reference_doctype":"Contact","reference_docname":frappe.get_doc("Contact", {'email_id': attendee_email}).name})
-		else:
-			contact = {
-				"doctype": "Contact",
-				"first_name": attendee_email.split("@")[0],
-				"email_id": attendee_email,
-				"email_ids":[{"email_id":attendee_email,"is_primary":1}]
-			}
-			doc = frappe.get_doc(contact).insert(ignore_permissions=True)
-			event_participants.append({"reference_doctype":"Contact","reference_docname":doc.name})
+		if item.startswith("mailto:"):
+			attendee_email = item[len("mailto:"):]
+			if frappe.db.exists('User', {'email':attendee_email}):
+				event_participants.append({"reference_doctype":"User","reference_docname":frappe.get_doc("User", {'email': attendee_email}).name})
+			elif frappe.db.exists('Contact', {'email_id': attendee_email}) :
+				event_participants.append({"reference_doctype":"Contact","reference_docname":frappe.get_doc("Contact", {'email_id': attendee_email}).name})
+			else:
+				contact = {
+					"doctype": "Contact",
+					"first_name": attendee_email.split("@")[0],
+					"email_id": attendee_email,
+					"email_ids":[{"email_id":attendee_email,"is_primary":1}]
+				}
+				doc = frappe.get_doc(contact).insert(ignore_permissions=True)
+				event_participants.append({"reference_doctype":"Contact","reference_docname":doc.name})
 	return event_participants
+
+
+def get_participant_email(guest):
+	doc = frappe.get_doc(guest.get('reference_doctype'), guest.get('reference_docname'))
+	return doc.get('email') if guest.get('reference_doctype') =="User" else doc.get('email_id')
 
 
 def create_calendar_object(account, doc):
