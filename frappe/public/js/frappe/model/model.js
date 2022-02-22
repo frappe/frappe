@@ -12,6 +12,8 @@ $.extend(frappe.model, {
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus', 'idx'],
 
+	child_table_field_list: ['parent', 'parenttype', 'parentfield'],
+
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
 		'Customize Form Field', 'Property Setter', 'Custom Field', 'Client Script'],
@@ -83,7 +85,7 @@ $.extend(frappe.model, {
 	},
 
 	is_non_std_field: function(fieldname) {
-		return !frappe.model.std_fields_list.includes(fieldname);
+		return ![...frappe.model.std_fields_list, ...frappe.model.child_table_field_list].includes(fieldname);
 	},
 
 	get_std_field: function(fieldname, ignore=false) {
