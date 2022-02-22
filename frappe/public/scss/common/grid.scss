@@ -82,6 +82,29 @@
 	height: 34px;
 	padding: 8px;
 	max-height: 200px;
+
+	&.search {
+		padding: 7px !important;
+
+		input {
+			height: -webkit-fill-available;
+			padding: 3px 7px;
+		}
+	}
+}
+
+.row-check {
+	height: 34px;
+	padding: 8px 3px !important;
+	text-align: center;
+
+	input {
+		margin-right: 0 !important;
+	}
+
+	&.search {
+		padding: 0 !important;
+	}
 }
 
 .grid-row-check {
@@ -409,6 +432,7 @@
 }
 
 .page-number {
+	background-color: var(--fg-color);
 	padding: 0 3px;
 }
 

@@ -1093,7 +1093,7 @@ Object.assign(frappe.utils, {
 			seconds: round(seconds % 60)
 		};
 
-		if (duration_options.hide_days) {
+		if (duration_options && duration_options.hide_days) {
 			total_duration.hours = round(seconds / 3600);
 			total_duration.days = 0;
 		}
@@ -1453,5 +1453,15 @@ Object.assign(frappe.utils, {
 			console.log(error); // eslint-disable-line
 			return Promise.resolve(name);
 		}
+	},
+
+	only_allow_num_decimal(input) {
+		input.on('input', (e) => {
+			let self = $(e.target);
+			self.val(self.val().replace(/[^0-9\.]/g, ''));
+			if ((e.which != 46 || self.val().indexOf('.') != -1) && (e.which < 48 || e.which > 57)) {
+				e.preventDefault();
+			}
+		});
 	}
 });

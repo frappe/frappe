@@ -12,7 +12,7 @@ export default class GridRow {
 		}
 		this.columns = {};
 		this.columns_list = [];
-		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
+		this.row_check_html = '<input type="checkbox" class="grid-row-check">';
 		this.make();
 	}
 	make() {
@@ -192,23 +192,67 @@ export default class GridRow {
 		this.set_row_index();
 
 		// index (1, 2, 3 etc)
-		if(!this.row_index) {
+		if(!this.row_index && !this.show_search) {
 			// REDESIGN-TODO: Make translation contextual, this No is Number
 			var txt = (this.doc ? this.doc.idx : __("No."));
-			this.row_index = $(
-				`<div class="row-index sortable-handle col">
+
+			this.row_check = $(
+				`<div class="row-check sortable-handle col">
 					${this.row_check_html}
-				<span class="hidden-xs">${txt}</span></div>`)
+				</div>`)
+				.appendTo(this.row);
+
+			this.row_index = $(
+				`<div class="row-index sortable-handle col hidden-xs">
+					<span>${txt}</span>
+				</div>`)
 				.appendTo(this.row)
 				.on('click', function(e) {
 					if(!$(e.target).hasClass('grid-row-check')) {
 						me.toggle_view();
 					}
 				});
+		} else if (this.show_search) {
+			let timer = null;
+			this.row_check = $(
+				`<div class="row-check col search"></div>`
+			).appendTo(this.row);
+
+			this.row_index = $(
+				`<div class="row-index col search hidden-xs">
+					<input type="text" class="form-control input-xs text-center" >
+				</div>`
+			).appendTo(this.row);
+
+			this.row_index.find('input').on('keyup', (e) => {
+				clearTimeout(timer); 
+				timer = setTimeout(() => {
+					let df = {
+						fieldtype: "Sr No"
+					};
+
+					this.grid.filter['row-index'] = {
+						df: df,
+						value: e.target.value
+					}
+
+					if(e.target.value == "") {
+						delete this.grid.filter['row-index'];
+					}
+					
+					this.grid.grid_sortable
+						.option('disabled', Object.keys(this.grid.filter).length !== 0);
+
+					this.grid.prevent_build = true;
+					me.grid.refresh();
+					this.grid.prevent_build = false;
+				}, 500);
+			});
+			frappe.utils.only_allow_num_decimal(this.row_index.find('input'));
 		} else {
 			this.row_index.find('span').html(txt);
 		}
-
+		this.show_search && this.show_search_columns();
 		this.setup_columns();
 		this.add_open_form_button();
 		this.add_column_configure_button();
@@ -266,14 +310,26 @@ export default class GridRow {
 	}
 
 	configure_dialog_for_columns_selector() {
+		let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
+		let enable_search_count = user_settings[this.grid.doctype] &&
+			user_settings[this.grid.doctype]["enable_search_count"] || 15;
+
 		this.grid_settings_dialog = new frappe.ui.Dialog({
 			title: __("Configure Columns"),
 			fields: [{
 				'fieldtype': 'HTML',
 				'fieldname': 'fields_html'
+			},
+			{
+				'label': 'Enable Grid Search Count',
+				'fieldtype': 'Data',
+				'fieldname': 'enable_search',
+				'default': enable_search_count,
+				'description': __("Enable grid search if the grid row's are greater than or equal to the entered number")
 			}]
 		});
 
+		this.enable_search_count = this.grid_settings_dialog.fields_dict.enable_search;
 		this.grid.setup_visible_columns();
 		this.setup_columns_for_dialog();
 		this.prepare_wrapper_for_columns();
@@ -512,7 +568,10 @@ export default class GridRow {
 		}
 
 		let value = {};
-		value[this.grid.doctype] = this.selected_columns_for_grid;
+		value[this.grid.doctype] = {};
+		value[this.grid.doctype]['columns'] = this.selected_columns_for_grid;
+		value[this.grid.doctype]['enable_search_count'] = this.enable_search_count.get_value();
+
 		frappe.model.user_settings.save(this.frm.doctype, 'GridView', value)
 			.then((r) => {
 				frappe.model.user_settings[this.frm.doctype] = r.message || r;
@@ -530,6 +589,7 @@ export default class GridRow {
 
 	setup_columns() {
 		this.focus_set = false;
+		this.search_columns = {};
 
 		this.grid.setup_visible_columns();
 		this.grid.visible_columns.forEach((col, ci) => {
@@ -545,8 +605,10 @@ export default class GridRow {
 				txt = __(txt);
 			}
 			let column;
-			if (!this.columns[df.fieldname]) {
+			if (!this.columns[df.fieldname] && !this.show_search) {
 				column = this.make_column(df, colsize, txt, ci);
+			} else if (!this.columns[df.fieldname] && this.show_search) {
+				column = this.make_search_column(df, colsize);
 			} else {
 				column = this.columns[df.fieldname];
 				this.refresh_field(df.fieldname, txt);
@@ -564,6 +626,72 @@ export default class GridRow {
 				}
 			}
 		});
+
+		if (this.show_search) {
+			// last empty column
+			$(`<div class="col grid-static-col col-xs-1"></div>`)
+				.appendTo(this.row)
+		}
+	}
+
+	show_search_columns() {
+		// show or remove search columns based on Grid Search Count
+		this.grid.setup_user_settings();
+		!this.grid.show_search && this.wrapper.remove();
+	}
+
+	make_search_column(df, colsize) {
+		let timer = null;
+		let title = "";
+		let input_class = "";
+		let is_disabled = "";
+
+		if (["Text", "Small Text"].includes(df.fieldtype)) {
+			input_class = "grid-overflow-no-ellipsis";
+		} else if (["Int", "Currency", "Float", "Percent"].includes(df.fieldtype)) {
+			input_class = "text-right";
+		} else if (df.fieldtype === "Check") {
+			title = __("1 = True & 0 = False");
+			input_class = "text-center";
+		} else if (df.fieldtype === 'Password') {
+			is_disabled = 'disabled'
+			title = __('Password cannot be filtered')
+		}
+
+		let $col = $('<div class="col grid-static-col col-xs-'+colsize+' search"></div>')
+			.appendTo(this.row);
+
+		let $search_input = $(`
+			<input type="text" class="form-control input-xs ${input_class}" title="${title}" ${is_disabled} >
+		`).appendTo($col);
+
+		this.search_columns[df.fieldname] = $col;
+
+		$search_input.on('keyup', (e) => {
+			clearTimeout(timer); 
+			timer = setTimeout(() => {
+				this.grid.filter[df.fieldname] = {
+					df: df,
+					value: e.target.value
+				}
+
+				if(e.target.value == '') {
+					delete this.grid.filter[df.fieldname];
+				}
+
+				this.grid.grid_sortable
+					.option('disabled', Object.keys(this.grid.filter).length !== 0);
+
+				this.grid.prevent_build = true;
+				this.grid.refresh();
+				this.grid.prevent_build = false;
+			}, 500);
+		});
+
+		["Currency", "Float", "Int", "Percent", "Rating", "Check"].includes(df.fieldtype) &&
+			frappe.utils.only_allow_num_decimal($search_input);
+
+		return $col;
 	}
 
 	make_column(df, colsize, txt, ci) {
