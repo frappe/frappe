@@ -192,7 +192,7 @@ export default class GridRow {
 		this.set_row_index();
 
 		// index (1, 2, 3 etc)
-		if(!this.row_index && !this.show_search) {
+		if (!this.row_index && !this.show_search) {
 			// REDESIGN-TODO: Make translation contextual, this No is Number
 			var txt = (this.doc ? this.doc.idx : __("No."));
 
@@ -234,9 +234,9 @@ export default class GridRow {
 					this.grid.filter['row-index'] = {
 						df: df,
 						value: e.target.value
-					}
+					};
 
-					if(e.target.value == "") {
+					if (e.target.value == "") {
 						delete this.grid.filter['row-index'];
 					}
 					
@@ -630,7 +630,7 @@ export default class GridRow {
 		if (this.show_search) {
 			// last empty column
 			$(`<div class="col grid-static-col col-xs-1"></div>`)
-				.appendTo(this.row)
+				.appendTo(this.row);
 		}
 	}
 
@@ -654,8 +654,8 @@ export default class GridRow {
 			title = __("1 = True & 0 = False");
 			input_class = "text-center";
 		} else if (df.fieldtype === 'Password') {
-			is_disabled = 'disabled'
-			title = __('Password cannot be filtered')
+			is_disabled = 'disabled';
+			title = __('Password cannot be filtered');
 		}
 
 		let $col = $('<div class="col grid-static-col col-xs-'+colsize+' search"></div>')
@@ -673,9 +673,9 @@ export default class GridRow {
 				this.grid.filter[df.fieldname] = {
 					df: df,
 					value: e.target.value
-				}
+				};
 
-				if(e.target.value == '') {
+				if (e.target.value == '') {
 					delete this.grid.filter[df.fieldname];
 				}
 

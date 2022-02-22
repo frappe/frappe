@@ -317,7 +317,7 @@ export default class Grid {
 				}
 				$input.val(this.filter[field].value);
 			}
-		};
+		}
 	}
 
 	refresh() {
