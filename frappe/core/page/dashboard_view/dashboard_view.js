@@ -5,7 +5,7 @@ frappe.provide('frappe.dashboards');
 frappe.provide('frappe.dashboards.chart_sources');
 
 
-frappe.pages['dashboard-view'].on_page_load = function(wrapper) {
+frappe.pages['dashboard-view'].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Dashboard"),
@@ -13,7 +13,7 @@ frappe.pages['dashboard-view'].on_page_load = function(wrapper) {
 	});
 
 	frappe.dashboard = new Dashboard(wrapper);
-	$(wrapper).bind('show', function() {
+	$(wrapper).bind('show', function () {
 		frappe.dashboard.show();
 	});
 };
@@ -40,12 +40,12 @@ class Dashboard {
 				frappe.set_re_route('dashboard-view', frappe.last_dashboard);
 			} else {
 				// default dashboard
-				frappe.db.get_list('Dashboard', {filters: {is_default: 1}}).then(data => {
+				frappe.db.get_list('Dashboard', { filters: { is_default: 1 } }).then(data => {
 					if (data && data.length) {
 						frappe.set_re_route('dashboard-view', data[0].name);
 					} else {
 						// no default, get the latest one
-						frappe.db.get_list('Dashboard', {limit: 1}).then(data => {
+						frappe.db.get_list('Dashboard', { limit: 1 }).then(data => {
 							if (data && data.length) {
 								frappe.set_re_route('dashboard-view', data[0].name);
 							} else {
@@ -96,7 +96,7 @@ class Dashboard {
 			}
 
 			frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
-				let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
+				let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
 				this.charts =
 					charts.map(chart => {
 						return {
@@ -169,8 +169,7 @@ class Dashboard {
 		});
 	}
 
-	setup_global_filters () {
-		let filters = [];
+	setup_global_filters() {
 		this.global_filter = $(
 			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
 				${frappe.utils.icon('filter', 'sm')} Filter
@@ -178,22 +177,6 @@ class Dashboard {
 		);
 		let container = this.wrapper.find('.widget-group').first();
 		this.global_filter.appendTo(container);
-
-		this.charts.map((chart) => {
-			frappe.call({
-				method: 'frappe.client.get_value',
-				args: {
-					'doctype': 'Dashboard Chart',
-					'filters': {'name': chart.chart_name},
-					'fieldname': ['report_name']
-				},
-				callback: function(r) {
-					frappe.report_utils.get_report_filters(r.message.report_name).then(filter => {
-						filters.push(filter)
-					});
-				}
-			});
-		});
 	}
 
 	set_dropdown() {
