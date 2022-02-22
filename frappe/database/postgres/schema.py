@@ -19,15 +19,15 @@ class PostgresTable(DBTable):
 
 			add_text += ",\n".join(
 				(
-					"parent varchar({varchar_len})",
-					"parentfield varchar({varchar_len})",
-					"parenttype varchar({varchar_len})"
+					"parent varchar({varchar_len})".format(varchar_len=frappe.db.VARCHAR_LEN),
+					"parentfield varchar({varchar_len})".format(varchar_len=frappe.db.VARCHAR_LEN),
+					"parenttype varchar({varchar_len})".format(varchar_len=frappe.db.VARCHAR_LEN)
 				)
 			)
 
 		# TODO: set docstatus length
 		# create table
-		frappe.db.sql(("""create table `%s` (
+		frappe.db.sql("""create table `%s` (
 			name varchar({varchar_len}) not null primary key,
 			creation timestamp(6),
 			modified timestamp(6),
@@ -35,7 +35,7 @@ class PostgresTable(DBTable):
 			owner varchar({varchar_len}),
 			docstatus smallint not null default '0',
 			idx bigint not null default '0',
-			%s)""" % (self.table_name, add_text)).format(varchar_len=frappe.db.VARCHAR_LEN))
+			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
 
 		self.create_indexes()
 		frappe.db.commit()
