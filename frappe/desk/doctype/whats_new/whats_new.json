@@ -97,7 +97,7 @@
    "fieldname": "event_date",
    "fieldtype": "Date",
    "label": "Event Date",
-   "mandatory_depends_on": "eval: doc.post == \"Upcoming Event\"",
+   "mandatory_depends_on": "eval: doc.post_type == \"Upcoming Event\"",
    "reqd": 1
   },
   {
@@ -117,7 +117,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-02-16 16:11:36.171627",
+ "modified": "2022-02-21 13:44:37.643635",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Whats New",

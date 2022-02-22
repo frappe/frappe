@@ -47,6 +47,8 @@
 }
 
 .whats-new-event-calendar {
+	min-height: 20vh;
+	max-height: 50vh;
 	padding: 15px;
 	border-radius: 6px;
 	align-items: center;
@@ -249,6 +251,8 @@ hr {
 	}
 
 	.whats-new-event-calendar {
+		min-height: 10vh;
+		max-height: 10vh;
 		padding: 20px;
 		border-radius: 6px;
 		align-items: center;
