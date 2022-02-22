@@ -241,6 +241,30 @@ class Dashboard {
 			}
 		];
 
+		let dialog = new frappe.ui.Dialog({
+			title: __("Set Filters for all charts"),
+			fields: fields,
+			primary_action: function () {
+				let values = this.get_values();
+				if (values) {
+					this.hide();
+					me.filters = values;
+					me.update_charts();
+				}
+			},
+			primary_action_label: "Set"
+		});
+
+		this.global_filter.on("click", () => {
+			dialog.show();
+		})
+	}
+
+	update_charts() {
+		this.chart_group.widgets_list.map((chart) => {
+			chart.save_chart_config_for_user({'filters': this.filters});
+			chart.fetch_and_update_chart();
+		})
 	}
 
 	set_dropdown() {
