@@ -101,12 +101,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				this.title_value_map[translated_link_text] = value;
 			}
 		} else {
+			this.title_value_map[translated_link_text] = value;
 			this.set_input_value(translated_link_text);
 		}
 	}
 	parse_validate_and_set_in_model(value, e, label) {
 		if (this.parse) value = this.parse(value, label);
 		if (label) {
+			console.log(value, label, __(label))
 			this.label = __(label);
 			frappe.utils.add_link_title(this.df.options, value, label);
 		}
@@ -355,10 +357,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (value !== this.last_value || label !== this.label) {
 			this.parse_validate_and_set_in_model(value, null, label);
 		}
-	}
-
-	change() {
-		this.update_value();
 	}
 
 	merge_duplicates(results) {
