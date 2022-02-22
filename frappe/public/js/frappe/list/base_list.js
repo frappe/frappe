@@ -467,7 +467,7 @@ frappe.views.BaseList = class BaseList {
 	refresh() {
 		let args = this.get_call_args();
 		if (this.no_change(args)) {
-			console.log('throttled');
+			// console.log('throttled');
 			return Promise.resolve();
 		}
 		this.freeze(true);
@@ -494,7 +494,9 @@ frappe.views.BaseList = class BaseList {
 			return true;
 		}
 		this.last_args = JSON.stringify(args);
-		setTimeout(() => { this.last_args = null}, 3000);
+		setTimeout(() => {
+			this.last_args = null;
+		}, 3000);
 		return false;
 	}
 
