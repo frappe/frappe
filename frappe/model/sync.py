@@ -117,7 +117,7 @@ def get_doc_files(files, start_path):
 				if os.path.isdir(os.path.join(doctype_path, docname)):
 					doc_path = os.path.join(doctype_path, docname, docname) + ".json"
 					if os.path.exists(doc_path):
-						if not doc_path in files:
+						if doc_path not in files:
 							files.append(doc_path)
 
 	return files
