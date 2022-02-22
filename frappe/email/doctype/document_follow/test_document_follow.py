@@ -25,20 +25,8 @@ class TestDocumentFollow(unittest.TestCase):
 		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
-
-		EmailQueue = DocType('Email Queue')
-		EmailQueueRecipient = DocType('Email Queue Recipient')
-
-		Emails = (frappe.qb.from_(EmailQueue)
-			.join(EmailQueueRecipient)
-			.on(EmailQueueRecipient.parent == EmailQueue.name)
-			.where(EmailQueueRecipient.recipient == 'test@docsub.com',)
-			.where(EmailQueue.message.like(f'%{event_doc.doctype}%'))
-			.where(EmailQueue.message.like(f'%{event_doc.name}%'))
-			.where(EmailQueue.message.like('%This is a test description for sending mail%'))
-			.select(EmailQueue.message)
-			.limit(1)).run()
-		self.assertIsNotNone(Emails)
+		emails = get_emails(event_doc, '%This is a test description for sending mail%')
+		self.assertIsNotNone(emails)
 
 
 	def test_document_follow_comment(self):
@@ -52,25 +40,9 @@ class TestDocumentFollow(unittest.TestCase):
 		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
+		emails = get_emails(event_doc, '%This is a test comment%')
+		self.assertIsNotNone(emails)
 
-		EmailQueue = DocType('Email Queue')
-		EmailQueueRecipient = DocType('Email Queue Recipient')
-		Emails = (frappe.qb.from_(EmailQueue).join(EmailQueueRecipient)
-			.on(EmailQueueRecipient.parent == EmailQueue.name)
-			.where(EmailQueueRecipient.recipient == 'test@docsub.com',)
-			.where(EmailQueue.message.like(f'%{event_doc.doctype}%'))
-			.where(EmailQueue.message.like(f'%{event_doc.name}%'))
-			.where(EmailQueue.message.like('%This is a test comment%'))
-			.select(EmailQueue.message)
-			.limit(1)).run()
-
-		self.assertIsNotNone(Emails)
-
-	def tearDown(self):
-		frappe.db.rollback()
-		frappe.db.delete('Email Queue')
-		frappe.db.delete('Email Queue Recipient')
-		frappe.db.delete('Document Follow')
 
 	def test_follow_limit(self):
 		user = get_user()
@@ -84,180 +56,141 @@ class TestDocumentFollow(unittest.TestCase):
 	def test_follow_on_create(self):
 		user = get_user(DocumentFollowConditions(1))
 		frappe.set_user(user.name)
-		event_doc = get_event()
+		event = get_event()
 
-		event_doc.description = "This is a test description for sending mail"
-		event_doc.save(ignore_version=False)
+		event.description = "This is a test description for sending mail"
+		event.save(ignore_version=False)
 
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-
-		self.assertIsNotNone(document_follow)
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertTrue(documents_followed)
 
 	def test_do_not_follow_on_create(self):
 		user = get_user()
 		frappe.set_user(user.name)
-		event_doc = get_event()
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+
+		event = get_event()
+
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertFalse(documents_followed)
 
 	def test_do_not_follow_on_update(self):
 		user = get_user()
 		frappe.set_user(user.name)
-		event_doc = get_event()
-		event_doc.description = "This is a test description for sending mail"
-		event_doc.save(ignore_version=False)
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		event = get_event()
+
+		event.description = "This is a test description for sending mail"
+		event.save(ignore_version=False)
+
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertFalse(documents_followed)
 
 	def test_follow_on_comment(self):
-		frappe.db.delete('Document Follow')
 		user = get_user(DocumentFollowConditions(0, 1))
 		frappe.set_user(user.name)
-		event_doc = get_event()
+		event = get_event()
 
-		add_comment(event_doc.doctype, event_doc.name, "This is a test comment", 'Administrator@example.com', 'Bosh')
+		add_comment(event.doctype, event.name, "This is a test comment", 'Administrator@example.com', 'Bosh')
 
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertTrue(document_follow)
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertTrue(documents_followed)
 
 	def test_do_not_follow_on_comment(self):
-		frappe.db.delete('Document Follow')
 		user = get_user()
 		frappe.set_user(user.name)
-		event_doc = get_event()
-		add_comment(event_doc.doctype, event_doc.name, "This is a test comment", 'Administrator@example.com', 'Bosh')
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		event = get_event()
+
+		add_comment(event.doctype, event.name, "This is a test comment", 'Administrator@example.com', 'Bosh')
+
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertFalse(documents_followed)
 
 	def test_follow_on_like(self):
-		frappe.db.delete('Document Follow')
 		user = get_user(DocumentFollowConditions(0, 0, 1))
 		frappe.set_user(user.name)
-		event_doc = get_event()
+		event = get_event()
 
-		toggle_like(event_doc.doctype, event_doc.name, add="Yes")
+		toggle_like(event.doctype, event.name, add="Yes")
 
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertTrue(document_follow)
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertTrue(documents_followed)
 
 	def test_do_not_follow_on_like(self):
-		frappe.db.delete('Document Follow')
 		user = get_user()
 		frappe.set_user(user.name)
-		event_doc = get_event()
+		event = get_event()
 
-		toggle_like(event_doc.doctype, event_doc.name)
+		toggle_like(event.doctype, event.name)
 
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertFalse(documents_followed)
 
 	def test_follow_on_assign(self):
-		frappe.db.delete('Document Follow')
 		user = get_user(DocumentFollowConditions(0, 0, 0, 1))
-		event_doc = get_event()
+		event = get_event()
+
 		add({
 			'assign_to': [user.name],
-			'doctype': event_doc.doctype,
-			'name': event_doc.name
+			'doctype': event.doctype,
+			'name': event.name
 		})
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertTrue(document_follow)
+
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertTrue(documents_followed)
 
 	def test_do_not_follow_on_assign(self):
-		frappe.db.delete('Document Follow')
 		user = get_user()
 		frappe.set_user(user.name)
-		event_doc = get_event()
+		event = get_event()
 
 		add({
 			'assign_to': [user.name],
-			'doctype': event_doc.doctype,
-			'name': event_doc.name
+			'doctype': event.doctype,
+			'name': event.name
 		})
 
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertFalse(documents_followed)
 
 	def test_follow_on_share(self):
-		frappe.db.delete('Document Follow')
 		user = get_user(DocumentFollowConditions(0, 0, 0, 0, 1))
-		event_doc = get_event()
+		event = get_event()
+
 		share(
 			user= user.name,
-			doctype= event_doc.doctype,
-			name= event_doc.name
+			doctype= event.doctype,
+			name= event.name
 		)
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertTrue(document_follow)
+
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertTrue(documents_followed)
 
 	def test_do_not_follow_on_share(self):
-		frappe.db.delete('Document Follow')
 		user = get_user()
-		event_doc = get_event()
+		event = get_event()
 
 		share(
 			user = user.name,
-			doctype = event_doc.doctype,
-			name = event_doc.name
+			doctype = event.doctype,
+			name = event.name
 		)
 
-		DocumentFollow = DocType('Document Follow')
-		document_follow = (frappe.qb.from_(DocumentFollow)
-			.where(DocumentFollow.ref_doctype == 'Event')
-			.where(DocumentFollow.ref_docname == event_doc.name)
-			.where(DocumentFollow.user == user.name)
-			.select(DocumentFollow.name)).run()
-		self.assertFalse(document_follow)
+		documents_followed = get_events_followed_by_user(event.name, user.name)
+		self.assertFalse(documents_followed)
+
+
+	def tearDown(self):
+		frappe.db.rollback()
+		frappe.db.delete('Email Queue')
+		frappe.db.delete('Email Queue Recipient')
+		frappe.db.delete('Document Follow')
+
+def get_events_followed_by_user(event_name, user_name):
+	DocumentFollow = DocType('Document Follow')
+	return (frappe.qb.from_(DocumentFollow)
+		.where(DocumentFollow.ref_doctype == 'Event')
+		.where(DocumentFollow.ref_docname == event_name)
+		.where(DocumentFollow.user == user_name)
+		.select(DocumentFollow.name)).run()
 
 def get_event():
 	doc = frappe.get_doc({
@@ -286,6 +219,19 @@ def get_user(document_follow=None):
 	doc.add_roles('System Manager')
 	return doc
 
+def get_emails(event_doc, search_string):
+	EmailQueue = DocType('Email Queue')
+	EmailQueueRecipient = DocType('Email Queue Recipient')
+
+	return (frappe.qb.from_(EmailQueue)
+		.join(EmailQueueRecipient)
+		.on(EmailQueueRecipient.parent == EmailQueue.name)
+		.where(EmailQueueRecipient.recipient == 'test@docsub.com',)
+		.where(EmailQueue.message.like(f'%{event_doc.doctype}%'))
+		.where(EmailQueue.message.like(f'%{event_doc.name}%'))
+		.where(EmailQueue.message.like(search_string))
+		.select(EmailQueue.message)
+		.limit(1)).run()
 
 @dataclass
 class DocumentFollowConditions:
