@@ -55,7 +55,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 		// prepare a list of mandatory, bold and allow in quick entry fields
 		this.mandatory = fields.filter(df => {
-			return ((df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only);
+			return ((df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only && !df.is_virtual);
 		});
 	}
 

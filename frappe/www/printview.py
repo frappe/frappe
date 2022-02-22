@@ -151,7 +151,12 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 
 	convert_markdown(doc, meta)
 
-	args = {
+	args = {}
+	# extract `print_heading_template` from the first field and remove it
+	if format_data and format_data[0].get("fieldname") == "print_heading_template":
+		args["print_heading_template"] = format_data.pop(0).get("options")
+
+	args.update({
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
 		"layout": make_layout(doc, meta, format_data),
@@ -160,7 +165,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		"letter_head": letter_head.content,
 		"footer": letter_head.footer,
 		"print_settings": print_settings
-	}
+	})
 
 	html = template.render(args, filters={"len": len})
 
@@ -168,6 +173,48 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		html += trigger_print_script
 
 	return html
+
+def set_link_titles(doc):
+	# Adds name with title of link field doctype to __link_titles
+	if not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
+
+	meta = frappe.get_meta(doc.doctype)
+	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
+	set_title_values_for_table_and_multiselect_fields(meta, doc)
+
+def set_title_values_for_link_and_dynamic_link_fields(meta, doc, parent_doc=None):
+	if parent_doc and not parent_doc.get("__link_titles"):
+		setattr(parent_doc, "__link_titles", {})
+	elif doc and not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
+
+	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		# If link field, then get doctype from options
+		# If dynamic link field, then get doctype from dependent field
+		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
+
+		meta = frappe.get_meta(doctype)
+		if not meta or not (meta.title_field and meta.show_title_field_in_link):
+			continue
+
+		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
+		if parent_doc:
+			parent_doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+		elif doc:
+			doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+
+def set_title_values_for_table_and_multiselect_fields(meta, doc):
+	for field in meta.get_table_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		_meta = frappe.get_meta(field.options)
+		for value in doc.get(field.fieldname):
+			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
 
 def convert_markdown(doc, meta):
 	'''Convert text field values to markdown if necessary'''
@@ -190,6 +237,7 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
+	set_link_titles(doc)
 
 	try:
 		html = get_rendered_template(doc, name=name, print_format=print_format, meta=meta,
@@ -275,13 +323,6 @@ def make_layout(doc, meta, format_data=None):
 	:param format_data: Fields sequence and properties defined by Print Format Builder."""
 	layout, page = [], []
 	layout.append(page)
-
-	if format_data:
-		# extract print_heading_template from the first field
-		# and remove the field
-		if format_data[0].get("fieldname") == "print_heading_template":
-			doc.print_heading_template = format_data[0].get("options")
-			format_data = format_data[1:]
 
 	def get_new_section(): return  {'columns': [], 'has_data': False}
 

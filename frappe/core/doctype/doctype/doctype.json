@@ -46,6 +46,7 @@
   "allow_auto_repeat",
   "view_settings",
   "title_field",
+  "show_title_field_in_link",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -582,6 +583,12 @@
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title_field_in_link",
+   "fieldtype": "Check",
+   "label": "Show Title in Link Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -663,7 +670,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-12-09 14:53:10.717788",
+ "modified": "2022-01-07 16:07:06.196534",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
