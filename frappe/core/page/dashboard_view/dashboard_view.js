@@ -170,6 +170,7 @@ class Dashboard {
 	}
 
 	setup_global_filters() {
+		let me = this;
 		this.global_filter = $(
 			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
 				${frappe.utils.icon('filter', 'sm')} Filter
@@ -177,6 +178,69 @@ class Dashboard {
 		);
 		let container = this.wrapper.find('.widget-group').first();
 		this.global_filter.appendTo(container);
+		
+		let fields = [
+			{
+				"fieldtype": "Section Break"
+			},
+			{
+				"fieldname": "period",
+				"label": "Period",
+				"fieldtype": "Select",
+				"options": [
+					{
+						"value": "Monthly",
+						"label": "Monthly"
+					},
+					{
+						"value": "Quarterly",
+						"label": "Quarterly"
+					},
+					{
+						"value": "Half-Yearly",
+						"label": "Half-Yearly"
+					},
+					{
+						"value": "Yearly",
+						"label": "Yearly"
+					}
+				],
+				"default": "Monthly"
+			},
+			{
+				"fieldname": "fiscal_year",
+				"label": "Fiscal Year",
+				"fieldtype": "Link",
+				"options": "Fiscal Year",
+				"default": "2021-2022"
+			},
+			{
+				"fieldname": "company",
+				"label": "Company",
+				"fieldtype": "Link",
+				"width": "80",
+				"options": "Company",
+				"reqd": 1,
+				"default": "ABC Enterprize"
+			},
+			{
+				"fieldname": "from_date",
+				"label": "From Date",
+				"fieldtype": "Date",
+				"width": "80",
+				"reqd": 1,
+				"default": "2022-01-21"
+			},
+			{
+				"fieldname": "to_date",
+				"label": "To Date",
+				"fieldtype": "Date",
+				"width": "80",
+				"reqd": 1,
+				"default": "2022-02-21"
+			}
+		];
+
 	}
 
 	set_dropdown() {
