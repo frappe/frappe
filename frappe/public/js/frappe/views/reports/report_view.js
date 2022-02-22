@@ -651,7 +651,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			&& !df.is_virtual
 			&& !df.hidden
 			// not a standard field i.e., owner, modified_by, etc.
-			&& !frappe.model.std_fields_list.includes(df.fieldname))
+			&& frappe.model.is_non_std_field(df.fieldname))
 			return true;
 		return false;
 	}
