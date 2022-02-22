@@ -94,9 +94,9 @@ def send_document_follow_mails(frequency):
 		call method to send mail
 	'''
 
-	UserList = get_user_list(frequency)
+	user_list = get_user_list(frequency)
 
-	for user in UserList:
+	for user in user_list:
 		message, valid_document_follows = get_message_for_user(frequency, user)
 		if message:
 			send_email_alert(user, valid_document_follows, message)
