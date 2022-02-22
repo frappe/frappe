@@ -16,9 +16,30 @@ class TestWorkflow(unittest.TestCase):
 	def setUp(self):
 		self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
+		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
+			if not frappe.db.has_column('Workflow Action', 'user'):
+				# mariadb would raise this statement would create an implicit commit
+				# if we do not commit before alter statement
+				# nosemgrep
+				frappe.db.commit()
+				frappe.db.multisql({
+					'mariadb': 'ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)',
+					'postgres': 'ALTER TABLE "tabWorkflow Action" ADD COLUMN "user" varchar(140)'
+				})
+
 
 	def tearDown(self):
 		frappe.delete_doc('Workflow', 'Test ToDo')
+		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
+			if frappe.db.has_column('Workflow Action', 'user'):
+				# mariadb would raise this statement would create an implicit commit
+				# if we do not commit before alter statement
+				# nosemgrep
+				frappe.db.commit()
+				frappe.db.multisql({
+					'mariadb': 'ALTER TABLE `tabWorkflow Action` DROP COLUMN user',
+					'postgres': 'ALTER TABLE "tabWorkflow Action" DROP COLUMN "user"'
+				})
 
 	def test_default_condition(self):
 		'''test default condition is set'''
@@ -96,15 +117,6 @@ class TestWorkflow(unittest.TestCase):
 
 	def test_if_workflow_actions_were_processed_using_user(self):
 		frappe.db.delete("Workflow Action")
-		if not frappe.db.has_column('Workflow Action', 'user'):
-			# mariadb would raise this state would create an implicit commit
-			# if we do not commit before alter statement
-			# nosemgrep
-			frappe.db.commit()
-			frappe.db.multisql({
-				'mariadb': 'ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)',
-				'postgres': 'ALTER TABLE "tabWorkflow Action" ADD COLUMN "user" varchar(140)'
-			})
 
 		user = frappe.get_doc('User', 'test2@example.com')
 		user.add_roles('Test Approver', 'System Manager')
@@ -116,8 +128,9 @@ class TestWorkflow(unittest.TestCase):
 
 		# test if status of workflow actions are updated on approval
 		WorkflowAction = DocType("Workflow Action")
+		WorkflowActionRole = DocType("Workflow Action Role")
 		frappe.qb.update(WorkflowAction).set(WorkflowAction.user, 'test2@example.com').run()
-		frappe.qb.update(WorkflowAction).set(WorkflowAction.role, '').run()
+		frappe.qb.update(WorkflowActionRole).set(WorkflowActionRole.role, '').run()
 
 		self.test_approve(doc)
 
