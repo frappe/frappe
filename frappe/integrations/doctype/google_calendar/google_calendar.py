@@ -7,12 +7,7 @@ from datetime import timedelta
 from urllib.parse import quote
 from icalendar import Calendar, Event
 import uuid
-
-import google.oauth2.credentials
 import requests
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
 import frappe
 from frappe import _
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
@@ -166,58 +161,6 @@ def sync(g_calendar=None):
 		return sync_events_from_google_calendar(g.name)
 
 
-def get_google_calendar_object(g_calendar):
-	"""
-	Returns an object of Google Calendar along with Google Calendar doc.
-	"""
-	google_settings = frappe.get_doc("Google Settings")
-	account = frappe.get_doc("Google Calendar", g_calendar)
-
-	credentials_dict = {
-		"token": account.get_access_token(),
-		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
-		"token_uri": get_auth_url(),
-		"client_id": google_settings.client_id,
-		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": "https://www.googleapis.com/auth/calendar/v3"
-	}
-
-	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
-	google_calendar = build(
-		serviceName="calendar",
-		version="v3",
-		credentials=credentials,
-		static_discovery=False
-	)
-
-	check_google_calendar(account, google_calendar)
-
-	account.load_from_db()
-	return account
-
-
-def check_google_calendar(account, google_calendar):
-	"""
-	Checks if Google Calendar is present with the specified name.
-	If not, creates one.
-	"""
-	account.load_from_db()
-	try:
-		if account.google_calendar_id:
-			google_calendar.calendars().get(calendarId=account.google_calendar_id).execute()
-		else:
-			# If no Calendar ID create a new Calendar
-			calendar = {
-				"summary": account.calendar_name,
-				"timeZone": frappe.db.get_single_value("System Settings", "time_zone")
-			}
-			created_calendar = google_calendar.calendars().insert(body=calendar).execute()
-			frappe.db.set_value("Google Calendar", account.name, "google_calendar_id", created_calendar.get("id"))
-			frappe.db.commit()
-	except HttpError as err:
-		frappe.throw(_("Google Calendar - Could not create Calendar for {0}, error code {1}.").format(account.name, err.resp.status))
-
-
 def sync_events_from_google_calendar(g_calendar, method=None):
 	"""
 	Syncs Events from Google Calendar in Framework Calendar.
@@ -225,17 +168,20 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 	nextSyncToken is returned at the very last page
 	https://developers.google.com/calendar/v3/sync
 	"""
-	account = get_google_calendar_object(g_calendar)
-
 	account = frappe.get_doc("Google Calendar", g_calendar)
+
+	if job_already_enqueued("calendar_import|{}".format(account.get("name"))):
+		return
+
 	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events?access_token={}".format(account.user,account.get_access_token())
 	response = requests.get(url=caldav_url, headers={"User-Agent": "Mozilla/5.0","Content-Type": "text/xml","Accept": "text/xml, text/calendar"})
 	cal = Calendar.from_ical(response.content)
-	enqueue_job(parse_calendar_events,calendar = cal,account = account)
+	return enqueue_job(parse_calendar_events,calendar = cal,account = account)
 
 
 def parse_calendar_events(calendar,account):
 	event_list =[]
+	insert_count = 0
 	for event in calendar.walk('vevent'):
 		recurrence = None
 		event_id = get_event_id(event)
@@ -245,10 +191,13 @@ def parse_calendar_events(calendar,account):
 			attendees = get_event_attendees(event)
 			event_list.append(event_id)
 			if not frappe.db.exists("Event", {"google_calendar_event_id": event_id}):
+				insert_count += 1
 				insert_event_to_calendar(account, event, attendees,recurrence)
 			else:
 				update_event_in_calendar(account, event, attendees,recurrence)
 	close_cancelled_events(event_list)
+	account.last_sync_datetime = now_datetime()
+	account.save(ignore_permissions=True)
 
 
 def get_event_id(event):
@@ -307,7 +256,7 @@ def insert_event_in_google_calendar(doc, method=None):
 		or not doc.sync_with_google_calendar:
 		return
 
-	account = get_google_calendar_object(doc.google_calendar)
+	account = frappe.get_doc("Google Calendar", doc.google_calendar)
 
 	if not account.push_to_google_calendar:
 		return
@@ -359,7 +308,7 @@ def update_event_in_google_calendar(doc, method=None):
 		insert_event_in_google_calendar(doc)
 		return
 
-	account = get_google_calendar_object(doc.google_calendar)
+	account = frappe.get_doc("Google Calendar", doc.google_calendar)
 
 	if not account.push_to_google_calendar:
 		return
@@ -385,7 +334,7 @@ def update_event_in_google_calendar(doc, method=None):
 			frappe.msgprint(_("Event Synced with Google Calendar."))
 		else :
 			frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(doc.name, response.status_code))
-	except HttpError as err:
+	except requests.exceptions.HTTPError as err:
 		frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(doc.name, err.resp.status))
 
 
@@ -397,7 +346,7 @@ def delete_event_from_google_calendar(doc, method=None):
 	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}):
 		return
 
-	account = get_google_calendar_object(doc.google_calendar)
+	account = frappe.get_doc("Google Calendar", doc.google_calendar)
 
 	if not account.push_to_google_calendar:
 		return
@@ -413,7 +362,7 @@ def delete_event_from_google_calendar(doc, method=None):
 		event["STATUS"] = "CANCELLED"
 		cal.add_component(event)
 		requests.delete(url = caldav_url,data=cal.to_ical()  , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
-	except HttpError as err:
+	except requests.exceptions.HTTPError as err:
 		frappe.msgprint(_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(doc.name, err.resp.status))
 
 
