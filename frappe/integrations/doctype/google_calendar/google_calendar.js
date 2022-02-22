@@ -9,14 +9,6 @@ frappe.ui.form.on("Google Calendar", {
 		else if (frm.doc.refresh_token === undefined) {
 			frm.dashboard.set_headline(__("To sync Calendar events please 'Authorize Google Calendar Access'"));
 		}
-		if (frm.doc.last_sync_datetime !== undefined) {
-			frm.trigger("show_sync_alert");
-			frm.add_custom_button(__("View Google Calendar"), function () {
-				window.open(
-					frappe.urllib.get_full_url("/app/event/view/calendar/default")
-				);
-			});
-		}
 
 		frappe.realtime.on("import_google_calendar", (data) => {
 			if (data.progress) {
@@ -34,16 +26,26 @@ frappe.ui.form.on("Google Calendar", {
 					indicator: "green",
 					message: __("Syncing. Calendar events will be imported in some time.")
 				});
+				$('[data-label="Sync%20Calendar"]').html("Syncing Events");
+				$('[data-label="Sync%20Calendar"]').prop("disabled", true);
 				frappe.call({
 					method: "frappe.integrations.doctype.google_calendar.google_calendar.sync",
 					args: {
 						"g_calendar": frm.doc.name
 					},
 				}).then((r) => {
+					$('[data-label="Sync%20Calendar"]').prop("disabled", false);
 					frappe.hide_progress();
-					frappe.msgprint(r.message);
 					frm.reload_doc();
 				});
+			});
+		}
+		if (frm.doc.last_sync_datetime !== undefined) {
+			frm.trigger("show_sync_alert");
+			frm.add_custom_button(__("View Google Calendar"), function () {
+				window.open(
+					frappe.urllib.get_full_url("/app/event/view/calendar/default")
+				);
 			});
 		}
 	},
