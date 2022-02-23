@@ -50,8 +50,8 @@ class LDAPSettings(Document):
 						title=_("Misconfigured"))
 
 				if self.ldap_custom_group_search and "{0}" not in self.ldap_custom_group_search:
-						frappe.throw(_("Custom Group Search if filled needs to contain the user placeholder {0}, eg uid={0},ou=users,dc=example,dc=com"),
-						title=_("Misconfigured"))
+					frappe.throw(_("Custom Group Search if filled needs to contain the user placeholder {0}, eg uid={0},ou=users,dc=example,dc=com"),
+					title=_("Misconfigured"))
 
 			else:
 				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
