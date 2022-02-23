@@ -212,7 +212,6 @@ class Dashboard {
 				"label": "Fiscal Year",
 				"fieldtype": "Link",
 				"options": "Fiscal Year",
-				"default": "2021-2022"
 			},
 			{
 				"fieldname": "company",
@@ -220,24 +219,18 @@ class Dashboard {
 				"fieldtype": "Link",
 				"width": "80",
 				"options": "Company",
-				"reqd": 1,
-				"default": "ABC Enterprize"
 			},
 			{
 				"fieldname": "from_date",
 				"label": "From Date",
 				"fieldtype": "Date",
 				"width": "80",
-				"reqd": 1,
-				"default": "2022-01-21"
 			},
 			{
 				"fieldname": "to_date",
 				"label": "To Date",
 				"fieldtype": "Date",
 				"width": "80",
-				"reqd": 1,
-				"default": "2022-02-21"
 			}
 		];
 
@@ -264,8 +257,8 @@ class Dashboard {
 		this.chart_group.widgets_list.map((chart) => {
 			chart.save_chart_config_for_user({'filters': this.filters});
 			chart.fetch_and_update_chart();
-		})
-	}
+	})
+}
 
 	set_dropdown() {
 		this.page.clear_menu();
