@@ -19,32 +19,39 @@ if TYPE_CHECKING:
 def update_document_title(
 	doctype: str,
 	docname: str,
-	title_field: Optional[str] = None,
-	old_title: Optional[str] = None,
-	new_title: Optional[str] = None,
-	new_name: Optional[str] = None,
+	title: Optional[str] = None,
+	name: Optional[str] = None,
 	merge: bool = False,
+	**kwargs
 ) -> str:
 	"""
 		Update title from header in form view
 	"""
+
+	# to maintain backwards API compatibility
+	updated_title = kwargs.get("new_title") or title
+	updated_name = kwargs.get("new_name") or name
+
 	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
-	for obj in [docname, new_name, new_title, old_title]:
+	for obj in [docname, updated_title, updated_name]:
 		if not isinstance(obj, (str, type(None))):
-			frappe.throw(f"{obj} must be of type str or None")
+			frappe.throw(f"{obj=} must be of type str or None")
 
-	frappe.has_permission(doctype, ptype="write", throw=True)
+	doc = frappe.get_doc(doctype, docname)
+	doc.has_permission(permtype="write")
 
-	title_updated = old_title and new_title and (old_title != new_title)
-	name_updated = new_name and docname and (docname != new_name)
+	title_field = doc.meta.get_title_field()
+
+	title_updated = (title_field != "name") and (updated_title != doc.get(title_field))
+	name_updated = updated_name != doc.name
 
 	if name_updated:
-		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
+		docname = rename_doc(doctype=doctype, old=docname, new=updated_name, merge=merge)
 
 	if title_updated:
 		try:
-			frappe.db.set_value(doctype, docname, title_field, new_title)
-			frappe.msgprint(_('Saved'), alert=True, indicator='green')
+			frappe.db.set_value(doctype, docname, title_field, updated_title)
+			frappe.msgprint(_("Saved"), alert=True, indicator="green")
 		except Exception as e:
 			if frappe.db.is_duplicate_entry(e):
 				frappe.throw(
