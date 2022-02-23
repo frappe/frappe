@@ -33,13 +33,13 @@ def get_permission_query_conditions(user):
 	roles = frappe.get_roles(user)
 
 	WorkflowAction = DocType("Workflow Action")
-	WorkflowActionRole = DocType("Workflow Action Role")
+	WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
 
 	names_query = (frappe.qb.from_(WorkflowAction)
-		.join(WorkflowActionRole)
-		.on(WorkflowAction.name == WorkflowActionRole.parent)
+		.join(WorkflowActionPermittedRole)
+		.on(WorkflowAction.name == WorkflowActionPermittedRole.parent)
 		.select(WorkflowAction.name)
-		.where(WorkflowActionRole.role.isin(roles))
+		.where(WorkflowActionPermittedRole.role.isin(roles))
 	).get_sql()
 
 	return "`tabWorkflow Action`.`name` in ({names_query})".format(names_query=names_query)
@@ -180,15 +180,15 @@ def get_allowed_roles(user, workflow, workflow_state):
 
 def get_workflow_action_by_role(doc, allowed_roles):
 	WorkflowAction = DocType("Workflow Action")
-	WorkflowActionRole = DocType("Workflow Action Role")
-	return (frappe.qb.from_(WorkflowAction).join(WorkflowActionRole)
-		.on(WorkflowAction.name == WorkflowActionRole.parent)
-		.select(WorkflowAction.name, WorkflowActionRole.role)
+	WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
+	return (frappe.qb.from_(WorkflowAction).join(WorkflowActionPermittedRole)
+		.on(WorkflowAction.name == WorkflowActionPermittedRole.parent)
+		.select(WorkflowAction.name, WorkflowActionPermittedRole.role)
 		.where((WorkflowAction.reference_name == doc.get('name'))
 			& (WorkflowAction.reference_doctype == doc.get('doctype'))
 			& (WorkflowAction.status == 'Open')
-			& (WorkflowActionRole.role.isin(list(allowed_roles))))
-		.orderby(WorkflowActionRole.role).limit(1)).run(as_dict=True)
+			& (WorkflowActionPermittedRole.role.isin(list(allowed_roles))))
+		.orderby(WorkflowActionPermittedRole.role).limit(1)).run(as_dict=True)
 
 def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles = set(), workflow_action=None):
 	user = user if user else frappe.session.user

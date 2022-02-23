@@ -129,9 +129,9 @@ class TestWorkflow(unittest.TestCase):
 
 		# test if status of workflow actions are updated on approval
 		WorkflowAction = DocType("Workflow Action")
-		WorkflowActionRole = DocType("Workflow Action Role")
+		WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
 		frappe.qb.update(WorkflowAction).set(WorkflowAction.user, 'test2@example.com').run()
-		frappe.qb.update(WorkflowActionRole).set(WorkflowActionRole.role, '').run()
+		frappe.qb.update(WorkflowActionPermittedRole).set(WorkflowActionPermittedRole.role, '').run()
 
 		self.test_approve(doc)
 
