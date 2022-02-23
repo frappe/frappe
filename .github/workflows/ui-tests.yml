@@ -142,6 +142,7 @@ jobs:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
       - name: Stop server
+        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
         run: |
           ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
           sleep 5
@@ -163,7 +164,7 @@ jobs:
           flags: ui-tests
 
       - name: Upload Server Coverage Data
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
         uses: codecov/codecov-action@v2
         with:
           name: MariaDB
