@@ -5,10 +5,14 @@
 
 '''
 Load metadata (DocType) class
+
 Example:
+
 	meta = frappe.get_meta('User')
 	if meta.has_field('first_name'):
 		print("DocType" table has field "first_name")
+
+
 '''
 
 from __future__ import unicode_literals, print_function
