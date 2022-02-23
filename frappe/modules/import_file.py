@@ -115,10 +115,11 @@ def import_file_by_path(path: str,force: bool = False,data_import: bool = False,
 
 			if not force or db_modified_timestamp:
 				try:
-					stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
+					stored_hash = None
+					if doc["doctype"] == "DocType":
+						stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
 				except Exception:
 					frappe.flags.dt += [doc["doctype"]]
-					stored_hash = None
 
 				# if hash exists and is equal no need to update
 				if stored_hash and stored_hash == calculated_hash:
