@@ -285,7 +285,7 @@ def make_test_records(doctype, verbose=0, force=False):
 		if options == "[Select]":
 			continue
 
-		if not options in frappe.local.test_objects:
+		if options not in frappe.local.test_objects:
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
@@ -392,7 +392,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		try:
 			d.run_method("before_test_insert")
-			d.insert()
+			d.insert(ignore_if_duplicate=True)
 
 			if docstatus == 1:
 				d.submit()
@@ -425,7 +425,7 @@ def add_to_test_record_log(doctype):
 	'''Add `doctype` to site/.test_log
 	`.test_log` is a cache of all doctypes for which test records are created'''
 	test_record_log = get_test_record_log()
-	if not doctype in test_record_log:
+	if doctype not in test_record_log:
 		frappe.flags.test_record_log.append(doctype)
 		with open(frappe.get_site_path('.test_log'), 'w') as f:
 			f.write('\n'.join(filter(None, frappe.flags.test_record_log)))
