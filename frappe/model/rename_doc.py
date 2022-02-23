@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 @frappe.whitelist()
 def update_document_title(
+	*,
 	doctype: str,
 	docname: str,
 	title: Optional[str] = None,
