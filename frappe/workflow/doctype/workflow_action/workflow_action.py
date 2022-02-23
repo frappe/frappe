@@ -409,7 +409,3 @@ def get_state_optional_field_value(workflow_name, state):
 		'parent': workflow_name,
 		'state': state
 	}, 'is_optional_state')
-
-# Called via background job
-def cleanup_workflow_actions():
-	frappe.db.delete('Workflow Action', filters={'is_deleted': 1})
