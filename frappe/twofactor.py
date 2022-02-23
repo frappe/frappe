@@ -86,8 +86,7 @@ def two_factor_is_enabled_for_(user):
 	if isinstance(user, str):
 		user = frappe.get_doc('User', user)
 
-	roles = [frappe.db.escape(d.role) for d in user.roles or []]
-	roles.append("'All'")
+	roles = [d.role for d in user.roles  or []] + ["All"]
 
 	role_doctype = frappe.qb.DocType("Role")
 	no_of_users = frappe.db.count(
