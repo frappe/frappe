@@ -233,16 +233,23 @@ class Dashboard {
 				"width": "80",
 			}
 		];
-
+		//get the chart doc object
+		let charts = this.chart_group.widgets_list
 		let dialog = new frappe.ui.Dialog({
 			title: __("Set Filters for all charts"),
 			fields: fields,
 			primary_action: function () {
 				let values = this.get_values();
 				if (values) {
-					this.hide();
-					me.filters = values;
-					me.update_charts();
+					charts.map((chart) => {
+						this.hide();
+						//Sets the filters only of those fields which has been updated
+						for(var value in values) {
+						chart.filters[value] = values[value];
+						me.update_charts(chart)
+						}
+					})
+
 				}
 			},
 			primary_action_label: "Set"
@@ -253,12 +260,10 @@ class Dashboard {
 		})
 	}
 
-	update_charts() {
-		this.chart_group.widgets_list.map((chart) => {
-			chart.save_chart_config_for_user({'filters': this.filters});
+	update_charts(chart) {
+			chart.save_chart_config_for_user({'filters': chart.chart_settings.filters});
 			chart.fetch_and_update_chart();
-	})
-}
+	}
 
 	set_dropdown() {
 		this.page.clear_menu();
