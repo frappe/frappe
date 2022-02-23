@@ -23,5 +23,9 @@
 		&:last-child {
 			padding-right: 0;
 		}
+
+		@include media-breakpoint-down(sm) {
+			padding: 0;
+		}
 	}
 }
