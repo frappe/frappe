@@ -12,7 +12,7 @@ from unittest.mock import patch
 import frappe
 from frappe.exceptions import DoesNotExistError, ValidationError
 from frappe.model.base_document import get_controller
-from frappe.model.rename_doc import bulk_rename, get_fetch_fields, update_linked_doctypes
+from frappe.model.rename_doc import bulk_rename, get_fetch_fields, update_document_title, update_linked_doctypes
 from frappe.modules.utils import get_doc_path
 from frappe.utils import add_to_date, now
 
@@ -186,30 +186,36 @@ class TestRenameDoc(unittest.TestCase):
 		)
 
 	def test_update_document_title_api(self):
-		from frappe.model.rename_doc import update_document_title
-		allow_rename_prop = frappe.db.get_value("DocType", self.test_doctype, "allow_rename")
-		frappe.clear_cache()
-		if not frappe.get_meta(self.test_doctype).allow_rename:
-			frappe.db.set_value("DocType", self.test_doctype, "allow_rename", 1, update_modified=False)
+		test_doctype = "Module Def"
+		test_doc = frappe.get_doc({
+			"doctype": test_doctype,
+			"module_name": f"Test-test_update_document_title_api-{frappe.generate_hash()}",
+			"custom": True,
+		})
+		test_doc.insert(ignore_mandatory=True)
 
-		dt = self.test_doctype
-		dn = self.available_documents[0]
+		dt = test_doc.doctype
+		dn = test_doc.name
 		new_name = f"{dn}-new"
 
 		# pass invalid types to API
 		with self.assertRaises(ValidationError):
-			update_document_title(dt, dn, {}, {"hack": "this"})
+			update_document_title(doctype=dt, docname=dn, title={}, name={"hack": "this"})
 
-		doc_before = frappe.get_doc(self.test_doctype, dn)
-		update_document_title(dt, dn, new_name=new_name)
-		doc_after = frappe.get_doc(self.test_doctype, new_name)
+		doc_before = frappe.get_doc(test_doctype, dn)
+		return_value = update_document_title(doctype=dt, docname=dn, new_name=new_name)
+		doc_after = frappe.get_doc(test_doctype, return_value)
 
-		self.assertEqual(doc_before.description, doc_after.description)
-		self.assertEqual(doc_before.creation, doc_after.creation)
-		self.assertEqual(doc_before.owner, doc_after.owner)
+		doc_before_dict = doc_before.as_dict(no_nulls=True, no_default_fields=True)
+		doc_after_dict = doc_after.as_dict(no_nulls=True, no_default_fields=True)
+		doc_before_dict.pop("module_name")
+		doc_after_dict.pop("module_name")
 
-		self.available_documents[0] = new_name
-		frappe.db.set_value("DocType", self.test_doctype, "allow_rename", allow_rename_prop, update_modified=False)
+		self.assertEqual(new_name, return_value)
+		self.assertDictEqual(doc_before_dict, doc_after_dict)
+		self.assertEqual(doc_after.module_name, return_value)
+
+		test_doc.delete()
 
 	def test_bulk_rename(self):
 		input_data = [[x, f"{x}-new"] for x in self.available_documents]
