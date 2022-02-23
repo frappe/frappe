@@ -29,19 +29,19 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--set-default', is_flag=True, default=False, help='Set the new site as default site')
 def new_site(site, db_root_username=None, db_root_password=None, admin_password=None,
-			 verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
-			 install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None,
-			 set_default=False):
+			verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
+			install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None,
+			set_default=False):
 	"Create a new site"
 	from frappe.installer import _new_site
 
 	frappe.init(site=site, new_site=True)
 
 	_new_site(db_name, site, db_root_username=db_root_username,
-			  db_root_password=db_root_password, admin_password=admin_password,
-			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
-			  db_port=db_port, new_site=True)
+			db_root_password=db_root_password, admin_password=admin_password,
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
+			no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
+			db_port=db_port, new_site=True)
 
 	if set_default:
 		use(site)
