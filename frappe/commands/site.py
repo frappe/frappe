@@ -19,7 +19,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--db-host', help='Database Host')
 @click.option('--db-port', type=int, help='Database Port')
-@click.option('--db-root-username', '--mariadb-root-username', default='root', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
 @click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--no-mariadb-socket', is_flag=True, default=False, help='Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
@@ -49,7 +49,7 @@ def new_site(site, db_root_username=None, db_root_password=None, admin_password=
 
 @click.command('restore')
 @click.argument('sql-file-path')
-@click.option('--db-root-username', '--mariadb-root-username', default='root', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
 @click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--db-name', help='Database name for site in case it is a new one')
 @click.option('--admin-password', help='Administrator password for new site')
@@ -292,7 +292,7 @@ def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
-@click.option('--db-root-username', '--mariadb-root-username', default='root', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
 @click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
@@ -662,7 +662,7 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 
 @click.command('drop-site')
 @click.argument('site')
-@click.option('--db-root-username', '--mariadb-root-username', '--root-login', default='root', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-username', '--mariadb-root-username', '--root-login', help='Root username for MariaDB or PostgreSQL, Default is "root"')
 @click.option('--db-root-password', '--mariadb-root-password', '--root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--archived-sites-path')
 @click.option('--no-backup', is_flag=True, default=False)
@@ -671,7 +671,7 @@ def drop_site(site, db_root_username='root', db_root_password=None, archived_sit
 	_drop_site(site, db_root_username, db_root_password, archived_sites_path, force, no_backup)
 
 
-def _drop_site(site, db_root_username='root', db_root_password=None, archived_sites_path=None, force=False, no_backup=False):
+def _drop_site(site, db_root_username=None, db_root_password=None, archived_sites_path=None, force=False, no_backup=False):
 	"Remove site from database and filesystem"
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup

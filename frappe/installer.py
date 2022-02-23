@@ -92,7 +92,7 @@ def _new_site(
 	print("*** Scheduler is", scheduler_status, "***")
 
 
-def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
+def install_db(root_login=None, root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 	import frappe.database
@@ -100,6 +100,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
+
+	if not root_login and db_type == 'mariadb':
+		root_login='root'
+	elif not root_login and db_type == 'postgres':
+		root_login='postgres'
 
 	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
