@@ -5,16 +5,11 @@
 
 '''
 Load metadata (DocType) class
-
 Example:
-
 	meta = frappe.get_meta('User')
 	if meta.has_field('first_name'):
 		print("DocType" table has field "first_name")
-
-
 '''
-<<<<<<< HEAD
 
 from __future__ import unicode_literals, print_function
 from datetime import datetime
@@ -26,30 +21,7 @@ from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.modules import load_doctype_module
 from frappe.model.workflow import get_workflow_name
-=======
-import json
-import os
-from datetime import datetime
-
-import click
-
-import frappe
->>>>>>> 1a912aa787 (fix: merge groups for doctype links)
 from frappe import _
-from frappe.model import (
-	child_table_fields,
-	data_fieldtypes,
-	default_fields,
-	no_value_fields,
-	optional_fields,
-	table_fields,
-)
-from frappe.model.base_document import BaseDocument
-from frappe.model.document import Document
-from frappe.model.workflow import get_workflow_name
-from frappe.modules import load_doctype_module
-from frappe.utils import cast, cint, cstr
-
 
 def get_meta(doctype, cached=True):
 	if cached:
