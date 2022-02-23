@@ -429,7 +429,7 @@ export default class GridRow {
 							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__('Columns')}'>
 								<input class='form-control column-width input-xs text-right'
 									value='${docfield.columns || cint(d.columns)}'
-									data-fieldname='${docfield.fieldname}' style='background-color: #ffff; display: inline'>
+									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
 							<div class='col-md-1' style='padding-top: 3px'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
