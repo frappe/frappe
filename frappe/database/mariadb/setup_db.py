@@ -50,7 +50,7 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	if verbose: print("Created user %s" % db_name)
 
 	dbman.create_database(db_name)
-	if verbose: print("Created database %s" % db_name)
+	if verbose: print("Created database %s CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci';" % db_name)
 
 	dbman.grant_all_privileges(db_name, db_name)
 	if no_mariadb_socket:
@@ -91,7 +91,7 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 	frappe.connect(db_name=db_name)
 	if not check_database_settings():
 		print('Database settings do not match expected values; stopping database setup.')
-		sys.exit(1)
+		# sys.exit(1)
 
 	import_db_from_sql(source_sql, verbose)
 

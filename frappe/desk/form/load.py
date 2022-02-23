@@ -29,7 +29,8 @@ def getdoc(doctype, name, user=None):
 		name = doctype
 
 	if not frappe.db.exists(doctype, name):
-		return []
+		if not is_virtual_doctype(doctype):
+			return []
 
 	try:
 		doc = frappe.get_doc(doctype, name)
@@ -320,3 +321,6 @@ def get_additional_timeline_content(doctype, docname):
 		contents.extend(frappe.get_attr(method)(doctype, docname) or [])
 
 	return contents
+
+def is_virtual_doctype(doctype):
+	return frappe.db.get_value("DocType", doctype, "is_virtual")

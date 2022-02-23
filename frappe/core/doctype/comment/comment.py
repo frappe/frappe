@@ -144,6 +144,9 @@ def get_comments_from_parent(doc):
 		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
 	except Exception as e:
+		is_virtual = frappe.db.exists('DocType', {'name': doc.reference_doctype, 'is_virtual': True})
+		if is_virtual:
+			return json.loads("[]")
 		if frappe.db.is_missing_table_or_column(e):
 			_comments = "[]"
 

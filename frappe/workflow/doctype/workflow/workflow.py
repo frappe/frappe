@@ -47,13 +47,14 @@ class Workflow(Document):
 		states = self.get("states")
 		for d in states:
 			if not d.doc_status in docstatus_map:
-				frappe.db.sql("""
-					UPDATE `tab{doctype}`
-					SET `{field}` = %s
-					WHERE ifnull(`{field}`, '') = ''
-					AND `docstatus` = %s
-				""".format(doctype=self.document_type, field=self.workflow_state_field),
-				(d.state, d.doc_status))
+				if not is_virtual_doctype(self.document_type):
+					frappe.db.sql("""
+						UPDATE `tab{doctype}`
+						SET `{field}` = %s
+						WHERE ifnull(`{field}`, '') = ''
+						AND `docstatus` = %s
+					""".format(doctype=self.document_type, field=self.workflow_state_field),
+					(d.state, d.doc_status))
 
 				docstatus_map[d.doc_status] = d.state
 
@@ -115,6 +116,8 @@ def get_fieldnames_for(doctype):
 
 @frappe.whitelist()
 def get_workflow_state_count(doctype, workflow_state_field, states):
+	if is_virtual_doctype(doctype):
+		return []
 	states = frappe.parse_json(states)
 	result = frappe.get_all(
 		doctype,
@@ -126,3 +129,6 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 	)
 	return [r for r in result if r[workflow_state_field]]
 
+
+def is_virtual_doctype(doctype):
+	return frappe.db.get_value("DocType", doctype, "is_virtual")

@@ -601,6 +601,8 @@ class BaseDocument(object):
 		return invalid_links, cancelled_links
 
 	def set_fetch_from_value(self, doctype, df, values):
+		if frappe.get_meta(doctype).get('is_virtual'):
+			values = values.__dict__
 		fetch_from_fieldname = df.fetch_from.split('.')[-1]
 		value = values[fetch_from_fieldname]
 		if df.fieldtype in ['Small Text', 'Text', 'Data']:
