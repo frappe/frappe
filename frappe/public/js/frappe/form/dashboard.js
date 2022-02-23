@@ -178,10 +178,6 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				return;
 			}
 			this.render_links();
-<<<<<<< HEAD
-			this.set_open_count();
-=======
->>>>>>> ee75cea4fe (fix: Enable set_open_count)
 			show = true;
 		}
 
