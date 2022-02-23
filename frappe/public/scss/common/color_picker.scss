@@ -94,7 +94,10 @@
 
 .frappe-control[data-fieldtype='Color'] {
 	input {
-		padding-left: 40px;
+		padding-left: 38px;
+	}
+	.control-input {
+		position: relative;
 	}
 	.selected-color {
 		cursor: pointer;
@@ -103,7 +106,7 @@
 		border-radius: 5px;
 		background-color: red;
 		position: absolute;
-		top: calc(50% + 1px);
+		top: 5px;
 		left: 8px;
 		content: ' ';
 		&.no-value {
@@ -113,10 +116,9 @@
 	}
 	.like-disabled-input {
 		.color-value {
-			padding-left: 25px;
+			padding-left: 26px;
 		}
 		.selected-color {
-			top: 20%;
 			cursor: default;
 		}
 	}
