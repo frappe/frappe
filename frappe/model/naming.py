@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Optional
 import frappe
 from frappe import _
 from frappe.utils import now_datetime, cint, cstr
@@ -283,7 +284,7 @@ def get_default_naming_series(doctype):
 		return None
 
 
-def validate_name(doctype, name, case=None, merge=False):
+def validate_name(doctype: str, name: str, case: Optional[str] = None):
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
 	if name.startswith("New "+doctype):
