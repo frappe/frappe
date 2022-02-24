@@ -213,9 +213,7 @@ class LDAPSettings(Document):
 
 			ldap_object_class = self.ldap_group_objectclass
 			ldap_group_members_attribute = self.ldap_group_member_attribute
-			ldap_custom_group_search = "{0}"
-			if self.ldap_custom_group_search:
-				ldap_custom_group_search = self.ldap_custom_group_search
+			ldap_custom_group_search = self.ldap_custom_group_search or "{0}"
 			user_search_str = ldap_custom_group_search.format(getattr(user, self.ldap_username_field).value)
 
 		else:
