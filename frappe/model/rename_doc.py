@@ -17,10 +17,23 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 	"""
 		Update title from header in form view
 	"""
-	if docname and new_name and not docname == new_name:
+
+	for obj in [docname, new_title, new_name]:
+		if not isinstance(obj, (str, type(None))):
+			frappe.throw(f"{obj=} must be of type str or None")
+
+	doc = frappe.get_doc(doctype, docname)
+	doc.has_permission(permtype="write")
+
+	title_field = doc.meta.get_title_field()
+
+	title_updated = (title_field != "name") and (new_title != doc.get(title_field))
+	name_updated = new_name != doc.name
+
+	if name_updated:
 		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
 
-	if old_title and new_title and not old_title == new_title:
+	if title_updated:
 		try:
 			frappe.db.set_value(doctype, docname, title_field, new_title)
 			frappe.msgprint(_('Saved'), alert=True, indicator='green')
@@ -31,6 +44,7 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 					title=_("Duplicate Name"),
 					exc=frappe.DuplicateEntryError
 				)
+			raise
 
 	return docname
 
