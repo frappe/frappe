@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Client Script', {
+	setup(frm) {
+		frm.get_field("sample").html(SAMPLE_HTML);
+	},
 	refresh(frm) {
 		if (frm.doc.dt && frm.doc.script) {
 			frm.add_custom_button(__('Go to {0}', [frm.doc.dt]),
@@ -97,3 +100,56 @@ frappe.ui.form.on('${doctype}', {
 		frm.set_value('script', script + boilerplate);
 	}
 });
+
+const SAMPLE_HTML = `<h3>Client Script Help</h3>
+<p>Client Scripts are executed only on the client-side (i.e. in Forms). Here are some examples to get you started</p>
+<pre><code>
+
+// fetch local_tax_no on selection of customer
+// cur_frm.add_fetch(link_field,  source_fieldname,  target_fieldname);
+cur_frm.add_fetch("customer",  "local_tax_no',  'local_tax_no');
+
+// additional validation on dates
+frappe.ui.form.on('Task',  'validate',  function(frm) {
+    if (frm.doc.from_date &lt; get_today()) {
+        msgprint('You can not select past date in From Date');
+        validated = false;
+    }
+});
+
+// make a field read-only after saving
+frappe.ui.form.on('Task',  {
+    refresh: function(frm) {
+        // use the __islocal value of doc,  to check if the doc is saved or not
+        frm.set_df_property('myfield',  'read_only',  frm.doc.__islocal ? 0 : 1);
+    }
+});
+
+// additional permission check
+frappe.ui.form.on('Task',  {
+    validate: function(frm) {
+        if(user=='user1@example.com' &amp;&amp; frm.doc.purpose!='Material Receipt') {
+            msgprint('You are only allowed Material Receipt');
+            validated = false;
+        }
+    }
+});
+
+// calculate sales incentive
+frappe.ui.form.on('Sales Invoice',  {
+    validate: function(frm) {
+        // calculate incentives for each person on the deal
+        total_incentive = 0
+        $.each(frm.doc.sales_team,  function(i,  d) {
+            // calculate incentive
+            var incentive_percent = 2;
+            if(frm.doc.base_grand_total &gt; 400) incentive_percent = 4;
+            // actual incentive
+            d.incentives = flt(frm.doc.base_grand_total) * incentive_percent / 100;
+            total_incentive += flt(d.incentives)
+        });
+        frm.doc.total_incentive = total_incentive;
+    }
+})
+
+</code></pre>`;
