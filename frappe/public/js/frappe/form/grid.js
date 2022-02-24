@@ -559,14 +559,11 @@ export default class Grid {
 				return data;
 			}
 		} else if (fieldtype === "Barcode" && fieldvalue) {
-			let svg = fieldvalue;
+			let barcode = fieldvalue.startsWith('<svg') ? 
+				$(fieldvalue).attr('data-barcode-value') : fieldvalue;
 
-			if (svg.startsWith('<svg')) {
-				let barcode = $(svg).attr('data-barcode-value');
-
-				if (barcode.toLowerCase().includes(value)) {
-					return data;
-				}
+			if (barcode.toLowerCase().includes(value)) {
+				return data;
 			}
 		} else if (["Datetime", "Date"].includes(fieldtype) && fieldvalue) {
 			let user_formatted_date = frappe.datetime.str_to_user(fieldvalue);
