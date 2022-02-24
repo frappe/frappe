@@ -426,13 +426,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype=='Tab Break'",
-   "fieldname": "show_dashboard",
-   "fieldtype": "Check",
-   "label": "Show Dashboard"
-  },
-  {
-   "default": "0",
    "fieldname": "no_copy",
    "fieldtype": "Check",
    "label": "No Copy"
