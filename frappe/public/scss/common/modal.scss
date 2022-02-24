@@ -225,6 +225,11 @@ body.modal-open[style^="padding-right"] {
 	}
 }
 
+// modal is xs (for grids)
+.modal .hidden-xs {
+	display: none !important;
+}
+
 .dialog-assignment-row {
 	display: flex;
 	align-items: center;
