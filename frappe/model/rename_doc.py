@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import frappe
 from frappe import _, bold
+from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
@@ -47,7 +48,7 @@ def update_document_title(
 	name_updated = updated_name != doc.name
 
 	if name_updated:
-		docname = rename_doc(doctype=doctype, old=docname, new=updated_name, merge=merge)
+		docname = rename_doc(doc=doc, new=updated_name, merge=merge)
 
 	if title_updated:
 		try:
@@ -65,17 +66,27 @@ def update_document_title(
 	return docname
 
 def rename_doc(
-	doctype: str,
-	old: str,
-	new: str,
+	doctype: Optional[str] = None,
+	old: Optional[str] = None,
+	new: str = None,
 	force: bool = False,
 	merge: bool = False,
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
 	show_alert: bool = True,
 	rebuild_search: bool = True,
+	doc: Optional[Document] = None,
 ) -> str:
 	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
+	old_usage_style = doctype and old and new
+	new_usage_style = doc and new
+
+	if not (new_usage_style or old_usage_style):
+		raise TypeError("{doctype, old, new} or {doc, new} are required arguments for frappe.model.rename_doc")
+
+	old = old or doc.name
+	doctype = doctype or doc.doctype
+
 	if not frappe.db.exists(doctype, old):
 		return
 
@@ -91,7 +102,7 @@ def rename_doc(
 	meta = frappe.get_meta(doctype)
 
 	# call before_rename
-	old_doc = frappe.get_doc(doctype, old)
+	old_doc = doc or frappe.get_doc(doctype, old)
 	out = old_doc.run_method("before_rename", old, new, merge) or {}
 	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
 	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
