@@ -5,6 +5,8 @@ import frappe
 from frappe import msgprint, _
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils import get_url, now_datetime, cint
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
 
 def get_emails_sent_this_month(email_account=None):
 	"""Get count of emails sent from a specific email account.
@@ -169,8 +171,13 @@ def clear_outbox(days=None):
 	if not days:
 		days=31
 
-	email_queues = frappe.db.sql_list("""SELECT `name` FROM `tabEmail Queue`
-		WHERE `modified` < (NOW() - INTERVAL '{0}' DAY)""".format(days))
+	email_queue = DocType("Email Queue")
+	queues = (frappe.qb.from_(email_queue)
+					.select(email_queue.name)
+					.where(email_queue.modified < (Now() - Interval(days=days)))
+					.run(as_dict=True))
+
+	email_queues = [queue.name for queue in queues]
 
 	if email_queues:
 		frappe.db.delete("Email Queue", {"name": ("in", email_queues)})

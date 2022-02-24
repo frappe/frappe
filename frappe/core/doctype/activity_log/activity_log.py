@@ -48,7 +48,6 @@ def clear_activity_logs(days=None):
 	if not days:
 		days = 90
 	doctype = DocType("Activity Log")
-	duration = (Now() - Interval(days=days))
 	frappe.db.delete(doctype, filters=(
-		doctype.creation < duration
+		doctype.creation < (Now() - Interval(days=days))
 	))
