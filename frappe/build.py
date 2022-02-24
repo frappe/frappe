@@ -1,25 +1,21 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
-import re
-import json
 import shutil
+import re
 import subprocess
-from subprocess import getoutput
-from io import StringIO
-from tempfile import mkdtemp, mktemp
 from distutils.spawn import find_executable
-
-import frappe
-from frappe.utils.minify import JavascriptMinify
+from subprocess import getoutput
+from tempfile import mkdtemp, mktemp
+from urllib.parse import urlparse
 
 import click
 import psutil
-from urllib.parse import urlparse
-from semantic_version import Version
 from requests import head
 from requests.exceptions import HTTPError
+from semantic_version import Version
 
+import frappe
 
 timestamps = {}
 app_paths = None
@@ -31,6 +27,7 @@ class AssetsNotDownloadedError(Exception):
 
 class AssetsDontExistError(HTTPError):
 	pass
+
 
 def download_file(url, prefix):
 	from requests import get
@@ -277,11 +274,13 @@ def check_node_executable():
 		click.echo(f"{warn} Please install yarn using below command and try again.\nnpm install -g yarn")
 	click.echo()
 
+
 def get_node_env():
 	node_env = {
 		"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"
 	}
 	return node_env
+
 
 def get_safe_max_old_space_size():
 	safe_max_old_space_size = 0
@@ -295,6 +294,7 @@ def get_safe_max_old_space_size():
 		pass
 
 	return safe_max_old_space_size
+
 
 def generate_assets_map():
 	symlinks = {}
@@ -342,7 +342,6 @@ def clear_broken_symlinks():
 		path = os.path.join(assets_path, path)
 		if os.path.islink(path) and not os.path.exists(path):
 			os.remove(path)
-
 
 
 def unstrip(message: str) -> str:
@@ -397,94 +396,6 @@ def link_assets_dir(source, target, hard_link=False):
 		symlink(source, target, overwrite=True)
 
 
-def build(no_compress=False, verbose=False):
-	for target, sources in get_build_maps().items():
-		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
-
-
-def get_build_maps():
-	"""get all build.jsons with absolute paths"""
-	# framework js and css files
-
-	build_maps = {}
-	for app_path in app_paths:
-		path = os.path.join(app_path, "public", "build.json")
-		if os.path.exists(path):
-			with open(path) as f:
-				try:
-					for target, sources in (json.loads(f.read() or "{}")).items():
-						# update app path
-						source_paths = []
-						for source in sources:
-							if isinstance(source, list):
-								s = frappe.get_pymodule_path(source[0], *source[1].split("/"))
-							else:
-								s = os.path.join(app_path, source)
-							source_paths.append(s)
-
-						build_maps[target] = source_paths
-				except ValueError as e:
-					print(path)
-					print("JSON syntax error {0}".format(str(e)))
-	return build_maps
-
-
-def pack(target, sources, no_compress, verbose):
-	outtype, outtxt = target.split(".")[-1], ""
-	jsm = JavascriptMinify()
-
-	for f in sources:
-		suffix = None
-		if ":" in f:
-			f, suffix = f.split(":")
-		if not os.path.exists(f) or os.path.isdir(f):
-			print("did not find " + f)
-			continue
-		timestamps[f] = os.path.getmtime(f)
-		try:
-			with open(f, "r") as sourcefile:
-				data = str(sourcefile.read(), "utf-8", errors="ignore")
-
-			extn = f.rsplit(".", 1)[1]
-
-			if (
-				outtype == "js"
-				and extn == "js"
-				and (not no_compress)
-				and suffix != "concat"
-				and (".min." not in f)
-			):
-				tmpin, tmpout = StringIO(data.encode("utf-8")), StringIO()
-				jsm.minify(tmpin, tmpout)
-				minified = tmpout.getvalue()
-				if minified:
-					outtxt += str(minified or "", "utf-8").strip("\n") + ";"
-
-				if verbose:
-					print("{0}: {1}k".format(f, int(len(minified) / 1024)))
-			elif outtype == "js" and extn == "html":
-				# add to frappe.templates
-				outtxt += html_to_js_template(f, data)
-			else:
-				outtxt += "\n/*\n *\t%s\n */" % f
-				outtxt += "\n" + data + "\n"
-
-		except Exception:
-			print("--Error in:" + f + "--")
-			print(frappe.get_traceback())
-
-	with open(target, "w") as f:
-		f.write(outtxt.encode("utf-8"))
-
-	print("Wrote %s - %sk" % (target, str(int(os.path.getsize(target) / 1024))))
-
-
-def html_to_js_template(path, content):
-	"""returns HTML template content as Javascript code, adding it to `frappe.templates`"""
-	return """frappe.templates["{key}"] = '{content}';\n""".format(
-		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))
-
-
 def scrub_html_template(content):
 	"""Returns HTML content with removed whitespace and comments"""
 	# remove whitespace to a single space
@@ -496,37 +407,7 @@ def scrub_html_template(content):
 	return content.replace("'", "\'")
 
 
-def files_dirty():
-	for target, sources in get_build_maps().items():
-		for f in sources:
-			if ":" in f:
-				f, suffix = f.split(":")
-			if not os.path.exists(f) or os.path.isdir(f):
-				continue
-			if os.path.getmtime(f) != timestamps.get(f):
-				print(f + " dirty")
-				return True
-	else:
-		return False
-
-
-def compile_less():
-	if not find_executable("lessc"):
-		return
-
-	for path in app_paths:
-		less_path = os.path.join(path, "public", "less")
-		if os.path.exists(less_path):
-			for fname in os.listdir(less_path):
-				if fname.endswith(".less") and fname != "variables.less":
-					fpath = os.path.join(less_path, fname)
-					mtime = os.path.getmtime(fpath)
-					if fpath in timestamps and mtime == timestamps[fpath]:
-						continue
-
-					timestamps[fpath] = mtime
-
-					print("compiling {0}".format(fpath))
-
-					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
-					os.system("lessc {0} > {1}".format(fpath, css_path))
+def html_to_js_template(path, content):
+	"""returns HTML template content as Javascript code, adding it to `frappe.templates`"""
+	return """frappe.templates["{key}"] = '{content}';\n""".format(
+		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))

@@ -29,6 +29,7 @@ FRAPPE_EXCLUSIONS = [
 	"*/commands/*",
 	"*/frappe/change_log/*",
 	"*/frappe/exceptions*",
+	"*/frappe/coverage.py",
 	"*frappe/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",

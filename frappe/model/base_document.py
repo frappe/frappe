@@ -33,13 +33,12 @@ def get_controller(doctype):
 
 		module_name, custom = frappe.db.get_value(
 			"DocType", doctype, ("module", "custom"), cache=True
-		) or ["Core", False]
+		) or ("Core", False)
 
 		if custom:
-			if frappe.db.field_exists("DocType", "is_tree"):
-				is_tree = frappe.db.get_value("DocType", doctype, "is_tree", cache=True)
-			else:
-				is_tree = False
+			is_tree = frappe.db.get_value(
+				"DocType", doctype, "is_tree", ignore=True, cache=True
+			)
 			_class = NestedSet if is_tree else Document
 		else:
 			class_overrides = frappe.get_hooks('override_doctype_class')
@@ -116,14 +115,18 @@ class BaseDocument(object):
 		return self
 
 	def update_if_missing(self, d):
+		"""Set default values for fields without existing values"""
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
 
-		if "doctype" in d:
-			self.set("doctype", d.get("doctype"))
 		for key, value in d.items():
-			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
-			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
+			if (
+				value is not None
+				and self.get(key) is None
+				# dont_update_if_missing is a list of fieldnames
+				# for which you don't want to set default value
+				and key not in self.dont_update_if_missing
+			):
 				self.set(key, value)
 
 	def get_db_value(self, key):

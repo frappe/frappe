@@ -184,7 +184,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
-	if not app_name in installed_apps:
+	if app_name not in installed_apps:
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
@@ -529,10 +529,9 @@ def extract_sql_gzip(sql_gz_path):
 	import subprocess
 
 	try:
-		# dvf - decompress, verbose, force
 		original_file = sql_gz_path
 		decompressed_file = original_file.rstrip(".gz")
-		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
+		cmd = 'gzip --decompress --force < {0} > {1}'.format(original_file, decompressed_file)
 		subprocess.check_call(cmd, shell=True)
 	except Exception:
 		raise

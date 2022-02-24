@@ -29,6 +29,7 @@ context('Report View', () => {
 		// select the cell
 		cell.dblclick();
 		cell.get('.dt-cell__edit--col-4').findByRole('checkbox').check({ force: true });
+		cy.get('.dt-row-0 > .dt-cell--col-3').click(); // click outside
 
 		cy.wait('@value-update');
 
@@ -46,7 +47,6 @@ context('Report View', () => {
 	it('test load more with count selection buttons', () => {
 		cy.visit('/app/contact/view/report');
 
-		cy.clear_filters();
 		cy.get('.list-paging-area .list-count').should('contain.text', '20 of');
 		cy.get('.list-paging-area .btn-more').click();
 		cy.get('.list-paging-area .list-count').should('contain.text', '40 of');
@@ -59,6 +59,10 @@ context('Report View', () => {
 		cy.get('.list-paging-area .btn-more').click();
 		cy.get('.list-paging-area .list-count').should('contain.text', '200 of');
 		cy.get('.list-paging-area .btn-more').click();
+		cy.get('.list-paging-area .list-count').should('contain.text', '300 of');
+
+		// check if refresh works after load more
+		cy.get('.page-head .standard-actions [data-original-title="Refresh"]').click();
 		cy.get('.list-paging-area .list-count').should('contain.text', '300 of');
 
 		cy.get('.list-paging-area .btn-group .btn-paging[data-value="500"]').click();

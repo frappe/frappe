@@ -584,7 +584,7 @@ class Database(object):
 			company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
 
-		if not doctype in self.value_cache:
+		if doctype not in self.value_cache:
 			self.value_cache[doctype] = {}
 
 		if cache and fieldname in self.value_cache[doctype]:
