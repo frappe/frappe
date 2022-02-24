@@ -188,7 +188,9 @@ export default class GridRow {
 			}));
 	}
 	render_row(refresh) {
-		var me = this;
+		if (this.show_search && !this.show_search_row()) return;
+		
+		let me = this;
 		this.set_row_index();
 
 		// index (1, 2, 3 etc)
@@ -252,7 +254,7 @@ export default class GridRow {
 		} else {
 			this.row_index.find('span').html(txt);
 		}
-		this.show_search && this.show_search_columns();
+
 		this.setup_columns();
 		this.add_open_form_button();
 		this.add_column_configure_button();
@@ -310,26 +312,14 @@ export default class GridRow {
 	}
 
 	configure_dialog_for_columns_selector() {
-		let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
-		let enable_search_count = user_settings[this.grid.doctype] &&
-			user_settings[this.grid.doctype]["enable_search_count"] || 15;
-
 		this.grid_settings_dialog = new frappe.ui.Dialog({
 			title: __("Configure Columns"),
 			fields: [{
 				'fieldtype': 'HTML',
 				'fieldname': 'fields_html'
-			},
-			{
-				'label': 'Enable Grid Search Count',
-				'fieldtype': 'Data',
-				'fieldname': 'enable_search',
-				'default': enable_search_count,
-				'description': __("Enable grid search if the grid row's are greater than or equal to the entered number")
 			}]
 		});
 
-		this.enable_search_count = this.grid_settings_dialog.fields_dict.enable_search;
 		this.grid.setup_visible_columns();
 		this.setup_columns_for_dialog();
 		this.prepare_wrapper_for_columns();
@@ -568,10 +558,7 @@ export default class GridRow {
 		}
 
 		let value = {};
-		value[this.grid.doctype] = {};
-		value[this.grid.doctype]['columns'] = this.selected_columns_for_grid;
-		value[this.grid.doctype]['enable_search_count'] = this.enable_search_count.get_value();
-
+		value[this.grid.doctype] = this.selected_columns_for_grid;
 		frappe.model.user_settings.save(this.frm.doctype, 'GridView', value)
 			.then((r) => {
 				frappe.model.user_settings[this.frm.doctype] = r.message || r;
@@ -634,10 +621,11 @@ export default class GridRow {
 		}
 	}
 
-	show_search_columns() {
-		// show or remove search columns based on Grid Search Count
-		this.grid.setup_user_settings();
-		!this.grid.show_search && this.wrapper.remove();
+	show_search_row() {
+		// show or remove search columns based on grid rows
+		this.show_search = this.frm.doc[this.grid.df.fieldname].length >= 15;
+		!this.show_search && this.wrapper.remove();
+		return this.show_search;
 	}
 
 	make_search_column(df, colsize) {
@@ -668,7 +656,7 @@ export default class GridRow {
 		this.search_columns[df.fieldname] = $col;
 
 		$search_input.on('keyup', (e) => {
-			clearTimeout(timer); 
+			clearTimeout(timer);
 			timer = setTimeout(() => {
 				this.grid.filter[df.fieldname] = {
 					df: df,

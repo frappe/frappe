@@ -793,7 +793,7 @@ export default class Grid {
 		if (this.visible_columns && this.visible_columns.length > 0) return;
 
 		this.user_defined_columns = [];
-		this.setup_user_settings();
+		this.setup_user_defined_columns();
 		var total_colsize = 1,
 			fields = (this.user_defined_columns && this.user_defined_columns.length > 0)
 				? this.user_defined_columns : this.editable_fields || this.docfields;
@@ -867,14 +867,11 @@ export default class Grid {
 		df.colsize = colsize;
 	}
 
-	setup_user_settings() {
-		if (!this.frm) return;
-
-		let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
-
-		if (user_settings && user_settings[this.doctype] && user_settings[this.doctype]) {
-			if (user_settings[this.doctype]['columns'] && user_settings[this.doctype]['columns'].length) {
-				this.user_defined_columns = user_settings[this.doctype]['columns'].map(row => {
+	setup_user_defined_columns() {
+		if (this.frm) {
+			let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
+			if (user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
+				this.user_defined_columns = user_settings[this.doctype].map(row => {
 					let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
 
 					if (column) {
@@ -884,9 +881,6 @@ export default class Grid {
 					}
 				});
 			}
-
-			this.show_search = this.frm.doc[this.df.fieldname].length >= 
-				(user_settings[this.doctype]['enable_search_count'] || 15);
 		}
 	}
 
