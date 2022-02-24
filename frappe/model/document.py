@@ -1318,16 +1318,17 @@ class Document(BaseDocument):
 		# See: Stock Reconciliation
 		from frappe.utils.background_jobs import enqueue
 
-		if hasattr(self, '_' + action):
-			action = '_' + action
+		if hasattr(self, f"_{action}"):
+			action = f"_{action}"
 
-		if file_lock.lock_exists(self.get_signature()):
+		try:
+			self.lock()
+		except frappe.DocumentLockedError:
 			frappe.throw(_('This document is currently queued for execution. Please try again'),
 				title=_('Document Queued'))
 
-		self.lock()
-		enqueue('frappe.model.document.execute_action', doctype=self.doctype, name=self.name,
-			action=action, **kwargs)
+		return enqueue('frappe.model.document.execute_action', __doctype=self.doctype, __name=self.name,
+			__action=action, **kwargs)
 
 	def lock(self, timeout=None):
 		"""Creates a lock file for the given document. If timeout is set,
@@ -1402,12 +1403,12 @@ class Document(BaseDocument):
 		return f"{doctype}({name})"
 
 
-def execute_action(doctype, name, action, **kwargs):
+def execute_action(__doctype, __name, __action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_doc(__doctype, __name)
 	doc.unlock()
 	try:
-		getattr(doc, action)(**kwargs)
+		getattr(doc, __action)(**kwargs)
 	except Exception:
 		frappe.db.rollback()
 
@@ -1418,7 +1419,4 @@ def execute_action(doctype, name, action, **kwargs):
 			msg = '<pre><code>' + frappe.get_traceback() + '</pre></code>'
 
 		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
-		doc.notify_update()
-
-
-
+	doc.notify_update()
