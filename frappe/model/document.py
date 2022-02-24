@@ -939,6 +939,14 @@ class Document(BaseDocument):
 		return self.save()
 
 	@whitelist.__func__
+	def _rename(self, name: str, merge: bool = False, force: bool = False):
+		"""Cancel the document. Sets `docstatus` = 2, then saves.
+		"""
+		from frappe.model.rename_doc import rename_doc
+		self.name = rename_doc(doc=self, new=name, merge=merge, force=force)
+		self.reload()
+
+	@whitelist.__func__
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		return self._submit()
@@ -947,6 +955,12 @@ class Document(BaseDocument):
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
+
+	@whitelist.__func__
+	def rename(self, name: str, merge: bool = False, force: bool = False):
+		"""Rename the document to `name`. This transforms the current object.
+		"""
+		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
