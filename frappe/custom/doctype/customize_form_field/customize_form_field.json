@@ -423,8 +423,6 @@
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
-<<<<<<< HEAD
-=======
   },
   {
    "default": "0",
@@ -438,29 +436,19 @@
    "fieldname": "no_copy",
    "fieldtype": "Check",
    "label": "No Copy"
->>>>>>> 8b2591e266 (feat(minor): No Copy attribute for custom fields (#15915))
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-07-10 21:57:24.479749",
-=======
  "modified": "2022-02-08 19:38:16.111199",
->>>>>>> 8b2591e266 (feat(minor): No Copy attribute for custom fields (#15915))
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
-<<<<<<< HEAD
  "sort_order": "ASC"
 }
-=======
- "sort_order": "ASC",
- "states": []
-}
->>>>>>> 8b2591e266 (feat(minor): No Copy attribute for custom fields (#15915))
+

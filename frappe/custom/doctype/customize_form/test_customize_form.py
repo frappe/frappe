@@ -100,24 +100,15 @@ class TestCustomizeForm(unittest.TestCase):
 		custom_field.reqd = 1
 		custom_field.no_copy = 1
 		d.run_method("save_customization")
-<<<<<<< HEAD
-		self.assertEquals(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 1)
-=======
 		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 1)
 		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "no_copy"), 1)
->>>>>>> 8b2591e266 (feat(minor): No Copy attribute for custom fields (#15915))
 
 		custom_field = d.get("fields", {"is_custom_field": True})[0]
 		custom_field.reqd = 0
 		custom_field.no_copy = 0
 		d.run_method("save_customization")
-<<<<<<< HEAD
-		self.assertEquals(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
-=======
 		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
 		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "no_copy"), 0)
-
->>>>>>> 8b2591e266 (feat(minor): No Copy attribute for custom fields (#15915))
 
 	def test_save_customization_new_field(self):
 		d = self.get_customize_form("Event")
