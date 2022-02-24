@@ -305,3 +305,25 @@ class TestCustomizeForm(unittest.TestCase):
 
 		action = [d for d in event.actions if d.label=='Test Action']
 		self.assertEqual(len(action), 0)
+
+	def test_custom_label(self):
+		d = self.get_customize_form("Event")
+
+		# add label
+		d.label = "Test Rename"
+		d.run_method("save_customization")
+		self.assertEqual(d.label, "Test Rename")
+
+		# change label
+		d.label = "Test Rename 2"
+		d.run_method("save_customization")
+		self.assertEqual(d.label, "Test Rename 2")
+
+		# saving again to make sure existing label persists
+		d.run_method("save_customization")
+		self.assertEqual(d.label, "Test Rename 2")
+
+		# clear label
+		d.label = ""
+		d.run_method("save_customization")
+		self.assertEqual(d.label, "")

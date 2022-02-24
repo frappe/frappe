@@ -23,6 +23,7 @@ class DBTable:
 		self.change_name = []
 		self.add_unique = []
 		self.add_index = []
+		self.drop_unique = []
 		self.drop_index = []
 		self.set_default = []
 
@@ -221,8 +222,10 @@ class DbColumn:
 			self.table.change_type.append(self)
 
 		# unique
-		if((self.unique and not current_def['unique']) and column_type not in ('text', 'longtext')):
+		if ((self.unique and not current_def['unique']) and column_type not in ('text', 'longtext')):
 			self.table.add_unique.append(self)
+		elif (current_def['unique'] and not self.unique) and column_type not in ('text', 'longtext'):
+			self.table.drop_unique.append(self)
 
 		# default
 		if (self.default_changed(current_def)
@@ -232,9 +235,7 @@ class DbColumn:
 			self.table.set_default.append(self)
 
 		# index should be applied or dropped irrespective of type change
-		if ((current_def['index'] and not self.set_index and not self.unique)
-			or (current_def['unique'] and not self.unique)):
-			# to drop unique you have to drop index
+		if (current_def['index'] and not self.set_index) and column_type not in ('text', 'longtext'):
 			self.table.drop_index.append(self)
 
 		elif (not current_def['index'] and self.set_index) and not (column_type in ('text', 'longtext')):

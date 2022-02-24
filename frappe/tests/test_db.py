@@ -1,20 +1,25 @@
 #  -*- coding: utf-8 -*-
 
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
 from __future__ import unicode_literals
 
+import datetime
+import inspect
 import unittest
 from random import choice
-import datetime
+from unittest.mock import patch
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import random_string
 from frappe.utils.testutils import clear_custom_fields
 
-from .test_query_builder import run_only_if, db_type_is
+from frappe.database.database import Database
+from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.utils import add_days, now, random_string
+from frappe.utils.testutils import clear_custom_fields
 
 
 class TestDB(unittest.TestCase):
@@ -30,21 +35,6 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
-
-	def test_set_value(self):
-		todo1 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 1')).insert()
-		todo2 = frappe.get_doc(dict(doctype='ToDo', description = 'test_set_value 2')).insert()
-
-		frappe.db.set_value('ToDo', todo1.name, 'description', 'test_set_value change 1')
-		self.assertEqual(frappe.db.get_value('ToDo', todo1.name, 'description'), 'test_set_value change 1')
-
-		# multiple set-value
-		frappe.db.set_value('ToDo', dict(description=('like', '%test_set_value%')),
-			'description', 'change 2')
-
-		self.assertEqual(frappe.db.get_value('ToDo', todo1.name, 'description'), 'change 2')
-		self.assertEqual(frappe.db.get_value('ToDo', todo2.name, 'description'), 'change 2')
-
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
@@ -215,6 +205,20 @@ class TestDB(unittest.TestCase):
 		for d in created_docs:
 			self.assertTrue(frappe.db.exists("ToDo", d))
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_transaction_writes_error(self):
+		from frappe.database.database import Database
+		frappe.db.rollback()
+
+		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
+		note = frappe.get_last_doc("ToDo")
+		note.description = "changed"
+		with self.assertRaises(frappe.TooManyWritesError) as tmw:
+			note.save()
+
+		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
+
+
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"
@@ -257,6 +261,143 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		test_table_description = frappe.db.sql(f"DESC tab{self.test_table_name};")
 		self.assertGreater(len(test_table_description), 0)
 		self.assertIn("varchar(255)", test_table_description[0])
+
+
+class TestDBSetValue(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		cls.todo1 = frappe.get_doc(doctype="ToDo", description="test_set_value 1").insert()
+		cls.todo2 = frappe.get_doc(doctype="ToDo", description="test_set_value 2").insert()
+
+	def test_update_single_doctype_field(self):
+		value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
+		changed_value = not value
+
+		frappe.db.set_value("System Settings", "System Settings", "deny_multiple_sessions", changed_value)
+		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
+		self.assertEqual(current_value, changed_value)
+
+		changed_value = not current_value
+		frappe.db.set_value("System Settings", None, "deny_multiple_sessions", changed_value)
+		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
+		self.assertEqual(current_value, changed_value)
+
+		changed_value = not current_value
+		frappe.db.set_single_value("System Settings", "deny_multiple_sessions", changed_value)
+		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
+		self.assertEqual(current_value, changed_value)
+
+	def test_update_single_row_single_column(self):
+		frappe.db.set_value("ToDo", self.todo1.name, "description", "test_set_value change 1")
+		updated_value = frappe.db.get_value("ToDo", self.todo1.name, "description")
+		self.assertEqual(updated_value, "test_set_value change 1")
+
+	def test_update_single_row_multiple_columns(self):
+		description, status = "Upated by test_update_single_row_multiple_columns", "Closed"
+
+		frappe.db.set_value("ToDo", self.todo1.name, {
+			"description": description,
+			"status": status,
+		}, update_modified=False)
+
+		updated_desciption, updated_status = frappe.db.get_value("ToDo",
+			filters={"name": self.todo1.name},
+			fieldname=["description", "status"]
+		)
+
+		self.assertEqual(description, updated_desciption)
+		self.assertEqual(status, updated_status)
+
+	def test_update_multiple_rows_single_column(self):
+		frappe.db.set_value("ToDo", {"description": ("like", "%test_set_value%")}, "description", "change 2")
+
+		self.assertEqual(frappe.db.get_value("ToDo", self.todo1.name, "description"), "change 2")
+		self.assertEqual(frappe.db.get_value("ToDo", self.todo2.name, "description"), "change 2")
+
+	def test_update_multiple_rows_multiple_columns(self):
+		todos_to_update = frappe.get_all("ToDo", filters={
+			"description": ("like", "%test_set_value%"),
+			"status": ("!=", "Closed")
+		}, pluck="name")
+
+		frappe.db.set_value("ToDo", {
+			"description": ("like", "%test_set_value%"),
+			"status": ("!=", "Closed")
+		}, {
+			"status": "Closed",
+			"priority": "High"
+		})
+
+		test_result = frappe.get_all("ToDo", filters={"name": ("in", todos_to_update)}, fields=["status", "priority"])
+
+		self.assertTrue(all(x for x in test_result if x["status"] == "Closed"))
+		self.assertTrue(all(x for x in test_result if x["priority"] == "High"))
+
+	def test_update_modified_options(self):
+		self.todo2.reload()
+
+		todo = self.todo2
+		updated_description = f"{todo.description} - by `test_update_modified_options`"
+		custom_modified = datetime.datetime.fromisoformat(add_days(now(), 10))
+		custom_modified_by = "user_that_doesnt_exist@example.com"
+
+		frappe.db.set_value("ToDo", todo.name, "description", updated_description, update_modified=False)
+		self.assertEqual(updated_description, frappe.db.get_value("ToDo", todo.name, "description"))
+		self.assertEqual(todo.modified, frappe.db.get_value("ToDo", todo.name, "modified"))
+
+		frappe.db.set_value("ToDo", todo.name, "description", "test_set_value change 1", modified=custom_modified, modified_by=custom_modified_by)
+		self.assertTupleEqual(
+			(custom_modified, custom_modified_by),
+			frappe.db.get_value("ToDo", todo.name, ["modified", "modified_by"])
+		)
+
+	def test_for_update(self):
+		self.todo1.reload()
+
+		with patch.object(Database, "sql") as sql_called:
+			frappe.db.set_value(
+				self.todo1.doctype,
+				self.todo1.name,
+				"description",
+				f"{self.todo1.description}-edit by `test_for_update`"
+			)
+			first_query = sql_called.call_args_list[0][0][0]
+			second_query = sql_called.call_args_list[1][0][0]
+
+			self.assertTrue(sql_called.call_count == 2)
+			self.assertTrue("FOR UPDATE".casefold() in first_query)
+			if frappe.conf.db_type == "postgres":
+				from frappe.database.postgres.database import modify_query
+				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in second_query)
+			if frappe.conf.db_type == "mariadb":
+				self.assertTrue("UPDATE `tabToDo` SET" in second_query)
+
+	def test_cleared_cache(self):
+		self.todo2.reload()
+
+		with patch.object(frappe, "clear_document_cache") as clear_cache:
+			frappe.db.set_value(
+				self.todo2.doctype,
+				self.todo2.name,
+				"description",
+				f"{self.todo2.description}-edit by `test_cleared_cache`"
+			)
+			clear_cache.assert_called()
+
+	def test_update_alias(self):
+		args = (self.todo1.doctype, self.todo1.name, "description", "Updated by `test_update_alias`")
+		kwargs = {"for_update": False, "modified": None, "modified_by": None, "update_modified": True, "debug": False}
+
+		self.assertTrue("return self.set_value(" in inspect.getsource(frappe.db.update))
+
+		with patch.object(Database, "set_value") as set_value:
+			frappe.db.update(*args, **kwargs)
+			set_value.assert_called_once()
+			set_value.assert_called_with(*args, **kwargs)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
 
 
 @run_only_if(db_type_is.POSTGRES)

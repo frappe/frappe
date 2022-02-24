@@ -179,6 +179,16 @@
 	--text-on-pink: var(--pink-500);
 	--text-on-cyan: var(--cyan-600);
 
+	// alert colors
+	--alert-text-danger: var(--red-600);
+	--alert-text-warning: var(--yellow-700);
+	--alert-text-info: var(--blue-700);
+	--alert-text-success: var(--green-700);
+	--alert-bg-danger: var(--red-50);
+	--alert-bg-warning: var(--yellow-50);
+	--alert-bg-info: var(--blue-50);
+	--alert-bg-success: var(--green-50);
+
 	// Layout Colors
 	--bg-color: var(--gray-50);
 	--fg-color: white;
@@ -209,6 +219,10 @@
 	--highlight-color: var(--gray-50);
 	--yellow-highlight-color: var(--yellow-50);
 
+	// code block
+	--code-block-bg: var(--gray-900);
+	--code-block-text: var(--gray-400);
+
 	// Border Sizes
 	--border-radius-sm: 4px;
 	--border-radius: 6px;
@@ -223,4 +237,9 @@
 	--checkbox-right-margin: var(--margin-xs);
 	--checkbox-size: 14px;
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
+
+	--checkbox-gradient: linear-gradient(180deg, #4AC3F8 -124.51%, var(--primary) 100%);
+
+	--right-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.25 7.5L4.75 4L1.25 0.5' stroke='%231F272E' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+	--left-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M7.5 9.5L4 6l3.5-3.5' stroke='%231F272E' stroke-linecap='round' stroke-linejoin='round'></path></svg>");
 }

@@ -105,7 +105,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.toggle_nothing_to_show(true);
 			return;
 		}
-		
+
 		let route_options = {};
 		route_options = Object.assign(route_options, frappe.route_options);
 
@@ -849,6 +849,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				columns: columns,
 				data: data,
 				inlineFilters: true,
+				language: frappe.boot.lang,
+				translations: frappe.utils.datatable.get_translations(),
 				treeView: this.tree_report,
 				layout: 'fixed',
 				cellHeight: 33,

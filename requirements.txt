@@ -25,9 +25,9 @@ googlemaps~=4.4.5
 gunicorn~=20.1.0
 html2text==2020.1.16
 html5lib~=1.1
-ipython~=7.16.1
 jedi==0.17.2  # not directly required. Pinned to fix upstream IPython issue (https://github.com/ipython/ipython/issues/12740)
-Jinja2~=2.11.3
+Jinja2~=3.0.3
+ipython~=7.31.1
 ldap3~=2.9
 markdown2~=2.4.0
 maxminddb-geolite2==2018.703
@@ -38,7 +38,7 @@ openpyxl~=3.0.7
 passlib~=1.7.4
 paytmchecksum~=1.7.0
 pdfkit~=0.6.1
-Pillow~=8.2.0
+Pillow~=9.0.0
 premailer~=3.8.0
 psutil~=5.8.0
 psycopg2-binary~=2.9.1

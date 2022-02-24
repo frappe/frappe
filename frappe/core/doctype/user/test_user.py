@@ -357,7 +357,11 @@ class TestUser(unittest.TestCase):
 			test_user.reload()
 			self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/")
 			update_password(old_password, old_password=new_password)
-			self.assertEqual(json.loads(frappe.message_log[0]), {"message": "Password reset instructions have been sent to your email"})
+			self.assertEqual(
+				json.loads(frappe.message_log[0]).get("message"), 
+				"Password reset instructions have been sent to your email"
+			)
+
 		sendmail.assert_called_once()
 		self.assertEqual(sendmail.call_args[1]["recipients"], "test2@example.com")
 
