@@ -100,5 +100,5 @@ context('Grid Search', () => {
 		// Date Column
 		cy.get('@table').find('.grid-heading-row .search input[data-fieldtype="Date"]').type('-02');
 		cy.get('@table').find('.grid-body .rows .grid-row').should('have.length', 2);
-	})
+	});
 });
