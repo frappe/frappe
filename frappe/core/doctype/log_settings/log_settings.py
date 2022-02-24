@@ -18,8 +18,9 @@ class LogSettings(Document):
 
 	def clear_error_logs(self):
 		table = DocType("Error Log")
+		duration = (Now() - Interval(days=self.clear_error_log_after))
 		frappe.db.delete(table, filters=(
-			table.creation < PseudoColumn(f"({Now() - Interval(days=self.clear_error_log_after)})")
+			table.creation < duration
 		))
 
 	def clear_activity_logs(self):
