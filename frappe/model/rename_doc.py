@@ -17,9 +17,9 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 		Update title from header in form view
 	"""
 
-	for obj in [docname, new_title, new_name]:
-		if not isinstance(obj, (str, type(None))):
-			frappe.throw(f"{obj=} must be of type str or None")
+	for key, val in [("docname", docname), ("new_title", new_title), ("new_name", new_name)]:
+		if not isinstance(val, (str, type(None))):
+			frappe.throw("{0}={1} must be of type str or None".format(key, val))
 
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission(permtype="write")
