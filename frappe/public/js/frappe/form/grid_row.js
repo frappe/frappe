@@ -667,7 +667,13 @@ export default class GridRow {
 			.appendTo(this.row);
 
 		let $search_input = $(`
-			<input type="text" class="form-control input-xs ${input_class}" title="${title}" ${is_disabled} >
+			<input 
+				type="text" 
+				class="form-control input-xs ${input_class}" 
+				title="${title}" 
+				data-fieldtype="${df.fieldtype}" 
+				${is_disabled} 
+			>
 		`).appendTo($col);
 
 		this.search_columns[df.fieldname] = $col;
