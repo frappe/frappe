@@ -536,52 +536,58 @@ export default class Grid {
 		for (const field in this.filter) {
 			all_data = all_data.filter(data => {
 				let {df, value} = this.filter[field];
-
-				if (["Check"].includes(df.fieldtype)) {
-					return (data[df.fieldname] === parseInt(value || 0)) && data;
-				} else if (df.fieldtype === "Sr No" && data.idx.toString().indexOf(value) > -1) {
-					return data;
-				} else if (["Currency", "Float", "Int", "Percent", "Rating"].includes(df.fieldtype)) {
-					let num = data[df.fieldname] || 0;
-
-					if (df.fieldtype === "Rating") {
-						let out_of_rating = parseInt(df.options) || 5;
-						num = data[df.fieldname] * out_of_rating;
-					}
-
-					if (num.toString().indexOf(value) > -1) {
-						return data;
-					}
-				} else if (["Datetime", "Date"].includes(df.fieldtype) && data[df.fieldname]) {
-					let user_formatted_date = frappe.datetime.str_to_user(data[df.fieldname]);
-
-					if (user_formatted_date.includes(value)) {
-						return data;
-					}
-				} else if (df.fieldtype === "Duration" && data[df.fieldname]) {
-					let formatted_duration = frappe.utils.get_formatted_duration(data[df.fieldname]);
-
-					if (formatted_duration.includes(value.toLowerCase())) {
-						return data;
-					}
-				} else if (df.fieldtype === "Barcode" && data[df.fieldname]) {
-					let svg = data[df.fieldname];
-
-					if (svg.startsWith('<svg')) {
-						let barcode = $(svg).attr('data-barcode-value');
-
-						if (barcode.toLowerCase().includes(value.toLowerCase())) {
-							return data;
-						}
-					}
-				} else if (data[df.fieldname] && 
-					data[df.fieldname].toLowerCase().includes(value.toLowerCase())) {
-					return data;
-				}
+				return this.get_data_based_on_fieldtype(df, data, value.toLowerCase());
 			});
 		}
 
 		return all_data;
+	}
+
+	get_data_based_on_fieldtype(df, data, value) {
+		let fieldname = df.fieldname;
+		let fieldtype = df.fieldtype;
+		let fieldvalue = data[fieldname];
+
+		if (fieldtype === "Check") {
+			return (fieldvalue === parseInt(value || 0)) && data;
+		} else if (fieldtype === "Sr No" && data.idx.toString().includes(value)) {
+			return data;
+		} else if (fieldtype === "Duration" && fieldvalue) {
+			let formatted_duration = frappe.utils.get_formatted_duration(fieldvalue);
+
+			if (formatted_duration.includes(value)) {
+				return data;
+			}
+		} else if (fieldtype === "Barcode" && fieldvalue) {
+			let svg = fieldvalue;
+
+			if (svg.startsWith('<svg')) {
+				let barcode = $(svg).attr('data-barcode-value');
+
+				if (barcode.toLowerCase().includes(value)) {
+					return data;
+				}
+			}
+		} else if (["Datetime", "Date"].includes(fieldtype) && fieldvalue) {
+			let user_formatted_date = frappe.datetime.str_to_user(fieldvalue);
+
+			if (user_formatted_date.includes(value)) {
+				return data;
+			}
+		} else if (["Currency", "Float", "Int", "Percent", "Rating"].includes(fieldtype)) {
+			let num = fieldvalue || 0;
+
+			if (fieldtype === "Rating") {
+				let out_of_rating = parseInt(df.options) || 5;
+				num = num * out_of_rating;
+			}
+
+			if (num.toString().indexOf(value) > -1) {
+				return data;
+			}
+		} else if (fieldvalue && fieldvalue.toLowerCase().includes(value)) {
+			return data;
+		}
 	}
 
 	get_modal_data() {
@@ -868,19 +874,19 @@ export default class Grid {
 	}
 
 	setup_user_defined_columns() {
-		if (this.frm) {
-			let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
-			if (user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
-				this.user_defined_columns = user_settings[this.doctype].map(row => {
-					let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
+		if (!this.frm) return;
 
-					if (column) {
-						column.in_list_view = 1;
-						column.columns = row.columns;
-						return column;
-					}
-				});
-			}
+		let user_settings = frappe.get_user_settings(this.frm.doctype, 'GridView');
+		if (user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
+			this.user_defined_columns = user_settings[this.doctype].map(row => {
+				let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
+
+				if (column) {
+					column.in_list_view = 1;
+					column.columns = row.columns;
+					return column;
+				}
+			});
 		}
 	}
 
