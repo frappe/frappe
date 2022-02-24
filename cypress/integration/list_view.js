@@ -12,6 +12,7 @@ context('List View', () => {
 		cy.get('.list-row-container .list-row-checkbox').click({ multiple: true, force: true });
 		cy.get('.actions-btn-group button').contains('Actions').should('be.visible');
 		cy.intercept('/api/method/frappe.desk.reportview.get').as('list-refresh');
+		cy.wait(3000); // wait before you hit another refresh
 		cy.get('button[data-original-title="Refresh"]').click();
 		cy.wait('@list-refresh');
 		cy.get('.list-row-container .list-row-checkbox:checked').should('be.visible');

@@ -339,7 +339,7 @@ def get_link_fields(doctype: str) -> List[Dict]:
 	if not frappe.flags.link_fields:
 		frappe.flags.link_fields = {}
 
-	if not doctype in frappe.flags.link_fields:
+	if doctype not in frappe.flags.link_fields:
 		link_fields = frappe.db.sql("""\
 			select parent, fieldname,
 				(select issingle from tabDocType dt

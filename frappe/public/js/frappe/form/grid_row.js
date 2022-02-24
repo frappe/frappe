@@ -340,7 +340,7 @@ export default class GridRow {
 				</div>
 				<div class='control-input-wrapper selected-fields'>
 				</div>
-				<p class='help-box small text-muted hidden-xs'>
+				<p class='help-box small text-muted'>
 					<a class='add-new-fields text-muted'>
 						+ ${__('Add / Remove Columns')}
 					</a>
@@ -420,18 +420,18 @@ export default class GridRow {
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1'>
+							<div class='col-md-1' style='padding-top: 2px'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon('drag', 'xs')}</a>
 							</div>
-							<div class='col-md-7' style='padding-left:0px;'>
+							<div class='col-md-7' style='padding-left:0px; padding-top:3px'>
 								${__(docfield.label)}
 							</div>
 							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__('Columns')}'>
 								<input class='form-control column-width input-xs text-right'
 									value='${docfield.columns || cint(d.columns)}'
-									data-fieldname='${docfield.fieldname}' style='background-color: #ffff; display: inline'>
+									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1'>
+							<div class='col-md-1' style='padding-top: 3px'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>
