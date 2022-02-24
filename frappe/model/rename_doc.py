@@ -22,7 +22,7 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 			frappe.throw(f"{obj=} must be of type str or None")
 
 	doc = frappe.get_doc(doctype, docname)
-	doc.has_permission(permtype="write")
+	doc.check_permission(permtype="write")
 
 	title_field = doc.meta.get_title_field()
 
