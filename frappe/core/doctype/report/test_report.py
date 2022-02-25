@@ -314,19 +314,19 @@ result = [
 			{
 				"parent_column": "Parent 1",
 				"column_1": 200,
-				"column_2": 150.50 
+				"column_2": 150.50
 			},
 			{
 				"parent_column": "Child 1",
 				"column_1": 100,
 				"column_2": 75.25,
-				"parent_value": "Parent 1" 
+				"parent_value": "Parent 1"
 			},
 			{
 				"parent_column": "Child 2",
 				"column_1": 100,
 				"column_2": 75.25,
-				"parent_value": "Parent 1" 
+				"parent_value": "Parent 1"
 			}
 		]
 
