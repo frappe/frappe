@@ -55,9 +55,6 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		if not frappe.db:
 			frappe.connect()
 
-		# if not frappe.conf.get("db_name").startswith("test_"):
-		#	raise Exception, 'db_name must start with "test_"'
-
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
 		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled()
@@ -392,7 +389,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		try:
 			d.run_method("before_test_insert")
-			d.insert()
+			d.insert(ignore_if_duplicate=True)
 
 			if docstatus == 1:
 				d.submit()

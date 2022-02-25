@@ -1,16 +1,29 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest, frappe
-from frappe.core.doctype.user.user import generate_keys
-from frappe.frappeclient import FrappeClient, FrappeException
-from frappe.utils.data import get_url
+import base64
+import unittest
 
 import requests
-import base64
+
+import frappe
+from frappe.core.doctype.user.user import generate_keys
+from frappe.frappeclient import AuthError, FrappeClient, FrappeException
+from frappe.utils.data import get_url
+
 
 class TestFrappeClient(unittest.TestCase):
 	PASSWORD = frappe.conf.admin_password or "admin"
+
+	@classmethod
+	def setUpClass(cls) -> None:
+		site_url = get_url()
+		try:
+			FrappeClient(site_url, "Administrator", cls.PASSWORD, verify=False)
+		except AuthError:
+			raise unittest.SkipTest(f"AuthError raised for {site_url} [usr=Administrator, pwd={cls.PASSWORD}]")
+
+		return super().setUpClass()
 
 	def test_insert_many(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
