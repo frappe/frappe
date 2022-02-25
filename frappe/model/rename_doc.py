@@ -102,13 +102,7 @@ def rename_doc(
 		update_assignments(old, new, doctype)
 
 	# update link fields' values
-	link_fields = get_link_fields(doctype)
-	update_link_field_values(link_fields, old, new, doctype)
-
-	rename_dynamic_links(doctype, old, new)
-
-	# save the user settings in the db
-	update_user_settings(old, new, link_fields)
+	update_links(doctype, old, new)
 
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new)
@@ -132,8 +126,7 @@ def rename_doc(
 		rename_password(doctype, old, new)
 
 	# update user_permissions
-	frappe.db.sql("""UPDATE `tabDefaultValue` SET `defvalue`=%s WHERE `parenttype`='User Permission'
-		AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
+	update_user_permissions(doctype, old, new)
 
 	if merge:
 		new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
@@ -174,6 +167,25 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 
 	unique_assignments = list(set(old_assignments + new_assignments))
 	frappe.db.set_value(doctype, new, '_assign', frappe.as_json(unique_assignments, indent=0))
+
+def update_links(doctype, old, new):
+	link_fields = get_link_fields(doctype)
+	update_link_field_values(link_fields, old, new, doctype)
+
+	rename_dynamic_links(doctype, old, new)
+
+	# save the user settings in the db
+	update_user_settings(old, new, link_fields)
+
+	update_linked_comments(doctype, old, new)
+
+def update_user_permissions(doctype, old, new):
+	frappe.db.sql("""UPDATE `tabDefaultValue` SET `defvalue`=%s WHERE `parenttype`='User Permission'
+		AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
+
+def update_linked_comments(doctype, old, new):
+	frappe.db.sql("""UPDATE `tabComment` SET `reference_name`=%s WHERE `reference_doctype`=%s
+		AND `reference_name`=%s""", (new, doctype, old))
 
 def update_user_settings(old: str, new: str, link_fields: List[Dict]) -> None:
 	'''
