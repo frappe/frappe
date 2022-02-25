@@ -55,9 +55,30 @@ context('Depends On', () => {
 						'read_only_depends_on': "eval:doc.test_field=='Some Other Value'",
 						'options': "Child Test Depends On"
 					},
+					{
+						"label": "Dependent Tab",
+						"fieldname": "dependent_tab",
+						"fieldtype": "Tab Break",
+						"depends_on": "eval:doc.test_field=='Show Tab'"
+					},
+					{
+						"fieldname": "tab_section",
+						"fieldtype": "Section Break",
+					},
+					{
+						"label": "Field in Tab",
+						"fieldname": "field_in_tab",
+						"fieldtype": "Data",
+					}
 				]
 			});
 		});
+	});
+	it('should show the tab on other setting field value', () => {
+		cy.new_form('Test Depends On');
+		cy.fill_field('test_field', 'Show Tab');
+		cy.get('body').click();
+		cy.findByRole("tab", {name: "Dependent Tab"}).should('be.visible');
 	});
 	it('should set the field as mandatory depending on other fields value', () => {
 		cy.new_form('Test Depends On');

@@ -264,13 +264,20 @@ class TestDocument(unittest.TestCase):
 
 	def test_limit_for_get(self):
 		doc = frappe.get_doc("DocType", "DocType")
-		# assuming DocType has more that 3 Data fields
+		# assuming DocType has more than 3 Data fields
+		self.assertEquals(len(doc.get("fields", limit=3)), 3)
+
+		# limit with filters
 		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
 	def test_virtual_fields(self):
 		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
 		"""
 		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
 
 		def patch_note():
 			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
