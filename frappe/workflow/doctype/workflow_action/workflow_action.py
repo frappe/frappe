@@ -194,7 +194,7 @@ def update_completed_workflow_actions_using_role(doc, user=None, allowed_roles =
 	user = user if user else frappe.session.user
 	WorkflowAction = DocType("Workflow Action")
 
-	if not workflow_action or not workflow_action[0]:
+	if not workflow_action:
 		return
 
 	(frappe.qb.update(WorkflowAction)
