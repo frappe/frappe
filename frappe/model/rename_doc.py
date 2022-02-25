@@ -32,11 +32,6 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 	if name_updated:
 		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
 
-<<<<<<< HEAD
-	if old_title and new_title and not old_title == new_title:
-		frappe.db.set_value(doctype, docname, title_field, new_title)
-		frappe.msgprint(_('Saved'), alert=True, indicator='green')
-=======
 	if title_updated:
 		try:
 			frappe.db.set_value(doctype, docname, title_field, new_title)
@@ -49,7 +44,6 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 					exc=frappe.DuplicateEntryError
 				)
 			raise
->>>>>>> b0453ca9a2 (refactor(minor): update_document_title API)
 
 	return docname
 
