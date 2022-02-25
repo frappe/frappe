@@ -578,7 +578,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
-					report_settings: this.report_settings
+					is_tree: this.report_settings.tree,
+					parent_field: this.report_settings.parent_field
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
