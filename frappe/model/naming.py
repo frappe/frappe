@@ -10,7 +10,7 @@ from six import string_types
 from frappe.model import log_types
 
 
-def set_new_name(doc):
+def set_new_name(doc, draft_name=False):
 	"""
 	Sets the `name` property for the document based on various rules.
 
@@ -24,42 +24,45 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	autoname = frappe.get_meta(doc.doctype).autoname or ""
+	if draft_name:
+		doc.name = "({0})".format(make_autoname('hash', doc.doctype))
+	else:
+		autoname = frappe.get_meta(doc.doctype).autoname or ""
 
-	if autoname.lower() != "prompt" and not frappe.flags.in_import:
-		doc.name = None
+		if autoname.lower() != "prompt" and not frappe.flags.in_import:
+			doc.name = None
 
-	if getattr(doc, "amended_from", None):
-		_set_amended_name(doc)
-		return
+		if getattr(doc, "amended_from", None):
+			doc.name = _get_amended_name(doc)
+			return
 
-	elif getattr(doc.meta, "issingle", False):
-		doc.name = doc.doctype
+		elif getattr(doc.meta, "issingle", False):
+			doc.name = doc.doctype
 
-	elif getattr(doc.meta, "istable", False):
-		doc.name = make_autoname("hash", doc.doctype)
+		elif getattr(doc.meta, "istable", False):
+			doc.name = make_autoname("hash", doc.doctype)
 
-	if not doc.name:
-		set_naming_from_document_naming_rule(doc)
+		if not doc.name:
+			set_naming_from_document_naming_rule(doc)
 
-	if not doc.name:
-		doc.run_method("autoname")
+		if not doc.name:
+			doc.run_method("autoname")
 
-	if not doc.name and autoname:
-		set_name_from_naming_options(autoname, doc)
+		if not doc.name and autoname:
+			set_name_from_naming_options(autoname, doc)
 
-	# if the autoname option is 'field:' and no name was derived, we need to
-	# notify
-	if not doc.name and autoname.startswith("field:"):
-		fieldname = autoname[6:]
-		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
+		# if the autoname option is 'field:' and no name was derived, we need to
+		# notify
+		if not doc.name and autoname.startswith("field:"):
+			fieldname = autoname[6:]
+			frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
-	# at this point, we fall back to name generation with the hash option
-	if not doc.name and autoname == "hash":
-		doc.name = make_autoname("hash", doc.doctype)
+		# at this point, we fall back to name generation with the hash option
+		if not doc.name and autoname == "hash":
+			doc.name = make_autoname("hash", doc.doctype)
 
-	if not doc.name:
-		doc.name = make_autoname("hash", doc.doctype)
+		if not doc.name:
+			doc.name = make_autoname("hash", doc.doctype)
 
 	doc.name = validate_name(
 		doc.doctype,

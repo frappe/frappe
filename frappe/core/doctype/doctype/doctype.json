@@ -11,6 +11,7 @@
   "sb0",
   "module",
   "is_submittable",
+  "name_after_submit",
   "istable",
   "issingle",
   "is_tree",
@@ -104,6 +105,13 @@
    "fieldname": "is_submittable",
    "fieldtype": "Check",
    "label": "Is Submittable"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.is_submittable",
+   "fieldname": "name_after_submit",
+   "fieldtype": "Check",
+   "label": "Set name after submit"
   },
   {
    "default": "0",
@@ -628,7 +636,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-11-01 15:26:19.077164",
+ "modified": "2021-11-02 15:26:19.077164",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

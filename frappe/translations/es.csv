@@ -4700,3 +4700,4 @@ Value cannot be negative for {0}: {1},El valor no puede ser negativo para {0}: {
 Negative Value,Valor negativo,
 Authentication failed while receiving emails from Email Account: {0}.,Error de autenticación al recibir correos electrónicos de la cuenta de correo electrónico: {0}.,
 Message from server: {0},Mensaje del servidor: {0},
+Set name after submit,Asignar nombre luego de validar,
