@@ -10,7 +10,6 @@ from frappe.website.doctype.personal_data_download_request.test_personal_data_do
 	create_user_if_not_exists
 )
 from datetime import datetime, timedelta
-from frappe.utils import add_to_date
 
 
 class TestPersonalDataDeletionRequest(unittest.TestCase):

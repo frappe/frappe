@@ -354,7 +354,7 @@ def process_data_deletion_request():
 	for request in requests:
 		doc = frappe.get_doc("Personal Data Deletion Request", request)
 		if time_diff_in_hours(get_datetime(), doc.creation) >= auto_account_deletion:
-			doc.add_comment("Comment", _("The User record for this request has been auto-deleted due to inactivity."))
+			doc.add_comment("Comment", _("The User record for this request has been auto-deleted due to inactivity by system admins."))
 			doc.trigger_data_deletion()
 
 def remove_unverified_record():
