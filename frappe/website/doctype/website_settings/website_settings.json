@@ -391,6 +391,7 @@
    "label": "App Logo"
   },
   {
+   "collapsible": 1,
    "fieldname": "account_deletion_settings_section",
    "fieldtype": "Section Break",
    "label": "Account Deletion Settings"
@@ -405,7 +406,7 @@
    "default": "3",
    "fieldname": "auto_account_deletion",
    "fieldtype": "Int",
-   "label": "Auto Account Deletion within (Days)"
+   "label": "Auto Account Deletion within (Hours)"
   }
  ],
  "icon": "fa fa-cog",
@@ -414,7 +415,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2021-12-15 17:28:59.255184",
+ "modified": "2022-02-24 15:37:22.360138",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
@@ -437,5 +438,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

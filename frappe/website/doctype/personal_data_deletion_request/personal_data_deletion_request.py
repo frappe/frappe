@@ -7,7 +7,7 @@ import re
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_fullname, date_diff, get_datetime
+from frappe.utils import get_fullname, time_diff_in_hours, get_datetime
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 import json
@@ -353,7 +353,7 @@ def process_data_deletion_request():
 
 	for request in requests:
 		doc = frappe.get_doc("Personal Data Deletion Request", request)
-		if date_diff(get_datetime(), doc.creation) >= auto_account_deletion:
+		if time_diff_in_hours(get_datetime(), doc.creation) >= auto_account_deletion:
 			doc.add_comment("Comment", _("The User record for this request has been auto-deleted due to inactivity."))
 			doc.trigger_data_deletion()
 
