@@ -611,11 +611,11 @@ export default class GridRow {
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
 		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
-
 		// set title attribute to see full label for columns in the heading row
 		if (!this.doc) {
 			$col.attr("title", txt);
 		}
+		df.fieldname && $($col.static_area.toggleClass('reqd', Boolean(df.reqd)));
 
 		$col.df = df;
 		$col.column_index = ci;
