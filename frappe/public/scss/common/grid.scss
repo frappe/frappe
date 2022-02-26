@@ -12,6 +12,13 @@
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--text-muted);
 	font-size: var(--text-md);
+
+	.grid-static-col {
+		.static-area.reqd:after {
+			content: ' *';
+			color: var(--red-400);
+		}
+	}
 }
 
 .rows .grid-row .data-row,
