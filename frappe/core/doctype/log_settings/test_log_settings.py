@@ -19,19 +19,16 @@ class TestLogSettings(unittest.TestCase):
 			activity_logs = frappe.get_all("Activity Log", filters=dict(subject='Test subject'), pluck='name')
 			for log in activity_logs:
 				frappe.db.delete("Activity Log", log)
-			frappe.db.commit()
 
 		if frappe.db.exists({"doctype": "Email Queue", "expose_recipients": "test@receiver.com"}):
 			email_queues = frappe.get_all("Email Queue", filters=dict(expose_recipients='test@receiver.com'), pluck='name')
 			for queue in email_queues:
 				frappe.db.delete("Email Queue", queue)
-			frappe.db.commit()
 
 		if frappe.db.exists({"doctype": "Error Log", "method": "test_method"}):
 			error_logs = frappe.get_all("Error Log", filters=dict(method='test_method'), pluck='name')
 			for log in error_logs:
 				frappe.db.delete("Error Log", log)
-			frappe.db.commit()
 
 	def test_create_activity_logs(self):
 		doc1 = frappe.get_doc({
