@@ -776,3 +776,9 @@ def get_user_match_filters(doctypes, user):
 			match_filters[dt] = filter_list
 
 	return match_filters
+
+
+@frappe.whitelist()
+def render_letterhead(data, report_doc):
+	report_doc = json.loads(report_doc)
+	return frappe.utils.jinja.render_template(data, {"doc": report_doc})
