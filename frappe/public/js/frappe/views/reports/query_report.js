@@ -1284,6 +1284,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			report: this
 		});
 
+		//get rendered letterhead
+		if (print_settings.letter_head.footer) {
+			
+			frappe.call({
+				method: "frappe.desk.query_report.render_letterhead",
+				async: false,
+				args: {
+					data: print_settings.letter_head.footer,
+					report_doc: this.report_doc
+				},
+				callback: r => {
+					print_settings.letter_head["footer"] = r.message;
+				}
+			});
+		}
+
 		// Render Report in HTML
 		const html = frappe.render_template('print_template', {
 			title: __(this.report_name),
