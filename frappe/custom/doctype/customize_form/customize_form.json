@@ -1,7 +1,7 @@
 {
  "actions": [],
  "autoname": "DL.####",
- "creation": "2013-01-29 17:55:08",
+ "creation": "2022-02-19 17:07:35.702270",
  "doctype": "DocType",
  "document_type": "Document",
  "editable_grid": 1,
@@ -28,6 +28,7 @@
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
+  "translate_link_fields",
   "image_field",
   "default_print_format",
   "column_break_29",
@@ -303,6 +304,12 @@
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
    "label": "Show Title in Link Fields"
+  },
+  {
+   "default": "0",
+   "fieldname": "translate_link_fields",
+   "fieldtype": "Check",
+   "label": "Translate Link Fields"
   }
  ],
  "hide_toolbar": 1,
@@ -311,7 +318,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-01-07 16:07:06.196534",
+ "modified": "2022-02-28 21:58:05.396215",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

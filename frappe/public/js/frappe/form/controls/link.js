@@ -81,9 +81,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	get_translated(value) {
-		return this.df.translatable ? __(value) : value;
+		return this.is_translatable() ? __(value) : value;
 	}
-
+	is_translatable() {
+		return in_list(frappe.boot.translatable_doctypes || [], this.get_options());
+	}
 	set_link_title(value) {
 		let doctype = this.get_options();
 		if (!doctype) return;
@@ -187,11 +189,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			replace: function (item) {
 				// Override Awesomeplete replace function as it is used to set the input value
 				// https://github.com/LeaVerou/awesomplete/issues/17104#issuecomment-359185403
-				this.input.value = item.label || item.value;
+				this.input.value = me.is_translatable() ? __(item.label || item.value) : item.label || item.value
 			},
 			data: function (item) {
 				return {
-					label: me.df.translatable ? __(item.label || item.value) : item.label || item.value,
+					label: me.is_translatable() ? __(item.label || item.value) : item.label || item.value,
 					value: item.value
 				};
 			},
@@ -202,7 +204,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				let d = this.get_item(item.value);
 				if (!d.label) { d.label = d.value; }
 
-				let _label = __(d.label);
+				let _label = me.is_translatable() ? __(d.label) : d.label;
 				let html = d.html || "<strong>" + _label + "</strong>";
 				if (d.description && d.value !== d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
@@ -349,6 +351,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("awesomplete-selectcomplete", function (e) {
 			let o = e.originalEvent;
+
 			if (o.text.value.indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
@@ -356,13 +359,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("focus", function () {
 			let value = me.get_input_value();
-			me.df.translatable && me.set_input_value(value);
+			me.show_last_label = true;
+			me.is_translatable() && !in_list(["Role", "DocType"], me.df.options) && me.set_input_value(value);
 		});
 	}
 
 	update_value() {
 		let value = this.get_input_value();
-		let label = this.get_label_value();
+		let label = this.show_last_label ? this.label : this.get_label_value();
 
 		/**
 		 * When translate link field is enabled and translatable for link field is enabled too,
@@ -376,9 +380,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		 * this.label value
 		 */
 
-		if (value !== this.last_value || label !== this.label) {
-			this.parse_validate_and_set_in_model(value, null,
-				label === value && this.label ? this.label : label);
+
+		if (value !== this.last_value || label !== this.label || this.show_last_label) {
+			this.show_last_label = false;
+			this.parse_validate_and_set_in_model(value, null, label);
 		}
 	}
 

@@ -6,17 +6,21 @@
 	Thus providing a better UI from user perspective
 """
 import json
+
 import frappe
 import frappe.translate
 from frappe import _
-from frappe.utils import cint
-from frappe.model.document import Document
-from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
+from frappe.core.doctype.doctype.doctype import (
+	check_email_append_to,
+	validate_fields_for_doctype,
+	validate_series,
+)
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
+from frappe.model import core_doctypes_list, no_value_fields
 from frappe.model.docfield import supports_translation
-from frappe.core.doctype.doctype.doctype import validate_series
+from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class CustomizeForm(Document):
@@ -517,7 +521,8 @@ doctype_properties = {
 	'subject_field': 'Data',
 	'sender_field': 'Data',
 	'autoname': 'Data',
-	'show_title_field_in_link': 'Check'
+	'show_title_field_in_link': 'Check',
+	'translate_link_fields': 'Check'
 }
 
 docfield_properties = {

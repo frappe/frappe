@@ -7,17 +7,23 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.core.doctype.navbar_settings.navbar_settings import (
+	get_app_logo,
+	get_navbar_settings,
+)
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
-from frappe.utils.change_log import get_versions
-from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
-from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
-from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
-from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
-from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
-from frappe.utils import get_time_zone, add_user_info
+from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
+from frappe.social.doctype.energy_point_settings.energy_point_settings import (
+	is_energy_point_enabled,
+)
+from frappe.translate import get_lang_dict
+from frappe.utils import add_user_info, get_time_zone
+from frappe.utils.change_log import get_versions
+from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
+
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -90,6 +96,7 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	bootinfo.translatable_doctypes = get_translatable_doctypes()
 
 	return bootinfo
 
@@ -105,7 +112,8 @@ def load_conf_settings(bootinfo):
 	from frappe import conf
 	bootinfo.max_file_size = conf.get('max_file_size') or 10485760
 	for key in ('developer_mode', 'socketio_port', 'file_watcher_port'):
-		if key in conf: bootinfo[key] = conf.get(key)
+		if key in conf:
+			bootinfo[key] = conf.get(key)
 
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
@@ -339,3 +347,13 @@ def set_time_zone(bootinfo):
 		"system": get_time_zone(),
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None) or get_time_zone()
 	}
+
+def get_translatable_doctypes():
+	dts = frappe.get_all("DocType", {"translate_link_fields": 1})
+	custom_dts = frappe.get_all(
+		"Property Setter",
+		{"property": "translate_link_fields", "value": "1"},
+		["doc_type as name"],
+	)
+	return [d.name for d in dts + custom_dts if d]
+
