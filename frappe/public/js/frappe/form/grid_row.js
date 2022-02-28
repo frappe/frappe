@@ -183,21 +183,20 @@ export default class GridRow {
 	render_template() {
 		this.set_row_index();
 
-		if(this.row_display) {
+		if (this.row_display) {
 			this.row_display.remove();
 		}
 
 		// row index
-		if(this.doc) {
-			if(!this.row_index) {
-				this.row_index = $('<div style="float: left; margin-left: 15px; margin-top: 8px; \
-					margin-right: -20px;">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
-			}
+		if (!this.row_index) {
+			this.row_index = $(`<div class="template-row-index">${this.row_check_html}<span></span></div>`).appendTo(this.row);
+		}
+
+		if (this.doc) {
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
-		this.row_display = $('<div class="row-data sortable-handle template-row">'+
-			+'</div>').appendTo(this.row)
+		this.row_display = $('<div class="row-data sortable-handle template-row"></div>').appendTo(this.row)
 			.html(frappe.render(this.grid.template, {
 				doc: this.doc ? frappe.get_format_helper(this.doc) : null,
 				frm: this.frm,
