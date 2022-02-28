@@ -76,6 +76,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (!this.title_value_map) {
 			this.title_value_map = {};
 		}
+
 		this.set_link_title(value);
 	}
 
@@ -363,8 +364,21 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let value = this.get_input_value();
 		let label = this.get_label_value();
 
+		/**
+		 * When translate link field is enabled and translatable for link field is enabled too,
+		 * the link will show the original value of the docfield when focus is triggered and
+		 * will show the label once blur is triggered.
+		 *
+		 * While the blur event is triggered when actual value of the link field is being shown,
+		 * the value === label and due to this the link field's display never shows the label.
+		 *
+		 * To handle this, value === label check is introduced and if true, will set the
+		 * this.label value
+		 */
+
 		if (value !== this.last_value || label !== this.label) {
-			this.parse_validate_and_set_in_model(value, null, label);
+			this.parse_validate_and_set_in_model(value, null,
+				label === value && this.label ? this.label : label);
 		}
 	}
 
