@@ -25,24 +25,24 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$link = this.$input_area.find('.link-btn');
 		this.$link_open = this.$link.find('.btn-open');
 		this.set_input_attributes();
-		this.$input.on("focus", function() {
-			setTimeout(function() {
-				if(me.$input.val() && me.get_options()) {
+		this.$input.on("focus", function () {
+			setTimeout(function () {
+				if (me.$input.val() && me.get_options()) {
 					let doctype = me.get_options();
 					let name = me.get_input_value();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
-				if(!me.$input.val()) {
+				if (!me.$input.val()) {
 					me.$input.val("").trigger("input");
 				}
 			}, 500);
 		});
-		this.$input.on("blur", function() {
+		this.$input.on("blur", function () {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
-			setTimeout(function() {
+			setTimeout(function () {
 				me.$link.toggle(false);
 			}, 500);
 		});
@@ -65,7 +65,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 	}
 	setup_buttons() {
-		if(this.only_input && !this.with_link_btn) {
+		if (this.only_input && !this.with_link_btn) {
 			this.$input_area.find(".link-btn").remove();
 		}
 	}
@@ -78,11 +78,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 		this.set_link_title(value);
 	}
+
+	get_translated(value) {
+		return this.df.translatable ? __(value) : value;
+	}
+
 	set_link_title(value) {
 		let doctype = this.get_options();
 		if (!doctype) return;
 
-		let translated_link_text = __(value);
+		let translated_link_text = this.get_translated(value);
 
 		if (in_list(frappe.boot.link_title_doctypes, doctype)) {
 			let link_title = frappe.utils.get_link_title(doctype, value);
@@ -91,12 +96,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				link_title = frappe.utils
 					.fetch_link_title(doctype, value)
 					.then(link_title => {
-						translated_link_text = __(link_title);
+						translated_link_text = this.get_translated(link_title);
 						this.set_input_value(translated_link_text);
 						this.title_value_map[translated_link_text] = value;
 					});
 			} else {
-				translated_link_text = __(link_title);
+				translated_link_text = this.get_translated(link_title);
 				this.set_input_value(translated_link_text);
 				this.title_value_map[translated_link_text] = value;
 			}
@@ -108,12 +113,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	parse_validate_and_set_in_model(value, e, label) {
 		if (this.parse) value = this.parse(value, label);
 		if (label) {
-			console.log(value, label, __(label))
-			this.label = __(label);
+			this.label = this.get_translated(label);
 			frappe.utils.add_link_title(this.df.options, value, label);
 		}
 
-		return this.validate_and_set_in_model(value, e);
+		return this.validate_and_set_in_model(value, e, true);
 	}
 	get_input_value() {
 		if (this.$input) {
@@ -130,7 +134,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	open_advanced_search() {
 		let doctype = this.get_options();
-		if(!doctype) return;
+		if (!doctype) return;
 		new frappe.ui.form.LinkSelector({
 			doctype: doctype,
 			target: this,
@@ -186,20 +190,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			},
 			data: function (item) {
 				return {
-					label: __(item.label || item.value),
+					label: me.df.translatable ? __(item.label || item.value) : item.label || item.value,
 					value: item.value
 				};
 			},
-			filter: function() {
+			filter: function () {
 				return true;
 			},
 			item: function (item) {
 				let d = this.get_item(item.value);
-				if(!d.label) {	d.label = d.value; }
+				if (!d.label) { d.label = d.value; }
 
 				let _label = __(d.label);
 				let html = d.html || "<strong>" + _label + "</strong>";
-				if(d.description && d.value!==d.description) {
+				if (d.description && d.value !== d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
 				return $('<li></li>')
@@ -208,23 +212,23 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					.html(`<a><p title="${_label}">${html}</p></a>`)
 					.get(0);
 			},
-			sort: function() {
+			sort: function () {
 				return 0;
 			}
 		});
 
 		this.custom_awesomplete_filter && this.custom_awesomplete_filter(this.awesomplete);
 
-		this.$input.on("input", frappe.utils.debounce(function(e) {
+		this.$input.on("input", frappe.utils.debounce(function (e) {
 			let doctype = me.get_options();
-			if(!doctype) return;
+			if (!doctype) return;
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
 
 			let term = e.target.value;
 
-			if (me.$input.cache[doctype][term]!=null) {
+			if (me.$input.cache[doctype][term] != null) {
 				// immediately show from cache
 				me.awesomplete.list = me.$input.cache[doctype][term];
 			}
@@ -239,11 +243,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			frappe.call({
 				type: "POST",
-				method:'frappe.desk.search.search_link',
+				method: 'frappe.desk.search.search_link',
 				no_spinner: true,
 				args: args,
-				callback: function(r) {
-					if(!me.$input.is(":focus")) {
+				callback: function (r) {
+					if (!me.$input.is(":focus")) {
 						return;
 					}
 					r.results = me.merge_duplicates(r.results);
@@ -255,13 +259,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 							r.results.push({
 								html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
 								value: '',
-								action: () => {}
+								action: () => { }
 							});
 						}
 					}
 
-					if(!me.df.only_select) {
-						if(frappe.model.can_create(doctype)) {
+					if (!me.df.only_select) {
+						if (frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({
 								html: "<span class='text-primary link-option'>"
@@ -295,7 +299,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			});
 		}, 500));
 
-		this.$input.on("blur", function() {
+		this.$input.on("blur", function () {
 			if (me.selected) {
 				me.selected = false;
 				return;
@@ -311,7 +315,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			this.autocomplete_open = false;
 		});
 
-		this.$input.on("awesomplete-select", function(e) {
+		this.$input.on("awesomplete-select", function (e) {
 			var o = e.originalEvent;
 			var item = me.awesomplete.get_item(o.text.value);
 
@@ -335,18 +339,23 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			// then add this value
 			// to defaults so you do not need to set it again
 			// unless it is changed.
-			if(me.df.remember_last_selected_value) {
+			if (me.df.remember_last_selected_value) {
 				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
 			me.parse_validate_and_set_in_model(item.value, null, item.label);
 		});
 
-		this.$input.on("awesomplete-selectcomplete", function(e) {
+		this.$input.on("awesomplete-selectcomplete", function (e) {
 			let o = e.originalEvent;
 			if (o.text.value.indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
+		});
+
+		this.$input.on("focus", function () {
+			let value = me.get_input_value();
+			me.df.translatable && me.set_input_value(value);
 		});
 	}
 
@@ -422,7 +431,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			let label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
 
 			if (docfield && docfield.fieldtype === 'Check') {
-				filter[3] = filter[3] ? __('Yes'): __('No');
+				filter[3] = filter[3] ? __('Yes') : __('No');
 			}
 
 			if (filter[3] && Array.isArray(filter[3]) && filter[3].length > 5) {
@@ -465,14 +474,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			});
 			return obj;
 		};
-		if(this.get_query || this.df.get_query) {
+		if (this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
-			if($.isPlainObject(get_query)) {
+			if ($.isPlainObject(get_query)) {
 				var filters = null;
-				if(get_query.filters) {
+				if (get_query.filters) {
 					// passed as {'filters': {'key':'value'}}
 					filters = get_query.filters;
-				} else if(get_query.query) {
+				} else if (get_query.query) {
 
 					// passed as {'query': 'path.to.method'}
 					args.query = get_query;
@@ -491,23 +500,23 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// add "filters" for standard query (search.py)
 					args.filters = filters;
 				}
-			} else if(typeof(get_query)==="string") {
+			} else if (typeof (get_query) === "string") {
 				args.query = get_query;
 			} else {
 				// get_query by function
 				var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
 
-				if (typeof(q)==="string") {
+				if (typeof (q) === "string") {
 					// returns a string
 					args.query = q;
-				} else if($.isPlainObject(q)) {
+				} else if ($.isPlainObject(q)) {
 					// returns a plain object with filters
-					if(q.filters) {
+					if (q.filters) {
 						set_nulls(q.filters);
 					}
 
 					// turn off value translation
-					if(q.translate_values !== undefined) {
+					if (q.translate_values !== undefined) {
 						this.translate_values = q.translate_values;
 					}
 
@@ -519,9 +528,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 			}
 		}
-		if(this.df.filters) {
+		if (this.df.filters) {
 			set_nulls(this.df.filters);
-			if(!args.filters) args.filters = {};
+			if (!args.filters) args.filters = {};
 			$.extend(args.filters, this.df.filters);
 		}
 	}
@@ -529,7 +538,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// validate the value just entered
 		if (
 			this._validated
-			|| this.df.options=="[Select]"
+			|| this.df.options == "[Select]"
 			|| this.df.ignore_link_validation
 		) {
 			return value;
@@ -595,8 +604,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 };
 
 if (Awesomplete) {
-	Awesomplete.prototype.get_item = function(value) {
-		return this._list.find(function(item) {
+	Awesomplete.prototype.get_item = function (value) {
+		return this._list.find(function (item) {
 			return item.value === value;
 		});
 	};
