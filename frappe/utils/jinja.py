@@ -97,13 +97,10 @@ def get_jloader():
 	if not getattr(frappe.local, 'jloader', None):
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-		if frappe.local.flags.in_setup_help:
-			apps = ['frappe']
-		else:
-			apps = frappe.get_hooks('template_apps')
-			if not apps:
-				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
-				apps.reverse()
+		apps = frappe.get_hooks('template_apps')
+		if not apps:
+			apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
+			apps.reverse()
 
 		if "frappe" not in apps:
 			apps.append('frappe')
@@ -124,15 +121,13 @@ def set_filters(jenv):
 	import frappe
 	from frappe.utils import cint, cstr, flt
 
-	jenv.filters["json"] = frappe.as_json
-	jenv.filters["len"] = len
-	jenv.filters["int"] = cint
-	jenv.filters["str"] = cstr
-	jenv.filters["flt"] = flt
-
-	if frappe.flags.in_setup_help:
-		return
-
+	jenv.filters.update({
+		"json": frappe.as_json,
+		"len": len,
+		"int": cint,
+		"str": cstr,
+		"flt": flt,
+	})
 
 def get_jinja_hooks():
 	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
