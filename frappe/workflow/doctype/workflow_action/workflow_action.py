@@ -171,8 +171,10 @@ def get_allowed_roles(user, workflow, workflow_state):
 
 	allowed_roles = frappe.get_all('Workflow Transition',
 		fields='allowed',
-		filters=[['parent', '=', workflow],
-		['next_state', '=', workflow_state]],
+		filters=[
+			['parent', '=', workflow],
+			['next_state', '=', workflow_state]
+		],
 		pluck = 'allowed')
 
 	user_roles = set(frappe.get_roles(user))
