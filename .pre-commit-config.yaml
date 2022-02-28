@@ -1,0 +1,18 @@
+exclude: 'node_modules|.git'
+default_stages: [commit]
+fail_fast: false
+
+
+repos:
+  - repo: https://github.com/jazzband/pip-tools
+    rev: 6.5.1
+    hooks:
+      - id: pip-compile
+        name: pip-compile requirements.in
+        args: [requirements.in]
+        files: ^requirements\.(in|txt)$
+
+ci:
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false
