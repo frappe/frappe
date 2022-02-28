@@ -510,3 +510,16 @@ class TestLinkTitle(unittest.TestCase):
 		todo.delete()
 		user.delete()
 		prop_setter.delete()
+
+
+class FrappeTestCase(unittest.TestCase):
+	"""Base test class for Frappe tests."""
+	@classmethod
+	def setUpClass(cls) -> None:
+		frappe.db.commit()
+		return super().setUpClass()
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		frappe.db.rollback()
+		return super().tearDownClass()
