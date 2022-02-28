@@ -144,7 +144,7 @@ $.extend(frappe.meta, {
 
 	get_doctype_for_field: function(doctype, key) {
 		var out = null;
-		if(in_list(frappe.model.std_fields_list, key)) {
+		if (in_list(frappe.model.std_fields_list, key)) {
 			// standard
 			out = doctype;
 		} else if(frappe.meta.has_field(doctype, key)) {
@@ -152,7 +152,7 @@ $.extend(frappe.meta, {
 			out = doctype;
 		} else {
 			frappe.meta.get_table_fields(doctype).every(function(d) {
-				if(frappe.meta.has_field(d.options, key)) {
+				if (frappe.meta.has_field(d.options, key) || in_list(frappe.model.child_table_field_list, key)) {
 					out = d.options;
 					return false;
 				}

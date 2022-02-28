@@ -653,7 +653,7 @@ def get_backup_path():
 
 @frappe.whitelist()
 def get_backup_encryption_key():
-	frappe.only("System Manager")
+	frappe.only_for("System Manager")
 	return frappe.conf.encryption_key
 
 class Backup:

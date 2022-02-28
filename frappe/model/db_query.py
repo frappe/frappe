@@ -330,7 +330,7 @@ class DatabaseQuery(object):
 					table_name = table_name[7:]
 				if not table_name[0]=='`':
 					table_name = f"`{table_name}`"
-				if not table_name in self.tables:
+				if table_name not in self.tables:
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -428,7 +428,7 @@ class DatabaseQuery(object):
 		f = get_filter(self.doctype, f, additional_filters_config)
 
 		tname = ('`tab' + f.doctype + '`')
-		if not tname in self.tables:
+		if tname not in self.tables:
 			self.append_table(tname)
 
 		if 'ifnull(' in f.fieldname:

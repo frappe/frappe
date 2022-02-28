@@ -79,7 +79,7 @@ class UserPermissions:
 		for r in get_valid_perms():
 			dt = r['parent']
 
-			if not dt in self.perm_map:
+			if dt not in self.perm_map:
 				self.perm_map[dt] = {}
 
 			for k in frappe.permissions.rights:

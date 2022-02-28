@@ -1154,7 +1154,7 @@ class Document(BaseDocument):
 				for f in hooks:
 					add_to_return_value(self, f(self, method, *args, **kwargs))
 
-				return self._return_value
+				return self.__dict__.pop("_return_value", None)
 
 			return runner
 

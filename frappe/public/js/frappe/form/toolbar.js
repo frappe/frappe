@@ -101,10 +101,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
 				doctype,
 				docname,
-				new_name,
-				title_field,
-				old_title: this.frm.doc[title_field],
-				new_title,
+				name: new_name,
+				title: new_title,
 				merge
 			}).then(new_docname => {
 				if (new_name != docname) {

@@ -20,11 +20,13 @@ class TestDomain(unittest.TestCase):
 		mail_domain = frappe.get_doc("Email Domain", "test.com")
 		mail_account = frappe.get_doc("Email Account", "Test")
 
-		# Initially, incoming_port is different in domain and account
-		self.assertNotEqual(mail_account.incoming_port, mail_domain.incoming_port)
+		# Ensure a different port
+		mail_account.incoming_port = int(mail_domain.incoming_port) + 5
+		mail_account.save()
 		# Trigger update of accounts using this domain
 		mail_domain.on_update()
-		mail_account = frappe.get_doc("Email Account", "Test")
+
+		mail_account.reload()
 		# After update, incoming_port in account should match the domain
 		self.assertEqual(mail_account.incoming_port, mail_domain.incoming_port)
 

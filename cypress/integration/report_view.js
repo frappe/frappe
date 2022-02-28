@@ -29,6 +29,7 @@ context('Report View', () => {
 		// select the cell
 		cell.dblclick();
 		cell.get('.dt-cell__edit--col-4').findByRole('checkbox').check({ force: true });
+		cy.get('.dt-row-0 > .dt-cell--col-3').click(); // click outside
 
 		cy.wait('@value-update');
 
