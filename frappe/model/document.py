@@ -861,8 +861,6 @@ class Document(BaseDocument):
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
 
-		kwargs.pop("flags", None)
-
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
 
