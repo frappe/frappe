@@ -237,3 +237,10 @@ class TestRenameDoc(unittest.TestCase):
 
 			update_linked_doctypes("User", "ToDo", "str", "str")
 			self.assertTrue("Function frappe.model.rename_doc.update_linked_doctypes" in stdout.getvalue())
+
+	def test_doc_rename(self):
+		name = choice(self.available_documents)
+		new_name = f"{name}-{frappe.generate_hash(length=4)}"
+		doc = frappe.get_doc(self.test_doctype, name)
+		doc.rename(new_name, merge=frappe.db.exists(self.test_doctype, new_name))
+		self.assertEqual(doc.name, new_name)
