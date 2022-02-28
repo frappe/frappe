@@ -35,7 +35,7 @@ def get_permission_query_conditions(user):
 	WorkflowAction = DocType("Workflow Action")
 	WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
 
-	names_query = (frappe.qb.from_(WorkflowAction)
+	permitted_workflow_actions = (frappe.qb.from_(WorkflowAction)
 		.join(WorkflowActionPermittedRole)
 		.on(WorkflowAction.name == WorkflowActionPermittedRole.parent)
 		.select(WorkflowAction.name)
