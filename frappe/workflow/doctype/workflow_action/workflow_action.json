@@ -12,7 +12,8 @@
   "column_break_5",
   "completed_by_role",
   "completed_by",
-  "permitted_roles"
+  "permitted_roles",
+  "user"
  ],
  "fields": [
   {
@@ -34,6 +35,14 @@
    "in_list_view": 1,
    "label": "Reference Document Type",
    "options": "DocType"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "User",
+   "options": "User",
+   "search_index": 1
   },
   {
    "fieldname": "workflow_state",
