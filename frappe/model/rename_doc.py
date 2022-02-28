@@ -48,7 +48,7 @@ def update_document_title(
 	name_updated = updated_name != doc.name
 
 	if name_updated:
-		docname = rename_doc(doc=doc, new=updated_name, merge=merge)
+		doc.rename(updated_name, merge=merge)
 
 	if title_updated:
 		try:
@@ -63,7 +63,7 @@ def update_document_title(
 				)
 			raise
 
-	return docname
+	return doc.name
 
 def rename_doc(
 	doctype: Optional[str] = None,
