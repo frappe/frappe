@@ -48,6 +48,14 @@ class TestRenameDoc(unittest.TestCase):
 		# data generation: for base and merge tests
 		self.available_documents = []
 		self.test_doctype = "ToDo"
+		self.property_setter = frappe.get_doc({
+			"doctype":"Property Setter",
+			"doctype_or_field": "DocType",
+			"doc_type": self.test_doctype,
+			"property": "allow_rename",
+			"property_type": "Check",
+			"value": "1",
+		}).insert()
 
 		for num in range(1, 5):
 			doc = frappe.get_doc({
@@ -85,6 +93,7 @@ class TestRenameDoc(unittest.TestCase):
 		# delete the documents created
 		for docname in self.available_documents:
 			frappe.delete_doc(self.test_doctype, docname)
+		self.property_setter.delete()
 
 		for dt in self.doctype.values():
 			if frappe.db.exists("DocType", dt):
