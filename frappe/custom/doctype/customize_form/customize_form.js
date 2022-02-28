@@ -134,7 +134,7 @@ frappe.ui.form.on("Customize Form", {
 			);
 
 			frm.add_custom_button(
-				__("Reset Property Setters"),
+				__("Reset to defaults"),
 				function() {
 					frappe.customize_form.confirm(
 						__("Remove all customizations?"),
@@ -315,9 +315,9 @@ frappe.customize_form.confirm = function(msg, frm) {
 	if (!frm.doc.doc_type) return;
 
 	var d = new frappe.ui.Dialog({
-		title: 'Reset Property Setters',
+		title: 'Reset To Defaults',
 		fields: [
-			{fieldtype:"HTML", options:__("All property setters will be removed. Please confirm.")},
+			{fieldtype:"HTML", options:__("All customizations will be removed. Please confirm.")},
 		],
 		primary_action: function() {
 			return frm.call({
@@ -328,7 +328,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 						frappe.msgprint(r.exc);
 					} else {
 						d.hide();
-						frappe.show_alert({message:__('Property Setters Reset'), indicator:'green'});
+						frappe.show_alert({message:__('Customizations Reset'), indicator:'green'});
 						frappe.customize_form.clear_locals_and_refresh(frm);
 					}
 				}

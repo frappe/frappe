@@ -487,11 +487,20 @@ def reset_customization(doctype):
 	setters = frappe.get_all("Property Setter", filters={
 		'doc_type': doctype,
 		'field_name': ['!=', 'naming_series'],
-		'property': ['!=', 'options']
+		'property': ['!=', 'options'],
+		'owner': ['!=', 'Administrator']
 	}, pluck='name')
 
 	for setter in setters:
 		frappe.delete_doc("Property Setter", setter)
+
+	custom_fields = frappe.get_all("Custom Field", filters={
+		'dt': doctype,
+		'owner': ['!=', 'Administrator']
+	}, pluck='name')
+
+	for field in custom_fields:
+		frappe.delete_doc("Custom Field", field)
 
 	frappe.clear_cache(doctype=doctype)
 
