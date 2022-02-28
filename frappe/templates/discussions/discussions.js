@@ -4,8 +4,6 @@ frappe.ready(() => {
 
 	add_color_to_avatars();
 
-	expand_first_discussion();
-
 	$(".search-field").keyup((e) => {
 		search_topic(e);
 	});
@@ -14,11 +12,11 @@ frappe.ready(() => {
 		show_new_topic_modal(e);
 	});
 
-	$("#login-from-discussion").click((e) => {
+	$(".login-from-discussion").click((e) => {
 		login_from_discussion(e);
 	});
 
-	$(".sidebar-topic").click((e) => {
+	$(".sidebar-parent").click((e) => {
 		if ($(e.currentTarget).attr("aria-expanded") == "true") {
 			e.stopPropagation();
 		}
@@ -50,13 +48,11 @@ frappe.ready(() => {
 		clear_comment_box();
 	});
 
-	if ($(document).width() <= 550) {
-		$(document).on("click", ".sidebar-parent", () => {
-			hide_sidebar();
-		});
-	}
+	$(document).on("click", ".sidebar-parent", () => {
+		hide_sidebar();
+	});
 
-	$(document).on("click", ".back", (e) => {
+	$(document).on("click", ".back-button", (e) => {
 		back_to_sidebar(e);
 	});
 
@@ -97,8 +93,7 @@ const publish_message = (data) => {
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
 		post_message_cleanup();
 		data.template = style_avatar_frame(data.template);
-		$('<div class="card-divider-dark mb-8"></div>' + data.template)
-			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
+		$(data.template).insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
 	} else if (!first_topic && !single_thread && document_match_found) {
 		post_message_cleanup();
@@ -139,15 +134,6 @@ const update_reply_count = (topic) => {
 	let reply_count = $(`[data-target='#t${topic}']`).find(".reply-count").text();
 	reply_count = parseInt(reply_count) + 1;
 	$(`[data-target='#t${topic}']`).find(".reply-count").text(reply_count);
-};
-
-const expand_first_discussion = () => {
-	if ($(document).width() > 550) {
-		$($(".discussions-parent .collapse")[0]).addClass("show");
-		$($(".discussions-sidebar [data-toggle='collapse']")[0]).attr("aria-expanded", true);
-	} else {
-		$("#discussion-group").addClass("hide");
-	}
 };
 
 const search_topic = (e) => {
