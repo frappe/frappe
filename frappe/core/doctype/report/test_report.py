@@ -330,7 +330,8 @@ result = [
 			}
 		]
 
-		result = add_total_row(result, columns, meta=None, report_settings=report_settings)
+		result = add_total_row(result, columns, meta=None, is_tree=report_settings['tree'],
+			parent_field=report_settings['parent_field'])
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
