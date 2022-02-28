@@ -84,7 +84,7 @@ def add(args=None):
 				shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user
-			if frappe.db.get_value("User", assign_to, "follow_assigned_documents", ignore=True):
+			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
 				follow_document(args['doctype'], args['name'], assign_to)
 
 			# notify
