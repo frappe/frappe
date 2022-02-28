@@ -36,7 +36,7 @@ from frappe.query_builder import (
 	patch_query_aggregation,
 )
 
-__version__ = '14.0.0-dev'
+__version__ = '14.0.0-beta.2'
 
 __title__ = "Frappe Framework"
 
