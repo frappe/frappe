@@ -12,7 +12,7 @@ context('Control Link', () => {
 		}).as('todos');
 	});
 
-	function get_dialog_with_link() {
+	function get_dialog_with_link(translatable) {
 		return cy.dialog({
 			title: 'Link',
 			fields: [
@@ -20,7 +20,8 @@ context('Control Link', () => {
 					'label': 'Select ToDo',
 					'fieldname': 'link',
 					'fieldtype': 'Link',
-					'options': 'ToDo'
+					'options': 'ToDo',
+					'translatable': translatable || false
 				}
 			]
 		});
@@ -228,11 +229,13 @@ context('Control Link', () => {
 			"value": "1"
 		}, true);
 
-		cy.insert_doc("Translation", {
-			doctype: "Translation",
-			language: "en",
-			source_text: "this is a test todo for link",
-			translated_text: "this is a translated test todo for link",
+		cy.window().its('frappe').then(frappe => {
+			cy.insert_doc("Translation", {
+				doctype: "Translation",
+				language: frappe.boot.lang,
+				source_text: "this is a test todo for link",
+				translated_text: "this is a translated test todo for link",
+			});
 		});
 
 		cy.window().its('frappe').then(frappe => {
@@ -246,7 +249,7 @@ context('Control Link', () => {
 		});
 
 		cy.reload();
-		get_dialog_with_link().as('dialog');
+		get_dialog_with_link(true).as('dialog');
 		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
