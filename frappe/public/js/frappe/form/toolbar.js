@@ -98,6 +98,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		let rename_document = () => {
+			frappe.socketio.doc_subscribe(doctype, new_name);
+			frappe.realtime.on("doc_update", data => {
+				if (data.doctype == doctype && data.name == new_name) {
+					$(document).trigger("rename", [doctype, docname, new_name]);
+					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
+					this.frm.reload_doc();
+					frappe.show_alert(
+						__('Document renamed from {0} to {1}', [docname.bold(), new_name.bold()])
+					)
+				}
+			});
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
 				doctype,
 				docname,

@@ -11,6 +11,7 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.query_builder import Field
 from frappe.utils import cint
 from frappe.utils.password import rename_password
+from frappe.utils.scheduler import is_scheduler_inactive
 
 if TYPE_CHECKING:
 	from frappe.model.meta import Meta
@@ -48,7 +49,10 @@ def update_document_title(
 	name_updated = updated_name != doc.name
 
 	if name_updated:
-		doc.rename(updated_name, merge=merge)
+		if is_scheduler_inactive():
+			doc.rename(updated_name, merge=merge)
+		else:
+			doc.queue_action("rename", name=updated_name, merge=merge)
 
 	if title_updated:
 		try:
