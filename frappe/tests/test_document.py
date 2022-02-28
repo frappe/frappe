@@ -321,3 +321,74 @@ class TestDocument(unittest.TestCase):
 
 		# limit with filters
 		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
+<<<<<<< HEAD
+=======
+
+	def test_virtual_fields(self):
+		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
+		"""
+		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
+
+		def patch_note():
+			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
+
+		@contextmanager
+		def customize_note(with_options=False):
+			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
+			custom_field = frappe.get_doc({
+				"doctype": "Custom Field",
+				"dt": "Note",
+				"fieldname": "age",
+				"fieldtype": "Data",
+				"read_only": True,
+				"is_virtual": True,
+				"options": options,
+			})
+
+			try:
+				yield custom_field.insert(ignore_if_duplicate=True)
+			finally:
+				custom_field.delete()
+
+		with patch_note():
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomTestNote)
+			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsNone(doc.as_dict().get("age"))
+			self.assertIsNone(doc.get_valid_dict().get("age"))
+
+		with customize_note(), patch_note():
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomTestNote)
+			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+		with customize_note(with_options=True):
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, Note)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+	def test_run_method(self):
+		doc = frappe.get_last_doc("User")
+
+		# Case 1: Override with a string
+		doc.as_dict = ""
+
+		# run_method should throw TypeError
+		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
+
+		# Case 2: Override with a function
+		def my_as_dict(*args, **kwargs):
+			return "success"
+
+		doc.as_dict = my_as_dict
+
+		# run_method should get overridden
+		self.assertEqual(doc.run_method("as_dict"), "success")
+>>>>>>> c6049d7e7c (fix: always execute method if found in `__dict__` (#15958))
