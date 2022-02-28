@@ -9,10 +9,11 @@
  "field_order": [
   "post_details_section",
   "title",
-  "description",
+  "post_type",
+  "post_description",
+  "event_description",
   "section_break_3",
   "banner",
-  "post_type",
   "event_date",
   "event_time",
   "column_break_6",
@@ -29,13 +30,6 @@
    "label": "Title",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Text Editor",
-   "in_list_view": 1,
-   "label": "Description",
-   "reqd": 1
   },
   {
    "fieldname": "section_break_3",
@@ -97,8 +91,7 @@
    "fieldname": "event_date",
    "fieldtype": "Date",
    "label": "Event Date",
-   "mandatory_depends_on": "eval: doc.post_type == \"Upcoming Event\"",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.post_type == \"Upcoming Event\""
   },
   {
    "depends_on": "eval: doc.post_type == \"Upcoming Event\"",
@@ -112,12 +105,29 @@
    "fieldname": "post_details_section",
    "fieldtype": "Section Break",
    "label": "Post Details"
+  },
+  {
+   "depends_on": "eval: doc.post_type == 'Version Update'",
+   "fieldname": "post_description",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "Post Description",
+   "mandatory_depends_on": "eval: doc.post_type == 'Version Update'"
+  },
+  {
+   "depends_on": "eval: doc.post_type == 'Upcoming Event'",
+   "description": "Limited to 250 characters",
+   "fieldname": "event_description",
+   "fieldtype": "Data",
+   "label": "Event Description",
+   "max_height": "25px",
+   "width": "50px"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-02-21 13:44:37.643635",
+ "modified": "2022-02-28 12:19:59.508746",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Whats New",

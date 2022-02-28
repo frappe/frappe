@@ -7,7 +7,7 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 	new WhatsNew(page);
 }
 
-const host = "https://test-st.frappe.cloud";
+const host = "http://test-st.frappe.cloud";
 const month_list = {
 	0 : 'Jan',
 	1 : 'Feb',
@@ -183,7 +183,7 @@ class WhatsNew {
 						<div class="whats-new-post-tags">${this.get_tags(post.tags)}</div>
 						<div class="whats-new-post-content">
 							<div class="whats-new-post-description">
-								${post.description || ''}
+								${post.post_description || ''}
 								${this.get_source_link(post.source_link)}
 							</div>
 							${this.get_post_media(post) || ''}
@@ -226,7 +226,7 @@ class WhatsNew {
 								</div>
 								<div class="whats-new-event-content">
 									<div class="whats-new-event-description">
-										${event.description || ''}
+										${event.event_description || ''}
 										${this.get_source_link(event.source_link)}
 									</div>
 									${this.get_event_date_time(event)}

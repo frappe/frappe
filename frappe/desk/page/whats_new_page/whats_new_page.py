@@ -5,11 +5,11 @@ import frappe
 from frappe.utils.data import get_link_to_form
 import requests
 from frappe import _
-from datetime import datetime, date
+from datetime import datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_whats_new_posts():
-	host = "https://test-st.frappe.cloud"
+	host = "http://test-st.frappe.cloud"
 	post_list = []
 
 	try:
@@ -25,17 +25,17 @@ def get_whats_new_posts():
 	date_found = 0
 	closest_upcoming_events = []
 	for event in event_list:
-		if datetime.strptime(event.get("event_date"), "%Y-%m-%d") >= today and not date_found:
+		if datetime.strptime(event.get("event_date"), "%Y-%m-%d").date() >= today.date() and not date_found:
 			date_found = 1
 		if date_found:
 			closest_upcoming_events.append(event)
 	closest_upcoming_events = reversed(closest_upcoming_events)
+
 	return post_list, closest_upcoming_events
 
 
 @frappe.whitelist(allow_guest=True)
 def add_whats_new_event_to_calendar(date, time, title):
-	print('DATETIEM', date,time)
 	if date == "undefined":
 		frappe.throw(_("Date is not in vaild format"))
 	if time == "undefined":
