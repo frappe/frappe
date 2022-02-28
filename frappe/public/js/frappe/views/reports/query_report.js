@@ -583,6 +583,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
+					is_tree: this.report_settings.tree,
+					parent_field: this.report_settings.parent_field
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
@@ -839,7 +841,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
 
-		if (this.raw_data.add_total_row) {
+		if (this.raw_data.add_total_row && !this.report_settings.tree) {
 			data = data.slice();
 			data.splice(-1, 1);
 		}
@@ -859,7 +861,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				treeView: this.tree_report,
 				layout: 'fixed',
 				cellHeight: 33,
-				showTotalRow: this.raw_data.add_total_row,
+				showTotalRow: this.raw_data.add_total_row && !this.report_settings.tree,
 				direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 				hooks: {
 					columnTotal: frappe.utils.report_column_total

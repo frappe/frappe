@@ -6,19 +6,17 @@
  "field_order": [
   "is_table_field",
   "section_break_2",
-  "parent_field",
-  "field",
+  "parent_fieldname",
+  "fieldname",
   "title",
   "description",
   "column_break_2",
   "position",
   "label",
+  "fieldtype",
   "has_next_condition",
   "next_step_condition",
   "section_break_13",
-  "fieldname",
-  "parent_fieldname",
-  "fieldtype",
   "child_doctype"
  ],
  "fields": [
@@ -38,23 +36,13 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval: (!doc.is_table_field || (doc.is_table_field && doc.parent_field))",
-   "fieldname": "field",
-   "fieldtype": "Link",
-   "label": "Field",
-   "options": "DocField",
+   "depends_on": "eval: (!doc.is_table_field || (doc.is_table_field && doc.parent_fieldname))",
+   "fieldname": "fieldname",
+   "fieldtype": "Select",
+   "label": "Fieldname",
    "reqd": 1
   },
   {
-   "fetch_from": "field.fieldname",
-   "fieldname": "fieldname",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Fieldname",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "field.label",
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -88,10 +76,8 @@
   },
   {
    "default": "0",
-   "fetch_from": "field.fieldtype",
    "fieldname": "fieldtype",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Fieldtype",
    "read_only": 1
   },
@@ -106,21 +92,12 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "is_table_field",
-   "fieldname": "parent_field",
-   "fieldtype": "Link",
-   "label": "Parent Field",
-   "mandatory_depends_on": "is_table_field",
-   "options": "DocField"
-  },
-  {
    "fieldname": "section_break_13",
    "fieldtype": "Section Break",
    "hidden": 1,
    "label": "Hidden Fields"
   },
   {
-   "fetch_from": "parent_field.options",
    "fieldname": "child_doctype",
    "fieldtype": "Data",
    "hidden": 1,
@@ -128,18 +105,17 @@
    "read_only": 1
   },
   {
-   "fetch_from": "parent_field.fieldname",
+   "depends_on": "is_table_field",
    "fieldname": "parent_fieldname",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Parent Fieldname",
-   "read_only": 1
+   "fieldtype": "Select",
+   "label": "Parent Field",
+   "mandatory_depends_on": "is_table_field"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-06-06 20:52:21.076972",
+ "modified": "2022-01-27 15:18:36.481801",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour Step",
@@ -147,5 +123,6 @@
  "permissions": [],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

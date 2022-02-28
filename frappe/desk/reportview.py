@@ -6,7 +6,7 @@
 import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
-from frappe.model import default_fields, optional_fields
+from frappe.model import default_fields, optional_fields, child_table_fields
 from frappe import _
 from io import StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -19,7 +19,7 @@ from frappe.utils import add_user_info
 def get():
 	args = get_form_params()
 	# If virtual doctype get data from controller het_list method
-	if frappe.db.get_value("DocType", filters={"name": args.doctype}, fieldname="is_virtual"):
+	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = compress(controller(args.doctype).get_list(args))
 	else:
@@ -29,17 +29,31 @@ def get():
 @frappe.whitelist()
 @frappe.read_only()
 def get_list():
-	# uncompressed (refactored from frappe.model.db_query.get_list)
-	return execute(**get_form_params())
+	args = get_form_params()
+
+	if is_virtual_doctype(args.doctype):
+		controller = get_controller(args.doctype)
+		data = controller(args.doctype).get_list(args)
+	else:
+		# uncompressed (refactored from frappe.model.db_query.get_list)
+		data = execute(**args)
+
+	return data
 
 @frappe.whitelist()
 @frappe.read_only()
 def get_count():
 	args = get_form_params()
 
-	distinct = 'distinct ' if args.distinct=='true' else ''
-	args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
-	return execute(**args)[0].get('total_count')
+	if is_virtual_doctype(args.doctype):
+		controller = get_controller(args.doctype)
+		data = controller(args.doctype).get_count(args)
+	else:
+		distinct = 'distinct ' if args.distinct=='true' else ''
+		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
+		data = execute(**args)[0].get('total_count')
+
+	return data
 
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
@@ -142,7 +156,7 @@ def raise_invalid_field(fieldname):
 def is_standard(fieldname):
 	if '.' in fieldname:
 		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
-	return fieldname in default_fields or fieldname in optional_fields
+	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 def extract_fieldname(field):
 	for text in (',', '/*', '#'):
@@ -248,22 +262,66 @@ def compress(data, args=None):
 	}
 
 @frappe.whitelist()
-def save_report():
-	"""save report"""
+def save_report(name, doctype, report_settings):
+	"""Save reports of type Report Builder from Report View"""
 
-	data = frappe.local.form_dict
-	if frappe.db.exists('Report', data['name']):
-		d = frappe.get_doc('Report', data['name'])
+	if frappe.db.exists('Report', name):
+		report = frappe.get_doc('Report', name)
+		if report.is_standard == "Yes":
+			frappe.throw(_("Standard Reports cannot be edited"))
+
+		if report.report_type != "Report Builder":
+			frappe.throw(_("Only reports of type Report Builder can be edited"))
+
+		if (
+			report.owner != frappe.session.user
+			and not frappe.has_permission("Report", "write")
+		):
+			frappe.throw(
+				_("Insufficient Permissions for editing Report"),
+				frappe.PermissionError
+			)
 	else:
-		d = frappe.new_doc('Report')
-		d.report_name = data['name']
-		d.ref_doctype = data['doctype']
+		report = frappe.new_doc('Report')
+		report.report_name = name
+		report.ref_doctype = doctype
 
-	d.report_type = "Report Builder"
-	d.json = data['json']
-	frappe.get_doc(d).save()
-	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
-	return d.name
+	report.report_type = "Report Builder"
+	report.json = report_settings
+	report.save(ignore_permissions=True)
+	frappe.msgprint(
+		_("Report {0} saved").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
+	return report.name
+
+@frappe.whitelist()
+def delete_report(name):
+	"""Delete reports of type Report Builder from Report View"""
+
+	report = frappe.get_doc("Report", name)
+	if report.is_standard == "Yes":
+		frappe.throw(_("Standard Reports cannot be deleted"))
+
+	if report.report_type != "Report Builder":
+		frappe.throw(_("Only reports of type Report Builder can be deleted"))
+
+	if (
+		report.owner != frappe.session.user
+		and not frappe.has_permission("Report", "delete")
+	):
+		frappe.throw(
+			_("Insufficient Permissions for deleting Report"),
+			frappe.PermissionError
+		)
+
+	report.delete(ignore_permissions=True)
+	frappe.msgprint(
+		_("Report {0} deleted").format(frappe.bold(report.name)),
+		indicator="green",
+		alert=True,
+	)
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -305,7 +363,7 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [['Sr'] + get_labels(db_query.fields, doctype)]
+	data = [[_('Sr')] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
@@ -364,7 +422,8 @@ def get_labels(fields, doctype):
 	for key in fields:
 		key = key.split(" as ")[0]
 
-		if key.startswith(('count(', 'sum(', 'avg(')): continue
+		if key.startswith(('count(', 'sum(', 'avg(')):
+			continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -372,10 +431,16 @@ def get_labels(fields, doctype):
 			parenttype = doctype
 			fieldname = fieldname.strip("`")
 
-		df = frappe.get_meta(parenttype).get_field(fieldname)
-		label = df.label if df else fieldname.title()
-		if label in labels:
-			label = doctype + ": " + label
+		if parenttype == doctype and fieldname == "name":
+			label = _("ID", context="Label of name column in report")
+		else:
+			df = frappe.get_meta(parenttype).get_field(fieldname)
+			label = _(df.label if df else fieldname.title())
+			if parenttype != doctype:
+				# If the column is from a child table, append the child doctype.
+				# For example, "Item Code (Sales Invoice Item)".
+				label += f" ({ _(parenttype) })"
+
 		labels.append(label)
 
 	return labels
@@ -438,7 +503,14 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if filters is None:
 		filters = []
 
-	return {"stats": get_stats(stats, doctype, filters)}
+	if is_virtual_doctype(doctype):
+		controller = get_controller(doctype)
+		args = {"stats": stats, "filters": filters}
+		data = controller(doctype).get_stats(args)
+	else:
+		data = get_stats(stats, doctype, filters)
+
+	return {"stats": data}
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -461,7 +533,8 @@ def get_stats(stats, doctype, filters=None):
 		columns = []
 
 	for tag in tags:
-		if not tag in columns: continue
+		if tag not in columns:
+			continue
 		try:
 			tag_count = frappe.get_list(doctype,
 				fields=[tag, "count(*)"],
@@ -540,7 +613,7 @@ def scrub_user_tags(tagcount):
 		alltags = t.split(',')
 		for tag in alltags:
 			if tag:
-				if not tag in rdict:
+				if tag not in rdict:
 					rdict[tag] = 0
 
 				rdict[tag] += tagdict[t]
@@ -560,7 +633,7 @@ def get_match_cond(doctype, as_condition=True):
 	return ((' and ' + cond) if cond else "").replace("%", "%%")
 
 def build_match_conditions(doctype, user=None, as_condition=True):
-	match_conditions =  DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
+	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	else:
@@ -598,3 +671,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 	else:
 		cond = ''
 	return cond
+
+def is_virtual_doctype(doctype):
+	return frappe.db.get_value("DocType", doctype, "is_virtual")
+

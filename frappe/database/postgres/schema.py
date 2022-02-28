@@ -5,26 +5,39 @@ from frappe.database.schema import DBTable, get_definition
 
 class PostgresTable(DBTable):
 	def create(self):
-		add_text = ''
+		varchar_len = frappe.db.VARCHAR_LEN
 
+		additional_definitions = ""
 		# columns
 		column_defs = self.get_column_definitions()
-		if column_defs: add_text += ',\n'.join(column_defs)
+		if column_defs:
+			additional_definitions += ",\n".join(column_defs)
 
-		# TODO: set docstatus length
+		# child table columns
+		if self.meta.get("istable") or 0:
+			if column_defs:
+				additional_definitions += ",\n"
+
+			additional_definitions += ",\n".join(
+				(
+					f"parent varchar({varchar_len})",
+					f"parentfield varchar({varchar_len})",
+					f"parenttype varchar({varchar_len})",
+				)
+			)
+
 		# create table
-		frappe.db.sql("""create table `%s` (
+		frappe.db.sql(f"""create table `{self.table_name}` (
 			name varchar({varchar_len}) not null primary key,
 			creation timestamp(6),
 			modified timestamp(6),
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus smallint not null default '0',
-			parent varchar({varchar_len}),
-			parentfield varchar({varchar_len}),
-			parenttype varchar({varchar_len}),
 			idx bigint not null default '0',
-			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
+			{additional_definitions}
+			)"""
+		)
 
 		self.create_indexes()
 		frappe.db.commit()

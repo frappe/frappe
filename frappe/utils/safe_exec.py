@@ -139,7 +139,21 @@ def get_safe_globals():
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
-			log_error=frappe.log_error
+			log_error=frappe.log_error,
+			db = NamespaceDict(
+				get_list=frappe.get_list,
+				get_all=frappe.get_all,
+				get_value=frappe.db.get_value,
+				set_value=frappe.db.set_value,
+				get_single_value=frappe.db.get_single_value,
+				get_default=frappe.db.get_default,
+				exists=frappe.db.exists,
+				count=frappe.db.count,
+				escape=frappe.db.escape,
+				sql=read_sql,
+				commit=frappe.db.commit,
+				rollback=frappe.db.rollback,
+			),
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(
@@ -155,28 +169,10 @@ def get_safe_globals():
 		dev_server=1 if frappe._dev_server else 0,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
+		get_visible_columns=get_visible_columns,
 	)
 
 	add_module_properties(frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception))
-
-	if not frappe.flags.in_setup_help:
-		out.get_visible_columns = get_visible_columns
-		out.frappe.date_format = date_format
-		out.frappe.time_format = time_format
-		out.frappe.db = NamespaceDict(
-			get_list=frappe.get_list,
-			get_all=frappe.get_all,
-			get_value=frappe.db.get_value,
-			set_value=frappe.db.set_value,
-			get_single_value=frappe.db.get_single_value,
-			get_default=frappe.db.get_default,
-			exists=frappe.db.exists,
-			count=frappe.db.count,
-			escape=frappe.db.escape,
-			sql=read_sql,
-			commit=frappe.db.commit,
-			rollback=frappe.db.rollback,
-		)
 
 	if frappe.response:
 		out.frappe.response = frappe.response

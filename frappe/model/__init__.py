@@ -35,7 +35,8 @@ data_fieldtypes = (
 	'Barcode',
 	'Geolocation',
 	'Duration',
-	'Icon'
+	'Icon',
+	'Autocomplete',
 )
 
 attachment_fieldtypes = (
@@ -90,11 +91,14 @@ default_fields = (
 	'creation',
 	'modified',
 	'modified_by',
+	'docstatus',
+	'idx'
+)
+
+child_table_fields = (
 	'parent',
 	'parentfield',
-	'parenttype',
-	'idx',
-	'docstatus'
+	'parenttype'
 )
 
 optional_fields = (

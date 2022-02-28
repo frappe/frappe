@@ -41,6 +41,7 @@ if __name__ == "__main__":
 	# this is a push build, run all builds
 	if not pr_number:
 		os.system('echo "::set-output name=build::strawberry"')
+		os.system('echo "::set-output name=build-server::strawberry"')
 		sys.exit(0)
 
 	files_list = files_list or get_files_list(pr_number=pr_number, repo=repo)
@@ -52,7 +53,8 @@ if __name__ == "__main__":
 	ci_files_changed = any(f for f in files_list if is_ci(f))
 	only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
 	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
-	only_py_changed = len(list(filter(is_py, files_list))) == len(files_list)
+	updated_py_file_count = len(list(filter(is_py, files_list)))
+	only_py_changed = updated_py_file_count == len(files_list)
 
 	if ci_files_changed:
 		print("CI related files were updated, running all build processes.")
@@ -65,8 +67,12 @@ if __name__ == "__main__":
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 
-	elif only_py_changed and build_type == "ui":
-		print("Only Python code was updated, stopping Cypress build process.")
-		sys.exit(0)
+	elif build_type == "ui":
+		if only_py_changed:
+			print("Only Python code was updated, stopping Cypress build process.")
+			sys.exit(0)
+		elif updated_py_file_count > 0:
+			# both frontend and backend code were updated
+			os.system('echo "::set-output name=build-server::strawberry"')
 
 	os.system('echo "::set-output name=build::strawberry"')

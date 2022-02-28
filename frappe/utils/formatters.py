@@ -3,9 +3,11 @@
 
 import frappe
 import datetime
-from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time, format_duration
+from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time, format_duration, format_timedelta
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
+from dateutil.parser import ParserError
+
 
 def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
 	'''Format value based on given fieldtype, document reference, currency reference.
@@ -47,7 +49,10 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return format_datetime(value)
 
 	elif df.get("fieldtype")=="Time":
-		return format_time(value)
+		try:
+			return format_time(value)
+		except ParserError:
+			return format_timedelta(value)
 
 	elif value==0 and df.get("fieldtype") in ("Int", "Float", "Currency", "Percent") and df.get("print_hide_if_no_value"):
 		# this is required to show 0 as blank in table columns
@@ -83,9 +88,14 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return frappe.utils.markdown(value)
 
 	elif df.get("fieldtype") == "Table MultiSelect":
+		values = []
 		meta = frappe.get_meta(df.options)
 		link_field = [df for df in meta.fields if df.fieldtype == 'Link'][0]
-		values = [v.get(link_field.fieldname, 'asdf') for v in value]
+		for v in value:
+			v.update({'__link_titles': doc.get('__link_titles')})
+			formatted_value = frappe.format_value(v.get(link_field.fieldname, ''), link_field, v)
+			values.append(formatted_value)
+
 		return ', '.join(values)
 
 	elif df.get("fieldtype") == "Duration":
@@ -94,5 +104,20 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif df.get("fieldtype") == "Text Editor":
 		return "<div class='ql-snow'>{}</div>".format(value)
+
+	elif df.get("fieldtype") in ["Link", "Dynamic Link"]:
+		if not doc or not doc.get("__link_titles") or not df.options:
+			return value
+
+		doctype = df.options
+		if df.get("fieldtype") == "Dynamic Link":
+			if not df.parent:
+				return value
+
+			meta = frappe.get_meta(df.parent)
+			_field = meta.get_field(df.options)
+			doctype = _field.options
+
+		return doc.__link_titles.get("{0}::{1}".format(doctype, value), value)
 
 	return value

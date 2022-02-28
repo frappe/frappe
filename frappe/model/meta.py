@@ -14,16 +14,28 @@ Example:
 
 
 '''
+import json
+import os
 from datetime import datetime
+
 import click
-import frappe, json, os
-from frappe.utils import cstr, cint, cast
-from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
-from frappe.model.document import Document
-from frappe.model.base_document import BaseDocument
-from frappe.modules import load_doctype_module
-from frappe.model.workflow import get_workflow_name
+
+import frappe
 from frappe import _
+from frappe.model import (
+	child_table_fields,
+	data_fieldtypes,
+	default_fields,
+	no_value_fields,
+	optional_fields,
+	table_fields,
+)
+from frappe.model.base_document import BaseDocument
+from frappe.model.document import Document
+from frappe.model.workflow import get_workflow_name
+from frappe.modules import load_doctype_module
+from frappe.utils import cast, cint, cstr
+
 
 def get_meta(doctype, cached=True):
 	if cached:
@@ -191,6 +203,8 @@ class Meta(Document):
 			else:
 				self._valid_columns = self.default_fields + \
 					[df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes]
+				if self.istable:
+					self._valid_columns += list(child_table_fields)
 
 		return self._valid_columns
 
@@ -442,9 +456,16 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False):
-		return [df if with_field_meta else df.fieldname \
-			for df in self.fields if df.fieldtype not in no_value_fields]
+		def is_value_field(docfield):
+			return not (
+				docfield.get("is_virtual")
+				or docfield.fieldtype in no_value_fields
+			)
 
+		if with_field_meta:
+			return [df for df in self.fields if is_value_field(df)]
+
+		return [df.fieldname for df in self.fields if is_value_field(df)]
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
@@ -520,7 +541,7 @@ class Meta(Document):
 		'''add `links` child table in standard link dashboard format'''
 		dashboard_links = []
 
-		if hasattr(self, 'links') and self.links:
+		if getattr(self, 'links', None):
 			dashboard_links.extend(self.links)
 
 		if not data.transactions:
@@ -544,7 +565,7 @@ class Meta(Document):
 				# For internal links parent doctype will be the key
 				doctype = link.parent_doctype or link.link_doctype
 				# group found
-				if link.group and group.label == link.group:
+				if link.group and _(group.label) == _(link.group):
 					if doctype not in group.get('items'):
 						group.get('items').append(doctype)
 					link.added = True
@@ -625,9 +646,9 @@ def get_field_currency(df, doc=None):
 		frappe.local.field_currency = frappe._dict()
 
 	if not (frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname) or
-		(doc.parent and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname))):
+		(doc.get("parent") and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname))):
 
-		ref_docname = doc.parent or doc.name
+		ref_docname = doc.get("parent") or doc.name
 
 		if ":" in cstr(df.get("options")):
 			split_opts = df.get("options").split(":")
@@ -635,7 +656,7 @@ def get_field_currency(df, doc=None):
 				currency = frappe.get_cached_value(split_opts[0], doc.get(split_opts[1]), split_opts[2])
 		else:
 			currency = doc.get(df.get("options"))
-			if doc.parent:
+			if doc.get("parenttype"):
 				if currency:
 					ref_docname = doc.name
 				else:
@@ -648,7 +669,7 @@ def get_field_currency(df, doc=None):
 				.setdefault(df.fieldname, currency)
 
 	return frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname) or \
-		(doc.parent and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname))
+		(doc.get("parent") and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname))
 
 def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
@@ -669,18 +690,24 @@ def get_field_precision(df, doc=None, currency=None):
 
 
 def get_default_df(fieldname):
-	if fieldname in default_fields:
+	if fieldname in (default_fields + child_table_fields):
 		if fieldname in ("creation", "modified"):
 			return frappe._dict(
 				fieldname = fieldname,
 				fieldtype = "Datetime"
 			)
 
-		else:
+		elif fieldname in ("idx", "docstatus"):
 			return frappe._dict(
 				fieldname = fieldname,
-				fieldtype = "Data"
+				fieldtype = "Int"
 			)
+
+		return frappe._dict(
+			fieldname = fieldname,
+			fieldtype = "Data"
+		)
+
 
 def trim_tables(doctype=None, dry_run=False, quiet=False):
 	"""
@@ -713,7 +740,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 def trim_table(doctype, dry_run=True):
 	frappe.cache().hdel('table_columns', f"tab{doctype}")
-	ignore_fields = default_fields + optional_fields
+	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
 	is_internal = lambda f: f not in ignore_fields and not f.startswith("_")

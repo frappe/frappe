@@ -148,8 +148,6 @@ def update_tags(doc, tags):
 			"doctype": "Tag Link",
 			"document_type": doc.doctype,
 			"document_name": doc.name,
-			"parenttype": doc.doctype,
-			"parent": doc.name,
 			"title": doc.get_title() or '',
 			"tag": tag
 		}).insert(ignore_permissions=True)

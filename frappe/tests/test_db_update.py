@@ -103,10 +103,7 @@ def get_other_fields_meta(meta):
 	default_fields_map = {
 		'name': ('Data', 0),
 		'owner': ('Data', 0),
-		'parent': ('Data', 0),
-		'parentfield': ('Data', 0),
 		'modified_by': ('Data', 0),
-		'parenttype': ('Data', 0),
 		'creation': ('Datetime', 0),
 		'modified': ('Datetime', 0),
 		'idx': ('Int', 8),
@@ -117,8 +114,12 @@ def get_other_fields_meta(meta):
 	if meta.track_seen:
 		optional_fields.append('_seen')
 
+	child_table_fields_map = {}
+	if meta.istable:
+		child_table_fields_map.update({field: ('Data', 0) for field in frappe.db.CHILD_TABLE_COLUMNS})
+
 	optional_fields_map = {field: ('Text', 0) for field in optional_fields}
-	fields = dict(default_fields_map, **optional_fields_map)
+	fields = dict(default_fields_map, **optional_fields_map, **child_table_fields_map)
 	field_map =  [frappe._dict({'fieldname': field, 'fieldtype': _type, 'length': _length}) for field, (_type, _length) in fields.items()]
 
 	return field_map
