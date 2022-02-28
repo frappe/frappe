@@ -42,7 +42,7 @@ def get_permission_query_conditions(user):
 		.where(WorkflowActionPermittedRole.role.isin(roles))
 	).get_sql()
 
-	return "`tabWorkflow Action`.`name` in ({names_query})".format(names_query=names_query)
+	return f"`tabWorkflow Action`.`name` in ({permitted_workflow_actions})"
 
 def has_permission(doc, user):
 
