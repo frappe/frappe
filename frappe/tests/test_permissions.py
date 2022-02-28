@@ -4,7 +4,6 @@
 
 import frappe
 import frappe.defaults
-import unittest
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
 	clear_user_permissions_for_doctype, get_doc_permissions, add_permission, update_permission_property)
@@ -14,7 +13,7 @@ from frappe.core.doctype.user_permission.user_permission import clear_user_permi
 from frappe.desk.form.load import getdoc
 from frappe.utils.data import now_datetime
 
-from frappe.tests.test_utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
