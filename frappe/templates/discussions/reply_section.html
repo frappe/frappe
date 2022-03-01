@@ -1,7 +1,7 @@
 {% if topic %}
 
 {% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name},
-["reply", "owner", "creation"], order_by="creation")%}
+["reply", "owner", "creation", "name"], order_by="creation")%}
 
 {% endif %}
 

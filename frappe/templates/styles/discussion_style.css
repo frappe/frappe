@@ -1,24 +1,11 @@
-.thread-card {
-	flex-direction: column;
-	padding: 1rem;
-}
-
-.thread-card .form-control {
-	background-color: #FFFFFF;
-	font-size: inherit;
-	color: inherit;
-	padding: 0.75rem 1rem;
-	border-radius: 4px;
-	resize: none;
-}
-
 .modal .comment-field {
 	height: 300px;
 	resize: none;
 }
 
 .discussion-on-page .comment-field {
-	height: 48px;
+	height: 3rem;
+	padding: 1rem;
 }
 
 .modal .cancel-comment {
@@ -30,7 +17,7 @@
 }
 
 .cancel-comment {
-	font-size: 0.75rem;
+	font-size: var(--text-sm);
 	margin-right: 0.5rem;
 	cursor: pointer;
 }
@@ -75,11 +62,6 @@
 	align-items: center;
 }
 
-.sidebar-topic[aria-expanded="true"] {
-	background: #FFFFFF;
-	border-radius: 4px;
-}
-
 .comment-footer {
 	display: flex;
 	justify-content: space-between;
@@ -90,8 +72,8 @@
 	margin-bottom: 1.5rem;
 }
 
-.discussions-parent .collapsing {
-	transition: height 0s;
+.reply-card .dropdown {
+	float: right;
 }
 
 .discussion-topic-title {
@@ -110,16 +92,23 @@
 	padding: 1.5rem;
 }
 
-.discussions-sidebar .sidebar-parent:last-child .card-divider {
-	display: none;
+.submit-discussion {
+	cursor: pointer;
 }
 
-.reply-text {
+.reply-body {
 	background: var(--gray-100);
 	padding: 1rem;
 	border-radius: var(--border-radius);
-	font-size: 14px;
+	font-size: var(--text-md);
 	color: var(--gray-900);
+}
+
+.reply-actions {
+	display: flex;
+	align-items: center;
+	font-size: var(--text-sm);
+	margin-left: auto;
 }
 
 .reply-text h1 {
@@ -203,16 +192,6 @@
 	font-size: 12px;
 	line-height: 135%;
 	color: var(--gray-900);
-}
-
-.card-divider {
-	border-top: 1px solid var(--gray-200);
-	margin-bottom: 1rem;
-}
-
-.card-divider-dark {
-	border-top: 1px solid var(--gray-300);
-	margin-bottom: 1rem;
 }
 
 .discussions-parent .btn-default {

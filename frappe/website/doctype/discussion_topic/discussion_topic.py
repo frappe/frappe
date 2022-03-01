@@ -8,7 +8,12 @@ class DiscussionTopic(Document):
 	pass
 
 @frappe.whitelist()
-def submit_discussion(doctype, docname, reply, title, topic_name=None):
+def submit_discussion(doctype, docname, reply, title, topic_name=None, reply_name=None):
+
+	if reply_name:
+		frappe.db.set_value("Discussion Reply", reply_name, "reply", reply)
+		return
+
 	if topic_name:
 		save_message(reply, topic_name)
 		return topic_name

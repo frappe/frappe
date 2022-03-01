@@ -29,17 +29,6 @@ frappe.ready(() => {
 		}
 	});
 
-	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
-		if ($(e.currentTarget).val()) {
-			$(e.currentTarget).css("height", "48px");
-			$(".cancel-comment").removeClass("hide").addClass("show");
-			$(e.currentTarget).css("height", $(e.currentTarget).prop("scrollHeight"));
-		} else {
-			$(".cancel-comment").removeClass("show").addClass("hide");
-			$(e.currentTarget).css("height", "48px");
-		}
-	});
-
 	$(document).on("click", ".submit-discussion", (e) => {
 		submit_discussion(e);
 	});
@@ -54,6 +43,21 @@ frappe.ready(() => {
 
 	$(document).on("click", ".back-button", (e) => {
 		back_to_sidebar(e);
+	});
+
+	$(".reply-card .dropdown-menu").on("click", "[data-action]", (e) => {
+		perform_action(e);
+	});
+
+	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
+		if ($(e.currentTarget).val()) {
+			$(e.currentTarget).css("height", "48px");
+			$(".cancel-comment").removeClass("hide").addClass("show");
+			$(e.currentTarget).css("height", $(e.currentTarget).prop("scrollHeight"));
+		} else {
+			$(".cancel-comment").removeClass("show").addClass("hide");
+			$(e.currentTarget).css("height", "48px");
+		}
 	});
 
 });
@@ -198,6 +202,8 @@ const submit_discussion = (e) => {
 		let docname = $(e.currentTarget).closest(".discussions-parent").attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
+		let reply_name = $(e.currentTarget).data("reply");
+
 		frappe.call({
 			method: "frappe.website.doctype.discussion_topic.discussion_topic.submit_discussion",
 			args: {
@@ -205,7 +211,17 @@ const submit_discussion = (e) => {
 				"docname": docname ? docname : "",
 				"reply": reply,
 				"title": title,
-				"topic_name": $(e.currentTarget).closest(".discussion-on-page").attr("data-topic")
+				"topic_name": $(e.currentTarget).closest(".discussion-on-page").attr("data-topic"),
+				"reply_name": reply_name
+			},
+			callback: (data) => {
+				if (reply_name) {
+					const reply_card = $(e.currentTarget).closest(".reply-card");
+					reply_card.find(".reply-body").removeClass("hide");
+					reply_card.find(".reply-edit-card").addClass("hide");
+					reply_card.find(".reply-text").text(reply);
+					reply_card.find(".reply-actions").addClass("hide");
+				}
 			}
 		});
 	}
@@ -256,3 +272,15 @@ const back_to_sidebar = () => {
 	$(".discussion-on-page").collapse("hide");
 	$(".search-field").removeClass("hide");
 };
+
+const perform_action = (e) => {
+	const action = $(e.currentTarget).data().action;
+	const reply_card = $(e.currentTarget).closest(".reply-card");
+	if (action === "edit") {
+		reply_card.find(".reply-edit-card").removeClass("hide");
+		reply_card.find(".reply-body").addClass("hide");
+		reply_card.find(".reply-actions").removeClass("hide")
+	} else if (action === "delete") {
+
+	}
+}
