@@ -392,7 +392,7 @@ def make_records(records, debug=False):
 			doc.flags.ignore_mandatory = True
 
 		try:
-			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+			doc.insert(ignore_permissions=True)
 			frappe.db.commit()
 
 		except frappe.DuplicateEntryError as e:

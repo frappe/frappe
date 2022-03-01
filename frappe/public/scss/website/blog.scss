@@ -163,18 +163,18 @@
 				padding: var(--padding-lg);
 				box-shadow: var(--card-shadow);
 				border-radius: var(--border-radius-md);
-	
+
 				.new-comment-fields {
 					flex: 1;
-	
+
 					.form-label {
 						font-weight: var(--text-bold);
 					}
-	
+
 					.comment-text-area textarea {
 						resize: none;
 					}
-	
+
 					@media (min-width: 576px) {
 						.comment-by {
 							padding-right: 0px !important;
@@ -184,7 +184,7 @@
 				}
 			}
 		}
-		
+
 
 		#comment-list {
 			position: relative;
@@ -206,7 +206,7 @@
 					top: 10px;
 					left: -17px;
 				}
-		
+
 				.comment-content {
 					box-shadow: var(--card-shadow);
 					border-radius: var(--border-radius-md);

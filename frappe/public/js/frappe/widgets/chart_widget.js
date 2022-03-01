@@ -698,12 +698,12 @@ export default class ChartWidget extends Widget {
 				.get_filters_for_chart_type(this.chart_doc).then(filters => {
 					chart_saved_filters = this.update_default_date_filters(filters, chart_saved_filters);
 					this.filters =
-					frappe.utils.parse_array(user_saved_filters) || frappe.utils.parse_array(this.filters) 
+					frappe.utils.parse_array(user_saved_filters) || frappe.utils.parse_array(this.filters)
 						|| frappe.utils.parse_array(chart_saved_filters);
 				});
 		} else {
 			this.filters =
-				frappe.utils.parse_array(user_saved_filters) || frappe.utils.parse_array(this.filters) 
+				frappe.utils.parse_array(user_saved_filters) || frappe.utils.parse_array(this.filters)
 					|| frappe.utils.parse_array(chart_saved_filters);
 			return Promise.resolve();
 		}
