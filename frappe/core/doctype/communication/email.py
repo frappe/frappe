@@ -17,12 +17,39 @@ from frappe import _
 from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
 	flags=None, read_receipt=None, print_letterhead=True, email_template=None, communication_type=None,
 	ignore_permissions=False):
 	"""Make a new communication.
+=======
+def make(
+	doctype=None,
+	name=None,
+	content=None,
+	subject=None,
+	sent_or_received="Sent",
+	sender=None,
+	sender_full_name=None,
+	recipients=None,
+	communication_medium="Email",
+	send_email=False,
+	print_html=None,
+	print_format=None,
+	attachments="[]",
+	send_me_a_copy=False,
+	cc=None,
+	bcc=None,
+	read_receipt=None,
+	print_letterhead=True,
+	email_template=None,
+	communication_type=None,
+	**kwargs,
+) -> Dict[str, str]:
+	"""Make a new communication. Checks for email permissions for specified Document.
+>>>>>>> da2dbfaae9 (refactor!: Deprecate ignore_permissions & flags in communication.make)
 
 	:param doctype: Reference DocType.
 	:param name: Reference Document name.
@@ -39,18 +66,75 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	"""
+<<<<<<< HEAD
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
 	send_me_a_copy = cint(send_me_a_copy)
+=======
+	if kwargs:
+		from frappe.utils.commands import warn
+		warn(
+			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
+			"are deprecated or unsupported",
+			category=DeprecationWarning
+		)
+>>>>>>> da2dbfaae9 (refactor!: Deprecate ignore_permissions & flags in communication.make)
 
-	if not ignore_permissions:
-		if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not (flags or {}).get('ignore_doctype_permissions'):
-			raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
-				doctype=doctype, name=name))
+	if doctype and name and not frappe.has_permission(doctype=doctype, ptype="email", doc=name):
+		raise frappe.PermissionError(
+			f"You are not allowed to send emails related to: {doctype} {name}"
+		)
 
-	if not sender:
-		sender = get_formatted_email(frappe.session.user)
+	return _make(
+		doctype=doctype,
+		name=name,
+		content=content,
+		subject=subject,
+		sent_or_received=sent_or_received,
+		sender=sender,
+		sender_full_name=sender_full_name,
+		recipients=recipients,
+		communication_medium=communication_medium,
+		send_email=send_email,
+		print_html=print_html,
+		print_format=print_format,
+		attachments=attachments,
+		send_me_a_copy=cint(send_me_a_copy),
+		cc=cc,
+		bcc=bcc,
+		read_receipt=read_receipt,
+		print_letterhead=print_letterhead,
+		email_template=email_template,
+		communication_type=communication_type,
+	)
 
+
+def _make(
+	doctype=None,
+	name=None,
+	content=None,
+	subject=None,
+	sent_or_received="Sent",
+	sender=None,
+	sender_full_name=None,
+	recipients=None,
+	communication_medium="Email",
+	send_email=False,
+	print_html=None,
+	print_format=None,
+	attachments="[]",
+	send_me_a_copy=False,
+	cc=None,
+	bcc=None,
+	read_receipt=None,
+	print_letterhead=True,
+	email_template=None,
+	communication_type=None,
+) -> Dict[str, str]:
+	"""Internal method to make a new communication that ignores Permission checks.
+	"""
+
+	sender = sender or get_formatted_email(frappe.session.user)
 	recipients = list_to_str(recipients) if isinstance(recipients, list) else recipients
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
@@ -85,6 +169,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		add_attachments(comm.name, attachments)
 
 	if cint(send_email):
+<<<<<<< HEAD
 		# Raise error if outgoing email account is missing
 		_ = frappe.email.smtp.get_outgoing_email_account(append_to=comm.doctype, sender=comm.sender)
 		frappe.flags.print_letterhead = cint(print_letterhead)
@@ -94,6 +179,24 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"name": comm.name,
 		"emails_not_sent_to": ", ".join(comm.emails_not_sent_to) if hasattr(comm, "emails_not_sent_to") else None
 	}
+=======
+		if not comm.get_outgoing_email_account():
+			frappe.throw(
+				msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError
+			)
+
+		comm.send_email(
+			print_html=print_html,
+			print_format=print_format,
+			send_me_a_copy=send_me_a_copy,
+			print_letterhead=print_letterhead,
+		)
+
+	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)
+
+	return {"name": comm.name, "emails_not_sent_to": ", ".join(emails_not_sent_to)}
+
+>>>>>>> da2dbfaae9 (refactor!: Deprecate ignore_permissions & flags in communication.make)
 
 def validate_email(doc):
 	"""Validate Email Addresses of Recipients and CC"""
