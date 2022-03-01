@@ -4,7 +4,6 @@
 }
 
 .discussion-on-page .comment-field {
-	height: 3rem;
 	padding: 1rem;
 }
 
@@ -262,4 +261,8 @@
 	display: flex;
 	align-items: center;
 	margin-bottom: 1rem;
+}
+
+.dismiss-reply {
+	cursor: pointer;
 }
