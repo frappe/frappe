@@ -750,7 +750,7 @@ frappe.views.CommunicationComposer = class {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
-		return "<br>" + signature;
+		return "<br><!-- signature-included -->" + signature;
 	}
 
 	get_earlier_reply() {
