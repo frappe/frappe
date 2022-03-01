@@ -510,5 +510,3 @@ class TestLinkTitle(unittest.TestCase):
 		todo.delete()
 		user.delete()
 		prop_setter.delete()
-
-
