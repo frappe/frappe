@@ -1280,12 +1280,17 @@ class Document(BaseDocument):
 
 	@frappe.whitelist()
 	def get_new_document_share_key(self, expires_on=None, no_expiry=False):
-		document_key_exist = frappe.db.exists("Document Share Key", {
-			"reference_doctype": self.doctype,
-			"reference_docname": self.name,
-			"expires_on": expires_on,
-		})
-		if document_key_exist:
+		if no_expiry:
+			expires_on = None
+
+		if document_key_exist := frappe.db.exists(
+			"Document Share Key",
+			{
+				"reference_doctype": self.doctype,
+				"reference_docname": self.name,
+				"expires_on": expires_on,
+			},
+		):
 			doc = frappe.get_doc("Document Share Key", document_key_exist)
 		else:
 			doc = frappe.new_doc("Document Share Key")

@@ -192,37 +192,37 @@ frappe.ui.form.Share = class Share {
 		});
 	}
 	async share_modal() {
-		let document_links = await frappe.db.get_list("Document Share Key", {
-			filters: {
-				reference_doctype: this.frm.doctype,
-				reference_docname: this.frm.docname
-			}, fields: ['key', 'expires_on']
-		});
+		const default_expiry = frappe.boot.sysdefaults.document_share_key_expiry;
 		const share_modal = new frappe.ui.Dialog({
 			title: __("Share Link"),
 			fields: [{
 				fieldname: "link_expiration_date",
 				label: __("Link Expiration Date"),
 				fieldtype: "Date",
+				default: frappe.datetime.add_days(moment(), default_expiry),
 				min_date: new Date(),
+				description: __("The default expiration date is {0} days from today.", [default_expiry]),
 				read_only_depends_on: "eval: doc.link"
 			}, {
-				fieldtype: "Button",
-				label: __("Generate Link"),
-				click: () => {
-					this.frm.call("get_new_document_share_key", {
-						expires_on: share_modal.get_value("link_expiration_date")
-					}).then(res => {
-						let key = res.message;
-						share_modal.set_value("link", this.frm.get_share_link(key));
-					});
-				}
+				fieldtype: "Check",
+				label: __("No Expiry"),
+				fieldname: "no_expiry",
+				change: () => {
+					const no_expiry_warning = `<span style="color: var(--red-500);">
+						${__('It is not recommended to send links without expiry')}
+					</span>`;
+					const no_expiry = share_modal.get_value('no_expiry');
+					share_modal.get_field('link_expiration_date').toggle(!no_expiry);
+					share_modal.get_field('no_expiry')
+						.set_description(`${no_expiry ? no_expiry_warning : ''}`);
+				},
 			}, {
 				fieldtype: "Button",
-				label: __("Generate Link without Expiry"),
+				label: __("Get Link"),
 				click: () => {
 					this.frm.call("get_new_document_share_key", {
-						expires_on: null
+						expires_on: share_modal.get_value("link_expiration_date"),
+						no_expiry: share_modal.get_value("no_expiry")
 					}).then(res => {
 						let key = res.message;
 						share_modal.set_value("link", this.frm.get_share_link(key));
@@ -234,30 +234,6 @@ frappe.ui.form.Share = class Share {
 				fieldtype: "Data",
 				depends_on: "eval: doc.link",
 				with_copy_button: true
-			}, {
-				fieldname: "links",
-				label: __("Previous Links"),
-				fieldtype: "Table",
-				data: document_links,
-				read_only: 1,
-				hidden: 1,
-				fields: [{
-					fieldname: "key",
-					label: __("Key"),
-					fieldtype: "Data",
-					in_list_view: true,
-					columns: 6
-				}, {
-					fieldname: "expires_on",
-					label: __("Expires On"),
-					fieldtype: "Date",
-					in_list_view: true
-				}]
-			}, {
-				fieldname: "links",
-				label: __("Previous Links"),
-				fieldtype: "HTML",
-				options: `<div>Links</div>`,
 			}],
 		});
 
