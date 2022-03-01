@@ -36,7 +36,7 @@ export default class HeaderSize {
 
 	checkState(selection) {
 		let termWrapper = this.api.selection.findParentTag('SPAN');
-		
+
 		for (const h of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
 			if (termWrapper && termWrapper.classList.contains(h)) {
 				let num =  h.match(/\d+/)[0];
@@ -57,7 +57,7 @@ export default class HeaderSize {
 		span.innerText = range.toString();
 
 		this.remove_parent_tag(range, range.commonAncestorContainer, span);
-		
+
 		range.extractContents();
 		range.insertNode(span);
 		this.api.inlineToolbar.close();
@@ -90,7 +90,7 @@ export default class HeaderSize {
 	renderActions() {
 		this.actions = document.createElement('div');
 		this.actions.classList = 'header-level-select';
-		
+
 		this.headerLevels = new Array(6).fill().map((_, idx) => {
 			const $header_level = document.createElement('div');
 			$header_level.classList.add(`h${idx+1}`, 'header-level');

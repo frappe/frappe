@@ -116,7 +116,7 @@ export default class Paragraph extends Block {
 			this.wrapper.appendChild(this._element);
 			this._element.classList.remove('widget');
 			$para_control.appendTo(this.wrapper);
-			
+
 			this.wrapper.classList.add('widget', 'paragraph', 'edit-mode');
 
 			this.open_block_list();

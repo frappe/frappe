@@ -107,7 +107,7 @@ export default class Header extends Block {
 		if (data.text !== undefined) {
 			let text = this._data.text || '';
 			const contains_html_tag = /<[a-z][\s\S]*>/i.test(text);
-			this._element.innerHTML = contains_html_tag ? 
+			this._element.innerHTML = contains_html_tag ?
 				text : `<span class="h${this._settings.default_size}">${text}</span>`;
 		}
 

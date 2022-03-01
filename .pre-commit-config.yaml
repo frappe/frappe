@@ -1,0 +1,23 @@
+exclude: 'node_modules|.git'
+default_stages: [commit]
+fail_fast: false
+
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: trailing-whitespace
+        files: "frappe.*"
+        exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: check-yaml
+      - id: no-commit-to-branch
+        args: ['--branch', 'develop']
+      - id: check-merge-conflict
+      - id: check-ast
+
+
+ci:
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false
