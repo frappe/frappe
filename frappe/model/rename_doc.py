@@ -85,7 +85,7 @@ def rename_doc(
 		return
 
 	if old==new:
-		frappe.errprint(_("Failed: {0} to {1} no changes made.").format(old, new))
+		frappe.errprint(_("Ignored: {0} to {1} no changes made because old and new name are the same.").format(old, new))
 		return
 
 	force = cint(force)
