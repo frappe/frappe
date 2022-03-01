@@ -21,15 +21,15 @@ def get_whats_new_posts():
 	post_list = data.get("message")[0] or []
 	event_list = data.get("message")[1] or []
 
+	print('EVENT LIST', event_list)
 	today = datetime.now().today()
-	date_found = 0
+	# date_found = 0
 	closest_upcoming_events = []
 	for event in event_list:
-		if datetime.strptime(event.get("event_date"), "%Y-%m-%d").date() >= today.date() and not date_found:
-			date_found = 1
-		if date_found:
+		if datetime.strptime(event.get("event_date"), "%Y-%m-%d").date() >= today.date():
 			closest_upcoming_events.append(event)
 	closest_upcoming_events = reversed(closest_upcoming_events)
+	print('REVERSED LIST', closest_upcoming_events)
 
 	return post_list, closest_upcoming_events
 

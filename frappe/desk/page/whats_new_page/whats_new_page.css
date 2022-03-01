@@ -30,6 +30,7 @@
 }
 
 .whats-new-event-wrapper {
+	min-height: 120px;
 	background-color: rgba(245, 250, 255, 1);
 	border-radius: 12px;
 	margin: 20px 90px;
@@ -47,9 +48,9 @@
 }
 
 .whats-new-event-calendar {
-	min-height: 20vh;
-	max-height: 50vh;
-	padding: 15px;
+	min-height: 100px;
+	max-height: 100px;
+	padding: 5px;
 	border-radius: 6px;
 	align-items: center;
 	background: #fff;
@@ -66,20 +67,21 @@
 	grid-area: row1;
 }
 .row2 {
-	font-size: 16px;
+	font-size: 13px;
+	font-weight: 600;
 	grid-area: row2;
 }
 .row3 {
 	grid-area: row3;
 	font-weight: 600;
-	font-size: 20px ;
+	font-size: 16px ;
 	color: rgba(45, 149, 240, 1);
 }
 
 .cal-icon {
 	display: flex;
 	justify-content: center;
-	font-size: 20px;
+	font-size: 16px;
 	color: rgba(104, 113, 120, 1)
 }
 
@@ -146,6 +148,7 @@
 }
 
 .indicator-pill {
+	height: 24px;
 	margin: auto 8px 4px 0;
 }
 
@@ -190,11 +193,13 @@
 }
 
 .post-source-link {
-	margin-top: 10px;
+	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
 .event-time {
-	margin-top: 10px;
+	margin-top: 4px;
+	margin-bottom: 4px;
 	font-size: 12px;
 	font-weight: 600;
 }
@@ -207,7 +212,7 @@ hr {
 }
 
 .separator {
-	margin-top: 30px 0;
+	margin-top: 20px 0;
 }
 
 @media only screen and (max-width:768px) {
