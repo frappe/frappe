@@ -35,7 +35,7 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	else:
+	elif not doc.name:
 		doc.run_method("autoname")
 
 	if not doc.name and autoname:
@@ -174,7 +174,7 @@ def revert_series_if_last(key, name, doc=None):
 	Reverts the series for particular naming series:
 	* key is naming series		- SINV-.YYYY-.####
 	* name is actual name		- SINV-2021-0001
-		
+
 	1. This function split the key into two parts prefix (SINV-YYYY) & hashes (####).
 	2. Use prefix to get the current index of that naming series from Series table
 	3. Then revert the current index.
@@ -182,7 +182,7 @@ def revert_series_if_last(key, name, doc=None):
 	1. hash can exist anywhere, if it exist in hashes then it take normal flow.
 	2. If hash doesn't exit in hashes, we get the hash from prefix, then update name and prefix accordingly.
 	*Example:*
-		1. key = SINV-.YYYY.- 
+		1. key = SINV-.YYYY.-
 			* If key doesn't have hash it will add hash at the end
 			* prefix will be SINV-YYYY based on this will get current index from Series table.
 		2. key = SINV-.####.-2021
@@ -190,7 +190,7 @@ def revert_series_if_last(key, name, doc=None):
 			* will search hash in key then accordingly get prefix = SINV-
 		3. key = ####.-2021
 			* prefix = #### and hashes = 2021 (hash doesn't exist)
-			* will search hash in key then accordingly get prefix = "" 
+			* will search hash in key then accordingly get prefix = ""
 	"""
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
