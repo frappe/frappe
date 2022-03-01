@@ -329,7 +329,7 @@ class TestDocument(unittest.TestCase):
 		doc.as_dict = ""
 
 		# run_method should throw TypeError
-		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
+		self.assertRaises(TypeError, doc.run_method, "as_dict")
 
 		# Case 2: Override with a function
 		def my_as_dict(*args, **kwargs):
