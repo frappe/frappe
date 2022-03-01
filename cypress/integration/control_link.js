@@ -12,7 +12,7 @@ context('Control Link', () => {
 		}).as('todos');
 	});
 
-	function get_dialog_with_link(translatable) {
+	function get_dialog_with_link() {
 		return cy.dialog({
 			title: 'Link',
 			fields: [
@@ -21,7 +21,6 @@ context('Control Link', () => {
 					'fieldname': 'link',
 					'fieldtype': 'Link',
 					'options': 'ToDo',
-					'translatable': translatable || false
 				}
 			]
 		});
@@ -135,8 +134,6 @@ context('Control Link', () => {
 
 				expect(value).to.eq(todos[0]);
 				expect(label).to.eq('this is a test todo for link');
-
-				cy.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link");
 			});
 		});
 	});
@@ -223,6 +220,15 @@ context('Control Link', () => {
 		cy.insert_doc("Property Setter", {
 			"doctype": "Property Setter",
 			"doc_type": "ToDo",
+			"property": "translate_link_fields",
+			"property_type": "Check",
+			"doctype_or_field": "DocType",
+			"value": "1"
+		}, true);
+
+		cy.insert_doc("Property Setter", {
+			"doctype": "Property Setter",
+			"doc_type": "ToDo",
 			"property": "show_title_field_in_link",
 			"property_type": "Check",
 			"doctype_or_field": "DocType",
@@ -238,18 +244,22 @@ context('Control Link', () => {
 			});
 		});
 
+		cy.clear_cache();
+		cy.wait(500);
+
 		cy.window().its('frappe').then(frappe => {
 			if (!frappe.boot) {
 				frappe.boot = {
-					link_title_doctypes: ['ToDo']
+					link_title_doctypes: ['ToDo'],
+					translatable_doctypes: ['ToDo']
 				};
 			} else {
 				frappe.boot.link_title_doctypes = ['ToDo'];
+				frappe.boot.translatable_doctypes = ['ToDo'];
 			}
 		});
 
-		cy.reload();
-		get_dialog_with_link(true).as('dialog');
+		get_dialog_with_link().as('dialog');
 		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
@@ -267,8 +277,6 @@ context('Control Link', () => {
 
 				expect(value).to.eq(todos[0]);
 				expect(label).to.eq('this is a translated test todo for link');
-
-				cy.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link");
 			});
 		});
 	});
