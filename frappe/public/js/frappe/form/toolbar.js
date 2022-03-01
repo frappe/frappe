@@ -106,7 +106,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 					this.frm.reload_doc();
 					frappe.show_alert(
 						__('Document renamed from {0} to {1}', [docname.bold(), new_name.bold()])
-					)
+					);
 				}
 			});
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
@@ -114,6 +114,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				docname,
 				name: new_name,
 				title: new_title,
+				enqueue: true,
 				merge
 			}).then(new_docname => {
 				if (new_name != docname) {

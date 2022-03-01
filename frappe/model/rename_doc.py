@@ -25,10 +25,19 @@ def update_document_title(
 	title: Optional[str] = None,
 	name: Optional[str] = None,
 	merge: bool = False,
+	enqueue: bool = False,
 	**kwargs
 ) -> str:
 	"""
-		Update title from header in form view
+	Update the name or title of a document. Returns `name` if document was renamed,
+	`docname` if renaming operation was queued.
+
+	:param doctype: DocType of the document
+	:param docname: Name of the document
+	:param title: New Title of the document
+	:param name: New Name of the document
+	:param merge: Merge the current Document with the existing one if exists
+	:param enqueue: Enqueue the rename operation, title is updated in current process
 	"""
 
 	# to maintain backwards API compatibility
@@ -49,10 +58,10 @@ def update_document_title(
 	name_updated = updated_name != doc.name
 
 	if name_updated:
-		if is_scheduler_inactive():
-			doc.rename(updated_name, merge=merge)
-		else:
+		if enqueue and not is_scheduler_inactive():
 			doc.queue_action("rename", name=updated_name, merge=merge)
+		else:
+			doc.rename(updated_name, merge=merge)
 
 	if title_updated:
 		try:
