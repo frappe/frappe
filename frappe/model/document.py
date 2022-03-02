@@ -472,7 +472,7 @@ class Document(BaseDocument):
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
-		if self.is_new() and not (frappe.flags.in_patch or frappe.flags.in_migrate):
+		if self.is_new() and not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate):
 			self.creation = self.modified
 			self.owner = self.modified_by
 

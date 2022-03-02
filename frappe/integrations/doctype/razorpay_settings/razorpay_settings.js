@@ -3,6 +3,6 @@
 
 frappe.ui.form.on('Razorpay Settings', {
 	refresh: function(frm) {
-		
+
 	}
 });
