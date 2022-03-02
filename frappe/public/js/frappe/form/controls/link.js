@@ -36,6 +36,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 				if(!me.$input.val()) {
 					me.$input.val("").trigger("input");
+
+					// hide link arrow to doctype if none is set
+					me.$link.toggle(false);
 				}
 			}, 500);
 		});
@@ -321,6 +324,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("awesomplete-open", () => {
 			this.autocomplete_open = true;
+
+			// hide link arrow to doctype during search
+			me.$link.toggle(false);
 		});
 
 		this.$input.on("awesomplete-close", () => {
