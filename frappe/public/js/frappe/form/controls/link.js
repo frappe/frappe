@@ -91,26 +91,26 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let doctype = this.get_options();
 		if (!doctype) return;
 
-		let translated_link_text = this.get_translated(value);
 		if (in_list(frappe.boot.link_title_doctypes, doctype)) {
 			let link_title = frappe.utils.get_link_title(doctype, value);
 			if (!link_title) {
 				link_title = frappe.utils
 					.fetch_link_title(doctype, value)
 					.then(link_title => {
-						translated_link_text = this.get_translated(link_title);
-						this.set_input_value(translated_link_text);
-						this.title_value_map[translated_link_text] = value;
+						this.translate_and_set_input_value(link_title);
 					});
 			} else {
-				translated_link_text = this.get_translated(link_title);
-				this.set_input_value(translated_link_text);
-				this.title_value_map[translated_link_text] = value;
+				this.translate_and_set_input_value(link_title);
 			}
 		} else {
-			this.title_value_map[translated_link_text] = value;
-			this.set_input_value(translated_link_text);
+			this.translate_and_set_input_value(value);
 		}
+	}
+	translate_and_set_input_value(value) {
+		let translated_link_text = this.get_translated(value)
+		this.title_value_map[translated_link_text] = value;
+
+		this.set_input_value(translated_link_text);
 	}
 	parse_validate_and_set_in_model(value, e, label) {
 		if (this.parse) value = this.parse(value, label);
@@ -306,7 +306,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (!value) return;
 
 			me.show_last_label = true;
-			me.is_translatable() && !in_list(["Role", "DocType"], me.get_options()) && me.set_input_value(value);
+
+			if (me.is_translatable() && !in_list(["Role", "DocType"], me.get_options())) {
+				me.set_input_value(value);
+			}
 		});
 
 		this.$input.on("blur", function() {
@@ -362,11 +365,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			me.parse_validate_and_set_in_model(item.value, null, item.label);
-			me.$input.blur();
 		});
 
 		this.$input.on("awesomplete-selectcomplete", function(e) {
 			let o = e.originalEvent;
+			me.$input.blur();
 			if (o.text.value.indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
