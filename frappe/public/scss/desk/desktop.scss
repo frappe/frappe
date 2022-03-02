@@ -1070,11 +1070,11 @@ body {
 					}
 
 					.resizer {
-						width: 10px; 
+						width: 10px;
 						height: 100%;
-						position:absolute; 
-						right: 0; 
-						bottom: 0; 
+						position:absolute;
+						right: 0;
+						bottom: 0;
 						cursor: col-resize;
 						border-color: transparent;
 						transition: border-color 0.3s ease-in-out;
@@ -1089,8 +1089,8 @@ body {
 						margin-bottom: 0 !important;
 						flex: 1;
 
-						&:focus { 
-							outline: none; 
+						&:focus {
+							outline: none;
 						}
 					}
 
@@ -1124,11 +1124,11 @@ body {
 								color: var(--text-muted);
 								border: 1px dashed var(--gray-400);
 								cursor: pointer;
-	
+
 								.widget-control > * {
 									width: auto;
 								}
-	
+
 								.spacer-left {
 									min-width: 74px;
 								}
@@ -1158,7 +1158,7 @@ body {
 								gap: 5px;
 								background-color: var(--card-bg);
 								padding-left: 5px;
-	
+
 								.drag-handle {
 									cursor: all-scroll;
 									cursor: grabbing;
@@ -1325,7 +1325,7 @@ body {
 		padding: 6px 10px;
 		font-size: small;
 		border-radius: var(--border-radius-sm);
-		margin: 1px 0px;	
+		margin: 1px 0px;
 	}
 
 	.dropdown-item-icon {

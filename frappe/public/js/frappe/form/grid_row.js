@@ -615,6 +615,7 @@ export default class GridRow {
 		if (!this.doc) {
 			$col.attr("title", txt);
 		}
+		df.fieldname && $col.static_area.toggleClass('reqd', Boolean(df.reqd));
 
 		$col.df = df;
 		$col.column_index = ci;

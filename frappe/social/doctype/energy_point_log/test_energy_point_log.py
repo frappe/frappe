@@ -2,12 +2,14 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-import unittest
+
+from frappe.tests.utils import FrappeTestCase
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 from frappe.desk.form.assign_to import add as assign_to
 
-class TestEnergyPointLog(unittest.TestCase):
+
+class TestEnergyPointLog(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		settings = frappe.get_single('Energy Point Settings')
@@ -140,9 +142,10 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		# for criticism
 		criticism_points = 2
+		todo = create_a_todo(description='Bad patch')
 		energy_points_before_review = energy_points_after_review
 		review_points_before_review = review_points_after_review
-		review(created_todo, criticism_points, 'test@example.com', 'You could have done better.', 'Criticism')
+		review(todo, criticism_points, 'test@example.com', 'You could have done better.', 'Criticism')
 		energy_points_after_review = get_points('test@example.com')
 		review_points_after_review = get_points('test2@example.com', 'review_points')
 		self.assertEqual(energy_points_after_review, energy_points_before_review - criticism_points)
@@ -332,11 +335,14 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Cust
 		'apply_only_once': apply_once
 	}).insert(ignore_permissions=1)
 
-def create_a_todo():
+
+def create_a_todo(description=None):
+	if not description:
+		description = 'Fix a bug'
 	return frappe.get_doc({
 		'doctype': 'ToDo',
-		'description': 'Fix a bug',
-	}).insert()
+		'description': description,
+	}).insert(ignore_permissions=True)
 
 
 def get_points(user, point_type='energy_points'):
