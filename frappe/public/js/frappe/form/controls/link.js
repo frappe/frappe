@@ -106,7 +106,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 		} else {
 			this.title_value_map[translated_link_text] = value;
-			this.set_input_value(value);
+			this.set_input_value(translated_link_text);
 		}
 	}
 	parse_validate_and_set_in_model(value, e, label) {
