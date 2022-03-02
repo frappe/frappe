@@ -23,6 +23,7 @@
 	</div>
 
 	{% for reply in replies %}
+	{% set index = loop.index %}
 	{% include "frappe/templates/discussions/reply_card.html" %}
 	{% endfor %}
 

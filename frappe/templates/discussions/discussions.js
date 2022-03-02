@@ -54,7 +54,7 @@ frappe.ready(() => {
 	});
 
 	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
-		adjust_comment_box_height(e);
+		adjust_comment_box(e);
 	});
 
 });
@@ -82,8 +82,10 @@ const setup_socket_io = () => {
 			publish_message(data);
 		});
 		frappe.socketio.socket.on("update_message", (data) => {
-			console.log("event")
 			update_message(data);
+		});
+		frappe.socketio.socket.on("delete_message", (data) => {
+			delete_message(data);
 		});
 	});
 };
@@ -94,34 +96,30 @@ const publish_message = (data) => {
 	const topic = data.topic_info;
 	const single_thread = $(".is-single-thread").length;
 	const first_topic = !$(".reply-card").length;
-	const document_match_found = doctype == topic.reference_doctype && docname == topic.reference_docname;
+	const document_match_found = (doctype == topic.reference_doctype) && (docname == topic.reference_docname);
+
+	post_message_cleanup();
+	data.template = hide_actions_on_conditions(data.template, data.reply_owner);
+	data.template = style_avatar_frame(data.template);
+	data.sidebar = style_avatar_frame(data.sidebar);
+	data.new_topic_template = style_avatar_frame(data.new_topic_template);
 
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
-		post_message_cleanup();
-		data.template = style_avatar_frame(data.template);
 		$(data.template).insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
 	} else if (!first_topic && !single_thread && document_match_found) {
-		post_message_cleanup();
-		data.sidebar = style_avatar_frame(data.sidebar);
-		data.new_topic_template = style_avatar_frame(data.new_topic_template);
-
 		$(data.sidebar).insertBefore($(`.discussions-sidebar .sidebar-parent`).first());
 		$(`#discussion-group`).prepend(data.new_topic_template);
-
 		if (topic.owner == frappe.session.user) {
 			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-parent").first().click();
 		}
 
 	} else if (single_thread && document_match_found) {
-		post_message_cleanup();
-		data.template = style_avatar_frame(data.template);
 		$(data.template).insertBefore(`.discussion-form`);
 		$(".discussion-on-page").attr("data-topic", topic.name);
 
 	} else if (topic.owner == frappe.session.user && document_match_found) {
-		post_message_cleanup();
 		window.location.reload();
 	}
 
@@ -129,7 +127,6 @@ const publish_message = (data) => {
 };
 
 const update_message = (data) => {
-	console.log(data)
 	const reply_card = $(`[data-reply=${data.reply_name}]`);
 	reply_card.find(".reply-body").removeClass("hide");
 	reply_card.find(".reply-edit-card").addClass("hide");
@@ -139,8 +136,7 @@ const update_message = (data) => {
 
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
-	$(".comment-field").val("");
-	$(".discussion-on-page .comment-field").css("height", "48px");
+	$(".discussion-form .comment-field").val("");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
 	$(".cancel-comment").addClass("hide");
@@ -259,9 +255,8 @@ const style_avatar_frame = (template) => {
 };
 
 const clear_comment_box = () => {
-	$(".discussion-on-page .comment-field").val("");
+	$(".discussion-form .comment-field").val("");
 	$(".cancel-comment").removeClass("show").addClass("hide");
-	$(".discussion-on-page .comment-field").css("height", "48px");
 };
 
 const hide_sidebar = () => {
@@ -286,7 +281,12 @@ const perform_action = (e) => {
 		reply_card.find(".reply-body").addClass("hide");
 		reply_card.find(".reply-actions").removeClass("hide");
 	} else if (action === "delete") {
-
+		frappe.call({
+			method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
+			args: {
+				"reply_name": $(e.target).closest(".reply-card").data("reply")
+			}
+		});
 	}
 };
 
@@ -295,15 +295,22 @@ const dismiss_reply = (e) => {
 	reply_card.find(".reply-edit-card").addClass("hide");
 	reply_card.find(".reply-body").removeClass("hide");
 	reply_card.find(".reply-actions").addClass("hide");
-}
+};
 
-const adjust_comment_box_height = (e) => {
+const adjust_comment_box = (e) => {
 	if ($(e.currentTarget).val()) {
-		$(e.currentTarget).css("height", "3rem");
 		$(".cancel-comment").removeClass("hide").addClass("show");
-		$(e.currentTarget).css("height", $(e.currentTarget).prop("scrollHeight"));
 	} else {
 		$(".cancel-comment").removeClass("show").addClass("hide");
-		$(e.currentTarget).css("height", "3rem");
 	}
-}
+};
+
+const hide_actions_on_conditions = (template, owner) => {
+	let $template = $(template);
+	frappe.session.user != owner && $template.find(".dropdown").addClass("hide");
+	return $template.prop("outerHTML");
+};
+
+const delete_message = (data) => {
+	$(`[data-reply=${data.reply_name}]`).addClass("hide");
+};

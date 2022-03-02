@@ -11,7 +11,9 @@ class DiscussionTopic(Document):
 def submit_discussion(doctype, docname, reply, title, topic_name=None, reply_name=None):
 
 	if reply_name:
-		frappe.db.set_value("Discussion Reply", reply_name, "reply", reply)
+		doc = frappe.get_doc("Discussion Reply", reply_name)
+		doc.reply = reply
+		doc.save(ignore_permissions=True)
 		return
 
 	if topic_name:
