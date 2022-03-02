@@ -37,6 +37,7 @@ patches by using INI like file format:
 import configparser
 import time
 from enum import Enum
+from textwrap import dedent, indent
 from typing import List, Optional
 
 import frappe
@@ -148,21 +149,36 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
 	block_user(True)
-	frappe.db.begin()
+
+	if patchmodule.startswith("execute:"):
+		has_patch_file = False
+		patch = patchmodule.split("execute:")[1]
+		docstring = ""
+	else:
+		has_patch_file = True
+		patch = f"{patchmodule.split()[0]}.execute"
+		_patch = frappe.get_attr(patch)
+		docstring = _patch.__doc__ or ""
+
+		if docstring:
+			docstring = "\n" + indent(dedent(docstring), "\t")
+
+	print(f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}")
+
 	start_time = time.time()
+	frappe.db.begin()
 	try:
-		print('Executing {patch} in {site} ({db})'.format(patch=patchmodule or str(methodargs),
-			site=frappe.local.site, db=frappe.db.cur_db_name))
 		if patchmodule:
 			if patchmodule.startswith("finally:"):
 				# run run patch at the end
 				frappe.flags.final_patches.append(patchmodule)
 			else:
-				if patchmodule.startswith("execute:"):
-					exec(patchmodule.split("execute:")[1],globals())
+				if has_patch_file:
+					_patch()
 				else:
-					frappe.get_attr(patchmodule.split()[0] + ".execute")()
+					exec(patch, globals())
 				update_patch_log(patchmodule)
+
 		elif method:
 			method(**methodargs)
 
@@ -174,7 +190,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		frappe.db.commit()
 		end_time = time.time()
 		block_user(False)
-		print('Success: Done in {time}s'.format(time = round(end_time - start_time, 3)))
+		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
 
