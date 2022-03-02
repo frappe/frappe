@@ -706,9 +706,9 @@
   },
   {
    "fieldname": "buyer_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Buyer Type",
-   "options": "\nConstruction\nNon-Construction"
+   "options": "Procurement Group"
   },
   {
    "fieldname": "customer",
@@ -789,7 +789,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-02-21 10:27:22.309914",
+ "modified": "2022-03-02 10:45:26.781087",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

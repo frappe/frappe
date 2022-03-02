@@ -5,18 +5,24 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "host_url"
+  "host_url",
+  "google_map_key"
  ],
  "fields": [
   {
    "fieldname": "host_url",
    "fieldtype": "Data",
    "label": "Host URL"
+  },
+  {
+   "fieldname": "google_map_key",
+   "fieldtype": "Data",
+   "label": "GMap Key"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-02-21 09:46:37.617504",
+ "modified": "2022-03-02 10:12:03.163765",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "CRM Integrator Settings",

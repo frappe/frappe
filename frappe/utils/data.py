@@ -964,6 +964,19 @@ def in_words(integer, in_million=True):
 		ret = num2words(integer, lang='en')
 	return ret.replace('-', ' ')
 
+def num2words_id(integer):
+	"""
+	Returns string in words for the given integer.
+	"""
+	from num2words import num2words
+	integer = int(integer)
+	ret = num2words(integer, lang='id').replace('-', ' ')  + ' rupiah'
+	return ret.title()
+
+def calc_irr(cashflows):
+	from pyxirr import irr
+	return irr(cashflows)
+
 def is_html(text):
 	if not isinstance(text, frappe.string_types):
 		return False
