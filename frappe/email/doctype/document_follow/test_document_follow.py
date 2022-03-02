@@ -183,6 +183,7 @@ class TestDocumentFollow(unittest.TestCase):
 		frappe.db.delete('Email Queue')
 		frappe.db.delete('Email Queue Recipient')
 		frappe.db.delete('Document Follow')
+		frappe.db.delete('Event')
 
 def get_events_followed_by_user(event_name, user_name):
 	DocumentFollow = DocType('Document Follow')
