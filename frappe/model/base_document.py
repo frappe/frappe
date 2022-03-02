@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import json
 
 import frappe
 from frappe import _
@@ -286,6 +287,11 @@ class BaseDocument(object):
 
 				elif df.fieldtype == "Int" and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])
+
+				elif df.fieldtype=="Json" and isinstance(d[fieldname], dict):
+					d[fieldname] = json.dumps(
+						d[fieldname], sort_keys=True, indent=4, separators=(',', ': ')
+					)
 
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
 					d[fieldname] = flt(d[fieldname])
