@@ -43,9 +43,16 @@ frappe.ui.form.on('DocType', {
 			}
 		}
 
+		const customize_form_link = "<a href='/app/customize-form'>Customize Form</a>";
 		if(!frappe.boot.developer_mode && !frm.doc.custom) {
 			// make the document read-only
 			frm.set_read_only();
+			frm.dashboard.add_comment(__("DocTypes can not be modified, please use {0} instead", [customize_form_link]), "blue", true);
+		} else if (frappe.boot.developer_mode) {
+			let msg = __("This site is running in developer mode. Any change made here will be updated in code.");
+			msg += "<br>";
+			msg += __("If you just want to customize for your site, use {0} instead.", [customize_form_link]);
+			frm.dashboard.add_comment(msg, "yellow");
 		}
 
 		if(frm.is_new()) {
