@@ -10,7 +10,7 @@ class DiscussionReply(Document):
 		frappe.publish_realtime(
 			event="update_message",
 			message = {
-				"reply": self.reply,
+				"reply": frappe.utils.md_to_html(self.reply),
 				"reply_name": self.name
 			},
 			after_commit=True)

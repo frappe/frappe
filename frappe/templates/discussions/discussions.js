@@ -45,7 +45,7 @@ frappe.ready(() => {
 		back_to_sidebar(e);
 	});
 
-	$(".dismiss-reply").click((e) => {
+	$(document).on("click", ".dismiss-reply", (e) => {
 		dismiss_reply(e);
 	});
 
@@ -130,7 +130,7 @@ const update_message = (data) => {
 	const reply_card = $(`[data-reply=${data.reply_name}]`);
 	reply_card.find(".reply-body").removeClass("hide");
 	reply_card.find(".reply-edit-card").addClass("hide");
-	reply_card.find(".reply-text").text(data.reply);
+	reply_card.find(".reply-text").html(data.reply);
 	reply_card.find(".reply-actions").addClass("hide");
 }
 
