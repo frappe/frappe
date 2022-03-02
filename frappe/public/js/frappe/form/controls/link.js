@@ -356,6 +356,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			me.parse_validate_and_set_in_model(item.value, null, item.label);
+			me.$input.blur();
 		});
 
 		this.$input.on("awesomplete-selectcomplete", function(e) {
