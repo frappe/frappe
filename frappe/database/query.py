@@ -244,7 +244,13 @@ class Query:
 					_operator = OPERATOR_MAP[value[0]]
 					conditions = conditions.where(_operator(Field(key), value[1]))
 			else:
-				conditions = conditions.where(_operator(Field(key), value))
+				if value is not None:
+					conditions = conditions.where(_operator(Field(key), value))
+				else:
+					_table = conditions._from[0]
+					field = getattr(_table, key)
+					conditions = conditions.where(field.isnull())
+
 		conditions = self.add_conditions(conditions, **kwargs)
 		return conditions
 

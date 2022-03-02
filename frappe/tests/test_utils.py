@@ -363,3 +363,12 @@ class TestTimeDeltaUtils(unittest.TestCase):
 		self.assertEqual(parse_timedelta("10:0:0"), timedelta(hours=10))
 		self.assertEqual(parse_timedelta("7 days, 0:32:18.192221"), timedelta(days=7, seconds=1938, microseconds=192221))
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
+
+class TestXlsxUtils(unittest.TestCase):
+
+	def test_unescape(self):
+		from frappe.utils.xlsxutils import handle_html
+
+		val = handle_html("<p>html data &gt;</p>")
+		self.assertIn("html data >", val)
+		self.assertEqual("abc", handle_html("abc"))
