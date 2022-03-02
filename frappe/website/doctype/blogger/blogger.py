@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 
 from frappe.model.document import Document
+from frappe.utils import sanitize_html
 
 class Blogger(Document):
 	def validate(self):
@@ -17,6 +18,9 @@ class Blogger(Document):
 				"email": self.user,
 				"first_name": self.user.split("@")[0]
 			}).insert()
+
+		self.short_name = sanitize_html(self.short_name)
+		self.full_name = sanitize_html(self.full_name)
 
 	def on_update(self):
 		"if user is set, then update all older blogs"

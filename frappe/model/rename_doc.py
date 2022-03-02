@@ -8,6 +8,7 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.utils import cint
 from frappe.utils.password import rename_password
 from frappe.query_builder import Field
+from frappe.utils import sanitize_html
 
 
 @frappe.whitelist()
@@ -18,9 +19,10 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 	if docname and new_name and not docname == new_name:
 		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
 
-	if old_title and new_title and not old_title == new_title:
+	_new_title = sanitize_html(new_title)
+	if old_title and _new_title and not old_title == _new_title:
 		try:
-			frappe.db.set_value(doctype, docname, title_field, new_title)
+			frappe.db.set_value(doctype, docname, title_field, _new_title)
 			frappe.msgprint(_('Saved'), alert=True, indicator='green')
 		except Exception as e:
 			if frappe.db.is_duplicate_entry(e):
