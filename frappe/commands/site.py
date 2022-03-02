@@ -58,13 +58,8 @@ def new_site(site, db_root_username=None, db_root_password=None, admin_password=
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
 @click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
 @pass_context
-<<<<<<< HEAD
-def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
-=======
-def restore(context, sql_file_path, encryption_key=None, db_root_username=None, db_root_password=None,
-			db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None,
-			with_private_files=None):
->>>>>>> cdc6bcadb1 (fix(cli): Database agnostic options for root db credentials (#15973))
+def restore(context, sql_file_path, db_root_username=None, db_root_password=None, db_name=None, verbose=None,
+			install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
 	from frappe.installer import (
 		_new_site,
@@ -104,8 +99,8 @@ def restore(context, sql_file_path, encryption_key=None, db_root_username=None, 
 		)
 		click.confirm(warn_message, abort=True)
 
-	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
-		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+	_new_site(frappe.conf.db_name, site, db_root_username=db_root_username,
+		db_root_password=db_root_password, admin_password=admin_password,
 		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
 		force=True, db_type=frappe.conf.db_type)
 
@@ -114,22 +109,9 @@ def restore(context, sql_file_path, encryption_key=None, db_root_username=None, 
 		public = extract_files(site, with_public_files)
 		os.remove(public)
 
-<<<<<<< HEAD
 	if with_private_files:
 		private = extract_files(site, with_private_files)
 		os.remove(private)
-=======
-	try:
-		_new_site(frappe.conf.db_name, site, db_root_username=db_root_username,
-			db_root_password=db_root_password, admin_password=admin_password,
-			verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
-			force=True, db_type=frappe.conf.db_type)
-
-	except Exception as err:
-		print(err.args[1])
-		_backup.decryption_rollback()
-		sys.exit(1)
->>>>>>> cdc6bcadb1 (fix(cli): Database agnostic options for root db credentials (#15973))
 
 	# Removing temporarily created file
 	if decompressed_file_name != sql_file_path:
