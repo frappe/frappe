@@ -47,9 +47,9 @@ frappe.ready(() => {
 
 	$(".dismiss-reply").click((e) => {
 		dismiss_reply(e);
-	})
+	});
 
-	$(".reply-card .dropdown-menu").on("click", "[data-action]", (e) => {
+	$(document).on("click", ".reply-card .dropdown-menu", (e) => {
 		perform_action(e);
 	});
 
@@ -76,9 +76,14 @@ const setup_socket_io = () => {
 		if (window.dev_server) {
 			frappe.boot.socketio_port = "9000";
 		}
+
 		frappe.socketio.init(9000);
 		frappe.socketio.socket.on("publish_message", (data) => {
 			publish_message(data);
+		});
+		frappe.socketio.socket.on("update_message", (data) => {
+			console.log("event")
+			update_message(data);
 		});
 	});
 };
@@ -122,6 +127,15 @@ const publish_message = (data) => {
 
 	update_reply_count(topic.name);
 };
+
+const update_message = (data) => {
+	console.log(data)
+	const reply_card = $(`[data-reply=${data.reply_name}]`);
+	reply_card.find(".reply-body").removeClass("hide");
+	reply_card.find(".reply-edit-card").addClass("hide");
+	reply_card.find(".reply-text").text(data.reply);
+	reply_card.find(".reply-actions").addClass("hide");
+}
 
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
@@ -190,7 +204,7 @@ const submit_discussion = (e) => {
 	e.stopImmediatePropagation();
 
 	const target = $(e.currentTarget);
-	const reply_name = target.data("reply");
+	const reply_name = target.closest(".reply-card").data("reply");
 	const title = $(".topic-title:visible").length ? $(".topic-title:visible").val().trim() : "";
 	let reply = reply_name ? target.closest(".reply-card") : target.closest(".discussion-form");
 	reply = reply.find(".comment-field").val().trim();
@@ -212,15 +226,6 @@ const submit_discussion = (e) => {
 				"title": title,
 				"topic_name": target.closest(".discussion-on-page").attr("data-topic"),
 				"reply_name": reply_name
-			},
-			callback: (data) => {
-				if (reply_name) {
-					const reply_card = target.closest(".reply-card");
-					reply_card.find(".reply-body").removeClass("hide");
-					reply_card.find(".reply-edit-card").addClass("hide");
-					reply_card.find(".reply-text").text(reply);
-					reply_card.find(".reply-actions").addClass("hide");
-				}
 			}
 		});
 	}
@@ -273,8 +278,9 @@ const back_to_sidebar = () => {
 };
 
 const perform_action = (e) => {
-	const action = $(e.currentTarget).data().action;
-	const reply_card = $(e.currentTarget).closest(".reply-card");
+	const action = $(e.target).data().action;
+	const reply_card = $(e.target).closest(".reply-card");
+
 	if (action === "edit") {
 		reply_card.find(".reply-edit-card").removeClass("hide");
 		reply_card.find(".reply-body").addClass("hide");

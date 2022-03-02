@@ -1,12 +1,23 @@
-# Copyright (c) 2021, FOSS United and contributors
+# Copyright (c) 2021, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 import frappe
 from frappe.model.document import Document
 
 class DiscussionReply(Document):
-	def after_insert(self):
 
+	def on_update(self):
+		print(self.name)
+		frappe.publish_realtime(
+			event="update_message",
+			message = {
+				"reply": self.reply,
+				"reply_name": self.name
+			},
+			after_commit=True)
+		print("publish")
+
+	def after_insert(self):
 		replies = frappe.db.count("Discussion Reply", {"topic": self.topic})
 		topic_info = frappe.get_all("Discussion Topic",
 			{"name": self.topic},
