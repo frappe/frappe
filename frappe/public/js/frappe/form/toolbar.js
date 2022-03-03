@@ -115,7 +115,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 				name: new_name,
 				title: new_title,
 				enqueue: true,
-				merge
+				merge,
+				freeze: true,
+				freeze_message: __("Updating related fields...")
 			}).then(new_docname => {
 				if (new_name != docname) {
 					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
@@ -184,6 +186,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				d.show();
 				d.set_primary_action(__("Rename"), (values) => {
 					d.disable_primary_action();
+					d.hide();
 					this.rename_document_title(values.name, values.title, values.merge)
 						.then(() => {
 							d.hide();

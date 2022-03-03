@@ -10,14 +10,14 @@
     <link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
 	<link type="text/css" rel="stylesheet"
 		href="{{ base_url }}/assets/frappe/css/font-awesome.css">
-	<link rel="stylesheet" type="text/css" href="{{ base_url }}/assets/frappe/css/tree.css">	
+	<link rel="stylesheet" type="text/css" href="{{ base_url }}/assets/frappe/css/tree.css">
 	<style>
 		{{ print_css }}
 	</style>
 	<style>
-		.tree.opened::before, 
-		.tree-node.opened::before, 
-		.tree:last-child::after, 
+		.tree.opened::before,
+		.tree-node.opened::before,
+		.tree:last-child::after,
 		.tree-node:last-child::after {
 			z-index: 1;
 			border-left: 1px solid #d1d8dd;
@@ -28,7 +28,7 @@
 			text-decoration: none;
 			cursor: default;
 		}
-		.tree.opened > .tree-children > .tree-node > .tree-link::before, 
+		.tree.opened > .tree-children > .tree-node > .tree-link::before,
 		.tree-node.opened > .tree-children > .tree-node > .tree-link::before {
 			border-top: 1px solid #d1d8dd;
 			z-index: 1;

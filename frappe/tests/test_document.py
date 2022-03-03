@@ -319,3 +319,21 @@ class TestDocument(unittest.TestCase):
 			self.assertIsInstance(doc, Note)
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+	def test_run_method(self):
+		doc = frappe.get_last_doc("User")
+
+		# Case 1: Override with a string
+		doc.as_dict = ""
+
+		# run_method should throw TypeError
+		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
+
+		# Case 2: Override with a function
+		def my_as_dict(*args, **kwargs):
+			return "success"
+
+		doc.as_dict = my_as_dict
+
+		# run_method should get overridden
+		self.assertEqual(doc.run_method("as_dict"), "success")
