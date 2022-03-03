@@ -156,8 +156,15 @@ def _make(
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0,
+<<<<<<< HEAD
 		"communication_type": communication_type
 	}).insert(ignore_permissions=True)
+=======
+		"communication_type": communication_type,
+	})
+	comm.flags.skip_add_signature = True
+	comm.insert(ignore_permissions=True)
+>>>>>>> 89a7dac300 (fix: Add signature only if not Communication.flags.skip_add_signature)
 
 	comm.save(ignore_permissions=True)
 
