@@ -50,7 +50,7 @@ export default class Block {
 			document.documentElement.addEventListener('mousemove', do_drag, false);
 			document.documentElement.addEventListener('mouseup', stop_drag, false);
 		}
-		
+
 		function do_drag(e) {
 			$(this).css("cursor", "col-resize");
 			$('.widget').css("pointer-events", "none");
@@ -72,7 +72,7 @@ export default class Block {
 			} else {
 				window.getSelection().removeAllRanges();
 			}
-		} 
+		}
 
 		function stop_drag() {
 			$(this).css("cursor", "default");
@@ -221,7 +221,7 @@ export default class Block {
 		$widget_control.prepend($button);
 
 		this.dropdown_list.forEach((item) => {
-			if ((item.label == 'Expand' || item.label == 'Shrink') && 
+			if ((item.label == 'Expand' || item.label == 'Shrink') &&
 				me.options && !me.options.allow_resize) {
 				return;
 			}

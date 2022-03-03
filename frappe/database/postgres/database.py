@@ -62,7 +62,8 @@ class PostgresDatabase(Database):
 			'Barcode':		('text', ''),
 			'Geolocation':	('text', ''),
 			'Duration':		('decimal', '21,9'),
-			'Icon':			('varchar', self.VARCHAR_LEN)
+			'Icon':			('varchar', self.VARCHAR_LEN),
+			'Autocomplete': ('varchar', self.VARCHAR_LEN),
 		}
 
 	def get_connection(self):

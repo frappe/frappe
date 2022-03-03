@@ -77,13 +77,15 @@ def rename_doc(
 ) -> str:
 	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
 	if not frappe.db.exists(doctype, old):
+		frappe.errprint(_("Failed: {0} to {1} because {0} doesn't exist.").format(old, new))
 		return
 
 	if ignore_if_exists and frappe.db.exists(doctype, new):
+		frappe.errprint(_("Failed: {0} to {1} because {1} already exists.").format(old, new))
 		return
 
 	if old==new:
-		frappe.msgprint(_('Please select a new name to rename'))
+		frappe.errprint(_("Ignored: {0} to {1} no changes made because old and new name are the same.").format(old, new))
 		return
 
 	force = cint(force)
@@ -552,15 +554,16 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])
 					frappe.db.commit()
 				else:
-					msg = _("Ignored: {0} to {1}").format(row[0], row[1])
+					msg = None
 			except Exception as e:
 				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
 				frappe.db.rollback()
 
-			if via_console:
-				print(msg)
-			else:
-				rename_log.append(msg)
+			if msg:
+				if via_console:
+					print(msg)
+				else:
+					rename_log.append(msg)
 
 	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 
