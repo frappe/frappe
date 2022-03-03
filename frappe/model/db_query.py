@@ -164,7 +164,7 @@ class DatabaseQuery(object):
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
-			parent_name = self.cast_autoincremented_name(f"{self.tables[0]}.name")
+			parent_name = self.cast_name(f"{self.tables[0]}.name")
 			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
 
 		if self.grouped_or_conditions:
@@ -327,7 +327,7 @@ class DatabaseQuery(object):
 				func_found = False
 				for func in sql_functions:
 					if func in field.lower():
-						self.fields[i] = self.cast_autoincremented_name(field, func)
+						self.fields[i] = self.cast_name(field, func)
 						func_found = True
 						break
 
@@ -343,7 +343,7 @@ class DatabaseQuery(object):
 				if table_name not in self.tables:
 					self.append_table(table_name)
 
-	def cast_autoincremented_name(self, column: str, sql_function: str = "",) -> str:
+	def cast_name(self, column: str, sql_function: str = "",) -> str:
 		if frappe.db.db_type == "postgres":
 			if "name" in column.lower():
 				if "cast(" not in column.lower() or "::" not in column:
@@ -477,9 +477,9 @@ class DatabaseQuery(object):
 			self.append_table(tname)
 
 		if 'ifnull(' in f.fieldname:
-			column_name = self.cast_autoincremented_name(f.fieldname, "ifnull(")
+			column_name = self.cast_name(f.fieldname, "ifnull(")
 		else:
-			column_name = self.cast_autoincremented_name(f"{tname}.{f.fieldname}")
+			column_name = self.cast_name(f"{tname}.{f.fieldname}")
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
