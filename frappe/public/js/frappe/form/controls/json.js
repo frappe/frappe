@@ -60,46 +60,6 @@ frappe.ui.form.ControlJson = class ControlCode extends frappe.ui.form.ControlTex
 		});
 	}
 
-	setup_autocompletion() {
-		if (this._autocompletion_setup) return;
-
-		const ace = window.ace;
-		const get_autocompletions = () => this.df.autocompletions;
-
-		ace.config.loadModule("ace/ext/language_tools", langTools => {
-			this.editor.setOptions({
-				enableBasicAutocompletion: true,
-				enableLiveAutocompletion: true
-			});
-
-			langTools.addCompleter({
-				getCompletions: function(editor, session, pos, prefix, callback) {
-					if (prefix.length === 0) {
-						callback(null, []);
-						return;
-					}
-					let autocompletions = get_autocompletions();
-					if (autocompletions.length) {
-						callback(
-							null,
-							autocompletions.map(a => {
-								if (typeof a === 'string') {
-									a = { value: a };
-								}
-								return {
-									name: 'frappe',
-									value: a.value,
-									score: a.score
-								};
-							})
-						);
-					}
-				}
-			});
-		});
-		this._autocompletion_setup = true;
-	}
-
 	refresh_height() {
 		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
 		this.editor.resize();
@@ -130,9 +90,6 @@ frappe.ui.form.ControlJson = class ControlCode extends frappe.ui.form.ControlTex
 			if (!this.editor) return;
 			if (!value) value = '';
 			if (value === this.get_input_value()) return;
-			// if(typeof(value) == 'object'){
-			// 	value = JSON.stringify(value, null, 4)
-			// }
 			this.editor.session.setValue(value);
 		});
 	}
