@@ -726,7 +726,6 @@ class DocType(Document):
 		else:
 			if self.autoname == "autoincrement":
 				self.allow_rename = 0
-				frappe.local.autoincremented_doctypes.add(self.name)
 
 	def validate_name(self, name=None):
 		if not name:
