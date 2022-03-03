@@ -120,8 +120,8 @@ context('Control Link', () => {
 			cy.get('@input').type(todos[0]).blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
-			cy.wait(1000);
-			cy.findByTitle('Open Link')
+			cy.wait(500); // wait for arrow to show
+			cy.get('.frappe-control[data-fieldname=link] .btn-open')
 				.should('be.visible')
 				.click();
 			cy.location('pathname').should('eq', `/app/todo/${todos[0]}`);
