@@ -120,6 +120,7 @@ context('Control Link', () => {
 			cy.get('@input').type(todos[0]).blur();
 			cy.wait('@validate_link');
 			cy.get('@input').focus();
+			cy.wait(1000);
 			cy.findByTitle('Open Link')
 				.should('be.visible')
 				.click();
