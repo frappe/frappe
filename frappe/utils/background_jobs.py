@@ -147,6 +147,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.db.commit()
 
 	finally:
+		# background job hygiene: release file locks if unreleased
+		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
+		for doc in frappe.local.locked_documents:
+			doc.unlock()
+
 		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
