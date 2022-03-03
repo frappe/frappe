@@ -352,14 +352,12 @@ def export_query():
 			)
 			return
 
-		columns = get_columns_dict(data.columns)
-
 		from frappe.utils.xlsxutils import make_xlsx
 
 		data["result"] = handle_duration_fieldtype_values(
 			data.get("result"), data.get("columns")
 		)
-		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation)
+		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
 		frappe.response["filename"] = report_name + ".xlsx"
@@ -399,7 +397,7 @@ def handle_duration_fieldtype_values(result, columns):
 	return result
 
 
-def build_xlsx_data(columns, data, visible_idx, include_indentation, ignore_visible_idx=False):
+def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
 	result = [[]]
 	column_widths = []
 

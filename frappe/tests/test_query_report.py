@@ -12,13 +12,6 @@ class TestQueryReport(unittest.TestCase):
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
-		# Describe the columns
-		columns = {
-			0: {"label": "Column A", "fieldname": "column_a"},
-			1: {"label": "Column B", "fieldname": "column_b"},
-			2: {"label": "Column C", "fieldname": "column_c"}
-		}
-
 		# Create mock data
 		data = frappe._dict()
 		data.columns = [
@@ -37,7 +30,7 @@ class TestQueryReport(unittest.TestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
