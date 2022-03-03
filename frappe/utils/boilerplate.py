@@ -333,6 +333,8 @@ app_license = "{app_license}"
 # 	"{app_name}.auth.validate"
 # ]
 
+# Make link fields search in translated names for these DocTypes
+# translated_search_doctypes = []
 """
 
 desktop_template = """from frappe import _
