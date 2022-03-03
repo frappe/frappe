@@ -38,6 +38,7 @@
   "local_ca_certs_file",
   "ldap_custom_settings_section",
   "ldap_group_objectclass",
+  "ldap_custom_group_search",
   "column_break_33",
   "ldap_group_member_attribute",
   "ldap_group_mappings_section",
@@ -246,6 +247,12 @@
    "fieldname": "ldap_group_objectclass",
    "fieldtype": "Data",
    "label": "Group Object Class"
+  },
+  {
+    "description": "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com",
+    "fieldname": "ldap_custom_group_search",
+    "fieldtype": "Data",
+    "label": "Custom Group Search"
   },
   {
    "description": "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com",

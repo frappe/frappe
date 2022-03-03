@@ -1,14 +1,23 @@
-name: Semgrep
+name: Linters
 
 on:
   pull_request: { }
 
 jobs:
-  semgrep:
+
+  linters:
     name: Frappe Linter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install and Run Pre-commit
+        uses: pre-commit/action@v2.0.3
 
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules

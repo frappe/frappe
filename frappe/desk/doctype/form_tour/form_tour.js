@@ -16,7 +16,7 @@ frappe.ui.form.on('Form Tour', {
 		frm.add_custom_button(__('Show Tour'), async () => {
 			const issingle = await check_if_single(frm.doc.reference_doctype);
 			let route_changed = null;
-			
+
 			if (issingle) {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype);
 			} else if (frm.doc.first_document) {

@@ -3,7 +3,7 @@
 
 [data-doctype="Web Form"] {
 	.page-content-wrapper {
-		
+
 		.breadcrumb-container.container {
 			@include media-breakpoint-up(sm) {
 				padding-left: 0;
@@ -49,6 +49,10 @@
 
 		&:last-child {
 			padding-right: 0;
+		}
+
+		@include media-breakpoint-down(sm) {
+			padding: 0;
 		}
 	}
 }
