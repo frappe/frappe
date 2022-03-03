@@ -150,7 +150,8 @@ class Communication(Document, CommunicationEmailMixin):
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
 
 	def before_save(self):
-		self.set_signature_in_email_content()
+		if not self.flags.skip_add_signature:
+			self.set_signature_in_email_content()
 
 	def on_update(self):
 		# add to _comment property of the doctype, so it shows up in

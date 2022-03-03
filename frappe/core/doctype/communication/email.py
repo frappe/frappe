@@ -147,7 +147,9 @@ def _make(
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0,
 		"communication_type": communication_type,
-	}).insert(ignore_permissions=True)
+	})
+	comm.flags.skip_add_signature = True
+	comm.insert(ignore_permissions=True)
 
 	# if not committed, delayed task doesn't find the communication
 	if attachments:
