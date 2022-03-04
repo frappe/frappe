@@ -60,6 +60,7 @@
    "depends_on": "eval: !doc.disable_channel",
    "fieldname": "channel",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Channel",
    "options": "Email\nSlack\nSystem Notification\nSMS",
    "reqd": 1
@@ -178,7 +179,6 @@
    "fieldname": "condition",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
-   "in_list_view": 1,
    "label": "Condition"
   },
   {
@@ -281,7 +281,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-04 16:12:41.052885",
+ "modified": "2022-03-04 13:23:53.661669",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
