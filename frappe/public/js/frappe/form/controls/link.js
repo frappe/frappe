@@ -320,13 +320,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("awesomplete-open", () => {
 			this.autocomplete_open = true;
+
+			if (!me.get_label_value()) {
+				// hide link arrow to doctype if none is set
+				me.$link.toggle(false);
+			}
 		});
 
-		this.$input.on("awesomplete-close", () => {
+		this.$input.on("awesomplete-close", (e) => {
 			this.autocomplete_open = false;
 
-			// hide link arrow to doctype if none is set
-			me.$link.toggle(false);
+			if (!me.get_label_value()) {
+				// hide link arrow to doctype if none is set
+				me.$link.toggle(false);
+			}
 		});
 
 		this.$input.on("awesomplete-select", function(e) {
