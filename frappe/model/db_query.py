@@ -320,9 +320,6 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for i, field in enumerate(self.fields):
-				if not ("tab" in field and "." in field):
-					continue
-
 				# add cast in locate/strpos
 				func_found = False
 				for func in sql_functions:
@@ -331,7 +328,7 @@ class DatabaseQuery(object):
 						func_found = True
 						break
 
-				if func_found:
+				if func_found or not ("tab" in field and "." in field):
 					continue
 
 				table_name = field.split('.')[0]
