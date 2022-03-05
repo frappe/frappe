@@ -884,27 +884,39 @@ class Database(object):
 		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
 
 	def exists(self, dt, dn=None, cache=False):
-		"""Returns true if document exists.
+		"""Return the document name of a matching document, or None.
 
-		:param dt: DocType name.
-		:param dn: Document name or filter dict."""
-		if isinstance(dt, str):
-			if dt!="DocType" and dt==dn:
-				return True # single always exists (!)
-			try:
-				return self.get_value(dt, dn, "name", cache=cache)
-			except Exception:
-				return None
+		Note: `cache` only works if `dt` and `dn` are of type `str`.
 
-		elif isinstance(dt, dict) and dt.get('doctype'):
-			try:
-				conditions = []
-				for d in dt:
-					if d == 'doctype': continue
-					conditions.append([d, '=', dt[d]])
-				return self.get_all(dt['doctype'], filters=conditions, as_list=1)
-			except Exception:
-				return None
+		## Examples
+
+		Pass doctype and docname (only in this case we can cache the result)
+
+		```
+		exists("User", "jane@example.org", cache=True)
+		```
+
+		Pass a dict of filters including the `"doctype"` key:
+
+		```
+		exists({"doctype": "User", "full_name": "Jane Doe"})
+		```
+
+		Pass the doctype and a dict of filters:
+
+		```
+		exists("User", {"full_name": "Jane Doe"})
+		```
+		"""
+		if dt == dn:
+			# single always exists (!)
+			return dn
+
+		if isinstance(dt, dict):
+			_dt = dt.pop("doctype")
+			dt, dn = _dt, dt
+
+		return self.get_value(dt, dn, ignore=True, cache=cache)
 
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
