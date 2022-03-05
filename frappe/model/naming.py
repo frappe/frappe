@@ -329,7 +329,7 @@ def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = Non
 			set_next_val(doctype, name, is_val_used=True)
 			return name
 
-		frappe.throw("Invalid name type (integer) for varchar name column")
+		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)
 
 	if name.startswith("New "+doctype):
 		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
