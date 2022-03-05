@@ -1,10 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Union
 import frappe
 from frappe import _
-from frappe.database.sequence import get_next_val
+from frappe.database.sequence import get_next_val, set_next_val
 from frappe.utils import now_datetime, cint, cstr
 import re
 from frappe.model import log_types
@@ -318,9 +318,19 @@ def get_default_naming_series(doctype):
 		return None
 
 
-def validate_name(doctype: str, name: str, case: Optional[str] = None):
+def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
+
+	if isinstance(name, int):
+		if is_autoincremented(doctype):
+			# this will set the sequence val to be the provided name and set it to be used
+			# so that the sequence will start from the next val of the setted val(name)
+			set_next_val(doctype, name, is_val_used=True)
+			return name
+
+		frappe.throw("Invalid name type (integer) for varchar name column")
+
 	if name.startswith("New "+doctype):
 		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
 	if case == "Title Case":
