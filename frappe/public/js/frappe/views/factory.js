@@ -13,6 +13,8 @@ frappe.views.Factory = class Factory {
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
 
+		if (this.before_show && this.before_show() === false) return;
+
 		if (frappe.pages[this.page_name]) {
 			frappe.container.change_to(this.page_name);
 			if (this.on_show) {

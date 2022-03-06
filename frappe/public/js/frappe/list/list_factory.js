@@ -56,13 +56,12 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 >>>>>>> b3035ac20f (perf: remove duplicate call to `ListView.show`)
 	}
 
-	show() {
+	before_show() {
 		if (this.re_route_to_view()) {
-			return;
+			return false;
 		}
 
 		this.set_module_breadcrumb();
-		super.show();
 	}
 
 	on_show() {
