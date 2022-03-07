@@ -1,9 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
 import json
 from collections import defaultdict
 import itertools
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import frappe
 import frappe.desk.form.load
@@ -367,7 +368,7 @@ def get_exempted_doctypes():
 
 
 @frappe.whitelist()
-def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str, List]:
+def get_linked_docs(doctype: str, name: str, linkinfo: Optional[Dict] = None) -> Dict[str, List]:
 	if isinstance(linkinfo, str):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
@@ -382,7 +383,10 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str,
 		link["doctype"] = dt
 		try:
 			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
-		except Exception:
+		except Exception as e:
+			if isinstance(e, frappe.DoesNotExistError):
+				if frappe.local.message_log:
+					frappe.local.message_log.pop()
 			continue
 		linkmeta = link_meta_bundle[0]
 
@@ -451,10 +455,12 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str,
 
 	return results
 
+
 @frappe.whitelist()
 def get(doctype, docname):
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
 	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
+
 
 @frappe.whitelist()
 def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
@@ -469,6 +475,7 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 			doctype, lambda: _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled))
 	else:
 		return frappe.cache().hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
+
 
 def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 	ret = {}
@@ -499,6 +506,7 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 
 	return ret
 
+
 def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 
 	filters = [['fieldtype','=', 'Link'], ['options', '=', doctype]]
@@ -528,6 +536,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 		if options in ret: del ret[options]
 
 	return ret
+
 
 def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	ret = {}
