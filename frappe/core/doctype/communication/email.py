@@ -106,6 +106,7 @@ def make(
 		print_letterhead=print_letterhead,
 		email_template=email_template,
 		communication_type=communication_type,
+		add_signature=False,
 	)
 
 
@@ -130,6 +131,7 @@ def _make(
 	print_letterhead=True,
 	email_template=None,
 	communication_type=None,
+	add_signature=True,
 ) -> Dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks.
 	"""
@@ -162,7 +164,7 @@ def _make(
 =======
 		"communication_type": communication_type,
 	})
-	comm.flags.skip_add_signature = True
+	comm.flags.skip_add_signature = not add_signature
 	comm.insert(ignore_permissions=True)
 >>>>>>> 89a7dac300 (fix: Add signature only if not Communication.flags.skip_add_signature)
 
