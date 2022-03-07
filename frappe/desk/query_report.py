@@ -354,9 +354,7 @@ def export_query():
 
 		from frappe.utils.xlsxutils import make_xlsx
 
-		data["result"] = handle_duration_fieldtype_values(
-			data.get("result"), data.get("columns")
-		)
+		format_duration_fields(data)
 		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
@@ -365,31 +363,15 @@ def export_query():
 		frappe.response["type"] = "binary"
 
 
-def handle_duration_fieldtype_values(result, columns):
-	for i, col in enumerate(columns):
-		fieldtype = None
-		if isinstance(col, str):
-			col = col.split(":")
-			if len(col) > 1:
-				if not col[1]:
-					continue
-
-				fieldtype = col[1]
-				if "/" in fieldtype:
-					fieldtype = fieldtype.split("/")[0]
-		else:
-			fieldtype = col.get("fieldtype")
-
-		if fieldtype != "Duration":
+def format_duration_fields(data: frappe._dict) -> None:
+	for i, col in enumerate(data.columns):
+		if col.get("fieldtype") != "Duration":
 			continue
 
-		for row in result:
+		for row in data.result:
 			index = col.fieldname if isinstance(row, dict) else i
-			val_in_seconds = row[index]
-			if val_in_seconds:
-				row[index] = format_duration(val_in_seconds)
-
-	return result
+			if row[index]:
+				row[index] = format_duration(row[index])
 
 
 def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
