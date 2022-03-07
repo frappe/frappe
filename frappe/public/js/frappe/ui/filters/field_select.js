@@ -112,9 +112,9 @@ frappe.ui.FieldSelect = class FieldSelect {
 		// main table
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
-			let doctype = frappe.get_meta(me.doctype).istable && me.parent_doctype ? 
+			let doctype = frappe.get_meta(me.doctype).istable && me.parent_doctype ?
 				me.parent_doctype : me.doctype;
-			
+
 			// show fields where user has read access and if report hide flag is not set
 			if (frappe.perm.has_perm(doctype, df.permlevel, "read"))
 				me.add_field_option(df);
@@ -132,9 +132,9 @@ frappe.ui.FieldSelect = class FieldSelect {
 				}
 
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
-					let doctype = frappe.get_meta(me.doctype).istable && me.parent_doctype ? 
+					let doctype = frappe.get_meta(me.doctype).istable && me.parent_doctype ?
 						me.parent_doctype : me.doctype;
-					
+
 					// show fields where user has read access and if report hide flag is not set
 					if (frappe.perm.has_perm(doctype, df.permlevel, "read"))
 						me.add_field_option(df);
