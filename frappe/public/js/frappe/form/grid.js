@@ -559,7 +559,7 @@ export default class Grid {
 				return data;
 			}
 		} else if (fieldtype === "Barcode" && fieldvalue) {
-			let barcode = fieldvalue.startsWith('<svg') ? 
+			let barcode = fieldvalue.startsWith('<svg') ?
 				$(fieldvalue).attr('data-barcode-value') : fieldvalue;
 
 			if (barcode.toLowerCase().includes(value)) {

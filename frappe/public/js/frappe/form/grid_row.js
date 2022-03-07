@@ -243,7 +243,7 @@ export default class GridRow {
 			).appendTo(this.row);
 
 			this.row_index.find('input').on('keyup', (e) => {
-				clearTimeout(timer); 
+				clearTimeout(timer);
 				timer = setTimeout(() => {
 					let df = {
 						fieldtype: "Sr No"
@@ -666,12 +666,12 @@ export default class GridRow {
 			.appendTo(this.row);
 
 		let $search_input = $(`
-			<input 
-				type="text" 
-				class="form-control input-xs ${input_class}" 
-				title="${title}" 
-				data-fieldtype="${df.fieldtype}" 
-				${is_disabled} 
+			<input
+				type="text"
+				class="form-control input-xs ${input_class}"
+				title="${title}"
+				data-fieldtype="${df.fieldtype}"
+				${is_disabled}
 			>
 		`).appendTo($col);
 
