@@ -9,7 +9,7 @@
 
 	<div class="discussions-header">
 		<span class="discussion-heading">{{ _(title) }}</span>
-		{% if topics | length %}
+		{% if topics | length and not single_thread %}
 		{% include "frappe/templates/discussions/search.html" %}
 		{% endif %}
 		{% if topics and not single_thread %}
