@@ -404,10 +404,10 @@
    "label": "Show Account Deletion Link in My Account Page"
   },
   {
-   "default": "3",
+   "default": "72",
    "fieldname": "auto_account_deletion",
    "fieldtype": "Int",
-   "label": "Auto Account Deletion within (Days)"
+   "label": "Auto Account Deletion within (Hours)"
   },
   {
    "fieldname": "footer_powered",
@@ -421,7 +421,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2022-02-28 23:05:42.493192",
+ "modified": "2022-02-24 15:37:22.360138",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
