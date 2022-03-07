@@ -383,18 +383,11 @@ def handle_duration_fieldtype_values(result, columns):
 		if fieldtype != "Duration":
 			continue
 
-		for entry in range(0, len(result)):
-			row = result[entry]
-			if isinstance(row, dict):
-				val_in_seconds = row[col.fieldname]
-				if val_in_seconds:
-					duration_val = format_duration(val_in_seconds)
-					row[col.fieldname] = duration_val
-			else:
-				val_in_seconds = row[i]
-				if val_in_seconds:
-					duration_val = format_duration(val_in_seconds)
-					row[i] = duration_val
+		for row in result:
+			index = col.fieldname if isinstance(row, dict) else i
+			val_in_seconds = row[index]
+			if val_in_seconds:
+				row[index] = format_duration(val_in_seconds)
 
 	return result
 
