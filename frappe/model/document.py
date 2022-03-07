@@ -856,14 +856,14 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
-		if "flags" in kwargs:
-			del kwargs["flags"]
 
-		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
-			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
-		else:
-			# hack! to run hooks even if method does not exist
-			fn = lambda self, *args, **kwargs: None
+		def fn(self, *args, **kwargs):
+			method_object = getattr(self, method, None)
+
+			# Cannot have a field with same name as method
+			# If method found in __dict__, expect it to be callable
+			if method in self.__dict__ or callable(method_object):
+				return method_object(*args, **kwargs)
 
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)

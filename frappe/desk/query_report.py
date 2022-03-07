@@ -76,7 +76,7 @@ def get_report_result(report, filters):
 	return res
 
 @frappe.read_only()
-def generate_report_result(report, filters=None, user=None, custom_columns=None):
+def generate_report_result(report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None):
 	user = user or frappe.session.user
 	filters = filters or []
 
@@ -111,7 +111,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
 	if cint(report.add_total_row) and result and not skip_total_row:
-		result = add_total_row(result, columns)
+		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
 	return {
 		"result": result,
@@ -213,7 +213,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None):
+def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None, is_tree=False, parent_field=None):
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -241,7 +241,7 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
 	else:
-		result = generate_report_result(report, filters, user, custom_columns)
+		result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
 
 	result["add_total_row"] = report.add_total_row and not result.get(
 		"skip_total_row", False
@@ -438,9 +438,10 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation, ignore_visi
 	return result, column_widths
 
 
-def add_total_row(result, columns, meta=None):
+def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 	total_row = [""] * len(columns)
 	has_percent = []
+
 	for i, col in enumerate(columns):
 		fieldtype, options, fieldname = None, None, None
 		if isinstance(col, string_types):
@@ -467,12 +468,12 @@ def add_total_row(result, columns, meta=None):
 		for row in result:
 			if i >= len(row):
 				continue
-
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(
 				cell
 			):
-				total_row[i] = flt(total_row[i]) + flt(cell)
+				if not (is_tree and row.get(parent_field)):
+					total_row[i] = flt(total_row[i]) + flt(cell)
 
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)
