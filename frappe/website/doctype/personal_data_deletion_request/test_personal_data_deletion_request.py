@@ -4,10 +4,10 @@
 import frappe
 import unittest
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
-	remove_unverified_record,
+	remove_unverified_record, process_data_deletion_request
 )
 from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import (
-	create_user_if_not_exists,
+	create_user_if_not_exists
 )
 from datetime import datetime, timedelta
 
@@ -58,3 +58,15 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.assertFalse(
 			frappe.db.exists("Personal Data Deletion Request", self.delete_request.name)
 		)
+
+	def test_process_auto_request(self):
+		frappe.db.set_value("Website Settings", None, "auto_account_deletion", "1")
+		date_time_obj = datetime.strptime(
+			self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f"
+		) + timedelta(hours=-2)
+		self.delete_request.db_set("creation", date_time_obj)
+		self.delete_request.db_set("status", "Pending Approval")
+
+		process_data_deletion_request()
+		self.delete_request.reload()
+		self.assertEqual(self.delete_request.status, "Deleted")
