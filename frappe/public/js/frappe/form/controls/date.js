@@ -160,7 +160,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	get_df_options() {
 		let df_options = this.df.options;
 		if (!df_options) return {};
-	
+
 		let options = {};
 		if (typeof df_options === 'string') {
 			try {
