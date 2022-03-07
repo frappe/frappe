@@ -399,7 +399,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 	for column in data.columns:
 		if column.get("hidden"):
 			continue
-		result[0].append(column.get("label"))
+		result[0].append(_(column.get("label")))
 		column_width = cint(column.get('width', 0))
 		# to convert into scale accepted by openpyxl
 		column_width /= 10
