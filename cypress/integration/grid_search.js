@@ -34,7 +34,7 @@ context('Grid Search', () => {
 
 		cy.visit(`/app/doctype-with-child-table/Test Grid Search`);
 
-		cy.get('[title="child_table_1"]').as('table');
+		cy.get('.frappe-control[data-fieldname="child_table_1"]').as('table');
 		cy.get('@table').find('.grid-row-check:last').click();
 		cy.get('@table').find('.grid-footer').contains('Delete').click();
 		cy.get('.grid-heading-row .grid-row .search').should('not.exist');
@@ -43,7 +43,7 @@ context('Grid Search', () => {
 	it('test search field for different fieldtypes', () => {
 		cy.visit(`/app/doctype-with-child-table/Test Grid Search`);
 
-		cy.get('[title="child_table_1"]').as('table');
+		cy.get('.frappe-control[data-fieldname="child_table_1"]').as('table');
 
 		// Index Column
 		cy.get('@table').find('.grid-heading-row .row-index.search input').type('3');
@@ -86,7 +86,7 @@ context('Grid Search', () => {
 	});
 
 	it('test with multiple filter', () => {
-		cy.get('[title="child_table_1"]').as('table');
+		cy.get('.frappe-control[data-fieldname="child_table_1"]').as('table');
 
 		// Data Column
 		cy.get('@table').find('.grid-heading-row .search input[data-fieldtype="Data"]').type('a');
