@@ -3,7 +3,7 @@
 import json
 from collections import defaultdict
 import itertools
-from typing import List
+from typing import Dict, List
 
 import frappe
 import frappe.desk.form.load
@@ -367,7 +367,7 @@ def get_exempted_doctypes():
 
 
 @frappe.whitelist()
-def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
+def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str, List]:
 	if isinstance(linkinfo, str):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
@@ -377,23 +377,12 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	if not linkinfo:
 		return results
 
-	if for_doctype:
-		links = frappe.get_doc(doctype, name).get_link_filters(for_doctype)
-
-		if links:
-			linkinfo = links
-
-		if for_doctype in linkinfo:
-			# only get linked with for this particular doctype
-			linkinfo = { for_doctype: linkinfo.get(for_doctype) }
-		else:
-			return results
-
 	for dt, link in linkinfo.items():
 		filters = []
 		link["doctype"] = dt
 		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
 		linkmeta = link_meta_bundle[0]
+
 		if not linkmeta.get("issingle"):
 			fields = [d.fieldname for d in linkmeta.get("fields", {
 				"in_list_view": 1,
@@ -455,6 +444,11 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 				results[dt] = ret
 
 	return results
+
+@frappe.whitelist()
+def get(doctype, docname):
+	linked_doctypes = get_linked_doctypes(doctype=doctype)
+	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
 
 @frappe.whitelist()
 def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
