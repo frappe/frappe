@@ -45,6 +45,14 @@ frappe.ui.Capture = class {
 	constructor(options = {}) {
 		this.options = frappe.ui.Capture.OPTIONS;
 		this.set_options(options);
+
+		this.facing_modes = {
+			environment: {
+				exact: "environment"
+			},
+			user: "user"
+		}
+		this.current_facing_mode = "environment";
 	}
 
 	set_options(options) {
@@ -54,7 +62,7 @@ frappe.ui.Capture = class {
 	}
 
 	render() {
-		return navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+		return navigator.mediaDevices.getUserMedia({ video: { facingMode: this.get_facing_mode() }, audio: false }).then(stream => {
 			this.stream = stream;
 
 			this.dialog = new frappe.ui.Dialog({
@@ -83,6 +91,11 @@ frappe.ui.Capture = class {
 						if (this.callback) this.callback(data_url);
 					});
 				});
+
+				this.dialog.set_secondary_action(__('Open {0} Camera', [this.current_facing_mode === "user" ? __("Rear") : __("Front")]), () => {
+					this.toggle_facing_mode();
+					this.show();
+				})
 			};
 
 			set_take_photo_action();
@@ -107,6 +120,14 @@ frappe.ui.Capture = class {
 
 			$container.html($e);
 		});
+	}
+
+	get_facing_mode() {
+		return this.facing_modes[this.current_facing_mode];
+	}
+
+	toggle_facing_mode() {
+		this.current_facing_mode = this.current_facing_mode === "user" ? "environment" : "user";
 	}
 
 	show() {
