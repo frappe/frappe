@@ -18,13 +18,12 @@ class TestQueryReport(unittest.TestCase):
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
 			{"label": "Column C", "fieldname": "column_c", "width": 150, "fieldtype": "Duration"},
-			"Column D:Data:100"
 		]
 		data.result = [
-			[1.0, 3.0, 600, "Test1"],
-			{"column_a": 22.1, "column_b": 21.8, "column_c": 86412, "column_d": "Test2"},
-			{"column_b": 5.1, "column_c": 53234, "column_a": 11.1, "column_d": "Test3"},
-			[3.0, 1.5, 333, "Test4"],
+			[1.0, 3.0, 600],
+			{"column_a": 22.1, "column_b": 21.8, "column_c": 86412},
+			{"column_b": 5.1, "column_c": 53234, "column_a": 11.1},
+			[3.0, 1.5, 333],
 		]
 
 		# Define the visible rows
@@ -36,7 +35,7 @@ class TestQueryReport(unittest.TestCase):
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
 		# column widths are divided by 10 to match the scale that is supported by openpyxl
-		self.assertListEqual(column_widths, [0, 10, 150, 0])
+		self.assertListEqual(column_widths, [0, 10, 15])
 
 		for row in xlsx_data:
 			self.assertEqual(type(row), list)
