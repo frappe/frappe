@@ -205,7 +205,7 @@ export default class GridRow {
 	}
 	render_row(refresh) {
 		if (this.show_search && !this.show_search_row()) return;
-		
+
 		let me = this;
 		this.set_row_index();
 
@@ -257,7 +257,7 @@ export default class GridRow {
 					if (e.target.value == "") {
 						delete this.grid.filter['row-index'];
 					}
-					
+
 					this.grid.grid_sortable
 						.option('disabled', Object.keys(this.grid.filter).length !== 0);
 
