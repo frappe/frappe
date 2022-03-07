@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
+=======
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+>>>>>>> 39fc90cb5b (fix(ux): Pop from message_log if DoesNotExistError)
 
 import json
 from collections import defaultdict
@@ -9,8 +14,12 @@ from collections import defaultdict
 from six import string_types
 =======
 import itertools
+<<<<<<< HEAD
 from typing import Dict, List
 >>>>>>> 6edb1f09e4 (refactor: Fetch Linked Documents in single request ;))
+=======
+from typing import Dict, List, Optional
+>>>>>>> 39fc90cb5b (fix(ux): Pop from message_log if DoesNotExistError)
 
 import frappe
 import frappe.desk.form.load
@@ -152,7 +161,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	if isinstance(linkinfo, string_types):
 =======
 @frappe.whitelist()
-def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str, List]:
+def get_linked_docs(doctype: str, name: str, linkinfo: Optional[Dict] = None) -> Dict[str, List]:
 	if isinstance(linkinfo, str):
 >>>>>>> 6edb1f09e4 (refactor: Fetch Linked Documents in single request ;))
 		# additional fields are added in linkinfo
@@ -185,7 +194,10 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str,
 		link["doctype"] = dt
 		try:
 			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
-		except Exception:
+		except Exception as e:
+			if isinstance(e, frappe.DoesNotExistError):
+				if frappe.local.message_log:
+					frappe.local.message_log.pop()
 			continue
 		linkmeta = link_meta_bundle[0]
 
@@ -265,6 +277,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str,
 def get(doctype, docname):
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
 	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
+
 
 @frappe.whitelist()
 def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
