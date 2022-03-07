@@ -139,7 +139,7 @@
 
 .discussion-heading {
 	font-weight: 600;
-	font-size: 22px;
+	font-size: var(--text-3xl);
 	line-height: 146%;
 	letter-spacing: -0.0175em;
 	color: var(--gray-900);
@@ -187,8 +187,10 @@
 }
 
 .reply-author {
+	display: flex;
+	align-items: center;
 	margin: 0px 8px;
-	font-size: 12px;
+	font-size: var(--text-sm);
 	line-height: 135%;
 	color: var(--gray-900);
 }
@@ -250,11 +252,6 @@
 	display: flex;
 	align-items: center;
 	margin-bottom: 2.5rem;
-}
-
-.reply-author {
-	display: flex;
-	align-items: center;
 }
 
 .reply-header {

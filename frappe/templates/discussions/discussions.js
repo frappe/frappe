@@ -132,7 +132,7 @@ const update_message = (data) => {
 	reply_card.find(".reply-edit-card").addClass("hide");
 	reply_card.find(".reply-text").html(data.reply);
 	reply_card.find(".reply-actions").addClass("hide");
-}
+};
 
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
