@@ -533,6 +533,7 @@ docfield_properties = {
 	'in_global_search': 'Check',
 	'in_preview': 'Check',
 	'bold': 'Check',
+	'no_copy': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
@@ -586,4 +587,4 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	('Code', 'Geolocation'),
 	('Table', 'Table MultiSelect'))
 
-ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')
+ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Data')

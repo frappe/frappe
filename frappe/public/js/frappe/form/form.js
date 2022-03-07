@@ -303,7 +303,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
 			// check permissions
-			if(!this.has_read_permission()) {
+			if (!this.has_read_permission()) {
 				frappe.show_not_permitted(__(this.doctype) + " " + __(this.docname));
 				return;
 			}
@@ -1058,13 +1058,13 @@ frappe.ui.form.Form = class FrappeForm {
 		let list_view = frappe.get_list_view(this.doctype);
 		if (list_view) {
 			filters = list_view.get_filters_for_args();
-			sort_field = list_view.sort_field;
+			sort_field = list_view.sort_by;
 			sort_order = list_view.sort_order;
 		} else {
 			let list_settings = frappe.get_user_settings(this.doctype)['List'];
 			if (list_settings) {
 				filters = list_settings.filters;
-				sort_field = list_settings.sort_field;
+				sort_field = list_settings.sort_by;
 				sort_order = list_settings.sort_order;
 			}
 		}
@@ -1613,28 +1613,36 @@ frappe.ui.form.Form = class FrappeForm {
 		// make new doctype from the current form
 		// will handover to `make_methods` if defined
 		// or will create and match link fields
-		var me = this;
+		let me = this;
 		if(this.make_methods && this.make_methods[doctype]) {
 			return this.make_methods[doctype](this);
 		} else if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
 			this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger('click');
 		} else {
 			frappe.model.with_doctype(doctype, function() {
-				var new_doc = frappe.model.get_new_doc(doctype);
+				let new_doc = frappe.model.get_new_doc(doctype, null, null, true);
 
 				// set link fields (if found)
-				frappe.get_meta(doctype).fields.forEach(function(df) {
-					if(df.fieldtype==='Link' && df.options===me.doctype) {
-						new_doc[df.fieldname] = me.doc.name;
-					} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
-						new_doc[df.fieldname] = me.doc[df.fieldname];
-					}
-				});
+				me.set_link_field(doctype, new_doc);
 
 				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
 				// frappe.set_route('Form', doctype, new_doc.name);
 			});
 		}
+	}
+
+	set_link_field(doctype, new_doc) {
+		let me = this;
+		frappe.get_meta(doctype).fields.forEach(function(df) {
+			if (df.fieldtype === 'Link' && df.options === me.doctype) {
+				new_doc[df.fieldname] = me.doc.name;
+			} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
+				new_doc[df.fieldname] = me.doc[df.fieldname];
+			} else if (df.fieldtype === 'Table' && df.options && df.reqd) {
+				let row = new_doc[df.fieldname][0];
+				me.set_link_field(df.options, row);
+			}
+		});
 	}
 
 	update_in_all_rows(table_fieldname, fieldname, value) {
