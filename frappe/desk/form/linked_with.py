@@ -183,8 +183,14 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Dict = None) -> Dict[str,
 	for dt, link in linkinfo.items():
 		filters = []
 		link["doctype"] = dt
-		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
+		try:
+			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
+		except Exception:
+			continue
 		linkmeta = link_meta_bundle[0]
+
+		if not linkmeta.has_permission():
+			continue
 
 		if not linkmeta.get("issingle"):
 			fields = [
