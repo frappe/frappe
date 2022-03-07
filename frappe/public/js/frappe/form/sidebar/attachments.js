@@ -46,7 +46,10 @@ frappe.ui.form.Attachments = class Attachments {
 		if(attachments.length) {
 			let exists = {};
 			let unique_attachments = attachments.filter(attachment => {
-				return exists.hasOwnProperty(attachment.file_name)
+				return Object.prototype.hasOwnProperty.call(
+					exists,
+					attachment.file_name
+				)
 					? false
 					: (exists[attachment.file_name] = true);
 			});
