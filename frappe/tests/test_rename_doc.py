@@ -1,13 +1,40 @@
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+
 import os
 import unittest
+from contextlib import contextmanager, redirect_stdout
+from io import StringIO
+from random import choice, sample
+from typing import List
+from unittest.mock import patch
 
 import frappe
-from frappe.utils import add_to_date, now
-from frappe.exceptions import DoesNotExistError
-
-from random import choice, sample
+from frappe.exceptions import DoesNotExistError, ValidationError
 from frappe.model.base_document import get_controller
+from frappe.model.rename_doc import bulk_rename, get_fetch_fields, update_document_title, update_linked_doctypes
 from frappe.modules.utils import get_doc_path
+from frappe.utils import add_to_date, now
+
+
+@contextmanager
+def patch_db(endpoints: List[str] = None):
+	patched_endpoints = []
+
+	for point in endpoints:
+		x = patch(f"frappe.db.{point}", new=lambda: True)
+		patched_endpoints.append(x)
+
+	savepoint = "SAVEPOINT_for_test_bulk_rename"
+	frappe.db.savepoint(save_point=savepoint)
+	try:
+		for x in patched_endpoints:
+			x.start()
+		yield
+	finally:
+		for x in patched_endpoints:
+			x.stop()
+		frappe.db.rollback(save_point=savepoint)
 
 
 class TestRenameDoc(unittest.TestCase):
@@ -50,6 +77,11 @@ class TestRenameDoc(unittest.TestCase):
 	@classmethod
 	def tearDownClass(self):
 		"""Deleting data generated for the tests defined under TestRenameDoc"""
+		# delete_doc doesnt drop tables
+		# this is done to bypass inconsistencies in the db
+		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
+		frappe.db.sql_ddl("drop table if exists `tabRenamed Doc`")
+
 		# delete the documents created
 		for docname in self.available_documents:
 			frappe.delete_doc(self.test_doctype, docname)
@@ -153,7 +185,55 @@ class TestRenameDoc(unittest.TestCase):
 			new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True)
 		)
 
-		# delete_doc doesnt drop tables
-		# this is done to bypass inconsistencies in the db
-		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
-		frappe.db.sql_ddl("drop table if exists `tabRenamed Doc`")
+	def test_update_document_title_api(self):
+		test_doctype = "Module Def"
+		test_doc = frappe.get_doc({
+			"doctype": test_doctype,
+			"module_name": f"Test-test_update_document_title_api-{frappe.generate_hash()}",
+			"custom": True,
+		})
+		test_doc.insert(ignore_mandatory=True)
+
+		dt = test_doc.doctype
+		dn = test_doc.name
+		new_name = f"{dn}-new"
+
+		# pass invalid types to API
+		with self.assertRaises(ValidationError):
+			update_document_title(doctype=dt, docname=dn, title={}, name={"hack": "this"})
+
+		doc_before = frappe.get_doc(test_doctype, dn)
+		return_value = update_document_title(doctype=dt, docname=dn, new_name=new_name)
+		doc_after = frappe.get_doc(test_doctype, return_value)
+
+		doc_before_dict = doc_before.as_dict(no_nulls=True, no_default_fields=True)
+		doc_after_dict = doc_after.as_dict(no_nulls=True, no_default_fields=True)
+		doc_before_dict.pop("module_name")
+		doc_after_dict.pop("module_name")
+
+		self.assertEqual(new_name, return_value)
+		self.assertDictEqual(doc_before_dict, doc_after_dict)
+		self.assertEqual(doc_after.module_name, return_value)
+
+		test_doc.delete()
+
+	def test_bulk_rename(self):
+		input_data = [[x, f"{x}-new"] for x in self.available_documents]
+
+		with patch_db(["commit", "rollback"]), patch("frappe.enqueue") as enqueue:
+			message_log = bulk_rename(self.test_doctype, input_data, via_console=False)
+			self.assertEqual(len(message_log), len(self.available_documents))
+			self.assertIsInstance(message_log, list)
+			enqueue.assert_called_with(
+				'frappe.utils.global_search.rebuild_for_doctype', doctype=self.test_doctype,
+			)
+
+	def test_deprecated_utils(self):
+		stdout = StringIO()
+
+		with redirect_stdout(stdout), patch_db(["set_value"]):
+			get_fetch_fields("User", "ToDo", ["Activity Log"])
+			self.assertTrue("Function frappe.model.rename_doc.get_fetch_fields" in stdout.getvalue())
+
+			update_linked_doctypes("User", "ToDo", "str", "str")
+			self.assertTrue("Function frappe.model.rename_doc.update_linked_doctypes" in stdout.getvalue())

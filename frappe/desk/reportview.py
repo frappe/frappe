@@ -533,7 +533,8 @@ def get_stats(stats, doctype, filters=None):
 		columns = []
 
 	for tag in tags:
-		if not tag in columns: continue
+		if tag not in columns:
+			continue
 		try:
 			tag_count = frappe.get_list(doctype,
 				fields=[tag, "count(*)"],
@@ -612,7 +613,7 @@ def scrub_user_tags(tagcount):
 		alltags = t.split(',')
 		for tag in alltags:
 			if tag:
-				if not tag in rdict:
+				if tag not in rdict:
 					rdict[tag] = 0
 
 				rdict[tag] += tagdict[t]

@@ -65,7 +65,7 @@ def publish_realtime(event=None, message=None, room=None,
 
 	if after_commit:
 		params = [event, message, room]
-		if not params in frappe.local.realtime_log:
+		if params not in frappe.local.realtime_log:
 			frappe.local.realtime_log.append(params)
 	else:
 		emit_via_redis(event, message, room)

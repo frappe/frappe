@@ -166,7 +166,7 @@ class Importer:
 
 					if not self.data_import.status == "Partial Success":
 						self.data_import.db_set("status", "Partial Success")
-					
+
 					# commit after every successful import
 					frappe.db.commit()
 

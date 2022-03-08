@@ -578,7 +578,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
-					report_settings: this.report_settings
+					is_tree: this.report_settings.tree,
+					parent_field: this.report_settings.parent_field
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
@@ -1342,7 +1343,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (file_format === 'CSV') {
 				const column_row = this.columns.reduce((acc, col) => {
 					if (!col.hidden) {
-						acc.push(col.label);
+						acc.push(__(col.label));
 					}
 					return acc;
 				}, []);
