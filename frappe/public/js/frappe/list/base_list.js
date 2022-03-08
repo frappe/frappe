@@ -315,9 +315,7 @@ frappe.views.BaseList = class BaseList {
 		this.filter_area = new FilterArea(this);
 
 		if (this.filters && this.filters.length > 0) {
-			return this.filter_area
-				.clear(false)
-				.then(() => this.filter_area.set(this.filters));
+			return this.filter_area.set(this.filters);
 		}
 	}
 
@@ -796,13 +794,20 @@ class FilterArea {
 							options = options.join("\n");
 						}
 					}
-					let default_value =
-						fieldtype === "Link"
-							? frappe.defaults.get_user_default(options)
-							: null;
+
+					let default_value;
+
+					if (
+						fieldtype === "Link" &&
+						!(this.list_view.filters && this.list_view.filters.length > 0)
+					) {
+						default_value = frappe.defaults.get_user_default(options);
+					}
+
 					if (["__default", "__global"].includes(default_value)) {
 						default_value = null;
 					}
+
 					return {
 						fieldtype: fieldtype,
 						label: __(df.label),
