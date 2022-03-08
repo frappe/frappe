@@ -79,7 +79,6 @@ frappe.ui.form.on('System Console', {
 		let timestamp = new Date();
 		frappe.call('frappe.desk.doctype.system_console.system_console.show_processlist').then(r => {
 			let rows = '';
-			console.log(r.message)
 			if(r.message['db_type'] == 'postgres'){
 				for (let row of r.message['data']) {
 					rows += `<tr>
