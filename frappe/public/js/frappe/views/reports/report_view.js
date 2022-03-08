@@ -125,7 +125,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	after_render() {
-		if (this.report_doc) {
+		if (this.report_doc && !$.isEmptyObject(this.report_doc.json)) {
 			this.set_dirty_state_for_custom_report();
 		} else {
 			this.save_report_settings();
