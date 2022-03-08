@@ -84,6 +84,12 @@ class TestReportview(unittest.TestCase):
 			self.assertFalse(result
 				in DatabaseQuery("DocType").execute(filters={"name": ["not in", 'DocType,DocField']}))
 
+	def test_none_filter(self):
+		query = frappe.db.query.get_sql("DocType", fields="name", filters={"restrict_to_domain": None})
+		sql = str(query).replace('`', '').replace('"', '')
+		condition = 'restrict_to_domain IS NULL'
+		self.assertIn(condition, sql)
+
 	def test_or_filters(self):
 		data = DatabaseQuery("DocField").execute(
 				filters={"parent": "DocType"}, fields=["fieldname", "fieldtype"],
@@ -331,7 +337,6 @@ class TestReportview(unittest.TestCase):
 		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Root')})
 		self.assertTrue(len(data) == 0)
 		self.assertTrue(len(frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Root')})) == len(frappe.get_all('Nested DocType')))
-
 
 	def test_is_set_is_not_set(self):
 		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})

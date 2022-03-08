@@ -58,6 +58,12 @@ export default class FileUploader {
 		if (files && files.length) {
 			this.uploader.add_files(files);
 		}
+
+		this.uploader.$watch('close_dialog', (close_dialog) => {
+			if (close_dialog) {
+				this.dialog && this.dialog.hide();
+			}
+		});
 	}
 
 	upload_files() {

@@ -14,8 +14,8 @@ from frappe.defaults import _clear_cache
 def _new_site(
 	db_name,
 	site,
-	mariadb_root_username=None,
-	mariadb_root_password=None,
+	db_root_username=None,
+	db_root_password=None,
 	admin_password=None,
 	verbose=False,
 	install_apps=None,
@@ -59,8 +59,8 @@ def _new_site(
 	installing = touch_file(get_site_path("locks", "installing.lock"))
 
 	install_db(
-		root_login=mariadb_root_username,
-		root_password=mariadb_root_password,
+		root_login=db_root_username,
+		root_password=db_root_password,
 		db_name=db_name,
 		admin_password=admin_password,
 		verbose=verbose,
@@ -91,7 +91,7 @@ def _new_site(
 	print("*** Scheduler is", scheduler_status, "***")
 
 
-def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
+def install_db(root_login=None, root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 	import frappe.database
@@ -99,6 +99,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
+
+	if not root_login and db_type == 'mariadb':
+		root_login='root'
+	elif not root_login and db_type == 'postgres':
+		root_login='postgres'
 
 	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True

@@ -180,6 +180,7 @@ export default {
 			currently_uploading: -1,
 			show_file_browser: false,
 			show_web_link: false,
+			close_dialog: false,
 			allow_take_photo: false,
 			google_drive_settings: {
 				enabled: false

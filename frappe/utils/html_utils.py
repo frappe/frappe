@@ -2,8 +2,9 @@ from __future__ import unicode_literals
 import frappe
 import json
 import re
-import bleach_whitelist.bleach_whitelist as bleach_whitelist
+from bleach_allowlist import bleach_allowlist
 from six import string_types
+
 
 def clean_html(html):
 	import bleach
@@ -72,7 +73,7 @@ def sanitize_html(html, linkify=False):
 	tags = (acceptable_elements + svg_elements + mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
-	styles = bleach_whitelist.all_styles
+	styles = bleach_allowlist.all_styles
 	strip_comments = False
 
 	# returns html with escaped tags, escaped orphan >, <, etc.

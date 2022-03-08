@@ -2,9 +2,13 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
 import unittest
+
 from six.moves.urllib.parse import quote
+
+import frappe
+from frappe.core.doctype.communication.communication import get_emails
+
 test_records = frappe.get_test_records('Communication')
 
 
@@ -201,6 +205,19 @@ class TestCommunication(unittest.TestCase):
 
 		self.assertIn(("Note", note.name), doc_links)
 
+	def parse_emails(self):
+		emails = get_emails(
+			[
+				'comm_recipient+DocType+DocName@example.com',
+				'"First, LastName" <first.lastname@email.com>',
+				'test@user.com'
+			]
+		)
+
+		self.assertEqual(emails[0], "comm_recipient+DocType+DocName@example.com")
+		self.assertEqual(emails[1], "first.lastname@email.com")
+		self.assertEqual(emails[2], "test@user.com")
+
 def create_email_account():
 	frappe.delete_doc_if_exists("Email Account", "_Test Comm Account 1")
 
@@ -232,3 +249,4 @@ def create_email_account():
 	}).insert(ignore_permissions=True)
 
 	return email_account
+
