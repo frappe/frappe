@@ -79,14 +79,29 @@ frappe.ui.form.on('System Console', {
 		let timestamp = new Date();
 		frappe.call('frappe.desk.doctype.system_console.system_console.show_processlist').then(r => {
 			let rows = '';
-			for (let row of r.message) {
-				rows += `<tr>
-					<td>${row.Id}</td>
-					<td>${row.Time}</td>
-					<td>${row.State}</td>
-					<td>${row.Info}</td>
-					<td>${row.Progress}</td>
-				</tr>`
+			console.log(r.message)
+			if(r.message['db_type'] == 'postgres'){
+				for (let row of r.message['data']) {
+					rows += `<tr>
+						<td>${row.pid}</td>
+						<td>${row.query_start}</td>
+						<td>${row.state}</td>
+						<td>${row.query}</td>
+						<td>${row.wait_event}</td>
+					</tr>`
+
+				}
+			}
+			else{
+				for (let row of r.message) {
+					rows += `<tr>
+						<td>${row.Id}</td>
+						<td>${row.Time}</td>
+						<td>${row.State}</td>
+						<td>${row.Info}</td>
+						<td>${row.Progress}</td>
+					</tr>`
+				}
 			}
 			frm.get_field('processlist').html(`
 				<p class='text-muted'>Requested on: ${timestamp}</p>
