@@ -53,7 +53,7 @@ class FollowUp(Document):
 	@frappe.whitelist()
 	def get_accounts(self, name):
 		new_acc = []
-		print(" this is get_accounts self", name if name else 0 )
+		# print(" this is get_accounts self", name if name else 0 )
 		a = self.get_data()
 		
 		if a:	
@@ -63,7 +63,7 @@ class FollowUp(Document):
 
 		for i in new_acc:
 			i["follow_up"] = frappe.db.get_value('Follow Up Level', {"no_of_days": ['<=',i["age"]]}, 'name')		
-		print("Length of new_acc is ",len(new_acc))
+		# print("Length of new_acc is ",len(new_acc))
 		self.data.clear()
 		return new_acc
 
@@ -118,7 +118,7 @@ class FollowUp(Document):
 
 		# Sending Email
 		if follow.send_email == 1:
-			print(" Send Email")
+			# print(" Send Email")
 			# email_template = follow.email_template
 			email_template = frappe.get_doc("Email Template", follow.email_template)
 			primary_c = frappe.db.get_value('Customer', customer, "customer_primary_contact")
@@ -138,14 +138,15 @@ class FollowUp(Document):
 
 		# Send SMS	
 		if follow.send_message == 1:
-			print(" Send Message")
+			# print(" Send Message")
+			pass
 		
 		# Adding ToDo if Manual Action in Follow Up Level
 		if follow.manual_action == 1:
 			desc = "Please {0} Customer  {1} , ".format(follow.action_type, frappe.db.get_value('Customer', customer, "customer_name"))
 			desc += "\n For Following Overdues : \n{0} ; ".format(args)
 			desc += "ACTION TODO : \n {0}".format(follow.action_to_do)
-			print(" Adding ToDo")
+			# print(" Adding ToDo")
 			todo = frappe.new_doc('ToDo')
 			todo.status = "Open"
 			todo.priority = "High"
@@ -163,10 +164,10 @@ class FollowUp(Document):
 	# To Added Customer commitment
 	@frappe.whitelist()
 	def on_submit_commitment(self, trans_items, customer):
-		print("Adding Commitment")
+		# print("Adding Commitment")
 		commit_amt = 0		
 		for i in trans_items:
-			print("thi is i ", i)
+			# print("thi is i ", i)
 			# print(i["commited_date"])
 			if "commited_date" in i.keys() and i["commited_amount"] > 0:
 				commit_amt += i["commited_amount"]
@@ -297,7 +298,7 @@ class FollowUp(Document):
 		new_entry = []
 		for e in sorted_entry:
 			if e.get("party"):
-				print(" Inside e",  e.get("party"))
+				# print(" Inside e",  e.get("party"))
 				logs = frappe.db.get_value("Follow Up Logs", { "customer" :e.get("party")}, ["level_called", "submitted_date"])
 				
 				if not logs:
@@ -467,7 +468,7 @@ class FollowUp(Document):
 
 		# Get return entries
 		self.get_return_entries()
-		print(" Self date -----------------", 1 if self.data else 0)
+		# print(" Self date -----------------", 1 if self.data else 0)
 		for gle in self.gl_entries:
 			self.update_voucher_balance(gle)
 

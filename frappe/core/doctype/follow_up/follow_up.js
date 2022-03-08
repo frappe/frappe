@@ -4,50 +4,10 @@
 frappe.ui.form.on('Follow Up', {
 	refresh: function (frm) {
 		frm.fields_dict.get_follow_up_details.$input.addClass("btn-primary");
-
-		// document.getElementByClass(".btn btn-xs btn-default bold input-sm").style.css("color", "red");
-
-		// $(".btn btn-xs btn-default bold input-sm").click(function(){
-		// 	$("p").css("color", "red");
-		//   });
-
-		frm.fields_dict.get_follow_up_details.$input.addClass("btn-primary");
-
-		// frm.fields_dict['items'].action.$input.addClass("btn-primary");
-		console.log("one 123",frm.fields_dict['items'].grid.meta.fields[17])
-		// frm.doc.items.get_field("action").$input.addClass('btn-primary');
-		
-		
-
-		//  to be continue
-
-		// document.querySelectorAll("[data-fieldname='action']").style.backgroundColor ="blue";
-		// frm.fields_dict['items'].grid.meta.fields[17].$input.addClass("btn-primary");
-
-		// frm.fields_dict['items'].action.$input.addClass("btn-primary");
-		// frm.fields_dict['items'].grid.get_field('action').$input.addClass("btn-primary");
-		// frm.fields_dict['items'].grid.get_field('item').get_query 
-		// document.getElementsByClassName("btn btn-xs btn-default input-sm").style.backgroundColor ='#0f81f2';
-		// document.getElementByClass("btn btn-xs btn-default input-sm").style.background-color='#44bef2';
-
-		//  frm.get_field("items").grid.cannot_add_rows = true;
-		// frm.fields_dict["items"].grid.wrapper.find('.grid-add-row').hide();
-		// frm.fields_dict["items"].grid.wrapper.find('.grid-remove-rows').hide();
-		// $(".grid-add-row").hide();
-		// frm.set_df_property("items", 'cannot_add_rows', true)
-		// btn btn-xs btn-default input-sm
-
-		// .addClass("btn-warning").css({'color':'black','font-weight': 'bold'})
-		// console.log(wrapper)
-		// $(wrapper).find(".btn btn-xs btn-default input-sm").css({"color":"red"})
+		// console.log("one 123",frm.fields_dict['items'].grid.meta.fields[17])
 	},
 
-	// onload_post_render: function (frm){
-	// 	// $(".grid-add-row").hide();
-	// },
-
 	setup: function(frm) {
-		// frm.get_field("action").$input.addClass("btn-primary");
 		// to hide romove Add Row button
 		frm.set_df_property("items", 'cannot_add_rows', true)
 		frm.set_df_property("items", 'cannot_delete_rows', true)
@@ -66,282 +26,134 @@ frappe.ui.form.on('Follow Up', {
 					frm.refresh_field("items")
 				}
 			}
-
 		})
-		// document.querySelectorAll("[data-fieldname='action']")[1].style.backgroundColor ="red";
-
 	},
 
 });
 
-// custom button refresh below child
-
-// frappe.ui.form.on("Follow Up", {
-// 	onload: function (frm, cdt, cdn) {
-// 	let btn = document.createElement('a');
-// 	btn.innerText = 'Refresh';
-// 	btn.className = 'grid-upload btn btn-xs btn-default';
-// 	frm.fields_dict.items.grid.wrapper.find('.grid-upload').removeClass('hide').parent().append(btn);
-// 	btn.addEventListener("click", function(){
-// 	});
-// 	}	
-// })
-
-frappe.ui.form.on("Follow Up Item", "action", function(frm, cdt, cdn){
-var child = locals[cdt][cdn]
-//     cur_frm.doc.items.forEach(function(child){
-//         var sel = format('div[data-fieldname="action"] > div.grid-row[data-idx="{0}"]', [child.idx]);
-//         if (child.customer){
-//             $(sel).css('background-color', "#ff5858");
-//         } else {
-//             $(sel).css('background-color', '#ff5858');
-//         }
-//     });
-// child.action.addClass("btn-warning")
-// frm.items.get_field("action").$input.addClass('btn-primary');
-
-
-
-// frm.add_custom_button(__("action")).addClass("btn-warning").css({'color':'black','font-weight': 'bold'});
-});
 
 frappe.ui.form.on("Follow Up Item", {
 	
-	// onload_post_render: function(frm, cdt, cdn) {
-	// 	locals[cdt][cdn].get_field("action").$input.addClass("btn-primary");
-	// },
-	// refresh: function(frm, cdt, cdn){
-	// 	console.log(" this is in side child")
-	// 	frm.fields_dict.action.$input.addClass("btn-primary");
-	// },
-
-	form_render:function(frm,cdt,cdn){
+	// form_render:function(frm,cdt,cdn){
 		// console.log(" this is form render")
-		// var child = locals[cdt][cdn]
-		// child.action.css({'color':'red','font-weight': 'bold'});
-		
-		// child.fields_dict.action.$input.addClass("btn-primary");
-		// $('input[data-fieldname="amount"]').css("color","red")
-		// frm.fields_dict['items'].grid.get_field('action').$('input[data-fieldname="amount"]').css("color","red")
-	},
+	// },
 
 
-	action: function (frm, cdt, cdn) {
-		var child = locals[cdt][cdn];
-		var idx = child.idx
-		console.log("customer",child.customer, child)
-		frm.call({
-			doc: frm.doc,
-			method: 'get_accounts',
-			args: {
-				name :  child.customer,
-			},
-			callback: function (r) {
-				if (r.message) {
-					console.log(" This is get count", r.message)
+		action: function (frm, cdt, cdn) {
+			var child = locals[cdt][cdn];
+			var idx = child.idx
+			console.log("customer",child.customer, child)
+			frm.call({
+				doc: frm.doc,
+				method: 'get_accounts',
+				args: {
+					name :  child.customer,
+				},
+				callback: function (r) {
+					if (r.message) {
+						console.log(" This is get count", r.message)
 
-		// creation of unique button list
-		var buttons  = []
-		r.message.forEach(d => { 
-			buttons.push(d.follow_up)
-		});
-		
-		var unique = [...new Set(buttons)]
-		
-		const cannot_add_row = (typeof false === 'undefined') ? true : false;
-		const child_docname = (typeof false === 'undefined') ? "items" : "items";
-
-		this.data = [];
-		const fields = [
-			{
-				fieldtype: 'Link',
-				fieldname: "voucher_type",
-				read_only: 1,
-				in_list_view: 1,
-				options: "DocType",
-				columns: 1,
-				label: __('Voucher Type')
-			},
-			{
-				fieldtype: 'Dynamic Link',
-				fieldname: "voucher_no",
-				options: 'voucher_type',
-				in_list_view: 1,
-				read_only: 1,
-				columns: 1,
-				label: __('Voucher No')
-			},
-			{
-				fieldtype: 'Date',
-				fieldname: "due_date",
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Due Date'),
-
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "invoice_amount",
-				
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Invoice Amount'),
-
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "paid_amount",
-				
-				read_only: 1,
+			// creation of unique button list
+			var buttons  = []
+			r.message.forEach(d => { 
+				buttons.push(d.follow_up)
+			});
 			
-				label: __('Paid Amount'),
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "credit_note",
-				
-				read_only: 1,
-				
-				label: __('Credit Note'),
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "outstanding_amount",
-				
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Total Outstanding'),
-			}, 
-			{
-				fieldtype: 'Currency',
-				fieldname: "total_due",
-				
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Total Due'),
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "commited_amount",
-				
-				default : 0,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Commited Amount'),
-			},
-			{
-				fieldtype: 'Date',
-				fieldname: "commited_date",
-				default: 0,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Commited Date'),
-
-			},
-			{
-				fieldtype: 'Column Break'
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "range1",
-				
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: ('0-30')
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "range2",
-				
-				read_only: 1,
-				
-				label: ('31-60'),
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "range3",
-				
-				read_only: 1,
+			var unique = [...new Set(buttons)]
 			
-				columns: 1,
-				label: ('61-90'),
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "range4",
-				columns: 1,
-				read_only: 1,
-				
-				label: ('91-120'),
-			},
-			{
-				fieldtype: 'Currency',
-				fieldname: "range5",
-				read_only: 1,
-			
-				columns: 1,
-				label: __('120-Above'),
-			},
-			{
-				fieldtype: 'Int',
-				fieldname: "age",
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Age'),
-			},
-			{
-				fieldtype: 'Link',
-				fieldname: "follow_up",
-				read_only: 1,
-				in_list_view: 1,
-				columns: 1,
-				label: __('Follow Up'),
-				options: "Follow Up Level"
-			},
-			{
-				fieldtype: 'Link',
-				fieldname: "customer_group",
-				read_only: 1,
-				
-				options: "Customer Group",
-				columns: 1,
-				label: __('Customer Group')
-			},
-			{
-				fieldtype: 'Link',
-				fieldname: "territory",
-				read_only: 1,
-				options: "Territory",
-				columns: 1,
-				label: __('Territory')
-			},
-		
-		];
+			const cannot_add_row = (typeof false === 'undefined') ? true : false;
+			const child_docname = (typeof false === 'undefined') ? "items" : "items";
 
-		var child_table = [
+			this.data = [];
+			const fields = [
 				{
 					fieldtype: 'Link',
-					fieldname: "customer",
-					options: "Customer",
-					default: child.customer,
+					fieldname: "voucher_type",
+					read_only: 1,
 					in_list_view: 1,
+					options: "DocType",
 					columns: 1,
-					label: __('Customer'),
+					label: __('Voucher Type')
 				},
 				{
-					fieldtype: 'Data',
-					fieldname: "customer_name",
-					default: child.customer_name,
+					fieldtype: 'Dynamic Link',
+					fieldname: "voucher_no",
+					options: 'voucher_type',
+					in_list_view: 1,
+					read_only: 1,
+					columns: 1,
+					label: __('Voucher No')
+				},
+				{
+					fieldtype: 'Date',
+					fieldname: "due_date",
 					read_only: 1,
 					in_list_view: 1,
 					columns: 1,
-					label: __('Customer Name'),
+					label: __('Due Date'),
+
+				},
+				{
+					fieldtype: 'Currency',
+					fieldname: "invoice_amount",
+					
+					read_only: 1,
+					in_list_view: 1,
+					columns: 1,
+					label: __('Invoice Amount'),
+
+				},
+				{
+					fieldtype: 'Currency',
+					fieldname: "paid_amount",
+					
+					read_only: 1,
+				
+					label: __('Paid Amount'),
+				},
+				{
+					fieldtype: 'Currency',
+					fieldname: "credit_note",
+					
+					read_only: 1,
+					
+					label: __('Credit Note'),
+				},
+				{
+					fieldtype: 'Currency',
+					fieldname: "outstanding_amount",
+					
+					read_only: 1,
+					in_list_view: 1,
+					columns: 1,
+					label: __('Total Outstanding'),
+				}, 
+				{
+					fieldtype: 'Currency',
+					fieldname: "total_due",
+					
+					read_only: 1,
+					in_list_view: 1,
+					columns: 1,
+					label: __('Total Due'),
+				},
+				{
+					fieldtype: 'Currency',
+					fieldname: "commited_amount",
+					
+					default : 0,
+					in_list_view: 1,
+					columns: 1,
+					label: __('Commited Amount'),
+				},
+				{
+					fieldtype: 'Date',
+					fieldname: "commited_date",
+					default: 0,
+					in_list_view: 1,
+					columns: 1,
+					label: __('Commited Date'),
+
 				},
 				{
 					fieldtype: 'Column Break'
@@ -349,271 +161,316 @@ frappe.ui.form.on("Follow Up Item", {
 				{
 					fieldtype: 'Currency',
 					fieldname: "range1",
+					
 					read_only: 1,
 					in_list_view: 1,
 					columns: 1,
-					default: child.range1,
-					label: ('0-30') 
+					label: ('0-30')
 				},
 				{
 					fieldtype: 'Currency',
 					fieldname: "range2",
-					default: child.range2,
+					
 					read_only: 1,
-					in_list_view: 1,
-					columns: 1,
-					label: ('31-60')
+					
+					label: ('31-60'),
 				},
 				{
 					fieldtype: 'Currency',
 					fieldname: "range3",
-					default: child.range3,
+					
 					read_only: 1,
-					in_list_view: 1,
+				
 					columns: 1,
 					label: ('61-90'),
 				},
 				{
 					fieldtype: 'Currency',
 					fieldname: "range4",
-					default: child.range4,
+					columns: 1,
 					read_only: 1,
-					in_list_view: 1,
+					
 					label: ('91-120'),
 				},
 				{
 					fieldtype: 'Currency',
 					fieldname: "range5",
-					default: child.range5,
 					read_only: 1,
-					in_list_view: 1,
+				
 					columns: 1,
 					label: __('120-Above'),
 				},
 				{
-					fieldtype: 'Section Break'
-				},
-				{
-					fieldname: "trans_items",
-					fieldtype: "Table",
-					label: "Items",
-					cannot_add_rows: 1,
-					cannot_delete_rows : 1,
-					in_place_edit: false,
-					reqd: 1,
+					fieldtype: 'Int',
+					fieldname: "age",
 					read_only: 1,
-					data: this.data,
-					get_data: () => {
-					 	return this.data;
-					 },
-					fields: fields
+					in_list_view: 1,
+					columns: 1,
+					label: __('Age'),
 				},
 				{
-					fieldtype: 'Section Break'
-				},
-				{fieldtype: "Button",
-				 label: __("Submit Commitment"), 
-				 fieldname : "commitment",
-				 bold: 1,
-				},
-				{
-					fieldtype: "Column Break"
-				},
-				
-				{
-					fieldtype: "Column Break"
+					fieldtype: 'Link',
+					fieldname: "follow_up",
+					read_only: 1,
+					in_list_view: 1,
+					columns: 1,
+					label: __('Follow Up'),
+					options: "Follow Up Level"
 				},
 				{
-					fieldtype: 'Section Break'
-				},
-			]
-
-		if (unique){
-			
-			unique.forEach(d => { 
-				child_table.push({
-					fieldtype : "Button",
-					label: __(d),
-					fieldname : d,
-					"bold": 1,
-				},
-				{
-					fieldtype: 'Column Break'
-				})
-			});
-
-			
-		}	
-		console.log(" Line 164")
-		const dialog = new frappe.ui.Dialog({
-			title: __("Update Items"),
-			fields: child_table,
-
-			
-			// Action button below dialog child table
-			
-			primary_action: function () {
-				// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
-				// frappe.call({
-				// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
-				// 	freeze: true,
-				// 	args: {
-				// 		'parent_doctype': frm.doc.doctype,
-				// 		'trans_items': trans_items,
-				// 		'parent_doctype_name': frm.doc.name,
-				// 		'child_docname': child_docname
-				// 	},
-				// 	callback: function() {
-				// 		frm.reload_doc();
-				// 	}
-				// });
-				dialog.hide();
-				// class="btn btn-secondary btn-sm pull-right grid-collapse-row"
-				// $( ".btn btn-secondary btn-sm pull-right grid-collapse-row" ).click(function() {
-				// 	console.log( "Handler for .click() called." );
-				//   });
-
-				// $(".btn-open-row").trigger('click');  
-				
-				// $(".action").trigger('click');  
-				frm.get_field("items").grid.grid_rows[idx-1].remove()
-				refresh_field("items");
-				// // frm.refresh_field('items')
-				// // $(document).click(function() {
+					fieldtype: 'Link',
+					fieldname: "customer_group",
+					read_only: 1,
 					
-				// // });
-				// $(".myDiv").click(function(e) {
-				// 	e.stopPropagation(); // This is the preferred method.
-				// 	return false;        // This should not be used unless you do not want
-				// 						 // any click events registering inside the div
-				// });
-				console.log(" thi is done Primary")
-			},
-			primary_action_label: __('Done'),
-
-			// secondary_action: function () {
-			// 	// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
-			// 	// frappe.call({
-			// 	// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
-			// 	// 	freeze: true,
-			// 	// 	args: {
-			// 	// 		'parent_doctype': frm.doc.doctype,
-			// 	// 		'trans_items': trans_items,
-			// 	// 		'parent_doctype_name': frm.doc.name,
-			// 	// 		'child_docname': child_docname
-			// 	// 	},
-			// 	// 	callback: function() {
-			// 	// 		frm.reload_doc();
-			// 	// 	}
-			// 	// });
-			// 	// this.hide();
-			// 	// refresh_field("items");
-			// 	console.log(" this one done Secondary")	
-			// },
-			// primary_action_label: __('ONME Done')
-		});
-		// .addClass("btn-primary");
-		// var q = frappe.model.get_value('Follow Up Level', {"no_of_days": ['<=',158]}, '')
-		// frappe.model.get_value('Follow Up Level', {"no_of_days": ['<=',200]}, 'name',
-  		// function(d) {
-		// 	console.log("this is inside", d)
-		//   })
-		console.log(" Line 220")
-		
-		r.message.forEach(d => {
-					dialog.fields_dict.trans_items.df.data.push({
-				"voucher_type": d.voucher_type,
-				"voucher_no": d.voucher_no,
-				"due_date": d.due_date,
-				"invoice_amount": d.invoice_grand_total,
-				"paid_amount": d.paid,
-				"credit_note": d.credit_note,
-				"outstanding_amount": d.outstanding,
-				"range1": d.range1,
-				"range2": d.range2,
-				"range3": d.range3,
-				"range4": d.range4,
-				"range5": d.range5,
-				"__checked" : 1,
-				"age" : d.age,
-				"follow_up" : d.follow_up,	
-				"territory" : d.territory,
-				"customer_group" : d.customer_group,
-				"total_due" : d.total_due
-				
-			});
-			console.log(" Line 237")
-			//dialog.fields_dict.trans_items.df.data = r.message;
-			this.data = dialog.fields_dict.trans_items.df.data;
-			dialog.fields_dict.trans_items.grid.refresh();
-		})
-		// $("[data-fieldname=update1]").on('click',function(){
-		// 	var batch_name = $("input[data-fieldname='student_name']").val();
-		// 	selectStudentIdFromStudentDocType(batch_name);
-		// })
-		// dialog.$body.find('commitment[data-fieldtype="Button"]').addClass('btn-secondary');
-
-		// dialog.fields_dict.commitment.$input[0].addClass= "btn btn-primary btn-xs";
-
-		// dialog.add_custom_button(__("buttonName"), function(){
-		// 	//perform desired action such as routing to new form or fetching etc.
-		//   });
-
-		dialog.fields_dict.commitment.input.onclick = function() {
-			var batch_name = dialog.fields_dict.trans_items.df.get_data()
-			var trans_items = dialog.fields_dict.trans_items.df.get_data()
-			frappe.call({
-				method: 'on_submit_commitment',
-				doc: frm.doc,
-				freeze: true,
-				args: {
-					'trans_items' : trans_items,
-					'customer' : child.customer
+					options: "Customer Group",
+					columns: 1,
+					label: __('Customer Group')
 				},
-				callback: function(r) {
-					// frm.reload_doc();
-					if (r.message == True){
-						frappe.msgprint("Commitment Submited Sucessfully")
-						console.log(" this is call from Commited", r.message)
-					}
-				}
+				{
+					fieldtype: 'Link',
+					fieldname: "territory",
+					read_only: 1,
+					options: "Territory",
+					columns: 1,
+					label: __('Territory')
+				},
+			
+			];
+
+			var child_table = [
+					{
+						fieldtype: 'Link',
+						fieldname: "customer",
+						options: "Customer",
+						default: child.customer,
+						in_list_view: 1,
+						columns: 1,
+						label: __('Customer'),
+					},
+					{
+						fieldtype: 'Data',
+						fieldname: "customer_name",
+						default: child.customer_name,
+						read_only: 1,
+						in_list_view: 1,
+						columns: 1,
+						label: __('Customer Name'),
+					},
+					{
+						fieldtype: 'Column Break'
+					},
+					{
+						fieldtype: 'Currency',
+						fieldname: "range1",
+						read_only: 1,
+						in_list_view: 1,
+						columns: 1,
+						default: child.range1,
+						label: ('0-30') 
+					},
+					{
+						fieldtype: 'Currency',
+						fieldname: "range2",
+						default: child.range2,
+						read_only: 1,
+						in_list_view: 1,
+						columns: 1,
+						label: ('31-60')
+					},
+					{
+						fieldtype: 'Currency',
+						fieldname: "range3",
+						default: child.range3,
+						read_only: 1,
+						in_list_view: 1,
+						columns: 1,
+						label: ('61-90'),
+					},
+					{
+						fieldtype: 'Currency',
+						fieldname: "range4",
+						default: child.range4,
+						read_only: 1,
+						in_list_view: 1,
+						label: ('91-120'),
+					},
+					{
+						fieldtype: 'Currency',
+						fieldname: "range5",
+						default: child.range5,
+						read_only: 1,
+						in_list_view: 1,
+						columns: 1,
+						label: __('120-Above'),
+					},
+					{
+						fieldtype: 'Section Break'
+					},
+					{
+						fieldname: "trans_items",
+						fieldtype: "Table",
+						label: "Items",
+						cannot_add_rows: 1,
+						cannot_delete_rows : 1,
+						in_place_edit: false,
+						reqd: 1,
+						read_only: 1,
+						data: this.data,
+						get_data: () => {
+							return this.data;
+						},
+						fields: fields
+					},
+					{
+						fieldtype: 'Section Break'
+					},
+					{fieldtype: "Button",
+					label: __("Submit Commitment"), 
+					fieldname : "commitment",
+					bold: 1,
+					},
+					{
+						fieldtype: "Column Break"
+					},
+					
+					{
+						fieldtype: "Column Break"
+					},
+					{
+						fieldtype: 'Section Break'
+					},
+				]
+
+			if (unique){
+				
+				unique.forEach(d => { 
+					child_table.push({
+						fieldtype : "Button",
+						label: __(d),
+						fieldname : d,
+						"bold": 1,
+					},
+					{
+						fieldtype: 'Column Break'
+					})
+				});
+
+				
+			}	
+			console.log(" Line 164")
+			const dialog = new frappe.ui.Dialog({
+				title: __("Update Items"),
+				fields: child_table,
+				
+				// Action button below dialog child table
+				
+				primary_action: function () {
+					// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
+					// frappe.call({
+					// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
+					// 	freeze: true,
+					// 	args: {
+					// 		'parent_doctype': frm.doc.doctype,
+					// 		'trans_items': trans_items,
+					// 		'parent_doctype_name': frm.doc.name,
+					// 		'child_docname': child_docname
+					// 	},
+					// 	callback: function() {
+					// 		frm.reload_doc();
+					// 	}
+					// });
+					dialog.hide();
+			
+					frm.get_field("items").grid.grid_rows[idx-1].remove()
+					refresh_field("items");
+					
+					// console.log(" thi is done Primary")
+				},
+				primary_action_label: __('Done'),
+
+			});
+			// console.log(" Line 220")
+			
+			r.message.forEach(d => {
+						dialog.fields_dict.trans_items.df.data.push({
+					"voucher_type": d.voucher_type,
+					"voucher_no": d.voucher_no,
+					"due_date": d.due_date,
+					"invoice_amount": d.invoice_grand_total,
+					"paid_amount": d.paid,
+					"credit_note": d.credit_note,
+					"outstanding_amount": d.outstanding,
+					"range1": d.range1,
+					"range2": d.range2,
+					"range3": d.range3,
+					"range4": d.range4,
+					"range5": d.range5,
+					"__checked" : 1,
+					"age" : d.age,
+					"follow_up" : d.follow_up,	
+					"territory" : d.territory,
+					"customer_group" : d.customer_group,
+					"total_due" : d.total_due
+					
+				});
+				console.log(" Line 237")
+				//dialog.fields_dict.trans_items.df.data = r.message;
+				this.data = dialog.fields_dict.trans_items.df.data;
+				dialog.fields_dict.trans_items.grid.refresh();
 			})
-				// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
-			// selectStudentIdFromStudentDocType(batch_name);
-			// console.log(" this is from inside of dialog customer", batch_name)
-		}
-
-		unique.forEach(d => {
-			var trans_items = dialog.fields_dict.trans_items.df.get_data()
-			let btn = dialog.fields_dict[d].input.onclick = function() {
-				console.log(" nutoom", d)
+				
+			dialog.fields_dict.commitment.input.onclick = function() {
+				var batch_name = dialog.fields_dict.trans_items.df.get_data()
+				var trans_items = dialog.fields_dict.trans_items.df.get_data()
 				frappe.call({
-							method: 'on_follow_up_button_click',
-							doc : frm.doc,
-							freeze: true,
-							args: {
-								'follow_up': d,
-								'trans_items': trans_items,
-								't_date': frm.doc.report_date,
-								'customer': child.customer,
-							},
-							callback: function(r) {
-								// frm.reload_doc();
-								if (r.message){
-									console.log(" this is call from follow Ups", r.message)
-								}
-							}
-						});
+					method: 'on_submit_commitment',
+					doc: frm.doc,
+					freeze: true,
+					args: {
+						'trans_items' : trans_items,
+						'customer' : child.customer
+					},
+					callback: function(r) {
+						// frm.reload_doc();
+						if (r.message == True){
+							frappe.msgprint("Commitment Submited Sucessfully")
+							console.log(" this is call from Commited", r.message)
+						}
+					}
+				})
 			}
-			//dinamic_btn
-		})
-		dialog.show();
-		dialog.fields_dict.commitment.$input.addClass("btn-primary");
-		dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
-		dialog.$wrapper.find('.modal-dialog').css("width", "80%");
-	}
-}
 
-})
+			unique.forEach(d => {
+				var trans_items = dialog.fields_dict.trans_items.df.get_data()
+				let btn = dialog.fields_dict[d].input.onclick = function() {
+					console.log(" nutoom", d)
+					frappe.call({
+								method: 'on_follow_up_button_click',
+								doc : frm.doc,
+								freeze: true,
+								args: {
+									'follow_up': d,
+									'trans_items': trans_items,
+									't_date': frm.doc.report_date,
+									'customer': child.customer,
+								},
+								callback: function(r) {
+									// frm.reload_doc();
+									if (r.message){
+										console.log(" this is call from follow Ups", r.message)
+									}
+								}
+							});
+				}
+				//dinamic_btn
+			})
+			dialog.show();
+			dialog.fields_dict.commitment.$input.addClass("btn-primary");
+			dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+			dialog.$wrapper.find('.modal-dialog').css("width", "80%");
+		}
+	}
+
+	})
 	}
 })
