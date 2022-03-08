@@ -2,7 +2,31 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Follow Up', {
-	refresh: function (frm,wrapper) {
+	refresh: function (frm) {
+		frm.fields_dict.get_follow_up_details.$input.addClass("btn-primary");
+
+		// document.getElementByClass(".btn btn-xs btn-default bold input-sm").style.css("color", "red");
+
+		// $(".btn btn-xs btn-default bold input-sm").click(function(){
+		// 	$("p").css("color", "red");
+		//   });
+
+		frm.fields_dict.get_follow_up_details.$input.addClass("btn-primary");
+
+		// frm.fields_dict['items'].action.$input.addClass("btn-primary");
+		console.log("one 123",frm.fields_dict['items'].grid.meta.fields[17])
+		// frm.doc.items.get_field("action").$input.addClass('btn-primary');
+		
+		
+
+		//  to be continue
+
+		// document.querySelectorAll("[data-fieldname='action']").style.backgroundColor ="blue";
+		// frm.fields_dict['items'].grid.meta.fields[17].$input.addClass("btn-primary");
+
+		// frm.fields_dict['items'].action.$input.addClass("btn-primary");
+		// frm.fields_dict['items'].grid.get_field('action').$input.addClass("btn-primary");
+		// frm.fields_dict['items'].grid.get_field('item').get_query 
 		// document.getElementsByClassName("btn btn-xs btn-default input-sm").style.backgroundColor ='#0f81f2';
 		// document.getElementByClass("btn btn-xs btn-default input-sm").style.background-color='#44bef2';
 
@@ -50,16 +74,62 @@ frappe.ui.form.on('Follow Up', {
 
 });
 
+// custom button refresh below child
+
+// frappe.ui.form.on("Follow Up", {
+// 	onload: function (frm, cdt, cdn) {
+// 	let btn = document.createElement('a');
+// 	btn.innerText = 'Refresh';
+// 	btn.className = 'grid-upload btn btn-xs btn-default';
+// 	frm.fields_dict.items.grid.wrapper.find('.grid-upload').removeClass('hide').parent().append(btn);
+// 	btn.addEventListener("click", function(){
+// 	});
+// 	}	
+// })
+
+frappe.ui.form.on("Follow Up Item", "action", function(frm, cdt, cdn){
+var child = locals[cdt][cdn]
+//     cur_frm.doc.items.forEach(function(child){
+//         var sel = format('div[data-fieldname="action"] > div.grid-row[data-idx="{0}"]', [child.idx]);
+//         if (child.customer){
+//             $(sel).css('background-color', "#ff5858");
+//         } else {
+//             $(sel).css('background-color', '#ff5858');
+//         }
+//     });
+// child.action.addClass("btn-warning")
+// frm.items.get_field("action").$input.addClass('btn-primary');
+
+
+
+// frm.add_custom_button(__("action")).addClass("btn-warning").css({'color':'black','font-weight': 'bold'});
+});
+
 frappe.ui.form.on("Follow Up Item", {
+	
 	// onload_post_render: function(frm, cdt, cdn) {
 	// 	locals[cdt][cdn].get_field("action").$input.addClass("btn-primary");
 	// },
+	// refresh: function(frm, cdt, cdn){
+	// 	console.log(" this is in side child")
+	// 	frm.fields_dict.action.$input.addClass("btn-primary");
+	// },
 
-	
+	form_render:function(frm,cdt,cdn){
+		// console.log(" this is form render")
+		// var child = locals[cdt][cdn]
+		// child.action.css({'color':'red','font-weight': 'bold'});
+		
+		// child.fields_dict.action.$input.addClass("btn-primary");
+		// $('input[data-fieldname="amount"]').css("color","red")
+		// frm.fields_dict['items'].grid.get_field('action').$('input[data-fieldname="amount"]').css("color","red")
+	},
+
 
 	action: function (frm, cdt, cdn) {
 		var child = locals[cdt][cdn];
-		console.log("customer",child.customer)
+		var idx = child.idx
+		console.log("customer",child.customer, child)
 		frm.call({
 			doc: frm.doc,
 			method: 'get_accounts',
@@ -247,7 +317,6 @@ frappe.ui.form.on("Follow Up Item", {
 				fieldtype: 'Link',
 				fieldname: "territory",
 				read_only: 1,
-				
 				options: "Territory",
 				columns: 1,
 				label: __('Territory')
@@ -344,7 +413,8 @@ frappe.ui.form.on("Follow Up Item", {
 				},
 				{fieldtype: "Button",
 				 label: __("Submit Commitment"), 
-				 fieldname : "commitment"
+				 fieldname : "commitment",
+				 bold: 1,
 				},
 				{
 					fieldtype: "Column Break"
@@ -364,7 +434,8 @@ frappe.ui.form.on("Follow Up Item", {
 				child_table.push({
 					fieldtype : "Button",
 					label: __(d),
-					fieldname : d
+					fieldname : d,
+					"bold": 1,
 				},
 				{
 					fieldtype: 'Column Break'
@@ -396,32 +467,50 @@ frappe.ui.form.on("Follow Up Item", {
 				// 		frm.reload_doc();
 				// 	}
 				// });
-				// this.hide();
-				// refresh_field("items");
+				dialog.hide();
+				// class="btn btn-secondary btn-sm pull-right grid-collapse-row"
+				// $( ".btn btn-secondary btn-sm pull-right grid-collapse-row" ).click(function() {
+				// 	console.log( "Handler for .click() called." );
+				//   });
+
+				// $(".btn-open-row").trigger('click');  
+				
+				// $(".action").trigger('click');  
+				frm.get_field("items").grid.grid_rows[idx-1].remove()
+				refresh_field("items");
+				// // frm.refresh_field('items')
+				// // $(document).click(function() {
+					
+				// // });
+				// $(".myDiv").click(function(e) {
+				// 	e.stopPropagation(); // This is the preferred method.
+				// 	return false;        // This should not be used unless you do not want
+				// 						 // any click events registering inside the div
+				// });
 				console.log(" thi is done Primary")
 			},
 			primary_action_label: __('Done'),
 
-			secondary_action: function () {
-				// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
-				// frappe.call({
-				// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
-				// 	freeze: true,
-				// 	args: {
-				// 		'parent_doctype': frm.doc.doctype,
-				// 		'trans_items': trans_items,
-				// 		'parent_doctype_name': frm.doc.name,
-				// 		'child_docname': child_docname
-				// 	},
-				// 	callback: function() {
-				// 		frm.reload_doc();
-				// 	}
-				// });
-				// this.hide();
-				// refresh_field("items");
-				console.log(" this one done Secondary")	
-			},
-			secondary_action_label: __('ONME Done')
+			// secondary_action: function () {
+			// 	// const trans_items = this.get_values()["trans_items"].filter((item) => !!item.item_code);
+			// 	// frappe.call({
+			// 	// 	// method: 'erpnext.controllers.accounts_controller.update_child_qty_rate',
+			// 	// 	freeze: true,
+			// 	// 	args: {
+			// 	// 		'parent_doctype': frm.doc.doctype,
+			// 	// 		'trans_items': trans_items,
+			// 	// 		'parent_doctype_name': frm.doc.name,
+			// 	// 		'child_docname': child_docname
+			// 	// 	},
+			// 	// 	callback: function() {
+			// 	// 		frm.reload_doc();
+			// 	// 	}
+			// 	// });
+			// 	// this.hide();
+			// 	// refresh_field("items");
+			// 	console.log(" this one done Secondary")	
+			// },
+			// primary_action_label: __('ONME Done')
 		});
 		// .addClass("btn-primary");
 		// var q = frappe.model.get_value('Follow Up Level', {"no_of_days": ['<=',158]}, '')
@@ -519,6 +608,7 @@ frappe.ui.form.on("Follow Up Item", {
 			//dinamic_btn
 		})
 		dialog.show();
+		dialog.fields_dict.commitment.$input.addClass("btn-primary");
 		dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
 		dialog.$wrapper.find('.modal-dialog').css("width", "80%");
 	}

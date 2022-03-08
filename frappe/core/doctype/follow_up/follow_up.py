@@ -8,13 +8,14 @@ from frappe.model.document import Document
 
 from frappe import _, scrub
 from frappe.utils import cint
+from frappe.utils.data import now
 from six import iteritems
 
 from erpnext.accounts.party import get_partywise_advanced_payment_amount
 from erpnext.accounts.report.accounts_receivable.accounts_receivable import ReceivablePayableReport
 
 from frappe.utils import cint, cstr, flt, getdate, nowdate
-from datetime import datetime
+from datetime import datetime, timedelta
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
 	get_dimension_with_children,
@@ -36,6 +37,9 @@ from frappe.utils import (
 )
 
 from erpnext.accounts.utils import get_currency_precision
+
+from datetime import datetime # from python std library
+from frappe.utils import add_to_date
 
 class FollowUp(Document):
 	args = {
@@ -69,6 +73,7 @@ class FollowUp(Document):
 		# print(" this is click, this is follow", follow_up, trans_items, t_date, customer )
 		comm_voucher_no = " Voucher Type     Voucher No  	   Due Date   Outstanding Amount \n"
 		follow = frappe.get_doc("Follow Up Level", follow_up)
+		add_to_date = follow.no_of_days
 		total_due = 0
 		# Creating logs
 		for i in trans_items:
@@ -86,7 +91,11 @@ class FollowUp(Document):
 				new_log.due_date = i["due_date"]
 				new_log.age = i["age"]
 				new_log.level_called = follow_up
+				new_log.follow_up_date = add_to_date(datetime.now(), days= add_to_date, as_string=True, as_datetime=True)
 				new_log.save()
+
+		# continue from here
+
 
 		# Adding comment on Customer of Follow Up Performed
 		comm = frappe.new_doc("Comment")
@@ -283,9 +292,33 @@ class FollowUp(Document):
 		# sorting list according to Outstanding DESC
 		sorted_entry = sorted(entry, key=lambda d: d['outstanding'], reverse=True)
 
-		# self.get_data()
+		# print(" this is type of", type(sorted_entry), entry)
 
-		for i in sorted_entry:
+		new_entry = []
+		for e in sorted_entry:
+			if e.get("party"):
+				print(" Inside e",  e.get("party"))
+				logs = frappe.db.get_value("Follow Up Logs", { "customer" :e.get("party")}, ["level_called", "submitted_date"])
+				
+				if not logs:
+					# print("not in logs")
+					new_entry.append(e)	
+
+				else:
+					
+					# print("LOG",logs)
+					follow_log = frappe.db.get_value("Follow Up Level", logs[0], ["no_of_days"])
+					if follow_log:
+						# print("No of days",follow_log)
+						if  getdate(logs[1]) + timedelta(days=follow_log) > getdate(now()) :
+							# print(" Inside date", getdate(logs[1]) + timedelta(days=follow_log), getdate(now()))
+							pass
+						else: 
+							# print(" Uppar ", getdate(logs[1]) + timedelta(days=follow_log) , getdate(now()) + timedelta(days=follow_log))
+							new_entry.append(e)	
+		# print("eee", new_entry)	
+
+		for i in new_entry:
 			self.append("items",{
 							"customer" : i.party,
 							"customer_name" : i.party_name,
