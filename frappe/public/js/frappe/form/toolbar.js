@@ -85,11 +85,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 		});
 	}
 	rename_document_title(new_name, new_title, merge=false) {
+		let confirm_message = null;
 		const docname = this.frm.doc.name;
 		const title_field = this.frm.meta.title_field || '';
 		const doctype = this.frm.doctype;
-
-		let confirm_message=null;
 
 		if (new_name) {
 			const warning = __("This cannot be undone");
@@ -98,17 +97,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		let rename_document = () => {
-			frappe.socketio.doc_subscribe(doctype, new_name);
-			frappe.realtime.on("doc_update", data => {
-				if (data.doctype == doctype && data.name == new_name) {
-					$(document).trigger("rename", [doctype, docname, new_name]);
-					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
-					this.frm.reload_doc();
-					frappe.show_alert(
-						__('Document renamed from {0} to {1}', [docname.bold(), new_name.bold()])
-					);
-				}
-			});
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
 				doctype,
 				docname,
@@ -119,6 +107,24 @@ frappe.ui.form.Toolbar = class Toolbar {
 				freeze: true,
 				freeze_message: __("Updating related fields...")
 			}).then(new_docname => {
+				// handle document renaming queued action
+				if (new_docname == docname) {
+					frappe.socketio.doc_subscribe(doctype, new_name);
+					frappe.realtime.on("doc_update", data => {
+						if (data.doctype == doctype && data.name == new_name) {
+							$(document).trigger("rename", [doctype, docname, new_name]);
+							if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
+							this.frm.reload_doc();
+							frappe.show_alert({
+								message: __('Document renamed from {0} to {1}', [docname.bold(), new_name.bold()]),
+								indicator: 'success',
+							});
+						}
+					});
+					frappe.show_alert(
+						__('Document renaming from {0} to {1} has been queued', [docname.bold(), new_name.bold()])
+					);
+				}
 				if (new_name != docname) {
 					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
 					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
