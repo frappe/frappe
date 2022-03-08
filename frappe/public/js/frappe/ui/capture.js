@@ -47,7 +47,7 @@ frappe.ui.Capture = class {
 		this.set_options(options);
 
 		this.facing_mode = "environment";
-		this.images = []
+		this.images = [];
 	}
 
 	set_options(options) {
@@ -61,7 +61,7 @@ frappe.ui.Capture = class {
 			video: {
 				facingMode: this.facing_mode
 			}
-		}
+		};
 
 		return navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 			this.stream = stream;
