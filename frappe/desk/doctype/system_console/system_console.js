@@ -93,11 +93,11 @@ frappe.ui.form.on('System Console', {
 				<p class='text-muted'>Requested on: ${timestamp}</p>
 				<table class='table-bordered' style='width: 100%'>
 				<thead><tr>
-					<th width='10%'>Id</ht>
+					<th width='5%'>Id</ht>
 					<th width='10%'>Time</ht>
 					<th width='10%'>State</ht>
 					<th width='60%'>Info</ht>
-					<th width='10%'>Progress/Wait Event</ht>
+					<th width='15%'>Progress / Wait Event</ht>
 				</tr></thead>
 				<tbody>${rows}</thead>`);
 		});
