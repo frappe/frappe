@@ -103,7 +103,7 @@ frappe.ui.Capture = class {
 		return navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 			me.stream = stream;
 			me.dialog.custom_actions.empty();
-
+			me.dialog.get_primary_btn().off('click');
 			me.setup_take_photo_action();
 			me.setup_preview_action();
 			me.setup_toggle_camera();
@@ -112,6 +112,7 @@ frappe.ui.Capture = class {
 
 			me.video = me.$template.find('video')[0];
 			me.video.srcObject = me.stream;
+			me.video.load();
 			me.video.play();
 
 			let field = me.dialog.get_field("capture");
@@ -120,14 +121,16 @@ frappe.ui.Capture = class {
 	}
 
 	render_preview() {
+		this.stop_media_stream();
 		this.$template.find('.fc-stream-container').hide();
 		this.$template.find('.fc-preview-container').show();
+		this.dialog.get_primary_btn().off('click');
 
 		let images = ``;
 
 		this.images.forEach((image, idx) => {
 			images += `
-				<div class="mt-1 p-1 rounded col-md-3 col-sm-4" data-idx="${idx}">
+				<div class="mt-1 p-1 rounded col-md-3 col-sm-4 col-xs-4" data-idx="${idx}">
 					<span class="capture-remove-btn" data-idx="${idx}">
 						${frappe.utils.icon("close", "lg")}
 					</span>
@@ -225,7 +228,6 @@ frappe.ui.Capture = class {
 
 		this.dialog.set_secondary_action_label(__("Capture"));
 		this.dialog.set_secondary_action(() => {
-			me.dialog.get_primary_btn().off('click');
 			me.render_stream();
 		});
 	}
