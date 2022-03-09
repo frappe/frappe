@@ -760,6 +760,10 @@ class FilterArea {
 
 		const doctype_fields = this.list_view.meta.fields;
 		const title_field = this.list_view.meta.title_field;
+		const has_existing_filters = (
+			this.list_view.filters
+			&& this.list_view.filters.length > 0
+		);
 
 		fields = fields.concat(
 			doctype_fields
@@ -794,13 +798,17 @@ class FilterArea {
 							options = options.join("\n");
 						}
 					}
-					let default_value =
-						fieldtype === "Link"
-							? frappe.defaults.get_user_default(options)
-							: null;
+
+					let default_value;
+
+					if (fieldtype === "Link" && !has_existing_filters) {
+						default_value = frappe.defaults.get_user_default(options);
+					}
+
 					if (["__default", "__global"].includes(default_value)) {
 						default_value = null;
 					}
+
 					return {
 						fieldtype: fieldtype,
 						label: __(df.label),
