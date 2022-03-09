@@ -135,8 +135,7 @@ export default class WebFormList {
 		if (this.data.length) {
 			this.append_rows(this.data);
 			this.wrapper.appendChild(this.table);
-		}
-		else {
+		} else {
 			let new_button = "";
 			let empty_state = document.createElement("div");
 			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
