@@ -185,11 +185,11 @@ frappe.ui.Capture = class {
 
 		elements.forEach(el => {
 			el.onclick = () => {
-				let idx = parseInt(el.getAttribute("data-idx"))
+				let idx = parseInt(el.getAttribute("data-idx"));
 
 				me.images.splice(idx, 1);
 				me.render_preview();
-			}
+			};
 		});
 	}
 
