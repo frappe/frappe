@@ -1075,7 +1075,7 @@ class BaseDocument(object):
 			for df in self.meta.get("fields", {"fieldtype": ('=', "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
 
-	def _cast_date_and_time_fields(self):
+	def _cast_date_and_time_fields(self) -> None:
 		"""
 		Converts datetime/string value to date and time respectively for Date and Time fields only.
 		This is necessary since the values with which the Document class is initialized can differ.
@@ -1088,12 +1088,15 @@ class BaseDocument(object):
 		self._cast_date_fields()
 		self._cast_time_fields()
 
-	def _cast_date_fields(self):
+	def _cast_date_fields(self) -> None:
 		for field in self.meta.get_date_fields():
 			if not self.get(field.fieldname):
 				continue
 
 			_value = self.get(field.fieldname)
+			if get_datetime(_value) is None:
+				continue
+
 			value = get_datetime(_value).date()
 			value = (
 				get_date_str(value)
@@ -1103,12 +1106,15 @@ class BaseDocument(object):
 
 			self.set(field.fieldname, value)
 
-	def _cast_time_fields(self):
+	def _cast_time_fields(self) -> None:
 		for field in self.meta.get_time_fields():
 			if not self.get(field.fieldname):
 				continue
 
 			_value = self.get(field.fieldname)
+			if get_datetime(_value) is None:
+				continue
+
 			value = get_datetime(_value).time()
 			value = to_timedelta(value)
 			value = (
