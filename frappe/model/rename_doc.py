@@ -27,8 +27,8 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 
 	title_field = doc.meta.get_title_field()
 
-	title_updated = (title_field != "name") and (new_title != doc.get(title_field))
-	name_updated = new_name != doc.name
+	title_updated = new_title and (title_field != "name") and (new_title != doc.get(title_field))
+	name_updated = new_name and (new_name != doc.name)
 
 	if name_updated:
 		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
