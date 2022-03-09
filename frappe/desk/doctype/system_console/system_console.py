@@ -41,7 +41,8 @@ def execute_code(doc):
 @frappe.whitelist()
 def show_processlist():
 	frappe.only_for('System Manager')
-	query = {
+
+	return frappe.db.multisql({
 		"postgres": """
 			SELECT pid AS "Id",
 				query_start AS "Time",
@@ -50,7 +51,4 @@ def show_processlist():
 				wait_event AS "Progress"
 			FROM pg_stat_activity""",
 		"mariadb": "show full processlist"
-	}
-
-	data = frappe.db.sql(query[frappe.db.db_type or 'mariadb'], as_dict=1)
-	return data
+	}, as_dict=True)
