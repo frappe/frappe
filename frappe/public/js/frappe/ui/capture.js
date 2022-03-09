@@ -47,7 +47,7 @@ frappe.ui.Capture = class {
 		this.set_options(options);
 
 		this.facing_mode = "environment";
-		this.images = []
+		this.images = [];
 	}
 
 	set_options(options) {
@@ -56,7 +56,44 @@ frappe.ui.Capture = class {
 		return this;
 	}
 
-	render() {
+	show() {
+		let me = this;
+
+		this.dialog = new frappe.ui.Dialog({
+			title: this.options.title,
+			animate: this.options.animate,
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "capture"
+				},
+				{
+					fieldtype: "HTML",
+					fieldname: "total_count"
+				}
+			],
+			on_hide: this.stop_media_stream()
+		});
+
+		this.dialog.get_close_btn().on('click', () => {
+			me.hide();
+		});
+
+		this.render_stream()
+			.then(() => {
+				me.dialog.show();
+			})
+			.catch(err => {
+				if (me.options.error) {
+					frappe.show_alert(frappe.ui.Capture.ERR_MESSAGE, 3);
+				}
+
+				throw err;
+			});
+	}
+
+	render_stream() {
+		let me = this;
 		let constraints = {
 			video: {
 				facingMode: this.facing_mode
@@ -64,94 +101,145 @@ frappe.ui.Capture = class {
 		}
 
 		return navigator.mediaDevices.getUserMedia(constraints).then(stream => {
-			this.stream = stream;
+			me.stream = stream;
+			me.dialog.custom_actions.empty();
 
-			this.dialog = new frappe.ui.Dialog({
-				title: this.options.title,
-				animate: this.options.animate,
-				on_hide: () => this.stop_media_stream()
-			});
+			me.setup_take_photo_action();
+			me.setup_preview_action();
+			me.setup_toggle_camera();
 
-			this.dialog.get_close_btn().on('click', () => {
-				this.hide();
-			});
+			me.$template = $(frappe.ui.Capture.TEMPLATE);
 
-			const set_take_photo_action = () => {
-				this.dialog.set_primary_action(__('Take Photo'), () => {
-					const data_url = frappe._.get_data_uri(video);
-					$e.find('.fc-preview').attr('src', data_url);
+			me.video = me.$template.find('video')[0];
+			me.video.srcObject = me.stream;
+			me.video.play();
 
-					this.images.push(data_url);
-
-					$e.find('.fc-stream').hide();
-					$e.find('.fc-preview').show();
-
-					this.dialog.set_secondary_action_label(__('Retake'));
-					this.dialog.get_secondary_btn().show();
-					this.dialog.custom_actions.find(".btn-multiple").show();
-
-					this.dialog.set_primary_action(__('Submit'), () => {
-						this.hide();
-						if (this.callback) this.callback(this.images);
-					});
-				});
-
-				this.dialog.set_secondary_action_label(__('Switch Camera'));
-				this.dialog.set_secondary_action(() => {
-					this.facing_mode = this.facing_mode == "environment" ? "user" : "environment";
-					frappe.show_alert({
-						message: __("Switching Camera")
-					});
-					this.hide();
-					this.show();
-				});
-			};
-
-			set_take_photo_action();
-
-			this.dialog.set_secondary_action(() => {
-				this.images.pop();
-				$e.find('.fc-preview').hide();
-				$e.find('.fc-stream').show();
-
-				this.dialog.get_primary_btn().off('click');
-				set_take_photo_action();
-			});
-
-			this.dialog.add_custom_action(__("Take Multiple"), () => {
-				$e.find('.fc-preview').hide();
-				$e.find('.fc-stream').show();
-
-				this.dialog.get_primary_btn().off('click');
-				this.dialog.custom_actions.find(".btn-multiple").hide();
-				set_take_photo_action();
-			}, "btn-multiple");
-
-			this.dialog.custom_actions.find(".btn-multiple").hide();
-
-			const $e = $(frappe.ui.Capture.TEMPLATE);
-
-			const video = $e.find('video')[0];
-			video.srcObject = this.stream;
-			video.play();
-			const $container = $(this.dialog.body);
-
-			$container.html($e);
+			let field = me.dialog.get_field("capture");
+			$(field.wrapper).html(me.$template);
 		});
 	}
 
-	show() {
-		this.render()
-			.then(() => {
-				this.dialog.show();
-			})
-			.catch(err => {
-				if (this.options.error) {
-					frappe.show_alert(frappe.ui.Capture.ERR_MESSAGE, 3);
-				}
+	render_preview() {
+		this.$template.find('.fc-stream-container').hide();
+		this.$template.find('.fc-preview-container').show();
 
-				throw err;
+		let images = ``;
+
+		this.images.forEach((image, idx) => {
+			images += `
+				<div class="mt-1 p-1 rounded col-md-3 col-sm-4" data-idx="${idx}">
+					<span class="capture-remove-btn" data-idx="${idx}">
+						${frappe.utils.icon("close", "lg")}
+					</span>
+					<img class="rounded" src="${image}" data-idx="${idx}">
+				</div>
+			`;
+		});
+
+		this.$template.find('.fc-preview-container').empty();
+		$(this.$template.find('.fc-preview-container')).html(
+			`<div class="row">
+				${images}
+			</div>`
+		);
+
+		this.setup_capture_action();
+		this.setup_submit_action();
+		this.setup_remove_action();
+		this.update_count();
+		this.dialog.custom_actions.empty();
+	}
+
+	setup_take_photo_action() {
+		let me = this;
+
+		this.dialog.set_primary_action(__('Take Photo'), () => {
+			const data_url = frappe._.get_data_uri(me.video);
+
+			me.images.push(data_url);
+			me.setup_preview_action();
+			me.update_count();
+		});
+	}
+
+	setup_preview_action() {
+		let me = this;
+
+		if (!this.images.length) {
+			return;
+		}
+
+		this.dialog.set_secondary_action_label(__("Preview"));
+		this.dialog.set_secondary_action(() => {
+			me.dialog.get_primary_btn().off('click');
+			me.render_preview();
+		});
+	}
+
+	setup_remove_action() {
+		let me = this;
+		let elements = this.$template[0].getElementsByClassName("capture-remove-btn");
+
+		elements.forEach(el => {
+			el.onclick = () => {
+				let idx = parseInt(el.getAttribute("data-idx"))
+
+				me.images.splice(idx, 1);
+				me.render_preview();
+			}
+		});
+	}
+
+	update_count() {
+		let field = this.dialog.get_field("total_count");
+		let msg = `${__("Total Images")}: <b>${this.images.length}`;
+
+		if (this.images.length === 0) {
+			msg = __("No Images");
+		}
+
+		$(field.wrapper).html(`
+			<div class="row mt-2">
+				<div class="offset-4 col-4 d-flex justify-content-center">${msg}</b></div>
+			</div>
+		`);
+	}
+
+	setup_toggle_camera() {
+		let me = this;
+
+		this.dialog.add_custom_action(__("Switch Camera"), () => {
+			me.facing_mode = me.facing_mode == "environment" ? "user" : "environment";
+
+			frappe.show_alert({
+				message: __("Switching Camera")
 			});
+
+			me.stop_media_stream();
+			me.render_stream();
+		}, "btn-switch");
+	}
+
+	setup_capture_action() {
+		let me = this;
+
+		this.dialog.set_secondary_action_label(__("Capture"));
+		this.dialog.set_secondary_action(() => {
+			me.dialog.get_primary_btn().off('click');
+			me.render_stream();
+		});
+	}
+
+	setup_submit_action() {
+		let me = this;
+
+		this.dialog.set_primary_action(__('Submit'), () => {
+			me.hide();
+
+			if (me.callback) {
+				me.callback(me.images);
+			}
+		});
 	}
 
 	hide() {
@@ -179,11 +267,11 @@ frappe.ui.Capture.OPTIONS = {
 frappe.ui.Capture.ERR_MESSAGE = __('Unable to load camera.');
 frappe.ui.Capture.TEMPLATE = `
 <div class="frappe-capture">
-	<div class="panel panel-default">
-		<div class="embed-responsive embed-responsive-16by9">
-			<img class="fc-preview embed-responsive-item" style="object-fit: contain; display: none;"/>
-			<video class="fc-stream embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
-		</div>
+	<div class="embed-responsive embed-responsive-16by9 fc-stream-container">
+		<video class="fc-stream embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
+	</div>
+	<div class="fc-preview-container px-2" style="display: none;">
+
 	</div>
 </div>
 `;
