@@ -16,7 +16,8 @@ export default class WebFormList {
 		if (this.table) {
 			Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
 			let check = document.getElementById('select-all');
-			check.checked = false;
+			if (check)
+				check.checked = false;
 		}
 		this.rows = [];
 		this.page_length = 20;
@@ -131,9 +132,33 @@ export default class WebFormList {
 			this.make_table_head();
 		}
 
-		this.append_rows(this.data);
+		if (this.data.length) {
+			this.append_rows(this.data);
+			this.wrapper.appendChild(this.table);
+		}
+		else {
+			let new_button = "";
+			let empty_state = document.createElement("div");
+			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
 
-		this.wrapper.appendChild(this.table);
+			frappe.has_permission(this.doctype, "", "create", () => {
+				new_button = `<p><button class="btn btn-primary btn-sm btn-new-doc hidden-xs">
+					${__("Create a new {0}", [__(this.doctype)])}
+					</button> <button class="btn btn-primary btn-new-doc visible-xs">
+					${__("Create New", null, "Create a new document from list view")}
+					</button></p>`;
+			});
+
+			empty_state.innerHTML = `<div class="text-center">
+				<div>
+					<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="empty-list-icon">
+				</div>
+				<p class="mt-2 small">${__("No {0} found", [__(this.doctype)])}</p>
+				${new_button}`;
+
+			this.wrapper.appendChild(empty_state);
+		}
+
 	}
 
 	make_table_head() {
