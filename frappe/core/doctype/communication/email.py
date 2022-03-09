@@ -17,39 +17,11 @@ from frappe import _
 from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
-	flags=None, read_receipt=None, print_letterhead=True, email_template=None, communication_type=None,
-	ignore_permissions=False):
-	"""Make a new communication.
-=======
-def make(
-	doctype=None,
-	name=None,
-	content=None,
-	subject=None,
-	sent_or_received="Sent",
-	sender=None,
-	sender_full_name=None,
-	recipients=None,
-	communication_medium="Email",
-	send_email=False,
-	print_html=None,
-	print_format=None,
-	attachments="[]",
-	send_me_a_copy=False,
-	cc=None,
-	bcc=None,
-	read_receipt=None,
-	print_letterhead=True,
-	email_template=None,
-	communication_type=None,
-	**kwargs,
-) -> Dict[str, str]:
+	read_receipt=None, print_letterhead=True, email_template=None, communication_type=None, **kwargs):
 	"""Make a new communication. Checks for email permissions for specified Document.
->>>>>>> da2dbfaae9 (refactor!: Deprecate ignore_permissions & flags in communication.make)
 
 	:param doctype: Reference DocType.
 	:param name: Reference Document name.
@@ -66,11 +38,6 @@ def make(
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	"""
-<<<<<<< HEAD
-
-	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
-	send_me_a_copy = cint(send_me_a_copy)
-=======
 	if kwargs:
 		from frappe.utils.commands import warn
 		warn(
@@ -78,7 +45,6 @@ def make(
 			"are deprecated or unsupported",
 			category=DeprecationWarning
 		)
->>>>>>> da2dbfaae9 (refactor!: Deprecate ignore_permissions & flags in communication.make)
 
 	if doctype and name and not frappe.has_permission(doctype=doctype, ptype="email", doc=name):
 		raise frappe.PermissionError(
@@ -132,7 +98,7 @@ def _make(
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
-) -> Dict[str, str]:
+):
 	"""Internal method to make a new communication that ignores Permission checks.
 	"""
 
@@ -158,17 +124,10 @@ def _make(
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0,
-<<<<<<< HEAD
-		"communication_type": communication_type
-	}).insert(ignore_permissions=True)
-=======
 		"communication_type": communication_type,
 	})
 	comm.flags.skip_add_signature = not add_signature
 	comm.insert(ignore_permissions=True)
->>>>>>> 89a7dac300 (fix: Add signature only if not Communication.flags.skip_add_signature)
-
-	comm.save(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)
@@ -178,7 +137,6 @@ def _make(
 		add_attachments(comm.name, attachments)
 
 	if cint(send_email):
-<<<<<<< HEAD
 		# Raise error if outgoing email account is missing
 		_ = frappe.email.smtp.get_outgoing_email_account(append_to=comm.doctype, sender=comm.sender)
 		frappe.flags.print_letterhead = cint(print_letterhead)
@@ -188,24 +146,6 @@ def _make(
 		"name": comm.name,
 		"emails_not_sent_to": ", ".join(comm.emails_not_sent_to) if hasattr(comm, "emails_not_sent_to") else None
 	}
-=======
-		if not comm.get_outgoing_email_account():
-			frappe.throw(
-				msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError
-			)
-
-		comm.send_email(
-			print_html=print_html,
-			print_format=print_format,
-			send_me_a_copy=send_me_a_copy,
-			print_letterhead=print_letterhead,
-		)
-
-	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)
-
-	return {"name": comm.name, "emails_not_sent_to": ", ".join(emails_not_sent_to)}
-
->>>>>>> da2dbfaae9 (refactor!: Deprecate ignore_permissions & flags in communication.make)
 
 def validate_email(doc):
 	"""Validate Email Addresses of Recipients and CC"""
