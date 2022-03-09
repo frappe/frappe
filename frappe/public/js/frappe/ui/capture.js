@@ -98,7 +98,7 @@ frappe.ui.Capture = class {
 			video: {
 				facingMode: this.facing_mode
 			}
-		}
+		};
 
 		return navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 			me.stream = stream;
