@@ -655,6 +655,7 @@
   {
    "fieldname": "role_detail",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Role Detail"
   },
   {
@@ -789,7 +790,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-03-02 10:45:26.781087",
+ "modified": "2022-03-07 13:18:05.862239",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
