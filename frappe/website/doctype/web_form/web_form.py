@@ -598,13 +598,18 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 				break
 
 	if doctype_validated:
-		link_options = []
-		if limited_to_user:
-			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
-		else:
-			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype)])
+		link_options, filters = [], {}
+		fields = ['name as value']
 
-		return link_options
+		title_field = frappe.db.get_value('DocType', doctype, 'title_field')
+		if title_field:
+			fields.append(f'{title_field} as label')
+
+		if limited_to_user:
+			filters = {"owner":frappe.session.user}
+
+		link_options = frappe.get_all(doctype, filters, fields)
+		return json.dumps(link_options, default=str)
 
 	else:
 		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))
