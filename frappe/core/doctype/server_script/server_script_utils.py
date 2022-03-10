@@ -4,19 +4,20 @@ import frappe
 # to avoid circular imports
 
 EVENT_MAP = {
-	"before_insert": "Before Insert",
-	"after_insert": "After Insert",
-	"before_validate": "Before Validate",
-	"validate": "Before Save",
-	"on_update": "After Save",
-	"before_submit": "Before Submit",
-	"on_submit": "After Submit",
-	"before_cancel": "Before Cancel",
-	"on_cancel": "After Cancel",
-	"on_trash": "Before Delete",
-	"after_delete": "After Delete",
-	"before_update_after_submit": "Before Save (Submitted Document)",
-	"on_update_after_submit": "After Save (Submitted Document)",
+	'before_insert': 'Before Insert',
+	'after_insert': 'After Insert',
+	'before_validate': 'Before Validate',
+	'validate': 'Before Save',
+	'on_update': 'After Save',
+	'before_submit': 'Before Submit',
+	'on_submit': 'After Submit',
+	'before_cancel': 'Before Cancel',
+	'on_cancel': 'After Cancel',
+	'on_trash': 'Before Delete',
+	'after_delete': 'After Delete',
+	'before_update_after_submit': 'Before Save (Submitted Document)',
+	'on_update_after_submit': 'After Save (Submitted Document)',
+	'on_payment_authorized': 'On Payment Authorization'
 }
 
 
