@@ -16,7 +16,8 @@ EVENT_MAP = {
 	'on_trash': 'Before Delete',
 	'after_delete': 'After Delete',
 	'before_update_after_submit': 'Before Save (Submitted Document)',
-	'on_update_after_submit': 'After Save (Submitted Document)'
+	'on_update_after_submit': 'After Save (Submitted Document)',
+	'on_payment_authorized': 'On Payment Authorized'
 }
 
 def run_server_script_for_doc_event(doc, event):
