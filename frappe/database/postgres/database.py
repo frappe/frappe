@@ -327,7 +327,7 @@ def modify_query(query):
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
 	if re.search('from tab', query, flags=re.IGNORECASE):
-		query = re.sub('from tab([\w-]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
+		query = re.sub(r'from tab([\w-]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
 
 	return query
 
