@@ -639,7 +639,7 @@ export default class GridRow {
 
 	show_search_row() {
 		// show or remove search columns based on grid rows
-		this.show_search = this.frm && this.frm.doc && 
+		this.show_search = this.frm && this.frm.doc &&
 			this.frm.doc[this.grid.df.fieldname] &&
 			this.frm.doc[this.grid.df.fieldname].length >= 20;
 		!this.show_search && this.wrapper.remove();
