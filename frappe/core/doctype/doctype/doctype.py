@@ -732,9 +732,12 @@ class DocType(Document):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
-		# and should only contain letters, numbers and underscore
-		if not re.match(r"^(?![\W])[^\d_\s][\w ]+$", name, **flags):
-			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+		# and should only contain letters, numbers, underscore, and hyphen
+		if not re.match(r"^(?![\W])[^\d_\s][\w -]+$", name, **flags):
+			frappe.throw(_(
+				"A DocType's name should start with a letter and can only "
+				"consist of letters, numbers, spaces, underscores and hyphens"
+			), frappe.NameError, title="Invalid Name")
 
 		validate_route_conflict(self.doctype, self.name)
 
@@ -786,9 +789,10 @@ def validate_links_table_fieldnames(meta):
 
 	fieldnames = tuple(field.fieldname for field in meta.fields)
 	for index, link in enumerate(meta.links, 1):
-		link_meta = frappe.get_meta(link.link_doctype)
-		if not link_meta.get_field(link.link_fieldname):
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
+		if not frappe.get_meta(link.link_doctype).has_field(link.link_fieldname):
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(
+				index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype)
+			)
 			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
 
 		if not link.is_child_table:
@@ -802,8 +806,15 @@ def validate_links_table_fieldnames(meta):
 			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(index)
 			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
 
-		if link.table_fieldname not in fieldnames:
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.table_fieldname), frappe.bold(meta.name))
+		if meta.name == link.parent_doctype:
+			field_exists = link.table_fieldname in fieldnames
+		else:
+			field_exists = frappe.get_meta(link.parent_doctype).has_field(link.table_fieldname)
+
+		if not field_exists:
+			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(
+				index, frappe.bold(link.table_fieldname), frappe.bold(meta.name)
+			)
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
 
 def validate_fields_for_doctype(doctype):

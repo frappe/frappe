@@ -24,7 +24,7 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("Some (DocType)").insert)
 		self.assertRaises(frappe.NameError, new_doctype("Some Doctype with a name whose length is more than 61 characters").insert)
-		for name in ("Some DocType", "Some_DocType"):
+		for name in ("Some DocType", "Some_DocType", "Some-DocType"):
 			if frappe.db.exists("DocType", name):
 				frappe.delete_doc("DocType", name)
 
@@ -497,6 +497,13 @@ class TestDocType(unittest.TestCase):
 
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertFalse(frappe.db.table_exists('Test Virtual Doctype'))
+
+	def test_default_fieldname(self):
+		fields = [{"label": "title", "fieldname": "title", "fieldtype": "Data", "default": "{some_fieldname}"}]
+		dt = new_doctype("DT with default field", fields=fields)
+		dt.insert()
+
+		dt.delete()
 
 def new_doctype(name, unique=0, depends_on='', fields=None):
 	doc = frappe.get_doc({

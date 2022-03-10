@@ -90,7 +90,7 @@ def install_basic_docs():
 
 	for d in install_docs:
 		try:
-			frappe.get_doc(d).insert()
+			frappe.get_doc(d).insert(ignore_if_duplicate=True)
 		except frappe.NameError:
 			pass
 

@@ -97,13 +97,18 @@ class TestCustomizeForm(unittest.TestCase):
 
 		custom_field = d.get("fields", {"fieldname": "test_custom_field"})[0]
 		custom_field.reqd = 1
+		custom_field.no_copy = 1
 		d.run_method("save_customization")
 		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 1)
+		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "no_copy"), 1)
 
 		custom_field = d.get("fields", {"is_custom_field": True})[0]
 		custom_field.reqd = 0
+		custom_field.no_copy = 0
 		d.run_method("save_customization")
 		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "reqd"), 0)
+		self.assertEqual(frappe.db.get_value("Custom Field", "Event-test_custom_field", "no_copy"), 0)
+
 
 	def test_save_customization_new_field(self):
 		d = self.get_customize_form("Event")
@@ -257,7 +262,7 @@ class TestCustomizeForm(unittest.TestCase):
 		frappe.clear_cache()
 		d = self.get_customize_form("User Group")
 
-		d.append('links', dict(link_doctype='User Group Member', parent_doctype='User',
+		d.append('links', dict(link_doctype='User Group Member', parent_doctype='User Group',
 			link_fieldname='user', table_fieldname='user_group_members', group='Tests', custom=1))
 
 		d.run_method("save_customization")
@@ -267,7 +272,7 @@ class TestCustomizeForm(unittest.TestCase):
 
 		# check links exist
 		self.assertTrue([d.name for d in user_group.links if d.link_doctype == 'User Group Member'])
-		self.assertTrue([d.name for d in user_group.links if d.parent_doctype == 'User'])
+		self.assertTrue([d.name for d in user_group.links if d.parent_doctype == 'User Group'])
 
 		# remove the link
 		d = self.get_customize_form("User Group")
