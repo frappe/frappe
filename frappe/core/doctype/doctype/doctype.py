@@ -732,9 +732,12 @@ class DocType(Document):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
-		# and should only contain letters, numbers and underscore
-		if not re.match(r"^(?![\W])[^\d_\s][\w ]+$", name, **flags):
-			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+		# and should only contain letters, numbers, underscore, and hyphen
+		if not re.match(r"^(?![\W])[^\d_\s][\w -]+$", name, **flags):
+			frappe.throw(_(
+				"A DocType's name should start with a letter and can only "
+				"consist of letters, numbers, spaces, underscores and hyphens"
+			), frappe.NameError, title="Invalid Name")
 
 		validate_route_conflict(self.doctype, self.name)
 
