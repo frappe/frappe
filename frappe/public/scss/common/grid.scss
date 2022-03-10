@@ -147,7 +147,6 @@
 
 .grid-row > .row {
 	.col:last-child {
-		margin-right: calc(-1 * var(--margin-sm));
 		border-right: none;
 	}
 
