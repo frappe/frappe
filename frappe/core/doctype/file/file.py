@@ -745,7 +745,7 @@ def delete_file(path):
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
-			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
+			frappe.throw(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
 
 		parts = os.path.split(path.strip("/"))
 		if parts[0]=="files":
