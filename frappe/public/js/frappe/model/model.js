@@ -585,7 +585,7 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title]), function() {
+		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function() {
 			return frappe.call({
 				method: 'frappe.client.delete',
 				args: {
