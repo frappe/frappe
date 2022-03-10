@@ -1106,7 +1106,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 	:param app_name: Filter by app."""
 	def load_app_hooks(app_name=None):
 		hooks = {}
-		for app in [app_name] if app_name else get_installed_apps(sort=True):
+		for app in [app_name] if app_name else get_installed_apps(sort=False):
 			app = "frappe" if app=="webnotes" else app
 			try:
 				app_hooks = get_module(app + ".hooks")
