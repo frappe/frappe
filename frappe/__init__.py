@@ -850,8 +850,8 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 def get_cached_doc(*args, **kwargs):
-	if args and len(args) > 1 and isinstance(args[1], str):
-		key = get_document_cache_key(args[0], args[1])
+	key = can_cache_doc(args)
+	if key:
 		# local cache
 		doc = local.document_cache.get(key)
 		if doc:
@@ -869,8 +869,27 @@ def get_cached_doc(*args, **kwargs):
 
 	return doc
 
+def can_cache_doc(args):
+	"""
+	Function to determine if document should be cached based on get_doc params.
+	Returns cache key if doc can be cached, None otherwise.
+	"""
+
+	if not args:
+		return
+
+	doctype = args[0]
+	if len(args) == 1:
+		name = doctype # Probably a single DocType
+	else:
+		name = args[1]
+
+	# Only cache if both doctype and name are strings
+	if isinstance(doctype, str) and isinstance(name, str):
+		return get_document_cache_key(doctype, name)
+
 def get_document_cache_key(doctype, name):
-	return '{0}::{1}'.format(doctype, name)
+	return f'{doctype}::{name}'
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
@@ -911,8 +930,8 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# set in cache
-	if args and len(args) > 1:
-		key = get_document_cache_key(args[0], args[1])
+	key = can_cache_doc(args)
+	if key:
 		local.document_cache[key] = doc
 		cache().hset('document_cache', key, doc.as_dict())
 
