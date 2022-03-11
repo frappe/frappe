@@ -55,7 +55,11 @@ def enqueue(method, queue='default', timeout=None, event=None,
 	# To handle older implementations
 	is_async = kwargs.pop('async', is_async)
 
-	if now or frappe.flags.in_migrate:
+	if not is_async and not frappe.flags.in_test:
+		print(_("Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."))
+
+	call_directly = now or frappe.flags.in_migrate or (not is_async and not frappe.flags.in_test)
+	if call_directly:
 		return frappe.call(method, **kwargs)
 
 	q = get_queue(queue, is_async=is_async)
