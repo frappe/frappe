@@ -1,7 +1,7 @@
 export default class KanbanSettings {
 	constructor({ kanbanview, doctype, meta, settings }) {
 		if (!doctype) {
-			frappe.throw('DocType required');
+			frappe.throw(__('DocType required'));
 		}
 
 		this.kanbanview = kanbanview;
@@ -19,7 +19,6 @@ export default class KanbanSettings {
 			this.add_new_fields();
 			this.show_dialog();
 		});
-		console.log(this)
 	}
 
 	make() {
@@ -303,4 +302,4 @@ export default class KanbanSettings {
 
 		return multiselect_fields;
 	}
-};
+}

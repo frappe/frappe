@@ -654,7 +654,7 @@ frappe.provide("frappe.views");
 				if (card.doc[field.fieldname] && card.doc[field.fieldname] !== card.title) {
 					fields.push(`<span>${__(field.label)}: ${__(card.doc[field.fieldname])}</span>`);
 				}
-			})
+			});
 
 			return fields.join("<br>");
 		}

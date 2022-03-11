@@ -3,7 +3,6 @@
 # License: MIT. See LICENSE
 
 import json
-from typing import Dict, List
 
 import frappe
 from frappe import _

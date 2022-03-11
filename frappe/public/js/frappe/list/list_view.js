@@ -1593,7 +1593,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __("List Settings", null, "Button in list view menu"),
 			action: () => this.show_list_settings(),
 			standard: true,
-		}
+		};
 	}
 
 	show_list_settings() {
