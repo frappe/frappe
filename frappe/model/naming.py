@@ -33,7 +33,7 @@ def set_new_name(doc, draft_name=False):
 			doc.name = None
 
 		if getattr(doc, "amended_from", None):
-			doc.name = _get_amended_name(doc)
+			_set_amended_name(doc)
 			return
 
 		elif getattr(doc.meta, "issingle", False):
