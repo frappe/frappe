@@ -289,10 +289,10 @@ frappe.ui.form.update_calling_link = (newdoc) => {
 			frappe._from_link = null;
 		});
 	}
-}
+};
 
 frappe.ui.form.update_route_after_rename = (doc) => {
 	if (doc.route != frappe.get_route()) {
 		frappe.set_route("Form", doc.doctype, doc.name);
 	}
-}
+};
