@@ -173,7 +173,16 @@ class Database(object):
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e)
 
+<<<<<<< HEAD
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+=======
+			elif frappe.conf.db_type == 'postgres':
+				# TODO: added temporarily
+				print(e)
+				raise
+
+			if ignore_ddl and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e)):
+>>>>>>> f4d3effaf2 (fix: typo in database file for v12 - latest)
 				pass
 			else:
 				raise
@@ -994,7 +1003,7 @@ class Database(object):
 			return []
 
 	def is_missing_table_or_column(self, e):
-		return self.is_missing_column(e) or self.is_missing_table(e)
+		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
 		current_dialect = frappe.db.db_type or 'mariadb'
