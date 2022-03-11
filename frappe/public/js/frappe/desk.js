@@ -64,8 +64,7 @@ frappe.Application = class Application {
 				if (!is_dialog_open) {
 					frappe.theme_switcher.show();
 					is_dialog_open = true;
-				}
-				else {
+				} else {
 					frappe.theme_switcher.hide();
 					is_dialog_open = false;
 				}
