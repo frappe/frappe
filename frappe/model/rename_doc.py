@@ -186,8 +186,7 @@ def update_user_permissions(doctype, old, new):
 		AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
 
 def update_linked_comments(doctype, old, new):
-	frappe.db.sql("""UPDATE `tabComment` SET `reference_name`=%s WHERE `reference_doctype`=%s
-		AND `reference_name`=%s""", (new, doctype, old))
+	frappe.db.set_value("Comment", {"reference_doctype": doctype, "reference_name": old}, 'reference_name', new)
 
 def update_user_settings(old: str, new: str, link_fields: List[Dict]) -> None:
 	'''
