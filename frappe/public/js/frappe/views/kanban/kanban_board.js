@@ -652,7 +652,7 @@ frappe.provide("frappe.views");
 
 			JSON.parse(cur_list.board.fields || "[]").forEach(field => {
 				if (card.doc[field.fieldname] && card.doc[field.fieldname] !== card.title) {
-					fields.push(`<span>${field.label}: ${card.doc[field.fieldname]}</span>`);
+					fields.push(`<span>${__(field.label)}: ${__(card.doc[field.fieldname])}</span>`);
 				}
 			})
 

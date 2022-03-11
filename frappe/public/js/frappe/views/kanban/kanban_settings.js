@@ -105,7 +105,7 @@ export default class KanbanSettings {
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
-							${me.fields[idx].label}
+							${__(me.fields[idx].label)}
 						</div>
 						<div class="col-md-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
@@ -294,7 +294,7 @@ export default class KanbanSettings {
 		meta.fields.forEach(field => {
 			if (!in_list(frappe.model.no_value_type, field.fieldtype)) {
 				multiselect_fields.push({
-					label: field.label,
+					label: __(field.label),
 					value: field.fieldname,
 					checked: in_list(fields, field.fieldname)
 				});
