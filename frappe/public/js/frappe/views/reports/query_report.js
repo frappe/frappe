@@ -131,7 +131,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
 		this.show_save = false;
-		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 		this.prepared_report_action = "New";
 
@@ -368,6 +367,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_report_settings() {
+		this.menu_items = this.get_menu_items();
 		return new Promise((resolve, reject) => {
 			if (frappe.query_reports[this.report_name]) {
 				this.report_settings = frappe.query_reports[this.report_name];
@@ -1435,6 +1435,56 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return columns;
 	}
 
+	save_report(save_type) {
+		const _save_report = (name) => {
+			return frappe.call({
+				method: "frappe.desk.query_report.save_report",
+				args: {
+					reference_report: this.report_name,
+					report_name: name,
+					columns: this.get_visible_columns()
+				},
+				callback: function (r) {
+					this.show_save = false;
+					frappe.set_route('query-report', r.message);
+				}
+			});
+		};
+
+		if(this.report_name && save_type == "save") {
+			_save_report(this.report_name);
+		} else {
+			let d = new frappe.ui.Dialog({
+				title: __('Save As'),
+				fields: [
+					{
+						fieldtype: 'Data',
+						fieldname: 'report_name',
+						label: __("Report Name"),
+						default: this.report_doc.is_standard == 'No' ? this.report_name : "",
+						reqd: true
+					}
+				],
+				primary_action: (values) => {
+					_save_report(values.report_name)
+					d.hide();
+				}
+			});
+			d.show();
+		}
+	}
+
+	delete_report() {
+		return frappe.call({
+			method: 'frappe.desk.query_report.delete_report',
+			args: { name: this.report_name },
+			callback(response) {
+				if (response.exc) return;
+				window.history.back();
+			}
+		});
+	}
+
 	get_menu_items() {
 		let items = [
 			{
@@ -1582,41 +1632,43 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		];
 
-		if (frappe.user.is_report_manager()) {
+		const can_edit_or_delete = (action) => {
+			const method = action == "delete" ? "can_delete" : "can_write";
+			console.log(this.report_doc)
+			return (
+				this.report_doc
+				&& this.report_doc.is_standard !== "Yes"
+				&& (
+					frappe.model[method]("Report")
+					|| this.report_doc.owner === frappe.session.user
+				)
+			);
+		};
+
+		// A user with role Report Manager or Report Owner can save
+		if (can_edit_or_delete()) {
 			items.push({
-				label: __('Save'),
-				action: () => {
-					let d = new frappe.ui.Dialog({
-						title: __('Save Report'),
-						fields: [
-							{
-								fieldtype: 'Data',
-								fieldname: 'report_name',
-								label: __("Report Name"),
-								default: this.report_doc.is_standard == 'No' ? this.report_name : "",
-								reqd: true
-							}
-						],
-						primary_action: (values) => {
-							frappe.call({
-								method: "frappe.desk.query_report.save_report",
-								args: {
-									reference_report: this.report_name,
-									report_name: values.report_name,
-									columns: this.get_visible_columns()
-								},
-								callback: function(r) {
-									this.show_save = false;
-									d.hide();
-									frappe.set_route('query-report', r.message);
-								}
-							});
-						}
-					});
-					d.show();
-				},
-				standard: true
-			})
+				label: __("Save"),
+				action: () => this.save_report('save')
+			});
+		}
+
+		// anyone can save as
+		items.push({
+			label: __('Save As'),
+			action: () => this.save_report('save_as')
+		});
+
+		// A user with role Report Manager or Report Owner can delete
+		if (can_edit_or_delete("delete")) {
+			items.push({
+				label: __("Delete"),
+				action: () => frappe.confirm(
+					"Are you sure you want to delete this report?",
+					() => this.delete_report(),
+				),
+				shortcut: "Shift+Ctrl+D"
+			});
 		}
 
 		return items;
