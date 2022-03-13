@@ -878,10 +878,7 @@ def can_cache_doc(args):
 		return
 
 	doctype = args[0]
-	if len(args) == 1:
-		name = doctype # Probably a single DocType
-	else:
-		name = args[1]
+	name = doctype if len(args) == 1 else args[1]
 
 	# Only cache if both doctype and name are strings
 	if isinstance(doctype, str) and isinstance(name, str):
