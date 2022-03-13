@@ -850,8 +850,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 def get_cached_doc(*args, **kwargs):
-	key = can_cache_doc(args)
-	if key:
+	if key := can_cache_doc(args):
 		# local cache
 		doc = local.document_cache.get(key)
 		if doc:
@@ -930,8 +929,7 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# set in cache
-	key = can_cache_doc(args)
-	if key:
+	if key := can_cache_doc(args):
 		local.document_cache[key] = doc
 		cache().hset('document_cache', key, doc.as_dict())
 
