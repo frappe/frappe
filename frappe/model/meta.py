@@ -524,7 +524,7 @@ class Meta(Document):
 				# For internal links parent doctype will be the key
 				doctype = link.parent_doctype or link.link_doctype
 				# group found
-				if link.group and group.label == link.group:
+				if link.group and _(group.label) == _(link.group):
 					if doctype not in group.get('items'):
 						group.get('items').append(doctype)
 					link.added = True

@@ -65,7 +65,7 @@ def get_context(context):
 """)
 
 	def validate_standard(self):
-		if self.is_standard and not frappe.conf.developer_mode:
+		if self.is_standard and self.enabled and not frappe.conf.developer_mode:
 			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
 
 	def validate_condition(self):

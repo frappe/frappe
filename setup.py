@@ -59,5 +59,10 @@ setup(
 	{
 		'clean': CleanCommand
 	},
-	python_requires='>=3.6'
+	# python_requires wasn't changed from a while due to an oversight
+	# but Frappe v13 has always been >= PY37
+	# refs:
+	# * https://frappeframework.com/docs/v13/user/en/installation#pre-requisites
+	# * https://github.com/frappe/frappe/blob/version-13/.github/workflows/patch-mariadb-tests.yml#L27
+	python_requires='>=3.7'
 )
