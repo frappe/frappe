@@ -485,6 +485,7 @@
   },
   {
 <<<<<<< HEAD
+<<<<<<< HEAD
    "fieldname": "column_break_64",
    "fieldtype": "Column Break"
   },
@@ -501,6 +502,9 @@
    "label": "Disable Change Log Notification"
 =======
    "default": "90",
+=======
+   "default": "30",
+>>>>>>> 99aa2ec7f6 (fix: Add patch to set document expiry)
    "description": "Number of days after which the shared document link will be expired",
    "fieldname": "document_share_key_expiry",
    "fieldtype": "Int",
@@ -510,7 +514,7 @@
 =======
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "allow_older_web_view_links",
    "fieldtype": "Check",
    "label": "Allow Older Web View Links (Insecure)"
