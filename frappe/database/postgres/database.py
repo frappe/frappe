@@ -99,16 +99,8 @@ class PostgresDatabase(Database):
 		return db_size[0].get('database_size')
 
 	# pylint: disable=W0221
-	def sql(self, *args, **kwargs):
-		if args:
-			# since tuple is immutable
-			args = list(args)
-			args[0] = modify_query(args[0])
-			args = tuple(args)
-		elif kwargs.get('query'):
-			kwargs['query'] = modify_query(kwargs.get('query'))
-
-		return super(PostgresDatabase, self).sql(*args, **kwargs)
+	def sql(self, query, *args, **kwargs):
+		return super(PostgresDatabase, self).sql(modify_query(query), *args, **kwargs)
 
 	def get_tables(self, cached=True):
 		return [d[0] for d in self.sql("""select table_name
@@ -152,6 +144,10 @@ class PostgresDatabase(Database):
 	@staticmethod
 	def is_table_missing(e):
 		return getattr(e, 'pgcode', None) == '42P01'
+
+	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
 
 	@staticmethod
 	def is_missing_column(e):
@@ -335,7 +331,7 @@ def modify_query(query):
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
 	if re.search('from tab', query, flags=re.IGNORECASE):
-		query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
+		query = re.sub(r'from tab([\w-]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
 
 	return query
 
