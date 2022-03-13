@@ -198,3 +198,4 @@ frappe.patches.v14_0.update_github_endpoints #08-11-2021
 frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
 frappe.patches.v14_0.update_auto_account_deletion_duration
+frappe.patches.v14_0.set_document_expiry_default

@@ -489,14 +489,14 @@
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   },
   {
-   "default": "90",
+   "default": "30",
    "description": "Number of days after which the shared document link will be expired",
    "fieldname": "document_share_key_expiry",
    "fieldtype": "Int",
    "label": "Document Share Key Expiry (in Days)"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "allow_older_web_view_links",
    "fieldtype": "Check",
    "label": "Allow Older Web View Links (Insecure)"
