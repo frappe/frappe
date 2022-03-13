@@ -149,7 +149,7 @@ class CommunicationEmailMixin:
 			"doctype": self.reference_doctype,
 			"name": self.reference_name,
 			"print_format": print_format,
-			"key": get_parent_doc(self).get_new_document_share_key()
+			"key": get_parent_doc(self).get_document_share_key()
 		})
 
 	def get_outgoing_email_account(self):
