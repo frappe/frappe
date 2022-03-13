@@ -220,7 +220,7 @@ frappe.ui.form.Share = class Share {
 				fieldtype: "Button",
 				label: __("Get Link"),
 				click: () => {
-					this.frm.call("get_new_document_share_key", {
+					this.frm.call("get_document_share_key", {
 						expires_on: share_modal.get_value("link_expiration_date"),
 						no_expiry: share_modal.get_value("no_expiry")
 					}).then(res => {
