@@ -48,7 +48,7 @@
 
 .notifications-list {
 	width: 480px;
-	padding: 0px 10px;
+	padding-left: 10px;
 	min-height: 560px;
 	border: none;
 	position: absolute;
@@ -139,36 +139,74 @@
 	padding: 10px 10px 10px 4px;
 	justify-content: space-between;
 
+	&.read {
+		.mark-as-read {
+			display: none;
+		}
+
+		&:hover {
+			.mark-as-unread {
+				flex-shrink : 0;
+				align-self: center;
+				justify-self: end;
+				@include size(9px, 9px);
+				border: 2px solid var(--primary);
+				border-radius: 100%;
+		
+				&:hover {
+					animation: glowing 1300ms infinite;
+				}
+			}
+		}
+	}
+
+	@keyframes glowing {
+		0%, 100% {
+			box-shadow: 0 0 1px 7px var(--blue-50);
+		}
+		50% {
+			box-shadow: 0 0 1px 7px var(--blue-100);
+		}
+	}
+
 	&.unread {
+		.mark-as-unread {
+			display: none;
+		}
 
 		&:hover {
 			.mark-as-read {
 				flex-shrink : 0;
 				align-self: center;
 				justify-self: end;
-				width: 8px;
-				height: 8px;
-				border: 2px solid var(--primary);
-				border-radius: 1000px;
+				@include size(9px, 9px);
+				background-color: var(--primary);
+				border-radius: 100%;
+
+				&:hover {
+					animation: glowing 1300ms infinite;
+				}
 			}
 		}
 
-		.notification-body::before {
-			background: var(--primary);
+		.notification-body .user-avatar {
+			position: relative;
+
+			&::before {
+				content: "";
+				position: absolute;
+				background: var(--primary);
+				border: 1px solid white;
+				top: 0;
+				right: 2px;
+				@include size(9px, 9px);
+				border-radius: 10px;
+			}
 		}
 	}
 
 	.notification-body {
 		display: flex;
-
-		&::before {
-			content: '';
-			display: inline-block;
-			@include size(4px, 4px);
-			margin-top: 16px;
-			border-radius: 10px;
-			margin-right: var(--margin-xs);
-		}
 
 		.message {
 			max-width: 360px;
@@ -188,8 +226,7 @@
 		margin-right: 10px;
 
 		.avatar-frame {
-			height: 36px;
-			width: 36px;
+			@include size(36px, 36px);
 		}
 	}
 }

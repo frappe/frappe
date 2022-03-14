@@ -127,6 +127,11 @@ def mark_as_read(docname):
 		frappe.db.set_value('Notification Log', docname, 'read', 1, update_modified=False)
 
 @frappe.whitelist()
+def mark_as_unread(docname):
+	if docname:
+		frappe.db.set_value('Notification Log', docname, 'read', 0, update_modified=False)
+
+@frappe.whitelist()
 def trigger_indicator_hide():
 	frappe.publish_realtime('indicator_hide', user=frappe.session.user)
 

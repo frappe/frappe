@@ -231,7 +231,16 @@ class NotificationsView extends BaseNotificationsView {
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
 			{ docname: docname }
 		).then(() => {
-			$el.removeClass('unread');
+			$el.removeClass('unread').addClass('read');
+		});
+	}
+
+	mark_as_unread(docname, $el) {
+		frappe.call(
+			'frappe.desk.doctype.notification_log.notification_log.mark_as_unread',
+			{ docname: docname }
+		).then(() => {
+			$el.removeClass('read').addClass('unread');
 		});
 	}
 
@@ -245,7 +254,7 @@ class NotificationsView extends BaseNotificationsView {
 	get_dropdown_item_html(field) {
 		let doc_link = this.get_item_link(field);
 
-		let read_class = field.read ? '' : 'unread';
+		let read_class = field.read ? 'read' : 'unread';
 		let message = field.subject;
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
@@ -273,17 +282,21 @@ class NotificationsView extends BaseNotificationsView {
 				</div>
 				<div class="mark-as-read" title="${__("Mark as Read")}">
 				</div>
+				<div class="mark-as-unread" title="${__("Mark as Unread")}">
+				</div>
 			</a>`);
 
-		if (!field.read) {
-			let mark_btn = item_html.find(".mark-as-read");
-			mark_btn.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
-			mark_btn.on('click', (e) => {
+		['mark-as-read', 'mark-as-unread'].forEach(class_name => {
+			let btn = item_html.find(`.${class_name}`);
+			btn.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
+			btn.on('click', (e) => {
 				e.preventDefault();
 				e.stopImmediatePropagation();
-				this.mark_as_read(field.name, item_html);
+				class_name === 'mark-as-read' ? 
+					this.mark_as_read(field.name, item_html) :
+					this.mark_as_unread(field.name, item_html);
 			});
-		}
+		});
 
 		item_html.on('click', () => {
 			!field.read && this.mark_as_read(field.name, item_html);
