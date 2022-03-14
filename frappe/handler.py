@@ -147,7 +147,7 @@ def upload_file():
 		if frappe.get_system_settings('allow_guests_to_upload_files'):
 			ignore_permissions = True
 		else:
-			return
+			raise frappe.PermissionError
 	else:
 		user = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
