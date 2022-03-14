@@ -870,7 +870,7 @@ def get_cached_doc(*args, **kwargs):
 
 def can_cache_doc(args):
 	"""
-	Function to determine if document should be cached based on get_doc params.
+	Determine if document should be cached based on get_doc params.
 	Returns cache key if doc can be cached, None otherwise.
 	"""
 
