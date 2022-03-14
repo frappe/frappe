@@ -15,6 +15,10 @@ frappe.ui.form.Share = class Share {
 	render_sidebar() {
 		const shared = this.shared || this.frm.get_docinfo().shared;
 		const shared_users = shared.filter(Boolean).map(s => s.user);
+
+		this.share_link.attr("title", __("Get Shareable Link"))
+			.tooltip({ delay: { "show": 600, "hide": 100 }});
+
 		this.share_link.click(() => {
 			this.share_modal();
 		});
@@ -208,8 +212,8 @@ frappe.ui.form.Share = class Share {
 				label: __("No Expiry"),
 				fieldname: "no_expiry",
 				change: () => {
-					const no_expiry_warning = `<span style="color: var(--red-500);">
-						${__('It is not recommended to send links without expiry')}
+					const no_expiry_warning = `<span>
+						${__('Note: Person with the link user will be able to see all changes to this document as long as the key is not deleted manually.')}
 					</span>`;
 					const no_expiry = share_modal.get_value('no_expiry');
 					share_modal.get_field('link_expiration_date').toggle(!no_expiry);
