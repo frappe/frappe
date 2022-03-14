@@ -75,6 +75,56 @@ def get_logger(module=None, with_more_info=False, allow_site=True, filter=None, 
 	return logger
 
 
+def get_logger_stderr(module=None, with_more_info=False, allow_site=True, filter=None):
+	"""Application Logger for your given module. This logger don't use the `RotatingFileHandler`,
+	instead use `StreamHandler` in order to avoid the use of log files and outputs everything to stderr.
+	Args:
+		module (str, optional): Name of your logger and consequently your log file. Defaults to None.
+		with_more_info (bool, optional): Will log the form dict using the SiteContextFilter. Defaults to False.
+		allow_site ((str, bool), optional): Pass site name to explicitly log under it's logs. If True and unspecified, guesses which site the logs would be saved under. Defaults to True.
+		filter (function, optional): Add a filter function for your logger. Defaults to None.
+	Returns:
+		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
+	"""
+	if allow_site is True:
+		site = getattr(frappe.local, "site", None)
+	elif allow_site in get_sites():
+		site = allow_site
+	else:
+		site = False
+
+	logger_name = "{0}-{1}".format(module, site or "all")
+
+	try:
+		return frappe.loggers[logger_name]
+	except KeyError:
+		pass
+
+	if not module:
+		module = "frappe"
+		with_more_info = True
+
+
+	logger = logging.getLogger(logger_name)
+	logger.setLevel(frappe.log_level or default_log_level)
+	logger.propagate = False
+
+	formatter = logging.Formatter("%(asctime)s %(levelname)s {0} %(message)s".format(module))
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logger.addHandler(handler)
+
+	if with_more_info:
+		handler.addFilter(SiteContextFilter())
+
+	if filter:
+		logger.addFilter(filter)
+
+	frappe.loggers[logger_name] = logger
+
+	return logger
+
+
 class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 
