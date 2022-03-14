@@ -43,7 +43,7 @@ class File(Document):
 
 	def get_name_based_on_parent_folder(self):
 		if self.folder:
-			return "/".join([self.folder, self.file_name])
+			return os.path.join(self.folder, self.file_name)
 
 	def autoname(self):
 		"""Set name for folder"""
@@ -54,7 +54,7 @@ class File(Document):
 				# home
 				self.name = self.file_name
 		else:
-			self.name = frappe.generate_hash("", 10)
+			self.name = frappe.generate_hash(length=10)
 
 	def after_insert(self):
 		if not self.is_folder:
