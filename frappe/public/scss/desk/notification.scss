@@ -152,7 +152,7 @@
 				@include size(9px, 9px);
 				border: 2px solid var(--primary);
 				border-radius: 100%;
-		
+
 				&:hover {
 					animation: glowing 1300ms infinite;
 				}
