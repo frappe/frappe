@@ -89,7 +89,7 @@ class Document(BaseDocument):
 		If DocType name and document name are passed, the object will load
 		all values (including child documents) from the database.
 		"""
-		self.doctype = self.name = self._draft_name = None
+		self.doctype = self.name = None
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
@@ -335,9 +335,9 @@ class Document(BaseDocument):
 		self.update_children()
 
 		if self._action == "submit" and getattr(self.meta, "name_after_submit"):
-			self._draft_name = self.name
+			draft_name = self.name
 			self.set_new_name()
-			rename_doc(self.doctype, self._draft_name, self.name, ignore_permissions=True, force=True, show_alert=False)
+			rename_doc(self.doctype, draft_name, self.name, ignore_permissions=True, force=True, show_alert=False)
 
 		self.run_post_save_methods()
 
@@ -429,9 +429,6 @@ class Document(BaseDocument):
 			self.name = validate_name(self.doctype, set_name)
 		else:
 			set_new_name(self, set_draft_name=set_draft_name)
-
-		if set_draft_name and getattr(self.meta, "name_after_submit"):
-			frappe.db.set_value(self.doctype, self.name, "_draft_name", self.name, update_modified=False)
 
 		if set_child_names:
 			# set name for children
