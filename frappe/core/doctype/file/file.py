@@ -419,8 +419,14 @@ class File(Document):
 
 	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
-		self.content = content
+		duplicate_file = None
 
+		self.content = content
+		self.is_private = cint(self.is_private)
+		self.content_type = mimetypes.guess_type(self.file_name)[0]
+		self.file_size = self.check_max_file_size()
+
+		# decode self.content
 		if decode:
 			if isinstance(content, str):
 				self.content = content.encode("utf-8")
@@ -429,13 +435,7 @@ class File(Document):
 				self.content = self.content.split(b",")[1]
 			self.content = safe_b64decode(self.content)
 
-		if not self.is_private:
-			self.is_private = 0
-
-		self.content_type = mimetypes.guess_type(self.file_name)[0]
-
-		self.file_size = self.check_max_file_size()
-
+		# transform file content based on site settings
 		if (
 			self.content_type and self.content_type == "image/jpeg"
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
@@ -443,8 +443,6 @@ class File(Document):
 			self.content = strip_exif_data(self.content, self.content_type)
 
 		self.content_hash = get_content_hash(self.content)
-
-		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
 		if not ignore_existing_file_check:
@@ -460,10 +458,12 @@ class File(Document):
 				self.file_url  = duplicate_file.file_url
 				file_exists = True
 
-		if os.path.exists(encode(get_files_path(self.file_name, is_private=self.is_private))):
-			self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
-
 		if not file_exists:
+			self.file_name = generate_file_name(
+				name=self.file_name,
+				suffix=self.content_hash[-6:],
+				is_private=self.is_private
+			)
 			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method('write_file')
 			if write_file_method:
