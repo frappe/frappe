@@ -106,14 +106,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
+		let route_options = {};
+		route_options = Object.assign(route_options, frappe.route_options);
+
 		if (this.report_name !== frappe.get_route()[1]) {
 			// different report
-			this.load_report();
+			this.load_report(route_options);
 		}
 		else if (frappe.has_route_options()) {
 			// filters passed through routes
 			// so refresh report again
-			this.refresh_report();
+			this.refresh_report(route_options);
 		} else {
 			// same report
 			// don't do anything to preserve state
@@ -121,7 +124,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
-	load_report() {
+	load_report(route_options) {
 		this.page.clear_inner_toolbar();
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
@@ -137,7 +140,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.get_report_settings(),
 			() => this.setup_progress_bar(),
 			() => this.setup_page_head(),
-			() => this.refresh_report(),
+			() => this.refresh_report(route_options),
 			() => this.add_chart_buttons_to_toolbar(true),
 			() => this.add_card_button_to_toolbar(true),
 		]);
@@ -343,13 +346,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
-	refresh_report() {
+	refresh_report(route_options) {
 		this.toggle_message(true);
 		this.toggle_report(false);
 
 		return frappe.run_serially([
 			() => this.setup_filters(),
-			() => this.set_route_filters(),
+			() => this.set_route_filters(route_options),
 			() => this.page.clear_custom_actions(),
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.refresh()
@@ -525,15 +528,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
-	set_route_filters() {
-		if(frappe.route_options) {
-			const fields = Object.keys(frappe.route_options);
+	set_route_filters(route_options) {
+		if (!route_options) route_options = frappe.route_options;
+
+		if (route_options) {
+			const fields = Object.keys(route_options);
 
 			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
 
 			const promises = filters_to_set.map(f => {
 				return () => {
-					const value = frappe.route_options[f.df.fieldname];
+					const value = route_options[f.df.fieldname];
 					f.set_value(value);
 				};
 			});
@@ -573,6 +578,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
+					is_tree: this.report_settings.tree,
+					parent_field: this.report_settings.parent_field
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
@@ -829,7 +836,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
 
-		if (this.raw_data.add_total_row) {
+		if (this.raw_data.add_total_row && !this.report_settings.tree) {
 			data = data.slice();
 			data.splice(-1, 1);
 		}
@@ -844,10 +851,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				columns: columns,
 				data: data,
 				inlineFilters: true,
+				language: frappe.boot.lang,
+				translations: frappe.utils.datatable.get_translations(),
 				treeView: this.tree_report,
 				layout: 'fixed',
 				cellHeight: 33,
-				showTotalRow: this.raw_data.add_total_row,
+				showTotalRow: this.raw_data.add_total_row && !this.report_settings.tree,
 				direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 				hooks: {
 					columnTotal: frappe.utils.report_column_total

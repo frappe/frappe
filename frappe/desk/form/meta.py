@@ -16,6 +16,15 @@ import io
 
 from six import iteritems
 
+ASSET_KEYS = (
+	"__js", "__css", "__list_js", "__calendar_js", "__map_js",
+	"__linked_with", "__messages", "__print_formats", "__workflow_docs",
+	"__form_grid_templates", "__listview_template", "__tree_js",
+	"__dashboard", "__kanban_column_fields", '__templates',
+	'__custom_js', '__custom_list_js'
+)
+
+
 def get_meta(doctype, cached=True):
 	# don't cache for developer mode as js files, templates may be edited
 	if cached and not frappe.conf.developer_mode:
@@ -38,6 +47,12 @@ class FormMeta(Meta):
 		super(FormMeta, self).__init__(doctype)
 		self.load_assets()
 
+	def set(self, key, value, *args, **kwargs):
+		if key in ASSET_KEYS:
+			self.__dict__[key] = value
+		else:
+			super(FormMeta, self).set(key, value, *args, **kwargs)
+
 	def load_assets(self):
 		if self.get('__assets_loaded', False):
 			return
@@ -59,11 +74,7 @@ class FormMeta(Meta):
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 
-		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
-			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template", "__tree_js",
-			"__dashboard", "__kanban_column_fields", '__templates',
-			'__custom_js', '__custom_list_js'):
+		for k in ASSET_KEYS:
 			d[k] = self.get(k)
 
 		# d['fields'] = d.get('fields', [])
@@ -176,7 +187,7 @@ class FormMeta(Meta):
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""", (self.name,), as_dict=1,
 			update={"doctype":"Print Format"})
 
-		self.set("__print_formats", print_formats, as_value=True)
+		self.set("__print_formats", print_formats)
 
 	def load_workflows(self):
 		# get active workflow
@@ -190,7 +201,7 @@ class FormMeta(Meta):
 			for d in workflow.get("states"):
 				workflow_docs.append(frappe.get_doc("Workflow State", d.state))
 
-		self.set("__workflow_docs", workflow_docs, as_value=True)
+		self.set("__workflow_docs", workflow_docs)
 
 
 	def load_templates(self):
@@ -212,7 +223,7 @@ class FormMeta(Meta):
 			for content in self.get("__form_grid_templates").values():
 				messages = extract_messages_from_code(content)
 				messages = make_dict_from_messages(messages)
-				self.get("__messages").update(messages, as_value=True)
+				self.get("__messages").update(messages)
 
 	def load_dashboard(self):
 		self.set('__dashboard', self.get_dashboard_data())
@@ -228,7 +239,7 @@ class FormMeta(Meta):
 
 			fields = [x['field_name'] for x in values]
 			fields = list(set(fields))
-			self.set("__kanban_column_fields", fields, as_value=True)
+			self.set("__kanban_column_fields", fields)
 		except frappe.PermissionError:
 			# no access to kanban board
 			pass

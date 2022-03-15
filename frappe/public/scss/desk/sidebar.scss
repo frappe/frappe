@@ -104,10 +104,12 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-image-section {
+		// capital M to avoid libsass issue
+		// (https://github.com/sass/node-sass/issues/2815#issuecomment-1034454369)
+		width: Min(100%, 170px);
 		cursor: pointer;
 
 		.sidebar-image {
-			width: 100%;
 			height: auto;
 			max-height: 170px;
 			object-fit: cover;

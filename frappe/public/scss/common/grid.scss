@@ -54,7 +54,7 @@
 }
 
 .form-grid .grid-heading-row .template-row {
-	margin-left: 20px;
+	margin-left: 8px;
 }
 
 .form-grid .template-row {
@@ -87,6 +87,17 @@
 
 .grid-row-check {
 	margin-top: 2px;
+}
+
+.template-row-index {
+	float: left;
+	margin-left: 15px;
+	margin-top: 8px;
+	margin-right: -20px;
+
+	span {
+		margin-left: 5px;
+	}
 }
 
 .editable-form .grid-static-col.bold {

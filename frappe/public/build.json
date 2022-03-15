@@ -82,10 +82,10 @@
 		"public/js/lib/leaflet/easy-button.js"
 	],
 	"js/desk.min.js": [
+		"public/js/frappe/provide.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
-		"public/js/frappe/provide.js",
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
@@ -184,6 +184,7 @@
 		"public/js/frappe/utils/dashboard_utils.js",
 		"public/js/frappe/ui/chart.js",
 		"public/js/frappe/ui/datatable.js",
+		"public/js/frappe/utils/datatable.js",
 		"public/js/frappe/ui/driver.js",
 		"public/js/frappe/ui/plyr.js",
 		"public/js/frappe/barcode_scanner/index.js",

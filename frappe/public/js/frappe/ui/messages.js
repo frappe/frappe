@@ -63,7 +63,7 @@ frappe.warn = function(title, message_html, proceed_action, primary_label, is_mi
 			if (proceed_action) proceed_action();
 			d.hide();
 		},
-		secondary_action_label: __("Cancel"),
+		secondary_action_label: __("Cancel", null, "Secondary button in warning dialog"),
 		secondary_action: () => d.hide(),
 		minimizable: is_minimizable
 	});
@@ -233,7 +233,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 	if(data.title || !msg_exists) {
 		// set title only if it is explicitly given
 		// and no existing title exists
-		frappe.msg_dialog.set_title(data.title || __('Message'));
+		frappe.msg_dialog.set_title(data.title || __('Message', null, 'Default title of the message dialog'));
 	}
 
 	// show / hide indicator
@@ -365,7 +365,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 	let indicator_icon_map = {
 		'orange': "solid-warning",
 		'yellow': "solid-warning",
-		'blue': "solid-success",
+		'blue': "solid-info",
 		'green': "solid-success",
 		'red': "solid-error"
 	};
@@ -387,8 +387,10 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		icon = 'solid-info';
 	}
 
+	const indicator = message.indicator || 'blue';
+
 	const div = $(`
-		<div class="alert desk-alert">
+		<div class="alert desk-alert ${indicator}" role="alert">
 			<div class="alert-message-container">
 				<div class="alert-title-container">
 					<div>${frappe.utils.icon(icon, 'lg')}</div>
@@ -398,7 +400,8 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 			</div>
 			<div class="alert-body" style="display: none"></div>
 			<a class="close">${frappe.utils.icon('close-alt')}</a>
-		</div>`);
+		</div>
+	`);
 
 	div.hide().appendTo("#alert-container").show();
 

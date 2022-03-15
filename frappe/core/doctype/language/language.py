@@ -40,7 +40,8 @@ def sync_languages():
 			frappe.get_doc({
 				'doctype': 'Language',
 				'language_code': l['code'],
-				'language_name': l['name']
+				'language_name': l['name'],
+				'enabled': 1,
 			}).insert()
 
 def update_language_names():

@@ -19,13 +19,6 @@ EVENT_MAP = {
 	'on_update_after_submit': 'After Save (Submitted Document)'
 }
 
-def run_server_script_api(method):
-	# called via handler, execute an API script
-	script_name = get_server_script_map().get('_api', {}).get(method)
-	if script_name:
-		frappe.get_doc('Server Script', script_name).execute_method()
-		return True
-
 def run_server_script_for_doc_event(doc, event):
 	# run document event method
 	if not event in EVENT_MAP:

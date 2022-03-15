@@ -75,7 +75,7 @@ frappe.ui.form.Layout = Class.extend({
 			// remove previous color
 			this.message.removeClass(this.message_color);
 		}
-		this.message_color = (color && ['yellow', 'blue'].includes(color)) ? color : 'blue';
+		this.message_color = (color && ['yellow', 'blue', 'red'].includes(color)) ? color : 'blue';
 		if (html) {
 			if (html.substr(0, 1)!=='<') {
 				// wrap in a block

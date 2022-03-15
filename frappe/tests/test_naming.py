@@ -5,17 +5,17 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.utils import now_datetime
-from frappe.tests import update_system_settings
 
 from frappe.model.naming import getseries
 from frappe.model.naming import append_number_if_name_exists, revert_series_if_last
+from frappe.model.naming import determine_consecutive_week_number, parse_naming_series
 
 class TestNaming(unittest.TestCase):
+	def setUp(self):
+		frappe.db.delete('Note')
+
 	def tearDown(self):
-		# Reset ToDo autoname to hash
-		todo_doctype = frappe.get_doc('DocType', 'ToDo')
-		todo_doctype.autoname = 'hash'
-		todo_doctype.save()
+		frappe.db.rollback()
 
 	def test_append_number_if_name_exists(self):
 		'''
@@ -62,6 +62,34 @@ class TestNaming(unittest.TestCase):
 		self.assertEqual(todo.name, 'TODO-{month}-{status}-{series}'.format(
 			month=now_datetime().strftime('%m'), status=todo.status, series=series))
 
+	def test_format_autoname_for_consecutive_week_number(self):
+		'''
+		Test if braced params are replaced for consecutive week number in format autoname
+		'''
+		doctype = 'ToDo'
+
+		todo_doctype = frappe.get_doc('DocType', doctype)
+		todo_doctype.autoname = 'format:TODO-{WW}-{##}'
+		todo_doctype.save()
+
+		description = 'Format'
+
+		todo = frappe.new_doc(doctype)
+		todo.description = description
+		todo.insert()
+
+		series = getseries('', 2)
+
+		series = str(int(series)-1)
+
+		if len(series) < 2:
+			series = '0' + series
+
+		week = determine_consecutive_week_number(now_datetime())
+
+		self.assertEqual(todo.name, 'TODO-{week}-{series}'.format(
+			week=week, series=series))
+
 	def test_revert_series(self):
 		from datetime import datetime
 		year = datetime.now().year
@@ -98,8 +126,6 @@ class TestNaming(unittest.TestCase):
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
 	def test_naming_for_cancelled_and_amended_doc(self):
-		update_system_settings({'use_original_name_for_amended_document': 1})
-
 		submittable_doctype = frappe.get_doc({
 			"doctype": "DocType",
 			"module": "Core",
@@ -119,16 +145,86 @@ class TestNaming(unittest.TestCase):
 		doc.submit()
 		doc.cancel()
 		cancelled_name = doc.name
-		self.assertEqual(cancelled_name, "{}-CANC-0".format(original_name))
+		self.assertEqual(cancelled_name, original_name)
 
 		amended_doc = frappe.copy_doc(doc)
 		amended_doc.docstatus = 0
 		amended_doc.amended_from = doc.name
 		amended_doc.save()
-		self.assertEqual(amended_doc.name, original_name)
+		self.assertEqual(amended_doc.name, "{}-1".format(original_name))
 
 		amended_doc.submit()
 		amended_doc.cancel()
-		self.assertEqual(amended_doc.name, "{}-CANC-1".format(original_name))
+		self.assertEqual(amended_doc.name, "{}-1".format(original_name))
 
 		submittable_doctype.delete()
+
+	def test_determine_consecutive_week_number(self):
+		from datetime import datetime
+
+		dt = datetime.fromisoformat("2019-12-31")
+		w = determine_consecutive_week_number(dt)
+		self.assertEqual(w, "53")
+
+		dt = datetime.fromisoformat("2020-01-01")
+		w = determine_consecutive_week_number(dt)
+		self.assertEqual(w, "01")
+
+		dt = datetime.fromisoformat("2020-01-15")
+		w = determine_consecutive_week_number(dt)
+		self.assertEqual(w, "03")
+
+		dt = datetime.fromisoformat("2021-01-01")
+		w = determine_consecutive_week_number(dt)
+		self.assertEqual(w, "00")
+
+		dt = datetime.fromisoformat("2021-12-31")
+		w = determine_consecutive_week_number(dt)
+		self.assertEqual(w, "52")
+
+	def test_naming_validations(self):
+		# case 1: check same name as doctype
+		# set name via prompt
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': 'Tag'
+		})
+		self.assertRaises(frappe.NameError, tag.insert)
+
+		# set by passing set_name as ToDo
+		self.assertRaises(frappe.NameError, make_invalid_todo)
+
+		# set new name - Note
+		note = frappe.get_doc({
+			'doctype': 'Note',
+			'title': 'Note'
+		})
+		self.assertRaises(frappe.NameError, note.insert)
+
+		# case 2: set name with "New ---"
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': 'New Tag'
+		})
+		self.assertRaises(frappe.NameError, tag.insert)
+
+		# case 3: set name with special characters
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': 'Tag<>'
+		})
+		self.assertRaises(frappe.NameError, tag.insert)
+
+		# case 4: no name specified
+		tag = frappe.get_doc({
+			'doctype': 'Tag',
+			'__newname': ''
+		})
+		self.assertRaises(frappe.ValidationError, tag.insert)
+
+
+def make_invalid_todo():
+	frappe.get_doc({
+		'doctype': 'ToDo',
+		'description': 'Test'
+	}).insert(set_name='ToDo')

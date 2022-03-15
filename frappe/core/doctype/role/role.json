@@ -12,6 +12,7 @@
   "restrict_to_domain",
   "column_break_4",
   "disabled",
+  "is_custom",
   "desk_access",
   "two_factor_auth",
   "navigation_settings_section",
@@ -24,8 +25,7 @@
   "form_settings_section",
   "form_sidebar",
   "timeline",
-  "dashboard",
-  "is_custom"
+  "dashboard"
  ],
  "fields": [
   {
@@ -148,7 +148,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-01-27 10:35:37.638350",
+ "modified": "2022-01-12 20:18:18.496230",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",

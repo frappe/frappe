@@ -143,6 +143,11 @@ def rebuild_tree(doctype, parent_field):
 	if frappe.request and frappe.local.form_dict.cmd == 'rebuild_tree':
 		frappe.only_for('System Manager')
 
+	meta = frappe.get_meta(doctype)
+	if not meta.has_field("lft") or not meta.has_field("rgt"):
+		frappe.throw(_("Rebuilding of tree is not supported for {}").format(frappe.bold(doctype)),
+			title=_("Invalid Action"))
+
 	# get all roots
 	frappe.db.auto_commit_on_many_writes = 1
 

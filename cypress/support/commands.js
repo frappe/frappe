@@ -110,34 +110,6 @@ Cypress.Commands.add('get_doc', (doctype, name) => {
 		});
 });
 
-Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
-	return cy
-		.window()
-		.its('frappe.csrf_token')
-		.then(csrf_token => {
-			return cy
-				.request({
-					method: 'POST',
-					url: `/api/resource/${doctype}`,
-					body: args,
-					headers: {
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-						'X-Frappe-CSRF-Token': csrf_token
-					},
-					failOnStatusCode: !ignore_duplicate
-				})
-				.then(res => {
-					let status_codes = [200];
-					if (ignore_duplicate) {
-						status_codes.push(409);
-					}
-					expect(res.status).to.be.oneOf(status_codes);
-					return res.body;
-				});
-		});
-});
-
 Cypress.Commands.add('remove_doc', (doctype, name) => {
 	return cy
 		.window()
@@ -193,7 +165,8 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 });
 
 Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
-	let selector = `[data-fieldname="${fieldname}"] input:visible`;
+	let field_element = fieldtype === 'Select' ? 'select': 'input';
+	let selector = `[data-fieldname="${fieldname}"] ${field_element}:visible`;
 
 	if (fieldtype === 'Text Editor') {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]:visible`;

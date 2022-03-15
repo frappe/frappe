@@ -33,3 +33,14 @@ class test(Document):
 		# return []
 		with open("data_file.json", "r") as read_file:
 			return [json.load(read_file)]
+
+	def get_count(self, args):
+		# return []
+		with open("data_file.json", "r") as read_file:
+			return [json.load(read_file)]
+
+	def get_stats(self, args):
+		# return []
+		with open("data_file.json", "r") as read_file:
+			return [json.load(read_file)]
+
