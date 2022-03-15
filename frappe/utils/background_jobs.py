@@ -131,8 +131,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.log_error(title=method_name)
 			raise
 
-	except:
+	except Exception as e:
 		frappe.db.rollback()
+		bulk_error_report(job_name, e)
 		frappe.log_error(title=method_name)
 		frappe.db.commit()
 		print(frappe.get_traceback())
@@ -306,3 +307,14 @@ def test_job(s):
 	import time
 	print('sleeping...')
 	time.sleep(s)
+
+def bulk_error_report(job_name, error):
+	bulk_action_log = frappe.new_doc("Bulk Action Log")
+	split_job_name = job_name.split("-")
+	bulk_action_log.doctype_name = split_job_name[0]
+	bulk_action_log.doc_name = split_job_name[1]
+	bulk_action_log.action = split_job_name[2]
+	bulk_action_log.status = "Failed"
+	bulk_action_log.error_details = error
+	bulk_action_log.insert()
+	frappe.db.commit()

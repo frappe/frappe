@@ -13,6 +13,9 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info
+from frappe.desk.doctype.bulk_update.bulk_update import check_enqueue_action, lock_document
+import frappe.model.delete_doc
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -431,12 +434,25 @@ def delete_items():
 
 	items = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
 	doctype = frappe.form_dict.get('doctype')
+	enqueue_action = check_enqueue_action(doctype, "delete")
+	
 
-	if len(items) > 10:
-		frappe.enqueue('frappe.desk.reportview.delete_bulk',
-			doctype=doctype, items=items)
+	if enqueue_action:
+		frappe.msgprint("Running background job to delete documents")
+  
+		for d in items:
+			try:
+				frappe.enqueue(frappe.model.delete_doc.delete_doc, doctype=doctype, name=d)
+				frappe.db.commit()
+			except Exception as e:
+				frappe.db.rollback()
 	else:
-		delete_bulk(doctype, items)
+		if len(items) > 10:
+			frappe.enqueue('frappe.desk.reportview.delete_bulk',
+				doctype=doctype, items=items)
+		else:
+			delete_bulk(doctype, items)
+
 
 def delete_bulk(doctype, items):
 	for i, d in enumerate(items):

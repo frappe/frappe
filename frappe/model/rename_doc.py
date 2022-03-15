@@ -8,7 +8,7 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.utils import cint
 from frappe.utils.password import rename_password
 from frappe.query_builder import Field
-
+from frappe.desk.doctype.bulk_update.bulk_update import check_enqueue_action
 
 @frappe.whitelist()
 def update_document_title(doctype, docname, title_field=None, old_title=None, new_title=None, new_name=None, merge=False):
@@ -492,31 +492,44 @@ def bulk_rename(doctype, rows=None, via_console = False):
 	:param rows: list of documents as `((oldname, newname, merge(optional)), ..)`"""
 	if not rows:
 		frappe.throw(_("Please select a valid csv file with data"))
-
-	if not via_console:
-		max_rows = 500
-		if len(rows) > max_rows:
-			frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
+  
+	queue_action = check_enqueue_action(doctype, "rename")
+ 
+	if not queue_action:
+		if not via_console:
+			max_rows = 500
+			if len(rows) > max_rows:
+				frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
 
 	rename_log = []
+	
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
 			merge = len(row) > 2 and (row[2] == "1" or row[2].lower() == "true")
 			try:
-				if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
-					msg = _("Successful: {0} to {1}").format(row[0], row[1])
+				if queue_action:
+					frappe.msgprint("Started background job for renaming docs")
+					job_name = '{0}-{1}-{2}'.format(doctype,row[0],"rename")
+					frappe.enqueue(rename_doc, job_name=job_name, doctype=doctype, old=row[0], new=row[1], force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True, rebuild_search=False)
 					frappe.db.commit()
+     
 				else:
-					msg = _("Ignored: {0} to {1}").format(row[0], row[1])
+					if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
+						msg = _("Successful: {0} to {1}").format(row[0], row[1])
+						frappe.db.commit()
+					else:
+						msg = _("Ignored: {0} to {1}").format(row[0], row[1])
 			except Exception as e:
 				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
 				frappe.db.rollback()
 
-			if via_console:
-				print(msg)
-			else:
-				rename_log.append(msg)
+			if not queue_action:
+				if via_console:
+					print(msg)
+				else:
+					rename_log.append(msg)
+			
 
 	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 

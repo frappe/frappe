@@ -731,7 +731,6 @@ class Document(BaseDocument):
 
 				if modified and modified != cstr(self._original_modified):
 					conflict = True
-
 				self.check_docstatus_transition(tmp.docstatus)
 
 			if conflict:
@@ -761,7 +760,10 @@ class Document(BaseDocument):
 			elif self.docstatus.is_submitted():
 				self._action = "submit"
 				self.check_permission("submit")
+			elif self.docstatus.is_locked():
+				pass
 			elif self.docstatus.is_cancelled():
+				frappe.throw("Cannot chnage docstatus from 0 to 2")
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
@@ -773,8 +775,21 @@ class Document(BaseDocument):
 			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
+			elif self.docstatus.is_locked():
+				pass
 			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
+			else:
+				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+
+
+		elif to_docstatus == DocStatus.locked():
+			if self.docstatus.is_locked():
+				pass
+			if self.docstatus.is_submitted():
+				pass
+			elif self.docstatus.is_cancelled():
+				pass
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
@@ -937,8 +952,7 @@ class Document(BaseDocument):
 
 	@whitelist.__func__
 	def _cancel(self):
-		"""Cancel the document. Sets `docstatus` = 2, then saves.
-		"""
+		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
@@ -951,6 +965,12 @@ class Document(BaseDocument):
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
+
+	@whitelist.__func__
+	def lock_doc(self):
+		self.docstatus = DocStatus.locked()
+		return self.save()
+  
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
