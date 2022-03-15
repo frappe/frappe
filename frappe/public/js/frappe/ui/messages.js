@@ -136,8 +136,8 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 	if(data.message instanceof Array) {
 		let messages = data.message;
 		const exceptions = messages
-							.map(m => JSON.parse(m))
-							.filter(m => m.raise_exception);
+			.map(m => JSON.parse(m))
+			.filter(m => m.raise_exception);
 
 		// only show exceptions if any exceptions exist
 		if (exceptions.length) {
