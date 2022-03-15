@@ -60,7 +60,7 @@
   },
   {
    "bold": 1,
-   "description": "Help: To link to another record in the system, use \"/app/note/[Note Name]\" as the Link URL. (don't use \"http://\")",
+   "description": "Help: To link to another record in the system, use \"#Form/Note/[Note Name]\" as the Link URL. (don't use \"http://\")",
    "fieldname": "content",
    "fieldtype": "Text Editor",
    "in_global_search": 1,
@@ -82,7 +82,7 @@
  "icon": "fa fa-file-text",
  "idx": 1,
  "links": [],
- "modified": "2021-09-18 10:57:51.352643",
+ "modified": "2022-03-12 09:50:38.825254",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",
@@ -92,9 +92,11 @@
    "create": 1,
    "delete": 1,
    "email": 1,
+   "export": 1,
    "print": 1,
    "read": 1,
-   "role": "All",
+   "report": 1,
+   "role": "System Manager",
    "share": 1,
    "write": 1
   }

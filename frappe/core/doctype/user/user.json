@@ -102,6 +102,7 @@
  "fields": [
   {
    "default": "1",
+   "depends_on": "eval:frappe.user.has_role('System Manager')",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled",
@@ -354,6 +355,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:frappe.user.has_role('System Manager')",
    "fieldname": "document_follow_notifications_section",
    "fieldtype": "Section Break",
    "label": "Document Follow"
@@ -374,7 +376,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "enabled",
+   "depends_on": "enabled\neval:frappe.user.has_role('System Manager')",
    "fieldname": "email_settings",
    "fieldtype": "Section Break",
    "label": "Email"
@@ -573,6 +575,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:frappe.user.has_role('System Manager')",
    "fieldname": "api_access",
    "fieldtype": "Section Break",
    "label": "Api Access"
@@ -641,6 +644,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:frappe.user.has_role('System Manager')",
    "fieldname": "signature_section",
    "fieldtype": "Section Break",
    "label": "Signature"
@@ -681,6 +685,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:frappe.user.has_role('System Manager')",
    "fieldname": "sb_limitation",
    "fieldtype": "Section Break",
    "label": "Limitation"
@@ -790,7 +795,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-03-07 13:18:05.862239",
+ "modified": "2022-03-12 08:57:24.046794",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

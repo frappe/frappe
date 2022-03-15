@@ -158,23 +158,12 @@
  "icon": "fa fa-check",
  "idx": 2,
  "links": [],
- "modified": "2020-01-14 17:04:36.971002",
+ "modified": "2022-03-12 09:50:00.763757",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
  "owner": "Administrator",
  "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "All",
-   "share": 1,
-   "write": 1
-  },
   {
    "create": 1,
    "email": 1,
