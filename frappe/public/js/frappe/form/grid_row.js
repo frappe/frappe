@@ -231,7 +231,6 @@ export default class GridRow {
 					}
 				});
 		} else if (this.show_search) {
-			let timer = null;
 			this.row_check = $(
 				`<div class="row-check col search"></div>`
 			).appendTo(this.row);
@@ -242,30 +241,27 @@ export default class GridRow {
 				</div>`
 			).appendTo(this.row);
 
-			this.row_index.find('input').on('keyup', (e) => {
-				clearTimeout(timer);
-				timer = setTimeout(() => {
-					let df = {
-						fieldtype: "Sr No"
-					};
+			this.row_index.find('input').on('keyup', frappe.utils.debounce((e) => {
+				let df = {
+					fieldtype: "Sr No"
+				};
 
-					this.grid.filter['row-index'] = {
-						df: df,
-						value: e.target.value
-					};
+				this.grid.filter['row-index'] = {
+					df: df,
+					value: e.target.value
+				};
 
-					if (e.target.value == "") {
-						delete this.grid.filter['row-index'];
-					}
+				if (e.target.value == "") {
+					delete this.grid.filter['row-index'];
+				}
 
-					this.grid.grid_sortable
-						.option('disabled', Object.keys(this.grid.filter).length !== 0);
+				this.grid.grid_sortable
+					.option('disabled', Object.keys(this.grid.filter).length !== 0);
 
-					this.grid.prevent_build = true;
-					me.grid.refresh();
-					this.grid.prevent_build = false;
-				}, 500);
-			});
+				this.grid.prevent_build = true;
+				me.grid.refresh();
+				this.grid.prevent_build = false;
+			}, 500));
 			frappe.utils.only_allow_num_decimal(this.row_index.find('input'));
 		} else {
 			this.row_index.find('span').html(txt);
@@ -647,7 +643,6 @@ export default class GridRow {
 	}
 
 	make_search_column(df, colsize) {
-		let timer = null;
 		let title = "";
 		let input_class = "";
 		let is_disabled = "";
@@ -679,28 +674,25 @@ export default class GridRow {
 
 		this.search_columns[df.fieldname] = $col;
 
-		$search_input.on('keyup', (e) => {
-			clearTimeout(timer);
-			timer = setTimeout(() => {
-				this.grid.filter[df.fieldname] = {
-					df: df,
-					value: e.target.value
-				};
+		$search_input.on('keyup', frappe.utils.debounce((e) => {
+			this.grid.filter[df.fieldname] = {
+				df: df,
+				value: e.target.value
+			};
 
-				if (e.target.value == '') {
-					delete this.grid.filter[df.fieldname];
-				}
+			if (e.target.value == '') {
+				delete this.grid.filter[df.fieldname];
+			}
 
-				this.grid.grid_sortable
-					.option('disabled', Object.keys(this.grid.filter).length !== 0);
+			this.grid.grid_sortable
+				.option('disabled', Object.keys(this.grid.filter).length !== 0);
 
-				this.grid.prevent_build = true;
-				this.grid.refresh();
-				this.grid.prevent_build = false;
-			}, 500);
-		});
+			this.grid.prevent_build = true;
+			this.grid.refresh();
+			this.grid.prevent_build = false;
+		}, 500));
 
-		["Currency", "Float", "Int", "Percent", "Rating", "Check"].includes(df.fieldtype) &&
+		["Currency", "Float", "Int", "Percent", "Rating"].includes(df.fieldtype) &&
 			frappe.utils.only_allow_num_decimal($search_input);
 
 		return $col;
