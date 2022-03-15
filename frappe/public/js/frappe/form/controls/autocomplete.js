@@ -166,6 +166,9 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	}
 
 	parse_options(options) {
+		if (typeof options === 'string' && options[0] === '[') {
+			options = frappe.utils.parse_json(options);
+		}
 		if (typeof options === 'string') {
 			options = options.split('\n');
 		}
