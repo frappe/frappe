@@ -966,7 +966,6 @@ class Document(BaseDocument):
 	def lock_doc(self):
 		self.docstatus = DocStatus.locked()
 		return self.save()
-  
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""

@@ -35,7 +35,7 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 
 	if data:
 		data = frappe.parse_json(data)
-  
+
 	failed = bulk_update(doctype, docnames, action, data)
 
 	return failed
@@ -72,7 +72,7 @@ def bulk_update(doctype, docnames, action, data=None):
 	if enqueue_action:
 		lock_document(doctype, docnames, action)
 		frappe.msgprint("Running a background job to {0} document's".format(action))
- 
+
 	for i, d in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, d)
 
@@ -97,13 +97,13 @@ def bulk_update(doctype, docnames, action, data=None):
 			else:
 				failed.append(d)
 
-		except Exception as e:
-			failed.append(d)		
+		except Exception:
+			failed.append(d)
 			frappe.db.rollback()
 
 		if not enqueue_action:
 			show_progress(docnames, message, i, d)
-		
+
 	return failed
 
 def lock_document(doctype, docnames, action):

@@ -526,9 +526,9 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 	:param rows: list of documents as `((oldname, newname, merge(optional)), ..)`"""
 	if not rows:
 		frappe.throw(_("Please select a valid csv file with data"))
-  
+
 	queue_action = check_enqueue_action(doctype, "rename")
- 
+
 	if not queue_action:
 		if not via_console:
 			max_rows = 500
@@ -536,7 +536,7 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 				frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
 
 	rename_log = []
-	
+
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
@@ -547,7 +547,7 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 					job_name = '{0}-{1}-{2}'.format(doctype,row[0],"rename")
 					frappe.enqueue(rename_doc, job_name=job_name, doctype=doctype, old=row[0], new=row[1], force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True, rebuild_search=False)
 					frappe.db.commit()
-     
+
 				else:
 					if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
 						msg = _("Successful: {0} to {1}").format(row[0], row[1])
@@ -561,11 +561,11 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 				frappe.db.rollback()
 
 			if not queue_action:
-        if msg:
-          if via_console:
-            print(msg)
-          else:
-            rename_log.append(msg)
+				if msg:
+					if via_console:
+						print(msg)
+					else:
+						rename_log.append(msg)
 
 	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 
