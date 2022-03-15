@@ -10,8 +10,9 @@ $.extend(frappe.model, {
 	layout_fields: ['Section Break', 'Column Break', 'Tab Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
-		'parent', 'parenttype', 'parentfield', 'idx'],
+		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus', 'idx'],
+
+	child_table_field_list: ['parent', 'parenttype', 'parentfield'],
 
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
@@ -84,7 +85,7 @@ $.extend(frappe.model, {
 	},
 
 	is_non_std_field: function(fieldname) {
-		return !frappe.model.std_fields_list.includes(fieldname);
+		return ![...frappe.model.std_fields_list, ...frappe.model.child_table_field_list].includes(fieldname);
 	},
 
 	get_std_field: function(fieldname, ignore=false) {
@@ -576,13 +577,15 @@ $.extend(frappe.model, {
 	},
 
 	delete_doc: function(doctype, docname, callback) {
-		var title = docname;
-		var title_field = frappe.get_meta(doctype).title_field;
+		let title = docname;
+		const title_field = frappe.get_meta(doctype).title_field;
 		if (frappe.get_meta(doctype).autoname == "hash" && title_field) {
-			var title = frappe.model.get_value(doctype, docname, title_field);
-			title += " (" + docname + ")";
+			const value = frappe.model.get_value(doctype, docname, title_field);
+			if (value) {
+				title = `${value} (${docname})`;
+			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title]), function() {
+		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function() {
 			return frappe.call({
 				method: 'frappe.client.delete',
 				args: {
@@ -614,10 +617,13 @@ $.extend(frappe.model, {
 		});
 
 		d.set_primary_action(__("Rename"), function() {
+			d.hide();
 			var args = d.get_values();
 			if(!args) return;
 			return frappe.call({
 				method:"frappe.rename_doc",
+				freeze: true,
+				freeze_message: "Updating related fields...",
 				args: {
 					doctype: doctype,
 					old: docname,

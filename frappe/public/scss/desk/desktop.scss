@@ -155,6 +155,7 @@ body {
 				svg {
 					flex: none;
 					margin-right: 6px;
+					margin-left: -2px;
 					box-shadow: none;
 				}
 			}
@@ -560,21 +561,29 @@ body {
 	}
 
 	&.links-widget-box {
+		padding: 18px 12px;
+
 		.link-item {
 			display: flex;
 			text-decoration: none;
+			font-size: var(--text-md);
 			color: var(--text-color);
-			padding: var(--padding-xs);
-			margin-left: -5px;
+			padding: 4px;
+			margin-left: -4px;
+			margin-bottom: 4px;
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
 
 			&:hover {
-				background-color: var(--bg-color);
+				background-color: var(--fg-hover-color);
+
+				.indicator-pill {
+					background-color: var(--fg-color);
+				}
 			}
 
 			&:first-child {
-				margin-top: 15px;
+				margin-top: 18px;
 			}
 
 			&:last-child {
@@ -601,6 +610,8 @@ body {
 
 			.indicator-pill {
 				margin-right: var(--margin-sm);
+				height: 20px;
+				padding: 3px 8px;
 			}
 		}
 	}
@@ -850,10 +861,16 @@ body {
 		}
 	}
 
+	.layout-main-section-wrapper {
+		margin-top: -5px;
+		padding-top: 5px;
+	}
+
 	.layout-main-section {
 		background-color: var(--fg-color);
-		padding: var(--padding-sm);
+		box-shadow: var(--card-shadow);
 		border-radius: var(--border-radius-lg);
+		padding: var(--padding-sm);
 	}
 
 	.block-menu-item-icon svg{
@@ -1053,11 +1070,11 @@ body {
 					}
 
 					.resizer {
-						width: 10px; 
+						width: 10px;
 						height: 100%;
-						position:absolute; 
-						right: 0; 
-						bottom: 0; 
+						position:absolute;
+						right: 0;
+						bottom: 0;
 						cursor: col-resize;
 						border-color: transparent;
 						transition: border-color 0.3s ease-in-out;
@@ -1072,8 +1089,8 @@ body {
 						margin-bottom: 0 !important;
 						flex: 1;
 
-						&:focus { 
-							outline: none; 
+						&:focus {
+							outline: none;
 						}
 					}
 
@@ -1107,11 +1124,11 @@ body {
 								color: var(--text-muted);
 								border: 1px dashed var(--gray-400);
 								cursor: pointer;
-	
+
 								.widget-control > * {
 									width: auto;
 								}
-	
+
 								.spacer-left {
 									min-width: 74px;
 								}
@@ -1141,7 +1158,7 @@ body {
 								gap: 5px;
 								background-color: var(--card-bg);
 								padding-left: 5px;
-	
+
 								.drag-handle {
 									cursor: all-scroll;
 									cursor: grabbing;
@@ -1308,7 +1325,7 @@ body {
 		padding: 6px 10px;
 		font-size: small;
 		border-radius: var(--border-radius-sm);
-		margin: 1px 0px;	
+		margin: 1px 0px;
 	}
 
 	.dropdown-item-icon {

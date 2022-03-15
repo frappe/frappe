@@ -9,7 +9,7 @@ import frappe
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name
+from frappe.model.naming import set_new_name, validate_name
 from frappe.model.docstatus import DocStatus
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
@@ -249,11 +249,7 @@ class Document(BaseDocument):
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
-			try:
-				self.db_insert()
-			except frappe.DuplicateEntryError as e:
-				if not ignore_if_duplicate:
-					raise e
+			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
 		for d in self.get_all_children():
@@ -416,12 +412,12 @@ class Document(BaseDocument):
 
 		# If autoname has set as Prompt (name)
 		if self.get("__newname"):
-			self.name = self.get("__newname")
+			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
 
 		if set_name:
-			self.name = set_name
+			self.name = validate_name(self.doctype, set_name)
 		else:
 			set_new_name(self)
 
@@ -475,7 +471,7 @@ class Document(BaseDocument):
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
-		if self.is_new() and not (frappe.flags.in_patch or frappe.flags.in_migrate):
+		if self.is_new() and not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate):
 			self.creation = self.modified
 			self.owner = self.modified_by
 
@@ -527,7 +523,7 @@ class Document(BaseDocument):
 
 	def _validate_non_negative(self):
 		def get_msg(df):
-			if self.parentfield:
+			if self.get("parentfield"):
 				return "{} {} #{}: {} {}".format(frappe.bold(_(self.doctype)),
 					_("Row"), self.idx, _("Value cannot be negative for"), frappe.bold(_(df.label)))
 			else:
@@ -879,14 +875,14 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
-		if "flags" in kwargs:
-			del kwargs["flags"]
 
-		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
-			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
-		else:
-			# hack! to run hooks even if method does not exist
-			fn = lambda self, *args, **kwargs: None
+		def fn(self, *args, **kwargs):
+			method_object = getattr(self, method, None)
+
+			# Cannot have a field with same name as method
+			# If method found in __dict__, expect it to be callable
+			if method in self.__dict__ or callable(method_object):
+				return method_object(*args, **kwargs)
 
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
@@ -1026,8 +1022,6 @@ class Document(BaseDocument):
 		- `on_update`, `on_submit` for **Submit**.
 		- `on_cancel` for **Cancel**
 		- `update_after_submit` for **Update after Submit**"""
-
-		doc_before_save = self.get_doc_before_save()
 
 		if self._action=="save":
 			self.run_method("on_update")
@@ -1178,7 +1172,7 @@ class Document(BaseDocument):
 				for f in hooks:
 					add_to_return_value(self, f(self, method, *args, **kwargs))
 
-				return self._return_value
+				return self.__dict__.pop("_return_value", None)
 
 			return runner
 
@@ -1222,7 +1216,7 @@ class Document(BaseDocument):
 		if not frappe.compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
 			condition_str = error_condition_map.get(condition, condition)
-			if doc.parentfield:
+			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(doc.idx, label, condition_str, val2)
 			else:
 				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
@@ -1246,7 +1240,7 @@ class Document(BaseDocument):
 				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}))
 
 		for fieldname in fieldnames:
-			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
+			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
 
 	def get_url(self):
 		"""Returns Desk URL for this document."""
@@ -1399,9 +1393,11 @@ class Document(BaseDocument):
 		doctype = self.__class__.__name__
 
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		parent = f" parent={self.parent}" if self.parent else ""
+		repr_str = f"<{doctype}: {name}{docstatus}"
 
-		return f"<{doctype}: {name}{docstatus}{parent}>"
+		if not hasattr(self, "parent"):
+			return repr_str + ">"
+		return f"{repr_str} parent={self.parent}>"
 
 	def __str__(self):
 		name = self.name or "unsaved"

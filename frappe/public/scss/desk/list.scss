@@ -187,7 +187,31 @@ $level-margin-right: 8px;
 }
 
 .list-paging-area, .footnote-area {
-	border-top: 1px sol var(--border-color);
+	border-top: 1px solid var(--border-color);
+
+	.btn-group {
+		box-shadow: var(--drop-shadow);
+		border-radius: var(--border-radius-md);
+
+		&> .btn:nth-child(2) {
+			border-left: none;
+			border-right: none;
+		}
+
+		.btn-paging {
+			box-shadow: none;
+			margin-left: 0px !important;
+			border: 1px solid var(--dark-border-color);
+
+			&.btn-info {
+				background-color: var(--gray-400);
+				border-color: var(--gray-400);
+				color: var(--white);
+				font-weight: var(--text-bold);
+			}
+		}
+	}
+
 }
 
 .frappe-card {

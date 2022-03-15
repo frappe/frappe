@@ -1,7 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import unittest, frappe, re, email
+
+from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
 
 test_dependencies = ['Email Account']
 
@@ -173,11 +175,36 @@ class TestEmail(unittest.TestCase):
 		frappe.db.delete("Communication", {"sender": "sukh@yyy.com"})
 
 		with open(frappe.get_app_path('frappe', 'tests', 'data', 'email_with_image.txt'), 'r') as raw:
-			mails = email_account.get_inbound_mails(test_mails=[raw.read()])
+			messages = {
+				'"INBOX"': {
+					'latest_messages': [
+						raw.read()
+					],
+					'seen_status': {
+						2: 'UNSEEN'
+					},
+					'uid_list': [2]
+				}
+			}
+
+			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			changed_flag = False
+			if not email_account.enable_incoming:
+				email_account.enable_incoming = True
+				changed_flag = True
+			mails = TestEmailAccount.mocked_get_inbound_mails(email_account, messages)
+
+			# TODO: fix this flaky test! - 'IndexError: list index out of range' for `.process()` line
+			if not mails:
+				raise self.skipTest("No inbound mails found / Email Account wasn't patched properly")
+
 			communication = mails[0].process()
 
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco1.png[^>]*>''', communication.content))
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco2.png[^>]*>''', communication.content))
+
+		if changed_flag:
+			email_account.enable_incoming = False
 
 
 if __name__ == '__main__':

@@ -196,6 +196,15 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
+	parse_json: function(str) {
+		let parsed_json = '';
+		try {
+			parsed_json = JSON.parse(str);
+		} catch (e) {
+			return str;
+		}
+		return parsed_json;
+	},
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},
@@ -244,7 +253,7 @@ Object.assign(frappe.utils, {
 		};
 
 		return String(txt).replace(
-			/[&<>"'`=/]/g, 
+			/[&<>"'`=/]/g,
 			char => escape_html_mapping[char] || char
 		);
 	},
@@ -262,7 +271,7 @@ Object.assign(frappe.utils, {
 		};
 
 		return String(txt).replace(
-			/&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g, 
+			/&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g,
 			char => unescape_html_mapping[char] || char
 		);
 	},
@@ -1416,5 +1425,42 @@ Object.assign(frappe.utils, {
 			arr.push(i);
 		}
 		return arr;
+	},
+
+	get_link_title(doctype, name) {
+		if (!doctype || !name || !frappe._link_titles) {
+			return;
+		}
+
+		return frappe._link_titles[doctype + "::" + name];
+	},
+
+	add_link_title(doctype, name, value) {
+		if (!doctype || !name) {
+			return;
+		}
+
+		if (!frappe._link_titles) {
+			// for link titles
+			frappe._link_titles = {};
+		}
+
+		frappe._link_titles[doctype + "::" + name] = value;
+	},
+
+	fetch_link_title(doctype, name) {
+		try {
+			return frappe.xcall("frappe.desk.search.get_link_title", {
+				"doctype": doctype,
+				"docname": name
+			}).then(title => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			});
+		} catch (error) {
+			console.log('Error while fetching link title.'); // eslint-disable-line
+			console.log(error); // eslint-disable-line
+			return Promise.resolve(name);
+		}
 	}
 });

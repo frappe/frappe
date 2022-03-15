@@ -80,6 +80,8 @@
 
 .dropdown-menu {
 	padding: 0.25rem;
+	box-shadow: var(--shadow-lg);
+	border-color: var(--gray-200);
 }
 
 .dropdown-item {

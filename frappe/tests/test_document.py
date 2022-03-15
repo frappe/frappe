@@ -1,11 +1,20 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import os
 import unittest
+from contextlib import contextmanager
+from datetime import timedelta
+from unittest.mock import patch
 
 import frappe
-from frappe.utils import cint
-from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
+from frappe.desk.doctype.note.note import Note
+from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
+from frappe.utils import cint, now_datetime
+
+
+class CustomTestNote(Note):
+	@property
+	def age(self):
+		return now_datetime() - self.creation
 
 
 class TestDocument(unittest.TestCase):
@@ -255,5 +264,76 @@ class TestDocument(unittest.TestCase):
 
 	def test_limit_for_get(self):
 		doc = frappe.get_doc("DocType", "DocType")
-		# assuming DocType has more that 3 Data fields
+		# assuming DocType has more than 3 Data fields
+		self.assertEquals(len(doc.get("fields", limit=3)), 3)
+
+		# limit with filters
 		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
+
+	def test_virtual_fields(self):
+		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
+		"""
+		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
+
+		def patch_note():
+			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
+
+		@contextmanager
+		def customize_note(with_options=False):
+			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
+			custom_field = frappe.get_doc({
+				"doctype": "Custom Field",
+				"dt": "Note",
+				"fieldname": "age",
+				"fieldtype": "Data",
+				"read_only": True,
+				"is_virtual": True,
+				"options": options,
+			})
+
+			try:
+				yield custom_field.insert(ignore_if_duplicate=True)
+			finally:
+				custom_field.delete()
+
+		with patch_note():
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomTestNote)
+			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsNone(doc.as_dict().get("age"))
+			self.assertIsNone(doc.get_valid_dict().get("age"))
+
+		with customize_note(), patch_note():
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomTestNote)
+			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+		with customize_note(with_options=True):
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, Note)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+	def test_run_method(self):
+		doc = frappe.get_last_doc("User")
+
+		# Case 1: Override with a string
+		doc.as_dict = ""
+
+		# run_method should throw TypeError
+		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
+
+		# Case 2: Override with a function
+		def my_as_dict(*args, **kwargs):
+			return "success"
+
+		doc.as_dict = my_as_dict
+
+		# run_method should get overridden
+		self.assertEqual(doc.run_method("as_dict"), "success")

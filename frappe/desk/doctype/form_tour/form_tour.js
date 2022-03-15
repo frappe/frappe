@@ -15,12 +15,12 @@ frappe.ui.form.on('Form Tour', {
 
 		frm.add_custom_button(__('Show Tour'), async () => {
 			const issingle = await check_if_single(frm.doc.reference_doctype);
-			const name = await get_first_document(frm.doc.reference_doctype);
 			let route_changed = null;
 
 			if (issingle) {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype);
 			} else if (frm.doc.first_document) {
+				const name = await get_first_document(frm.doc.reference_doctype);
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, name);
 			} else {
 				route_changed = frappe.set_route('Form', frm.doc.reference_doctype, 'new');
@@ -53,72 +53,68 @@ frappe.ui.form.on('Form Tour', {
 			};
 		});
 
-		frm.set_query("field", "steps", function() {
-			return {
-				query: "frappe.desk.doctype.form_tour.form_tour.get_docfield_list",
-				filters: {
-					doctype: frm.doc.reference_doctype,
-					hidden: 0
-				}
-			};
-		});
-
-		frm.set_query("parent_field", "steps", function() {
-			return {
-				query: "frappe.desk.doctype.form_tour.form_tour.get_docfield_list",
-				filters: {
-					doctype: frm.doc.reference_doctype,
-					fieldtype: "Table",
-					hidden: 0,
-				}
-			};
-		});
-
 		frm.trigger('reference_doctype');
 	},
 
 	reference_doctype(frm) {
 		if (!frm.doc.reference_doctype) return;
 
-		frappe.db.get_list('DocField', {
-			filters: {
-				parent: frm.doc.reference_doctype,
-				parenttype: 'DocType',
-				fieldtype: 'Table'
-			},
-			fields: ['options']
-		}).then(res => {
-			if (Array.isArray(res)) {
-				frm.child_doctypes = res.map(r => r.options);
-			}
+		frm.set_fields_as_options(
+			"fieldname",
+			frm.doc.reference_doctype,
+			df => !df.hidden
+		).then(options => {
+			frm.fields_dict.steps.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				[""].concat(options)
+			);
+		});
+
+		frm.set_fields_as_options(
+			'parent_fieldname',
+			frm.doc.reference_doctype,
+			(df) => df.fieldtype == "Table" && !df.hidden,
+		).then(options => {
+			frm.fields_dict.steps.grid.update_docfield_property(
+				"parent_fieldname",
+				"options",
+				[""].concat(options)
+			);
 		});
 
 	}
 });
 
 frappe.ui.form.on('Form Tour Step', {
-	parent_field(frm, cdt, cdn) {
+	form_render(frm, cdt, cdn) {
+		if (locals[cdt][cdn].is_table_field) {
+			frm.trigger('parent_fieldname', cdt, cdn);
+		}
+	},
+	parent_fieldname(frm, cdt, cdn) {
 		const child_row = locals[cdt][cdn];
-		frappe.model.set_value(cdt, cdn, 'field', '');
-		const field_control = get_child_field("steps", cdn, "field");
-		field_control.get_query = function() {
-			return {
-				query: "frappe.desk.doctype.form_tour.form_tour.get_docfield_list",
-				filters: {
-					doctype: child_row.child_doctype,
-					hidden: 0
-				}
-			};
-		};
+
+		const parent_fieldname_df = frappe
+			.get_meta(frm.doc.reference_doctype)
+			.fields.find(df => df.fieldname == child_row.parent_fieldname);
+
+		frm.set_fields_as_options(
+			'fieldname',
+			parent_fieldname_df.options,
+			(df) => !df.hidden,
+		).then(options => {
+			frm.fields_dict.steps.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				[""].concat(options)
+			);
+			if (child_row.fieldname) {
+				frappe.model.set_value(cdt, cdn, 'fieldname', child_row.fieldname);
+			}
+		});
 	}
 });
-
-function get_child_field(child_table, child_name, fieldname) {
-	// gets the field from grid row form
-	const grid = cur_frm.fields_dict[child_table].grid;
-	const grid_row = grid.grid_rows_by_docname[child_name];
-	return grid_row.grid_form.fields_dict[fieldname];
-}
 
 async function check_if_single(doctype) {
 	const { message } = await frappe.db.get_value('DocType', doctype, 'issingle');

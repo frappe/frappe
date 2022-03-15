@@ -37,9 +37,9 @@ class Database(object):
 
 	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
 	DEFAULT_SHORTCUTS = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]
-	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
-	DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',
-		'parentfield', 'parenttype', 'idx']
+	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by')
+	DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'idx']
+	CHILD_TABLE_COLUMNS = ('parent', 'parenttype', 'parentfield')
 	MAX_WRITES_PER_TRANSACTION = 200_000
 
 	class InvalidColumnName(frappe.ValidationError): pass
@@ -177,9 +177,11 @@ class Database(object):
 				raise frappe.QueryTimeoutError(e)
 
 			elif frappe.conf.db_type == 'postgres':
+				# TODO: added temporarily
+				print(e)
 				raise
 
-			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+			if ignore_ddl and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
 				raise
@@ -435,11 +437,9 @@ class Database(object):
 
 		else:
 			fields = fieldname
-			if fieldname!="*":
+			if fieldname != "*":
 				if isinstance(fieldname, str):
 					fields = [fieldname]
-				else:
-					fields = fieldname
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
@@ -584,7 +584,7 @@ class Database(object):
 			company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
 
-		if not doctype in self.value_cache:
+		if doctype not in self.value_cache:
 			self.value_cache[doctype] = {}
 
 		if cache and fieldname in self.value_cache[doctype]:
@@ -1028,7 +1028,7 @@ class Database(object):
 			return []
 
 	def is_missing_table_or_column(self, e):
-		return self.is_missing_column(e) or self.is_missing_table(e)
+		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
 		current_dialect = frappe.db.db_type or 'mariadb'

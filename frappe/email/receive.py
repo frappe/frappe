@@ -108,7 +108,8 @@ class EmailServer:
 				raise
 
 	def select_imap_folder(self, folder):
-		self.imap.select(folder)
+		res = self.imap.select(f'"{folder}"')
+		return res[0] == 'OK'	# The folder exsits TODO: handle other resoponses too
 
 	def logout(self):
 		if cint(self.settings.use_imap):
@@ -582,10 +583,11 @@ class Email:
 class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers.
 	"""
-	def __init__(self, content, email_account, uid=None, seen_status=None):
+	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
 		super().__init__(content)
 		self.email_account = email_account
 		self.uid = uid or -1
+		self.append_to = append_to
 		self.seen_status = seen_status or 0
 
 		# System documents related to this mail
@@ -623,15 +625,18 @@ class InboundMail(Email):
 		if self.parent_communication():
 			data['in_reply_to'] = self.parent_communication().name
 
+		append_to = self.append_to if self.email_account.use_imap else self.email_account.append_to
+
 		if self.reference_document():
 			data['reference_doctype'] = self.reference_document().doctype
 			data['reference_name'] = self.reference_document().name
-		elif self.email_account.append_to and self.email_account.append_to != 'Communication':
-			reference_doc = self._create_reference_document(self.email_account.append_to)
-			if reference_doc:
-				data['reference_doctype'] = reference_doc.doctype
-				data['reference_name'] = reference_doc.name
-				data['is_first'] = True
+		else:
+			if append_to and append_to != 'Communication':
+				reference_doc = self._create_reference_document(append_to)
+				if reference_doc:
+					data['reference_doctype'] = reference_doc.doctype
+					data['reference_name'] = reference_doc.name
+			data['is_first'] = True
 
 		if self.is_notification():
 			# Disable notifications for notification.
