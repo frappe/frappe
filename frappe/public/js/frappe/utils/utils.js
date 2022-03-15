@@ -1466,7 +1466,7 @@ Object.assign(frappe.utils, {
 	},
 
 	string_to_boolean(string) {
-		switch(string.toLowerCase().trim()){
+		switch (string.toLowerCase().trim()) {
 			case "t": case "true": case "y": case "yes": case "1": return true;
 			case "f": case "false": case "n": case "no": case "0": case null: return false;
 			default: return string;
