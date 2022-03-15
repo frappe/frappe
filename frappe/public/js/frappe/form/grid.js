@@ -549,7 +549,8 @@ export default class Grid {
 		let fieldvalue = data[fieldname];
 
 		if (fieldtype === "Check") {
-			return (fieldvalue === parseInt(value || 0)) && data;
+			value = frappe.utils.string_to_boolean(value);
+			return (Boolean(fieldvalue) === value) && data;
 		} else if (fieldtype === "Sr No" && data.idx.toString().includes(value)) {
 			return data;
 		} else if (fieldtype === "Duration" && fieldvalue) {
