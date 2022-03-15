@@ -5,7 +5,8 @@ import json
 import os
 import frappe
 from frappe import _, scrub
-from frappe.core.doctype.file.file import get_max_file_size, remove_file_by_url
+from frappe.core.doctype.file import remove_file_by_url
+from frappe.core.api.file import get_max_file_size
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.integrations.utils import get_payment_gateway_controller

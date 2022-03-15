@@ -101,7 +101,7 @@ export default {
 		},
 		get_files_in_folder(folder, start) {
 			return frappe
-				.call("frappe.core.doctype.file.file.get_files_in_folder", {
+				.call("frappe.core.api.file.get_files_in_folder", {
 					folder,
 					start,
 					page_length: this.page_length
@@ -132,7 +132,7 @@ export default {
 			if (this.search_text.length < 3) return;
 			frappe
 				.call(
-					"frappe.core.doctype.file.file.get_files_by_search_text",
+					"frappe.core.api.file.get_files_by_search_text",
 					{
 						text: this.search_text
 					}

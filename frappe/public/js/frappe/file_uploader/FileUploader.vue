@@ -220,7 +220,7 @@ export default {
 			});
 		}
 		if (this.restrictions.max_file_size == null) {
-			frappe.call('frappe.core.doctype.file.file.get_max_file_size')
+			frappe.call('frappe.core.api.file.get_max_file_size')
 				.then(res => {
 					this.restrictions.max_file_size = Number(res.message);
 				});

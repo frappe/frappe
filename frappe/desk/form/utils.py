@@ -5,7 +5,7 @@ import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
 from frappe.desk.form.document_follow import follow_document
-from frappe.core.doctype.file.file import extract_images_from_html
+from frappe.core.doctype.file.utils import extract_images_from_html
 
 from frappe import _
 

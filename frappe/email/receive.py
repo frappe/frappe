@@ -17,8 +17,7 @@ from email_reply_parser import EmailReplyParser
 
 import frappe
 from frappe import _, safe_decode, safe_encode
-from frappe.core.doctype.file.file import (MaxFileSizeReachedError,
-	get_random_filename)
+from frappe.core.doctype.file import get_random_filename, MaxFileSizeReachedError
 from frappe.utils import (cint, convert_utc_to_user_timezone, cstr,
 	extract_email_id, markdown, now, parse_addr, strip, get_datetime,
 	add_days, sanitize_html)

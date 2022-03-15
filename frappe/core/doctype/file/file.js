@@ -38,7 +38,7 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 	if(frm.doc.file_name && frm.doc.file_name.split('.').splice(-1)[0]==='zip') {
 		frm.add_custom_button(__('Unzip'), function() {
 			frappe.call({
-				method: "frappe.core.doctype.file.file.unzip_file",
+				method: "frappe.core.api.file.unzip_file",
 				args: {
 					name: frm.doc.name,
 				},

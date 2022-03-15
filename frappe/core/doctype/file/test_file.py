@@ -2,12 +2,13 @@
 # License: MIT. See LICENSE
 import base64
 import json
-import frappe
 import os
 import unittest
 
+import frappe
 from frappe import _
-from frappe.core.doctype.file.file import File, get_attached_images, move_file, get_files_in_folder, unzip_file
+from frappe.core.api.file import create_new_folder, get_attached_images, get_files_in_folder, move_file, unzip_file
+from frappe.core.doctype.file.file import File
 from frappe.utils import get_files_path
 
 test_content1 = 'Hello'
@@ -559,7 +560,6 @@ class TestFileUtils(unittest.TestCase):
 		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
 
 	def test_create_new_folder(self):
-		from frappe.core.doctype.file.file import create_new_folder
 		folder = create_new_folder('test_folder', 'Home')
 		self.assertTrue(folder.is_folder)
 

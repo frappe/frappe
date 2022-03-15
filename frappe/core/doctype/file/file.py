@@ -19,7 +19,6 @@ from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, encode, get_files_path, get_hook_method
 from frappe.utils.image import strip_exif_data, optimize_image
 from frappe.utils.file_manager import is_safe_path, safe_b64decode
-from frappe.core.api.file import *
 
 from .exceptions import MaxFileSizeReachedError, FolderNotEmpty
 from .utils import *
@@ -314,7 +313,7 @@ class File(Document):
 			self.flags.on_rollback = True
 			self.on_trash()
 
-	def unzip(self) -> List[File]:
+	def unzip(self) -> List["File"]:
 		'''Unzip current file and replace it by its children'''
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
@@ -611,3 +610,6 @@ def has_permission(doc, ptype=None, user=None):
 			pass
 
 	return has_access
+
+# Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility
+from frappe.core.api.file import *
