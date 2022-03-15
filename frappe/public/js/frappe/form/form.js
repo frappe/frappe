@@ -1215,7 +1215,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	is_dirty() {
-		return this.doc.__unsaved;
+		return !!this.doc.__unsaved;
 	}
 
 	is_new() {

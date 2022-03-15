@@ -34,16 +34,16 @@ def set_new_name(doc):
 	if autoname.lower() != "prompt" and not frappe.flags.in_import:
 		doc.name = None
 
+	if is_autoincremented(doc.doctype, meta):
+			doc.name = get_next_val(doc.doctype)
+			return
+
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
 		return
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
-
-	elif is_autoincremented(doc.doctype, meta):
-		doc.name = get_next_val(doc.doctype)
-		return
 
 	elif getattr(doc.meta, "istable", False):
 		doc.name = make_autoname("hash", doc.doctype)
@@ -73,7 +73,7 @@ def set_new_name(doc):
 	doc.name = validate_name(
 		doc.doctype,
 		doc.name,
-		frappe.get_meta(doc.doctype).get_field("name_case")
+		meta.get_field("name_case")
 	)
 
 def is_autoincremented(doctype: str, meta: "Meta" = None):
@@ -95,6 +95,9 @@ def is_autoincremented(doctype: str, meta: "Meta" = None):
 	else:
 		if not meta:
 			meta = frappe.get_meta(doctype)
+
+		if getattr(meta, "issingle", False):
+			return False
 
 		if meta.autoname == "autoincrement":
 			return True
