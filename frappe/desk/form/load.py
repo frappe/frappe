@@ -124,7 +124,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	update_user_info(docinfo)
 
 	frappe.response["docinfo"] = docinfo
-	return docinfo
 
 def add_comments(doc, docinfo):
 	# divide comments into separate lists
