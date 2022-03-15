@@ -411,7 +411,7 @@ class Document(BaseDocument):
 		previous = self.get_doc_before_save()
 		return previous.get(fieldname)!=self.get(fieldname) if previous else True
 
-	def set_new_name(self, force=False, set_name=None, set_child_names=True, set_draft_name=True):
+	def set_new_name(self, force=False, set_name=None, set_child_names=True, set_draft_name=False):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 
 		if set_draft_name and self.flags.draft_name_set and not force:

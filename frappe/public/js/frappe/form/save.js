@@ -217,10 +217,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 					var doc = r.docs && r.docs[0];
 					if (doc) {
 						frappe.ui.form.update_calling_link(doc);
-						if (!frappe.ui.form.dont_update_route_after_rename) {
-							frappe.ui.form.update_route_after_rename(doc);
-						}
-						frappe.ui.form.dont_update_route_after_rename = false;
+						frappe.ui.form.update_route_after_rename(doc);
 					}
 				}
 			}
