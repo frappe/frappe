@@ -277,6 +277,7 @@ def sort_page(workspace_pages, pages):
 				doc = frappe.get_doc('Workspace', page.name)
 				doc.sequence_id = seq + 1
 				doc.parent_page = d.get('parent_page') or ""
+				doc.flags.ignore_links = True
 				doc.save(ignore_permissions=True)
 				break
 
