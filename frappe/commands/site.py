@@ -853,8 +853,7 @@ def browse(context, site, user=None):
 
 	url = f'{frappe.utils.get_site_url(site)}{sid}'
 
-	if user == "Administrator":
-		click.echo(f'Login URL: {url}')
+	click.echo(f'Login URL: {url}')
 
 	click.launch(url)
 
