@@ -1,18 +1,24 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
+import os
+from mimetypes import guess_type
+from typing import TYPE_CHECKING
 
 from werkzeug.wrappers import Response
 
 import frappe
-import frappe.utils
 import frappe.sessions
-from frappe.utils import cint
+import frappe.utils
 from frappe import _, is_whitelisted
-from frappe.utils.response import build_response
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.image import optimize_image
-from mimetypes import guess_type
-from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.utils.response import build_response
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.file.file import File
 
 
 ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
@@ -209,6 +215,25 @@ def upload_file():
 		return ret
 
 
+@frappe.whitelist(allow_guest=True)
+def download_file(file_url: str):
+	"""
+	Download file using token and REST API. Valid session or
+	token is required to download private files.
+
+	Method : GET
+	Endpoints : download_file, frappe.core.doctype.file.file.download_file
+	URL Params : file_name = /path/to/file relative to site path
+	"""
+	file: "File" = frappe.get_doc("File", {"file_url": file_url})
+	if not file.is_downloadable():
+		raise frappe.PermissionError
+
+	frappe.local.response.filename = os.path.basename(file_url)
+	frappe.local.response.filecontent = file.get_content()
+	frappe.local.response.type = "download"
+
+
 def get_attr(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
@@ -218,6 +243,7 @@ def get_attr(cmd):
 	frappe.log("method:" + cmd)
 	return method
 
+
 @frappe.whitelist(allow_guest=True)
 def ping():
 	return "pong"
@@ -225,8 +251,8 @@ def ping():
 
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	"""run a whitelisted controller method"""
-	import json
 	import inspect
+	import json
 
 	if not args:
 		args = arg or ""

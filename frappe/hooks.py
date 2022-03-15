@@ -383,3 +383,15 @@ global_search_doctypes = {
 		{"doctype": "Web Form"}
 	]
 }
+
+override_whitelisted_methods = {
+	"frappe.core.doctype.file.file.download_file": "download_file",
+	"frappe.core.doctype.file.file.unzip_file": "frappe.core.api.file.unzip_file",
+	"frappe.core.doctype.file.file.get_attached_images": "frappe.core.api.file.get_attached_images",
+	"frappe.core.doctype.file.file.get_files_in_folder": "frappe.core.api.file.get_files_in_folder",
+	"frappe.core.doctype.file.file.get_files_by_search_text": "frappe.core.api.file.get_files_by_search_text",
+	"frappe.core.doctype.file.file.get_max_file_size": "frappe.core.api.file.get_max_file_size",
+	"frappe.core.doctype.file.file.create_new_folder": "frappe.core.api.file.create_new_folder",
+	"frappe.core.doctype.file.file.move_file": "frappe.core.api.file.move_file",
+	"frappe.core.doctype.file.file.zip_files": "frappe.core.api.file.zip_files",
+}

@@ -2,11 +2,11 @@
 # License: MIT. See LICENSE
 
 import io
-import json
 import mimetypes
 import os
 import re
 import shutil
+from typing import List
 import zipfile
 
 from requests.exceptions import HTTPError, SSLError
@@ -16,9 +16,10 @@ from urllib.parse import quote, unquote
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method
+from frappe.utils import call_hook_method, cint, encode, get_files_path, get_hook_method
 from frappe.utils.image import strip_exif_data, optimize_image
 from frappe.utils.file_manager import is_safe_path, safe_b64decode
+from frappe.core.api.file import *
 
 from .exceptions import MaxFileSizeReachedError, FolderNotEmpty
 from .utils import *
@@ -313,7 +314,7 @@ class File(Document):
 			self.flags.on_rollback = True
 			self.on_trash()
 
-	def unzip(self):
+	def unzip(self) -> List[File]:
 		'''Unzip current file and replace it by its children'''
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
@@ -578,44 +579,6 @@ def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
 
-@frappe.whitelist()
-def create_new_folder(file_name, folder):
-	""" create new folder under current parent folder """
-	file = frappe.new_doc("File")
-	file.file_name = file_name
-	file.is_folder = 1
-	file.folder = folder
-	file.insert(ignore_if_duplicate=True)
-	return file
-
-
-@frappe.whitelist()
-def move_file(file_list, new_parent, old_parent):
-
-	if isinstance(file_list, str):
-		file_list = json.loads(file_list)
-
-	for file_obj in file_list:
-		setup_folder_path(file_obj.get("name"), new_parent)
-
-	# recalculate sizes
-	frappe.get_doc("File", old_parent).save()
-	frappe.get_doc("File", new_parent).save()
-
-
-@frappe.whitelist()
-def zip_files(files):
-	files = frappe.parse_json(files)
-	frappe.response["filename"] = "files.zip"
-	frappe.response["filecontent"] = File.zip_files(files)
-	frappe.response["type"] = "download"
-
-
-@frappe.whitelist()
-def get_max_file_size():
-	return cint(frappe.conf.get('max_file_size')) or 10485760
-
-
 def has_permission(doc, ptype=None, user=None):
 	has_access = False
 	user = user or frappe.session.user
@@ -648,92 +611,3 @@ def has_permission(doc, ptype=None, user=None):
 			pass
 
 	return has_access
-
-
-@frappe.whitelist()
-def download_file(file_url):
-	"""
-	Download file using token and REST API. Valid session or
-	token is required to download private files.
-
-	Method : GET
-	Endpoint : frappe.core.doctype.file.file.download_file
-	URL Params : file_name = /path/to/file relative to site path
-	"""
-	file_doc = frappe.get_doc("File", {"file_url": file_url})
-	file_doc.check_permission("read")
-
-	frappe.local.response.filename = os.path.basename(file_url)
-	frappe.local.response.filecontent = file_doc.get_content()
-	frappe.local.response.type = "download"
-
-
-@frappe.whitelist()
-def unzip_file(name):
-	'''Unzip the given file and make file records for each of the extracted files'''
-	file_obj: File = frappe.get_doc('File', name)
-	return file_obj.unzip()
-
-
-@frappe.whitelist()
-def get_attached_images(doctype, names):
-	'''get list of image urls attached in form
-	returns {name: ['image.jpg', 'image.png']}'''
-
-	if isinstance(names, str):
-		names = json.loads(names)
-
-	img_urls = frappe.db.get_list('File', filters={
-		'attached_to_doctype': doctype,
-		'attached_to_name': ('in', names),
-		'is_folder': 0
-	}, fields=['file_url', 'attached_to_name as docname'])
-
-	out = frappe._dict()
-	for i in img_urls:
-		out[i.docname] = out.get(i.docname, [])
-		out[i.docname].append(i.file_url)
-
-	return out
-
-
-@frappe.whitelist()
-def get_files_in_folder(folder, start=0, page_length=20):
-	start = cint(start)
-	page_length = cint(page_length)
-
-	attachment_folder = frappe.db.get_value('File',
-		'Home/Attachments',
-		['name', 'file_name', 'file_url', 'is_folder', 'modified'],
-		as_dict=1
-	)
-
-	files = frappe.db.get_list('File',
-		{ 'folder': folder },
-		['name', 'file_name', 'file_url', 'is_folder', 'modified'],
-		start=start,
-		page_length=page_length + 1
-	)
-
-	if folder == 'Home' and attachment_folder not in files:
-		files.insert(0, attachment_folder)
-
-	return {
-		'files': files[:page_length],
-		'has_more': len(files) > page_length
-	}
-
-
-@frappe.whitelist()
-def get_files_by_search_text(text):
-	if not text:
-		return []
-
-	text = '%' + cstr(text).lower() + '%'
-	return frappe.get_all('File',
-		fields=['name', 'file_name', 'file_url', 'is_folder', 'modified'],
-		filters={'is_folder': False},
-		or_filters={'file_name': ('like', text), 'file_url': text, 'name': ('like', text)},
-		order_by='modified desc',
-		limit=20
-	)
