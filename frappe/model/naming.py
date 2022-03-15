@@ -35,8 +35,8 @@ def set_new_name(doc):
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
-			doc.name = get_next_val(doc.doctype)
-			return
+		doc.name = get_next_val(doc.doctype)
+		return
 
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
