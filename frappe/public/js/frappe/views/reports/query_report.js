@@ -141,7 +141,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else if (frappe.has_route_options()) {
 			// filters passed through routes
 			// so refresh report again
-			this.refresh_report(route_options);
+
+			this.load_report(route_options);
+			// this refresh_report is flaky when moving here from another report and setting the route_options via set_route_options or via url
+			// this.refresh_report(route_options);
 		} else {
 			// same report
 			// don't do anything to preserve state
@@ -159,7 +162,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 		this.prepared_report_action = "New";
-
 		frappe.run_serially([
 			() => this.get_report_doc(),
 			() => this.get_report_settings(),
