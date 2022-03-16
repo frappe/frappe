@@ -265,8 +265,8 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", token)
-		token_expiration_local = otoken.expiration_time.replace(
-			tzinfo=pytz.timezone(frappe.utils.get_time_zone())
+		token_expiration_local = otoken.expiration_time.astimezone(
+			pytz.timezone(frappe.utils.get_time_zone())
 		)
 		token_expiration_utc = token_expiration_local.astimezone(pytz.utc)
 		is_token_valid = (
