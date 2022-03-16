@@ -23,8 +23,7 @@ Match = ImportMapper(
 		db_type_is.POSTGRES: TO_TSVECTOR
 	}
 )
-<<<<<<< HEAD
-=======
+
 
 class _PostgresTimestamp(ArithmeticExpression):
 	def __init__(self, datepart, timepart, alias=None):
@@ -43,27 +42,3 @@ CombineDatetime = ImportMapper(
 		db_type_is.POSTGRES: _PostgresTimestamp,
 	}
 )
-
-
-def _aggregate(function, dt, fieldname, filters, **kwargs):
-	return (
-		Query()
-		.build_conditions(dt, filters)
-		.select(function(Column(fieldname)))
-		.run(**kwargs)[0][0]
-		or 0
-	)
-
-
-def _max(dt, fieldname, filters=None, **kwargs):
-	return _aggregate(Max, dt, fieldname, filters, **kwargs)
-
-def _min(dt, fieldname, filters=None, **kwargs):
-	return _aggregate(Min, dt, fieldname, filters, **kwargs)
-
-def _avg(dt, fieldname, filters=None, **kwargs):
-	return _aggregate(Avg, dt, fieldname, filters, **kwargs)
-
-def _sum(dt, fieldname, filters=None, **kwargs):
-	return _aggregate(Sum, dt, fieldname, filters, **kwargs)
->>>>>>> 1a0fb21645 (feat: MySQL TIMESTAMP functionality for QB)
