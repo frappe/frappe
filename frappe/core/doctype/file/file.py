@@ -63,14 +63,12 @@ class File(Document):
 
 	def validate(self):
 		# Ensure correct formatting and type
-		self.file_url = unquote(self.file_url)
+		self.file_url = unquote(self.file_url) if self.file_url else ""
 
 		if not self.is_new() and self.has_value_changed("is_private"):
 			self.handle_is_private_changed()
 
-		if self.is_folder:
-			self.file_url = ""
-		else:
+		if not self.is_folder:
 			self.validate_file_on_disk()
 			self.validate_file_url()
 			self.validate_file_path()
