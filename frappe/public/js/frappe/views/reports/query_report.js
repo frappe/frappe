@@ -1348,7 +1348,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (file_format === 'CSV') {
 				const column_row = this.columns.reduce((acc, col) => {
 					if (!col.hidden) {
-						acc.push(col.label);
+						acc.push(__(col.label));
 					}
 					return acc;
 				}, []);
