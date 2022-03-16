@@ -106,6 +106,7 @@ def application(request):
 
 
 def init_request(request):
+	print("boi oh boi im in request")
 	frappe.local.request = request
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 

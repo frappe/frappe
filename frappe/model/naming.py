@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 	from frappe.model.meta import Meta
 
 
+autoincremented_status_map = {}
+
 def set_new_name(doc):
 	"""
 	Sets the `name` property for the document based on various rules.
@@ -74,23 +76,18 @@ def set_new_name(doc):
 
 def is_autoincremented(doctype: str, meta: "Meta" = None):
 	if doctype in log_types:
-		if (
-			frappe.local.autoincremented_status_map.get(frappe.local.site) is None
-			or frappe.local.autoincremented_status_map[frappe.local.site] == -1
-		):
-			if (
-				frappe.db.sql(
-					f"""select data_type FROM information_schema.columns
+		print(autoincremented_status_map.get(frappe.local.site))
+		if autoincremented_status_map.get(frappe.local.site) is None:
+			if frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
 				where column_name = 'name' and table_name = 'tab{doctype}'"""
-				)[0][0]
-				== "bigint"
-			):
-				frappe.local.autoincremented_status_map[frappe.local.site] = 1
+			)[0][0] == "bigint":
+				autoincremented_status_map[frappe.local.site] = 1
 				return True
 			else:
-				frappe.local.autoincremented_status_map[frappe.local.site] = 0
+				autoincremented_status_map[frappe.local.site] = 0
 
-		elif frappe.local.autoincremented_status_map[frappe.local.site]:
+		elif autoincremented_status_map[frappe.local.site]:
 			return True
 
 	else:
