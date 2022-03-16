@@ -20,7 +20,8 @@ module.exports = {
 				.then(content => {
 					content = scrub_html_template(content);
 					return {
-						contents: `\n\tfrappe.templates['${filename}'] = \`${content}\`;\n`
+						contents: `\n\tfrappe.templates['${filename}'] = \`${content}\`;\n`,
+						watchFiles: [filepath]
 					};
 				})
 				.catch(() => {

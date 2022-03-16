@@ -501,9 +501,9 @@ export default class Grid {
 	}
 
 	set_column_disp(fieldname, show) {
-		if ($.isArray(fieldname)) {
+		if (Array.isArray(fieldname)) {
 			for (let field of fieldname) {
-				this.update_docfield_property(field, "hidden", show);
+				this.update_docfield_property(field, "hidden", show ? 0 : 1);
 				this.set_editable_grid_column_disp(field, show);
 			}
 		} else {

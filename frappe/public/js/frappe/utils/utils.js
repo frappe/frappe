@@ -196,6 +196,15 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
+	parse_json: function(str) {
+		let parsed_json = '';
+		try {
+			parsed_json = JSON.parse(str);
+		} catch (e) {
+			return str;
+		}
+		return parsed_json;
+	},
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},

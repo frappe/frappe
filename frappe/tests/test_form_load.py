@@ -168,8 +168,8 @@ class TestFormLoad(unittest.TestCase):
 			"reference_name": note.name,
 		}).insert()
 
-
-		docinfo = get_docinfo(note)
+		get_docinfo(note)
+		docinfo = frappe.response["docinfo"]
 
 		self.assertEqual(len(docinfo.comments), 1)
 		self.assertIn("test", docinfo.comments[0].content)
