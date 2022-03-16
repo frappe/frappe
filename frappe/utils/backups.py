@@ -209,12 +209,8 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
-<<<<<<< HEAD
 		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
-=======
 		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
->>>>>>> 63cdb31ab2 (fix: set not define attributes)
-
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
 		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
