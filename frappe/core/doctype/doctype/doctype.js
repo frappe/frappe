@@ -61,6 +61,13 @@ frappe.ui.form.on('DocType', {
 		frm.events.set_naming_rule_description(frm);
 	},
 
+	istable: (frm) => {
+		if (frm.doc.istable && frm.is_new()) {
+			frm.set_value('autoname', 'autoincrement');
+			frm.set_value('allow_rename', 0);
+		}
+	},
+
 	naming_rule: function(frm) {
 		// set the "autoname" property based on naming_rule
 		if (frm.doc.naming_rule && !frm.__from_autoname) {
@@ -70,6 +77,10 @@ frappe.ui.form.on('DocType', {
 
 			if (frm.doc.naming_rule=='Set by user') {
 				frm.set_value('autoname', 'Prompt');
+			} else if (frm.doc.naming_rule === 'Autoincrement') {
+				frm.set_value('autoname', 'autoincrement');
+				// set allow rename to be false when using autoincrement
+				frm.set_value('allow_rename', 0);
 			} else if (frm.doc.naming_rule=='By fieldname') {
 				frm.set_value('autoname', 'field:');
 			} else if (frm.doc.naming_rule=='By "Naming Series" field') {
@@ -91,6 +102,7 @@ frappe.ui.form.on('DocType', {
 	set_naming_rule_description(frm) {
 		let naming_rule_description = {
 			'Set by user': '',
+			'Autoincrement': 'Uses Auto Increment feature of database.<br><b>WARNING: After using this option, any other naming option will not be accessible.</b>',
 			'By fieldname': 'Format: <code>field:[fieldname]</code>. Valid fieldname must exist',
 			'By "Naming Series" field': 'Format: <code>naming_series:[fieldname]</code>. Fieldname called <code>naming_series</code> must exist',
 			'Expression': 'Format: <code>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</code> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.',
@@ -111,6 +123,8 @@ frappe.ui.form.on('DocType', {
 			frm.__from_autoname = true;
 			if (frm.doc.autoname.toLowerCase() === 'prompt') {
 				frm.set_value('naming_rule', 'Set by user');
+			} else if (frm.doc.autoname.toLowerCase() === 'autoincrement') {
+				frm.set_value('naming_rule', 'Autoincrement');
 			} else if (frm.doc.autoname.startsWith('field:')) {
 				frm.set_value('naming_rule', 'By fieldname');
 			} else if (frm.doc.autoname.startsWith('naming_series:')) {
