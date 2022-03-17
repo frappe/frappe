@@ -908,7 +908,7 @@ class Database(object):
 		exists("User", {"full_name": "Jane Doe"})
 		```
 		"""
-		if dt == dn:
+		if dt != "DocType" and dt == dn:
 			# single always exists (!)
 			return dn
 
