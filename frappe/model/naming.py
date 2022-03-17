@@ -35,7 +35,7 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	elif not doc.name:
+	elif doc.doctype != "DocType":
 		doc.run_method("autoname")
 
 	if not doc.name and autoname:
