@@ -192,7 +192,6 @@
   {
    "fieldname": "language",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "Language",
    "options": "Language"
   },
@@ -795,7 +794,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-03-12 08:57:24.046794",
+ "modified": "2022-03-17 17:13:09.923723",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
