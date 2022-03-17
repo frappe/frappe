@@ -113,6 +113,10 @@ class Database(object):
 
 		"""
 		query = str(query)
+
+		# remove \n \t from start of query and replace them with space anywhere in middle
+		query = re.sub(r'\s', ' ', query).lstrip()
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
