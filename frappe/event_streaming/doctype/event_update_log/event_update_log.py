@@ -203,12 +203,17 @@ def get_unread_update_logs(consumer_name, dt, dn):
 		SELECT
 			update_log.name
 		FROM `tabEvent Update Log` update_log
-		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = update_log.name
+		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = %(log_name)s
 		WHERE
 			consumer.consumer = %(consumer)s
 			AND update_log.ref_doctype = %(dt)s
 			AND update_log.docname = %(dn)s
-	""", {'consumer': consumer_name, "dt": dt, "dn": dn}, as_dict=0)]
+	""", {
+		"consumer": consumer_name,
+		"dt": dt,
+		"dn": dn,
+		"log_name": "update_log.name" if frappe.conf.db_type == "mariadb" else "CAST(update_log.name AS VARCHAR)"
+	}, as_dict=0)]
 
 	logs = frappe.get_all(
 			'Event Update Log',
