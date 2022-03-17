@@ -31,5 +31,8 @@ context('List Paging', () => {
 		cy.get('.list-paging-area .btn-group .btn-paging[data-value="500"]').click();
 
 		cy.get('.list-paging-area .list-count').should('contain.text', '500 of');
+		cy.get('.list-paging-area .btn-more').click();
+
+		cy.get('.list-paging-area .list-count').should('contain.text', '1000 of');
 	});
 });
