@@ -234,7 +234,7 @@ class Document(BaseDocument):
 		self._validate_links()
 		self.check_permission("create")
 		self.run_method("before_insert")
-		self.set_new_name(set_name=set_name, set_child_names=set_child_names, set_draft_name=getattr(self.meta, "name_after_submit", False))
+		self.set_new_name(set_name=set_name, set_child_names=set_child_names, set_draft_name=getattr(self.meta, "set_name_after_submit", False))
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
@@ -334,7 +334,7 @@ class Document(BaseDocument):
 
 		self.update_children()
 
-		if self._action == "submit" and getattr(self.meta, "name_after_submit"):
+		if self._action == "submit" and getattr(self.meta, "set_name_after_submit", False):
 			draft_name = self.name
 			self.set_new_name()
 			rename_doc(self.doctype, draft_name, self.name, ignore_permissions=True, force=True, show_alert=False)

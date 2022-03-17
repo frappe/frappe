@@ -68,6 +68,10 @@ frappe.ui.form.on('DocType', {
 		}
 	},
 
+	is_submittable: (frm) => {
+		frm.toggle_display('set_name_after_submit', frm.doc.is_submittable);
+	},
+
 	naming_rule: function(frm) {
 		// set the "autoname" property based on naming_rule
 		if (frm.doc.naming_rule && !frm.__from_autoname) {
