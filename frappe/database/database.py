@@ -116,8 +116,14 @@ class Database(object):
 
 		"""
 		query = str(query)
+<<<<<<< HEAD
 		if not run:
 			return query
+=======
+
+		# remove \n \t from start of query and replace them with space anywhere in middle
+		query = re.sub(r'\s', ' ', query).lstrip()
+>>>>>>> ac5effc7dd (fix: remove tab \t and newlines \n from start of query and remove from middle)
 
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
