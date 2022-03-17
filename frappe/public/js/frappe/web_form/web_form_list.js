@@ -141,23 +141,21 @@ export default class WebFormList {
 			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
 
 			frappe.has_permission(this.doctype, "", "create", () => {
-				new_button = `<p><button class="btn btn-primary btn-sm btn-new-doc hidden-xs">
+				console.log(this)
+				new_button = `<a class="btn btn-primary btn-sm btn-new-doc hidden-xs" href="${window.location.pathname}?new=1">
 					${__("Create a new {0}", [__(this.doctype)])}
-					</button> <button class="btn btn-primary btn-new-doc visible-xs">
-					${__("Create New", null, "Create a new document from list view")}
-					</button></p>`;
-			});
+					</a>`;
 
-			empty_state.innerHTML = `<div class="text-center">
+				empty_state.innerHTML = `<div class="text-center">
 				<div>
-					<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="empty-list-icon">
+					<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
 				</div>
-				<p class="mt-2 small">${__("No {0} found", [__(this.doctype)])}</p>
+				<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
 				${new_button}`;
 
-			this.wrapper.appendChild(empty_state);
+				this.wrapper.appendChild(empty_state);
+			});
 		}
-
 	}
 
 	make_table_head() {
