@@ -141,7 +141,6 @@ export default class WebFormList {
 			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
 
 			frappe.has_permission(this.doctype, "", "create", () => {
-				console.log(this)
 				new_button = `<a class="btn btn-primary btn-sm btn-new-doc hidden-xs" href="${window.location.pathname}?new=1">
 					${__("Create a new {0}", [__(this.doctype)])}
 					</a>`;
