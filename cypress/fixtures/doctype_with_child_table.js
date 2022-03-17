@@ -20,6 +20,12 @@ export default {
 			label: "Child Table",
 			options: "Child Table Doctype",
 			reqd: 1
+		},
+		{
+			fieldname: "child_table_1",
+			fieldtype: "Table",
+			label: "Child Table 1",
+			options: "Child Table Doctype 1"
 		}
 	],
 	links: [],

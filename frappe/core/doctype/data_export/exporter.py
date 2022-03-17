@@ -324,7 +324,7 @@ class DataExporter:
 		d = doc.copy()
 		meta = frappe.get_meta(dt)
 		if self.all_doctypes:
-			d.name = '"'+ d.name+'"'
+			d.name = f'"{d.name}"'
 
 		if len(rows) < rowidx + 1:
 			rows.append([""] * (len(self.columns) + 1))

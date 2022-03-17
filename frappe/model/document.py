@@ -471,7 +471,7 @@ class Document(BaseDocument):
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
-		if self.is_new() and not (frappe.flags.in_patch or frappe.flags.in_migrate):
+		if self.is_new() and not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate):
 			self.creation = self.modified
 			self.owner = self.modified_by
 
@@ -1002,8 +1002,6 @@ class Document(BaseDocument):
 		- `on_update`, `on_submit` for **Submit**.
 		- `on_cancel` for **Cancel**
 		- `update_after_submit` for **Update after Submit**"""
-
-		doc_before_save = self.get_doc_before_save()
 
 		if self._action=="save":
 			self.run_method("on_update")
