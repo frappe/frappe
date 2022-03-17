@@ -8,7 +8,6 @@ context('Dashboard links', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-<<<<<<< HEAD
 		cy.insert_doc('DocType', child_table_doctype, true);
 		cy.insert_doc('DocType', doctype_with_child_table, true);
 		cy.insert_doc('DocType', doctype_to_link, true);
@@ -17,8 +16,6 @@ context('Dashboard links', () => {
 				name: child_table_doctype_name
 			});
 		});
-=======
->>>>>>> d123d24d9f (test: Clear filters after visiting contact list)
 	});
 
 	it('Adding a new contact, checking for the counter on the dashboard and deleting the created contact', () => {
@@ -26,11 +23,7 @@ context('Dashboard links', () => {
 		cy.clear_filters();
 
 		cy.visit('/app/user');
-<<<<<<< HEAD
 		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click({ force: true });
-=======
-		cy.get('.list-row-col > .level-item > .ellipsis').eq(0).click();
->>>>>>> d123d24d9f (test: Clear filters after visiting contact list)
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
@@ -64,7 +57,6 @@ context('Dashboard links', () => {
 		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
 	});
 
-<<<<<<< HEAD
 	it('check if child table is populated with linked field on creation from dashboard link', () => {
 		cy.new_form(doctype_to_link_name);
 		cy.fill_field("title", "Test Linking");
@@ -73,7 +65,8 @@ context('Dashboard links', () => {
 		cy.get('.document-link .btn-new').click();
 		cy.get('.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]')
 			.should('contain.text', 'Test Linking');
-=======
+	});
+	
 	it('Report link in dashboard', () => {
 		cy.visit('/app/user');
 		cy.visit('/app/user/Administrator');
@@ -93,6 +86,5 @@ context('Dashboard links', () => {
 				cy.findByText('Permitted Documents For User');
 				cy.findByPlaceholderText('User').should("have.value", "Administrator");
 			});
->>>>>>> ce0022d347 (test: Add UI test to check report link in dashboard)
 	});
 });
