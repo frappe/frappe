@@ -24,7 +24,7 @@ ul.tree-children {
 }
 .tree-link .node-parent,
 .tree-link .node-leaf {
-  margin-right: 5px;
+  margin-right: 8px;
 }
 .tree-link.active i {
   color: #5e64ff;

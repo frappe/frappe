@@ -9,6 +9,8 @@ import os
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.html_utils import unescape_html
 from frappe.model.base_document import get_controller
+from frappe.utils.data import cstr
+
 
 def setup_global_search_table():
 	"""
@@ -251,7 +253,7 @@ def update_global_search(doc):
 		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
 
-		title = (doc.get_title() or '')[:int(frappe.db.VARCHAR_LEN)]
+		title = (cstr(doc.get_title()) or '')[:int(frappe.db.VARCHAR_LEN)]
 		route = doc.get('route') if doc else ''
 
 		value = dict(
