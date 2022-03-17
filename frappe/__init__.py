@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
@@ -20,10 +20,10 @@ if _dev_server:
 	warnings.simplefilter('always', DeprecationWarning)
 	warnings.simplefilter('always', PendingDeprecationWarning)
 
-from werkzeug.local import Local, release_local
 import sys, importlib, inspect, json
-import typing
 import click
+from werkzeug.local import Local, release_local
+from typing import TYPE_CHECKING, Dict, List, Union
 
 # Local application imports
 from .exceptions import *
@@ -143,15 +143,14 @@ lang = local("lang")
 
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
-if typing.TYPE_CHECKING:
-	from frappe.utils.redis_wrapper import RedisWrapper
-
+if TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.utils.redis_wrapper import RedisWrapper
 
-	db: typing.Union[MariaDBDatabase, PostgresDatabase]
-	qb: typing.Union[MariaDB, Postgres]
+	db: Union[MariaDBDatabase, PostgresDatabase]
+	qb: Union[MariaDB, Postgres]
 
 
 # end: static analysis hack
@@ -1522,12 +1521,14 @@ def get_value(*args, **kwargs):
 	"""
 	return db.get_value(*args, **kwargs)
 
-def as_json(obj, indent=1):
+def as_json(obj: Union[Dict, List], indent=1) -> str:
 	from frappe.utils.response import json_handler
-	try:
-		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
-	except TypeError:
-		return json.dumps(obj, indent=indent, default=json_handler, separators=(',', ': '))
+
+	if isinstance(obj, dict) and None in obj:
+		obj.pop(None)
+
+	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+
 
 def are_emails_muted():
 	from frappe.utils import cint
