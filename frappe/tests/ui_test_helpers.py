@@ -135,11 +135,15 @@ def create_contact_records():
 	insert_contact('Test Form Contact 3', '12345')
 
 @frappe.whitelist()
-def create_multiple_contact_records():
-	if frappe.db.get_all('Contact', {'first_name': 'Multiple Contact 1'}):
+def create_multiple_todo_records():
+	values = []
+	if frappe.db.get_all('ToDo', {'description': 'Multiple ToDo 1'}):
 		return
-	for index in range(1001):
-		insert_contact('Multiple Contact {}'.format(index+1), '12345{}'.format(index+1))
+
+	for index in range(1, 1002):
+		values.append(('100{}'.format(index), 'Multiple ToDo {}'.format(index)))
+
+	frappe.db.bulk_insert('ToDo', fields=['name', 'description'], values=set(values))
 
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({

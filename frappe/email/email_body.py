@@ -260,17 +260,12 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 	if not email_account:
 		email_account = get_outgoing_email_account(False, sender=sender)
 
-	signature = None
-	if "<!-- signature-included -->" not in message:
-		signature = get_signature(email_account)
-
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"brand_logo": get_brand_logo(email_account) if with_container or header else None,
 		"with_container": with_container,
 		"site_url": get_url(),
 		"header": get_header(header),
 		"content": message,
-		"signature": signature,
 		"footer": get_footer(email_account, footer),
 		"title": subject,
 		"print_html": print_html,
@@ -282,8 +277,7 @@ def get_formatted_html(subject, message, footer=None, print_html=None,
 	if unsubscribe_link:
 		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
 
-	html = inline_style_in_html(html)
-	return html
+	return inline_style_in_html(html)
 
 @frappe.whitelist()
 def get_email_html(template, args, subject, header=None, with_container=False):

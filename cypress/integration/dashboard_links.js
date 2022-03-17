@@ -66,4 +66,25 @@ context('Dashboard links', () => {
 		cy.get('.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]')
 			.should('contain.text', 'Test Linking');
 	});
+	
+	it('Report link in dashboard', () => {
+		cy.visit('/app/user');
+		cy.visit('/app/user/Administrator');
+		cy.get('[data-doctype="Contact"]').should('contain', 'Contact');
+		cy.findByText('Connections');
+		cy.window()
+			.its('cur_frm')
+			.then(cur_frm => {
+				cur_frm.dashboard.data.reports = [
+					{
+						'label': 'Reports',
+						'items': ['Permitted Documents For User']
+					}
+				];
+				cur_frm.dashboard.render_report_links();
+				cy.get('[data-report="Permitted Documents For User"]').contains('Permitted Documents For User').click();
+				cy.findByText('Permitted Documents For User');
+				cy.findByPlaceholderText('User').should("have.value", "Administrator");
+			});
+	});
 });

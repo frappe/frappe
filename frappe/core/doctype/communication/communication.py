@@ -18,6 +18,7 @@ from six.moves.urllib.parse import unquote
 from frappe.utils.user import is_system_user
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.automation.doctype.assignment_rule.assignment_rule import apply as apply_assignment_rule
+from parse import compile
 
 exclude_from_linked_with = True
 
@@ -111,6 +112,44 @@ class Communication(Document):
 				# reference_name contains the user who is addressed in the messages' page comment
 				frappe.publish_realtime('new_message', self.as_dict(),
 					user=self.reference_name, after_commit=True)
+
+	def set_signature_in_email_content(self):
+		"""Set sender's User.email_signature or default outgoing's EmailAccount.signature to the email
+		"""
+		if not self.content:
+			return
+
+		quill_parser = compile('<div class="ql-editor read-mode">{}</div>')
+		email_body = quill_parser.parse(self.content)
+
+		if not email_body:
+			return
+
+		email_body = email_body[0]
+
+		user_email_signature = frappe.db.get_value(
+			"User",
+			self.sender,
+			"email_signature",
+		) if self.sender else None
+
+		signature = user_email_signature or frappe.db.get_value(
+			"Email Account",
+			{"default_outgoing": 1, "add_signature": 1},
+			"signature",
+		)
+
+		if not signature:
+			return
+
+		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
+
+		if (_signature or signature) not in self.content:
+			self.content = f'{self.content}</p><br><p class="signature">{signature}'
+
+	def before_save(self):
+		if not self.flags.skip_add_signature:
+			self.set_signature_in_email_content()
 
 	def on_update(self):
 		# add to _comment property of the doctype, so it shows up in
