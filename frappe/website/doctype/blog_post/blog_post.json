@@ -17,7 +17,9 @@
   "published",
   "featured",
   "hide_cta",
+  "enable_email_notification",
   "disable_comments",
+  "disable_feedback",
   "section_break_5",
   "blog_intro",
   "content_type",
@@ -129,7 +131,6 @@
   },
   {
    "default": "0",
-   "description": "Comments on this blog post will be disabled if checked.",
    "fieldname": "disable_comments",
    "fieldtype": "Check",
    "label": "Disable Comments"
@@ -191,6 +192,19 @@
    "fieldtype": "Data",
    "label": "Meta Title",
    "length": 60
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_feedback",
+   "fieldtype": "Check",
+   "label": "Disable Feedback"
+  },
+  {
+   "default": "1",
+   "description": "Enable email notification for any comment or feedback on your Blog Post.",
+   "fieldname": "enable_email_notification",
+   "fieldtype": "Check",
+   "label": "Enable Email Notification"
   }
  ],
  "has_web_view": 1,
@@ -199,8 +213,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "max_attachments": 5,
- "modified": "2020-12-23 14:28:36.311389",
+ "modified": "2022-03-09 01:48:25.227295",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import os
-from six import iteritems
 import logging
 
 from werkzeug.local import LocalManager
@@ -18,9 +16,9 @@ import frappe.handler
 import frappe.auth
 import frappe.api
 import frappe.utils.response
-import frappe.website.render
 from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
+from frappe.website.serve import get_response
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
@@ -56,6 +54,7 @@ def application(request):
 		frappe.recorder.record()
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
+		frappe.api.validate_auth()
 
 		if request.method == "OPTIONS":
 			response = Response()
@@ -73,7 +72,7 @@ def application(request):
 			response = frappe.utils.response.download_private_file(request.path)
 
 		elif request.method in ('GET', 'HEAD', 'POST'):
-			response = frappe.website.render.render()
+			response = get_response()
 
 		else:
 			raise NotFound
@@ -98,17 +97,7 @@ def application(request):
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
-		if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
-			frappe.logger("frappe.web", allow_site=frappe.local.site).info({
-				"site": get_site_name(request.host),
-				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
-				"base_url": getattr(request, "base_url", "NOTFOUND"),
-				"full_path": getattr(request, "full_path", "NOTFOUND"),
-				"method": getattr(request, "method", "NOTFOUND"),
-				"scheme": getattr(request, "scheme", "NOTFOUND"),
-				"http_status_code": getattr(response, "status_code", "NOTFOUND")
-			})
-
+		log_request(request, response)
 		process_response(response)
 		frappe.destroy()
 
@@ -128,11 +117,28 @@ def init_request(request):
 	if frappe.local.conf.get('maintenance_mode'):
 		frappe.connect()
 		raise frappe.SessionStopped('Session Stopped')
+	else:
+		frappe.connect(set_admin_as_user=False)
+
+	request.max_content_length = frappe.local.conf.get('max_file_size') or 10 * 1024 * 1024
 
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = frappe.auth.HTTPRequest()
+
+def log_request(request, response):
+	if hasattr(frappe.local, 'conf') and frappe.local.conf.enable_frappe_logger:
+		frappe.logger("frappe.web", allow_site=frappe.local.site).info({
+			"site": get_site_name(request.host),
+			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+			"base_url": getattr(request, "base_url", "NOTFOUND"),
+			"full_path": getattr(request, "full_path", "NOTFOUND"),
+			"method": getattr(request, "method", "NOTFOUND"),
+			"scheme": getattr(request, "scheme", "NOTFOUND"),
+			"http_status_code": getattr(response, "status_code", "NOTFOUND")
+		})
+
 
 def process_response(response):
 	if not response:
@@ -179,16 +185,14 @@ def make_form_dict(request):
 	if 'application/json' in (request.content_type or '') and request_data:
 		args = json.loads(request_data)
 	else:
-		args = request.form or request.args
+		args = {}
+		args.update(request.args or {})
+		args.update(request.form or {})
 
 	if not isinstance(args, dict):
-		frappe.throw("Invalid request arguments")
+		frappe.throw(_("Invalid request arguments"))
 
-	try:
-		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-			for k, v in iteritems(args) })
-	except IndexError:
-		frappe.local.form_dict = frappe._dict(args)
+	frappe.local.form_dict = frappe._dict(args)
 
 	if "_" in frappe.local.form_dict:
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
@@ -198,12 +202,20 @@ def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
+	accept_header = frappe.get_request_header("Accept") or ""
+	respond_as_json = (
+		frappe.get_request_header('Accept')
+		and (frappe.local.is_ajax or 'application/json' in accept_header)
+		or (
+			frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text")
+		)
+	)
 
 	if frappe.conf.get('developer_mode'):
 		# don't fail silently
 		print(frappe.get_traceback())
 
-	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
+	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
@@ -253,8 +265,7 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message",
-			http_status_code=http_status_code)
+		response = get_response("message", http_status_code=http_status_code)
 
 	return response
 
@@ -284,7 +295,7 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 
 	from werkzeug.serving import run_simple
 
-	if profile:
+	if profile or os.environ.get('USE_PROFILER'):
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):

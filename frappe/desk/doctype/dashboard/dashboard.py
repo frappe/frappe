@@ -1,28 +1,37 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2022, Frappe Technologies and contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
-from frappe.model.document import Document
-from frappe.modules.export_file import export_to_files
-from frappe.config import get_modules_from_all_apps_for_user
+import json
+
 import frappe
 from frappe import _
-import json
+from frappe.config import get_modules_from_all_apps_for_user
+from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
+from frappe.query_builder import DocType
+
 
 class Dashboard(Document):
 	def on_update(self):
 		if self.is_default:
 			# make all other dashboards non-default
-			frappe.db.sql('''update
-				tabDashboard set is_default = 0 where name != %s''', self.name)
+			DashBoard = DocType("Dashboard")
+
+			frappe.qb.update(DashBoard).set(
+				DashBoard.is_default, 0
+			).where(
+				DashBoard.name != self.name
+			).run()
 
 		if frappe.conf.developer_mode and self.is_standard:
-			export_to_files(record_list=[['Dashboard', self.name, self.module + ' Dashboard']], record_module=self.module)
+			export_to_files(
+				record_list=[["Dashboard", self.name, f"{self.module} Dashboard"]],
+				record_module=self.module
+			)
 
 	def validate(self):
 		if not frappe.conf.developer_mode and self.is_standard:
-			frappe.throw('Cannot edit Standard Dashboards')
+			frappe.throw(_("Cannot edit Standard Dashboards"))
 
 		if self.is_standard:
 			non_standard_docs_map = {

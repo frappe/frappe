@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 import requests
@@ -62,13 +60,23 @@ conditions = '1 = 1'
 		script = '''
 frappe.method_that_doesnt_exist("do some magic")
 '''
+	),
+	dict(
+		name='test_todo_commit',
+		script_type = 'DocType Event',
+		doctype_event = 'Before Save',
+		reference_doctype = 'ToDo',
+		disabled = 1,
+		script = '''
+frappe.db.commit()
+'''
 	)
 ]
 class TestServerScript(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		frappe.db.commit()
-		frappe.db.sql('truncate `tabServer Script`')
+		frappe.db.truncate("Server Script")
 		frappe.get_doc('User', 'Administrator').add_roles('Script Manager')
 		for script in scripts:
 			script_doc = frappe.get_doc(doctype ='Server Script')
@@ -80,7 +88,7 @@ class TestServerScript(unittest.TestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.commit()
-		frappe.db.sql('truncate `tabServer Script`')
+		frappe.db.truncate("Server Script")
 		frappe.cache().delete_value('server_script_map')
 
 	def setUp(self):
@@ -104,10 +112,72 @@ class TestServerScript(unittest.TestCase):
 		self.assertEqual(frappe.get_doc('Server Script', 'test_return_value').execute_method(), 'hello')
 
 	def test_permission_query(self):
-		self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', return_query=1))
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', run=False))
+		else:
+			self.assertTrue('where (1 = \'1\')' in frappe.db.get_list('ToDo', run=False))
 		self.assertTrue(isinstance(frappe.db.get_list('ToDo'), list))
 
 	def test_attribute_error(self):
 		"""Raise AttributeError if method not found in Namespace"""
 		note = frappe.get_doc({"doctype": "Note", "title": "Test Note: Server Script"})
 		self.assertRaises(AttributeError, note.insert)
+
+	def test_syntax_validation(self):
+		server_script = scripts[0]
+		server_script["script"] = "js || code.?"
+
+		with self.assertRaises(frappe.ValidationError) as se:
+			frappe.get_doc(doctype="Server Script", **server_script).insert()
+
+		self.assertTrue("invalid python code" in str(se.exception).lower(),
+				msg="Python code validation not working")
+
+	def test_commit_in_doctype_event(self):
+		server_script = frappe.get_doc('Server Script', 'test_todo_commit')
+		server_script.disabled = 0
+		server_script.save()
+
+		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype='ToDo', description='test me')).insert)
+
+		server_script.disabled = 1
+		server_script.save()
+
+	def test_restricted_qb(self):
+		todo = frappe.get_doc(doctype="ToDo", description="QbScriptTestNote")
+		todo.insert()
+
+		script = frappe.get_doc(
+			doctype='Server Script',
+			name='test_qb_restrictions',
+			script_type = 'API',
+			api_method = 'test_qb_restrictions',
+			allow_guest = 1,
+			# whitelisted update
+			script = f'''
+frappe.db.set_value("ToDo", "{todo.name}", "description", "safe")
+'''
+		)
+		script.insert()
+		script.execute_method()
+
+		todo.reload()
+		self.assertEqual(todo.description, "safe")
+
+		# unsafe update
+		script.script = f"""
+todo = frappe.qb.DocType("ToDo")
+frappe.qb.update(todo).set(todo.description, "unsafe").where(todo.name == "{todo.name}").run()
+"""
+		script.save()
+		self.assertRaises(frappe.PermissionError, script.execute_method)
+		todo.reload()
+		self.assertEqual(todo.description, "safe")
+
+		# safe select
+		script.script = f"""
+todo = frappe.qb.DocType("ToDo")
+frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
+"""
+		script.save()
+		script.execute_method()

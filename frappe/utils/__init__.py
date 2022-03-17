@@ -1,7 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import print_function, unicode_literals
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
 import functools
 import hashlib
@@ -11,25 +9,20 @@ import os
 import re
 import sys
 import traceback
+import typing
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from typing import Generator, Iterable
-
-import requests
-from six import string_types, text_type
-from six.moves.urllib.parse import quote
+from urllib.parse import quote, urlparse
 from werkzeug.test import Client
+from redis.exceptions import ConnectionError
+from collections.abc import MutableMapping, MutableSequence, Sequence
 
 import frappe
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from frappe.utils.identicon import Identicon
 from frappe.utils.html_utils import sanitize_html
-
-
-default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
-	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
 
 
 def get_fullname(user=None):
@@ -60,6 +53,12 @@ def get_email_address(user=None):
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
+	method = get_hook_method('get_sender_details')
+
+	if method:
+		sender_name, mail = method()
+		# if method exists but sender_name is ""
+		fullname = sender_name or fullname
 
 	if not mail:
 		mail = get_email_address(user) or validate_email_address(user)
@@ -72,7 +71,7 @@ def get_formatted_email(user, mail=None):
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
 	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, string_types) and not isinstance(email_id, text_type):
+	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -98,7 +97,7 @@ def validate_name(name, throw=False):
 		return False
 
 	name = name.strip()
-	match = re.match(r"^[\w][\w\'\-]*([ \w][\w\'\-]+)*$", name)
+	match = re.match(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$", name)
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
@@ -123,7 +122,10 @@ def validate_email_address(email_str, throw=False):
 
 		else:
 			email_id = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email_id.lower()) if email_id else None
+			match = re.match(
+				r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+				email_id.lower()
+			) if email_id else None
 
 			if not match:
 				_valid = False
@@ -154,22 +156,51 @@ def split_emails(txt):
 
 	# emails can be separated by comma or newline
 	s = re.sub(r'[\t\n\r]', ' ', cstr(txt))
-	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', s):
+	for email in re.split(r'[,\n](?=(?:[^"]|"[^"]*")*$)', s):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)
 
 	return email_list
 
+def validate_url(txt, throw=False, valid_schemes=None):
+	"""
+		Checks whether `txt` has a valid URL string
+
+		Parameters:
+			throw (`bool`): throws a validationError if URL is not valid
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
+
+		Returns:
+			bool: if `txt` represents a valid URL
+	"""
+	url = urlparse(txt)
+	is_valid = bool(url.netloc)
+
+	# Handle scheme validation
+	if isinstance(valid_schemes, str):
+		is_valid = is_valid and (url.scheme == valid_schemes)
+	elif isinstance(valid_schemes, (list, tuple, set)):
+		is_valid = is_valid and (url.scheme in valid_schemes)
+
+	if not is_valid and throw:
+		frappe.throw(
+			frappe._("'{0}' is not a valid URL").format(frappe.bold(txt))
+		)
+
+	return is_valid
+
 def random_string(length):
 	"""generate a random string"""
 	import string
 	from random import choice
-	return ''.join([choice(string.ascii_letters + string.digits) for i in range(length)])
+	return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
 
 
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	import requests
+
 	if (frappe.flags.in_import
 		or frappe.flags.in_install
 		or frappe.flags.in_test):
@@ -193,6 +224,8 @@ def get_gravatar_url(email):
 	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email.encode('utf-8')).hexdigest())
 
 def get_gravatar(email):
+	from frappe.utils.identicon import Identicon
+
 	gravatar_url = has_gravatar(email)
 
 	if not gravatar_url:
@@ -200,19 +233,24 @@ def get_gravatar(email):
 
 	return gravatar_url
 
-def get_traceback():
+def get_traceback() -> str:
 	"""
 		 Returns the traceback of the Exception
 	"""
 	exc_type, exc_value, exc_tb = sys.exc_info()
+
+	if not any([exc_type, exc_value, exc_tb]):
+		return ""
+
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	body = "".join(cstr(t) for t in trace_list)
-	return body
+	bench_path = get_bench_path() + "/"
+
+	return "".join(cstr(t) for t in trace_list).replace(bench_path, "")
 
 def log(event, details):
 	frappe.logger().info(details)
 
-def dict_to_str(args, sep='&'):
+def dict_to_str(args, sep = '&'):
 	"""
 	Converts a dictionary to URL
 	"""
@@ -220,6 +258,13 @@ def dict_to_str(args, sep='&'):
 	for k in list(args):
 		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
+
+def list_to_str(seq, sep = ', '):
+	"""Convert a sequence into a string using seperator.
+
+	Same as str.join, but does type conversion and strip extra spaces.
+	"""
+	return sep.join(map(str.strip, map(str, seq)))
 
 # Get Defaults
 # ==============================================================================
@@ -242,7 +287,7 @@ def remove_blanks(d):
 	"""
 	empty_keys = []
 	for key in d:
-		if d[key]=='' or d[key]==None:
+		if d[key] == "" or d[key] is None:
 			# del d[key] raises runtime exception, using a workaround
 			empty_keys.append(key)
 	for key in empty_keys:
@@ -252,7 +297,7 @@ def remove_blanks(d):
 
 def strip_html_tags(text):
 	"""Remove html tags from text"""
-	return re.sub("\<[^>]*\>", "", text)
+	return re.sub(r"\<[^>]*\>", "", text)
 
 def get_file_timestamp(fn):
 	"""
@@ -273,7 +318,7 @@ def make_esc(esc_chars):
 	"""
 		Function generator for Escaping special characters
 	"""
-	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
+	return lambda s: ''.join('\\' + c if c in esc_chars else c for c in s)
 
 # esc / unescape characters -- used for command line
 def esc(s, esc_chars):
@@ -296,14 +341,23 @@ def unesc(s, esc_chars):
 		s = s.replace(esc_str, c)
 	return s
 
-def execute_in_shell(cmd, verbose=0):
+def execute_in_shell(cmd, verbose=0, low_priority=False):
 	# using Popen instead of os.system - as recommended by python docs
 	import tempfile
 	from subprocess import Popen
 
 	with tempfile.TemporaryFile() as stdout:
 		with tempfile.TemporaryFile() as stderr:
-			p = Popen(cmd, shell=True, stdout=stdout, stderr=stderr)
+			kwargs = {
+				"shell": True,
+				"stdout": stdout,
+				"stderr": stderr
+			}
+
+			if low_priority:
+				kwargs["preexec_fn"] = lambda: os.nice(10)
+
+			p = Popen(cmd, **kwargs)
 			p.wait()
 
 			stdout.seek(0)
@@ -324,7 +378,7 @@ def get_path(*path, **kwargs):
 		base = frappe.local.site_path
 	return os.path.join(base, *path)
 
-def get_site_base_path(sites_dir=None, hostname=None):
+def get_site_base_path():
 	return frappe.local.site_path
 
 def get_site_path(*path):
@@ -335,6 +389,12 @@ def get_files_path(*path, **kwargs):
 
 def get_bench_path():
 	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
+
+def get_bench_id():
+	return frappe.get_conf().get('bench_id', get_bench_path().strip('/').replace('/', '-'))
+
+def get_site_id(site=None):
+	return f"{site or frappe.local.site}@{get_bench_id()}"
 
 def get_backups_path():
 	return get_site_path("private", "backups")
@@ -350,16 +410,15 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], string_types) and isinstance(d[key], text_type):
+		if isinstance(d[key], str) and isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], string_types) and not isinstance(d[key], text_type):
+		if isinstance(d[key], str) and not isinstance(d[key], str):
 			d[key] = d[key].decode(encoding, "ignore")
-
 	return d
 
 @functools.lru_cache()
@@ -379,12 +438,13 @@ def touch_file(path):
 		os.utime(path, None)
 	return path
 
-def get_test_client():
+def get_test_client() -> Client:
+	"""Returns an test instance of the Frappe WSGI"""
 	from frappe.app import application
 	return Client(application)
 
 def get_hook_method(hook_name, fallback=None):
-	method = (frappe.get_hooks().get(hook_name))
+	method = frappe.get_hooks().get(hook_name)
 	if method:
 		method = frappe.get_attr(method[0])
 		return method
@@ -398,8 +458,26 @@ def call_hook_method(hook, *args, **kwargs):
 
 	return out
 
+def is_cli() -> bool:
+	"""Returns True if current instance is being run via a terminal
+	"""
+	invoked_from_terminal = False
+	try:
+		invoked_from_terminal = bool(os.get_terminal_size())
+	except Exception:
+		invoked_from_terminal = sys.stdin.isatty()
+	return invoked_from_terminal
+
 def update_progress_bar(txt, i, l):
-	if not getattr(frappe.local, 'request', None):
+	if os.environ.get("CI"):
+		if i == 0:
+			sys.stdout.write(txt)
+
+		sys.stdout.write(".")
+		sys.stdout.flush()
+		return
+
+	if not getattr(frappe.local, 'request', None) or is_cli():
 		lt = len(txt)
 		try:
 			col = 40 if os.get_terminal_size().columns > 80 else 20
@@ -438,7 +516,7 @@ def is_markdown(text):
 	elif "<!-- html -->" in text:
 		return False
 	else:
-		return not re.search("<p[\s]*>|<br[\s]*>", text)
+		return not re.search(r"<p[\s]*>|<br[\s]*>", text)
 
 def get_sites(sites_path=None):
 	if not sites_path:
@@ -456,40 +534,17 @@ def get_sites(sites_path=None):
 
 	return sorted(sites)
 
-def get_request_session(max_retries=3):
+def get_request_session(max_retries=5):
+	import requests
 	from urllib3.util import Retry
+
 	session = requests.Session()
-	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
-	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	http_adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
+
+	session.mount("http://", http_adapter)
+	session.mount("https://", http_adapter)
+
 	return session
-
-def watch(path, handler=None, debug=True):
-	import time
-
-	from watchdog.events import FileSystemEventHandler
-	from watchdog.observers import Observer
-
-	class Handler(FileSystemEventHandler):
-		def on_any_event(self, event):
-			if debug:
-				print("File {0}: {1}".format(event.event_type, event.src_path))
-
-			if not handler:
-				print("No handler specified")
-				return
-
-			handler(event.src_path, event.event_type)
-
-	event_handler = Handler()
-	observer = Observer()
-	observer.schedule(event_handler, path, recursive=True)
-	observer.start()
-	try:
-		while True:
-			time.sleep(1)
-	except KeyboardInterrupt:
-		observer.stop()
-	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
 	html = text if is_html(text) else frappe.utils.md_to_html(text)
@@ -547,7 +602,7 @@ def check_format(email_id):
 
 def get_name_from_email_string(email_string, email_id, name):
 	name = email_string.replace(email_id, '')
-	name = re.sub('[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+', '', name).strip()
+	name = re.sub(r'[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+', '', name).strip()
 	if not name:
 		name = email_id
 	return name
@@ -556,7 +611,7 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in iteritems(get_versions()):
+	for app, version_details in get_versions().items():
 		out.append({
 			'app_name': app,
 			'version': version_details.get('branch_version') or version_details.get('version'),
@@ -566,12 +621,11 @@ def get_installed_apps_info():
 	return out
 
 def get_site_info():
-	from frappe.core.doctype.user.user import STANDARD_USERS
 	from frappe.email.queue import get_emails_sent_this_month
 	from frappe.utils.user import get_system_managers
 
 	# only get system users
-	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
+	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', frappe.STANDARD_USERS)},
 		fields=['name', 'enabled', 'last_login', 'last_active', 'language', 'time_zone'])
 	system_managers = get_system_managers(only_name=True)
 	for u in users:
@@ -615,7 +669,7 @@ def parse_json(val):
 	"""
 	Parses json if string else return
 	"""
-	if isinstance(val, string_types):
+	if isinstance(val, str):
 		val = json.loads(val)
 	if isinstance(val, dict):
 		val = frappe._dict(val)
@@ -677,7 +731,7 @@ def get_safe_filters(filters):
 	try:
 		filters = json.loads(filters)
 
-		if isinstance(filters, (integer_types, float)):
+		if isinstance(filters, (int, float)):
 			filters = frappe.as_unicode(filters)
 
 	except (TypeError, ValueError):
@@ -707,9 +761,9 @@ def set_request(**kwargs):
 	frappe.local.request = Request(builder.get_environ())
 
 def get_html_for_route(route):
-	from frappe.website import render
+	from frappe.website.serve import get_response
 	set_request(method='GET', path=route)
-	response = render.render()
+	response = get_response()
 	html = frappe.safe_decode(response.get_data())
 	return html
 
@@ -736,6 +790,43 @@ def get_build_version():
 		# this is not a major problem so send fallback
 		return frappe.utils.random_string(8)
 
+def get_assets_json():
+	if not hasattr(frappe.local, "assets_json"):
+		cache = frappe.cache()
+
+		# using .get instead of .get_value to avoid pickle.loads
+		try:
+			if not frappe.conf.developer_mode:
+				assets_json = cache.get("assets_json").decode('utf-8')
+			else:
+				assets_json = None
+		except (UnicodeDecodeError, AttributeError, ConnectionError):
+			assets_json = None
+
+		if not assets_json:
+			# get merged assets.json and assets-rtl.json
+			assets_dict = frappe.parse_json(
+				frappe.read_file("assets/assets.json")
+			)
+
+			assets_rtl = frappe.read_file("assets/assets-rtl.json")
+			if assets_rtl:
+				assets_dict.update(
+					frappe.parse_json(assets_rtl)
+				)
+			frappe.local.assets_json = frappe.as_json(assets_dict)
+			# save in cache
+			cache.set_value("assets_json", frappe.local.assets_json,
+				shared=True)
+
+			return assets_dict
+		else:
+			# from cache, decode and send
+			frappe.local.assets_json = frappe.safe_decode(assets_json)
+
+	return frappe.parse_json(frappe.local.assets_json)
+
+
 def get_bench_relative_path(file_path):
 	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
 
@@ -759,3 +850,71 @@ def get_bench_relative_path(file_path):
 		sys.exit(1)
 
 	return os.path.abspath(file_path)
+
+
+def groupby_metric(iterable: typing.Dict[str, list], key: str):
+	""" Group records by a metric.
+
+	Usecase: Lets assume we got country wise players list with the ranking given for each player(multiple players in a country can have same ranking aswell).
+	We can group the players by ranking(can be any other metric) using this function.
+
+	>>> d = {
+		'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
+		'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
+	}
+	>>> groupby(d, key='ranking')
+	{1: {'Aus': [{'id': 1, 'name': 'aplayer-1', 'ranking': 1},
+				{'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
+		'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},
+				{'id': 2, 'name': 'iplayer-2', 'ranking': 1}]},
+	2: {'Aus': [{'id': 2, 'name': 'aplayer-3', 'ranking': 2}],
+		'india': [{'id': 2, 'name': 'iplayer-3', 'ranking': 2}]}}
+	"""
+	records = {}
+	for category, items in iterable.items():
+		for item in items:
+			records.setdefault(item[key], {}).setdefault(category, []).append(item)
+	return records
+
+def get_table_name(table_name: str) -> str:
+	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+def squashify(what):
+	if isinstance(what, Sequence) and len(what) == 1:
+		return what[0]
+
+	return what
+
+def safe_json_loads(*args):
+	results = []
+
+	for arg in args:
+		try:
+			arg = json.loads(arg)
+		except Exception:
+			pass
+
+		results.append(arg)
+
+	return squashify(results)
+
+def dictify(arg):
+	if isinstance(arg, MutableSequence):
+		for i, a in enumerate(arg):
+			arg[i] = dictify(a)
+	elif isinstance(arg, MutableMapping):
+		arg = frappe._dict(arg)
+
+	return arg
+
+def add_user_info(user, user_info):
+	if user not in user_info:
+		info = frappe.db.get_value("User",
+			user, ["full_name", "user_image", "name", 'email', 'time_zone'], as_dict=True) or frappe._dict()
+		user_info[user] = frappe._dict(
+			fullname = info.full_name or user,
+			image = info.user_image,
+			name = user,
+			email = info.email,
+			time_zone = info.time_zone
+		)

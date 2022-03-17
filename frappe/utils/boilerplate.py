@@ -1,14 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals, print_function
+import git
+import os
+import re
 
-from six.moves import input
-
-import frappe, os, re, git
+import frappe
 from frappe.utils import touch_file, cstr
 
-def make_boilerplate(dest, app_name):
+def make_boilerplate(dest, app_name, no_git=False):
 	if not os.path.exists(dest):
 		print("Destination directory does not exist")
 		return
@@ -42,7 +42,7 @@ def make_boilerplate(dest, app_name):
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print("App Name must be all lowercase and without spaces")
 				hook_val = ""
-			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
+			elif hook_key=="app_title" and not re.match(r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
 				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
 				hook_val = ""
 
@@ -62,20 +62,19 @@ def make_boilerplate(dest, app_name):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
 		"js"))
 
+	# add .gitkeep file so that public folder is committed to git
+	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "public", ".gitkeep"), "w") as f:
+		f.write('')
+
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(frappe.as_unicode(init_template))
 
 	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
 		f.write(frappe.as_unicode(manifest_template.format(**hooks)))
 
-	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-		f.write(frappe.as_unicode(gitignore_template.format(app_name = hooks.app_name)))
-
-	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(frappe.as_unicode(setup_template.format(**hooks)))
-
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
-		f.write("frappe")
+		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(frappe.as_unicode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
@@ -86,6 +85,14 @@ def make_boilerplate(dest, app_name):
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
+
+	# These values could contain quotes and can break string declarations
+	# So escaping them before setting variables in setup.py and hooks.py
+	for key in ("app_publisher", "app_description", "app_license"):
+		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"")
+
+	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
+		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
@@ -98,11 +105,16 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(frappe.as_unicode(docs_template.format(**hooks)))
 
-	# initialize git repository
 	app_directory = os.path.join(dest, hooks.app_name)
-	app_repo = git.Repo.init(app_directory)
-	app_repo.git.add(A=True)
-	app_repo.index.commit("feat: Initialize App")
+
+	if not no_git:
+		with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
+			f.write(frappe.as_unicode(gitignore_template.format(app_name = hooks.app_name)))
+
+		# initialize git repository
+		app_repo = git.Repo.init(app_directory)
+		app_repo.git.add(A=True)
+		app_repo.index.commit("feat: Initialize App")
 
 	print("'{app}' created at {path}".format(app=app_name, path=app_directory))
 
@@ -126,16 +138,12 @@ recursive-include {app_name} *.svg
 recursive-include {app_name} *.txt
 recursive-exclude {app_name} *.pyc"""
 
-init_template = """# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+init_template = """
 __version__ = '0.0.1'
 
 """
 
-hooks_template = """# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from . import __version__ as app_version
+hooks_template = """from . import __version__ as app_version
 
 app_name = "{app_name}"
 app_title = "{app_title}"
@@ -190,11 +198,26 @@ app_license = "{app_license}"
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
 
+# Jinja
+# ----------
+
+# add methods and filters to jinja environment
+# jinja = {{
+# 	"methods": "{app_name}.utils.jinja_methods",
+# 	"filters": "{app_name}.utils.jinja_filters"
+# }}
+
 # Installation
 # ------------
 
 # before_install = "{app_name}.install.before_install"
 # after_install = "{app_name}.install.after_install"
+
+# Uninstallation
+# ------------
+
+# before_uninstall = "{app_name}.uninstall.before_uninstall"
+# after_uninstall = "{app_name}.uninstall.after_uninstall"
 
 # Desk Notifications
 # ------------------
@@ -249,10 +272,10 @@ app_license = "{app_license}"
 # 	],
 # 	"weekly": [
 # 		"{app_name}.tasks.weekly"
-# 	]
+# 	],
 # 	"monthly": [
 # 		"{app_name}.tasks.monthly"
-# 	]
+# 	],
 # }}
 
 # Testing
@@ -278,11 +301,41 @@ app_license = "{app_license}"
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
+
+# User Data Protection
+# --------------------
+
+# user_data_fields = [
+# 	{{
+# 		"doctype": "{{doctype_1}}",
+# 		"filter_by": "{{filter_by}}",
+# 		"redact_fields": ["{{field_1}}", "{{field_2}}"],
+# 		"partial": 1,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_2}}",
+# 		"filter_by": "{{filter_by}}",
+# 		"partial": 1,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_3}}",
+# 		"strict": False,
+# 	}},
+# 	{{
+# 		"doctype": "{{doctype_4}}"
+# 	}}
+# ]
+
+# Authentication and authorization
+# --------------------------------
+
+# auth_hooks = [
+# 	"{app_name}.auth.validate"
+# ]
+
 """
 
-desktop_template = """# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from frappe import _
+desktop_template = """from frappe import _
 
 def get_data():
 	return [
@@ -296,21 +349,20 @@ def get_data():
 	]
 """
 
-setup_template = """# -*- coding: utf-8 -*-
-from setuptools import setup, find_packages
+setup_template = """from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
-	install_requires = f.read().strip().split('\\n')
+with open("requirements.txt") as f:
+	install_requires = f.read().strip().split("\\n")
 
 # get version from __version__ variable in {app_name}/__init__.py
 from {app_name} import __version__ as version
 
 setup(
-	name='{app_name}',
+	name="{app_name}",
 	version=version,
-	description='{app_description}',
-	author='{app_publisher}',
-	author_email='{app_email}',
+	description="{app_description}",
+	author="{app_publisher}",
+	author_email="{app_email}",
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,
@@ -330,7 +382,6 @@ Configuration for docs
 """
 
 # source_link = "https://github.com/[org_name]/{app_name}"
-# docs_base_url = "https://[org_name].github.io/{app_name}"
 # headline = "App that does everything"
 # sub_heading = "Yes, you got that right the first time, everything"
 

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
@@ -42,6 +41,11 @@ def create_notification_settings(user):
 		_doc = frappe.new_doc('Notification Settings')
 		_doc.name = user
 		_doc.insert(ignore_permissions=True)
+
+
+def toggle_notifications(user, enable=False):
+	if frappe.db.exists("Notification Settings", user):
+		frappe.db.set_value("Notification Settings", user, 'enabled', enable)
 
 
 @frappe.whitelist()

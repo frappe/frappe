@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 from collections import Counter
 import datetime
 import inspect
@@ -181,6 +179,13 @@ def get(uuid=None, *args, **kwargs):
 	else:
 		result = list(frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result
+
+
+@frappe.whitelist()
+@do_not_record
+@administrator_only
+def export_data(*args, **kwargs):
+	return list(frappe.cache().hgetall(RECORDER_REQUEST_HASH).values())
 
 
 @frappe.whitelist()

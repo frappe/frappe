@@ -1,0 +1,174 @@
+name: UI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+
+concurrency:
+  group: ui-develop-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+       containers: [1, 2]
+
+    name: UI Tests (Cypress)
+
+    services:
+      mysql:
+        image: mariadb:10.3
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: YES
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "ui"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+
+      - uses: actions/setup-node@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        with:
+          node-version: 14
+          check-latest: true
+
+      - name: Add to Hosts
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: |
+          echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 test_site_producer" | sudo tee -a /etc/hosts
+
+      - name: Cache pip
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: Cache node modules
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Get yarn cache directory path
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v2
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Cache cypress binary
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache
+          key: ${{ runner.os }}-cypress-
+          restore-keys: |
+            ${{ runner.os }}-cypress-
+            ${{ runner.os }}-
+
+      - name: Install Dependencies
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+        env:
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          TYPE: ui
+
+      - name: Install
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        env:
+          DB: mariadb
+          TYPE: ui
+
+      - name: Instrument Source Code
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: cd ~/frappe-bench/apps/frappe/ && npx nyc instrument -x 'frappe/public/dist/**' -x 'frappe/public/js/lib/**' -x '**/*.bundle.js' --compact=false --in-place frappe
+
+      - name: Build
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: cd ~/frappe-bench/ && bench build --apps frappe
+
+      - name: Site Setup
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
+
+      - name: UI Tests
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --with-coverage --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+        env:
+          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+
+      - name: Stop server
+        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+        run: |
+          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
+          sleep 5
+
+      - name: Check If Coverage Report Exists
+        id: check_coverage
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "/home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml"
+
+      - name: Upload Coverage Data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
+        uses: codecov/codecov-action@v2
+        with:
+          name: Cypress
+          fail_ci_if_error: true
+          directory: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/
+          verbose: true
+          flags: ui-tests
+
+      - name: Upload Server Coverage Data
+        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+        uses: codecov/codecov-action@v2
+        with:
+          name: MariaDB
+          fail_ci_if_error: true
+          files: /home/runner/frappe-bench/sites/coverage.xml
+          verbose: true
+          flags: server

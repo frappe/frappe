@@ -1,14 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import frappe.utils
 import json, jwt
 import base64
 from frappe import _
 from frappe.utils.password import get_decrypted_password
-from six import string_types
 
 class SignupDisabledError(frappe.PermissionError): pass
 
@@ -63,8 +61,6 @@ def get_oauth2_authorize_url(provider, redirect_to):
 	flow = get_oauth2_flow(provider)
 
 	state = { "site": frappe.utils.get_url(), "token": frappe.generate_hash(), "redirect_to": redirect_to 	}
-
-	frappe.cache().set_value("{0}:{1}".format(provider, state["token"]), True, expires_in_sec=120)
 
 	# relative to absolute url
 	data = {
@@ -138,11 +134,17 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 
 		token = parsed_access['id_token']
 
-		info = jwt.decode(token, flow.client_secret, verify=False)
+		info = jwt.decode(token, flow.client_secret, options={"verify_signature": False})
 	else:
 		api_endpoint = oauth2_providers[provider].get("api_endpoint")
 		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
+
 		info = session.get(api_endpoint, params=api_endpoint_args).json()
+
+		if provider == "github" and not info.get("email"):
+			emails = session.get("/user/emails", params=api_endpoint_args).json()
+			email_dict = list(filter(lambda x: x.get("primary"), emails))[0]
+			info["email"] = email_dict.get("email")
 
 	if not (info.get("email_verified") or info.get("email")):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
@@ -165,20 +167,15 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 	# 	return
 
 	# json.loads data and state
-	if isinstance(data, string_types):
+	if isinstance(data, str):
 		data = json.loads(data)
 
-	if isinstance(state, string_types):
+	if isinstance(state, str):
 		state = base64.b64decode(state)
 		state = json.loads(state.decode("utf-8"))
 
 	if not (state and state["token"]):
 		frappe.respond_as_web_page(_("Invalid Request"), _("Token is missing"), http_status_code=417)
-		return
-
-	token = frappe.cache().get_value("{0}:{1}".format(provider, state["token"]), expires=True)
-	if not token:
-		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Token"), http_status_code=417)
 		return
 
 	user = get_email(data)
@@ -231,14 +228,14 @@ def update_oauth_user(user, data, provider):
 		save = True
 		user = frappe.new_doc("User")
 
-		gender = (data.get("gender") or "").title()
+		gender = data.get("gender", "").title()
 
-		if not frappe.db.exists("Gender", gender):
+		if gender and not frappe.db.exists("Gender", gender):
 			doc = frappe.new_doc("Gender", {"gender": gender})
 			doc.insert(ignore_permissions=True)
 
 		user.update({
-			"doctype":"User",
+			"doctype": "User",
 			"first_name": get_first_name(data),
 			"last_name": get_last_name(data),
 			"email": get_email(data),

@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import json
 import os
@@ -7,7 +7,6 @@ import subprocess  # nosec
 
 import requests
 from semantic_version import Version
-from six.moves import range
 
 import frappe
 from frappe import _, safe_decode
@@ -119,9 +118,9 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
-		null_stream = open(os.devnull, 'wb')
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True, stdin=null_stream, stderr=null_stream)
+		with open(os.devnull, 'wb') as null_stream:
+			result = subprocess.check_output(f'cd ../apps/{app} && git rev-parse --abbrev-ref HEAD',
+				shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -130,9 +129,9 @@ def get_app_branch(app):
 
 def get_app_last_commit_ref(app):
 	try:
-		null_stream = open(os.devnull, 'wb')
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
-			shell=True, stdin=null_stream, stderr=null_stream)
+		with open(os.devnull, 'wb') as null_stream:
+			result = subprocess.check_output(f'cd ../apps/{app} && git rev-parse HEAD --short 7',
+				shell=True, stdin=null_stream, stderr=null_stream)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
@@ -156,11 +155,11 @@ def check_for_update():
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
 				updates[update_type].append(frappe._dict(
-					current_version   = str(instance_version),
-					available_version = str(github_version),
-					org_name          = org_name,
-					app_name          = app,
-					title             = apps[app]['title'],
+					current_version=str(instance_version),
+					available_version=str(github_version),
+					org_name=org_name,
+					app_name=app,
+					title=apps[app]['title'],
 				))
 				break
 			if github_version.__dict__[update_type] < instance_version.__dict__[update_type]: break
@@ -243,7 +242,7 @@ def add_message_to_redis(update_json):
 @frappe.whitelist()
 def show_update_popup():
 	cache = frappe.cache()
-	user  = frappe.session.user
+	user = frappe.session.user
 
 	update_info = cache.get_value("update-info")
 	if not update_info:
@@ -259,10 +258,10 @@ def show_update_popup():
 			for app in updates[update_type]:
 				app = frappe._dict(app)
 				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
-					available_version = app.available_version,
-					org_name          = app.org_name,
-					app_name          = app.app_name,
-					title             = app.title
+					available_version=app.available_version,
+					org_name=app.org_name,
+					app_name=app.app_name,
+					title=app.title
 				)
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))

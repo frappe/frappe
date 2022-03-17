@@ -1,12 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.utils import strip
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
-base_template_path = "templates/www/website_script.js"
+base_template_path = "www/website_script.js"
 
 def get_context(context):
 	context.javascript = frappe.db.get_single_value('Website Script',

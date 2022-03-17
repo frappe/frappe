@@ -1,14 +1,20 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
-import os
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 import unittest
+from contextlib import contextmanager
+from datetime import timedelta
+from unittest.mock import patch
 
 import frappe
-from frappe.utils import cint, add_to_date, now
-from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
-from frappe.exceptions import DoesNotExistError
+from frappe.desk.doctype.note.note import Note
+from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
+from frappe.utils import cint, now_datetime
+
+
+class CustomTestNote(Note):
+	@property
+	def age(self):
+		return now_datetime() - self.creation
 
 
 class TestDocument(unittest.TestCase):
@@ -87,13 +93,13 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
-	def test_confict_validation(self):
+	def test_conflict_validation(self):
 		d1 = self.test_insert()
 		d2 = frappe.get_doc(d1.doctype, d1.name)
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
-	def test_confict_validation_single(self):
+	def test_conflict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
 		d1.home_page = "test-web-page-1"
 
@@ -110,7 +116,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_permission_single(self):
 		frappe.set_user("Guest")
-		d = frappe.get_doc("Website Settings", "Website Settigns")
+		d = frappe.get_doc("Website Settings", "Website Settings")
 		self.assertRaises(frappe.PermissionError, d.save)
 		frappe.set_user("Administrator")
 
@@ -160,7 +166,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_varchar_length(self):
 		d = self.test_insert()
-		d.subject = "abcde"*100
+		d.sender = "abcde"*100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
 	def test_xss_filter(self):
@@ -196,41 +202,6 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
 
-	def test_link_count(self):
-		if os.environ.get('CI'):
-			# cannot run this test reliably in travis due to its handling
-			# of parallelism
-			return
-
-		from frappe.model.utils.link_count import update_link_count
-
-		update_link_count()
-
-		doctype, name = 'User', 'test@example.com'
-
-		d = self.test_insert()
-		d.append('event_participants', {"reference_doctype": doctype, "reference_docname": name})
-
-		d.save()
-
-		link_count = frappe.cache().get_value('_link_count') or {}
-		old_count = link_count.get((doctype, name)) or 0
-
-		frappe.db.commit()
-
-		link_count = frappe.cache().get_value('_link_count') or {}
-		new_count = link_count.get((doctype, name)) or 0
-
-		self.assertEqual(old_count + 1, new_count)
-
-		before_update = frappe.db.get_value(doctype, name, 'idx')
-
-		update_link_count()
-
-		after_update = frappe.db.get_value(doctype, name, 'idx')
-
-		self.assertEqual(before_update + new_count, after_update)
-
 	def test_naming_series(self):
 		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
 
@@ -265,3 +236,104 @@ class TestDocument(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
+
+	def test_get_formatted(self):
+		frappe.get_doc({
+			'doctype': 'DocType',
+			'name': 'Test Formatted',
+			'module': 'Custom',
+			'custom': 1,
+			'fields': [
+				{'label': 'Currency', 'fieldname': 'currency', 'reqd': 1, 'fieldtype': 'Currency'},
+			]
+		}).insert()
+
+		frappe.delete_doc_if_exists("Currency", "INR", 1)
+
+		d = frappe.get_doc({
+			'doctype': 'Currency',
+			'currency_name': 'INR',
+			'symbol': '₹',
+		}).insert()
+
+		d = frappe.get_doc({
+			'doctype': 'Test Formatted',
+			'currency': 100000
+		})
+		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+
+	def test_limit_for_get(self):
+		doc = frappe.get_doc("DocType", "DocType")
+		# assuming DocType has more than 3 Data fields
+		self.assertEquals(len(doc.get("fields", limit=3)), 3)
+
+		# limit with filters
+		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
+
+	def test_virtual_fields(self):
+		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
+		"""
+		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
+
+		def patch_note():
+			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
+
+		@contextmanager
+		def customize_note(with_options=False):
+			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
+			custom_field = frappe.get_doc({
+				"doctype": "Custom Field",
+				"dt": "Note",
+				"fieldname": "age",
+				"fieldtype": "Data",
+				"read_only": True,
+				"is_virtual": True,
+				"options": options,
+			})
+
+			try:
+				yield custom_field.insert(ignore_if_duplicate=True)
+			finally:
+				custom_field.delete()
+
+		with patch_note():
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomTestNote)
+			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsNone(doc.as_dict().get("age"))
+			self.assertIsNone(doc.get_valid_dict().get("age"))
+
+		with customize_note(), patch_note():
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomTestNote)
+			self.assertIsInstance(doc.age, timedelta)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+		with customize_note(with_options=True):
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, Note)
+			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
+			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+	def test_run_method(self):
+		doc = frappe.get_last_doc("User")
+
+		# Case 1: Override with a string
+		doc.as_dict = ""
+
+		# run_method should throw TypeError
+		self.assertRaisesRegex(TypeError, "not callable", doc.run_method, "as_dict")
+
+		# Case 2: Override with a function
+		def my_as_dict(*args, **kwargs):
+			return "success"
+
+		doc.as_dict = my_as_dict
+
+		# run_method should get overridden
+		self.assertEqual(doc.run_method("as_dict"), "success")

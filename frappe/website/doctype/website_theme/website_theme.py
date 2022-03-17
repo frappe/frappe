@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -98,6 +97,7 @@ class WebsiteTheme(Document):
 		else:
 			self.generate_bootstrap_theme()
 
+	@frappe.whitelist()
 	def set_as_default(self):
 		self.generate_bootstrap_theme()
 		self.save()
@@ -106,6 +106,7 @@ class WebsiteTheme(Document):
 		website_settings.ignore_validate = True
 		website_settings.save()
 
+	@frappe.whitelist()
 	def get_apps(self):
 		from frappe.utils.change_log import get_versions
 		apps = get_versions()
@@ -154,18 +155,20 @@ def get_scss_paths():
 	"""
 	Return a set of SCSS import paths from all apps that provide `website.scss`.
 
-	If `$BENCH_PATH/apps/frappe/frappe/public/scss/website.scss` exists, the
-	returned set will contain 'frappe/public/scss/website'.
+	If `$BENCH_PATH/apps/frappe/frappe/public/scss/website[.bundle].scss` exists, the
+	returned set will contain 'frappe/public/scss/website[.bundle]'.
 	"""
 	import_path_list = []
 	bench_path = frappe.utils.get_bench_path()
 
+	scss_files = ['public/scss/website.scss', 'public/scss/website.bundle.scss']
 	for app in frappe.get_installed_apps():
-		relative_path = join_path(app, 'public/scss/website.scss')
-		full_path = get_path('apps', app, relative_path, base=bench_path)
-		if path_exists(full_path):
-			import_path = splitext(relative_path)[0]
-			import_path_list.append(import_path)
+		for scss_file in scss_files:
+			relative_path = join_path(app, scss_file)
+			full_path = get_path('apps', app, relative_path, base=bench_path)
+			if path_exists(full_path):
+				import_path = splitext(relative_path)[0]
+				import_path_list.append(import_path)
 
 	return import_path_list
 
@@ -178,7 +181,7 @@ def after_migrate():
 	the end of every `bench migrate`.
 	"""
 	website_theme = frappe.db.get_single_value('Website Settings', 'website_theme')
-	if website_theme == 'Standard':
+	if not website_theme or website_theme == 'Standard':
 		return
 
 	doc = frappe.get_doc('Website Theme', website_theme)

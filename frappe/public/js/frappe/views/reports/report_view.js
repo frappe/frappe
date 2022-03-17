@@ -3,6 +3,7 @@
  */
 import DataTable from 'frappe-datatable';
 
+window.DataTable = DataTable;
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
@@ -17,7 +18,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_defaults() {
 		super.setup_defaults();
 		this.page_title = __('Report:') + ' ' + this.page_title;
-		this.menu_items = this.report_menu_items();
 		this.view = 'Report';
 
 		const route = frappe.get_route();
@@ -49,6 +49,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_columns();
 		super.setup_new_doc_event();
 		this.page.main.addClass('report-view');
+	}
+
+	setup_page() {
+		this.menu_items = this.report_menu_items();
+		super.setup_page();
 	}
 
 	toggle_side_bar() {
@@ -105,6 +110,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_args() {
 		const args = super.get_args();
+		delete args.group_by;
 		this.group_by_control.set_args(args);
 
 		return args;
@@ -119,11 +125,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	after_render() {
-		if (this.report_doc) {
-			this.set_dirty_state_for_custom_report();
-		} else {
+		if (!this.report_doc) {
 			this.save_report_settings();
+		} else if (!$.isEmptyObject(this.report_doc.json)) {
+			this.set_dirty_state_for_custom_report();
 		}
+
 		if (!this.group_by) {
 			this.init_chart();
 		}
@@ -282,6 +289,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: this.columns,
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
+			language: frappe.boot.lang,
+			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
 			cellHeight: 35,
@@ -336,7 +345,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								options: columns_in_picker
 							},
 							{
-								label: __('Insert Column Before {0}', [datatabe_col.docfield.label.bold()]),
+								label: __('Insert Column Before {0}', [__(datatabe_col.docfield.label).bold()]),
 								fieldname: 'insert_before',
 								fieldtype: 'Check'
 							}
@@ -386,6 +395,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.$charts_wrapper.addClass('hidden');
 			this.save_view_user_settings(
 				{ chart_args: null });
+			this.chart_args = null;
 		}
 	}
 
@@ -410,7 +420,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			x_fields.push({
 				label: col.content,
 				fieldname: col.id,
-				value:  col.id,
+				value: col.id,
 			});
 
 			// numeric values in y
@@ -639,9 +649,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			// not a cancelled doc
 			&& data.docstatus !== 2
 			&& !df.read_only
+			&& !df.is_virtual
 			&& !df.hidden
 			// not a standard field i.e., owner, modified_by, etc.
-			&& !frappe.model.std_fields_list.includes(df.fieldname))
+			&& frappe.model.is_non_std_field(df.fieldname))
 			return true;
 		return false;
 	}
@@ -784,7 +795,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			} else {
 				this.fields.splice(col_index, 0, field);
 			}
-			frappe.show_alert(__('Also adding the dependent currency field {0}', [field[0].bold()]));
+			const field_label = frappe.meta.get_label(doctype, field[0]);
+			frappe.show_alert(
+				__('Also adding the dependent currency field {0}', [__(field_label).bold()])
+			);
 		}
 	}
 
@@ -794,7 +808,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const field = [col, doctype];
 			this.fields.push(field);
 			this.refresh();
-			frappe.show_alert(__('Also adding the status dependency field {0}', [field[0].bold()]));
+			const field_label = frappe.meta.get_label(doctype, field[0]);
+			frappe.show_alert(
+				__('Also adding the status dependency field {0}', [__(field_label).bold()])
+			);
 		}
 	}
 
@@ -855,7 +872,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		doctype_fields = [{
-			label: __('ID'),
+			label: __('ID', null, 'Label of name column in report'),
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1
@@ -1014,7 +1031,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			title += ` (${__(doctype)})`;
 		}
 
-		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only;
+		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only && !docfield.is_virtual;
 
 		const align = (() => {
 			const is_numeric = frappe.model.is_numeric_field(docfield);
@@ -1024,8 +1041,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return docfield.fieldtype === 'Date' ? 'right' : 'left';
 		})();
 
+		let id = fieldname;
+
 		// child table column
-		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
+		if (doctype !== this.doctype && fieldname !== '_aggregate_column') {
+			id = `${doctype}:${fieldname}`;
+		}
 
 		let width = (docfield ? cint(docfield.width) : null) || null;
 		if (this.report_doc) {
@@ -1192,7 +1213,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				args: {
 					name: name,
 					doctype: this.doctype,
-					json: JSON.stringify(report_settings)
+					report_settings: JSON.stringify(report_settings)
 				},
 				callback:(r) => {
 					if(r.exc) {
@@ -1203,11 +1224,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						// Rerender the reports dropdown,
 						// so that this report is included in the dropdown as well.
 						frappe.boot.user.all_reports[r.message] = {
-							ref_doctype: "Item",
+							ref_doctype: this.doctype,
 							report_type: "Report Builder",
 							title: r.message,
 						};
-						this.list_sidebar.setup_reports();
+
 						frappe.set_route('List', this.doctype, 'Report', r.message);
 						return;
 					}
@@ -1227,6 +1248,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				_save_report(data.name);
 			}, __('Save As'));
 		}
+	}
+
+	delete_report() {
+		return frappe.call({
+			method: 'frappe.desk.reportview.delete_report',
+			args: { name: this.report_name },
+			callback(response) {
+				if (response.exc) return;
+				window.history.back();
+			}
+		});
 	}
 
 	get_column_widths() {
@@ -1395,7 +1427,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					];
 
-					if (this.total_count > args.page_length) {
+					if (this.total_count > this.count_without_children || args.page_length) {
 						fields.push({
 							fieldtype: 'Check',
 							fieldname: 'export_all_rows',
@@ -1450,12 +1482,42 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}
 		});
 
-		// save buttons
-		if(frappe.user.is_report_manager()) {
-			items = items.concat([
-				{ label: __('Save'), action: () => this.save_report('save') },
-				{ label: __('Save As'), action: () => this.save_report('save_as') }
-			]);
+		const can_edit_or_delete = (action) => {
+			const method = action == "delete" ? "can_delete" : "can_write";
+			return (
+				this.report_doc
+				&& this.report_doc.is_standard !== "Yes"
+				&& (
+					frappe.model[method]("Report")
+					|| this.report_doc.owner === frappe.session.user
+				)
+			);
+		};
+
+		// A user with role Report Manager or Report Owner can save
+		if (can_edit_or_delete()) {
+			items.push({
+				label: __("Save"),
+				action: () => this.save_report('save')
+			});
+		}
+
+		// anyone can save as
+		items.push({
+			label: __('Save As'),
+			action: () => this.save_report('save_as')
+		});
+
+		// A user with role Report Manager or Report Owner can delete
+		if (can_edit_or_delete("delete")) {
+			items.push({
+				label: __("Delete"),
+				action: () => frappe.confirm(
+					"Are you sure you want to delete this report?",
+					() => this.delete_report(),
+				),
+				shortcut: "Shift+Ctrl+D"
+			});
 		}
 
 		// user permissions

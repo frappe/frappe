@@ -76,6 +76,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.trigger("setup_sortable");
 						}
 					}
+					localStorage["customize_doctype"] = frm.doc.doc_type;
 				}
 			});
 		} else {
@@ -113,10 +114,11 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
+			frm.page.set_title(__('Customize Form - {0}', [frm.doc.doc_type]));
 			frappe.customize_form.set_primary_action(frm);
 
 			frm.add_custom_button(
-				__("Go to {0} List", [frm.doc.doc_type]),
+				__("Go to {0} List", [__(frm.doc.doc_type)]),
 				function() {
 					frappe.set_route("List", frm.doc.doc_type);
 				},
@@ -275,6 +277,21 @@ frappe.ui.form.on("DocType Action", {
 	}
 });
 
+// can't delete standard states
+frappe.ui.form.on("DocType State", {
+	before_states_remove: function(frm, doctype, name) {
+		let row = frappe.get_doc(doctype, name);
+		if (!(row.custom || row.__islocal)) {
+			frappe.msgprint(__("Cannot delete standard document state."));
+			throw "cannot delete standard document state";
+		}
+	},
+	states_add: function(frm, cdt, cdn) {
+		let f = frappe.model.get_doc(cdt, cdn);
+		f.custom = 1;
+	}
+});
+
 frappe.customize_form.set_primary_action = function(frm) {
 	frm.page.set_primary_action(__("Update"), function() {
 		if (frm.doc.doc_type) {
@@ -331,3 +348,4 @@ frappe.customize_form.clear_locals_and_refresh = function(frm) {
 	frm.refresh();
 }
 
+extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({frm: cur_frm}));

@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import io
 import os
 import re
@@ -9,14 +7,13 @@ from distutils.version import LooseVersion
 import subprocess
 
 import pdfkit
-import six
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 import frappe
 from frappe import _
 from frappe.utils import scrub_urls
-
+from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
 	"UnknownContentError", "RemoteHostClosedError"]
@@ -45,6 +42,7 @@ def get_pdf(html, options=None, output=None):
 	except OSError as e:
 		if any([error in str(e) for error in PDF_CONTENT_ERRORS]):
 			if not filedata:
+				print(html, options)
 				frappe.throw(_("PDF generation failed because of broken image links"))
 
 			# allow pdfs with missing images if file got created
@@ -57,8 +55,6 @@ def get_pdf(html, options=None, output=None):
 
 	if "password" in options:
 		password = options["password"]
-		if six.PY2:
-			password = frappe.safe_encode(password)
 
 	if output:
 		output.appendPagesFromReader(reader)
@@ -99,7 +95,7 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
-		#'load-error-handling': 'ignore'
+		# 'load-error-handling': 'ignore'
 	})
 
 	if not options.get("margin-right"):
@@ -115,8 +111,21 @@ def prepare_options(html, options):
 	options.update(get_cookie_options())
 
 	# page size
-	if not options.get("page-size"):
-		options['page-size'] = frappe.db.get_single_value("Print Settings", "pdf_page_size") or "A4"
+	pdf_page_size = (
+		options.get("page-size")
+		or frappe.db.get_single_value("Print Settings", "pdf_page_size")
+		or "A4"
+	)
+
+	if pdf_page_size == "Custom":
+		options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_height"
+		)
+		options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_width"
+		)
+	else:
+		options["page-size"] = pdf_page_size
 
 	return html, options
 
@@ -146,7 +155,7 @@ def read_options_from_html(html):
 	toggle_visible_pdf(soup)
 
 	# use regex instead of soup-parser
-	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "header-spacing", "orientation"):
+	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "header-spacing", "orientation", "page-width", "page-height"):
 		try:
 			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
 			match = pattern.findall(html)
@@ -164,7 +173,8 @@ def prepare_header_footer(soup):
 	head = soup.find("head").contents
 	styles = soup.find_all("style")
 
-	css = frappe.read_file(os.path.join(frappe.local.sites_path, "assets/css/printview.css"))
+	print_css = bundled_asset('print.bundle.css').lstrip('/')
+	css = frappe.read_file(os.path.join(frappe.local.sites_path, print_css))
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
@@ -180,7 +190,9 @@ def prepare_header_footer(soup):
 				"content": content,
 				"styles": styles,
 				"html_id": html_id,
-				"css": css
+				"css": css,
+				"lang": frappe.local.lang,
+				"layout_direction": "rtl" if is_rtl() else "ltr"
 			})
 
 			# create temp file

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_jobs
@@ -204,12 +203,17 @@ def get_unread_update_logs(consumer_name, dt, dn):
 		SELECT
 			update_log.name
 		FROM `tabEvent Update Log` update_log
-		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = update_log.name
+		JOIN `tabEvent Update Log Consumer` consumer ON consumer.parent = %(log_name)s
 		WHERE
 			consumer.consumer = %(consumer)s
 			AND update_log.ref_doctype = %(dt)s
 			AND update_log.docname = %(dn)s
-	""", {'consumer': consumer_name, "dt": dt, "dn": dn}, as_dict=0)]
+	""", {
+		"consumer": consumer_name,
+		"dt": dt,
+		"dn": dn,
+		"log_name": "update_log.name" if frappe.conf.db_type == "mariadb" else "CAST(update_log.name AS VARCHAR)"
+	}, as_dict=0)]
 
 	logs = frappe.get_all(
 			'Event Update Log',
@@ -235,7 +239,7 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 
 	if isinstance(doctypes, str):
 		doctypes = frappe.parse_json(doctypes)
-	
+
 	from frappe.event_streaming.doctype.event_consumer.event_consumer import has_consumer_access
 
 	consumer = frappe.get_doc('Event Consumer', event_consumer)

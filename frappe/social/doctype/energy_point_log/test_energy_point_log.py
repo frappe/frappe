@@ -1,22 +1,34 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
-import unittest
+
+from frappe.tests.utils import FrappeTestCase
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 from frappe.desk.form.assign_to import add as assign_to
 
-class TestEnergyPointLog(unittest.TestCase):
+
+class TestEnergyPointLog(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		settings = frappe.get_single('Energy Point Settings')
+		settings.enabled = 1
+		settings.save()
+
+	@classmethod
+	def tearDownClass(cls):
+		settings = frappe.get_single('Energy Point Settings')
+		settings.enabled = 0
+		settings.save()
+
 	def setUp(self):
 		frappe.cache().delete_value('energy_point_rule_map')
 
 	def tearDown(self):
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Log`')
-		frappe.db.sql('DELETE FROM `tabEnergy Point Rule`')
+		frappe.db.delete("Energy Point Log")
+		frappe.db.delete("Energy Point Rule")
 		frappe.cache().delete_value('energy_point_rule_map')
 
 	def test_user_energy_point(self):
@@ -78,7 +90,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		points_after_closing_todo = get_points('test@example.com')
 
 		# test max_points cap
-		self.assertNotEquals(points_after_closing_todo,
+		self.assertNotEqual(points_after_closing_todo,
 			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
 
 		self.assertEqual(points_after_closing_todo,
@@ -130,9 +142,10 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		# for criticism
 		criticism_points = 2
+		todo = create_a_todo(description='Bad patch')
 		energy_points_before_review = energy_points_after_review
 		review_points_before_review = review_points_after_review
-		review(created_todo, criticism_points, 'test@example.com', 'You could have done better.', 'Criticism')
+		review(todo, criticism_points, 'test@example.com', 'You could have done better.', 'Criticism')
 		energy_points_after_review = get_points('test@example.com')
 		review_points_after_review = get_points('test2@example.com', 'review_points')
 		self.assertEqual(energy_points_after_review, energy_points_before_review - criticism_points)
@@ -275,6 +288,31 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEqual(points_after_reverting_todo, points_after_closing_todo - rule_points)
 		self.assertEqual(points_after_saving_todo_again, points_after_reverting_todo + rule_points)
 
+	def test_energy_points_disabled_user(self):
+		frappe.set_user('test@example.com')
+		user = frappe.get_doc('User', 'test@example.com')
+		user.enabled = 0
+		user.save()
+		todo_point_rule = create_energy_point_rule_for_todo()
+		energy_point_of_user = get_points('test@example.com')
+
+		created_todo = create_a_todo()
+
+		created_todo.status = 'Closed'
+		created_todo.save()
+		points_after_closing_todo = get_points('test@example.com')
+
+		# do not update energy points for disabled user
+		self.assertEqual(points_after_closing_todo, energy_point_of_user)
+
+		user.enabled = 1
+		user.save()
+
+		created_todo.save()
+		points_after_re_saving_todo = get_points('test@example.com')
+		self.assertEqual(points_after_re_saving_todo, energy_point_of_user + todo_point_rule.points)
+
+
 def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None,
 	for_assigned_users=0, field_to_check=None, apply_once=False, user_field='owner'):
 	name = 'ToDo Closed'
@@ -297,11 +335,14 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Cust
 		'apply_only_once': apply_once
 	}).insert(ignore_permissions=1)
 
-def create_a_todo():
+
+def create_a_todo(description=None):
+	if not description:
+		description = 'Fix a bug'
 	return frappe.get_doc({
 		'doctype': 'ToDo',
-		'description': 'Fix a bug',
-	}).insert()
+		'description': description,
+	}).insert(ignore_permissions=True)
 
 
 def get_points(user, point_type='energy_points'):

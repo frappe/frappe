@@ -123,7 +123,14 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						kanbans => this.setup_kanban_switcher(kanbans)
 					);
 				}
-			}
+			},
+			Map: {
+				condition: this.list_view.settings.get_coords_method ||
+					(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
+					this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
+					(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
+				action: () => this.set_route("map")
+			},
 		};
 
 		frappe.views.view_modes.forEach(view => {
@@ -144,22 +151,23 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		views_wrapper.find(".sidebar-label").html(`${__(view)}`);
 		const $dropdown = views_wrapper.find(".views-dropdown");
 
-		let placeholder = `Select ${view}`;
+		let placeholder = `${__("Select {0}", [__(view)])}`;
 		let html = ``;
 
 		if (!items || !items.length) {
 			html = `<div class="empty-state">
-						${__("No {} Found", [view])}
+						${__("No {0} Found", [__(view)])}
 				</div>`;
 		} else {
 			const page_name = this.get_page_name();
 			items.map(item => {
 				if (item.name.toLowerCase() == page_name.toLowerCase()) {
 					placeholder = item.name;
+				} else {
+					html += `<li><a class="dropdown-item" href="${item.route}">${
+						item.name
+					}</a></li>`;
 				}
-				html += `<li><a class="dropdown-item" href="${item.route}">${
-					item.name
-				}</a></li>`;
 			});
 		}
 

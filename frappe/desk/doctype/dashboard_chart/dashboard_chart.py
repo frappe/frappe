@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import datetime
 import json
 from frappe.utils.dashboard import cache_source
 from frappe.utils import nowdate, getdate, get_datetime, cint, now_datetime
-from frappe.utils.dateutils import\
-	get_period, get_period_beginning, get_from_date_from_timespan, get_dates_from_timegrain
+from frappe.utils.dateutils import get_period, get_period_beginning, get_from_date_from_timespan, get_dates_from_timegrain
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.config import get_modules_from_all_apps_for_user
@@ -171,7 +169,6 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	doctype = chart.document_type
 	datefield = chart.based_on
-	aggregate_function = get_aggregate_function(chart.chart_type)
 	value_field = chart.value_based_on or '1'
 	from_date = from_date.strftime('%Y-%m-%d')
 	to_date = to_date
@@ -183,7 +180,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		doctype,
 		fields = [
 			'{} as _unit'.format(datefield),
-			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+			'SUM({})'.format(value_field),
+			'COUNT(*)'
 		],
 		filters = filters,
 		group_by = '_unit',
@@ -192,7 +190,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		ignore_ifnull = True
 	)
 
-	result = get_result(data, timegrain, from_date, to_date)
+	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
 
 	chart_config = {
 		"labels": [get_period(r[0], timegrain) for r in result],
@@ -288,15 +286,21 @@ def get_aggregate_function(chart_type):
 	}[chart_type]
 
 
-def get_result(data, timegrain, from_date, to_date):
+def get_result(data, timegrain, from_date, to_date, chart_type):
 	dates = get_dates_from_timegrain(from_date, to_date, timegrain)
 	result = [[date, 0] for date in dates]
 	data_index = 0
 	if data:
 		for i, d in enumerate(result):
+			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += data[data_index][1]
+				count += data[data_index][2]
 				data_index += 1
+			if chart_type == 'Average' and not count == 0:
+				d[1] = d[1]/count
+			if chart_type == 'Count':
+				d[1] = count
 
 	return result
 
@@ -320,7 +324,7 @@ class DashboardChart(Document):
 
 	def validate(self):
 		if not frappe.conf.developer_mode and self.is_standard:
-			frappe.throw('Cannot edit Standard charts')
+			frappe.throw(_("Cannot edit Standard charts"))
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 			self.check_document_type()
@@ -329,7 +333,10 @@ class DashboardChart(Document):
 
 	def check_required_field(self):
 		if not self.document_type:
-				frappe.throw(_("Document type is required to create a dashboard chart"))
+			frappe.throw(_("Document type is required to create a dashboard chart"))
+
+		if self.document_type and frappe.get_meta(self.document_type).istable and not self.parent_document_type:
+			frappe.throw(_("Parent document type is required to create a dashboard chart"))
 
 		if self.chart_type == 'Group By':
 			if not self.group_by_based_on:

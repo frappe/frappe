@@ -4,14 +4,15 @@
 frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
-	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect',
+	no_value_type: ['Section Break', 'Column Break', 'Tab Break', 'HTML', 'Table', 'Table MultiSelect',
 		'Button', 'Image', 'Fold', 'Heading'],
 
-	layout_fields: ['Section Break', 'Column Break', 'Fold'],
+	layout_fields: ['Section Break', 'Column Break', 'Tab Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
-		'parent', 'parenttype', 'parentfield', 'idx'],
+		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus', 'idx'],
+
+	child_table_field_list: ['parent', 'parenttype', 'parentfield'],
 
 	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
@@ -84,7 +85,7 @@ $.extend(frappe.model, {
 	},
 
 	is_non_std_field: function(fieldname) {
-		return !frappe.model.std_fields_list.includes(fieldname);
+		return ![...frappe.model.std_fields_list, ...frappe.model.child_table_field_list].includes(fieldname);
 	},
 
 	get_std_field: function(fieldname, ignore=false) {
@@ -131,6 +132,7 @@ $.extend(frappe.model, {
 	with_doctype: function(doctype, callback, async) {
 		if(locals.DocType[doctype]) {
 			callback && callback();
+			return Promise.resolve();
 		} else {
 			let cached_timestamp = null;
 			let cached_doc = null;
@@ -180,6 +182,9 @@ $.extend(frappe.model, {
 		var meta = locals.DocType[doctype];
 		if(meta.__list_js) {
 			eval(meta.__list_js);
+		}
+		if(meta.__custom_list_js) {
+			eval(meta.__custom_list_js);
 		}
 		if(meta.__calendar_js) {
 			eval(meta.__calendar_js);
@@ -253,11 +258,15 @@ $.extend(frappe.model, {
 	},
 
 	can_select: function(doctype) {
-		return frappe.boot.user.can_select.indexOf(doctype)!==-1;
+		if (frappe.boot.user) {
+			return frappe.boot.user.can_select.indexOf(doctype)!==-1;
+		}
 	},
 
 	can_read: function(doctype) {
-		return frappe.boot.user.can_read.indexOf(doctype)!==-1;
+		if (frappe.boot.user) {
+			return frappe.boot.user.can_read.indexOf(doctype)!==-1;
+		}
 	},
 
 	can_write: function(doctype) {
@@ -309,11 +318,13 @@ $.extend(frappe.model, {
 		return doc && doc.__last_sync_on && ((new Date() - doc.__last_sync_on)) < 5000;
 	},
 
-	can_import: function(doctype, frm) {
-		// system manager can always import
-		if(frappe.user_roles.includes("System Manager")) return true;
+	can_import: function(doctype, frm, meta=null) {
+		if (meta && !meta.allow_import) return false;
 
-		if(frm) return frm.perm[0].import===1;
+		// system manager can always import
+		if (frappe.user_roles.includes("System Manager")) return true;
+
+		if (frm) return frm.perm[0].import===1;
 		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
 	},
 
@@ -457,31 +468,31 @@ $.extend(frappe.model, {
 	},
 
 	trigger: function(fieldname, value, doc) {
-		let tasks = [];
-		var runner = function(events, event_doc) {
-			$.each(events || [], function(i, fn) {
-				if(fn) {
-					let _promise = fn(fieldname, value, event_doc || doc);
+		const tasks = [];
+
+		function enqueue_events(events) {
+			if (!events) return;
+
+			for (const fn of events) {
+				if (!fn) continue;
+
+				tasks.push(() => {
+					const return_value = fn(fieldname, value, doc);
 
 					// if the trigger returns a promise, return it,
 					// or use the default promise frappe.after_ajax
-					if (_promise && _promise.then) {
-						return _promise;
+					if (return_value && return_value.then) {
+						return return_value;
 					} else {
 						return frappe.after_server_call();
 					}
-				}
-			});
+				});
+			}
 		};
 
 		if(frappe.model.events[doc.doctype]) {
-			tasks.push(() => {
-				return runner(frappe.model.events[doc.doctype][fieldname]);
-			});
-
-			tasks.push(() => {
-				return runner(frappe.model.events[doc.doctype]['*']);
-			});
+			enqueue_events(frappe.model.events[doc.doctype][fieldname]);
+			enqueue_events(frappe.model.events[doc.doctype]['*']);
 		}
 
 		return frappe.run_serially(tasks);
@@ -566,13 +577,15 @@ $.extend(frappe.model, {
 	},
 
 	delete_doc: function(doctype, docname, callback) {
-		var title = docname;
-		var title_field = frappe.get_meta(doctype).title_field;
+		let title = docname;
+		const title_field = frappe.get_meta(doctype).title_field;
 		if (frappe.get_meta(doctype).autoname == "hash" && title_field) {
-			var title = frappe.model.get_value(doctype, docname, title_field);
-			title += " (" + docname + ")";
+			const value = frappe.model.get_value(doctype, docname, title_field);
+			if (value) {
+				title = `${value} (${docname})`;
+			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title]), function() {
+		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function() {
 			return frappe.call({
 				method: 'frappe.client.delete',
 				args: {
@@ -604,10 +617,13 @@ $.extend(frappe.model, {
 		});
 
 		d.set_primary_action(__("Rename"), function() {
+			d.hide();
 			var args = d.get_values();
 			if(!args) return;
 			return frappe.call({
 				method:"frappe.rename_doc",
+				freeze: true,
+				freeze_message: "Updating related fields...",
 				args: {
 					doctype: doctype,
 					old: docname,

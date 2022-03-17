@@ -1,13 +1,16 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2021, Frappe Technologies and contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
+import json
+
 import frappe
+from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
+
 
 class RouteHistory(Document):
 	pass
+
 
 def flush_old_route_records():
 	"""Deletes all route records except last 500 records per user"""
@@ -25,19 +28,33 @@ def flush_old_route_records():
 	for user in users:
 		user = user[0]
 		last_record_to_keep = frappe.db.get_all('Route History',
-			filters={
-				'user': user,
-			},
+			filters={'user': user},
 			limit=1,
 			limit_start=500,
 			fields=['modified'],
-			order_by='modified desc')
+			order_by='modified desc'
+		)
 
-		frappe.db.sql('''
-			DELETE
-			FROM `tabRoute History`
-			WHERE `modified` <= %(modified)s and `user`=%(modified)s
-		''', {
-			"modified": last_record_to_keep[0].modified,
+		frappe.db.delete("Route History", {
+			"modified": ("<=", last_record_to_keep[0].modified),
 			"user": user
 		})
+
+@frappe.whitelist()
+def deferred_insert(routes):
+	routes = [
+		{
+			"user": frappe.session.user,
+			"route": route.get("route"),
+			"creation": route.get("creation"),
+		}
+		for route in frappe.parse_json(routes)
+	]
+
+	_deferred_insert("Route History", json.dumps(routes))
+
+@frappe.whitelist()
+def frequently_visited_links():
+	return frappe.get_all('Route History', fields=['route', 'count(name) as count'], filters={
+		'user': frappe.session.user
+	}, group_by="route", order_by="count desc", limit=5)

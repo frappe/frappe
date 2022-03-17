@@ -1,0 +1,95 @@
+/*rtl:begin:ignore*/
+@import "~air-datepicker/dist/css/datepicker.min";
+/*rtl:end:ignore*/
+
+.datepicker {
+	direction: ltr;
+	font-family: inherit;
+	z-index: 9999 !important;
+	background: var(--fg-color);
+	color: var(--text-color);
+	border-radius: var(--border-radius);
+	border: 1px solid var(--border-color);
+
+	&--nav {
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
+		font-family: inherit;
+		&:after {
+			color: var(--text-color);
+			background-color: var(--fg-hover-color);
+		}
+	}
+
+	&--day-name {
+		color: var(--text-color);
+	}
+
+	&--cell {
+		&.-current- {
+			color: var(--brand-color);
+
+			&.-in-range- {
+				color: var(--brand-color);
+			}
+		}
+
+		&.-range-from-, &.-range-to- {
+			border: 1px solid fade(#0089FF, 30%);
+			background: fade(#0089FF, 10%);
+		}
+
+		&.-selected-, &.-current-.-selected- {
+			background: #0089FF;
+		}
+
+		&.-in-range- {
+			background: fade(#0089FF, 5%);
+		}
+
+		&.-in-range-.-focus- {
+			background: fade(#0089FF, 10%);
+		}
+
+		&.-focus- {
+			background-color: var(--fg-hover-color);
+		}
+
+		&.-selected-.-focus- {
+			background: fade(#0089FF, 90%);
+		}
+	}
+
+	&--time, &--buttons {
+		border-top: 1px solid var(--border-color);
+	}
+
+	&--time-row {
+		background-image: linear-gradient(to right, #0089FF, #0089FF);
+		background-repeat: no-repeat;
+		background-size: 100% 1px;
+		background-position: left 50%;
+	}
+
+	&--time-row:first-child {
+		margin: 0;
+	}
+
+	&--pointer {
+		background: var(--fg-color);
+		border-top-right-radius: 2px;
+		border: 1px var(--border-color);
+		border-style: solid solid hidden hidden;
+	}
+
+	&--button {
+		color: var(--brand-color);
+		&:hover {
+			color: var(--text-color);
+			background-color: var(--fg-hover-color);
+		}
+	}
+}
+

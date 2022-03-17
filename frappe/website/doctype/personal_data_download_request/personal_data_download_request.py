@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe import _
@@ -29,7 +28,7 @@ class PersonalDataDownloadRequest(Document):
 		})
 		f.save(ignore_permissions=True)
 
-		file_link = frappe.utils.get_url("/api/method/frappe.core.doctype.file.file.download_file") +\
+		file_link = frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file") +\
 			"?" + get_signed_params({"file_url": f.file_url})
 		host_name = frappe.local.site
 		frappe.sendmail(
@@ -47,11 +46,11 @@ class PersonalDataDownloadRequest(Document):
 
 def get_user_data(user):
 	""" returns user data not linked to User doctype """
-	hooks = frappe.get_hooks("user_privacy_documents")
+	hooks = frappe.get_hooks("user_data_fields")
 	data = {}
 	for hook in hooks:
-		d = data.get(hook.get('doctype'),[])
-		d += frappe.get_all(hook.get('doctype'), {hook.get('match_field'): user}, ["*"])
+		d = data.get(hook.get("doctype"),[])
+		d += frappe.get_all(hook.get("doctype"), {hook.get("filter_by", "owner"): user}, ["*"])
 		if d:
-			data.update({ hook.get('doctype'):d })
+			data.update({ hook.get("doctype"):d })
 	return json.dumps(data, indent=2, default=str)

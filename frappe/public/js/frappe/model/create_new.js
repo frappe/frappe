@@ -177,7 +177,9 @@ $.extend(frappe.model, {
 						// Use User Permission value when only when it has a single value
 						user_default = user_defaults[0];
 					}
-				} else if (!user_default) {
+				}
+
+				if (!user_default) {
 					user_default = frappe.defaults.get_user_default(df.fieldname);
 				} else if (
 					!user_default &&
@@ -349,6 +351,8 @@ $.extend(frappe.model, {
 		newdoc.creation = "";
 		newdoc.modified_by = user;
 		newdoc.modified = "";
+		newdoc.lft = null;
+		newdoc.rgt = null;
 
 		return newdoc;
 	},

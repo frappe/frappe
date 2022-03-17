@@ -1,11 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe, unittest
-from frappe.desk.form.load import getdoctype, getdoc
+from frappe.desk.form.load import getdoctype, getdoc, get_docinfo
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.utils.file_manager import save_file
 
 test_dependencies = ['Blog Category', 'Blogger']
 
@@ -42,11 +41,27 @@ class TestFormLoad(unittest.TestCase):
 
 		blog_post_property_setter = make_property_setter('Blog Post', 'published', 'permlevel', 1, 'Int')
 		reset('Blog Post')
+
+		# test field level permission before role level permissions are defined
+		frappe.set_user(user.name)
+		blog_doc = get_blog(blog.name)
+
+		self.assertEqual(blog_doc.published, None)
+
+		# this will be ignored because user does not
+		# have write access on `published` field (or on permlevel 1 fields)
+		blog_doc.published = 1
+		blog_doc.save()
+
+		# since published field has higher permlevel
+		self.assertEqual(blog_doc.published, 0)
+
+		# test field level permission after role level permissions are defined
+		frappe.set_user('Administrator')
 		add('Blog Post', 'Website Manager', 1)
 		update('Blog Post', 'Website Manager', 1, 'write', 1)
 
 		frappe.set_user(user.name)
-
 		blog_doc = get_blog(blog.name)
 
 		self.assertEqual(blog_doc.name, blog.name)
@@ -126,6 +141,49 @@ class TestFormLoad(unittest.TestCase):
 		user.add_roles(*user_roles)
 
 		contact.delete()
+
+	def test_get_doc_info(self):
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
+
+		note.content = "new content"
+		# trigger a version
+		note.save(ignore_version=False)
+
+		note.add_comment(text="test")
+
+		note.add_tag("test_tag")
+		note.add_tag("more_tag")
+
+		# empty attachment
+		save_file("test_file", b"", note.doctype, note.name, decode=True)
+
+		frappe.get_doc({
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"content": "test email",
+			"reference_doctype": note.doctype,
+			"reference_name": note.name,
+		}).insert()
+
+		get_docinfo(note)
+		docinfo = frappe.response["docinfo"]
+
+		self.assertEqual(len(docinfo.comments), 1)
+		self.assertIn("test", docinfo.comments[0].content)
+
+		self.assertGreaterEqual(len(docinfo.versions), 2)
+
+		self.assertEqual(set(docinfo.tags.split(",")), {"more_tag", "test_tag"})
+
+		self.assertEqual(len(docinfo.attachments), 1)
+		self.assertIn("test_file", docinfo.attachments[0].file_name)
+
+		self.assertEqual(len(docinfo.communications), 1)
+		self.assertIn("email", docinfo.communications[0].content)
+		note.delete()
 
 
 def get_blog(blog_name):

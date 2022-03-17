@@ -139,8 +139,6 @@ export default class WebFormList {
 	make_table_head() {
 		// Create Heading
 		let thead = this.table.createTHead();
-		thead.style.backgroundColor = "#f7fafc";
-		thead.style.color = "#8d99a6";
 		let row = thead.insertRow();
 
 		let th = document.createElement("th");
@@ -190,9 +188,11 @@ export default class WebFormList {
 	make_actions() {
 		const actions = document.querySelector(".list-view-actions");
 
-		this.addButton(actions, "delete-rows", "danger", true, "Delete", () =>
-			this.delete_rows()
-		);
+		frappe.has_permission(this.doctype, "", "delete", () => {
+			this.addButton(actions, "delete-rows", "danger", true, "Delete", () =>
+				this.delete_rows()
+			);
+		});
 
 		this.addButton(
 			actions,

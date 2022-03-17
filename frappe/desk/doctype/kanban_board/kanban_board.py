@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe import _
 from frappe.model.document import Document
-from six import iteritems
 
 
 class KanbanBoard(Document):
@@ -79,26 +77,6 @@ def archive_restore_column(board_name, column_title, status):
 
 
 @frappe.whitelist()
-def update_doc(doc):
-	'''Updates the doc when card is edited'''
-	doc = json.loads(doc)
-
-	try:
-		to_update = doc
-		doctype = doc['doctype']
-		docname = doc['name']
-		doc = frappe.get_doc(doctype, docname)
-		doc.update(to_update)
-		doc.save()
-	except:
-		return {
-			'doc': doc,
-			'exc': frappe.utils.get_traceback()
-		}
-	return doc
-
-
-@frappe.whitelist()
 def update_order(board_name, order):
 	'''Save the order of cards in columns'''
 	board = frappe.get_doc('Kanban Board', board_name)
@@ -107,7 +85,7 @@ def update_order(board_name, order):
 	order_dict = json.loads(order)
 
 	updated_cards = []
-	for col_name, cards in iteritems(order_dict):
+	for col_name, cards in order_dict.items():
 		order_list = []
 		for card in cards:
 			column = frappe.get_value(

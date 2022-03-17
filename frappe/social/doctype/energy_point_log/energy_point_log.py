@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import json
@@ -33,7 +32,9 @@ class EnergyPointLog(Document):
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points', after_commit=True)
 
-		if self.type != 'Review':
+		if self.type != 'Review' and \
+			frappe.get_cached_value('Notification Settings', self.user, 'energy_points_system_notifications'):
+
 			reference_user = self.user if self.type == 'Auto' else self.owner
 			notification_doc = {
 				'type': 'Energy Point',
@@ -52,6 +53,7 @@ class EnergyPointLog(Document):
 			reference_log.reverted = 0
 			reference_log.save()
 
+	@frappe.whitelist()
 	def revert(self, reason, ignore_permissions=False):
 		if not ignore_permissions:
 			frappe.only_for('System Manager')
@@ -162,6 +164,7 @@ def get_alert_dict(doc):
 
 	return alert_dict
 
+
 def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
 	doc = frappe._dict(doc)
 
@@ -169,7 +172,7 @@ def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
 		ref_name, doc.rule, None if apply_only_once else doc.user)
 
 	if log_exists:
-		return
+		return frappe.get_doc('Energy Point Log', log_exists)
 
 	new_log = frappe.new_doc('Energy Point Log')
 	new_log.reference_doctype = ref_doctype
@@ -319,7 +322,10 @@ def send_summary(timespan):
 
 	from_date = getdate(from_date)
 	to_date = getdate()
-	all_users = [user.email for user in get_enabled_system_users()]
+
+	# select only those users that have energy point email notifications enabled
+	all_users = [user.email for user in get_enabled_system_users() if
+		is_email_notifications_enabled_for_type(user.name, 'Energy Point')]
 
 	frappe.sendmail(
 			subject = '{} energy points summary'.format(timespan),

@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import json
 from frappe import _
@@ -525,7 +524,7 @@ def get_last_modified(doctype):
 				raise
 
 		# hack: save as -1 so that it is cached
-		if last_modified==None:
+		if last_modified is None:
 			last_modified = -1
 
 		return last_modified

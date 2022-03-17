@@ -1,14 +1,15 @@
-from __future__ import unicode_literals
-import frappe
 import json
 import re
-import bleach
-import bleach_whitelist.bleach_whitelist as bleach_whitelist
-from six import string_types
-from bs4 import BeautifulSoup
+
+from bleach_allowlist import bleach_allowlist
+
+import frappe
+
 
 def clean_html(html):
-	if not isinstance(html, string_types):
+	import bleach
+
+	if not isinstance(html, str):
 		return html
 
 	return bleach.clean(clean_script_and_style(html),
@@ -19,7 +20,9 @@ def clean_html(html):
 		strip=True, strip_comments=True)
 
 def clean_email_html(html):
-	if not isinstance(html, string_types):
+	import bleach
+
+	if not isinstance(html, str):
 		return html
 
 	return bleach.clean(clean_script_and_style(html),
@@ -41,6 +44,8 @@ def clean_email_html(html):
 
 def clean_script_and_style(html):
 	# remove script and style
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, 'html5lib')
 	for s in soup(['script', 'style']):
 		s.decompose()
@@ -53,7 +58,10 @@ def sanitize_html(html, linkify=False):
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
-	if not isinstance(html, string_types):
+	import bleach
+	from bs4 import BeautifulSoup
+
+	if not isinstance(html, str):
 		return html
 
 	elif is_json(html):
@@ -65,7 +73,7 @@ def sanitize_html(html, linkify=False):
 	tags = (acceptable_elements + svg_elements + mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
-	styles = bleach_whitelist.all_styles
+	styles = bleach_allowlist.all_styles
 	strip_comments = False
 
 	# returns html with escaped tags, escaped orphan >, <, etc.
@@ -170,7 +178,7 @@ acceptable_attributes = [
 	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
 	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment',
 	'data-id', 'data-denotation-char', 'itemprop', 'itemscope',
-	'itemtype', 'itemid', 'itemref', 'datetime'
+	'itemtype', 'itemid', 'itemref', 'datetime', 'data-is-group'
 ]
 
 mathml_attributes = [

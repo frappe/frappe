@@ -1,15 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 import frappe
 from frappe import _
 import frappe.model
 import frappe.utils
 import json, os
 from frappe.utils import get_safe_filters
+from frappe.desk.reportview import validate_args
+from frappe.model.db_query import check_parent_permission
 
-from six import iteritems, string_types, integer_types
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -19,7 +18,7 @@ Requests via FrappeClient are also handled here.
 
 @frappe.whitelist()
 def get_list(doctype, fields=None, filters=None, order_by=None,
-	limit_start=None, limit_page_length=20, parent=None):
+	limit_start=None, limit_page_length=20, parent=None, debug=False, as_dict=True, or_filters=None):
 	'''Returns a list of records by filters, fields, ordering and limit
 
 	:param doctype: DocType of the data to be queried
@@ -31,8 +30,21 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by,
-		limit_start=limit_start, limit_page_length=limit_page_length, ignore_permissions=False)
+	args = frappe._dict(
+		doctype=doctype,
+		parent_doctype=parent,
+		fields=fields,
+		filters=filters,
+		or_filters=or_filters,
+		order_by=order_by,
+		limit_start=limit_start,
+		limit_page_length=limit_page_length,
+		debug=debug,
+		as_list=not as_dict
+	)
+
+	validate_args(args)
+	return frappe.get_list(**args)
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
@@ -73,11 +85,11 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = {"name": filters}
 
 	try:
-		fields = json.loads(fieldname)
+		fields = frappe.parse_json(fieldname)
 	except (TypeError, ValueError):
 		# name passed, not json
 		fields = [fieldname]
@@ -87,18 +99,18 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if not filters:
 		filters = None
 
-
 	if frappe.get_meta(doctype).issingle:
 		value = frappe.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)
 	else:
-		value = frappe.get_list(doctype, filters=filters, fields=fields, debug=debug, limit=1)
+		value = get_list(doctype, filters=filters, fields=fields, debug=debug, limit_page_length=1, parent=parent, as_dict=as_dict)
 
 	if as_dict:
-		value = value[0] if value else {}
-	else:
-		value = value[0].fieldname
+		return value[0] if value else {}
 
-	return value
+	if not value:
+		return
+
+	return value[0] if len(fields) > 1 else value[0][0]
 
 @frappe.whitelist()
 def get_single_value(doctype, field):
@@ -116,12 +128,12 @@ def set_value(doctype, name, fieldname, value=None):
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict'''
 
-	if fieldname!="idx" and fieldname in frappe.model.default_fields:
+	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
 		frappe.throw(_("Cannot edit standard fields"))
 
 	if not value:
 		values = fieldname
-		if isinstance(fieldname, string_types):
+		if isinstance(fieldname, str):
 			try:
 				values = json.loads(fieldname)
 			except ValueError:
@@ -129,14 +141,15 @@ def set_value(doctype, name, fieldname, value=None):
 	else:
 		values = {fieldname: value}
 
-	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-	if doc and doc.parent and doc.parenttype:
+	# check for child table doctype
+	if not frappe.get_meta(doctype).istable:
+		doc = frappe.get_doc(doctype, name)
+		doc.update(values)
+	else:
+		doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 		doc = frappe.get_doc(doc.parenttype, doc.parent)
 		child = doc.getone({"doctype": doctype, "name": name})
 		child.update(values)
-	else:
-		doc = frappe.get_doc(doctype, name)
-		doc.update(values)
 
 	doc.save()
 
@@ -147,13 +160,13 @@ def insert(doc=None):
 	'''Insert a document
 
 	:param doc: JSON or dict object to be inserted'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	if doc.get("parent") and doc.get("parenttype"):
+	if doc.get("parenttype"):
 		# inserting a child record
-		parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
-		parent.append(doc.get("parentfield"), doc)
+		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		parent.append(doc.parentfield, doc)
 		parent.save()
 		return parent.as_dict()
 	else:
@@ -165,7 +178,7 @@ def insert_many(docs=None):
 	'''Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request'''
-	if isinstance(docs, string_types):
+	if isinstance(docs, str):
 		docs = json.loads(docs)
 
 	out = []
@@ -174,10 +187,10 @@ def insert_many(docs=None):
 		frappe.throw(_('Only 200 inserts allowed in one request'))
 
 	for doc in docs:
-		if doc.get("parent") and doc.get("parenttype"):
+		if doc.get("parenttype"):
 			# inserting a child record
-			parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
-			parent.append(doc.get("parentfield"), doc)
+			parent = frappe.get_doc(doc.parenttype, doc.parent)
+			parent.append(doc.parentfield, doc)
 			parent.save()
 			out.append(parent.name)
 		else:
@@ -191,7 +204,7 @@ def save(doc):
 	'''Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc)
@@ -214,7 +227,7 @@ def submit(doc):
 	'''Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc)
@@ -247,12 +260,18 @@ def set_default(key, value, parent=None):
 	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
 
+@frappe.whitelist()
+def get_default(key, parent=None):
+	"""set a user default value"""
+	return frappe.db.get_default(key, parent)
+
+
 @frappe.whitelist(methods=['POST', 'PUT'])
 def make_width_property_setter(doc):
 	'''Set width Property Setter
 
 	:param doc: Property Setter document with `width` property'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
@@ -265,18 +284,17 @@ def bulk_update(docs):
 	docs = json.loads(docs)
 	failed_docs = []
 	for doc in docs:
+		doc.pop("flags", None)
 		try:
-			ddoc = {key: val for key, val in iteritems(doc) if key not in ['doctype', 'docname']}
-			doctype = doc['doctype']
-			docname = doc['docname']
-			doc = frappe.get_doc(doctype, docname)
-			doc.update(ddoc)
-			doc.save()
-		except:
+			existing_doc = frappe.get_doc(doc["doctype"], doc["docname"])
+			existing_doc.update(doc)
+			existing_doc.save()
+		except Exception:
 			failed_docs.append({
 				'doc': doc,
 				'exc': frappe.utils.get_traceback()
 			})
+
 	return {'failed_docs': failed_docs}
 
 @frappe.whitelist()
@@ -378,18 +396,6 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 def get_hooks(hook, app_name=None):
 	return frappe.get_hooks(hook, app_name)
 
-def check_parent_permission(parent, child_doctype):
-	if parent:
-		# User may pass fake parent and get the information from the child table
-		if child_doctype and not frappe.db.exists('DocField',
-			{'parent': parent, 'options': child_doctype}):
-			raise frappe.PermissionError
-
-		if frappe.permissions.has_permission(parent):
-			return
-	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
-	raise frappe.PermissionError
-
 @frappe.whitelist()
 def is_document_amended(doctype, docname):
 	if frappe.permissions.has_permission(doctype):
@@ -401,3 +407,45 @@ def is_document_amended(doctype, docname):
 			pass
 
 	return False
+
+@frappe.whitelist()
+def validate_link(doctype: str, docname: str, fields=None):
+	if not isinstance(doctype, str):
+		frappe.throw(_("DocType must be a string"))
+
+	if not isinstance(docname, str):
+		frappe.throw(_("Document Name must be a string"))
+
+	if doctype != "DocType" and not (
+		frappe.has_permission(doctype, "select")
+		or frappe.has_permission(doctype, "read")
+	):
+		frappe.throw(
+			_("You do not have Read or Select Permissions for {}")
+			.format(frappe.bold(doctype)),
+			frappe.PermissionError
+		)
+
+	values = frappe._dict()
+	values.name = frappe.db.get_value(doctype, docname, cache=True)
+
+	fields = frappe.parse_json(fields)
+	if not values.name or not fields:
+		return values
+
+	try:
+		values.update(get_value(doctype, fields, docname))
+	except frappe.PermissionError:
+		frappe.clear_last_message()
+		frappe.msgprint(
+			_("You need {0} permission to fetch values from {1} {2}")
+			.format(
+				frappe.bold(_("Read")),
+				frappe.bold(doctype),
+				frappe.bold(docname)
+			),
+			title=_("Cannot Fetch Values"),
+			indicator="orange"
+		)
+
+	return values

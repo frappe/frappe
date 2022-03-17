@@ -104,10 +104,10 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-image-section {
+		width: min(100%, 170px);
 		cursor: pointer;
 
 		.sidebar-image {
-			width: 100%;
 			height: auto;
 			max-height: 170px;
 			object-fit: cover;
@@ -225,7 +225,7 @@ body[data-route^="Module"] .main-menu {
 
 			.divider {
 				height: 1px;
-				background-color: #d8dfe5;
+				background-color: var(--border-color);
 				opacity: 0.7;
 			}
 

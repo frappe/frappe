@@ -1,14 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Search
-from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
-from frappe.handler import is_whitelisted
-from frappe import _
-from six import string_types
+from frappe import _, is_whitelisted
 import re
 import wrapt
 
@@ -52,8 +49,10 @@ def sanitize_searchfield(searchfield):
 # this is called by the Link Field
 @frappe.whitelist()
 def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, reference_doctype=None, ignore_user_permissions=False):
-	search_widget(doctype, txt.strip(), query, searchfield=searchfield, page_length=page_length, filters=filters, reference_doctype=reference_doctype, ignore_user_permissions=ignore_user_permissions)
-	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
+	search_widget(doctype, txt.strip(), query, searchfield=searchfield, page_length=page_length, filters=filters,
+		reference_doctype=reference_doctype, ignore_user_permissions=ignore_user_permissions)
+
+	frappe.response["results"] = build_for_autosuggest(frappe.response["values"], doctype=doctype)
 	del frappe.response["values"]
 
 # this is called by the search box
@@ -63,7 +62,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 	start = cint(start)
 
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	if searchfield:
@@ -110,7 +109,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 					else:
 						filters.append([doctype, f[0], "=", f[1]])
 
-			if filters==None:
+			if filters is None:
 				filters = []
 			or_filters = []
 
@@ -140,6 +139,12 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			if filter_fields:
 				fields = list(set(fields + json.loads(filter_fields)))
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
+
+			title_field_query = get_title_field_query(meta)
+
+			# Insert title field query after name
+			if title_field_query:
+				formatted_fields.insert(1, title_field_query)
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
@@ -171,7 +176,18 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				strict=False)
 
 			if doctype in UNTRANSLATED_DOCTYPES:
-				values = tuple([v for v in list(values) if re.search(re.escape(txt)+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
+				# Filtering the values array so that query is included in very element
+				values = (
+					v for v in values
+					if re.search(
+						f"{re.escape(txt)}.*", _(v.name if as_dict else v[0]), re.IGNORECASE
+					)
+				)
+
+			# Sorting the values array so that relevant results always come first
+			# This will first bring elements on top in which query is a prefix of element
+			# Then it will bring the rest of the elements and sort them in lexicographical order
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 			# remove _relevance from results
 			if as_dict:
@@ -197,11 +213,38 @@ def get_std_fields_list(meta, key):
 
 	return sflist
 
-def build_for_autosuggest(res):
+def get_title_field_query(meta):
+	title_field = meta.title_field if meta.title_field else None
+	show_title_field_in_link = meta.show_title_field_in_link if meta.show_title_field_in_link else None
+	field = None
+
+	if title_field and show_title_field_in_link:
+		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
+
+	return field
+
+def build_for_autosuggest(res, doctype):
 	results = []
-	for r in res:
-		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
-		results.append(out)
+	meta = frappe.get_meta(doctype)
+	if not (meta.title_field and meta.show_title_field_in_link):
+		for r in res:
+			r = list(r)
+			results.append({
+				"value": r[0],
+				"description": ", ".join(unique(cstr(d) for d in r[1:] if d))
+			})
+
+	else:
+		title_field_exists = meta.title_field and meta.show_title_field_in_link
+		_from = 2 if title_field_exists else 1 # to exclude title from description if title_field_exists
+		for r in res:
+			r = list(r)
+			results.append({
+				"value": r[0],
+				"label": r[1] if title_field_exists else None,
+				"description": ", ".join(unique(cstr(d) for d in r[_from:] if d))
+			})
+
 	return results
 
 def scrub_custom_query(query, key, txt):
@@ -210,6 +253,13 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+def relevance_sorter(key, query, as_dict):
+	value = _(key.name if as_dict else key[0])
+	return (
+		cstr(value).lower().startswith(query.lower()) is not True,
+		value
+	)
 
 @wrapt.decorator
 def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
@@ -222,3 +272,47 @@ def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
 		return []
 
 	return fn(**kwargs)
+
+
+@frappe.whitelist()
+def get_names_for_mentions(search_term):
+	users_for_mentions = frappe.cache().get_value('users_for_mentions', get_users_for_mentions)
+	user_groups = frappe.cache().get_value('user_groups', get_user_groups)
+
+	filtered_mentions = []
+	for mention_data in users_for_mentions + user_groups:
+		if search_term.lower() not in mention_data.value.lower():
+			continue
+
+		mention_data['link'] = frappe.utils.get_url_to_form(
+			'User Group' if mention_data.get('is_group') else 'User Profile',
+			mention_data['id']
+		)
+
+		filtered_mentions.append(mention_data)
+
+	return sorted(filtered_mentions, key=lambda d: d['value'])
+
+def get_users_for_mentions():
+	return frappe.get_all('User',
+		fields=['name as id', 'full_name as value'],
+		filters={
+			'name': ['not in', ('Administrator', 'Guest')],
+			'allowed_in_mentions': True,
+			'user_type': 'System User',
+			'enabled': True,
+		})
+
+def get_user_groups():
+	return frappe.get_all('User Group', fields=['name as id', 'name as value'], update={
+		'is_group': True
+	})
+
+@frappe.whitelist()
+def get_link_title(doctype, docname):
+	meta = frappe.get_meta(doctype)
+
+	if meta.title_field and meta.show_title_field_in_link:
+		return frappe.db.get_value(doctype, docname, meta.title_field)
+
+	return docname

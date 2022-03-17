@@ -1,7 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See LICENSE
 
-from __future__ import unicode_literals
 """
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
@@ -17,12 +16,15 @@ from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, che
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.docfield import supports_translation
+from frappe.core.doctype.doctype.doctype import validate_series
+
 
 class CustomizeForm(Document):
 	def on_update(self):
-		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
-		frappe.db.sql("delete from `tabCustomize Form Field`")
+		frappe.db.delete("Singles", {"doctype": "Customize Form"})
+		frappe.db.delete("Customize Form Field")
 
+	@frappe.whitelist()
 	def fetch_to_customize(self):
 		self.clear_existing_doc()
 		if not self.doc_type:
@@ -70,7 +72,7 @@ class CustomizeForm(Document):
 				new_d[prop] = d.get(prop)
 			self.append("fields", new_d)
 
-		for fieldname in ('links', 'actions'):
+		for fieldname in ('links', 'actions', 'states'):
 			for d in meta.get(fieldname):
 				self.append(fieldname, d)
 
@@ -105,20 +107,26 @@ class CustomizeForm(Document):
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
-		if current:
-			if self.label and current.translated_text != self.label:
-				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
-				frappe.translate.clear_cache()
-			else:
+		if not self.label:
+			if current:
 				# clear translation
 				frappe.delete_doc('Translation', current.name)
+			return
 
-		else:
-			if self.label:
-				frappe.get_doc(dict(doctype='Translation',
-					source_text=self.doc_type,
-					translated_text=self.label,
-					language_code=frappe.local.lang or 'en')).insert()
+		if not current:
+			frappe.get_doc(
+				{
+					"doctype": 'Translation',
+					"source_text": self.doc_type,
+					"translated_text": self.label,
+					"language_code": frappe.local.lang or 'en'
+				}
+			).insert()
+			return
+
+		if self.label != current.translated_text:
+			frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
+			frappe.translate.clear_cache()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -132,10 +140,11 @@ class CustomizeForm(Document):
 		self.doc_type = doc_type
 		self.name = "Customize Form"
 
+	@frappe.whitelist()
 	def save_customization(self):
 		if not self.doc_type:
 			return
-
+		validate_series(self, self.autoname, self.doc_type)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()
@@ -189,6 +198,16 @@ class CustomizeForm(Document):
 	def allow_property_change(self, prop, meta_df, df):
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+
+		elif prop == "length":
+			old_value_length = cint(meta_df[0].get(prop))
+			new_value_length = cint(df.get(prop))
+
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': meta_df[0].get(prop)})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
 
 		elif prop == "allow_on_submit" and df.get(prop):
 			if not frappe.db.get_value("DocField",
@@ -245,7 +264,8 @@ class CustomizeForm(Document):
 		'''
 		for doctype, fieldname, field_map in (
 				('DocType Link', 'links', doctype_link_properties),
-				('DocType Action', 'actions', doctype_action_properties)
+				('DocType Action', 'actions', doctype_action_properties),
+				('DocType State', 'states', doctype_state_properties),
 			):
 			has_custom = False
 			items = []
@@ -353,9 +373,9 @@ class CustomizeForm(Document):
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
-		fields_to_remove = (set([df.fieldname for df in meta.get("fields")])
-			- set(df.fieldname for df in self.get("fields")))
-
+		fields_to_remove = (
+			{df.fieldname for df in meta.get("fields")} - {df.fieldname for df in self.get("fields")}
+		)
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
 			if df.get("is_custom_field"):
@@ -363,7 +383,7 @@ class CustomizeForm(Document):
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None,
 		apply_on=None, row_name = None):
-		delete_property_setter(self.doc_type, prop, fieldname)
+		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 
@@ -398,23 +418,23 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
-		allowed = False
-		self.check_length_for_fieldtypes = []
-		for allowed_changes in ALLOWED_FIELDTYPE_CHANGE:
-			if (old_value in allowed_changes and new_value in allowed_changes):
-				allowed = True
-				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
-				new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+		if df.is_virtual:
+			return
 
-				# Ignore fieldtype check validation if new field type has unspecified maxlength
-				# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
-				if new_value_length and (old_value_length > new_value_length):
-					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
-					self.validate_fieldtype_length()
-				else:
-					self.flags.update_db = True
-				break
-		if not allowed:
+		allowed = self.allow_fieldtype_change(old_value, new_value)
+		if allowed:
+			old_value_length = cint(frappe.db.type_map.get(old_value)[1])
+			new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+
+			# Ignore fieldtype check validation if new field type has unspecified maxlength
+			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
+			if new_value_length and (old_value_length > new_value_length):
+				self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
+				self.validate_fieldtype_length()
+			else:
+				self.flags.update_db = True
+
+		else:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
 	def validate_fieldtype_length(self):
@@ -447,12 +467,21 @@ class CustomizeForm(Document):
 
 		self.flags.update_db = True
 
+	@frappe.whitelist()
 	def reset_to_defaults(self):
 		if not self.doc_type:
 			return
 
 		reset_customization(self.doc_type)
 		self.fetch_to_customize()
+
+	@classmethod
+	def allow_fieldtype_change(self, old_type: str, new_type: str) -> bool:
+		""" allow type change, if both old_type and new_type are in same field group.
+		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
+		"""
+		in_field_group = lambda group: (old_type in group) and (new_type in group)
+		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 def reset_customization(doctype):
 	setters = frappe.get_all("Property Setter", filters={
@@ -483,9 +512,12 @@ doctype_properties = {
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
 	'show_preview_popup': 'Check',
+	'default_email_template': 'Data',
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
-	'sender_field': 'Data'
+	'sender_field': 'Data',
+	'autoname': 'Data',
+	'show_title_field_in_link': 'Check'
 }
 
 docfield_properties = {
@@ -495,6 +527,7 @@ docfield_properties = {
 	'options': 'Text',
 	'fetch_from': 'Small Text',
 	'fetch_if_empty': 'Check',
+	'show_dashboard': 'Check',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
@@ -507,6 +540,7 @@ docfield_properties = {
 	'in_global_search': 'Check',
 	'in_preview': 'Check',
 	'bold': 'Check',
+	'no_copy': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
@@ -530,7 +564,8 @@ docfield_properties = {
 	'allow_in_quick_entry': 'Check',
 	'hide_border': 'Check',
 	'hide_days': 'Check',
-	'hide_seconds': 'Check'
+	'hide_seconds': 'Check',
+	'is_virtual': 'Check',
 }
 
 doctype_link_properties = {
@@ -548,6 +583,11 @@ doctype_action_properties = {
 	'hidden': 'Check'
 }
 
+doctype_state_properties = {
+	'title': 'Data',
+	'color': 'Select'
+}
+
 
 ALLOWED_FIELDTYPE_CHANGE = (
 	('Currency', 'Float', 'Percent'),
@@ -560,4 +600,4 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	('Code', 'Geolocation'),
 	('Table', 'Table MultiSelect'))
 
-ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')
+ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Data')

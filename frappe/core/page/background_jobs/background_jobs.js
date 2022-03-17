@@ -28,6 +28,16 @@ class BackgroundJobs {
 			}
 		});
 
+		// add a "Remove Failed Jobs button"
+		this.remove_failed_button = this.page.add_inner_button(__("Remove Failed Jobs"), () => {
+			frappe.call({
+				method: 'frappe.core.page.background_jobs.background_jobs.remove_failed_jobs',
+				callback: () => {
+					this.refresh_jobs();
+				}
+			});
+		});
+
 		$(frappe.render_template('background_jobs_outer')).appendTo(this.page.body);
 		this.content = $(this.page.body).find('.table-area');
 	}

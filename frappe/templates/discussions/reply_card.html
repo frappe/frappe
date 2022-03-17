@@ -1,0 +1,14 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+<div class="reply-card">
+	{% set member = frappe.db.get_value("User", reply.owner, ["name", "full_name", "username"], as_dict=True) %}
+	<div class="d-flex align-items-center small mb-2">
+		{% if loop.index == 1 or single_thread %}
+		{{ avatar(reply.owner) }}
+		{% endif %}
+		<a class="button-links {% if loop.index == 1 or single_thread %} ml-2 {% endif %}" {% if get_profile_url %} href="{{ get_profile_url(member.username) }}" {% endif %}>
+			{{ member.full_name }}
+		</a>
+		<div class="ml-3 frappe-timestamp" data-timestamp="{{ reply.creation }}"> {{ frappe.utils.pretty_date(reply.creation) }} </div>
+	</div>
+	<div class="reply-text">{{ frappe.utils.md_to_html(reply.reply) }}</div>
+</div>

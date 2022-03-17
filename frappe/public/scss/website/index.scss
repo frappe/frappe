@@ -1,17 +1,23 @@
-@import '~quill/dist/quill.core';
+@import '../common/quill';
 @import 'variables';
-@import 'css_variables';
 @import '~bootstrap/scss/bootstrap';
-@import "../common/mixins.scss";
-@import "../common/global.scss";
-@import "../common/icons.scss";
+@import "../common/mixins";
+@import "../common/global";
+@import "../common/icons";
+@import "../common/alert";
 @import 'base';
+@import "../common/flex";
 @import "../common/buttons";
 @import "../common/modal";
-@import "../common/indicator.scss";
+@import "../desk/toast";
+@import "../common/css_variables.scss";
+@import "../common/indicator";
+@import "../common/controls";
+@import "../common/awesomeplete";
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
+@import 'web_form';
 @import 'page_builder';
 @import 'blog';
 @import 'markdown';
@@ -21,6 +27,9 @@
 @import 'doc';
 @import 'navbar';
 @import 'footer';
+@import 'error-state';
+@import 'my_account';
+
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -71,6 +80,8 @@
 
 .dropdown-menu {
 	padding: 0.25rem;
+	box-shadow: var(--shadow-lg);
+	border-color: var(--gray-200);
 }
 
 .dropdown-item {
@@ -87,15 +98,49 @@
 	margin: 2rem 0;
 }
 
+@media (max-width: map-get($grid-breakpoints, "lg")) {
+	.page-content-wrapper .container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+}
+
+.page-header-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 .breadcrumb-container {
 	margin-top: 1rem;
 	padding-top:  0.25rem;
 }
 
 .breadcrumb {
-	padding: 0;
+	padding-left: 0;
+	padding-right: 0;
 	font-size: $font-size-sm;
-	background-color: $breadcrumb-bg;
+}
+
+.breadcrumb-item {
+	+ .breadcrumb-item
+	 {
+		font-size: $font-size-sm;
+		&::before {
+			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			display: inline-block;
+		}
+	}
+	a {
+		color: var(--text-color)
+	}
+
+	li.disabled {
+		a {
+			color: var(--text-muted);
+			pointer-events: none;
+		}
+	}
 }
 
 a.card {
@@ -124,6 +169,10 @@ a.card {
 
 .indicator {
 	font-size: inherit;
+}
+
+.indicator-pill {
+	font-size: var(--font-size-xs)
 }
 
 h4.modal-title {
@@ -177,11 +226,14 @@ h5.modal-title {
 
 .btn-xs {
 	@extend .btn-sm;
+
 }
 
 .hidden-xs {
-	@extend .d-none;
-	@extend .d-sm-block;
+	@extend .d-block;
+	@include media-breakpoint-between(xs, sm) {
+		display: none !important;
+	}
 }
 
 .visible-xs {
@@ -202,6 +254,10 @@ h5.modal-title {
 
 .pull-right {
 	float: right;
+}
+
+.pull-left {
+	float: left;
 }
 
 .image-with-blur {
@@ -239,4 +295,19 @@ h5.modal-title {
 }
 .about-footer {
 	padding-top: 1rem;
+}
+
+.login-content.container {
+	background-color: var(--fg-color);
+	padding-bottom: 45px;
+	padding-top: 45px;
+	box-shadow: var(--shadow-base);
+	border-radius: var(--border-radius-md);
+	max-width: 400px;
+	margin: 70px auto;
+	font-size: $font-size-sm;
+}
+
+.empty-list-icon {
+	height: 70px;
 }

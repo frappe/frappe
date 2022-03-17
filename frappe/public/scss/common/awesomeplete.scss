@@ -1,0 +1,67 @@
+// REDESIGN-TODO: Review
+.awesomplete {
+	[hidden] {
+		display: none;
+	}
+	.visually-hidden {
+		position: absolute;
+		clip: rect(0, 0, 0, 0);
+	}
+
+	&> input {
+		display: block;
+	}
+
+	&> ul:empty {
+		display: none;
+	}
+
+	&> ul {
+		position: absolute;
+		width: 100%;
+		list-style: none;
+		background-color: var(--fg-color);
+		max-height: unquote("min(60vh, 300px)");
+		overflow-y: auto;
+		overflow-x: hidden;
+		border-radius: var(--border-radius);
+		box-shadow: var(--shadow-md);
+		border: 1px solid var(--border-color);
+		left: 0;
+		margin: 0;
+		padding: var(--padding-xs);
+		z-index: 1;
+		min-width: 250px;
+
+		&> li {
+			cursor: pointer;
+			font-size: var(--text-md);
+			padding: var(--padding-sm);
+			color: var(--text-color);
+			border-radius: var(--border-radius);
+			white-space: unset;
+			@extend .ellipsis;
+			&:not(:last-child) {
+				margin-bottom: var(--margin-xs);
+			}
+			p {
+				margin-bottom: 0;
+				overflow-y: clip;
+				text-overflow: ellipsis;
+			}
+		}
+
+		&> li .link-option {
+			font-weight: normal;
+		}
+
+		&> li:hover, &> li[aria-selected=true] {
+			background-color: var(--awesomplete-hover-bg);
+			color: var(--text-color);
+		}
+
+		a:hover {
+			text-decoration: none;
+		}
+	}
+}

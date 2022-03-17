@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals, print_function
+# License: MIT. See LICENSE
 """
 	Utilities for using modules
 """
@@ -116,8 +114,7 @@ def sync_customizations_for_doctype(data, folder):
 					doc.db_insert()
 
 			if custom_doctype != 'Custom Field':
-				frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
-					custom_doctype, doctype_fieldname), doc_type)
+				frappe.db.delete(custom_doctype, {doctype_fieldname: doc_type})
 
 				for d in data[key]:
 					_insert(d)
@@ -247,6 +244,27 @@ def make_boilerplate(template, doc, opts=None):
 			base_class = 'NestedSet'
 			base_class_import = 'from frappe.utils.nestedset import NestedSet'
 
+		custom_controller = 'pass'
+		if doc.get('is_virtual'):
+			custom_controller = """
+	def db_insert(self):
+		pass
+
+	def load_from_db(self):
+		pass
+
+	def db_update(self):
+		pass
+
+	def get_list(self, args):
+		pass
+
+	def get_count(self, args):
+		pass
+
+	def get_stats(self, args):
+		pass"""
+
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
@@ -257,5 +275,6 @@ def make_boilerplate(template, doc, opts=None):
 						classname=doc.name.replace(" ", ""),
 						base_class_import=base_class_import,
 						base_class=base_class,
-						doctype=doc.name, **opts)
+						doctype=doc.name, **opts,
+						custom_controller=custom_controller)
 				))

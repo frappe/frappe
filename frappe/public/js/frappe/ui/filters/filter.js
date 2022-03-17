@@ -80,6 +80,7 @@ frappe.ui.Filter = class {
 		this.fieldselect = new frappe.ui.FieldSelect({
 			parent: this.filter_edit_area.find('.fieldname-select-area'),
 			doctype: this.parent_doctype,
+			parent_doctype: this._parent_doctype,
 			filter_fields: this.filter_fields,
 			input_class: 'input-xs',
 			select: (doctype, fieldname) => {
@@ -313,6 +314,10 @@ frappe.ui.Filter = class {
 		return this.utils.get_selected_value(this.field, this.get_condition());
 	}
 
+	get_selected_label() {
+		return this.utils.get_selected_label(this.field);
+	}
+
 	get_condition() {
 		return this.filter_edit_area.find('.condition').val();
 	}
@@ -360,7 +365,7 @@ frappe.ui.Filter = class {
 	get_filter_button_text() {
 		let value = this.utils.get_formatted_value(
 			this.field,
-			this.get_selected_value()
+			this.get_selected_label() || this.get_selected_value()
 		);
 		return `${__(this.field.df.label)} ${__(this.get_condition())} ${__(
 			value
@@ -448,6 +453,12 @@ frappe.ui.filter_utils = {
 		return val;
 	},
 
+	get_selected_label(field) {
+		if (in_list(["Link", "Dynamic Link"], field.df.fieldtype)) {
+			return field.get_label_value();
+		}
+	},
+
 	get_default_condition(df) {
 		if (df.fieldtype == 'Data') {
 			return 'like';
@@ -490,11 +501,14 @@ frappe.ui.filter_utils = {
 				'Small Text',
 				'Text Editor',
 				'Code',
+				'Markdown Editor',
+				'HTML Editor',
 				'Tag',
 				'Comments',
 				'Dynamic Link',
 				'Read Only',
 				'Assign',
+				'Color',
 			].indexOf(df.fieldtype) != -1
 		) {
 			df.fieldtype = 'Data';
@@ -533,8 +547,8 @@ frappe.ui.filter_utils = {
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
 			df.options = [
-				{ label: __('Set'), value: 'set' },
-				{ label: __('Not Set'), value: 'not set' },
+				{ label: __('Set', null, 'Field value is set'), value: 'set' },
+				{ label: __('Not Set', null, 'Field value is not set'), value: 'not set' },
 			];
 		}
 		return;

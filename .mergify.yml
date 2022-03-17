@@ -1,9 +1,30 @@
 pull_request_rules:
+  - name: Auto-close PRs on stable branch
+    conditions:
+      - and:
+        - and:
+          - author!=surajshetty3416
+          - author!=gavindsouza
+        - or:
+          - base=version-13
+          - base=version-12
+    actions:
+      close:
+      comment:
+          message: |
+            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch. 
+            https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist#which-branch
+
   - name: Automatic merge on CI success and review
     conditions:
       - status-success=Sider
       - status-success=Semantic Pull Request
-      - status-success=Travis CI - Pull Request
+      - status-success=Python Unit Tests (MariaDB) (1)
+      - status-success=Python Unit Tests (MariaDB) (2)
+      - status-success=Python Unit Tests (Postgres) (1)
+      - status-success=Python Unit Tests (Postgres) (2)
+      - status-success=UI Tests (Cypress) (1)
+      - status-success=UI Tests (Cypress) (2)
       - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label!=squash
@@ -14,7 +35,12 @@ pull_request_rules:
   - name: Automatic squash on CI success and review
     conditions:
       - status-success=Sider
-      - status-success=Travis CI - Pull Request
+      - status-success=Python Unit Tests (MariaDB) (1)
+      - status-success=Python Unit Tests (MariaDB) (2)
+      - status-success=Python Unit Tests (Postgres) (1)
+      - status-success=Python Unit Tests (Postgres) (2)
+      - status-success=UI Tests (Cypress) (1)
+      - status-success=UI Tests (Cypress) (2)
       - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label=squash
@@ -22,3 +48,7 @@ pull_request_rules:
     actions:
       merge:
         method: squash
+        commit_message_template: |
+            {{ title }} (#{{ number }})
+
+            {{ body }}

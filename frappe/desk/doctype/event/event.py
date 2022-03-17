@@ -1,9 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
-from six.moves import range
-from six import string_types
+
 import frappe
 import json
 
@@ -13,6 +11,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 from frappe.desk.reportview import get_filters_cond
+from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled_for_type
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "Call": "Phone", "Sent/Received Email": "Email", "Other": "Other"}
@@ -106,7 +105,7 @@ class Event(Document):
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
 	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
-	if isinstance(event, string_types):
+	if isinstance(event, str):
 		event = json.loads(event)
 
 	filters = [
@@ -143,7 +142,12 @@ def has_permission(doc, user):
 
 def send_event_digest():
 	today = nowdate()
-	for user in get_enabled_system_users():
+
+	# select only those users that have event reminder email notifications enabled
+	users = [user for user in get_enabled_system_users() if
+		is_email_notifications_enabled_for_type(user.name, 'Event Reminders')]
+
+	for user in users:
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
 			frappe.set_user_lang(user.name, user.language)
@@ -168,7 +172,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 	if not user:
 		user = frappe.session.user
 
-	if isinstance(filters, string_types):
+	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	filter_condition = get_filters_cond('Event', filters, [])
@@ -340,9 +344,8 @@ def delete_events(ref_type, ref_name, delete_event=False):
 				total_participants = frappe.get_all("Event Participants", filters={"parenttype": "Event", "parent": participation.parent})
 
 				if len(total_participants) <= 1:
-					frappe.db.sql("DELETE FROM `tabEvent` WHERE `name` = %(name)s", {'name': participation.parent})
-
-				frappe.db.sql("DELETE FROM `tabEvent Participants ` WHERE `name` = %(name)s", {'name': participation.name})
+					frappe.db.delete("Event", {"name": participation.parent})
+					frappe.db.delete("Event Participants", {"name": participation.name})
 
 # Close events if ends_on or repeat_till is less than now_datetime
 def set_status_of_events():

@@ -1,9 +1,9 @@
 import JsBarcode from 'jsbarcode';
 
-frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
+frappe.ui.form.ControlBarcode = class ControlBarcode extends frappe.ui.form.ControlData {
 	make_wrapper() {
 		// Create the elements for barcode area
-		this._super();
+		super.make_wrapper();
 
 		this.default_svg = '<svg height=80></svg>';
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
@@ -11,7 +11,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 			`<div class="barcode-wrapper">${this.default_svg}</div>`
 		);
 		this.barcode_area.appendTo($input_wrapper);
-	},
+	}
 
 	parse(value) {
 		// Parse raw value
@@ -22,7 +22,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 			return this.get_barcode_html(value);
 		}
 		return '';
-	},
+	}
 
 	set_formatted_input(value) {
 		// Set values to display
@@ -40,7 +40,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 
 		this.$input.val(barcode_value || value);
 		this.barcode_area.html(svg || this.default_svg);
-	},
+	}
 
 	get_barcode_html(value) {
 		if (value) {
@@ -51,14 +51,11 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 			$(svg).attr('width', '100%');
 			return this.barcode_area.html();
 		}
-	},
+	}
 
 	get_options(value) {
 		// get JsBarcode options
 		let options = {};
-		options.background = "var(--control-bg)";
-		options.lineColor = "var(--text-color)";
-		options.font = "var(--font-stack)";
 		options.fontSize = "16";
 		options.width = "3";
 		options.height = "50";
@@ -76,4 +73,4 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 		}
 		return options;
 	}
-});
+};

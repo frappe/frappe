@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.cache_manager
+from frappe.core.doctype.user.user import get_enabled_users
 from frappe.model import log_types
 from frappe.model.document import Document
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
@@ -45,7 +45,7 @@ class EnergyPointRule(Document):
 
 			try:
 				for user in users:
-					if not user or user == 'Administrator': continue
+					if not is_eligible_user(user): continue
 					create_energy_points_log(reference_doctype, reference_name, {
 						'points': points,
 						'user': user,
@@ -57,11 +57,11 @@ class EnergyPointRule(Document):
 	def rule_condition_satisfied(self, doc):
 		if self.for_doc_event == 'New':
 			# indicates that this was a new doc
-			return doc.get_doc_before_save() == None
+			return doc.get_doc_before_save() is None
 		if self.for_doc_event == 'Submit':
-			return doc.docstatus == 1
+			return doc.docstatus.is_submitted()
 		if self.for_doc_event == 'Cancel':
-			return doc.docstatus == 2
+			return doc.docstatus.is_cancelled()
 		if self.for_doc_event == 'Value Change':
 			field_to_check = self.field_to_check
 			if not field_to_check: return False
@@ -96,7 +96,7 @@ def process_energy_points(doc, state):
 	old_doc = doc.get_doc_before_save()
 
 	# check if doc has been cancelled
-	if old_doc and old_doc.docstatus == 1 and doc.docstatus == 2:
+	if old_doc and old_doc.docstatus.is_submitted() and doc.docstatus.is_cancelled():
 		return revert_points_for_cancelled_doc(doc)
 
 	for d in frappe.cache_manager.get_doctype_map('Energy Point Rule', doc.doctype,
@@ -120,3 +120,8 @@ def get_energy_point_doctypes():
 		d.reference_doctype for d in frappe.get_all('Energy Point Rule',
 			['reference_doctype'], {'enabled': 1})
 	]
+
+def is_eligible_user(user):
+	'''Checks if user is eligible to get energy points'''
+	enabled_users = get_enabled_users()
+	return user and user in enabled_users and user != 'Administrator'

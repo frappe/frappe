@@ -40,6 +40,13 @@
  },
  {
   "doctype": "User",
+  "email": "test4@example.com",
+  "first_name": "_Test4",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
   "email": "testperm@example.com",
   "first_name": "_Test Perm",
   "new_password": "Eastern_43A1W",
@@ -63,5 +70,19 @@
     "role": "System Manager"
    }
   ]
- }
+ },
+ {
+    "doctype": "User",
+    "email": "testpassword@example.com",
+    "enabled": 1,
+    "first_name": "_Test",
+    "new_password": "Eastern_43A1W",
+    "roles": [
+     {
+      "doctype": "Has Role",
+      "parentfield": "roles",
+      "role": "System Manager"
+     }
+    ]
+   }
 ]

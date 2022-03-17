@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, json
 from frappe import _
 from frappe.model.document import Document
@@ -49,6 +48,7 @@ class SocialLoginKey(Document):
 			icon_file = icon_map[self.provider_name]
 			self.icon = '/assets/frappe/icons/social/{0}'.format(icon_file)
 
+	@frappe.whitelist()
 	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}
 
@@ -80,7 +80,9 @@ class SocialLoginKey(Document):
 			"redirect_url":"/api/method/frappe.www.login.login_via_github",
 			"api_endpoint":"user",
 			"api_endpoint_args":None,
-			"auth_url_data":None
+			"auth_url_data": json.dumps({
+				"scope": "user:email"
+			})
 		}
 
 		providers["Google"] = {

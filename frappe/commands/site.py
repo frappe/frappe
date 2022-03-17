@@ -1,5 +1,6 @@
 # imports - standard imports
 import os
+import shutil
 import sys
 
 # imports - third party imports
@@ -9,7 +10,6 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.installer import _new_site
 
 
 @click.command('new-site')
@@ -19,71 +19,127 @@ from frappe.installer import _new_site
 @click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--db-host', help='Database Host')
 @click.option('--db-port', type=int, help='Database Port')
-@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--no-mariadb-socket', is_flag=True, default=False, help='Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
-			 verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
-			 install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None):
+@click.option('--set-default', is_flag=True, default=False, help='Set the new site as default site')
+def new_site(site, db_root_username=None, db_root_password=None, admin_password=None,
+			verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
+			install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None,
+			set_default=False):
 	"Create a new site"
+	from frappe.installer import _new_site
+
 	frappe.init(site=site, new_site=True)
 
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
-			  mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
-			  db_port=db_port, new_site=True)
+	_new_site(db_name, site, db_root_username=db_root_username,
+			db_root_password=db_root_password, admin_password=admin_password,
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
+			no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
+			db_port=db_port, new_site=True)
 
-	if len(frappe.utils.get_sites()) == 1:
+	if set_default:
 		use(site)
 
 
 @click.command('restore')
 @click.argument('sql-file-path')
-@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--db-name', help='Database name for site in case it is a new one')
 @click.option('--admin-password', help='Administrator password for new site')
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
 @click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
+@click.option('--encryption-key', help='Backup encryption key')
 @pass_context
-def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
+def restore(context, sql_file_path, encryption_key=None, db_root_username=None, db_root_password=None,
+			db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None,
+			with_private_files=None):
 	"Restore site database from an sql file"
 	from frappe.installer import (
-		extract_sql_from_archive,
+		_new_site,
 		extract_files,
+		extract_sql_from_archive,
 		is_downgrade,
 		is_partial,
-		validate_database_sql
+		validate_database_sql,
 	)
-
-	force = context.force or force
-	decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-	# check if partial backup
-	if is_partial(decompressed_file_name):
-		click.secho(
-			"Partial Backup file detected. You cannot use a partial file to restore a Frappe Site.",
-			fg="red"
-		)
-		click.secho(
-			"Use `bench partial-restore` to restore a partial backup to an existing site.",
-			fg="yellow"
-		)
+	from frappe.utils.backups import Backup
+	if not os.path.exists(sql_file_path):
+		print("Invalid path", sql_file_path)
 		sys.exit(1)
 
-	# check if valid SQL file
-	validate_database_sql(decompressed_file_name, _raise=not force)
+	_backup = Backup(sql_file_path)
 
 	site = get_site(context)
 	frappe.init(site=site)
+	force = context.force or force
+
+	try:
+		decompressed_file_name = extract_sql_from_archive(sql_file_path)
+		if is_partial(decompressed_file_name):
+			click.secho(
+				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
+				fg="red"
+			)
+			click.secho(
+				"Use `bench partial-restore` to restore a partial backup to an existing site.",
+				fg="yellow"
+			)
+			_backup.decryption_rollback()
+			sys.exit(1)
+
+	except UnicodeDecodeError:
+		_backup.decryption_rollback()
+		if encryption_key:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using provided key.",
+				fg="yellow"
+			)
+			_backup.backup_decryption(encryption_key)
+
+		else:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using site config.",
+				fg="yellow"
+			)
+			encryption_key = frappe.get_site_config().encryption_key
+			_backup.backup_decryption(encryption_key)
+
+		# Rollback on unsuccessful decryrption
+		if not os.path.exists(sql_file_path):
+			click.secho(
+				"Decryption failed. Please provide a valid key and try again.",
+				fg="red"
+			)
+
+			_backup.decryption_rollback()
+			sys.exit(1)
+
+		decompressed_file_name = extract_sql_from_archive(sql_file_path)
+
+		if is_partial(decompressed_file_name):
+			click.secho(
+				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
+				fg="red"
+			)
+			click.secho(
+				"Use `bench partial-restore` to restore a partial backup to an existing site.",
+				fg="yellow"
+			)
+			_backup.decryption_rollback()
+			sys.exit(1)
+
+
+
+	validate_database_sql(decompressed_file_name, _raise=not force)
 
 	# dont allow downgrading to older versions of frappe without force
 	if not force and is_downgrade(decompressed_file_name, verbose=True):
@@ -93,23 +149,51 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		)
 		click.confirm(warn_message, abort=True)
 
-	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
-		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
-		force=True, db_type=frappe.conf.db_type)
 
-	# Extract public and/or private files to the restored site, if user has given the path
-	if with_public_files:
-		public = extract_files(site, with_public_files)
-		os.remove(public)
 
-	if with_private_files:
-		private = extract_files(site, with_private_files)
-		os.remove(private)
+	try:
+		_new_site(frappe.conf.db_name, site, db_root_username=db_root_username,
+			db_root_password=db_root_password, admin_password=admin_password,
+			verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
+			force=True, db_type=frappe.conf.db_type)
+
+	except Exception as err:
+		print(err.args[1])
+		_backup.decryption_rollback()
+		sys.exit(1)
 
 	# Removing temporarily created file
 	if decompressed_file_name != sql_file_path:
 		os.remove(decompressed_file_name)
+		_backup.decryption_rollback()
+
+	# Extract public and/or private files to the restored site, if user has given the path
+	if with_public_files:
+		# Decrypt data if there is a Key
+		if encryption_key:
+			_backup = Backup(with_public_files)
+			_backup.backup_decryption(encryption_key)
+			if not os.path.exists(with_public_files):
+				_backup.decryption_rollback()
+		public = extract_files(site, with_public_files)
+
+		# Removing temporarily created file
+		os.remove(public)
+		_backup.decryption_rollback()
+
+
+	if with_private_files:
+		# Decrypt data if there is a Key
+		if encryption_key:
+			_backup = Backup(with_private_files)
+			_backup.backup_decryption(encryption_key)
+			if not os.path.exists(with_private_files):
+				_backup.decryption_rollback()
+		private = extract_files(site, with_private_files)
+
+		# Removing temporarily created file
+		os.remove(private)
+		_backup.decryption_rollback()
 
 	success_message = "Site {0} has been restored{1}".format(
 		site,
@@ -117,34 +201,109 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	)
 	click.secho(success_message, fg="green")
 
-
 @click.command('partial-restore')
 @click.argument('sql-file-path')
 @click.option("--verbose", "-v", is_flag=True)
+@click.option('--encryption-key', help='Backup encryption key')
 @pass_context
-def partial_restore(context, sql_file_path, verbose):
-	from frappe.installer import partial_restore
-	verbose = context.verbose or verbose
+def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
+	from frappe.installer import extract_sql_from_archive, partial_restore
+	from frappe.utils.backups import Backup
+
+	if not os.path.exists(sql_file_path):
+		print("Invalid path", sql_file_path)
+		sys.exit(1)
 
 	site = get_site(context)
 	frappe.init(site=site)
+
+	_backup = Backup(sql_file_path)
+
+	verbose = context.verbose or verbose
+
 	frappe.connect(site=site)
+	try:
+		decompressed_file_name = extract_sql_from_archive(sql_file_path)
+
+		with open(decompressed_file_name) as f:
+			header = " ".join(f.readline() for _ in range(5))
+
+			#Check for full backup file
+			if "Partial Backup" not in header:
+				click.secho(
+					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+					fg="red"
+				)
+				_backup.decryption_rollback()
+				sys.exit(1)
+
+
+	except UnicodeDecodeError:
+		_backup.decryption_rollback()
+		if encryption_key:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using provided key.",
+				fg="yellow"
+			)
+			key = encryption_key
+
+		else:
+			click.secho(
+				"Encrypted backup file detected. Decrypting using site config.",
+				fg="yellow"
+			)
+			key = frappe.get_site_config().encryption_key
+
+		_backup.backup_decryption(key)
+
+		# Rollback on unsuccessful decryrption
+		if not os.path.exists(sql_file_path):
+			click.secho(
+				"Decryption failed. Please provide a valid key and try again.",
+				fg="red"
+			)
+			_backup.decryption_rollback()
+			sys.exit(1)
+
+		decompressed_file_name = extract_sql_from_archive(sql_file_path)
+
+		with open(decompressed_file_name) as f:
+			header = " ".join(f.readline() for _ in range(5))
+
+			#Check for Full backup file.
+			if "Partial Backup" not in header:
+				click.secho(
+					"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
+					fg="red"
+				)
+				_backup.decryption_rollback()
+				sys.exit(1)
+
+
 	partial_restore(sql_file_path, verbose)
+
+	# Removing temporarily created file
+	_backup.decryption_rollback()
+	if os.path.exists(sql_file_path.rstrip(".gz")):
+		os.remove(sql_file_path.rstrip(".gz"))
+
 	frappe.destroy()
 
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
-@click.option('--mariadb-root-username', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
-def reinstall(context, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False):
+def reinstall(context, admin_password=None, db_root_username=None, db_root_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
 	site = get_site(context)
-	_reinstall(site, admin_password, mariadb_root_username, mariadb_root_password, yes, verbose=context.verbose)
+	_reinstall(site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose)
 
-def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False, verbose=False):
+def _reinstall(site, admin_password=None, db_root_username=None, db_root_password=None, yes=False, verbose=False):
+	from frappe.installer import _new_site
+
 	if not yes:
 		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
 	try:
@@ -162,7 +321,7 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 
 	frappe.init(site=site)
 	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True, install_apps=installed,
-		mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password,
+		db_root_username=db_root_username, db_root_password=db_root_password,
 		admin_password=admin_password)
 
 @click.command('install-app')
@@ -188,7 +347,7 @@ def install_app(context, apps):
 				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
 				exit_code = 1
 			except Exception as err:
-				err_msg = ":\n{}".format(err if str(err) else frappe.get_traceback())
+				err_msg = ": {}\n{}".format(str(err), frappe.get_traceback())
 				print("An error occurred while installing {}{}".format(app, err_msg))
 				exit_code = 1
 
@@ -198,9 +357,12 @@ def install_app(context, apps):
 
 
 @click.command("list-apps")
+@click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
-def list_apps(context):
+def list_apps(context, format):
 	"List apps in site"
+
+	summary_dict = {}
 
 	def fix_whitespaces(text):
 		if site == context.sites[-1]:
@@ -230,18 +392,23 @@ def list_apps(context):
 			]
 			applications_summary = "\n".join(installed_applications)
 			summary = f"{site_title}\n{applications_summary}\n"
+			summary_dict[site] = [app.app_name for app in apps]
 
 		else:
-			applications_summary = "\n".join(frappe.get_installed_apps())
+			installed_applications = frappe.get_installed_apps()
+			applications_summary = "\n".join(installed_applications)
 			summary = f"{site_title}\n{applications_summary}\n"
+			summary_dict[site] = installed_applications
 
 		summary = fix_whitespaces(summary)
 
-		if applications_summary and summary:
+		if format == "text" and applications_summary and summary:
 			print(summary)
 
 		frappe.destroy()
 
+	if format == "json":
+		click.echo(frappe.as_json(summary_dict))
 
 @click.command('add-system-manager')
 @click.argument('email')
@@ -282,21 +449,17 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
-	import re
-	from frappe.migrate import migrate
+	from frappe.migrate import SiteMigration
 
 	for site in context.sites:
-		print('Migrating', site)
-		frappe.init(site=site)
-		frappe.connect()
+		click.secho(f"Migrating {site}", fg="green")
 		try:
-			migrate(
-				context.verbose,
+			SiteMigration(
 				skip_failing=skip_failing,
-				skip_search_index=skip_search_index
-			)
+				skip_search_index=skip_search_index,
+			).run(site=site)
 		finally:
-			frappe.destroy()
+			print()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -382,7 +545,7 @@ def _use(site, sites_path='.'):
 
 def use(site, sites_path='.'):
 	if os.path.exists(os.path.join(sites_path, site)):
-		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
 		print("Current Site set to {}".format(site))
 	else:
@@ -405,6 +568,7 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 	backup_path_private_files=None, backup_path_conf=None, ignore_backup_conf=False, verbose=False,
 	compress=False, include="", exclude=""):
 	"Backup"
+
 	from frappe.utils.backups import scheduled_backup
 	verbose = verbose or context.verbose
 	exit_code = 0
@@ -428,20 +592,32 @@ def backup(context, with_files=False, backup_path=None, backup_path_db=None, bac
 				force=True
 			)
 		except Exception:
-			click.secho("Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site), fg="red")
+			click.secho(
+				"Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site),
+				fg="red"
+			)
 			if verbose:
 				print(frappe.get_traceback())
 			exit_code = 1
 			continue
+		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().encryption_key:
+			click.secho(
+				"Backup encryption is turned on. Please note the backup encryption key.",
+				fg="yellow"
+			)
 
 		odb.print_summary()
-		click.secho("Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""), fg="green")
+		click.secho(
+			"Backup for Site {0} has been successfully completed{1}".format(site, " with files" if with_files else ""),
+			fg="green"
+		)
 		frappe.destroy()
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
 	sys.exit(exit_code)
+
 
 @click.command('remove-from-installed-apps')
 @click.argument('app')
@@ -461,7 +637,7 @@ def remove_from_installed_apps(context, app):
 
 @click.command('uninstall-app')
 @click.argument('app')
-@click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
+@click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
 @click.option('--force', help='Force remove app from site', is_flag=True, default=False)
@@ -482,16 +658,16 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 
 @click.command('drop-site')
 @click.argument('site')
-@click.option('--root-login', default='root')
-@click.option('--root-password')
+@click.option('--db-root-username', '--mariadb-root-username', '--root-login', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', '--root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--archived-sites-path')
 @click.option('--no-backup', is_flag=True, default=False)
 @click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
-	_drop_site(site, root_login, root_password, archived_sites_path, force, no_backup)
+def drop_site(site, db_root_username='root', db_root_password=None, archived_sites_path=None, force=False, no_backup=False):
+	_drop_site(site, db_root_username, db_root_password, archived_sites_path, force, no_backup)
 
 
-def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
+def _drop_site(site, db_root_username=None, db_root_password=None, archived_sites_path=None, force=False, no_backup=False):
 	"Remove site from database and filesystem"
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
@@ -516,13 +692,11 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 			click.echo("\n".join(messages))
 			sys.exit(1)
 
-	drop_user_and_database(frappe.conf.db_name, root_login, root_password)
+	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
 
-	if not archived_sites_path:
-		archived_sites_path = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')
+	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
 
-	if not os.path.exists(archived_sites_path):
-		os.mkdir(archived_sites_path)
+	os.makedirs(archived_sites_path, exist_ok=True)
 
 	move(archived_sites_path, site)
 
@@ -543,35 +717,60 @@ def move(dest_dir, site):
 		site_dump_exists = os.path.exists(final_new_path)
 		count = int(count or 0) + 1
 
-	os.rename(old_path, final_new_path)
+	shutil.move(old_path, final_new_path)
 	frappe.destroy()
 	return final_new_path
 
 
-@click.command('set-admin-password')
-@click.argument('admin-password')
+@click.command('set-password')
+@click.argument('user')
+@click.argument('password', required=False)
 @click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
 @pass_context
-def set_admin_password(context, admin_password, logout_all_sessions=False):
-	"Set Administrator password for a site"
-	import getpass
-	from frappe.utils.password import update_password
-
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-
-			while not admin_password:
-				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
-
-			frappe.connect()
-			update_password(user='Administrator', pwd=admin_password, logout_all_sessions=logout_all_sessions)
-			frappe.db.commit()
-			admin_password = None
-		finally:
-			frappe.destroy()
+def set_password(context, user, password=None, logout_all_sessions=False):
+	"Set password for a user on a site"
 	if not context.sites:
 		raise SiteNotSpecifiedError
+
+	for site in context.sites:
+		set_user_password(site, user, password, logout_all_sessions)
+
+
+@click.command('set-admin-password')
+@click.argument('admin-password', required=False)
+@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@pass_context
+def set_admin_password(context, admin_password=None, logout_all_sessions=False):
+	"Set Administrator password for a site"
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	for site in context.sites:
+		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
+
+
+def set_user_password(site, user, password, logout_all_sessions=False):
+	import getpass
+
+	from frappe.utils.password import update_password
+
+	try:
+		frappe.init(site=site)
+
+		while not password:
+			password = getpass.getpass(f"{user}'s password for {site}: ")
+
+		frappe.connect()
+		if not frappe.db.exists("User", user):
+			print(f"User {user} does not exist")
+			sys.exit(1)
+
+		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
+		frappe.db.commit()
+		password = None
+	finally:
+		frappe.destroy()
+
 
 @click.command('set-last-active-for-user')
 @click.option('--user', help="Setup last active date for user")
@@ -622,22 +821,41 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 
 @click.command('browse')
 @click.argument('site', required=False)
+@click.option('--user', required=False, help='Login as user')
 @pass_context
-def browse(context, site):
+def browse(context, site, user=None):
 	'''Opens the site on web browser'''
-	import webbrowser
-	site = context.sites[0] if context.sites else site
+	from frappe.auth import CookieManager, LoginManager
+
+	site = get_site(context, raise_err=False) or site
 
 	if not site:
-		click.echo('''Please provide site name\n\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse''')
-		return
+		raise SiteNotSpecifiedError
 
-	site = site.lower()
+	if site not in frappe.utils.get_sites():
+		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
+		sys.exit(1)
 
-	if site in frappe.utils.get_sites():
-		webbrowser.open(frappe.utils.get_site_url(site), new=2)
-	else:
-		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
+	frappe.init(site=site)
+	frappe.connect()
+
+	sid = ''
+	if user:
+		if frappe.conf.developer_mode or user == "Administrator":
+			frappe.utils.set_request(path="/")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			sid = f'/app?sid={frappe.session.sid}'
+		else:
+			click.echo("Please enable developer mode to login as a user")
+
+	url = f'{frappe.utils.get_site_url(site)}{sid}'
+
+	if user == "Administrator":
+		click.echo(f'Login URL: {url}')
+
+	click.launch(url)
 
 
 @click.command('start-recording')
@@ -664,18 +882,17 @@ def stop_recording(context):
 		raise SiteNotSpecifiedError
 
 @click.command('ngrok')
+@click.option('--bind-tls', is_flag=True, default=False, help='Returns a reference to the https tunnel.')
 @pass_context
-def start_ngrok(context):
+def start_ngrok(context, bind_tls):
 	from pyngrok import ngrok
 
 	site = get_site(context)
 	frappe.init(site=site)
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
-	public_url = ngrok.connect(port=port, options={
-		'host_header': site
-	})
-	print(f'Public URL: {public_url}')
+	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
+	print(f'Public URL: {tunnel.public_url}')
 	print('Inspect logs at http://localhost:4040')
 
 	ngrok_process = ngrok.get_ngrok_process()
@@ -703,6 +920,131 @@ def build_search_index(context):
 	finally:
 		frappe.destroy()
 
+@click.command('trim-database')
+@click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
+@click.option('--format', '-f', default='text', type=click.Choice(['json', 'text']), help='Output format')
+@click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
+@pass_context
+def trim_database(context, dry_run, format, no_backup):
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	from frappe.utils.backups import scheduled_backup
+
+	ALL_DATA = {}
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+
+		TABLES_TO_DROP = []
+		STANDARD_TABLES = get_standard_tables()
+		information_schema = frappe.qb.Schema("information_schema")
+		table_name = frappe.qb.Field("table_name").as_("name")
+
+		queried_result = frappe.qb.from_(
+			information_schema.tables
+		).select(table_name).where(
+			information_schema.tables.table_schema == frappe.conf.db_name
+		).run()
+
+		database_tables = [x[0] for x in queried_result]
+		doctype_tables = frappe.get_all("DocType", pluck="name")
+
+		for x in database_tables:
+			doctype = x.replace("tab", "", 1)
+			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
+				TABLES_TO_DROP.append(x)
+
+		if not TABLES_TO_DROP:
+			if format == "text":
+				click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
+		else:
+			if not (no_backup or dry_run):
+				if format == "text":
+					print(f"Backing Up Tables: {', '.join(TABLES_TO_DROP)}")
+
+				odb = scheduled_backup(
+					ignore_conf=False,
+					include_doctypes=",".join(x.replace("tab", "", 1) for x in TABLES_TO_DROP),
+					ignore_files=True,
+					force=True,
+				)
+				if format == "text":
+					odb.print_summary()
+					print("\nTrimming Database")
+
+			for table in TABLES_TO_DROP:
+				if format == "text":
+					print(f"* Dropping Table '{table}'...")
+				if not dry_run:
+					frappe.db.sql_ddl(f"drop table `{table}`")
+
+			ALL_DATA[frappe.local.site] = TABLES_TO_DROP
+		frappe.destroy()
+
+	if format == "json":
+		import json
+		print(json.dumps(ALL_DATA, indent=1))
+
+
+def get_standard_tables():
+	import re
+
+	tables = []
+	sql_file = os.path.join(
+		"..", "apps", "frappe", "frappe", "database", frappe.conf.db_type, f'framework_{frappe.conf.db_type}.sql'
+	)
+	content = open(sql_file).read().splitlines()
+
+	for line in content:
+		table_found = re.search(r"""CREATE TABLE ("|`)(.*)?("|`) \(""", line)
+		if table_found:
+			tables.append(table_found.group(2))
+
+	return tables
+
+@click.command('trim-tables')
+@click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted')
+@click.option('--format', '-f', default='table', type=click.Choice(['json', 'table']), help='Output format')
+@click.option('--no-backup', is_flag=True, default=False, help='Do not backup the site')
+@pass_context
+def trim_tables(context, dry_run, format, no_backup):
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	from frappe.model.meta import trim_tables
+	from frappe.utils.backups import scheduled_backup
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+
+		if not (no_backup or dry_run):
+			click.secho(f"Taking backup for {frappe.local.site}", fg="green")
+			odb = scheduled_backup(ignore_files=False, force=True)
+			odb.print_summary()
+
+		try:
+			trimmed_data = trim_tables(dry_run=dry_run, quiet=format == 'json')
+
+			if format == 'table' and not dry_run:
+				click.secho(f"The following data have been removed from {frappe.local.site}", fg='green')
+
+			handle_data(trimmed_data, format=format)
+		finally:
+			frappe.destroy()
+
+def handle_data(data: dict, format='json'):
+	if format == 'json':
+		import json
+		print(json.dumps({frappe.local.site: data}, indent=1, sort_keys=True))
+	else:
+		from frappe.utils.commands import render_table
+		data = [["DocType", "Fields"]] + [[table, ", ".join(columns)] for table, columns in data.items()]
+		render_table(data)
+
+
 commands = [
 	add_system_manager,
 	backup,
@@ -718,6 +1060,7 @@ commands = [
 	remove_from_installed_apps,
 	restore,
 	run_patch,
+	set_password,
 	set_admin_password,
 	uninstall,
 	disable_user,
@@ -730,5 +1073,7 @@ commands = [
 	add_to_hosts,
 	start_ngrok,
 	build_search_index,
-	partial_restore
+	partial_restore,
+	trim_tables,
+	trim_database,
 ]

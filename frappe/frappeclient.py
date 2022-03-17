@@ -1,13 +1,14 @@
-from __future__ import print_function, unicode_literals
-import requests
-import json
-import frappe
-from six import iteritems, string_types
-import base64
-
 '''
 FrappeClient is a library that helps you connect with other frappe systems
 '''
+import base64
+import json
+
+import requests
+
+import frappe
+from frappe.utils.data import cstr
+
 
 class AuthError(Exception):
 	pass
@@ -48,7 +49,7 @@ class FrappeClient(object):
 
 	def _login(self, username, password):
 		'''Login/start a sesion. Called internally on init'''
-		r = self.session.post(self.url, data={
+		r = self.session.post(self.url, params={
 			'cmd': 'login',
 			'usr': username,
 			'pwd': password
@@ -86,9 +87,9 @@ class FrappeClient(object):
 			'cmd': 'logout',
 		}, verify=self.verify, headers=self.headers)
 
-	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=0):
+	def get_list(self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=0):
 		"""Returns list of records of a particular type"""
-		if not isinstance(fields, string_types):
+		if not isinstance(fields, str):
 			fields = json.dumps(fields)
 		params = {
 			"fields": fields,
@@ -122,7 +123,7 @@ class FrappeClient(object):
 		'''Update a remote document
 
 		:param doc: dict or Document object to be updated remotely. `name` is mandatory for this'''
-		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
+		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + cstr(doc.get("name"))
 		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify, headers=self.headers)
 		return frappe._dict(self.post_process(res))
 
@@ -207,7 +208,7 @@ class FrappeClient(object):
 		if fields:
 			params["fields"] = json.dumps(fields)
 
-		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
+		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + cstr(name),
 			params=params, verify=self.verify, headers=self.headers)
 
 		return self.post_process(res)
@@ -288,13 +289,17 @@ class FrappeClient(object):
 		doc.modified = frappe.db.get_single_value(doctype, "modified")
 		frappe.get_doc(doc).insert()
 
-	def get_api(self, method, params={}):
-		res = self.session.get(self.url + "/api/method/" + method + "/",
+	def get_api(self, method, params=None):
+		if params is None:
+			params = {}
+		res = self.session.get(f"{self.url}/api/method/{method}",
 			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
-	def post_api(self, method, params={}):
-		res = self.session.post(self.url + "/api/method/" + method + "/",
+	def post_api(self, method, params=None):
+		if params is None:
+			params = {}
+		res = self.session.post(f"{self.url}/api/method/{method}",
 			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
@@ -310,7 +315,7 @@ class FrappeClient(object):
 
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""
-		for key, value in iteritems(params):
+		for key, value in params.items():
 			if isinstance(value, (dict, list)):
 				params[key] = json.dumps(value)
 

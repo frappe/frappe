@@ -50,7 +50,7 @@ frappe.ui.form.on('User', {
 						let d = frm.add_child("block_modules");
 						d.module = v.module;
 					});
-					frm.module_editor && frm.module_editor.refresh();
+					frm.module_editor && frm.module_editor.show();
 				}
 			});
 		}
@@ -59,23 +59,32 @@ frappe.ui.form.on('User', {
 	onload: function(frm) {
 		frm.can_edit_roles = has_access_to_edit_user();
 
-		if (frm.can_edit_roles && !frm.is_new()) {
+		if (frm.can_edit_roles && !frm.is_new() && in_list(['System User', 'Website User'], frm.doc.user_type)) {
 			if (!frm.roles_editor) {
 				const role_area = $('<div class="role-editor">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
+
 				frm.roles_editor = new frappe.RoleEditor(role_area, frm, frm.doc.role_profile_name ? 1 : 0);
 
-				var module_area = $('<div>')
-					.appendTo(frm.fields_dict.modules_html.wrapper);
-				frm.module_editor = new frappe.ModuleEditor(frm, module_area);
+				if (frm.doc.user_type == 'System User') {
+					var module_area = $('<div>')
+						.appendTo(frm.fields_dict.modules_html.wrapper);
+					frm.module_editor = new frappe.ModuleEditor(frm, module_area);
+				}
 			} else {
 				frm.roles_editor.show();
 			}
 		}
 	},
 	refresh: function(frm) {
-		var doc = frm.doc;
-		if(!frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
+		let doc = frm.doc;
+
+		if (frm.is_new()) {
+			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
+		}
+
+		if (in_list(['System User', 'Website User'], frm.doc.user_type)
+			&& !frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
 			frm.reload_doc();
 			return;
 		}
@@ -162,7 +171,7 @@ frappe.ui.form.on('User', {
 
 			frm.add_custom_button(__("Reset OTP Secret"), function() {
 				frappe.call({
-					method: "frappe.core.doctype.user.user.reset_otp_secret",
+					method: "frappe.twofactor.reset_otp_secret",
 					args: {
 						"user": frm.doc.name
 					}
@@ -176,7 +185,7 @@ frappe.ui.form.on('User', {
 				frm.roles_editor.show();
 			}
 
-			frm.module_editor && frm.module_editor.refresh();
+			frm.module_editor && frm.module_editor.show();
 
 			if(frappe.session.user==doc.name) {
 				// update display settings
@@ -250,18 +259,25 @@ frappe.ui.form.on('User', {
 			}
 		});
 	},
-	generate_keys: function(frm){
+	generate_keys: function(frm) {
 		frappe.call({
 			method: 'frappe.core.doctype.user.user.generate_keys',
 			args: {
 				user: frm.doc.name
 			},
-			callback: function(r){
-				if(r.message){
-					frappe.msgprint(__("Save API Secret: ") + r.message.api_secret);
+			callback: function(r) {
+				if (r.message) {
+					frappe.msgprint(__("Save API Secret: {0}", [r.message.api_secret]));
+					frm.reload_doc();
 				}
 			}
 		});
+	},
+	on_update: function(frm) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.user !== frm.doc.time_zone) {
+			// Clear cache after saving to refresh the values of boot.
+			frappe.ui.toolbar.clear_cache();
+		}
 	}
 });
 

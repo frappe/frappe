@@ -1,17 +1,30 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import frappe.utils
 import json
 from frappe import _
 from frappe.utils.jinja import validate_template
-
+from frappe.utils.weasyprint import get_html, download_pdf
 from frappe.model.document import Document
 
 class PrintFormat(Document):
+	def onload(self):
+		templates = frappe.db.get_all(
+			"Print Format Field Template",
+			fields=["template", "field", "name"],
+			filters={"document_type": self.doc_type},
+		)
+		self.set_onload("print_templates", templates)
+
+	def get_html(self, docname, letterhead=None):
+		return get_html(self.doc_type, docname, self.name, letterhead)
+
+	def download_pdf(self, docname, letterhead=None):
+		return download_pdf(self.doc_type, docname, self.name, letterhead)
+
 	def validate(self):
 		if (self.standard=="Yes"
 			and not frappe.local.conf.get("developer_mode")
@@ -39,6 +52,10 @@ class PrintFormat(Document):
 
 	def extract_images(self):
 		from frappe.core.doctype.file.file import extract_images_from_html
+
+		if self.print_format_builder_beta:
+			return
+
 		if self.format_data:
 			data = json.loads(self.format_data)
 			for df in data:
@@ -54,8 +71,19 @@ class PrintFormat(Document):
 
 		self.export_doc()
 
+	def after_rename(self, old: str, new: str, *args, **kwargs):
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
+
+		# update property setter default_print_format if set
+		frappe.db.set_value("Property Setter", {
+			"doctype_or_field": "DocType",
+			"doc_type": self.doc_type,
+			"property": "default_print_format",
+			"value": old,
+		}, "value", new)
+
 	def export_doc(self):
-		# export
 		from frappe.modules.utils import export_module_json
 		export_module_json(self, self.standard == 'Yes', self.module)
 

@@ -1,24 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 import frappe
 from frappe import msgprint, _
 import json
 import csv
-import six
 import requests
-from six import StringIO, text_type, string_types
-from frappe.utils import encode, cstr, cint, flt, comma_or
-
-def read_csv_content_from_uploaded_file(ignore_encoding=False):
-	if getattr(frappe, "uploaded_file", None):
-		with open(frappe.uploaded_file, "r") as upfile:
-			fcontent = upfile.read()
-	else:
-		_file = frappe.new_doc("File")
-		fcontent = _file.get_uploaded_content()
-	return read_csv_content(fcontent, ignore_encoding)
+from io import StringIO
+from frappe.utils import cstr, cint, flt, comma_or
 
 def read_csv_content_from_attached_file(doc):
 	fileid = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": doc.doctype,
@@ -40,11 +28,11 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if not isinstance(fcontent, text_type):
+	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
-				fcontent = text_type(fcontent, encoding)
+				fcontent = str(fcontent, encoding)
 				decoded = True
 				break
 			except UnicodeDecodeError:
@@ -56,10 +44,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	fcontent = fcontent.encode("utf-8")
 	content  = [ ]
 	for line in fcontent.splitlines(True):
-		if six.PY2:
-			content.append(line)
-		else:
-			content.append(frappe.safe_decode(line))
+		content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
@@ -85,7 +70,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 @frappe.whitelist()
 def send_csv_to_client(args):
-	if isinstance(args, string_types):
+	if isinstance(args, str):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
@@ -107,14 +92,12 @@ def build_csv_response(data, filename):
 	frappe.response["type"] = "csv"
 
 class UnicodeWriter:
-	def __init__(self, encoding="utf-8"):
+	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC):
 		self.encoding = encoding
 		self.queue = StringIO()
-		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
+		self.writer = csv.writer(self.queue, quoting=quoting)
 
 	def writerow(self, row):
-		if six.PY2:
-			row = encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):
@@ -129,7 +112,7 @@ def check_record(d):
 		docfield = doc.meta.get_field(key)
 		val = d[key]
 		if docfield:
-			if docfield.reqd and (val=='' or val==None):
+			if docfield.reqd and (val=='' or val is None):
 				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:

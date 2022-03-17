@@ -1,10 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_list_settings(doctype):
 	try:
 		return frappe.get_cached_doc("List View Settings", doctype)
@@ -28,19 +26,19 @@ def get_group_by_count(doctype, current_filters, field):
 	current_filters = frappe.parse_json(current_filters)
 	subquery_condition = ''
 
-	subquery = frappe.get_all(doctype, filters=current_filters, return_query = True)
+	subquery = frappe.get_all(doctype, filters=current_filters, run=False)
 	if field == 'assigned_to':
 		subquery_condition = ' and `tabToDo`.reference_name in ({subquery})'.format(subquery = subquery)
-		return frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
+		return frappe.db.sql("""select `tabToDo`.allocated_to as name, count(*) as count
 			from
 				`tabToDo`, `tabUser`
 			where
 				`tabToDo`.status!='Cancelled' and
-				`tabToDo`.owner = `tabUser`.name and
+				`tabToDo`.allocated_to = `tabUser`.name and
 				`tabUser`.user_type = 'System User'
 				{subquery_condition}
 			group by
-				`tabToDo`.owner
+				`tabToDo`.allocated_to
 			order by
 				count desc
 			limit 50""".format(subquery_condition = subquery_condition), as_dict=True)

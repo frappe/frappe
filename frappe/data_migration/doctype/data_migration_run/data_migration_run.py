@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
@@ -10,6 +9,7 @@ from frappe.utils import cstr
 from frappe.data_migration.doctype.data_migration_mapping.data_migration_mapping import get_source_value
 
 class DataMigrationRun(Document):
+	@frappe.whitelist()
 	def run(self):
 		self.begin()
 		if self.total_pages > 0:

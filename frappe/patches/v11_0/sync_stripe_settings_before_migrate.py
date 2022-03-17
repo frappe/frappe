@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe
 from frappe.utils.password import get_decrypted_password
 
@@ -17,4 +17,4 @@ def execute():
 			settings.secret_key = secret_key
 			settings.save(ignore_permissions=True)
 
-	frappe.db.sql("""DELETE FROM tabSingles WHERE doctype='Stripe Settings'""")
+	frappe.db.delete("Singles", {"doctype": "Stripe Settings"})

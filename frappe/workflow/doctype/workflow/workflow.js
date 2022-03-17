@@ -44,7 +44,9 @@ frappe.ui.form.on("Workflow", {
 			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_fieldnames_for';
 			frappe.xcall(get_field_method, { doctype: doc.document_type })
 				.then(resp => {
-					frappe.meta.get_docfield("Workflow Document State", "update_field", frm.doc.name).options = [""].concat(resp);
+					frm.fields_dict.states.grid.update_docfield_property(
+						'update_field', 'options', [""].concat(resp)
+					);
 				})
 		}
 	},

@@ -85,7 +85,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 				if (name && name.substr(0, 3) === 'new') {
 					this.render_new_doc(doctype, name, doctype_layout);
 				} else {
-					frappe.show_not_found(route);
+					frappe.show_not_found();
 				}
 				return;
 			}
@@ -98,6 +98,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		if (new_name===name) {
 			this.render(doctype_layout, name);
 		} else {
+			frappe.route_flags.replace_route = true;
 			frappe.set_route("Form", doctype_layout, new_name);
 		}
 	}

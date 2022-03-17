@@ -1,7 +1,5 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe, json
 from frappe.model.document import Document
@@ -13,12 +11,14 @@ common_default_keys = ["__default", "__global"]
 doctype_map_keys = ('energy_point_rule_map', 'assignment_rule_map',
 	'milestone_tracker_map', 'event_consumer_document_type_map')
 
+bench_cache_keys = ('assets_json',)
+
 global_cache_keys = ("app_hooks", "installed_apps", 'all_apps',
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
 		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
 		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts',
-		'sitemap_routes', 'db_tables') + doctype_map_keys
+		'sitemap_routes', 'db_tables', 'server_script_autocompletion_items') + doctype_map_keys
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -53,11 +53,12 @@ def clear_domain_cache(user=None):
 	cache.delete_value(domain_cache_keys)
 
 def clear_global_cache():
-	from frappe.website.render import clear_cache as clear_website_cache
+	from frappe.website.utils import clear_website_cache
 
 	clear_doctype_cache()
 	clear_website_cache()
 	frappe.cache().delete_value(global_cache_keys)
+	frappe.cache().delete_value(bench_cache_keys)
 	frappe.setup_module_map()
 
 def clear_defaults_cache(user=None):
@@ -140,19 +141,14 @@ def build_table_count_cache():
 		return
 
 	_cache = frappe.cache()
-	data = frappe.db.multisql({
-		"mariadb": """
-			SELECT 	table_name AS name,
-					table_rows AS count
-			FROM information_schema.tables""",
-		"postgres": """
-			SELECT 	"relname" AS name,
-					"n_tup_ins" AS count
-			FROM "pg_stat_all_tables"
-		"""
-	}, as_dict=1)
+	table_name = frappe.qb.Field("table_name").as_("name")
+	table_rows = frappe.qb.Field("table_rows").as_("count")
+	information_schema = frappe.qb.Schema("information_schema")
 
-	counts = {d.get('name').lstrip('tab'): d.get('count', None) for d in data}
+	data = (
+		frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+	).run(as_dict=True)
+	counts = {d.get('name').replace('tab', '', 1): d.get('count', None) for d in data}
 	_cache.set_value("information_schema:counts", counts)
 
 	return counts

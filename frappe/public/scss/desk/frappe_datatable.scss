@@ -7,7 +7,7 @@
 	--dt-text-color: var(--text-light);
 	--dt-text-light: var(--bg-color);
 	--dt-spacer-1: 0.25rem;
-	--dt-spacer-2: 0.5rem;
+	--dt-spacer-2: var(--padding-xs);
 	--dt-spacer-3: 1rem;
 	--dt-border-radius: var(--border-radius);
 	--dt-cell-bg: var(--fg-color);
@@ -26,6 +26,16 @@
 		border-radius: 0px;
 		border: none;
 		background-color: transparent;
+		height: 100%;
+
+		&:focus {
+			box-shadow: none;
+		}
+
+		&[data-fieldtype="Select"] .select-icon {
+			top: 5px;
+			right: 10px;
+		}
 	}
 
 	.dt-header {
@@ -48,7 +58,7 @@
 	}
 
 	.link-btn {
-		top: 6px;
+		top: 0px;
 	}
 
 	select {
@@ -67,7 +77,7 @@
 		padding: 0;
 		border: var(--dt-focus-border-width) solid #9bccf8;
 
-		input {
+		input[type="text"] {
 			font-size: inherit;
 			height: 27px;
 
@@ -75,6 +85,11 @@
 				box-shadow: none;
 			}
 		}
+	}
+
+	.dt-cell__resize-handle {
+		right: -3px !important;
+		left: unset !important;
 	}
 
 	.dt-row.dt-row-totalRow {
@@ -111,6 +126,10 @@
 	// Enable tnum for report
 	.dt-scrollable .dt-cell__content {
 		font-feature-settings: "tnum";
+	}
+
+	.dt-cell__content--header-0, .dt-cell__content--col-0 {
+		padding: 0.5rem;
 	}
 
 	.dt-scrollable--highlight-all {

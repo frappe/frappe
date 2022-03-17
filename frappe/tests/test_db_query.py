@@ -1,11 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
-import frappe, unittest
+# License: MIT. See LICENSE
+import frappe
+import datetime
+import unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+from frappe.query_builder import Column
 
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
@@ -17,8 +18,23 @@ from frappe.utils.testutils import add_custom_field, clear_custom_fields
 test_dependencies = ['User', 'Blog Post', 'Blog Category', 'Blogger']
 
 class TestReportview(unittest.TestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
+
+	def test_extract_tables(self):
+		db_query = DatabaseQuery("DocType")
+		add_custom_field("DocType", 'test_tab_field', 'Data')
+
+		db_query.fields = ["tabNote.creation", "test_tab_field", "tabDocType.test_tab_field"]
+		db_query.extract_tables()
+		self.assertIn("`tabNote`", db_query.tables)
+		self.assertIn("`tabDocType`", db_query.tables)
+		self.assertNotIn("test_tab_field", db_query.tables)
+
+		clear_custom_fields("DocType")
 
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
@@ -81,6 +97,12 @@ class TestReportview(unittest.TestCase):
 			self.assertFalse(result
 				in DatabaseQuery("DocType").execute(filters={"name": ["not in", 'DocType,DocField']}))
 
+	def test_none_filter(self):
+		query = frappe.db.query.get_sql("DocType", fields="name", filters={"restrict_to_domain": None})
+		sql = str(query).replace('`', '').replace('"', '')
+		condition = 'restrict_to_domain IS NULL'
+		self.assertIn(condition, sql)
+
 	def test_or_filters(self):
 		data = DatabaseQuery("DocField").execute(
 				filters={"parent": "DocType"}, fields=["fieldname", "fieldtype"],
@@ -92,7 +114,7 @@ class TestReportview(unittest.TestCase):
 
 	def test_between_filters(self):
 		""" test case to check between filter for date fields """
-		frappe.db.sql("delete from tabEvent")
+		frappe.db.delete("Event")
 
 		# create events to test the between operator filter
 		todays_event = create_event()
@@ -127,6 +149,11 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({ "name": todays_event.name } in data)
 		self.assertTrue({ "name": event1.name } not in data)
 		self.assertTrue({ "name": event2.name } not in data)
+
+		# test between is formatted for creation column
+		data = DatabaseQuery("Event").execute(
+			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]},
+			fields=["name"])
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user('test2@example.com')
@@ -329,7 +356,6 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(len(data) == 0)
 		self.assertTrue(len(frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Root')})) == len(frappe.get_all('Nested DocType')))
 
-
 	def test_is_set_is_not_set(self):
 		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})
 		self.assertTrue({'name': 'Integration Request'} in res)
@@ -359,6 +385,41 @@ class TestReportview(unittest.TestCase):
 	def test_pluck_any_field(self):
 		owners = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="owner")
 		self.assertEqual(owners, ["Administrator"])
+
+	def test_prepare_select_args(self):
+		# frappe.get_all inserts modified field into order_by clause
+		# test to make sure this is inserted into select field when postgres
+		doctypes = frappe.get_all("DocType",
+			filters={"docstatus": 0, "document_type": ("!=", "")},
+			group_by="document_type",
+			fields=["document_type", "sum(is_submittable) as is_submittable"],
+			limit=1,
+			as_list=True,
+		)
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue(len(doctypes[0]) == 2)
+		else:
+			self.assertTrue(len(doctypes[0]) == 3)
+			self.assertTrue(isinstance(doctypes[0][2], datetime.datetime))
+
+	def test_column_comparison(self):
+		"""Test DatabaseQuery.execute to test column comparison
+		"""
+		users_unedited = frappe.get_all(
+			"User",
+			filters={"creation": Column("modified")},
+			fields=["name", "creation", "modified"],
+			limit=1,
+		)
+		users_edited = frappe.get_all(
+			"User",
+			filters={"creation": ("!=", Column("modified"))},
+			fields=["name", "creation", "modified"],
+			limit=1,
+		)
+
+		self.assertEqual(users_unedited[0].modified, users_unedited[0].creation)
+		self.assertNotEqual(users_edited[0].modified, users_edited[0].creation)
 
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
@@ -412,6 +473,46 @@ class TestReportview(unittest.TestCase):
 		# reset user roles
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
+
+	def test_reportview_get_aggregation(self):
+		# test aggregation based on child table field
+		frappe.local.form_dict = frappe._dict({
+			"doctype": "DocType",
+			"fields": """["`tabDocField`.`label` as field_label","`tabDocField`.`name` as field_name"]""",
+			"filters": "[]",
+			"order_by": "_aggregate_column desc",
+			"start": 0,
+			"page_length": 20,
+			"view": "Report",
+			"with_comment_count": 0,
+			"group_by": "field_label, field_name",
+			"aggregate_on_field": "columns",
+			"aggregate_on_doctype": "DocField",
+			"aggregate_function": "sum"
+		})
+
+		response = execute_cmd("frappe.desk.reportview.get")
+		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column", 'columns'])
+
+	def test_cast_name(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype("autoinc_dt_test", autoincremented=True).insert(ignore_permissions=True)
+
+		query = DatabaseQuery("autoinc_dt_test").execute(
+			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "`tabautoinc_dt_test`.`name`"],
+			filters={"name": 1},
+			run=False
+		)
+
+		if frappe.db.db_type == "postgres":
+			self.assertTrue("strpos( cast( \"tabautoinc_dt_test\".\"name\" as varchar), \'1\')" in query)
+			self.assertTrue("where cast(\"tabautoinc_dt_test\".name as varchar) = \'1\'" in query)
+		else:
+			self.assertTrue("locate(\'1\', `tabautoinc_dt_test`.`name`)" in query)
+			self.assertTrue("where `tabautoinc_dt_test`.name = 1" in query)
+
+		dt.delete(ignore_permissions=True)
 
 
 def add_child_table_to_blog_post():

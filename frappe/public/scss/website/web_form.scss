@@ -1,0 +1,78 @@
+@import "../common/form";
+
+
+[data-doctype="Web Form"] {
+	.page-content-wrapper {
+
+		.breadcrumb-container.container {
+			@include media-breakpoint-up(sm) {
+				padding-left: 0;
+			}
+		}
+
+		.container {
+			max-width: 800px;
+
+			&.my-4 {
+				background-color: var(--fg-color);
+
+					@include media-breakpoint-up(sm) {
+						padding: 1.8rem;
+						border-radius: var(--border-radius-md);
+						box-shadow: var(--card-shadow);
+					}
+			}
+		}
+	}
+}
+
+.web-form-wrapper {
+	.form-control {
+		color: var(--text-color);
+		background-color: var(--control-bg);
+	}
+
+	.form-section {
+		.section-head {
+			font-weight: bold;
+			font-size: var(--text-xl);
+			padding: var(--padding-md) 0;
+		}
+	}
+
+	.form-column {
+		padding: 0 var(--padding-md);
+
+		&:first-child {
+			padding-left: 0;
+		}
+
+		&:last-child {
+			padding-right: 0;
+		}
+
+		@include media-breakpoint-down(sm) {
+			padding: 0;
+		}
+	}
+}
+
+.web-form-wrapper~#datatable {
+	.table {
+		thead {
+			th {
+				border: 0;
+				font-weight: normal;
+				color: var(--text-muted)
+			}
+		}
+
+		tr {
+			color: var(--text-color);
+
+			td {
+			border-top: 1px solid var(--border-color);
+			}
+		}
+	}
+}

@@ -1,0 +1,35 @@
+codecov:
+  require_ci_to_pass: yes
+
+coverage:
+  status:
+    project:
+      default: false
+      server:
+        target: auto
+        threshold: 0.5%
+        flags:
+          - server
+    patch:
+      default: false
+      server:
+        target: 85%
+        threshold: 0%
+        only_pulls: true
+        if_ci_failed: ignore
+        flags:
+          - server
+
+comment:
+  layout: "diff, flags"
+  require_changes: true
+
+flags:
+  server:
+    paths:
+      - ".*\\.py"
+    carryforward: true
+  ui-tests:
+    paths:
+      - ".*\\.js"
+    carryforward: true

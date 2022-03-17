@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "autoname": "field:title",
+ "creation": "2021-05-21 23:02:52.242721",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "reference_doctype",
+  "module",
+  "column_break_6",
+  "is_standard",
+  "save_on_complete",
+  "first_document",
+  "include_name_field",
+  "section_break_3",
+  "steps"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "depends_on": "reference_doctype",
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Form Tour Step",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "save_on_complete",
+   "fieldtype": "Check",
+   "label": "Save on Completion"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "fetch_from": "reference_doctype.module",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Module",
+   "options": "Module Def",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "first_document",
+   "fieldtype": "Check",
+   "label": "Show First Document Tour"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.first_document",
+   "fieldname": "include_name_field",
+   "fieldtype": "Check",
+   "label": "Include Name Field"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-11-24 12:03:45.449311",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Form Tour",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

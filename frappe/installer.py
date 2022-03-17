@@ -1,9 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 import json
 import os
 import sys
+from collections import OrderedDict
+from typing import List, Dict
 
 import frappe
 from frappe.defaults import _clear_cache
@@ -12,8 +14,8 @@ from frappe.defaults import _clear_cache
 def _new_site(
 	db_name,
 	site,
-	mariadb_root_username=None,
-	mariadb_root_password=None,
+	db_root_username=None,
+	db_root_password=None,
 	admin_password=None,
 	verbose=False,
 	install_apps=None,
@@ -29,6 +31,10 @@ def _new_site(
 ):
 	"""Install a new Frappe site"""
 
+	from frappe.commands.scheduler import _is_scheduler_enabled
+	from frappe.utils import get_site_path, scheduler, touch_file
+
+
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
 		sys.exit(1)
@@ -37,14 +43,11 @@ def _new_site(
 		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
-	if not db_name:
-		import hashlib
-		db_name = "_" + hashlib.sha1(site.encode()).hexdigest()[:16]
-
 	frappe.init(site=site)
 
-	from frappe.commands.scheduler import _is_scheduler_enabled
-	from frappe.utils import get_site_path, scheduler, touch_file
+	if not db_name:
+		import hashlib
+		db_name = "_" + hashlib.sha1(os.path.realpath(frappe.get_site_path()).encode()).hexdigest()[:16]
 
 	try:
 		# enable scheduler post install?
@@ -57,8 +60,8 @@ def _new_site(
 	installing = touch_file(get_site_path("locks", "installing.lock"))
 
 	install_db(
-		root_login=mariadb_root_username,
-		root_password=mariadb_root_password,
+		root_login=db_root_username,
+		root_password=db_root_password,
 		db_name=db_name,
 		admin_password=admin_password,
 		verbose=verbose,
@@ -89,7 +92,7 @@ def _new_site(
 	print("*** Scheduler is", scheduler_status, "***")
 
 
-def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
+def install_db(root_login=None, root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 	import frappe.database
@@ -97,6 +100,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
+
+	if not root_login and db_type == 'mariadb':
+		root_login='root'
+	elif not root_login and db_type == 'postgres':
+		root_login='postgres'
 
 	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
@@ -151,13 +159,13 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	for before_install in app_hooks.before_install or []:
 		out = frappe.get_attr(before_install)()
-		if out==False:
+		if out is False:
 			return
 
 	if name != "frappe":
 		add_module_defs(name)
 
-	sync_for(name, force=True, sync_everything=True, verbose=verbose, reset_permissions=True)
+	sync_for(name, force=True, reset_permissions=True)
 
 	add_to_installed_apps(name)
 
@@ -181,7 +189,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
-	if not app_name in installed_apps:
+	if app_name not in installed_apps:
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
@@ -205,6 +213,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	import click
 
 	site = frappe.local.site
+	app_hooks = frappe.get_hooks(app_name=app_name)
 
 	# dont allow uninstall app if not installed unless forced
 	if not force:
@@ -229,9 +238,36 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		scheduled_backup(ignore_files=True)
 
 	frappe.flags.in_uninstall = True
-	drop_doctypes = []
+
+	for before_uninstall in app_hooks.before_uninstall or []:
+		frappe.get_attr(before_uninstall)()
 
 	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
+
+	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
+	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+
+	if not dry_run:
+		remove_from_installed_apps(app_name)
+		frappe.get_single('Installed Applications').update_versions()
+		frappe.db.commit()
+
+	for after_uninstall in app_hooks.after_uninstall or []:
+		frappe.get_attr(after_uninstall)()
+
+	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
+	frappe.flags.in_uninstall = False
+
+
+def _delete_modules(modules: List[str], dry_run: bool) -> List[str]:
+	""" Delete modules belonging to the app and all related doctypes.
+
+		Note: All record linked linked to Module Def are also deleted.
+
+		Returns: list of deleted doctypes."""
+	drop_doctypes = []
+
+	doctype_link_field_map = _get_module_linked_doctype_field_map()
 	for module_name in modules:
 		print(f"Deleting Module '{module_name}'")
 
@@ -241,51 +277,73 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			print(f"* removing DocType '{doctype.name}'...")
 
 			if not dry_run:
-				frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
-
-				if not doctype.issingle:
+				if doctype.issingle:
+					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
+				else:
 					drop_doctypes.append(doctype.name)
 
-		linked_doctypes = frappe.get_all(
-			"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent"]
-		)
-		ordered_doctypes = ["Workspace", "Report", "Page", "Web Form"]
-		all_doctypes_with_linked_modules = ordered_doctypes + [
-			doctype.parent
-			for doctype in linked_doctypes
-			if doctype.parent not in ordered_doctypes
-		]
-		doctypes_with_linked_modules = [
-			x for x in all_doctypes_with_linked_modules if frappe.db.exists("DocType", x)
-		]
-		for doctype in doctypes_with_linked_modules:
-			for record in frappe.get_all(doctype, filters={"module": module_name}, pluck="name"):
-				print(f"* removing {doctype} '{record}'...")
-				if not dry_run:
-					frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
+		_delete_linked_documents(module_name, doctype_link_field_map, dry_run=dry_run)
 
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True, force=True)
 
-	for doctype in set(drop_doctypes):
+	return drop_doctypes
+
+
+def _delete_linked_documents(
+		module_name: str,
+		doctype_linkfield_map: Dict[str, str],
+		dry_run: bool
+	) -> None:
+
+	"""Deleted all records linked with module def"""
+	for doctype, fieldname in doctype_linkfield_map.items():
+		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):
+			print(f"* removing {doctype} '{record}'...")
+			if not dry_run:
+				frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
+
+def _get_module_linked_doctype_field_map() -> Dict[str, str]:
+	""" Get all the doctypes which have module linked with them.
+
+		returns ordered dictionary with doctype->link field mapping."""
+
+	# Hardcoded to change order of deletion
+	ordered_doctypes = [
+			("Workspace", "module"),
+			("Report", "module"),
+			("Page", "module"),
+			("Web Form", "module")
+	]
+	doctype_to_field_map = OrderedDict(ordered_doctypes)
+
+	linked_doctypes = frappe.get_all(
+		"DocField", filters={"fieldtype": "Link", "options": "Module Def"}, fields=["parent", "fieldname"]
+	)
+	existing_linked_doctypes = [d for d in linked_doctypes if frappe.db.exists("DocType", d.parent)]
+
+	for d in existing_linked_doctypes:
+		# DocType deletion is handled separately in the end
+		if d.parent not in doctype_to_field_map and d.parent != "DocType":
+			doctype_to_field_map[d.parent] = d.fieldname
+
+	return doctype_to_field_map
+
+
+def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
+	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
-			frappe.db.sql_ddl(f"drop table `tab{doctype}`")
-
-	if not dry_run:
-		remove_from_installed_apps(app_name)
-		frappe.db.commit()
-
-	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
-	frappe.flags.in_uninstall = False
+			frappe.delete_doc("DocType", doctype, ignore_on_trash=True)
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
 
 
 def post_install(rebuild_website=False):
-	from frappe.website import render
+	from frappe.website.utils import clear_website_cache
 
 	if rebuild_website:
-		render.clear_cache()
+		clear_website_cache()
 
 	init_singles()
 	frappe.db.commit()
@@ -293,14 +351,15 @@ def post_install(rebuild_website=False):
 
 
 def set_all_patches_as_completed(app):
-	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")
-	if os.path.exists(patch_path):
-		for patch in frappe.get_file_items(patch_path):
-			frappe.get_doc({
-				"doctype": "Patch Log",
-				"patch": patch
-			}).insert(ignore_permissions=True)
-		frappe.db.commit()
+	from frappe.modules.patch_handler import get_patches_from_app
+
+	patches = get_patches_from_app(app)
+	for patch in patches:
+		frappe.get_doc({
+			"doctype": "Patch Log",
+			"patch": patch
+		}).insert(ignore_permissions=True)
+	frappe.db.commit()
 
 
 def init_singles():
@@ -390,19 +449,16 @@ def get_conf_params(db_name=None, db_password=None):
 
 
 def make_site_dirs():
-	site_public_path = os.path.join(frappe.local.site_path, 'public')
-	site_private_path = os.path.join(frappe.local.site_path, 'private')
-	for dir_path in (
-			os.path.join(site_private_path, 'backups'),
-			os.path.join(site_public_path, 'files'),
-			os.path.join(site_private_path, 'files'),
-			os.path.join(frappe.local.site_path, 'logs'),
-			os.path.join(frappe.local.site_path, 'task-logs')):
-		if not os.path.exists(dir_path):
-			os.makedirs(dir_path)
-	locks_dir = frappe.get_site_path('locks')
-	if not os.path.exists(locks_dir):
-			os.makedirs(locks_dir)
+	for dir_path in [
+		os.path.join("public", "files"),
+		os.path.join("private", "backups"),
+		os.path.join("private", "files"),
+		"error-snapshots",
+		"locks",
+		"logs",
+	]:
+		path = frappe.get_site_path(dir_path)
+		os.makedirs(path, exist_ok=True)
 
 
 def add_module_defs(app):
@@ -448,19 +504,41 @@ def extract_sql_from_archive(sql_file_path):
 	else:
 		decompressed_file_name = sql_file_path
 
+	# convert archive sql to latest compatible
+	convert_archive_content(decompressed_file_name)
+
 	return decompressed_file_name
+
+
+def convert_archive_content(sql_file_path):
+	if frappe.conf.db_type == "mariadb":
+		# ever since mariaDB 10.6, row_format COMPRESSED has been deprecated and removed
+		# this step is added to ease restoring sites depending on older mariaDB servers
+		from frappe.utils import random_string
+		from pathlib import Path
+
+		old_sql_file_path = Path(f"{sql_file_path}_{random_string(10)}")
+		sql_file_path = Path(sql_file_path)
+
+		os.rename(sql_file_path, old_sql_file_path)
+		sql_file_path.touch()
+
+		with open(old_sql_file_path) as r, open(sql_file_path, "a") as w:
+			for line in r:
+				w.write(line.replace("ROW_FORMAT=COMPRESSED", "ROW_FORMAT=DYNAMIC"))
+
+		old_sql_file_path.unlink()
 
 
 def extract_sql_gzip(sql_gz_path):
 	import subprocess
 
 	try:
-		# dvf - decompress, verbose, force
 		original_file = sql_gz_path
 		decompressed_file = original_file.rstrip(".gz")
-		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
+		cmd = 'gzip --decompress --force < {0} > {1}'.format(original_file, decompressed_file)
 		subprocess.check_call(cmd, shell=True)
-	except:
+	except Exception:
 		raise
 
 	return decompressed_file
@@ -533,14 +611,14 @@ def is_downgrade(sql_file_path, verbose=False):
 						downgrade = backup_version > current_version
 
 						if verbose and downgrade:
-							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+							print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
 
 						return downgrade
 
 
 def is_partial(sql_file_path):
 	with open(sql_file_path) as f:
-		header = " ".join([f.readline() for _ in range(5)])
+		header = " ".join(f.readline() for _ in range(5))
 		if "Partial Backup" in header:
 			return True
 	return False

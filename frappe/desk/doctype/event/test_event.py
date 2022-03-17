@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 """Use blog post test to test user permissions logic"""
 
 import frappe
@@ -16,7 +14,7 @@ test_records = frappe.get_test_records('Event')
 
 class TestEvent(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql('delete from tabEvent')
+		frappe.db.delete("Event")
 		make_test_objects('Event', reset=True)
 
 		self.test_records = frappe.get_test_records('Event')
@@ -95,7 +93,7 @@ class TestEvent(unittest.TestCase):
 
 		# Remove an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
-			"owner": self.test_user})
+			"allocated_to": self.test_user})
 		todo.status = "Cancelled"
 		todo.save()
 

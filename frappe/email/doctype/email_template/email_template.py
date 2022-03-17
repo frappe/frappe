@@ -1,11 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, json
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
-from six import string_types
 
 class EmailTemplate(Document):
 	def validate(self):
@@ -24,7 +22,7 @@ class EmailTemplate(Document):
 		return frappe.render_template(self.response, doc)
 
 	def get_formatted_email(self, doc):
-		if isinstance(doc, string_types):
+		if isinstance(doc, str):
 			doc = json.loads(doc)
 
 		return {
@@ -36,7 +34,7 @@ class EmailTemplate(Document):
 @frappe.whitelist()
 def get_email_template(template_name, doc):
 	'''Returns the processed HTML of a email template with the given doc'''
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = json.loads(doc)
 
 	email_template = frappe.get_doc("Email Template", template_name)

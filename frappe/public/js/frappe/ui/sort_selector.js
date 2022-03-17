@@ -1,4 +1,4 @@
-frappe.ui.SortSelector = Class.extend({
+frappe.ui.SortSelector = class SortSelector {
 	// parent:
 	// change:
 	// args:
@@ -7,18 +7,18 @@ frappe.ui.SortSelector = Class.extend({
 	//		sort_by_label:
 	//		sort_order:
 	//		doctype: (optional)
-	init: function(opts) {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.labels = {};
 		this.make();
-	},
-	make: function() {
+	}
+	make() {
 		this.prepare_args();
 		this.parent.find('.sort-selector').remove();
 		this.wrapper = $(frappe.render_template('sort_selector', this.args)).appendTo(this.parent);
 		this.bind_events();
-	},
-	bind_events: function() {
+	}
+	bind_events() {
 		var me = this;
 
 		// order
@@ -42,8 +42,8 @@ frappe.ui.SortSelector = Class.extend({
 			(me.onchange || me.change)(me.sort_by, me.sort_order);
 		});
 
-	},
-	prepare_args: function() {
+	}
+	prepare_args() {
 		var me = this;
 		if(!this.args) {
 			this.args = {};
@@ -87,8 +87,8 @@ frappe.ui.SortSelector = Class.extend({
 			});
 		}
 
-	},
-	setup_from_doctype: function() {
+	}
+	setup_from_doctype() {
 		var me = this;
 		var meta = frappe.get_meta(this.doctype);
 		if (!meta) return;
@@ -113,49 +113,51 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args.options) {
 			// default options
 			var _options = [
-				{'fieldname': 'modified'}
+				{'fieldname': 'modified'},
+				{'fieldname': 'name'},
+				{'fieldname': 'creation'},
+				{'fieldname': 'idx'},
 			]
 
 			// title field
-			if(meta.title_field) {
-				_options.push({'fieldname': meta.title_field});
+			if (meta.title_field) {
+				_options.splice(1, 0, {'fieldname': meta.title_field});
 			}
 
-			// bold or mandatory
+			// sort field - set via DocType schema or Customize Form
+			if (meta_sort_field) {
+				_options.splice(1, 0, { 'fieldname': meta_sort_field });
+			}
+
+			// bold, mandatory and fields that are available in list view
 			meta.fields.forEach(function(df) {
-				if(df.mandatory || df.bold) {
+				if (
+					(df.mandatory || df.bold || df.in_list_view)
+					&& frappe.model.is_value_type(df.fieldtype)
+					&& frappe.perm.has_perm(me.doctype, df.permlevel, "read")
+				) {
 					_options.push({fieldname: df.fieldname, label: df.label});
 				}
 			});
 
-			// meta sort field
-			if(meta_sort_field) _options.push({ 'fieldname': meta_sort_field });
-
-			// more default options
-			_options.push(
-				{'fieldname': 'name'},
-				{'fieldname': 'creation'},
-				{'fieldname': 'idx'}
-			)
-
-			// de-duplicate
-			this.args.options = _options.uniqBy(function(obj) {
-				return obj.fieldname;
+			// add missing labels
+			_options.forEach(option => {
+				if (!option.label) {
+					option.label = me.get_label(option.fieldname);
+				}
 			});
 
-			// add missing labels
-			this.args.options.forEach(function(o) {
-				if(!o.label) {
-					o.label = me.get_label(o.fieldname);
-				}
+			// de-duplicate
+			this.args.options = _options.uniqBy(obj => {
+				return obj.fieldname;
 			});
 		}
 
 		// set default
 		this.sort_by = this.args.sort_by;
 		this.sort_order = this.args.sort_order;
-	},
-	get_meta_sort_field: function() {
+	}
+	get_meta_sort_field() {
 		var meta = frappe.get_meta(this.doctype);
 
 		if (!meta) {
@@ -177,17 +179,17 @@ frappe.ui.SortSelector = Class.extend({
 				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : ''
 			}
 		}
-	},
-	get_label: function(fieldname) {
+	}
+	get_label(fieldname) {
 		if(fieldname==='idx') {
 			return __("Most Used");
 		} else {
 			return this.labels[fieldname]
 				|| frappe.meta.get_label(this.doctype, fieldname);
 		}
-	},
-	get_sql_string: function() {
+	}
+	get_sql_string() {
 		// build string like `tabTask`.`subject` desc
 		return '`tab' + this.doctype + '`.`' + this.sort_by + '` ' +  this.sort_order;
 	}
-})
+}

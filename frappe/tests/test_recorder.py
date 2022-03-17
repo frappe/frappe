@@ -1,14 +1,13 @@
 #  -*- coding: utf-8 -*-
 
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import unittest
 import frappe
 import frappe.recorder
 from frappe.utils import set_request
-from frappe.website.render import render_page
+from frappe.website.serve import get_response_content
 
 import sqlparse
 
@@ -122,5 +121,5 @@ class TestRecorder(unittest.TestCase):
 			self.assertEqual(call['exact_copies'], query[1])
 
 	def test_error_page_rendering(self):
-		content = render_page("error")
+		content = get_response_content("error")
 		self.assertIn("Error", content)

@@ -1,16 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe, json, os
 from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.password import update_password
-from werkzeug.useragents import UserAgent
 from . import install_fixtures
-from six import string_types
 
 def get_setup_stages(args):
 
@@ -57,9 +53,17 @@ def setup_complete(args):
 		return {'status': 'ok'}
 
 	args = parse_args(args)
-
 	stages = get_setup_stages(args)
+	is_background_task = frappe.conf.get('trigger_site_setup_in_background')
 
+	if is_background_task:
+		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True)
+		return {'status': 'registered'}
+	else:
+		return process_setup_stages(stages, args)
+
+@frappe.task()
+def process_setup_stages(stages, user_input, is_background_task=False):
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -71,11 +75,16 @@ def setup_complete(args):
 				current_task = task
 				task.get('fn')(task.get('args'))
 	except Exception:
-		handle_setup_exception(args)
-		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
+		handle_setup_exception(user_input)
+		if not is_background_task:
+			return {'status': 'fail', 'fail': current_task.get('fail_msg')}
+		frappe.publish_realtime('setup_task',
+			{'status': 'fail', "fail_msg": current_task.get('fail_msg')}, user=frappe.session.user)
 	else:
-		run_setup_success(args)
-		return {'status': 'ok'}
+		run_setup_success(user_input)
+		if not is_background_task:
+			return {'status': 'ok'}
+		frappe.publish_realtime('setup_task', {"status": 'ok'}, user=frappe.session.user)
 	finally:
 		frappe.flags.in_setup_wizard = False
 
@@ -124,6 +133,7 @@ def handle_setup_exception(args):
 	frappe.db.rollback()
 	if args:
 		traceback = frappe.get_traceback()
+		print(traceback)
 		for hook in frappe.get_hooks("setup_wizard_exception"):
 			frappe.get_attr(hook)(traceback, args)
 
@@ -140,7 +150,7 @@ def update_system_settings(args):
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
 		"country": args.get("country"),
-		"language": get_language_code(args.get("language")),
+		"language": get_language_code(args.get("language")) or 'en',
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
@@ -207,14 +217,14 @@ def update_user_name(args):
 def parse_args(args):
 	if not args:
 		args = frappe.local.form_dict
-	if isinstance(args, string_types):
+	if isinstance(args, str):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
 
 	# strip the whitespace
 	for key, value in args.items():
-		if isinstance(value, string_types):
+		if isinstance(value, str):
 			args[key] = strip(value)
 
 	return args
@@ -293,7 +303,7 @@ def reset_is_first_startup():
 def prettify_args(args):
 	# remove attachments
 	for key, val in args.items():
-		if isinstance(val, string_types) and "data:image" in val:
+		if isinstance(val, str) and "data:image" in val:
 			filename = val.split("data:image", 1)[0].strip(", ")
 			size = round((len(val) * 3 / 4) / 1048576.0, 2)
 			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)
@@ -304,17 +314,10 @@ def prettify_args(args):
 	return pretty_args
 
 def email_setup_wizard_exception(traceback, args):
-	if not frappe.local.conf.setup_wizard_exception_email:
+	if not frappe.conf.setup_wizard_exception_email:
 		return
 
 	pretty_args = prettify_args(args)
-
-	if frappe.local.request:
-		user_agent = UserAgent(frappe.local.request.headers.get('User-Agent', ''))
-
-	else:
-		user_agent = frappe._dict()
-
 	message = """
 
 #### Traceback
@@ -338,18 +341,15 @@ def email_setup_wizard_exception(traceback, args):
 #### Basic Information
 
 - **Site:** {site}
-- **User:** {user}
-- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
-- **Browser Languages**: `{accept_languages}`""".format(
+- **User:** {user}""".format(
 		site=frappe.local.site,
 		traceback=traceback,
 		args="\n".join(pretty_args),
 		user=frappe.session.user,
-		user_agent=user_agent,
-		headers=frappe.local.request.headers,
-		accept_languages=", ".join(frappe.local.request.accept_languages.values()))
+		headers=frappe.request.headers,
+	)
 
-	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
+	frappe.sendmail(recipients=frappe.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
 		subject="Setup failed: {}".format(frappe.local.site),
 		message=message,
@@ -377,7 +377,6 @@ def make_records(records, debug=False):
 
 	# LOG every success and failure
 	for record in records:
-
 		doctype = record.get("doctype")
 		condition = record.get('__condition')
 
@@ -394,6 +393,7 @@ def make_records(records, debug=False):
 
 		try:
 			doc.insert(ignore_permissions=True)
+			frappe.db.commit()
 
 		except frappe.DuplicateEntryError as e:
 			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
@@ -406,6 +406,7 @@ def make_records(records, debug=False):
 				raise
 
 		except Exception as e:
+			frappe.db.rollback()
 			exception = record.get('__exception')
 			if exception:
 				config = _dict(exception)

@@ -169,6 +169,15 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				frappe.file_manager.paste(this.current_folder)
 			)
 			.hide();
+
+		this.page.add_actions_menu_item(__('Export as zip'), () => {
+			let docnames = this.get_checked_items(true);
+			if (docnames.length) {
+				open_url_post('/api/method/frappe.core.doctype.file.file.zip_files', {
+					files: JSON.stringify(docnames)
+				});
+			}
+		});
 	}
 
 	set_fields() {
@@ -315,7 +324,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 						acc += "/" + curr;
 					}
 					return acc;
-				}, "/app/file");
+				}, "/app/file/view");
 
 				return `<a href="${route}">${folder}</a>`;
 			})
@@ -380,8 +389,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 		return `
 			<div class="list-row-col ellipsis list-subject level">
-				<input class="level-item list-row-checkbox hidden-xs"
-					type="checkbox" data-name="${file.name}">
+				<span class="level-item file-select">
+					<input class="list-row-checkbox hidden-xs"
+						type="checkbox" data-name="${file.name}">
+				</span>
 				<span class="level-item  ellipsis" title="${file.file_name}">
 					<a class="ellipsis" href="${route_url}" title="${file.file_name}">
 						${file.subject_html}

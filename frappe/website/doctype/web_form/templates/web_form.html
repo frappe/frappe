@@ -3,7 +3,7 @@
 {% block title %}{{ _(title) }}{% endblock %}
 
 {% block header %}
-<h2>{{ _(title) }}</h2>
+<h3>{{ _(title) }}</h3>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -29,8 +29,8 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	{% if is_list %}
 	{# web form list #}
 	<div class="web-form-wrapper" {{ container_attributes() }}></div>
-	<div id="list-filters" class="row"></div>
-	<div id="datatable" class="pt-4"></div>
+	<div id="list-filters" class="row mt-4"></div>
+	<div id="datatable" class="pt-4 overflow-auto"></div>
 	<div class="list-view-footer text-right"></div>
 	{% else %}
 	{# web form #}
@@ -38,7 +38,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 		<div id="introduction" class="text-muted"></div>
 		<hr>
 		<div class="web-form-wrapper" {{ container_attributes() }}></div>
-		<div class="web-form-footer pull-right"></div>
+		<div class="web-form-footer text-right"></div>
 	</div>
 
 	{% if show_attachments and not frappe.form_dict.new and attachments %}
@@ -62,7 +62,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	{% endif %} {# attachments #}
 
 	{% if allow_comments and not frappe.form_dict.new and not is_list -%}
-	<div class="comments">
+	<div class="comments mt-6">
 		<h3>{{ _("Comments") }}</h3>
 		{% include 'templates/includes/comments/comments.html' %}
 	</div>
@@ -78,7 +78,12 @@ frappe.boot = {
 	sysdefaults: {
 		float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
 		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
-	}
+	},
+	time_zone: {
+		system: "{{ frappe.utils.get_time_zone() }}",
+		user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
+	},
+	link_title_doctypes: `{{ frappe.call('frappe.boot.get_link_title_doctypes') }}`
 };
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;
@@ -87,24 +92,20 @@ $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
 </script>
-<script type="text/javascript" src="/assets/js/control.min.js"></script>
-{% if is_list %}
-{# web form list #}
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
-{% else %}
-{# web form #}
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
+{{ include_script("controls.bundle.js") }}
+{% if is_list %} <!-- web form list -->
+{{ include_script("dialog.bundle.js") }}
+{{ include_script("web_form.bundle.js") }}
+{{ include_script("bootstrap-4-web.bundle.js") }}
+{% else %} <!-- web form -->
+{{ include_script("dialog.bundle.js") }}
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 <script>
 	Vue.prototype.__ = window.__;
 	Vue.prototype.frappe = window.frappe;
 </script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+{{ include_script("web_form.bundle.js") }}
+{{ include_script("bootstrap-4-web.bundle.js") }}
 <script>
 
 {% if client_script %}
@@ -127,7 +128,7 @@ frappe.init_client_script = () => {
 
 {% block style %}
 {% if not is_list %}
-<link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
+{{ include_style('web_form.bundle.css') }}
 {% endif %}
 
 <style>

@@ -11,12 +11,14 @@
   "webhook_doctype",
   "cb_doc_events",
   "webhook_docevent",
+  "enabled",
   "sb_condition",
   "condition",
   "cb_condition",
   "html_condition",
   "sb_webhook",
   "request_url",
+  "request_method",
   "cb_webhook",
   "request_structure",
   "sb_security",
@@ -147,10 +149,24 @@
    "fieldname": "webhook_secret",
    "fieldtype": "Password",
    "label": "Webhook Secret"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "default": "POST",
+   "fieldname": "request_method",
+   "fieldtype": "Select",
+   "label": "Request Method",
+   "options": "POST\nPUT\nDELETE",
+   "reqd": 1
   }
  ],
  "links": [],
- "modified": "2020-01-13 01:53:04.459968",
+ "modified": "2021-05-25 11:11:28.555291",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

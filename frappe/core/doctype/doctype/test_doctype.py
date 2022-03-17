@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest
 from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError,
@@ -17,11 +15,16 @@ from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError,
 # test_records = frappe.get_test_records('DocType')
 
 class TestDocType(unittest.TestCase):
+
+	def tearDown(self):
+		frappe.db.rollback()
+
 	def test_validate_name(self):
 		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("Some (DocType)").insert)
-		for name in ("Some DocType", "Some_DocType"):
+		self.assertRaises(frappe.NameError, new_doctype("Some Doctype with a name whose length is more than 61 characters").insert)
+		for name in ("Some DocType", "Some_DocType", "Some-DocType"):
 			if frappe.db.exists("DocType", name):
 				frappe.delete_doc("DocType", name)
 
@@ -44,6 +47,7 @@ class TestDocType(unittest.TestCase):
 
 		doc1.insert()
 		self.assertRaises(frappe.UniqueValidationError, doc2.insert)
+		frappe.db.rollback()
 
 		dt.fields[0].unique = 0
 		dt.save()
@@ -92,7 +96,7 @@ class TestDocType(unittest.TestCase):
 			fields=["parent", "depends_on", "collapsible_depends_on", "mandatory_depends_on",\
 				"read_only_depends_on", "fieldname", "fieldtype"])
 
-		pattern = """[\w\.:_]+\s*={1}\s*[\w\.@'"]+"""
+		pattern = r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+'
 		for field in docfields:
 			for depends_on in ["depends_on", "collapsible_depends_on", "mandatory_depends_on", "read_only_depends_on"]:
 				condition = field.get(depends_on)
@@ -480,10 +484,44 @@ class TestDocType(unittest.TestCase):
 			'link_doctype': "User",
 			'link_fieldname': "a_field_that_does_not_exists"
 		})
+
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
+	def test_create_virtual_doctype(self):
+		"""Test virtual DOcTYpe."""
+		virtual_doc = new_doctype('Test Virtual Doctype')
+		virtual_doc.is_virtual = 1
+		virtual_doc.insert()
+		virtual_doc.save()
+		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
 
-def new_doctype(name, unique=0, depends_on='', fields=None):
+		self.assertEqual(doc.is_virtual, 1)
+		self.assertFalse(frappe.db.table_exists('Test Virtual Doctype'))
+
+	def test_default_fieldname(self):
+		fields = [{"label": "title", "fieldname": "title", "fieldtype": "Data", "default": "{some_fieldname}"}]
+		dt = new_doctype("DT with default field", fields=fields)
+		dt.insert()
+
+		dt.delete()
+
+	def test_autoincremented_doctype_transition(self):
+		frappe.delete_doc("testy_autoinc_dt")
+		dt = new_doctype("testy_autoinc_dt", autoincremented=True).insert(ignore_permissions=True)
+		dt.autoname = "hash"
+
+		try:
+			dt.save(ignore_permissions=True)
+		except frappe.ValidationError as e:
+			self.assertEqual(e.args[0], "Cannot change to/from Autoincrement naming rule")
+		else:
+			self.fail("Shouldnt be possible to transition autoincremented doctype to any other naming rule")
+		finally:
+			# cleanup
+			dt.delete(ignore_permissions=True)
+
+
+def new_doctype(name, unique=0, depends_on='', fields=None, autoincremented=False):
 	doc = frappe.get_doc({
 		"doctype": "DocType",
 		"module": "Core",
@@ -499,7 +537,8 @@ def new_doctype(name, unique=0, depends_on='', fields=None):
 			"role": "System Manager",
 			"read": 1,
 		}],
-		"name": name
+		"name": name,
+		"autoname": "autoincrement" if autoincremented else ""
 	})
 
 	if fields:

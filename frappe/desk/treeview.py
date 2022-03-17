@@ -1,9 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
+
 
 @frappe.whitelist()
 def get_all_nodes(doctype, label, parent, tree_method, **filters):
@@ -15,7 +15,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 	tree_method = frappe.get_attr(tree_method)
 
-	if not tree_method in frappe.whitelisted:
+	if tree_method not in frappe.whitelisted:
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	data = tree_method(doctype, parent, **filters)
@@ -37,19 +37,26 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 @frappe.whitelist()
 def get_children(doctype, parent='', **filters):
+	return _get_children(doctype, parent)
+
+def _get_children(doctype, parent='', ignore_permissions=False):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	filters=[['ifnull(`{0}`,"")'.format(parent_field), '=', parent],
-		['docstatus', '<' ,'2']]
+	filters = [["ifnull(`{0}`,'')".format(parent_field), '=', parent],
+		['docstatus', '<' ,2]]
 
-	doctype_meta = frappe.get_meta(doctype)
-	data = frappe.get_list(doctype, fields=[
-		'name as value',
-		'{0} as title'.format(doctype_meta.get('title_field') or 'name'),
-		'is_group as expandable'],
+	meta = frappe.get_meta(doctype)
+
+	return frappe.get_list(
+		doctype,
+		fields=[
+			'name as value',
+			'{0} as title'.format(meta.get('title_field') or 'name'),
+			'is_group as expandable'
+		],
 		filters=filters,
-		order_by='name')
-
-	return data
+		order_by='name',
+		ignore_permissions=ignore_permissions
+	)
 
 @frappe.whitelist()
 def add_node():
@@ -59,17 +66,15 @@ def add_node():
 	doc.save()
 
 def make_tree_args(**kwarg):
-	del kwarg['cmd']
+	kwarg.pop('cmd', None)
 
 	doctype = kwarg['doctype']
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	name_field = kwarg.get('name_field', doctype.lower().replace(' ', '_') + '_name')
 
 	if kwarg['is_root'] == 'false': kwarg['is_root'] = False
 	if kwarg['is_root'] == 'true': kwarg['is_root'] = True
 
 	kwarg.update({
-		name_field: kwarg[name_field],
 		parent_field: kwarg.get("parent") or kwarg.get(parent_field)
 	})
 

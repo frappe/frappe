@@ -32,7 +32,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	set_title() {
 		if (this.frm.is_new()) {
-			var title = __('New {0}', [this.frm.meta.name]);
+			var title = __('New {0}', [__(this.frm.meta.name)]);
 		} else if (this.frm.meta.title_field) {
 			let title_field = (this.frm.doc[this.frm.meta.title_field] || "").toString().trim();
 			var title = strip_html(title_field || this.frm.docname);
@@ -101,11 +101,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
 				doctype,
 				docname,
-				new_name,
-				title_field,
-				old_title: this.frm.doc[title_field],
-				new_title,
-				merge
+				name: new_name,
+				title: new_title,
+				merge,
+				freeze: true,
+				freeze_message: __("Updating related fields...")
 			}).then(new_docname => {
 				if (new_name != docname) {
 					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
@@ -174,6 +174,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				d.show();
 				d.set_primary_action(__("Rename"), (values) => {
 					d.disable_primary_action();
+					d.hide();
 					this.rename_document_title(values.name, values.title, values.merge)
 						.then(() => {
 							d.hide();
@@ -210,7 +211,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_viewers() {
-		if (this.frm.viewers) return;
+		if (this.frm.viewers) {
+			return;
+		}
 		this.frm.viewers = new frappe.ui.form.FormViewers({
 			frm: this.frm,
 			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.frm.page.page_actions)
@@ -275,12 +278,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}, true)
 		}
 
-		// copy
+		// duplicate
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.page.add_menu_item(__("Duplicate"), function() {
 				me.frm.copy_doc();
 			}, true);
 		}
+
+		// copy doc to clipboard
+		this.page.add_menu_item(__("Copy to Clipboard"), function() {
+			frappe.utils.copy_to_clipboard(JSON.stringify(me.frm.doc));
+		}, true);
 
 		// rename
 		if(this.can_rename()) {
@@ -538,13 +546,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	show_jump_to_field_dialog() {
 		let visible_fields_filter = f =>
-			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+			!['Section Break', 'Column Break', 'Tab Break'].includes(f.df.fieldtype)
 			&& !f.df.hidden
 			&& f.disp_status !== 'None';
 
 		let fields = this.frm.fields
 			.filter(visible_fields_filter)
-			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+			.map(f => ({ label: __(f.df.label), value: f.df.fieldname }));
 
 		let dialog = new frappe.ui.Dialog({
 			title: __('Jump to field'),

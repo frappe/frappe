@@ -1,3 +1,5 @@
+// TODO: Refactor for better UX
+
 frappe.provide("frappe.views");
 
 (function() {
@@ -148,18 +150,6 @@ frappe.provide("frappe.views");
 				}
 				updater.set({ cards: cards });
 			},
-			update_doc: function(updater, doc, card) {
-				var state = this;
-				return frappe.call({
-					method: method_prefix + "update_doc",
-					args: { doc: doc },
-					freeze: true
-				}).then(function(r) {
-					var updated_doc = r.message;
-					var updated_card = prepare_card(card, state, updated_doc);
-					fluxify.doAction('update_card', updated_card);
-				});
-			},
 			update_order_for_single_card: function(updater, card) {
 				// cache original order
 				const _cards = this.cards.slice();
@@ -178,14 +168,14 @@ frappe.provide("frappe.views");
 					method_name = "update_order_for_single_card";
 					args = {
 						board_name: this.board.name,
-						docname: unescape(card.name),
+						docname: card.name,
 						from_colname: card.from_colname,
 						to_colname: card.to_colname,
 						old_index: card.old_index,
 						new_index: card.new_index,
 					};
 				}
-
+				frappe.dom.freeze();
 				frappe.call({
 					method: method_prefix + method_name,
 					args: args,
@@ -198,6 +188,7 @@ frappe.provide("frappe.views");
 							cards: cards,
 							columns: columns
 						});
+						frappe.dom.unfreeze();
 					}
 				}).fail(function() {
 					// revert original order
@@ -205,6 +196,7 @@ frappe.provide("frappe.views");
 						cards: _cards,
 						columns: _columns
 					});
+					frappe.dom.unfreeze();
 				});
 			},
 			update_order: function(updater) {
@@ -218,7 +210,7 @@ frappe.provide("frappe.views");
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
 						$(this).find('.kanban-card-wrapper').each(function() {
-							var card_name = unescape($(this).data().name);
+							var card_name = decodeURIComponent($(this).data().name);
 							order[col_name].push(card_name);
 						});
 					});
@@ -301,11 +293,12 @@ frappe.provide("frappe.views");
 
 		function init() {
 			fluxify.doAction('init', opts);
-			store.on('change:columns', make_columns);
+			store.off('change:columns').on('change:columns', make_columns);
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
 			store.on('change:empty_state', show_empty_state);
+			fluxify.doAction('update_order');
 		}
 
 		function prepare() {
@@ -332,6 +325,7 @@ frappe.provide("frappe.views");
 
 		function bind_events() {
 			bind_add_column();
+			bind_clickdrag();
 		}
 
 		function setup_sortable() {
@@ -384,6 +378,45 @@ frappe.provide("frappe.views");
 				$(this).val('');
 				$compose_column.show();
 				$compose_column_form.hide();
+			});
+		}
+
+		function bind_clickdrag() {
+			let isDown = false;
+			let startX;
+			let scrollLeft;
+			let draggable = self.$kanban_board[0];
+
+			draggable.addEventListener('mousedown', (e) => {
+				// don't trigger scroll if one of the ancestors of the
+				// clicked element matches any of these selectors
+				let ignoreEl = [
+					'.kanban-column .kanban-column-header',
+					'.kanban-column .add-card',
+					'.kanban-column .kanban-card.new-card-area',
+					'.kanban-card-wrapper',
+				];
+				if (ignoreEl.some((el) => e.target.closest(el))) return;
+
+				isDown = true;
+				draggable.classList.add('clickdrag-active');
+				startX = e.pageX - draggable.offsetLeft;
+				scrollLeft = draggable.scrollLeft;
+			});
+			draggable.addEventListener('mouseleave', () => {
+				isDown = false;
+				draggable.classList.remove('clickdrag-active');
+			});
+			draggable.addEventListener('mouseup', () => {
+				isDown = false;
+				draggable.classList.remove('clickdrag-active');
+			});
+			draggable.addEventListener('mousemove', (e) => {
+				if (!isDown) return;
+				e.preventDefault();
+				const x = e.pageX - draggable.offsetLeft;
+				const walk = (x - startX);
+				draggable.scrollLeft = scrollLeft - walk;
 			});
 		}
 
@@ -462,7 +495,7 @@ frappe.provide("frappe.views");
 				'kanban_column', {
 					title: column.title,
 					doctype: store.getState().doctype,
-					indicator: column.indicator
+					indicator: frappe.scrub(column.indicator, '-')
 				})).appendTo(wrapper);
 			self.$kanban_cards = self.$kanban_column.find('.kanban-cards');
 		}
@@ -509,7 +542,7 @@ frappe.provide("frappe.views");
 					wrapper.find('.kanban-cards').height('auto');
 					// update order
 					const args = {
-						name: $(e.item).attr('data-name'),
+						name: decodeURIComponent($(e.item).attr('data-name')),
 						from_colname: $(e.from).parents('.kanban-column').attr('data-column-value'),
 						to_colname: $(e.to).parents('.kanban-column').attr('data-column-value'),
 						old_index: e.oldIndex,
@@ -576,13 +609,12 @@ frappe.provide("frappe.views");
 					}
 				});
 			get_column_indicators(function(indicators) {
-				var html = '<li class="button-group">';
-				html += indicators.reduce(function(prev, curr) {
-					return prev + '<div \
-						data-action="indicator" data-indicator="'+curr+'"\
-						class="btn btn-default btn-xs indicator-pill ' + curr + '"></div>';
-				}, "");
-				html += '</li>';
+				let html = `<li class="button-group">${
+					indicators.map(indicator => {
+						let classname = frappe.scrub(indicator, '-');
+						return `<div data-action="indicator" data-indicator="${indicator}" class="btn btn-default btn-xs indicator-pill ${classname}"></div>`
+					}).join('')
+				}</li>`;
 				self.$kanban_column.find(".column-options .dropdown-menu")
 					.append(html);
 			});
@@ -605,9 +637,10 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: remove_img_tags(card.title),
+				title: frappe.utils.html2text(card.title),
 				disable_click: card._disable_click ? 'disable-click' : '',
 				creation: card.creation,
+				image_url: cur_list.get_image_url(card),
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
@@ -705,6 +738,7 @@ frappe.provide("frappe.views");
 			title: card[state.card_meta.title_field.fieldname],
 			creation: moment(card.creation).format('MMM DD, YYYY'),
 			_liked_by: card._liked_by,
+			image: card[cur_list.meta.image_field],
 			tags: card._user_tags,
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,

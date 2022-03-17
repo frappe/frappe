@@ -4,7 +4,7 @@ import frappe
 
 
 def setup_database(force, source_sql=None, verbose=False):
-	root_conn = get_root_connection()
+	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(frappe.conf.db_name))
 	root_conn.sql("DROP USER IF EXISTS {0}".format(frappe.conf.db_name))
@@ -70,7 +70,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		print(f"\nSTDOUT by psql:\n{restore_proc.stdout.decode()}\nImported from Database File: {source_sql}")
 
 def setup_help_database(help_db_name):
-	root_conn = get_root_connection()
+	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(help_db_name))
 	root_conn.sql("DROP USER IF EXISTS {0}".format(help_db_name))
 	root_conn.sql("CREATE DATABASE `{0}`".format(help_db_name))
@@ -83,7 +83,6 @@ def get_root_connection(root_login=None, root_password=None):
 			root_login = frappe.conf.get("root_login") or None
 
 		if not root_login:
-			from six.moves import input
 			root_login = input("Enter postgres super user: ")
 
 		if not root_password:

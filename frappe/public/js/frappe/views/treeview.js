@@ -23,8 +23,8 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 	}
 }
 
-frappe.views.TreeView = Class.extend({
-	init: function(opts) {
+frappe.views.TreeView = class TreeView {
+	constructor(opts) {
 		var me = this;
 
 		this.opts = {};
@@ -48,15 +48,15 @@ frappe.views.TreeView = Class.extend({
 		this.onload();
 		this.set_menu_item();
 		this.set_primary_action();
-	},
-	get_permissions: function(){
+	}
+	get_permissions(){
 		this.can_read = frappe.model.can_read(this.doctype);
 		this.can_create = frappe.boot.user.can_create.indexOf(this.doctype) !== -1 ||
 					frappe.boot.user.in_create.indexOf(this.doctype) !== -1;
 		this.can_write = frappe.model.can_write(this.doctype);
 		this.can_delete = frappe.model.can_delete(this.doctype);
-	},
-	make_page: function() {
+	}
+	make_page() {
 		var me = this;
 		this.parent = frappe.container.add_page(this.page_name);
 		frappe.ui.make_app_page({parent:this.parent, single_column:true});
@@ -86,15 +86,15 @@ frappe.views.TreeView = Class.extend({
 		} else {
 			this.body = this.page.main;
 		}
-	},
-	set_title: function() {
+	}
+	set_title() {
 		this.page.set_title(this.opts.title || __('{0} Tree', [__(this.doctype)]));
-	},
-	onload: function() {
+	}
+	onload() {
 		var me = this;
 		this.opts.onload && this.opts.onload(me);
-	},
-	make_filters: function() {
+	}
+	make_filters() {
 		var me = this;
 		frappe.treeview_settings.filters = []
 		$.each(this.opts.filters || [], function(i, filter) {
@@ -123,8 +123,8 @@ frappe.views.TreeView = Class.extend({
 				$("[data-fieldname='"+filter.fieldname+"']").trigger("change");
 			}
 		});
-	},
-	get_root: function() {
+	}
+	get_root() {
 		var me = this;
 		frappe.call({
 			method: me.get_tree_nodes,
@@ -142,8 +142,8 @@ frappe.views.TreeView = Class.extend({
 				}
 			}
 		})
-	},
-	make_tree: function() {
+	}
+	make_tree() {
 		$(this.parent).find(".tree").remove();
 
 		var use_label = this.args[this.opts.root_label] || this.root_label || this.opts.root_label;
@@ -165,19 +165,37 @@ frappe.views.TreeView = Class.extend({
 
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
+			on_get_node: this.opts.on_get_node,
 			on_click: (node) => { this.select_node(node); },
 		});
 
 		cur_tree = this.tree;
 		this.post_render();
-	},
+	}
 
-	post_render: function() {
+	rebuild_tree() {
+		let me = this;
+
+		frappe.call({
+			"method": "frappe.utils.nestedset.rebuild_tree",
+			"args": {
+				'doctype': me.doctype,
+				'parent_field': "parent_"+me.doctype.toLowerCase().replace(/ /g, '_'),
+			},
+			"callback": function(r) {
+				if (!r.exc) {
+					me.make_tree();
+				}
+			}
+		});
+	}
+
+	post_render() {
 		var me = this;
 		me.opts.post_render && me.opts.post_render(me);
-	},
+	}
 
-	select_node: function(node) {
+	select_node(node) {
 		var me = this;
 		if(this.opts.click) {
 			this.opts.click(node);
@@ -187,8 +205,8 @@ frappe.views.TreeView = Class.extend({
 			$(frappe.render_template(me.opts.view_template,
 				{data:node.data, doctype:me.doctype})).appendTo(this.node_view);
 		}
-	},
-	get_toolbar: function() {
+	}
+	get_toolbar() {
 		var me = this;
 
 		var toolbar = [
@@ -224,6 +242,7 @@ frappe.views.TreeView = Class.extend({
 					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
 						node.$tree_link.find('a').text(new_name);
 						node.label = new_name;
+						me.tree.refresh();
 					});
 				},
 				btnClass: "hidden-xs"
@@ -250,8 +269,8 @@ frappe.views.TreeView = Class.extend({
 		} else {
 			return toolbar
 		}
-	},
-	new_node: function() {
+	}
+	new_node() {
 		var me = this;
 		var node = me.tree.get_selected_node();
 
@@ -299,10 +318,7 @@ frappe.views.TreeView = Class.extend({
 				args: args,
 				callback: function(r) {
 					if(!r.exc) {
-						if(node.expanded) {
-							me.tree.toggle_node(node);
-						}
-						me.tree.load_children(node, true);
+						me.tree.load_children(node);
 					}
 				},
 				always: function() {
@@ -311,8 +327,8 @@ frappe.views.TreeView = Class.extend({
 			});
 		});
 		d.show();
-	},
-	prepare_fields: function(){
+	}
+	prepare_fields(){
 		var me = this;
 
 		this.fields = [
@@ -327,7 +343,7 @@ frappe.views.TreeView = Class.extend({
 		this.ignore_fields = this.opts.ignore_fields || [];
 
 		var mandatory_fields = $.map(me.opts.meta.fields, function(d) {
-			return (d.reqd || d.bold && !d.read_only) ? d : null });
+			return (d.reqd || d.bold && !d.read_only && !!d.is_virtual) ? d : null });
 
 		var opts_field_names = this.fields.map(function(d) {
 			return d.fieldname
@@ -338,8 +354,8 @@ frappe.views.TreeView = Class.extend({
 				me.fields.push(d)
 			}
 		})
-	},
-	print_tree: function() {
+	}
+	print_tree() {
 		if(!frappe.model.can_print(this.doctype)) {
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
@@ -359,16 +375,16 @@ frappe.views.TreeView = Class.extend({
 				}
 			});
 		});
-	},
-	set_primary_action: function() {
+	}
+	set_primary_action() {
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
 			me.page.set_primary_action(__("New"), function() {
 				me.new_node();
 			}, "add");
 		}
-	},
-	set_menu_item: function(){
+	}
+	set_menu_item() {
 		var me = this;
 
 		this.menu_items = [
@@ -393,6 +409,19 @@ frappe.views.TreeView = Class.extend({
 			},
 		];
 
+		if (frappe.user.has_role('System Manager') &&
+			frappe.meta.has_field(me.doctype, "lft") &&
+			frappe.meta.has_field(me.doctype, "rgt")) {
+			this.menu_items.push(
+				{
+					label: __('Rebuild Tree'),
+					action: function() {
+						me.rebuild_tree();
+					}
+				}
+			);
+		}
+
 		if (me.opts.menu_items) {
 			me.menu_items.push.apply(me.menu_items, me.opts.menu_items)
 		}
@@ -408,7 +437,7 @@ frappe.views.TreeView = Class.extend({
 			}
 		});
 	}
-});
+};
 
 
 

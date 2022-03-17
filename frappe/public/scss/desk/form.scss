@@ -1,7 +1,10 @@
-.form-control {
-	border: none;
-	font-size: var(--text-md);
-	position: relative;
+@import "../common/form.scss";
+@import '~cropperjs/dist/cropper.min';
+
+.std-form-layout > .form-layout > .form-page {
+	border-radius: var(--border-radius-md);
+	box-shadow: var(--card-shadow);
+	background-color: var(--card-bg);
 }
 
 .form-section, .form-dashboard-section {
@@ -15,6 +18,7 @@
 
 	.section-head {
 		@extend .head-title;
+		font-size: var(--text-base);
 		width: 100%;
 		padding: var(--padding-sm) var(--padding-md);
 		margin: 0;
@@ -50,19 +54,22 @@
 
 .form-section.card-section,
 .form-dashboard-section {
-	margin-bottom: var(--margin-lg);
-	@extend .frappe-card;
+	border-bottom: 1px solid var(--border-color);
+	padding: var(--padding-xs);
 }
 
-.form-dashboard {
+.row.form-section.card-section.visible-section:last-child {
+	border-bottom: none;
+}
+
+.form-dashboard-section {
 	.section-body:first-child {
 		margin-top: 0;
 	}
-	.form-dashboard-section .section-body {
+	.section-body {
 		display: block;
-		padding-left: var(--padding-md);
-		padding-right: var(--padding-md);
-		padding-bottom: var(--padding-md);
+		padding: var(--padding-md);
+		padding-top: 0;
 	}
 }
 
@@ -82,31 +89,14 @@
 	text-align: right;
 }
 
-.form-control.bold {
-	font-weight: 500;
-}
-
-.like-disabled-input {
-	.for-description {
-		font-weight: normal;
-		font-size: var(--text-sm);
-	}
-	min-height: var(--input-height);
-	border-radius: $border-radius;
-	font-weight: 400;
-	padding: 8px 12px;
-	cursor: default;
-	color: var(--disabled-text-color);
-	background-color: var(--disabled-control-bg);
-}
-
 .form-control:disabled, .form-control[readonly] {
 	cursor: not-allowed;
 }
 
 .comment-box {
 	@include card();
-	padding: 25px var(--padding-xl);
+	margin-top: var(--margin-lg);
+	padding: var(--padding-lg);
 	.comment-input-header {
 		@extend .head-title;
 		margin-bottom: var(--margin-sm);
@@ -136,7 +126,7 @@
 		margin-bottom: var(--margin-sm);
 		font-weight: var(--text-bold);
 	}
-	.row:first-child {
+	.form-documents:first-of-type .row:first-child {
 		.form-link-title {
 			margin-top: 0;
 		}
@@ -324,6 +314,27 @@
 	}
 }
 
+.form-tabs-list {
+	padding-left: var(--padding-xs);
+	border-bottom: 1px solid var(--border-color);
+
+	.form-tabs {
+		.nav-item {
+			.nav-link {
+				color: var(--text-muted);
+				padding: var(--padding-md) 0;
+				margin: 0 var(--margin-md);
+
+				&.active {
+					font-weight: 600;
+					border-bottom: 1px solid var(--primary);
+					color: var(--text-color);
+				}
+			}
+		}
+	}
+}
+
 .progress-area {
 	padding-top: var(--padding-md);
 	padding-bottom: var(--padding-md);
@@ -377,7 +388,4 @@
 	.form-column:not(:first-child) {
 		padding-top: var(--padding-md);
 	}
-
-
-
 }

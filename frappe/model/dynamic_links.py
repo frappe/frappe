@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 
 # select doctypes that are accessed by the user (not read_only) first, so that the
@@ -33,7 +32,7 @@ def get_dynamic_link_map(for_delete=False):
 
 	Note: Will not map single doctypes
 	'''
-	if getattr(frappe.local, 'dynamic_link_map', None)==None or frappe.flags.in_test:
+	if getattr(frappe.local, 'dynamic_link_map', None) is None or frappe.flags.in_test:
 		# Build from scratch
 		dynamic_link_map = {}
 		for df in get_dynamic_links():

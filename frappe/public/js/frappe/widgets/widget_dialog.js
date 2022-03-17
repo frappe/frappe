@@ -9,6 +9,7 @@ class WidgetDialog {
 		this.setup_dialog_events();
 		this.dialog.show();
 
+		window.cur_dialog = this.dialog;
 		this.editing && this.set_default_values();
 	}
 
@@ -119,6 +120,139 @@ class ChartDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
+		data.label = data.label ? data.label : data.chart_name;
+		return data;
+	}
+}
+
+class OnboardingDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "onboarding_name",
+				label: "Onboarding Name",
+				options: "Module Onboarding",
+				reqd: 1,
+			}
+		];
+	}
+}
+
+class CardDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		let me = this;
+		return [
+			{
+				fieldtype: "Data",
+				fieldname: "label",
+				label: "Label"
+			},
+			{
+				fieldname: 'links',
+				fieldtype: 'Table',
+				label: __('Card Links'),
+				editable_grid: 1,
+				data: me.values ? JSON.parse(me.values.links) : [],
+				get_data: () => {
+					return me.values ? JSON.parse(me.values.links) : [];
+				},
+				fields: [
+					{
+						fieldname: "label",
+						fieldtype: "Data",
+						in_list_view: 1,
+						label: "Label"
+					},
+					{
+						fieldname: "icon",
+						fieldtype: "Icon",
+						label: "Icon"
+					},
+					{
+						fieldname: "link_type",
+						fieldtype: "Select",
+						in_list_view: 1,
+						label: "Link Type",
+						reqd: 1,
+						options: ["DocType", "Page", "Report"]
+					},
+					{
+						fieldname: "link_to",
+						fieldtype: "Dynamic Link",
+						in_list_view: 1,
+						label: "Link To",
+						reqd: 1,
+						get_options: (df) => {
+							return df.doc.link_type;
+						}
+					},
+					{
+						fieldname: "column_break_7",
+						fieldtype: "Column Break"
+					},
+					{
+						fieldname: "dependencies",
+						fieldtype: "Data",
+						label: "Dependencies"
+					},
+					{
+						fieldname: "only_for",
+						fieldtype: "Link",
+						label: "Only for ",
+						options: "Country"
+					},
+					{
+						default: "0",
+						fieldname: "onboard",
+						fieldtype: "Check",
+						label: "Onboard"
+					},
+					{
+						default: "0",
+						fieldname: "is_query_report",
+						fieldtype: "Check",
+						label: "Is Query Report"
+					}
+				],
+			},
+		];
+	}
+
+	process_data(data) {
+		data.links.map((item, idx) => {
+			let message = '';
+			let row = idx+1;
+
+			if (!item.link_type) {
+				message = "Following fields have missing values: <br><br><ul>";
+				message += `<li>Link Type in Row ${row}</li>`;
+			}
+
+			if (!item.link_to) {
+				message += `<li>Link To in Row ${row}</li>`;
+			}
+
+			if (message) {
+				message += "</ul>";
+				frappe.throw({
+					message: __(message),
+					title: __("Missing Values Required"),
+					indicator: 'orange'
+				});
+			}
+
+			item.label = item.label ? item.label : item.link_to;
+		});
+
 		data.label = data.label ? data.label : data.chart_name;
 		return data;
 	}
@@ -237,9 +371,20 @@ class ShortcutDialog extends WidgetDialog {
 				hidden: 1,
 			},
 			{
-				fieldtype: "Color",
+				fieldtype: "Select",
 				fieldname: "color",
 				label: __("Color"),
+				options: ["Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan"],
+				default: "Grey",
+				input_class: "color-select",
+				onchange: () => {
+					let color = this.dialog.fields_dict.color.value.toLowerCase();
+					let $select = this.dialog.fields_dict.color.$input;
+					if (!$select.parent().find('.color-box').get(0)) {
+						$(`<div class="color-box"></div>`).insertBefore($select.get(0));
+					}
+					$select.parent().find('.color-box').get(0).style.backgroundColor = `var(--text-on-${color})`;
+				}
 			},
 			{
 				fieldtype: "Column Break",
@@ -261,18 +406,19 @@ class ShortcutDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-		let stats_filter = {};
 
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
+			let stats_filter = null;
 
 			if (filters.length) {
+				stats_filter = {};
 				filters.forEach((arr) => {
 					stats_filter[arr[1]] = [arr[2], arr[3]];
 				});
-
-				data.stats_filter = JSON.stringify(stats_filter);
+				stats_filter = JSON.stringify(stats_filter);
 			}
+			data.stats_filter = stats_filter;
 		}
 
 		data.label = data.label
@@ -384,7 +530,7 @@ class NumberCardDialog extends WidgetDialog {
 
 	setup_dialog_events() {
 		if (!this.document_type) {
-			if (this.default_values['doctype']) {
+			if (this.default_values && this.default_values['doctype']) {
 				this.document_type = this.default_values['doctype'];
 				this.setup_filter(this.default_values['doctype']);
 				this.set_aggregate_function_fields();
@@ -396,7 +542,7 @@ class NumberCardDialog extends WidgetDialog {
 
 	set_aggregate_function_fields() {
 		let aggregate_function_fields = [];
-		if (this.document_type) {
+		if (this.document_type && frappe.get_meta(this.document_type)) {
 			frappe.get_meta(this.document_type).fields.map(df => {
 				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
 					if (df.fieldtype == 'Currency') {
@@ -415,7 +561,7 @@ class NumberCardDialog extends WidgetDialog {
 		if (data.new_or_existing == 'Existing Card') {
 			data.name = data.card;
 		}
-		data.stats_filter = JSON.stringify(this.filter_group.get_filters());
+		data.stats_filter = this.filter_group && JSON.stringify(this.filter_group.get_filters());
 		data.document_type = this.document_type;
 
 		return data;
@@ -427,6 +573,8 @@ export default function get_dialog_constructor(type) {
 		chart: ChartDialog,
 		shortcut: ShortcutDialog,
 		number_card: NumberCardDialog,
+		links: CardDialog,
+		onboarding: OnboardingDialog
 	};
 
 	return widget_map[type] || WidgetDialog;

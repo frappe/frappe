@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import unittest
 import frappe
 from frappe.core.doctype.data_import.importer import Importer
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils import getdate, format_duration
 
 doctype_name = 'DocType for Import'
@@ -13,7 +12,7 @@ doctype_name = 'DocType for Import'
 class TestImporter(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		create_doctype_if_not_exists(doctype_name)
+		create_doctype_if_not_exists(doctype_name,)
 
 	def test_data_import_from_file(self):
 		import_file = get_import_file('sample_import_file')
@@ -56,21 +55,27 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(len(preview.data), 4)
 		self.assertEqual(len(preview.columns), 16)
 
+	# ignored on postgres because myisam doesn't exist on pg
+	@run_only_if(db_type_is.MARIADB)
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file('sample_import_file_without_mandatory')
 		data_import = self.get_importer(doctype_name, import_file)
+		frappe.local.message_log = []
 		data_import.start_import()
 		data_import.reload()
-		warnings = frappe.parse_json(data_import.template_warnings)
 
-		self.assertEqual(warnings[0]['row'], 2)
-		self.assertEqual(warnings[0]['message'], "<b>Child Title (Table Field 1)</b> is a mandatory field")
+		import_log = frappe.db.get_all("Data Import Log", fields=["row_indexes", "success", "messages", "exception", "docname"],
+			filters={"data_import": data_import.name},
+			order_by="log_index")
 
-		self.assertEqual(warnings[1]['row'], 3)
-		self.assertEqual(warnings[1]['message'], "<b>Child Title (Table Field 1 Again)</b> is a mandatory field")
+		self.assertEqual(frappe.parse_json(import_log[0]['row_indexes']), [2,3])
+		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #1: Value missing for: Child Title"
+		self.assertEqual(frappe.parse_json(frappe.parse_json(import_log[0]['messages'])[0])['message'], expected_error)
+		expected_error = "Error: <strong>Child 1 of DocType for Import</strong> Row #2: Value missing for: Child Title"
+		self.assertEqual(frappe.parse_json(frappe.parse_json(import_log[0]['messages'])[1])['message'], expected_error)
 
-		self.assertEqual(warnings[2]['row'], 4)
-		self.assertEqual(warnings[2]['message'], "<b>Title</b> is a mandatory field")
+		self.assertEqual(frappe.parse_json(import_log[1]['row_indexes']), [4])
+		self.assertEqual(frappe.parse_json(frappe.parse_json(import_log[1]['messages'])[0])['message'], "Title is required")
 
 	def test_data_import_update(self):
 		existing_doc = frappe.get_doc(
@@ -104,6 +109,8 @@ class TestImporter(unittest.TestCase):
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url
 		data_import.insert()
+		# Commit so that the first import failure does not rollback the Data Import insert.
+		frappe.db.commit()
 
 		return data_import
 

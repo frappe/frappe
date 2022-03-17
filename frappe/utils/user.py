@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe, json
 from frappe import _dict
@@ -10,6 +8,8 @@ from frappe.utils import cint
 from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Concat_ws
 
 class UserPermissions:
 	"""
@@ -79,7 +79,7 @@ class UserPermissions:
 		for r in get_valid_perms():
 			dt = r['parent']
 
-			if not dt in self.perm_map:
+			if dt not in self.perm_map:
 				self.perm_map[dt] = {}
 
 			for k in frappe.permissions.rights:
@@ -210,8 +210,13 @@ class UserPermissions:
 		return get_allowed_reports()
 
 def get_user_fullname(user):
-	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
-	return fullname and fullname[0][0] or ''
+	user_doctype = DocType("User")
+	fullname = frappe.get_value(
+		user_doctype,
+		filters={"name": user},
+		fieldname=Concat_ws(" ", user_doctype.first_name, user_doctype.last_name),
+	)
+	return fullname or ''
 
 def get_fullname_and_avatar(user):
 	first_name, last_name, avatar, name = frappe.db.get_value("User",
@@ -225,7 +230,6 @@ def get_fullname_and_avatar(user):
 def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils
-	from frappe.core.doctype.user.user import STANDARD_USERS
 	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
 		CONCAT_WS(' ',
 			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name` END,
@@ -240,8 +244,8 @@ def get_system_managers(only_name=False):
 				FROM `tabHas Role` AS ur
 				WHERE ur.parent = p.name
 				AND ur.role='System Manager')
-		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(STANDARD_USERS))),
-			STANDARD_USERS, as_dict=True)
+		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(frappe.STANDARD_USERS))),
+			frappe.STANDARD_USERS, as_dict=True)
 
 	if only_name:
 		return [p.name for p in system_managers]

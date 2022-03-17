@@ -55,18 +55,39 @@ context('Depends On', () => {
 						'read_only_depends_on': "eval:doc.test_field=='Some Other Value'",
 						'options': "Child Test Depends On"
 					},
+					{
+						"label": "Dependent Tab",
+						"fieldname": "dependent_tab",
+						"fieldtype": "Tab Break",
+						"depends_on": "eval:doc.test_field=='Show Tab'"
+					},
+					{
+						"fieldname": "tab_section",
+						"fieldtype": "Section Break",
+					},
+					{
+						"label": "Field in Tab",
+						"fieldname": "field_in_tab",
+						"fieldtype": "Data",
+					}
 				]
 			});
 		});
 	});
+	it('should show the tab on other setting field value', () => {
+		cy.new_form('Test Depends On');
+		cy.fill_field('test_field', 'Show Tab');
+		cy.get('body').click();
+		cy.findByRole("tab", {name: "Dependent Tab"}).should('be.visible');
+	});
 	it('should set the field as mandatory depending on other fields value', () => {
 		cy.new_form('Test Depends On');
 		cy.fill_field('test_field', 'Some Value');
-		cy.get('button.primary-action').contains('Save').click();
+		cy.findByRole('button', {name: 'Save'}).click();
 		cy.get('.msgprint-dialog .modal-title').contains('Missing Fields').should('be.visible');
 		cy.hide_dialog();
 		cy.fill_field('test_field', 'Random value');
-		cy.get('button.primary-action').contains('Save').click();
+		cy.findByRole('button', {name: 'Save'}).click();
 		cy.get('.msgprint-dialog .modal-title').contains('Missing Fields').should('not.be.visible');
 	});
 	it('should set the field as read only depending on other fields value', () => {
@@ -84,7 +105,7 @@ context('Depends On', () => {
 		cy.fill_field('dependant_field', 'Some Value');
 		//cy.fill_field('test_field', 'Some Other Value');
 		cy.get('.frappe-control[data-fieldname="child_test_depends_on_field"]').as('table');
-		cy.get('@table').find('button.grid-add-row').click();
+		cy.get('@table').findByRole('button', {name: 'Add Row'}).click();
 		cy.get('@table').find('[data-idx="1"]').as('row1');
 		cy.get('@row1').find('.btn-open-row').click();
 		cy.get('@row1').find('.form-in-grid').as('row1-form_in_grid');

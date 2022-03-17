@@ -1,12 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
-import frappe
-from frappe.utils import cint
-from frappe import _
-from six import string_types
+# License: MIT. See LICENSE
 import json
+
+import frappe
+from frappe import _
+from frappe.utils import cint
+from frappe.model.docstatus import DocStatus
 
 class WorkflowStateError(frappe.ValidationError): pass
 class WorkflowTransitionError(frappe.ValidationError): pass
@@ -104,13 +103,13 @@ def apply_workflow(doc, action):
 		doc.set(next_state.update_field, next_state.update_value)
 
 	new_docstatus = cint(next_state.doc_status)
-	if doc.docstatus == 0 and new_docstatus == 0:
+	if doc.docstatus.is_draft() and new_docstatus == DocStatus.draft():
 		doc.save()
-	elif doc.docstatus == 0 and new_docstatus == 1:
+	elif doc.docstatus.is_draft() and new_docstatus == DocStatus.submitted():
 		doc.submit()
-	elif doc.docstatus == 1 and new_docstatus == 1:
+	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.submitted():
 		doc.save()
-	elif doc.docstatus == 1 and new_docstatus == 2:
+	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.cancelled():
 		doc.cancel()
 	else:
 		frappe.throw(_('Illegal Document Status for {0}').format(next_state.state))
@@ -214,10 +213,10 @@ def bulk_workflow_approval(docnames, doctype, action):
 			frappe.db.commit()
 		except Exception as e:
 			if not frappe.message_log:
-				# Exception is  raised manually and not from msgprint or throw
+				# Exception is	raised manually and not from msgprint or throw
 				message = "{0}".format(e.__class__.__name__)
 				if e.args:
-					message +=  " : {0}".format(e.args[0])
+					message += " : {0}".format(e.args[0])
 				message_dict = {"docname": docname, "message": message}
 				failed_transactions[docname].append(message_dict)
 
@@ -268,7 +267,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
 	common_actions = []
-	if isinstance(docs, string_types):
+	if isinstance(docs, str):
 		docs = json.loads(docs)
 	try:
 		for (i, doc) in enumerate(docs, 1):

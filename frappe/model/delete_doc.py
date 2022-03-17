@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import os
-from six import string_types, integer_types
 import shutil
 
 import frappe
@@ -12,18 +10,18 @@ import frappe.model.meta
 from frappe import _
 from frappe import get_module_path
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.core.doctype.file.file import remove_all
+from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
-from frappe.exceptions import FileNotFoundError
+
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
 	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False,
+	flags=None, ignore_on_trash=False, ignore_missing=True, delete_permanently=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -35,7 +33,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		name = frappe.form_dict.get('dn')
 
 	names = name
-	if isinstance(name, string_types) or isinstance(name, integer_types):
+	if isinstance(name, str) or isinstance(name, int):
 		names = [name]
 
 	for name in names or []:
@@ -67,12 +65,12 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 
-				frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
-				frappe.db.sql("delete from `tabClient Script` where dt = %s", name)
-				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
-				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
-				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)
-				frappe.db.sql("delete from `__global_search` where doctype=%s", name)
+				frappe.db.delete("Custom Field", {"dt": name})
+				frappe.db.delete("Client Script", {"dt": name})
+				frappe.db.delete("Property Setter", {"doc_type": name})
+				frappe.db.delete("Report", {"ref_doctype": name})
+				frappe.db.delete("Custom DocPerm", {"parent": name})
+				frappe.db.delete("__global_search", {"doctype": name})
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
@@ -110,23 +108,29 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			doc.run_method("after_delete")
 
 			# delete attachments
-			remove_all(doctype, name, from_delete=True)
+			remove_all(doctype, name, from_delete=True, delete_permanently=delete_permanently)
 
 			if not for_reload:
 				# Enqueued at the end, because it gets committed
 				# All the linked docs should be checked beforehand
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
 					doctype=doc.doctype, name=doc.name,
-					is_async=False if frappe.flags.in_test else True)
+					now=frappe.flags.in_test)
 
-
+		# clear cache for Document
+		doc.clear_cache()
 		# delete global search entry
 		delete_for_document(doc)
 		# delete tag link entry
 		delete_tags_for_document(doc)
 
-		if doc and not for_reload:
+		if for_reload:
+			delete_permanently = True
+
+		if not delete_permanently:
 			add_to_deleted_document(doc)
+
+		if doc and not for_reload:
 			if not frappe.flags.in_patch:
 				try:
 					doc.notify_update()
@@ -152,17 +156,16 @@ def update_naming_series(doc):
 	if doc.meta.autoname:
 		if doc.meta.autoname.startswith("naming_series:") \
 			and getattr(doc, "naming_series", None):
-			revert_series_if_last(doc.naming_series, doc.name)
+			revert_series_if_last(doc.naming_series, doc.name, doc)
 
-		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash"):
-			revert_series_if_last(doc.meta.autoname, doc.name)
+		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash", "autoincrement"):
+			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
-		frappe.db.sql("delete from `tabSingles` where `doctype`=%s", name)
+		frappe.db.delete("Singles", {"doctype": name})
 	else:
-		frappe.db.sql("delete from `tab{0}` where `name`=%s".format(doctype), name)
-
+		frappe.db.delete(doctype, {"name": name})
 	# get child tables
 	if doc:
 		tables = [d.options for d in doc.meta.get_table_fields()]
@@ -188,7 +191,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 	# delete from child tables
 	for t in list(set(tables)):
 		if t not in ignore_doctypes:
-			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (doctype, name))
+			frappe.db.delete(t, {"parenttype": doctype, "parent": name})
 
 def update_flags(doc, flags=None, ignore_permissions=False):
 	if ignore_permissions:
@@ -209,7 +212,7 @@ def check_permission_and_not_submitted(doc):
 			.format(doc.doctype, doc.name), raise_exception=frappe.PermissionError)
 
 	# check if submitted
-	if doc.docstatus == 1:
+	if doc.docstatus.is_submitted():
 		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(_(doc.doctype), doc.name, "<a href='https://docs.erpnext.com//docs/user/manual/en/setting-up/articles/delete-submitted-document' target='_blank'>", "</a>"),
 			raise_exception=True)
 
@@ -219,32 +222,35 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	"""
 	from frappe.model.rename_doc import get_link_fields
 	link_fields = get_link_fields(doc.doctype)
-	link_fields = [[lf['parent'], lf['fieldname'], lf['issingle']] for lf in link_fields]
+	ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
 
-	for link_dt, link_field, issingle in link_fields:
+	for lf in link_fields:
+		link_dt, link_field, issingle = lf['parent'], lf['fieldname'], lf['issingle']
+
 		if not issingle:
-			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
-				["name", "parent", "parenttype", "docstatus"], as_dict=True):
-				linked_doctype = item.parenttype if item.parent else link_dt
+			fields = ["name", "docstatus"]
+			if frappe.get_meta(link_dt).istable:
+				fields.extend(["parent", "parenttype"])
 
-				ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+			for item in frappe.db.get_values(link_dt, {link_field:doc.name}, fields , as_dict=True):
+				# available only in child table cases
+				item_parent = getattr(item, "parent", None)
+				linked_doctype = item.parenttype if item_parent else link_dt
 
 				if linked_doctype in doctypes_to_skip or (linked_doctype in ignore_linked_doctypes and method == 'Cancel'):
 					# don't check for communication and todo!
 					continue
 
-				if not item:
-					continue
-				elif method != "Delete"  and (method != "Cancel" or item.docstatus != 1):
+				if method != "Delete" and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
-				elif link_dt == doc.doctype and (item.parent or item.name) == doc.name:
+				elif link_dt == doc.doctype and (item_parent or item.name) == doc.name:
 					# don't raise exception if not
 					# linked to same item or doc having same name as the item
 					continue
 				else:
-					reference_docname = item.parent or item.name
+					reference_docname = item_parent or item.name
 					raise_link_exists_exception(doc, linked_doctype, reference_docname)
 
 		else:
@@ -321,9 +327,10 @@ def delete_dynamic_links(doctype, name):
 
 def delete_references(doctype, reference_doctype, reference_name,
 		reference_doctype_field = 'reference_doctype', reference_name_field = 'reference_name'):
-	frappe.db.sql('''delete from `tab{0}`
-		where {1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field), # nosec
-		(reference_doctype, reference_name))
+	frappe.db.delete(doctype, {
+		reference_doctype_field: reference_doctype,
+		reference_name_field: reference_name
+	})
 
 def clear_references(doctype, reference_doctype, reference_name,
 		reference_doctype_field = 'reference_doctype', reference_name_field = 'reference_name'):
@@ -336,8 +343,10 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""DELETE FROM `tabCommunication Link`
-		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
+	frappe.db.delete("Communication Link", {
+		"link_doctype": link_doctype,
+		"link_name": link_name
+	})
 
 def insert_feed(doc):
 	if (

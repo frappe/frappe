@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import cint
+
 
 class BulkUpdate(Document):
 	pass
@@ -23,7 +23,7 @@ def update(doctype, field, value, condition='', limit=500):
 		frappe.throw(_('; not allowed in condition'))
 
 	docnames = frappe.db.sql_list(
-		'''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype, condition, limit)
+		'''select name from `tab{0}`{1} limit {2} offset 0'''.format(doctype, condition, limit)
 	)
 	data = {}
 	data[field] = value
@@ -42,13 +42,13 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 		doc = frappe.get_doc(doctype, d)
 		try:
 			message = ''
-			if action == 'submit' and doc.docstatus==0:
+			if action == 'submit' and doc.docstatus.is_draft():
 				doc.submit()
 				message = _('Submiting {0}').format(doctype)
-			elif action == 'cancel' and doc.docstatus==1:
+			elif action == 'cancel' and doc.docstatus.is_submitted():
 				doc.cancel()
 				message = _('Cancelling {0}').format(doctype)
-			elif action == 'update' and doc.docstatus < 2:
+			elif action == 'update' and not doc.docstatus.is_cancelled():
 				doc.update(data)
 				doc.save()
 				message = _('Updating {0}').format(doctype)

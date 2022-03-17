@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import unittest
 import frappe
 
@@ -13,7 +11,7 @@ class TestTokenCache(unittest.TestCase):
 	def setUp(self):
 		self.token_cache = frappe.get_last_doc('Token Cache')
 		self.token_cache.update({'connected_app': frappe.get_last_doc('Connected App').name})
-		self.token_cache.save()
+		self.token_cache.save(ignore_permissions=True)
 
 	def test_get_auth_header(self):
 		self.token_cache.get_auth_header()

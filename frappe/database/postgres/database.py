@@ -1,21 +1,21 @@
-from __future__ import unicode_literals
-
 import re
-import frappe
+from typing import List, Tuple, Union
+
 import psycopg2
 import psycopg2.extensions
-from six import string_types
-from frappe.utils import cstr
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
+from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
 
+import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
+from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
-    psycopg2.extensions.DECIMAL.values,
-    'DEC2FLOAT',
-    lambda value, curs: float(value) if value is not None else None)
+	psycopg2.extensions.DECIMAL.values,
+	'DEC2FLOAT',
+	lambda value, curs: float(value) if value is not None else None)
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
@@ -32,11 +32,11 @@ class PostgresDatabase(Database):
 	def setup_type_map(self):
 		self.db_type = 'postgres'
 		self.type_map = {
-			'Currency':		('decimal', '18,6'),
+			'Currency':		('decimal', '21,9'),
 			'Int':			('bigint', None),
 			'Long Int':		('bigint', None),
-			'Float':		('decimal', '18,6'),
-			'Percent':		('decimal', '18,6'),
+			'Float':		('decimal', '21,9'),
+			'Percent':		('decimal', '21,9'),
 			'Check':		('smallint', None),
 			'Small Text':	('text', ''),
 			'Long Text':	('text', ''),
@@ -53,7 +53,7 @@ class PostgresDatabase(Database):
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
 			'Password':		('text', ''),
 			'Select':		('varchar', self.VARCHAR_LEN),
-			'Rating':		('smallint', None),
+			'Rating':		('decimal', '3,2'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
 			'Attach':		('text', ''),
 			'Attach Image':	('text', ''),
@@ -61,22 +61,29 @@ class PostgresDatabase(Database):
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
 			'Geolocation':	('text', ''),
-			'Duration':		('decimal', '18,6')
+			'Duration':		('decimal', '21,9'),
+			'Icon':			('varchar', self.VARCHAR_LEN),
+			'Autocomplete': ('varchar', self.VARCHAR_LEN),
 		}
 
 	def get_connection(self):
-		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
 		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
-		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
+		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
 
 	def escape(self, s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
+
+		# MariaDB's driver treats None as an empty string
+		# So Postgres should do the same
+
+		if s is None:
+			s = ''
 
 		if percent:
 			s = s.replace("%", "%%")
@@ -92,18 +99,15 @@ class PostgresDatabase(Database):
 		return db_size[0].get('database_size')
 
 	# pylint: disable=W0221
-	def sql(self, *args, **kwargs):
-		if args:
-			# since tuple is immutable
-			args = list(args)
-			args[0] = modify_query(args[0])
-			args = tuple(args)
-		elif kwargs.get('query'):
-			kwargs['query'] = modify_query(kwargs.get('query'))
+	def sql(self, query, values=(), *args, **kwargs):
+		return super(PostgresDatabase, self).sql(
+			modify_query(query),
+			modify_values(values),
+			*args,
+			**kwargs
+		)
 
-		return super(PostgresDatabase, self).sql(*args, **kwargs)
-
-	def get_tables(self):
+	def get_tables(self, cached=True):
 		return [d[0] for d in self.sql("""select table_name
 			from information_schema.tables
 			where table_catalog='{0}'
@@ -114,7 +118,7 @@ class PostgresDatabase(Database):
 		if not date:
 			return '0001-01-01'
 
-		if not isinstance(date, frappe.string_types):
+		if not isinstance(date, str):
 			date = date.strftime('%Y-%m-%d')
 
 		return date
@@ -139,8 +143,16 @@ class PostgresDatabase(Database):
 		return isinstance(e, psycopg2.extensions.QueryCanceledError)
 
 	@staticmethod
+	def is_syntax_error(e):
+		return isinstance(e, psycopg2.errors.SyntaxError)
+
+	@staticmethod
 	def is_table_missing(e):
 		return getattr(e, 'pgcode', None) == '42P01'
+
+	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
 
 	@staticmethod
 	def is_missing_column(e):
@@ -160,11 +172,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return e.pgcode == '23505' and '_pkey' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_pkey' in cstr(e.args[0])
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_key' in cstr(e.args[0])
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
@@ -172,7 +184,23 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_data_too_long(e):
-		return e.pgcode == '22001'
+		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
+
+	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+		old_name = get_table_name(old_name)
+		new_name = get_table_name(new_name)
+		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
+
+	def describe(self, doctype: str)-> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		return self.sql(f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'")
+
+	def change_column_type(self, doctype: str, column: str, type: str, nullable: bool = False) -> Union[List, Tuple]:
+		table_name = get_table_name(doctype)
+		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
+		return self.sql(f"""ALTER TABLE "{table_name}"
+								ALTER COLUMN "{column}" TYPE {type},
+								ALTER COLUMN "{column}" {null_constraint}""")
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (
@@ -239,24 +267,24 @@ class PostgresDatabase(Database):
 			key=key
 		)
 
-	def check_transaction_status(self, query):
-		pass
+	def check_implicit_commit(self, query):
+		pass # postgres can run DDL in transactions without implicit commits
 
 	def has_index(self, table_name, index_name):
 		return self.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
 			and indexname='{index_name}' limit 1""".format(table_name=table_name, index_name=index_name))
 
-	def add_index(self, doctype, fields, index_name=None):
+	def add_index(self, doctype: str, fields: List, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
+		table_name = get_table_name(doctype)
 		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
 
-		self.commit()
-		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
+		self.sql_ddl(f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}` ("{fields_str}")')
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, string_types):
+		if isinstance(fields, str):
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)
@@ -282,18 +310,20 @@ class PostgresDatabase(Database):
 				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
-			COUNT(b.indexdef) AS Index,
+			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN
-				(SELECT indexdef, tablename, indexdef LIKE '%UNIQUE INDEX%' AS unique
+				(SELECT indexdef, tablename,
+					indexdef LIKE '%UNIQUE INDEX%' AS unique,
+					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
 					FROM pg_indexes
 					WHERE tablename='{table_name}') b
-					ON SUBSTRING(b.indexdef, '\(.*\)') LIKE CONCAT('%', a.column_name, '%')
+				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;'''
-			.format(table_name=table_name), as_dict=1)
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+		'''.format(table_name=table_name), as_dict=1)
 
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
@@ -301,16 +331,52 @@ class PostgresDatabase(Database):
 def modify_query(query):
 	""""Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
+	query = str(query)
 	query = query.replace('`', '"')
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
 	if re.search('from tab', query, flags=re.IGNORECASE):
-		query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
+		query = re.sub(r'from tab([\w-]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
 
+	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
+	# drop .0 from decimals and add quotes around them
+	#
+	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
+	# >>> re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
+	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
+
+	query = re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
 	return query
+
+def modify_values(values):
+	def stringify_value(value):
+		if isinstance(value, int):
+			value = str(value)
+		elif isinstance(value, float):
+			truncated_float = int(value)
+			if value == truncated_float:
+				value = str(truncated_float)
+
+		return value
+
+	if not values:
+		return values
+
+	if isinstance(values, dict):
+		for k, v in values.items():
+			values[k] = stringify_value(v)
+	elif isinstance(values, (tuple, list)):
+		new_values = []
+		for val in values:
+			new_values.append(stringify_value(val))
+		values = new_values
+	else:
+		values = stringify_value(values)
+
+	return values
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
 	if re.search(r'locate\(', query, flags=re.IGNORECASE):
-		query = re.sub(r'locate\(([^,]+),([^)]+)\)', r'strpos(\2, \1)', query, flags=re.IGNORECASE)
+		query = re.sub(r'locate\(([^,]+),([^)]+)(\)?)\)', r'strpos(\2\3, \1)', query, flags=re.IGNORECASE)
 	return query

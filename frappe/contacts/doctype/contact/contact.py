@@ -1,18 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
-
-from __future__ import unicode_literals
+# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
 import frappe
-from frappe.utils import cstr, has_gravatar, cint
+from frappe.utils import cstr, has_gravatar
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
-from six import iteritems
-from past.builtins import cmp
 from frappe.model.naming import append_number_if_name_exists
 from frappe.contacts.address_and_contact import set_link_title
 
-import functools
 
 class Contact(Document):
 	def autoname(self):
@@ -52,14 +47,14 @@ class Contact(Document):
 	def get_link_for(self, link_doctype):
 		'''Return the link name, if exists for the given link DocType'''
 		for link in self.links:
-			if link.link_doctype==link_doctype:
+			if link.link_doctype == link_doctype:
 				return link.link_name
 
 		return None
 
 	def has_link(self, doctype, name):
 		for link in self.links:
-			if link.link_doctype==doctype and link.link_name== name:
+			if link.link_doctype == doctype and link.link_name == name:
 				return True
 
 	def has_common_link(self, doc):
@@ -97,10 +92,15 @@ class Contact(Document):
 		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
 
+		primary_email_exists = False
 		for d in self.email_ids:
 			if d.is_primary == 1:
+				primary_email_exists = True
 				self.email_id = d.email_id.strip()
 				break
+
+		if not primary_email_exists:
+			self.email_id = ""
 
 	def set_primary(self, fieldname):
 		# Used to set primary mobile and phone no.
@@ -115,10 +115,15 @@ class Contact(Document):
 		if len(is_primary) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
 
+		primary_number_exists = False
 		for d in self.phone_nos:
 			if d.get(field_name) == 1:
+				primary_number_exists = True
 				setattr(self, fieldname, d.phone)
 				break
+
+		if not primary_number_exists:
+			setattr(self, fieldname, "")
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
@@ -130,10 +135,13 @@ def get_default_contact(doctype, name):
 		where
 			dl.link_doctype=%s and
 			dl.link_name=%s and
-			dl.parenttype = "Contact"''', (doctype, name))
+			dl.parenttype = "Contact"''', (doctype, name), as_dict=True)
 
 	if out:
-		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(cint(y[1]), cint(x[1]))))[0][0]
+		for contact in out:
+			if contact.is_primary_contact:
+				return contact.parent
+		return out[0].parent
 	else:
 		return None
 
@@ -254,7 +262,7 @@ def get_contact_with_phone_number(number):
 	return contacts[0].parent if contacts else None
 
 def get_contact_name(email_id):
-	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
+	contact = frappe.get_all("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
 	return contact[0].parent if contact else None
 
 def get_contacts_linking_to(doctype, docname, fields=None):

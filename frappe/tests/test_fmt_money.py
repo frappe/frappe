@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 from frappe.utils import fmt_money
 import unittest
@@ -93,6 +91,9 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEqual(fmt_money(100.23), "100,23")
 		self.assertEqual(fmt_money(1000.456), "1.000,456")
 		frappe.db.set_default("currency_precision", "")
+
+	def test_custom_fmt_money_format(self):
+		self.assertEqual(fmt_money(100000, format="#,###.##"), '100,000.00')
 
 if __name__=="__main__":
 	frappe.connect()

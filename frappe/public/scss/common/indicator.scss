@@ -77,6 +77,16 @@
 	@include indicator-pill-color('green');
 }
 
+.indicator.cyan {
+	@include indicator-color('cyan');
+}
+
+.indicator-pill.cyan,
+.indicator-pill-right.cyan,
+.indicator-pill-round.cyan {
+	@include indicator-pill-color('cyan');
+}
+
 .indicator.blue {
 	@include indicator-color('blue');
 }
@@ -131,6 +141,16 @@
 	@include indicator-pill-color('red');
 }
 
+.indicator.pink {
+	@include indicator-color('pink');
+}
+
+.indicator-pill.pink,
+.indicator-pill-right.pink,
+.indicator-pill-round.pink {
+	@include indicator-pill-color('pink');
+}
+
 .indicator-pill.darkgrey,
 .indicator-pill-right.darkgrey,
 .indicator-pill-round.darkgrey {
@@ -143,9 +163,13 @@
 	@include indicator-pill-color('purple');
 }
 
-.indicator-pill.lightblue,
-.indicator-pill-right.lightblue,
-.indicator-pill-round.lightblue {
+.indicator.light-blue {
+	@include indicator-color('light-blue');
+}
+
+.indicator-pill.light-blue,
+.indicator-pill-right.light-blue,
+.indicator-pill-round.light-blue {
 	@include indicator-pill-color('light-blue');
 }
 

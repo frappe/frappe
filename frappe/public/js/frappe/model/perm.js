@@ -15,7 +15,7 @@ Object.assign(window, {
 });
 
 $.extend(frappe.perm, {
-	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
+	rights: ["select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 		"report", "import", "export", "print", "email", "share", "set_user_permissions"],
 
 	doctype_perm: {},
@@ -85,6 +85,7 @@ $.extend(frappe.perm, {
 					if (s.user === user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;
 						perm[0]["write"] = perm[0]["write"] || s.write;
+						perm[0]["submit"] = perm[0]["submit"] || s.submit;
 						perm[0]["share"] = perm[0]["share"] || s.share;
 
 						if (s.read) {

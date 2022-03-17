@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import frappe.utils
 from frappe.utils.oauth import login_via_oauth2, login_via_oauth2_id_token
@@ -33,7 +32,7 @@ def login_via_salesforce(code, state):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_fairlogin(code, state):
-	login_via_oauth2("fairlogin", code, state, decoder=decoder_compat)	
+	login_via_oauth2("fairlogin", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def custom(code, state):

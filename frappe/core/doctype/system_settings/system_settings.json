@@ -17,12 +17,14 @@
   "date_and_number_format",
   "date_format",
   "time_format",
-  "column_break_7",
   "number_format",
+  "column_break_7",
   "float_precision",
   "currency_precision",
+  "first_day_of_the_week",
   "sec_backup_limit",
   "backup_limit",
+  "encrypt_backup",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -66,9 +68,8 @@
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
-  "chat",
-  "enable_chat",
-  "use_socketio_to_upload_file"
+  "system_updates_section",
+  "disable_system_update_notification"
  ],
  "fields": [
   {
@@ -97,6 +98,7 @@
    "fieldname": "time_zone",
    "fieldtype": "Select",
    "label": "Time Zone",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -383,24 +385,6 @@
    "label": "Hide footer in auto email reports"
   },
   {
-   "collapsible": 1,
-   "fieldname": "chat",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_chat",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
-  },
-  {
-   "default": "1",
-   "fieldname": "use_socketio_to_upload_file",
-   "fieldtype": "Check",
-   "label": "Use socketio to upload file"
-  },
-  {
    "fieldname": "column_break_21",
    "fieldtype": "Column Break"
   },
@@ -446,7 +430,7 @@
   {
    "default": "30",
    "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will automatically delete Prepared Reports after these many days since creation",
+   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
    "fieldname": "prepared_report_expiry_period",
    "fieldtype": "Int",
    "label": "Prepared Report Expiry Period (Days)"
@@ -465,28 +449,48 @@
   },
   {
    "default": "Frappe",
+   "description": "The application name will be used in the Login page.",
    "fieldname": "app_name",
    "fieldtype": "Data",
-   "label": "App Name"
-  },
-  {
-   "default": "3",
-   "description": "Hourly rate limit for generating password reset links",
-   "fieldname": "password_reset_limit",
-   "fieldtype": "Int",
-   "label": "Password Reset Link Generation Limit"
+   "hidden": 1,
+   "label": "Application Name"
   },
   {
    "default": "1",
    "fieldname": "strip_exif_metadata_from_uploaded_images",
    "fieldtype": "Check",
    "label": "Strip EXIF tags from uploaded images"
+  },
+  {
+   "default": "0",
+   "fieldname": "encrypt_backup",
+   "fieldtype": "Check",
+   "label": "Encrypt Backups"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "system_updates_section",
+   "fieldtype": "Section Break",
+   "label": "System Updates"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_system_update_notification",
+   "fieldtype": "Check",
+   "label": "Disable System Update Notification"
+  },
+  {
+   "default": "Sunday",
+   "fieldname": "first_day_of_the_week",
+   "fieldtype": "Select",
+   "label": "First Day of the Week",
+   "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-12-30 18:52:22.161391",
+ "modified": "2022-01-04 11:28:34.881192",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -503,5 +507,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

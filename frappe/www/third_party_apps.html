@@ -2,7 +2,7 @@
 
 {% block title %} {{ _("Third Party Apps") }} {% endblock %}
 {% block header %}
-	<h1>{{ _("Third Party Apps") }}</h1>
+	<h3 class="my-account-header">{{ _("Third Party Apps") }}</h3>
 {% endblock %}
 
 {% block page_sidebar %}
@@ -13,8 +13,6 @@
 {% endblock %}
 
 {% block page_content %}
-
-<!-- no-cache -->
 
 <div class='padding'></div>
 
@@ -54,9 +52,15 @@
 	</div>
 	{% endfor %}
 {% else %}
-	<div class="text-muted">
+<div class="empty-apps-state">
+	<img src="/assets/frappe/images/ui-states/empty-app-state.svg"/>
+	<div class="font-weight-bold mt-4">
 		{{ _("No Active Sessions")}}
 	</div>
+	<div class="text-muted mt-2">
+		{{ _("Looks like you haven’t added any third party apps.")}}
+	</div>
+</div>
 {% endif %}
 <div class="padding"></div>
 <script>

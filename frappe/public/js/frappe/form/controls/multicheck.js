@@ -1,10 +1,10 @@
-frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
+frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.form.Control {
 	// UI: multiple checkboxes
 	// Value: Array of values
 	// Options: Array of label/value/checked option objects
 
 	make() {
-		this._super();
+		super.make();
 		if (this.df.label) {
 			this.$label = $(`<label class="control-label">${this.df.label}</label>`).appendTo(this.wrapper);
 		}
@@ -15,18 +15,18 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		const row = this.get_column_size() === 12 ? '' : 'row';
 		this.$checkbox_area = $(`<div class="checkbox-options ${row}"></div>`).appendTo(this.wrapper);
 		this.refresh();
-	},
+	}
 
 	refresh() {
 		this.set_options();
 		this.bind_checkboxes();
 		this.refresh_input();
-		this._super();
-	},
+		super.refresh();
+	}
 
 	refresh_input() {
 		this.select_options(this.selected_options);
-	},
+	}
 
 
 	set_options() {
@@ -47,7 +47,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		} else {
 			this.make_checkboxes();
 		}
-	},
+	}
 
 	parse_df_options() {
 		if(Array.isArray(this.df.options)) {
@@ -62,7 +62,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		} else {
 			this.options = [];
 		}
-	},
+	}
 
 	make_checkboxes() {
 		this.$load_state.hide();
@@ -78,7 +78,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			this.setup_select_all();
 		}
 		this.set_checked_options();
-	},
+	}
 
 	bind_checkboxes() {
 		$(this.wrapper).on('change', ':checkbox', e => {
@@ -95,14 +95,14 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			}
 			this.df.on_change && this.df.on_change();
 		});
-	},
+	}
 
 	set_checked_options() {
 		this.selected_options = this.options
 			.filter(o => o.checked)
 			.map(o => o.value);
 		this.select_options(this.selected_options);
-	},
+	}
 
 	setup_select_all() {
 		this.$select_buttons.show();
@@ -112,31 +112,31 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.$select_buttons.find('.deselect-all').on('click', () => {
 			this.select_all(true);
 		});
-	},
+	}
 
 	select_all(deselect=false) {
 		$(this.wrapper).find(`:checkbox`).prop("checked", deselect).trigger('click');
-	},
+	}
 
 	select_options(selected_options) {
 		this.options.map(option => option.value).forEach(value => {
 			let $checkbox = $(this.wrapper).find(`:checkbox[data-unit="${value}"]`)[0];
 			if($checkbox) $checkbox.checked = selected_options.includes(value);
 		});
-	},
+	}
 
 	get_value() {
 		return this.selected_options;
-	},
+	}
 
 	get_checked_options() {
 		return this.get_value();
-	},
+	}
 
 	get_unchecked_options() {
 		return this.options.map(o => o.value)
 			.filter(value => !this.selected_options.includes(value));
-	},
+	}
 
 	get_checkbox_element(option) {
 		const column_size = this.get_column_size();
@@ -148,7 +148,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 				</label>
 			</div>
 		`);
-	},
+	}
 
 	get_select_buttons() {
 		return $(`
@@ -161,9 +161,9 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			</button>
 		</div>
 		`);
-	},
+	}
 
 	get_column_size() {
 		return 12 / (+this.df.columns || 1);
 	}
-});
+};

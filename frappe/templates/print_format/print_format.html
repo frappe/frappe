@@ -1,0 +1,40 @@
+{% import "templates/print_format/macros.html" as macros %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ doc.doctype }}: {{ doc.name }}</title>
+	{{ include_style('print_format.bundle.css') }}
+	<style>{{ css }}</style>
+	{%- if print_style and print_style.css -%}
+	<style>{{ print_style.css }}</style>
+	{%- endif -%}
+	{%- if print_format.css -%}
+	<style>{{ print_format.css }}</style>
+	{%- endif -%}
+</head>
+<body>
+	{{ header or '' }}
+	{% for section in layout.sections %}
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }}">
+		{% if section.label %}
+		<div class="section-label">{{ section.label }}</div>
+		{% endif %}
+
+		<div class="section-columns row">
+			{% for column in section.columns %}
+			<div class="column col">
+				{% for df in column.fields %}
+				{{ macros.render_field(df, doc) }}
+				{% endfor %}
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% endfor %}
+	{{ footer or '' }}
+</body>
+</html>

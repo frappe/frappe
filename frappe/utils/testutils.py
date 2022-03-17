@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 
 def add_custom_field(doctype, fieldname, fieldtype='Data', options=None):
@@ -14,5 +12,5 @@ def add_custom_field(doctype, fieldname, fieldtype='Data', options=None):
 	}).insert()
 
 def clear_custom_fields(doctype):
-	frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
+	frappe.db.delete("Custom Field", {"dt": doctype})
 	frappe.clear_cache(doctype=doctype)

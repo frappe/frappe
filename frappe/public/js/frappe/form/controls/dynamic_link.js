@@ -1,8 +1,8 @@
-frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
-	get_options: function() {
+frappe.ui.form.ControlDynamicLink = class ControlDynamicLink extends frappe.ui.form.ControlLink {
+	get_options() {
 		let options = '';
 		if (this.df.get_options) {
-			options = this.df.get_options();
+			options = this.df.get_options(this);
 		} else if (this.docname==null && cur_dialog) {
 			//for dialog box
 			options = cur_dialog.get_value(this.df.options);
@@ -28,5 +28,5 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		}
 
 		return options;
-	},
-});
+	}
+};

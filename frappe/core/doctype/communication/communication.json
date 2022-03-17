@@ -51,6 +51,7 @@
   "email_inbox",
   "message_id",
   "uid",
+  "imap_folder",
   "email_status",
   "has_attachment",
   "feedback_section",
@@ -152,7 +153,7 @@
    "fieldname": "communication_type",
    "fieldtype": "Select",
    "label": "Communication Type",
-   "options": "Communication\nComment\nChat\nBot\nNotification\nFeedback",
+   "options": "Communication\nComment\nChat\nBot\nNotification\nFeedback\nAutomated Message",
    "read_only": 1,
    "reqd": 1
   },
@@ -382,12 +383,19 @@
    "label": "Timeline Links",
    "options": "Communication Link",
    "permlevel": 2
+  },
+  {
+   "fieldname": "imap_folder",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "IMAP Folder",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2019-12-27 14:44:04.880373",
+ "modified": "2021-11-30 09:03:25.728637",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
@@ -426,13 +434,13 @@
    "write": 1
   },
   {
-    "create": 1,
-    "delete": 1,
-    "email": 1,
-    "export":1,
-    "print":1,
-    "read": 1,
-    "role": "Inbox User"
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Inbox User"
   },
   {
    "delete": 1,

@@ -1,0 +1,29 @@
+.form-control {
+	height: inherit;
+	border: none;
+	font-size: var(--text-md);
+	position: relative;
+}
+
+.form-control.bold {
+	font-weight: 500;
+}
+
+.like-disabled-input {
+	.for-description {
+		font-weight: normal;
+		font-size: var(--text-sm);
+	}
+	border-radius: $border-radius;
+	font-weight: 400;
+	padding: 6px 12px;
+	cursor: default;
+	color: var(--disabled-text-color);
+	background-color: var(--disabled-control-bg);
+}
+
+.head-title {
+	font-size: var(--text-lg);
+	font-weight: 700;
+	color: var(--heading-color);
+}

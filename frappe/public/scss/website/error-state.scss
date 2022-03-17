@@ -1,0 +1,18 @@
+.error-page {
+	text-align: center;
+
+	.img-404 {
+		width: 40%;
+		margin: var(--margin-2xl) auto;
+
+		@include media-breakpoint-down(sm) {
+			width: 80%
+		}
+	}
+
+	.back-to-home {
+		font-size: var(--text-base);
+	}
+}
+
+

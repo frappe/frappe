@@ -1,19 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import frappe, os, copy, json, re
-from frappe import _
+from frappe import _, get_module_path
 
-from frappe.modules import get_doc_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cint, sanitize_html, strip_html
-from six import string_types
+from frappe.utils.jinja_globals import is_rtl
 
 no_cache = 1
 
-base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
@@ -48,7 +44,8 @@ def get_context(context):
 		"css": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
-		"has_rtl": True if frappe.local.lang in ["ar", "he", "fa"] else False
+		"lang": frappe.local.lang,
+		"layout_direction": "rtl" if is_rtl() else "ltr"
 	}
 
 def get_print_format_doc(print_format_name, meta):
@@ -73,7 +70,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
-	if isinstance(no_letterhead, string_types):
+	if isinstance(no_letterhead, str):
 		no_letterhead = cint(no_letterhead)
 
 	elif no_letterhead is None:
@@ -154,7 +151,12 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 
 	convert_markdown(doc, meta)
 
-	args = {
+	args = {}
+	# extract `print_heading_template` from the first field and remove it
+	if format_data and format_data[0].get("fieldname") == "print_heading_template":
+		args["print_heading_template"] = format_data.pop(0).get("options")
+
+	args.update({
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
 		"layout": make_layout(doc, meta, format_data),
@@ -163,7 +165,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		"letter_head": letter_head.content,
 		"footer": letter_head.footer,
 		"print_settings": print_settings
-	}
+	})
 
 	html = template.render(args, filters={"len": len})
 
@@ -171,6 +173,48 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		html += trigger_print_script
 
 	return html
+
+def set_link_titles(doc):
+	# Adds name with title of link field doctype to __link_titles
+	if not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
+
+	meta = frappe.get_meta(doc.doctype)
+	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
+	set_title_values_for_table_and_multiselect_fields(meta, doc)
+
+def set_title_values_for_link_and_dynamic_link_fields(meta, doc, parent_doc=None):
+	if parent_doc and not parent_doc.get("__link_titles"):
+		setattr(parent_doc, "__link_titles", {})
+	elif doc and not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
+
+	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		# If link field, then get doctype from options
+		# If dynamic link field, then get doctype from dependent field
+		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
+
+		meta = frappe.get_meta(doctype)
+		if not meta or not (meta.title_field and meta.show_title_field_in_link):
+			continue
+
+		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
+		if parent_doc:
+			parent_doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+		elif doc:
+			doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+
+def set_title_values_for_table_and_multiselect_fields(meta, doc):
+	for field in meta.get_table_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		_meta = frappe.get_meta(field.options)
+		for value in doc.get(field.fieldname):
+			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
 
 def convert_markdown(doc, meta):
 	'''Convert text field values to markdown if necessary'''
@@ -186,13 +230,14 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 	settings=None, templates=None):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
-	if isinstance(doc, string_types) and isinstance(name, string_types):
+	if isinstance(doc, str) and isinstance(name, str):
 		doc = frappe.get_doc(doc, name)
 
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
+	set_link_titles(doc)
 
 	try:
 		html = get_rendered_template(doc, name=name, print_format=print_format, meta=meta,
@@ -211,10 +256,10 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang=None):
 	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
 
-	if isinstance(doc, string_types) and isinstance(name, string_types):
+	if isinstance(doc, str) and isinstance(name, str):
 		doc = frappe.get_doc(doc, name)
 
-	if isinstance(doc, string_types):
+	if isinstance(doc, str):
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
@@ -253,8 +298,9 @@ def get_print_format(doctype, print_format):
 			frappe.DoesNotExistError)
 
 	# server, find template
-	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
-		"Print Format", print_format.name), frappe.scrub(print_format.name) + ".html")
+	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
+	path = os.path.join(get_module_path(module, "Print Format", print_format.name),
+		frappe.scrub(print_format.name) + ".html")
 
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
@@ -277,13 +323,6 @@ def make_layout(doc, meta, format_data=None):
 	:param format_data: Fields sequence and properties defined by Print Format Builder."""
 	layout, page = [], []
 	layout.append(page)
-
-	if format_data:
-		# extract print_heading_template from the first field
-		# and remove the field
-		if format_data[0].get("fieldname") == "print_heading_template":
-			doc.print_heading_template = format_data[0].get("options")
-			format_data = format_data[1:]
 
 	def get_new_section(): return  {'columns': [], 'has_data': False}
 
@@ -380,7 +419,7 @@ def has_value(df, doc):
 	if value in (None, ""):
 		return False
 
-	elif isinstance(value, string_types) and not strip_html(value).strip():
+	elif isinstance(value, str) and not strip_html(value).strip():
 		if df.fieldtype in ["Text", "Text Editor"]:
 			return True
 
@@ -409,7 +448,7 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 		css = css + '\n' + frappe.db.get_value('Print Style', style, 'css')
 
 	# move @import to top
-	for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", css))):
+	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
 		css = css.replace(at_import, "")
 
 		# prepend css with at_import
@@ -480,7 +519,7 @@ def column_has_value(data, fieldname, col_df):
 	for row in data:
 		value = row.get(fieldname)
 		if value:
-			if isinstance(value, string_types):
+			if isinstance(value, str):
 				if strip_html(value).strip():
 					has_value = True
 					break
@@ -505,8 +544,9 @@ window.print();
 
 // close the window after print
 // NOTE: doesn't close if print is cancelled in Chrome
+// Changed timeout to 5s from 1s because it blocked mobile view rendering
 setTimeout(function() {
 	window.close();
-}, 1000);
+}, 5000);
 </script>
 """

@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe
 import unittest, copy
 from frappe.test_runner import make_test_objects
@@ -9,6 +7,7 @@ from frappe.core.doctype.version.version import get_diff
 
 class TestVersion(unittest.TestCase):
 	def test_get_diff(self):
+		frappe.set_user('Administrator')
 		test_records = make_test_objects('Event', reset = True)
 		old_doc = frappe.get_doc("Event", test_records[0])
 		new_doc = copy.deepcopy(old_doc)

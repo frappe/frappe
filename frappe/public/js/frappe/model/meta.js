@@ -38,14 +38,14 @@ $.extend(frappe.meta, {
 		frappe.meta.docfield_list[df.parent].push(df);
 	},
 
-	make_docfield_copy_for: function(doctype, docname) {
+	make_docfield_copy_for: function(doctype, docname, docfield_list=null) {
 		var c = frappe.meta.docfield_copy;
 		if(!c[doctype])
 			c[doctype] = {};
 		if(!c[doctype][docname])
 			c[doctype][docname] = {};
 
-		var docfield_list = frappe.meta.docfield_list[doctype] || [];
+		docfield_list = docfield_list || frappe.meta.docfield_list[doctype] || [];
 		for(var i=0, j=docfield_list.length; i<j; i++) {
 			var df = docfield_list[i];
 			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
@@ -144,7 +144,7 @@ $.extend(frappe.meta, {
 
 	get_doctype_for_field: function(doctype, key) {
 		var out = null;
-		if(in_list(frappe.model.std_fields_list, key)) {
+		if (in_list(frappe.model.std_fields_list, key)) {
 			// standard
 			out = doctype;
 		} else if(frappe.meta.has_field(doctype, key)) {
@@ -152,7 +152,7 @@ $.extend(frappe.meta, {
 			out = doctype;
 		} else {
 			frappe.meta.get_table_fields(doctype).every(function(d) {
-				if(frappe.meta.has_field(d.options, key)) {
+				if (frappe.meta.has_field(d.options, key) || in_list(frappe.model.child_table_field_list, key)) {
 					out = d.options;
 					return false;
 				}
@@ -190,6 +190,15 @@ $.extend(frappe.meta, {
 			var df = this.get_docfield(dt, fn, dn);
 			return (df ? df.label : "") || fn;
 		}
+	},
+
+	get_print_sizes: function() {
+		return [
+			"A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9",
+			"B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10",
+			"C5E", "Comm10E", "DLE", "Executive", "Folio", "Ledger", "Legal",
+			"Letter", "Tabloid", "Custom"
+		];
 	},
 
 	get_print_formats: function(doctype) {

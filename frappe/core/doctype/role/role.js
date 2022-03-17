@@ -3,6 +3,8 @@
 
 frappe.ui.form.on('Role', {
 	refresh: function(frm) {
+		frm.set_df_property('is_custom', 'read_only', frappe.session.user !== 'Administrator');
+
 		frm.add_custom_button("Role Permissions Manager", function() {
 			frappe.route_options = {"role": frm.doc.name};
 			frappe.set_route("permission-manager");

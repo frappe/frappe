@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2021, Frappe Technologies and contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
+import json
+from datetime import datetime
 from typing import Dict, List
 
-import frappe, json
-from frappe.model.document import Document
-from frappe.utils import now_datetime, get_datetime
-from datetime import datetime
 from croniter import croniter
+
+import frappe
+from frappe.model.document import Document
+from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, get_jobs
 
 
@@ -109,7 +109,7 @@ class ScheduledJobType(Document):
 		return 'long' if ('Long' in self.frequency) else 'default'
 
 	def on_trash(self):
-		frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
+		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
 
 
 @frappe.whitelist()
@@ -117,6 +117,7 @@ def execute_event(doc: str):
 	frappe.only_for("System Manager")
 	doc = json.loads(doc)
 	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
+	return doc
 
 
 def run_scheduled_job(job_type: str):

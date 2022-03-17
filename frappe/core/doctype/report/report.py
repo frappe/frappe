@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 import frappe
 import json, datetime
 from frappe import _, scrub
@@ -13,7 +11,6 @@ from frappe.modules import make_boilerplate
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.reportview import append_totals_row
-from six import iteritems
 from frappe.utils.safe_exec import safe_exec
 
 
@@ -54,10 +51,19 @@ class Report(Document):
 			and not frappe.flags.in_patch):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role('report', self.name)
+		self.delete_prepared_reports()
+
+	def delete_prepared_reports(self):
+		prepared_reports = frappe.get_all("Prepared Report", filters={'ref_report_doctype': self.name}, pluck='name')
+
+		for report in prepared_reports:
+			frappe.delete_doc("Prepared Report", report, ignore_missing=True, force=True,
+					delete_permanently=True)
 
 	def get_columns(self):
-		return [d.as_dict(no_default_fields = True) for d in self.columns]
+		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
 
+	@frappe.whitelist()
 	def set_doctype_roles(self):
 		if not self.get('roles') and self.is_standard == 'No':
 			meta = frappe.get_meta(self.ref_doctype)
@@ -107,7 +113,7 @@ class Report(Document):
 		if not self.query.lower().startswith("select"):
 			frappe.throw(_("Query must be a SELECT"), title=_('Report Document Error'))
 
-		result = [list(t) for t in frappe.db.sql(self.query, filters, debug=True)]
+		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
 
 		return [columns, result]
@@ -237,7 +243,7 @@ class Report(Document):
 		_filters = params.get('filters') or []
 
 		if filters:
-			for key, value in iteritems(filters):
+			for key, value in filters.items():
 				condition, _value = '=', value
 				if isinstance(value, (list, tuple)):
 					condition, _value = value
@@ -304,8 +310,11 @@ class Report(Document):
 
 		return data
 
-	@Document.whitelist
+	@frappe.whitelist()
 	def toggle_disable(self, disable):
+		if not self.has_permission('write'):
+			frappe.throw(_("You are not allowed to edit the report."))
+
 		self.db_set("disabled", cint(disable))
 
 @frappe.whitelist()
@@ -321,9 +330,8 @@ def get_group_by_field(args, doctype):
 	if args['aggregate_function'] == 'count':
 		group_by_field = 'count(*) as _aggregate_column'
 	else:
-		group_by_field = '{0}(`tab{1}`.{2}) as _aggregate_column'.format(
+		group_by_field = '{0}({1}) as _aggregate_column'.format(
 			args.aggregate_function,
-			doctype,
 			args.aggregate_on
 		)
 

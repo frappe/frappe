@@ -1,10 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# License: MIT. See LICENSE
 
 # Database Module
 # --------------------
 
-from __future__ import unicode_literals
+from frappe.database.database import savepoint
 
 def setup_database(force, source_sql=None, verbose=None, no_mariadb_socket=False):
 	import frappe

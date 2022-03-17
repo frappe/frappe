@@ -1,22 +1,24 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 """Use blog post test to test user permissions logic"""
 
 import frappe
 import frappe.defaults
-import unittest
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
 	clear_user_permissions_for_doctype, get_doc_permissions, add_permission, update_permission_property)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
+from frappe.desk.form.load import getdoc
+from frappe.utils.data import now_datetime
+
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
-class TestPermissions(unittest.TestCase):
+
+class TestPermissions(FrappeTestCase):
 	def setUp(self):
 		frappe.clear_cache(doctype="Blog Post")
 
@@ -30,12 +32,16 @@ class TestPermissions(unittest.TestCase):
 
 			user = frappe.get_doc("User", "test3@example.com")
 			user.add_roles("Sales User")
+
+			user = frappe.get_doc("User", "testperm@example.com")
+			user.add_roles("Website Manager")
+
 			frappe.flags.permission_user_setup_done = True
 
 		reset('Blogger')
 		reset('Blog Post')
 
-		frappe.db.sql('delete from `tabUser Permission`')
+		frappe.db.delete("User Permission")
 
 		frappe.set_user("test1@example.com")
 
@@ -194,6 +200,32 @@ class TestPermissions(unittest.TestCase):
 		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(doc.has_permission("read"))
 
+	def test_set_standard_fields_manually(self):
+		# check that creation and owner cannot be set manually
+		from datetime import timedelta
+
+		fake_creation = now_datetime() + timedelta(days=-7)
+		fake_owner = frappe.db.get_value("User", {"name": ("!=", frappe.session.user)})
+
+		d = frappe.new_doc("ToDo")
+		d.description = "ToDo created via test_set_standard_fields_manually"
+		d.creation = fake_creation
+		d.owner = fake_owner
+		d.save()
+		self.assertNotEqual(d.creation, fake_creation)
+		self.assertNotEqual(d.owner, fake_owner)
+
+	def test_dont_change_standard_constants(self):
+		# check that Document.creation cannot be changed
+		user = frappe.get_doc("User", frappe.session.user)
+		user.creation = now_datetime()
+		self.assertRaises(frappe.CannotChangeConstantError, user.save)
+
+		# check that Document.owner cannot be changed
+		user.reload()
+		user.owner = "Guest"
+		self.assertRaises(frappe.CannotChangeConstantError, user.save)
+
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
 		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
@@ -331,9 +363,9 @@ class TestPermissions(unittest.TestCase):
 			doctype"""
 
 		frappe.set_user('Administrator')
-		frappe.db.sql('DELETE FROM `tabContact`')
-		frappe.db.sql('DELETE FROM `tabContact Email`')
-		frappe.db.sql('DELETE FROM `tabContact Phone`')
+		frappe.db.delete("Contact")
+		frappe.db.delete("Contact Email")
+		frappe.db.delete("Contact Phone")
 
 		reset('Salutation')
 		reset('Contact')
@@ -464,6 +496,101 @@ class TestPermissions(unittest.TestCase):
 		# delete the created doc
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
 
+	def test_if_owner_permission_on_getdoc(self):
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		update('Blog Post', 'Blogger', 0, 'write', 1)
+		update('Blog Post', 'Blogger', 0, 'delete', 1)
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test1@example.com")
+
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "-test-blog-category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test Blog Post Title New",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert()
+
+		getdoc('Blog Post', doc.name)
+		doclist = [d.name for d in frappe.response.docs]
+		self.assertTrue(doc.name in doclist)
+
+		frappe.set_user("test2@example.com")
+		self.assertRaises(frappe.PermissionError, getdoc, 'Blog Post', doc.name)
+
+	def test_if_owner_permission_on_get_list(self):
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "-test-blog-category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test If Owner Permissions on Get List",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert(ignore_if_duplicate=True)
+
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Website Manager")
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test2@example.com")
+		self.assertIn(doc.name, frappe.get_list("Blog Post", pluck="name"))
+
+		# Become system manager to remove role
+		frappe.set_user("test1@example.com")
+		user.remove_roles("Website Manager")
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test2@example.com")
+		self.assertNotIn(doc.name, frappe.get_list("Blog Post", pluck="name"))
+
+	def test_if_owner_permission_on_delete(self):
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		update('Blog Post', 'Blogger', 0, 'write', 1)
+		update('Blog Post', 'Blogger', 0, 'delete', 1)
+
+		# Remove delete perm
+		update('Blog Post', 'Website Manager', 0, 'delete', 0)
+
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.set_user("test2@example.com")
+
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "-test-blog-category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test Blog Post Title New 1",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert()
+
+		getdoc('Blog Post', doc.name)
+		doclist = [d.name for d in frappe.response.docs]
+		self.assertTrue(doc.name in doclist)
+
+		frappe.set_user("testperm@example.com")
+
+		# Website Manager able to read
+		getdoc('Blog Post', doc.name)
+		doclist = [d.name for d in frappe.response.docs]
+		self.assertTrue(doc.name in doclist)
+
+		# Website Manager should not be able to delete
+		self.assertRaises(frappe.PermissionError, frappe.delete_doc, 'Blog Post', doc.name)
+
+		frappe.set_user("test2@example.com")
+		frappe.delete_doc('Blog Post', '-test-blog-post-title-new-1')
+		update('Blog Post', 'Website Manager', 0, 'delete', 1)
+
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
 		frappe.set_user('Administrator')
@@ -494,3 +621,13 @@ class TestPermissions(unittest.TestCase):
 
 		# reset the user
 		frappe.set_user(current_user)
+
+	def test_child_table_permissions(self):
+		frappe.set_user("test@example.com")
+		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
+		self.assertRaisesRegex(frappe.exceptions.ValidationError,
+			".* is not a valid parent DocType for .*", frappe.get_list, doctype="Has Role", parent_doctype="ToDo")
+		self.assertRaisesRegex(frappe.exceptions.ValidationError,
+			"Please specify a valid parent DocType for .*", frappe.get_list, "Has Role")
+		self.assertRaisesRegex(frappe.exceptions.ValidationError,
+			".* is not a valid parent DocType for .*", frappe.get_list, doctype="Has Role", parent_doctype="Has Role")

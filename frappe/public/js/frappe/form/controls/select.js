@@ -1,19 +1,49 @@
-frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
-	html_element: 'select',
-	make_input: function() {
-		this._super();
-		this.$wrapper.find('.control-input')
-			.addClass('flex align-center')
-			.append(frappe.utils.icon('select'));
+frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.ControlData {
+	static html_element = 'select';
+	make_input() {
+		super.make_input();
+
+		const is_xs_input = this.df.input_class
+			&& this.df.input_class.includes('input-xs');
+		this.set_icon(is_xs_input);
+		this.df.placeholder && this.set_placeholder(is_xs_input);
+
+		this.$input.addClass('ellipsis');
 		this.set_options();
-	},
-	set_formatted_input: function(value) {
+	}
+	set_icon(is_xs_input) {
+		const select_icon_html =
+			`<div class="select-icon ${is_xs_input ? 'xs' : ''}">
+				${frappe.utils.icon('select', is_xs_input ? 'xs' : 'sm')}
+			</div>`;
+		if (this.only_input) {
+			this.$wrapper.append(select_icon_html);
+		} else {
+			this.$wrapper.find('.control-input')
+				.addClass('flex align-center')
+				.append(select_icon_html);
+		}
+	}
+	set_placeholder(is_xs_input) {
+		const placeholder_html =
+			`<div class="placeholder ellipsis text-extra-muted ${is_xs_input ? 'xs' : ''}">
+				<span>${this.df.placeholder}</span>
+			</div>`;
+		if (this.only_input) {
+			this.$wrapper.append(placeholder_html);
+		} else {
+			this.$wrapper.find('.control-input').append(placeholder_html);
+		}
+		this.toggle_placeholder();
+		this.$input && this.$input.on('select-change', () => this.toggle_placeholder());
+	}
+	set_formatted_input(value) {
 		// refresh options first - (new ones??)
 		if(value==null) value = '';
 		this.set_options(value);
 
 		// set in the input element
-		this._super(value);
+		super.set_formatted_input(value);
 
 		// check if the value to be set is selected
 		var input_value = '';
@@ -26,8 +56,8 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			// model value must be same as whatever the input is
 			this.set_model_value(input_value);
 		}
-	},
-	set_options: function(value) {
+	}
+	set_options(value) {
 		// reset options, if something new is set
 		var options = this.df.options || [];
 
@@ -49,8 +79,8 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 				this.$input.val(selected);
 			}
 		}
-	},
-	get_file_attachment_list: function() {
+	}
+	get_file_attachment_list() {
 		if(!this.frm) return;
 		var fl = frappe.model.docinfo[this.frm.doctype][this.frm.docname];
 		if(fl && fl.attachments) {
@@ -65,7 +95,11 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			return [""];
 		}
 	}
-});
+	toggle_placeholder() {
+		const input_set = Boolean(this.$input.find('option:selected').text());
+		this.$wrapper.find('.placeholder').toggle(!input_set);
+	}
+};
 
 // add <option> list to <select>
 (function($) {
@@ -79,6 +113,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 				var is_value_null = is_null(v.value);
 				var is_label_null = is_null(v.label);
 				var is_disabled = Boolean(v.disabled);
+				var is_selected = Boolean(v.selected);
 
 				if (is_value_null && is_label_null) {
 					value = v;
@@ -88,13 +123,16 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 					label = is_label_null ? __(value) : __(v.label);
 				}
 			}
+
 			$('<option>').html(cstr(label))
 				.attr('value', value)
 				.prop('disabled', is_disabled)
+				.prop('selected', is_selected)
 				.appendTo(this);
 		}
 		// select the first option
 		this.selectedIndex = 0;
+		$(this).trigger('select-change');
 		return $(this);
 	};
 	$.fn.set_working = function() {
@@ -102,5 +140,12 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	};
 	$.fn.done_working = function() {
 		this.prop('disabled', false);
+	};
+
+	let original_val = $.fn.val;
+	$.fn.val = function() {
+		let result = original_val.apply(this, arguments);
+		if (arguments.length > 0) $(this).trigger('select-change');
+		return result;
 	};
 })(jQuery);

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
 """
 # Integrating RazorPay
@@ -60,14 +60,13 @@ For razorpay payment status is Authorized
 
 """
 
-from __future__ import unicode_literals
 import frappe
 from frappe import _
 import json
 import hmac
 import razorpay
 import hashlib
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint, get_timestamp
 from frappe.integrations.utils import (make_get_request, make_post_request, create_request_log,
@@ -372,6 +371,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc = frappe.get_doc("Integration Request", doc.name)
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
+			doc.save()
 			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
 
 

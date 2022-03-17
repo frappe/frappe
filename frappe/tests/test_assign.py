@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-from __future__ import unicode_literals
-
+# License: MIT. See LICENSE
 import frappe, unittest
 import frappe.desk.form.assign_to
 from frappe.desk.listview import get_group_by_count
@@ -24,7 +22,7 @@ class TestAssign(unittest.TestCase):
 		self.assertEqual(len(assignments), 0)
 
 	def test_assignment_count(self):
-		frappe.db.sql('delete from tabToDo')
+		frappe.db.delete("ToDo")
 
 		if not frappe.db.exists("User", "test_assign1@example.com"):
 			frappe.get_doc({"doctype":"User", "email":"test_assign1@example.com", "first_name":"Test", "roles": [{"role": "System Manager"}]}).insert()

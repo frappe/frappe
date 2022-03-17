@@ -1,0 +1,14 @@
+@import "frappe/public/css/bootstrap.css";
+@import "./common/quill";
+@import "./desk/css_variables";
+
+// !! PDF Barcode hack !!
+// Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
+@media print {
+	svg[data-barcode-value] > rect {
+		fill: white !important;
+	}
+	svg[data-barcode-value] > g {
+		fill: black !important;
+	}
+}

@@ -50,12 +50,17 @@ frappe.call = function(opts) {
 	}
 	var args = $.extend({}, opts.args);
 
+	if (args.freeze) {
+		opts.freeze = opts.freeze || args.freeze;
+		opts.freeze_message = opts.freeze_message || args.freeze_message;
+	}
+
 	// cmd
 	if(opts.module && opts.page) {
 		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
 	} else if(opts.doc) {
 		$.extend(args, {
-			cmd: "runserverobj",
+			cmd: "run_doc_method",
 			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
 			method: opts.method,
 			args: opts.args,
@@ -206,6 +211,25 @@ frappe.request.call = function(opts) {
 		}
 	};
 
+	var exception_handlers = {
+		'QueryTimeoutError': function() {
+			frappe.utils.play_sound("error");
+			frappe.msgprint({
+				title: __('Request Timeout'),
+				indicator: 'red',
+				message: __("Server was too busy to process this request. Please try again.")
+			});
+		},
+		'QueryDeadlockError': function() {
+			frappe.utils.play_sound("error");
+			frappe.msgprint({
+				title: __('Deadlock Occurred'),
+				indicator: 'red',
+				message: __("Server was too busy to process this request. Please try again.")
+			});
+		}
+	};
+
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
 		data: opts.args,
@@ -241,6 +265,14 @@ frappe.request.call = function(opts) {
 					$.extend(frappe._messages, data.__messages);
 				}
 
+				// sync link titles
+				if (data._link_titles) {
+					if (!frappe._link_titles) {
+						frappe._link_titles = {};
+					}
+					$.extend(frappe._link_titles, data._link_titles);
+				}
+
 				// callbacks
 				var status_code_handler = statusCode[xhr.statusCode().status];
 				if (status_code_handler) {
@@ -272,13 +304,32 @@ frappe.request.call = function(opts) {
 		})
 		.fail(function(xhr, textStatus) {
 			try {
+				if (xhr.getResponseHeader('content-type') == 'application/json' && xhr.responseText) {
+					var data;
+					try {
+						data = JSON.parse(xhr.responseText);
+					} catch (e) {
+						console.log("Unable to parse reponse text");
+						console.log(xhr.responseText);
+						console.log(e);
+					}
+					if (data && data.exception) {
+						// frappe.exceptions.CustomError: (1024, ...) -> CustomError
+						var exception = data.exception.split('.').at(-1).split(':').at(0);
+						var exception_handler = exception_handlers[exception];
+						if (exception_handler) {
+							exception_handler(data);
+							return;
+						}
+					}
+				}
 				var status_code_handler = statusCode[xhr.statusCode().status];
 				if (status_code_handler) {
 					status_code_handler(xhr);
-				} else {
-					// if not handled by error handler!
-					opts.error_callback && opts.error_callback(xhr);
+					return;
 				}
+				// if not handled by error handler!
+				opts.error_callback && opts.error_callback(xhr);
 			} catch(e) {
 				console.log("Unable to handle failed response"); // eslint-disable-line
 				console.trace(e); // eslint-disable-line
@@ -450,6 +501,24 @@ frappe.request.report_error = function(xhr, request_opts) {
 		exc = "";
 	}
 
+	const copy_markdown_to_clipboard = () => {
+		const code_block = snippet => '```\n' + snippet + '\n```';
+		const traceback_info = [
+			'### App Versions',
+			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
+			'### Route',
+			code_block(frappe.get_route_str()),
+			'### Trackeback',
+			code_block(exc),
+			'### Request Data',
+			code_block(JSON.stringify(request_opts, null, "\t")),
+			'### Response Data',
+			code_block(JSON.stringify(data, null, '\t')),
+		].join("\n");
+		frappe.utils.copy_to_clipboard(traceback_info);
+	};
+
+
 	var show_communication = function() {
 		var error_report_message = [
 			'<h5>Please type some additional information that could help us reproduce this issue:</h5>',
@@ -500,6 +569,11 @@ frappe.request.report_error = function(xhr, request_opts) {
 					} else {
 						frappe.msgprint(__('Support Email Address Not Specified'));
 					}
+					frappe.error_dialog.hide();
+				},
+				secondary_action_label: __('Copy error to clipboard'),
+				secondary_action: () => {
+					copy_markdown_to_clipboard();
 					frappe.error_dialog.hide();
 				}
 			});

@@ -1,19 +1,23 @@
-frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
-	trigger_change_on_input_event: false,
-	make_input: function() {
-		this._super();
+frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
+	static trigger_change_on_input_event = false
+	make_input() {
+		super.make_input();
 		this.make_picker();
-	},
-	make_picker: function() {
+	}
+	make_picker() {
 		this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
-	},
-	set_formatted_input: function(value) {
-		this._super(value);
+	}
+	set_formatted_input(value) {
+		if (value === "Today") {
+			value = this.get_now_date();
+		}
+
+		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
-		if(!value) {
+		if (!value) {
 			this.datepicker.clear();
 			return;
 		}
@@ -37,8 +41,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
-	},
-	set_date_options: function() {
+	}
+	set_date_options() {
 		// webformTODO:
 		let sysdefaults = frappe.boot.sysdefaults;
 
@@ -51,8 +55,6 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		let date_format = sysdefaults && sysdefaults.date_format
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
-		let now_date = new Date();
-
 		this.today_text = __("Today");
 		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
@@ -60,8 +62,9 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			autoClose: true,
 			todayButton: true,
 			dateFormat: date_format,
-			startDate: now_date,
+			startDate: this.get_start_date(),
 			keyboardNav: false,
+			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			onSelect: () => {
 				this.$input.trigger('change');
 			},
@@ -71,10 +74,16 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 					.text(this.today_text);
 
 				this.update_datepicker_position();
-			}
+			},
+			...(this.get_df_options())
 		};
-	},
-	set_datepicker: function() {
+	}
+
+	get_start_date() {
+		return this.get_now_date();
+	}
+
+	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
 
@@ -85,8 +94,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			.click(() => {
 				this.datepicker.selectDate(this.get_now_date());
 			});
-	},
-	update_datepicker_position: function() {
+	}
+	update_datepicker_position() {
 		if(!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
@@ -108,11 +117,11 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 
 		this.datepicker.update('position', position);
-	},
-	get_now_date: function() {
-		return frappe.datetime.now_date(true);
-	},
-	set_t_for_today: function() {
+	}
+	get_now_date() {
+		return frappe.datetime.convert_to_system_tz(frappe.datetime.now_date(true), false).toDate();
+	}
+	set_t_for_today() {
 		var me = this;
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
@@ -126,19 +135,19 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				return false;
 			}
 		});
-	},
-	parse: function(value) {
+	}
+	parse(value) {
 		if(value) {
 			return frappe.datetime.user_to_str(value);
 		}
-	},
-	format_for_input: function(value) {
+	}
+	format_for_input(value) {
 		if(value) {
 			return frappe.datetime.str_to_user(value);
 		}
 		return "";
-	},
-	validate: function(value) {
+	}
+	validate(value) {
 		if(value && !frappe.datetime.validate(value)) {
 			let sysdefaults = frappe.sys_defaults;
 			let date_format = sysdefaults && sysdefaults.date_format
@@ -148,4 +157,21 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 		return value;
 	}
-});
+	get_df_options() {
+		let df_options = this.df.options;
+		if (!df_options) return {};
+
+		let options = {};
+		if (typeof df_options === 'string') {
+			try {
+				options = JSON.parse(df_options);
+			} catch (error) {
+				console.warn(`Invalid JSON in options of "${this.df.fieldname}"`);
+			}
+		}
+		else if (typeof df_options === 'object') {
+			options = df_options;
+		}
+		return options;
+	}
+};

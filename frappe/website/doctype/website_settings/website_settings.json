@@ -25,9 +25,11 @@
   "set_banner_from_image",
   "favicon",
   "top_bar",
-  "navbar_search",
-  "hide_login",
   "top_bar_items",
+  "hide_login",
+  "navbar_search",
+  "show_language_picker",
+  "navbar_template_section",
   "navbar_template",
   "navbar_template_values",
   "edit_navbar_template_values",
@@ -40,6 +42,7 @@
   "copyright",
   "address",
   "footer_items",
+  "footer_powered",
   "footer_template",
   "footer_template_values",
   "edit_footer_template_values",
@@ -54,19 +57,17 @@
   "google_analytics_id",
   "google_analytics_anonymize_ip",
   "misc_section",
-  "subdomain",
+  "app_name",
+  "app_logo",
   "disable_signup",
   "section_break_38",
+  "subdomain",
   "head_html",
   "robots_txt",
   "route_redirects",
-  "section_break_39",
-  "chat_enable",
-  "chat_enable_from",
-  "chat_enable_to",
-  "chat_room_name",
-  "chat_welcome_message",
-  "chat_operators"
+  "account_deletion_settings_section",
+  "show_account_deletion_link",
+  "auto_account_deletion"
  ],
  "fields": [
   {
@@ -75,7 +76,7 @@
    "label": "Landing Page"
   },
   {
-   "description": "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",
+   "description": "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)",
    "fieldname": "home_page",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -160,6 +161,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "banner_html",
    "fieldname": "banner",
    "fieldtype": "Section Break",
    "label": "Banner"
@@ -173,6 +175,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "footer_items",
    "fieldname": "footer",
    "fieldtype": "Section Break",
    "label": "Footer"
@@ -186,7 +189,8 @@
    "description": "Address and other legal information you may want to put in the footer.",
    "fieldname": "address",
    "fieldtype": "Text Editor",
-   "label": "Address"
+   "label": "Address",
+   "max_height": "8rem"
   },
   {
    "fieldname": "footer_items",
@@ -219,7 +223,7 @@
    "collapsible": 1,
    "fieldname": "misc_section",
    "fieldtype": "Section Break",
-   "label": "Disable Signup"
+   "label": "Login Page"
   },
   {
    "description": "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]",
@@ -230,7 +234,7 @@
   {
    "description": "Sub-domain provided by erpnext.com",
    "fieldname": "subdomain",
-   "fieldtype": "Text",
+   "fieldtype": "Small Text",
    "label": "Subdomain",
    "read_only": 1
   },
@@ -258,51 +262,6 @@
    "fieldname": "robots_txt",
    "fieldtype": "Code",
    "label": "Robots.txt"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_39",
-   "fieldtype": "Section Break",
-   "label": "Chat"
-  },
-  {
-   "default": "0",
-   "fieldname": "chat_enable",
-   "fieldtype": "Check",
-   "label": "Enable Chat"
-  },
-  {
-   "depends_on": "chat_enable",
-   "fieldname": "chat_enable_from",
-   "fieldtype": "Time",
-   "label": "From"
-  },
-  {
-   "depends_on": "chat_enable",
-   "fieldname": "chat_enable_to",
-   "fieldtype": "Time",
-   "label": "To"
-  },
-  {
-   "default": "Support",
-   "depends_on": "chat_enable",
-   "fieldname": "chat_room_name",
-   "fieldtype": "Data",
-   "label": "Chat Room Name"
-  },
-  {
-   "default": "Hi, how may I help you?",
-   "depends_on": "chat_enable",
-   "fieldname": "chat_welcome_message",
-   "fieldtype": "Data",
-   "label": "Welcome Message"
-  },
-  {
-   "depends_on": "chat_enable",
-   "fieldname": "chat_operators",
-   "fieldtype": "Table",
-   "label": "Chat Operators",
-   "options": "Chat Room User"
   },
   {
    "fieldname": "route_redirects",
@@ -407,6 +366,53 @@
    "fieldname": "google_analytics_anonymize_ip",
    "fieldtype": "Check",
    "label": "Google Analytics Anonymize IP"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_language_picker",
+   "fieldtype": "Check",
+   "label": "Show Language Picker"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "navbar_template",
+   "fieldname": "navbar_template_section",
+   "fieldtype": "Section Break",
+   "label": "Navbar Template"
+  },
+  {
+   "default": "Frappe",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
+  },
+  {
+   "fieldname": "app_logo",
+   "fieldtype": "Attach Image",
+   "label": "App Logo"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "account_deletion_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Account Deletion Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_account_deletion_link",
+   "fieldtype": "Check",
+   "label": "Show Account Deletion Link in My Account Page"
+  },
+  {
+   "default": "72",
+   "fieldname": "auto_account_deletion",
+   "fieldtype": "Int",
+   "label": "Auto Account Deletion within (Hours)"
+  },
+  {
+   "fieldname": "footer_powered",
+   "fieldtype": "Small Text",
+   "label": "Footer \"Powered By\""
   }
  ],
  "icon": "fa fa-cog",
@@ -414,8 +420,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "max_attachments": 10,
- "modified": "2020-09-28 18:47:18.506700",
+ "modified": "2022-03-09 01:47:31.094462",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
@@ -438,5 +443,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

@@ -9,6 +9,16 @@ frappe.ui.form.on('Assignment Rule', {
 		frm.events.rule(frm);
 	},
 
+	setup: function(frm) {
+		frm.set_query("document_type", () => {
+			return {
+				filters: {
+					name: ["!=", "ToDo"]
+				}
+			};
+		});
+	},
+
 	document_type: function(frm) {
 		frm.trigger('set_options');
 	},

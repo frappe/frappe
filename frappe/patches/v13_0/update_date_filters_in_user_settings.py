@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import frappe, json
 from frappe.model.utils.user_settings import update_user_settings, sync_user_settings
 
@@ -10,7 +10,7 @@ def execute():
 			select
 				* from `__UserSettings`
 			where
-				user="{user}"
+				user='{user}'
 		'''.format(user = user.user), as_dict=True)
 
 		for setting in user_settings:

@@ -1,4 +1,5 @@
 // common file between desk and website
+import md5 from 'md5';
 
 frappe.avatar = function (user, css_class, title, image_url=null, remove_color=false, filterable=false) {
 	let user_info;
@@ -20,27 +21,25 @@ frappe.avatar = function (user, css_class, title, image_url=null, remove_color=f
 		title = user_info.fullname;
 	}
 
-	return frappe.get_avatar(
-		user, css_class, title, image_url || user_info.image, remove_color, filterable
-	);
-};
-
-frappe.get_avatar = function(user, css_class, title, image_url=null, remove_color, filterable) {
 	let data_attr = '';
-
-	if (!css_class) {
-		css_class = "avatar-small";
-	}
-
 	if (filterable) {
 		css_class += " filterable";
 		data_attr = `data-filter="_assign,like,%${user}%"`;
 	}
 
+	return frappe.get_avatar(
+		css_class, title, image_url || user_info.image, remove_color, data_attr
+	);
+};
+
+frappe.get_avatar = function(css_class, title, image_url=null, remove_color, data_attributes) {
+	if (!css_class) {
+		css_class = "avatar-small";
+	}
+
 	if (image_url) {
 		const image = (window.cordova && image_url.indexOf('http') === -1) ? frappe.base_url + image_url : image_url;
-
-		return `<span class="avatar ${css_class}" title="${title}" ${data_attr}>
+		return `<span class="avatar ${css_class}" title="${title}" ${data_attributes}>
 				<span class="avatar-frame" style='background-image: url("${image}")'
 					title="${title}"></span>
 			</span>`;
@@ -55,7 +54,8 @@ frappe.get_avatar = function(user, css_class, title, image_url=null, remove_colo
 		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
-		return `<span class="avatar ${css_class}" title="${title}" ${data_attr}>
+
+		return `<span class="avatar ${css_class}" title="${title}" ${data_attributes}>
 			<div class="avatar-frame standard-image"
 				style="${style}">
 					${abbr}
@@ -259,7 +259,15 @@ frappe.utils.xss_sanitise = function (string, options) {
 		'/': '&#x2F;'
 	};
 	const REGEX_SCRIPT = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
+	const REGEX_ALERT = /confirm\(.*\)|alert\(.*\)|prompt\(.*\)/gi; // captures alert, confirm, prompt
 	options = Object.assign({}, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
+
+	// Rule 3 - TODO: Check event handlers?
+	// script and alert should be checked first or else it will be escaped
+	if (options.strategies.includes('js')) {
+		sanitised = sanitised.replace(REGEX_SCRIPT, "");
+		sanitised = sanitised.replace(REGEX_ALERT, "");
+	}
 
 	// Rule 1
 	if (options.strategies.includes('html')) {
@@ -268,11 +276,6 @@ frappe.utils.xss_sanitise = function (string, options) {
 			const regex = new RegExp(char, "g");
 			sanitised = sanitised.replace(regex, escape);
 		}
-	}
-
-	// Rule 3 - TODO: Check event handlers?
-	if (options.strategies.includes('js')) {
-		sanitised = sanitised.replace(REGEX_SCRIPT, "");
 	}
 
 	return sanitised;

@@ -6,7 +6,11 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		frappe.run_serially([
+		return frappe.run_serially([
+			() => this.show_skeleton(),
+			() => this.fetch_meta(),
+			() => this.hide_skeleton(),
+			() => this.check_permissions(),
 			() => this.init(),
 			() => this.before_refresh(),
 			() => this.refresh(),
@@ -150,6 +154,22 @@ frappe.views.BaseList = class BaseList {
 		}
 	}
 
+	fetch_meta() {
+		return frappe.model.with_doctype(this.doctype);
+	}
+
+	show_skeleton() {
+
+	}
+
+	hide_skeleton() {
+
+	}
+
+	check_permissions() {
+		return true;
+	}
+
 	setup_page() {
 		this.page = this.parent.page;
 		this.$page = $(this.parent);
@@ -179,10 +199,16 @@ frappe.views.BaseList = class BaseList {
 			'Calendar': 'calendar',
 			'Gantt': 'gantt',
 			'Kanban': 'kanban',
-			'Dashboard': 'dashboard'
+			'Dashboard': 'dashboard',
+			'Map': 'map',
 		};
 
 		if (frappe.boot.desk_settings.view_switcher) {
+			/* @preserve
+			for translation, don't remove
+			__("List View") __("Report View") __("Dashboard View") __("Gantt View"),
+			__("Kanban View") __("Calendar View") __("Image View") __("Inbox View"),
+			__("Tree View") __("Map View") */
 			this.views_menu = this.page.add_custom_button_group(__('{0} View', [this.view_name]),
 				icon_map[this.view_name] || 'list');
 			this.views_list = new frappe.views.ListViewSelect({
@@ -285,6 +311,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_filter_area() {
+		if (this.hide_filters) return;
 		this.filter_area = new FilterArea(this);
 
 		if (this.filters && this.filters.length > 0) {
@@ -293,6 +320,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_sort_selector() {
+		if (this.hide_sort_selector) return;
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.$filter_section,
 			doctype: this.doctype,
@@ -368,10 +396,10 @@ frappe.views.BaseList = class BaseList {
 				$this.addClass("btn-info");
 
 				this.start = 0;
-				this.page_length = $this.data().value;
-				this.refresh();
+				this.page_length = this.selected_page_count = $this.data().value;
 			} else if ($this.is(".btn-more")) {
 				this.start = this.start + this.page_length;
+				this.page_length = this.selected_page_count || 20;
 			}
 			this.refresh();
 		});
@@ -382,6 +410,14 @@ frappe.views.BaseList = class BaseList {
 		return this.fields.map((f) =>
 			frappe.model.get_full_column_name(f[0], f[1])
 		);
+	}
+
+	get_group_by() {
+		let name_field = this.fields && this.fields.find(f => f[0] == 'name');
+		if (name_field) {
+			return frappe.model.get_full_column_name(name_field[0], name_field[1]);
+		}
+		return null;
 	}
 
 	setup_view() {
@@ -410,10 +446,11 @@ frappe.views.BaseList = class BaseList {
 			doctype: this.doctype,
 			fields: this.get_fields(),
 			filters: this.get_filters_for_args(),
-			order_by: this.sort_selector.get_sql_string(),
+			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
+			group_by: this.get_group_by()
 		};
 	}
 
@@ -433,9 +470,14 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
+		let args = this.get_call_args();
+		if (this.no_change(args)) {
+			// console.log('throttled');
+			return Promise.resolve();
+		}
 		this.freeze(true);
 		// fetch data from server
-		return frappe.call(this.get_call_args()).then((r) => {
+		return frappe.call(args).then((r) => {
 			// render
 			this.prepare_data(r);
 			this.toggle_result_area();
@@ -443,14 +485,33 @@ frappe.views.BaseList = class BaseList {
 			this.render();
 			this.after_render();
 			this.freeze(false);
+			this.reset_defaults();
 			if (this.settings.refresh) {
 				this.settings.refresh(this);
 			}
 		});
 	}
 
+	no_change(args) {
+		// returns true if arguments are same for the last 3 seconds
+		// this helps in throttling if called from various sources
+		if (this.last_args && JSON.stringify(args) === this.last_args) {
+			return true;
+		}
+		this.last_args = JSON.stringify(args);
+		setTimeout(() => {
+			this.last_args = null;
+		}, 3000);
+		return false;
+	}
+
 	prepare_data(r) {
 		let data = r.message || {};
+
+		// extract user_info for assignments
+		Object.assign(frappe.boot.user_info, data.user_info);
+		delete data.user_info;
+
 		data = !Array.isArray(data)
 			? frappe.utils.dict(data.keys, data.values)
 			: data;
@@ -462,6 +523,11 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		this.data = this.data.uniqBy((d) => d.name);
+	}
+
+	reset_defaults() {
+		this.page_length = this.page_length + this.start;
+		this.start = 0;
 	}
 
 	freeze() {
@@ -694,6 +760,10 @@ class FilterArea {
 
 		const doctype_fields = this.list_view.meta.fields;
 		const title_field = this.list_view.meta.title_field;
+		const has_existing_filters = (
+			this.list_view.filters
+			&& this.list_view.filters.length > 0
+		);
 
 		fields = fields.concat(
 			doctype_fields
@@ -728,13 +798,17 @@ class FilterArea {
 							options = options.join("\n");
 						}
 					}
-					let default_value =
-						fieldtype === "Link"
-							? frappe.defaults.get_user_default(options)
-							: null;
+
+					let default_value;
+
+					if (fieldtype === "Link" && !has_existing_filters) {
+						default_value = frappe.defaults.get_user_default(options);
+					}
+
 					if (["__default", "__global"].includes(default_value)) {
 						default_value = null;
 					}
+
 					return {
 						fieldtype: fieldtype,
 						label: __(df.label),
@@ -821,6 +895,7 @@ frappe.views.view_modes = [
 	"Image",
 	"Inbox",
 	"Tree",
+	"Map",
 ];
 frappe.views.is_valid = (view_mode) =>
 	frappe.views.view_modes.includes(view_mode);

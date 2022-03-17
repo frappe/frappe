@@ -2,24 +2,12 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var cookie = require('cookie');
-var fs = require('fs');
-var path = require('path');
 var request = require('superagent');
 var { get_conf, get_redis_subscriber } = require('./node_utils');
 
 const log = console.log; // eslint-disable-line
 
 var conf = get_conf();
-var files_struct = {
-	name: null,
-	type: null,
-	size: 0,
-	data: [],
-	slice: 0,
-	site_name: null,
-	is_private: 0
-};
-
 var subscriber = get_redis_subscriber();
 
 // serve socketio
@@ -43,7 +31,6 @@ io.on('connection', function (socket) {
 	}
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
-	socket.files = {};
 
 	// frappe.chat
 	socket.on("frappe.chat.room:subscribe", function (rooms) {
@@ -96,10 +83,6 @@ io.on('connection', function (socket) {
 	};
 
 	join_chat_room();
-
-	socket.on('disconnect', function () {
-		delete socket.files;
-	});
 
 	socket.on('task_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
@@ -217,45 +200,9 @@ io.on('connection', function (socket) {
 		);
 	});
 
-	socket.on('upload-accept-slice', (data) => {
-		try {
-			if (!socket.files[data.name]) {
-				socket.files[data.name] = Object.assign({}, files_struct, data);
-				socket.files[data.name].data = [];
-			}
-
-			//convert the ArrayBuffer to Buffer
-			data.data = new Buffer(new Uint8Array(data.data));
-			//save the data
-			socket.files[data.name].data.push(data.data);
-			socket.files[data.name].slice++;
-
-			if (socket.files[data.name].slice * 24576 >= socket.files[data.name].size) {
-				// do something with the data
-				var fileBuffer = Buffer.concat(socket.files[data.name].data);
-
-				const file_url = path.join((socket.files[data.name].is_private ? 'private' : 'public'),
-					'files', data.name);
-				const file_path = path.join('sites', get_site_name(socket), file_url);
-
-				fs.writeFile(file_path, fileBuffer, (err) => {
-					delete socket.files[data.name];
-					if (err) return socket.emit('upload error');
-					socket.emit('upload-end', {
-						file_url: '/' + file_url
-					});
-				});
-			} else {
-				socket.emit('upload-request-slice', {
-					currentSlice: socket.files[data.name].slice
-				});
-			}
-		} catch (e) {
-			log(e);
-			socket.emit('upload-error', {
-				error: e.message
-			});
-		}
+	socket.on('open_in_editor', (data) => {
+		let s = get_redis_subscriber('redis_socketio');
+		s.publish('open_in_editor', JSON.stringify(data));
 	});
 });
 
@@ -318,9 +265,11 @@ function get_chat_room(socket, room) {
 }
 
 function get_site_name(socket) {
+	var hostname_from_host = get_hostname(socket.request.headers.host);
+
 	if (socket.request.headers['x-frappe-site-name']) {
 		return get_hostname(socket.request.headers['x-frappe-site-name']);
-	} else if (['localhost', '127.0.0.1'].indexOf(socket.request.headers.host) !== -1 &&
+	} else if (['localhost', '127.0.0.1'].indexOf(hostname_from_host) !== -1 &&
 		conf.default_site) {
 		// from currentsite.txt since host is localhost
 		return conf.default_site;

@@ -1,0 +1,95 @@
+.icon-picker {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	--icon-picker-width: 240px;
+	width: var(--icon-picker-width);
+	.icons {
+		margin-top: 10px;
+		display: flex;
+		flex-wrap: wrap;
+		overflow-y: scroll;
+		max-height: 210px;
+		cursor: pointer;
+
+		/* Hide scrollbar for IE, Edge and Firefox */
+		-ms-overflow-style: none;  /* IE and Edge */
+		scrollbar-width: none;  /* Firefox */
+
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		.icon-wrapper {
+			display: flex;
+			width: 30px;
+			height: 30px;
+			text-align: center;
+			align-items: center;
+		}
+	}
+
+	.search-icons {
+		position: relative;
+
+		input[type='search'] {
+			height: inherit;
+			padding-left: 30px;
+		}
+
+		.search-icon {
+			position: absolute;
+			top: 7px;
+			left: 7px;
+		}
+	}
+}
+.icon-picker-popover {
+	.picker-arrow {
+		left: 15px !important;
+	}
+}
+
+.frappe-control[data-fieldtype='Icon'] {
+	input {
+		padding-left: 40px;
+	}
+	.selected-icon {
+		cursor: pointer;
+		width: 22px;
+		height: 22px;
+		border-radius: 5px;
+		position: absolute;
+		top: calc(50% + 1px);
+		left: 8px;
+		content: ' ';
+	}
+	.like-disabled-input {
+		.icon-value {
+			padding-left: 25px;
+		}
+		.selected-icon {
+			top: 20%;
+			cursor: default;
+		}
+	}
+}
+
+.data-row.row {
+	.selected-icon {
+		top: calc(50% - 11px);
+		z-index: 2;
+	}
+}
+
+.dt-cell__content {
+	.selected-icon {
+		display: contents;
+	}
+}
+
+.dt-cell__edit, .filter-field {
+	.selected-icon {
+		top: 5px !important;
+	}
+}

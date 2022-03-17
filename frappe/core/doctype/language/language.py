@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe, json, re
 from frappe import _
 from frappe.model.document import Document
@@ -40,7 +39,8 @@ def sync_languages():
 			frappe.get_doc({
 				'doctype': 'Language',
 				'language_code': l['code'],
-				'language_name': l['name']
+				'language_name': l['name'],
+				'enabled': 1,
 			}).insert()
 
 def update_language_names():

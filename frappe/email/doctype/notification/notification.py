@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
-# For license information, please see license.txt
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import json, os
 from frappe import _
@@ -12,7 +11,6 @@ from frappe.utils import validate_email_address, nowdate, parse_val, is_html, ad
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 from frappe.modules.utils import export_module_json, get_doc_module
-from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
@@ -55,9 +53,7 @@ class Notification(Document):
 			# py
 			if not os.path.exists(path + '.py'):
 				with open(path + '.py', 'w') as f:
-					f.write("""from __future__ import unicode_literals
-
-import frappe
+					f.write("""import frappe
 
 def get_context(context):
 	# do your magic here
@@ -65,7 +61,7 @@ def get_context(context):
 """)
 
 	def validate_standard(self):
-		if self.is_standard and not frappe.conf.developer_mode:
+		if self.is_standard and self.enabled and not frappe.conf.developer_mode:
 			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
 
 	def validate_condition(self):
@@ -141,7 +137,7 @@ def get_context(context):
 
 		if self.set_property_after_alert:
 			allow_update = True
-			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
+			if doc.docstatus.is_submitted() and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
 				allow_update = False
 			try:
 				if allow_update and not doc.flags.in_notification_update:
@@ -150,6 +146,7 @@ def get_context(context):
 					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
 						value = frappe.utils.cint(value)
 
+					doc.reload()
 					doc.set(fieldname, value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
@@ -189,6 +186,7 @@ def get_context(context):
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
+		from frappe.core.doctype.communication.email import _make as make_communication
 		subject = self.subject
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
@@ -199,6 +197,7 @@ def get_context(context):
 			return
 
 		sender = None
+		message = frappe.render_template(self.message, context)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 		frappe.sendmail(recipients = recipients,
@@ -206,13 +205,31 @@ def get_context(context):
 			sender = sender,
 			cc = cc,
 			bcc = bcc,
-			message = frappe.render_template(self.message, context),
+			message = message,
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
 			attachments = attachments,
 			expose_recipients="header",
 			print_letterhead = ((attachments
 				and attachments[0].get('print_letterhead')) or False))
+
+		# Add mail notification to communication list
+		# No need to add if it is already a communication.
+		if doc.doctype != 'Communication':
+			make_communication(
+				doctype=doc.doctype,
+				name=doc.name,
+				content=message,
+				subject=subject,
+				sender=sender,
+				recipients=recipients,
+				communication_medium="Email",
+				send_email=False,
+				attachments=attachments,
+				cc=cc,
+				bcc=bcc,
+				communication_type='Automated Message',
+			)
 
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
@@ -378,7 +395,7 @@ def trigger_notifications(doc, method=None):
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
 	try:
-		if isinstance(alert, string_types):
+		if isinstance(alert, str):
 			alert = frappe.get_doc("Notification", alert)
 
 		context = get_context(doc)
@@ -419,8 +436,8 @@ def get_context(doc):
 def get_assignees(doc):
 	assignees = []
 	assignees = frappe.get_all('ToDo', filters={'status': 'Open', 'reference_name': doc.name,
-		'reference_type': doc.doctype}, fields=['owner'])
+		'reference_type': doc.doctype}, fields=['allocated_to'])
 
-	recipients = [d.owner for d in assignees]
+	recipients = [d.allocated_to for d in assignees]
 
 	return recipients

@@ -1,16 +1,18 @@
 @import "variables";
-@import "css_variables";
 @import "../common/mixins.scss";
 @import "../common/global.scss";
 @import "../common/icons.scss";
+@import "../common/alert.scss";
 
 @import "~bootstrap/scss/bootstrap";
 @import "global";
 @import "../common/buttons";
 @import "../common/flex";
 @import "mobile";
+@import "module.scss";
 @import "form";
 @import "print_preview";
+@import "scrollbar";
 @import "navbar";
 @import "../common/modal";
 @import "slides";
@@ -24,7 +26,7 @@
 @import "notification";
 @import "global_search";
 @import "desktop";
-@import "awesomebar";
+@import "../common/awesomeplete";
 @import "sidebar";
 @import "filters";
 @import "list";
@@ -37,12 +39,13 @@
 @import "calendar";
 @import "dashboard_view";
 @import "tree";
-@import "controls";
+@import "../common/controls";
 @import "data_import";
 @import "driver";
 @import "role_editor";
 @import "user_profile";
 @import "theme_switcher";
 @import "link_preview";
-@import "quill";
+@import "../common/quill";
 @import "plyr";
+@import "version";

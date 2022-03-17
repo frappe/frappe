@@ -119,6 +119,10 @@ frappe.render_grid = function(opts) {
 	// render HTML wrapper page
 	opts.base_url = frappe.urllib.get_base_url();
 	opts.print_css = frappe.boot.print_css;
+
+	opts.lang = opts.lang || frappe.boot.lang,
+	opts.layout_direction = opts.layout_direction || frappe.utils.is_rtl() ? "rtl" : "ltr";
+
 	var html = frappe.render_template("print_template", opts);
 
 	var w = window.open();
@@ -134,6 +138,7 @@ frappe.render_tree = function(opts) {
 	opts.base_url = frappe.urllib.get_base_url();
 	opts.landscape = false;
 	opts.print_css = frappe.boot.print_css;
+	opts.print_format_css_path = frappe.assets.bundled_asset('print_format.bundle.css');
 	var tree = frappe.render_template("print_tree", opts);
 	var w = window.open();
 

@@ -1,7 +1,6 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
-# For license information, please see license.txt
+# Copyright (c) 2021, Frappe Technologies and contributors
+# License: MIT. See LICENSE
 
-from __future__ import unicode_literals
 import frappe
 import hashlib
 from frappe import _
@@ -13,13 +12,17 @@ def execute(filters=None):
 	return columns, data
 
 def get_data(filters=None):
-
-	logs = frappe.db.sql("SELECT * FROM `tabTransaction Log` order by creation desc ", as_dict=1)
 	result = []
+	logs = frappe.get_all("Transaction Log", fields=["*"], order_by="creation desc")
+
 	for l in logs:
 		row_index = int(l.row_index)
 		if row_index > 1:
-			previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransaction Log` WHERE row_index = {0}".format(row_index - 1))
+			previous_hash = frappe.get_all(
+				"Transaction Log",
+				fields=["chaining_hash"],
+				filters={"row_index": row_index - 1},
+			)
 			if not previous_hash:
 				integrity = False
 			else:

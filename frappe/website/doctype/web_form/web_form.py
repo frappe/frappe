@@ -1,14 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-
-from __future__ import unicode_literals
+# License: MIT. See LICENSE
 
 import json
 import os
-
-from six import iteritems
-from six.moves.urllib.parse import urlencode
-
 import frappe
 from frappe import _, scrub
 from frappe.core.doctype.file.file import get_max_file_size, remove_file_by_url
@@ -19,7 +13,7 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import cstr
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
-
+from frappe.rate_limiter import rate_limit
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -83,7 +77,7 @@ class WebForm(WebsiteGenerator):
 
 			for prop in docfield_properties:
 				if df.fieldtype==meta_df.fieldtype and prop not in ("idx",
-					"reqd", "default", "description", "default", "options",
+					"reqd", "default", "description", "options",
 					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
@@ -109,9 +103,7 @@ class WebForm(WebsiteGenerator):
 			# py
 			if not os.path.exists(path + '.py'):
 				with open(path + '.py', 'w') as f:
-					f.write("""from __future__ import unicode_literals
-
-import frappe
+					f.write("""import frappe
 
 def get_context(context):
 	# do your magic here
@@ -215,6 +207,11 @@ def get_context(context):
 			amount = self.amount
 			if self.amount_based_on_field:
 				amount = doc.get(self.amount_field)
+
+			from decimal import Decimal
+			if amount is None or Decimal(amount) <= 0:
+				return frappe.utils.get_url(self.success_url or self.route)
+
 			payment_details = {
 				"amount": amount,
 				"title": title,
@@ -308,7 +305,7 @@ def get_context(context):
 				if not section:
 					section = add_section()
 					column = None
-				if column==None:
+				if column is None:
 					column = add_column()
 				column.append(df)
 
@@ -341,7 +338,7 @@ def get_context(context):
 
 		if missing:
 			frappe.throw(_('Mandatory Information missing:') + '<br><br>'
-				+ '<br>'.join(['{0} ({1})'.format(d.label, d.fieldtype) for d in missing]))
+				+ '<br>'.join('{0} ({1})'.format(d.label, d.fieldtype) for d in missing))
 
 	def allow_website_search_indexing(self):
 		return False
@@ -368,6 +365,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(key='web_form', limit=5, seconds=60, methods=['POST'])
 def accept(web_form, data, docname=None, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
@@ -545,7 +543,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options)
+			field.fields = frappe.get_meta(field.options).fields
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
@@ -600,13 +598,24 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 				break
 
 	if doctype_validated:
-		link_options = []
-		if limited_to_user:
-			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
-		else:
-			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype)])
+		link_options, filters = [], {}
 
-		return link_options
+		if limited_to_user:
+			filters = {"owner":frappe.session.user}
+
+		fields = ['name as value']
+
+		title_field = frappe.db.get_value('DocType', doctype, 'title_field', cache=1)
+		show_title_field_in_link = frappe.db.get_value('DocType', doctype, 'show_title_field_in_link', cache=1) == 1
+		if title_field and show_title_field_in_link:
+			fields.append(f'{title_field} as label')
+
+		link_options = frappe.get_all(doctype, filters, fields)
+
+		if title_field and show_title_field_in_link:
+			return json.dumps(link_options, default=str)
+		else:
+			return "\n".join([doc.value for doc in link_options])
 
 	else:
 		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))

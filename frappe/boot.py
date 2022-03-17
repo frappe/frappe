@@ -1,10 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
-
-from __future__ import unicode_literals
-
-from six import iteritems, text_type
-
+# License: MIT. See LICENSE
 """
 bootstrap client session
 """
@@ -12,6 +7,7 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
@@ -20,8 +16,8 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import is
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.model.base_document import get_controller
-from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
+from frappe.utils import get_time_zone, add_user_info
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -63,6 +59,7 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
+	set_time_zone(bootinfo)
 
 	# ipinfo
 	if frappe.session.data.get('ipinfo'):
@@ -75,7 +72,7 @@ def get_bootinfo():
 		frappe.get_attr(method)(bootinfo)
 
 	if bootinfo.lang:
-		bootinfo.lang = text_type(bootinfo.lang)
+		bootinfo.lang = str(bootinfo.lang)
 	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
@@ -92,6 +89,7 @@ def get_bootinfo():
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
+	bootinfo.link_title_doctypes = get_link_title_doctypes()
 
 	return bootinfo
 
@@ -110,8 +108,8 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.desktop import get_desk_sidebar_items
-	bootinfo.allowed_workspaces = get_desk_sidebar_items()
+	from frappe.desk.desktop import get_workspace_sidebar_items
+	bootinfo.allowed_workspaces = get_workspace_sidebar_items().get('pages')
 	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
@@ -220,22 +218,19 @@ def load_translations(bootinfo):
 		messages[name] = frappe._(name)
 
 	# only untranslated
-	messages = {k:v for k, v in iteritems(messages) if k!=v}
+	messages = {k: v for k, v in messages.items() if k!=v}
 
 	bootinfo["__messages"] = messages
 
 def get_user_info():
-	user_info = frappe.db.get_all('User', fields=['`name`', 'full_name as fullname', 'user_image as image',
-		'gender', 'email', 'username', 'bio', 'location', 'interest', 'banner_image', 'allowed_in_mentions', 'user_type'],
-		filters=dict(enabled=1))
+	# get info for current user
+	user_info = frappe._dict()
+	add_user_info(frappe.session.user, user_info)
 
-	user_info_map = {d.name: d for d in user_info}
+	if frappe.session.user == 'Administrator' and user_info.Administrator.email:
+		user_info[user_info.Administrator.email] = user_info.Administrator
 
-	admin_data = user_info_map.get('Administrator')
-	if admin_data:
-		user_info_map[admin_data.email] = admin_data
-
-	return user_info_map
+	return user_info
 
 def get_user(bootinfo):
 	"""get user info"""
@@ -329,3 +324,19 @@ def get_desk_settings():
 
 def get_notification_settings():
 	return frappe.get_cached_doc('Notification Settings', frappe.session.user)
+
+@frappe.whitelist()
+def get_link_title_doctypes():
+	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
+	custom_dts = frappe.get_all(
+		"Property Setter",
+		{"property": "show_title_field_in_link", "value": "1"},
+		["doc_type as name"],
+	)
+	return [d.name for d in dts + custom_dts if d]
+
+def set_time_zone(bootinfo):
+	bootinfo.time_zone = {
+		"system": get_time_zone(),
+		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None) or get_time_zone()
+	}
