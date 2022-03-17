@@ -183,8 +183,6 @@ class BackupGenerator:
 				False,
 			)
 
-		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
-
 		if not (
 			self.backup_path_conf
 			and self.backup_path_db
@@ -212,7 +210,7 @@ class BackupGenerator:
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
 		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
-
+		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
 		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"

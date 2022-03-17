@@ -248,7 +248,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// on main doc
 		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 			// set input
-			if(doc.name===me.docname) {
+			if (cstr(doc.name) === me.docname) {
 				me.dirty();
 
 				let field = me.fields_dict[fieldname];
@@ -1102,13 +1102,13 @@ frappe.ui.form.Form = class FrappeForm {
 		let list_view = frappe.get_list_view(this.doctype);
 		if (list_view) {
 			filters = list_view.get_filters_for_args();
-			sort_field = list_view.sort_field;
+			sort_field = list_view.sort_by;
 			sort_order = list_view.sort_order;
 		} else {
 			let list_settings = frappe.get_user_settings(this.doctype)['List'];
 			if (list_settings) {
 				filters = list_settings.filters;
-				sort_field = list_settings.sort_field;
+				sort_field = list_settings.sort_by;
 				sort_order = list_settings.sort_order;
 			}
 		}
@@ -1511,7 +1511,9 @@ frappe.ui.form.Form = class FrappeForm {
 						// update child doc
 						opts.child = locals[opts.child.doctype][opts.child.name];
 
-						var std_field_list = ["doctype"].concat(frappe.model.std_fields_list);
+						var std_field_list = ["doctype"]
+							.concat(frappe.model.std_fields_list)
+							.concat(frappe.model.child_table_field_list);
 						for (var key in r.message) {
 							if (std_field_list.indexOf(key)===-1) {
 								opts.child[key] = r.message[key];

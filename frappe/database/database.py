@@ -142,8 +142,6 @@ class Database(object):
 			self.log_query(query, values, debug, explain)
 
 			if values!=():
-				if isinstance(values, dict):
-					values = dict(values)
 
 				# MySQL-python==1.2.5 hack!
 				if not isinstance(values, (dict, tuple, list)):
@@ -181,7 +179,7 @@ class Database(object):
 				print(e)
 				raise
 
-			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+			if ignore_ddl and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
 				raise
@@ -584,7 +582,7 @@ class Database(object):
 			company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
 
-		if not doctype in self.value_cache:
+		if doctype not in self.value_cache:
 			self.value_cache[doctype] = {}
 
 		if cache and fieldname in self.value_cache[doctype]:
@@ -1028,7 +1026,7 @@ class Database(object):
 			return []
 
 	def is_missing_table_or_column(self, e):
-		return self.is_missing_column(e) or self.is_missing_table(e)
+		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
 		current_dialect = frappe.db.db_type or 'mariadb'

@@ -88,6 +88,9 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	make_quill_editor() {
 		if (this.quill) return;
 		this.quill_container = $('<div>').appendTo(this.input_area);
+		if (this.df.max_height) {
+			$(this.quill_container).css({'max-height': this.df.max_height, 'overflow': 'auto'});
+		}
 		this.quill = new Quill(this.quill_container[0], this.get_quill_options());
 		this.bind_events();
 	}

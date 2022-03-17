@@ -183,21 +183,20 @@ export default class GridRow {
 	render_template() {
 		this.set_row_index();
 
-		if(this.row_display) {
+		if (this.row_display) {
 			this.row_display.remove();
 		}
 
 		// row index
-		if(this.doc) {
-			if(!this.row_index) {
-				this.row_index = $('<div style="float: left; margin-left: 15px; margin-top: 8px; \
-					margin-right: -20px;">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
-			}
+		if (!this.row_index) {
+			this.row_index = $(`<div class="template-row-index">${this.row_check_html}<span></span></div>`).appendTo(this.row);
+		}
+
+		if (this.doc) {
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
-		this.row_display = $('<div class="row-data sortable-handle template-row">'+
-			+'</div>').appendTo(this.row)
+		this.row_display = $('<div class="row-data sortable-handle template-row"></div>').appendTo(this.row)
 			.html(frappe.render(this.grid.template, {
 				doc: this.doc ? frappe.get_format_helper(this.doc) : null,
 				frm: this.frm,
@@ -340,7 +339,7 @@ export default class GridRow {
 				</div>
 				<div class='control-input-wrapper selected-fields'>
 				</div>
-				<p class='help-box small text-muted hidden-xs'>
+				<p class='help-box small text-muted'>
 					<a class='add-new-fields text-muted'>
 						+ ${__('Add / Remove Columns')}
 					</a>
@@ -420,18 +419,18 @@ export default class GridRow {
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1'>
+							<div class='col-md-1' style='padding-top: 2px'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon('drag', 'xs')}</a>
 							</div>
-							<div class='col-md-7' style='padding-left:0px;'>
+							<div class='col-md-7' style='padding-left:0px; padding-top:3px'>
 								${__(docfield.label)}
 							</div>
 							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__('Columns')}'>
 								<input class='form-control column-width input-xs text-right'
 									value='${docfield.columns || cint(d.columns)}'
-									data-fieldname='${docfield.fieldname}' style='background-color: #ffff; display: inline'>
+									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1'>
+							<div class='col-md-1' style='padding-top: 3px'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>
@@ -616,6 +615,7 @@ export default class GridRow {
 		if (!this.doc) {
 			$col.attr("title", txt);
 		}
+		df.fieldname && $col.static_area.toggleClass('reqd', Boolean(df.reqd));
 
 		$col.df = df;
 		$col.column_index = ci;

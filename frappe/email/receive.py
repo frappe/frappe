@@ -630,7 +630,7 @@ class InboundMail(Email):
 		if self.reference_document():
 			data['reference_doctype'] = self.reference_document().doctype
 			data['reference_name'] = self.reference_document().name
-		else: 
+		else:
 			if append_to and append_to != 'Communication':
 				reference_doc = self._create_reference_document(append_to)
 				if reference_doc:

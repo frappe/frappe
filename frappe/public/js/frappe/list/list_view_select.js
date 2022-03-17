@@ -150,7 +150,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		const views_wrapper = this.sidebar.sidebar.find(".views-section");
 		views_wrapper.find(".sidebar-label").html(`${__(view)}`);
 		const $dropdown = views_wrapper.find(".views-dropdown");
-		
+
 		let placeholder = `${__("Select {0}", [__(view)])}`;
 		let html = ``;
 

@@ -2,40 +2,58 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt
 from frappe.database.schema import DBTable, get_definition
+from frappe.database.sequence import create_sequence
+from frappe.model import log_types
+
 
 class PostgresTable(DBTable):
 	def create(self):
-		add_text = ""
+		varchar_len = frappe.db.VARCHAR_LEN
+		name_column = f"name varchar({varchar_len}) primary key"
 
+		additional_definitions = ""
 		# columns
 		column_defs = self.get_column_definitions()
 		if column_defs:
-			add_text += ",\n".join(column_defs)
+			additional_definitions += ",\n".join(column_defs)
 
 		# child table columns
 		if self.meta.get("istable") or 0:
 			if column_defs:
-				add_text += ",\n"
+				additional_definitions += ",\n"
 
-			add_text += ",\n".join(
+			additional_definitions += ",\n".join(
 				(
-					"parent varchar({varchar_len})",
-					"parentfield varchar({varchar_len})",
-					"parenttype varchar({varchar_len})"
+					f"parent varchar({varchar_len})",
+					f"parentfield varchar({varchar_len})",
+					f"parenttype varchar({varchar_len})",
 				)
 			)
 
+		# creating sequence(s)
+		if (not self.meta.issingle and self.meta.autoname == "autoincrement")\
+			or self.doctype in log_types:
+
+			# The sequence cache is per connection.
+			# Since we're opening and closing connections for every transaction this results in skipping the cache
+			# to the next non-cached value hence not using cache in postgres.
+			# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
+			create_sequence(self.doctype, check_not_exists=True)
+			name_column = "name bigint primary key"
+
 		# TODO: set docstatus length
 		# create table
-		frappe.db.sql(("""create table `%s` (
-			name varchar({varchar_len}) not null primary key,
+		frappe.db.sql(f"""create table `{self.table_name}` (
+			{name_column},
 			creation timestamp(6),
 			modified timestamp(6),
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
 			docstatus smallint not null default '0',
 			idx bigint not null default '0',
-			%s)""" % (self.table_name, add_text)).format(varchar_len=frappe.db.VARCHAR_LEN))
+			{additional_definitions}
+			)"""
+		)
 
 		self.create_indexes()
 		frappe.db.commit()
