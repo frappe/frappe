@@ -8,11 +8,6 @@ no_cache = 1
 
 def get_context(context):
 	if frappe.flags.in_migrate: return
-<<<<<<< HEAD
-	print(frappe.get_traceback().encode("utf-8"))
-=======
 	context.http_status_code = 500
-
 	print(frappe.get_traceback())
->>>>>>> f811927895 (fix: show traceback as string instead of bytes)
 	return {"error": frappe.get_traceback().replace("<", "&lt;").replace(">", "&gt;") }
