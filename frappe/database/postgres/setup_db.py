@@ -95,3 +95,11 @@ def get_root_connection(root_login=None, root_password=None):
 		frappe.local.flags.root_connection = frappe.database.get_db(user=root_login, password=root_password)
 
 	return frappe.local.flags.root_connection
+
+
+def drop_user_and_database(db_name, root_login, root_password):
+	root_conn = get_root_connection(frappe.flags.root_login or root_login, frappe.flags.root_password or root_password)
+	root_conn.commit()
+	root_conn.sql(f"SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = %s", (db_name, ))
+	root_conn.sql(f"DROP DATABASE IF EXISTS {db_name}")
+	root_conn.sql(f"DROP USER IF EXISTS {db_name}")
