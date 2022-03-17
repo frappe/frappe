@@ -136,14 +136,14 @@ def create_contact_records():
 
 @frappe.whitelist()
 def create_multiple_todo_records():
+	values = []
 	if frappe.db.get_all('ToDo', {'description': 'Multiple ToDo 1'}):
 		return
 
-	query = "INSERT INTO `tabToDo` (`name`, `description`) VALUES ('1001', 'Multiple ToDo 1')"
-	for index in range(1000):
-		query = query + ", ('100{}', 'Multiple ToDo {}')".format(index+2,index+2)
+	for index in range(1, 1002):
+		values.append(('100{}'.format(index), 'Multiple ToDo {}'.format(index)))
 
-	frappe.db.sql(query)
+	frappe.db.bulk_insert('ToDo', fields=['name', 'description'], values=set(values))
 
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({
