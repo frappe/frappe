@@ -82,7 +82,8 @@ frappe.boot = {
 	time_zone: {
 		system: "{{ frappe.utils.get_time_zone() }}",
 		user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
-	}
+	},
+	link_title_doctypes: `{{ frappe.call('frappe.boot.get_link_title_doctypes') }}`
 };
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;
