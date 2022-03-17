@@ -114,8 +114,8 @@ class Database(object):
 		"""
 		query = str(query)
 
-		# remove \n \t from start of query and replace them with space anywhere in middle
-		query = re.sub(r'\s', ' ', query).lstrip()
+		# remove \n \t from start and end of query
+		query = re.sub(r'^\s*|\s*$', '', query)
 
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
