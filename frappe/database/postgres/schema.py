@@ -2,10 +2,14 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt
 from frappe.database.schema import DBTable, get_definition
+from frappe.database.sequence import create_sequence
+from frappe.model import log_types
+
 
 class PostgresTable(DBTable):
 	def create(self):
 		varchar_len = frappe.db.VARCHAR_LEN
+		name_column = f"name varchar({varchar_len}) primary key"
 
 		additional_definitions = ""
 		# columns
@@ -26,9 +30,21 @@ class PostgresTable(DBTable):
 				)
 			)
 
+		# creating sequence(s)
+		if (not self.meta.issingle and self.meta.autoname == "autoincrement")\
+			or self.doctype in log_types:
+
+			# The sequence cache is per connection.
+			# Since we're opening and closing connections for every transaction this results in skipping the cache
+			# to the next non-cached value hence not using cache in postgres.
+			# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
+			create_sequence(self.doctype, check_not_exists=True)
+			name_column = "name bigint primary key"
+
+		# TODO: set docstatus length
 		# create table
 		frappe.db.sql(f"""create table `{self.table_name}` (
-			name varchar({varchar_len}) not null primary key,
+			{name_column},
 			creation timestamp(6),
 			modified timestamp(6),
 			modified_by varchar({varchar_len}),
