@@ -1,7 +1,7 @@
 # imports - standard imports
 import os
-import sys
 import shutil
+import sys
 
 # imports - third party imports
 import click
@@ -65,11 +65,11 @@ def restore(context, sql_file_path, encryption_key=None, db_root_username=None, 
 	"Restore site database from an sql file"
 	from frappe.installer import (
 		_new_site,
-		extract_sql_from_archive,
 		extract_files,
+		extract_sql_from_archive,
 		is_downgrade,
 		is_partial,
-		validate_database_sql
+		validate_database_sql,
 	)
 	from frappe.utils.backups import Backup
 	if not os.path.exists(sql_file_path):
@@ -207,7 +207,7 @@ def restore(context, sql_file_path, encryption_key=None, db_root_username=None, 
 @click.option('--encryption-key', help='Backup encryption key')
 @pass_context
 def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
-	from frappe.installer import partial_restore, extract_sql_from_archive
+	from frappe.installer import extract_sql_from_archive, partial_restore
 	from frappe.utils.backups import Backup
 
 	if not os.path.exists(sql_file_path):
@@ -545,7 +545,7 @@ def _use(site, sites_path='.'):
 
 def use(site, sites_path='.'):
 	if os.path.exists(os.path.join(sites_path, site)):
-		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
 		print("Current Site set to {}".format(site))
 	else:
@@ -677,7 +677,9 @@ def _drop_site(site, db_root_username=None, db_root_password=None, archived_site
 
 	try:
 		if not no_backup:
-			scheduled_backup(ignore_files=False, force=True)
+			click.secho(f"Taking backup of {site}", fg="green")
+			odb = scheduled_backup(ignore_files=False, force=True, verbose=True)
+			odb.print_summary()
 	except Exception as err:
 		if force:
 			pass
@@ -692,6 +694,7 @@ def _drop_site(site, db_root_username=None, db_root_password=None, archived_site
 			click.echo("\n".join(messages))
 			sys.exit(1)
 
+	click.secho("Dropping site database and user", fg="green")
 	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
 
 	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
@@ -751,6 +754,7 @@ def set_admin_password(context, admin_password=None, logout_all_sessions=False):
 
 def set_user_password(site, user, password, logout_all_sessions=False):
 	import getpass
+
 	from frappe.utils.password import update_password
 
 	try:
@@ -881,15 +885,16 @@ def stop_recording(context):
 		raise SiteNotSpecifiedError
 
 @click.command('ngrok')
+@click.option('--bind-tls', is_flag=True, default=False, help='Returns a reference to the https tunnel.')
 @pass_context
-def start_ngrok(context):
+def start_ngrok(context, bind_tls):
 	from pyngrok import ngrok
 
 	site = get_site(context)
 	frappe.init(site=site)
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
-	tunnel = ngrok.connect(addr=str(port), host_header=site)
+	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
 	print(f'Public URL: {tunnel.public_url}')
 	print('Inspect logs at http://localhost:4040')
 

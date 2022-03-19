@@ -158,7 +158,7 @@ def update_naming_series(doc):
 			and getattr(doc, "naming_series", None):
 			revert_series_if_last(doc.naming_series, doc.name, doc)
 
-		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash"):
+		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash", "autoincrement"):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):

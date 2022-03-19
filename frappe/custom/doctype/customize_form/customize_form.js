@@ -14,7 +14,6 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	onload: function(frm) {
-		frm.disable_save();
 		frm.set_query("doc_type", function() {
 			return {
 				filters: [
@@ -109,7 +108,7 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	refresh: function(frm) {
-		frm.disable_save();
+		frm.disable_save(true);
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
@@ -168,7 +167,7 @@ frappe.ui.form.on("Customize Form", {
 			doc_type = localStorage.getItem("customize_doctype");
 		}
 		if (doc_type) {
-			setTimeout(() => frm.set_value("doc_type", doc_type), 1000);
+			setTimeout(() => frm.set_value("doc_type", doc_type, false, true), 1000);
 		}
 	},
 
@@ -340,11 +339,11 @@ frappe.customize_form.confirm = function(msg, frm) {
 }
 
 frappe.customize_form.clear_locals_and_refresh = function(frm) {
+	delete frm.doc.__unsaved;
 	// clear doctype from locals
 	frappe.model.clear_doc("DocType", frm.doc.doc_type);
 	delete frappe.meta.docfield_copy[frm.doc.doc_type];
-
 	frm.refresh();
-}
+};
 
 extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({frm: cur_frm}));

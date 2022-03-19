@@ -1,5 +1,5 @@
 from pypika.functions import *
-from pypika.terms import Function
+from pypika.terms import Function, CustomFunction, ArithmeticExpression, Arithmetic
 from frappe.query_builder.utils import ImportMapper, db_type_is
 from frappe.query_builder.custom import GROUP_CONCAT, STRING_AGG, MATCH, TO_TSVECTOR
 from frappe.database.query import Query
@@ -22,6 +22,24 @@ Match = ImportMapper(
 	{
 		db_type_is.MARIADB: MATCH,
 		db_type_is.POSTGRES: TO_TSVECTOR
+	}
+)
+
+class _PostgresTimestamp(ArithmeticExpression):
+	def __init__(self, datepart, timepart, alias=None):
+		if isinstance(datepart, str):
+			datepart = Cast(datepart, "date")
+		if isinstance(timepart, str):
+			timepart = Cast(timepart, "time")
+
+		super().__init__(operator=Arithmetic.add,
+				left=datepart, right=timepart, alias=alias)
+
+
+CombineDatetime = ImportMapper(
+	{
+		db_type_is.MARIADB: CustomFunction("TIMESTAMP", ["date", "time"]),
+		db_type_is.POSTGRES: _PostgresTimestamp,
 	}
 )
 
