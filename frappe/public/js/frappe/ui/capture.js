@@ -28,6 +28,24 @@ frappe._.get_data_uri = element => {
 	return data_uri;
 };
 
+function get_file_input() {
+	let input = document.createElement("input");
+	input.setAttribute("type", "file");
+	input.setAttribute("accept", "image/*");
+	input.setAttribute("multiple", "");
+
+	return input;
+};
+
+function read(file) {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = reject
+		reader.readAsDataURL(file);
+	});
+};
+
 /**
  * @description Frappe's Capture object.
  *
@@ -57,8 +75,16 @@ frappe.ui.Capture = class {
 	}
 
 	show() {
-		let me = this;
+		this.build_dialog();
 
+		if (frappe.is_mobile()) {
+			this.show_for_mobile();
+		} else {
+			this.show_for_desktop();
+		}
+	}
+
+	build_dialog() {
 		this.dialog = new frappe.ui.Dialog({
 			title: this.options.title,
 			animate: this.options.animate,
@@ -75,9 +101,36 @@ frappe.ui.Capture = class {
 			on_hide: this.stop_media_stream()
 		});
 
+		this.$template = $(frappe.ui.Capture.TEMPLATE);
+
+		let field = this.dialog.get_field("capture");
+		$(field.wrapper).html(this.$template);
+
 		this.dialog.get_close_btn().on('click', () => {
 			me.hide();
 		});
+	}
+
+	show_for_mobile() {
+		let me = this;
+		if (!me.input) {
+			me.input = get_file_input();
+		}
+
+		me.input.onchange = async () => {
+			for (let file of me.input.files) {
+				let f = await read(file)
+				me.images.push(f);
+			}
+
+			me.render_preview();
+			me.dialog.show();
+		};
+		me.input.click();
+	}
+
+	show_for_desktop() {
+		let me = this;
 
 		this.render_stream()
 			.then(() => {
@@ -108,15 +161,12 @@ frappe.ui.Capture = class {
 			me.setup_preview_action();
 			me.setup_toggle_camera();
 
-			me.$template = $(frappe.ui.Capture.TEMPLATE);
-
+			me.$template.find('.fc-stream-container').show();
+			me.$template.find('.fc-preview-container').hide();
 			me.video = me.$template.find('video')[0];
 			me.video.srcObject = me.stream;
 			me.video.load();
 			me.video.play();
-
-			let field = me.dialog.get_field("capture");
-			$(field.wrapper).html(me.$template);
 		});
 	}
 
@@ -228,7 +278,11 @@ frappe.ui.Capture = class {
 
 		this.dialog.set_secondary_action_label(__("Capture"));
 		this.dialog.set_secondary_action(() => {
-			me.render_stream();
+			if (frappe.is_mobile()) {
+				me.show_for_mobile();
+			} else {
+				me.render_stream();
+			}
 		});
 	}
 
