@@ -45,7 +45,7 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	if not frappe.get_conf().developer_mode:
 		raise Exception('Not developer mode')
 
-	custom = {'custom_fields': [], 'property_setters': [], 'custom_perms': [],
+	custom = {'custom_fields': [], 'property_setters': [], 'custom_perms': [],'links':[],
 		'doctype': doctype, 'sync_on_migrate': sync_on_migrate}
 
 	def add(_doctype):
@@ -53,6 +53,8 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 			fields='*', filters={'dt': _doctype})
 		custom['property_setters'] += frappe.get_all('Property Setter',
 			fields='*', filters={'doc_type': _doctype})
+		custom['links'] += frappe.get_all('DocType Link',
+			fields='*', filters={'parent': _doctype})
 
 	add(doctype)
 
