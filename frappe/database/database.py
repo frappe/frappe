@@ -415,12 +415,24 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+<<<<<<< HEAD
 			order_by, cache=cache, for_update=for_update)
+=======
+			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct, limit=1)
+
+		if not run:
+			return ret
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
+<<<<<<< HEAD
 		debug=False, order_by=None, update=None, cache=False, for_update=False):
+=======
+		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
+		run=True, pluck=False, distinct=False, limit=None):
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -447,7 +459,21 @@ class Database(object):
 		if not order_by: order_by = 'modified desc'
 
 		if isinstance(filters, list):
+<<<<<<< HEAD
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
+=======
+			out = self._get_value_for_many_names(
+				doctype=doctype,
+				names=filters,
+				field=fieldname,
+				order_by=order_by,
+				debug=debug,
+				run=run,
+				pluck=pluck,
+				distinct=distinct,
+				limit=limit,
+			)
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 
 		else:
 			fields = fieldname
@@ -459,7 +485,26 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
+<<<<<<< HEAD
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
+=======
+					if order_by:
+						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
+					out = self._get_values_from_table(
+						fields=fields,
+						filters=filters,
+						doctype=doctype,
+						as_dict=as_dict,
+						debug=debug,
+						order_by=order_by,
+						update=update,
+						for_update=for_update,
+						run=run,
+						pluck=pluck,
+						distinct=distinct,
+						limit=limit,
+					)
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
@@ -600,12 +645,36 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
+<<<<<<< HEAD
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
 				if "(" in f or " as " in f: # function
 					fl.append(f)
+=======
+	def _get_values_from_table(
+		self,
+		fields,
+		filters,
+		doctype,
+		as_dict,
+		debug,
+		order_by=None,
+		update=None,
+		for_update=False,
+		run=True,
+		pluck=False,
+		distinct=False,
+		limit=None,
+	):
+		field_objects = []
+
+		if not isinstance(fields, Criterion):
+			for field in fields:
+				if "(" in str(field) or " as " in str(field):
+					field_objects.append(PseudoColumn(field))
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 				else:
 					fl.append("`" + f + "`")
 			fl = ", ".join(fl)
@@ -614,6 +683,7 @@ class Database(object):
 			if fields=="*":
 				as_dict = True
 
+<<<<<<< HEAD
 		conditions, values = self.build_conditions(filters)
 
 		order_by = ("order by " + order_by) if order_by else ""
@@ -627,17 +697,54 @@ class Database(object):
 				conditions = conditions,
 				order_by = order_by),
 			values, as_dict=as_dict, debug=debug, update=update)
+=======
+		query = self.query.get_sql(
+			table=doctype,
+			filters=filters,
+			orderby=order_by,
+			for_update=for_update,
+			field_objects=field_objects,
+			fields=fields,
+			distinct=distinct,
+			limit=limit,
+		)
+		if (
+			fields == "*"
+			and not isinstance(fields, (list, tuple))
+			and not isinstance(fields, Criterion)
+		):
+			as_dict = True
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 
 		return r
 
+<<<<<<< HEAD
 	def _get_value_for_many_names(self, doctype, names, field, debug=False):
+=======
+	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False, limit=None):
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 		names = list(filter(None, names))
 
 		if names:
+<<<<<<< HEAD
 			return self.get_all(doctype,
 				fields=['name', field],
 				filters=[['name', 'in', names]],
 				debug=debug, as_list=1)
+=======
+			return self.get_all(
+				doctype,
+				fields=field,
+				filters=names,
+				order_by=order_by,
+				pluck=pluck,
+				debug=debug,
+				as_list=1,
+				run=run,
+				distinct=distinct,
+				limit_page_length=limit
+			)
+>>>>>>> b97cfed6d7 (perf: limit rows to 1 for get_value and exists)
 		else:
 			return {}
 
