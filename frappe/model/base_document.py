@@ -1083,7 +1083,7 @@ class BaseDocument(object):
 		For eg: The user initializes document with datetime values for Date and Time field, the framework
 		should parse them into correct format.
 		If the values are in datetime format, preserve it in datetime format
-		If the values are in string format, preserve it in string format
+		If the values are in string format, convert it to datetime format
 		"""
 		self._cast_date_fields()
 		self._cast_time_fields()
