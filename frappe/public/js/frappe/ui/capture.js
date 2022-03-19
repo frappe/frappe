@@ -35,16 +35,16 @@ function get_file_input() {
 	input.setAttribute("multiple", "");
 
 	return input;
-};
+}
 
 function read(file) {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onload = () => resolve(reader.result);
-		reader.onerror = reject
+		reader.onerror = reject;
 		reader.readAsDataURL(file);
 	});
-};
+}
 
 /**
  * @description Frappe's Capture object.
@@ -85,7 +85,8 @@ frappe.ui.Capture = class {
 	}
 
 	build_dialog() {
-		this.dialog = new frappe.ui.Dialog({
+		let me = this;
+		me.dialog = new frappe.ui.Dialog({
 			title: this.options.title,
 			animate: this.options.animate,
 			fields: [
@@ -101,12 +102,12 @@ frappe.ui.Capture = class {
 			on_hide: this.stop_media_stream()
 		});
 
-		this.$template = $(frappe.ui.Capture.TEMPLATE);
+		me.$template = $(frappe.ui.Capture.TEMPLATE);
 
-		let field = this.dialog.get_field("capture");
-		$(field.wrapper).html(this.$template);
+		let field = me.dialog.get_field("capture");
+		$(field.wrapper).html(me.$template);
 
-		this.dialog.get_close_btn().on('click', () => {
+		me.dialog.get_close_btn().on('click', () => {
 			me.hide();
 		});
 	}
@@ -119,7 +120,7 @@ frappe.ui.Capture = class {
 
 		me.input.onchange = async () => {
 			for (let file of me.input.files) {
-				let f = await read(file)
+				let f = await read(file);
 				me.images.push(f);
 			}
 
