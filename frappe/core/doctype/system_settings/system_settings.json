@@ -24,6 +24,8 @@
   "first_day_of_the_week",
   "sec_backup_limit",
   "backup_limit",
+  "column_break_19",
+  "number_of_versions",
   "encrypt_backup",
   "background_workers",
   "enable_scheduler",
@@ -166,7 +168,7 @@
    "collapsible": 1,
    "fieldname": "sec_backup_limit",
    "fieldtype": "Section Break",
-   "label": "Backups"
+   "label": "Backups and Versions"
   },
   {
    "default": "3",
@@ -485,12 +487,22 @@
    "fieldtype": "Select",
    "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "10",
+   "fieldname": "number_of_versions",
+   "fieldtype": "Int",
+   "label": "Display Number of Versions"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-01-04 11:28:34.881192",
+ "modified": "2022-03-19 21:56:41.498051",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
