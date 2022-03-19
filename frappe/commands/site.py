@@ -677,7 +677,9 @@ def _drop_site(site, db_root_username=None, db_root_password=None, archived_site
 
 	try:
 		if not no_backup:
-			scheduled_backup(ignore_files=False, force=True)
+			click.secho(f"Taking backup of {site}", fg="green")
+			odb = scheduled_backup(ignore_files=False, force=True, verbose=True)
+			odb.print_summary()
 	except Exception as err:
 		if force:
 			pass
@@ -692,6 +694,7 @@ def _drop_site(site, db_root_username=None, db_root_password=None, archived_site
 			click.echo("\n".join(messages))
 			sys.exit(1)
 
+	click.secho("Dropping site database and user", fg="green")
 	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
 
 	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')

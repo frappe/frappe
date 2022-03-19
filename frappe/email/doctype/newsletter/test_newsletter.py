@@ -51,7 +51,7 @@ class TestNewsletterMixin:
 				"reference_name": newsletter,
 			})
 			frappe.delete_doc("Newsletter", newsletter)
-			frappe.db.delete("Newsletter Email Group", newsletter)
+			frappe.db.delete("Newsletter Email Group", {"parent": newsletter})
 			newsletters.remove(newsletter)
 
 	def setup_email_group(self):

@@ -9,7 +9,7 @@ const cliui = require("cliui")();
 const chalk = require("chalk");
 const html_plugin = require("./frappe-html");
 const rtlcss = require('rtlcss');
-const postCssPlugin = require("esbuild-plugin-postcss2").default;
+const postCssPlugin = require("@frappe/esbuild-plugin-postcss2").default;
 const ignore_assets = require("./ignore-assets");
 const sass_options = require("./sass_options");
 const build_cleanup_plugin = require("./build-cleanup");
@@ -286,7 +286,7 @@ function get_watch_config() {
 					notify_redis({ error });
 				} else {
 					let {
-						assets_json,
+						new_assets_json,
 						prev_assets_json
 					} = await write_assets_json(result.metafile);
 
@@ -294,7 +294,7 @@ function get_watch_config() {
 					if (prev_assets_json) {
 						changed_files = get_rebuilt_assets(
 							prev_assets_json,
-							assets_json
+							new_assets_json
 						);
 
 						let timestamp = new Date().toLocaleTimeString();
@@ -384,6 +384,7 @@ let prev_assets_json;
 let curr_assets_json;
 
 async function write_assets_json(metafile) {
+	let rtl = false;
 	prev_assets_json = curr_assets_json;
 	let out = {};
 	for (let output in metafile.outputs) {
@@ -392,13 +393,14 @@ async function write_assets_json(metafile) {
 		if (info.entryPoint) {
 			let key = path.basename(info.entryPoint);
 			if (key.endsWith('.css') && asset_path.includes('/css-rtl/')) {
+				rtl = true;
 				key = `rtl_${key}`;
 			}
 			out[key] = asset_path;
 		}
 	}
 
-	let assets_json_path = path.resolve(assets_path, "assets.json");
+	let assets_json_path = path.resolve(assets_path, `assets${rtl?'-rtl':''}.json`);
 	let assets_json;
 	try {
 		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
@@ -407,21 +409,21 @@ async function write_assets_json(metafile) {
 	}
 	assets_json = JSON.parse(assets_json);
 	// update with new values
-	assets_json = Object.assign({}, assets_json, out);
-	curr_assets_json = assets_json;
+	let new_assets_json = Object.assign({}, assets_json, out);
+	curr_assets_json = new_assets_json;
 
 	await fs.promises.writeFile(
 		assets_json_path,
-		JSON.stringify(assets_json, null, 4)
+		JSON.stringify(new_assets_json, null, 4)
 	);
-	await update_assets_json_in_cache(assets_json);
+	await update_assets_json_in_cache();
 	return {
-		assets_json,
+		new_assets_json,
 		prev_assets_json
 	};
 }
 
-function update_assets_json_in_cache(assets_json) {
+function update_assets_json_in_cache() {
 	// update assets_json cache in redis, so that it can be read directly by python
 	return new Promise(resolve => {
 		let client = get_redis_subscriber("redis_cache");
@@ -429,7 +431,7 @@ function update_assets_json_in_cache(assets_json) {
 		client.on("error", _ => {
 			log_warn("Cannot connect to redis_cache to update assets_json");
 		});
-		client.set("assets_json", JSON.stringify(assets_json), err => {
+		client.del("assets_json", err => {
 			client.unref();
 			resolve();
 		});
