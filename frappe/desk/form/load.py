@@ -182,8 +182,11 @@ def get_attachments(dt, dn):
 		filters = {"attached_to_name": dn, "attached_to_doctype": dt})
 
 def get_versions(doc):
+	number_of_versions = frappe.db.get_single_value("System Settings", "number_of_versions")
+	if number_of_versions == 0:
+		number_of_versions = 10
 	return frappe.get_all('Version', filters=dict(ref_doctype=doc.doctype, docname=doc.name),
-		fields=['name', 'owner', 'creation', 'data'], limit=10, order_by='creation desc')
+		fields=['name', 'owner', 'creation', 'data'], limit=number_of_versions, order_by='creation desc')
 
 @frappe.whitelist()
 def get_communications(doctype, name, start=0, limit=20):
