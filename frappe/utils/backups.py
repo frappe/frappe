@@ -15,7 +15,7 @@ import click
 
 # imports - module imports
 import frappe
-from frappe import _, conf
+from frappe import conf
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 from frappe.utils.password import get_encryption_key
 
