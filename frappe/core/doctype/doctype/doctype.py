@@ -997,7 +997,8 @@ def validate_links_table_fieldnames(meta):
 			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(
 				index
 			)
-			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
+			# frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
+			frappe.msgprint(message)
 
 		if meta.name == link.parent_doctype:
 			field_exists = link.table_fieldname in fieldnames
