@@ -193,8 +193,6 @@ export default class KanbanSettings {
 		}
 
 		me.dialog.set_value("fields", JSON.stringify(me.fields));
-		// me.dialog.get_value("fields");
-
 	}
 
 	column_selector() {
@@ -225,13 +223,10 @@ export default class KanbanSettings {
 			me.subject_field = me.get_subject_field(me.meta);
 			me.fields.push(me.subject_field);
 
-			for (let idx in values) {
-				let value = values[idx];
+			for (let value of values) {
+				if (value != me.subject_field.fieldname) {
+					let field = me.get_docfield(value);
 
-				if (me.fields.length === parseInt(me.dialog.get_values().total_fields)) {
-					break;
-				} else if (value != me.subject_field.fieldname) {
-					let field = frappe.meta.get_docfield(me.doctype, value);
 					if (field) {
 						me.fields.push({
 							label: field.label,
@@ -287,10 +282,23 @@ export default class KanbanSettings {
 		return me.subject_field;
 	}
 
+	get_docfield(field) {
+		let _field = frappe.meta.get_docfield(this.doctype, field);
+
+		if (!_field) {
+			_field = frappe.model.std_fields.find(f => f.fieldname === field);
+		}
+
+		return _field;
+	}
+
 	get_doctype_fields(meta, fields) {
 		let multiselect_fields = [];
+		let ignore_std_fields = ["idx", "_user_tags", "_liked_by", "_comments", "_assign"];
+		let _std_fields = frappe.model.std_fields.filter(field => !in_list(ignore_std_fields, field.fieldname));
+		let _fields = _std_fields.concat(meta.fields);
 
-		meta.fields.forEach(field => {
+		_fields.forEach(field => {
 			if (!in_list(frappe.model.no_value_type, field.fieldtype)) {
 				multiselect_fields.push({
 					label: __(field.label),

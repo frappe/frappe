@@ -631,7 +631,6 @@ frappe.provide("frappe.views");
 			make_dom();
 			render_card_meta();
 			add_task_link();
-			// edit_card_title();
 		}
 
 		function make_dom() {
@@ -642,7 +641,9 @@ frappe.provide("frappe.views");
 				creation: card.creation,
 				doc_content: get_doc_content(card),
 				image_url: cur_list.get_image_url(card),
+				form_link: frappe.utils.get_form_link(card.doctype, card.name)
 			};
+
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
 		}
@@ -650,13 +651,17 @@ frappe.provide("frappe.views");
 		function get_doc_content(card) {
 			let fields = [];
 
-			JSON.parse(cur_list.board.fields || "[]").forEach(field => {
-				if (card.doc[field.fieldname] && card.doc[field.fieldname] !== card.title) {
-					fields.push(`<span>${__(field.label)}: ${__(card.doc[field.fieldname])}</span>`);
+			for (let field of JSON.parse(cur_list.board.fields || "[]")) {
+				if (card.doc[field.fieldname] && card.doc[field.fieldname] !== card.title && field.fieldname !== "color") {
+					fields.push(`
+						<div class="text-muted text-truncate">
+							<span>${__(field.label)}: </span><span>${__(card.doc[field.fieldname])}</span>
+						</div>
+					`);
 				}
-			});
+			};
 
-			return fields.join("<br>");
+			return fields.join("");
 		}
 
 		function get_tags_html(card) {
