@@ -250,7 +250,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	try:
 		args = json.loads(args)
 	except ValueError:
-		args = args
+		pass
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, '__func__', method_obj)
