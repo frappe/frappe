@@ -15,7 +15,7 @@ import click
 
 # imports - module imports
 import frappe
-from frappe import _, conf
+from frappe import conf
 from frappe.utils import get_file_size, get_url, now, now_datetime, cint
 from frappe.utils.password import get_encryption_key
 
@@ -183,8 +183,6 @@ class BackupGenerator:
 				False,
 			)
 
-		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
-
 		if not (
 			self.backup_path_conf
 			and self.backup_path_db
@@ -212,7 +210,7 @@ class BackupGenerator:
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
 		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
-
+		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
 		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
@@ -507,7 +505,7 @@ download only after 24 hours.""" % {
 			datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 		)
 
-		frappe.sendmail(recipients=recipient_list, msg=msg, subject=subject)
+		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
 
 
@@ -781,7 +779,7 @@ if __name__ == "__main__":
 			db_type=db_type,
 			db_port=db_port,
 		)
-		odb.send_email("abc.sql.gz")
+		odb.send_email()
 
 	if cmd == "delete_temp_backups":
 		delete_temp_backups()
