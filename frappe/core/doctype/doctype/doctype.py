@@ -736,8 +736,9 @@ def validate_links_table_fieldnames(meta):
 		link_meta = frappe.get_meta(link.link_doctype)
 		if not link_meta.get_field(link.link_fieldname):
 			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype))
-			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
-
+			# frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
+			frappe.msgprint(message)
+			
 		if not link.is_child_table:
 			continue
 
