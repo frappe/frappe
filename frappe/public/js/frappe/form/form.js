@@ -1707,7 +1707,7 @@ frappe.ui.form.Form = class FrappeForm {
 		for(var i = 0; i < cl.length; i++){
 			if(!cl[i][fieldname]) cl[i][fieldname] = value;
 		}
-		refresh_field("items");
+		this.refresh_field("items");
 	}
 
 	get_sum(table_fieldname, fieldname) {
