@@ -779,7 +779,7 @@ if __name__ == "__main__":
 			db_type=db_type,
 			db_port=db_port,
 		)
-		odb.send_email("abc.sql.gz")
+		odb.send_email()
 
 	if cmd == "delete_temp_backups":
 		delete_temp_backups()
