@@ -505,7 +505,7 @@ download only after 24 hours.""" % {
 			datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 		)
 
-		frappe.sendmail(recipients=recipient_list, msg=msg, subject=subject)
+		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
 
 
