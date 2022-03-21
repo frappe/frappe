@@ -538,7 +538,7 @@
 		}
 
 		.feature-title {
-			font-size: $font-size-xl;
+			font-size: $font-size-lg;
 			font-weight: 600;
 
 			@include media-breakpoint-up(md) {
@@ -678,6 +678,10 @@
 
 .feature-title {
 	margin-top: 0;
+}
+
+.feature-content {
+	line-height: 1.7;
 }
 
 .feature-title, .feature-content {
