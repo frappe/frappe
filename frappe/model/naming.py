@@ -74,7 +74,7 @@ def set_new_name(doc):
 	doc.name = validate_name(doc.doctype, doc.name, meta.get_field("name_case"))
 
 
-def is_autoincremented(doctype: str, meta: "Meta" = None):
+def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	if doctype in log_types:
 		if autoincremented_site_status_map.get(frappe.local.site) is None:
 			if frappe.db.sql(
@@ -93,10 +93,7 @@ def is_autoincremented(doctype: str, meta: "Meta" = None):
 		if not meta:
 			meta = frappe.get_meta(doctype)
 
-		if getattr(meta, "issingle", False):
-			return False
-
-		if meta.autoname == "autoincrement":
+		if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
 			return True
 
 	return False
