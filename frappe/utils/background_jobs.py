@@ -41,7 +41,7 @@ def get_queues_timeout():
 redis_connection = None
 
 def enqueue(method, queue='default', timeout=None, event=None,
-	is_async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
+	is_async=True, job_name=None, now=False, enqueue_after_commit=False, doc_obj=None, doc_state_before_locking=None, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -73,6 +73,8 @@ def enqueue(method, queue='default', timeout=None, event=None,
 		"method": method,
 		"event": event,
 		"job_name": job_name or cstr(method),
+		"doc_obj": doc_obj,
+		"doc_state_before_locking": doc_state_before_locking,
 		"is_async": is_async,
 		"kwargs": kwargs
 	}
@@ -100,7 +102,7 @@ def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
+def execute_job(site, method, event, job_name, doc_obj, doc_state_before_locking, kwargs, user=None, is_async=True, retry=0):
 	'''Executes job in a worker, performs commit/rollback and logs if there is any error'''
 	if is_async:
 		frappe.connect(site)
@@ -142,8 +144,8 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	except Exception as e:
 		frappe.db.rollback()
-		bulk_error_report(job_name, e)
 		frappe.log_error(title=method_name)
+		revert_docstatus(doc_obj, doc_state_before_locking, job_name, e)
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
@@ -325,5 +327,12 @@ def bulk_error_report(job_name, error):
 	bulk_action_log.action = split_job_name[2]
 	bulk_action_log.status = "Failed"
 	bulk_action_log.error_details = error
-	bulk_action_log.insert()
-	frappe.db.commit()
+	bulk_action_log.insert(set_name=job_name)
+
+def revert_docstatus(doc_obj, doc_state_before_locking, job_name, e):
+	if doc_obj is not None:
+		bulk_error_report(job_name, e)
+		for d in doc_state_before_locking:
+			if d.get("name") == doc_obj.name:
+				doc_obj.docstatus = d.get("docstatus")
+				doc_obj.save()

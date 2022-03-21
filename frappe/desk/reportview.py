@@ -479,26 +479,27 @@ def delete_items():
 	items = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
 	doctype = frappe.form_dict.get('doctype')
 	enqueue_action = check_enqueue_action(doctype, "delete")
-
-
+	queue_action = False
+	failed = []
 	if enqueue_action:
-		frappe.msgprint("Running background job to delete documents")
+		queue_action = True
 
 		for d in items:
 			try:
 				frappe.enqueue(frappe.model.delete_doc.delete_doc, doctype=doctype, name=d)
 				frappe.db.commit()
-			except Exception as e:
+			except:
 				frappe.db.rollback()
 	else:
 		if len(items) > 10:
 			frappe.enqueue('frappe.desk.reportview.delete_bulk',
 				doctype=doctype, items=items)
 		else:
-			delete_bulk(doctype, items)
-
+			failed = delete_bulk(doctype, items)
+	return failed, queue_action
 
 def delete_bulk(doctype, items):
+	failed = []
 	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -508,10 +509,12 @@ def delete_bulk(doctype, items):
 						user=frappe.session.user)
 			# Commit after successful deletion
 			frappe.db.commit()
-		except Exception:
+		except Exception as e:
 			# rollback if any record failed to delete
 			# if not rollbacked, queries get committed on after_request method in app.py
+			failed.append(e)
 			frappe.db.rollback()
+	return failed
 
 @frappe.whitelist()
 @frappe.read_only()

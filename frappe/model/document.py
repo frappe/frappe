@@ -757,7 +757,7 @@ class Document(BaseDocument):
 				self._action = "submit"
 				self.check_permission("submit")
 			elif self.docstatus.is_locked():
-				pass
+				self._action = "save"
 			elif self.docstatus.is_cancelled():
 				frappe.throw("Cannot chnage docstatus from 0 to 2")
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
@@ -772,7 +772,7 @@ class Document(BaseDocument):
 				self._action = "cancel"
 				self.check_permission("cancel")
 			elif self.docstatus.is_locked():
-				pass
+				self._action = "save"
 			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
@@ -780,12 +780,14 @@ class Document(BaseDocument):
 
 
 		elif to_docstatus == DocStatus.locked():
-			if self.docstatus.is_locked():
-				pass
 			if self.docstatus.is_submitted():
-				pass
+				self._action = "submit"
+				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
-				pass
+				self._action = "cancel"
+				self.check_permission("cancel")
+			elif self.docstatus.is_draft():
+				self._action = "save"
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 

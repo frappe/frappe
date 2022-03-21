@@ -36,9 +36,9 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 	if data:
 		data = frappe.parse_json(data)
 
-	failed = bulk_update(doctype, docnames, action, data)
+	failed, queue_action = bulk_update(doctype, docnames, action, data)
 
-	return failed
+	return failed, queue_action
 
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
@@ -68,10 +68,14 @@ def bulk_update(doctype, docnames, action, data=None):
 	failed = []
 	i = 0
 	enqueue_action = check_enqueue_action(doctype, action)
-
+	queue_action = False
 	if enqueue_action:
-		lock_document(doctype, docnames, action)
-		frappe.msgprint("Running a background job to {0} document's".format(action))
+		queue_action = True
+		for d in docnames:
+			doc_state_before_locking = []
+			doc = frappe.get_doc(doctype, d)
+			doc_state_before_locking.append({"name": doc.name, "docstatus": doc.docstatus})
+			lock_document(doctype, docnames, action)
 
 	for i, d in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, d)
@@ -90,10 +94,10 @@ def bulk_update(doctype, docnames, action, data=None):
 				message = _('Updating {0}').format(doctype)
 			elif action == 'submit' and doc.docstatus.is_locked():
 				job_name = "{0}-{1}-{2}".format(doctype, d, "submit")
-				frappe.enqueue(doc.submit, job_name=job_name)
+				frappe.enqueue(doc.submit, job_name=job_name, doc_obj=doc, doc_state_before_locking=doc_state_before_locking)
 			elif action == 'cancel' and doc.docstatus.is_locked():
 				job_name = "{0}-{1}-{2}".format(doctype, d, "cancel")
-				frappe.enqueue(doc.cancel,job_name=job_name)
+				frappe.enqueue(doc.cancel,job_name=job_name, doc_obj=doc, doc_state_before_locking=doc_state_before_locking)
 			else:
 				failed.append(d)
 
@@ -104,7 +108,7 @@ def bulk_update(doctype, docnames, action, data=None):
 		if not enqueue_action:
 			show_progress(docnames, message, i, d)
 
-	return failed
+	return failed, queue_action
 
 def lock_document(doctype, docnames, action):
 	for d in docnames:

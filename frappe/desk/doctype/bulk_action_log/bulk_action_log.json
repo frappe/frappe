@@ -16,32 +16,37 @@
   {
    "fieldname": "doctype_name",
    "fieldtype": "Data",
-   "label": "Doctype Name"
+   "label": "Doctype Name",
+   "read_only": 1
   },
   {
    "fieldname": "doc_name",
    "fieldtype": "Data",
-   "label": "Doc Name"
+   "label": "Doc Name",
+   "read_only": 1
   },
   {
    "fieldname": "action",
    "fieldtype": "Data",
-   "label": "Action"
+   "label": "Action",
+   "read_only": 1
   },
   {
    "fieldname": "status",
    "fieldtype": "Data",
-   "label": "Status"
+   "label": "Status",
+   "read_only": 1
   },
   {
    "fieldname": "error_details",
    "fieldtype": "Data",
-   "label": "Error Details"
+   "label": "Error Details",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-03-15 12:05:39.852316",
+ "modified": "2022-03-15 17:44:52.421952",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Bulk Action Log",

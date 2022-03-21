@@ -136,8 +136,15 @@ export default class BulkOperations {
 				}
 			})
 			.then((r) => {
-				let failed = r.message;
+				let failed = r.message[0];
 				if (!failed) failed = [];
+
+				if (r.message[1] === true) {
+					frappe.show_alert({
+						message:__('Started a background job to {0} documents. Check {1} for error', ["delete", "<a href='/app/bulk-action-log'><u>Bulk Action Log</u></a>"]),
+						indicator:'green'
+					}, 10);
+				}
 
 				if (failed.length && !r._server_messages) {
 					frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
@@ -188,8 +195,15 @@ export default class BulkOperations {
 				},
 			})
 			.then((r) => {
-				let failed = r.message;
+				let failed = r.message[0];
 				if (!failed) failed = [];
+
+				if (r.message[1] === true){
+					frappe.show_alert({
+						message:__('Started a background job to {0} documents. Check {1} for error', [action, "<a href ='/app/bulk-action-log'><u>Bulk Action Log</u></a>"]),
+						indicator:'green'
+					}, 10);
+				}
 
 				if (failed.length && !r._server_messages) {
 					frappe.throw(__('Cannot {0} {1}', [action, failed.map(f => f.bold()).join(', ')]));
