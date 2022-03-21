@@ -1704,7 +1704,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// Update the `value` of the field named `fieldname` in all rows of the
 		// child table named `table_fieldname`.
 		// Do not overwrite existing values.
-		if (!value) return;
+		if (value === undefined) return;
 
 		frappe.model
 			.get_children(this.doc, table_fieldname)
