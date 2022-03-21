@@ -212,8 +212,7 @@ export default class WebFormList {
 				"btn",
 				"btn-secondary",
 				"btn-sm",
-				"ml-2",
-				"text-white"
+				"ml-2"
 			);
 		}
 		else if (type == "danger") {
