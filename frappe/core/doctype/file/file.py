@@ -48,6 +48,7 @@ class File(Document):
 			self.name = frappe.generate_hash(length=10)
 
 	def before_insert(self):
+		self.flags.new_file = True
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
 		self.set_file_name()
@@ -69,9 +70,9 @@ class File(Document):
 			self.handle_is_private_changed()
 
 		if not self.is_folder:
-			self.validate_file_on_disk()
-			self.validate_file_url()
 			self.validate_file_path()
+			self.validate_file_url()
+			self.validate_file_on_disk()
 
 		self.file_size = frappe.form_dict.file_size or self.file_size
 
@@ -95,6 +96,7 @@ class File(Document):
 			file_path = self.get_full_path()
 			with open(file_path, "wb+") as f:
 				f.write(self.flags.original_content)
+				os.fsync(f.fileno())
 
 		# used in case file path (File.file_url) has been changed
 		if self.flags.original_path:
@@ -103,9 +105,8 @@ class File(Document):
 			shutil.move(source, target)
 
 		# following condition is only executed when an insert has been rolledback
-		else:
-			self.flags.on_rollback = True
-			self.on_trash()
+		if self.flags.new_file:
+			self._delete_file_on_disk()
 
 	def get_name_based_on_parent_folder(self) -> Union[str, None]:
 		if self.folder:
@@ -137,7 +138,8 @@ class File(Document):
 		if not self.file_url.startswith(("/files/", "/private/files/")):
 			# Probably an invalid URL since it doesn't start with http either
 			frappe.throw(
-				_("URL must start with http:// or https://"), title=_("Invalid URL")
+				_("URL must start with http:// or https://"),
+				title=_("Invalid URL"),
 			)
 
 	def handle_is_private_changed(self):
@@ -453,6 +455,7 @@ class File(Document):
 		_file_path = os.path.join(file_path.encode("utf-8"), self.file_name.encode("utf-8"))
 		with open(_file_path, "wb+") as f:
 			f.write(self.content)
+			os.fsync(f.fileno())
 		frappe.local.rollback_observers.append(self)
 
 		return get_files_path(self.file_name, is_private=self.is_private)
@@ -528,6 +531,8 @@ class File(Document):
 		return {"file_name": os.path.basename(fpath), "file_url": self.file_url}
 
 	def check_max_file_size(self):
+		from frappe.core.api.file import get_max_file_size
+
 		max_file_size = get_max_file_size()
 		file_size = len(self.content)
 
