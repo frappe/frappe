@@ -17,7 +17,7 @@ def execute():
 				'item_label': 'Whats New',
 				'item_type': "Route",
 				'route': "/app/whats-new-page",
-				'is_standard': 0
+				'is_standard': 1
 			}
 		navbar_settings.append('help_dropdown', whats_new_button)
 		navbar_settings.save()

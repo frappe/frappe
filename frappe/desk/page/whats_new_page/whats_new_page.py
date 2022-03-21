@@ -14,22 +14,19 @@ def get_whats_new_posts():
 
 	try:
 		res = requests.get(host + '/api/method/frappe.desk.doctype.whats_new.whats_new.fetch_latest_posts')
-	except:
+	except Exception:
 		frappe.throw('Error in establishing connection with host')
 
 	data = res.json()
 	post_list = data.get("message")[0] or []
 	event_list = data.get("message")[1] or []
 
-	print('EVENT LIST', event_list)
 	today = datetime.now().today()
-	# date_found = 0
 	closest_upcoming_events = []
 	for event in event_list:
 		if datetime.strptime(event.get("event_date"), "%Y-%m-%d").date() >= today.date():
 			closest_upcoming_events.append(event)
 	closest_upcoming_events = reversed(closest_upcoming_events)
-	print('REVERSED LIST', closest_upcoming_events)
 
 	return post_list, closest_upcoming_events
 

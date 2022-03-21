@@ -9,19 +9,19 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 
 const host = "http://test-st.frappe.cloud";
 const month_list = {
-	0 : 'Jan',
-	1 : 'Feb',
-	2 : 'Mar',
-	3 : 'Apr',
-	4 : 'May',
-	5 : 'Jun',
-	6 : 'Jul',
-	7 : 'Aug',
-	8 : 'Sep',
-	9 : 'Oct',
-	10 : 'Nov',
-	11 : 'Dec'
-}
+	0: 'Jan',
+	1: 'Feb',
+	2: 'Mar',
+	3: 'Apr',
+	4: 'May',
+	5: 'Jun',
+	6: 'Jul',
+	7: 'Aug',
+	8: 'Sep',
+	9: 'Oct',
+	10: 'Nov',
+	11: 'Dec'
+};
 class WhatsNew {
 	constructor(page) {
 
@@ -30,7 +30,7 @@ class WhatsNew {
 		this.make_container();
 		this.bind_click_events();
 		this.fetch_posts()
-			.then(() => this.render_fetched_posts())
+			.then(() => this.render_fetched_posts());
 	}
 
 	make_container() {
@@ -59,9 +59,9 @@ class WhatsNew {
 
 		let tags_html = tag_list.map(t => {
 			if (t.tag &&  t.tag != null) {
-				return `<span class="indicator-pill whitespace-nowrap ${tag_color_map[t.tag]}">${t.tag}</span>`
+				return `<span class="indicator-pill whitespace-nowrap ${tag_color_map[t.tag]}">${t.tag}</span>`;
 			} else {
-				return ``
+				return ``;
 			}
 		}).join('');
 
@@ -75,9 +75,9 @@ class WhatsNew {
 				<div class="whats-new-post-media-wrapper">
 					<img class='whats-new-post-media' src=${src} />
 				</div>
-			`)
+			`);
 		} else {
-			return ''
+			return '';
 		}
 	}
 
@@ -89,7 +89,7 @@ class WhatsNew {
 		[ month_list[formatted_date.getMonth()], formatted_date.getDate() + ',', formatted_date.getFullYear()].map(d => {
 			final_date += d.toString() + ' ';
 		});
-		return final_date
+		return final_date;
 	}
 
 	render_event_date(post) {
@@ -109,41 +109,41 @@ class WhatsNew {
 				<div class="row3">
 					<span class="">${formatted_date.getDate()}</span>
 				</div>
-			`
+			`;
 		} else {
-			return ``
+			return ``;
 		}
 	}
 
 	get_source_link(source_link) {
 		if (!source_link) {
-			return ``
+			return ``;
 		} else {
 			return `
 				<p class="post-source-link">To know more about this, <a href=${source_link} target="_blank">click here</a>.</p>
-			`
+			`;
 		}
 	}
 
 	get_event_date_time(event) {
 		if (!event.event_time) {
-			return ``
+			return ``;
 		} else {
 			const [hr, min, sec] = (event.event_time).split(":");
 			var hour = parseInt(hr);
-			if(hour > 12) {
+			if (hour > 12) {
 				hour = hour - 12;
 			}
 
 			const am_pm = (hr >= 12) ? 'PM' : 'AM';
 			return `
-				<p class="event-time">Time: ${hour}:${min} ${am_pm} IST (GMT +5:30 hrs)</p>
-			`
+				<p class="event-time">Time: ${hour}:${min}:${sec} ${am_pm} IST (GMT +5:30 hrs)</p>
+			`;
 		}
 	}
 
 	bind_click_events() {
-		$(this.$container).on("click", ".whats-new-event-cal-link", function(e){
+		$(this.$container).on("click", ".whats-new-event-cal-link", function(e) {
 			const event_date = $(this).data("event_date");
 			const event_time = $(this).data("event_time");
 			const event_title = $(this).data("event_title");
@@ -151,11 +151,11 @@ class WhatsNew {
 			frappe.call({
 				method: "frappe.desk.page.whats_new_page.whats_new_page.add_whats_new_event_to_calendar",
 				args: {
-					date :event_date,
+					date: event_date,
 					time: event_time,
 					title: event_title
 				},
-				freeze:true,
+				freeze: true,
 				callback: function(r) {
 					if (r.message) {
 						return;
@@ -167,8 +167,6 @@ class WhatsNew {
 
 	get_posts_html(posts) {
 		let posts_html = posts.map(post => {
-			const src = encodeURI(host + post.banner);
-
 			return `
 				<div class="whats-new-post-wrapper">
 					<div class="whats-new-post">
@@ -191,7 +189,7 @@ class WhatsNew {
 					</div>
 				</div>
 				<hr>
-			`
+			`;
 		}).join('');
 
 		return posts_html;
@@ -234,24 +232,30 @@ class WhatsNew {
 							</div>
 						</div>
 					</div>
-				`
-		}).join('')
+				`;
+		}).join('');
 
 		return events_html;
 	}
 
 	render_fetched_posts() {
-		let events_html = `
+		let events_container = `
 			<div class="events-container">
 				${this.get_events_html(this.events)}
 			</div>`;
 
-		let posts_html =`
+		let posts_container =`
 			<div class="events-container">
 				${this.get_posts_html(this.new_posts)}
 			</div>`;
 
-		let html = this.$header + events_html + `<div class="separator"></div>` + posts_html;
+		let events_html = (this.events).length ? events_container : ``;
+
+		let posts_html = (this.new_posts).length ? posts_container : ``;
+
+		let separator = (this.events).length ? `<div class="separator"></div>` : '';
+
+		let html = this.$header + events_html + separator + posts_html;
 		this.$container.append(html);
 	}
 }
