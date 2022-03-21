@@ -34,8 +34,8 @@ context('Date Control', () => {
 
 		//Checking if the URL of the attached image is getting displayed in the field of the newly created doctype
 		cy.get('.attached-file > .ellipsis > .attached-file-link')
-		.should('have.attr', 'href')
-		.and('equal', 'https://wallpaperplay.com/walls/full/8/2/b/72402.jpg');
+			.should('have.attr', 'href')
+			.and('equal', 'https://wallpaperplay.com/walls/full/8/2/b/72402.jpg');
 
 		//Clicking on the "Clear" button
 		cy.get('[data-action="clear_attachment"]').click();
@@ -69,8 +69,8 @@ context('Date Control', () => {
 
 		//Checking if the URL of the attached image is getting displayed in the field of the newly created doctype
 		cy.get('.attached-file > .ellipsis > .attached-file-link')
-		.should('have.attr', 'href')
-		.and('equal', 'https://wallpaperplay.com/walls/full/8/2/b/72402.jpg');
+			.should('have.attr', 'href')
+			.and('equal', 'https://wallpaperplay.com/walls/full/8/2/b/72402.jpg');
 
 		//Clicking on the "Clear" button
 		cy.get('[data-action="clear_attachment"]').click();
