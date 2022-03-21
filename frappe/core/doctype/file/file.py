@@ -48,11 +48,13 @@ class File(Document):
 			self.name = frappe.generate_hash(length=10)
 
 	def before_insert(self):
-		self.flags.new_file = True
-		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
 		self.set_file_name()
-		self.save_file(content=self.content, decode=self.decode)
+
+		if not self.is_folder:
+			self.flags.new_file = True
+			frappe.local.rollback_observers.append(self)
+			self.save_file(content=self.content, decode=self.decode)
 
 	def after_insert(self):
 		if not self.is_folder:
