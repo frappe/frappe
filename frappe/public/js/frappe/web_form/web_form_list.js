@@ -142,8 +142,8 @@ export default class WebFormList {
 
 			frappe.has_permission(this.doctype, "", "create", () => {
 				new_button = `
-					<a 
-						class="btn btn-primary btn-sm btn-new-doc hidden-xs" 
+					<a
+						class="btn btn-primary btn-sm btn-new-doc hidden-xs"
 						href="${window.location.pathname}?new=1">
 						${__("Create a new {0}", [__(this.doctype)])}
 					</a>
@@ -152,9 +152,9 @@ export default class WebFormList {
 				empty_state.innerHTML = `
 					<div class="text-center">
 						<div>
-							<img 
-								src="/assets/frappe/images/ui-states/list-empty-state.svg" 
-								alt="Generic Empty State" 
+							<img
+								src="/assets/frappe/images/ui-states/list-empty-state.svg"
+								alt="Generic Empty State"
 								class="null-state">
 						</div>
 						<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
