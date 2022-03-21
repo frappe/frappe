@@ -110,9 +110,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		return this.value || null;
 	}
 
-	on_upload_complete(attachment) {
+	async on_upload_complete(attachment) {
 		if(this.frm) {
-			this.parse_validate_and_set_in_model(attachment.file_url);
+			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
 			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
 		}
