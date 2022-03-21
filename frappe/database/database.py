@@ -848,7 +848,7 @@ class Database(object):
 		else:
 			self.sql("rollback")
 			self.begin()
-			for obj in frappe.local.rollback_observers:
+			for obj in dict.fromkeys(frappe.local.rollback_observers):
 				if hasattr(obj, "on_rollback"):
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
