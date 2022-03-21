@@ -372,15 +372,15 @@ class File(Document):
 
 		# read the file
 		with io.open(encode(file_path), mode="rb") as f:
-			content = f.read()
+			self.content = f.read()
 			try:
 				# for plain text files
-				content = content.decode()
+				self.content = self.content.decode()
 			except UnicodeDecodeError:
 				# for .png, .jpg, etc
 				pass
 
-		return content
+		return self.content
 
 	def get_full_path(self):
 		"""Returns file path from given file name"""
@@ -427,10 +427,12 @@ class File(Document):
 		_file_path = os.path.join(file_path.encode("utf-8"), self.file_name.encode("utf-8"))
 		with open(_file_path, "wb+") as f:
 			f.write(self.content)
+		frappe.local.rollback_observers.append(self)
 
 		return get_files_path(self.file_name, is_private=self.is_private)
 
-	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
+	def save_file(self, content=None, decode=False, ignore_existing_file_check=False, overwrite=False):
+		self.flags.original_content = self.get_content()
 		if not self.content:
 			return
 
@@ -477,11 +479,12 @@ class File(Document):
 				file_exists = True
 
 		if not file_exists:
-			self.file_name = generate_file_name(
-				name=self.file_name,
-				suffix=self.content_hash[-6:],
-				is_private=self.is_private,
-			)
+			if not overwrite:
+				self.file_name = generate_file_name(
+					name=self.file_name,
+					suffix=self.content_hash[-6:],
+					is_private=self.is_private,
+				)
 			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method("write_file")
 			if write_file_method:
@@ -571,18 +574,12 @@ class File(Document):
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
 
-		content = self.get_content()
-		file_path = self.get_full_path()
-		optimized_content = optimize_image(content, content_type)
+		optimized_content = optimize_image(
+			content=self.get_content(),
+			content_type=content_type,
+		)
 
-		with open(file_path, "wb+") as f:
-			f.write(optimized_content)
-
-		self.file_size = len(optimized_content)
-		self.content_hash = get_content_hash(optimized_content)
-		# if rolledback, revert back to original
-		self.flags.original_content = content
-		frappe.local.rollback_observers.append(self)
+		self.save_file(content=optimized_content, overwrite=True)
 		self.save()
 
 	@staticmethod
