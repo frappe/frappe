@@ -10,7 +10,6 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.query_builder import Field
 from frappe.utils import cint
 from frappe.utils.password import rename_password
-from frappe.query_builder import Field
 from frappe.desk.doctype.bulk_update.bulk_update import check_enqueue_action
 if TYPE_CHECKING:
 	from frappe.model.meta import Meta

@@ -488,7 +488,7 @@ def delete_items():
 			try:
 				frappe.enqueue(frappe.model.delete_doc.delete_doc, doctype=doctype, name=d)
 				frappe.db.commit()
-			except:
+			except Exception as e:
 				frappe.db.rollback()
 	else:
 		if len(items) > 10:

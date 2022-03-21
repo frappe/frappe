@@ -114,11 +114,11 @@ def lock_document(doctype, docnames, action):
 	for d in docnames:
 		doc = frappe.get_doc(doctype, d)
 		if doc.docstatus == 2 and action == 'submit':
-			frappe.throw("Cannot submit cancelled document {0}".format(d))
+			frappe.throw(_("Cannot submit document {0}").format(d))
 		elif doc.docstatus == 1 and action == 'delete':
-			frappe.throw("Cannot delete submitted document. please cancel it first {0}".format(d))
+			frappe.throw(_("Cannot delete a submitted document. please cancel it first {0}").format(d))
 		elif doc.docstatus == 1 and action == 'submit':
-			frappe.throw("Cannot resumbit a submitted document {0}".format(d))
+			frappe.throw(_("Cannot resumbit document {0}").format(d))
 		elif doc.docstatus == 0 and action == 'cancel':
-			frappe.throw("Cannot cancel document {0}".format(d))
+			frappe.throw(_("Cannot cancel document {0}").format(d))
 		doc.lock_doc()
