@@ -28,7 +28,7 @@ context('Dynamic Link', () => {
 		cy.new_form('Test Dynamic Link');
 		cy.get('form > [data-fieldname="doc_type"]').type('User');
 		cy.get('form > [data-fieldname="doc_id"]').click();
-		cy.get('[id="awesomplete_list_4"]').its('length').should('be.gte', 0);
+		cy.get_field("doc_id").its('length').should('be.gte', 0);
 
 	});
 });
