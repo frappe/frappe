@@ -57,12 +57,12 @@
 
 	.blog-card-footer {
 		display: flex;
-		align-items: center;
+		align-items: top;
 		margin-top: 0.5rem;
 
 		.avatar {
+			margin-top: 0.4rem;
 			margin-right: 0.5rem;
-			border-radius: 50%;
 		}
 	}
 }
