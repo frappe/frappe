@@ -357,6 +357,7 @@ class Database(object):
 		order_by="KEEP_DEFAULT_ORDERING",
 		cache=False,
 		for_update=False,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -396,7 +397,7 @@ class Database(object):
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
 		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
-		run=True, pluck=False, distinct=False, limit=None):
+		*, run=True, pluck=False, distinct=False, limit=None):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -487,6 +488,7 @@ class Database(object):
 		as_dict=False,
 		debug=False,
 		update=None,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -621,7 +623,8 @@ class Database(object):
 		filters,
 		doctype,
 		as_dict,
-		debug,
+		*,
+		debug=False,
 		order_by=None,
 		update=None,
 		for_update=False,
@@ -661,7 +664,7 @@ class Database(object):
 		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False, limit=None):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, *, debug=False, run=True, pluck=False, distinct=False, limit=None):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
