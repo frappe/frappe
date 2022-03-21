@@ -23,7 +23,7 @@ context('Date Control', () => {
 		//Clicking on the field for date
 		cy.get('.frappe-control[data-fieldname=date] input').click();
 		cy.get('.datepicker--nav-title').click();
-		cy.get('.datepicker--nav-title').click({force : true});
+		cy.get('.datepicker--nav-title').click({force: true});
 
 		//Inputing values in the date field
 		cy.get('.datepicker--years > .datepicker--cells > .datepicker--cell[data-year=2020]').click();
@@ -31,7 +31,7 @@ context('Date Control', () => {
 		cy.get('.datepicker--days > .datepicker--cells > .datepicker--cell[data-date=15]').click();
 
 		//Verifying if the selected date is displayed in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value','15-01-2020');		
+		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', '15-01-2020');		
 	});
 
 	it('Checking next and previous button', () => {
@@ -42,10 +42,10 @@ context('Date Control', () => {
 		cy.get('.datepicker--nav-action[data-action=next]').click();
 
 		//Selecting a date from the datepicker
-		cy.get('.datepicker--cell[data-date=15]').click({force : true});
+		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value','15-02-2020');	
+		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', '15-02-2020');	
 		cy.wait(500);
 
 		//Clicking on the field for date
@@ -55,10 +55,10 @@ context('Date Control', () => {
 		cy.get('.datepicker--nav-action[data-action=prev]').click();
 
 		//Selecting a date from the datepicker
-		cy.get('.datepicker--cell[data-date=15]').click({force : true});
+		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value','15-01-2020');
+		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', '15-01-2020');
 	});
 
 	it('Clicking on "Today" button gives todays date', () => {
@@ -73,7 +73,7 @@ context('Date Control', () => {
 		cy.log(todaysDate);
 
 		//Verifying if clicking on "Today" button matches today's date
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value',todaysDate);
+		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', todaysDate);
 	});
 
 	it('Configuring first day of the week', () => {
@@ -94,7 +94,7 @@ context('Date Control', () => {
 		cy.get('.frappe-control[data-fieldname=date] input').click();
 
 		//Checking if the first day shown in the datepicker is the one which is configured in the System Settings Page
-		cy.get('.datepicker--days-names').eq(0).should('contain.text','Tu');
+		cy.get('.datepicker--days-names').eq(0).should('contain.text', 'Tu');
 		cy.visit('/app/doctype');
 
 		//Adding filter in the doctype list
@@ -103,14 +103,14 @@ context('Date Control', () => {
 		cy.get('.filter-field > .form-group > .input-with-feedback').click();
 
 		//Checking if the first day shown in the datepicker is the one which is configured in the System Settings Page
-		cy.get('.datepicker--days-names').eq(0).should('contain.text','Tu');
+		cy.get('.datepicker--days-names').eq(0).should('contain.text', 'Tu');
 
 		//Adding event
 		cy.visit('/app/event');
 		cy.click_listview_primary_button('Add Event');
 		cy.get('textarea[data-fieldname=subject]').type('Test');
 		cy.get('form > .has-error > .form-group > .control-input-wrapper > .control-input > .input-with-feedback[data-fieldtype="Datetime"]').click();
-		cy.get('.datepicker.active > .datepicker--content > .datepicker--days > .datepicker--cells > .datepicker--cell[data-date=10]').click({force : true});
+		cy.get('.datepicker.active > .datepicker--content > .datepicker--days > .datepicker--cells > .datepicker--cell[data-date=10]').click({force: true});
 		cy.click_listview_primary_button('Save');
 		cy.visit('/app/event');
 		cy.get('.custom-btn-group > .btn').click();
@@ -119,7 +119,7 @@ context('Date Control', () => {
 		cy.get('[data-view="Calendar"] > .grey-link').click();
 
 		//Checking if the calendar view has the first day as the configured day in the System Settings Page
-		cy.get('.fc-head-container').eq(0).should('contain.text','Tue');
+		cy.get('.fc-head-container').eq(0).should('contain.text', 'Tue');
 
 		//Deleting the created event
 		cy.visit('/app/event');
