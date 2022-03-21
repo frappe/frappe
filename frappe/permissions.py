@@ -7,11 +7,7 @@ import frappe.share
 from frappe import _, msgprint
 from frappe.utils import cint
 from frappe.query_builder import DocType
-<<<<<<< HEAD
 
-=======
-import frappe.share
->>>>>>> 6612232bab (fix: setting permissions to any role of some doctypes is not working)
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
@@ -470,12 +466,6 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 	table = DocType("Custom DocPerm")
 	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
-<<<<<<< HEAD
-=======
-	table = DocType("Custom DocPerm")
-	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
-
->>>>>>> 6612232bab (fix: setting permissions to any role of some doctypes is not working)
 	if validate:
 		validate_permissions_for_doctype(doctype)
 
