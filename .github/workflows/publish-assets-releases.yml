@@ -21,7 +21,7 @@ jobs:
           python-version: '12.x'
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
+          python-version: '3.7'
       - name: Set up bench for current push
         run: |
           npm install -g yarn
