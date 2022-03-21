@@ -8,7 +8,7 @@
 		"ecmaVersion": 9,
 		"sourceType": "module"
 	},
-	"extends": "eslint:recommended",
+	"extends": "eslint:recommended, cypress:recommended",
 	"rules": {
 		"indent": [
 			"error",
