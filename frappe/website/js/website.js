@@ -426,7 +426,7 @@ $.extend(frappe, {
 	},
 	setup_videos: () => {
 		// converts video images into youtube embeds (via Page Builder)
-		$('.section-video').on('click', (e) => {
+		$('.section-video-wrapper').on('click', (e) => {
 			let $video = $(e.currentTarget);
 			let id = $video.data('youtubeId');
 			console.log(id);
