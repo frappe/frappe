@@ -453,6 +453,7 @@ class FormTimeline extends BaseTimeline {
 		let edit_wrapper = $(`<div class="comment-edit-box">`).hide();
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find('.content');
+<<<<<<< HEAD
 		let more_actions_wrapper = comment_wrapper.find('.more-actions');
 		if (frappe.model.can_delete("Comment")) {
 			const delete_option = $(`
@@ -461,6 +462,15 @@ class FormTimeline extends BaseTimeline {
 						${__("Delete")}
 					</a>
 				</li>
+=======
+
+		let delete_button = $();
+		if (frappe.model.can_delete("Comment") && (frappe.session.user == doc.owner || frappe.user.has_role("System Manager"))) {
+			delete_button = $(`
+				<button class="btn btn-link action-btn">
+					${frappe.utils.icon('close', 'sm')}
+				</button>
+>>>>>>> e4137ca8a1 (fix: Other user must not able to delete other user's comment except System Manager (#16018))
 			`).click(() => this.delete_comment(doc.name));
 			more_actions_wrapper.find('.dropdown-menu').append(delete_option);
 		}
