@@ -119,6 +119,9 @@ class Database(object):
 		if not run:
 			return query
 
+		# remove \n \t from start and end of query
+		query = re.sub(r'^\s*|\s*$', '', query)
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
