@@ -1216,10 +1216,17 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
+<<<<<<< HEAD
 		fnargs = inspect.getfullargspec(fn).args
 		varargs = inspect.getfullargspec(fn).varargs
 		varkw = inspect.getfullargspec(fn).varkw
 		defaults = inspect.getfullargspec(fn).defaults
+=======
+		fullargspec = inspect.getfullargspec(fn)
+		fnargs = fullargspec.args
+		fnargs.extend(fullargspec.kwonlyargs)
+		varkw = fullargspec.varkw
+>>>>>>> 8cf2bf8953 (refactor: call getfullargspec only once)
 
 	newargs = {}
 	for a in kwargs:
