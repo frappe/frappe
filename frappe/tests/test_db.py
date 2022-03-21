@@ -301,6 +301,14 @@ class TestDB(unittest.TestCase):
 			# recover transaction to continue other tests
 			raise Exception
 
+	def test_exists(self):
+		dt, dn = "User", "Administrator"
+		self.assertEqual(frappe.db.exists(dt, dn, cache=True), dn)
+		self.assertEqual(frappe.db.exists(dt, dn), dn)
+		self.assertEqual(frappe.db.exists(dt, {"name": ("=", dn)}), dn)
+		self.assertEqual(frappe.db.exists({"doctype": dt, "name": ("like", "Admin%")}), dn)
+		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
