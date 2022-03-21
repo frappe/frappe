@@ -142,8 +142,6 @@ class Database(object):
 			self.log_query(query, values, debug, explain)
 
 			if values!=():
-				if isinstance(values, dict):
-					values = dict(values)
 
 				# MySQL-python==1.2.5 hack!
 				if not isinstance(values, (dict, tuple, list)):
