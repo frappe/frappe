@@ -96,6 +96,12 @@ class File(Document):
 			with open(file_path, "wb+") as f:
 				f.write(self.flags.original_content)
 
+		# used in case file path (File.file_url) has been changed
+		if self.flags.original_path:
+			target = self.flags.original_path["old"]
+			source = self.flags.original_path["new"]
+			shutil.move(source, target)
+
 		# following condition is only executed when an insert has been rolledback
 		else:
 			self.flags.on_rollback = True
@@ -135,17 +141,37 @@ class File(Document):
 			)
 
 	def handle_is_private_changed(self):
+		from pathlib import Path
+
 		old_file_url = self.file_url
 		file_name = self.file_url.split("/")[-1]
-		private_file_path = frappe.get_site_path("private", "files", file_name)
-		public_file_path = frappe.get_site_path("public", "files", file_name)
+		private_file_path = Path(frappe.get_site_path("private", "files", file_name))
+		public_file_path = Path(frappe.get_site_path("public", "files", file_name))
 
 		if cint(self.is_private):
-			shutil.move(public_file_path, private_file_path)
+			source = public_file_path
+			target = private_file_path
 			url_starts_with = "/private/files/"
 		else:
-			shutil.move(private_file_path, public_file_path)
+			source = private_file_path
+			target = public_file_path
 			url_starts_with = "/files/"
+
+		if not source.exists():
+			frappe.throw(
+				_("Cannot find file {} on disk").format(source),
+				exc=FileNotFoundError,
+			)
+		if target.exists():
+			frappe.throw(
+				_("A file with same name {} already exists").format(target),
+				exc=FileExistsError,
+			)
+
+		# Uses os.rename which is an atomic operation
+		shutil.move(source, target)
+		self.flags.original_path = {"old": source, "new": target}
+		frappe.local.rollback_observers.append(self)
 
 		self.file_url = f"{url_starts_with}{file_name}"
 		update_existing_file_docs(self)
