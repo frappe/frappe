@@ -386,7 +386,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 			WHERE Key_name = '{index_name}';
 			"""
 		)
-		self.assertEquals(len(indexs_in_table), 2)
+		self.assertEqual(len(indexs_in_table), 2)
 
 
 class TestDBSetValue(unittest.TestCase):
@@ -590,7 +590,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 			AND indexname = '{index_name}' ;
 			""",
 		)
-		self.assertEquals(len(indexs_in_table), 1)
+		self.assertEqual(len(indexs_in_table), 1)
 
 	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
