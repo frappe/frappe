@@ -11,7 +11,7 @@ from frappe.modules import make_boilerplate
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.reportview import append_totals_row
-from frappe.utils.safe_exec import safe_exec
+from frappe.utils.safe_exec import safe_exec, check_safe_sql_query
 
 
 class Report(Document):
@@ -110,15 +110,7 @@ class Report(Document):
 		if not self.query:
 			frappe.throw(_("Must specify a Query to run"), title=_('Report Document Error'))
 
-		# Disallow SQL that writes to the database.
-		if (not self.query.lower().startswith("select") and
-		    not self.query.lower().startswith("with")):
-			frappe.throw(_("Query must be a SELECT or WITH"), title=_('Report Document Error'))
-
-		# As of MariaDB 10.9, CTE WITH statements can only be combined with a SELECT clause and
-		# therefore are read-only. Postgres allows WITH ... INSERT INTO statements.
-		if (self.query.lower().startswith("with") and frappe.db.db_type != "mariadb"):
-			frappe.throw(_("WITH queries are only allowed for MariaDB databases"), title=_('Report Document Error'))
+		check_safe_sql_query(self.query)
 
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
