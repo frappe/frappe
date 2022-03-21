@@ -1524,11 +1524,13 @@ def get_value(*args, **kwargs):
 def as_json(obj: Union[Dict, List], indent=1) -> str:
 	from frappe.utils.response import json_handler
 
-	if isinstance(obj, dict) and None in obj:
-		obj.pop(None)
-
-	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
-
+	try:
+		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
+	except TypeError:
+		# this would break in case the keys are not all os "str" type - as defined in the JSON
+		# adding this to ensure keys are sorted (expected behaviour)
+		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint
