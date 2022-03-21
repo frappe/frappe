@@ -45,7 +45,7 @@ frappe.socketio = {
 			}
 			if(data.percent) {
 				if(data.percent==100) {
-					frappe.hide_progress();
+					frappe.show_progress(data.title || __("Progress"), data.percent, 100, data.description, true);
 				} else {
 					frappe.show_progress(data.title || __("Progress"), data.percent, 100, data.description);
 				}
