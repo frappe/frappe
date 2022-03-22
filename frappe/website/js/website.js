@@ -432,9 +432,9 @@ $.extend(frappe, {
 			console.log(id);
 			$video.find(".video-thumbnail").hide();
 			$video.append(`
-				<iframe allowfullscreen="" class="section-video" frameborder="0" src="//youtube.com/embed/${id}?autoplay=1"></iframe>
-			`)
-		})
+				<iframe allowfullscreen="" class="section-video" f;rameborder="0" src="//youtube.com/embed/${id}?autoplay=1"></iframe>
+			`);
+		});
 	}
 });
 
