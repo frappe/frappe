@@ -47,13 +47,17 @@ frappe.ui.Page = class Page {
 	}
 
 	setup_scroll_handler() {
-		window.addEventListener('scroll', () => {
-			if (document.documentElement.scrollTop) {
-				$('.page-head').toggleClass('drop-shadow', true);
+		let last_scroll = 0;
+		window.addEventListener('scroll', frappe.utils.throttle(() => {
+			$('.page-head').toggleClass('drop-shadow', !!document.documentElement.scrollTop);
+			let current_scroll = document.documentElement.scrollTop;
+			if (current_scroll > 0 && last_scroll <= current_scroll) {
+				$('.page-head').css("top", "-15px");
 			} else {
-				$('.page-head').removeClass('drop-shadow');
+				$('.page-head').css("top", "var(--navbar-height)");
 			}
-		});
+			last_scroll = current_scroll;
+		}), 500);
 	}
 
 	get_empty_state(title, message, primary_action) {
