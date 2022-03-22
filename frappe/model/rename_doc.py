@@ -9,6 +9,7 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
+from frappe.query_builder.utils import DocType, Table
 from frappe.utils.data import sbool
 from frappe.utils.password import rename_password
 from frappe.utils.scheduler import is_scheduler_inactive
