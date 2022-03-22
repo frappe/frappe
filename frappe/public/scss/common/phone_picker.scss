@@ -58,7 +58,7 @@
 }
 .phone-picker-popover {
 	max-width: 325px;
-    left: -20px !important;
+    left: 11px !important;
 	.picker-arrow {
 		left: 15px !important;
 	}
@@ -66,7 +66,7 @@
 .frappe-control[data-fieldtype='Phone']
  {
 	input {
-		padding-left: 80px;
+		padding-left: 67px;
 	}
 	.selected-phone {
 		display: flex;

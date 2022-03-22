@@ -17,6 +17,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.change_flag(country_code);
 			this.$icon = this.selected_icon.find('svg');
 			this.$flag = this.selected_icon.find('img');
+
 			if (!this.$icon.hasClass('hide')) {
 				this.$icon.toggleClass('hide');
 			}
@@ -110,6 +111,13 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.picker.refresh();
 			if (this.picker.country && this.picker.country !== this.$isd.text()) {
 				this.$isd.length && this.$isd.text(isd);
+			}
+			let len = this.$isd.text().length;
+			let diff = len - 3;
+			if (len > 3) {
+				this.$input.css("padding-left", 67 + (diff * 9));
+			} else {
+				this.$input.css("padding-left", 67);
 			}
 		}
 	}
