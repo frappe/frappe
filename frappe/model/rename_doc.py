@@ -114,7 +114,20 @@ def rename_doc(
 	doc: Optional[Document] = None,
 	validate: bool = True,
 ) -> str:
-	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
+	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link".
+
+	doc: Document object to be renamed.
+	new: New name for the record. If None, and doctype is specified, new name may be automatically generated via before_rename hooks.
+	doctype: DocType of the document. Not required if doc is passed.
+	old: Current name of the document. Not required if doc is passed.
+	force: Allow even if document is not allowed to be renamed.
+	merge: Merge with existing document of new name.
+	ignore_permissions: Ignore user permissions while renaming.
+	ignore_if_exists: Don't raise exception if document with new name already exists. This will quietely overwrite the existing document.
+	show_alert: Display alert if document is renamed successfully.
+	rebuild_search: Rebuild linked doctype search after renaming.
+	validate: Validate before renaming. If False, it is assumed that the caller has already validated.
+	"""
 	old_usage_style = doctype and old and new
 	new_usage_style = doc and new
 
