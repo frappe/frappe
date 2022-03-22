@@ -327,7 +327,13 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(frappe.db.exists(dt, dn, cache=True), dn)
 		self.assertEqual(frappe.db.exists(dt, dn), dn)
 		self.assertEqual(frappe.db.exists(dt, {"name": ("=", dn)}), dn)
-		self.assertEqual(frappe.db.exists({"doctype": dt, "name": ("like", "Admin%")}), dn)
+
+		filters = {"doctype": dt, "name": ("like", "Admin%")}
+		self.assertEqual(frappe.db.exists(filters), dn)
+		self.assertEqual(
+			filters["doctype"], dt
+		)  # make sure that doctype was not removed from filters
+
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
 

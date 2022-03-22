@@ -919,8 +919,8 @@ class Database(object):
 			return dn
 
 		if isinstance(dt, dict):
-			_dt = dt.pop("doctype")
-			dt, dn = _dt, dt
+			dt = dt.copy() # don't modify the original dict
+			dt, dn = dt.pop("doctype"), dt
 
 		return self.get_value(dt, dn, ignore=True, cache=cache)
 
