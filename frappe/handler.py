@@ -225,11 +225,10 @@ def ping():
 
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	"""run a whitelisted controller method"""
-	import json
-	import inspect
+	from inspect import getfullargspec
 
-	if not args:
-		args = arg or ""
+	if not args and arg:
+		args = arg
 
 	if dt: # not called from a doctype (from a page)
 		if not dn:
@@ -237,9 +236,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc = frappe.get_doc(dt, dn)
 
 	else:
-		if isinstance(docs, str):
-			docs = json.loads(docs)
-
+		docs = frappe.parse_json(docs)
 		doc = frappe.get_doc(docs)
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
@@ -248,16 +245,16 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		throw_permission_error()
 
 	try:
-		args = json.loads(args)
+		args = frappe.parse_json(args)
 	except ValueError:
-		args = args
+		pass
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, '__func__', method_obj)
 	is_whitelisted(fn)
 	is_valid_http_method(fn)
 
-	fnargs = inspect.getfullargspec(method_obj).args
+	fnargs = getfullargspec(method_obj).args
 
 	if not fnargs or (len(fnargs)==1 and fnargs[0]=="self"):
 		response = doc.run_method(method)

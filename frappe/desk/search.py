@@ -257,7 +257,7 @@ def scrub_custom_query(query, key, txt):
 def relevance_sorter(key, query, as_dict):
 	value = _(key.name if as_dict else key[0])
 	return (
-		value.lower().startswith(query.lower()) is not True,
+		cstr(value).lower().startswith(query.lower()) is not True,
 		value
 	)
 
