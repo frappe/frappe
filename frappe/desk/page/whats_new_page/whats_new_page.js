@@ -5,9 +5,9 @@ frappe.pages['whats-new-page'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 	new WhatsNew(page);
-}
+};
 
-const host = "http://test-st.frappe.cloud";
+const host = "https://frappe.io";
 const month_list = {
 	0: 'Jan',
 	1: 'Feb',
@@ -143,7 +143,7 @@ class WhatsNew {
 	}
 
 	bind_click_events() {
-		$(this.$container).on("click", ".whats-new-event-cal-link", function(e) {
+		$(this.$container).on("click", ".whats-new-event-cal-link", function() {
 			const event_date = $(this).data("event_date");
 			const event_time = $(this).data("event_time");
 			const event_title = $(this).data("event_title");

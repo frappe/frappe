@@ -9,17 +9,17 @@ from datetime import datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_whats_new_posts():
-	host = "http://test-st.frappe.cloud"
+	host = "https://frappe.io"
 	post_list = []
 
 	try:
-		res = requests.get(host + '/api/method/frappe.desk.doctype.whats_new.whats_new.fetch_latest_posts')
+		res = requests.get(host + '/api/method/fetch_latest_posts')
 	except Exception:
 		frappe.throw('Error in establishing connection with host')
 
 	data = res.json()
-	post_list = data.get("message")[0] or []
-	event_list = data.get("message")[1] or []
+	post_list = data.get("message")[0] if data.get("message") else []
+	event_list = data.get("message")[1] if data.get("message") else []
 
 	today = datetime.now().today()
 	closest_upcoming_events = []
