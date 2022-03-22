@@ -333,7 +333,8 @@ app_license = "{app_license}"
 # 	"{app_name}.auth.validate"
 # ]
 
-# Make link fields search in translated names for these DocTypes
+# Make link fields search translated document names for these DocTypes
+# Recommended only for DocTypes like Role which have limited documents with untranslated names
 # translated_search_doctypes = []
 """
 
