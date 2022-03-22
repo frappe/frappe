@@ -49,6 +49,10 @@ def update_document_title(
 		if not isinstance(obj, (str, type(None))):
 			frappe.throw(f"{obj=} must be of type str or None")
 
+	# handle bad API usages
+	merge = cint(merge)
+	enqueue = cint(enqueue)
+
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission(permtype="write")
 
@@ -59,7 +63,25 @@ def update_document_title(
 
 	if name_updated:
 		if enqueue and not is_scheduler_inactive():
-			doc.queue_action("rename", name=updated_name, merge=merge)
+			current_name = doc.name
+
+			# before_name hook may have DocType specific validations or transformations
+			transformed_name = doc.run_method("before_rename", current_name, updated_name, merge)
+			if isinstance(transformed_name, dict):
+				transformed_name = transformed_name.get("new")
+			transformed_name = transformed_name or updated_name
+
+			# run rename validations before queueing
+			new_name = validate_rename(
+				doctype=doctype,
+				old=current_name,
+				new=transformed_name,
+				meta=doc.meta,
+				merge=merge,
+			)
+
+			# we don't want to re-validate since the before_rename hooks would be run again ;)
+			doc.queue_action("rename", name=new_name, merge=merge, validate_rename=False)
 		else:
 			doc.rename(updated_name, merge=merge)
 
@@ -89,6 +111,7 @@ def rename_doc(
 	show_alert: bool = True,
 	rebuild_search: bool = True,
 	doc: Optional[Document] = None,
+	validate: bool = True,
 ) -> str:
 	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
 	old_usage_style = doctype and old and new
@@ -99,28 +122,24 @@ def rename_doc(
 
 	old = old or doc.name
 	doctype = doctype or doc.doctype
-
-	if not frappe.db.exists(doctype, old):
-		frappe.errprint(_("Failed: {0} to {1} because {0} doesn't exist.").format(old, new))
-		return
-
-	if ignore_if_exists and frappe.db.exists(doctype, new):
-		frappe.errprint(_("Failed: {0} to {1} because {1} already exists.").format(old, new))
-		return
-
-	if old==new:
-		frappe.errprint(_("Ignored: {0} to {1} no changes made because old and new name are the same.").format(old, new))
-		return
-
 	force = cint(force)
 	merge = cint(merge)
 	meta = frappe.get_meta(doctype)
 
-	# call before_rename
-	old_doc = doc or frappe.get_doc(doctype, old)
-	out = old_doc.run_method("before_rename", old, new, merge) or {}
-	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
-	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
+	if validate:
+		old_doc = doc or frappe.get_doc(doctype, old)
+		out = old_doc.run_method("before_rename", old, new, merge) or {}
+		new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
+		new = validate_rename(
+			doctype=doctype,
+			old=old,
+			new=new,
+			meta=meta,
+			merge=merge,
+			force=force,
+			ignore_permissions=ignore_permissions,
+			ignore_if_exists=ignore_if_exists,
+		)
 
 	if not merge:
 		rename_parent_and_child(doctype, old, new, meta)
@@ -272,7 +291,7 @@ def update_autoname_field(doctype: str, new: str, meta: "Meta") -> None:
 		if field and field[0] == "field":
 			frappe.db.sql("UPDATE `tab{0}` SET `{1}`={2} WHERE `name`={2}".format(doctype, field[1], '%s'), (new, new))
 
-def validate_rename(doctype: str, new: str, meta: "Meta", merge: bool, force: bool, ignore_permissions: bool) -> str:
+def validate_rename(doctype: str, old: str, new: str, meta: "Meta", merge: bool, force: bool = False, ignore_permissions: bool = False, ignore_if_exists: bool = False) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	exists = (
 		frappe.qb.from_(doctype)
@@ -283,6 +302,12 @@ def validate_rename(doctype: str, new: str, meta: "Meta", merge: bool, force: bo
 	)
 	exists = exists[0] if exists else None
 
+	if not frappe.db.exists(doctype, old):
+		frappe.throw(_("Can't rename {0} to {1} because {0} doesn't exist.").format(old, new))
+
+	if old == new:
+		frappe.throw(_("No changes made because old and new name are the same.").format(old, new))
+
 	if merge and not exists:
 		frappe.throw(_("{0} {1} does not exist, select a new target to merge").format(doctype, new))
 
@@ -290,7 +315,7 @@ def validate_rename(doctype: str, new: str, meta: "Meta", merge: bool, force: bo
 		# for fixing case, accents
 		exists = None
 
-	if (not merge) and exists:
+	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
 	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)):
