@@ -260,9 +260,9 @@ def add_standard_navbar_items():
 			'item_label': 'Whats New',
 			'item_type': "Route",
 			'route': "/app/whats-new-page",
-      'is_standard': 1
+			'is_standard': 1
 		},
-    {
+		{
 			'item_label': 'Frappe Support',
 			'item_type': 'Route',
 			'route': 'https://frappe.io/support',
