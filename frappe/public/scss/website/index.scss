@@ -311,3 +311,16 @@ h5.modal-title {
 .empty-list-icon {
 	height: 70px;
 }
+
+.null-state {
+	height: 60px;
+	width: auto;
+	margin-bottom: var(--margin-md);
+	img {
+		fill: var(--fg-color);
+	}
+}
+
+.no-result {
+	min-height: #{"calc(100vh - 284px)"};
+}

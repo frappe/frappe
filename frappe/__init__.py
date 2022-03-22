@@ -978,8 +978,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
-	if db.exists(doctype, name):
-		delete_doc(doctype, name, force=force)
+	delete_doc(doctype, name, force=force, ignore_missing=True)
 
 def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
@@ -1252,9 +1251,10 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
-		fnargs = inspect.getfullargspec(fn).args
-		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
-		varkw = inspect.getfullargspec(fn).varkw
+		fullargspec = inspect.getfullargspec(fn)
+		fnargs = fullargspec.args
+		fnargs.extend(fullargspec.kwonlyargs)
+		varkw = fullargspec.varkw
 
 	newargs = {}
 	for a in kwargs:
