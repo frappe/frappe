@@ -11,11 +11,18 @@ class FrappeTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		frappe.db.commit()
+		cls.pre_test_flags = copy.deepcopy(frappe.flags)
 		return super().setUpClass()
 
 	@classmethod
 	def tearDownClass(cls) -> None:
 		frappe.db.rollback()
+
+		if hasattr(cls, "pre_test_flags"):
+			frappe.flags  = cls.pre_test_flags
+
+		frappe.db.value_cache = {}
+		frappe.set_user("Administrator")
 		return super().tearDownClass()
 
 
