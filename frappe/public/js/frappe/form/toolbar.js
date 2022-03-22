@@ -108,7 +108,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				freeze_message: __("Updating related fields...")
 			}).then(new_docname => {
 				// handle document renaming queued action
-				if (new_docname == docname) {
+				if (new_name && (new_docname == docname)) {
 					frappe.socketio.doc_subscribe(doctype, new_name);
 					frappe.realtime.on("doc_update", data => {
 						if (data.doctype == doctype && data.name == new_name) {
@@ -125,7 +125,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 						__('Document renaming from {0} to {1} has been queued', [docname.bold(), new_name.bold()])
 					);
 				}
-				if (new_name != docname) {
+				// handle document sync rename action
+				if (new_name && (new_name != docname)) {
 					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
 					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
 				}
