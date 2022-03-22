@@ -23,7 +23,7 @@ def get_logger(module=None, with_more_info=False, allow_site=True, filter=None, 
 		filter (function, optional): Add a filter function for your logger. Defaults to None.
 		max_size (int, optional): Max file size of each log file in bytes. Defaults to 100_000.
 		file_count (int, optional): Max count of log files to be retained via Log Rotation. Defaults to 20.
-        stream_nly (bool, optional): Wether to stream logs only to stderr (True) or use log files (False). Defaults to False.
+        stream_only (bool, optional): Whether to stream logs only to stderr (True) or use log files (False). Defaults to False.
 
 	Returns:
 		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
