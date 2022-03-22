@@ -100,11 +100,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		return this.value || null;
 	},
 
-<<<<<<< HEAD
-	on_upload_complete: function(attachment) {
-=======
 	async on_upload_complete(attachment) {
->>>>>>> aa0d10fe0e (fix: First set in model then save attachment)
 		if(this.frm) {
 			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
