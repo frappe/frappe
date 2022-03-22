@@ -79,9 +79,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 
 		$('.web-form-footer').after(`
-			<div id="form-step-footer" class="pull-right">
-				<button class="btn btn-primary btn-previous btn-sm ml-2">${__("Previous")}</button>
-				<button class="btn btn-primary btn-next btn-sm ml-2">${__("Next")}</button>
+			<div id="form-step-footer" class="text-right">
+				<button class="btn btn-default btn-previous btn-sm ml-2">${__("Previous")}</button>
+				<button class="btn btn-default btn-next btn-sm ml-2">${__("Next")}</button>
 			</div>
 		`);
 
