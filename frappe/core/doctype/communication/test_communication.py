@@ -4,8 +4,8 @@ import unittest
 from urllib.parse import quote
 
 import frappe
-from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.core.doctype.communication.communication import get_emails
+from frappe.email.doctype.email_queue.email_queue import EmailQueue
 
 test_records = frappe.get_test_records('Communication')
 
@@ -202,7 +202,7 @@ class TestCommunication(unittest.TestCase):
 
 		self.assertIn(("Note", note.name), doc_links)
 
-	def parse_emails(self):
+	def test_parse_emails(self):
 		emails = get_emails(
 			[
 				'comm_recipient+DocType+DocName@example.com',

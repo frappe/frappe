@@ -1026,7 +1026,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 		if (!docfield || docfield.report_hide) return;
 
-		let title = __(docfield ? docfield.label : toTitle(fieldname));
+		let title = __(docfield.label);
 		if (doctype !== this.doctype) {
 			title += ` (${__(doctype)})`;
 		}

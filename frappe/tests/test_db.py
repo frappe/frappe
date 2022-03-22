@@ -14,7 +14,7 @@ from frappe.database.database import Database
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.utils import add_days, now, random_string
+from frappe.utils import add_days, now, random_string, cint
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -83,6 +83,27 @@ class TestDB(unittest.TestCase):
 				"User", filters=[["name", "=", "Administrator"]], fieldname="email"
 			),
 		)
+
+	def test_get_value_limits(self):
+
+		# check both dict and list style filters
+		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
+		for filter in filters:
+			self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))
+			# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
+			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+			self.assertEqual(2, len(frappe.db.get_values("User", filters=filter, limit=2)))
+			self.assertGreaterEqual(2, cint(frappe.db._cursor.rowcount))
+
+			# without limits length == count
+			self.assertEqual(len(frappe.db.get_values("User", filters=filter)),
+					frappe.db.count("User", filter))
+
+			frappe.db.get_value("User", filters=filter)
+			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+
+			frappe.db.exists("User", filter)
+			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
@@ -301,6 +322,20 @@ class TestDB(unittest.TestCase):
 			# recover transaction to continue other tests
 			raise Exception
 
+	def test_exists(self):
+		dt, dn = "User", "Administrator"
+		self.assertEqual(frappe.db.exists(dt, dn, cache=True), dn)
+		self.assertEqual(frappe.db.exists(dt, dn), dn)
+		self.assertEqual(frappe.db.exists(dt, {"name": ("=", dn)}), dn)
+
+		filters = {"doctype": dt, "name": ("like", "Admin%")}
+		self.assertEqual(frappe.db.exists(filters), dn)
+		self.assertEqual(
+			filters["doctype"], dt
+		)  # make sure that doctype was not removed from filters
+
+		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
@@ -357,7 +392,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 			WHERE Key_name = '{index_name}';
 			"""
 		)
-		self.assertEquals(len(indexs_in_table), 2)
+		self.assertEqual(len(indexs_in_table), 2)
 
 
 class TestDBSetValue(unittest.TestCase):
@@ -561,7 +596,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 			AND indexname = '{index_name}' ;
 			""",
 		)
-		self.assertEquals(len(indexs_in_table), 1)
+		self.assertEqual(len(indexs_in_table), 1)
 
 	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
