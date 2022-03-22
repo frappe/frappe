@@ -97,6 +97,12 @@ class TestReportview(unittest.TestCase):
 			self.assertFalse(result
 				in DatabaseQuery("DocType").execute(filters={"name": ["not in", 'DocType,DocField']}))
 
+	def test_none_filter(self):
+		query = frappe.db.query.get_sql("DocType", fields="name", filters={"restrict_to_domain": None})
+		sql = str(query).replace('`', '').replace('"', '')
+		condition = 'restrict_to_domain IS NULL'
+		self.assertIn(condition, sql)
+
 	def test_or_filters(self):
 		data = DatabaseQuery("DocField").execute(
 				filters={"parent": "DocType"}, fields=["fieldname", "fieldtype"],
@@ -148,7 +154,6 @@ class TestReportview(unittest.TestCase):
 		data = DatabaseQuery("Event").execute(
 			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]},
 			fields=["name"])
-
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user('test2@example.com')
@@ -351,7 +356,6 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(len(data) == 0)
 		self.assertTrue(len(frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Root')})) == len(frappe.get_all('Nested DocType')))
 
-
 	def test_is_set_is_not_set(self):
 		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})
 		self.assertTrue({'name': 'Integration Request'} in res)
@@ -489,6 +493,27 @@ class TestReportview(unittest.TestCase):
 
 		response = execute_cmd("frappe.desk.reportview.get")
 		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column", 'columns'])
+
+	def test_cast_name(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype("autoinc_dt_test", autoincremented=True).insert(ignore_permissions=True)
+
+		query = DatabaseQuery("autoinc_dt_test").execute(
+			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "`tabautoinc_dt_test`.`name`"],
+			filters={"name": 1},
+			run=False
+		)
+
+		if frappe.db.db_type == "postgres":
+			self.assertTrue("strpos( cast( \"tabautoinc_dt_test\".\"name\" as varchar), \'1\')" in query)
+			self.assertTrue("where cast(\"tabautoinc_dt_test\".name as varchar) = \'1\'" in query)
+		else:
+			self.assertTrue("locate(\'1\', `tabautoinc_dt_test`.`name`)" in query)
+			self.assertTrue("where `tabautoinc_dt_test`.name = 1" in query)
+
+		dt.delete(ignore_permissions=True)
+
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc({

@@ -650,8 +650,6 @@ def extract_messages_from_code(code):
 		if isinstance(e, InvalidIncludePath):
 			frappe.clear_last_message()
 
-		pass
-
 	messages = []
 	pattern = r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)"
 
