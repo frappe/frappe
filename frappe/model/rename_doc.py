@@ -87,7 +87,8 @@ def update_document_title(
 
 	if title_updated:
 		try:
-			frappe.db.set_value(doctype, docname, title_field, updated_title)
+			setattr(doc, title_field, updated_title)
+			doc.save()
 			frappe.msgprint(_("Saved"), alert=True, indicator="green")
 		except Exception as e:
 			if frappe.db.is_duplicate_entry(e):
