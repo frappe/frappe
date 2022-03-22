@@ -3,6 +3,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.model.naming import append_number_if_name_exists
@@ -16,6 +17,13 @@ class NumberCard(Document):
 
 		if frappe.db.exists("Number Card", self.name):
 			self.name = append_number_if_name_exists('Number Card', self.name)
+
+	def validate(self):
+		if not self.document_type:
+			frappe.throw(_("Document type is required to create a number card"))
+
+		if self.document_type and frappe.get_meta(self.document_type).istable and not self.parent_document_type:
+			frappe.throw(_("Parent document type is required to create a number card"))
 
 	def on_update(self):
 		if frappe.conf.developer_mode and self.is_standard:

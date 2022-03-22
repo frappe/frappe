@@ -54,8 +54,8 @@ def update_document_title(
 
 	title_field = doc.meta.get_title_field()
 
-	title_updated = (title_field != "name") and (updated_title != doc.get(title_field))
-	name_updated = updated_name != doc.name
+	title_updated = updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
+	name_updated = updated_name and (updated_name != doc.name)
 
 	if name_updated:
 		if enqueue and not is_scheduler_inactive():

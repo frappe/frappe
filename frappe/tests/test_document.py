@@ -260,15 +260,15 @@ class TestDocument(unittest.TestCase):
 			'doctype': 'Test Formatted',
 			'currency': 100000
 		})
-		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+		self.assertEqual(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
 
 	def test_limit_for_get(self):
 		doc = frappe.get_doc("DocType", "DocType")
 		# assuming DocType has more than 3 Data fields
-		self.assertEquals(len(doc.get("fields", limit=3)), 3)
+		self.assertEqual(len(doc.get("fields", limit=3)), 3)
 
 		# limit with filters
-		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
+		self.assertEqual(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
 	def test_virtual_fields(self):
 		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
