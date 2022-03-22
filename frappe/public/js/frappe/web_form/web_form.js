@@ -165,8 +165,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		);
 
 		if (!this.is_multi_step_form && $('main').height() > 600) {
-				// add button on footer if page is long
-				this.add_button_to_footer(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
+			// add button on footer if page is long
+			this.add_button_to_footer(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
 				this.save()
 			);
 		}
