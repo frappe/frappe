@@ -14,7 +14,9 @@
   "conditions",
   "condition",
   "column_break_7",
-  "example"
+  "example",
+  "quantity",
+  "unit_of_measure"
  ],
  "fields": [
   {
@@ -84,12 +86,29 @@
    "fieldtype": "HTML",
    "label": "Example",
    "options": "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n<p>Allowed functions: \n</p><ul>\n<li>frappe.db.get_value</li>\n<li>frappe.db.get_list</li>\n<li>frappe.session</li>\n<li>frappe.utils.now_datetime</li>\n<li>frappe.utils.get_datetime</li>\n<li>frappe.utils.add_to_date</li>\n<li>frappe.utils.now</li>\n</ul>\n<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
+  },
+  {
+   "default": "1",
+   "description": "The number required in order to change to the next state.",
+   "fieldname": "quantity",
+   "fieldtype": "Int",
+   "label": "Quantity",
+   "reqd": 1
+  },
+  {
+   "default": "Individual",
+   "description": "How the number in 'Quantity' should be interpreted.  \"Individual\" means individual user accounts.  \"Percent\" means a percent of the members in the group.",
+   "fieldname": "unit_of_measure",
+   "fieldtype": "Select",
+   "label": "Basis",
+   "options": "Individual\nPercent",
+   "reqd": 1
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-07-21 13:24:59.084836",
+ "modified": "2022-03-18 16:31:51.669071",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Transition",

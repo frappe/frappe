@@ -92,16 +92,64 @@ def apply_workflow(doc, action):
 	if not has_approval_access(user, doc, transition):
 		frappe.throw(_("Self approval is not allowed"))
 
+	# transitions comes from doc.load_from_db, so each is a complete child row
+	uom = transition.unit_of_measure
+	if uom not in ['Individual', 'Percent']:
+		uom = 'Individual'
+	quantity = transition.quantity
+	if quantity is None:
+		quantity = '1'
+	num_members = int(-1)
+	if uom == 'Percent':
+		num_members = get_role_member_count(transition.allowed)
+		# this is instead of a conditional check in JavaScript
+		if quantity > 100: quantity = 100
+	
 	# update workflow state field
-	doc.set(workflow.workflow_state_field, transition.next_state)
-
-	# find settings for the next state
-	next_state = [d for d in workflow.states if d.state == transition.next_state][0]
-
-	# update any additional field
-	if next_state.update_field:
-		doc.set(next_state.update_field, next_state.update_value)
-
+	if uom == 'Individual' and quantity == 1:
+		# don't keep track of votes for state changes that one person can make happen
+		# in other words, for old-style workflows (pre-voting), don't store votes.
+		# if you want to keep track of that, "Track Changes" in the DocType is better.
+		doc.set(workflow.workflow_state_field, transition.next_state)
+		# find settings for the next state
+		# sadly, couldn't figure out a good way to DRY this
+		next_state = [d for d in workflow.states if d.state == transition.next_state][0]
+		# update any additional field
+		# sadly, couldn't figure out a good way to DRY this
+		if next_state.update_field:
+			doc.set(next_state.update_field, next_state.update_value)
+	else:
+		current_votes = add_workflow_vote_and_return_count(doc, workflow.name, doc.get(workflow.workflow_state_field), transition.action, user)
+		# we voted, so put that in a comment where other people can see it.
+		doc.add_comment('Workflow', _('{0} clicked {1}'.format(user, transition.action)))
+		if uom == 'Individual':
+			if current_votes >= quantity:
+				doc.set(workflow.workflow_state_field, transition.next_state)
+				# find settings for the next state
+				# sadly, couldn't figure out a good way to DRY this
+				next_state = [d for d in workflow.states if d.state == transition.next_state][0]
+				# update any additional field
+				# sadly, couldn't figure out a good way to DRY this
+				if next_state.update_field:
+					doc.set(next_state.update_field, next_state.update_value)
+			else:
+				# the vote hasn't passed yet, so the "next state" is the current state
+				next_state = [d for d in workflow.states if d.state == transition.state][0]
+		else: # uom better be 'Percent'
+			actual_percent = current_votes / num_members
+			if actual_percent >= (quantity / 100):
+				doc.set(workflow.workflow_state_field, transition.next_state)
+				# find settings for the next state
+				# sadly, couldn't figure out a good way to DRY this
+				next_state = [d for d in workflow.states if d.state == transition.next_state][0]
+				# update any additional field
+				# sadly, couldn't figure out a good way to DRY this
+				if next_state.update_field:
+					doc.set(next_state.update_field, next_state.update_value)
+			else:
+				# the vote hasn't passed yet, so the "next state" is the current state
+				next_state = [d for d in workflow.states if d.state == transition.state][0]
+	
 	new_docstatus = cint(next_state.doc_status)
 	if doc.docstatus.is_draft() and new_docstatus == DocStatus.draft():
 		doc.save()
@@ -191,6 +239,35 @@ def get_workflow_field_value(workflow_name, field):
 		value = frappe.db.get_value("Workflow", workflow_name, field)
 		frappe.cache().hset('workflow_' + workflow_name, field, value)
 	return value
+
+def get_role_member_count(role_name):
+	counts = frappe.db.get_list('Has Role'
+			, filters = {'parenttype' : 'User', 'parentfield': 'roles', 'role': role_name}
+			, fields = ['count(name) as count'])
+	return counts[0]['count']
+
+def add_workflow_vote_and_return_count(doc, workflow, state, action, user):
+	current_votes_all_actions_this_state = frappe.db.get_all('Workflow Action Vote'
+		, filters={'reference_name': doc.name, 'reference_doctype': doc.doctype
+			, 'workflow': workflow, 'workflow_state': state}
+			, fields=['user', 'workflow_action', 'vote_datetime'])
+	# if the workflow could take two paths (ex: accept, reject), you can only vote for one of them, not both
+	user_vote = [x for x in current_votes_all_actions_this_state if x.user == user]
+	current_votes_this_action = [x for x in current_votes_all_actions_this_state if x.workflow_action == action]
+	if len(user_vote) > 0:
+		bold_action = frappe.bold(user_vote[0].workflow_action)
+		frappe.throw(_('You have already clicked {0}').format(bold_action), WorkflowTransitionError)
+	else:
+		frappe.get_doc({
+			'doctype' : 'Workflow Action Vote'
+			, 'reference_name': doc.name, 'reference_doctype': doc.doctype
+			, 'workflow': workflow, 'workflow_state': state
+			, 'workflow_action': action, 'user': user
+			, 'vote_datetime': frappe.utils.now_datetime() #datetime.datetime.now() 
+		}).insert(ignore_permissions=True)
+	# existing votes plus new vote.  We won't get here if user already voted b/c of frappe.throw()
+	vote_count = len(current_votes_this_action) + 1 
+	return vote_count
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
