@@ -9,7 +9,7 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
-from frappe.utils import cint
+from frappe.utils.data import sbool
 from frappe.utils.password import rename_password
 from frappe.utils.scheduler import is_scheduler_inactive
 
@@ -50,8 +50,8 @@ def update_document_title(
 			frappe.throw(f"{obj=} must be of type str or None")
 
 	# handle bad API usages
-	merge = cint(merge)
-	enqueue = cint(enqueue)
+	merge = sbool(merge)
+	enqueue = sbool(enqueue)
 
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission(permtype="write")
@@ -136,8 +136,8 @@ def rename_doc(
 
 	old = old or doc.name
 	doctype = doctype or doc.doctype
-	force = cint(force)
-	merge = cint(merge)
+	force = sbool(force)
+	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
 
 	if validate:
