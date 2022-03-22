@@ -129,14 +129,13 @@
 	}
 
 	&:not(.no-hover):hover {
-		color: var(--text-muted);
 		text-decoration: none;
-		background-color: var(--fg-hover-color);
+		background-color: var(--bg-gray) !important;
 	}
 }
 
 .recent-item.notification-item {
-	padding: 10px 10px 10px 4px;
+	padding: 10px;
 	justify-content: space-between;
 
 	&.read {
@@ -162,14 +161,16 @@
 
 	@keyframes glowing {
 		0%, 100% {
-			box-shadow: 0 0 1px 7px var(--blue-50);
+			box-shadow: 0 0 1px 7px var(--blue-start);
 		}
 		50% {
-			box-shadow: 0 0 1px 7px var(--blue-100);
+			box-shadow: 0 0 1px 7px var(--blue-end);
 		}
 	}
 
 	&.unread {
+		background-color: var(--bg-light-gray);
+
 		.mark-as-unread {
 			display: none;
 		}
@@ -186,21 +187,6 @@
 				&:hover {
 					animation: glowing 1300ms infinite;
 				}
-			}
-		}
-
-		.notification-body .user-avatar {
-			position: relative;
-
-			&::before {
-				content: "";
-				position: absolute;
-				background: var(--primary);
-				border: 1px solid white;
-				top: 0;
-				right: 2px;
-				@include size(9px, 9px);
-				border-radius: 10px;
 			}
 		}
 	}
