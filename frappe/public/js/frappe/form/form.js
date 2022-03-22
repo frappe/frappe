@@ -1708,7 +1708,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		frappe.model
 			.get_children(this.doc, table_fieldname)
-			.filter(child => !child[fieldname])
+			.filter(child => !frappe.model.has_value(child.doctype, child.name, fieldname))
 			.forEach(child =>
 				frappe.model.set_value(child.doctype, child.name, fieldname, value)
 			);
