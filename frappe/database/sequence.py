@@ -57,7 +57,7 @@ def create_sequence(
 
 def get_next_val(doctype_name: str, slug: str = "_id_seq") -> int:
 	return db.multisql({
-		"postgres": f"select nextval(\'\"{scrub(doctype_name + slug)}\"\')",
+		"postgres": f"select nextval('\"{scrub(doctype_name + slug)}\"')",
 		"mariadb": f"select nextval(`{scrub(doctype_name + slug)}`)"
 	})[0][0]
 
