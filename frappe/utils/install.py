@@ -90,7 +90,7 @@ def install_basic_docs():
 
 	for d in install_docs:
 		try:
-			frappe.get_doc(d).insert()
+			frappe.get_doc(d).insert(ignore_if_duplicate=True)
 		except frappe.NameError:
 			pass
 
@@ -254,6 +254,12 @@ def add_standard_navbar_items():
 			'item_label': 'Keyboard Shortcuts',
 			'item_type': 'Action',
 			'action': 'frappe.ui.toolbar.show_shortcuts(event)',
+			'is_standard': 1
+		},
+		{
+			'item_label': 'Frappe Support',
+			'item_type': 'Route',
+			'route': 'https://frappe.io/support',
 			'is_standard': 1
 		}
 	]

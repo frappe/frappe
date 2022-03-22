@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 from collections import Counter
+from typing import List
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -17,6 +18,7 @@ from urllib.parse import unquote
 from frappe.utils.user import is_system_user
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.automation.doctype.assignment_rule.assignment_rule import apply as apply_assignment_rule
+from parse import compile
 
 exclude_from_linked_with = True
 
@@ -112,6 +114,44 @@ class Communication(Document, CommunicationEmailMixin):
 				# reference_name contains the user who is addressed in the messages' page comment
 				frappe.publish_realtime('new_message', self.as_dict(),
 					user=self.reference_name, after_commit=True)
+
+	def set_signature_in_email_content(self):
+		"""Set sender's User.email_signature or default outgoing's EmailAccount.signature to the email
+		"""
+		if not self.content:
+			return
+
+		quill_parser = compile('<div class="ql-editor read-mode">{}</div>')
+		email_body = quill_parser.parse(self.content)
+
+		if not email_body:
+			return
+
+		email_body = email_body[0]
+
+		user_email_signature = frappe.db.get_value(
+			"User",
+			self.sender,
+			"email_signature",
+		) if self.sender else None
+
+		signature = user_email_signature or frappe.db.get_value(
+			"Email Account",
+			{"default_outgoing": 1, "add_signature": 1},
+			"signature",
+		)
+
+		if not signature:
+			return
+
+		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
+
+		if (_signature or signature) not in self.content:
+			self.content = f'{self.content}</p><br><p class="signature">{signature}'
+
+	def before_save(self):
+		if not self.flags.skip_add_signature:
+			self.set_signature_in_email_content()
 
 	def on_update(self):
 		# add to _comment property of the doctype, so it shows up in
@@ -367,15 +407,8 @@ def get_permission_query_conditions_for_communication(user):
 		return """`tabCommunication`.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
 
-def get_contacts(email_strings, auto_create_contact=False):
-	email_addrs = []
-
-	for email_string in email_strings:
-		if email_string:
-			result = getaddresses([email_string])
-			for email in result:
-				email_addrs.append(email[1])
-
+def get_contacts(email_strings: List[str], auto_create_contact=False) -> List[str]:
+	email_addrs = get_emails(email_strings)
 	contacts = []
 	for email in email_addrs:
 		email = get_email_without_link(email)
@@ -403,6 +436,17 @@ def get_contacts(email_strings, auto_create_contact=False):
 			contacts.append(contact_name)
 
 	return contacts
+
+def get_emails(email_strings: List[str]) -> List[str]:
+	email_addrs = []
+
+	for email_string in email_strings:
+		if email_string:
+			result = getaddresses([email_string])
+			for email in result:
+				email_addrs.append(email[1])
+
+	return email_addrs
 
 def add_contact_links_to_communication(communication, contact_name):
 	contact_links = frappe.get_all("Dynamic Link", filters={
@@ -449,8 +493,12 @@ def get_email_without_link(email):
 	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email
 
-	email_id = email.split("@")[0].split("+")[0]
-	email_host = email.split("@")[1]
+	try:
+		_email = email.split("@")
+		email_id = _email[0].split("+")[0]
+		email_host = _email[1]
+	except IndexError:
+		return email
 
 	return "{0}@{1}".format(email_id, email_host)
 

@@ -63,7 +63,8 @@ class PostgresDatabase(Database):
 			'Geolocation':	('text', ''),
 			'Duration':		('decimal', '21,9'),
 			'Icon': ('varchar', self.VARCHAR_LEN),
-			'Phone': ('varchar', self.VARCHAR_LEN)
+			'Phone': ('varchar', self.VARCHAR_LEN),
+			'Autocomplete': ('varchar', self.VARCHAR_LEN),
 		}
 
 	def get_connection(self):
@@ -78,11 +79,11 @@ class PostgresDatabase(Database):
 		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode('utf-8')
-				
+
 		# MariaDB's driver treats None as an empty string
 		# So Postgres should do the same
 
-		if s is None: 
+		if s is None:
 			s = ''
 
 		if percent:
@@ -99,16 +100,13 @@ class PostgresDatabase(Database):
 		return db_size[0].get('database_size')
 
 	# pylint: disable=W0221
-	def sql(self, *args, **kwargs):
-		if args:
-			# since tuple is immutable
-			args = list(args)
-			args[0] = modify_query(args[0])
-			args = tuple(args)
-		elif kwargs.get('query'):
-			kwargs['query'] = modify_query(kwargs.get('query'))
-
-		return super(PostgresDatabase, self).sql(*args, **kwargs)
+	def sql(self, query, values=(), *args, **kwargs):
+		return super(PostgresDatabase, self).sql(
+			modify_query(query),
+			modify_values(values),
+			*args,
+			**kwargs
+		)
 
 	def get_tables(self, cached=True):
 		return [d[0] for d in self.sql("""select table_name
@@ -154,6 +152,10 @@ class PostgresDatabase(Database):
 		return getattr(e, 'pgcode', None) == '42P01'
 
 	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
+
+	@staticmethod
 	def is_missing_column(e):
 		return getattr(e, 'pgcode', None) == '42703'
 
@@ -171,11 +173,11 @@ class PostgresDatabase(Database):
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return e.pgcode == '23505' and '_pkey' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_pkey' in cstr(e.args[0])
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
+		return getattr(e, "pgcode", None) == '23505' and '_key' in cstr(e.args[0])
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
@@ -309,18 +311,20 @@ class PostgresDatabase(Database):
 				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
-			COUNT(b.indexdef) AS Index,
+			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN
-				(SELECT indexdef, tablename, indexdef LIKE '%UNIQUE INDEX%' AS unique
+				(SELECT indexdef, tablename,
+					indexdef LIKE '%UNIQUE INDEX%' AS unique,
+					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
 					FROM pg_indexes
 					WHERE tablename='{table_name}') b
-					ON SUBSTRING(b.indexdef, '\(.*\)') LIKE CONCAT('%', a.column_name, '%')
+				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;'''
-			.format(table_name=table_name), as_dict=1)
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+		'''.format(table_name=table_name), as_dict=1)
 
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
@@ -333,12 +337,47 @@ def modify_query(query):
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
 	if re.search('from tab', query, flags=re.IGNORECASE):
-		query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
+		query = re.sub(r'from tab([\w-]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
 
+	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
+	# drop .0 from decimals and add quotes around them
+	#
+	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
+	# >>> re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
+	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
+
+	query = re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
 	return query
+
+def modify_values(values):
+	def stringify_value(value):
+		if isinstance(value, int):
+			value = str(value)
+		elif isinstance(value, float):
+			truncated_float = int(value)
+			if value == truncated_float:
+				value = str(truncated_float)
+
+		return value
+
+	if not values:
+		return values
+
+	if isinstance(values, dict):
+		for k, v in values.items():
+			values[k] = stringify_value(v)
+	elif isinstance(values, (tuple, list)):
+		new_values = []
+		for val in values:
+			new_values.append(stringify_value(val))
+		values = new_values
+	else:
+		values = stringify_value(values)
+
+	return values
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
 	if re.search(r'locate\(', query, flags=re.IGNORECASE):
-		query = re.sub(r'locate\(([^,]+),([^)]+)\)', r'strpos(\2, \1)', query, flags=re.IGNORECASE)
+		query = re.sub(r'locate\(([^,]+),([^)]+)(\)?)\)', r'strpos(\2\3, \1)', query, flags=re.IGNORECASE)
 	return query

@@ -1,3 +1,4 @@
+[pre_model_sync]
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
 execute:frappe.reload_doc('core', 'doctype', 'doctype_action', force=True) #2019-09-23
@@ -87,7 +88,6 @@ frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permission
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
-frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
 frappe.patches.v12_0.replace_null_values_in_tables
 frappe.patches.v12_0.reset_home_settings
@@ -119,10 +119,12 @@ execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
-frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
+execute:frappe.reload_doc('core', 'doctype', 'doctype')
+execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
+frappe.patches.v13_0.remove_invalid_options_for_data_fields
 frappe.patches.v13_0.website_theme_custom_scss
 frappe.patches.v13_0.make_user_type
 frappe.patches.v13_0.set_existing_dashboard_charts_as_public
@@ -144,7 +146,7 @@ frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
 frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
-frappe.patches.v13_0.add_standard_navbar_items # 2020-12-15
+frappe.patches.v13_0.add_standard_navbar_items # 2022-03-15
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v12_0.fix_email_id_formatting
@@ -153,7 +155,6 @@ frappe.patches.v13_0.rename_notification_fields
 frappe.patches.v13_0.remove_duplicate_navbar_items
 frappe.patches.v13_0.set_social_icons
 frappe.patches.v12_0.set_default_password_reset_limit
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True)
 frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
@@ -173,22 +174,27 @@ execute:frappe.delete_doc_if_exists('Page', 'workspace')
 execute:frappe.delete_doc_if_exists('Page', 'dashboard', force=1)
 frappe.core.doctype.page.patches.drop_unused_pages
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
+frappe.patches.v13_0.remove_chat
 frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool
 frappe.patches.v13_0.rename_list_view_setting_to_list_view_settings
 frappe.patches.v13_0.remove_twilio_settings
 frappe.patches.v12_0.rename_uploaded_files_with_proper_name
 frappe.patches.v13_0.queryreport_columns
-execute:frappe.reload_doc('core', 'doctype', 'doctype')
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
-frappe.patches.v14_0.drop_data_import_legacy
-frappe.patches.v14_0.rename_cancelled_documents
-frappe.patches.v14_0.copy_mail_data #08.03.21
+execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
+frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
+frappe.patches.v14_0.transform_todo_schema
+frappe.patches.v14_0.remove_post_and_post_comment
+frappe.patches.v14_0.reset_creation_datetime
+
+[post_model_sync]
+frappe.patches.v14_0.drop_data_import_legacy
+frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
 frappe.patches.v14_0.remove_db_aggregation
-frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
-frappe.patches.v14_0.transform_todo_schema
+frappe.patches.v14_0.update_auto_account_deletion_duration

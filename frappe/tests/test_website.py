@@ -1,7 +1,9 @@
 import unittest
+from unittest.mock import patch
 
 import frappe
 from frappe.utils import set_request
+from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import (build_response, clear_website_cache, get_home_page)
 
@@ -20,6 +22,7 @@ class TestWebsite(unittest.TestCase):
 			doctype='User',
 			email='test-user-for-home-page@example.com',
 			first_name='test')).insert(ignore_if_duplicate=True)
+		user.reload()
 
 		role = frappe.get_doc(dict(
 			doctype = 'Role',
@@ -96,6 +99,19 @@ class TestWebsite(unittest.TestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
 
+		set_request(method="GET", path="/_test/assets/image.jpg")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		set_request(method="GET", path="/_test/assets/image")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		with patch.object(StaticPage, "render") as static_render:
+			set_request(method="GET", path="/_test/assets/image")
+			response = get_response()
+			static_render.assert_called()
+
 	def test_error_page(self):
 		set_request(method='GET', path='/_test/problematic_page')
 		response = get_response()
@@ -125,7 +141,6 @@ class TestWebsite(unittest.TestCase):
 		set_request(method='GET', path='/_test/missing')
 		response = get_response()
 		self.assertEqual(response.status_code, 404)
-
 
 	def test_redirect(self):
 		import frappe.hooks

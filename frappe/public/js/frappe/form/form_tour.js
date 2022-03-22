@@ -151,7 +151,7 @@ frappe.ui.form.FormTour = class FormTour {
 
 			const curr_step = step_info;
 			const next_step = this.tour.steps[curr_step.idx];
-			const is_next_field_in_curr_table = next_step.parent_field == curr_step.field;
+			const is_next_field_in_curr_table = next_step.parent_fieldname == curr_step.fieldname;
 
 			if (!is_next_field_in_curr_table) return;
 

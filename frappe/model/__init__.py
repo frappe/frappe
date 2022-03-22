@@ -36,7 +36,8 @@ data_fieldtypes = (
 	'Geolocation',
 	'Duration',
 	'Icon',
-	'Phone'
+	'Phone',
+	'Autocomplete',
 )
 
 attachment_fieldtypes = (
@@ -91,11 +92,14 @@ default_fields = (
 	'creation',
 	'modified',
 	'modified_by',
+	'docstatus',
+	'idx'
+)
+
+child_table_fields = (
 	'parent',
 	'parentfield',
-	'parenttype',
-	'idx',
-	'docstatus'
+	'parenttype'
 )
 
 optional_fields = (

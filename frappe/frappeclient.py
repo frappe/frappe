@@ -7,6 +7,7 @@ import json
 import requests
 
 import frappe
+from frappe.utils.data import cstr
 
 
 class AuthError(Exception):
@@ -122,7 +123,7 @@ class FrappeClient(object):
 		'''Update a remote document
 
 		:param doc: dict or Document object to be updated remotely. `name` is mandatory for this'''
-		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
+		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + cstr(doc.get("name"))
 		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify, headers=self.headers)
 		return frappe._dict(self.post_process(res))
 
@@ -207,7 +208,7 @@ class FrappeClient(object):
 		if fields:
 			params["fields"] = json.dumps(fields)
 
-		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
+		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + cstr(name),
 			params=params, verify=self.verify, headers=self.headers)
 
 		return self.post_process(res)

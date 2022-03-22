@@ -1,13 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
+import hashlib
+import json
 import time
+from werkzeug.exceptions import NotFound
+
+import frappe
 from frappe import _, msgprint, is_whitelisted
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.naming import set_new_name, gen_new_name_for_cancelled_doc
-from werkzeug.exceptions import NotFound, Forbidden
-import hashlib, json
+from frappe.model.naming import set_new_name, validate_name
+from frappe.model.docstatus import DocStatus
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.model.workflow import set_workflow_state_on_action
@@ -16,6 +19,7 @@ from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.utils.data import get_absolute_url
+
 
 # once_only validation
 # methods
@@ -211,13 +215,13 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
+		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		if ignore_links!=None:
+		if ignore_links is not None:
 			self.flags.ignore_links = ignore_links
 
-		if ignore_mandatory!=None:
+		if ignore_mandatory is not None:
 			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
@@ -245,11 +249,7 @@ class Document(BaseDocument):
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
-			try:
-				self.db_insert()
-			except frappe.DuplicateEntryError as e:
-				if not ignore_if_duplicate:
-					raise e
+			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
 		for d in self.get_all_children():
@@ -297,7 +297,7 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
+		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
 		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
@@ -306,9 +306,6 @@ class Document(BaseDocument):
 			return self.insert()
 
 		self.check_permission("write", "save")
-
-		if self.docstatus == 2:
-			self._rename_doc_on_cancel()
 
 		self.set_user_and_timestamp()
 		self.set_docstatus()
@@ -415,12 +412,12 @@ class Document(BaseDocument):
 
 		# If autoname has set as Prompt (name)
 		if self.get("__newname"):
-			self.name = self.get("__newname")
+			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
 
 		if set_name:
-			self.name = set_name
+			self.name = validate_name(self.doctype, set_name)
 		else:
 			set_new_name(self)
 
@@ -441,7 +438,7 @@ class Document(BaseDocument):
 			values = self.as_dict()
 			# format values
 			for key, value in values.items():
-				if value==None:
+				if value is None:
 					values[key] = ""
 			return values
 
@@ -474,7 +471,7 @@ class Document(BaseDocument):
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
-		if self.is_new():
+		if self.is_new() and not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate):
 			self.creation = self.modified
 			self.owner = self.modified_by
 
@@ -489,8 +486,8 @@ class Document(BaseDocument):
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
-		if self.docstatus==None:
-			self.docstatus=0
+		if self.docstatus is None:
+			self.docstatus = DocStatus.draft()
 
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
@@ -526,7 +523,7 @@ class Document(BaseDocument):
 
 	def _validate_non_negative(self):
 		def get_msg(df):
-			if self.parentfield:
+			if self.get("parentfield"):
 				return "{} {} #{}: {} {}".format(frappe.bold(_(self.doctype)),
 					_("Row"), self.idx, _("Value cannot be negative for"), frappe.bold(_(df.label)))
 			else:
@@ -720,6 +717,7 @@ class Document(BaseDocument):
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
 					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
+
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
 				else:
@@ -740,7 +738,7 @@ class Document(BaseDocument):
 		else:
 			self.check_docstatus_transition(0)
 
-	def check_docstatus_transition(self, docstatus):
+	def check_docstatus_transition(self, to_docstatus):
 		"""Ensures valid `docstatus` transition.
 		Valid transitions are (number in brackets is `docstatus`):
 
@@ -751,31 +749,32 @@ class Document(BaseDocument):
 
 		"""
 		if not self.docstatus:
-			self.docstatus = 0
-		if docstatus==0:
-			if self.docstatus==0:
+			self.docstatus = DocStatus.draft()
+
+		if to_docstatus == DocStatus.draft():
+			if self.docstatus.is_draft():
 				self._action = "save"
-			elif self.docstatus==1:
+			elif self.docstatus.is_submitted():
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.docstatus==2:
+			elif self.docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif docstatus==1:
-			if self.docstatus==1:
+		elif to_docstatus == DocStatus.submitted():
+			if self.docstatus.is_submitted():
 				self._action = "update_after_submit"
 				self.check_permission("submit")
-			elif self.docstatus==2:
+			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.docstatus==0:
+			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
-		elif docstatus==2:
+		elif to_docstatus == DocStatus.cancelled():
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
@@ -861,14 +860,14 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
-		if "flags" in kwargs:
-			del kwargs["flags"]
 
-		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
-			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
-		else:
-			# hack! to run hooks even if method does not exist
-			fn = lambda self, *args, **kwargs: None
+		def fn(self, *args, **kwargs):
+			method_object = getattr(self, method, None)
+
+			# Cannot have a field with same name as method
+			# If method found in __dict__, expect it to be callable
+			if method in self.__dict__ or callable(method_object):
+				return method_object(*args, **kwargs)
 
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
@@ -887,14 +886,14 @@ class Document(BaseDocument):
 		if (frappe.flags.in_import and frappe.flags.mute_emails) or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-		if self.flags.notifications_executed==None:
+		if self.flags.notifications_executed is None:
 			self.flags.notifications_executed = []
 
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
-		if self.flags.notifications == None:
+		if self.flags.notifications is None:
 			alerts = frappe.cache().hget('notifications', self.doctype)
-			if alerts==None:
+			if alerts is None:
 				alerts = frappe.get_all('Notification', fields=['name', 'event', 'method'],
 					filters={'enabled': 1, 'document_type': self.doctype})
 				frappe.cache().hset('notifications', self.doctype, alerts)
@@ -929,14 +928,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.docstatus = 1
+		self.docstatus = DocStatus.submitted()
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves.
 		"""
-		self.docstatus = 2
+		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
 	@whitelist.__func__
@@ -954,7 +953,7 @@ class Document(BaseDocument):
 		frappe.delete_doc(self.doctype, self.name, ignore_permissions = ignore_permissions, flags=self.flags)
 
 	def run_before_save_methods(self):
-		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:
+		"""Run standard methods before	`INSERT` or `UPDATE`. Standard Methods are:
 
 		- `validate`, `before_save` for **Save**.
 		- `validate`, `before_submit` for **Submit**.
@@ -1003,8 +1002,6 @@ class Document(BaseDocument):
 		- `on_update`, `on_submit` for **Submit**.
 		- `on_cancel` for **Cancel**
 		- `update_after_submit` for **Update after Submit**"""
-
-		doc_before_save = self.get_doc_before_save()
 
 		if self._action=="save":
 			self.run_method("on_update")
@@ -1155,7 +1152,7 @@ class Document(BaseDocument):
 				for f in hooks:
 					add_to_return_value(self, f(self, method, *args, **kwargs))
 
-				return self._return_value
+				return self.__dict__.pop("_return_value", None)
 
 			return runner
 
@@ -1199,7 +1196,7 @@ class Document(BaseDocument):
 		if not frappe.compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
 			condition_str = error_condition_map.get(condition, condition)
-			if doc.parentfield:
+			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(doc.idx, label, condition_str, val2)
 			else:
 				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
@@ -1223,7 +1220,7 @@ class Document(BaseDocument):
 				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}))
 
 		for fieldname in fieldnames:
-			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
+			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
 
 	def get_url(self):
 		"""Returns Desk URL for this document."""
@@ -1371,19 +1368,16 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
-	def _rename_doc_on_cancel(self):
-		new_name = gen_new_name_for_cancelled_doc(self)
-		frappe.rename_doc(self.doctype, self.name, new_name, force=True, show_alert=False)
-		self.name = new_name
-
 	def __repr__(self):
 		name = self.name or "unsaved"
 		doctype = self.__class__.__name__
 
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		parent = f" parent={self.parent}" if self.parent else ""
+		repr_str = f"<{doctype}: {name}{docstatus}"
 
-		return f"<{doctype}: {name}{docstatus}{parent}>"
+		if not hasattr(self, "parent"):
+			return repr_str + ">"
+		return f"{repr_str} parent={self.parent}>"
 
 	def __str__(self):
 		name = self.name or "unsaved"

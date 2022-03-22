@@ -4,6 +4,7 @@
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
+@import "../common/alert";
 @import 'base';
 @import "../common/flex";
 @import "../common/buttons";
@@ -29,12 +30,6 @@
 @import 'error-state';
 @import 'my_account';
 
-
-body {
-	@include media-breakpoint-up(sm) {
-		background-color: var(--bg-color);
-	}
-}
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -85,6 +80,8 @@ body {
 
 .dropdown-menu {
 	padding: 0.25rem;
+	box-shadow: var(--shadow-lg);
+	border-color: var(--gray-200);
 }
 
 .dropdown-item {
@@ -137,7 +134,7 @@ body {
 	a {
 		color: var(--text-color)
 	}
-	
+
 	li.disabled {
 		a {
 			color: var(--text-muted);
@@ -313,4 +310,17 @@ h5.modal-title {
 
 .empty-list-icon {
 	height: 70px;
+}
+
+.null-state {
+	height: 60px;
+	width: auto;
+	margin-bottom: var(--margin-md);
+	img {
+		fill: var(--fg-color);
+	}
+}
+
+.no-result {
+	min-height: #{"calc(100vh - 284px)"};
 }

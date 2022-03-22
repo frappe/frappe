@@ -107,20 +107,26 @@ class CustomizeForm(Document):
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
-		if current:
-			if self.label and current.translated_text != self.label:
-				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
-				frappe.translate.clear_cache()
-			else:
+		if not self.label:
+			if current:
 				# clear translation
 				frappe.delete_doc('Translation', current.name)
+			return
 
-		else:
-			if self.label:
-				frappe.get_doc(dict(doctype='Translation',
-					source_text=self.doc_type,
-					translated_text=self.label,
-					language_code=frappe.local.lang or 'en')).insert()
+		if not current:
+			frappe.get_doc(
+				{
+					"doctype": 'Translation',
+					"source_text": self.doc_type,
+					"translated_text": self.label,
+					"language_code": frappe.local.lang or 'en'
+				}
+			).insert()
+			return
+
+		if self.label != current.translated_text:
+			frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
+			frappe.translate.clear_cache()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -377,7 +383,7 @@ class CustomizeForm(Document):
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None,
 		apply_on=None, row_name = None):
-		delete_property_setter(self.doc_type, prop, fieldname)
+		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 
@@ -412,6 +418,9 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
+		if df.is_virtual:
+			return
+
 		allowed = self.allow_fieldtype_change(old_value, new_value)
 		if allowed:
 			old_value_length = cint(frappe.db.type_map.get(old_value)[1])
@@ -424,7 +433,8 @@ class CustomizeForm(Document):
 				self.validate_fieldtype_length()
 			else:
 				self.flags.update_db = True
-		if not allowed:
+
+		else:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
 	def validate_fieldtype_length(self):
@@ -506,7 +516,8 @@ doctype_properties = {
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
 	'sender_field': 'Data',
-	'autoname': 'Data'
+	'autoname': 'Data',
+	'show_title_field_in_link': 'Check'
 }
 
 docfield_properties = {
@@ -529,6 +540,7 @@ docfield_properties = {
 	'in_global_search': 'Check',
 	'in_preview': 'Check',
 	'bold': 'Check',
+	'no_copy': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
@@ -552,7 +564,8 @@ docfield_properties = {
 	'allow_in_quick_entry': 'Check',
 	'hide_border': 'Check',
 	'hide_days': 'Check',
-	'hide_seconds': 'Check'
+	'hide_seconds': 'Check',
+	'is_virtual': 'Check',
 }
 
 doctype_link_properties = {
@@ -587,4 +600,4 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	('Code', 'Geolocation'),
 	('Table', 'Table MultiSelect'))
 
-ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Select', 'Data')
+ALLOWED_OPTIONS_CHANGE = ('Read Only', 'HTML', 'Data')

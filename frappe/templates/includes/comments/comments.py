@@ -6,6 +6,7 @@ from frappe.website.utils import clear_cache
 from frappe.rate_limiter import rate_limit
 from frappe.utils import add_to_date, now
 from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
+from frappe.utils.html_utils import clean_html
 
 from frappe import _
 
@@ -29,7 +30,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		return False
 
 	comment = doc.add_comment(
-		text=comment,
+		text=clean_html(comment),
 		comment_email=comment_email,
 		comment_by=comment_by)
 

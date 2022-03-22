@@ -15,8 +15,6 @@ from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 from frappe.desk.query_report import build_xlsx_data
 
-max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
-
 
 class AutoEmailReport(Document):
 	def autoname(self):
@@ -46,6 +44,8 @@ class AutoEmailReport(Document):
 	def validate_report_count(self):
 		'''check that there are only 3 enabled reports per user'''
 		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
+		max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
+
 		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
 
@@ -104,7 +104,7 @@ class AutoEmailReport(Document):
 			report_data['columns'] = columns
 			report_data['result'] = data
 
-			xlsx_data, column_widths = build_xlsx_data(columns, report_data, [], 1, ignore_visible_idx=True)
+			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
 			xlsx_file = make_xlsx(xlsx_data, "Auto Email Report", column_widths=column_widths)
 			return xlsx_file.getvalue()
 
@@ -113,7 +113,7 @@ class AutoEmailReport(Document):
 			report_data['columns'] = columns
 			report_data['result'] = data
 
-			xlsx_data, column_widths = build_xlsx_data(columns, report_data, [], 1, ignore_visible_idx=True)
+			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
 			return to_csv(xlsx_data)
 
 		else:
@@ -252,7 +252,7 @@ def make_links(columns, data):
 				if col.options and row.get(col.options):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 			elif col.fieldtype == "Currency":
-				doc = frappe.get_doc(col.parent, doc_name) if doc_name and col.parent else None
+				doc = frappe.get_doc(col.parent, doc_name) if doc_name and col.get("parent") else None
 				# Pass the Document to get the currency based on docfield option
 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
 	return columns, data

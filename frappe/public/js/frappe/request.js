@@ -50,6 +50,11 @@ frappe.call = function(opts) {
 	}
 	var args = $.extend({}, opts.args);
 
+	if (args.freeze) {
+		opts.freeze = opts.freeze || args.freeze;
+		opts.freeze_message = opts.freeze_message || args.freeze_message;
+	}
+
 	// cmd
 	if(opts.module && opts.page) {
 		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
@@ -258,6 +263,14 @@ frappe.request.call = function(opts) {
 				// sync translated messages
 				if(data.__messages) {
 					$.extend(frappe._messages, data.__messages);
+				}
+
+				// sync link titles
+				if (data._link_titles) {
+					if (!frappe._link_titles) {
+						frappe._link_titles = {};
+					}
+					$.extend(frappe._link_titles, data._link_titles);
 				}
 
 				// callbacks

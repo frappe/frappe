@@ -133,14 +133,14 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 
-		let private_wspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+		let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
 
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
 			route = ['Workspaces', frappe.workspaces[route[0]].title];
-		} else if (route[0] == 'private' && frappe.workspaces[private_wspace]) {
+		} else if (route[0] == 'private' && frappe.workspaces[private_workspace]) {
 			// private workspace
-			route = ['Workspaces', 'private', frappe.workspaces[private_wspace].title];
+			route = ['Workspaces', 'private', frappe.workspaces[private_workspace].title];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = this.set_doctype_route(route);
@@ -250,12 +250,6 @@ frappe.router = {
 		}
 	},
 
-	clear_re_route(doctype, docname) {
-		delete frappe.re_route[
-			`${encodeURIComponent(frappe.router.slug(doctype))}/${encodeURIComponent(docname)}`
-		];
-	},
-
 	set_title(sub_path) {
 		if (frappe.route_titles[sub_path]) {
 			frappe.utils.set_title(frappe.route_titles[sub_path]);
@@ -282,7 +276,7 @@ frappe.router = {
 					resolve();
 				});
 			}, 100);
-		});
+		}).finally(() => frappe.route_flags = {});
 	},
 
 	get_route_from_arguments(route) {
@@ -374,8 +368,9 @@ frappe.router = {
 		// change the URL and call the router
 		if (window.location.pathname !== url) {
 
-			// push state so the browser looks fine
-			history.pushState(null, null, url);
+			// push/replace state so the browser looks fine
+			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
+			history[method](null, null, url);
 
 			// now process the route
 			this.route();

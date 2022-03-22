@@ -13,3 +13,9 @@ fe20515c23a3ac41f1092bf0eaf0a0a452ec2e85
 
 # Updating license headers
 34460265554242a8d05fb09f049033b1117e1a2b
+
+# Refactor "not a in b" -> "a not in b"
+745297a49d516e5e3c4bb3e1b0c4235e7d31165d
+
+# Clean up whitespace
+b2fc959307c7c79f5584625569d5aed04133ba13

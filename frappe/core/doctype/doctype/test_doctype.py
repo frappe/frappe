@@ -23,7 +23,8 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("Some (DocType)").insert)
-		for name in ("Some DocType", "Some_DocType"):
+		self.assertRaises(frappe.NameError, new_doctype("Some Doctype with a name whose length is more than 61 characters").insert)
+		for name in ("Some DocType", "Some_DocType", "Some-DocType"):
 			if frappe.db.exists("DocType", name):
 				frappe.delete_doc("DocType", name)
 
@@ -353,7 +354,6 @@ class TestDocType(unittest.TestCase):
 		dump_docs = json.dumps(docs.get('docs'))
 		cancel_all_linked_docs(dump_docs)
 		data_link_doc.cancel()
-		data_doc.name = '{}-CANC-0'.format(data_doc.name)
 		data_doc.load_from_db()
 		self.assertEqual(data_link_doc.docstatus, 2)
 		self.assertEqual(data_doc.docstatus, 2)
@@ -377,7 +377,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		link_doc.insert(ignore_if_duplicate=True)
+		link_doc.insert()
 
 		#create first parent doctype
 		test_doc_1 = new_doctype('Test Doctype 1')
@@ -392,7 +392,7 @@ class TestDocType(unittest.TestCase):
 		for data in test_doc_1.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		test_doc_1.insert(ignore_if_duplicate=True)
+		test_doc_1.insert()
 
 		#crete second parent doctype
 		doc = new_doctype('Test Doctype 2')
@@ -407,7 +407,7 @@ class TestDocType(unittest.TestCase):
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
-		doc.insert(ignore_if_duplicate=True)
+		doc.insert()
 
 		# create doctype data
 		data_link_doc_1 = frappe.new_doc('Test Linked Doctype 1')
@@ -438,7 +438,6 @@ class TestDocType(unittest.TestCase):
 		# checking that doc for Test Doctype 2 is not canceled
 		self.assertRaises(frappe.LinkExistsError, data_link_doc_1.cancel)
 
-		data_doc_2.name = '{}-CANC-0'.format(data_doc_2.name)
 		data_doc.load_from_db()
 		data_doc_2.load_from_db()
 		self.assertEqual(data_link_doc_1.docstatus, 2)
@@ -499,7 +498,30 @@ class TestDocType(unittest.TestCase):
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertFalse(frappe.db.table_exists('Test Virtual Doctype'))
 
-def new_doctype(name, unique=0, depends_on='', fields=None):
+	def test_default_fieldname(self):
+		fields = [{"label": "title", "fieldname": "title", "fieldtype": "Data", "default": "{some_fieldname}"}]
+		dt = new_doctype("DT with default field", fields=fields)
+		dt.insert()
+
+		dt.delete()
+
+	def test_autoincremented_doctype_transition(self):
+		frappe.delete_doc("testy_autoinc_dt")
+		dt = new_doctype("testy_autoinc_dt", autoincremented=True).insert(ignore_permissions=True)
+		dt.autoname = "hash"
+
+		try:
+			dt.save(ignore_permissions=True)
+		except frappe.ValidationError as e:
+			self.assertEqual(e.args[0], "Cannot change to/from Autoincrement naming rule")
+		else:
+			self.fail("Shouldnt be possible to transition autoincremented doctype to any other naming rule")
+		finally:
+			# cleanup
+			dt.delete(ignore_permissions=True)
+
+
+def new_doctype(name, unique=0, depends_on='', fields=None, autoincremented=False):
 	doc = frappe.get_doc({
 		"doctype": "DocType",
 		"module": "Core",
@@ -515,7 +537,8 @@ def new_doctype(name, unique=0, depends_on='', fields=None):
 			"role": "System Manager",
 			"read": 1,
 		}],
-		"name": name
+		"name": name,
+		"autoname": "autoincrement" if autoincremented else ""
 	})
 
 	if fields:

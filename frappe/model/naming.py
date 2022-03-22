@@ -1,23 +1,17 @@
-"""utilities to generate a document name based on various rules defined.
-
-NOTE:
-Till version 13, whenever a submittable document is amended it's name is set to orig_name-X,
-where X is a counter and it increments when amended again and so on.
-
-From Version 14, The naming pattern is changed in a way that amended documents will
-have the original name `orig_name` instead of `orig_name-X`. To make this happen
-the cancelled document naming pattern is changed to 'orig_name-CANC-X'.
-"""
-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Optional, TYPE_CHECKING, Union
 import frappe
 from frappe import _
+from frappe.database.sequence import get_next_val, set_next_val
 from frappe.utils import now_datetime, cint, cstr
 import re
 from frappe.model import log_types
 from frappe.query_builder import DocType
+
+if TYPE_CHECKING:
+	from frappe.model.meta import Meta
 
 
 def set_new_name(doc):
@@ -34,13 +28,18 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	autoname = frappe.get_meta(doc.doctype).autoname or ""
+	meta = frappe.get_meta(doc.doctype)
+	autoname = meta.autoname or ""
 
 	if autoname.lower() != "prompt" and not frappe.flags.in_import:
 		doc.name = None
 
+	if is_autoincremented(doc.doctype, meta):
+		doc.name = get_next_val(doc.doctype)
+		return
+
 	if getattr(doc, "amended_from", None):
-		doc.name = _get_amended_name(doc)
+		_set_amended_name(doc)
 		return
 
 	elif getattr(doc.meta, "issingle", False):
@@ -74,8 +73,36 @@ def set_new_name(doc):
 	doc.name = validate_name(
 		doc.doctype,
 		doc.name,
-		frappe.get_meta(doc.doctype).get_field("name_case")
+		meta.get_field("name_case")
 	)
+
+def is_autoincremented(doctype: str, meta: "Meta" = None):
+	if doctype in log_types:
+		if frappe.local.autoincremented_status_map.get(frappe.local.site) is None or \
+			frappe.local.autoincremented_status_map[frappe.local.site] == -1:
+			if frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{doctype}'"""
+			)[0][0] == "bigint":
+				frappe.local.autoincremented_status_map[frappe.local.site] = 1
+				return True
+			else:
+				frappe.local.autoincremented_status_map[frappe.local.site] = 0
+
+		elif frappe.local.autoincremented_status_map[frappe.local.site]:
+			return True
+
+	else:
+		if not meta:
+			meta = frappe.get_meta(doctype)
+
+		if getattr(meta, "issingle", False):
+			return False
+
+		if meta.autoname == "autoincrement":
+			return True
+
+	return False
 
 def set_name_from_naming_options(autoname, doc):
 	"""
@@ -256,18 +283,6 @@ def revert_series_if_last(key, name, doc=None):
 			* prefix = #### and hashes = 2021 (hash doesn't exist)
 			* will search hash in key then accordingly get prefix = ""
 	"""
-	if hasattr(doc, 'amended_from'):
-		# Do not revert the series if the document is amended.
-		if doc.amended_from:
-			return
-
-		# Get document name by parsing incase of fist cancelled document
-		if doc.docstatus == 2 and not doc.amended_from:
-			if doc.name.endswith('-CANC'):
-				name, _ = NameParser.parse_docname(doc.name, sep='-CANC')
-			else:
-				name, _ = NameParser.parse_docname(doc.name, sep='-CANC-')
-
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
 		if "#" not in hashes:
@@ -306,9 +321,19 @@ def get_default_naming_series(doctype):
 		return None
 
 
-def validate_name(doctype, name, case=None, merge=False):
+def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
+
+	if isinstance(name, int):
+		if is_autoincremented(doctype):
+			# this will set the sequence val to be the provided name and set it to be used
+			# so that the sequence will start from the next val of the setted val(name)
+			set_next_val(doctype, name, is_val_used=True)
+			return name
+
+		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)
+
 	if name.startswith("New "+doctype):
 		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
 	if case == "Title Case":
@@ -356,9 +381,16 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	return value
 
 
-def _get_amended_name(doc):
-	name, _ = NameParser(doc).parse_amended_from()
-	return name
+def _set_amended_name(doc):
+	am_id = 1
+	am_prefix = doc.amended_from
+	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
+		am_id = cint(doc.amended_from.split("-")[-1]) + 1
+		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
+
+	doc.name = am_prefix + "-" + str(am_id)
+	return doc.name
+
 
 def _field_autoname(autoname, doc, skip_slicing=None):
 	"""
@@ -399,83 +431,3 @@ def _format_autoname(autoname, doc):
 	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
 
 	return name
-
-class NameParser:
-	"""Parse document name and return parts of it.
-
-	NOTE: It handles cancellend and amended doc parsing for now. It can be expanded.
-	"""
-	def __init__(self, doc):
-		self.doc = doc
-
-	def parse_amended_from(self):
-		"""
-		Cancelled document naming will be in one of these formats
-
-		* original_name-X-CANC - This is introduced to migrate old style naming to new style
-		* original_name-CANC - This is introduced to migrate old style naming to new style
-		* original_name-CANC-X - This is the new style naming
-
-		New style naming: In new style naming amended documents will have original name. That says,
-		when a document gets cancelled we need rename the document by adding `-CANC-X` to the end
-		so that amended documents can use the original name.
-
-		Old style naming: cancelled documents stay with original name and when amended, amended one
-		gets a new name as `original_name-X`. To bring new style naming we had to change the existing
-		cancelled document names and that is done by adding `-CANC` to cancelled documents through patch.
-		"""
-		if not getattr(self.doc, 'amended_from', None):
-			return (None, None)
-
-		# Handle old style cancelled documents (original_name-X-CANC, original_name-CANC)
-		if self.doc.amended_from.endswith('-CANC'):
-			name, _ = self.parse_docname(self.doc.amended_from, '-CANC')
-			amended_from_doc = frappe.get_all(
-				self.doc.doctype,
-				filters = {'name': self.doc.amended_from},
-				fields = ['amended_from'],
-				limit=1)
-
-			# Handle format original_name-X-CANC.
-			if amended_from_doc and amended_from_doc[0].amended_from:
-				return self.parse_docname(name, '-')
-			return name, None
-
-		# Handle new style cancelled documents
-		return self.parse_docname(self.doc.amended_from, '-CANC-')
-
-	@classmethod
-	def parse_docname(cls, name, sep='-'):
-		split_list = name.rsplit(sep, 1)
-
-		if len(split_list) == 1:
-			return (name, None)
-		return (split_list[0], split_list[1])
-
-def get_cancelled_doc_latest_counter(tname, docname):
-	"""Get the latest counter used for cancelled docs of given docname.
-	"""
-	name_prefix = f'{docname}-CANC-'
-
-	rows = frappe.db.sql("""
-		select
-			name
-		from `tab{tname}`
-		where
-			name like %(name_prefix)s and docstatus=2
-	""".format(tname=tname), {'name_prefix': name_prefix+'%'}, as_dict=1)
-
-	if not rows:
-		return -1
-	return max([int(row.name.replace(name_prefix, '') or -1) for row in rows])
-
-def gen_new_name_for_cancelled_doc(doc):
-	"""Generate a new name for cancelled document.
-	"""
-	if getattr(doc, "amended_from", None):
-		name, _ = NameParser(doc).parse_amended_from()
-	else:
-		name = doc.name
-
-	counter = get_cancelled_doc_latest_counter(doc.doctype, name)
-	return f'{name}-CANC-{counter+1}'

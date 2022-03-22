@@ -15,7 +15,7 @@ def execute():
 	for file in files:
 		file_path = file.file_url
 		file_name = file_path.split('/')[-1]
-		
+
 		if not file_path.startswith(('/private/', '/files/')):
 			continue
 

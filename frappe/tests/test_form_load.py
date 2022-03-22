@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe, unittest
-from frappe.desk.form.load import getdoctype, getdoc
+from frappe.desk.form.load import getdoctype, getdoc, get_docinfo
 from frappe.core.page.permission_manager.permission_manager import update, reset, add
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.utils.file_manager import save_file
 
 test_dependencies = ['Blog Category', 'Blogger']
 
@@ -140,6 +141,49 @@ class TestFormLoad(unittest.TestCase):
 		user.add_roles(*user_roles)
 
 		contact.delete()
+
+	def test_get_doc_info(self):
+		note = frappe.new_doc("Note")
+		note.content = "some content"
+		note.title = frappe.generate_hash(length=20)
+		note.insert()
+
+		note.content = "new content"
+		# trigger a version
+		note.save(ignore_version=False)
+
+		note.add_comment(text="test")
+
+		note.add_tag("test_tag")
+		note.add_tag("more_tag")
+
+		# empty attachment
+		save_file("test_file", b"", note.doctype, note.name, decode=True)
+
+		frappe.get_doc({
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"content": "test email",
+			"reference_doctype": note.doctype,
+			"reference_name": note.name,
+		}).insert()
+
+		get_docinfo(note)
+		docinfo = frappe.response["docinfo"]
+
+		self.assertEqual(len(docinfo.comments), 1)
+		self.assertIn("test", docinfo.comments[0].content)
+
+		self.assertGreaterEqual(len(docinfo.versions), 2)
+
+		self.assertEqual(set(docinfo.tags.split(",")), {"more_tag", "test_tag"})
+
+		self.assertEqual(len(docinfo.attachments), 1)
+		self.assertIn("test_file", docinfo.attachments[0].file_name)
+
+		self.assertEqual(len(docinfo.communications), 1)
+		self.assertIn("email", docinfo.communications[0].content)
+		note.delete()
 
 
 def get_blog(blog_name):

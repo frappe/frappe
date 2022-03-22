@@ -115,7 +115,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				# All the linked docs should be checked beforehand
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
 					doctype=doc.doctype, name=doc.name,
-					is_async=False if frappe.flags.in_test else True)
+					now=frappe.flags.in_test)
 
 		# clear cache for Document
 		doc.clear_cache()
@@ -158,7 +158,7 @@ def update_naming_series(doc):
 			and getattr(doc, "naming_series", None):
 			revert_series_if_last(doc.naming_series, doc.name, doc)
 
-		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash"):
+		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash", "autoincrement"):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
@@ -212,7 +212,7 @@ def check_permission_and_not_submitted(doc):
 			.format(doc.doctype, doc.name), raise_exception=frappe.PermissionError)
 
 	# check if submitted
-	if doc.docstatus == 1:
+	if doc.docstatus.is_submitted():
 		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(_(doc.doctype), doc.name, "<a href='https://docs.erpnext.com//docs/user/manual/en/setting-up/articles/delete-submitted-document' target='_blank'>", "</a>"),
 			raise_exception=True)
 
@@ -222,32 +222,35 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	"""
 	from frappe.model.rename_doc import get_link_fields
 	link_fields = get_link_fields(doc.doctype)
-	link_fields = [[lf['parent'], lf['fieldname'], lf['issingle']] for lf in link_fields]
+	ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
 
-	for link_dt, link_field, issingle in link_fields:
+	for lf in link_fields:
+		link_dt, link_field, issingle = lf['parent'], lf['fieldname'], lf['issingle']
+
 		if not issingle:
-			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
-				["name", "parent", "parenttype", "docstatus"], as_dict=True):
-				linked_doctype = item.parenttype if item.parent else link_dt
+			fields = ["name", "docstatus"]
+			if frappe.get_meta(link_dt).istable:
+				fields.extend(["parent", "parenttype"])
 
-				ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+			for item in frappe.db.get_values(link_dt, {link_field:doc.name}, fields , as_dict=True):
+				# available only in child table cases
+				item_parent = getattr(item, "parent", None)
+				linked_doctype = item.parenttype if item_parent else link_dt
 
 				if linked_doctype in doctypes_to_skip or (linked_doctype in ignore_linked_doctypes and method == 'Cancel'):
 					# don't check for communication and todo!
 					continue
 
-				if not item:
-					continue
-				elif method != "Delete"  and (method != "Cancel" or item.docstatus != 1):
+				if method != "Delete" and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
-				elif link_dt == doc.doctype and (item.parent or item.name) == doc.name:
+				elif link_dt == doc.doctype and (item_parent or item.name) == doc.name:
 					# don't raise exception if not
 					# linked to same item or doc having same name as the item
 					continue
 				else:
-					reference_docname = item.parent or item.name
+					reference_docname = item_parent or item.name
 					raise_link_exists_exception(doc, linked_doctype, reference_docname)
 
 		else:

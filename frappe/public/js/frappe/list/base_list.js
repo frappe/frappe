@@ -204,6 +204,11 @@ frappe.views.BaseList = class BaseList {
 		};
 
 		if (frappe.boot.desk_settings.view_switcher) {
+			/* @preserve
+			for translation, don't remove
+			__("List View") __("Report View") __("Dashboard View") __("Gantt View"),
+			__("Kanban View") __("Calendar View") __("Image View") __("Inbox View"),
+			__("Tree View") __("Map View") */
 			this.views_menu = this.page.add_custom_button_group(__('{0} View', [this.view_name]),
 				icon_map[this.view_name] || 'list');
 			this.views_list = new frappe.views.ListViewSelect({
@@ -391,10 +396,10 @@ frappe.views.BaseList = class BaseList {
 				$this.addClass("btn-info");
 
 				this.start = 0;
-				this.page_length = $this.data().value;
+				this.page_length = this.selected_page_count = $this.data().value;
 			} else if ($this.is(".btn-more")) {
 				this.start = this.start + this.page_length;
-				this.page_length = 20;
+				this.page_length = this.selected_page_count || 20;
 			}
 			this.refresh();
 		});
@@ -465,9 +470,14 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
+		let args = this.get_call_args();
+		if (this.no_change(args)) {
+			// console.log('throttled');
+			return Promise.resolve();
+		}
 		this.freeze(true);
 		// fetch data from server
-		return frappe.call(this.get_call_args()).then((r) => {
+		return frappe.call(args).then((r) => {
 			// render
 			this.prepare_data(r);
 			this.toggle_result_area();
@@ -480,6 +490,19 @@ frappe.views.BaseList = class BaseList {
 				this.settings.refresh(this);
 			}
 		});
+	}
+
+	no_change(args) {
+		// returns true if arguments are same for the last 3 seconds
+		// this helps in throttling if called from various sources
+		if (this.last_args && JSON.stringify(args) === this.last_args) {
+			return true;
+		}
+		this.last_args = JSON.stringify(args);
+		setTimeout(() => {
+			this.last_args = null;
+		}, 3000);
+		return false;
 	}
 
 	prepare_data(r) {
@@ -737,6 +760,10 @@ class FilterArea {
 
 		const doctype_fields = this.list_view.meta.fields;
 		const title_field = this.list_view.meta.title_field;
+		const has_existing_filters = (
+			this.list_view.filters
+			&& this.list_view.filters.length > 0
+		);
 
 		fields = fields.concat(
 			doctype_fields
@@ -771,13 +798,17 @@ class FilterArea {
 							options = options.join("\n");
 						}
 					}
-					let default_value =
-						fieldtype === "Link"
-							? frappe.defaults.get_user_default(options)
-							: null;
+
+					let default_value;
+
+					if (fieldtype === "Link" && !has_existing_filters) {
+						default_value = frappe.defaults.get_user_default(options);
+					}
+
 					if (["__default", "__global"].includes(default_value)) {
 						default_value = null;
 					}
+
 					return {
 						fieldtype: fieldtype,
 						label: __(df.label),

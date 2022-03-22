@@ -121,7 +121,7 @@ class UserType(Document):
 
 			for child_table in doc.get_table_fields():
 				child_doc = frappe.get_meta(child_table.options)
-				if not child_doc.istable:
+				if child_doc:
 					self.prepare_select_perm_doctypes(child_doc, user_doctypes, select_doctypes)
 
 		if select_doctypes:
@@ -193,7 +193,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 		['DocType', 'read_only', '=', 0], ['DocType', 'name', 'like', '%{0}%'.format(txt)]]
 
 	doctypes = frappe.get_all('DocType', fields = ['`tabDocType`.`name`'], filters=filters,
-		order_by = '`tabDocType`.`idx` desc', limit_start=start, limit_page_length=page_len, as_list=1)
+		order_by='`tabDocType`.`idx` desc', limit_start=start, limit_page_length=page_len, as_list=1)
 
 	custom_dt_filters = [['Custom Field', 'dt', 'like', '%{0}%'.format(txt)],
 		['Custom Field', 'options', '=', 'User'], ['Custom Field', 'fieldtype', '=', 'Link']]

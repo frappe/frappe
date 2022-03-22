@@ -30,7 +30,7 @@ def get_energy_points_percentage_chart_data(user, field):
 		as_list = True)
 
 	return {
-		"labels": [r[0] for r in result if r[0] != None],
+		"labels": [r[0] for r in result if r[0] is not None],
 		"datasets": [{
 			"values": [r[1] for r in result]
 		}]

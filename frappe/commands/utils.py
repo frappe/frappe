@@ -623,6 +623,7 @@ def transform_database(context, table, engine, row_format, failfast):
 @click.command('run-tests')
 @click.option('--app', help="For App")
 @click.option('--doctype', help="For DocType")
+@click.option('--case', help="Select particular TestCase")
 @click.option('--doctype-list-path', help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
@@ -636,9 +637,10 @@ def transform_database(context, table, engine, row_format, failfast):
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), profile=False,
 		coverage=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None,
-		skip_test_records=False, skip_before_tests=False, failfast=False):
+		skip_test_records=False, skip_before_tests=False, failfast=False, case=None):
 
 	with CodeCoverage(coverage, app):
+		import frappe
 		import frappe.test_runner
 		tests = test
 		site = get_site(context)
@@ -658,7 +660,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 
 		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 			force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-			ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
+			ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast, case=case)
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
@@ -741,8 +743,9 @@ def run_ui_tests(context, app, headless=False, parallel=True, with_coverage=Fals
 @click.option('--profile', is_flag=True, default=False)
 @click.option('--noreload', "no_reload", is_flag=True, default=False)
 @click.option('--nothreading', "no_threading", is_flag=True, default=False)
+@click.option('--with-coverage', is_flag=True, default=False)
 @pass_context
-def serve(context, port=None, profile=False, no_reload=False, no_threading=False, sites_path='.', site=None):
+def serve(context, port=None, profile=False, no_reload=False, no_threading=False, sites_path='.', site=None, with_coverage=False):
 	"Start development web server"
 	import frappe.app
 
@@ -750,8 +753,12 @@ def serve(context, port=None, profile=False, no_reload=False, no_threading=False
 		site = None
 	else:
 		site = context.sites[0]
-
-	frappe.app.serve(port=port, profile=profile, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
+	with CodeCoverage(with_coverage, 'frappe'):
+		if with_coverage:
+			# unable to track coverage with threading enabled
+			no_threading = True
+			no_reload = True
+		frappe.app.serve(port=port, profile=profile, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
 
 
 @click.command('request')

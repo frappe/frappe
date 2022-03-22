@@ -35,6 +35,7 @@ from frappe.query_builder import (
 	patch_query_execute,
 	patch_query_aggregation,
 )
+from frappe.utils.data import cstr
 
 __version__ = '14.0.0-dev'
 
@@ -102,7 +103,7 @@ def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
 	if isinstance(text, str):
 		return text
-	elif text==None:
+	elif text is None:
 		return ''
 	elif isinstance(text, bytes):
 		return str(text, encoding)
@@ -143,12 +144,15 @@ lang = local("lang")
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if typing.TYPE_CHECKING:
+	from frappe.utils.redis_wrapper import RedisWrapper
+
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.query_builder.builder import MariaDB, Postgres
 
 	db: typing.Union[MariaDBDatabase, PostgresDatabase]
 	qb: typing.Union[MariaDB, Postgres]
+
 
 # end: static analysis hack
 
@@ -211,6 +215,7 @@ def init(site, sites_path=None, new_site=False):
 	local.cache = {}
 	local.document_cache = {}
 	local.meta_cache = {}
+	local.autoincremented_status_map = {site: -1}
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
@@ -294,7 +299,7 @@ def get_conf(site=None):
 
 class init_site:
 	def __init__(self, site=None):
-		'''If site==None, initialize it for empty site ('') to load common_site_config.json'''
+		'''If site is None, initialize it for empty site ('') to load common_site_config.json'''
 		self.site = site or ''
 
 	def __enter__(self):
@@ -311,9 +316,8 @@ def destroy():
 
 	release_local(local)
 
-# memcache
 redis_server = None
-def cache():
+def cache() -> "RedisWrapper":
 	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
@@ -356,7 +360,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	response JSON and shown in a pop-up / modal.
 
 	:param msg: Message.
-	:param title: [optional] Message title.
+	:param title: [optional] Message title. Default: "Message".
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
@@ -393,8 +397,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	if flags.print_messages and out.message:
 		print(f"Message: {strip_html_tags(out.message)}")
 
-	if title:
-		out.title = title
+	out.title = title or _("Message", context="Default title of the message dialog")
 
 	if not indicator and raise_exception:
 		indicator = 'red'
@@ -446,7 +449,7 @@ def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None, 
 	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable, wide=wide, as_list=as_list)
 
 def emit_js(js, user=False, **kwargs):
-	if user == False:
+	if user is False:
 		user = session.user
 	publish_realtime('eval_js', js, user=user, **kwargs)
 
@@ -849,8 +852,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 def get_cached_doc(*args, **kwargs):
-	if args and len(args) > 1 and isinstance(args[1], str):
-		key = get_document_cache_key(args[0], args[1])
+	if key := can_cache_doc(args):
 		# local cache
 		doc = local.document_cache.get(key)
 		if doc:
@@ -868,8 +870,24 @@ def get_cached_doc(*args, **kwargs):
 
 	return doc
 
+def can_cache_doc(args):
+	"""
+	Determine if document should be cached based on get_doc params.
+	Returns cache key if doc can be cached, None otherwise.
+	"""
+
+	if not args:
+		return
+
+	doctype = args[0]
+	name = doctype if len(args) == 1 else args[1]
+
+	# Only cache if both doctype and name are strings
+	if isinstance(doctype, str) and isinstance(name, str):
+		return get_document_cache_key(doctype, name)
+
 def get_document_cache_key(doctype, name):
-	return '{0}::{1}'.format(doctype, name)
+	return f'{doctype}::{name}'
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
@@ -910,8 +928,7 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# set in cache
-	if args and len(args) > 1:
-		key = get_document_cache_key(args[0], args[1])
+	if key := can_cache_doc(args):
 		local.document_cache[key] = doc
 		cache().hset('document_cache', key, doc.as_dict())
 
@@ -961,8 +978,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
-	if db.exists(doctype, name):
-		delete_doc(doctype, name, force=force)
+	delete_doc(doctype, name, force=force, ignore_missing=True)
 
 def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
@@ -1000,7 +1016,7 @@ def get_module(modulename):
 
 def scrub(txt):
 	"""Returns sluggified string. e.g. `Sales Order` becomes `sales_order`."""
-	return txt.replace(' ', '_').replace('-', '_').lower()
+	return cstr(txt).replace(' ', '_').replace('-', '_').lower()
 
 def unscrub(txt):
 	"""Returns titlified string. e.g. `sales_order` becomes `Sales Order`."""
@@ -1235,9 +1251,10 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
-		fnargs = inspect.getfullargspec(fn).args
-		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
-		varkw = inspect.getfullargspec(fn).varkw
+		fullargspec = inspect.getfullargspec(fn)
+		fnargs = fullargspec.args
+		fnargs.extend(fullargspec.kwonlyargs)
+		varkw = fullargspec.varkw
 
 	newargs = {}
 	for a in kwargs:
@@ -1661,7 +1678,7 @@ def local_cache(namespace, key, generator, regenerate_if_none=False):
 	if key not in local.cache[namespace]:
 		local.cache[namespace][key] = generator()
 
-	elif local.cache[namespace][key]==None and regenerate_if_none:
+	elif local.cache[namespace][key] is None and regenerate_if_none:
 		# if key exists but the previous result was None
 		local.cache[namespace][key] = generator()
 

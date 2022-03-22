@@ -30,7 +30,7 @@ def xmlrunner_wrapper(output):
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 	force=False, profile=False, junit_xml_output=None, ui_tests=False,
-	doctype_list_path=None, skip_test_records=False, failfast=False):
+	doctype_list_path=None, skip_test_records=False, failfast=False, case=None):
 	global unittest_runner
 
 	if doctype_list_path:
@@ -55,9 +55,6 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		if not frappe.db:
 			frappe.connect()
 
-		# if not frappe.conf.get("db_name").startswith("test_"):
-		#	raise Exception, 'db_name must start with "test_"'
-
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
 		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled()
@@ -76,7 +73,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		if doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 		elif module:
-			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output)
+			ret = run_tests_for_module(module, verbose, tests, profile, failfast=failfast, junit_xml_output=junit_xml_output, case=case)
 		else:
 			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output)
 
@@ -182,16 +179,16 @@ def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profil
 
 	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
-def run_tests_for_module(module, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False, case=None):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
 	frappe.db.commit()
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, failfast=failfast, junit_xml_output=junit_xml_output, case=case)
 
-def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False):
+def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False, case=None):
 	frappe.db.begin()
 
 	test_suite = unittest.TestSuite()
@@ -200,7 +197,10 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False, failfast=Fals
 		modules = [modules]
 
 	for module in modules:
-		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		if case:
+			module_test_cases = unittest.TestLoader().loadTestsFromTestCase(getattr(module, case))
+		else:
+			module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		if tests:
 			for each in module_test_cases:
 				for test_case in each.__dict__["_tests"]:
@@ -282,7 +282,7 @@ def make_test_records(doctype, verbose=0, force=False):
 		if options == "[Select]":
 			continue
 
-		if not options in frappe.local.test_objects:
+		if options not in frappe.local.test_objects:
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
@@ -337,7 +337,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 	elif hasattr(test_module, "test_records"):
 		if doctype in frappe.local.test_objects:
 			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
-		else: 
+		else:
 			frappe.local.test_objects[doctype] = make_test_objects(doctype, test_module.test_records, verbose, force)
 
 	else:
@@ -389,7 +389,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		try:
 			d.run_method("before_test_insert")
-			d.insert()
+			d.insert(ignore_if_duplicate=True)
 
 			if docstatus == 1:
 				d.submit()
@@ -422,7 +422,7 @@ def add_to_test_record_log(doctype):
 	'''Add `doctype` to site/.test_log
 	`.test_log` is a cache of all doctypes for which test records are created'''
 	test_record_log = get_test_record_log()
-	if not doctype in test_record_log:
+	if doctype not in test_record_log:
 		frappe.flags.test_record_log.append(doctype)
 		with open(frappe.get_site_path('.test_log'), 'w') as f:
 			f.write('\n'.join(filter(None, frappe.flags.test_record_log)))

@@ -1,30 +1,51 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
 import json
-from email.utils import formataddr
-from frappe.core.utils import get_parent_doc
-from frappe.utils import (get_url, get_formatted_email, cint, list_to_str,
-	validate_email_address, split_emails, parse_addr, get_datetime)
-from frappe.email.email_body import get_message_id
+from typing import TYPE_CHECKING, Dict
+
+import frappe
 import frappe.email.smtp
-import time
 from frappe import _
-from frappe.utils.background_jobs import enqueue
+from frappe.email.email_body import get_message_id
+from frappe.utils import (cint, get_datetime, get_formatted_email,
+	list_to_str, split_emails, validate_email_address)
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.communication.communication import Communication
+
 
 OUTGOING_EMAIL_ACCOUNT_MISSING = _("""
 	Unable to send mail because of a missing email account.
 	Please setup default Email Account from Setup > Email > Email Account
 """)
 
+
 @frappe.whitelist()
-def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
-	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
-	flags=None, read_receipt=None, print_letterhead=True, email_template=None, communication_type=None,
-	ignore_permissions=False):
-	"""Make a new communication.
+def make(
+	doctype=None,
+	name=None,
+	content=None,
+	subject=None,
+	sent_or_received="Sent",
+	sender=None,
+	sender_full_name=None,
+	recipients=None,
+	communication_medium="Email",
+	send_email=False,
+	print_html=None,
+	print_format=None,
+	attachments="[]",
+	send_me_a_copy=False,
+	cc=None,
+	bcc=None,
+	read_receipt=None,
+	print_letterhead=True,
+	email_template=None,
+	communication_type=None,
+	**kwargs,
+) -> Dict[str, str]:
+	"""Make a new communication. Checks for email permissions for specified Document.
 
 	:param doctype: Reference DocType.
 	:param name: Reference Document name.
@@ -41,22 +62,76 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	"""
-	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
-	send_me_a_copy = cint(send_me_a_copy)
+	if kwargs:
+		from frappe.utils.commands import warn
+		warn(
+			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
+			"are deprecated or unsupported",
+			category=DeprecationWarning
+		)
 
-	if not ignore_permissions:
-		if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not (flags or {}).get('ignore_doctype_permissions'):
-			raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
-				doctype=doctype, name=name))
+	if doctype and name and not frappe.has_permission(doctype=doctype, ptype="email", doc=name):
+		raise frappe.PermissionError(
+			f"You are not allowed to send emails related to: {doctype} {name}"
+		)
 
-	if not sender:
-		sender = get_formatted_email(frappe.session.user)
+	return _make(
+		doctype=doctype,
+		name=name,
+		content=content,
+		subject=subject,
+		sent_or_received=sent_or_received,
+		sender=sender,
+		sender_full_name=sender_full_name,
+		recipients=recipients,
+		communication_medium=communication_medium,
+		send_email=send_email,
+		print_html=print_html,
+		print_format=print_format,
+		attachments=attachments,
+		send_me_a_copy=cint(send_me_a_copy),
+		cc=cc,
+		bcc=bcc,
+		read_receipt=read_receipt,
+		print_letterhead=print_letterhead,
+		email_template=email_template,
+		communication_type=communication_type,
+		add_signature=False,
+	)
 
+
+def _make(
+	doctype=None,
+	name=None,
+	content=None,
+	subject=None,
+	sent_or_received="Sent",
+	sender=None,
+	sender_full_name=None,
+	recipients=None,
+	communication_medium="Email",
+	send_email=False,
+	print_html=None,
+	print_format=None,
+	attachments="[]",
+	send_me_a_copy=False,
+	cc=None,
+	bcc=None,
+	read_receipt=None,
+	print_letterhead=True,
+	email_template=None,
+	communication_type=None,
+	add_signature=True,
+) -> Dict[str, str]:
+	"""Internal method to make a new communication that ignores Permission checks.
+	"""
+
+	sender = sender or get_formatted_email(frappe.session.user)
 	recipients = list_to_str(recipients) if isinstance(recipients, list) else recipients
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
-	comm = frappe.get_doc({
+	comm: "Communication" = frappe.get_doc({
 		"doctype":"Communication",
 		"subject": subject,
 		"content": content,
@@ -73,32 +148,36 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0,
-		"communication_type": communication_type
-	}).insert(ignore_permissions=True)
-
-	comm.save(ignore_permissions=True)
-
-	if isinstance(attachments, str):
-		attachments = json.loads(attachments)
+		"communication_type": communication_type,
+	})
+	comm.flags.skip_add_signature = not add_signature
+	comm.insert(ignore_permissions=True)
 
 	# if not committed, delayed task doesn't find the communication
 	if attachments:
+		if isinstance(attachments, str):
+			attachments = json.loads(attachments)
 		add_attachments(comm.name, attachments)
 
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():
-			frappe.throw(msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError)
+			frappe.throw(
+				msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError
+			)
 
-		comm.send_email(print_html=print_html, print_format=print_format,
-			send_me_a_copy=send_me_a_copy, print_letterhead=print_letterhead)
+		comm.send_email(
+			print_html=print_html,
+			print_format=print_format,
+			send_me_a_copy=send_me_a_copy,
+			print_letterhead=print_letterhead,
+		)
 
 	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)
-	return {
-		"name": comm.name,
-		"emails_not_sent_to": ", ".join(emails_not_sent_to or [])
-	}
 
-def validate_email(doc):
+	return {"name": comm.name, "emails_not_sent_to": ", ".join(emails_not_sent_to)}
+
+
+def validate_email(doc: "Communication") -> None:
 	"""Validate Email Addresses of Recipients and CC"""
 	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email") or doc.flags.in_receive:
 		return
@@ -113,8 +192,6 @@ def validate_email(doc):
 
 	for email in split_emails(doc.bcc):
 		validate_email_address(email, throw=True)
-
-	# validate sender
 
 def set_incoming_outgoing_accounts(doc):
 	from frappe.email.doctype.email_account.email_account import EmailAccount

@@ -112,7 +112,10 @@ class TestServerScript(unittest.TestCase):
 		self.assertEqual(frappe.get_doc('Server Script', 'test_return_value').execute_method(), 'hello')
 
 	def test_permission_query(self):
-		self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', run=False))
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', run=False))
+		else:
+			self.assertTrue('where (1 = \'1\')' in frappe.db.get_list('ToDo', run=False))
 		self.assertTrue(isinstance(frappe.db.get_list('ToDo'), list))
 
 	def test_attribute_error(self):
@@ -139,3 +142,42 @@ class TestServerScript(unittest.TestCase):
 
 		server_script.disabled = 1
 		server_script.save()
+
+	def test_restricted_qb(self):
+		todo = frappe.get_doc(doctype="ToDo", description="QbScriptTestNote")
+		todo.insert()
+
+		script = frappe.get_doc(
+			doctype='Server Script',
+			name='test_qb_restrictions',
+			script_type = 'API',
+			api_method = 'test_qb_restrictions',
+			allow_guest = 1,
+			# whitelisted update
+			script = f'''
+frappe.db.set_value("ToDo", "{todo.name}", "description", "safe")
+'''
+		)
+		script.insert()
+		script.execute_method()
+
+		todo.reload()
+		self.assertEqual(todo.description, "safe")
+
+		# unsafe update
+		script.script = f"""
+todo = frappe.qb.DocType("ToDo")
+frappe.qb.update(todo).set(todo.description, "unsafe").where(todo.name == "{todo.name}").run()
+"""
+		script.save()
+		self.assertRaises(frappe.PermissionError, script.execute_method)
+		todo.reload()
+		self.assertEqual(todo.description, "safe")
+
+		# safe select
+		script.script = f"""
+todo = frappe.qb.DocType("ToDo")
+frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
+"""
+		script.save()
+		script.execute_method()

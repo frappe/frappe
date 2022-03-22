@@ -495,7 +495,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	set_parent_document_type: async function(frm) {
 		let document_type = frm.doc.document_type;
-		let doc_is_table = document_type && 
+		let doc_is_table = document_type &&
 			(await frappe.db.get_value('DocType', document_type, 'istable')).message.istable;
 
 		frm.set_df_property('parent_document_type', 'hidden', !doc_is_table);

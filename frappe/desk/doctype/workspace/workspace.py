@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
+from frappe.model.rename_doc import rename_doc
 from frappe.desk.desktop import save_new_widget
 from frappe.desk.utils import validate_route_conflict
 
@@ -121,83 +122,185 @@ def get_report_type(report):
 	report_type = frappe.get_value("Report", report, "report_type")
 	return report_type in ["Query Report", "Script Report", "Custom Report"]
 
+@frappe.whitelist()
+def new_page(new_page):
+	if not loads(new_page):
+		return
+
+	page = loads(new_page)
+
+	if page.get("public") and not is_workspace_manager():
+		return
+
+	doc = frappe.new_doc('Workspace')
+	doc.title = page.get('title')
+	doc.icon = page.get('icon')
+	doc.content = page.get('content')
+	doc.parent_page = page.get('parent_page')
+	doc.label = page.get('label')
+	doc.for_user = page.get('for_user')
+	doc.public = page.get('public')
+	doc.sequence_id = last_sequence_id(doc) + 1
+	doc.save(ignore_permissions=True)
+
+	return doc
 
 @frappe.whitelist()
-def save_page(title, icon, parent, public, sb_public_items, sb_private_items, deleted_pages, new_widgets, blocks, save):
-	save = frappe.parse_json(save)
+def save_page(title, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
-	if save:
-		doc = frappe.new_doc('Workspace')
-		doc.title = title
-		doc.icon = icon
-		doc.content = blocks
-		doc.parent_page = parent
 
-		if public:
-			doc.label = title
-			doc.public = 1
-		else:
-			doc.label = title + "-" + frappe.session.user
-			doc.for_user = frappe.session.user
-		doc.save(ignore_permissions=True)
-	else:
-		if public:
-			filters = {
-				'public': public,
-				'label': title
-			}
-		else:
-			filters = {
-				'for_user': frappe.session.user,
-				'label': title + "-" + frappe.session.user
-			}
-		pages = frappe.get_list("Workspace", filters=filters)
-		if pages:
-			doc = frappe.get_doc("Workspace", pages[0])
+	filters = {
+		'public': public,
+		'label': title
+	}
 
-		doc.content = blocks
-		doc.save(ignore_permissions=True)
+	if not public:
+		filters = {
+			'for_user': frappe.session.user,
+			'label': title + "-" + frappe.session.user
+		}
+	pages = frappe.get_list("Workspace", filters=filters)
+	if pages:
+		doc = frappe.get_doc("Workspace", pages[0])
 
-	if loads(new_widgets):
-		save_new_widget(doc, title, blocks, new_widgets)
+	doc.content = blocks
+	doc.save(ignore_permissions=True)
 
-	if loads(sb_public_items) or loads(sb_private_items):
-		sort_pages(loads(sb_public_items), loads(sb_private_items))
-
-	if loads(deleted_pages):
-		return delete_pages(loads(deleted_pages))
+	save_new_widget(doc, title, blocks, new_widgets)
 
 	return {"name": title, "public": public, "label": doc.label}
 
-def delete_pages(deleted_pages):
-	for page in deleted_pages:
-		if page.get("public") and not is_workspace_manager():
-			return {"name": page.get("title"), "public": 1, "label": page.get("label")}
+@frappe.whitelist()
+def update_page(name, title, icon, parent, public):
+	public = frappe.parse_json(public)
 
-		if frappe.db.exists("Workspace", page.get("name")):
-			frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
+	doc = frappe.get_doc("Workspace", name)
 
-	return {"name": "Home", "public": 1, "label": "Home"}
+	filters = {
+		'parent_page': doc.title,
+		'public': doc.public
+	}
+	child_docs = frappe.get_list("Workspace", filters=filters)
 
+	if doc:
+		doc.title = title
+		doc.icon = icon
+		doc.parent_page = parent
+		if doc.public != public:
+			doc.sequence_id = frappe.db.count('Workspace', {'public':public}, cache=True)
+			doc.public = public
+		doc.for_user = '' if public else doc.for_user or frappe.session.user
+		doc.label = '{0}-{1}'.format(title, doc.for_user) if doc.for_user else title
+		doc.save(ignore_permissions=True)
+
+		if name != doc.label:
+			rename_doc("Workspace", name, doc.label, force=True, ignore_permissions=True)
+
+		# update new name and public in child pages
+		if child_docs:
+			for child in child_docs:
+				child_doc = frappe.get_doc("Workspace", child.name)
+				child_doc.parent_page = doc.title
+				child_doc.public = doc.public
+				child_doc.save(ignore_permissions=True)
+
+	return {"name": doc.title, "public": doc.public, "label": doc.label}
+
+@frappe.whitelist()
+def duplicate_page(page_name, new_page):
+	if not loads(new_page):
+		return
+
+	new_page = loads(new_page)
+
+	if new_page.get("is_public") and not is_workspace_manager():
+		return
+
+	old_doc = frappe.get_doc("Workspace", page_name)
+	doc = frappe.copy_doc(old_doc)
+	doc.title = new_page.get('title')
+	doc.icon = new_page.get('icon')
+	doc.parent_page = new_page.get('parent') or ''
+	doc.public = new_page.get('is_public')
+	doc.for_user = ''
+	doc.label = doc.title
+	if not doc.public:
+		doc.for_user = doc.for_user or frappe.session.user
+		doc.label = '{0}-{1}'.format(doc.title, doc.for_user)
+	doc.name = doc.label
+	if old_doc.public == doc.public:
+		doc.sequence_id += 0.1
+	else:
+		doc.sequence_id = last_sequence_id(doc) + 1
+	doc.insert(ignore_permissions=True)
+
+	return doc
+
+@frappe.whitelist()
+def delete_page(page):
+	if not loads(page):
+		return
+
+	page = loads(page)
+
+	if page.get("public") and not is_workspace_manager():
+		return
+
+	if frappe.db.exists("Workspace", page.get("name")):
+		frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
+
+	return {"name": page.get("name"), "public": page.get("public"), "title": page.get("title")}
+
+@frappe.whitelist()
 def sort_pages(sb_public_items, sb_private_items):
-	wspace_public_pages = get_page_list(['name', 'title'], {'public': 1})
-	wspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
+	if not loads(sb_public_items) and not loads(sb_private_items):
+		return
+
+	sb_public_items = loads(sb_public_items)
+	sb_private_items = loads(sb_private_items)
+
+	workspace_public_pages = get_page_list(['name', 'title'], {'public': 1})
+	workspace_private_pages = get_page_list(['name', 'title'], {'for_user': frappe.session.user})
 
 	if sb_private_items:
-		sort_page(wspace_private_pages, sb_private_items)
+		return sort_page(workspace_private_pages, sb_private_items)
 
 	if sb_public_items and is_workspace_manager():
-		sort_page(wspace_public_pages, sb_public_items)
+		return sort_page(workspace_public_pages, sb_public_items)
 
-def sort_page(wspace_pages, pages):
+	return False
+
+def sort_page(workspace_pages, pages):
 	for seq, d in enumerate(pages):
-		for page in wspace_pages:
+		for page in workspace_pages:
 			if page.title == d.get('title'):
 				doc = frappe.get_doc('Workspace', page.name)
 				doc.sequence_id = seq + 1
 				doc.parent_page = d.get('parent_page') or ""
+				doc.flags.ignore_links = True
 				doc.save(ignore_permissions=True)
 				break
+
+	return True
+
+def last_sequence_id(doc):
+	doc_exists = frappe.db.exists({
+		'doctype': 'Workspace',
+		'public': doc.public,
+		'for_user': doc.for_user
+	})
+
+	if not doc_exists:
+		return 0
+
+	return frappe.db.get_list('Workspace',
+		fields=['sequence_id'],
+		filters={
+			'public': doc.public,
+			'for_user': doc.for_user
+		},
+		order_by="sequence_id desc"
+	)[0].sequence_id
 
 def get_page_list(fields, filters):
 	return frappe.get_list("Workspace", fields=fields, filters=filters, order_by='sequence_id asc')
