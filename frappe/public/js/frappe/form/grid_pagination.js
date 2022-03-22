@@ -66,7 +66,7 @@ export default class GridPagination {
 			}
 
 			// only allow numbers from 0-9 and up, down, left, right arrow keys
-			if (charCode > 31 && (charCode < 48 || charCode > 57) && 
+			if (charCode > 31 && (charCode < 48 || charCode > 57) &&
 				![37, 38, 39, 40].includes(charCode)) {
 				return false;
 			}

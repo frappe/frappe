@@ -52,7 +52,8 @@ class MariaDBDatabase(Database):
 			'Barcode':		('longtext', ''),
 			'Geolocation':	('longtext', ''),
 			'Duration':		('decimal', '21,9'),
-			'Icon':			('varchar', self.VARCHAR_LEN)
+			'Icon':			('varchar', self.VARCHAR_LEN),
+			'Autocomplete': ('varchar', self.VARCHAR_LEN),
 		}
 
 	def get_connection(self):
@@ -152,6 +153,10 @@ class MariaDBDatabase(Database):
 	@staticmethod
 	def is_table_missing(e):
 		return e.args[0] == ER.NO_SUCH_TABLE
+
+	@staticmethod
+	def is_missing_table(e):
+		return MariaDBDatabase.is_table_missing(e)
 
 	@staticmethod
 	def is_missing_column(e):

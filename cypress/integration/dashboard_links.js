@@ -1,7 +1,23 @@
+import doctype_with_child_table from '../fixtures/doctype_with_child_table';
+import child_table_doctype from '../fixtures/child_table_doctype';
+import child_table_doctype_1 from '../fixtures/child_table_doctype_1';
+import doctype_to_link from '../fixtures/doctype_to_link';
+const doctype_to_link_name = doctype_to_link.name;
+const child_table_doctype_name = child_table_doctype.name;
+
 context('Dashboard links', () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
+		cy.insert_doc('DocType', child_table_doctype, true);
+		cy.insert_doc('DocType', child_table_doctype_1, true);
+		cy.insert_doc('DocType', doctype_with_child_table, true);
+		cy.insert_doc('DocType', doctype_to_link, true);
+		return cy.window().its('frappe').then(frappe => {
+			return frappe.xcall("frappe.tests.ui_test_helpers.update_child_table", {
+				name: child_table_doctype_name
+			});
+		});
 	});
 
 	it('Adding a new contact, checking for the counter on the dashboard and deleting the created contact', () => {
@@ -61,5 +77,15 @@ context('Dashboard links', () => {
 				cy.get('[data-report="Website Analytics"]').contains('Website Analytics').click();
 				cy.findByText('Website Analytics');
 			});
+	});
+
+	it('check if child table is populated with linked field on creation from dashboard link', () => {
+		cy.new_form(doctype_to_link_name);
+		cy.fill_field("title", "Test Linking");
+		cy.findByRole("button", {name: "Save"}).click();
+
+		cy.get('.document-link .btn-new').click();
+		cy.get('.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]')
+			.should('contain.text', 'Test Linking');
 	});
 });

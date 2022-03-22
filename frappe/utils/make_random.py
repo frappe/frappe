@@ -35,7 +35,7 @@ def get_random(doctype, filters=None, doc=False):
 		condition = " where " + " and ".join(condition)
 	else:
 		condition = ""
-	
+
 	out = frappe.db.multisql({
 		'mariadb': """select name from `tab%s` %s
 		order by RAND() limit 1 offset 0""" % (doctype, condition),

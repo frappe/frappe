@@ -83,32 +83,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.sort_by = this.view_user_settings.sort_by || "modified";
 		this.sort_order = this.view_user_settings.sort_order || "desc";
 
-		// set filters from user_settings or list_settings
-		if (
-			this.view_user_settings.filters &&
-			this.view_user_settings.filters.length
-		) {
-			// Priority 1: user_settings
-			const saved_filters = this.view_user_settings.filters;
-			this.filters = this.validate_filters(saved_filters);
-		} else {
-			// Priority 2: filters in listview_settings
-			this.filters = (this.settings.filters || []).map((f) => {
-				if (f.length === 3) {
-					f = [this.doctype, f[0], f[1], f[2]];
-				}
-				return f;
-			});
-		}
-
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
+		// set filters from view_user_settings or list_settings
 		if (
 			this.view_user_settings.filters &&
 			this.view_user_settings.filters.length
 		) {
-			// Priority 1: saved filters
+			// Priority 1: view_user_settings
 			const saved_filters = this.view_user_settings.filters;
 			this.filters = this.validate_filters(saved_filters);
 		} else {
@@ -932,7 +915,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		const docname = doc.name.match(/[%'"#\s]/)
+		const docname = cstr(doc.name).match(/[%'"#\s]/)
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
@@ -1483,7 +1466,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return [
 					filter[1],
 					"=",
-					JSON.stringify([filter[2], filter[3]]),
+					encodeURIComponent(JSON.stringify([filter[2], filter[3]])),
 				].join("");
 			})
 			.join("&");
@@ -1672,7 +1655,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				frappe.model.is_value_type(field_doc) &&
 				field_doc.fieldtype !== "Read Only" &&
 				!field_doc.hidden &&
-				!field_doc.read_only
+				!field_doc.read_only &&
+				!field_doc.is_virtual
 			);
 		};
 
@@ -1756,8 +1740,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const docnames = this.get_checked_items(true).map(
 						(docname) => docname.toString()
 					);
+					let message = __("Delete {0} item permanently?", [docnames.length], "Title of confirmation dialog");
+					if (docnames.length > 1) {
+						message = __("Delete {0} items permanently?", [docnames.length], "Title of confirmation dialog");
+					}
 					frappe.confirm(
-						__("Delete {0} items permanently?", [docnames.length], "Title of confirmation dialog"),
+						message,
 						() => {
 							this.disable_list_update = true;
 							bulk_operations.delete(docnames, () => {

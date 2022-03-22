@@ -21,6 +21,9 @@ frappe.form.formatters = {
 		}
 		return value==null ? "" : value;
 	},
+	Autocomplete: function(value) {
+		return __(frappe.form.formatters["Data"](value));
+	},
 	Select: function(value) {
 		return __(frappe.form.formatters["Data"](value));
 	},
@@ -110,12 +113,14 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
+		let link_title = frappe.utils.get_link_title(doctype, value);
+
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
 		if(options && (options.for_print || options.only_value)) {
-			return value;
+			return link_title || value;
 		}
 
 		if(frappe.form.link_formatters[doctype]) {
@@ -139,13 +144,14 @@ frappe.form.formatters = {
 				return `<a
 					href="/app/${encodeURIComponent(frappe.router.slug(doctype))}/${encodeURIComponent(original_value)}"
 					data-doctype="${doctype}"
-					data-name="${original_value}">
-					${__(options && options.label || value)}</a>`;
+					data-name="${original_value}"
+					data-value="${original_value}">
+					${__(options && options.label || link_title || value)}</a>`;
 			} else {
-				return value;
+				return link_title || value;
 			}
 		} else {
-			return value;
+			return link_title || value;
 		}
 	},
 	Date: function(value) {

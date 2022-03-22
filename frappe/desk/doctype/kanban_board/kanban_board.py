@@ -77,26 +77,6 @@ def archive_restore_column(board_name, column_title, status):
 
 
 @frappe.whitelist()
-def update_doc(doc):
-	'''Updates the doc when card is edited'''
-	doc = json.loads(doc)
-
-	try:
-		to_update = doc
-		doctype = doc['doctype']
-		docname = doc['name']
-		doc = frappe.get_doc(doctype, docname)
-		doc.update(to_update)
-		doc.save()
-	except:
-		return {
-			'doc': doc,
-			'exc': frappe.utils.get_traceback()
-		}
-	return doc
-
-
-@frappe.whitelist()
 def update_order(board_name, order):
 	'''Save the order of cards in columns'''
 	board = frappe.get_doc('Kanban Board', board_name)

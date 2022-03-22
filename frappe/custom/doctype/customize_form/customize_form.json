@@ -27,6 +27,7 @@
   "autoname",
   "view_settings_section",
   "title_field",
+  "show_title_field_in_link",
   "image_field",
   "default_print_format",
   "column_break_29",
@@ -296,6 +297,12 @@
    "fieldtype": "Table",
    "label": "States",
    "options": "DocType State"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title_field_in_link",
+   "fieldtype": "Check",
+   "label": "Show Title in Link Fields"
   }
  ],
  "hide_toolbar": 1,
@@ -304,7 +311,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-12-14 16:45:04.308690",
+ "modified": "2022-01-07 16:07:06.196534",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

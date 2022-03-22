@@ -419,3 +419,94 @@ class TestXlsxUtils(unittest.TestCase):
 		val = handle_html("<p>html data &gt;</p>")
 		self.assertIn("html data >", val)
 		self.assertEqual("abc", handle_html("abc"))
+
+
+class TestLinkTitle(unittest.TestCase):
+	def test_link_title_doctypes_in_boot_info(self):
+		"""
+		Test that doctypes are added to link_title_map in boot_info
+		"""
+		custom_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Core",
+				"custom": 1,
+				"fields": [
+					{
+						"label": "Test Field",
+						"fieldname": "test_title_field",
+						"fieldtype": "Data",
+					}
+				],
+				"show_title_field_in_link": 1,
+				"title_field": "test_title_field",
+				"permissions": [{"role": "System Manager", "read": 1}],
+				"name": "Test Custom Doctype for Link Title",
+			}
+		)
+		custom_doctype.insert()
+
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		from frappe.boot import get_link_title_doctypes
+
+		link_title_doctypes = get_link_title_doctypes()
+		self.assertTrue("User" in link_title_doctypes)
+		self.assertTrue("Test Custom Doctype for Link Title" in link_title_doctypes)
+
+		prop_setter.delete()
+		custom_doctype.delete()
+
+	def test_link_titles_on_getdoc(self):
+		"""
+		Test that link titles are added to the doctype on getdoc
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"user_type": "Website User",
+				"email": "test_user_for_link_title@example.com",
+				"send_welcome_email": 0,
+				"first_name": "Test User for Link Title",
+			}
+		).insert(ignore_permissions=True)
+
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "test-link-title-on-getdoc",
+				"allocated_to": user.name,
+			}
+		).insert()
+
+		from frappe.desk.form.load import getdoc
+
+		getdoc("ToDo", todo.name)
+		link_titles = frappe.local.response["_link_titles"]
+
+		self.assertTrue(f"{user.doctype}::{user.name}" in link_titles)
+		self.assertEqual(link_titles[f"{user.doctype}::{user.name}"], user.full_name)
+
+		todo.delete()
+		user.delete()
+		prop_setter.delete()

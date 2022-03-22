@@ -259,7 +259,15 @@ frappe.utils.xss_sanitise = function (string, options) {
 		'/': '&#x2F;'
 	};
 	const REGEX_SCRIPT = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
+	const REGEX_ALERT = /confirm\(.*\)|alert\(.*\)|prompt\(.*\)/gi; // captures alert, confirm, prompt
 	options = Object.assign({}, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
+
+	// Rule 3 - TODO: Check event handlers?
+	// script and alert should be checked first or else it will be escaped
+	if (options.strategies.includes('js')) {
+		sanitised = sanitised.replace(REGEX_SCRIPT, "");
+		sanitised = sanitised.replace(REGEX_ALERT, "");
+	}
 
 	// Rule 1
 	if (options.strategies.includes('html')) {
@@ -268,11 +276,6 @@ frappe.utils.xss_sanitise = function (string, options) {
 			const regex = new RegExp(char, "g");
 			sanitised = sanitised.replace(regex, escape);
 		}
-	}
-
-	// Rule 3 - TODO: Check event handlers?
-	if (options.strategies.includes('js')) {
-		sanitised = sanitised.replace(REGEX_SCRIPT, "");
 	}
 
 	return sanitised;

@@ -14,11 +14,13 @@
   "non_negative",
   "reqd",
   "unique",
+  "is_virtual",
   "in_list_view",
   "in_standard_filter",
   "in_global_search",
   "in_preview",
   "bold",
+  "no_copy",
   "allow_in_quick_entry",
   "translatable",
   "column_break_7",
@@ -83,7 +85,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+   "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
    "search_index": 1
   },
@@ -114,6 +116,12 @@
    "fieldname": "unique",
    "fieldtype": "Check",
    "label": "Unique"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_virtual",
+   "fieldtype": "Check",
+   "label": "Is Virtual"
   },
   {
    "default": "0",
@@ -430,13 +438,19 @@
    "fieldname": "show_dashboard",
    "fieldtype": "Check",
    "label": "Show Dashboard"
+  },
+  {
+   "default": "0",
+   "fieldname": "no_copy",
+   "fieldtype": "Check",
+   "label": "No Copy"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-01-03 14:50:32.035768",
+ "modified": "2022-02-25 16:01:12.616736",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

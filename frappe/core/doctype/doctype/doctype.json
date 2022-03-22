@@ -46,6 +46,7 @@
   "allow_auto_repeat",
   "view_settings",
   "title_field",
+  "show_title_field_in_link",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -207,7 +208,7 @@
    "label": "Naming"
   },
   {
-   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",
+   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>autoincrement</b> - Uses Databases' Auto Increment feature</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name",
@@ -215,6 +216,7 @@
    "oldfieldtype": "Data"
   },
   {
+   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
    "fieldname": "name_case",
    "fieldtype": "Select",
    "label": "Name Case",
@@ -281,6 +283,7 @@
   },
   {
    "default": "1",
+   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -564,7 +567,7 @@
    "fieldtype": "Select",
    "label": "Naming Rule",
    "length": 40,
-   "options": "\nSet by user\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nBy script"
+   "options": "\nSet by user\nAutoincrement\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nBy script"
   },
   {
    "fieldname": "migration_hash",
@@ -582,10 +585,17 @@
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title_field_in_link",
+   "fieldtype": "Check",
+   "label": "Show Title in Link Fields"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
+ "index_web_pages_for_search": 1,
  "links": [
   {
    "group": "Views",
@@ -663,10 +673,11 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-12-09 14:53:10.717788",
+ "modified": "2022-02-15 21:47:16.467217",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -696,5 +707,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -146,7 +146,7 @@ frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
 frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
-frappe.patches.v13_0.add_standard_navbar_items # 2020-12-15
+frappe.patches.v13_0.add_standard_navbar_items # 2022-03-15
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v12_0.fix_email_id_formatting
@@ -184,11 +184,13 @@ frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
+execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.transform_todo_schema
 frappe.patches.v14_0.remove_post_and_post_comment
 frappe.patches.v13_0.add_whats_new_page_button
+frappe.patches.v14_0.reset_creation_datetime
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy
@@ -196,3 +198,4 @@ frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
 frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
+frappe.patches.v14_0.update_auto_account_deletion_duration

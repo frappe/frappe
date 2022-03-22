@@ -17,6 +17,7 @@
   "hide_days",
   "hide_seconds",
   "reqd",
+  "is_virtual",
   "search_index",
   "column_break_18",
   "options",
@@ -98,7 +99,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+   "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
    "search_index": 1
   },
@@ -534,13 +535,19 @@
    "fieldname": "show_dashboard",
    "fieldtype": "Check",
    "label": "Show Dashboard"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_virtual",
+   "fieldtype": "Check",
+   "label": "Virtual"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-01-03 11:56:19.812863",
+ "modified": "2022-02-14 11:56:19.812863",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

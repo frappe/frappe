@@ -170,7 +170,7 @@ frappe.ui.FilterGroup = class {
 	validate_args(doctype, fieldname) {
 		if (doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
-			&& !frappe.model.std_fields_list.includes(fieldname)) {
+			&& frappe.model.is_non_std_field(fieldname)) {
 
 			frappe.msgprint({
 				message: __('Invalid filter: {0}', [fieldname.bold()]),
@@ -293,7 +293,7 @@ frappe.ui.FilterGroup = class {
 					</div>
 				</div>
 				<hr class="divider"></hr>
-				<div class="filter-action-buttons">
+				<div class="filter-action-buttons mt-2">
 					<button class="text-muted add-filter btn btn-xs">
 						+ ${__('Add a Filter')}
 					</button>

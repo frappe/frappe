@@ -14,8 +14,8 @@ from frappe.defaults import _clear_cache
 def _new_site(
 	db_name,
 	site,
-	mariadb_root_username=None,
-	mariadb_root_password=None,
+	db_root_username=None,
+	db_root_password=None,
 	admin_password=None,
 	verbose=False,
 	install_apps=None,
@@ -60,8 +60,8 @@ def _new_site(
 	installing = touch_file(get_site_path("locks", "installing.lock"))
 
 	install_db(
-		root_login=mariadb_root_username,
-		root_password=mariadb_root_password,
+		root_login=db_root_username,
+		root_password=db_root_password,
 		db_name=db_name,
 		admin_password=admin_password,
 		verbose=verbose,
@@ -92,7 +92,7 @@ def _new_site(
 	print("*** Scheduler is", scheduler_status, "***")
 
 
-def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
+def install_db(root_login=None, root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 	import frappe.database
@@ -100,6 +100,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
+
+	if not root_login and db_type == 'mariadb':
+		root_login='root'
+	elif not root_login and db_type == 'postgres':
+		root_login='postgres'
 
 	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
@@ -184,7 +189,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
-	if not app_name in installed_apps:
+	if app_name not in installed_apps:
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
@@ -529,10 +534,9 @@ def extract_sql_gzip(sql_gz_path):
 	import subprocess
 
 	try:
-		# dvf - decompress, verbose, force
 		original_file = sql_gz_path
 		decompressed_file = original_file.rstrip(".gz")
-		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
+		cmd = 'gzip --decompress --force < {0} > {1}'.format(original_file, decompressed_file)
 		subprocess.check_call(cmd, shell=True)
 	except Exception:
 		raise
@@ -607,7 +611,7 @@ def is_downgrade(sql_file_path, verbose=False):
 						downgrade = backup_version > current_version
 
 						if verbose and downgrade:
-							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+							print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
 
 						return downgrade
 

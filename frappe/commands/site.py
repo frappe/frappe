@@ -1,7 +1,7 @@
 # imports - standard imports
 import os
-import sys
 import shutil
+import sys
 
 # imports - third party imports
 import click
@@ -19,36 +19,38 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--db-host', help='Database Host')
 @click.option('--db-port', type=int, help='Database Port')
-@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--no-mariadb-socket', is_flag=True, default=False, help='Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
-			 verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
-			 install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None):
+@click.option('--set-default', is_flag=True, default=False, help='Set the new site as default site')
+def new_site(site, db_root_username=None, db_root_password=None, admin_password=None,
+			verbose=False, install_apps=None, source_sql=None, force=None, no_mariadb_socket=False,
+			install_app=None, db_name=None, db_password=None, db_type=None, db_host=None, db_port=None,
+			set_default=False):
 	"Create a new site"
 	from frappe.installer import _new_site
 
 	frappe.init(site=site, new_site=True)
 
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
-			  mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
-			  db_port=db_port, new_site=True)
+	_new_site(db_name, site, db_root_username=db_root_username,
+			db_root_password=db_root_password, admin_password=admin_password,
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
+			no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
+			db_port=db_port, new_site=True)
 
-	if len(frappe.utils.get_sites()) == 1:
+	if set_default:
 		use(site)
 
 
 @click.command('restore')
 @click.argument('sql-file-path')
-@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--db-name', help='Database name for site in case it is a new one')
 @click.option('--admin-password', help='Administrator password for new site')
 @click.option('--install-app', multiple=True, help='Install app after installation')
@@ -57,17 +59,17 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 @click.option('--force', is_flag=True, default=False, help='Ignore the validations and downgrade warnings. This action is not recommended')
 @click.option('--encryption-key', help='Backup encryption key')
 @pass_context
-def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=None, mariadb_root_password=None,
+def restore(context, sql_file_path, encryption_key=None, db_root_username=None, db_root_password=None,
 			db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None,
 			with_private_files=None):
 	"Restore site database from an sql file"
 	from frappe.installer import (
 		_new_site,
-		extract_sql_from_archive,
 		extract_files,
+		extract_sql_from_archive,
 		is_downgrade,
 		is_partial,
-		validate_database_sql
+		validate_database_sql,
 	)
 	from frappe.utils.backups import Backup
 	if not os.path.exists(sql_file_path):
@@ -150,8 +152,8 @@ def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=N
 
 
 	try:
-		_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
-			mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+		_new_site(frappe.conf.db_name, site, db_root_username=db_root_username,
+			db_root_password=db_root_password, admin_password=admin_password,
 			verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
 			force=True, db_type=frappe.conf.db_type)
 
@@ -205,7 +207,7 @@ def restore(context, sql_file_path, encryption_key=None, mariadb_root_username=N
 @click.option('--encryption-key', help='Backup encryption key')
 @pass_context
 def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
-	from frappe.installer import partial_restore, extract_sql_from_archive
+	from frappe.installer import extract_sql_from_archive, partial_restore
 	from frappe.utils.backups import Backup
 
 	if not os.path.exists(sql_file_path):
@@ -290,16 +292,16 @@ def partial_restore(context, sql_file_path, verbose,  encryption_key=None):
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
-@click.option('--mariadb-root-username', help='Root username for MariaDB')
-@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-root-username', '--mariadb-root-username', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
-def reinstall(context, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False):
+def reinstall(context, admin_password=None, db_root_username=None, db_root_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
 	site = get_site(context)
-	_reinstall(site, admin_password, mariadb_root_username, mariadb_root_password, yes, verbose=context.verbose)
+	_reinstall(site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose)
 
-def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False, verbose=False):
+def _reinstall(site, admin_password=None, db_root_username=None, db_root_password=None, yes=False, verbose=False):
 	from frappe.installer import _new_site
 
 	if not yes:
@@ -319,7 +321,7 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 
 	frappe.init(site=site)
 	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True, install_apps=installed,
-		mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password,
+		db_root_username=db_root_username, db_root_password=db_root_password,
 		admin_password=admin_password)
 
 @click.command('install-app')
@@ -447,21 +449,17 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
-	from frappe.migrate import migrate
+	from frappe.migrate import SiteMigration
 
 	for site in context.sites:
 		click.secho(f"Migrating {site}", fg="green")
-		frappe.init(site=site)
-		frappe.connect()
 		try:
-			migrate(
-				context.verbose,
+			SiteMigration(
 				skip_failing=skip_failing,
-				skip_search_index=skip_search_index
-			)
+				skip_search_index=skip_search_index,
+			).run(site=site)
 		finally:
 			print()
-			frappe.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -547,7 +545,7 @@ def _use(site, sites_path='.'):
 
 def use(site, sites_path='.'):
 	if os.path.exists(os.path.join(sites_path, site)):
-		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
 		print("Current Site set to {}".format(site))
 	else:
@@ -660,16 +658,16 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 
 @click.command('drop-site')
 @click.argument('site')
-@click.option('--root-login', default='root')
-@click.option('--root-password')
+@click.option('--db-root-username', '--mariadb-root-username', '--root-login', help='Root username for MariaDB or PostgreSQL, Default is "root"')
+@click.option('--db-root-password', '--mariadb-root-password', '--root-password', help='Root password for MariaDB or PostgreSQL')
 @click.option('--archived-sites-path')
 @click.option('--no-backup', is_flag=True, default=False)
 @click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
-	_drop_site(site, root_login, root_password, archived_sites_path, force, no_backup)
+def drop_site(site, db_root_username='root', db_root_password=None, archived_sites_path=None, force=False, no_backup=False):
+	_drop_site(site, db_root_username, db_root_password, archived_sites_path, force, no_backup)
 
 
-def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
+def _drop_site(site, db_root_username=None, db_root_password=None, archived_sites_path=None, force=False, no_backup=False):
 	"Remove site from database and filesystem"
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
@@ -679,7 +677,9 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	try:
 		if not no_backup:
-			scheduled_backup(ignore_files=False, force=True)
+			click.secho(f"Taking backup of {site}", fg="green")
+			odb = scheduled_backup(ignore_files=False, force=True, verbose=True)
+			odb.print_summary()
 	except Exception as err:
 		if force:
 			pass
@@ -694,7 +694,8 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 			click.echo("\n".join(messages))
 			sys.exit(1)
 
-	drop_user_and_database(frappe.conf.db_name, root_login, root_password)
+	click.secho("Dropping site database and user", fg="green")
+	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
 
 	archived_sites_path = archived_sites_path or os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived', 'sites')
 
@@ -753,6 +754,7 @@ def set_admin_password(context, admin_password=None, logout_all_sessions=False):
 
 def set_user_password(site, user, password, logout_all_sessions=False):
 	import getpass
+
 	from frappe.utils.password import update_password
 
 	try:
@@ -883,15 +885,16 @@ def stop_recording(context):
 		raise SiteNotSpecifiedError
 
 @click.command('ngrok')
+@click.option('--bind-tls', is_flag=True, default=False, help='Returns a reference to the https tunnel.')
 @pass_context
-def start_ngrok(context):
+def start_ngrok(context, bind_tls):
 	from pyngrok import ngrok
 
 	site = get_site(context)
 	frappe.init(site=site)
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
-	tunnel = ngrok.connect(addr=str(port), host_header=site)
+	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
 	print(f'Public URL: {tunnel.public_url}')
 	print('Inspect logs at http://localhost:4040')
 

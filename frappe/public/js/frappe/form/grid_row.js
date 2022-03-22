@@ -5,14 +5,10 @@ export default class GridRow {
 		this.on_grid_fields_dict = {};
 		this.on_grid_fields = [];
 		$.extend(this, opts);
-		if (this.doc && this.parent_df.options) {
-			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
-			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
-			this.docfields = docfields.length ? docfields : opts.docfields;
-		}
+		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
+		this.row_check_html = '<input type="checkbox" class="grid-row-check">';
 		this.make();
 	}
 	make() {
@@ -41,6 +37,22 @@ export default class GridRow {
 			this.set_data();
 		}
 	}
+
+	set_docfields(update=false) {
+		if (this.doc && this.parent_df.options) {
+			frappe.meta.make_docfield_copy_for(this.parent_df.options, this.doc.name, this.docfields);
+			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
+			if (update) {
+				// to maintain references
+				this.docfields.forEach(df => {
+					Object.assign(df, docfields.find(d => d.fieldname === df.fieldname));
+				});
+			} else {
+				this.docfields = docfields;
+			}
+		}
+	}
+
 	set_data() {
 		this.wrapper.data({
 			"doc": this.doc
@@ -148,6 +160,11 @@ export default class GridRow {
 		}, __('Move To'), 'Update');
 	}
 	refresh() {
+		// update docfields for new record
+		if (this.frm && this.doc && this.doc.__islocal) {
+			this.set_docfields(true);
+		}
+
 		if(this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		}
@@ -166,21 +183,20 @@ export default class GridRow {
 	render_template() {
 		this.set_row_index();
 
-		if(this.row_display) {
+		if (this.row_display) {
 			this.row_display.remove();
 		}
 
 		// row index
-		if(this.doc) {
-			if(!this.row_index) {
-				this.row_index = $('<div style="float: left; margin-left: 15px; margin-top: 8px; \
-					margin-right: -20px;">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
-			}
+		if (!this.row_index) {
+			this.row_index = $(`<div class="template-row-index">${this.row_check_html}<span></span></div>`).appendTo(this.row);
+		}
+
+		if (this.doc) {
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
-		this.row_display = $('<div class="row-data sortable-handle template-row">'+
-			+'</div>').appendTo(this.row)
+		this.row_display = $('<div class="row-data sortable-handle template-row"></div>').appendTo(this.row)
 			.html(frappe.render(this.grid.template, {
 				doc: this.doc ? frappe.get_format_helper(this.doc) : null,
 				frm: this.frm,
@@ -188,23 +204,65 @@ export default class GridRow {
 			}));
 	}
 	render_row(refresh) {
-		var me = this;
+		if (this.show_search && !this.show_search_row()) return;
+
+		let me = this;
 		this.set_row_index();
 
 		// index (1, 2, 3 etc)
-		if(!this.row_index) {
+		if (!this.row_index && !this.show_search) {
 			// REDESIGN-TODO: Make translation contextual, this No is Number
 			var txt = (this.doc ? this.doc.idx : __("No."));
-			this.row_index = $(
-				`<div class="row-index sortable-handle col">
+
+			this.row_check = $(
+				`<div class="row-check sortable-handle col">
 					${this.row_check_html}
-				<span class="hidden-xs">${txt}</span></div>`)
+				</div>`)
+				.appendTo(this.row);
+
+			this.row_index = $(
+				`<div class="row-index sortable-handle col hidden-xs">
+					<span>${txt}</span>
+				</div>`)
 				.appendTo(this.row)
 				.on('click', function(e) {
 					if(!$(e.target).hasClass('grid-row-check')) {
 						me.toggle_view();
 					}
 				});
+		} else if (this.show_search) {
+			this.row_check = $(
+				`<div class="row-check col search"></div>`
+			).appendTo(this.row);
+
+			this.row_index = $(
+				`<div class="row-index col search hidden-xs">
+					<input type="text" class="form-control input-xs text-center" >
+				</div>`
+			).appendTo(this.row);
+
+			this.row_index.find('input').on('keyup', frappe.utils.debounce((e) => {
+				let df = {
+					fieldtype: "Sr No"
+				};
+
+				this.grid.filter['row-index'] = {
+					df: df,
+					value: e.target.value
+				};
+
+				if (e.target.value == "") {
+					delete this.grid.filter['row-index'];
+				}
+
+				this.grid.grid_sortable
+					.option('disabled', Object.keys(this.grid.filter).length !== 0);
+
+				this.grid.prevent_build = true;
+				me.grid.refresh();
+				this.grid.prevent_build = false;
+			}, 500));
+			frappe.utils.only_allow_num_decimal(this.row_index.find('input'));
 		} else {
 			this.row_index.find('span').html(txt);
 		}
@@ -323,7 +381,7 @@ export default class GridRow {
 				</div>
 				<div class='control-input-wrapper selected-fields'>
 				</div>
-				<p class='help-box small text-muted hidden-xs'>
+				<p class='help-box small text-muted'>
 					<a class='add-new-fields text-muted'>
 						+ ${__('Add / Remove Columns')}
 					</a>
@@ -403,18 +461,18 @@ export default class GridRow {
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1'>
+							<div class='col-md-1' style='padding-top: 2px'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon('drag', 'xs')}</a>
 							</div>
-							<div class='col-md-7' style='padding-left:0px;'>
+							<div class='col-md-7' style='padding-left:0px; padding-top:3px'>
 								${__(docfield.label)}
 							</div>
 							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__('Columns')}'>
 								<input class='form-control column-width input-xs text-right'
 									value='${docfield.columns || cint(d.columns)}'
-									data-fieldname='${docfield.fieldname}' style='background-color: #ffff; display: inline'>
+									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1'>
+							<div class='col-md-1' style='padding-top: 3px'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>
@@ -530,6 +588,7 @@ export default class GridRow {
 
 	setup_columns() {
 		this.focus_set = false;
+		this.search_columns = {};
 
 		this.grid.setup_visible_columns();
 		this.grid.visible_columns.forEach((col, ci) => {
@@ -545,8 +604,10 @@ export default class GridRow {
 				txt = __(txt);
 			}
 			let column;
-			if (!this.columns[df.fieldname]) {
+			if (!this.columns[df.fieldname] && !this.show_search) {
 				column = this.make_column(df, colsize, txt, ci);
+			} else if (!this.columns[df.fieldname] && this.show_search) {
+				column = this.make_search_column(df, colsize);
 			} else {
 				column = this.columns[df.fieldname];
 				this.refresh_field(df.fieldname, txt);
@@ -564,6 +625,77 @@ export default class GridRow {
 				}
 			}
 		});
+
+		if (this.show_search) {
+			// last empty column
+			$(`<div class="col grid-static-col col-xs-1"></div>`)
+				.appendTo(this.row);
+		}
+	}
+
+	show_search_row() {
+		// show or remove search columns based on grid rows
+		this.show_search = this.frm && this.frm.doc &&
+			this.frm.doc[this.grid.df.fieldname] &&
+			this.frm.doc[this.grid.df.fieldname].length >= 20;
+		!this.show_search && this.wrapper.remove();
+		return this.show_search;
+	}
+
+	make_search_column(df, colsize) {
+		let title = "";
+		let input_class = "";
+		let is_disabled = "";
+
+		if (["Text", "Small Text"].includes(df.fieldtype)) {
+			input_class = "grid-overflow-no-ellipsis";
+		} else if (["Int", "Currency", "Float", "Percent"].includes(df.fieldtype)) {
+			input_class = "text-right";
+		} else if (df.fieldtype === "Check") {
+			title = __("1 = True & 0 = False");
+			input_class = "text-center";
+		} else if (df.fieldtype === 'Password') {
+			is_disabled = 'disabled';
+			title = __('Password cannot be filtered');
+		}
+
+		let $col = $('<div class="col grid-static-col col-xs-'+colsize+' search"></div>')
+			.appendTo(this.row);
+
+		let $search_input = $(`
+			<input
+				type="text"
+				class="form-control input-xs ${input_class}"
+				title="${title}"
+				data-fieldtype="${df.fieldtype}"
+				${is_disabled}
+			>
+		`).appendTo($col);
+
+		this.search_columns[df.fieldname] = $col;
+
+		$search_input.on('keyup', frappe.utils.debounce((e) => {
+			this.grid.filter[df.fieldname] = {
+				df: df,
+				value: e.target.value
+			};
+
+			if (e.target.value == '') {
+				delete this.grid.filter[df.fieldname];
+			}
+
+			this.grid.grid_sortable
+				.option('disabled', Object.keys(this.grid.filter).length !== 0);
+
+			this.grid.prevent_build = true;
+			this.grid.refresh();
+			this.grid.prevent_build = false;
+		}, 500));
+
+		["Currency", "Float", "Int", "Percent", "Rating"].includes(df.fieldtype) &&
+			frappe.utils.only_allow_num_decimal($search_input);
+
+		return $col;
 	}
 
 	make_column(df, colsize, txt, ci) {
@@ -599,6 +731,7 @@ export default class GridRow {
 		if (!this.doc) {
 			$col.attr("title", txt);
 		}
+		df.fieldname && $col.static_area.toggleClass('reqd', Boolean(df.reqd));
 
 		$col.df = df;
 		$col.column_index = ci;
