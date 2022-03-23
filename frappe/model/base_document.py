@@ -969,7 +969,7 @@ class BaseDocument(object):
 			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))
 		):
-			currency = frappe.db.exists('Currency', currency_value, cache=True)
+			currency = frappe.db.get_value('Currency', currency_value, cache=True)
 
 		val = self.get(fieldname)
 
