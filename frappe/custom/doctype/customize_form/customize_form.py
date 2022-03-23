@@ -402,7 +402,7 @@ class CustomizeForm(Document):
 			"property": prop,
 			"value": value,
 			"property_type": property_type
-		})
+		}, is_system_generated=False)
 
 	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!

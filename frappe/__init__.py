@@ -1251,9 +1251,10 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
-		fnargs = inspect.getfullargspec(fn).args
-		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
-		varkw = inspect.getfullargspec(fn).varkw
+		fullargspec = inspect.getfullargspec(fn)
+		fnargs = fullargspec.args
+		fnargs.extend(fullargspec.kwonlyargs)
+		varkw = fullargspec.varkw
 
 	newargs = {}
 	for a in kwargs:
@@ -1265,7 +1266,7 @@ def get_newargs(fn, kwargs):
 
 	return newargs
 
-def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
+def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True):
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
 
 	If doctype is not specified, it will create a property setter for all fields with the
@@ -1296,6 +1297,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 			'property': args.property,
 			'value': args.value,
 			'property_type': args.property_type or "Data",
+			'is_system_generated': is_system_generated,
 			'__islocal': 1
 		})
 		ps.flags.ignore_validate = ignore_validate
