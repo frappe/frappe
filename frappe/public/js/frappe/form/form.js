@@ -179,7 +179,8 @@ frappe.ui.form.Form = class FrappeForm {
 		grid_shortcut_keys.forEach(row => {
 			frappe.ui.keys.add_shortcut({
 				shortcut: row.shortcut,
-				page: this,
+				page: this.page,
+				action: () => null,
 				description: __(row.description),
 				ignore_inputs: true,
 				condition: () => !this.is_new()

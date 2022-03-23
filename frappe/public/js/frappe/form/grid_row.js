@@ -913,8 +913,27 @@ export default class GridRow {
 							// last column before last row
 							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
 							me.grid.set_focus_on_row(me.doc.idx);
-							return false;
 						}
+						
+					} else{ // not a last col
+						var col_idx = parseInt($(this).attr('data-col-idx'));
+						me.grid.grid_rows[me.doc.idx-1].row
+							.find('input[type="Text"],textarea,select')[col_idx+1].focus();
+					}
+					return false;
+				} else if (e.which === TAB && e.shiftKey){
+					var col_idx = $(this).attr('data-col-idx');
+					if (me.doc.idx > 1 && col_idx == '0') {
+						var prev_row = me.grid.grid_rows[me.doc.idx-2];
+						prev_row.toggle_editable_row();
+						prev_row.row.find(':input:enabled:last').get(0).focus();
+						return false;
+						
+					} else if (me.doc.idx != 1 || col_idx != '0') {
+						var col_idx = parseInt($(this).attr('data-col-idx'));
+						me.grid.grid_rows[me.doc.idx-1].row
+							.find('input[type="Text"],textarea,select')[col_idx-1].focus();
+						return false;
 					}
 				} else if (e.which === UP_ARROW) {
 					if (me.doc.idx > 1) {
