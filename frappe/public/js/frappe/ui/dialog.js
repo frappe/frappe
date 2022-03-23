@@ -216,7 +216,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	hide() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
-		frappe.ui.hide_open_dialog();
 	}
 
 	get_close_btn() {

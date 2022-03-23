@@ -54,19 +54,18 @@ frappe.Application = class Application {
 		this.setup_copy_doc_listener();
 
 		frappe.ui.keys.setup();
-
-		let is_dialog_open = false;
+		
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+ctrl+g',
 			description: __('Switch Theme'),
 			action: () => {
-				frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
-				if (!is_dialog_open) {
-					frappe.theme_switcher.show();
-					is_dialog_open = true;
-				} else {
+				if (cur_dialog) {
 					frappe.theme_switcher.hide();
-					is_dialog_open = false;
+				} else {
+					if (!frappe.theme_switcher) {
+						frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
+					}
+					frappe.theme_switcher.show();
 				}
 			}
 		});
