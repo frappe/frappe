@@ -49,6 +49,10 @@ frappe.ui.form.on("Customize Form", {
 			if (grid_row.doc && grid_row.doc.fieldtype == "Section Break") {
 				$(grid_row.row).css({ "font-weight": "bold" });
 			}
+
+			if (grid_row.doc.is_custom_field && !grid_row.row.hasClass('highlight')) {
+				grid_row.row.addClass("highlight");
+			}
 		});
 
 		$(frm.wrapper).on("grid-make-sortable", function(e, frm) {
