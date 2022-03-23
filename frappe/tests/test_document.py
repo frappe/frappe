@@ -255,6 +255,10 @@ class TestDocument(unittest.TestCase):
 		})
 		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
 
+		# should work even if options aren't set in df
+		# and currency param is not passed
+		self.assertIn("0", d.get_formatted("currency"))
+
 	def test_limit_for_get(self):
 		doc = frappe.get_doc("DocType", "DocType")
 		# assuming DocType has more than 3 Data fields

@@ -894,15 +894,24 @@ class BaseDocument(object):
 	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None):
 		from frappe.utils.formatters import format_value
 
+		def get_currency(df):
+			currency_field = df.get("options")
+			if not currency_field:
+				return
+
+			currency_value = self.get(currency_field)
+			if not currency_value:
+				return
+
+			return frappe.db.get_value('Currency', currency_value, cache=True)
+
 		df = self.meta.get_field(fieldname)
 		if not df and fieldname in default_fields:
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		if df and not currency:
-			currency = self.get(df.get("options"))
-			if not frappe.db.exists('Currency', currency, cache=True):
-				currency = None
+		if df and df.fieldtype == "Currency" and not currency:
+			currency = get_currency(df)
 
 		val = self.get(fieldname)
 
