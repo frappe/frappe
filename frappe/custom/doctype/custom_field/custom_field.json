@@ -7,6 +7,7 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "is_system_generated",
   "dt",
   "module",
   "label",
@@ -425,13 +426,20 @@
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "Is System Generated",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-14 15:42:21.885999",
+ "modified": "2022-02-28 22:22:54.893269",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

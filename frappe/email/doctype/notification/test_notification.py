@@ -240,7 +240,7 @@ class TestNotification(unittest.TestCase):
 		self.assertTrue(email_queue)
 
 		# check if description is changed after alert since set_property_after_alert is set
-		self.assertEquals(todo.description, 'Changed by Notification')
+		self.assertEqual(todo.description, 'Changed by Notification')
 
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue('test2@example.com' in recipients)

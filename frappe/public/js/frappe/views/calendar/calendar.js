@@ -29,7 +29,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			.then(() => {
 				this.page_title = __('{0} Calendar', [this.page_title]);
 				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-				this.calendar_name = frappe.utils.to_title_case(frappe.get_route()[3] || '');
+				this.calendar_name = frappe.get_route()[3];
 			});
 	}
 
@@ -72,12 +72,17 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		const calendar_name = this.calendar_name;
 
 		return new Promise(resolve => {
-			if (calendar_name === 'Default') {
+			if (calendar_name === 'default') {
 				Object.assign(options, frappe.views.calendar[this.doctype]);
 				resolve(options);
 			} else {
 				frappe.model.with_doc('Calendar View', calendar_name, () => {
 					const doc = frappe.get_doc('Calendar View', calendar_name);
+					if (!doc) {
+						frappe.show_alert(__("{0} is not a valid Calendar. Redirecting to default Calendar.", [calendar_name.bold()]));
+						frappe.set_route("List", this.doctype, "Calendar", "default");
+						return;
+					}
 					Object.assign(options, {
 						field_map: {
 							id: "name",
