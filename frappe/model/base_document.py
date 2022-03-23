@@ -133,31 +133,29 @@ class BaseDocument(object):
 		return frappe.db.get_value(self.doctype, self.name, key)
 
 	def get(self, key=None, filters=None, limit=None, default=None):
-		if key:
-			if isinstance(key, dict):
-				return _filter(self.get_all_children(), key, limit=limit)
-			if filters:
-				if isinstance(filters, dict):
-					value = _filter(self.__dict__.get(key, []), filters, limit=limit)
-				else:
-					default = filters
-					filters = None
-					value = self.__dict__.get(key, default)
+		if isinstance(key, dict):
+			return _filter(self.get_all_children(), key, limit=limit)
+
+		if filters:
+			if isinstance(filters, dict):
+				value = _filter(self.__dict__.get(key, []), filters, limit=limit)
 			else:
+				default = filters
+				filters = None
 				value = self.__dict__.get(key, default)
-
-			if value is None and key in (
-				d.fieldname for d in self.meta.get_table_fields()
-			):
-				value = []
-				self.set(key, value)
-
-			if limit and isinstance(value, (list, tuple)) and len(value) > limit:
-				value = value[:limit]
-
-			return value
 		else:
-			return self.__dict__
+			value = self.__dict__.get(key, default)
+
+		if value is None and key in (
+			d.fieldname for d in self.meta.get_table_fields()
+		):
+			value = []
+			self.set(key, value)
+
+		if limit and isinstance(value, (list, tuple)) and len(value) > limit:
+			value = value[:limit]
+
+		return value
 
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
