@@ -145,6 +145,9 @@ class File(Document):
 			)
 
 	def handle_is_private_changed(self):
+		if not self.file_url.startswith(("/files/", "/private/files/")):
+			return
+
 		from pathlib import Path
 
 		old_file_url = self.file_url
