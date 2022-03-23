@@ -966,7 +966,7 @@ class BaseDocument(object):
 		if (
 			df.fieldtype == "Currency"
 			and not currency
-			and	(currency_field := df.get("options"))
+			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))
 		):
 			currency = frappe.db.exists('Currency', currency_value, cache=True)
