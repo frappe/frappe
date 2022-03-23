@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import frappe
@@ -164,20 +164,16 @@ def get_queue():
 			by priority desc, creation asc
 		limit 500''', { 'now': now_datetime() }, as_dict=True)
 
-def clear_outbox(days=None):
+def clear_outbox(days: int = None) -> None:
 	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
 	Note: Used separate query to avoid deadlock
 	"""
-	if not days:
-		days=31
-
+	days = days or 31
 	email_queue = DocType("Email Queue")
-	queues = (frappe.qb.from_(email_queue)
-					.select(email_queue.name)
-					.where(email_queue.modified < (Now() - Interval(days=days)))
-					.run(as_dict=True))
 
-	email_queues = [queue.name for queue in queues]
+	email_queues = frappe.qb.from_(email_queue).select(email_queue.name).where(
+		email_queue.modified < (Now() - Interval(days=days))
+	).run(pluck=True)
 
 	if email_queues:
 		frappe.db.delete("Email Queue", {"name": ("in", email_queues)})
