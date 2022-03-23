@@ -71,11 +71,7 @@ def bulk_update(doctype, docnames, action, data=None):
 	queue_action = False
 	if enqueue_action:
 		queue_action = True
-		for d in docnames:
-			doc_state_before_locking = []
-			doc = frappe.get_doc(doctype, d)
-			doc_state_before_locking.append({"name": doc.name, "docstatus": doc.docstatus})
-			lock_document(doctype, docnames, action)
+		doc_state_before_locking = lock_document(doctype, docnames, action)
 
 	for i, d in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, d)
@@ -113,6 +109,9 @@ def bulk_update(doctype, docnames, action, data=None):
 def lock_document(doctype, docnames, action):
 	for d in docnames:
 		doc = frappe.get_doc(doctype, d)
+		doc_state_before_locking = []
+		doc_state_before_locking.append({"name": doc.name, "docstatus": doc.docstatus})
+
 		if doc.docstatus == 2 and action == 'submit':
 			frappe.throw(_("Cannot submit document {0}").format(d))
 		elif doc.docstatus == 1 and action == 'delete':
@@ -122,3 +121,5 @@ def lock_document(doctype, docnames, action):
 		elif doc.docstatus == 0 and action == 'cancel':
 			frappe.throw(_("Cannot cancel document {0}").format(d))
 		doc.lock_doc()
+
+	return doc_state_before_locking
