@@ -1,32 +1,36 @@
 @import "../common/form";
 
-
 [data-doctype="Web Form"] {
-	.page-header h3 {
-		margin-top: 0;
-		margin-bottom: 0;
-	}
-	.page-content-wrapper {
+	.page_content {
+		max-width: 800px;
+		margin: auto;
+
+		.frappe-card {
+			padding: 1rem;
+
+			h3 {
+				margin-top: 0;
+				margin-bottom: 0;
+			}
+
+			#introduction {
+				border-top: 1px solid var(--border-color);
+				padding: 1rem;
+				margin: 1rem -1rem;
+			}
+
+			#introduction p {
+				color: var(--text-muted);
+			}
+		}
+
+		.frappe-card.list-card {
+			min-height: 400px;
+		}
 
 		.breadcrumb-container.container {
 			@include media-breakpoint-up(sm) {
 				padding-left: 0;
-			}
-		}
-
-		.container {
-			max-width: 800px;
-
-			&.my-4 {
-				background-color: var(--fg-color);
-				box-shadow: var(--card-shadow);
-				padding-top: 1.8rem;
-				padding-bottom: 1.8rem;
-
-				@include media-breakpoint-up(sm) {
-					padding: 1.8rem;
-					border-radius: var(--border-radius-md);
-				}
 			}
 		}
 	}
@@ -63,13 +67,21 @@
 	}
 }
 
-.web-form-wrapper~#datatable {
+.list-table {
+	margin-left: -1rem;
+	margin-right: -1rem;
+
 	.table {
 		thead {
 			th {
 				border: 0;
+				font-size: 13px;
 				font-weight: normal;
-				color: var(--text-muted)
+				color: var(--text-muted);
+
+				input[type="checkbox"] {
+					margin-bottom: -2px;
+				}
 			}
 		}
 
@@ -77,8 +89,22 @@
 			color: var(--text-color);
 
 			td {
-			border-top: 1px solid var(--border-color);
+				font-size: 13px;
+				border-top: 1px solid var(--border-color);
 			}
+		}
+
+		input[type="checkbox"] {
+			margin-left: 0.5rem;
+			margin-top: 2px;
+		}
+
+		.list-col-checkbox {
+			width: 1rem;
+		}
+
+		.list-col-serial {
+			width: 1.5rem;
 		}
 	}
 }
