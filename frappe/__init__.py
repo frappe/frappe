@@ -1465,7 +1465,7 @@ def get_list(doctype, *args, **kwargs):
 	:param fields: List of fields or `*`.
 	:param filters: List of filters (see example).
 	:param order_by: Order By e.g. `modified desc`.
-	:param limit_page_start: Start results at record #. Default 0.
+	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
 	Example usage:
