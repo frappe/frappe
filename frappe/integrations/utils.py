@@ -2,6 +2,7 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from email.policy import default
 import frappe
 import json,datetime
 from urllib.parse import parse_qs
@@ -52,11 +53,11 @@ def create_request_log(data, integration_type, service_name, name=None, error=No
 		"integration_request_service": service_name,
 		"reference_doctype": data.get("reference_doctype"),
 		"reference_docname": data.get("reference_docname"),
-		"request_id": request_id,
+		"request_id": request_id if request_id else data.get("headers").get("requestid"),
 		"request_url": request_url,
 		"error": json.dumps(error, default=json_handler),
 		"data": json.dumps(data, default=json_handler),
-		"headers": json.dumpa(data.get("headers"), default=json_handler)
+		"headers": json.dumps(data.get("headers"), default=json_handler)
 	})
 
 	if name:
