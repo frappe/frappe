@@ -10,7 +10,7 @@ import re
 import string
 from contextlib import contextmanager
 from time import time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
 
@@ -561,7 +561,7 @@ class Database(object):
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
-	def set_single_value(self, doctype, fieldname, value, *args, **kwargs):
+	def set_single_value(self, doctype: str, fieldname: Union[str, Dict], value: Optional[Union[str, int]] = None, *args, **kwargs):
 		"""Set field value of Single DocType.
 
 		:param doctype: DocType of the single object
