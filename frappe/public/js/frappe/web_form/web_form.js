@@ -140,6 +140,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	set_form_description(intro) {
 		let intro_wrapper = document.getElementById('introduction');
 		intro_wrapper.innerHTML = intro;
+		intro_wrapper.classList.remove('hidden');
 	}
 
 	add_button(name, type, action, wrapper_class=".web-form-actions") {

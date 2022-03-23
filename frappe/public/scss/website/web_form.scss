@@ -13,14 +13,23 @@
 				margin-bottom: 0;
 			}
 
+			.web-form-head {
+				margin: 0 -1rem;
+				padding: 0 1rem 1rem 1rem;
+				margin-bottom: 1rem;
+				border-bottom: 1px solid var(--border-color);
+			}
+
 			#introduction {
-				border-top: 1px solid var(--border-color);
-				padding: 1rem;
-				margin: 1rem -1rem;
+				margin-bottom: 2rem;
 			}
 
 			#introduction p {
 				color: var(--text-muted);
+			}
+
+			.web-form-actions button {
+				margin-top: 0.1rem;
 			}
 		}
 

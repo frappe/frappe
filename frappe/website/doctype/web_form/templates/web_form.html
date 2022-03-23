@@ -32,12 +32,12 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	<div class="list-view-footer text-right"></div>
 	{% else %}
 	<!-- web form -->
-	<div class="d-flex justify-content-between">
+	<div class="d-flex justify-content-between web-form-head">
 		<h3>{{ _(title) }}</h3>
-		<div class="web-form-actions pt-2"></div>
+		<div class="web-form-actions"></div>
 	</div>
 	<div role="form">
-		<div id="introduction" class="text-muted"></div>
+		<div id="introduction" class="text-muted hidden"></div>
 		<div class="web-form-wrapper" {{ container_attributes() }}></div>
 		<div class="web-form-footer text-right"></div>
 	</div>
