@@ -384,4 +384,4 @@ global_search_doctypes = {
 	]
 }
 
-translated_search_doctypes = ["DocType", "Role", "Country"]
+translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]
