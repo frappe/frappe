@@ -7,6 +7,7 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "is_system_generated",
   "dt",
   "module",
   "label",
@@ -425,6 +426,13 @@
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "Is System Generated",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-glass",
