@@ -60,7 +60,7 @@ class Cast_(Function):
 			super().__init__("CAST", value, alias=alias)
 			self.as_type = as_type
 
-	def get_special_params_sql(self):
+	def get_special_params_sql(self, **kwargs):
 		if self.name.lower() == "cast":
 			type_sql = self.as_type.get_sql() if hasattr(self.as_type, "get_sql") else str(self.as_type).upper()
 			return "AS {type}".format(type=type_sql)
