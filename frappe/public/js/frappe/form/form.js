@@ -1701,13 +1701,17 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	update_in_all_rows(table_fieldname, fieldname, value) {
-		// update the child value in all tables where it is missing
-		if(!value) return;
-		var cl = this.doc[table_fieldname] || [];
-		for(var i = 0; i < cl.length; i++){
-			if(!cl[i][fieldname]) cl[i][fieldname] = value;
-		}
-		refresh_field("items");
+		// Update the `value` of the field named `fieldname` in all rows of the
+		// child table named `table_fieldname`.
+		// Do not overwrite existing values.
+		if (value === undefined) return;
+
+		frappe.model
+			.get_children(this.doc, table_fieldname)
+			.filter(child => !frappe.model.has_value(child.doctype, child.name, fieldname))
+			.forEach(child =>
+				frappe.model.set_value(child.doctype, child.name, fieldname, value)
+			);
 	}
 
 	get_sum(table_fieldname, fieldname) {
