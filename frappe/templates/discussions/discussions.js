@@ -263,6 +263,7 @@ const hide_sidebar = () => {
 	$(".discussions-sidebar").addClass("hide");
 	$("#discussion-group").removeClass("hide");
 	$(".search-field").addClass("hide");
+	$(".reply").addClass("hide");
 };
 
 const back_to_sidebar = () => {
@@ -270,6 +271,7 @@ const back_to_sidebar = () => {
 	$("#discussion-group").addClass("hide");
 	$(".discussion-on-page").collapse("hide");
 	$(".search-field").removeClass("hide");
+	$(".reply").removeClass("hide");
 };
 
 const perform_action = (e) => {

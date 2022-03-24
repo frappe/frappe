@@ -28,7 +28,7 @@
 			{% endfor %}
 		</div>
 
-		<div class="mr-2 hide" id="discussion-group">
+		<div class="hide" id="discussion-group">
 			{% for topic in topics %}
 			{% include "frappe/templates/discussions/reply_section.html" %}
 			{% endfor %}
@@ -41,7 +41,7 @@
 		{% else %}
 		<div class="empty-state">
 			<div>
-			  <img class="icon icon-xl" src="/assets/school/icons/comment.svg">
+			  <img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
 			</div>
 			<div class="empty-state-text">
 			  <div class="empty-state-heading">{{ empty_state_title }}</div>

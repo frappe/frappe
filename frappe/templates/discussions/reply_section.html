@@ -11,7 +11,7 @@
 	<div class="reply-section-header">
 		{% if not single_thread %}
 		<div class="back-button">
-			<svg class="icon icon-md">
+			<svg class="icon icon-md mr-0">
 				<use class="" href="#icon-left"></use>
 			</svg>
 		</div>
@@ -30,7 +30,7 @@
 	{% if frappe.session.user == "Guest" or (condition is defined and not condition) %}
 	<div class="empty-state">
 		<div>
-		  <img class="icon icon-xl" src="/assets/school/icons/comment.svg">
+		  <img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
 		</div>
 		<div class="empty-state-text">
 		  <div class="empty-state-heading">{{ _("Want to discuss?") }}</div>
