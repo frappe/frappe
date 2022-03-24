@@ -314,23 +314,24 @@ result = [
 			{
 				"parent_column": "Parent 1",
 				"column_1": 200,
-				"column_2": 150.50 
+				"column_2": 150.50
 			},
 			{
 				"parent_column": "Child 1",
 				"column_1": 100,
 				"column_2": 75.25,
-				"parent_value": "Parent 1" 
+				"parent_value": "Parent 1"
 			},
 			{
 				"parent_column": "Child 2",
 				"column_1": 100,
 				"column_2": 75.25,
-				"parent_value": "Parent 1" 
+				"parent_value": "Parent 1"
 			}
 		]
 
-		result = add_total_row(result, columns, meta=None, report_settings=report_settings)
+		result = add_total_row(result, columns, meta=None, is_tree=report_settings['tree'],
+			parent_field=report_settings['parent_field'])
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)

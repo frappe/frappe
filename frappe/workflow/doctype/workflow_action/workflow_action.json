@@ -8,9 +8,12 @@
   "status",
   "reference_name",
   "reference_doctype",
-  "user",
   "workflow_state",
-  "completed_by"
+  "column_break_5",
+  "completed_by_role",
+  "completed_by",
+  "permitted_roles",
+  "user"
  ],
  "fields": [
   {
@@ -24,16 +27,14 @@
    "fieldname": "reference_name",
    "fieldtype": "Dynamic Link",
    "label": "Reference Name",
-   "options": "reference_doctype",
-   "search_index": 1
+   "options": "reference_doctype"
   },
   {
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Reference Document Type",
-   "options": "DocType",
-   "search_index": 1
+   "options": "DocType"
   },
   {
    "fieldname": "user",
@@ -47,18 +48,38 @@
    "fieldname": "workflow_state",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Workflow State",
-   "search_index": 1
+   "label": "Workflow State"
   },
   {
+   "depends_on": "eval: doc.completed_by",
    "fieldname": "completed_by",
    "fieldtype": "Link",
-   "label": "Completed By",
-   "options": "User"
+   "label": "Completed By User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.completed_by_role",
+   "fieldname": "completed_by_role",
+   "fieldtype": "Link",
+   "label": "Completed By Role",
+   "options": "Role",
+   "read_only": 1
+  },
+  {
+   "fieldname": "permitted_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Permitted Roles",
+   "options": "Workflow Action Permitted Role",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2021-07-01 09:07:52.848618",
+ "modified": "2022-02-23 21:06:45.122258",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action",
@@ -72,6 +93,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "reference_name",
  "track_changes": 1
 }

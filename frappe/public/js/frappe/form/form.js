@@ -246,10 +246,12 @@ frappe.ui.form.Form = class FrappeForm {
 		var me = this;
 
 		// on main doc
-		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
+		frappe.model.on(me.doctype, "*", function(fieldname, value, doc, skip_dirty_trigger=false) {
 			// set input
-			if(doc.name===me.docname) {
-				me.dirty();
+			if (cstr(doc.name) === me.docname) {
+				if (!skip_dirty_trigger) {
+					me.dirty();
+				}
 
 				let field = me.fields_dict[fieldname];
 				field && field.refresh(fieldname);
@@ -953,10 +955,12 @@ frappe.ui.form.Form = class FrappeForm {
 		this.toolbar.set_primary_action();
 	}
 
-	disable_save() {
+	disable_save(set_dirty=false) {
 		// IMPORTANT: this function should be called in refresh event
 		this.save_disabled = true;
 		this.toolbar.current_status = null;
+		// field changes should make form dirty
+		this.set_dirty = set_dirty;
 		this.page.clear_primary_action();
 	}
 
@@ -1102,13 +1106,13 @@ frappe.ui.form.Form = class FrappeForm {
 		let list_view = frappe.get_list_view(this.doctype);
 		if (list_view) {
 			filters = list_view.get_filters_for_args();
-			sort_field = list_view.sort_field;
+			sort_field = list_view.sort_by;
 			sort_order = list_view.sort_order;
 		} else {
 			let list_settings = frappe.get_user_settings(this.doctype)['List'];
 			if (list_settings) {
 				filters = list_settings.filters;
-				sort_field = list_settings.sort_field;
+				sort_field = list_settings.sort_by;
 				sort_order = list_settings.sort_order;
 			}
 		}
@@ -1447,7 +1451,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return doc;
 	}
 
-	set_value(field, value, if_missing) {
+	set_value(field, value, if_missing, skip_dirty_trigger=false) {
 		var me = this;
 		var _set = function(f, v) {
 			var fieldobj = me.fields_dict[f];
@@ -1467,7 +1471,7 @@ frappe.ui.form.Form = class FrappeForm {
 						me.refresh_field(f);
 						return Promise.resolve();
 					} else {
-						return frappe.model.set_value(me.doctype, me.doc.name, f, v);
+						return frappe.model.set_value(me.doctype, me.doc.name, f, v, me.fieldtype, skip_dirty_trigger);
 					}
 				}
 			} else {

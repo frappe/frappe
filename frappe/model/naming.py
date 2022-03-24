@@ -1,12 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Optional, TYPE_CHECKING, Union
 import frappe
 from frappe import _
+from frappe.database.sequence import get_next_val, set_next_val
 from frappe.utils import now_datetime, cint, cstr
 import re
 from frappe.model import log_types
 from frappe.query_builder import DocType
+
+if TYPE_CHECKING:
+	from frappe.model.meta import Meta
 
 
 def set_new_name(doc):
@@ -23,10 +28,15 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	autoname = frappe.get_meta(doc.doctype).autoname or ""
+	meta = frappe.get_meta(doc.doctype)
+	autoname = meta.autoname or ""
 
 	if autoname.lower() != "prompt" and not frappe.flags.in_import:
 		doc.name = None
+
+	if is_autoincremented(doc.doctype, meta):
+		doc.name = get_next_val(doc.doctype)
+		return
 
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
@@ -63,8 +73,36 @@ def set_new_name(doc):
 	doc.name = validate_name(
 		doc.doctype,
 		doc.name,
-		frappe.get_meta(doc.doctype).get_field("name_case")
+		meta.get_field("name_case")
 	)
+
+def is_autoincremented(doctype: str, meta: "Meta" = None):
+	if doctype in log_types:
+		if frappe.local.autoincremented_status_map.get(frappe.local.site) is None or \
+			frappe.local.autoincremented_status_map[frappe.local.site] == -1:
+			if frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{doctype}'"""
+			)[0][0] == "bigint":
+				frappe.local.autoincremented_status_map[frappe.local.site] = 1
+				return True
+			else:
+				frappe.local.autoincremented_status_map[frappe.local.site] = 0
+
+		elif frappe.local.autoincremented_status_map[frappe.local.site]:
+			return True
+
+	else:
+		if not meta:
+			meta = frappe.get_meta(doctype)
+
+		if getattr(meta, "issingle", False):
+			return False
+
+		if meta.autoname == "autoincrement":
+			return True
+
+	return False
 
 def set_name_from_naming_options(autoname, doc):
 	"""
@@ -283,9 +321,19 @@ def get_default_naming_series(doctype):
 		return None
 
 
-def validate_name(doctype, name, case=None, merge=False):
+def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
+
+	if isinstance(name, int):
+		if is_autoincremented(doctype):
+			# this will set the sequence val to be the provided name and set it to be used
+			# so that the sequence will start from the next val of the setted val(name)
+			set_next_val(doctype, name, is_val_used=True)
+			return name
+
+		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)
+
 	if name.startswith("New "+doctype):
 		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
 	if case == "Title Case":
