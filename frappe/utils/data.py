@@ -1494,7 +1494,7 @@ def expand_relative_urls(html):
 	return html
 
 def quoted(url):
-	return cstr(quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
+	return cstr(quote(encode(cstr(url)), safe=b"~@#$&()*!+=:;,.?/'"))
 
 def quote_urls(html):
 	def _quote_url(match):

@@ -236,7 +236,7 @@ def add_standard_navbar_items():
 			'is_standard': 1
 		},
 		{
-			'item_label': 'Logout',
+			'item_label': 'Log out',
 			'item_type': 'Action',
 			'action': 'frappe.app.logout()',
 			'is_standard': 1
@@ -254,6 +254,12 @@ def add_standard_navbar_items():
 			'item_label': 'Keyboard Shortcuts',
 			'item_type': 'Action',
 			'action': 'frappe.ui.toolbar.show_shortcuts(event)',
+			'is_standard': 1
+		},
+		{
+			'item_label': 'Frappe Support',
+			'item_type': 'Route',
+			'route': 'https://frappe.io/support',
 			'is_standard': 1
 		}
 	]

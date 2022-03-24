@@ -475,7 +475,7 @@ class BaseDocument(object):
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
 
 		# don't update name, as case might've been changed
-		name = d['name']
+		name = cstr(d['name'])
 		del d['name']
 
 		columns = list(d)
@@ -963,10 +963,13 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		if not currency and df:
-			currency = self.get(df.get("options"))
-			if not frappe.db.exists('Currency', currency, cache=True):
-				currency = None
+		if (
+			df.fieldtype == "Currency"
+			and not currency
+			and (currency_field := df.get("options"))
+			and (currency_value := self.get(currency_field))
+		):
+			currency = frappe.db.get_value('Currency', currency_value, cache=True)
 
 		val = self.get(fieldname)
 
