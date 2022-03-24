@@ -918,3 +918,8 @@ def add_user_info(user, user_info):
 			email = info.email,
 			time_zone = info.time_zone
 		)
+
+def is_git_url(url: str) -> bool:
+	# modified to allow without the tailing .git from https://github.com/jonschlinkert/is-git-url.git
+	pattern = r"(?:git|ssh|https?|\w*@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$"
+	return bool(re.match(pattern, url))

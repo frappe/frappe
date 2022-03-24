@@ -7,7 +7,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
 from frappe.query_builder.functions import Now
-from pypika.terms import PseudoColumn
 
 
 class LogSettings(Document):
@@ -19,7 +18,7 @@ class LogSettings(Document):
 	def clear_error_logs(self):
 		table = DocType("Error Log")
 		frappe.db.delete(table, filters=(
-			table.creation < PseudoColumn(f"({Now() - Interval(days=self.clear_error_log_after)})")
+			table.creation < (Now() - Interval(days=self.clear_error_log_after))
 		))
 
 	def clear_activity_logs(self):
