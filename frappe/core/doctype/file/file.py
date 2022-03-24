@@ -413,22 +413,28 @@ class File(Document):
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
 		if self.get("content"):
-			return self.content
+			self._content = self.content
+			if self.decode:
+				self._content = decode_file_content(self._content)
+				self.decode = False
+			# self.content = None # TODO: This needs to happen; make it happen somehow
+			return self._content
 
-		self.validate_file_url()
+		if self.file_url:
+			self.validate_file_url()
 		file_path = self.get_full_path()
 
 		# read the file
-		with io.open(encode(file_path), mode="rb") as f:
-			self.content = f.read()
+		with open(file_path, mode="rb") as f:
+			self._content = f.read()
 			try:
 				# for plain text files
-				self.content = self.content.decode()
+				self._content = self._content.decode()
 			except UnicodeDecodeError:
 				# for .png, .jpg, etc
 				pass
 
-		return self.content
+		return self._content
 
 	def get_full_path(self):
 		"""Returns file path from given file name"""
@@ -464,44 +470,39 @@ class File(Document):
 		if self.is_remote_file:
 			return
 
-		if os.path.sep in self.file_name:
-			frappe.throw(_("File name cannot have {0}").format(os.path.sep))
+		file_path = self.get_full_path()
 
-		# create directory (if not exists)
-		frappe.create_folder(file_path)
-		# write the file
-		self.content = self.get_content()
-		if isinstance(self.content, str):
-			self.content = self.content.encode()
-		_file_path = os.path.join(file_path.encode("utf-8"), self.file_name.encode("utf-8"))
-		with open(_file_path, "wb+") as f:
-			f.write(self.content)
+		if isinstance(self._content, str):
+			self._content = self._content.encode()
+
+		with open(file_path, "wb+") as f:
+			f.write(self._content)
 			os.fsync(f.fileno())
+
 		frappe.local.rollback_observers.append(self)
 
-		return get_files_path(self.file_name, is_private=self.is_private)
+		return file_path
 
-	def save_file(self, content=None, decode=False, ignore_existing_file_check=False, overwrite=False):
-		self.flags.original_content = self.get_content()
-		if not self.content:
+	def save_file(self, content: Optional[Union[bytes, str]] = None, decode=False, ignore_existing_file_check=False, overwrite=False):
+		if self.is_remote_file:
+			return
+
+		if not self.flags.new_file:
+			self.flags.original_content = self.get_content()
+
+		if content:
+			self.content = content
+			self.decode = decode
+			self.get_content()
+
+		if not self._content:
 			return
 
 		file_exists = False
 		duplicate_file = None
 
-		self.content = content
 		self.is_private = cint(self.is_private)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
-		self.file_size = self.check_max_file_size()
-
-		# decode self.content
-		if decode:
-			if isinstance(content, str):
-				self.content = content.encode("utf-8")
-
-			if b"," in self.content:
-				self.content = self.content.split(b",")[1]
-			self.content = safe_b64decode(self.content)
 
 		# transform file content based on site settings
 		if (
@@ -509,9 +510,10 @@ class File(Document):
 			and self.content_type == "image/jpeg"
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
-			self.content = strip_exif_data(self.content, self.content_type)
+			self._content = strip_exif_data(self._content, self.content_type)
 
-		self.content_hash = get_content_hash(self.content)
+		self.file_size = self.check_max_file_size()
+		self.content_hash = get_content_hash(self._content)
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
 		if not ignore_existing_file_check:
@@ -542,12 +544,12 @@ class File(Document):
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):
-		fpath = self.write_file()
-
 		if self.is_private:
 			self.file_url = f"/private/files/{self.file_name}"
 		else:
 			self.file_url = f"/files/{self.file_name}"
+
+		fpath = self.write_file()
 
 		return {"file_name": os.path.basename(fpath), "file_url": self.file_url}
 
@@ -555,7 +557,7 @@ class File(Document):
 		from frappe.core.api.file import get_max_file_size
 
 		max_file_size = get_max_file_size()
-		file_size = len(self.content)
+		file_size = len(self._content or b"")
 
 		if file_size > max_file_size:
 			frappe.throw(

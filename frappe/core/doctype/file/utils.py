@@ -313,3 +313,11 @@ def attach_files_to_document(doc: "File", event) -> None:
 			).insert()
 		except Exception:
 			frappe.log_error(title=_("Error Attaching File"))
+
+
+def decode_file_content(content: bytes) -> bytes:
+	if isinstance(content, str):
+		content = content.encode("utf-8")
+	if b"," in content:
+		content = content.split(b",")[1]
+	return safe_b64decode(content)
