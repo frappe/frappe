@@ -252,7 +252,7 @@ class File(Document):
 		if self.attached_to_doctype:
 			self.folder = frappe.db.get_value("File", {"is_attachments_folder": 1})
 
-		if not self.is_home_folder:
+		elif not self.is_home_folder:
 			self.folder = "Home"
 
 	def validate_file_on_disk(self):
@@ -367,9 +367,9 @@ class File(Document):
 				limit=1,
 			)
 		)
-		if self.file_name and on_disk_file_not_shared:
+		if on_disk_file_not_shared:
 			self.delete_file_data_content()
-		elif self.file_url:
+		else:
 			self.delete_file_data_content(only_thumbnail=True)
 
 	def unzip(self) -> List["File"]:
@@ -442,7 +442,10 @@ class File(Document):
 		file_path = self.file_url or self.file_name
 
 		if "/" not in file_path:
-			file_path = "/files/" + file_path
+			if self.is_private:
+				file_path = f"/private/files/{file_path}"
+			else:
+				file_path = f"/files/{file_path}"
 
 		if file_path.startswith("/private/files/"):
 			file_path = get_files_path(
@@ -461,7 +464,10 @@ class File(Document):
 			)
 
 		if not is_safe_path(file_path):
-			frappe.throw(f"Cannot access file path {file_path}")
+			frappe.throw(_("Cannot access file path {0}").format(file_path))
+
+		if os.path.sep in self.file_name:
+			frappe.throw(_("File name cannot have {0}").format(os.path.sep))
 
 		return file_path
 
@@ -525,7 +531,7 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			file_doc = frappe.get_cached_doc("File", duplicate_file.name)
+			file_doc: "File" = frappe.get_cached_doc("File", duplicate_file.name)
 			if file_doc.exists_on_disk():
 				self.file_url = duplicate_file.file_url
 				file_exists = True

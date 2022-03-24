@@ -233,8 +233,8 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		else:
 			filename = get_random_filename(content_type=mtype)
 
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
+		doctype = doc.parenttype if doc.get("parent") else doc.doctype
+		name = doc.get("parent") or doc.name
 
 		_file = frappe.get_doc({
 			"doctype": "File",
@@ -276,6 +276,7 @@ def update_existing_file_docs(doc: "File") -> None:
 		.where(file_doctype.content_hash == doc.content_hash)
 		.where(file_doctype.name != doc.name)
 	).run()
+
 
 def attach_files_to_document(doc: "File", event) -> None:
 	"""Runs on on_update hook of all documents.
