@@ -54,7 +54,7 @@ context('Dynamic Link', () => {
 		cy.get_field('doc_type').clear();
 
 		//Entering User in the Doctype field
-		cy.fill_field('doc_type','User','Link');
+		cy.fill_field('doc_type', 'User', 'Link');
 
 		//Clicking on the Document ID field
 		cy.get_field('doc_id').click();
@@ -74,7 +74,7 @@ context('Dynamic Link', () => {
 		cy.get_field('doc_type').clear();
 
 		//Entering User in the Doctype field
-		cy.fill_field('doc_type','User','Link', {delay : 500});
+		cy.fill_field('doc_type', 'User', 'Link', {delay: 500});
 		cy.get_field('doc_id').click();
 
 		//Checking if the listbox have length greater than 0
@@ -85,7 +85,7 @@ context('Dynamic Link', () => {
 		cy.get_field('doc_type').clear();
 
 		//Entering User in the Doctype field
-		cy.fill_field('doc_type','User','Link', {delay : 500});
+		cy.fill_field('doc_type', 'User', 'Link', {delay: 500});
 		cy.get_field('doc_id').click();
 
 		//Checking if the listbox have length greater than 0
@@ -93,11 +93,11 @@ context('Dynamic Link', () => {
 		cy.get_field('doc_type').clear();
 
 		//Entering System Settings in the Doctype field
-		cy.fill_field('doc_type','System Settings','Link', {delay : 500});
+		cy.fill_field('doc_type', 'System Settings', 'Link', {delay: 500});
 		cy.get_field('doc_id').click();
 
 		//Checking if the system throws error
-		cy.get('.modal-title').should('have.text','Error');
-		cy.get('.msgprint').should('have.text','System Settings is not a valid DocType for Dynamic Link');
+		cy.get('.modal-title').should('have.text', 'Error');
+		cy.get('.msgprint').should('have.text', 'System Settings is not a valid DocType for Dynamic Link');
 	});
 });
