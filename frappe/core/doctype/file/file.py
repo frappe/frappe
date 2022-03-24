@@ -26,6 +26,7 @@ from .utils import *
 
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+URL_PREFIXES = ("http://", "https://")
 
 
 class File(Document):
@@ -38,6 +39,10 @@ class File(Document):
 
 		self.content = self.get("content") or b""
 		self.decode = self.get("decode", False)
+
+	@property
+	def is_remote_file(self):
+		return not self.content or (self.file_url or "").startswith(URL_PREFIXES)
 
 	def autoname(self):
 		"""Set name for folder"""
@@ -54,10 +59,10 @@ class File(Document):
 		self.set_folder_name()
 		self.set_file_name()
 
-		if not self.is_folder:
+		if not self.is_folder and not self.is_remote_file:
+			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.local.rollback_observers.append(self)
-			self.save_file(content=self.content, decode=self.decode)
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -123,7 +128,7 @@ class File(Document):
 		)
 
 	def validate_file_path(self):
-		if self.file_url.startswith(("http://", "https://")):
+		if self.is_remote_file:
 			return
 
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
@@ -134,10 +139,7 @@ class File(Document):
 			)
 
 	def validate_file_url(self):
-		if self.file_url.startswith(("http://", "https://")):
-			return
-
-		if not self.file_url:
+		if self.is_remote_file or not self.file_url:
 			return
 
 		if not self.file_url.startswith(("/files/", "/private/files/")):
@@ -148,7 +150,7 @@ class File(Document):
 			)
 
 	def handle_is_private_changed(self):
-		if not self.file_url.startswith(("/files/", "/private/files/")):
+		if self.is_remote_file:
 			return
 
 		from pathlib import Path
@@ -248,7 +250,7 @@ class File(Document):
 		"""
 		full_path = self.get_full_path()
 
-		if full_path.startswith("http"):
+		if full_path.startswith(URL_PREFIXES):
 			return True
 
 		if not os.path.exists(full_path):
@@ -290,7 +292,7 @@ class File(Document):
 			self.file_name = re.sub(r"/", "", self.file_name)
 
 	def generate_content_hash(self):
-		if self.content_hash or not self.file_url or self.file_url.startswith("http"):
+		if self.content_hash or not self.file_url or self.is_remote_file:
 			return
 		file_name = self.file_url.split("/")[-1]
 		try:
@@ -434,7 +436,7 @@ class File(Document):
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
-		elif file_path.startswith("http"):
+		elif file_path.startswith(URL_PREFIXES):
 			pass
 
 		elif not self.file_url:
@@ -449,7 +451,8 @@ class File(Document):
 
 	def write_file(self):
 		"""write file to disk with a random name (to compare)"""
-		file_path = get_files_path(is_private=self.is_private)
+		if self.is_remote_file:
+			return
 
 		if os.path.sep in self.file_name:
 			frappe.throw(_("File name cannot have {0}").format(os.path.sep))
