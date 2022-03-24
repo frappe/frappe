@@ -9,7 +9,7 @@ frappe.ui.form.on('Workspace', {
 	refresh: function(frm) {
 		frm.enable_save();
 
-		if (frm.doc.for_user || (frm.doc.public && !frm.has_perm('write') && 
+		if (frm.doc.for_user || (frm.doc.public && !frm.has_perm('write') &&
 			!frappe.user.has_role('Workspace Manager'))) {
 			frm.trigger('disable_form');
 		}

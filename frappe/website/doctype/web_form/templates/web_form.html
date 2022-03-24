@@ -2,41 +2,42 @@
 
 {% block title %}{{ _(title) }}{% endblock %}
 
-{% block header %}
-<h3>{{ _(title) }}</h3>
-{% endblock %}
-
-{% block breadcrumbs %}
-{% if has_header and login_required %}
-{% include "templates/includes/breadcrumbs.html" %}
-{% endif %}
-{% endblock %}
-
-{% block header_actions %}
-{% if is_list %}
-<div class="list-view-actions"></div>
-{% else %}
-<div class="web-form-actions"></div>
-{% endif %}
-{% endblock %}
+{% block breadcrumbs %}{% endblock %}
 
 {% macro container_attributes() %}
 data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-required="{{ frappe.utils.cint(login_required and frappe.session.user=='Guest') }}" data-is-list="{{ frappe.utils.cint(is_list) }}" data-allow-delete="{{ allow_delete }}"
 {% endmacro %}
 
 {% block page_content %}
-<div>
+
+{% if has_header and login_required and allow_multiple %}
+<!-- breadcrumb -->
+{% include "templates/includes/breadcrumbs.html" %}
+{% else %}
+<div style="height: 3rem"></div>
+{% endif %}
+
+<!-- main card -->
+<div class="frappe-card {{ frappe.utils.cint(is_list) and 'list-card' or '' }}">
 	{% if is_list %}
-	{# web form list #}
+	<!-- list -->
+	<div class="d-flex justify-content-between">
+		<h3>{{ _(title) }}</h3>
+		<div class="list-view-actions"></div>
+	</div>
+
 	<div class="web-form-wrapper" {{ container_attributes() }}></div>
 	<div id="list-filters" class="row mt-4"></div>
-	<div id="datatable" class="pt-4 overflow-auto"></div>
+	<div id="list-table" class="list-table pt-4 overflow-auto"></div>
 	<div class="list-view-footer text-right"></div>
 	{% else %}
-	{# web form #}
+	<!-- web form -->
+	<div class="d-flex justify-content-between web-form-head">
+		<h3>{{ _(title) }}</h3>
+		<div class="web-form-actions"></div>
+	</div>
 	<div role="form">
-		<div id="introduction" class="text-muted"></div>
-		<hr>
+		<div id="introduction" class="text-muted hidden"></div>
 		<div class="web-form-wrapper" {{ container_attributes() }}></div>
 		<div class="web-form-footer text-right"></div>
 	</div>
@@ -61,15 +62,16 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	</div>
 	{% endif %} {# attachments #}
 
-	{% if allow_comments and not frappe.form_dict.new and not is_list -%}
-	<div class="comments mt-6">
-		<h3>{{ _("Comments") }}</h3>
-		{% include 'templates/includes/comments/comments.html' %}
-	</div>
-	{%- endif %} {# comments #}
-
 	{% endif %}
 </div>
+
+{% if allow_comments and not frappe.form_dict.new and not is_list -%}
+<!-- comments -->
+<div class="comments" style="margin-top: 3rem;">
+	{% include 'templates/includes/comments/comments.html' %}
+</div>
+{%- endif %} {# comments #}
+
 {% endblock page_content %}
 
 {% block script %}
@@ -82,7 +84,8 @@ frappe.boot = {
 	time_zone: {
 		system: "{{ frappe.utils.get_time_zone() }}",
 		user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
-	}
+	},
+	link_title_doctypes: `{{ frappe.call('frappe.boot.get_link_title_doctypes') }}`
 };
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;
@@ -131,6 +134,9 @@ frappe.init_client_script = () => {
 {% endif %}
 
 <style>
+body {
+	background-color: var(--bg-color);
+}
 {% if style is defined %}
 	{{ style }}
 {% endif %}

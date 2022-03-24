@@ -196,6 +196,15 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
+	parse_json: function(str) {
+		let parsed_json = '';
+		try {
+			parsed_json = JSON.parse(str);
+		} catch (e) {
+			return str;
+		}
+		return parsed_json;
+	},
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},
@@ -222,7 +231,7 @@ Object.assign(frappe.utils, {
 			if (tt && (tt.substr(0, 1)===">" || tt.substr(0, 4)==="&gt;")) {
 				part.push(t);
 			} else {
-				out.concat(part);
+				out = out.concat(part);
 				out.push(t);
 				part = [];
 			}
@@ -244,7 +253,7 @@ Object.assign(frappe.utils, {
 		};
 
 		return String(txt).replace(
-			/[&<>"'`=/]/g, 
+			/[&<>"'`=/]/g,
 			char => escape_html_mapping[char] || char
 		);
 	},
@@ -262,7 +271,7 @@ Object.assign(frappe.utils, {
 		};
 
 		return String(txt).replace(
-			/&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g, 
+			/&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g,
 			char => unescape_html_mapping[char] || char
 		);
 	},
@@ -1093,7 +1102,7 @@ Object.assign(frappe.utils, {
 			seconds: round(seconds % 60)
 		};
 
-		if (duration_options.hide_days) {
+		if (duration_options && duration_options.hide_days) {
 			total_duration.hours = round(seconds / 3600);
 			total_duration.days = 0;
 		}
@@ -1435,7 +1444,7 @@ Object.assign(frappe.utils, {
 			// for link titles
 			frappe._link_titles = {};
 		}
-	
+
 		frappe._link_titles[doctype + "::" + name] = value;
 	},
 
@@ -1452,6 +1461,24 @@ Object.assign(frappe.utils, {
 			console.log('Error while fetching link title.'); // eslint-disable-line
 			console.log(error); // eslint-disable-line
 			return Promise.resolve(name);
+		}
+	},
+
+	only_allow_num_decimal(input) {
+		input.on('input', (e) => {
+			let self = $(e.target);
+			self.val(self.val().replace(/[^0-9.]/g, ''));
+			if ((e.which != 46 || self.val().indexOf('.') != -1) && (e.which < 48 || e.which > 57)) {
+				e.preventDefault();
+			}
+		});
+	},
+
+	string_to_boolean(string) {
+		switch (string.toLowerCase().trim()) {
+			case "t": case "true": case "y": case "yes": case "1": return true;
+			case "f": case "false": case "n": case "no": case "0": case null: return false;
+			default: return string;
 		}
 	}
 });

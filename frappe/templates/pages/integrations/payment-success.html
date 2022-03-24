@@ -11,7 +11,7 @@
 	<p>{{ payment_message or _("Your payment was successfully accepted") }}</p>
 	{% if not payment_message %}
 		<div>
-			<a 
+			<a
 			   href='{{ frappe.form_dict.redirect_to or "/" }}'
 			   class='btn btn-primary btn-sm'>
 				{{ _("Continue") }}

@@ -1,3 +1,5 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+
 {%- set post = doc -%}
 <div class="blog-card col-sm-12 {{ 'col-md-8' if post.featured else 'col-md-4' }}">
 	<div class="card h-100">
@@ -26,7 +28,7 @@
 				<p class="post-description text-muted">{{ post.intro }}</p>
 			</div>
 			<div class="blog-card-footer">
-				<img class="avatar website-image-extra-small" src="{{ post.avatar }}">
+				{{  avatar(full_name=post.full_name, image=post.avatar, size='avatar-medium') }}
 				<div class="text-muted">
 					<a href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
 					<div class="small">

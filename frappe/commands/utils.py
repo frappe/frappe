@@ -640,6 +640,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), profile=Fal
 		skip_test_records=False, skip_before_tests=False, failfast=False, case=None):
 
 	with CodeCoverage(coverage, app):
+		import frappe
 		import frappe.test_runner
 		tests = test
 		site = get_site(context)
