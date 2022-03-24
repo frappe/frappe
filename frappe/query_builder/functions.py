@@ -47,13 +47,16 @@ CombineDatetime = ImportMapper(
 class Cast_(Function):
 	def __init__(self, value, as_type, alias=None):
 		if db_type_is.MARIADB and (
-			(hasattr(as_type, "get_sql") and as_type.get_sql() == "varchar") or as_type.lower() == "varchar"
+			(hasattr(as_type, "get_sql") and as_type.get_sql() == "varchar") or str(as_type).lower() == "varchar"
 		):
 			# mimics varchar cast in mariadb
 			# as mariadb doesn't have varchar data cast
 			# https://mariadb.com/kb/en/cast/#description
+
+			# ref: https://stackoverflow.com/a/32542095
 			super().__init__("CONCAT", value, "", alias=alias)
 		else:
+			# from source: https://pypika.readthedocs.io/en/latest/_modules/pypika/functions.html#Cast
 			super().__init__("CAST", value, alias=alias)
 			self.as_type = as_type
 
