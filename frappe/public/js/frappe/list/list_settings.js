@@ -375,7 +375,7 @@ export default class ListSettings {
 		let me = this;
 
 		if (me.removed_fields) {
-			me.removed_fields.concat(fields);
+			me.removed_fields = me.removed_fields.concat(fields);
 		} else {
 			me.removed_fields = fields;
 		}

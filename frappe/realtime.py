@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.utils.data import cstr
 import os
 import redis
 
@@ -118,7 +119,7 @@ def get_user_info():
 	}
 
 def get_doc_room(doctype, docname):
-	return ''.join([frappe.local.site, ':doc:', doctype, '/', docname])
+	return ''.join([frappe.local.site, ':doc:', doctype, '/', cstr(docname)])
 
 def get_user_room(user):
 	return ''.join([frappe.local.site, ':user:', user])
