@@ -28,6 +28,7 @@ frappe.ui.form.on('Number Card', {
 			frm.trigger('render_filters_table');
 		}
 		frm.trigger('create_add_to_dashboard_button');
+		frm.trigger('set_parent_document_type');
 	},
 
 	create_add_to_dashboard_button: function(frm) {
@@ -141,7 +142,9 @@ frappe.ui.form.on('Number Card', {
 		frm.set_value('filters_json', '[]');
 		frm.set_value('dynamic_filters_json', '[]');
 		frm.set_value('aggregate_function_based_on', '');
+		frm.set_value('parent_document_type', '');
 		frm.trigger('set_options');
+		frm.trigger('set_parent_document_type');
 	},
 
 	set_options: function(frm) {
@@ -317,6 +320,7 @@ frappe.ui.form.on('Number Card', {
 				frm.filter_group = new frappe.ui.FilterGroup({
 					parent: dialog.get_field('filter_area').$wrapper,
 					doctype: frm.doc.document_type,
+					parent_doctype: frm.doc.parent_document_type,
 					on_change: () => {},
 				});
 				filters && frm.filter_group.add_filters_to_filter_group(filters);
@@ -435,6 +439,36 @@ frappe.ui.form.on('Number Card', {
 			}
 
 			frm.dynamic_filter_table.find('tbody').html(filter_rows);
+		}
+	},
+
+	set_parent_document_type: async function(frm) {
+		let document_type = frm.doc.document_type;
+		let doc_is_table = document_type &&
+			(await frappe.db.get_value('DocType', document_type, 'istable')).message.istable;
+
+		frm.set_df_property('parent_document_type', 'hidden', !doc_is_table);
+
+		if (document_type && doc_is_table) {
+			let parent = await frappe.db.get_list('DocField', {
+				filters: {
+					'fieldtype': 'Table',
+					'options': document_type
+				},
+				fields: ['parent']
+			});
+
+			parent && frm.set_query('parent_document_type', function() {
+				return {
+					filters: {
+						"name": ['in', parent.map(({ parent }) => parent)]
+					}
+				};
+			});
+
+			if (parent.length === 1) {
+				frm.set_value('parent_document_type', parent[0].parent);
+			}
 		}
 	}
 

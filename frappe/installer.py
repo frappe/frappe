@@ -587,7 +587,7 @@ def is_downgrade(sql_file_path, verbose=False):
 						downgrade = backup_version > current_version
 
 						if verbose and downgrade:
-							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+							print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
 
 						return downgrade
 
