@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import functools
 import os, warnings
 
 STANDARD_USERS = ('Guest', 'Administrator')
@@ -366,16 +367,20 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
+	import inspect
 	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
 
+	@functools.lru_cache(maxsize=1024)
+	def _strip_html_tags(message):
+		return strip_html_tags(message)
+
 	def _raise_exception():
 		if raise_exception:
 			if flags.rollback_on_exception:
 				db.rollback()
-			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception(msg)
@@ -392,8 +397,11 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, as_list=False, 
 	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
 		out.as_list = 1
 
+	if sys.stdin.isatty():
+		msg = _strip_html_tags(out.message)
+
 	if flags.print_messages and out.message:
-		print(f"Message: {strip_html_tags(out.message)}")
+		print(f"Message: {_strip_html_tags(out.message)}")
 
 	out.title = title or _("Message", context="Default title of the message dialog")
 
