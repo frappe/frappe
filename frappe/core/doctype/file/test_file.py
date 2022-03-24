@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.core.api.file import create_new_folder, get_attached_images, get_files_in_folder, move_file, unzip_file
 from frappe.core.doctype.file.file import File
+from frappe.exceptions import ValidationError
 from frappe.utils import get_files_path
 
 test_content1 = 'Hello'
@@ -46,7 +47,7 @@ class TestBase64File(unittest.TestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode('utf-8'))
-		_file = frappe.get_doc({
+		_file: File = frappe.get_doc({
 			"doctype": "File",
 			"file_name": "test_base64.txt",
 			"attached_to_doctype": self.attached_to_doctype,
@@ -297,7 +298,7 @@ class TestFile(unittest.TestCase):
 		_file.save()
 
 		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
-		self.assertRaises(frappe.ValidationError, folder.delete)
+		self.assertRaises(ValidationError, folder.delete)
 
 	def test_same_file_url_update(self):
 		attached_to_doctype1, attached_to_docname1 = make_test_doc()
@@ -336,21 +337,20 @@ class TestFile(unittest.TestCase):
 		file1 = frappe.get_doc({
 			"doctype": "File",
 			"file_name": 'parent_dir.txt',
-			"attached_to_doctype": "",
-			"attached_to_name": "",
 			"is_private": 1,
-			"content": test_content1}).insert()
+			"content": test_content1,
+		}).insert()
 
 		file1.file_url = '/private/files/../test.txt'
-		self.assertRaises(frappe.exceptions.ValidationError, file1.save)
+		self.assertRaises(ValidationError, file1.save)
 
 		# No validation to see if file exists
 		file1.reload()
 		file1.file_url = '/private/files/parent_dir2.txt'
-		file1.save()
+		self.assertRaises(OSError, file1.save)
 
 	def test_file_url_validation(self):
-		test_file = frappe.get_doc({
+		test_file: File = frappe.get_doc({
 			"doctype": "File",
 			"file_name": 'logo',
 			"file_url": 'https://frappe.io/files/frappe.png'
@@ -360,11 +360,11 @@ class TestFile(unittest.TestCase):
 
 		# bad path
 		test_file.file_url = "/usr/bin/man"
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, "URL must start with http:// or https://", test_file.validate)
+		self.assertRaisesRegex(ValidationError, f"Cannot access file path {test_file.file_url}", test_file.validate)
 
 		test_file.file_url = None
 		test_file.file_name = "/usr/bin/man"
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, "There is some problem with the file url", test_file.validate)
+		self.assertRaisesRegex(ValidationError, "There is some problem with the file url", test_file.validate)
 
 		test_file.file_url = None
 		test_file.file_name = "_file"
@@ -372,7 +372,7 @@ class TestFile(unittest.TestCase):
 
 		test_file.file_url = None
 		test_file.file_name = "/private/files/_file"
-		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
+		self.assertRaisesRegex(ValidationError, "File name cannot have", test_file.validate)
 
 	def test_make_thumbnail(self):
 		# test web image
@@ -431,29 +431,29 @@ class TestFile(unittest.TestCase):
 			"doctype": "File",
 			"file_url": frappe.utils.get_url('/_test/assets/image.jpg'),
 		}).insert(ignore_permissions=True)
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, 'not a zip file', test_file.unzip)
+		self.assertRaisesRegex(ValidationError, 'not a zip file', test_file.unzip)
 
 
 class TestAttachment(unittest.TestCase):
 	test_doctype = 'Test For Attachment'
 
-	def setUp(self):
-		if frappe.db.exists('DocType', self.test_doctype):
-			return
-
+	@classmethod
+	def setUpClass(cls):
 		frappe.get_doc(
 			doctype='DocType',
-			name=self.test_doctype,
+			name=cls.test_doctype,
 			module='Custom',
 			custom=1,
 			fields=[
 				{'label': 'Title', 'fieldname': 'title', 'fieldtype': 'Data'},
 				{'label': 'Attachment', 'fieldname': 'attachment', 'fieldtype': 'Attach'},
-			]
-		).insert()
+			],
+		).insert(ignore_if_duplicate=True)
 
-	def tearDown(self):
-		frappe.delete_doc('DocType', self.test_doctype)
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc('DocType', cls.test_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(
@@ -465,8 +465,7 @@ class TestAttachment(unittest.TestCase):
 			'doctype': 'File',
 			'file_name': 'test_attach.txt',
 			'content': 'Test Content'
-		})
-		file.save()
+		}).save()
 
 		doc.attachment = file.file_url
 		doc.save()
@@ -483,9 +482,10 @@ class TestAttachment(unittest.TestCase):
 
 
 class TestAttachmentsAccess(unittest.TestCase):
+	def setUp(self) -> None:
+		frappe.db.delete("File", {"is_folder": False})
 
 	def test_attachments_access(self):
-
 		frappe.set_user('test4@example.com')
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 
@@ -536,6 +536,7 @@ class TestAttachmentsAccess(unittest.TestCase):
 		self.assertIn('test_user.txt', system_manager_attachments_files)
 		self.assertIn('test_user.txt', user_attachments_files)
 
+	def tearDown(self) -> None:
 		frappe.set_user('Administrator')
 		frappe.db.rollback()
 
@@ -614,16 +615,20 @@ class TestFileOptimization(unittest.TestCase):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
 		with open(file_path, "rb") as f:
 			file_content = f.read()
-		test_file = frappe.get_doc({
+
+		test_file: File = frappe.get_doc({
 			"doctype": "File",
 			"file_name": "sample_image_for_optimization.jpg",
-			"content": file_content
+			"content": file_content,
 		}).insert()
+		test_file.flags.new_file = False # so that we can get away with committing this for now
 		image_path = test_file.get_full_path()
-		size_before_optimization = os.stat(image_path).st_size
 
+		size_before_optimization = os.stat(image_path).st_size
 		test_file.optimize_file()
-		frappe.db.rollback()
+
+		test_file.on_rollback()
+
 		size_after_rollback = os.stat(image_path).st_size
 		self.assertEqual(size_before_optimization, size_after_rollback)
 		test_file.delete()
