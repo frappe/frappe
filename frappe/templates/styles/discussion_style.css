@@ -96,7 +96,7 @@
 }
 
 .reply-body {
-	background: var(--gray-100);
+	background: var(--gray-50);
 	padding: 1rem;
 	border-radius: var(--border-radius);
 	font-size: var(--text-md);
@@ -179,10 +179,6 @@
 }
 
 .back-button {
-	background: var(--gray-100);
-	border-radius: 50%;
-	padding: 0.5rem 0.75rem 0.6rem;
-	width: fit-content;
 	margin-right: 1rem;
 }
 
