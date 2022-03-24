@@ -84,23 +84,20 @@ def two_factor_is_enabled_for_(user):
 		return False
 
 	if isinstance(user, str):
-		user = frappe.get_doc('User', user)
+		user = frappe.get_doc("User", user)
 
-	roles = [d.role for d in user.roles  or []] + ["All"]
+	roles = [d.role for d in user.roles or []] + ["All"]
 
 	role_doctype = frappe.qb.DocType("Role")
-	no_of_users = frappe.db.count(
-		role_doctype,
-		filters=(
-				(role_doctype.two_factor_auth == 1) &
-				(role_doctype.name.isin(roles))
-			),
-		)
+	no_of_users = frappe.db.count(role_doctype, filters=
+		((role_doctype.two_factor_auth == 1) & (role_doctype.name.isin(roles))),
+	)
 
 	if int(no_of_users) > 0:
 		return True
 
 	return False
+
 
 def get_otpsecret_for_(user):
 	'''Set OTP Secret for user even if not set.'''

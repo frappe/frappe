@@ -12,12 +12,11 @@ redis_server = None
 @frappe.whitelist()
 def get_pending_tasks_for_doc(doctype, docname):
 	async_task = frappe.qb.DocType("Async Task")
-	return (
-		frappe.qb.from_(async_task)
-		.select(async_task.name)
-		.where(async_task.status.isin(["Queued", "Running"]))
-		.where(async_task.reference_doctype==doctype)
-		.where(async_task.reference_name==docname)
+	return (frappe.qb.from_(async_task).select(async_task.name)
+		.where(
+			(async_task.status.isin(["Queued", "Running"]))
+			& (async_task.reference_doctype == doctype)
+			& (async_task.reference_name == docname))
 	).run(as_list=True)
 
 

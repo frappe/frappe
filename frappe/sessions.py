@@ -245,15 +245,12 @@ class Session:
 			# update user
 			user = frappe.get_doc("User", self.data['user'])
 			user_doctype=frappe.qb.DocType("User")
-			(
-				frappe.qb
-				.update(user_doctype)
+			(frappe.qb.update(user_doctype)
 				.set(user_doctype.last_login, frappe.utils.now())
 				.set(user_doctype.last_ip, frappe.local.request_ip)
 				.set(user_doctype.last_active, frappe.utils.now())
 				.where(user_doctype.name == self.data['user'])
-				.run()
-			)
+			).run()
 
 			user.run_notifications("before_change")
 			user.run_notifications("on_update")

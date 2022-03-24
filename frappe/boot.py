@@ -18,6 +18,9 @@ from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_p
 from frappe.model.base_document import get_controller
 from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings, get_app_logo
 from frappe.utils import get_time_zone, add_user_info
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Count
+
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -130,65 +133,50 @@ def get_user_pages_or_reports(parent, cache=False):
 	roles = frappe.get_roles()
 	has_role = {}
 
-	page_doctype = frappe.qb.DocType("Page")
-	report_doctype = frappe.qb.DocType("Report")
+	page = DocType("Page")
+	report = DocType("Report")
 
-	columns = (page_doctype.title.as_("title"),)
 	if parent == "Report":
-		columns = (
-			report_doctype.name.as_("title"),
-			report_doctype.ref_doctype,
-			report_doctype.report_type
-			)
+		columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
+	else:
+		columns = (page.title.as_("title"), )
 
-	custom_role_doctype = frappe.qb.DocType("Custom Role")
-	has_role_doctype = frappe.qb.DocType("Has Role")
-	parent_doctype = frappe.qb.DocType(parent)
+
+	customRole = DocType("Custom Role")
+	hasRole = DocType("Has Role")
+	parentTable = DocType(parent)
 
 	# get pages or reports set on custom role
 	pages_with_custom_roles = (
-			frappe.qb
-			.from_(custom_role_doctype)
-			.from_(has_role_doctype)
-			.from_(parent_doctype)
-			.select(
-				custom_role_doctype.field(parent.lower()).as_("name"),
-				custom_role_doctype.modified,
-				custom_role_doctype.ref_doctype,
-				*columns
-			)
-			.where(has_role_doctype.parent == custom_role_doctype.name)
-			.where(parent_doctype.name == custom_role_doctype.field(parent.lower()))
-			.where(custom_role_doctype.field(parent.lower()).isnotnull())
-			.where(has_role_doctype.role.isin(roles))
-		).run(as_dict=True)
+		frappe.qb.from_(customRole).from_(hasRole).from_(parentTable)
+		.select(customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns)
+		.where(
+			(hasRole.parent == customRole.name)
+			& (parentTable.name == customRole[parent.lower()])
+			& (customRole[parent.lower()].isnotnull())
+			& (hasRole.role.isin(roles)))
+	).run(as_dict=True)
 
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified":p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
 
 	subq = (
-		frappe.qb.from_(custom_role_doctype)
-		.select(custom_role_doctype.field(parent.lower()))
-		.where(custom_role_doctype.field(parent.lower()).isnotnull())
+		frappe.qb.from_(customRole).select(customRole[parent.lower()])
+		.where(customRole[parent.lower()].isnotnull())
 	)
 
 	pages_with_standard_roles = (
-			frappe.qb
-			.from_(has_role_doctype)
-			.from_(parent_doctype)
-			.select(
-				parent_doctype.name.as_("name"),
-				parent_doctype.modified,
-				*columns
-			)
-			.distinct()
-			.where(has_role_doctype.role.isin(roles))
-			.where(has_role_doctype.parent == parent_doctype.name)
-			.where(parent_doctype.name.isnotin(subq))
-		)
+		frappe.qb.from_(hasRole).from_(parentTable)
+		.select(parentTable.name.as_("name"), parentTable.modified, *columns)
+		.where(
+			(hasRole.role.isin(roles))
+			& (hasRole.parent == parentTable.name)
+			& (parentTable.name.isnotin(subq))
+		).distinct()
+	)
 
 	if parent == "Report":
-		pages_with_standard_roles = pages_with_standard_roles.where(report_doctype.disabled == 0)
+		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
 
 	pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
 
@@ -198,25 +186,15 @@ def get_user_pages_or_reports(parent, cache=False):
 			if parent == "Report":
 				has_role[p.name].update({'ref_doctype': p.ref_doctype})
 
+	no_of_roles = (frappe.qb.from_(hasRole).select(Count("*"))
+		.where(hasRole.parent == parentTable.name)
+	)
+
 	# pages with no role are allowed
 	if parent =="Page":
-		from frappe.query_builder.functions import Count
 
-		pages_with_no_roles = (
-			frappe.qb
-			.from_(parent_doctype)
-			.select(
-				parent_doctype.name,
-				parent_doctype.modified,
-				*columns
-			)
-			.where(
-				(
-					frappe.qb.from_(has_role_doctype)
-					.select(Count("*"))
-					.where(has_role_doctype.parent == parent_doctype.name)
-				) == 0
-			)
+		pages_with_no_roles = (frappe.qb.from_(parentTable).select(parentTable.name, parentTable.modified, *columns)
+			.where(no_of_roles == 0)
 		).run(as_dict=True)
 
 		for p in pages_with_no_roles:
@@ -303,22 +281,12 @@ def get_unseen_notes():
 	nsb = frappe.qb.DocType("Note Seen By").as_("nsb")
 
 	return (
-		frappe.qb.from_(note)
-		.select(
-			note.name,
-			note.title,
-			note.content,
-			note.notify_on_every_login
-		)
-		.where(note.notify_on_every_login == 1)
-		# .where(note.expire_notification_on > frappe.utils.now())
+		frappe.qb.from_(note).select(note.name, note.title, note.content, note.notify_on_every_login)
 		.where(
-			frappe.qb.from_(nsb)
-			.select(nsb.user)
-			.where(nsb.parent == note.name)
-			.notin([frappe.session.user])
-		)
-	).run(as_dict=1)
+			(note.notify_on_every_login == 1)
+			& (note.expire_notification_on > frappe.utils.now())
+			& (frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name).notin([frappe.session.user])))
+		).run(as_dict=1)
 
 def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])

@@ -1280,11 +1280,9 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 	if not args.doctype:
 		DocField_doctype = qb.DocType("DocField")
 		doctype_list = (
-						qb.from_(DocField_doctype)
-						.select(DocField_doctype.parent)
-						.where(DocField_doctype.fieldname == args.fieldname)
-						.distinct()
-					).run(as_list=True)
+			qb.from_(DocField_doctype).select(DocField_doctype.parent)
+			.where(DocField_doctype.fieldname == args.fieldname).distinct()
+		).run(as_list=True)
 
 	else:
 		doctype_list = [args.doctype]
