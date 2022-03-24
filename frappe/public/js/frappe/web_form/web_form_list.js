@@ -6,7 +6,7 @@ export default class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
-		this.wrapper = document.getElementById("datatable");
+		this.wrapper = document.getElementById("list-table");
 		this.make_actions();
 		this.make_filters();
 		$('.link-btn').remove();
@@ -320,6 +320,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 	make_row() {
 		// Add Checkboxes
 		let cell = this.row.insertCell();
+		cell.classList.add('list-col-checkbox');
 
 		this.checkbox = document.createElement("input");
 		this.checkbox.type = "checkbox";
@@ -332,6 +333,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 
 		// Add Serial Number
 		let serialNo = this.row.insertCell();
+		serialNo.classList.add('list-col-serial');
 		serialNo.innerText = this.serial_number;
 
 		this.columns.forEach(field => {
