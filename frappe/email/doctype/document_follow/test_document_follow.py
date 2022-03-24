@@ -11,6 +11,7 @@ from frappe.desk.form.document_follow import get_document_followed_by_user
 from frappe.desk.like import toggle_like
 from frappe.desk.form.assign_to import add
 from frappe.share import add as share
+from frappe.query_builder.functions import Cast_
 
 class TestDocumentFollow(unittest.TestCase):
 	def test_document_follow_version(self):
@@ -226,7 +227,7 @@ def get_emails(event_doc, search_string):
 
 	return (frappe.qb.from_(EmailQueue)
 		.join(EmailQueueRecipient)
-		.on(EmailQueueRecipient.parent == EmailQueue.name)
+		.on(EmailQueueRecipient.parent == Cast_(EmailQueue.name, "varchar"))
 		.where(EmailQueueRecipient.recipient == 'test@docsub.com',)
 		.where(EmailQueue.message.like(f'%{event_doc.doctype}%'))
 		.where(EmailQueue.message.like(f'%{event_doc.name}%'))
