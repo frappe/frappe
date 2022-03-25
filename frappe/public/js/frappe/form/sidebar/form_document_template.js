@@ -115,29 +115,23 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 					// to avoid abrupt UX
 					// wait for activity feedback
 					sleep(300).then(() => {
-						let newdoc = this.update_doc(doc);
-							let doctype_edit_link = null;
-							doctype_edit_link = frappe.utils.get_form_link(this.doctype, this.frm.doc.name, true, null, {
-								doc_type: this.doctype
+						if (!this.frm.doc.__islocal) {
+							let res = frappe.model.with_doctype(doc.doctype, () => {
+								let newdoc = frappe.model.copy_doc(doc);
+								newdoc.__newname = doc.name;
+								delete doc.name;
+								newdoc.idx = null;
+								newdoc.__run_link_triggers = false;
+								frappe.set_route('Form', newdoc.doctype, newdoc.name);
+								frappe.dom.unfreeze();
 							});
-							
-							// this.frm.doc = frappe.model.copy_doc(doc);
-							// newdoc.__newname = doc.name;
-							// delete doc.name;
-							// newdoc.idx = null;
+							res && res.fail(frappe.dom.unfreeze);
+						} else {
+							let newdoc = this.update_doc(doc);
 							newdoc.__run_link_triggers = false;
-							// frappe.set_route('Form', newdoc.doctype, {'address_title': newdoc.address_title});
 							frappe.dom.unfreeze();
-							frappe.msgprint({
-								message: "Success",
-								indicator: 'orange',
-								title: __('Data Clipped')
-							});
-						// let res = frappe.model.with_doctype(doc.doctype, () => {
-							
-						// });
-						// res && res.fail(frappe.dom.unfreeze);
-						
+							this.frm.refresh_fields();
+						}
 					});
 				}
 			} catch (e) {
@@ -227,11 +221,18 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			"amendment_date",
 			"cancel_reason"
 		];
-		var newdoc = frappe.get_doc(doc.doctype, !parentfield ? this.frm.doc.name : {'parent': this.frm.doc.name}, () => {
+
+		if (!parentfield) var newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name, () => {
 			doc.doctype,
 			parent_doc,
 			parentfield
 		});
+		else { var newdoc = this.frm.get_doc(doc.doctype, {'parent': this.frm.doc.name}, () => {
+			doc.doctype,
+			parent_doc,
+			parentfield
+		});
+	}
 
 		for (var key in doc) {
 			// dont copy name and blank fields
@@ -249,7 +250,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 						var d = value[i];
 						this.update_doc(
 							d,
-							from_amend,
+							0,
 							newdoc,
 							df.fieldname
 						);
@@ -259,15 +260,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				}
 			}
 		}
-
-		var user = frappe.session.user;
-
-		// newdoc.__islocal = 1;
-		// newdoc.docstatus = 0;
-		// newdoc.owner = user;
-		newdoc.creation = "";
-		newdoc.modified_by = user;
-		newdoc.modified = "";
 		newdoc.lft = null;
 		newdoc.rgt = null;
 
