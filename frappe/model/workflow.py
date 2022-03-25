@@ -104,7 +104,7 @@ def apply_workflow(doc, action):
 		num_members = get_role_member_count(transition.allowed)
 		# this is instead of a conditional check in JavaScript
 		if quantity > 100: 
-            quantity = 100
+			quantity = 100
 	
 	# update workflow state field
 	if uom == 'Individual' and quantity == 1:
