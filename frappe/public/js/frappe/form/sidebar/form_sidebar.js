@@ -68,7 +68,7 @@ frappe.ui.form.Sidebar = class {
 
 	refresh () {
 		if (this.frm.doc.__islocal) {
-			this.sidebar.toggle(false);
+			this.sidebar.toggle(true);
 		} else {
 			this.sidebar.toggle(true);
 			this.frm.assign_to.refresh();
