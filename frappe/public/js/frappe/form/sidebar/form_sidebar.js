@@ -7,7 +7,7 @@ import './review';
 import './document_follow';
 import './user_image';
 import './form_sidebar_users';
-
+import './form_document_template';
 frappe.ui.form.Sidebar = class {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -32,6 +32,7 @@ frappe.ui.form.Sidebar = class {
 		this.make_tags();
 		this.make_like();
 		this.make_follow();
+		this.make_document_template();
 
 		this.bind_events();
 		this.setup_keyboard_shortcuts();
@@ -235,6 +236,17 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	refresh_image() {
+	}
+
+	make_document_template() {
+		var me = this;
+		if (this.frm.meta.hide_toolbar) return;
+
+		this.form_template = new frappe.ui.form.DocumentTemplate({
+			wrapper: this.sidebar.find('.form-template'),
+			doctype: me.frm.doctype,
+			frm: me.frm
+		});
 	}
 
 	make_review() {
