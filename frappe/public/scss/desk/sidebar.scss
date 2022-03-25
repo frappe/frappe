@@ -350,7 +350,7 @@ body[data-route^="Module"] .main-menu {
 		margin-top: 10px;
 	}
 
-	.list-filters {
+	.list-filters, .list-templates {
 		.clearfix {
 			display: none;
 		}
@@ -363,7 +363,7 @@ body[data-route^="Module"] .main-menu {
 			display: flex;
 			justify-content: space-between;
 
-			.filter-name {
+			.filter-name, .template-name {
 				width: 90%;
 				text-align: left;
 			}
