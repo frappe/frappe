@@ -83,7 +83,6 @@ class TestGlobalSearch(unittest.TestCase):
 
 	def test_delete_doc(self):
 		self.insert_test_events()
-		global_search.sync_global_search()
 		event_name = frappe.get_all('Event')[0].name
 		event = frappe.get_doc('Event', event_name)
 		test_subject = event.subject
