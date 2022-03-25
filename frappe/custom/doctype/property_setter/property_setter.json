@@ -6,6 +6,7 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "is_system_generated",
   "help",
   "sb0",
   "doctype_or_field",
@@ -103,13 +104,20 @@
   {
    "fieldname": "section_break_9",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "Is System Generated",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-12-14 14:15:41.929071",
+ "modified": "2022-02-28 22:24:12.377693",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Property Setter",
