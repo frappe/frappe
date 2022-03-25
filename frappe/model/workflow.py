@@ -103,7 +103,8 @@ def apply_workflow(doc, action):
 	if uom == 'Percent':
 		num_members = get_role_member_count(transition.allowed)
 		# this is instead of a conditional check in JavaScript
-		if quantity > 100: quantity = 100
+		if quantity > 100: 
+            quantity = 100
 	
 	# update workflow state field
 	if uom == 'Individual' and quantity == 1:
@@ -263,7 +264,7 @@ def add_workflow_vote_and_return_count(doc, workflow, state, action, user):
 			, 'reference_name': doc.name, 'reference_doctype': doc.doctype
 			, 'workflow': workflow, 'workflow_state': state
 			, 'workflow_action': action, 'user': user
-			, 'vote_datetime': frappe.utils.now_datetime() #datetime.datetime.now() 
+			, 'vote_datetime': frappe.utils.now_datetime() 
 		}).insert(ignore_permissions=True)
 	# existing votes plus new vote.  We won't get here if user already voted b/c of frappe.throw()
 	vote_count = len(current_votes_this_action) + 1 
