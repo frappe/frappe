@@ -382,7 +382,7 @@ class TestFile(unittest.TestCase):
 		}).insert(ignore_permissions=True)
 
 		test_file.make_thumbnail()
-		self.assertEquals(test_file.thumbnail_url, '/files/image_small.jpg')
+		self.assertEqual(test_file.thumbnail_url, '/files/image_small.jpg')
 
 		# test web image without extension
 		test_file = frappe.get_doc({
@@ -399,7 +399,7 @@ class TestFile(unittest.TestCase):
 		test_file.reload()
 		test_file.file_url = "/files/image_small.jpg"
 		test_file.make_thumbnail(suffix="xs", crop=True)
-		self.assertEquals(test_file.thumbnail_url, '/files/image_small_xs.jpg')
+		self.assertEqual(test_file.thumbnail_url, '/files/image_small_xs.jpg')
 
 		frappe.clear_messages()
 		test_file.db_set('thumbnail_url', None)
@@ -407,7 +407,7 @@ class TestFile(unittest.TestCase):
 		test_file.file_url = frappe.utils.get_url('unknown.jpg')
 		test_file.make_thumbnail(suffix="xs")
 		self.assertEqual(json.loads(frappe.message_log[0]).get("message"), f"File '{frappe.utils.get_url('unknown.jpg')}' not found")
-		self.assertEquals(test_file.thumbnail_url, None)
+		self.assertEqual(test_file.thumbnail_url, None)
 
 	def test_file_unzip(self):
 		file_path = frappe.get_app_path('frappe', 'www/_test/assets/file.zip')

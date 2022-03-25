@@ -796,22 +796,33 @@ def get_assets_json():
 
 		# using .get instead of .get_value to avoid pickle.loads
 		try:
-			assets_json = cache.get("assets_json")
-		except ConnectionError:
+			if not frappe.conf.developer_mode:
+				assets_json = cache.get("assets_json").decode('utf-8')
+			else:
+				assets_json = None
+		except (UnicodeDecodeError, AttributeError, ConnectionError):
 			assets_json = None
 
-		# if value found, decode it
-		if assets_json is not None:
-			try:
-				assets_json = assets_json.decode('utf-8')
-			except (UnicodeDecodeError, AttributeError):
-				assets_json = None
-
 		if not assets_json:
-			assets_json = frappe.read_file("assets/assets.json")
-			cache.set_value("assets_json", assets_json, shared=True)
+			# get merged assets.json and assets-rtl.json
+			assets_dict = frappe.parse_json(
+				frappe.read_file("assets/assets.json")
+			)
 
-		frappe.local.assets_json = frappe.safe_decode(assets_json)
+			assets_rtl = frappe.read_file("assets/assets-rtl.json")
+			if assets_rtl:
+				assets_dict.update(
+					frappe.parse_json(assets_rtl)
+				)
+			frappe.local.assets_json = frappe.as_json(assets_dict)
+			# save in cache
+			cache.set_value("assets_json", frappe.local.assets_json,
+				shared=True)
+
+			return assets_dict
+		else:
+			# from cache, decode and send
+			frappe.local.assets_json = frappe.safe_decode(assets_json)
 
 	return frappe.parse_json(frappe.local.assets_json)
 
@@ -907,3 +918,8 @@ def add_user_info(user, user_info):
 			email = info.email,
 			time_zone = info.time_zone
 		)
+
+def is_git_url(url: str) -> bool:
+	# modified to allow without the tailing .git from https://github.com/jonschlinkert/is-git-url.git
+	pattern = r"(?:git|ssh|https?|\w*@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$"
+	return bool(re.match(pattern, url))
