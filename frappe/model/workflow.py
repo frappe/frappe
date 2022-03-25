@@ -241,7 +241,7 @@ def get_workflow_field_value(workflow_name, field):
 	return value
 
 def get_role_member_count(role_name):
-	counts = frappe.db.get_list('Has Role'
+	counts = frappe.db.get_all('Has Role'
 			, filters = {'parenttype' : 'User', 'parentfield': 'roles', 'role': role_name}
 			, fields = ['count(name) as count'])
 	return counts[0]['count']
