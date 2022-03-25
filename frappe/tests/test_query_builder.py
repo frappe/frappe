@@ -3,7 +3,7 @@ from typing import Callable
 
 import frappe
 from frappe.query_builder.custom import ConstantColumn
-from frappe.query_builder.functions import Coalesce, GroupConcat, Match, CombineDatetime
+from frappe.query_builder.functions import Coalesce, GroupConcat, Match, CombineDatetime, Cast_
 from frappe.query_builder.utils import db_type_is
 from frappe.query_builder import Case
 
@@ -53,6 +53,11 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 		select_query = select_query.select(CombineDatetime(note.posting_date, note.posting_time, alias="timestamp"))
 		self.assertIn("timestamp(`tabnote`.`posting_date`,`tabnote`.`posting_time`) `timestamp`", str(select_query).lower())
 
+	def test_cast(self):
+		note = frappe.qb.DocType("Note")
+		self.assertEqual("CONCAT(`tabnote`.`name`, '')", Cast_(note.name, "varchar"))
+		self.assertEqual("CAST(`tabnote`.`name` AS INTEGER)", Cast_(note.name, "integer"))
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(unittest.TestCase):
@@ -96,6 +101,11 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 
 		select_query = select_query.select(CombineDatetime(note.posting_date, note.posting_time, alias="timestamp"))
 		self.assertIn('"tabnote"."posting_date"+"tabnote"."posting_time" "timestamp"', str(select_query).lower())
+
+	def test_cast(self):
+		note = frappe.qb.DocType("Note")
+		self.assertEqual("CAST(`tabnote`.`name` AS VARCHAR)", Cast_(note.name, "varchar"))
+		self.assertEqual("CAST(`tabnote`.`name` AS INTEGER)", Cast_(note.name, "integer"))
 
 
 class TestBuilderBase(object):
