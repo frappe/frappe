@@ -62,7 +62,9 @@ context('Dynamic Link', () => {
 				"label": "Document ID",
 				"fieldname": "doc_id",
 				"fieldtype": "Dynamic Link",
-				"get_options": () => { return "User"; },
+				"get_options": () => { 
+					return "User"; 
+				},
 				"in_list_view": 1,
 			}]
 		});
