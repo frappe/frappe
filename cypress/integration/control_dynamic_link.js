@@ -48,26 +48,49 @@ context('Dynamic Link', () => {
 		});
 	}
 
-	it('Creating a dynamic link and verifying it in a dialog', () => {
-		//Opening a dialog
-		get_dialog_with_dynamic_link().as('dialog');
+	function get_dialog_with_dynamic_link_option() {
+		return cy.dialog({
+			title: 'Dynamic Link',
+			fields: [{
+				"label": "Document Type",
+				"fieldname": "doc_type",
+				"fieldtype": "Link",
+				"options": "DocType",
+				"in_list_view": 1,
+			},
+			{
+				"label": "Document ID",
+				"fieldname": "doc_id",
+				"fieldtype": "Dynamic Link",
+				"get_options": () => { return "User"; },
+				"in_list_view": 1,
+			}]
+		});
+	}
+
+	it('Creating a dynamic link by passing option as function and verifying it in a dialog', () => {
+		get_dialog_with_dynamic_link_option().as('dialog');
 		cy.get_field('doc_type').clear();
-
-		//Entering User in the Doctype field
 		cy.fill_field('doc_type', 'User', 'Link');
-
-		//Clicking on the Document ID field
 		cy.get_field('doc_id').click();
 
 		//Checking if the listbox have length greater than 0
 		cy.get('[data-fieldname="doc_id"]').find('.awesomplete').find("li").its('length').should('be.gte', 0);
+		cy.get('.btn-modal-close').click({force: true});
+	});
 
-		//Closing the dialog box
-		cy.get('.btn-modal-close > .icon').click();
+	it('Creating a dynamic link and verifying it in a dialog', () => {
+		get_dialog_with_dynamic_link().as('dialog');
+		cy.get_field('doc_type').clear();
+		cy.fill_field('doc_type', 'User', 'Link');
+		cy.get_field('doc_id').click();
+
+		//Checking if the listbox have length greater than 0
+		cy.get('[data-fieldname="doc_id"]').find('.awesomplete').find("li").its('length').should('be.gte', 0);
+		cy.get('.btn-modal-close').click({force: true, multiple: true});
 	});
 
 	it('Creating a dynamic link and verifying it', () => {
-		//Visiting the dynamic link doctype
 		cy.visit('/app/test-dynamic-link');
 
 		//Clicking on the Document ID field
