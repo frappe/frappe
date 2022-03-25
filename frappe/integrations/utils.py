@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from email.policy import default
 import frappe
 import json,datetime
 from urllib.parse import parse_qs
