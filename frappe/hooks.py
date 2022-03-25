@@ -372,3 +372,5 @@ global_search_doctypes = {
 		{"doctype": "Web Form"}
 	]
 }
+
+translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]
