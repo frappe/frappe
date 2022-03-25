@@ -37,8 +37,7 @@ def make_put_request(url, **kwargs):
 	return make_request('PUT', url, **kwargs)
 
 def create_request_log(data, integration_type, service_name, name=None, error=None, request_id=None, request_url=None, is_remote_request=False):
-	"""Use `is_remote_request` as True or False with respective of request is Remote or Host.
-		- `integration_type` will be deprecated in coming versions"""
+	"""Use `is_remote_request` as True or False with respective of request is Remote or Host. `integration_type` will be deprecated in coming versions"""
 		
 	if isinstance(data, str):
 		data = json.loads(data)
