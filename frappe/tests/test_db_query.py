@@ -61,10 +61,12 @@ class TestReportview(unittest.TestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		self.assertEqual(
-			build_match_conditions(as_condition=True),
-			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""",
-		)
+		if frappe.db.db_type == "mariadb":
+			assertion_string = """(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))"""
+		else:
+			assertion_string = """(((ifnull(cast(`tabBlog Post`.`name` as varchar), '')='' or cast(`tabBlog Post`.`name` as varchar) in ('-test-blog-post-1', '-test-blog-post'))))"""
+
+		self.assertEqual(build_match_conditions(as_condition=True), assertion_string)
 
 		frappe.set_user("Administrator")
 

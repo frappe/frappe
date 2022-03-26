@@ -767,7 +767,7 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return f"`tab{self.doctype}`.name in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		return self.cast_name(f"`tab{self.doctype}`.name") + " in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
