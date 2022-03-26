@@ -125,6 +125,9 @@ expected_output = [
 	('Warning: Unable to find {0} in any table related to {1}', 'This is some context', 15),
 	('Submit', 'Some DocType', 17),
 	("You don't have any messages yet.", None, 19),
-	("You don't have any messages yet.", None, 21)
+	("You don't have any messages yet.", None, 21),
+	("Long string that needs its own line because of black formatting.", None, 24),
+	("Long string with", "context", 28),
+	("Long string with", "context on newline", 32),
 ]
 
