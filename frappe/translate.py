@@ -51,7 +51,7 @@ TRANSLATE_PATTERN = re.compile(
 		r"([\"'])"  # start of context string identifier; 5th capture group
 		r"(?P<py_context>((?!\5).)*)" # capture context string till closing id is found
 		r"\5"  # match context string closure
-	r")*"  # match one or more context string (?wat this should be 0 or 1)
+	r")?"  # match 0 or 1 context strings
 	# END: python context search
 
 	# BEGIN: JS context search
