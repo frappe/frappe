@@ -38,7 +38,7 @@ def guess_language(lang_list=None):
 	return get_language(lang_list)
 
 TRANSLATE_PATTERN = re.compile(
-	r"_\("  # starts with literal `_(` work with both python / JS
+	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
 
 	# BEGIN: message search
 	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
@@ -47,7 +47,7 @@ TRANSLATE_PATTERN = re.compile(
 	# END: message search
 
 	# BEGIN: python context search
-	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
+	r"([\s\n]*,[\s\n]*context\s*=\s*"  # capture `context=` with ignoring whitespace
 		r"([\"'])"  # start of context string identifier; 5th capture group
 		r"(?P<py_context>((?!\5).)*)" # capture context string till closing id is found
 		r"\5"  # match context string closure
@@ -63,7 +63,7 @@ TRANSLATE_PATTERN = re.compile(
 	r")*"  # match one or more context string
 	# END: JS context search
 
-	r"\)"  # Closing function call
+	r"[\s\n]*\)"  # Closing function call ignore leading whitespace/newlines
 )
 
 
