@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2022, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe import _
-from frappe.utils import get_fullname, now
-from frappe.model.document import Document
-from frappe.core.utils import set_timeline_doc
 import frappe
+from frappe import _
+from frappe.core.utils import set_timeline_doc
+from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
 from frappe.query_builder.functions import Now
-from pypika.terms import PseudoColumn
+from frappe.utils import get_fullname, now
+
 
 class ActivityLog(Document):
 	def before_insert(self):
@@ -49,5 +48,5 @@ def clear_activity_logs(days=None):
 		days = 90
 	doctype = DocType("Activity Log")
 	frappe.db.delete(doctype, filters=(
-		doctype.creation < PseudoColumn(f"({Now() - Interval(days=days)})")
+		doctype.creation < (Now() - Interval(days=days))
 	))

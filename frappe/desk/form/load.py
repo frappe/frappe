@@ -315,6 +315,7 @@ def get_assignments(dt, dn):
 			'reference_type': dt,
 			'reference_name': dn,
 			'status': ('!=', 'Cancelled'),
+			'allocated_to': ("is", "set")
 		})
 
 @frappe.whitelist()
