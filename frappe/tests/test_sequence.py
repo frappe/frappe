@@ -3,12 +3,11 @@ import unittest
 
 
 class TestSequence(unittest.TestCase):
-	def setUp(self) -> None:
+	def setUpClass(cls) -> None:
 		pass
 
-	def tearDown(self) -> None:
+	def tearDownClass(cls) -> None:
 		pass
 
 	def test_set_next_val(self):
 		pass
-

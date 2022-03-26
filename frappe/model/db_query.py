@@ -390,7 +390,7 @@ class DatabaseQuery(object):
 				func_found = False
 				for func in sql_functions:
 					if func in field.lower():
-						self.fields[i] = self.cast_name(field, func)
+						self.fields[i] = self.cast_name(field)
 						func_found = True
 						break
 
@@ -406,18 +406,12 @@ class DatabaseQuery(object):
 				if table_name not in self.tables:
 					self.append_table(table_name)
 
-	def cast_name(
-		self,
-		column: str,
-		sql_function: str = "",
-	) -> str:
+	def cast_name(self, column: str) -> str:
+		lowercase_column = column.lower()
 		if frappe.db.db_type == "postgres":
-			if "name" in column.lower():
-				if "cast(" not in column.lower() or "::" not in column:
-					if not sql_function:
-						return f"cast({column} as varchar)"
-
-					elif sql_function == "locate(":
+			if re.search(r"[`\.]?name", lowercase_column):
+				if "cast(" not in lowercase_column or "::" not in column:
+					if "locate(" in lowercase_column:
 						return re.sub(
 							r"locate\(([^,]+),([^)]+)\)",
 							r"locate(\1, cast(\2 as varchar))",
@@ -425,7 +419,7 @@ class DatabaseQuery(object):
 							flags=re.IGNORECASE,
 						)
 
-					elif sql_function == "strpos(":
+					elif "strpos(" in lowercase_column:
 						return re.sub(
 							r"strpos\(([^,]+),([^)]+)\)",
 							r"strpos(cast(\1 as varchar), \2)",
@@ -433,8 +427,16 @@ class DatabaseQuery(object):
 							flags=re.IGNORECASE,
 						)
 
-					elif sql_function == "ifnull(":
-						return re.sub(r"ifnull\(([^,]+)", r"ifnull(cast(\1 as varchar)", column, flags=re.IGNORECASE)
+					elif "ifnull(" in lowercase_column:
+						return re.sub(
+							r"ifnull\(([^,]+)",
+							r"ifnull(cast(\1 as varchar)",
+							column,
+							flags=re.IGNORECASE
+						)
+
+					elif lowercase_column.startswith(("`tab", "tab", "\"tab")) or lowercase_column == "name":
+						return f"cast({column} as varchar)"
 
 		return column
 
@@ -541,10 +543,9 @@ class DatabaseQuery(object):
 		if tname not in self.tables:
 			self.append_table(tname)
 
-		if "ifnull(" in f.fieldname:
-			column_name = self.cast_name(f.fieldname, "ifnull(")
-		else:
-			column_name = self.cast_name(f"{tname}.`{f.fieldname}`")
+		column_name = self.cast_name(f.fieldname) if (
+			'ifnull(' in f.fieldname
+			) else self.cast_name(f"{tname}.`{f.fieldname}`")
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
@@ -794,7 +795,7 @@ class DatabaseQuery(object):
 				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
-					empty_value_condition = f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
+					empty_value_condition = self.cast_name(f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''")
 					condition = empty_value_condition + " or "
 
 				for permission in user_permission_values:
