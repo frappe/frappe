@@ -32,8 +32,8 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		if(this.frm) {
 			me.parse_validate_and_set_in_model(null);
 			me.refresh();
-			me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
-				await me.parse_validate_and_set_in_model(null);
+			me.frm.attachments.remove_attachment_by_filename(me.value, function() {
+				me.parse_validate_and_set_in_model(null);
 				me.refresh();
 				me.frm.doc.docstatus == 1 ? me.frm.save('Update') : me.frm.save();
 			});
@@ -100,9 +100,9 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		return this.value || null;
 	},
 
-	async on_upload_complete(attachment) {
+	on_upload_complete: function(attachment) {
 		if(this.frm) {
-			await this.parse_validate_and_set_in_model(attachment.file_url);
+			this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
 			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
 		}
