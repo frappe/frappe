@@ -767,7 +767,7 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return self.cast_name(f"`tab{self.doctype}`.name") + " in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		return self.cast_name(f"`tab{self.doctype}`.name") + f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
@@ -816,7 +816,7 @@ class DatabaseQuery(object):
 
 				if docs:
 					values = ", ".join(frappe.db.escape(doc, percent=False) for doc in docs)
-					condition += f"`tab{self.doctype}`.`{df.get('fieldname')}` in ({values})"
+					condition += self.cast_name(f"`tab{self.doctype}`.`{df.get('fieldname')}`") + f" in ({values})"
 					match_conditions.append(f"({condition})")
 					match_filters[df.get("options")] = docs
 
