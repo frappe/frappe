@@ -71,7 +71,6 @@ frappe.ui.form.on('Dashboard', {
 									frm.global_filters.push({ ...filter })
 								}
 							})
-							console.log(frm.global_filters)
 							frm.trigger("set_global_filters");
 						}
 					})
