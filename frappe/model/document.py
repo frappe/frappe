@@ -940,7 +940,7 @@ class Document(BaseDocument):
 
 	@whitelist.__func__
 	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
-		"""Cancel the document. Sets `docstatus` = 2, then saves.
+		"""Rename the document. Triggers frappe.rename_doc, then reloads.
 		"""
 		from frappe.model.rename_doc import rename_doc
 		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)

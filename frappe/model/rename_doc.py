@@ -73,16 +73,17 @@ def update_document_title(
 			transformed_name = transformed_name or updated_name
 
 			# run rename validations before queueing
-			new_name = validate_rename(
+			# use savepoints to avoid partial renames / commits
+			validate_rename(
 				doctype=doctype,
 				old=current_name,
 				new=transformed_name,
 				meta=doc.meta,
 				merge=merge,
+				save_point=True,
 			)
 
-			# we don't want to re-validate since the before_rename hooks would be run again ;)
-			doc.queue_action("rename", name=new_name, merge=merge, validate_rename=False)
+			doc.queue_action("rename", name=transformed_name, merge=merge)
 		else:
 			doc.rename(updated_name, merge=merge)
 
@@ -314,8 +315,12 @@ def update_autoname_field(doctype: str, new: str, meta: "Meta") -> None:
 				Field("name") == new
 			).run()
 
-def validate_rename(doctype: str, old: str, new: str, meta: "Meta", merge: bool, force: bool = False, ignore_permissions: bool = False, ignore_if_exists: bool = False) -> str:
+def validate_rename(doctype: str, old: str, new: str, meta: "Meta", merge: bool, force: bool = False, ignore_permissions: bool = False, ignore_if_exists: bool = False, save_point=False) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
+	if save_point:
+		_SAVE_POINT = f"validate_rename_{frappe.generate_hash(8)}"
+		frappe.db.savepoint(_SAVE_POINT)
+
 	exists = (
 		frappe.qb.from_(doctype)
 		.where(Field("name") == new)
@@ -349,6 +354,9 @@ def validate_rename(doctype: str, old: str, new: str, meta: "Meta", merge: bool,
 
 	# validate naming like it's done in doc.py
 	new = validate_name(doctype, new)
+
+	if save_point:
+		frappe.db.rollback(save_point=_SAVE_POINT)
 
 	return new
 
