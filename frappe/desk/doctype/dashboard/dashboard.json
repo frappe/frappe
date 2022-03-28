@@ -12,6 +12,7 @@
   "is_standard",
   "module",
   "charts",
+  "global_filters",
   "chart_options",
   "cards"
  ],
@@ -64,13 +65,21 @@
    "label": "Module",
    "mandatory_depends_on": "eval: doc.is_standard",
    "options": "Module Def"
+  },
+  {
+   "fieldname": "global_filters",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Global Filters",
+   "options": "Dashboard Global Filters"
   }
  ],
  "links": [],
- "modified": "2020-07-23 11:05:41.890459",
+ "modified": "2022-03-24 10:43:37.616054",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -110,6 +119,7 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "dashboard_name",
  "track_changes": 1
 }
