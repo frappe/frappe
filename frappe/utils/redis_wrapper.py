@@ -27,7 +27,8 @@ class RedisWrapper(redis.Redis):
 
 			key = "user:{0}:{1}".format(user, key)
 
-		return "{0}|{1}".format(frappe.conf.db_name, key).encode('utf-8')
+		url = frappe.utils.get_url()
+		return "{0}|{1}|{2}".format(url, frappe.conf.db_name, key).encode('utf-8')
 
 	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
