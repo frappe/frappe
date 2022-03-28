@@ -49,9 +49,6 @@ def create_request_log(
 		DEPRECATED: The parameter integration_type will be removed in the next major release.
 		Use is_remote_request instead.
 	"""
-
-	get_json = lambda obj: obj if isinstance(obj, str) else frappe.as_json(obj, indent=1)
-
 	if integration_type == "Remote":
 		kwargs["is_remote_request"] = 1
 
@@ -85,6 +82,9 @@ def create_request_log(
 	frappe.db.commit()
 
 	return integration_request
+
+def get_json(obj):
+	return obj if isinstance(obj, str) else frappe.as_json(obj, indent=1)
 
 def get_payment_gateway_controller(payment_gateway):
 	'''Return payment gateway controller'''
