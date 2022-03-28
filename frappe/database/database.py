@@ -119,8 +119,8 @@ class Database(object):
 		if not run:
 			return query
 
-		# remove \n \t from start and end of query
-		query = re.sub(r'^\s*|\s*$', '', query)
+		# remove whitespace / indentation from start and end of query
+		query = query.strip()
 
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
@@ -357,6 +357,7 @@ class Database(object):
 		order_by="KEEP_DEFAULT_ORDERING",
 		cache=False,
 		for_update=False,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -386,17 +387,27 @@ class Database(object):
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+		result = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
 			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct, limit=1)
 
 		if not run:
-			return ret
+			return result
 
-		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
+		if not result:
+			return None
+
+		row = result[0]
+
+		if len(row) > 1 or as_dict:
+			return row
+		else:
+			# single field is requested, send it without wrapping in containers
+			return row[0]
+
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
 		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
-		run=True, pluck=False, distinct=False, limit=None):
+		*, run=True, pluck=False, distinct=False, limit=None):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -487,6 +498,7 @@ class Database(object):
 		as_dict=False,
 		debug=False,
 		update=None,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -621,7 +633,8 @@ class Database(object):
 		filters,
 		doctype,
 		as_dict,
-		debug,
+		*,
+		debug=False,
 		order_by=None,
 		update=None,
 		for_update=False,
@@ -661,7 +674,7 @@ class Database(object):
 		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False, limit=None):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, *, debug=False, run=True, pluck=False, distinct=False, limit=None):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
