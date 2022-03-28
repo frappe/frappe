@@ -1246,6 +1246,18 @@ class Database(object):
 			values_to_insert = values[start_index : start_index + chunk_size]
 			query.columns(fields).insert(*values_to_insert).run()
 
+	def create_sequence(self, *args, **kwargs):
+		from frappe.database.sequence import create_sequence
+		return create_sequence(*args, **kwargs)
+
+	def set_next_val(self, *args, **kwargs):
+		from frappe.database.sequence import set_next_val
+		set_next_val(*args, **kwargs)
+
+	def get_next_val(self, *args, **kwargs):
+		from frappe.database.sequence import get_next_val
+		return get_next_val(*args, **kwargs)
+
 
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue
