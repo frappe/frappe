@@ -54,7 +54,7 @@ frappe.Application = class Application {
 		this.setup_copy_doc_listener();
 
 		frappe.ui.keys.setup();
-		
+
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+ctrl+g',
 			description: __('Switch Theme'),
