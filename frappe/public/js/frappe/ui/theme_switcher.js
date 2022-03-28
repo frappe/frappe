@@ -138,7 +138,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	}
 
 	hide() {
-		frappe.ui.hide_open_dialog();
+		this.dialog.hide();
 	}
 };
 
