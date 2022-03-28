@@ -18,7 +18,7 @@ from frappe.utils.testutils import clear_custom_fields
 
 from frappe.database.database import Database
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.utils import add_days, now, random_string
+from frappe.utils import add_days, now, random_string, cint
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -35,6 +35,26 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
+
+	def test_get_value_limits(self):
+
+		filters = {"enabled": 1}
+
+		self.assertEqual(1, len(frappe.db.get_values("User", filters=filters, limit=1)))
+		# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
+		self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+		self.assertEqual(2, len(frappe.db.get_values("User", filters=filters, limit=2)))
+		self.assertGreaterEqual(2, cint(frappe.db._cursor.rowcount))
+
+		# without limits length == count
+		self.assertEqual(len(frappe.db.get_values("User", filters=filters)),
+				frappe.db.count("User", filters))
+
+		frappe.db.get_value("User", filters=filters)
+		self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+
+		frappe.db.exists("User", filters)
+		self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
