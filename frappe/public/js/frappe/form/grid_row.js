@@ -918,7 +918,6 @@ export default class GridRow {
 							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
 							me.grid.set_focus_on_row(me.doc.idx);
 						}
-						
 					} else { // not a last col
 						me.grid.grid_rows[me.doc.idx-1].row
 							.find('input[type="Text"],textarea,select')[col_idx(this)+1].focus();
