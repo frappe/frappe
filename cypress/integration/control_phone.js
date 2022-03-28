@@ -24,18 +24,19 @@ context('Control Phone', () => {
 
 		let phone_number = '9312672712';
 		cy.get('.selected-phone > img').click().first();
-		cy.get('.frappe-control[data-fieldname=phone] input')
+		cy.get_field("phone")
 			.first()
-			.click();
+			.click({multiple: true});
 		cy.get('.frappe-control[data-fieldname=phone]')
 			.findByRole('textbox')
 			.first()
 			.type(phone_number);
 
-		cy.get('.frappe-control[data-fieldname=phone] input').first().should('have.value', phone_number);
-		cy.get('.frappe-control[data-fieldname=phone] input').first().blur();
+		cy.get_field("phone").first().should('have.value', phone_number);
+		cy.get_field("phone").first().blur({force: true});
+
 		cy.get('@dialog').then(dialog => {
-			let value = dialog.fields_dict.phone.value;
+			let value = dialog.get_value("phone");
 			expect(value).to.equal('+91-' + phone_number);
 		});
 	});

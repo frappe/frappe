@@ -30,7 +30,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				this.$isd.text(country_isd);
 			}
 			if (this.$input.val()) {
-				this.set_formatted_input(this.get_country(country) +'-'+ this.$input.val());
+				this.set_value(this.get_country(country) +'-'+ this.$input.val());
 			}
 			this.change_padding();
 		};
@@ -95,9 +95,8 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	refresh() {
 		super.refresh();
-
-		// Previously opened doc values get fetched.
-		if (!this.value) {
+		// Previously opened doc values showing up on a new doc
+		if (this.frm.doc.__islocal && !this.get_value()) {
 			this.$input.val("");
 			this.$wrapper.find('.country').text("");
 			if (this.selected_icon.find('svg').hasClass('hide')) {
@@ -106,7 +105,10 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			}
 			this.$input.css("padding-left", 30);
 		}
-		if (this.value && this.value.split("-").length == 2) {
+	}
+
+	set_formatted_input(value) {
+		if (value && value.includes('-') && value.split('-').length == 2)  {
 			let isd = this.value.split("-")[0];
 			this.get_country_code_and_change_flag(isd);
 			this.picker.set_country(isd);
@@ -114,18 +116,17 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			if (this.picker.country && this.picker.country !== this.$isd.text()) {
 				this.$isd.length && this.$isd.text(isd);
 			}
+			this.change_padding();
+			this.$input.val(value.split('-').pop());
+
+		} else if (this.$isd.text().trim() && this.value) {
+			let code_number = this.$isd.text() + '-' + value;
+			this.set_value(code_number);
 		}
 	}
 
-
-	set_formatted_input(value) {
-		if (value && value.includes('-')) {
-			this.set_model_value(value);
-			this.$input.val(value.split("-").pop());
-		} else if (this.$isd.text().trim() && this.value) {
-			let code_number = this.$isd.text() + '-' + value;
-			this.set_model_value(code_number);
-		}
+	get_value() {
+		return this.value;
 	}
 
 	change_flag(country_code) {
@@ -162,11 +163,11 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 	change_padding() {
 		let len = this.$isd.text().length;
-			let diff = len - 3;
-			if (len > 3) {
-				this.$input.css("padding-left", 67 + (diff * 7));
-			} else {
-				this.$input.css("padding-left", 67);
-			}
+		let diff = len - 2;
+		if (len > 2) {
+			this.$input.css("padding-left", 60 + (diff * 7));
+		} else {
+			this.$input.css("padding-left", 60);
 		}
+	}
 };
