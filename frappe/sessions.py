@@ -271,15 +271,13 @@ class Session:
 		"""non-login request: load a session"""
 		import frappe
 		from frappe.auth import validate_ip_address
+		self.start_as_guest()
 		data = self.get_session_record()
-
 		if data:
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 			self.user = data.user
 			validate_ip_address(self.user)
 			self.device = data.device
-		else:
-			self.start_as_guest()
 
 		if self.sid != "Guest":
 			frappe.local.user_lang = frappe.translate.get_user_lang(self.data.user)
