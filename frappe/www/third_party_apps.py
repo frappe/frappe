@@ -34,7 +34,6 @@ def get_context(context):
 		context.app = app
 
 	context.apps = client_apps
-	context.show_sidebar = True
 
 def get_first_login(client):
 	login_date = frappe.get_all("OAuth Bearer Token",
