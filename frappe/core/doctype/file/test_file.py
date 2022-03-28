@@ -11,6 +11,7 @@ from frappe.core.api.file import create_new_folder, get_attached_images, get_fil
 from frappe.core.doctype.file.file import File
 from frappe.exceptions import ValidationError
 from frappe.utils import get_files_path
+from frappe.tests.utils import FrappeTestCase
 
 test_content1 = 'Hello'
 test_content2 = 'Hello World'
@@ -24,7 +25,7 @@ def make_test_doc():
 	return d.doctype, d.name
 
 
-class TestSimpleFile(unittest.TestCase):
+class TestSimpleFile(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = test_content1
@@ -43,7 +44,7 @@ class TestSimpleFile(unittest.TestCase):
 		self.assertEqual(content, self.test_content)
 
 
-class TestBase64File(unittest.TestCase):
+class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode('utf-8'))
@@ -63,7 +64,7 @@ class TestBase64File(unittest.TestCase):
 		self.assertEqual(content, test_content1)
 
 
-class TestSameFileName(unittest.TestCase):
+class TestSameFileName(FrappeTestCase):
 	def test_saved_content(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content1 = test_content1
@@ -114,7 +115,7 @@ class TestSameFileName(unittest.TestCase):
 		self.assertEqual(_file.get_content(), test_content2)
 
 
-class TestSameContent(unittest.TestCase):
+class TestSameContent(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
 		self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
@@ -170,7 +171,7 @@ class TestSameContent(unittest.TestCase):
 		frappe.clear_cache(doctype='ToDo')
 
 
-class TestFile(unittest.TestCase):
+class TestFile(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user('Administrator')
 		self.delete_test_data()
@@ -481,7 +482,7 @@ class TestAttachment(unittest.TestCase):
 		self.assertTrue(exists)
 
 
-class TestAttachmentsAccess(unittest.TestCase):
+class TestAttachmentsAccess(FrappeTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": False})
 
@@ -541,7 +542,7 @@ class TestAttachmentsAccess(unittest.TestCase):
 		frappe.db.rollback()
 
 
-class TestFileUtils(unittest.TestCase):
+class TestFileUtils(FrappeTestCase):
 	def test_extract_images_from_doc(self):
 		# with filename in data URI
 		todo = frappe.get_doc({
@@ -565,7 +566,7 @@ class TestFileUtils(unittest.TestCase):
 		self.assertTrue(folder.is_folder)
 
 
-class TestFileOptimization(unittest.TestCase):
+class TestFileOptimization(FrappeTestCase):
 	def test_optimize_file(self):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
 		with open(file_path, "rb") as f:
