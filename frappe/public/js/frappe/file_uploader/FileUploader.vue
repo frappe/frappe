@@ -36,7 +36,7 @@
 						ref="file_input"
 						@change="on_file_input"
 						:multiple="allow_multiple"
-						:accept="restrictions.allowed_file_types.join(', ')"
+						:accept="restrictions.allowed_file_types && restrictions.allowed_file_types.join(', ')"
 					>
 					<button class="btn btn-file-upload" v-if="!disable_file_browser" @click="show_file_browser = true">
 						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -225,6 +225,9 @@ export default {
 					this.restrictions.max_file_size = Number(res.message);
 				});
 		}
+		if (this.restrictions.max_number_of_files == null && this.doctype) {
+			this.restrictions.max_number_of_files = frappe.get_meta(self.doctype).max_attachments;
+		}
 	},
 	watch: {
 		files(newvalue, oldvalue) {
@@ -281,6 +284,21 @@ export default {
 				return file;
 			});
 		},
+		show_max_files_number_warning(file) {
+			console.warn(
+				`File skipped because it exceeds the allowed specified limit of ${max_number_of_files} uploads`,
+				file,
+			);
+			if (this.doctype) {
+				MSG = __('File "{0}" was skipped because only {1} uploads are allowed for DocType "{2}"', [file.name, max_number_of_files, this.doctype])
+			} else {
+				MSG = __('File "{0}" was skipped because only {1} uploads are allowed', [file.name, max_number_of_files])
+			}
+			frappe.show_alert({
+				message: MSG,
+				indicator: "orange",
+			});
+		},
 		add_files(file_array) {
 			let files = Array.from(file_array)
 				.filter(this.check_restrictions)
@@ -300,8 +318,19 @@ export default {
 						error_message: null,
 						uploading: false,
 						private: !is_image
-					}
+					};
 				});
+
+			// pop extra files as per FileUploader.restrictions.max_number_of_files
+			max_number_of_files = this.restrictions.max_number_of_files;
+			if (max_number_of_files && files.length > max_number_of_files) {
+				files.slice(max_number_of_files).forEach(file => {
+					this.show_max_files_number_warning(file, this.doctype);
+				});
+
+				files = files.slice(0, max_number_of_files);
+			}
+
 			this.files = this.files.concat(files);
 			if(this.files.length != 0 && this.attach_doc_image) {
 				this.toggle_image_cropper(0);
@@ -310,13 +339,10 @@ export default {
 		check_restrictions(file) {
 			let { max_file_size, allowed_file_types } = this.restrictions;
 
-			let mime_type = file.type;
-			let extension = '.' + file.name.split('.').pop();
-
 			let is_correct_type = true;
 			let valid_file_size = true;
 
-			if (allowed_file_types.length) {
+			if (allowed_file_types && allowed_file_types.length) {
 				is_correct_type = allowed_file_types.some((type) => {
 					// is this is a mime-type
 					if (type.includes('/')) {

@@ -182,6 +182,9 @@ frappe.ui.form.Attachments = class Attachments {
 			folder: 'Home/Attachments',
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
+			},
+			restrictions: {
+				max_number_of_files: this.frm.meta.max_attachments,
 			}
 		});
 	}
