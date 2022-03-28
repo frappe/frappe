@@ -236,7 +236,7 @@ def add_standard_navbar_items():
 			'is_standard': 1
 		},
 		{
-			'item_label': 'Logout',
+			'item_label': 'Log out',
 			'item_type': 'Action',
 			'action': 'frappe.app.logout()',
 			'is_standard': 1
