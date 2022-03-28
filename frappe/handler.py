@@ -18,6 +18,7 @@ from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
 
 if TYPE_CHECKING:
+	from frappe.core.doctype.user.user import User
 	from frappe.core.doctype.file.file import File
 
 
@@ -155,7 +156,7 @@ def upload_file():
 		else:
 			raise frappe.PermissionError
 	else:
-		user = frappe.get_doc("User", frappe.session.user)
+		user: "User" = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -200,7 +201,7 @@ def upload_file():
 		is_whitelisted(method)
 		return method()
 	else:
-		ret = frappe.get_doc({
+		return frappe.get_doc({
 			"doctype": "File",
 			"attached_to_doctype": doctype,
 			"attached_to_name": docname,
@@ -210,9 +211,7 @@ def upload_file():
 			"file_url": file_url,
 			"is_private": cint(is_private),
 			"content": content
-		})
-		ret.save(ignore_permissions=ignore_permissions)
-		return ret
+		}).save(ignore_permissions=ignore_permissions)
 
 
 @frappe.whitelist(allow_guest=True)
