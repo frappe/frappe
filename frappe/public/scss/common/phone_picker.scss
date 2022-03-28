@@ -73,12 +73,11 @@
 .frappe-control[data-fieldtype='Phone']
 {
 	input {
-		padding-left: 67px;
+		padding-left: 30px;
 	}
 	.selected-phone {
 		display: flex;
 		cursor: pointer;
-		width: 66px;
 		height: 20px;
 		border-radius: 5px;
 		position: absolute;
@@ -86,6 +85,7 @@
 		left: 8px;
 		content: ' ';
 		align-items: center;
+		z-index: 1;
 
 		.country {
 			display: flex;
@@ -113,18 +113,15 @@
 .modal-body {
 	.frappe-control[data-fieldtype='Phone']
 		{
-			input {
-				padding-left: 67px;
-			}
 			.selected-phone {
-				top: calc(50%);
+				top: calc(50% - 0.5px);
 			}
 		}
 }
 
 .data-row.row {
 	.selected-phone {
-		top: calc(50% - 11px);
+		top: calc(50% - 10.1px);
 		z-index: 2;
 	}
 }
@@ -142,6 +139,6 @@
 
 .dt-cell__edit, .filter-field {
 	.selected-phone {
-		top: 5px !important;
+		top: 5.5px !important;
 	}
 }

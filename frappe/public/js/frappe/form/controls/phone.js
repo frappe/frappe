@@ -96,7 +96,8 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	refresh() {
 		super.refresh();
 		// Previously opened doc values showing up on a new doc
-		if (this.frm.doc.__islocal && !this.get_value()) {
+
+		if (this.frm && this.frm.doc.__islocal && !this.get_value()) {
 			this.$input.val("");
 			this.$wrapper.find('.country').text("");
 			if (this.selected_icon.find('svg').hasClass('hide')) {
