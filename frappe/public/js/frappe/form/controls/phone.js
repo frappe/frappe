@@ -1,5 +1,5 @@
 
-import Picker from '../../phone_picker/phone_picker';
+import PhonePicker from '../../phone_picker/phone_picker';
 
 frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlData {
 
@@ -32,6 +32,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			if (this.$input.val()) {
 				this.set_formatted_input(this.get_country(country) +'-'+ this.$input.val());
 			}
+			this.change_padding();
 		};
 
 		this.$wrapper.find('.selected-phone').on('click', (e) => {
@@ -51,7 +52,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	make_icon_input() {
 		let picker_wrapper = $('<div>');
-		this.picker = new Picker({
+		this.picker = new PhonePicker({
 			parent: picker_wrapper,
 			countries: frappe.boot.country_codes
 		});
@@ -103,6 +104,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				this.selected_icon.find('svg').toggleClass('hide');
 				this.selected_icon.find('img').addClass('hide');
 			}
+			this.$input.css("padding-left", 30);
 		}
 		if (this.value && this.value.split("-").length == 2) {
 			let isd = this.value.split("-")[0];
@@ -111,13 +113,6 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.picker.refresh();
 			if (this.picker.country && this.picker.country !== this.$isd.text()) {
 				this.$isd.length && this.$isd.text(isd);
-			}
-			let len = this.$isd.text().length;
-			let diff = len - 3;
-			if (len > 3) {
-				this.$input.css("padding-left", 67 + (diff * 9));
-			} else {
-				this.$input.css("padding-left", 67);
 			}
 		}
 	}
@@ -165,4 +160,13 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		let code = country_codes[country].code;
 		return frappe.utils.flag(code);
 	}
+	change_padding() {
+		let len = this.$isd.text().length;
+			let diff = len - 3;
+			if (len > 3) {
+				this.$input.css("padding-left", 67 + (diff * 7));
+			} else {
+				this.$input.css("padding-left", 67);
+			}
+		}
 };

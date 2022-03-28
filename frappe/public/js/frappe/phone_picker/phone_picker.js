@@ -1,4 +1,4 @@
-class Picker {
+class PhonePicker {
 	constructor(opts) {
 		this.parent = opts.parent;
 		this.width = opts.width;
@@ -91,4 +91,4 @@ class Picker {
 	}
 }
 
-export default Picker;
+export default PhonePicker;
