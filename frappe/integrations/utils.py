@@ -35,26 +35,33 @@ def make_post_request(url, **kwargs):
 def make_put_request(url, **kwargs):
 	return make_request('PUT', url, **kwargs)
 
-def create_request_log(data, integration_type, service_name, name=None, error=None, request_id=None, request_url=None, is_remote_request=False):
-	"""Use `is_remote_request` as True or False with respective of request is Remote or Host. `integration_type` will be deprecated in coming versions"""
-	if isinstance(data, str):
+def create_request_log(data, integration_type, service_name, name=None, error=None, request_header=None, is_remote_request=False, **kwargs):
+	"""
+		DEPRECATED: The parameter integration_type will be removed in the next major release.
+		Use is_remote_request instead.
+	"""
+	if isinstance(data, str) or not kwargs.get('reference_doctype'):
 		data = json.loads(data)
 
 	if isinstance(error, str):
 		error = json.loads(error)
+	
+	if isinstance(request_header, str):
+		request_header = json.loads('request_header')
 
 	integration_request = frappe.get_doc({
 		"doctype": "Integration Request",
 		"integration_type": integration_type,
 		"is_remote_request": is_remote_request,
 		"integration_request_service": service_name,
-		"reference_doctype": data.get("reference_doctype"),
-		"reference_docname": data.get("reference_docname"),
-		"request_id": request_id if request_id else data.get("headers").get("requestid"),
-		"request_url": request_url,
-		"error": json.dumps(error, default=json_handler),
-		"data": json.dumps(data, default=json_handler),
-		"headers": json.dumps(data.get("headers"), default=json_handler)
+		"reference_doctype": kwargs.get('reference_doctype') if kwargs.get('reference_doctype') else data.get('reference_doctype'),
+		"reference_docname":  kwargs.get('reference_name') if kwargs.get('reference_doctype') else data.get('reference_name'),
+		"request_id": kwargs.get('request_id'),
+		"url": kwargs.get('url'),
+		"request_description": kwargs.get('request_description'),
+		"error": frappe.as_json(error, indent=2),
+		"data": frappe.as_json(data, indent=2),
+		"headers": frappe.as_json(request_header, indent=2)
 	})
 
 	if name:
