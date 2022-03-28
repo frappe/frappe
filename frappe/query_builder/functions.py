@@ -44,6 +44,28 @@ CombineDatetime = ImportMapper(
 )
 
 
+class Cast_(Function):
+	def __init__(self, value, as_type, alias=None):
+		if db_type_is.MARIADB and (
+			(hasattr(as_type, "get_sql") and as_type.get_sql().lower() == "varchar") or str(as_type).lower() == "varchar"
+		):
+			# mimics varchar cast in mariadb
+			# as mariadb doesn't have varchar data cast
+			# https://mariadb.com/kb/en/cast/#description
+
+			# ref: https://stackoverflow.com/a/32542095
+			super().__init__("CONCAT", value, "", alias=alias)
+		else:
+			# from source: https://pypika.readthedocs.io/en/latest/_modules/pypika/functions.html#Cast
+			super().__init__("CAST", value, alias=alias)
+			self.as_type = as_type
+
+	def get_special_params_sql(self, **kwargs):
+		if self.name.lower() == "cast":
+			type_sql = self.as_type.get_sql(**kwargs) if hasattr(self.as_type, "get_sql") else str(self.as_type).upper()
+			return "AS {type}".format(type=type_sql)
+
+
 def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
 		Query()
