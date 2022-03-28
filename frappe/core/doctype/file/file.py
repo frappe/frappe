@@ -58,6 +58,7 @@ class File(Document):
 	def before_insert(self):
 		self.set_folder_name()
 		self.set_file_name()
+		self.validate_attachment_limit()
 
 		if not self.is_folder and not self.is_remote_file:
 			self.save_file(content=self.get_content())
@@ -70,7 +71,6 @@ class File(Document):
 		self.set_is_private()
 		self.set_file_name()
 		self.validate_duplicate_entry()
-		self.validate_attachment_limit()
 
 	def validate(self):
 		# Ensure correct formatting and type
