@@ -45,7 +45,7 @@ def create_request_log(data, integration_type, service_name, name=None, error=No
 
 	if isinstance(error, str):
 		error = json.loads(error)
-	
+
 	if isinstance(request_header, str):
 		request_header = json.loads('request_header')
 
