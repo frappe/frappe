@@ -17,6 +17,14 @@
  ],
  "fields": [
   {
+   "fieldname": "ticket_creator",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Ticket Creator",
+   "options": "User"
+  },
+  {
    "fieldname": "ticket_date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -43,6 +51,12 @@
    "options": "\nBug\nSupport Assistance"
   },
   {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "\nLow\nMedium\nHigh"
+  },
+  {
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -58,27 +72,13 @@
    "fieldname": "description",
    "fieldtype": "Text Editor",
    "label": "Description"
-  },
-  {
-   "fieldname": "priority",
-   "fieldtype": "Select",
-   "label": "Priority",
-   "options": "\nLow\nMedium\nHigh"
-  },
-  {
-   "fieldname": "ticket_creator",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Ticket Creator",
-   "options": "User"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-03-28 13:21:25.860104",
+ "modified": "2022-03-28 13:17:56.881291",
  "modified_by": "Administrator",
- "module": "Core",
+ "module": "Contacts",
  "name": "Ticketing Support",
  "owner": "Administrator",
  "permissions": [
