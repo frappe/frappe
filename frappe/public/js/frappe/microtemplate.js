@@ -138,6 +138,7 @@ frappe.render_tree = function(opts) {
 	opts.base_url = frappe.urllib.get_base_url();
 	opts.landscape = false;
 	opts.print_css = frappe.boot.print_css;
+	opts.print_format_css_path = frappe.assets.bundled_asset('print_format.bundle.css');
 	var tree = frappe.render_template("print_tree", opts);
 	var w = window.open();
 

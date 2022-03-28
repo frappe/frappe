@@ -254,8 +254,8 @@ class User(Document):
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
-			print(frappe.get_traceback())
-			pass # email server not set, don't send email
+			# email server not set, don't send email
+			frappe.log_error(frappe.get_traceback())
 
 	@Document.hook
 	def validate_reset_password(self):
@@ -266,7 +266,7 @@ class User(Document):
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
-		self.db_set("reset_password_key_datetime", now_datetime())
+		self.db_set("last_reset_password_key_datetime", now_datetime())
 
 		url = "/update-password?key=" + key
 		if password_expired:
@@ -730,12 +730,12 @@ def _get_user_for_update_password(key, old_password):
 	# verify old password
 	result = frappe._dict()
 	if key:
-		user = frappe.db.get_value("User", {"reset_password_key": key}, ["name", "reset_password_key_datetime"])
-		result.user, reset_password_key_datetime = user if user else (None, None)
+		user = frappe.db.get_value("User", {"reset_password_key": key}, ["name", "last_reset_password_key_datetime"])
+		result.user, last_reset_password_key_datetime = user if user else (None, None)
 
 		if result.user:
 			reset_password_link_expiry = frappe.db.get_single_value("System Settings", "reset_password_link_expiry_seconds")
-			if reset_password_link_expiry and now_datetime() > reset_password_key_datetime + timedelta(seconds=reset_password_link_expiry):
+			if reset_password_link_expiry and now_datetime() > last_reset_password_key_datetime + timedelta(seconds=reset_password_link_expiry):
 				result.message = _("The Link specified has been expired")
 		else:
 			result.message = _("The Link specified has either been used before or Invalid")

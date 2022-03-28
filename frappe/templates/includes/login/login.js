@@ -313,7 +313,7 @@ var continue_otp_app = function (setup, qrcode) {
 	var qrcode_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
 
 	if (setup) {
-		direction = $('<div>').attr('id', 'qr_info').text('{{ _("Enter Code displayed in OTP App.") }}');
+		direction = $('<div>').attr('id', 'qr_info').html('{{ _("Enter Code displayed in OTP App.") }}');
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
 	} else {

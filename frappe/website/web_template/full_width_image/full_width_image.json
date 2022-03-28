@@ -1,4 +1,5 @@
 {
+ "__unsaved": 1,
  "creation": "2020-04-17 16:03:35.676241",
  "docstatus": 0,
  "doctype": "Web Template",
@@ -17,8 +18,9 @@
   }
  ],
  "idx": 0,
- "modified": "2020-09-11 15:52:40.656939",
+ "modified": "2022-03-15 14:17:17.563982",
  "modified_by": "Administrator",
+ "module": "Website",
  "name": "Full Width Image",
  "owner": "Administrator",
  "standard": 1,

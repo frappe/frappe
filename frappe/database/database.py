@@ -10,7 +10,7 @@ import re
 import string
 from contextlib import contextmanager
 from time import time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
 
@@ -119,6 +119,9 @@ class Database(object):
 		if not run:
 			return query
 
+		# remove whitespace / indentation from start and end of query
+		query = query.strip()
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -142,8 +145,6 @@ class Database(object):
 			self.log_query(query, values, debug, explain)
 
 			if values!=():
-				if isinstance(values, dict):
-					values = dict(values)
 
 				# MySQL-python==1.2.5 hack!
 				if not isinstance(values, (dict, tuple, list)):
@@ -356,6 +357,7 @@ class Database(object):
 		order_by="KEEP_DEFAULT_ORDERING",
 		cache=False,
 		for_update=False,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -385,17 +387,27 @@ class Database(object):
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct)
+		result = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct, limit=1)
 
 		if not run:
-			return ret
+			return result
 
-		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
+		if not result:
+			return None
+
+		row = result[0]
+
+		if len(row) > 1 or as_dict:
+			return row
+		else:
+			# single field is requested, send it without wrapping in containers
+			return row[0]
+
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
 		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
-		run=True, pluck=False, distinct=False):
+		*, run=True, pluck=False, distinct=False, limit=None):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -425,14 +437,15 @@ class Database(object):
 
 		if isinstance(filters, list):
 			out = self._get_value_for_many_names(
-				doctype,
-				filters,
-				fieldname,
-				order_by,
+				doctype=doctype,
+				names=filters,
+				field=fieldname,
+				order_by=order_by,
 				debug=debug,
 				run=run,
 				pluck=pluck,
 				distinct=distinct,
+				limit=limit,
 			)
 
 		else:
@@ -446,17 +459,18 @@ class Database(object):
 					if order_by:
 						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
 					out = self._get_values_from_table(
-						fields,
-						filters,
-						doctype,
-						as_dict,
-						debug,
-						order_by,
-						update,
+						fields=fields,
+						filters=filters,
+						doctype=doctype,
+						as_dict=as_dict,
+						debug=debug,
+						order_by=order_by,
+						update=update,
 						for_update=for_update,
 						run=run,
 						pluck=pluck,
-						distinct=distinct
+						distinct=distinct,
+						limit=limit,
 					)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -484,6 +498,7 @@ class Database(object):
 		as_dict=False,
 		debug=False,
 		update=None,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -558,7 +573,7 @@ class Database(object):
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
-	def set_single_value(self, doctype, fieldname, value, *args, **kwargs):
+	def set_single_value(self, doctype: str, fieldname: Union[str, Dict], value: Optional[Union[str, int]] = None, *args, **kwargs):
 		"""Set field value of Single DocType.
 
 		:param doctype: DocType of the single object
@@ -618,13 +633,15 @@ class Database(object):
 		filters,
 		doctype,
 		as_dict,
-		debug,
+		*,
+		debug=False,
 		order_by=None,
 		update=None,
 		for_update=False,
 		run=True,
 		pluck=False,
 		distinct=False,
+		limit=None,
 	):
 		field_objects = []
 
@@ -643,6 +660,7 @@ class Database(object):
 			field_objects=field_objects,
 			fields=fields,
 			distinct=distinct,
+			limit=limit,
 		)
 		if (
 			fields == "*"
@@ -656,7 +674,7 @@ class Database(object):
 		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False):
+	def _get_value_for_many_names(self, doctype, names, field, order_by, *, debug=False, run=True, pluck=False, distinct=False, limit=None):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
@@ -669,6 +687,7 @@ class Database(object):
 				as_list=1,
 				run=run,
 				distinct=distinct,
+				limit_page_length=limit
 			)
 		else:
 			return {}
@@ -884,27 +903,39 @@ class Database(object):
 		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
 
 	def exists(self, dt, dn=None, cache=False):
-		"""Returns true if document exists.
+		"""Return the document name of a matching document, or None.
 
-		:param dt: DocType name.
-		:param dn: Document name or filter dict."""
-		if isinstance(dt, str):
-			if dt!="DocType" and dt==dn:
-				return True # single always exists (!)
-			try:
-				return self.get_value(dt, dn, "name", cache=cache)
-			except Exception:
-				return None
+		Note: `cache` only works if `dt` and `dn` are of type `str`.
 
-		elif isinstance(dt, dict) and dt.get('doctype'):
-			try:
-				conditions = []
-				for d in dt:
-					if d == 'doctype': continue
-					conditions.append([d, '=', dt[d]])
-				return self.get_all(dt['doctype'], filters=conditions, as_list=1)
-			except Exception:
-				return None
+		## Examples
+
+		Pass doctype and docname (only in this case we can cache the result)
+
+		```
+		exists("User", "jane@example.org", cache=True)
+		```
+
+		Pass a dict of filters including the `"doctype"` key:
+
+		```
+		exists({"doctype": "User", "full_name": "Jane Doe"})
+		```
+
+		Pass the doctype and a dict of filters:
+
+		```
+		exists("User", {"full_name": "Jane Doe"})
+		```
+		"""
+		if dt != "DocType" and dt == dn:
+			# single always exists (!)
+			return dn
+
+		if isinstance(dt, dict):
+			dt = dt.copy() # don't modify the original dict
+			dt, dn = dt.pop("doctype"), dt
+
+		return self.get_value(dt, dn, ignore=True, cache=cache)
 
 	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
