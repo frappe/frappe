@@ -543,9 +543,8 @@ class DatabaseQuery(object):
 		if tname not in self.tables:
 			self.append_table(tname)
 
-		column_name = self.cast_name(f.fieldname) if (
-			'ifnull(' in f.fieldname
-			) else self.cast_name(f"{tname}.`{f.fieldname}`")
+		column_name = f.fieldname if 'ifnull(' in f.fieldname else f"{tname}.`{f.fieldname}`"
+		column_name = self.cast_name(column_name)
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))

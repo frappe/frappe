@@ -1,7 +1,6 @@
 from frappe.database.sequence import create_sequence, get_next_val, set_next_val
 from frappe.tests.utils import FrappeTestCase
 
-import unittest
 import pymysql
 import psycopg2
 
