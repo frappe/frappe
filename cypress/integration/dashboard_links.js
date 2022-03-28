@@ -1,5 +1,6 @@
 import doctype_with_child_table from '../fixtures/doctype_with_child_table';
 import child_table_doctype from '../fixtures/child_table_doctype';
+import child_table_doctype_1 from '../fixtures/child_table_doctype_1';
 import doctype_to_link from '../fixtures/doctype_to_link';
 const doctype_to_link_name = doctype_to_link.name;
 const child_table_doctype_name = child_table_doctype.name;
@@ -9,6 +10,7 @@ context('Dashboard links', () => {
 		cy.visit('/login');
 		cy.login();
 		cy.insert_doc('DocType', child_table_doctype, true);
+		cy.insert_doc('DocType', child_table_doctype_1, true);
 		cy.insert_doc('DocType', doctype_with_child_table, true);
 		cy.insert_doc('DocType', doctype_to_link, true);
 		return cy.window().its('frappe').then(frappe => {
