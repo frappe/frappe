@@ -6,7 +6,7 @@ import mimetypes
 import os
 import re
 import shutil
-from typing import Union, List
+from typing import Union, List, Optional
 import zipfile
 
 from requests.exceptions import HTTPError, SSLError
@@ -16,9 +16,9 @@ from urllib.parse import quote, unquote
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, cint, encode, get_files_path, get_hook_method
+from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method
 from frappe.utils.image import strip_exif_data, optimize_image
-from frappe.utils.file_manager import is_safe_path, safe_b64decode
+from frappe.utils.file_manager import is_safe_path
 
 from .exceptions import MaxFileSizeReachedError, FolderNotEmpty, AttachmentLimitReached
 from .utils import *
