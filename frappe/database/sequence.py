@@ -22,29 +22,29 @@ def create_sequence(
 
 	query += f" {sequence_name}"
 
-	if cache:
-		query += f" cache {cache}"
-	else:
-		# in postgres, the default is cache 1
-		if db.db_type == "mariadb":
-			query += " nocache"
-
-	if start_value:
-		# default is 1
-		query += f" start with {start_value}"
-
 	if increment_by:
 		# default is 1
 		query += f" increment by {increment_by}"
 
 	if min_value:
 		# default is 1
-		query += f" min value {min_value}"
+		query += f" minvalue {min_value}"
 
 	if max_value:
-		query += f" max value {max_value}"
+		query += f" maxvalue {max_value}"
+
+	if start_value:
+		# default is 1
+		query += f" start {start_value}"
+
+	# in postgres, the default is cache 1 / no cache
+	if cache:
+		query += f" cache {cache}"
+	elif db.db_type == "mariadb":
+		query += " nocache"
 
 	if not cycle:
+		# in postgres, default is no cycle
 		if db.db_type == "mariadb":
 			query += " nocycle"
 	else:
