@@ -143,18 +143,6 @@ frappe.provide("frappe.views");
 				}
 				updater.set({ cards: cards });
 			},
-			update_doc: function(updater, doc, card) {
-				var state = this;
-				return frappe.call({
-					method: method_prefix + "update_doc",
-					args: { doc: doc },
-					freeze: true
-				}).then(function(r) {
-					var updated_doc = r.message;
-					var updated_card = prepare_card(card, state, updated_doc);
-					fluxify.doAction('update_card', updated_card);
-				});
-			},
 			update_order: function(updater) {
 				// cache original order
 				const _cards = this.cards.slice();
@@ -578,7 +566,7 @@ frappe.provide("frappe.views");
 
 		function add_task_link() {
 			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
-			self.$card.find('.kanban-card-redirect').attr('href', taskLink);			
+			self.$card.find('.kanban-card-redirect').attr('href', taskLink);
 		}
 
 		function refresh_dialog() {
