@@ -122,7 +122,6 @@ class Dashboard {
 					widgets: this.charts,
 				});
 				this.setup_global_filters();
-
 			})
 		});
 	}
@@ -171,98 +170,72 @@ class Dashboard {
 
 	setup_global_filters() {
 		let me = this;
-		this.global_filter = $(
-			`<div><div class="global-filter btn btn-default float-right mt-2 btn-xs">
-				${frappe.utils.icon('filter', 'sm')} Filter
-			</div><div>`
-		);
-		let container = this.wrapper.find('.widget-group').first();
-		this.global_filter.appendTo(container);
-		
-		let fields = [
-			{
-				"fieldtype": "Section Break"
-			},
-			{
-				"fieldname": "period",
-				"label": "Period",
-				"fieldtype": "Select",
-				"options": [
-					{
-						"value": "Monthly",
-						"label": "Monthly"
-					},
-					{
-						"value": "Quarterly",
-						"label": "Quarterly"
-					},
-					{
-						"value": "Half-Yearly",
-						"label": "Half-Yearly"
-					},
-					{
-						"value": "Yearly",
-						"label": "Yearly"
+		frappe.db.get_doc('Dashboard', this.dashboard_name).then(doc => {
+			let filters = doc.global_filters;
+			//fields from filters in glbal filter field
+			if (filters.length > 0) {
+				this.global_filter = $(
+					`<div class="d-flex w-100 justify-content-end"><div class="global-filter btn btn-default  mt-2 mb-3 btn-xs">
+						${frappe.utils.icon('filter', 'sm')} Filter
+					</div><div>`
+				);
+				let container = this.wrapper.find('.widget-group').last();
+				this.global_filter.insertBefore(container);
+				let fields = []
+				filters.map((filter) => {
+					let exist = fields.find(field => field.fieldname == filter.chart_filter_name)
+					if (exist)
+						exist['charts'].push(filter.chart)
+
+					else {
+						fields.push({
+							label: filter.filter,
+							fieldname: filter.chart_filter_name,
+							fieldtype: filter.fieldtype,
+							options: JSON.parse(filter.options),
+							charts: [filter.chart],
+							get_data: filter.get_data
+						})
 					}
-				],
-				"default": "Monthly"
-			},
-			{
-				"fieldname": "fiscal_year",
-				"label": "Fiscal Year",
-				"fieldtype": "Link",
-				"options": "Fiscal Year",
-			},
-			{
-				"fieldname": "company",
-				"label": "Company",
-				"fieldtype": "Link",
-				"width": "80",
-				"options": "Company",
-			},
-			{
-				"fieldname": "from_date",
-				"label": "From Date",
-				"fieldtype": "Date",
-				"width": "80",
-			},
-			{
-				"fieldname": "to_date",
-				"label": "To Date",
-				"fieldtype": "Date",
-				"width": "80",
-			}
-		];
-		//get the chart doc object
-		let charts = this.chart_group.widgets_list
-		let dialog = new frappe.ui.Dialog({
-			title: __("Set Filters for all charts"),
-			fields: fields,
-			primary_action: function () {
-				let values = this.get_values();
-				if (values) {
-					charts.map((chart) => {
-						this.hide();
-						//Sets the filters only of those fields which has been updated
-						for(var value in values) {
-						chart.filters[value] = values[value];
-						me.update_charts(chart)
+				});
+				//dialog for global filters
+				let dialog = new frappe.ui.Dialog({
+					title: __("Set Filters for all charts"),
+					fields: fields,
+					primary_action: function () {
+						let dialog_object = this;
+						let values = this.get_values();
+						if (values) {
+							Object.keys(values).forEach(function (key) {
+								let charts = [];
+								let filter_charts = fields.find((filter) => filter.fieldname == key ).charts;
+								me.chart_group.widgets_list.map((chart)=> {
+									if(filter_charts.includes(chart.chart_name)) charts.push(chart)
+								})
+								charts.map((chart) => {
+
+									dialog_object.hide()
+									//Sets the filters only of those fields which has been updated
+									for(var value in values) {
+									chart.filters[value] = values[value];
+									me.update_charts(chart)
+									}
+								})
+							});
 						}
-					})
-
-				}
-			},
-			primary_action_label: "Set"
-		});
-
-		this.global_filter.on("click", () => {
-			dialog.show();
+					},
+					primary_action_label: "Set"
+				});
+				this.global_filter.on("click", () => {
+					dialog.show();
+				})
+			}
 		})
 	}
 
 	update_charts(chart) {
-			chart.save_chart_config_for_user({'filters': chart.chart_settings.filters});
-			chart.fetch_and_update_chart();
+		chart.save_chart_config_for_user({ 'filters': chart.chart_settings.filters });
+		chart.fetch_and_update_chart();
 	}
 
 	set_dropdown() {
