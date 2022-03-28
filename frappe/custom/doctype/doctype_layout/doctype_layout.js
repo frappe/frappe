@@ -15,10 +15,15 @@ frappe.ui.form.on('DocType Layout', {
 					if ((frm.doc.fields).length == 1) {
 						frm.get_field("fields").grid.grid_rows[0].remove();
 					}
+
+					let field_names = [];
+
 					for (let f of frappe.get_doc('DocType', frm.doc.document_type).fields) {
-						frm.add_child('fields', { fieldname: f.fieldname, label: f.label });
+						frm.add_child('fields', { label: f.label });
+						field_names.push(f.fieldname)
 					}
-					frm.refresh_fields();
+					frm.fields_dict['fields'].grid.update_docfield_property('fieldname', 'options', field_names);
+					frm.refresh_field('fields');
 				}
 			}
 		});
