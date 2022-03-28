@@ -1,11 +1,12 @@
 from frappe.database.sequence import create_sequence, get_next_val, set_next_val
+from frappe.tests.utils import FrappeTestCase
 
 import unittest
 import pymysql
 import psycopg2
 
 
-class TestSequence(unittest.TestCase):
+class TestSequence(FrappeTestCase):
 	def test_set_next_val(self):
 		seq_name = "test_set_next_val_1"
 		create_sequence(seq_name, check_not_exists=True)
@@ -34,7 +35,6 @@ class TestSequence(unittest.TestCase):
 			self.assertEqual(e.args[0], 4084)
 		except psycopg2.DataError as e:
 			self.assertEqual("2200H", e.pgcode)
-			print(e)
 		else:
 			self.fail("NEXTVAL didn't raise any error upon sequence's end")
 
