@@ -11,10 +11,14 @@ frappe.ui.form.on('DocType Layout', {
 		frm.set_fields_as_options('fields', frm.doc.document_type, null, [], 'fieldname').then(() => {
 			// child table empty? then show all fields as default
 			if (frm.doc.document_type) {
-				if (!(frm.doc.fields || []).length) {
+				if ((frm.doc.fields).length == 0 || (frm.doc.fields).length == 1) {
+					if ((frm.doc.fields).length == 1) {
+						frm.get_field("fields").grid.grid_rows[0].remove();
+					}
 					for (let f of frappe.get_doc('DocType', frm.doc.document_type).fields) {
 						frm.add_child('fields', { fieldname: f.fieldname, label: f.label });
 					}
+					frm.refresh_fields();
 				}
 			}
 		});
