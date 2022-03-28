@@ -37,9 +37,7 @@ def set_new_name(doc):
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
-		from frappe.database.sequence import get_next_val
-
-		doc.name = get_next_val(doc.doctype)
+		doc.name = frappe.db.get_next_sequence_val(doc.doctype)
 		return
 
 	if getattr(doc, "amended_from", None):
@@ -322,11 +320,9 @@ def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = Non
 
 	if isinstance(name, int):
 		if is_autoincremented(doctype):
-			from frappe.database.sequence import set_next_val
-
-			# this will set the sequence val to be the provided name and set it to be used
-			# so that the sequence will start from the next val of the setted val(name)
-			set_next_val(doctype, name, is_val_used=True)
+			# this will set the sequence value to be the provided name/value and set it to be used
+			# so that the sequence will start from the next value
+			frappe.db.set_next_sequence_val(doctype, name, is_val_used=True)
 			return name
 
 		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)
