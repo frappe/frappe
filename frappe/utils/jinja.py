@@ -54,7 +54,8 @@ def validate_template(html):
 	"""Throws exception if there is a syntax error in the Jinja Template"""
 	import frappe
 	from jinja2 import TemplateSyntaxError
-
+	if not html:
+		return
 	jenv = get_jenv()
 	try:
 		jenv.from_string(html)
