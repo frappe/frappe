@@ -13,8 +13,12 @@
   "add_container",
   "add_top_padding",
   "add_bottom_padding",
+  "add_border_at_top",
+  "add_border_at_bottom",
   "add_shade",
-  "hide_block"
+  "hide_block",
+  "add_background_image",
+  "background_image"
  ],
  "fields": [
   {
@@ -68,18 +72,42 @@
    "default": "1",
    "fieldname": "add_top_padding",
    "fieldtype": "Check",
-   "label": "Add Space on Top"
+   "label": "Add Space at Top"
   },
   {
    "default": "1",
    "fieldname": "add_bottom_padding",
    "fieldtype": "Check",
-   "label": "Add Space on Bottom"
+   "label": "Add Space at Bottom"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_border_at_top",
+   "fieldtype": "Check",
+   "label": "Add Border at Top"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_border_at_bottom",
+   "fieldtype": "Check",
+   "label": "Add Border at Bottom"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_background_image",
+   "fieldtype": "Check",
+   "label": "Add Background Image"
+  },
+  {
+   "depends_on": "add_background_image",
+   "fieldname": "background_image",
+   "fieldtype": "Attach Image",
+   "label": "Background Image"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-05-11 15:21:54.247652",
+ "modified": "2022-03-21 14:23:32.665108",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page Block",
@@ -88,5 +116,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -246,7 +246,7 @@ class TestDocument(unittest.TestCase):
 			'fields': [
 				{'label': 'Currency', 'fieldname': 'currency', 'reqd': 1, 'fieldtype': 'Currency'},
 			]
-		}).insert()
+		}).insert(ignore_if_duplicate=True)
 
 		frappe.delete_doc_if_exists("Currency", "INR", 1)
 
@@ -260,15 +260,19 @@ class TestDocument(unittest.TestCase):
 			'doctype': 'Test Formatted',
 			'currency': 100000
 		})
-		self.assertEquals(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+		self.assertEqual(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+
+		# should work even if options aren't set in df
+		# and currency param is not passed
+		self.assertIn("0", d.get_formatted("currency"))
 
 	def test_limit_for_get(self):
 		doc = frappe.get_doc("DocType", "DocType")
 		# assuming DocType has more than 3 Data fields
-		self.assertEquals(len(doc.get("fields", limit=3)), 3)
+		self.assertEqual(len(doc.get("fields", limit=3)), 3)
 
 		# limit with filters
-		self.assertEquals(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
+		self.assertEqual(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
 	def test_virtual_fields(self):
 		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked

@@ -10,6 +10,7 @@ import frappe.desk.form.meta
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.utils.data import cstr
 from frappe import _
 from frappe import _dict
 from urllib.parse import quote
@@ -124,7 +125,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	update_user_info(docinfo)
 
 	frappe.response["docinfo"] = docinfo
-	return docinfo
 
 def add_comments(doc, docinfo):
 	# divide comments into separate lists
@@ -312,6 +312,7 @@ def get_assignments(dt, dn):
 			'reference_type': dt,
 			'reference_name': dn,
 			'status': ('!=', 'Cancelled'),
+			'allocated_to': ("is", "set")
 		})
 
 @frappe.whitelist()
@@ -356,7 +357,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(name), email[1])
+	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(cstr(name)), email[1])
 
 def get_automatic_email_link():
 	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")
