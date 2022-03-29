@@ -72,7 +72,8 @@ class ToDo(Document):
 			assignments = frappe.get_all("ToDo", filters={
 				"reference_type": self.reference_type,
 				"reference_name": self.reference_name,
-				"status": ("!=", "Cancelled")
+				"status": ("!=", "Cancelled"),
+				"allocated_to": ("is", "set")
 			}, pluck="allocated_to")
 			assignments.reverse()
 

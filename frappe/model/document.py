@@ -276,7 +276,8 @@ class Document(BaseDocument):
 			delattr(self, "__unsaved")
 
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
-			follow_document(self.doctype, self.name, frappe.session.user)
+			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
+				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def save(self, *args, **kwargs):
@@ -1125,7 +1126,8 @@ class Document(BaseDocument):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
-				follow_document(self.doctype, self.name, frappe.session.user)
+				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
+					follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def hook(f):
