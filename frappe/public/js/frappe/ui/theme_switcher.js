@@ -112,13 +112,8 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 
 	toggle_theme(theme) {
 		this.current_theme = theme.toLowerCase();
-<<<<<<< HEAD
 		document.documentElement.setAttribute("data-theme", this.current_theme);
-		frappe.show_alert("Theme Changed", 3);
-=======
-		document.documentElement.setAttribute("data-theme-mode", this.current_theme);
 		frappe.show_alert(__("Theme Changed"), 3);
->>>>>>> d76684ed41 (fix: set translatable on show alert (#16427))
 
 		frappe.xcall("frappe.core.doctype.user.user.switch_theme", {
 			theme: toTitle(theme)
