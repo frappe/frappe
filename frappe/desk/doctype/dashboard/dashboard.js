@@ -3,7 +3,6 @@
 
 frappe.ui.form.on('Dashboard', {
 	refresh: function (frm) {
-		frm.toggle_display('global_filters', true);
 		frm.trigger('get_global_filters');
 		frm.add_custom_button(__("Show Dashboard"),
 			() => frappe.set_route('dashboard-view', frm.doc.name)
