@@ -17,13 +17,15 @@ context('Date Control', () => {
 		});
 	});
 	it('Selecting a date from the datepicker', () => {
-		//Navigating to the new form for the newly created doctype
+		cy.visit('/app/system-settings/System%20Settings');
+		cy.contains('Date and Number Format').click();
+		cy.get('select[data-fieldname="date_format"]').select('dd-mm-yyyy');
+		cy.get('.page-head .page-actions').findByRole('button', {name: 'Save'}).click();
 		cy.new_form('Test Date Control');
-
-		//Clicking on the field for date
-		cy.get('.frappe-control[data-fieldname=date] input').click();
+		cy.get_field('date','Date').click();
 		cy.get('.datepicker--nav-title').click();
 		cy.get('.datepicker--nav-title').click({force: true});
+
 
 		//Inputing values in the date field
 		cy.get('.datepicker--years > .datepicker--cells > .datepicker--cell[data-year=2020]').click();
@@ -31,12 +33,11 @@ context('Date Control', () => {
 		cy.get('.datepicker--days > .datepicker--cells > .datepicker--cell[data-date=15]').click();
 
 		//Verifying if the selected date is displayed in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', '15-01-2020');		
+		cy.get_field('date','Date').should('have.value', '15-01-2020');		
 	});
 
 	it('Checking next and previous button', () => {
-		//Clicking on the field for date
-		cy.get('.frappe-control[data-fieldname=date] input').click();	
+		cy.get_field('date','Date').click();	
 
 		//Clicking on the next button in the datepicker
 		cy.get('.datepicker--nav-action[data-action=next]').click();
@@ -45,11 +46,9 @@ context('Date Control', () => {
 		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', '15-02-2020');	
+		cy.get_field('date','Date').should('have.value', '15-02-2020');	
 		cy.wait(500);
-
-		//Clicking on the field for date
-		cy.get('.frappe-control[data-fieldname=date] input').click();
+		cy.get_field('date','Date').click();
 
 		//Clicking on the previous button in the datepicker
 		cy.get('.datepicker--nav-action[data-action=prev]').click();
@@ -58,12 +57,11 @@ context('Date Control', () => {
 		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', '15-01-2020');
+		cy.get_field('date','Date').should('have.value', '15-01-2020');
 	});
 
 	it('Clicking on "Today" button gives todays date', () => {
-		//Clicking on the field for date
-		cy.get('.frappe-control[data-fieldname=date] input').click();	
+		cy.get_field('date','Date').click();	
 
 		//Clicking on "Today" button
 		cy.get('.datepicker--button').click();
@@ -73,10 +71,10 @@ context('Date Control', () => {
 		cy.log(todaysDate);
 
 		//Verifying if clicking on "Today" button matches today's date
-		cy.get('.frappe-control[data-fieldname=date] input').should('have.value', todaysDate);
+		cy.get_field('date','Date').should('have.value', todaysDate);
 	});
 
-	it('Configuring first day of the week', () => {
+	it.only('Configuring first day of the week', () => {
 		//Visiting "System Settings" page
 		cy.visit('/app/system-settings/System%20Settings');
 
@@ -84,14 +82,10 @@ context('Date Control', () => {
 		cy.contains('Date and Number Format').click();
 
 		//Changing the configuration for "First day of the week" field
-		cy.get('div[data-fieldname="first_day_of_the_week"] > .form-group > .control-input-wrapper > .control-input > .input-with-feedback').select('Tuesday');
+		cy.get('select[data-fieldname="first_day_of_the_week"]').select('Tuesday');
 		cy.get('.page-head .page-actions').findByRole('button', {name: 'Save'}).click();
-
-		//Visiting the new form
 		cy.new_form('Test Date Control');
-
-		//Inputing date in the date field
-		cy.get('.frappe-control[data-fieldname=date] input').click();
+		cy.get_field('date','Date').click();
 
 		//Checking if the first day shown in the datepicker is the one which is configured in the System Settings Page
 		cy.get('.datepicker--days-names').eq(0).should('contain.text', 'Tu');
