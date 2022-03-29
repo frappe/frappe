@@ -572,7 +572,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.show_loading_screen();
 		let filters;
 		let report_json = this.report_doc.json;
-		
 		if (report_json && JSON.parse(report_json).filters) {
 			filters = JSON.parse(report_json).filters;
 		} else filters = this.get_filter_values(true);
