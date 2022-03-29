@@ -98,10 +98,8 @@ context('Date Control', () => {
 		//Adding event
 		cy.visit('/app/event');
 		cy.click_listview_primary_button('Add Event');
-		cy.get('textarea[data-fieldname=subject]').type('Test');
-		//cy.fill_field('subject','Test','textarea');
-		cy.get('form > .has-error > .form-group > .control-input-wrapper > .control-input > .input-with-feedback[data-fieldtype="Datetime"]').click();
-		cy.get('.datepicker.active > .datepicker--content > .datepicker--days > .datepicker--cells > .datepicker--cell[data-date=10]').click({force: true});
+		cy.fill_field('subject', 'Test', 'Textarea');
+		cy.fill_field('starts_on', '01-01-2022 00:00:00', 'Datetime');
 		cy.click_listview_primary_button('Save');
 		cy.visit('/app/event');
 		cy.get('.custom-btn-group > .btn').click();
