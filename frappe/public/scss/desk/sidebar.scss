@@ -61,6 +61,12 @@ body[data-route^="Module"] .main-menu {
 
 // form sidebar
 .form-sidebar {
+	.sidebar-action {
+		font-size: var(--text-sm);
+		color: var(--primary);
+		margin-top: 10px;
+	}
+	
 	.sidebar-menu {
 		margin-bottom: var(--margin-lg);
 	}
@@ -371,16 +377,17 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-.filters-search {
+.filters-search, .input-area, .saved-templates {
 	margin-bottom: 10px;
 }
 
-.attachment-row, .form-tag-row {
+.attachment-row, .form-tag-row, .saved-templates {
 	margin-bottom: var(--margin-sm);
 	max-width: 100%;
 	.data-pill {
 		background-color: var(--control-bg-on-gray);
 		box-shadow: none;
+		margin-bottom: 3px;
 	}
 }
 
