@@ -10,3 +10,5 @@ class DocTypeLayout(Document):
 	def validate(self):
 		if not self.route:
 			self.route = slug(self.name)
+		if not self.fields:
+			frappe.throw(_("Fields cannot be empty."))
