@@ -575,7 +575,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		
 		if (report_json && JSON.parse(report_json).filters) {
 			filters = JSON.parse(report_json).filters;
-		}	else filters = this.get_filter_values(true);
+		} else filters = this.get_filter_values(true);
 
 		// only one refresh at a time
 		if (this.last_ajax) {
