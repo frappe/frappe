@@ -5,10 +5,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this.doctype = doctype;
 		this.frm = frm;
 		Object.assign(this, arguments[0]);
-		this.can_add_global = frappe.user.has_role([
-			'System Manager',
-			'Administrator',
-		]);
 		this.templates = [];
 		if (this.frm.is_new() || this.frm.doc.docstatus == 0) {
 			this.make();
@@ -21,10 +17,10 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		// init dom
 		this.wrapper.html(`
 			<li class="input-area"></li>
+			<li class="saved-templates"></li>
 			<li class="sidebar-action">
 				<a class="saved-templates-preview">${__('Show Saved Template')}</a>
 			</li>
-			<div class="saved-templates"></div>
 		`);
 
 		this.$input_area = this.wrapper.find('.input-area');
@@ -40,9 +36,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				input_class: 'input-xs',
 			},
 			parent: this.$input_area,
-			only_input:1,
 			render_input: 1,
 		});
+
 	}
 
 	bind() {
@@ -64,12 +60,12 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	filter_template(template) {
-		return `<div class="list-link filter-pill list-sidebar-button btn btn-default" data-name="${
+		return `<button class="list-link filter-pill list-sidebar-button data-pill btn" data-name="${
 			template.name
 		}">
 		<a class="ellipsis template-name">${template.template_name}</a>
 			<a class="remove">${frappe.utils.icon('close')}</a>
-		</div>`
+		</button>`
 	}
 
 	bind_save_template() {
@@ -77,7 +73,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			frappe.utils.debounce((e) => {
 				const template_name = this.template_input.get_value();
 				const has_value = Boolean(template_name);
-				const data = this.frm.doc;
 
 				if (e.which === frappe.ui.keyCode["ENTER"]) {
 					if (!has_value || this.template_exists(template_name)) return;
@@ -112,14 +107,10 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 					const sleep = frappe.utils.sleep;
 
 					frappe.dom.freeze(__('Copying {0}', [doc.doctype]) + '...');
-					// to avoid abrupt UX
-					// wait for activity feedback
 					sleep(300).then(() => {
 						if (!this.frm.doc.__islocal) {
 							let res = frappe.model.with_doctype(doc.doctype, () => {
 								let newdoc = frappe.model.copy_doc(doc);
-								newdoc.__newname = doc.name;
-								delete doc.name;
 								newdoc.idx = null;
 								newdoc.__run_link_triggers = false;
 								frappe.set_route('Form', newdoc.doctype, newdoc.name);
@@ -127,7 +118,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 							});
 							res && res.fail(frappe.dom.unfreeze);
 						} else {
-							let newdoc = this.update_doc(doc);
+							let newdoc = this.update_existing_doc(doc);
 							newdoc.__run_link_triggers = false;
 							frappe.dom.unfreeze();
 							this.frm.refresh_fields();
@@ -137,9 +128,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			} catch (e) {
 				//
 			}
-			this.$input_area.clear().then(() => {
-				this.$input_area.add(this.get_template_values(name));
-			});
 		})
 	}
 
@@ -150,7 +138,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			const applied_templates = this.get_template_values(name);
 			$template.remove();
 			this.remove_template(name).then(() => this.refresh());
-			this.$input_area.remove_templates(applied_templates);
+			this.$input_area.remove_filters(applied_templates);
 		});
 	}
 
@@ -204,9 +192,8 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	get_template_data(template_name) {
-		frappe.db.get_value("Document Template", template_name, 'data', (r) => {
-			this.template_data = r.data;
-		})
+		const template = this.templates.find((template) => template.name === template_name);
+		this.template_data = template.data;
 	}
 
 	remove_template(template_name) {
@@ -214,7 +201,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		return frappe.db.delete_doc('Document Template', template_name);
 	}
 
-	update_doc(doc, from_amend, parent_doc, parentfield) {
+	update_existing_doc(doc, from_amend, parent_doc, parentfield) {
 		var no_copy_list = [
 			"name",
 			"amended_from",
@@ -222,17 +209,18 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			"cancel_reason"
 		];
 
-		if (!parentfield) var newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name, () => {
+		var newdoc;
+
+		if (!parentfield) newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name, () => {
 			doc.doctype,
 			parent_doc,
 			parentfield
 		});
-		else { var newdoc = this.frm.get_doc(doc.doctype, {'parent': this.frm.doc.name}, () => {
+		else newdoc = frappe.model.get_new_doc(
 			doc.doctype,
 			parent_doc,
 			parentfield
-		});
-	}
+		);
 
 		for (var key in doc) {
 			// dont copy name and blank fields
@@ -248,9 +236,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				if (frappe.model.table_fields.includes(df.fieldtype)) {
 					for (var i = 0, j = value.length; i < j; i++) {
 						var d = value[i];
-						this.update_doc(
+						this.update_existing_doc(
 							d,
-							0,
+							from_amend,
 							newdoc,
 							df.fieldname
 						);
@@ -262,7 +250,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		}
 		newdoc.lft = null;
 		newdoc.rgt = null;
-
 		return newdoc;
 	}
 }
