@@ -469,14 +469,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let report_json = this.report_doc.json;
 		//check if report has filters in json
 		if (report_json && JSON.parse(report_json).filters) {
-			let report_filters = JSON.parse(report_json).filters
+			let report_filters = JSON.parse(report_json).filters;
 			let filter_field = Object.keys(report_filters);
 			filters.map((filter) => {
 				//if the filter field is present in json, update the default value
-				if(filter_field.includes(filter.fieldname)) {
+				if (filter_field.includes(filter.fieldname)) {
 					filter.default = report_filters[filter.fieldname];
 				}
-			})
+			});
 		}
 
 		let filter_area = this.page.page_form;
