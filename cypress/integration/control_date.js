@@ -33,7 +33,7 @@ context('Date Control', () => {
 		cy.get('.datepicker--days > .datepicker--cells > .datepicker--cell[data-date=15]').click();
 
 		//Verifying if the selected date is displayed in the date field
-		cy.get_field('date','Date').should('have.value', '15-01-2020');		
+		cy.get_field('date','Date').should('have.value', '01-15-2020');		
 	});
 
 	it('Checking next and previous button', () => {
@@ -46,7 +46,7 @@ context('Date Control', () => {
 		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get_field('date','Date').should('have.value', '15-02-2020');	
+		cy.get_field('date','Date').should('have.value', '02-15-2020');	
 		cy.wait(500);
 		cy.get_field('date','Date').click();
 
@@ -57,7 +57,7 @@ context('Date Control', () => {
 		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get_field('date','Date').should('have.value', '15-01-2020');
+		cy.get_field('date','Date').should('have.value', '01-15-2020');
 	});
 
 	it('Clicking on "Today" button gives todays date', () => {
@@ -67,7 +67,7 @@ context('Date Control', () => {
 		cy.get('.datepicker--button').click();
 
 		//Picking up the todays date
-		const todaysDate = Cypress.moment().format('DD-MM-YYYY');
+		const todaysDate = Cypress.moment().format('MM-DD-YYYY');
 		cy.log(todaysDate);
 
 		//Verifying if clicking on "Today" button matches today's date
