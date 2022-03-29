@@ -38,7 +38,18 @@ class TestTranslate(unittest.TestCase):
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
-		self.assertListEqual(data, expected_output)
+		exp_filename = "apps/frappe/frappe/tests/translation_test_file.txt"
+
+		self.assertEqual(len(data), len(expected_output),
+				msg=f"Mismatched output:\nExpected: {expected_output}\nFound: {data}")
+
+		for extracted, expected in zip(data, expected_output):
+			ext_filename, ext_message, ext_context, ext_line  = extracted
+			exp_message, exp_context, exp_line  = expected
+			self.assertEqual(ext_filename, exp_filename)
+			self.assertEqual(ext_message, exp_message)
+			self.assertEqual(ext_context, exp_context)
+			self.assertEqual(ext_line, exp_line)
 
 	def test_translation_with_context(self):
 		try:
@@ -109,13 +120,16 @@ class TestTranslate(unittest.TestCase):
 
 
 expected_output = [
-	('apps/frappe/frappe/tests/translation_test_file.txt', 'Warning: Unable to find {0} in any table related to {1}', 'This is some context', 2),
-	('apps/frappe/frappe/tests/translation_test_file.txt', 'Warning: Unable to find {0} in any table related to {1}', None, 4),
-	('apps/frappe/frappe/tests/translation_test_file.txt', "You don't have any messages yet.", None, 6),
-	('apps/frappe/frappe/tests/translation_test_file.txt', 'Submit', 'Some DocType', 8),
-	('apps/frappe/frappe/tests/translation_test_file.txt', 'Warning: Unable to find {0} in any table related to {1}', 'This is some context', 15),
-	('apps/frappe/frappe/tests/translation_test_file.txt', 'Submit', 'Some DocType', 17),
-	('apps/frappe/frappe/tests/translation_test_file.txt', "You don't have any messages yet.", None, 19),
-	('apps/frappe/frappe/tests/translation_test_file.txt', "You don't have any messages yet.", None, 21)
+	('Warning: Unable to find {0} in any table related to {1}', 'This is some context', 2),
+	('Warning: Unable to find {0} in any table related to {1}', None, 4),
+	("You don't have any messages yet.", None, 6),
+	('Submit', 'Some DocType', 8),
+	('Warning: Unable to find {0} in any table related to {1}', 'This is some context', 15),
+	('Submit', 'Some DocType', 17),
+	("You don't have any messages yet.", None, 19),
+	("You don't have any messages yet.", None, 21),
+	("Long string that needs its own line because of black formatting.", None, 24),
+	("Long string with", "context", 28),
+	("Long string with", "context on newline", 32),
 ]
 
