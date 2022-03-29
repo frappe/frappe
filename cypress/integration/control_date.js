@@ -98,7 +98,7 @@ context('Date Control', () => {
 		//Adding event
 		cy.visit('/app/event');
 		cy.click_listview_primary_button('Add Event');
-		cy.fill_field('subject', 'Test', 'Textarea');
+		cy.fill_field('subject', 'Test', 'Small Text');
 		cy.fill_field('starts_on', '01-01-2022 00:00:00', 'Datetime');
 		cy.click_listview_primary_button('Save');
 		cy.visit('/app/event');
