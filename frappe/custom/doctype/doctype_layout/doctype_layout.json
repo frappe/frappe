@@ -37,12 +37,12 @@
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route",
-   "reqd": 1
+   "reqd": 0
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-12-10 15:01:04.352184",
+ "modified": "2022-03-29 11:01:04.352184",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout",
