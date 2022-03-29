@@ -69,13 +69,12 @@
   {
    "fieldname": "global_filters",
    "fieldtype": "Table",
-   "hidden": 1,
    "label": "Global Filters",
    "options": "Dashboard Global Filters"
   }
  ],
  "links": [],
- "modified": "2022-03-24 10:43:37.616054",
+ "modified": "2022-03-29 10:49:50.547308",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
