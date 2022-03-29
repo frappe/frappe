@@ -18,7 +18,7 @@ context('Date Control', () => {
 	});
 	it('Selecting a date from the datepicker', () => {
 		cy.new_form('Test Date Control');
-		cy.get_field('date','Date').click();
+		cy.get_field('date', 'Date').click();
 		cy.get('.datepicker--nav-title').click();
 		cy.get('.datepicker--nav-title').click({force: true});
 
@@ -29,11 +29,11 @@ context('Date Control', () => {
 		cy.get('.datepicker--days > .datepicker--cells > .datepicker--cell[data-date=15]').click();
 
 		//Verifying if the selected date is displayed in the date field
-		cy.get_field('date','Date').should('have.value', '01-15-2020');		
+		cy.get_field('date', 'Date').should('have.value', '01-15-2020');		
 	});
 
 	it('Checking next and previous button', () => {
-		cy.get_field('date','Date').click();	
+		cy.get_field('date', 'Date').click();	
 
 		//Clicking on the next button in the datepicker
 		cy.get('.datepicker--nav-action[data-action=next]').click();
@@ -42,9 +42,9 @@ context('Date Control', () => {
 		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get_field('date','Date').should('have.value', '02-15-2020');	
+		cy.get_field('date', 'Date').should('have.value', '02-15-2020');	
 		cy.wait(500);
-		cy.get_field('date','Date').click();
+		cy.get_field('date', 'Date').click();
 
 		//Clicking on the previous button in the datepicker
 		cy.get('.datepicker--nav-action[data-action=prev]').click();
@@ -53,11 +53,11 @@ context('Date Control', () => {
 		cy.get('.datepicker--cell[data-date=15]').click({force: true});
 
 		//Verifying if the selected date has been displayed in the date field
-		cy.get_field('date','Date').should('have.value', '01-15-2020');
+		cy.get_field('date', 'Date').should('have.value', '01-15-2020');
 	});
 
 	it('Clicking on "Today" button gives todays date', () => {
-		cy.get_field('date','Date').click();	
+		cy.get_field('date', 'Date').click();	
 
 		//Clicking on "Today" button
 		cy.get('.datepicker--button').click();
@@ -67,7 +67,7 @@ context('Date Control', () => {
 		cy.log(todaysDate);
 
 		//Verifying if clicking on "Today" button matches today's date
-		cy.get_field('date','Date').should('have.value', todaysDate);
+		cy.get_field('date', 'Date').should('have.value', todaysDate);
 	});
 
 	it.only('Configuring first day of the week', () => {
@@ -81,7 +81,7 @@ context('Date Control', () => {
 		cy.get('select[data-fieldname="first_day_of_the_week"]').select('Tuesday');
 		cy.get('.page-head .page-actions').findByRole('button', {name: 'Save'}).click();
 		cy.new_form('Test Date Control');
-		cy.get_field('date','Date').click();
+		cy.get_field('date', 'Date').click();
 
 		//Checking if the first day shown in the datepicker is the one which is configured in the System Settings Page
 		cy.get('.datepicker--days-names').eq(0).should('contain.text', 'Tu');
