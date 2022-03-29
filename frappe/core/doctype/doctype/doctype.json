@@ -203,6 +203,7 @@
    "options": "DocField"
   },
   {
+   "depends_on": "eval: doc.istable == 0",
    "fieldname": "sb1",
    "fieldtype": "Section Break",
    "label": "Naming"
@@ -673,7 +674,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-02-15 21:47:16.467217",
+ "modified": "2022-03-29 11:48:04.860868",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
