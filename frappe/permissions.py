@@ -6,6 +6,7 @@ from six import string_types
 import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
+from frappe.query_builder import DocType
 import frappe.share
 rights = ("select", "read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
@@ -463,9 +464,9 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
 		permlevel=permlevel))
 
-	frappe.db.sql("""
-		update `tabCustom DocPerm`
-		set `{0}`=%s where name=%s""".format(ptype), (value, name))
+	table = DocType("Custom DocPerm")
+	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
+
 	if validate:
 		validate_permissions_for_doctype(doctype)
 
