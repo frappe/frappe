@@ -2,7 +2,7 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe import _
+from frappe import _, throw
 from frappe.model.document import Document
 from frappe.desk.utils import slug
 
@@ -12,4 +12,4 @@ class DocTypeLayout(Document):
 		if not self.route:
 			self.route = slug(self.name)
 		if not self.fields:
-			frappe.throw(_("Fields cannot be empty."))
+			throw(_("Fields cannot be empty."))
