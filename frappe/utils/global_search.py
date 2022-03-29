@@ -371,6 +371,7 @@ def sync_value(value):
 	Sync a given document to global search
 	:param value: dict of { doctype, name, content, published, title, route }
 	'''
+	print(f"syncing {value=}")
 
 	frappe.db.multisql({
 		'mariadb': '''INSERT INTO `__global_search`
