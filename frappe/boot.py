@@ -20,6 +20,7 @@ from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_setti
 from frappe.utils import get_time_zone, add_user_info
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
+from frappe.query_builder.terms import subqry
 
 
 def get_bootinfo():
@@ -171,7 +172,7 @@ def get_user_pages_or_reports(parent, cache=False):
 		.where(
 			(hasRole.role.isin(roles))
 			& (hasRole.parent == parentTable.name)
-			& (parentTable.name.isnotin(subq))
+			& (parentTable.name.notin(subq))
 		).distinct()
 	)
 
@@ -194,7 +195,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	if parent =="Page":
 
 		pages_with_no_roles = (frappe.qb.from_(parentTable).select(parentTable.name, parentTable.modified, *columns)
-			.where(no_of_roles == 0)
+			.where(subqry(no_of_roles) == 0)
 		).run(as_dict=True)
 
 		for p in pages_with_no_roles:
@@ -277,15 +278,15 @@ def load_print_css(bootinfo, print_settings):
 	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Redesign", for_legacy=True)
 
 def get_unseen_notes():
-	note = frappe.qb.DocType("Note")
-	nsb = frappe.qb.DocType("Note Seen By").as_("nsb")
+	note = DocType("Note")
+	nsb = DocType("Note Seen By").as_("nsb")
 
 	return (
 		frappe.qb.from_(note).select(note.name, note.title, note.content, note.notify_on_every_login)
 		.where(
 			(note.notify_on_every_login == 1)
 			& (note.expire_notification_on > frappe.utils.now())
-			& (frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name).notin([frappe.session.user])))
+			& (subqry(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name)).notin([frappe.session.user])))
 		).run(as_dict=1)
 
 def get_success_action():
