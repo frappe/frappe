@@ -896,7 +896,12 @@ def clear_document_cache(doctype, name):
 	cache().hdel('document_cache', key)
 
 def get_cached_value(doctype, name, fieldname, as_dict=False):
-	doc = get_cached_doc(doctype, name)
+	try:
+		doc = get_cached_doc(doctype, name)
+	except DoesNotExistError:
+		clear_last_message()
+		return
+
 	if isinstance(fieldname, str):
 		if as_dict:
 			throw('Cannot make dict for single fieldname')
