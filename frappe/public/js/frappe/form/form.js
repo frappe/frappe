@@ -1722,11 +1722,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return sum;
 	}
 
-	scroll_to_field(fieldname, animate) {
-		if (animate == null) {
-			animate = true;
-		}
-
+	scroll_to_field(fieldname, animate = true) {
 		let field = this.get_field(fieldname);
 		if (!field) return;
 
