@@ -481,7 +481,7 @@
 
 .collapsible-item-title {
 	font-weight: 600;
-	color: var(--gray-900);
+	color: var(--text-color);
 	font-size: var(--text-2xl);
 }
 
@@ -522,6 +522,7 @@
 	.section-description, .collapsible-items {
 		margin-left: auto;
 		margin-right: auto;
+		margin-top: 1.5rem;
 	}
 }
 
