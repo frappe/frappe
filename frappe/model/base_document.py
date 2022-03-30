@@ -744,7 +744,7 @@ class BaseDocument(object):
 				frappe.utils.validate_name(data, throw=True)
 
 			if data_field_options == "Phone":
-				frappe.utils.validate_phone_number(data, throw=True)
+				frappe.utils.validate_phone_number(sanitize_html(data), throw=True)
 
 			if data_field_options == "URL":
 				if not data:
