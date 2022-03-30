@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import frappe
 from frappe import _
-from frappe.query_builder import Criterion, Field, Order
+from frappe.query_builder import Criterion, Field, Order, Table
 
 
 def like(key: str, value: str) -> frappe.qb:
@@ -133,6 +133,7 @@ OPERATOR_MAP = {
 
 
 class Query:
+	tables:dict = {}
 	def get_condition(self, table: str, **kwargs) -> frappe.qb:
 		"""Get initial table object
 
@@ -142,11 +143,17 @@ class Query:
 		Returns:
 			frappe.qb: DocType with initial condition
 		"""
+		table_object = self.get_table(table)
 		if kwargs.get("update"):
-			return frappe.qb.update(table)
+			return frappe.qb.update(table_object)
 		if kwargs.get("into"):
-			return frappe.qb.into(table)
-		return frappe.qb.from_(table)
+			return frappe.qb.into(table_object)
+		return frappe.qb.from_(table_object)
+
+	def get_table(self, table_name:str)->Table:
+		if table_name not in self.tables:
+			self.tables[table_name] = frappe.qb.Table(table_name)
+		return self.tables[table_name]
 
 	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> frappe.qb:
 		"""Generate filters from Criterion objects
@@ -206,10 +213,19 @@ class Query:
 						conditions = make_function(filters[0], filters[2])
 						break
 					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
+					print(_operator, conditions)
 					break
 				else:
-					_operator = OPERATOR_MAP[f[1]]
-					conditions = conditions.where(_operator(Field(f[0]), f[2]))
+					print("sdf", f)
+					_operator = OPERATOR_MAP[f[-2]]
+					no_of_args = len(f)
+					f_field = Field(f[0])
+					if no_of_args == 4:
+						table_object = self.get_table(f[0])
+						f_field = table_object.field(f[1])
+					print(_operator)
+					conditions = conditions.where(_operator(f_field, f[-1]))
+					print( conditions)
 
 		conditions = self.add_conditions(conditions, **kwargs)
 		return conditions
@@ -269,6 +285,7 @@ class Query:
 		Returns:
 			frappe.qb: frappe.qb conditions object
 		"""
+		print('just to be sure')
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
 
@@ -276,6 +293,7 @@ class Query:
 			criterion = self.criterion_query(table, filters, **kwargs)
 
 		elif isinstance(filters, (list, tuple)):
+			print("list ")
 			criterion = self.misc_query(table, filters, **kwargs)
 
 		else:

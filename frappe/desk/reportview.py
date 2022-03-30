@@ -3,6 +3,7 @@
 
 """build query for doclistview and return results"""
 
+from copy import copy
 import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
@@ -44,6 +45,14 @@ def get_list():
 @frappe.read_only()
 def get_count():
 	args = get_form_params()
+	print(args)
+	args_copy = copy(args)
+	args_copy.table = args.doctype
+	try:
+		print("here")
+		print(frappe.db.query.build_conditions(**args_copy),"query")
+	except Exception as e:
+		print(e)
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
@@ -51,7 +60,7 @@ def get_count():
 	else:
 		distinct = 'distinct ' if args.distinct=='true' else ''
 		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
-		data = execute(**args)[0].get('total_count')
+		data = execute(**args, debug=True)[0].get('total_count')
 
 	return data
 

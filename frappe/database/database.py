@@ -638,7 +638,7 @@ class Database(object):
 					field_objects.append(PseudoColumn(field))
 				else:
 					field_objects.append(field)
-
+		print(doctype)
 		query = self.query.get_sql(
 			table=doctype,
 			filters=filters,
@@ -649,6 +649,8 @@ class Database(object):
 			distinct=distinct,
 			limit=limit,
 		)
+		print(type(query))
+		print(query.walk())
 		if (
 			fields == "*"
 			and not isinstance(fields, (list, tuple))
