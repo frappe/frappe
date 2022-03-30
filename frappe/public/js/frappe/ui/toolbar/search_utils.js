@@ -1,4 +1,6 @@
 frappe.provide('frappe.search');
+import { fuzzyMatch } from './fuzzy_match.js'
+
 
 frappe.search.utils = {
 	setup_recent: function() {
@@ -533,101 +535,44 @@ frappe.search.utils = {
 	},
 
 	fuzzy_search: function(keywords, _item) {
-		// Returns 10 for case-perfect contain, 0 for not found
-		//  	9 for perfect contain,
-		//  	0 - 6 for fuzzy contain
-
-		// **Specific use-case step**
-		keywords = keywords || '';
-		var item = __(_item || '');
-		var item_without_hyphen = item.replace(/-/g, " ");
-
-		var item_length = item.length;
-		var query_length = keywords.length;
-		var length_ratio = query_length / item_length;
-		var max_skips = 3, max_mismatch_len = 2;
-
-		if (query_length > item_length) {
-			return 0;
-		}
-
-		// check for perfect string matches or
-		// matches that start with the keyword
-		if ([item, item_without_hyphen].includes(keywords)
-				|| [item, item_without_hyphen].some((txt) => txt.toLowerCase().indexOf(keywords) === 0)) {
-			return 10 + length_ratio;
-		}
-
-		if (item.indexOf(keywords) !== -1 && keywords !== keywords.toLowerCase()) {
-			return 9 + length_ratio;
-		}
-
-		item = item.toLowerCase();
-		keywords = keywords.toLowerCase();
-
-		if (item.indexOf(keywords) !== -1) {
-			return 8 + length_ratio;
-		}
-
-		var skips = 0, mismatches = 0;
-		outer: for (var i = 0, j = 0; i < query_length; i++) {
-			if (mismatches !== 0) skips++;
-			if (skips > max_skips) return 0;
-			var k_ch = keywords.charCodeAt(i);
-			mismatches = 0;
-			while (j < item_length) {
-				if (item.charCodeAt(j++) === k_ch) {
-					continue outer;
-				}
-				if(++mismatches > max_mismatch_len)  return 0 ;
-			}
-			return 0;
-		}
-
-		// Since indexOf didn't pass, there will be atleast 1 skip
-		// hence no divide by zero, but just to be safe
-		if((skips + mismatches) > 0) {
-			return (5 + length_ratio)/(skips + mismatches);
-		} else {
-			return 0;
-		}
+	    var match = fuzzyMatch(keywords, _item);
+	    return match[1];
 	},
 
 	bolden_match_part: function(str, subseq) {
-		var rendered = "";
-		if(this.fuzzy_search(subseq, str) === 0) {
+		if(fuzzyMatch(subseq, str)[0] === false) {
 			return str;
-		} else if(this.fuzzy_search(subseq, str) > 6) {
-			var regEx = new RegExp("("+ subseq +")", "ig");
-			return str.replace(regEx, '<mark>$1</mark>');
-		} else {
-			var str_orig = str;
-			var str = str.toLowerCase();
-			var str_len = str.length;
-			var subseq = subseq.toLowerCase();
-
-			outer: for(var i = 0, j = 0; i < subseq.length; i++) {
-				var sub_ch = subseq.charCodeAt(i);
-				while(j < str_len) {
-					if(str.charCodeAt(j) === sub_ch) {
-						var str_char = str_orig.charAt(j);
-						if(str_char === str_char.toLowerCase()) {
-							rendered += '<mark>' + subseq.charAt(i) + '</mark>';
-						} else {
-							rendered += '<mark>' + subseq.charAt(i).toUpperCase() + '</mark>';
-						}
-						j++;
-						continue outer;
-					}
-					rendered += str_orig.charAt(j);
-					j++;
-				}
-				return str_orig;
-			}
-			rendered += str_orig.slice(j);
-			return rendered;
 		}
+        if(str.indexOf(subseq) == 0) {
+            var tail = str.split(subseq)[1];
+            return '<mark>' + subseq + '</mark>' + tail;
+        }
+        var rendered = "";
+        var str_orig = str;
+        var str = str.toLowerCase();
+        var str_len = str.length;
+        var subseq = subseq.toLowerCase();
 
+        outer: for(var i = 0, j = 0; i < subseq.length; i++) {
+            var sub_ch = subseq.charCodeAt(i);
+            while(j < str_len) {
+                if(str.charCodeAt(j) === sub_ch) {
+                    var str_char = str_orig.charAt(j);
+                    if(str_char === str_char.toLowerCase()) {
+                        rendered += '<mark>' + subseq.charAt(i) + '</mark>';
+                    } else {
+                        rendered += '<mark>' + subseq.charAt(i).toUpperCase() + '</mark>';
+                    }
+                    j++;
+                    continue outer;
+                }
+                rendered += str_orig.charAt(j);
+                j++;
+            }
+            return str_orig;
+        }
+        rendered += str_orig.slice(j);
+        return rendered;
 	},
 
 	get_executables(keywords) {
