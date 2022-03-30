@@ -64,14 +64,14 @@ class UserPermissions:
 
 	def build_doctype_map(self):
 		"""build map of special doctype properties"""
+		self.doctype_map = {}
 
 		active_domains = frappe.get_active_domains()
+		all_doctypes = frappe.get_all("DocType", fields=["name", "in_create", "module", "istable", "issingle", "read_only", "restrict_to_domain"])
 
-		self.doctype_map = {}
-		for r in frappe.db.sql("""select name, in_create, issingle, istable,
-			read_only, restrict_to_domain, module from tabDocType""", as_dict=1):
-			if (not r.restrict_to_domain) or (r.restrict_to_domain in active_domains):
-				self.doctype_map[r['name']] = r
+		for dt in all_doctypes:
+			if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
+				self.doctype_map[dt["name"]] = dt
 
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
