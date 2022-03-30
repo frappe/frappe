@@ -30,9 +30,10 @@ context('Control Phone', () => {
 		cy.get('.frappe-control[data-fieldname=phone]')
 			.findByRole('textbox')
 			.first()
-			.type(phone_number);
+			.type(phone_number, {force: true});
 
 		cy.get_field("phone").first().should('have.value', phone_number);
+		cy.wait(1000)
 		cy.get_field("phone").first().blur({force: true});
 
 		cy.get('@dialog').then(dialog => {
