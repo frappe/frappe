@@ -1722,7 +1722,11 @@ frappe.ui.form.Form = class FrappeForm {
 		return sum;
 	}
 
-	scroll_to_field(fieldname) {
+	scroll_to_field(fieldname, animate) {
+		if (animate == null) {
+			animate = true;
+		}
+
 		let field = this.get_field(fieldname);
 		if (!field) return;
 
@@ -1739,7 +1743,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el, true, 15);
+		frappe.utils.scroll_to($el, animate, 15);
 
 		// highlight input
 		$el.addClass('has-error');

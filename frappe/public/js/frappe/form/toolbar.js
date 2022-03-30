@@ -568,8 +568,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 			primary_action_label: __('Go'),
 			primary_action: ({ fieldname }) => {
 				dialog.hide();
-				this.frm.scroll_to_field(fieldname);
-			}
+				this.frm.scroll_to_field(fieldname, false);
+			},
+			animate: false,
 		});
 
 		dialog.show();
