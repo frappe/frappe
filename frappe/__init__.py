@@ -55,15 +55,9 @@ controllers = {}
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 
-	def __getattr__(self, key):
-		ret = self.get(key)
-		# "__deepcopy__" exception added to fix frappe#14833 via DFP
-		if not ret and key.startswith("__") and key != "__deepcopy__":
-			raise AttributeError()
-		return ret
-
-	def __setattr__(self, key, value):
-		self[key] = value
+	__getattr__ = dict.get
+	__setattr__ = dict.__setitem__
+	__delattr__ = dict.__delitem__
 
 	def __getstate__(self):
 		return self
@@ -73,11 +67,12 @@ class _dict(dict):
 
 	def update(self, d):
 		"""update and return self -- the missing dict feature in python"""
-		super(_dict, self).update(d)
+
+		super().update(d)
 		return self
 
 	def copy(self):
-		return _dict(dict(self).copy())
+		return _dict(self)
 
 
 def _(msg, lang=None, context=None):
