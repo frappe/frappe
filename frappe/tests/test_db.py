@@ -14,7 +14,7 @@ from frappe.database.database import Database
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.utils import add_days, now, random_string
+from frappe.utils import add_days, now, random_string, cint
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -83,6 +83,27 @@ class TestDB(unittest.TestCase):
 				"User", filters=[["name", "=", "Administrator"]], fieldname="email"
 			),
 		)
+
+	def test_get_value_limits(self):
+
+		# check both dict and list style filters
+		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
+		for filter in filters:
+			self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))
+			# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
+			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+			self.assertEqual(2, len(frappe.db.get_values("User", filters=filter, limit=2)))
+			self.assertGreaterEqual(2, cint(frappe.db._cursor.rowcount))
+
+			# without limits length == count
+			self.assertEqual(len(frappe.db.get_values("User", filters=filter)),
+					frappe.db.count("User", filter))
+
+			frappe.db.get_value("User", filters=filter)
+			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+
+			frappe.db.exists("User", filter)
+			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
@@ -291,6 +312,21 @@ class TestDB(unittest.TestCase):
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
 
+	def test_transaction_write_counting(self):
+		note = frappe.get_doc(doctype="Note", title="transaction counting").insert()
+
+		writes = frappe.db.transaction_writes
+		frappe.db.set_value("Note", note.name, "content", "abc")
+		self.assertEqual(1, frappe.db.transaction_writes - writes)
+		writes = frappe.db.transaction_writes
+
+		frappe.db.sql("""
+			update `tabNote`
+			set content = 'abc'
+			where name = %s
+			""", note.name)
+		self.assertEqual(1, frappe.db.transaction_writes - writes)
+
 	def test_pk_collision_ignoring(self):
 		# note has `name` generated from title
 		for _ in range(3):
@@ -300,6 +336,20 @@ class TestDB(unittest.TestCase):
 			self.assertRaises(frappe.DuplicateEntryError, frappe.get_doc(doctype="Note", title="duplicate name").insert)
 			# recover transaction to continue other tests
 			raise Exception
+
+	def test_exists(self):
+		dt, dn = "User", "Administrator"
+		self.assertEqual(frappe.db.exists(dt, dn, cache=True), dn)
+		self.assertEqual(frappe.db.exists(dt, dn), dn)
+		self.assertEqual(frappe.db.exists(dt, {"name": ("=", dn)}), dn)
+
+		filters = {"doctype": dt, "name": ("like", "Admin%")}
+		self.assertEqual(frappe.db.exists(filters), dn)
+		self.assertEqual(
+			filters["doctype"], dt
+		)  # make sure that doctype was not removed from filters
+
+		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -357,7 +407,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 			WHERE Key_name = '{index_name}';
 			"""
 		)
-		self.assertEquals(len(indexs_in_table), 2)
+		self.assertEqual(len(indexs_in_table), 2)
 
 
 class TestDBSetValue(unittest.TestCase):
@@ -561,4 +611,51 @@ class TestDDLCommandsPost(unittest.TestCase):
 			AND indexname = '{index_name}' ;
 			""",
 		)
-		self.assertEquals(len(indexs_in_table), 1)
+		self.assertEqual(len(indexs_in_table), 1)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_query(self):
+		from frappe.database.postgres.database import modify_query
+
+		query = "select * from `tabtree b` where lft > 13 and rgt <= 16 and name =1.0 and parent = 4134qrsdc and isgroup = 1.00045"
+		self.assertEqual(
+			"select * from \"tabtree b\" where lft > \'13\' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
+			modify_query(query)
+		)
+
+		query = "select locate(\".io\", \"frappe.io\"), locate(\"3\", cast(3 as varchar)), locate(\"3\", 3::varchar)"
+		self.assertEqual(
+			"select strpos( \"frappe.io\", \".io\"), strpos( cast(3 as varchar), \"3\"), strpos( 3::varchar, \"3\")",
+			modify_query(query)
+		)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_values(self):
+		from frappe.database.postgres.database import modify_values
+
+		self.assertEqual(
+			{"abcd": "23", "efgh": "23", "ijkl": 23.0345, "mnop": "wow"},
+			modify_values({"abcd": 23, "efgh": 23.0, "ijkl": 23.0345, "mnop": "wow"})
+		)
+		self.assertEqual(
+			["23", "23", 23.00004345, "wow"],
+			modify_values((23, 23.0, 23.00004345, "wow"))
+		)
+
+	def test_sequence_table_creation(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype("autoinc_dt_seq_test", autoincremented=True).insert(ignore_permissions=True)
+
+		if frappe.db.db_type == "postgres":
+			self.assertTrue(
+				frappe.db.sql("""select sequence_name FROM information_schema.sequences
+				where sequence_name ilike 'autoinc_dt_seq_test%'""")[0][0]
+			)
+		else:
+			self.assertTrue(
+				frappe.db.sql("""select data_type FROM information_schema.tables
+				where table_type = 'SEQUENCE' and table_name like 'autoinc_dt_seq_test%'""")[0][0]
+			)
+
+		dt.delete(ignore_permissions=True)

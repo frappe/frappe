@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
@@ -20,10 +20,10 @@ if _dev_server:
 	warnings.simplefilter('always', DeprecationWarning)
 	warnings.simplefilter('always', PendingDeprecationWarning)
 
-from werkzeug.local import Local, release_local
 import sys, importlib, inspect, json
-import typing
 import click
+from werkzeug.local import Local, release_local
+from typing import TYPE_CHECKING, Dict, List, Union
 
 # Local application imports
 from .exceptions import *
@@ -35,6 +35,7 @@ from frappe.query_builder import (
 	patch_query_execute,
 	patch_query_aggregation,
 )
+from frappe.utils.data import cstr
 
 __version__ = '14.0.0-dev'
 
@@ -142,15 +143,14 @@ lang = local("lang")
 
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
-if typing.TYPE_CHECKING:
-	from frappe.utils.redis_wrapper import RedisWrapper
-
+if TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.utils.redis_wrapper import RedisWrapper
 
-	db: typing.Union[MariaDBDatabase, PostgresDatabase]
-	qb: typing.Union[MariaDB, Postgres]
+	db: Union[MariaDBDatabase, PostgresDatabase]
+	qb: Union[MariaDB, Postgres]
 
 
 # end: static analysis hack
@@ -214,6 +214,7 @@ def init(site, sites_path=None, new_site=False):
 	local.cache = {}
 	local.document_cache = {}
 	local.meta_cache = {}
+	local.autoincremented_status_map = {site: -1}
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
@@ -850,8 +851,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 def get_cached_doc(*args, **kwargs):
-	if args and len(args) > 1 and isinstance(args[1], str):
-		key = get_document_cache_key(args[0], args[1])
+	if key := can_cache_doc(args):
 		# local cache
 		doc = local.document_cache.get(key)
 		if doc:
@@ -869,8 +869,24 @@ def get_cached_doc(*args, **kwargs):
 
 	return doc
 
+def can_cache_doc(args):
+	"""
+	Determine if document should be cached based on get_doc params.
+	Returns cache key if doc can be cached, None otherwise.
+	"""
+
+	if not args:
+		return
+
+	doctype = args[0]
+	name = doctype if len(args) == 1 else args[1]
+
+	# Only cache if both doctype and name are strings
+	if isinstance(doctype, str) and isinstance(name, str):
+		return get_document_cache_key(doctype, name)
+
 def get_document_cache_key(doctype, name):
-	return '{0}::{1}'.format(doctype, name)
+	return f'{doctype}::{name}'
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
@@ -880,7 +896,12 @@ def clear_document_cache(doctype, name):
 	cache().hdel('document_cache', key)
 
 def get_cached_value(doctype, name, fieldname, as_dict=False):
-	doc = get_cached_doc(doctype, name)
+	try:
+		doc = get_cached_doc(doctype, name)
+	except DoesNotExistError:
+		clear_last_message()
+		return
+
 	if isinstance(fieldname, str):
 		if as_dict:
 			throw('Cannot make dict for single fieldname')
@@ -911,8 +932,7 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# set in cache
-	if args and len(args) > 1:
-		key = get_document_cache_key(args[0], args[1])
+	if key := can_cache_doc(args):
 		local.document_cache[key] = doc
 		cache().hset('document_cache', key, doc.as_dict())
 
@@ -962,8 +982,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
-	if db.exists(doctype, name):
-		delete_doc(doctype, name, force=force)
+	delete_doc(doctype, name, force=force, ignore_missing=True)
 
 def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
@@ -1001,7 +1020,7 @@ def get_module(modulename):
 
 def scrub(txt):
 	"""Returns sluggified string. e.g. `Sales Order` becomes `sales_order`."""
-	return txt.replace(' ', '_').replace('-', '_').lower()
+	return cstr(txt).replace(' ', '_').replace('-', '_').lower()
 
 def unscrub(txt):
 	"""Returns titlified string. e.g. `sales_order` becomes `Sales Order`."""
@@ -1236,9 +1255,10 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
-		fnargs = inspect.getfullargspec(fn).args
-		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
-		varkw = inspect.getfullargspec(fn).varkw
+		fullargspec = inspect.getfullargspec(fn)
+		fnargs = fullargspec.args
+		fnargs.extend(fullargspec.kwonlyargs)
+		varkw = fullargspec.varkw
 
 	newargs = {}
 	for a in kwargs:
@@ -1250,7 +1270,7 @@ def get_newargs(fn, kwargs):
 
 	return newargs
 
-def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
+def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True):
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
 
 	If doctype is not specified, it will create a property setter for all fields with the
@@ -1281,6 +1301,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 			'property': args.property,
 			'value': args.value,
 			'property_type': args.property_type or "Data",
+			'is_system_generated': is_system_generated,
 			'__islocal': 1
 		})
 		ps.flags.ignore_validate = ignore_validate
@@ -1448,7 +1469,7 @@ def get_list(doctype, *args, **kwargs):
 	:param fields: List of fields or `*`.
 	:param filters: List of filters (see example).
 	:param order_by: Order By e.g. `modified desc`.
-	:param limit_page_start: Start results at record #. Default 0.
+	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
 	Example usage:
@@ -1506,12 +1527,16 @@ def get_value(*args, **kwargs):
 	"""
 	return db.get_value(*args, **kwargs)
 
-def as_json(obj, indent=1):
+def as_json(obj: Union[Dict, List], indent=1) -> str:
 	from frappe.utils.response import json_handler
+
 	try:
 		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
 	except TypeError:
-		return json.dumps(obj, indent=indent, default=json_handler, separators=(',', ': '))
+		# this would break in case the keys are not all os "str" type - as defined in the JSON
+		# adding this to ensure keys are sorted (expected behaviour)
+		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint

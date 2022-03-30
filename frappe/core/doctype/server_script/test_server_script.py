@@ -112,7 +112,10 @@ class TestServerScript(unittest.TestCase):
 		self.assertEqual(frappe.get_doc('Server Script', 'test_return_value').execute_method(), 'hello')
 
 	def test_permission_query(self):
-		self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', run=False))
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue('where (1 = 1)' in frappe.db.get_list('ToDo', run=False))
+		else:
+			self.assertTrue('where (1 = \'1\')' in frappe.db.get_list('ToDo', run=False))
 		self.assertTrue(isinstance(frappe.db.get_list('ToDo'), list))
 
 	def test_attribute_error(self):

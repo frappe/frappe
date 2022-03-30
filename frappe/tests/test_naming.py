@@ -245,6 +245,17 @@ class TestNaming(unittest.TestCase):
 		})
 		self.assertRaises(frappe.ValidationError, tag.insert)
 
+	def test_autoincremented_naming(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		doctype = "autoinc_doctype" + frappe.generate_hash(length=5)
+		dt = new_doctype(doctype, autoincremented=True).insert(ignore_permissions=True)
+
+		for i in range(1, 20):
+			self.assertEqual(frappe.new_doc(doctype).save(ignore_permissions=True).name, i)
+
+		dt.delete(ignore_permissions=True)
+
 
 def make_invalid_todo():
 	frappe.get_doc({
