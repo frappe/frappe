@@ -52,8 +52,8 @@ frappe.ui.form.on("Customize Form", {
 
 			grid_row.row.removeClass("highlight");
 
-			if (grid_row.doc.is_custom_field && 
-				!grid_row.row.hasClass('highlight') && 
+			if (grid_row.doc.is_custom_field &&
+				!grid_row.row.hasClass('highlight') &&
 				!grid_row.doc.is_system_generated) {
 				grid_row.row.addClass("highlight");
 			}

@@ -68,9 +68,9 @@ class CustomizeForm(Document):
 
 		for d in meta.get("fields"):
 			new_d = {
-				"fieldname": d.fieldname, 
-				"is_custom_field": d.get("is_custom_field"), 
-				"is_system_generated": d.get("is_system_generated"), 
+				"fieldname": d.fieldname,
+				"is_custom_field": d.get("is_custom_field"),
+				"is_system_generated": d.get("is_system_generated"),
 				"name": d.name
 			}
 			for prop in docfield_properties:
