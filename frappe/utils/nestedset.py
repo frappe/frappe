@@ -295,6 +295,8 @@ class NestedSet(Document):
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
 	from frappe.query_builder.functions import Count
+	from frappe.query_builder.terms import subqry
+
 	Table = DocType(doctype)
 	t1 = Table.as_("t1")
 	t2 = Table.as_("t2")
@@ -303,7 +305,7 @@ def get_root_of(doctype):
 		(t2.lft < t1.lft) & (t2.rgt > t1.rgt)
 	)
 	result = frappe.qb.from_(t1).select(t1.name).where(
-		(subq == 0) & (t1.rgt > t1.lft) # depends on https://github.com/frappe/frappe/pull/16107
+		(subqry(subq) == 0) & (t1.rgt > t1.lft)
 	).run()
 
 	return result[0][0] if result else None
