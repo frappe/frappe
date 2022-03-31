@@ -132,7 +132,7 @@ class Document(BaseDocument):
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			single_doc = frappe.db.get_singles_dict(self.doctype)
 			if not single_doc:
-				single_doc = frappe.new_doc(self.doctype).as_dict()
+				single_doc = frappe.new_doc(self.doctype, as_dict=True)
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
