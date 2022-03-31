@@ -793,38 +793,24 @@ def get_build_version():
 def get_assets_json():
 	if not hasattr(frappe.local, "assets_json"):
 		cache = frappe.cache()
+		assets = None
 
-		# using .get instead of .get_value to avoid pickle.loads
-		try:
-			if not frappe.conf.developer_mode:
-				assets_json = cache.get("assets_json").decode('utf-8')
-			else:
-				assets_json = None
-		except (UnicodeDecodeError, AttributeError, ConnectionError):
-			assets_json = None
+		if not frappe.conf.developer_mode:
+			assets = cache.get_value("assets_json", shared=True)
 
-		if not assets_json:
+		if not assets:
 			# get merged assets.json and assets-rtl.json
-			assets_dict = frappe.parse_json(
-				frappe.read_file("assets/assets.json")
-			)
+			assets = frappe.parse_json(frappe.read_file("assets/assets.json"))
 
-			assets_rtl = frappe.read_file("assets/assets-rtl.json")
-			if assets_rtl:
-				assets_dict.update(
-					frappe.parse_json(assets_rtl)
-				)
-			frappe.local.assets_json = frappe.as_json(assets_dict)
+			if assets_rtl := frappe.read_file("assets/assets-rtl.json"):
+				assets.update(frappe.parse_json(assets_rtl))
+
 			# save in cache
-			cache.set_value("assets_json", frappe.local.assets_json,
-				shared=True)
+			cache.set_value("assets_json", assets, shared=True)
 
-			return assets_dict
-		else:
-			# from cache, decode and send
-			frappe.local.assets_json = frappe.safe_decode(assets_json)
+		frappe.local.assets_json = assets
 
-	return frappe.parse_json(frappe.local.assets_json)
+	return frappe.local.assets_json
 
 
 def get_bench_relative_path(file_path):
