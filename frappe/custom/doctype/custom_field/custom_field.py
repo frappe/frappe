@@ -119,7 +119,7 @@ def create_custom_field_if_values_exist(doctype, df):
 		frappe.db.count(dt=doctype, filters=IfNull(df.fieldname, "") != ""):
 		create_custom_field(doctype, df)
 
-def create_custom_field(doctype, df, ignore_validate=False):
+def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=True):
 	df = frappe._dict(df)
 	if not df.fieldname and df.label:
 		df.fieldname = frappe.scrub(df.label)
@@ -130,8 +130,7 @@ def create_custom_field(doctype, df, ignore_validate=False):
 			"permlevel": 0,
 			"fieldtype": 'Data',
 			"hidden": 0,
-			# Looks like we always	use this programatically?
-			# "is_standard": 1
+			"is_system_generated": is_system_generated
 		})
 		custom_field.update(df)
 		custom_field.flags.ignore_validate = ignore_validate

@@ -6,7 +6,7 @@ export default class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
-		this.wrapper = document.getElementById("datatable");
+		this.wrapper = document.getElementById("list-table");
 		this.make_actions();
 		this.make_filters();
 		$('.link-btn').remove();
@@ -16,7 +16,8 @@ export default class WebFormList {
 		if (this.table) {
 			Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
 			let check = document.getElementById('select-all');
-			check.checked = false;
+			if (check)
+				check.checked = false;
 		}
 		this.rows = [];
 		this.page_length = 20;
@@ -131,9 +132,39 @@ export default class WebFormList {
 			this.make_table_head();
 		}
 
-		this.append_rows(this.data);
+		if (this.data.length) {
+			this.append_rows(this.data);
+			this.wrapper.appendChild(this.table);
+		} else {
+			let new_button = "";
+			let empty_state = document.createElement("div");
+			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
 
-		this.wrapper.appendChild(this.table);
+			frappe.has_permission(this.doctype, "", "create", () => {
+				new_button = `
+					<a
+						class="btn btn-primary btn-sm btn-new-doc hidden-xs"
+						href="${window.location.pathname}?new=1">
+						${__("Create a new {0}", [__(this.doctype)])}
+					</a>
+				`;
+
+				empty_state.innerHTML = `
+					<div class="text-center">
+						<div>
+							<img
+								src="/assets/frappe/images/ui-states/list-empty-state.svg"
+								alt="Generic Empty State"
+								class="null-state">
+						</div>
+						<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
+						${new_button}
+					</div>
+				`;
+
+				this.wrapper.appendChild(empty_state);
+			});
+		}
 	}
 
 	make_table_head() {
@@ -212,8 +243,7 @@ export default class WebFormList {
 				"btn",
 				"btn-secondary",
 				"btn-sm",
-				"ml-2",
-				"text-white"
+				"ml-2"
 			);
 		}
 		else if (type == "danger") {
@@ -290,6 +320,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 	make_row() {
 		// Add Checkboxes
 		let cell = this.row.insertCell();
+		cell.classList.add('list-col-checkbox');
 
 		this.checkbox = document.createElement("input");
 		this.checkbox.type = "checkbox";
@@ -302,6 +333,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 
 		// Add Serial Number
 		let serialNo = this.row.insertCell();
+		serialNo.classList.add('list-col-serial');
 		serialNo.innerText = this.serial_number;
 
 		this.columns.forEach(field => {

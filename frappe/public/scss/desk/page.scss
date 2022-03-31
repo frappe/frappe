@@ -88,6 +88,7 @@
 	top: var(--navbar-height);
 	background: var(--bg-color);
 	margin-bottom: 5px;
+	transition: 0.5s top;
 	.page-head-content {
 		height: var(--page-head-height);
 	}

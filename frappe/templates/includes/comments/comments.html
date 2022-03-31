@@ -62,11 +62,13 @@
 		let user_id = "";
 
 		let update_timeline_line_length = function(direction, size) {
-			if (direction == 'top') {
-				$('.blog-container')[0].style.setProperty('--comment-timeline-top', size);
-			} else {
-				let comment_timeline_bottom = $('.comment-list .comment-row:last-child').height() - 10;
-				$('.blog-container')[0].style.setProperty('--comment-timeline-bottom', comment_timeline_bottom +'px');
+			if ($('.blog-container').length) {
+				if (direction == 'top') {
+					$('.blog-container')[0].style.setProperty('--comment-timeline-top', size);
+				} else {
+					let comment_timeline_bottom = $('.comment-list .comment-row:last-child').height() - 10;
+					$('.blog-container')[0].style.setProperty('--comment-timeline-bottom', comment_timeline_bottom +'px');
+				}
 			}
 		}
 
@@ -194,3 +196,105 @@
 		});
 	});
 </script>
+
+<style>
+
+.add-comment-button {
+	margin-left: 35px;
+}
+
+.timeline-dot {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	position: absolute;
+	top: 8px;
+	left: 22px;
+	background-color: var(--fg-color);
+	border: 1px solid var(--dark-border-color);
+}
+
+.timeline-dot::before {
+	content: ' ';
+	background: var(--gray-600);
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	border-radius: 50%;
+	height: 4px;
+	width: 4px;
+}
+
+.comment-form-wrapper {
+	display: none;
+}
+
+.login-required {
+	padding: var(--padding-sm);
+	border-radius: var(--border-radius-sm);
+	box-shadow: var(--card-shadow);
+}
+
+.new-comment {
+	display: flex;
+	padding: var(--padding-lg);
+	box-shadow: var(--card-shadow);
+	border-radius: var(--border-radius-md);
+	background-color: var(--fg-color);
+}
+
+.new-comment-fields {
+	flex: 1;
+}
+
+.new-comment .form-label {
+	font-weight: var(--text-bold);
+}
+
+.new-comment .comment-text-area textarea {
+	resize: none;
+}
+
+@media (min-width: 576px) {
+	.comment-by {
+		padding-right: 0px !important;
+		padding-bottom: 0px !important;
+	}
+}
+
+#comment-list {
+	position: relative;
+	padding-left: var(--padding-xl);
+}
+
+#comment-list::before {
+	content: " ";
+	position: absolute;
+	top: var(--comment-timeline-top);
+	bottom: var(--comment-timeline-bottom);
+	border-left: 1px solid var(--dark-border-color);
+}
+
+.comment-row {
+	position: relative;
+}
+.comment-avatar {
+	position: absolute;
+	top: 10px;
+	left: -17px;
+}
+
+.comment-content {
+	box-shadow: var(--card-shadow);
+	background-color: var(--fg-color);
+	border-radius: var(--border-radius-md);
+	padding: var(--padding-md);
+	margin-left: 35px;
+	flex: 1;
+}
+
+.comment-content .content p{
+	margin-bottom: 0px;
+}
+
+</style>

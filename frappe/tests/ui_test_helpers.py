@@ -204,39 +204,40 @@ def create_data_for_discussions():
 
 def create_web_page(title, route, single_thread):
 	web_page = frappe.db.exists("Web Page", {"route": route})
-	if not web_page:
-		web_page = frappe.get_doc({
+	if web_page:
+		return web_page
+	web_page = frappe.get_doc({
 			"doctype": "Web Page",
 			"title": title,
 			"route": route,
 			"published": True
 		})
-		web_page.save()
+	web_page.save()
 
-		web_page.append("page_blocks", {
-			"web_template": "Discussions",
-			"web_template_values": frappe.as_json({
-				"title": "Discussions",
-				"cta_title": "New Discussion",
-				"docname": web_page.name,
-				"single_thread": single_thread
-			})
+	web_page.append("page_blocks", {
+		"web_template": "Discussions",
+		"web_template_values": frappe.as_json({
+			"title": "Discussions",
+			"cta_title": "New Discussion",
+			"docname": web_page.name,
+			"single_thread": single_thread
 		})
-		web_page.save()
+	})
+	web_page.save()
 
-	return web_page
+	return web_page.name
 
 def create_topic_and_reply(web_page):
 	topic = frappe.db.exists("Discussion Topic",{
 		"reference_doctype": "Web Page",
-		"reference_docname": web_page.name
+		"reference_docname": web_page
 	})
 
 	if not topic:
 		topic = frappe.get_doc({
 			"doctype": "Discussion Topic",
 			"reference_doctype": "Web Page",
-			"reference_docname": web_page.name,
+			"reference_docname": web_page,
 			"title": "Test Topic"
 		})
 		topic.save()
@@ -275,7 +276,6 @@ def update_child_table(name):
 		})
 
 		doc.save()
-
 
 @frappe.whitelist()
 def insert_doctype_with_child_table_record(name):

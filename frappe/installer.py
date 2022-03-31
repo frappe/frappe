@@ -5,10 +5,11 @@ import json
 import os
 import sys
 from collections import OrderedDict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import frappe
 from frappe.defaults import _clear_cache
+from frappe.utils import is_git_url
 
 
 def _new_site(
@@ -33,7 +34,6 @@ def _new_site(
 
 	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.utils import get_site_path, scheduler, touch_file
-
 
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
@@ -124,6 +124,86 @@ def install_db(root_login=None, root_password=None, db_name=None, source_sql=Non
 	frappe.flags.in_install_db = False
 
 
+def find_org(org_repo: str) -> Tuple[str, str]:
+	""" find the org a repo is in
+
+	find_org()
+	ref -> https://github.com/frappe/bench/blob/develop/bench/utils/__init__.py#L390
+
+	:param org_repo:
+	:type org_repo: str
+
+	:raises InvalidRemoteException: if the org is not found
+
+	:return: organisation and repository
+	:rtype: Tuple[str, str]
+	"""
+	from frappe.exceptions import InvalidRemoteException
+	import requests
+
+	for org in ["frappe", "erpnext"]:
+		res = requests.head(f"https://api.github.com/repos/{org}/{org_repo}")
+		if res.ok:
+			return org, org_repo
+
+	raise InvalidRemoteException
+
+
+def fetch_details_from_tag(_tag: str) -> Tuple[str, str, str]:
+	""" parse org, repo, tag from string
+
+	fetch_details_from_tag()
+	ref -> https://github.com/frappe/bench/blob/develop/bench/utils/__init__.py#L403
+
+	:param _tag: input string
+	:type _tag: str
+
+	:return: organisation, repostitory, tag
+	:rtype: Tuple[str, str, str]
+	"""
+	app_tag = _tag.split("@")
+	org_repo = app_tag[0].split("/")
+
+	try:
+		repo, tag = app_tag
+	except ValueError:
+		repo, tag = app_tag + [None]
+
+	try:
+		org, repo = org_repo
+	except Exception:
+		org, repo = find_org(org_repo[0])
+
+	return org, repo, tag
+
+
+def parse_app_name(name: str) -> str:
+	"""parse repo name from name
+
+	__setup_details_from_git()
+	ref -> https://github.com/frappe/bench/blob/develop/bench/app.py#L114
+
+
+	:param name: git tag
+	:type name: str
+
+	:return: repository name
+	:rtype: str
+	"""
+	name = name.rstrip("/")
+	if os.path.exists(name):
+		repo = os.path.split(name)[-1]
+	elif is_git_url(name):
+		if name.startswith("git@") or name.startswith("ssh://"):
+			_repo = name.split(":")[1].rsplit("/", 1)[1]
+		else:
+			_repo = name.rsplit("/", 2)[2]
+		repo = _repo.split(".")[0]
+	else:
+		_, repo, _ = fetch_details_from_tag(name)
+	return repo
+
+
 def install_app(name, verbose=False, set_as_patched=True):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
@@ -140,7 +220,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	# install pre-requisites
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
-			install_app(app, verbose=verbose)
+			name = parse_app_name(name)
+			install_app(name, verbose=verbose)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()

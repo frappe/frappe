@@ -269,9 +269,31 @@ def get_hooks(hook=None, default=None, app_name=None):
 def read_sql(query, *args, **kwargs):
 	'''a wrapper for frappe.db.sql to allow reads'''
 	query = str(query)
-	if frappe.flags.in_safe_exec and not query.strip().lower().startswith('select'):
-		raise frappe.PermissionError('Only SELECT SQL allowed in scripting')
+	if frappe.flags.in_safe_exec:
+		check_safe_sql_query(query)
 	return frappe.db.sql(query, *args, **kwargs)
+
+
+def check_safe_sql_query(query: str, throw: bool = True) -> bool:
+	""" Check if SQL query is safe for running in restricted context.
+
+		Safe queries:
+			1. Read only 'select' or 'explain' queries
+			2. CTE on mariadb where writes are not allowed.
+	"""
+
+	query = query.strip().lower()
+	whitelisted_statements = ("select", "explain")
+
+	if (query.startswith(whitelisted_statements)
+		or (query.startswith("with") and frappe.db.db_type == "mariadb")):
+		return True
+
+	if throw:
+		frappe.throw(_("Query must be of SELECT or read-only WITH type."),
+				title=_("Unsafe SQL query"), exc=frappe.PermissionError)
+
+	return False
 
 
 def _getitem(obj, key):

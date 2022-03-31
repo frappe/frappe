@@ -111,7 +111,6 @@ class EmailQueue(Document):
 		""" Send emails to recipients.
 		"""
 		if not self.can_send_now():
-			frappe.db.rollback()
 			return
 
 		with SendMailContext(self, is_background_task) as ctx:

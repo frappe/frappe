@@ -241,7 +241,8 @@ frappe.ui.form.on("Customize Form Field", {
 	},
 	fields_add: function(frm, cdt, cdn) {
 		var f = frappe.model.get_doc(cdt, cdn);
-		f.is_custom_field = 1;
+		f.is_system_generated = false;
+		f.is_custom_field = true;
 	}
 });
 

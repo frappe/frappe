@@ -10,7 +10,7 @@
 			{%- set collapse_id = 'id-' + frappe.utils.generate_hash('Collapse', 12) -%}
 			<a class="collapsible-title" data-toggle="collapse" href="#{{ collapse_id }}" role="button"
 				aria-expanded="false" aria-controls="{{ collapse_id }}">
-				<h3>{{ item.title }}</h3>
+				<div class="collapsible-item-title">{{ item.title }}</div>
 				<svg class="collapsible-icon" width="24" height="24" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
 					<path class="vertical" d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"
 						stroke-linecap="round"
