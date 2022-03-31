@@ -500,9 +500,13 @@ class DatabaseQuery(object):
 		if "ifnull(" in f.fieldname:
 			column_name = f.fieldname
 		else:
+<<<<<<< HEAD
 			column_name = "{tname}.{fname}".format(tname=tname, fname=f.fieldname)
 
 		can_be_null = True
+=======
+			column_name = self.cast_name(f"{tname}.`{f.fieldname}`")
+>>>>>>> 8296d6e84a (fix: use backticks for fieldname while preparing filters)
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
