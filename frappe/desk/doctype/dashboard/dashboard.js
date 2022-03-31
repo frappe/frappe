@@ -55,7 +55,7 @@ frappe.ui.form.on('Dashboard', {
 								frm.global_filters.map(filter => {
 									filter.count = 0;
 									filter.charts = [];
-								})
+								});
 							}
 
 							filters.map(function (filter) {
@@ -80,8 +80,7 @@ frappe.ui.form.on('Dashboard', {
 
 									exist.charts.push(chart);
 									exist.count++;
-								}
-								else {
+								} else {
 									filter.count = 1;
 									filter.charts = [chart];
 									frm.global_filters.push({ ...filter });
