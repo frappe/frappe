@@ -122,7 +122,7 @@ OPERATOR_MAP = {
 	"<": operator.lt,
 	">": operator.gt,
 	"<=": operator.le,
-	"=>": operator.le,
+	"=<": operator.le,
 	">=": operator.ge,
 	"=>": operator.ge,
 	"in": func_in,

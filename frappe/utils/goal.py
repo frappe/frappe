@@ -69,7 +69,7 @@ def get_monthly_goal_graph_data(
 	:return: dict of graph data
 	"""
 	if isinstance(filter_str, str):
-		frappe.throw("String filters have been deprecated. Pass Dict filters instead.", exc=DeprecationWarning)
+		frappe.throw("String filters have been deprecated. Pass Dict filters instead.", exc=DeprecationWarning) # nosemgrep
 
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission()
