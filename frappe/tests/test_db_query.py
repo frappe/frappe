@@ -564,6 +564,18 @@ class TestReportview(unittest.TestCase):
 			response["keys"], ["field_label", "field_name", "_aggregate_column", "columns"]
 		)
 
+<<<<<<< HEAD
+=======
+		if frappe.db.db_type == "postgres":
+			self.assertTrue("strpos( cast( \"tabautoinc_dt_test\".\"name\" as varchar), \'1\')" in query)
+			self.assertTrue("where cast(\"tabautoinc_dt_test\".\"name\" as varchar) = \'1\'" in query)
+		else:
+			self.assertTrue("locate(\'1\', `tabautoinc_dt_test`.`name`)" in query)
+			self.assertTrue("where `tabautoinc_dt_test`.`name` = 1" in query)
+
+		dt.delete(ignore_permissions=True)
+
+>>>>>>> d032822093 (fix: use backticks in test_cast_name)
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
