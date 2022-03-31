@@ -220,9 +220,12 @@ def get_queue_list(queue_list=None, build_queue_name=False):
 		queue_list = default_queue_list
 	return [generate_qname(qtype) for qtype in queue_list] if build_queue_name else queue_list
 
-def get_workers(queue):
-	'''Returns a list of Worker objects tied to a queue object'''
-	return Worker.all(queue=queue)
+def get_workers(queue=None):
+	'''Returns a list of Worker objects tied to a queue object if queue is passed, else returns a list of all workers'''
+	if queue:
+		return Worker.all(queue=queue)
+	else:
+		return Worker.all(get_redis_conn())
 
 def get_running_jobs_in_queue(queue):
 	'''Returns a list of Jobs objects that are tied to a queue object and are currently running'''

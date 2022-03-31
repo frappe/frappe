@@ -8,8 +8,8 @@ from rq import Worker
 
 import frappe
 from frappe import _
-from frappe.utils import convert_utc_to_user_timezone, format_datetime
-from frappe.utils.background_jobs import get_redis_conn, get_queues
+from frappe.utils import convert_utc_to_user_timezone
+from frappe.utils.background_jobs import get_queues, get_workers
 from frappe.utils.scheduler import is_scheduler_inactive
 
 if TYPE_CHECKING:
@@ -24,16 +24,15 @@ JOB_COLORS = {
 
 
 @frappe.whitelist()
-def get_info(show_failed=False) -> List[Dict]:
-	if isinstance(show_failed, str):
-		show_failed = json.loads(show_failed)
-
-	conn = get_redis_conn()
-	queues = get_queues()
-	workers = Worker.all(conn)
+def get_info(view=None, queue_timeout=None, job_status=None) -> List[Dict]:
 	jobs = []
 
 	def add_job(job: 'Job', name: str) -> None:
+		if job_status != "all" and job.get_status() != job_status:
+			return
+		if queue_timeout != "all" and not name.endswith(f':{queue_timeout}'):
+			return
+
 		if job.kwargs.get('site') == frappe.local.site:
 			job_info = {
 				'job_name': job.kwargs.get('kwargs', {}).get('playbook_method')
@@ -41,7 +40,7 @@ def get_info(show_failed=False) -> List[Dict]:
 					or str(job.kwargs.get('job_name')),
 				'status': job.get_status(),
 				'queue': name,
-				'creation': format_datetime(convert_utc_to_user_timezone(job.created_at)),
+				'creation': convert_utc_to_user_timezone(job.created_at),
 				'color': JOB_COLORS[job.get_status()]
 			}
 
@@ -50,32 +49,31 @@ def get_info(show_failed=False) -> List[Dict]:
 
 			jobs.append(job_info)
 
-	# show worker jobs
-	for worker in workers:
-		job = worker.get_current_job()
-		if job:
-			add_job(job, worker.name)
-
-	for queue in queues:
-		# show active queued jobs
-		if queue.name != 'failed':
+	if view == 'Jobs':
+		queues = get_queues()
+		for queue in queues:
 			for job in queue.jobs:
 				add_job(job, queue.name)
 
-		# show failed jobs, if requested
-		if show_failed:
-			fail_registry = queue.failed_job_registry
-			for job_id in fail_registry.get_job_ids():
-				job = queue.fetch_job(job_id)
-				if job:
-					add_job(job, queue.name)
+	elif view == 'Workers':
+		workers = get_workers()
+		for worker in workers:
+			current_job = worker.get_current_job()
+			if current_job and current_job.kwargs.get('site') == frappe.local.site:
+				add_job(current_job, job.origin)
+			else:
+				jobs.append({
+					'queue': worker.name,
+					'job_name': 'idle',
+					'status': '',
+					'creation': ''
+				})
 
 	return jobs
 
 
 @frappe.whitelist()
 def remove_failed_jobs():
-	conn = get_redis_conn()
 	queues = get_queues()
 	for queue in queues:
 		fail_registry = queue.failed_job_registry
@@ -87,5 +85,5 @@ def remove_failed_jobs():
 @frappe.whitelist()
 def get_scheduler_status():
 	if is_scheduler_inactive():
-		return [_("Inactive"), "red"]
-	return [_("Active"), "green"]
+		return {'status': 'inactive'}
+	return {'status': 'active'}
