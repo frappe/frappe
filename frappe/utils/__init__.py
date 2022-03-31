@@ -791,24 +791,25 @@ def get_build_version():
 		return frappe.utils.random_string(8)
 
 def get_assets_json():
+	def _get_assets():
+		# get merged assets.json and assets-rtl.json
+		assets = frappe.parse_json(frappe.read_file("assets/assets.json"))
+
+		if assets_rtl := frappe.read_file("assets/assets-rtl.json"):
+			assets.update(frappe.parse_json(assets_rtl))
+
+		return assets
+
 	if not hasattr(frappe.local, "assets_json"):
-		cache = frappe.cache()
-		assets = None
-
 		if not frappe.conf.developer_mode:
-			assets = cache.get_value("assets_json", shared=True)
+			frappe.local.assets_json = frappe.cache().get_value(
+				"assets_json",
+				_get_assets,
+				shared=True,
+			)
 
-		if not assets:
-			# get merged assets.json and assets-rtl.json
-			assets = frappe.parse_json(frappe.read_file("assets/assets.json"))
-
-			if assets_rtl := frappe.read_file("assets/assets-rtl.json"):
-				assets.update(frappe.parse_json(assets_rtl))
-
-			# save in cache
-			cache.set_value("assets_json", assets, shared=True)
-
-		frappe.local.assets_json = assets
+		else:
+			frappe.local.assets_json = _get_assets()
 
 	return frappe.local.assets_json
 
