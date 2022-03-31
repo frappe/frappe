@@ -780,9 +780,8 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 @pass_context
 def set_last_active_for_user(context, user=None):
 	"Set users last active date to current datetime"
-
 	from frappe.core.doctype.user.user import get_system_users
-	from frappe.utils.user import set_last_active_to_now
+	from frappe.utils import now_datetime
 
 	site = get_site(context)
 
@@ -795,8 +794,9 @@ def set_last_active_for_user(context, user=None):
 			else:
 				return
 
-		set_last_active_to_now(user)
+		frappe.db.set_value("User", user, "last_active", now_datetime())
 		frappe.db.commit()
+
 
 @click.command('publish-realtime')
 @click.argument('event')
