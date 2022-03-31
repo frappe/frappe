@@ -7,6 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "is_system_generated",
   "label_and_type",
   "label",
   "fieldtype",
@@ -444,13 +445,20 @@
    "fieldname": "no_copy",
    "fieldtype": "Check",
    "label": "No Copy"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "Is System Generated",
+   "read_only": 1
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-02-25 16:01:12.616736",
+ "modified": "2022-03-31 11:27:05.269293",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
