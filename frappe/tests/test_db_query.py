@@ -624,17 +624,19 @@ class TestReportview(unittest.TestCase):
 		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		query = DatabaseQuery("autoinc_dt_test").execute(
-			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "`tabautoinc_dt_test`.`name`"],
+			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "name", "locate('1', name)"],
 			filters={"name": 1},
 			run=False,
 		)
 
 		if frappe.db.db_type == "postgres":
-			self.assertTrue('strpos( cast( "tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
-			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
+			self.assertTrue("strpos( cast(\"tabautoinc_dt_test\".\"name\" as varchar), \'1\')" in query)
+			self.assertTrue("strpos(cast(name as varchar), \'1\')" in query)
+			self.assertTrue("where cast(\"tabautoinc_dt_test\".name as varchar) = \'1\'" in query)
 		else:
-			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
-			self.assertTrue("where `tabautoinc_dt_test`.`name` = 1" in query)
+			self.assertTrue("locate(\'1\', `tabautoinc_dt_test`.`name`)" in query)
+			self.assertTrue("locate(\'1\', name)" in query)
+			self.assertTrue("where `tabautoinc_dt_test`.name = 1" in query)
 
 		dt.delete(ignore_permissions=True)
 

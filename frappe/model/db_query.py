@@ -213,7 +213,7 @@ class DatabaseQuery(object):
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
-			parent_name = self.cast_name(f"{self.tables[0]}.name")
+			parent_name = cast_name(f"{self.tables[0]}.name")
 			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
 
 		if self.grouped_or_conditions:
@@ -390,7 +390,7 @@ class DatabaseQuery(object):
 				func_found = False
 				for func in sql_functions:
 					if func in field.lower():
-						self.fields[i] = self.cast_name(field)
+						self.fields[i] = cast_name(field) if func.startswith(("locate", "strpos")) else field
 						func_found = True
 						break
 
@@ -405,40 +405,6 @@ class DatabaseQuery(object):
 					table_name = f"`{table_name}`"
 				if table_name not in self.tables:
 					self.append_table(table_name)
-
-	def cast_name(self, column: str) -> str:
-		lowercase_column = column.lower()
-		if frappe.db.db_type == "postgres":
-			if re.search(r"[`\.]?name", lowercase_column):
-				if "cast(" not in lowercase_column or "::" not in column:
-					if "locate(" in lowercase_column:
-						return re.sub(
-							r"locate\(([^,]+),([^)]+)\)",
-							r"locate(\1, cast(\2 as varchar))",
-							column,
-							flags=re.IGNORECASE,
-						)
-
-					elif "strpos(" in lowercase_column:
-						return re.sub(
-							r"strpos\(([^,]+),([^)]+)\)",
-							r"strpos(cast(\1 as varchar), \2)",
-							column,
-							flags=re.IGNORECASE,
-						)
-
-					elif "ifnull(" in lowercase_column:
-						return re.sub(
-							r"ifnull\(([^,]+)",
-							r"ifnull(cast(\1 as varchar)",
-							column,
-							flags=re.IGNORECASE
-						)
-
-					elif lowercase_column.startswith(("`tab", "tab", "\"tab")) or lowercase_column == "name":
-						return f"cast({column} as varchar)"
-
-		return column
 
 	def append_table(self, table_name):
 		self.tables.append(table_name)
@@ -543,8 +509,9 @@ class DatabaseQuery(object):
 		if tname not in self.tables:
 			self.append_table(tname)
 
-		column_name = f.fieldname if 'ifnull(' in f.fieldname else f"{tname}.`{f.fieldname}`"
-		column_name = self.cast_name(column_name)
+		column_name = cast_name(
+			f.fieldname if 'ifnull(' in f.fieldname else f"{tname}.`{f.fieldname}`"
+		)
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
@@ -766,7 +733,7 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return self.cast_name(f"`tab{self.doctype}`.name") + f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		return cast_name(f"`tab{self.doctype}`.name") + f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
@@ -794,7 +761,7 @@ class DatabaseQuery(object):
 				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
-					empty_value_condition = self.cast_name(f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''")
+					empty_value_condition = cast_name(f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''")
 					condition = empty_value_condition + " or "
 
 				for permission in user_permission_values:
@@ -815,7 +782,7 @@ class DatabaseQuery(object):
 
 				if docs:
 					values = ", ".join(frappe.db.escape(doc, percent=False) for doc in docs)
-					condition += self.cast_name(f"`tab{self.doctype}`.`{df.get('fieldname')}`") + f" in ({values})"
+					condition += cast_name(f"`tab{self.doctype}`.`{df.get('fieldname')}`") + f" in ({values})"
 					match_conditions.append(f"({condition})")
 					match_filters[df.get("options")] = docs
 
@@ -932,6 +899,17 @@ class DatabaseQuery(object):
 
 		update_user_settings(self.doctype, user_settings)
 
+def cast_name(column: str) -> str:
+	if frappe.db.db_type == "postgres":
+		if "cast(" not in column.lower() or "::" not in column:
+			return re.sub(
+					r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?(?![\w]))|([,\(])\s*(name)\s*([,\)])",
+					r"\2cast(\1\3 as varchar)\4",
+					column,
+					flags=re.IGNORECASE
+				)
+
+	return column
 
 def check_parent_permission(parent, child_doctype):
 	if parent:
