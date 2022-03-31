@@ -32,7 +32,7 @@ frappe.ui.form.on('Dashboard', {
 	setup: function (frm) {
 		frm.set_query("chart", "global_filters", function (doc, cdt, cdn) {
 			var d = locals[cdt][cdn];
-			let filter = frm.global_filters.find(filter => filter.label == d.filter)
+			let filter = frm.global_filters.find(filter => filter.label == d.filter);
 			return {
 				filters: {
 					"name": ['in', filter.charts]
@@ -52,7 +52,10 @@ frappe.ui.form.on('Dashboard', {
 						if (filters) {
 							if (frm.global_filters.length == 0) {
 								frm.global_filters = filters.map(obj => ({ ...obj }));
-								frm.global_filters.map(filter => { filter.count = 0; filter.charts = [] })
+								frm.global_filters.map(filter => {
+									filter.count = 0;
+									filter.charts = [];
+								})
 							}
 
 							filters.map(function (filter) {
@@ -74,20 +77,21 @@ frappe.ui.form.on('Dashboard', {
 
 								if (exist && match) {
 									if (exist.charts.includes(chart)) return;
-									exist.charts.push(chart)
-									exist.count++
+
+									exist.charts.push(chart);
+									exist.count++;
 								}
 								else {
 									filter.count = 1;
-									filter.charts = [chart]
-									frm.global_filters.push({ ...filter })
+									filter.charts = [chart];
+									frm.global_filters.push({ ...filter });
 								}
-							})
+							});
 							frm.trigger("set_global_filters");
 						}
-					})
-				})
-			})
+					});
+				});
+			});
 		}
 	},
 
@@ -96,9 +100,9 @@ frappe.ui.form.on('Dashboard', {
 		df_filter.options = [];
 		frm.global_filters.map((filter) => {
 			if (filter.count >= 2) {
-				df_filter.options.push(filter.label)
+				df_filter.options.push(filter.label);
 			}
-		})
+		});
 		frm.toggle_display('global_filters', df_filter.options.length > 0);
 	},
 });
@@ -108,7 +112,7 @@ frappe.ui.form.on("Dashboard Chart Link", {
 		if (locals[cdt][cdn].chart) frm.trigger("get_global_filters");
 	},
 
-	charts_remove: function (frm, cdt, cdn) {
+	charts_remove: function (frm) {
 		frm.trigger("get_global_filters");
 	}
 });
@@ -120,7 +124,7 @@ frappe.ui.form.on("Dashboard Global Filters", {
 
 		frappe.model.set_value(cdt, cdn, "fieldtype", filter.fieldtype);
 		frappe.model.set_value(cdt, cdn, "chart_filter_name", filter.fieldname);
-		frappe.model.set_value(cdt, cdn, "fieldtype", filter.fieldtype)
+		frappe.model.set_value(cdt, cdn, "fieldtype", filter.fieldtype);
 		if (filter.options) frappe.model.set_value(cdt, cdn, "options", JSON.stringify(filter.options));
 		if (filter.get_data) frappe.model.set_value(cdt, cdn, "get_data", filter.get_data);
 	}

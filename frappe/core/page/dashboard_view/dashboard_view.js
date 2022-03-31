@@ -181,11 +181,11 @@ class Dashboard {
 				);
 				let container = this.wrapper.find('.widget-group').last();
 				this.global_filter.insertBefore(container);
-				let fields = []
+				let fields = [];
 				filters.map((filter) => {
-					let exist = fields.find(field => field.fieldname == filter.chart_filter_name)
+					let exist = fields.find(field => field.fieldname == filter.chart_filter_name);
 					if (exist)
-						exist['charts'].push(filter.chart)
+						exist['charts'].push(filter.chart);
 
 					else {
 						fields.push({
@@ -195,7 +195,7 @@ class Dashboard {
 							options: JSON.parse(filter.options),
 							charts: [filter.chart],
 							get_data: filter.get_data
-						})
+						});
 					}
 				});
 				//dialog for global filters
@@ -208,19 +208,18 @@ class Dashboard {
 						if (values) {
 							Object.keys(values).forEach(function (key) {
 								let charts = [];
-								let filter_charts = fields.find((filter) => filter.fieldname == key ).charts;
-								me.chart_group.widgets_list.map((chart)=> {
-									if(filter_charts.includes(chart.chart_name)) charts.push(chart)
-								})
+								let filter_charts = fields.find((filter) => filter.fieldname == key).charts;
+								me.chart_group.widgets_list.map((chart) => {
+									if (filter_charts.includes(chart.chart_name)) charts.push(chart);
+								});
 								charts.map((chart) => {
-
-									dialog_object.hide()
+									dialog_object.hide();
 									//Sets the filters only of those fields which has been updated
-									for(var value in values) {
-									chart.filters[value] = values[value];
-									me.update_charts(chart)
+									for (var value in values) {
+										chart.filters[value] = values[value];
+										me.update_charts(chart);
 									}
-								})
+								});
 							});
 						}
 					},
@@ -228,9 +227,9 @@ class Dashboard {
 				});
 				this.global_filter.on("click", () => {
 					dialog.show();
-				})
+				});
 			}
-		})
+		});
 	}
 
 	update_charts(chart) {
