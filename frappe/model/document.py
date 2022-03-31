@@ -92,25 +92,24 @@ class Document(BaseDocument):
 		self.name = None
 		self.flags = frappe._dict()
 
-		if args and args[0] and isinstance(args[0], str):
-			# first arugment is doctype
-			self.doctype = args[0]
+		if args and args[0]:
+			if isinstance(args[0], str):
+				# first arugment is doctype
+				self.doctype = args[0]
 
-			if len(args)==1:
-				# single
-				self.name = self.doctype
-			else:
-				self.name = args[1]
+				if len(args) == 1:
+					# single
+					self.name = self.doctype
+				else:
+					self.name = args[1]
+					self.flags.for_update = kwargs.get("for_update")
 
-				if 'for_update' in kwargs:
-					self.flags.for_update = kwargs.get('for_update')
+				self.load_from_db()
+				return
 
-			self.load_from_db()
-			return
-
-		if args and args[0] and isinstance(args[0], dict):
-			# first argument is a dict
-			kwargs = args[0]
+			if isinstance(args[0], dict):
+				# first argument is a dict
+				kwargs = args[0]
 
 		if kwargs:
 			# init base document
@@ -126,10 +125,6 @@ class Document(BaseDocument):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
 		frappe.whitelist()(fn)
 		return fn
-
-	def reload(self):
-		"""Reload document from database"""
-		self.load_from_db()
 
 	def load_from_db(self):
 		"""Load document and children from database and create properties
@@ -170,6 +165,8 @@ class Document(BaseDocument):
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):
 			self.__setup__()
+
+	reload = load_from_db
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
