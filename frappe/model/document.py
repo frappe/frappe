@@ -88,25 +88,19 @@ class Document(BaseDocument):
 		If DocType name and document name are passed, the object will load
 		all values (including child documents) from the database.
 		"""
-		self.doctype = self.name = None
-		self._default_new_docs = {}
+		self.doctype = None
+		self.name = None
 		self.flags = frappe._dict()
 
 		if args and args[0] and isinstance(args[0], str):
 			# first arugment is doctype
+			self.doctype = args[0]
+
 			if len(args)==1:
 				# single
-				self.doctype = self.name = args[0]
+				self.name = self.doctype
 			else:
-				self.doctype = args[0]
-				if isinstance(args[1], dict):
-					# filter
-					self.name = frappe.db.get_value(args[0], args[1], "name")
-					if self.name is None:
-						frappe.throw(_("{0} {1} not found").format(_(args[0]), args[1]),
-							frappe.DoesNotExistError)
-				else:
-					self.name = args[1]
+				self.name = args[1]
 
 				if 'for_update' in kwargs:
 					self.flags.for_update = kwargs.get('for_update')
