@@ -29,6 +29,18 @@ frappe.ui.form.on('Dashboard', {
 		});
 	},
 
+	setup: function (frm) {
+		frm.set_query("chart", "global_filters", function (doc, cdt, cdn) {
+			var d = locals[cdt][cdn];
+			let filter = frm.global_filters.find(filter => filter.label == d.filter)
+			return {
+				filters: {
+					"name": ['in', filter.charts]
+				}
+			};
+		});
+	},
+
 	get_global_filters: function (frm) {
 		let charts = frm.doc.charts;
 		frm.global_filters = [];
@@ -46,13 +58,13 @@ frappe.ui.form.on('Dashboard', {
 							filters.map(function (filter) {
 								let exist = frm.global_filters.find(el => el.fieldname == filter.fieldname);
 								let match = false;
+								//check if the filter has same options and get data function
 								if (exist) {
 									if (exist.get_data && filter.get_data) {
 										if (exist.get_data == filter.get_data) {
 											match = true;
 										}
 									}
-	
 									if (exist.options && filter.options) {
 										if (exist.options == filter.options || exist.options.length == filter.options.length) {
 											match = true;
@@ -102,27 +114,14 @@ frappe.ui.form.on("Dashboard Chart Link", {
 });
 
 frappe.ui.form.on("Dashboard Global Filters", {
-
 	filter: function (frm, cdt, cdn) {
 		let doc = locals[cdt][cdn];
-		if (doc.filter) {
-			frm.global_filters.map((f) => {
-				if (f.label == doc.filter) {
-					frappe.model.set_value(cdt, cdn, "fieldtype", f.fieldtype);
-					frappe.model.set_value(cdt, cdn, "chart_filter_name", f.fieldname);
-					frappe.model.set_value(cdt, cdn, "fieldtype", f.fieldtype)
-					if (f.options) frappe.model.set_value(cdt, cdn, "options", JSON.stringify(f.options));
-					if (f.get_data) frappe.model.set_value(cdt, cdn, "get_data", f.get_data);
+		let filter = frm.global_filters.find(filter => filter.label == doc.filter);
 
-					frm.set_query("chart", "global_filters", function () {
-						return {
-							filters: {
-								"name": ['in', f.charts]
-							}
-						};
-					});
-				}
-			})
-		}
+		frappe.model.set_value(cdt, cdn, "fieldtype", filter.fieldtype);
+		frappe.model.set_value(cdt, cdn, "chart_filter_name", filter.fieldname);
+		frappe.model.set_value(cdt, cdn, "fieldtype", filter.fieldtype)
+		if (filter.options) frappe.model.set_value(cdt, cdn, "options", JSON.stringify(filter.options));
+		if (filter.get_data) frappe.model.set_value(cdt, cdn, "get_data", filter.get_data);
 	}
 });
