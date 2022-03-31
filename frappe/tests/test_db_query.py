@@ -514,6 +514,33 @@ class TestReportview(unittest.TestCase):
 
 		dt.delete(ignore_permissions=True)
 
+	def test_fieldname_starting_with_int(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype(
+			"dt_with_int_named_fieldname",
+			fields=[{
+				"label": "1field",
+				"fieldname": "1field",
+				"fieldtype": "Int"
+			}]
+		).insert(ignore_permissions=True)
+
+		frappe.get_doc({
+			"doctype": "dt_with_int_named_fieldname",
+			"1field": 10
+		}).insert(ignore_permissions=True)
+
+
+		query = DatabaseQuery("dt_with_int_named_fieldname")
+		self.assertTrue(query.execute(filters={"1field": 10}))
+		self.assertTrue(query.execute(filters={"1field": ["like", "1%"]}))
+		self.assertTrue(query.execute(filters={"1field": ["in", "1,2,10"]}))
+		self.assertTrue(query.execute(filters={"1field": ["is", "set"]}))
+		self.assertFalse(query.execute(filters={"1field": ["not like", "1%"]}))
+
+		dt.delete()
+
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc({
