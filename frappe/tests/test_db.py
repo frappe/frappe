@@ -312,6 +312,21 @@ class TestDB(unittest.TestCase):
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
 
+	def test_transaction_write_counting(self):
+		note = frappe.get_doc(doctype="Note", title="transaction counting").insert()
+
+		writes = frappe.db.transaction_writes
+		frappe.db.set_value("Note", note.name, "content", "abc")
+		self.assertEqual(1, frappe.db.transaction_writes - writes)
+		writes = frappe.db.transaction_writes
+
+		frappe.db.sql("""
+			update `tabNote`
+			set content = 'abc'
+			where name = %s
+			""", note.name)
+		self.assertEqual(1, frappe.db.transaction_writes - writes)
+
 	def test_pk_collision_ignoring(self):
 		# note has `name` generated from title
 		for _ in range(3):
