@@ -20,11 +20,16 @@
 	<div class="">
 		{% if topics and not single_thread %}
 
-		<div class="discussions-sidebar">
+		<div class="discussions-sidebar card-style">
 
 			{% for topic in topics %}
 			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}
 			{% include "frappe/templates/discussions/sidebar.html" %}
+
+			{% if loop.index != topics | length %}
+			<div class="card-divider"></div>
+			{% endif %}
+
 			{% endfor %}
 		</div>
 

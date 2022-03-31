@@ -45,7 +45,7 @@
 	background-position: 1rem 0.65rem;
 	font-size: var(--text-md);
 	padding: 0.5rem 1rem;
-	border: 1px solid var(--gray-300);
+	border: 1px solid var(--dark-border-color);
 	border-radius: var(--border-radius-md);
 	margin-right: 0.5rem;
 }
@@ -76,7 +76,7 @@
 }
 
 .discussion-topic-title {
-	color: var(--gray-900);
+	color: var(--text-color);
 	font-size: var(--text-lg);
 	font-weight: 600;
 	margin-bottom: 0.5rem;
@@ -96,11 +96,11 @@
 }
 
 .reply-body {
-	background: var(--gray-50);
+	background: var(--bg-color);
 	padding: 1rem;
 	border-radius: var(--border-radius);
 	font-size: var(--text-md);
-	color: var(--gray-900);
+	color: var(--text-color);
 }
 
 .reply-actions {
@@ -142,7 +142,7 @@
 	font-size: var(--text-3xl);
 	line-height: 146%;
 	letter-spacing: -0.0175em;
-	color: var(--gray-900);
+	color: var(--text-color);
 	flex-grow: 1;
 }
 
@@ -151,7 +151,7 @@
 	background: white;
 	border-radius: 8px;
 	position: relative;
-	border: 1px solid var(--gray-200);
+	box-shadow: var(--shadow-sm);
 }
 
 .discussions-card {
@@ -189,11 +189,7 @@
 	margin: 0px 8px;
 	font-size: var(--text-sm);
 	line-height: 135%;
-	color: var(--gray-900);
-}
-
-.discussions-parent .btn-default {
-	color: var(--gray-700);
+	color: var(--text-color);
 }
 
 .discussions-header .btn {
@@ -201,7 +197,7 @@
 }
 
 .empty-state {
-	background: var(--gray-100);
+	background: var(--control-bg);
 	border-radius: var(--border-radius-lg);
 	padding: 2rem;
 	display: flex;
@@ -216,7 +212,7 @@
 
 .empty-state-heading {
 	font-size: var(--text-xl);
-	color: var(--gray-900);
+	color: var(--text-color);
 	font-weight: 600;
 }
 
@@ -224,7 +220,6 @@
 	display: flex;
 	align-items: center;
 	padding: 1.25rem;
-	margin-bottom: 0.5rem;
 	cursor: pointer;
 }
 
@@ -241,7 +236,7 @@
 }
 
 .topic-author {
-	color: var(--gray-800);
+	color: var(--text-light);
 	font-weight: 500;
 }
 
@@ -259,4 +254,17 @@
 
 .dismiss-reply {
 	cursor: pointer;
+}
+
+.discussions-sidebar {
+	flex-direction: column;
+}
+
+.card-divider {
+	border-top: 1px solid var(--dark-border-color);
+	margin-bottom: 0;
+}
+
+.reply-body .dropdown-menu {
+	min-width: 7rem;
 }

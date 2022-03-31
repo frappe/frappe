@@ -1,7 +1,7 @@
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 {% set creator = frappe.db.get_value("User", topic.owner, ["name", "username", "full_name", "user_image"], as_dict=True) %}
 
-<div class="common-card-style sidebar-parent" data-target="#t{{ topic.name }}" data-toggle="collapse" aria-expanded="false">
+<div class="sidebar-parent" data-target="#t{{ topic.name }}" data-toggle="collapse" aria-expanded="false">
 	<div class="mr-4">
 		{{ avatar(creator.name, size="avatar-medium") }}
 	</div>
