@@ -9,8 +9,7 @@ from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.translate import extract_messages_from_code, make_dict_from_messages
-from frappe.utils import get_html_format
-
+from frappe.utils import get_html_format, get_assets_json
 
 ASSET_KEYS = (
 	"__js", "__css", "__list_js", "__calendar_js", "__map_js",
@@ -258,6 +257,14 @@ def get_code_files_via_hooks(hook, name):
 	return code_files
 
 def get_js(path):
-	js = frappe.read_file(path)
-	if js:
-		return render_include(js)
+	if file_content := frappe.read_file(get_bundled_js_path(path)):
+		return render_include(file_content)
+
+def get_bundled_js_path(path):
+	if (
+		".bundle." not in path
+		or (filename := path.split("/")[-1]) not in (assets_json := get_assets_json())
+	):
+		return path
+
+	return assets_json[filename].lstrip("/")
