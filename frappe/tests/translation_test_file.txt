@@ -19,3 +19,17 @@ _('Submit', context="Some DocType")
 _("""You don't have any messages yet.""")
 
 _('''You don't have any messages yet.''')
+
+// allow newline in beginning
+_(
+"""Long string that needs its own line because of black formatting."""
+).format("blah")
+
+_(
+"Long string with", context="context"
+).format("blah")
+
+_(
+    "Long string with",
+    context="context on newline"
+).format("blah")

@@ -272,7 +272,7 @@ def make_boilerplate(template, doc, opts=None):
 					frappe.utils.cstr(source.read()).format(
 						app_publisher=app_publisher,
 						year=frappe.utils.nowdate()[:4],
-						classname=doc.name.replace(" ", ""),
+						classname=doc.name.replace(" ", "").replace("-", ""),
 						base_class_import=base_class_import,
 						base_class=base_class,
 						doctype=doc.name, **opts,

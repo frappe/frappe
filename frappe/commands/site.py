@@ -728,7 +728,7 @@ def move(dest_dir, site):
 @click.command('set-password')
 @click.argument('user')
 @click.argument('password', required=False)
-@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@click.option('--logout-all-sessions', help='Log out from all sessions', is_flag=True, default=False)
 @pass_context
 def set_password(context, user, password=None, logout_all_sessions=False):
 	"Set password for a user on a site"
@@ -741,7 +741,7 @@ def set_password(context, user, password=None, logout_all_sessions=False):
 
 @click.command('set-admin-password')
 @click.argument('admin-password', required=False)
-@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@click.option('--logout-all-sessions', help='Log out from all sessions', is_flag=True, default=False)
 @pass_context
 def set_admin_password(context, admin_password=None, logout_all_sessions=False):
 	"Set Administrator password for a site"

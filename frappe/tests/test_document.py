@@ -246,7 +246,7 @@ class TestDocument(unittest.TestCase):
 			'fields': [
 				{'label': 'Currency', 'fieldname': 'currency', 'reqd': 1, 'fieldtype': 'Currency'},
 			]
-		}).insert()
+		}).insert(ignore_if_duplicate=True)
 
 		frappe.delete_doc_if_exists("Currency", "INR", 1)
 
@@ -261,6 +261,10 @@ class TestDocument(unittest.TestCase):
 			'currency': 100000
 		})
 		self.assertEqual(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+
+		# should work even if options aren't set in df
+		# and currency param is not passed
+		self.assertIn("0", d.get_formatted("currency"))
 
 	def test_limit_for_get(self):
 		doc = frappe.get_doc("DocType", "DocType")
