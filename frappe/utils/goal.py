@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.query_builder.functions import DateFormat, Function
 from frappe.query_builder.utils import DocType
-from frappe.utils.data import add_to_date, flt, now_datetime
+from frappe.utils.data import add_to_date, cstr, flt, now_datetime
 from frappe.utils.formatters import format_value
 from contextlib import suppress
 
@@ -86,11 +86,11 @@ def get_monthly_goal_graph_data(
 	history = doc.get(goal_history_field)
 
 	month_to_value_dict = None
-	if history:
+	if history and "{" in cstr(history):
 		with suppress(ValueError):
 			month_to_value_dict = frappe.parse_json(history)
 
-	if month_to_value_dict is None:
+	if month_to_value_dict is None: # nosemgrep
 		doc_filter = {}
 		with suppress(ValueError):
 			doc_filter = frappe.parse_json(filters or "{}")
