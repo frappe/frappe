@@ -65,6 +65,9 @@ frappe.number_format_info = {
 	"#,###.###": { decimal_str: ".", group_sep: "," },
 	"#.###": { decimal_str: "", group_sep: "." },
 	"#,###": { decimal_str: "", group_sep: "," },
+	"#.########": { decimal_str: ".", group_sep: "" },
+	"# ###.###": { decimal_str: ".", group_sep: " " },
+	"# ###,###": { decimal_str: ",", group_sep: " " },
 }
 
 window.format_number = function (v, format, decimals) {

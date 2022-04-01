@@ -146,7 +146,7 @@
    "fieldname": "number_format",
    "fieldtype": "Select",
    "label": "Number Format",
-   "options": "#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###",
+   "options": "#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###\n#.########\n# ###.###\n# ###,###",
    "reqd": 1
   },
   {
@@ -490,7 +490,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-01-04 11:28:34.881192",
+ "modified": "2022-04-01 11:28:34.881192",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
