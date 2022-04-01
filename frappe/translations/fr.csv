@@ -246,7 +246,7 @@ Start Import,Démarrer l'import,
 State,Etat,
 Stopped,Arrêté,
 Subject,Sujet,
-Submit,Soumettre,
+Submit,Valider,
 Successful,Réussi,
 Summary,Résumé,
 Sunday,Dimanche,
@@ -4714,3 +4714,4 @@ Amend, Nouv. version
 Document has been submitted, Document validé
 Document has been cancelled, Document annulé
 Document is in draft state, Document au statut brouillon
+Copy to Clipboard,Copier vers le presse-papiers
