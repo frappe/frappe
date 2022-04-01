@@ -1,9 +1,11 @@
 from datetime import timedelta
 from typing import Any, Dict, Optional
-from frappe.utils.data import format_timedelta
 
-from pypika.terms import Function, ValueWrapper
+from pypika.queries import QueryBuilder
+from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
+
+from frappe.utils.data import format_timedelta
 
 
 class NamedParameterWrapper:
@@ -100,3 +102,12 @@ class ParameterizedFunction(Function):
 			)
 
 		return function_sql
+
+class subqry(Criterion):
+	def __init__(self, subq: QueryBuilder, alias: Optional[str] = None,) -> None:
+		super().__init__(alias)
+		self.subq = subq
+
+	def get_sql(self, **kwg: Any) -> str:
+		kwg["subquery"] = True
+		return self.subq.get_sql(**kwg)

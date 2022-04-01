@@ -34,7 +34,7 @@ def after_install():
 	print_settings.save()
 
 	# all roles to admin
-	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
+	frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
 
 	# update admin password
 	update_password("Administrator", get_admin_password())
