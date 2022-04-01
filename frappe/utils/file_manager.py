@@ -321,7 +321,7 @@ def get_file_path(file_name):
 
 	File = DocType("File")
 
-	f = frappe.qb.from_(File).where((File.name == file_name) & (File.file_name == file_name)).select(File.file_url).run()
+	f = frappe.qb.from_(File).where((File.name == file_name) | (File.file_name == file_name)).select(File.file_url).run()
 
 	if f:
 		file_name = f[0][0]
