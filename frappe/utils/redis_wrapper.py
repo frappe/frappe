@@ -137,6 +137,9 @@ class RedisWrapper(redis.Redis):
 	def lpop(self, key):
 		return super(RedisWrapper, self).lpop(self.make_key(key))
 
+	def rpop(self, key):
+		return super(RedisWrapper, self).rpop(self.make_key(key))
+
 	def llen(self, key):
 		return super(RedisWrapper, self).llen(self.make_key(key))
 
