@@ -549,7 +549,7 @@ class Database(object):
 				return r and [[i[1] for i in r]] or []
 
 
-	def get_singles_dict(self, doctype, debug = False):
+	def get_singles_dict(self, doctype, debug=False, *, for_update=False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -560,10 +560,13 @@ class Database(object):
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
 		result = self.query.get_sql(
-			"Singles", filters={"doctype": doctype}, fields=["field", "value"]
+			"Singles",
+			filters={"doctype": doctype},
+			fields=["field", "value"],
+			for_update=for_update,
 		).run()
-		dict_  = frappe._dict(result)
-		return dict_
+
+		return frappe._dict(result)
 
 	@staticmethod
 	def get_all(*args, **kwargs):

@@ -96,14 +96,11 @@ class Document(BaseDocument):
 			if isinstance(args[0], str):
 				# first arugment is doctype
 				self.doctype = args[0]
+				self.name = self.doctype if len(args) == 1 else args[1]
 
-				if len(args) == 1:
-					# single
-					self.name = self.doctype
-				else:
-					self.name = args[1]
-					self.flags.for_update = kwargs.get("for_update")
-
+				# for_update is set in flags to avoid changing load_from_db signature
+				# since it is used in virtual doctypes and inherited in child classes
+				self.flags.for_update = kwargs.get("for_update")
 				self.load_from_db()
 				return
 
@@ -130,7 +127,9 @@ class Document(BaseDocument):
 		"""Load document and children from database and create properties
 		from fields"""
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
-			single_doc = frappe.db.get_singles_dict(self.doctype)
+			single_doc = frappe.db.get_singles_dict(
+				self.doctype, for_update=self.flags.for_update
+			)
 			if not single_doc:
 				single_doc = frappe.new_doc(self.doctype, as_dict=True)
 				single_doc["name"] = self.doctype
