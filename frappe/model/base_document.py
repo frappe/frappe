@@ -755,6 +755,13 @@ class BaseDocument(object):
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
 
+	def _sync_autoname_field(self):
+		"""Keep autoname field in sync with `name`"""
+		autoname = self.meta.autoname or ""
+		_empty, _field_specifier, fieldname = autoname.partition("field:")
+
+		if fieldname and self.name and self.name != self.get("fieldname"):
+			self.set(fieldname, self.name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		if self.parentfield and self.idx:

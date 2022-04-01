@@ -90,11 +90,18 @@ class TestImporter(unittest.TestCase):
 
 		# update child table id in template date
 		i.import_file.raw_data[1][4] = existing_doc.table_field_1[0].name
-		i.import_file.raw_data[1][0] = existing_doc.name
+
+		# uppercase to check if autoname field isn't replaced in mariadb
+		if frappe.db.db_type == "mariadb":
+			i.import_file.raw_data[1][0] = existing_doc.name.upper()
+		else:
+			i.import_file.raw_data[1][0] = existing_doc.name
+
 		i.import_file.parse_data_from_template()
 		i.import_data()
 
 		updated_doc = frappe.get_doc(doctype_name, existing_doc.name)
+		self.assertEqual(existing_doc.title, updated_doc.title)
 		self.assertEqual(updated_doc.description, 'test description')
 		self.assertEqual(updated_doc.table_field_1[0].child_title, 'child title')
 		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
