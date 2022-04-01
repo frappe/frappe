@@ -1,5 +1,5 @@
 frappe.provide('frappe.search');
-import { fuzzyMatch } from './fuzzy_match.js'
+import { fuzzy_match } from './fuzzy_match.js'
 
 
 frappe.search.utils = {
@@ -535,12 +535,12 @@ frappe.search.utils = {
 	},
 
 	fuzzy_search: function(keywords, _item) {
-	    var match = fuzzyMatch(keywords, _item);
+	    var match = fuzzy_match(keywords, _item);
 	    return match[1];
 	},
 
 	bolden_match_part: function(str, subseq) {
-		if(fuzzyMatch(subseq, str)[0] === false) {
+		if(fuzzy_match(subseq, str)[0] === false) {
 			return str;
 		}
         if(str.indexOf(subseq) == 0) {

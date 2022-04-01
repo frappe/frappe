@@ -32,103 +32,103 @@ const UNMATCHED_LETTER_PENALTY = -1;
  *											found or not and a search score
  */
 function fuzzy_match(pattern, str) {
-	const recursionCount = 0;
-	const recursionLimit = 10;
+	const recursion_count = 0;
+	const recursion_limit = 10;
 	const matches = [];
-	const maxMatches = 256;
+	const max_matches = 256;
 
-	return fuzzyMatchRecursive(
+	return fuzzy_match_recursive(
 		pattern,
 		str,
-		0 /* patternCurIndex */,
-		0 /* strCurrIndex */,
-		null /* srcMatces */,
+		0 /* pattern_cur_index */,
+		0 /* str_curr_index */,
+		null /* src_matces */,
 		matches,
-		maxMatches,
-		0 /* nextMatch */,
-		recursionCount,
-		recursionLimit
+		max_matches,
+		0 /* next_match */,
+		recursion_count,
+		recursion_limit
 	);
 }
 
-function fuzzyMatchRecursive(
+function fuzzy_match_recursive(
 	pattern,
 	str,
-	patternCurIndex,
-	strCurrIndex,
-	srcMatces,
+	pattern_cur_index,
+	str_curr_index,
+	src_matces,
 	matches,
-	maxMatches,
-	nextMatch,
-	recursionCount,
-	recursionLimit
+	max_matches,
+	next_match,
+	recursion_count,
+	recursion_limit
 ) {
-	let outScore = 0;
+	let out_score = 0;
 
 	// Return if recursion limit is reached.
-	if (++recursionCount >= recursionLimit) {
-		return [false, outScore];
+	if (++recursion_count >= recursion_limit) {
+		return [false, out_score];
 	}
 
 	// Return if we reached ends of strings.
-	if (patternCurIndex === pattern.length || strCurrIndex === str.length) {
-		return [false, outScore];
+	if (pattern_cur_index === pattern.length || str_curr_index === str.length) {
+		return [false, out_score];
 	}
 
 	// Recursion params
-	let recursiveMatch = false;
-	let bestRecursiveMatches = [];
-	let bestRecursiveScore = 0;
+	let recursive_match = false;
+	let best_recursive_matches = [];
+	let best_recursive_score = 0;
 
 	// Loop through pattern and str looking for a match.
-	let firstMatch = true;
-	while (patternCurIndex < pattern.length && strCurrIndex < str.length) {
+	let first_match = true;
+	while (pattern_cur_index < pattern.length && str_curr_index < str.length) {
 		// Match found.
 		if (
-			pattern[patternCurIndex].toLowerCase() === str[strCurrIndex].toLowerCase()
+			pattern[pattern_cur_index].toLowerCase() === str[str_curr_index].toLowerCase()
 		) {
-			if (nextMatch >= maxMatches) {
-				return [false, outScore];
+			if (next_match >= max_matches) {
+				return [false, out_score];
 			}
 
-			if (firstMatch && srcMatces) {
-				matches = [...srcMatces];
-				firstMatch = false;
+			if (first_match && src_matces) {
+				matches = [...src_matces];
+				first_match = false;
 			}
 
-			const recursiveMatches = [];
-			const [matched, recursiveScore] = fuzzyMatchRecursive(
+			const recursive_matches = [];
+			const [matched, recursive_score] = fuzzy_match_recursive(
 				pattern,
 				str,
-				patternCurIndex,
-				strCurrIndex + 1,
+				pattern_cur_index,
+				str_curr_index + 1,
 				matches,
-				recursiveMatches,
-				maxMatches,
-				nextMatch,
-				recursionCount,
-				recursionLimit
+				recursive_matches,
+				max_matches,
+				next_match,
+				recursion_count,
+				recursion_limit
 			);
 
 			if (matched) {
 				// Pick best recursive score.
-				if (!recursiveMatch || recursiveScore > bestRecursiveScore) {
-					bestRecursiveMatches = [...recursiveMatches];
-					bestRecursiveScore = recursiveScore;
+				if (!recursive_match || recursive_score > best_recursive_score) {
+					best_recursive_matches = [...recursive_matches];
+					best_recursive_score = recursive_score;
 				}
 				recursiveMatch = true;
 			}
 
-			matches[nextMatch++] = strCurrIndex;
-			++patternCurIndex;
+			matches[next_match++] = str_curr_index;
+			++pattern_cur_index;
 		}
-		++strCurrIndex;
+		++str_curr_index;
 	}
 
-	const matched = patternCurIndex === pattern.length;
+	const matched = pattern_cur_index === pattern.length;
 
 	if (matched) {
-		outScore = 100;
+		out_score = 100;
 
 		// Apply leading letter penalty
 		let penalty = LEADING_LETTER_PENALTY * matches[0];
@@ -136,58 +136,58 @@ function fuzzyMatchRecursive(
 			penalty < MAX_LEADING_LETTER_PENALTY
 				? MAX_LEADING_LETTER_PENALTY
 				: penalty;
-		outScore += penalty;
+		out_score += penalty;
 
 		//Apply unmatched penalty
-		const unmatched = str.length - nextMatch;
-		outScore += UNMATCHED_LETTER_PENALTY * unmatched;
+		const unmatched = str.length - next_match;
+		out_score += UNMATCHED_LETTER_PENALTY * unmatched;
 
 		// Apply ordering bonuses
-		for (let i = 0; i < nextMatch; i++) {
-			const currIdx = matches[i];
+		for (let i = 0; i < next_match; i++) {
+			const curr_idx = matches[i];
 
 			if (i > 0) {
-				const prevIdx = matches[i - 1];
-				if (currIdx == prevIdx + 1) {
-					outScore += SEQUENTIAL_BONUS;
+				const prev_idx = matches[i - 1];
+				if (curr_idx == prev_idx + 1) {
+					out_score += SEQUENTIAL_BONUS;
 				}
 			}
 
 			// Check for bonuses based on neighbor character value.
-			if (currIdx > 0) {
+			if (curr_idx > 0) {
 				// Camel case
-				const neighbor = str[currIdx - 1];
-				const curr = str[currIdx];
+				const neighbor = str[curr_idx - 1];
+				const curr = str[curr_idx];
 				if (
 					neighbor !== neighbor.toUpperCase() &&
 					curr !== curr.toLowerCase()
 				) {
-					outScore += CAMEL_BONUS;
+					out_score += CAMEL_BONUS;
 				}
-				const isNeighbourSeparator = neighbor == "_" || neighbor == " ";
-				if (isNeighbourSeparator) {
-					outScore += SEPARATOR_BONUS;
+				const is_neighbour_separator = neighbor == "_" || neighbor == " ";
+				if (is_neighbour_separator) {
+					out_score += SEPARATOR_BONUS;
 				}
 			} else {
 				// First letter
-				outScore += FIRST_LETTER_BONUS;
+				out_score += FIRST_LETTER_BONUS;
 			}
 		}
 
 		// Return best result
-		if (recursiveMatch && (!matched || bestRecursiveScore > outScore)) {
+		if (recursive_match && (!matched || best_recursive_score > out_score)) {
 			// Recursive score is better than "this"
-			matches = [...bestRecursiveMatches];
-			outScore = bestRecursiveScore;
-			return [true, outScore];
+			matches = [...best_recursive_matches];
+			out_score = best_recursive_score;
+			return [true, out_score];
 		} else if (matched) {
 			// "this" score is better than recursive
-			return [true, outScore];
+			return [true, out_score];
 		} else {
-			return [false, outScore];
+			return [false, out_score];
 		}
 	}
-	return [false, outScore];
+	return [false, out_score];
 }
 
 
