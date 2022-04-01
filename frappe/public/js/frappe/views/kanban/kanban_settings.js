@@ -218,24 +218,44 @@ export default class KanbanSettings {
 		});
 		d.set_primary_action(__('Save'), () => {
 			let values = d.get_values().fields;
+			let fields = [];
 
-			me.fields = [];
 			me.subject_field = me.get_subject_field(me.meta);
-			me.fields.push(me.subject_field);
+			fields.push(me.subject_field);
 
-			for (let value of values) {
-				if (value != me.subject_field.fieldname) {
-					let field = me.get_docfield(value);
+			let add_field = (field) => {
+				if (field === me.subject_field.fieldname) return;
 
-					if (field) {
-						me.fields.push({
-							label: field.label,
-							fieldname: field.fieldname
-						});
-					}
+				field = me.get_docfield(field);
+
+				if (field) {
+					fields.push({
+						label: field.label,
+						fieldname: field.fieldname
+					});
+
+					let idx = values.indexOf(field.fieldname);
+					values.splice(idx, 1);
 				}
-			}
+			};
 
+			/**
+			 * Adds the docfields in me.fields in the fields array to
+			 * preserve the docfields order and then push the newly added fields.
+			 */
+			me.fields.forEach(field => {
+				field = values.filter(value => value === field.fieldname);
+
+				if (field.length) {
+					add_field(field[0]);
+				}
+			});
+
+			values.forEach(field => {
+				add_field(field)
+			})
+
+			me.fields = fields;
 			me.refresh();
 			me.dialog.set_value("fields", JSON.stringify(me.fields));
 			d.hide();
