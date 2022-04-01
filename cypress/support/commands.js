@@ -290,6 +290,7 @@ Cypress.Commands.add('add_filter', () => {
 });
 
 Cypress.Commands.add('clear_filters', () => {
+	let has_filter = false;
 	cy.intercept({
 		method: 'POST',
 		url: 'api/method/frappe.model.utils.user_settings.save'
@@ -297,12 +298,17 @@ Cypress.Commands.add('clear_filters', () => {
 	cy.get('.filter-section .filter-button').click({force: true});
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
+	cy.get('.filter-popover').then(popover => {
+		if (popover.find('input.input-with-feedback')[0].value != '') {
+			has_filter = true;
+		}
+	});
 	cy.get('.filter-popover').find('.clear-filters').click();
 	cy.get('.filter-section .filter-button').click();
 	cy.window().its('cur_list').then(cur_list => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
+		has_filter && cy.wait('@filter-saved');
 	});
-	cy.wait('@filter-saved');
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
