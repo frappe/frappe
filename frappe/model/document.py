@@ -500,6 +500,7 @@ class Document(BaseDocument):
 		self._validate_non_negative()
 		self._validate_length()
 		self._validate_code_fields()
+		self._sync_autoname_field()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
@@ -1378,11 +1379,9 @@ class Document(BaseDocument):
 		doctype = self.__class__.__name__
 
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		repr_str = f"<{doctype}: {name}{docstatus}"
+		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
-		if not hasattr(self, "parent"):
-			return repr_str + ">"
-		return f"{repr_str} parent={self.parent}>"
+		return f"<{doctype}: {name}{docstatus}{parent}>"
 
 	def __str__(self):
 		name = self.name or "unsaved"
