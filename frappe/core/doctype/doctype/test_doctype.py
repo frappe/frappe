@@ -538,6 +538,36 @@ class TestDocType(unittest.TestCase):
 			# cleanup
 			dt.delete(ignore_permissions=True)
 
+	def test_json_field(self):
+		"""Test json field."""
+		json_doc = new_doctype(
+			"Test Json Doctype",
+			fields=[{
+				"label": "json field",
+				"fieldname": "test_json_field",
+				"fieldtype": "Json"
+			}]
+		)
+		json_doc.insert()
+		json_doc.save()
+		doc = frappe.get_doc("DocType", "Test Json Doctype")
+		for field in doc.fields:
+			if field.fieldname == 'test_json_field':
+				self.assertEqual(field.fieldtype, 'Json')
+				break
+
+		doc = frappe.get_doc({
+			"doctype": "Test Json Doctype",
+			"test_json_field": json.dumps({"hello": "world"})
+		})
+		doc.insert()
+		doc.save()
+
+		json = frappe.get_doc("Test Json Doctype", doc.name)
+
+		self.assertEqual(json.test_json_field['hello'], 'world')
+
+
 
 def new_doctype(
 	name, unique: bool = False, depends_on: str = "", fields: Optional[List[Dict]] = None, **kwargs
