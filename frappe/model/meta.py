@@ -30,7 +30,7 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import BaseDocument
+from frappe.model.base_document import BaseDocument, DOCTYPE_TABLE_FIELDS
 from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
@@ -180,7 +180,7 @@ class Meta(Document):
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
-			if self.name!="DocType":
+			if self.name != "DocType":
 				self._table_fields = self.get('fields', {"fieldtype": ['in', table_fields]})
 			else:
 				self._table_fields = DOCTYPE_TABLE_FIELDS
@@ -608,14 +608,6 @@ class Meta(Document):
 
 	def is_nested_set(self):
 		return self.has_field('lft') and self.has_field('rgt')
-
-DOCTYPE_TABLE_FIELDS = [
-	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
-	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
-	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
-	frappe._dict({"fieldname": "states", "options": "DocType State"}),
-]
 
 #######
 

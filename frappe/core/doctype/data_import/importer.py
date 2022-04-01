@@ -244,6 +244,7 @@ class Importer:
 		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
 
 		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+
 		updated_doc.update(doc)
 
 		if get_diff(existing_doc, updated_doc):
