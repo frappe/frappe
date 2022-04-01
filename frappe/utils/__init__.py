@@ -791,40 +791,27 @@ def get_build_version():
 		return frappe.utils.random_string(8)
 
 def get_assets_json():
+	def _get_assets():
+		# get merged assets.json and assets-rtl.json
+		assets = frappe.parse_json(frappe.read_file("assets/assets.json"))
+
+		if assets_rtl := frappe.read_file("assets/assets-rtl.json"):
+			assets.update(frappe.parse_json(assets_rtl))
+
+		return assets
+
 	if not hasattr(frappe.local, "assets_json"):
-		cache = frappe.cache()
-
-		# using .get instead of .get_value to avoid pickle.loads
-		try:
-			if not frappe.conf.developer_mode:
-				assets_json = cache.get("assets_json").decode('utf-8')
-			else:
-				assets_json = None
-		except (UnicodeDecodeError, AttributeError, ConnectionError):
-			assets_json = None
-
-		if not assets_json:
-			# get merged assets.json and assets-rtl.json
-			assets_dict = frappe.parse_json(
-				frappe.read_file("assets/assets.json")
+		if not frappe.conf.developer_mode:
+			frappe.local.assets_json = frappe.cache().get_value(
+				"assets_json",
+				_get_assets,
+				shared=True,
 			)
 
-			assets_rtl = frappe.read_file("assets/assets-rtl.json")
-			if assets_rtl:
-				assets_dict.update(
-					frappe.parse_json(assets_rtl)
-				)
-			frappe.local.assets_json = frappe.as_json(assets_dict)
-			# save in cache
-			cache.set_value("assets_json", frappe.local.assets_json,
-				shared=True)
-
-			return assets_dict
 		else:
-			# from cache, decode and send
-			frappe.local.assets_json = frappe.safe_decode(assets_json)
+			frappe.local.assets_json = _get_assets()
 
-	return frappe.parse_json(frappe.local.assets_json)
+	return frappe.local.assets_json
 
 
 def get_bench_relative_path(file_path):
@@ -918,3 +905,8 @@ def add_user_info(user, user_info):
 			email = info.email,
 			time_zone = info.time_zone
 		)
+
+def is_git_url(url: str) -> bool:
+	# modified to allow without the tailing .git from https://github.com/jonschlinkert/is-git-url.git
+	pattern = r"(?:git|ssh|https?|\w*@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$"
+	return bool(re.match(pattern, url))

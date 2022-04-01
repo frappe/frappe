@@ -88,39 +88,32 @@ class Document(BaseDocument):
 		If DocType name and document name are passed, the object will load
 		all values (including child documents) from the database.
 		"""
-		self.doctype = self.name = None
-		self._default_new_docs = {}
+		self.doctype = None
+		self.name = None
 		self.flags = frappe._dict()
 
-		if args and args[0] and isinstance(args[0], str):
-			# first arugment is doctype
-			if len(args)==1:
-				# single
-				self.doctype = self.name = args[0]
-			else:
+		if args and args[0]:
+			if isinstance(args[0], str):
+				# first arugment is doctype
 				self.doctype = args[0]
-				if isinstance(args[1], dict):
-					# filter
-					self.name = frappe.db.get_value(args[0], args[1], "name")
-					if self.name is None:
-						frappe.throw(_("{0} {1} not found").format(_(args[0]), args[1]),
-							frappe.DoesNotExistError)
-				else:
-					self.name = args[1]
 
-				if 'for_update' in kwargs:
-					self.flags.for_update = kwargs.get('for_update')
+				# doctype for singles, string value or filters for other documents
+				self.name = self.doctype if len(args) == 1 else args[1]
 
-			self.load_from_db()
-			return
+				# for_update is set in flags to avoid changing load_from_db signature
+				# since it is used in virtual doctypes and inherited in child classes
+				self.flags.for_update = kwargs.get("for_update")
+				self.load_from_db()
+				return
 
-		if args and args[0] and isinstance(args[0], dict):
-			# first argument is a dict
-			kwargs = args[0]
+			if isinstance(args[0], dict):
+				# first argument is a dict
+				kwargs = args[0]
 
 		if kwargs:
 			# init base document
 			super(Document, self).__init__(kwargs)
+			self.init_child_tables()
 			self.init_valid_columns()
 
 		else:
@@ -133,17 +126,15 @@ class Document(BaseDocument):
 		frappe.whitelist()(fn)
 		return fn
 
-	def reload(self):
-		"""Reload document from database"""
-		self.load_from_db()
-
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
-			single_doc = frappe.db.get_singles_dict(self.doctype)
+			single_doc = frappe.db.get_singles_dict(
+				self.doctype, for_update=self.flags.for_update
+			)
 			if not single_doc:
-				single_doc = frappe.new_doc(self.doctype).as_dict()
+				single_doc = frappe.new_doc(self.doctype, as_dict=True)
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
@@ -158,24 +149,26 @@ class Document(BaseDocument):
 
 			super(Document, self).__init__(d)
 
-		if self.name=="DocType" and self.doctype=="DocType":
-			from frappe.model.meta import DOCTYPE_TABLE_FIELDS
-			table_fields = DOCTYPE_TABLE_FIELDS
-		else:
-			table_fields = self.meta.get_table_fields()
+		for df in self._get_table_fields():
+			children = frappe.db.get_values(
+				df.options,
+				{
+					"parent": self.name,
+					"parenttype": self.doctype,
+					"parentfield": df.fieldname
+				},
+				"*",
+				as_dict=True,
+				order_by="idx asc"
+			) or []
 
-		for df in table_fields:
-			children = frappe.db.get_values(df.options,
-				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-				"*", as_dict=True, order_by="idx asc")
-			if children:
-				self.set(df.fieldname, children)
-			else:
-				self.set(df.fieldname, [])
+			self.set(df.fieldname, children)
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):
 			self.__setup__()
+
+	reload = load_from_db
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
@@ -276,7 +269,8 @@ class Document(BaseDocument):
 			delattr(self, "__unsaved")
 
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
-			follow_document(self.doctype, self.name, frappe.session.user)
+			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
+				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def save(self, *args, **kwargs):
@@ -499,6 +493,7 @@ class Document(BaseDocument):
 		self._validate_non_negative()
 		self._validate_length()
 		self._validate_code_fields()
+		self._sync_autoname_field()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
@@ -847,16 +842,18 @@ class Document(BaseDocument):
 				frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
-		"""Returns all children documents from **Table** type field in a list."""
-		ret = []
-		for df in self.meta.get("fields", {"fieldtype": ['in', table_fields]}):
-			if parenttype:
-				if df.options==parenttype:
-					return self.get(df.fieldname)
-			value = self.get(df.fieldname)
-			if isinstance(value, list):
-				ret.extend(value)
-		return ret
+		"""Returns all children documents from **Table** type fields in a list."""
+
+		children = []
+
+		for df in self.meta.get_table_fields():
+			if parenttype and df.options != parenttype:
+				continue
+
+			if value := self.get(df.fieldname):
+				children.extend(value)
+
+		return children
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
@@ -1125,7 +1122,8 @@ class Document(BaseDocument):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
-				follow_document(self.doctype, self.name, frappe.session.user)
+				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
+					follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def hook(f):
@@ -1373,11 +1371,9 @@ class Document(BaseDocument):
 		doctype = self.__class__.__name__
 
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		repr_str = f"<{doctype}: {name}{docstatus}"
+		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
-		if not hasattr(self, "parent"):
-			return repr_str + ">"
-		return f"{repr_str} parent={self.parent}>"
+		return f"<{doctype}: {name}{docstatus}{parent}>"
 
 	def __str__(self):
 		name = self.name or "unsaved"
