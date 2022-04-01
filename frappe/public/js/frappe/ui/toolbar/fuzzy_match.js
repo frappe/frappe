@@ -31,7 +31,7 @@ const UNMATCHED_LETTER_PENALTY = -1;
  * @returns [boolean, number]   			a boolean which tells if pattern was
  *											found or not and a search score
  */
-function fuzzy_match(pattern, str) {
+export function fuzzy_match(pattern, str) {
 	const recursion_count = 0;
 	const recursion_limit = 10;
 	const matches = [];
@@ -42,7 +42,7 @@ function fuzzy_match(pattern, str) {
 		str,
 		0 /* pattern_cur_index */,
 		0 /* str_curr_index */,
-		null /* src_matces */,
+		null /* src_matches */,
 		matches,
 		max_matches,
 		0 /* next_match */,
@@ -56,7 +56,7 @@ function fuzzy_match_recursive(
 	str,
 	pattern_cur_index,
 	str_curr_index,
-	src_matces,
+	src_matches,
 	matches,
 	max_matches,
 	next_match,
@@ -91,8 +91,8 @@ function fuzzy_match_recursive(
 				return [false, out_score];
 			}
 
-			if (first_match && src_matces) {
-				matches = [...src_matces];
+			if (first_match && src_matches) {
+				matches = [...src_matches];
 				first_match = false;
 			}
 
@@ -116,7 +116,7 @@ function fuzzy_match_recursive(
 					best_recursive_matches = [...recursive_matches];
 					best_recursive_score = recursive_score;
 				}
-				recursiveMatch = true;
+				recursive_match = true;
 			}
 
 			matches[next_match++] = str_curr_index;
@@ -189,8 +189,3 @@ function fuzzy_match_recursive(
 	}
 	return [false, out_score];
 }
-
-
-module.exports = {
-	fuzzy_match
-};
