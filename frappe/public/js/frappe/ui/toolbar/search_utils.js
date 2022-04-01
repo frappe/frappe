@@ -535,7 +535,9 @@ frappe.search.utils = {
 	},
 
 	fuzzy_search: function(keywords, _item) {
-		var match = fuzzy_match(keywords, _item);
+		keywords = keywords || '';
+		var item = __(_item || '');
+		var match = fuzzy_match(keywords, item);
 		return match[1];
 	},
 
