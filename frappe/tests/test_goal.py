@@ -9,10 +9,11 @@ from frappe.tests.utils import FrappeTestCase
 
 
 class TestGoal(FrappeTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		make_test_objects("Event", reset=True)
+
+	def tearDown(self):
+		frappe.db.delete("Event")
 
 	def test_get_monthly_results(self):
 		"""Test monthly aggregation values of a field"""
