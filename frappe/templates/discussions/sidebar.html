@@ -1,19 +1,24 @@
-<div class="sidebar-parent">
-	<div class="sidebar-topic" data-target="#t{{ topic.name }}" data-toggle="collapse" aria-expanded="false">
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+{% set creator = frappe.db.get_value("User", topic.owner, ["name", "username", "full_name", "user_image"], as_dict=True) %}
+
+<div class="sidebar-parent" data-target="#t{{ topic.name }}" data-toggle="collapse" aria-expanded="false">
+	<div class="mr-4">
+		{{ avatar(creator.name, size="avatar-medium") }}
+	</div>
+	<div class="flex-grow-1">
 		<div class="discussion-topic-title">{{ topic.title }}</div>
-		<div class="sidebar-info">
-			{% set creator = frappe.get_doc("User", topic.owner) %}
-			<span class="reply-author ml-0">
-				{{ creator.full_name }}
-			</span>
-			<span class="small d-flex">
-				<span class="mr-2 d-flex align-items-center">
+		<div class="sidebar-topic">
+			<svg class="icon icon-md m-0 mr-2">
+				<use class="" href="#icon-reply"></use>
+			</svg>
+			<div class="topic-author">{{ creator.full_name }}</div>
+			<div class="ml-2 frappe-timestamp small" data-timestamp="{{ topic.creation }}"> {{ frappe.utils.pretty_date(topic.creation) }} </div>
+			<div class="ml-auto">
+				<span class="d-flex align-items-center">
 					<img class="mr-1" src="/assets/frappe/icons/timeless/message.svg">
 					<span class="reply-count">{{ replies | length }}</span>
 				</span>
-				<span> {{ frappe.utils.format_date(topic.creation, "dd MMM YYYY") }} </span>
-			</span>
+			</div>
 		</div>
 	</div>
-	<div class="card-divider"></div>
 </div>

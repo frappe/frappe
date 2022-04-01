@@ -848,16 +848,19 @@ class Document(BaseDocument):
 				frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
-		"""Returns all children documents from **Table** type field in a list."""
-		ret = []
-		for df in self.meta.get("fields", {"fieldtype": ['in', table_fields]}):
-			if parenttype:
-				if df.options==parenttype:
-					return self.get(df.fieldname)
+		"""Returns all children documents from **Table** type fields in a list."""
+
+		children = []
+
+		for df in self.meta.get_table_fields():
+			if parenttype and df.options != parenttype:
+				continue
+
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
-				ret.extend(value)
-		return ret
+				children.extend(value)
+
+		return children
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
@@ -1375,11 +1378,9 @@ class Document(BaseDocument):
 		doctype = self.__class__.__name__
 
 		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		repr_str = f"<{doctype}: {name}{docstatus}"
+		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
-		if not hasattr(self, "parent"):
-			return repr_str + ">"
-		return f"{repr_str} parent={self.parent}>"
+		return f"<{doctype}: {name}{docstatus}{parent}>"
 
 	def __str__(self):
 		name = self.name or "unsaved"

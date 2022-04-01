@@ -4,8 +4,6 @@ frappe.ready(() => {
 
 	add_color_to_avatars();
 
-	expand_first_discussion();
-
 	$(".search-field").keyup((e) => {
 		search_topic(e);
 	});
@@ -14,11 +12,11 @@ frappe.ready(() => {
 		show_new_topic_modal(e);
 	});
 
-	$("#login-from-discussion").click((e) => {
+	$(".login-from-discussion").click((e) => {
 		login_from_discussion(e);
 	});
 
-	$(".sidebar-topic").click((e) => {
+	$(".sidebar-parent").click((e) => {
 		if ($(e.currentTarget).attr("aria-expanded") == "true") {
 			e.stopPropagation();
 		}
@@ -31,17 +29,6 @@ frappe.ready(() => {
 		}
 	});
 
-	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
-		if ($(e.currentTarget).val()) {
-			$(e.currentTarget).css("height", "48px");
-			$(".cancel-comment").removeClass("hide").addClass("show");
-			$(e.currentTarget).css("height", $(e.currentTarget).prop("scrollHeight"));
-		} else {
-			$(".cancel-comment").removeClass("show").addClass("hide");
-			$(e.currentTarget).css("height", "48px");
-		}
-	});
-
 	$(document).on("click", ".submit-discussion", (e) => {
 		submit_discussion(e);
 	});
@@ -50,14 +37,24 @@ frappe.ready(() => {
 		clear_comment_box();
 	});
 
-	if ($(document).width() <= 550) {
-		$(document).on("click", ".sidebar-parent", () => {
-			hide_sidebar();
-		});
-	}
+	$(document).on("click", ".sidebar-parent", () => {
+		hide_sidebar();
+	});
 
-	$(document).on("click", ".back", (e) => {
+	$(document).on("click", ".back-button", (e) => {
 		back_to_sidebar(e);
+	});
+
+	$(document).on("click", ".dismiss-reply", (e) => {
+		dismiss_reply(e);
+	});
+
+	$(document).on("click", ".reply-card .dropdown-menu", (e) => {
+		perform_action(e);
+	});
+
+	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
+		adjust_comment_box(e);
 	});
 
 });
@@ -79,9 +76,16 @@ const setup_socket_io = () => {
 		if (window.dev_server) {
 			frappe.boot.socketio_port = "9000";
 		}
+
 		frappe.socketio.init(9000);
 		frappe.socketio.socket.on("publish_message", (data) => {
 			publish_message(data);
+		});
+		frappe.socketio.socket.on("update_message", (data) => {
+			update_message(data);
+		});
+		frappe.socketio.socket.on("delete_message", (data) => {
+			delete_message(data);
 		});
 	});
 };
@@ -92,44 +96,47 @@ const publish_message = (data) => {
 	const topic = data.topic_info;
 	const single_thread = $(".is-single-thread").length;
 	const first_topic = !$(".reply-card").length;
-	const document_match_found = doctype == topic.reference_doctype && docname == topic.reference_docname;
+	const document_match_found = (doctype == topic.reference_doctype) && (docname == topic.reference_docname);
+
+	post_message_cleanup();
+	data.template = hide_actions_on_conditions(data.template, data.reply_owner);
+	data.template = style_avatar_frame(data.template);
+	data.sidebar = style_avatar_frame(data.sidebar);
+	data.new_topic_template = style_avatar_frame(data.new_topic_template);
 
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
-		post_message_cleanup();
-		data.template = style_avatar_frame(data.template);
-		$('<div class="card-divider-dark mb-8"></div>' + data.template)
-			.insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
+		$(data.template).insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
 
 	} else if (!first_topic && !single_thread && document_match_found) {
-		post_message_cleanup();
-		data.new_topic_template = style_avatar_frame(data.new_topic_template);
-
-		$(data.sidebar).insertAfter(`.discussions-sidebar .form-group`);
+		$(data.sidebar).insertBefore($(`.discussions-sidebar .sidebar-parent`).first());
 		$(`#discussion-group`).prepend(data.new_topic_template);
-
 		if (topic.owner == frappe.session.user) {
 			$(".discussion-on-page") && $(".discussion-on-page").collapse();
-			$(".sidebar-topic").first().click();
+			$(".sidebar-parent").first().click();
 		}
 
 	} else if (single_thread && document_match_found) {
-		post_message_cleanup();
-		data.template = style_avatar_frame(data.template);
 		$(data.template).insertBefore(`.discussion-form`);
 		$(".discussion-on-page").attr("data-topic", topic.name);
 
 	} else if (topic.owner == frappe.session.user && document_match_found) {
-		post_message_cleanup();
 		window.location.reload();
 	}
 
 	update_reply_count(topic.name);
 };
 
+const update_message = (data) => {
+	const reply_card = $(`[data-reply=${data.reply_name}]`);
+	reply_card.find(".reply-body").removeClass("hide");
+	reply_card.find(".reply-edit-card").addClass("hide");
+	reply_card.find(".reply-text").html(data.reply);
+	reply_card.find(".reply-actions").addClass("hide");
+};
+
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
-	$(".comment-field").val("");
-	$(".discussion-on-page .comment-field").css("height", "48px");
+	$(".discussion-form .comment-field").val("");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
 	$(".cancel-comment").addClass("hide");
@@ -139,15 +146,6 @@ const update_reply_count = (topic) => {
 	let reply_count = $(`[data-target='#t${topic}']`).find(".reply-count").text();
 	reply_count = parseInt(reply_count) + 1;
 	$(`[data-target='#t${topic}']`).find(".reply-count").text(reply_count);
-};
-
-const expand_first_discussion = () => {
-	if ($(document).width() > 550) {
-		$($(".discussions-parent .collapse")[0]).addClass("show");
-		$($(".discussions-sidebar [data-toggle='collapse']")[0]).attr("aria-expanded", true);
-	} else {
-		$("#discussion-group").addClass("hide");
-	}
 };
 
 const search_topic = (e) => {
@@ -160,7 +158,7 @@ const search_topic = (e) => {
 	}
 
 	topics.each((i, elem) => {
-		let topic_id = $(elem).parent().attr("data-target");
+		let topic_id = $(elem).closest(".sidebar-parent").attr("data-target");
 
 		/* Check match in replies */
 		let match_in_reply = false;
@@ -201,15 +199,19 @@ const submit_discussion = (e) => {
 	e.preventDefault();
 	e.stopImmediatePropagation();
 
+	const target = $(e.currentTarget);
+	const reply_name = target.closest(".reply-card").data("reply");
 	const title = $(".topic-title:visible").length ? $(".topic-title:visible").val().trim() : "";
-	const reply = $(".comment-field:visible").val().trim();
+	let reply = reply_name ? target.closest(".reply-card") : target.closest(".discussion-form");
+	reply = reply.find(".comment-field").val().trim();
 
 	if (reply) {
-		let doctype = $(e.currentTarget).closest(".discussions-parent").attr("data-doctype");
+		let doctype = target.closest(".discussions-parent").attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
-		let docname = $(e.currentTarget).closest(".discussions-parent").attr("data-docname");
+		let docname = target.closest(".discussions-parent").attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
+
 
 		frappe.call({
 			method: "frappe.website.doctype.discussion_topic.discussion_topic.submit_discussion",
@@ -218,7 +220,8 @@ const submit_discussion = (e) => {
 				"docname": docname ? docname : "",
 				"reply": reply,
 				"title": title,
-				"topic_name": $(e.currentTarget).closest(".discussion-on-page").attr("data-topic")
+				"topic_name": target.closest(".discussion-on-page").attr("data-topic"),
+				"reply_name": reply_name
 			}
 		});
 	}
@@ -252,18 +255,64 @@ const style_avatar_frame = (template) => {
 };
 
 const clear_comment_box = () => {
-	$(".discussion-on-page .comment-field").val("");
+	$(".discussion-form .comment-field").val("");
 	$(".cancel-comment").removeClass("show").addClass("hide");
-	$(".discussion-on-page .comment-field").css("height", "48px");
 };
 
 const hide_sidebar = () => {
 	$(".discussions-sidebar").addClass("hide");
 	$("#discussion-group").removeClass("hide");
+	$(".search-field").addClass("hide");
+	$(".reply").addClass("hide");
 };
 
 const back_to_sidebar = () => {
 	$(".discussions-sidebar").removeClass("hide");
 	$("#discussion-group").addClass("hide");
 	$(".discussion-on-page").collapse("hide");
+	$(".search-field").removeClass("hide");
+	$(".reply").removeClass("hide");
+};
+
+const perform_action = (e) => {
+	const action = $(e.target).data().action;
+	const reply_card = $(e.target).closest(".reply-card");
+
+	if (action === "edit") {
+		reply_card.find(".reply-edit-card").removeClass("hide");
+		reply_card.find(".reply-body").addClass("hide");
+		reply_card.find(".reply-actions").removeClass("hide");
+	} else if (action === "delete") {
+		frappe.call({
+			method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
+			args: {
+				"reply_name": $(e.target).closest(".reply-card").data("reply")
+			}
+		});
+	}
+};
+
+const dismiss_reply = (e) => {
+	const reply_card = $(e.currentTarget).closest(".reply-card");
+	reply_card.find(".reply-edit-card").addClass("hide");
+	reply_card.find(".reply-body").removeClass("hide");
+	reply_card.find(".reply-actions").addClass("hide");
+};
+
+const adjust_comment_box = (e) => {
+	if ($(e.currentTarget).val()) {
+		$(".cancel-comment").removeClass("hide").addClass("show");
+	} else {
+		$(".cancel-comment").removeClass("show").addClass("hide");
+	}
+};
+
+const hide_actions_on_conditions = (template, owner) => {
+	let $template = $(template);
+	frappe.session.user != owner && $template.find(".dropdown").addClass("hide");
+	return $template.prop("outerHTML");
+};
+
+const delete_message = (data) => {
+	$(`[data-reply=${data.reply_name}]`).addClass("hide");
 };
