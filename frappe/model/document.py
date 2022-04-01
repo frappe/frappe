@@ -96,6 +96,8 @@ class Document(BaseDocument):
 			if isinstance(args[0], str):
 				# first arugment is doctype
 				self.doctype = args[0]
+
+				# doctype for singles, string value or filters for other documents
 				self.name = self.doctype if len(args) == 1 else args[1]
 
 				# for_update is set in flags to avoid changing load_from_db signature
