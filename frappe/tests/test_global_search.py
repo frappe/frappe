@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import unittest
@@ -89,6 +89,7 @@ class TestGlobalSearch(unittest.TestCase):
 
 		frappe.delete_doc('Event', event_name)
 		global_search.sync_global_search()
+		frappe.db.commit()
 
 		results = global_search.search(test_subject)
 		self.assertTrue(all(r["name"] != event_name for r in results), msg="Deleted documents appearing in global search.")
