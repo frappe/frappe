@@ -66,6 +66,12 @@ body[data-route^="Module"] .main-menu {
 		color: var(--primary);
 		margin-top: 10px;
 	}
+
+	.form-template {
+		.clearfix {
+			display: none;
+		}
+	}
 	
 	.sidebar-menu {
 		margin-bottom: var(--margin-lg);
@@ -356,7 +362,7 @@ body[data-route^="Module"] .main-menu {
 		margin-top: 10px;
 	}
 
-	.list-filters, .list-templates {
+	.list-filters {
 		.clearfix {
 			display: none;
 		}

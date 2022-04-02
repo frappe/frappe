@@ -69,6 +69,8 @@ frappe.ui.form.Sidebar = class {
 	refresh () {
 		if (this.frm.doc.__islocal) {
 			this.sidebar.toggle(true);
+			this.comments.toggle(false);
+			this.like_wrapper.toggle(false);
 		} else {
 			this.sidebar.toggle(true);
 			this.frm.assign_to.refresh();
@@ -135,7 +137,7 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	make_tags() {
-		if (this.frm.meta.issingle) {
+		if (this.frm.meta.issingle || this.frm.doc.__islocal) {
 			this.sidebar.find(".form-tags").toggle(false);
 			return;
 		}
@@ -154,6 +156,10 @@ frappe.ui.form.Sidebar = class {
 
 	make_attachments() {
 		var me = this;
+		if (this.frm.doc.__islocal) {
+			me.sidebar.find(".form-attachments").toggle(false);
+		}
+
 		this.frm.attachments = new frappe.ui.form.Attachments({
 			parent: me.sidebar.find(".form-attachments"),
 			frm: me.frm
@@ -161,6 +167,10 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	make_assignments() {
+		if (this.frm.doc.__islocal) {
+			this.sidebar.find(".form-assignments").toggle(false);
+		}
+
 		this.frm.assign_to = new frappe.ui.form.AssignTo({
 			parent: this.sidebar.find(".form-assignments"),
 			frm: this.frm
@@ -168,6 +178,10 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	make_shared() {
+		if (this.frm.doc.__islocal) {
+			this.sidebar.find(".form-shared").toggle(false);
+		}
+
 		this.frm.shared = new frappe.ui.form.Share({
 			frm: this.frm,
 			parent: this.sidebar.find(".form-shared")
@@ -193,6 +207,10 @@ frappe.ui.form.Sidebar = class {
 
 	make_follow() {
 		this.follow_button = this.sidebar.find(".form-sidebar-stats .form-follow");
+
+		if (this.frm.doc.__islocal) {
+			this.follow_button.toggle(false);
+		}
 
 		this.follow_button.on('click', () => {
 			let is_followed = this.frm.get_docinfo().is_document_followed;
@@ -241,6 +259,10 @@ frappe.ui.form.Sidebar = class {
 	make_document_template() {
 		var me = this;
 		if (this.frm.meta.hide_toolbar) return;
+		
+		if (this.frm.doc.__islocal) {
+			me.sidebar.find(".form-template").toggle(true);
+		}
 
 		this.form_template = new frappe.ui.form.DocumentTemplate({
 			wrapper: this.sidebar.find('.form-template'),
@@ -251,6 +273,11 @@ frappe.ui.form.Sidebar = class {
 
 	make_review() {
 		const review_wrapper = this.sidebar.find(".form-reviews");
+
+		if (this.frm.doc.__islocal) {
+			review_wrapper.toggle(false);
+		}
+		
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
 				parent: review_wrapper,
