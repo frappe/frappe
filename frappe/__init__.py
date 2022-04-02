@@ -1925,7 +1925,7 @@ def attach_print(
 
 	if not file_name:
 		file_name = name
-	file_name = file_name.replace(" ", "").replace("/", "-")
+	file_name = cstr(file_name).replace(' ','').replace('/','-')
 
 	print_settings = db.get_singles_dict("Print Settings")
 
