@@ -207,8 +207,8 @@ Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fie
 		selector += ` [data-fieldname="${fieldname}"] .ace_text-input`;
 	} else {
 		selector += ` [data-fieldname="${fieldname}"]`;
+		return cy.get(selector).find('.form-control:visible, .static-area:visible').first();
 	}
-
 	return cy.get(selector);
 });
 
