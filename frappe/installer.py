@@ -142,8 +142,10 @@ def find_org(org_repo: str) -> Tuple[str, str]:
 	import requests
 
 	for org in ["frappe", "erpnext"]:
-		res = requests.head(f"https://api.github.com/repos/{org}/{org_repo}")
-		if res.ok:
+		response = requests.head(f"https://api.github.com/repos/{org}/{org_repo}")
+		if response.status_code == 400:
+			response = requests.head(f"https://github.com/{org}/{org_repo}")
+		if response.ok:
 			return org, org_repo
 
 	raise InvalidRemoteException
