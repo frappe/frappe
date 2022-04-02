@@ -68,11 +68,23 @@ export default class GridRow {
 		}
 	}
 	select(checked) {
-		this.doc.__checked = checked ? 1 : 0;
+		this.doc.__checked = (this.doc.__selectable !== 0 && checked) ? 1 : 0;
 	}
 	refresh_check() {
 		this.wrapper.find('.grid-row-check').prop('checked', this.doc ? !!this.doc.__checked : false);
 		this.grid.refresh_remove_rows_button();
+	}
+	selectable(is_selectable) {
+		if (!is_selectable) {
+			this.select(false);
+		}
+		
+		this.doc.__selectable = is_selectable ? 1 : 0;
+		this.refresh_selectable();
+	}
+	refresh_selectable() {
+		this.refresh_check();
+		this.wrapper.find('.grid-row-check').prop('disabled', this.doc ? !this.doc.__selectable : false);
 	}
 	remove() {
 		var me = this;

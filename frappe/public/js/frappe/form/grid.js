@@ -152,15 +152,15 @@ export default class Grid {
 			if ($check.parents('.grid-heading-row:first').length !== 0) {
 				// select all?
 				var checked = $check.prop('checked');
-				$check.parents('.form-grid:first')
-					.find('.grid-row-check').prop('checked', checked);
 
 				// set all
 				let result_length = this.grid_pagination.get_result_length();
 				let page_index = this.grid_pagination.page_index;
 				let page_length = this.grid_pagination.page_length;
 				for (var ri = (page_index - 1) * page_length; ri < result_length; ri++) {
-					this.grid_rows[ri].doc.__checked = checked ? 1 : 0;
+					// this.grid_rows[ri].doc.__checked = checked ? 1 : 0;
+					this.grid_rows[ri].select(checked);
+					this.grid_rows[ri].refresh_check();
 				}
 			} else {
 				var docname = $check.parents('.grid-row:first').attr('data-name');
@@ -212,10 +212,16 @@ export default class Grid {
 
 	delete_all_rows() {
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
-			this.frm.doc[this.df.fieldname] = [];
+			const rows = this.frm.doc[this.df.fieldname].filter(doc => {
+				delete doc.idx;
+				return doc.hasOwnProperty('__selectable') && !doc.__selectable;
+			});
+
+			this.frm.doc[this.df.fieldname] = rows;
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
 			this.refresh();
+			this.grid_rows.forEach(row => row.refresh_selectable());
 			this.frm && this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 			this.frm && this.frm.dirty();
 			this.scroll_to_top();
