@@ -32,6 +32,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this.template_input = frappe.ui.form.make_control({
 			df: {
 				fieldtype: 'Data',
+				fieldname: 'template_name',
 				placeholder: __('Template Name'),
 				input_class: 'input-xs',
 			},
