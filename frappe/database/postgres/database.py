@@ -382,12 +382,10 @@ def modify_query(query):
 	# drop .0 from decimals and add quotes around them
 	#
 	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
-	# >>> re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
+	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
-	query = re.sub(
-		r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query
-	)
+	query = re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	return query
 
 
