@@ -332,19 +332,19 @@ def get_emails_sent_today():
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
-		unsubscribe_html = """<a href="<!--unsubscribe url-->"
+		unsubscribe_html = """<a href="<!--unsubscribe_url-->"
 			target="_blank">{0}</a>""".format(
 			unsubscribe_message
 		)
 	else:
-		unsubscribe_link = """<a href="<!--unsubscribe url-->"
+		unsubscribe_link = """<a href="<!--unsubscribe_url-->"
 			target="_blank">{0}</a>""".format(
 			_("Unsubscribe")
 		)
 		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
 
 	html = """<div class="email-unsubscribe">
-			<!--cc message-->
+			<!--cc_message-->
 			<div>
 				{0}
 			</div>
@@ -353,10 +353,10 @@ def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	)
 
 	if expose_recipients == "footer":
-		text = "\n<!--cc message-->"
+		text = "\n<!--cc_message-->"
 	else:
 		text = ""
-	text += "\n\n{unsubscribe_message}: <!--unsubscribe url-->\n".format(
+	text += "\n\n{unsubscribe_message}: <!--unsubscribe_url-->\n".format(
 		unsubscribe_message=unsubscribe_message
 	)
 
@@ -678,7 +678,7 @@ def prepare_message(email, recipient, recipients_list):
 			email.unsubscribe_params,
 		)
 		message = message.replace(
-			"<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url.encode()).decode()
+			"<!--unsubscribe_url-->", quopri.encodestring(unsubscribe_url.encode()).decode()
 		)
 
 	if email.expose_recipients == "header":
