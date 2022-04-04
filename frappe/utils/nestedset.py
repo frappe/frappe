@@ -109,14 +109,15 @@ def update_move_node(doc: Document, parent_field: str):
 	).run()
 
 	if parent:
+		# re-query value due to computation above
+		new_parent = frappe.qb.from_(Table).select(
+			Table.lft, Table.rgt
+		).where(Table.name == parent).for_update().run(as_dict=True)[0]
+
 		# set parent lft, rgt
 		frappe.qb.update(Table).set(Table.rgt, Table.rgt + diff).where(Table.name == parent).run()
 
 		# shift right at new parent
-		frappe.qb.update(Table).set(Table.lft, Table.lft + diff).set(Table.rgt, Table.rgt + diff).where(
-			(Table.lft >= new_parent.lft) & (Table.lft <= new_parent.rgt)
-		).run()
-
 		frappe.qb.update(Table).set(Table.lft, Table.lft + diff).set(Table.rgt, Table.rgt + diff).where(
 			Table.lft > new_parent.rgt
 		).run()
