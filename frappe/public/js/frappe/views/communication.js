@@ -97,7 +97,7 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "content",
 				onchange: frappe.utils.debounce(
 					this.save_as_draft.bind(this),
-					300
+					500
 				)
 			},
 			{ fieldtype: "Section Break" },
@@ -153,7 +153,14 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "sender",
 				options: email_accounts.map(function(e) {
 					return e.email_id;
-				})
+				}),
+				change: async () => {
+					let sender_email = this.dialog.get_value("sender");
+					this.reply_set = !!sender_email;
+					this.content_set = sender_email && this.sender && this.sender != sender_email;
+					await this.set_content(sender_email);
+					this.sender = sender_email;
+				}
 			});
 		}
 
@@ -239,7 +246,9 @@ frappe.views.CommunicationComposer = class {
 			// some email clients (outlook) may not send the message id to identify
 			// the thread. So as a backup we use the name of the document as identifier
 			const identifier = `#${this.frm.doc.name}`;
-			if (!this.subject.includes(identifier)) {
+
+			// converting to str for int names
+			if (!cstr(this.subject).includes(identifier)) {
 				this.subject = `${this.subject} (${identifier})`;
 			}
 		}
@@ -350,7 +359,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	async set_values_from_last_edited_communication() {
-		if (this.txt || this.message) return;
+		if (this.message) return;
 
 		const last_edited = this.get_last_edited_communication();
 		if (!last_edited.content) return;
@@ -709,10 +718,10 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	async set_content() {
+	async set_content(sender_email) {
 		if (this.content_set) return;
 
-		let message = this.txt || this.message || "";
+		let message = this.message || "";
 		if (!message && this.frm) {
 			const { doctype, docname } = this.frm;
 			message = await localforage.getItem(doctype + docname) || "";
@@ -722,22 +731,32 @@ frappe.views.CommunicationComposer = class {
 			this.content_set = true;
 		}
 
-		message += await this.get_signature();
+		message += await this.get_signature(sender_email || null);
 
-		if (this.is_a_reply) {
+		if (this.is_a_reply && !this.reply_set) {
 			message += this.get_earlier_reply();
 		}
 
 		await this.dialog.set_value("content", message);
 	}
 
-	async get_signature() {
+	async get_signature(sender_email) {
 		let signature = frappe.boot.user.email_signature;
 
 		if (!signature) {
+			let filters = {};
+			if (sender_email) {
+				filters['email_id'] = sender_email;
+			} else {
+				if (this.dialog.has_field("sender")) return "";
+
+				filters['default_outgoing'] = 1;
+			}
+			filters['add_signature'] = 1;
+
 			const response = await frappe.db.get_value(
 				'Email Account',
-				{'default_outgoing': 1, 'add_signature': 1},
+				filters,
 				'signature'
 			);
 
@@ -754,6 +773,8 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_earlier_reply() {
+		this.reply_set = false;
+
 		const last_email = (
 			this.last_email
 			|| this.frm && this.frm.timeline.get_last_email(true)
@@ -776,6 +797,8 @@ frappe.views.CommunicationComposer = class {
 		const communication_date = frappe.datetime.global_date_format(
 			last_email.communication_date || last_email.creation
 		);
+
+		this.reply_set = true;
 
 		return `
 			<div><br></div>
