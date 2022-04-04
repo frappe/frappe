@@ -357,7 +357,7 @@ body[data-route^="Module"] .main-menu {
 			display: none;
 		}
 
-		input {
+		input:not([data-fieldtype='Check']) {
 			background: var(--control-bg-on-gray);
 		}
 

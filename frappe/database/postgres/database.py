@@ -150,6 +150,10 @@ class PostgresDatabase(Database):
 		return getattr(e, 'pgcode', None) == '42P01'
 
 	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
+
+	@staticmethod
 	def is_missing_column(e):
 		return getattr(e, 'pgcode', None) == '42703'
 
