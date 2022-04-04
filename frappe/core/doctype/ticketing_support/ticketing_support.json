@@ -7,6 +7,7 @@
  "field_order": [
   "ticket_creator",
   "ticket_date",
+  "role_profile",
   "issue_subject",
   "column_break_3",
   "issue_type",
@@ -72,11 +73,18 @@
    "in_standard_filter": 1,
    "label": "Ticket Creator",
    "options": "User"
+  },
+  {
+   "fetch_from": "user.role_profile_name",
+   "fieldname": "role_profile",
+   "fieldtype": "Link",
+   "label": "Role Profile",
+   "options": "Role Profile"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-03-28 13:21:25.860104",
+ "modified": "2022-04-01 11:22:11.712521",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Ticketing Support",

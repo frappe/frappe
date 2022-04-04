@@ -96,6 +96,9 @@
   "api_secret",
   "fb_token_sb",
   "device_token",
+  "device_os",
+  "device_brand",
+  "device_model",
   "signature_section",
   "signature"
  ],
@@ -673,9 +676,10 @@
    "fieldtype": "Column Break"
   },
   {
+   "collapsible": 1,
    "fieldname": "fb_token_sb",
    "fieldtype": "Section Break",
-   "label": "Firebase Token"
+   "label": "Device Engineer Setting"
   },
   {
    "fieldname": "device_token",
@@ -726,6 +730,21 @@
    "fieldtype": "Link",
    "label": "Customer Group",
    "options": "Customer Group"
+  },
+  {
+   "fieldname": "device_os",
+   "fieldtype": "Data",
+   "label": "Device OS"
+  },
+  {
+   "fieldname": "device_brand",
+   "fieldtype": "Data",
+   "label": "Device Brand"
+  },
+  {
+   "fieldname": "device_model",
+   "fieldtype": "Data",
+   "label": "Device Model"
   }
  ],
  "icon": "fa fa-user",
@@ -794,7 +813,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-03-17 17:13:09.923723",
+ "modified": "2022-04-01 22:07:53.858848",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
