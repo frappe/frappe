@@ -63,9 +63,8 @@ def update_add_node(doc, parent, parent_field):
 		left, right = frappe.db.get_value(doctype, {"name": parent}, ["lft", "rgt"], for_update=True)
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
-
 		right = frappe.qb.from_(Table).select(
-			Coalesce(Max(Table.rgt), 0)
+			Coalesce(Max(Table.rgt), 0) + 1
 		).where(Coalesce(Table[parent_field], "") == "").run(pluck=True)[0]
 
 	right = right or 1
