@@ -43,6 +43,10 @@ CombineDatetime = ImportMapper(
 	}
 )
 
+DateFormat = ImportMapper({
+	db_type_is.MARIADB: CustomFunction("DATE_FORMAT", ["date", "format"]),
+	db_type_is.POSTGRES: ToChar,
+})
 
 class Cast_(Function):
 	def __init__(self, value, as_type, alias=None):

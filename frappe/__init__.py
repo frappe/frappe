@@ -851,18 +851,25 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 def get_cached_doc(*args, **kwargs):
+	allow_dict = kwargs.pop("_allow_dict", False)
+
+	def _respond(doc, from_redis=False):
+		if not allow_dict and isinstance(doc, dict):
+			local.document_cache[key] = doc = get_doc(doc)
+
+		elif from_redis:
+			local.document_cache[key] = doc
+
+		return doc
+
 	if key := can_cache_doc(args):
 		# local cache
-		doc = local.document_cache.get(key)
-		if doc:
-			return doc
+		if doc := local.document_cache.get(key):
+			return _respond(doc)
 
 		# redis cache
-		doc = cache().hget('document_cache', key)
-		if doc:
-			doc = get_doc(doc)
-			local.document_cache[key] = doc
-			return doc
+		if doc := cache().hget('document_cache', key):
+			return _respond(doc, True)
 
 	# database
 	doc = get_doc(*args, **kwargs)
@@ -895,8 +902,13 @@ def clear_document_cache(doctype, name):
 		del local.document_cache[key]
 	cache().hdel('document_cache', key)
 
-def get_cached_value(doctype, name, fieldname, as_dict=False):
-	doc = get_cached_doc(doctype, name)
+def get_cached_value(doctype, name, fieldname="name", as_dict=False):
+	try:
+		doc = get_cached_doc(doctype, name, _allow_dict=True)
+	except DoesNotExistError:
+		clear_last_message()
+		return
+
 	if isinstance(fieldname, str):
 		if as_dict:
 			throw('Cannot make dict for single fieldname')
