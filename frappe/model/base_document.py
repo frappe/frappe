@@ -132,7 +132,7 @@ class BaseDocument(object):
 	def get_db_value(self, key):
 		return frappe.db.get_value(self.doctype, self.name, key)
 
-	def get(self, key=None, filters=None, limit=None, default=None):
+	def get(self, key, filters=None, limit=None, default=None):
 		if isinstance(key, dict):
 			return _filter(self.get_all_children(), key, limit=limit)
 
