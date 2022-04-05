@@ -56,7 +56,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			this.wrapper.find('.filter-pill').remove();
 			this.$saved_templates.append(html);
 		});
-	
+
 		this.template_input.set_description('');
 	}
 
