@@ -6,14 +6,12 @@ context("Form Sidebar", () => {
 	});
 
 	function show_saved_templates() {
-		cy.window().its('frappe').then(frappe => {
-			cy.get_list("ToDo")
-				.its('data')
-				.then(data => expect(data.length).to.be.at.least(1));
+		cy.get_list("ToDo")
+			.its('data')
+			.then(data => expect(data.length).to.be.at.least(1));
 
-			cy.get('.form-template > .sidebar-action > a').click();
-			cy.get('[data-name="Test ToDo"]').should('be.visible');
-		});
+		cy.get('.form-template > .sidebar-action > a').click();
+		cy.get('[data-name="Test ToDo"]').should('be.visible');
 	}
 
 	function use_saved_templates() {
@@ -37,16 +35,16 @@ context("Form Sidebar", () => {
 	});
 
 	it("Show saved Templates", () => {
-		show_saved_templates()
-	})
+		show_saved_templates();
+	});
 
 	it("Use saved template to update existiong doctype", () => {
-		use_saved_templates()
-	})
+		use_saved_templates();
+	});
 
 	it("Use saved templates in new docs", () => {
 		cy.new_form("ToDo");
 		show_saved_templates();
 		use_saved_templates();
-	})
+	});
 });
