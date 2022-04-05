@@ -28,7 +28,7 @@ def make_access_log(
 
 @frappe.write_only()
 @retry(
-	stop=stop_after_attempt(3), retry=retry_if_exception_type(frappe.DuplicateEntryError)
+	stop=stop_after_attempt(3), retry=retry_if_exception_type(frappe.DuplicateEntryError), reraise=True,
 )
 def _make_access_log(
 	doctype=None,
