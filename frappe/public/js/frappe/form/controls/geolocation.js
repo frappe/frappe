@@ -58,7 +58,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 				}));
 			this.add_non_group_layers(data_layers, this.editableLayers);
 			try {
-				this.map.flyToBounds(this.editableLayers.getBounds(), {
+				this.map.fitBounds(this.editableLayers.getBounds(), {
 					padding: [50,50]
 				});
 			}
@@ -66,10 +66,10 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 				// suppress error if layer has a point.
 			}
 			this.editableLayers.addTo(this.map);
-			this.map._onResize();
-		} else if ((value===undefined) || (value == JSON.stringify(new L.FeatureGroup().toGeoJSON()))) {
-			this.locate_control.start();
+		} else {
+			this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 		}
+		this.map.invalidateSize();
 	}
 
 	bind_leaflet_map() {
@@ -97,8 +97,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		});
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.map_id).setView(frappe.utils.map_defaults.center,
-			frappe.utils.map_defaults.zoom);
+		this.map = L.map(this.map_id);
 
 		L.tileLayer(frappe.utils.map_defaults.tiles,
 			frappe.utils.map_defaults.options).addTo(this.map);
