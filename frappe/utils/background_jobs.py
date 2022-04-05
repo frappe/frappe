@@ -75,7 +75,11 @@ def enqueue(
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
-	q = get_queue(queue, is_async=is_async)
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except redis.exceptions.ConnectionError:
+		return frappe.call(method, **kwargs)
+
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
