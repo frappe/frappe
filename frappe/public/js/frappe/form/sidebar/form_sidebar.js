@@ -259,7 +259,7 @@ frappe.ui.form.Sidebar = class {
 	make_document_template() {
 		var me = this;
 		if (this.frm.meta.hide_toolbar) return;
-		
+
 		if (this.frm.doc.__islocal) {
 			me.sidebar.find(".form-template").toggle(true);
 		}
@@ -277,7 +277,7 @@ frappe.ui.form.Sidebar = class {
 		if (this.frm.doc.__islocal) {
 			review_wrapper.toggle(false);
 		}
-		
+
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
 				parent: review_wrapper,
