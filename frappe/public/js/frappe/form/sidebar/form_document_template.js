@@ -180,8 +180,8 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			fields: ["name", "template_name", "data"],
 			filters: { reference_doctype: this.doctype }
 		}).then((templates) => {
-				this.templates = templates || [];
-			});
+			this.templates = templates || [];
+		});
 	}
 
 	set_applied_template($template) {
@@ -211,11 +211,11 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		var newdoc;
 
-		if (!parentfield) newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name, () => {
+		if (!parentfield) newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name), () => {
 			doc.doctype,
 			parent_doc,
 			parentfield
-		});
+		};
 		else newdoc = frappe.model.get_new_doc(
 			doc.doctype,
 			parent_doc,
