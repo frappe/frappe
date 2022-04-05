@@ -66,7 +66,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		}">
 		<a class="ellipsis template-name">${template.template_name}</a>
 			<a class="remove">${frappe.utils.icon('close')}</a>
-		</button>`
+		</button>`;
 	}
 
 	bind_save_template() {
@@ -129,7 +129,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			} catch (e) {
 				//
 			}
-		})
+		});
 	}
 
 	bind_remove_template() {
@@ -146,7 +146,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	bind_toggle_saved_templates() {
 		this.$saved_templates_preview.click(() => {
 			this.toggle_saved_templates(this.saved_templates_hidden);
-		})
+		});
 	}
 
 	toggle_saved_templates(show) {
@@ -179,10 +179,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		return frappe.db.get_list("Document Template", {
 			fields: ["name", "template_name", "data"],
 			filters: { reference_doctype: this.doctype }
-		}).
-		then((templates) => {
-			this.templates = templates || [];
-		});
+		}).then((templates) => {
+				this.templates = templates || [];
+			});
 	}
 
 	set_applied_template($template) {
@@ -253,4 +252,4 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		newdoc.rgt = null;
 		return newdoc;
 	}
-}
+};
