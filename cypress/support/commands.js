@@ -200,16 +200,15 @@ Cypress.Commands.add('fill_table_field', (tablefieldname, row_idx, fieldname, va
 Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fieldtype = 'Data') => {
 	let selector = `.frappe-control[data-fieldname="${tablefieldname}"]`;
 	selector += ` [data-idx="${row_idx}"]`;
-	selector += ` .form-in-grid`;
 
 	if (fieldtype === 'Text Editor') {
 		selector += ` [data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]`;
 	} else if (fieldtype === 'Code') {
 		selector += ` [data-fieldname="${fieldname}"] .ace_text-input`;
 	} else {
-		selector += ` .form-control[data-fieldname="${fieldname}"]`;
+		selector += ` [data-fieldname="${fieldname}"]`;
+		return cy.get(selector).find('.form-control:visible, .static-area:visible').first();
 	}
-
 	return cy.get(selector);
 });
 
