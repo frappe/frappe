@@ -1,51 +1,58 @@
-<div class="list-jobs">
-	{% if jobs.length %}
-	<table class="table table-borderless" style="table-layout: fixed;">
-		<thead>
-			<tr>
-				<th style="width: 20%">{{ __("Queue / Worker") }}</th>
-				<th>{{ __("Job") }}</th>
-				<th style="width: 15%">{{ __("Created") }}</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for j in jobs %}
-			<tr>
-				<td class="worker-name">
-					<span class="indicator-pill no-margin {{ j.color }}"></span>
-					<span class="ml-2">{{ j.queue.split(".").slice(-1)[0] }}</span>
-				</td>
-				<td style="overflow: auto;">
-					<div>
-						<span class="job-name">
-							{{ frappe.utils.encode_tags(j.job_name) }}
-						</span>
-					</div>
-					{% if j.exc_info %}
+{% if jobs.length %}
+<table class="table table-background-jobs">
+	<thead>
+		<tr>
+			<th style="width: 10%">{{ __("Queue") }}</th>
+			<th>{{ __("Job") }}</th>
+			<th style="width: 10%">{{ __("Status") }}</th>
+			<th style="width: 15%">{{ __("Created") }}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for j in jobs %}
+		<tr>
+			<td class="worker-name">
+				{{ toTitle(j.queue.split(":").slice(-1)[0]) }}
+			</td>
+			<td>
+				<div>
+					<span class="job-name">
+						{{ frappe.utils.encode_tags(j.job_name) }}
+					</span>
+				</div>
+				{% if j.exc_info %}
+				<details>
+					<summary>{{ __("Exception") }}</summary>
 					<div class="exc_info">
 						<pre>{{ frappe.utils.encode_tags(j.exc_info) }}</pre>
 					</div>
-					{% endif %}
-				</td>
-				<td class="creation">{{ j.creation }}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% else %}
-	<div class="no-background-jobs">
-		<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Empty State">
-		<p class="text-muted">{{ __("No pending or current jobs for this site") }}</p>
-	</div>
-	{% endif %}
-	<div class="footer row">
-		<div class="col-md-6 text-muted text-center text-md-left">{{ __("Last refreshed") }}
-			{{ frappe.datetime.now_datetime(true).toLocaleString() }}</div>
-		<div class="col-md-6 text-center text-md-right">
-			<span class="indicator-pill blue" class="mr-2">{{ __("Started") }}</span>
-			<span class="indicator-pill orange" class="mr-2">{{ __("Queued") }}</span>
-			<span class="indicator-pill red" class="mr-2">{{ __("Failed") }}</span>
-			<span class="indicator-pill green">{{ __("Finished") }}</span>
-		</div>
+				</details>
+				{% endif %}
+			</td>
+			<td>
+				<span class="indicator-pill {{ j.color }}">
+					{{ toTitle(j.status) }}
+				</span>
+			</td>
+			<td class="creation text-muted">
+				{{ frappe.datetime.prettyDate(j.creation) }}
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% else %}
+<div class="no-background-jobs">
+	<img
+		src="/assets/frappe/images/ui-states/list-empty-state.svg"
+		alt="Empty State"
+	/>
+	<p class="text-muted">{{ __("No jobs found on this site") }}</p>
+</div>
+{% endif %}
+<div class="footer">
+	<div class="text-muted">
+		{{ __("Last refreshed") }}
+		{{ frappe.datetime.now_datetime(true).toLocaleString() }}
 	</div>
 </div>
