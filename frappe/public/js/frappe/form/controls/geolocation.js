@@ -141,9 +141,8 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		};
 
 		// create control and add to map
-		var drawControl = new L.Control.Draw(options);
-
-		this.map.addControl(drawControl);
+		this.drawControl = new L.Control.Draw(options);
+		this.map.addControl(this.drawControl);
 
 		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
