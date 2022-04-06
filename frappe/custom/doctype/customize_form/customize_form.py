@@ -67,7 +67,12 @@ class CustomizeForm(Document):
 			self.set(prop, meta.get(prop))
 
 		for d in meta.get("fields"):
-			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
+			new_d = {
+				"fieldname": d.fieldname,
+				"is_custom_field": d.get("is_custom_field"),
+				"is_system_generated": d.get("is_system_generated"),
+				"name": d.name
+			}
 			for prop in docfield_properties:
 				new_d[prop] = d.get(prop)
 			self.append("fields", new_d)
@@ -402,7 +407,7 @@ class CustomizeForm(Document):
 			"property": prop,
 			"value": value,
 			"property_type": property_type
-		})
+		}, is_system_generated=False)
 
 	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!
@@ -487,11 +492,20 @@ def reset_customization(doctype):
 	setters = frappe.get_all("Property Setter", filters={
 		'doc_type': doctype,
 		'field_name': ['!=', 'naming_series'],
-		'property': ['!=', 'options']
+		'property': ['!=', 'options'],
+		'is_system_generated': False
 	}, pluck='name')
 
 	for setter in setters:
 		frappe.delete_doc("Property Setter", setter)
+
+	custom_fields = frappe.get_all("Custom Field", filters={
+		'dt': doctype,
+		'is_system_generated': False
+	}, pluck='name')
+
+	for field in custom_fields:
+		frappe.delete_doc("Custom Field", field)
 
 	frappe.clear_cache(doctype=doctype)
 

@@ -4,8 +4,12 @@
 		{%- if subtitle -%}
 		<p class="subtitle">{{ subtitle }}</p>
 		{%- endif -%}
-		<div class="mt-6">
-			<a href="{{ cta_url }}" class="btn btn-lg btn-primary">{{ cta_label }}</a>
+		<div class="mt-3">
+			<h4 class="action">
+				<a href="{{ cta_url }}" class="no-decoration">{{ cta_label }}
+					<svg class="icon icon-md"><use xlink:href="#icon-right"></use></svg>
+				</a>
+			</h4>
 		</div>
 		{%- if cta_description -%}
 		<div class="description">

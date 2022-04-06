@@ -1,8 +1,9 @@
-{% from "frappe/templates/includes/macros.html" import square_image_with_fallback %}
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 
 <div class="media">
-	{{ square_image_with_fallback(src=blogger_info.avatar, size='small', alt=blogger_info.full_name, class='align-self-start mr-4 rounded') }}
-	<div class="media-body">
+	{{  avatar(full_name=blogger_info.full_name, image=blogger_info.avatar, size='avatar-large') }}
+
+	<div class="media-body ml-3">
 		<h5 class="mt-0">
 			<a href="/blog?blogger={{ blogger_info.name }}" class="text-dark">{{ blogger_info.full_name }}</a>
 		</h5>

@@ -6,6 +6,7 @@ import os, base64, re, json
 import hashlib
 import mimetypes
 import io
+from frappe.query_builder.utils import DocType
 from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
@@ -176,7 +177,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 
 def get_file_data_from_hash(content_hash, is_private=0):
-	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s", (content_hash, is_private)):
+	for name in frappe.get_all("File", {"content_hash": content_hash, "is_private": is_private}, pluck="name"):
 		b = frappe.get_doc('File', name)
 		return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
@@ -230,8 +231,7 @@ def write_file(content, fname, is_private=0):
 def remove_all(dt, dn, from_delete=False, delete_permanently=False):
 	"""remove all files in a transaction"""
 	try:
-		for fid in frappe.db.sql_list("""select name from `tabFile` where
-			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
+		for fid in frappe.get_all("File", {"attached_to_doctype": dt, "attached_to_name": dn}, pluck="name"):
 			if from_delete:
 				# If deleting a doc, directly delete files
 				frappe.delete_doc("File", fid, ignore_permissions=True, delete_permanently=delete_permanently)
@@ -319,8 +319,10 @@ def get_file_path(file_name):
 	if '../' in file_name:
 		return
 
-	f = frappe.db.sql("""select file_url from `tabFile`
-		where name=%s or file_name=%s""", (file_name, file_name))
+	File = DocType("File")
+
+	f = frappe.qb.from_(File).where((File.name == file_name) | (File.file_name == file_name)).select(File.file_url).run()
+
 	if f:
 		file_name = f[0][0]
 
@@ -351,7 +353,7 @@ def get_file_name(fname, optional_suffix):
 	# convert to unicode
 	fname = cstr(fname)
 
-	n_records = frappe.db.sql("select name from `tabFile` where file_name=%s", fname)
+	n_records = frappe.get_all("File", {"file_name": fname}, pluck="name")
 	if len(n_records) > 0 or os.path.exists(encode(get_files_path(fname))):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:

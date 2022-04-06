@@ -10,7 +10,7 @@ import re
 import string
 from contextlib import contextmanager
 from time import time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
 
@@ -115,12 +115,13 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		debug = debug or getattr(self, "debug", False)
 		query = str(query)
 		if not run:
 			return query
 
-		# remove \n \t from start and end of query
-		query = re.sub(r'^\s*|\s*$', '', query)
+		# remove whitespace / indentation from start and end of query
+		query = query.strip()
 
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
@@ -357,6 +358,7 @@ class Database(object):
 		order_by="KEEP_DEFAULT_ORDERING",
 		cache=False,
 		for_update=False,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -386,17 +388,27 @@ class Database(object):
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+		result = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
 			order_by, cache=cache, for_update=for_update, run=run, pluck=pluck, distinct=distinct, limit=1)
 
 		if not run:
-			return ret
+			return result
 
-		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
+		if not result:
+			return None
+
+		row = result[0]
+
+		if len(row) > 1 or as_dict:
+			return row
+		else:
+			# single field is requested, send it without wrapping in containers
+			return row[0]
+
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
 		debug=False, order_by="KEEP_DEFAULT_ORDERING", update=None, cache=False, for_update=False,
-		run=True, pluck=False, distinct=False, limit=None):
+		*, run=True, pluck=False, distinct=False, limit=None):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -435,6 +447,7 @@ class Database(object):
 				pluck=pluck,
 				distinct=distinct,
 				limit=limit,
+				as_dict=as_dict,
 			)
 
 		else:
@@ -487,6 +500,7 @@ class Database(object):
 		as_dict=False,
 		debug=False,
 		update=None,
+		*,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -537,7 +551,7 @@ class Database(object):
 				return r and [[i[1] for i in r]] or []
 
 
-	def get_singles_dict(self, doctype, debug = False):
+	def get_singles_dict(self, doctype, debug=False, *, for_update=False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -548,10 +562,13 @@ class Database(object):
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
 		result = self.query.get_sql(
-			"Singles", filters={"doctype": doctype}, fields=["field", "value"]
+			"Singles",
+			filters={"doctype": doctype},
+			fields=["field", "value"],
+			for_update=for_update,
 		).run()
-		dict_  = frappe._dict(result)
-		return dict_
+
+		return frappe._dict(result)
 
 	@staticmethod
 	def get_all(*args, **kwargs):
@@ -561,7 +578,7 @@ class Database(object):
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
-	def set_single_value(self, doctype, fieldname, value, *args, **kwargs):
+	def set_single_value(self, doctype: str, fieldname: Union[str, Dict], value: Optional[Union[str, int]] = None, *args, **kwargs):
 		"""Set field value of Single DocType.
 
 		:param doctype: DocType of the single object
@@ -621,7 +638,8 @@ class Database(object):
 		filters,
 		doctype,
 		as_dict,
-		debug,
+		*,
+		debug=False,
 		order_by=None,
 		update=None,
 		for_update=False,
@@ -661,7 +679,20 @@ class Database(object):
 		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, order_by, debug=False, run=True, pluck=False, distinct=False, limit=None):
+	def _get_value_for_many_names(
+		self,
+		doctype,
+		names,
+		field,
+		order_by,
+		*,
+		debug=False,
+		run=True,
+		pluck=False,
+		distinct=False,
+		limit=None,
+		as_dict=False
+	):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
@@ -671,7 +702,7 @@ class Database(object):
 				order_by=order_by,
 				pluck=pluck,
 				debug=debug,
-				as_list=1,
+				as_list=not as_dict,
 				run=run,
 				distinct=distinct,
 				limit_page_length=limit
