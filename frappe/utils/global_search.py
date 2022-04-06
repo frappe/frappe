@@ -361,7 +361,9 @@ def sync_global_search():
 	:return:
 	"""
 	while frappe.cache().llen('global_search_queue') > 0:
-		value = json.loads(frappe.cache().lpop('global_search_queue').decode('utf-8'))
+		# rpop to follow FIFO
+		# Last one should override all previous contents of same document
+		value = json.loads(frappe.cache().rpop('global_search_queue').decode('utf-8'))
 		sync_value(value)
 
 def sync_value_in_queue(value):

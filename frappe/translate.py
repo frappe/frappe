@@ -37,6 +37,35 @@ def guess_language(lang_list=None):
 	click.secho(f"{guess_language.__doc__}\n{get_language.__doc__}", fg="yellow")
 	return get_language(lang_list)
 
+TRANSLATE_PATTERN = re.compile(
+	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
+
+	# BEGIN: message search
+	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
+		r"(?P<message>((?!\1).)*)" # Keep matching until string closing identifier is met which is same as 1st capture group
+	r"\1" # match exact string closing identifier
+	# END: message search
+
+	# BEGIN: python context search
+	r"([\s\n]*,[\s\n]*context\s*=\s*"  # capture `context=` with ignoring whitespace
+		r"([\"'])"  # start of context string identifier; 5th capture group
+		r"(?P<py_context>((?!\5).)*)" # capture context string till closing id is found
+		r"\5"  # match context string closure
+	r")?"  # match 0 or 1 context strings
+	# END: python context search
+
+	# BEGIN: JS context search
+	r"(\s*,\s*(.)*?\s*(,\s*" # skip message format replacements: ["format", ...] | null | []
+		r"([\"'])"  # start of context string; 11th capture group
+		r"(?P<js_context>((?!\11).)*)" # capture context string till closing id is found
+		r"\11"  # match context string closure
+		r")*"
+	r")*"  # match one or more context string
+	# END: JS context search
+
+	r"[\s\n]*\)"  # Closing function call ignore leading whitespace/newlines
+)
+
 
 def get_language(lang_list: List = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
@@ -627,9 +656,8 @@ def extract_messages_from_code(code):
 		pass
 
 	messages = []
-	pattern = r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)"
 
-	for m in re.compile(pattern).finditer(code):
+	for m in TRANSLATE_PATTERN.finditer(code):
 		message = m.group('message')
 		context = m.group('py_context') or m.group('js_context')
 		pos = m.start()

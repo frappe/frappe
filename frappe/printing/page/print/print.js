@@ -37,7 +37,7 @@ frappe.ui.form.PrintView = class {
 		this.print_wrapper = this.page.main.empty().html(
 			`<div class="print-preview-wrapper"><div class="print-preview">
 				${frappe.render_template('print_skeleton_loading')}
-				<iframe class="print-format-container" width="100%" height="0" frameBorder="0" scrolling="no"">
+				<iframe class="print-format-container" width="100%" height="0" frameBorder="0" scrolling="no">
 				</iframe>
 			</div>
 			<div class="page-break-message text-muted text-center text-medium margin-top"></div>
@@ -343,7 +343,11 @@ frappe.ui.form.PrintView = class {
 		let doc_letterhead = this.frm.doc.letter_head;
 
 		return frappe.db
-			.get_list('Letter Head', { fields: ['name', 'is_default'], limit: 0 })
+			.get_list('Letter Head', {
+				filters: {'disabled': 0},
+				fields: ['name', 'is_default'],
+				limit: 0
+			})
 			.then((letterheads) => {
 				letterheads.map((letterhead) => {
 					if (letterhead.is_default) default_letterhead = letterhead.name;
