@@ -500,6 +500,7 @@ class Document(BaseDocument):
 		self._validate_non_negative()
 		self._validate_length()
 		self._validate_code_fields()
+		self._sync_autoname_field()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
@@ -843,16 +844,19 @@ class Document(BaseDocument):
 				frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
-		"""Returns all children documents from **Table** type field in a list."""
-		ret = []
-		for df in self.meta.get("fields", {"fieldtype": ['in', table_fields]}):
-			if parenttype:
-				if df.options==parenttype:
-					return self.get(df.fieldname)
+		"""Returns all children documents from **Table** type fields in a list."""
+
+		children = []
+
+		for df in self.meta.get_table_fields():
+			if parenttype and df.options != parenttype:
+				continue
+
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
-				ret.extend(value)
-		return ret
+				children.extend(value)
+
+		return children
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
