@@ -115,6 +115,7 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		debug = debug or getattr(self, "debug", False)
 		query = str(query)
 		if not run:
 			return query
@@ -446,6 +447,7 @@ class Database(object):
 				pluck=pluck,
 				distinct=distinct,
 				limit=limit,
+				as_dict=as_dict,
 			)
 
 		else:
@@ -549,7 +551,7 @@ class Database(object):
 				return r and [[i[1] for i in r]] or []
 
 
-	def get_singles_dict(self, doctype, debug = False):
+	def get_singles_dict(self, doctype, debug=False, *, for_update=False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -560,10 +562,13 @@ class Database(object):
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
 		result = self.query.get_sql(
-			"Singles", filters={"doctype": doctype}, fields=["field", "value"]
+			"Singles",
+			filters={"doctype": doctype},
+			fields=["field", "value"],
+			for_update=for_update,
 		).run()
-		dict_  = frappe._dict(result)
-		return dict_
+
+		return frappe._dict(result)
 
 	@staticmethod
 	def get_all(*args, **kwargs):
@@ -674,7 +679,20 @@ class Database(object):
 		)
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, order_by, *, debug=False, run=True, pluck=False, distinct=False, limit=None):
+	def _get_value_for_many_names(
+		self,
+		doctype,
+		names,
+		field,
+		order_by,
+		*,
+		debug=False,
+		run=True,
+		pluck=False,
+		distinct=False,
+		limit=None,
+		as_dict=False
+	):
 		names = list(filter(None, names))
 		if names:
 			return self.get_all(
@@ -684,7 +702,7 @@ class Database(object):
 				order_by=order_by,
 				pluck=pluck,
 				debug=debug,
-				as_list=1,
+				as_list=not as_dict,
 				run=run,
 				distinct=distinct,
 				limit_page_length=limit
