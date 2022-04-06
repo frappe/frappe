@@ -1152,19 +1152,18 @@ class Database(object):
 			:param fields: list of fields
 			:params values: list of list of values
 		"""
-		insert_list = []
-		fields = ", ".join("`"+field+"`" for field in fields)
-
-		for idx, value in enumerate(values):
-			insert_list.append(tuple(value))
-			if idx and (idx%10000 == 0 or idx < len(values)-1):
-				self.sql("""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+		chunk_size = 10000
+		for index in range(0, len(values), chunk_size):
+			insert_list = values[index: index + chunk_size]
+			self.sql(
+					"""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
 						ignore_duplicates="IGNORE" if ignore_duplicates else "",
 						doctype=doctype,
-						fields=fields,
+						fields=", ".join(f"`{field}`" for field in fields),
 						values=", ".join(['%s'] * len(insert_list))
-					), tuple(insert_list))
-				insert_list = []
+					),
+					tuple(insert_list),
+				)
 
 
 def enqueue_jobs_after_commit():
