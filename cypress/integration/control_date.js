@@ -63,14 +63,13 @@ context('Date Control', () => {
 		cy.get('.datepicker--button').click();
 
 		//Picking up the todays date
-		const todaysDate = Cypress.moment().format('MM-DD-YYYY');
-		cy.log(todaysDate);
+		const todays_date = Cypress.moment().format('MM-DD-YYYY');
 
 		//Verifying if clicking on "Today" button matches today's date
-		cy.get_field('date', 'Date').should('have.value', todaysDate);
+		cy.get_field('date', 'Date').should('have.value', todays_date);
 	});
 
-	it.only('Configuring first day of the week', () => {
+	it('Configuring first day of the week', () => {
 		//Visiting "System Settings" page
 		cy.visit('/app/system-settings/System%20Settings');
 
