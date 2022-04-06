@@ -117,6 +117,34 @@ class TestBlogPost(unittest.TestCase):
 
 		frappe.flags.force_website_cache = True
 
+	def test_spam_comments(self):
+		# Make a temporary Blog Post (and a Blog Category)
+		blog = make_test_blog('Test Spam Comment')
+
+		# Create a spam comment
+		frappe.get_doc(
+			doctype="Comment",
+			comment_type="Comment",
+			reference_doctype="Blog Post",
+			reference_name=blog.name,
+			comment_email="<a href=\"https://example.com/spam/\">spam</a>",
+			comment_by="<a href=\"https://example.com/spam/\">spam</a>",
+			published=1,
+			content="More spam content. <a href=\"https://example.com/spam/\">spam</a> with link.",
+		).insert()
+
+		# Visit the blog post page
+		set_request(path=blog.route)
+		blog_page_response = get_response()
+		blog_page_html = frappe.safe_decode(blog_page_response.get_data())
+
+		self.assertNotIn('<a href="https://example.com/spam/">spam</a>', blog_page_html)
+		self.assertIn("More spam content. spam with link.", blog_page_html)
+
+		# Cleanup
+		frappe.delete_doc("Blog Post", blog.name)
+		frappe.delete_doc("Blog Category", blog.blog_category)
+
 def scrub(text):
 	return WebsiteGenerator.scrub(None, text)
 
