@@ -1,6 +1,6 @@
 Babel~=2.9.0
 beautifulsoup4~=4.9.3
-bleach-whitelist~=0.0.11
+bleach-allowlist~=1.0.3
 bleach~=3.3.0
 boto3~=1.17.53
 braintree~=4.8.0
@@ -35,6 +35,7 @@ ndg-httpsclient~=0.5.1
 num2words~=0.5.10
 oauthlib~=3.1.0
 openpyxl~=3.0.7
+parse~=1.19.0
 passlib~=1.7.4
 paytmchecksum~=1.7.0
 pdfkit~=0.6.1

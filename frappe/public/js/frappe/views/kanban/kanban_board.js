@@ -150,18 +150,6 @@ frappe.provide("frappe.views");
 				}
 				updater.set({ cards: cards });
 			},
-			update_doc: function(updater, doc, card) {
-				var state = this;
-				return frappe.call({
-					method: method_prefix + "update_doc",
-					args: { doc: doc },
-					freeze: true
-				}).then(function(r) {
-					var updated_doc = r.message;
-					var updated_card = prepare_card(card, state, updated_doc);
-					fluxify.doAction('update_card', updated_card);
-				});
-			},
 			update_order_for_single_card: function(updater, card) {
 				// cache original order
 				const _cards = this.cards.slice();

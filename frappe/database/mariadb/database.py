@@ -153,6 +153,10 @@ class MariaDBDatabase(Database):
 		return e.args[0] == ER.NO_SUCH_TABLE
 
 	@staticmethod
+	def is_missing_table(e):
+		return MariaDBDatabase.is_table_missing(e)
+
+	@staticmethod
 	def is_missing_column(e):
 		return e.args[0] == ER.BAD_FIELD_ERROR
 

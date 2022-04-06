@@ -134,6 +134,16 @@ def create_contact_records():
 	insert_contact('Test Form Contact 2', '54321')
 	insert_contact('Test Form Contact 3', '12345')
 
+@frappe.whitelist()
+def create_multiple_todo_records():
+	values = []
+	if frappe.db.get_all('ToDo', {'description': 'Multiple ToDo 1'}):
+		return
+
+	for index in range(1, 1002):
+		values.append(('100{}'.format(index), 'Multiple ToDo {}'.format(index)))
+
+	frappe.db.bulk_insert('ToDo', fields=['name', 'description'], values=set(values))
 
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({
@@ -253,3 +263,17 @@ def update_webform_to_multistep():
 		_doc.route = "update-profile-duplicate"
 		_doc.is_standard = False
 		_doc.save()
+
+@frappe.whitelist()
+def update_child_table(name):
+	doc = frappe.get_doc('DocType', name)
+	if len(doc.fields) == 1:
+		doc.append('fields', {
+			'fieldname': 'doctype_to_link',
+			'fieldtype': 'Link',
+			'in_list_view': 1,
+			'label': 'Doctype to Link',
+			'options': 'Doctype to Link'
+		})
+
+		doc.save()

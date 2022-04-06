@@ -417,7 +417,13 @@ class EmailAccount(Document):
 			if names:
 				name = names[0].get("name")
 				# email is already available update communication uid instead
-				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
+				frappe.db.set_value(
+					"Communication",
+					name,
+					"uid",
+					frappe.safe_decode(uid),
+					update_modified=False,
+				)
 
 				self.flags.notify = False
 

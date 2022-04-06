@@ -113,6 +113,10 @@ class Database(object):
 
 		"""
 		query = str(query)
+
+		# remove \n \t from start and end of query
+		query = re.sub(r'^\s*|\s*$', '', query)
+
 		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
 			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
@@ -173,7 +177,7 @@ class Database(object):
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e)
 
-			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+			if ignore_ddl and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
 				raise
@@ -411,12 +415,12 @@ class Database(object):
 		"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
-			order_by, cache=cache, for_update=for_update)
+			order_by, cache=cache, for_update=for_update, limit=1)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, order_by=None, update=None, cache=False, for_update=False):
+		debug=False, order_by=None, update=None, cache=False, for_update=False, *, limit=None):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -443,7 +447,7 @@ class Database(object):
 		if not order_by: order_by = 'modified desc'
 
 		if isinstance(filters, list):
-			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
+			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug, limit=limit)
 
 		else:
 			fields = fieldname
@@ -455,7 +459,8 @@ class Database(object):
 
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
-					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update, for_update=for_update)
+					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update,
+							for_update=for_update, limit=limit)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
@@ -596,7 +601,8 @@ class Database(object):
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None, for_update=False):
+	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug,
+			order_by=None, update=None, for_update=False, *, limit=None):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
@@ -613,27 +619,29 @@ class Database(object):
 		conditions, values = self.build_conditions(filters)
 
 		order_by = ("order by " + order_by) if order_by else ""
+		limit = ("limit " + str(limit)) if limit else ""
 
-		r = self.sql("select {fields} from `tab{doctype}` {where} {conditions} {order_by} {for_update}"
+		r = self.sql("select {fields} from `tab{doctype}` {where} {conditions} {order_by} {limit} {for_update}"
 			.format(
 				for_update = 'for update' if for_update else '',
 				fields = fl,
 				doctype = doctype,
 				where = "where" if conditions else "",
 				conditions = conditions,
-				order_by = order_by),
+				order_by = order_by,
+				limit = limit),
 			values, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
-	def _get_value_for_many_names(self, doctype, names, field, debug=False):
+	def _get_value_for_many_names(self, doctype, names, field, debug=False, *, limit=None):
 		names = list(filter(None, names))
 
 		if names:
 			return self.get_all(doctype,
 				fields=['name', field],
 				filters=[['name', 'in', names]],
-				debug=debug, as_list=1)
+				debug=debug, as_list=1, limit=limit)
 		else:
 			return {}
 
@@ -994,7 +1002,7 @@ class Database(object):
 			return []
 
 	def is_missing_table_or_column(self, e):
-		return self.is_missing_column(e) or self.is_missing_table(e)
+		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
 		current_dialect = frappe.db.db_type or 'mariadb'
