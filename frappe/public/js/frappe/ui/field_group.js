@@ -34,6 +34,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 					// if default and has depends_on, render its fields.
 					me.refresh_dependency();
 				}
+
+				if (field.df["read_only"] && in_list(["undefined", "", null, undefined], field.df["default"])) {
+					field.set_input("");
+				}
 			})
 
 			if(!this.no_submit_on_enter) {
