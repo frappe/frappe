@@ -1153,18 +1153,13 @@ class Database(object):
 			:params values: list of list of values
 		"""
 		chunk_size = 10000
-		for index in range(0, len(values), chunk_size):
-			insert_list = values[index: index + chunk_size]
-			self.sql(
-					"""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
-						ignore_duplicates="IGNORE" if ignore_duplicates else "",
-						doctype=doctype,
-						fields=", ".join(f"`{field}`" for field in fields),
-						values=", ".join(['%s'] * len(insert_list))
-					),
-					tuple(insert_list),
-				)
+		for start_index in range(0, len(values), chunk_size):
+			query = frappe.qb.into(frappe.qb.DocType(doctype))
+			if ignore_duplicates:
+				query = query.ignore()
 
+			values_to_insert = values[start_index: start_index + chunk_size]
+			query.columns(fields).insert(*values_to_insert).run()
 
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue
