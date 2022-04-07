@@ -19,7 +19,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			<li class="input-area"></li>
 			<li class="saved-templates"></li>
 			<li class="sidebar-action">
-				<a class="saved-templates-preview">${__('Show Saved Template')}</a>
+				<a class="saved-templates-preview">${__('Show Saved Templates')}</a>
 			</li>
 		`);
 
@@ -151,7 +151,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 	toggle_saved_templates(show) {
 		this.$saved_templates.toggle(show);
-		const label = show ? __('Hide Saved') : __('Show Saved Template');
+		const label = show ? __('Hide Saved') : __('Show Saved Templates');
 		this.wrapper.find('.saved-templates-preview').text(label);
 		this.saved_templates_hidden = !this.saved_templates_hidden;
 	}
