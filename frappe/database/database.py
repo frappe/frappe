@@ -1144,7 +1144,15 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
-	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False):
+	def bulk_insert(
+		self,
+		doctype,
+		fields,
+		values,
+		ignore_duplicates=False,
+		*,
+		chunk_size=10000
+	):
 		"""
 			Insert multiple records at a time
 
@@ -1152,7 +1160,7 @@ class Database(object):
 			:param fields: list of fields
 			:params values: list of list of values
 		"""
-		chunk_size = 10000
+
 		for start_index in range(0, len(values), chunk_size):
 			query = frappe.qb.into(frappe.qb.DocType(doctype))
 			if ignore_duplicates:
