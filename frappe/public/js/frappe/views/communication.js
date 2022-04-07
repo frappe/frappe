@@ -97,7 +97,7 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "content",
 				onchange: frappe.utils.debounce(
 					this.save_as_draft.bind(this),
-					500
+					300
 				)
 			},
 			{
@@ -195,8 +195,8 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	setup_add_signature_button() {
-		let is_sender = this.dialog.has_field('sender');
-		this.dialog.set_df_property('add_signature', 'hidden', !is_sender);
+		let has_sender = this.dialog.has_field('sender');
+		this.dialog.set_df_property('add_signature', 'hidden', !has_sender);
 	}
 
 	setup_multiselect_queries() {
