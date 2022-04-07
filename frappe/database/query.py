@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import frappe
 from frappe import _
-from frappe.query_builder import Criterion, Field, Order
+from frappe.query_builder import Criterion, Field, Order, Table
 
 
 def like(key: str, value: str) -> frappe.qb:
@@ -139,7 +139,9 @@ OPERATOR_MAP = {
 
 
 class Query:
-	def get_condition(self, table: str, **kwargs) -> frappe.qb:
+	tables:dict = {}
+
+	def get_condition(self, table: Union[str, Table], **kwargs) -> frappe.qb:
 		"""Get initial table object
 
 		Args:
@@ -148,11 +150,20 @@ class Query:
 		Returns:
 		        frappe.qb: DocType with initial condition
 		"""
+		table_object = self.get_table(table)
 		if kwargs.get("update"):
-			return frappe.qb.update(table)
+			return frappe.qb.update(table_object)
 		if kwargs.get("into"):
-			return frappe.qb.into(table)
-		return frappe.qb.from_(table)
+			return frappe.qb.into(table_object)
+		return frappe.qb.from_(table_object)
+
+	def get_table(self, table_name: Union[str, Table])->Table:
+		if isinstance(table_name, Table):
+			return table_name
+		table_name = table_name.strip('"').strip("'")
+		if table_name not in self.tables:
+			self.tables[table_name] = frappe.qb.DocType(table_name)
+		return self.tables[table_name]
 
 	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> frappe.qb:
 		"""Generate filters from Criterion objects
@@ -217,8 +228,13 @@ class Query:
 					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
 					break
 				else:
-					_operator = OPERATOR_MAP[f[1]]
-					conditions = conditions.where(_operator(Field(f[0]), f[2]))
+					_operator = OPERATOR_MAP[f[-2]]
+					if len(f) == 4:
+						table_object = self.get_table(f[0])
+						_field = table_object[f[1]]
+					else:
+						_field = Field(f[0])
+					conditions = conditions.where(_operator(_field, f[-1]))
 
 		return self.add_conditions(conditions, **kwargs)
 
