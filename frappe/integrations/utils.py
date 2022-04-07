@@ -35,33 +35,44 @@ def make_post_request(url, **kwargs):
 def make_put_request(url, **kwargs):
 	return make_request('PUT', url, **kwargs)
 
-def create_request_log(data, integration_type, service_name, name=None, error=None, request_header=None, is_remote_request=False, **kwargs):
+def create_request_log(
+	data,
+	integration_type=None,
+	service_name=None,
+	name=None,
+	error=None,
+	request_headers=None,
+	output=None,
+	**kwargs
+):
 	"""
 		DEPRECATED: The parameter integration_type will be removed in the next major release.
 		Use is_remote_request instead.
 	"""
-	if isinstance(data, str) or not kwargs.get('reference_doctype'):
-		data = json.loads(data)
+	if integration_type == "Remote":
+		kwargs["is_remote_request"] = 1
 
-	if isinstance(error, str):
-		error = json.loads(error)
+	elif integration_type == "Subscription Notification":
+		kwargs["request_description"] = integration_type
 
-	if isinstance(request_header, str):
-		request_header = json.loads('request_header')
+	reference_doctype = reference_docname = None
+	if "reference_doctype" not in kwargs:
+		if isinstance(data, str):
+			data = json.loads(data)
+
+		reference_doctype = data.get("reference_doctype")
+		reference_docname = data.get("reference_docname")
 
 	integration_request = frappe.get_doc({
 		"doctype": "Integration Request",
-		"integration_type": integration_type,
-		"is_remote_request": is_remote_request,
 		"integration_request_service": service_name,
-		"reference_doctype": kwargs.get('reference_doctype') if kwargs.get('reference_doctype') else data.get('reference_doctype'),
-		"reference_docname":  kwargs.get('reference_name') if kwargs.get('reference_doctype') else data.get('reference_name'),
-		"request_id": kwargs.get('request_id'),
-		"url": kwargs.get('url'),
-		"request_description": kwargs.get('request_description'),
-		"error": frappe.as_json(error, indent=2),
-		"data": frappe.as_json(data, indent=2),
-		"headers": frappe.as_json(request_header, indent=2)
+		"request_headers": get_json(request_headers),
+		"data": get_json(data),
+		"output": get_json(output),
+		"error": get_json(error),
+		"reference_doctype": reference_doctype,
+		"reference_docname": reference_docname,
+		**kwargs
 	})
 
 	if name:
@@ -71,6 +82,9 @@ def create_request_log(data, integration_type, service_name, name=None, error=No
 	frappe.db.commit()
 
 	return integration_request
+
+def get_json(obj):
+	return obj if isinstance(obj, str) else frappe.as_json(obj, indent=1)
 
 def get_payment_gateway_controller(payment_gateway):
 	'''Return payment gateway controller'''
