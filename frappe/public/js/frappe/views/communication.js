@@ -100,6 +100,17 @@ frappe.views.CommunicationComposer = class {
 					500
 				)
 			},
+			{
+				fieldtype: "Button",
+				label: __("Add Signature"),
+				fieldname: 'add_signature',
+				hidden: 1,
+				click: async () => {
+					let sender_email = this.dialog.get_value('sender') || "";
+					this.content_set = false;
+					await this.set_content(sender_email);
+				}
+			},
 			{ fieldtype: "Section Break" },
 			{
 				label: __("Send me a copy"),
@@ -146,21 +157,16 @@ frappe.views.CommunicationComposer = class {
 		});
 
 		if (email_accounts.length) {
+			this.user_email_accounts = email_accounts.map(function(e) {
+				return e.email_id;
+			});
+
 			fields.unshift({
 				label: __("From"),
 				fieldtype: "Select",
 				reqd: 1,
 				fieldname: "sender",
-				options: email_accounts.map(function(e) {
-					return e.email_id;
-				}),
-				change: async () => {
-					let sender_email = this.dialog.get_value("sender");
-					this.reply_set = !!sender_email;
-					this.content_set = sender_email && this.sender && this.sender != sender_email;
-					await this.set_content(sender_email);
-					this.sender = sender_email;
-				}
+				options: this.user_email_accounts
 			});
 		}
 
@@ -184,7 +190,13 @@ frappe.views.CommunicationComposer = class {
 		this.setup_email();
 		this.setup_email_template();
 		this.setup_last_edited_communication();
+		this.setup_add_signature_button();
 		this.set_values();
+	}
+
+	setup_add_signature_button() {
+		let is_sender = this.dialog.has_field('sender');
+		this.dialog.set_df_property('add_signature', 'hidden', !is_sender);
 	}
 
 	setup_multiselect_queries() {
@@ -744,23 +756,28 @@ frappe.views.CommunicationComposer = class {
 		let signature = frappe.boot.user.email_signature;
 
 		if (!signature) {
-			let filters = {};
+			let filters = {
+				'add_signature': 1
+			};
+
 			if (sender_email) {
 				filters['email_id'] = sender_email;
 			} else {
-				if (this.dialog.has_field("sender")) return "";
-
 				filters['default_outgoing'] = 1;
 			}
-			filters['add_signature'] = 1;
 
-			const response = await frappe.db.get_value(
-				'Email Account',
-				filters,
-				'signature'
-			);
+			const email = await frappe.db.get_list("Email Account", {
+				filters: filters,
+				fields: ['signature', 'email_id'],
+				limit: 1
+			});
 
-			signature = response.message.signature;
+			signature = email && email[0].signature;
+
+			if (this.user_email_accounts &&
+				this.user_email_accounts.includes(email[0].email_id)) {
+				this.dialog.set_value('sender', email[0].email_id);
+			}
 		}
 
 		if (!signature) return "";
