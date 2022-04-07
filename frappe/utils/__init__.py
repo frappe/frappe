@@ -80,15 +80,15 @@ def validate_phone_number_with_isd(phone, throw=False):
 	if not phone:
 		return
 	try:
-		phone = ph.parse(phone)
+		phone_number = ph.parse(phone)
 	except Exception as e:
 		if e.error_type == 1:
-			frappe.throw(frappe._("The entered value is not a phone number."), frappe.InvalidPhoneNumberError,
+			frappe.throw(frappe._("{0} is not a valid Phone Number.").format(frappe.bold(phone)), frappe.InvalidPhoneNumberError,
 				title=frappe._("Invalid Number"))
-		frappe.throw(frappe._("Please select a country code."), frappe.InvalidPhoneNumberError,
+		frappe.throw(frappe._("Please select a country code for the Phone Number {0}.").format(frappe.bold(phone)), frappe.InvalidPhoneNumberError,
 			title = frappe._("Country Code Required"))
-	if not ph.is_valid_number(phone):
-		frappe.throw(frappe._("This is not a valid phone number"), frappe.InvalidPhoneNumberError,
+	if not ph.is_valid_number(phone_number):
+		frappe.throw(frappe._("{0} is not a valid Phone Number").format(frappe.bold(phone)), frappe.InvalidPhoneNumberError,
 		title = frappe._("Invalid Number"))
 
 def validate_phone_number(phone_number, throw=False):
