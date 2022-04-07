@@ -26,9 +26,11 @@ context('Attach Control', () => {
 		//Clicking on "Link" button to attach a file using the "Link" button
 		cy.findByRole('button', {name: 'Link'}).click();
 		cy.findByPlaceholderText('Attach a web link').type('https://wallpaperplay.com/walls/full/8/2/b/72402.jpg');
+		
 		//Clicking on the Upload button to upload the file
+		cy.intercept("POST", "/api/method/upload_file").as("upload_image");
 		cy.get('.modal-footer').findByRole("button", {name: "Upload"}).click({delay: 500});
-		cy.wait(800);
+		cy.wait("@upload_image");
 		cy.findByRole('button', {name: 'Save'}).click();
 
 		//Checking if the URL of the attached image is getting displayed in the field of the newly created doctype
@@ -62,8 +64,9 @@ context('Attach Control', () => {
 		cy.contains('72402.jpg').click();
 
 		//Clicking on the Upload button to upload the file
+		cy.intercept("POST", "/api/method/upload_file").as("upload_image");
 		cy.get('.modal-footer').findByRole("button", {name: "Upload"}).click({delay: 500});
-		cy.wait(800);
+		cy.wait("@upload_image");
 		cy.findByRole('button', {name: 'Save'}).click();
 
 		//Checking if the URL of the attached image is getting displayed in the field of the newly created doctype
