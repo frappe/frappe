@@ -48,12 +48,14 @@ export default class KanbanSettings {
 				indicator: "green"
 			});
 
+			const dialog_data = me.dialog.get_values();
+
 			frappe.call({
 				method:
 					"frappe.desk.doctype.kanban_board.kanban_board.save_fields",
 				args: {
 					board_name: me.settings.name,
-					fields: me.fields
+					fields: dialog_data.fields
 				},
 				callback: function(r) {
 					me.kanbanview.board = r.message;
@@ -235,14 +237,12 @@ export default class KanbanSettings {
 			]
 		});
 		d.set_primary_action(__("Save"), () => {
-			let values = d.get_values().fields;
-			let fields = [];
-
-			me.subject_field = me.get_subject_field(me.meta);
-			fields.push(me.subject_field);
+			const field_names = d.get_values().fields;
+			const subject_field = me.get_subject_field(me.meta);
+			let fields = [subject_field];
 
 			let add_field = field => {
-				if (field === me.subject_field.fieldname) return;
+				if (field === subject_field.fieldname) return;
 
 				field = me.get_docfield(field);
 
@@ -251,9 +251,6 @@ export default class KanbanSettings {
 						label: field.label,
 						fieldname: field.fieldname
 					});
-
-					let idx = values.indexOf(field.fieldname);
-					values.splice(idx, 1);
 				}
 			};
 
@@ -262,16 +259,20 @@ export default class KanbanSettings {
 			 * preserve the docfields order and then push the newly added fields.
 			 */
 			me.fields.forEach(field => {
-				field = values.filter(value => value === field.fieldname);
+				let _field_names = field_names.filter(value => value === field.fieldname);
 
-				if (field.length) {
-					add_field(field[0]);
+				if (_field_names.length) {
+					add_field(_field_names[0]);
 				}
 			});
 
-			values.forEach(field => {
-				add_field(field);
-			});
+			const existing_fieldnames = me.fields.map(f => f.fieldname);
+
+			field_names
+				.filter(field_name => !existing_fieldnames.includes(field_name))
+				.forEach(field_name => {
+					add_field(field_name);
+				});
 
 			me.fields = fields;
 			me.refresh();
