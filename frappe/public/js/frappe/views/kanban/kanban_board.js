@@ -652,14 +652,18 @@ frappe.provide("frappe.views");
 			let fields = [];
 
 			for (let field of JSON.parse(cur_list.board.fields || "[]")) {
-				if (card.doc[field.fieldname] && card.doc[field.fieldname] !== card.title && field.fieldname !== "color") {
+				if (
+					card.doc[field.fieldname] &&
+					card.doc[field.fieldname] !== card.title &&
+					field.fieldname !== "color"
+				) {
 					fields.push(`
 						<div class="text-muted text-truncate">
 							<span>${__(field.label)}: </span><span>${__(card.doc[field.fieldname])}</span>
 						</div>
 					`);
 				}
-			};
+			}
 
 			return fields.join("");
 		}

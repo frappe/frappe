@@ -1,7 +1,7 @@
 export default class KanbanSettings {
 	constructor({ kanbanview, doctype, meta, settings }) {
 		if (!doctype) {
-			frappe.throw(__('DocType required'));
+			frappe.throw(__("DocType required"));
 		}
 
 		this.kanbanview = kanbanview;
@@ -9,7 +9,10 @@ export default class KanbanSettings {
 		this.meta = meta;
 		this.settings = settings;
 		this.dialog = null;
-		this.fields = this.settings && this.settings.fields ? JSON.parse(this.settings.fields) : [];
+		this.fields =
+			this.settings && this.settings.fields
+				? JSON.parse(this.settings.fields)
+				: [];
 
 		frappe.model.with_doctype("List View Settings", () => {
 			this.make();
@@ -39,19 +42,20 @@ export default class KanbanSettings {
 			]
 		});
 		me.dialog.set_values(me.settings);
-		me.dialog.set_primary_action(__('Save'), () => {
+		me.dialog.set_primary_action(__("Save"), () => {
 			frappe.show_alert({
 				message: __("Saving"),
 				indicator: "green"
 			});
 
 			frappe.call({
-				method: "frappe.desk.doctype.kanban_board.kanban_board.save_fields",
+				method:
+					"frappe.desk.doctype.kanban_board.kanban_board.save_fields",
 				args: {
 					board_name: me.settings.name,
-					fields: me.fields,
+					fields: me.fields
 				},
-				callback: function (r) {
+				callback: function(r) {
 					me.kanbanview.board = r.message;
 					me.kanbanview.render();
 					me.dialog.hide();
@@ -90,14 +94,17 @@ export default class KanbanSettings {
 		let fields = ``;
 
 		for (let idx in me.fields) {
-			let is_sortable = (idx == 0) ? `` : `sortable`;
-			let show_sortable_handle = (idx == 0) ? `hide` : ``;
-			let can_remove = (idx == 0 || is_status_field(me.fields[idx])) ? `hide` : ``;
+			let is_sortable = idx == 0 ? `` : `sortable`;
+			let show_sortable_handle = idx == 0 ? `hide` : ``;
+			let can_remove =
+				idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
 
 			fields += `
 				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
-					style="display: block; margin-bottom: 5px;" data-fieldname="${me.fields[idx].fieldname}"
-					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
+					style="display: block; margin-bottom: 5px;"
+					data-fieldname="${me.fields[idx].fieldname}"
+					data-label="${me.fields[idx].label}"
+					data-type="${me.fields[idx].type}">
 
 					<div class="row">
 						<div class="col-md-1">
@@ -131,21 +138,26 @@ export default class KanbanSettings {
 			</div>
 		`);
 
-		new Sortable(wrapper.getElementsByClassName("control-input-wrapper")[0], {
-			handle: '.sortable-handle',
-			draggable: '.sortable',
-			onUpdate: () => {
-				me.update_fields();
-				me.refresh();
+		new Sortable(
+			wrapper.getElementsByClassName("control-input-wrapper")[0],
+			{
+				handle: ".sortable-handle",
+				draggable: ".sortable",
+				onUpdate: () => {
+					me.update_fields();
+					me.refresh();
+				}
 			}
-		});
+		);
 	}
 
 	add_new_fields() {
 		let me = this;
 
 		let fields_html = me.dialog.get_field("fields_html");
-		let add_new_fields = fields_html.$wrapper[0].getElementsByClassName("add-new-fields")[0];
+		let add_new_fields = fields_html.$wrapper[0].getElementsByClassName(
+			"add-new-fields"
+		)[0];
 		add_new_fields.onclick = () => me.column_selector();
 	}
 
@@ -153,10 +165,15 @@ export default class KanbanSettings {
 		let me = this;
 
 		let fields_html = me.dialog.get_field("fields_html");
-		let remove_fields = fields_html.$wrapper[0].getElementsByClassName("remove-field");
+		let remove_fields = fields_html.$wrapper[0].getElementsByClassName(
+			"remove-field"
+		);
 
 		for (let idx = 0; idx < remove_fields.length; idx++) {
-			remove_fields.item(idx).onclick = () => me.remove_fields(remove_fields.item(idx).getAttribute("data-fieldname"));
+			remove_fields.item(idx).onclick = () =>
+				me.remove_fields(
+					remove_fields.item(idx).getAttribute("data-fieldname")
+				);
 		}
 	}
 
@@ -187,7 +204,9 @@ export default class KanbanSettings {
 
 		for (let idx = 0; idx < fields_order.length; idx++) {
 			me.fields.push({
-				fieldname: fields_order.item(idx).getAttribute("data-fieldname"),
+				fieldname: fields_order
+					.item(idx)
+					.getAttribute("data-fieldname"),
 				label: fields_order.item(idx).getAttribute("data-label")
 			});
 		}
@@ -211,19 +230,22 @@ export default class KanbanSettings {
 					label: __("Select Fields"),
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
-					options: me.get_doctype_fields(me.meta, me.fields.map(f => f.fieldname)),
+					options: me.get_doctype_fields(
+						me.meta,
+						me.fields.map(f => f.fieldname)
+					),
 					columns: 2
 				}
 			]
 		});
-		d.set_primary_action(__('Save'), () => {
+		d.set_primary_action(__("Save"), () => {
 			let values = d.get_values().fields;
 			let fields = [];
 
 			me.subject_field = me.get_subject_field(me.meta);
 			fields.push(me.subject_field);
 
-			let add_field = (field) => {
+			let add_field = field => {
 				if (field === me.subject_field.fieldname) return;
 
 				field = me.get_docfield(field);
@@ -252,8 +274,8 @@ export default class KanbanSettings {
 			});
 
 			values.forEach(field => {
-				add_field(field)
-			})
+				add_field(field);
+			});
 
 			me.fields = fields;
 			me.refresh();
@@ -291,7 +313,10 @@ export default class KanbanSettings {
 		};
 
 		if (meta.title_field) {
-			let field = frappe.meta.get_docfield(me.doctype, meta.title_field.trim());
+			let field = frappe.meta.get_docfield(
+				me.doctype,
+				meta.title_field.trim()
+			);
 
 			me.subject_field = {
 				label: field.label,
@@ -314,8 +339,16 @@ export default class KanbanSettings {
 
 	get_doctype_fields(meta, fields) {
 		let multiselect_fields = [];
-		let ignore_std_fields = ["idx", "_user_tags", "_liked_by", "_comments", "_assign"];
-		let _std_fields = frappe.model.std_fields.filter(field => !in_list(ignore_std_fields, field.fieldname));
+		let ignore_std_fields = [
+			"idx",
+			"_user_tags",
+			"_liked_by",
+			"_comments",
+			"_assign"
+		];
+		let _std_fields = frappe.model.std_fields.filter(
+			field => !in_list(ignore_std_fields, field.fieldname)
+		);
 		let _fields = _std_fields.concat(meta.fields);
 
 		_fields.forEach(field => {
