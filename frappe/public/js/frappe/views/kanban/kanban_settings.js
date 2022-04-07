@@ -65,21 +65,17 @@ export default class KanbanSettings {
 	}
 
 	refresh() {
-		let me = this;
-
-		me.setup_fields();
-		me.add_new_fields();
-		me.setup_remove_fields();
+		this.setup_fields();
+		this.add_new_fields();
+		this.setup_remove_fields();
 	}
 
 	show_dialog() {
-		let me = this;
-
 		if (!this.settings.fields) {
-			me.update_fields();
+			this.update_fields();
 		}
 
-		me.dialog.show();
+		this.dialog.show();
 	}
 
 	setup_fields() {
@@ -91,13 +87,13 @@ export default class KanbanSettings {
 
 		let fields_html = me.dialog.get_field("fields_html");
 		let wrapper = fields_html.$wrapper[0];
-		let fields = ``;
+		let fields = "";
 
 		for (let idx in me.fields) {
-			let is_sortable = idx == 0 ? `` : `sortable`;
-			let show_sortable_handle = idx == 0 ? `hide` : ``;
+			let is_sortable = idx == 0 ? "" : "sortable";
+			let show_sortable_handle = idx == 0 ? "hide" : "";
 			let can_remove =
-				idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
+				idx == 0 || is_status_field(me.fields[idx]) ? "hide" : "";
 
 			fields += `
 				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
@@ -286,55 +282,47 @@ export default class KanbanSettings {
 	}
 
 	reset_listview_fields(dialog) {
-		let me = this;
 		let field = dialog.get_field("fields");
-		field.df.options = me.get_subject_field();
+		field.df.options = this.get_subject_field();
 		dialog.refresh();
 	}
 
 	get_fields(meta) {
-		let me = this;
-
-		if (!me.settings.fields) {
-			me.fields.push(me.get_subject_field(meta));
+		if (!this.settings.fields) {
+			this.fields.push(this.get_subject_field(meta));
 		} else {
-			me.fields = JSON.parse(this.settings.fields);
+			this.fields = JSON.parse(this.settings.fields);
 		}
 
-		me.fields.uniqBy(f => f.fieldname);
+		this.fields.uniqBy(f => f.fieldname);
 	}
 
 	get_subject_field(meta) {
-		let me = this;
-
-		me.subject_field = {
+		let subject_field = {
 			label: "Name",
 			fieldname: "name"
 		};
 
 		if (meta.title_field) {
 			let field = frappe.meta.get_docfield(
-				me.doctype,
+				this.doctype,
 				meta.title_field.trim()
 			);
 
-			me.subject_field = {
+			subject_field = {
 				label: field.label,
 				fieldname: field.fieldname
 			};
 		}
 
-		return me.subject_field;
+		return subject_field;
 	}
 
-	get_docfield(field) {
-		let _field = frappe.meta.get_docfield(this.doctype, field);
-
-		if (!_field) {
-			_field = frappe.model.std_fields.find(f => f.fieldname === field);
-		}
-
-		return _field;
+	get_docfield(field_name) {
+		return (
+			frappe.meta.get_docfield(this.doctype, field_name) ||
+			frappe.model.get_std_field(field_name)
+		);
 	}
 
 	get_doctype_fields(meta, fields) {
