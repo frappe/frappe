@@ -262,3 +262,5 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		return this.grid || this.layout && this.layout.grid;
 	}
 };
+
+frappe.ui.form.ControlReadOnly = frappe.ui.form.ControlData;

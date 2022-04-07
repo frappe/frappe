@@ -225,7 +225,10 @@ $.extend(frappe.perm, {
 		if (explain) console.log("By Workflow:" + status);
 
 		// read only field is checked
-		if (status === "Write" && cint(df.read_only)) {
+		if (status === "Write" && (
+			cint(df.read_only) ||
+			df.fieldtype === "Read Only"
+		)) {
 			status = "Read";
 		}
 		if (explain) console.log("By Read Only:" + status);

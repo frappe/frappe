@@ -5,7 +5,6 @@
 @import "../common/global";
 @import "../common/icons";
 @import "../common/alert";
-@import 'base';
 @import "../common/flex";
 @import "../common/buttons";
 @import "../common/modal";
@@ -14,6 +13,7 @@
 @import "../common/indicator";
 @import "../common/controls";
 @import "../common/awesomeplete";
+@import 'base';
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
@@ -86,6 +86,20 @@
 
 .dropdown-item {
 	border-radius: $dropdown-border-radius;
+}
+
+.dropdown-item:active {
+	color: var(--fg-color);
+	text-decoration: none;
+	background-color: var(--gray-600);
+}
+
+.dropdown-item:active:hover {
+	color: var(--fg-color);
+}
+
+.dropdown-menu a:hover {
+	cursor: pointer;
 }
 
 .input-dark {
