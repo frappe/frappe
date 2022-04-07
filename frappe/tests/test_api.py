@@ -83,17 +83,17 @@ class FrappeAPITestCase(unittest.TestCase):
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params})
+	def get(self, path: str, params: Optional[Dict] = None, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params, **kwargs})
 
-	def post(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data})
+	def post(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data, **kwargs})
 
-	def put(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data})
+	def put(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data, **kwargs})
 
-	def delete(self, path) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.delete, args=(path, ))
+	def delete(self, path, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.delete, args=(path, ), kwargs=kwargs)
 
 
 class TestResourceAPI(FrappeAPITestCase):
