@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "autoname": "TICKET./.YYYY./.#####",
  "creation": "2021-12-23 11:27:37.494904",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -84,7 +85,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-04-01 11:22:11.712521",
+ "modified": "2022-04-07 13:53:09.784007",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Ticketing Support",
