@@ -9,25 +9,31 @@
 
 	<div class="discussions-header">
 		<span class="discussion-heading">{{ _(title) }}</span>
+		{% if topics | length and not single_thread %}
+		{% include "frappe/templates/discussions/search.html" %}
+		{% endif %}
 		{% if topics and not single_thread %}
 		{% include "frappe/templates/discussions/button.html" %}
 		{% endif %}
 	</div>
 
-	<div class="card-style thread-card {% if topics | length and not single_thread %} discussions-card {% endif %}
-		{% if not topics | length %} empty-state {% endif %}">
+	<div class="">
 		{% if topics and not single_thread %}
 
-		<div class="discussions-sidebar">
-			{% include "frappe/templates/discussions/search.html" %}
+		<div class="discussions-sidebar card-style">
 
 			{% for topic in topics %}
 			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}
 			{% include "frappe/templates/discussions/sidebar.html" %}
+
+			{% if loop.index != topics | length %}
+			<div class="card-divider"></div>
+			{% endif %}
+
 			{% endfor %}
 		</div>
 
-		<div class="mr-2" id="discussion-group">
+		<div class="hide" id="discussion-group">
 			{% for topic in topics %}
 			{% include "frappe/templates/discussions/reply_section.html" %}
 			{% endfor %}
@@ -38,19 +44,25 @@
 		{% include "frappe/templates/discussions/reply_section.html" %}
 
 		{% else %}
-		<div class="no-discussions">
-			<img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
-			<div class="discussion-heading mt-4 mb-0" style="color: inherit;"> {{ empty_state_title }} </div>
-			<div class="small mb-6"> {{ empty_state_subtitle }} </div>
-			{% if frappe.session.user == "Guest" %}
-			<div class="btn btn-default btn-md mt-3" id="login-from-discussion"> {{ _("Login") }} </div>
-			{% elif condition is defined and not condition %}
-			<div class="btn btn-default btn-md mt-3" id="login-from-discussion" data-redirect="{{ redirect_to }}">
-				{{ button_name }}
+		<div class="empty-state">
+			<div>
+			  <img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
 			</div>
-			{% else %}
-			{% include "frappe/templates/discussions/button.html" %}
-			{% endif %}
+			<div class="empty-state-text">
+			  <div class="empty-state-heading">{{ empty_state_title }}</div>
+			  <div class="course-meta">{{ empty_state_subtitle }}</div>
+			</div>
+			<div>
+				{% if frappe.session.user == "Guest" %}
+				<div class="btn btn-default btn-md login-from-discussion"> {{ _("Login") }} </div>
+				{% elif condition is defined and not condition %}
+				<div class="btn btn-default btn-md login-from-discussion" data-redirect="{{ redirect_to }}">
+					{{ button_name }}
+				</div>
+				{% else %}
+				{% include "frappe/templates/discussions/button.html" %}
+				{% endif %}
+			</div>
 		</div>
 		{% endif %}
 	</div>

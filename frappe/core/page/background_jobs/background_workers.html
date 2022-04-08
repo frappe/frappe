@@ -1,0 +1,51 @@
+{% if jobs.length %}
+<table class="table table-background-jobs">
+    <thead>
+        <tr>
+            <th style="width: 40%">{{ __("Worker") }}</th>
+            <th>{{ __("Current Job") }}</th>
+            <th style="width: 10%">{{ __("Status") }}</th>
+            <th style="width: 15%">{{ __("Created") }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for j in jobs %}
+        <tr>
+            <td class="worker-name">
+                {{ j.queue }}
+            </td>
+            <td>
+                <div>
+                    <span class="job-name">
+                        {{ frappe.utils.encode_tags(j.job_name) }}
+                    </span>
+                </div>
+                {% if j.exc_info %}
+                <details>
+                    <summary>{{ __("Exception") }}</summary>
+                    <div class="exc_info">
+                        <pre>{{ frappe.utils.encode_tags(j.exc_info) }}</pre>
+                    </div>
+                </details>
+                {% endif %}
+            </td>
+            <td>
+                <span class="indicator-pill {{ j.color }}">{{ toTitle(j.status) }}</span>
+            </td>
+            <td class="creation text-muted">{{ frappe.datetime.prettyDate(j.creation) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="no-background-jobs">
+    <img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Empty State">
+    <p class="text-muted">{{ __("No workers online on this site") }}</p>
+</div>
+{% endif %}
+<div class="footer">
+    <div class="text-muted">
+        {{ __("Last refreshed") }}
+        {{ frappe.datetime.now_datetime(true).toLocaleString() }}
+    </div>
+</div>

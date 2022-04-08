@@ -6,9 +6,7 @@
 *                 @frappe/frappe-review-team
 templates/        @surajshetty3416
 www/              @surajshetty3416
-integrations/     @leela
 patches/          @surajshetty3416 @gavindsouza
-email/            @leela
 event_streaming/  @ruchamahabal
 data_import*      @netchampfaris
 core/             @surajshetty3416
