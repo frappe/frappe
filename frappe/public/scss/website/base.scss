@@ -1,10 +1,10 @@
 $font-size-xs: 0.7rem;
 $font-size-sm: 0.85rem;
 $font-size-lg: 1.12rem;
-$font-size-xl: 1.25rem;
-$font-size-2xl: 1.5rem;
-$font-size-3xl: 2rem;
-$font-size-4xl: 2.5rem;
+$font-size-xl: 1.2rem;
+$font-size-2xl: 1.4rem;
+$font-size-3xl: 1.9rem;
+$font-size-4xl: 2.4rem;
 $font-size-5xl: 3rem;
 $font-size-6xl: 4rem;
 
@@ -51,12 +51,12 @@ h1 {
 h2 {
 	font-size: $font-size-2xl;
 	margin-top: 2rem;
-	margin-bottom: 0.75rem;
+	margin-bottom: 0.5rem;
 
 	@include media-breakpoint-up(sm) {
 		font-size: $font-size-3xl;
 		margin-top: 4rem;
-		margin-bottom: 1rem;
+		margin-bottom: 0.75rem;
 	}
 	@include media-breakpoint-up(xl) {
 		font-size: $font-size-4xl;
