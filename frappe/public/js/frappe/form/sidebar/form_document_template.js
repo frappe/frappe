@@ -211,16 +211,14 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		var newdoc;
 
-		if (!parentfield) newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name), () => {
+		if (!parentfield) {
+			newdoc = frappe.get_doc(doc.doctype, this.frm.doc.name);
+		} else {
+			newdoc = frappe.model.get_new_doc(
 			doc.doctype,
 			parent_doc,
-			parentfield
-		};
-		else newdoc = frappe.model.get_new_doc(
-			doc.doctype,
-			parent_doc,
-			parentfield
-		);
+			parentfield);
+			}
 
 		for (var key in doc) {
 			// dont copy name and blank fields
