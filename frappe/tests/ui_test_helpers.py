@@ -135,11 +135,15 @@ def create_contact_records():
 	insert_contact('Test Form Contact 3', '12345')
 
 @frappe.whitelist()
-def create_multiple_contact_records():
-	if frappe.db.get_all('Contact', {'first_name': 'Multiple Contact 1'}):
+def create_multiple_todo_records():
+	values = []
+	if frappe.db.get_all('ToDo', {'description': 'Multiple ToDo 1'}):
 		return
-	for index in range(1001):
-		insert_contact('Multiple Contact {}'.format(index+1), '12345{}'.format(index+1))
+
+	for index in range(1, 1002):
+		values.append(('100{}'.format(index), 'Multiple ToDo {}'.format(index)))
+
+	frappe.db.bulk_insert('ToDo', fields=['name', 'description'], values=set(values))
 
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({
@@ -199,39 +203,40 @@ def create_data_for_discussions():
 
 def create_web_page(title, route, single_thread):
 	web_page = frappe.db.exists("Web Page", {"route": route})
-	if not web_page:
-		web_page = frappe.get_doc({
+	if web_page:
+		return web_page
+	web_page = frappe.get_doc({
 			"doctype": "Web Page",
 			"title": title,
 			"route": route,
 			"published": True
 		})
-		web_page.save()
+	web_page.save()
 
-		web_page.append("page_blocks", {
-			"web_template": "Discussions",
-			"web_template_values": frappe.as_json({
-				"title": "Discussions",
-				"cta_title": "New Discussion",
-				"docname": web_page.name,
-				"single_thread": single_thread
-			})
+	web_page.append("page_blocks", {
+		"web_template": "Discussions",
+		"web_template_values": frappe.as_json({
+			"title": "Discussions",
+			"cta_title": "New Discussion",
+			"docname": web_page.name,
+			"single_thread": single_thread
 		})
-		web_page.save()
+	})
+	web_page.save()
 
-	return web_page
+	return web_page.name
 
 def create_topic_and_reply(web_page):
 	topic = frappe.db.exists("Discussion Topic",{
 		"reference_doctype": "Web Page",
-		"reference_docname": web_page.name
+		"reference_docname": web_page
 	})
 
 	if not topic:
 		topic = frappe.get_doc({
 			"doctype": "Discussion Topic",
 			"reference_doctype": "Web Page",
-			"reference_docname": web_page.name,
+			"reference_docname": web_page,
 			"title": "Test Topic"
 		})
 		topic.save()
@@ -269,3 +274,45 @@ def update_child_table(name):
 		})
 
 		doc.save()
+
+@frappe.whitelist()
+def insert_doctype_with_child_table_record(name):
+	if frappe.db.get_all(name, {'title': 'Test Grid Search'}):
+		return
+
+	def insert_child(doc, data, barcode, check, rating, duration, date):
+		doc.append('child_table_1', {
+			'data': data,
+			'barcode': barcode,
+			'check': check,
+			'rating': rating,
+			'duration': duration,
+			'date': date,
+		})
+
+	doc = frappe.new_doc(name)
+	doc.title = 'Test Grid Search'
+	doc.append('child_table', {'title': 'Test Grid Search'})
+
+	insert_child(doc, 'Data', '09709KJKKH2432', 1, 0.5, 266851, "2022-02-21")
+	insert_child(doc, 'Test', '09209KJHKH2432', 1, 0.8, 547877, "2021-05-27")
+	insert_child(doc, 'New', '09709KJHYH1132', 0, 0.1, 3, "2019-03-02")
+	insert_child(doc, 'Old', '09701KJHKH8750', 0, 0, 127455, "2022-01-11")
+	insert_child(doc, 'Alpha', '09204KJHKH2432', 0, 0.6, 364, "2019-12-31")
+	insert_child(doc, 'Delta', '09709KSPIO2432', 1, 0.9, 1242000, "2020-04-21")
+	insert_child(doc, 'Update', '76989KJLVA2432', 0, 1, 183845, "2022-02-10")
+	insert_child(doc, 'Delete', '29189KLHVA1432', 0, 0, 365647, "2021-05-07")
+	insert_child(doc, 'Make', '09689KJHAA2431', 0, 0.3, 24, "2020-11-11")
+	insert_child(doc, 'Create', '09709KLKKH2432', 1, 0.3, 264851, "2021-02-21")
+	insert_child(doc, 'Group', '09209KJLKH2432', 1, 0.8, 537877, "2020-03-15")
+	insert_child(doc, 'Slide', '01909KJHYH1132', 0, 0.5, 9, "2018-03-02")
+	insert_child(doc, 'Drop', '09701KJHKH8750', 1, 0, 127255, "2018-01-01")
+	insert_child(doc, 'Beta', '09204QJHKN2432', 0, 0.6, 354, "2017-12-30")
+	insert_child(doc, 'Flag', '09709KXPIP2432', 1, 0, 1241000, "2021-04-21")
+	insert_child(doc, 'Upgrade', '75989ZJLVA2432', 0.8, 1, 183645, "2020-08-13")
+	insert_child(doc, 'Down', '28189KLHRA1432', 1, 0, 362647, "2020-06-17")
+	insert_child(doc, 'Note', '09689DJHAA2431', 0, 0.1, 29, "2021-09-11")
+	insert_child(doc, 'Click', '08189DJHAA2431', 1, 0.3, 209, "2020-07-04")
+	insert_child(doc, 'Drag', '08189DIHAA2981', 0, 0.7, 342628, "2022-05-04")
+
+	doc.insert()

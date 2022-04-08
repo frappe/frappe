@@ -62,7 +62,8 @@ class PostgresDatabase(Database):
 			'Barcode':		('text', ''),
 			'Geolocation':	('text', ''),
 			'Duration':		('decimal', '21,9'),
-			'Icon':			('varchar', self.VARCHAR_LEN)
+			'Icon':			('varchar', self.VARCHAR_LEN),
+			'Autocomplete': ('varchar', self.VARCHAR_LEN),
 		}
 
 	def get_connection(self):
@@ -98,16 +99,13 @@ class PostgresDatabase(Database):
 		return db_size[0].get('database_size')
 
 	# pylint: disable=W0221
-	def sql(self, *args, **kwargs):
-		if args:
-			# since tuple is immutable
-			args = list(args)
-			args[0] = modify_query(args[0])
-			args = tuple(args)
-		elif kwargs.get('query'):
-			kwargs['query'] = modify_query(kwargs.get('query'))
-
-		return super(PostgresDatabase, self).sql(*args, **kwargs)
+	def sql(self, query, values=(), *args, **kwargs):
+		return super(PostgresDatabase, self).sql(
+			modify_query(query),
+			modify_values(values),
+			*args,
+			**kwargs
+		)
 
 	def get_tables(self, cached=True):
 		return [d[0] for d in self.sql("""select table_name
@@ -151,6 +149,10 @@ class PostgresDatabase(Database):
 	@staticmethod
 	def is_table_missing(e):
 		return getattr(e, 'pgcode', None) == '42P01'
+
+	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
 
 	@staticmethod
 	def is_missing_column(e):
@@ -334,12 +336,47 @@ def modify_query(query):
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
 	if re.search('from tab', query, flags=re.IGNORECASE):
-		query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
+		query = re.sub(r'from tab([\w-]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
 
+	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
+	# drop .0 from decimals and add quotes around them
+	#
+	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
+	# >>> re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
+	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
+
+	query = re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
 	return query
+
+def modify_values(values):
+	def stringify_value(value):
+		if isinstance(value, int):
+			value = str(value)
+		elif isinstance(value, float):
+			truncated_float = int(value)
+			if value == truncated_float:
+				value = str(truncated_float)
+
+		return value
+
+	if not values:
+		return values
+
+	if isinstance(values, dict):
+		for k, v in values.items():
+			values[k] = stringify_value(v)
+	elif isinstance(values, (tuple, list)):
+		new_values = []
+		for val in values:
+			new_values.append(stringify_value(val))
+		values = new_values
+	else:
+		values = stringify_value(values)
+
+	return values
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
 	if re.search(r'locate\(', query, flags=re.IGNORECASE):
-		query = re.sub(r'locate\(([^,]+),([^)]+)\)', r'strpos(\2, \1)', query, flags=re.IGNORECASE)
+		query = re.sub(r'locate\(([^,]+),([^)]+)(\)?)\)', r'strpos(\2\3, \1)', query, flags=re.IGNORECASE)
 	return query

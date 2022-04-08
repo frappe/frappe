@@ -4,7 +4,6 @@
 
 import frappe
 import frappe.defaults
-import unittest
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
 	clear_user_permissions_for_doctype, get_doc_permissions, add_permission, update_permission_property)
@@ -14,9 +13,12 @@ from frappe.core.doctype.user_permission.user_permission import clear_user_permi
 from frappe.desk.form.load import getdoc
 from frappe.utils.data import now_datetime
 
+from frappe.tests.utils import FrappeTestCase
+
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
-class TestPermissions(unittest.TestCase):
+
+class TestPermissions(FrappeTestCase):
 	def setUp(self):
 		frappe.clear_cache(doctype="Blog Post")
 
@@ -221,7 +223,7 @@ class TestPermissions(unittest.TestCase):
 
 		# check that Document.owner cannot be changed
 		user.reload()
-		user.owner = frappe.db.get_value("User", {"name": ("!=", user.name)})
+		user.owner = "Guest"
 		self.assertRaises(frappe.CannotChangeConstantError, user.save)
 
 	def test_set_only_once(self):
@@ -556,7 +558,6 @@ class TestPermissions(unittest.TestCase):
 
 		# Remove delete perm
 		update('Blog Post', 'Website Manager', 0, 'delete', 0)
-
 
 		frappe.clear_cache(doctype="Blog Post")
 

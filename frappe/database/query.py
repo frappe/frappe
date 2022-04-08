@@ -115,21 +115,23 @@ def change_orderby(order: str):
 
 
 OPERATOR_MAP = {
-					"+": operator.add,
-					"=": operator.eq,
-					"-": operator.sub,
-					"!=": operator.ne,
-					"<": operator.lt,
-					">": operator.gt,
-					"<=": operator.le,
-					">=": operator.ge,
-					"in": func_in,
-					"not in": func_not_in,
-					"like": like,
-					"not like": not_like,
-					"regex": func_regex,
-					"between": func_between
-				}
+	"+": operator.add,
+	"=": operator.eq,
+	"-": operator.sub,
+	"!=": operator.ne,
+	"<": operator.lt,
+	">": operator.gt,
+	"<=": operator.le,
+	"=<": operator.le,
+	">=": operator.ge,
+	"=>": operator.ge,
+	"in": func_in,
+	"not in": func_not_in,
+	"like": like,
+	"not like": not_like,
+	"regex": func_regex,
+	"between": func_between,
+}
 
 
 class Query:
@@ -211,8 +213,7 @@ class Query:
 					_operator = OPERATOR_MAP[f[1]]
 					conditions = conditions.where(_operator(Field(f[0]), f[2]))
 
-		conditions = self.add_conditions(conditions, **kwargs)
-		return conditions
+		return self.add_conditions(conditions, **kwargs)
 
 	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None, **kwargs) -> frappe.qb:
 		"""Build conditions using the given dictionary filters
@@ -244,9 +245,14 @@ class Query:
 					_operator = OPERATOR_MAP[value[0]]
 					conditions = conditions.where(_operator(Field(key), value[1]))
 			else:
-				conditions = conditions.where(_operator(Field(key), value))
-		conditions = self.add_conditions(conditions, **kwargs)
-		return conditions
+				if value is not None:
+					conditions = conditions.where(_operator(Field(key), value))
+				else:
+					_table = conditions._from[0]
+					field = getattr(_table, key)
+					conditions = conditions.where(field.isnull())
+
+		return self.add_conditions(conditions, **kwargs)
 
 	def build_conditions(
 		self,

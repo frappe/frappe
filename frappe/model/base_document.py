@@ -115,45 +115,47 @@ class BaseDocument(object):
 		return self
 
 	def update_if_missing(self, d):
+		"""Set default values for fields without existing values"""
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
 
-		if "doctype" in d:
-			self.set("doctype", d.get("doctype"))
 		for key, value in d.items():
-			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
-			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
+			if (
+				value is not None
+				and self.get(key) is None
+				# dont_update_if_missing is a list of fieldnames
+				# for which you don't want to set default value
+				and key not in self.dont_update_if_missing
+			):
 				self.set(key, value)
 
 	def get_db_value(self, key):
 		return frappe.db.get_value(self.doctype, self.name, key)
 
-	def get(self, key=None, filters=None, limit=None, default=None):
-		if key:
-			if isinstance(key, dict):
-				return _filter(self.get_all_children(), key, limit=limit)
-			if filters:
-				if isinstance(filters, dict):
-					value = _filter(self.__dict__.get(key, []), filters, limit=limit)
-				else:
-					default = filters
-					filters = None
-					value = self.__dict__.get(key, default)
+	def get(self, key, filters=None, limit=None, default=None):
+		if isinstance(key, dict):
+			return _filter(self.get_all_children(), key, limit=limit)
+
+		if filters:
+			if isinstance(filters, dict):
+				value = _filter(self.__dict__.get(key, []), filters, limit=limit)
 			else:
+				default = filters
+				filters = None
 				value = self.__dict__.get(key, default)
-
-			if value is None and key in (
-				d.fieldname for d in self.meta.get_table_fields()
-			):
-				value = []
-				self.set(key, value)
-
-			if limit and isinstance(value, (list, tuple)) and len(value) > limit:
-				value = value[:limit]
-
-			return value
 		else:
-			return self.__dict__
+			value = self.__dict__.get(key, default)
+
+		if value is None and key in (
+			d.fieldname for d in self.meta.get_table_fields()
+		):
+			value = []
+			self.set(key, value)
+
+		if limit and isinstance(value, (list, tuple)) and len(value) > limit:
+			value = value[:limit]
+
+		return value
 
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
@@ -471,7 +473,7 @@ class BaseDocument(object):
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
 
 		# don't update name, as case might've been changed
-		name = d['name']
+		name = cstr(d['name'])
 		del d['name']
 
 		columns = list(d)
@@ -813,6 +815,13 @@ class BaseDocument(object):
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
 
+	def _sync_autoname_field(self):
+		"""Keep autoname field in sync with `name`"""
+		autoname = self.meta.autoname or ""
+		_empty, _field_specifier, fieldname = autoname.partition("field:")
+
+		if fieldname and self.name and self.name != self.get("fieldname"):
+			self.set(fieldname, self.name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		# check if parentfield exists (only applicable for child table doctype)
@@ -959,10 +968,13 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		if not currency and df:
-			currency = self.get(df.get("options"))
-			if not frappe.db.exists('Currency', currency, cache=True):
-				currency = None
+		if (
+			df.fieldtype == "Currency"
+			and not currency
+			and (currency_field := df.get("options"))
+			and (currency_value := self.get(currency_field))
+		):
+			currency = frappe.db.get_value('Currency', currency_value, cache=True)
 
 		val = self.get(fieldname)
 

@@ -11,7 +11,26 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
-			this._data = this.parse_options(options);
+			this.set_data(options);
+		}
+	}
+
+	format_for_input(value) {
+		if (value == null) {
+			return "";
+		} else if (this._data && this._data.length) {
+			const item = this._data.find(i => i.value == value);
+			return item ? item.label : value;
+		} else {
+			return value;
+		}
+	}
+
+	get_input_value() {
+		if (this.$input) {
+			const label = this.$input.val();
+			const item = this._data?.find(i => i.label == label);
+			return item ? item.value : label;
 		}
 	}
 
@@ -23,7 +42,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			autoFirst: true,
 			list: this.get_data(),
 			data: function(item) {
-				if (!(item instanceof Object)) {
+				if (typeof item !== 'object') {
 					var d = { value: item };
 					item = d;
 				}
@@ -65,6 +84,18 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		};
 	}
 
+	init_option_cache() {
+		if (!this.$input.cache) {
+			this.$input.cache = {};
+		}
+		if (!this.$input.cache[this.doctype]) {
+			this.$input.cache[this.doctype] = {};
+		}
+		if (!this.$input.cache[this.doctype][this.df.fieldname]) {
+			this.$input.cache[this.doctype][this.df.fieldname] = {};
+		}
+	}
+
 	setup_awesomplete() {
 		this.awesomplete = new Awesomplete(
 			this.input,
@@ -75,17 +106,34 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			.find('.awesomplete ul')
 			.css('min-width', '100%');
 
-		this.$input.on(
-			'input',
-			frappe.utils.debounce(() => {
+		this.init_option_cache();
+
+		this.$input.on('input', frappe.utils.debounce((e) => {
+			const cached_options = this.$input.cache[this.doctype][this.df.fieldname][e.target.value];
+			if (cached_options && cached_options.length) {
+				this.set_data(cached_options);
+			} else if (this.get_query || this.df.get_query) {
+				this.execute_query_if_exists(e.target.value);
+			} else {
 				this.awesomplete.list = this.get_data();
-			}, 500)
-		);
+			}
+		}, 500));
 
 		this.$input.on('focus', () => {
 			if (!this.$input.val()) {
 				this.$input.val('');
 				this.$input.trigger('input');
+			}
+		});
+
+		this.$input.on("blur", () => {
+			if(this.selected) {
+				this.selected = false;
+				return;
+			}
+			var value = this.get_input_value();
+			if(value!==this.last_value) {
+				this.parse_validate_and_set_in_model(value);
 			}
 		});
 
@@ -118,6 +166,9 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	}
 
 	parse_options(options) {
+		if (typeof options === 'string' && options[0] === '[') {
+			options = frappe.utils.parse_json(options);
+		}
 		if (typeof options === 'string') {
 			options = options.split('\n');
 		}
@@ -125,6 +176,75 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			options = options.map(o => ({ label: o, value: o }));
 		}
 		return options;
+	}
+
+	execute_query_if_exists(term) {
+		const args = { txt: term };
+		let get_query = this.get_query || this.df.get_query;
+
+		if (!get_query) {
+			return;
+		}
+
+		let set_nulls = function(obj) {
+			$.each(obj, function(key, value) {
+				if (value !== undefined) {
+					obj[key] = value;
+				}
+			});
+			return obj;
+		};
+
+		let process_query_object = function(obj) {
+			if (obj.query) {
+				args.query = obj.query;
+			}
+
+			if (obj.params) {
+				set_nulls(obj.params);
+				Object.assign(args, obj.params);
+			}
+
+			// turn off value translation
+			if (obj.translate_values !== undefined) {
+				this.translate_values = obj.translate_values;
+			}
+		};
+
+		if ($.isPlainObject(get_query)) {
+			process_query_object(get_query);
+		} else if (typeof get_query === "string") {
+			args.query = get_query;
+		} else {
+			// get_query by function
+			var q = get_query(
+				(this.frm && this.frm.doc) || this.doc,
+				this.doctype,
+				this.docname
+			);
+
+			if (typeof q === "string") {
+				// returns a string
+				args.query = q;
+			} else if ($.isPlainObject(q)) {
+				// returns an object
+				process_query_object(q);
+			}
+		}
+
+		if (args.query) {
+			frappe.call({
+				method: args.query,
+				args: args,
+				callback: ({ message }) => {
+					if(!this.$input.is(":focus")) {
+						return;
+					}
+					this.$input.cache[this.doctype][this.df.fieldname][term] = message;
+					this.set_data(message);
+				}
+			})
+		}
 	}
 
 	get_data() {

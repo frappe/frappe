@@ -73,7 +73,7 @@ def get_report_result(report, filters):
 	return res
 
 @frappe.read_only()
-def generate_report_result(report, filters=None, user=None, custom_columns=None):
+def generate_report_result(report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None):
 	user = user or frappe.session.user
 	filters = filters or []
 
@@ -108,7 +108,7 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
 	if cint(report.add_total_row) and result and not skip_total_row:
-		result = add_total_row(result, columns)
+		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
 	return {
 		"result": result,
@@ -210,7 +210,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None):
+def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None, is_tree=False, parent_field=None):
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -238,7 +238,7 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
 	else:
-		result = generate_report_result(report, filters, user, custom_columns)
+		result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
 
 	result["add_total_row"] = report.add_total_row and not result.get(
 		"skip_total_row", False
@@ -352,14 +352,10 @@ def export_query():
 			)
 			return
 
-		columns = get_columns_dict(data.columns)
-
 		from frappe.utils.xlsxutils import make_xlsx
 
-		data["result"] = handle_duration_fieldtype_values(
-			data.get("result"), data.get("columns")
-		)
-		xlsx_data, column_widths = build_xlsx_data(columns, data, visible_idx, include_indentation)
+		format_duration_fields(data)
+		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
 		frappe.response["filename"] = report_name + ".xlsx"
@@ -367,46 +363,25 @@ def export_query():
 		frappe.response["type"] = "binary"
 
 
-def handle_duration_fieldtype_values(result, columns):
-	for i, col in enumerate(columns):
-		fieldtype = None
-		if isinstance(col, str):
-			col = col.split(":")
-			if len(col) > 1:
-				if col[1]:
-					fieldtype = col[1]
-					if "/" in fieldtype:
-						fieldtype, options = fieldtype.split("/")
-				else:
-					fieldtype = "Data"
-		else:
-			fieldtype = col.get("fieldtype")
+def format_duration_fields(data: frappe._dict) -> None:
+	for i, col in enumerate(data.columns):
+		if col.get("fieldtype") != "Duration":
+			continue
 
-		if fieldtype == "Duration":
-			for entry in range(0, len(result)):
-				row = result[entry]
-				if isinstance(row, dict):
-					val_in_seconds = row[col.fieldname]
-					if val_in_seconds:
-						duration_val = format_duration(val_in_seconds)
-						row[col.fieldname] = duration_val
-				else:
-					val_in_seconds = row[i]
-					if val_in_seconds:
-						duration_val = format_duration(val_in_seconds)
-						row[i] = duration_val
-
-	return result
+		for row in data.result:
+			index = col.fieldname if isinstance(row, dict) else i
+			if row[index]:
+				row[index] = format_duration(row[index])
 
 
-def build_xlsx_data(columns, data, visible_idx, include_indentation, ignore_visible_idx=False):
+def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
 	result = [[]]
 	column_widths = []
 
 	for column in data.columns:
 		if column.get("hidden"):
 			continue
-		result[0].append(column.get("label"))
+		result[0].append(_(column.get("label")))
 		column_width = cint(column.get('width', 0))
 		# to convert into scale accepted by openpyxl
 		column_width /= 10
@@ -435,9 +410,10 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation, ignore_visi
 	return result, column_widths
 
 
-def add_total_row(result, columns, meta=None):
+def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 	total_row = [""] * len(columns)
 	has_percent = []
+
 	for i, col in enumerate(columns):
 		fieldtype, options, fieldname = None, None, None
 		if isinstance(col, str):
@@ -464,12 +440,12 @@ def add_total_row(result, columns, meta=None):
 		for row in result:
 			if i >= len(row):
 				continue
-
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(
 				cell
 			):
-				total_row[i] = flt(total_row[i]) + flt(cell)
+				if not (is_tree and row.get(parent_field)):
+					total_row[i] = flt(total_row[i]) + flt(cell)
 
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)

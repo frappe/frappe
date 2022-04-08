@@ -5,17 +5,18 @@ import json
 import os
 import sys
 from collections import OrderedDict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import frappe
 from frappe.defaults import _clear_cache
+from frappe.utils import is_git_url
 
 
 def _new_site(
 	db_name,
 	site,
-	mariadb_root_username=None,
-	mariadb_root_password=None,
+	db_root_username=None,
+	db_root_password=None,
 	admin_password=None,
 	verbose=False,
 	install_apps=None,
@@ -33,7 +34,6 @@ def _new_site(
 
 	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.utils import get_site_path, scheduler, touch_file
-
 
 	if not force and os.path.exists(site):
 		print("Site {0} already exists".format(site))
@@ -60,8 +60,8 @@ def _new_site(
 	installing = touch_file(get_site_path("locks", "installing.lock"))
 
 	install_db(
-		root_login=mariadb_root_username,
-		root_password=mariadb_root_password,
+		root_login=db_root_username,
+		root_password=db_root_password,
 		db_name=db_name,
 		admin_password=admin_password,
 		verbose=verbose,
@@ -92,7 +92,7 @@ def _new_site(
 	print("*** Scheduler is", scheduler_status, "***")
 
 
-def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
+def install_db(root_login=None, root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 	import frappe.database
@@ -100,6 +100,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
+
+	if not root_login and db_type == 'mariadb':
+		root_login='root'
+	elif not root_login and db_type == 'postgres':
+		root_login='postgres'
 
 	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
@@ -119,6 +124,88 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.flags.in_install_db = False
 
 
+def find_org(org_repo: str) -> Tuple[str, str]:
+	""" find the org a repo is in
+
+	find_org()
+	ref -> https://github.com/frappe/bench/blob/develop/bench/utils/__init__.py#L390
+
+	:param org_repo:
+	:type org_repo: str
+
+	:raises InvalidRemoteException: if the org is not found
+
+	:return: organisation and repository
+	:rtype: Tuple[str, str]
+	"""
+	from frappe.exceptions import InvalidRemoteException
+	import requests
+
+	for org in ["frappe", "erpnext"]:
+		response = requests.head(f"https://api.github.com/repos/{org}/{org_repo}")
+		if response.status_code == 400:
+			response = requests.head(f"https://github.com/{org}/{org_repo}")
+		if response.ok:
+			return org, org_repo
+
+	raise InvalidRemoteException
+
+
+def fetch_details_from_tag(_tag: str) -> Tuple[str, str, str]:
+	""" parse org, repo, tag from string
+
+	fetch_details_from_tag()
+	ref -> https://github.com/frappe/bench/blob/develop/bench/utils/__init__.py#L403
+
+	:param _tag: input string
+	:type _tag: str
+
+	:return: organisation, repostitory, tag
+	:rtype: Tuple[str, str, str]
+	"""
+	app_tag = _tag.split("@")
+	org_repo = app_tag[0].split("/")
+
+	try:
+		repo, tag = app_tag
+	except ValueError:
+		repo, tag = app_tag + [None]
+
+	try:
+		org, repo = org_repo
+	except Exception:
+		org, repo = find_org(org_repo[0])
+
+	return org, repo, tag
+
+
+def parse_app_name(name: str) -> str:
+	"""parse repo name from name
+
+	__setup_details_from_git()
+	ref -> https://github.com/frappe/bench/blob/develop/bench/app.py#L114
+
+
+	:param name: git tag
+	:type name: str
+
+	:return: repository name
+	:rtype: str
+	"""
+	name = name.rstrip("/")
+	if os.path.exists(name):
+		repo = os.path.split(name)[-1]
+	elif is_git_url(name):
+		if name.startswith("git@") or name.startswith("ssh://"):
+			_repo = name.split(":")[1].rsplit("/", 1)[1]
+		else:
+			_repo = name.rsplit("/", 2)[2]
+		repo = _repo.split(".")[0]
+	else:
+		_, repo, _ = fetch_details_from_tag(name)
+	return repo
+
+
 def install_app(name, verbose=False, set_as_patched=True):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
@@ -135,7 +222,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	# install pre-requisites
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
-			install_app(app, verbose=verbose)
+			name = parse_app_name(app)
+			install_app(name, verbose=verbose)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
@@ -184,7 +272,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
-	if not app_name in installed_apps:
+	if app_name not in installed_apps:
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
@@ -529,10 +617,9 @@ def extract_sql_gzip(sql_gz_path):
 	import subprocess
 
 	try:
-		# dvf - decompress, verbose, force
 		original_file = sql_gz_path
 		decompressed_file = original_file.rstrip(".gz")
-		cmd = 'gzip -dvf < {0} > {1}'.format(original_file, decompressed_file)
+		cmd = 'gzip --decompress --force < {0} > {1}'.format(original_file, decompressed_file)
 		subprocess.check_call(cmd, shell=True)
 	except Exception:
 		raise
@@ -607,7 +694,7 @@ def is_downgrade(sql_file_path, verbose=False):
 						downgrade = backup_version > current_version
 
 						if verbose and downgrade:
-							print("Your site will be downgraded from Frappe {0} to {1}".format(current_version, backup_version))
+							print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
 
 						return downgrade
 

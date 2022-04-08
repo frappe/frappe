@@ -44,8 +44,17 @@ frappe.ui.form.Attachments = class Attachments {
 		// add attachment objects
 		var attachments = this.get_attachments();
 		if(attachments.length) {
-			attachments.forEach(function(attachment) {
-				me.add_attachment(attachment)
+			let exists = {};
+			let unique_attachments = attachments.filter(attachment => {
+				return Object.prototype.hasOwnProperty.call(
+					exists,
+					attachment.file_name
+				)
+					? false
+					: (exists[attachment.file_name] = true);
+			});
+			unique_attachments.forEach(attachment => {
+				me.add_attachment(attachment);
 			});
 		} else {
 			this.attachments_label.removeClass("has-attachments");
@@ -75,7 +84,19 @@ frappe.ui.form.Attachments = class Attachments {
 			remove_action = function(target_id) {
 				frappe.confirm(__("Are you sure you want to delete the attachment?"),
 					function() {
-						me.remove_attachment(target_id);
+						let target_attachment = me
+							.get_attachments()
+							.find(attachment => attachment.name === target_id);
+						let to_be_removed = me
+							.get_attachments()
+							.filter(
+								attachment =>
+									attachment.file_name ===
+									target_attachment.file_name
+							);
+						to_be_removed.forEach(attachment =>
+							me.remove_attachment(attachment.name)
+						);
 					}
 				);
 				return false;

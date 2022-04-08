@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import io
+import os
 import json
 import unittest
 from datetime import date, datetime, time, timedelta
@@ -14,13 +15,14 @@ import pytz
 from PIL import Image
 
 import frappe
-from frappe.utils import ceil, evaluate_filters, floor, format_timedelta
+from frappe.utils import ceil, evaluate_filters, floor, format_timedelta, get_bench_path
 from frappe.utils import get_url, money_in_words, parse_timedelta, scrub_urls
 from frappe.utils import validate_email_address, validate_url
 from frappe.utils.data import cast, get_time, get_timedelta, nowtime, now_datetime, validate_python_code
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
+from frappe.installer import parse_app_name
 
 
 class TestFilters(unittest.TestCase):
@@ -511,4 +513,12 @@ class TestLinkTitle(unittest.TestCase):
 		user.delete()
 		prop_setter.delete()
 
-
+class TestAppParser(unittest.TestCase):
+	def test_app_name_parser(self):
+		bench_path = get_bench_path()
+		frappe_app = os.path.join(bench_path, "apps", "frappe")
+		self.assertEqual("frappe", parse_app_name(frappe_app))
+		self.assertEqual("healthcare", parse_app_name("healthcare"))
+		self.assertEqual("healthcare", parse_app_name("https://github.com/frappe/healthcare.git"))
+		self.assertEqual("healthcare", parse_app_name("git@github.com:frappe/healthcare.git"))
+		self.assertEqual("healthcare", parse_app_name("frappe/healthcare@develop"))

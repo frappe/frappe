@@ -111,7 +111,7 @@ def get_website_settings(context=None):
 		'footer_items': get_items('footer_items'),
 		"post_login": [
 			{"label": _("My Account"), "url": "/me"},
-			{"label": _("Logout"), "url": "/?cmd=web_logout"}
+			{"label": _("Log out"), "url": "/?cmd=web_logout"}
 		]
 	})
 
@@ -120,7 +120,8 @@ def get_website_settings(context=None):
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
 		"navbar_template", "footer_template", "navbar_search", "enable_view_tracking",
-		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker"]:
+		"footer_logo", "call_to_action", "call_to_action_url", "show_language_picker",
+		"footer_powered"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 

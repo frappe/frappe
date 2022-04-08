@@ -221,7 +221,8 @@ scheduler_events = {
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request"
 	],
 	"daily": [
 		"frappe.email.queue.set_expiry_for_email_queue",
@@ -240,8 +241,7 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
 		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
-		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
-		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request"
+		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -280,14 +280,6 @@ sounds = [
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
 	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
-]
-
-bot_parsers = [
-	'frappe.utils.bot.ShowNotificationBot',
-	'frappe.utils.bot.GetOpenListBot',
-	'frappe.utils.bot.ListBot',
-	'frappe.utils.bot.FindBot',
-	'frappe.utils.bot.CountBot'
 ]
 
 setup_wizard_exception = [
@@ -383,3 +375,5 @@ global_search_doctypes = {
 		{"doctype": "Web Form"}
 	]
 }
+
+translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]
