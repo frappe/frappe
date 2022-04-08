@@ -232,11 +232,21 @@ export default class KanbanSettings {
 			this.meta.title_field || "name"
 		];
 
+		const ignore_fieldtypes = [
+			"Attach Image",
+			"Text Editor",
+			"HTML Editor",
+			"Code",
+			"Color",
+			...frappe.model.no_value_type
+		];
+
 		return frappe.model.std_fields
 			.concat(this.meta.fields)
-			.filter(field => !ignore_fields.includes(field.fieldname))
 			.filter(
-				field => !frappe.model.no_value_type.includes(field.fieldtype)
+				field =>
+					!ignore_fields.includes(field.fieldname) &&
+					!ignore_fieldtypes.includes(field.fieldtype)
 			)
 			.map(field => {
 				return {
