@@ -282,14 +282,6 @@ sounds = [
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 ]
 
-bot_parsers = [
-	'frappe.utils.bot.ShowNotificationBot',
-	'frappe.utils.bot.GetOpenListBot',
-	'frappe.utils.bot.ListBot',
-	'frappe.utils.bot.FindBot',
-	'frappe.utils.bot.CountBot'
-]
-
 setup_wizard_exception = [
 	"frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception",
 	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception"
@@ -383,3 +375,5 @@ global_search_doctypes = {
 		{"doctype": "Web Form"}
 	]
 }
+
+translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]

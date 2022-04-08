@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
 Frappe - Low Code Open Source Framework in Python and JS
@@ -20,10 +20,10 @@ if _dev_server:
 	warnings.simplefilter('always', DeprecationWarning)
 	warnings.simplefilter('always', PendingDeprecationWarning)
 
-from werkzeug.local import Local, release_local
 import sys, importlib, inspect, json
-import typing
 import click
+from werkzeug.local import Local, release_local
+from typing import TYPE_CHECKING, Dict, List, Union
 
 # Local application imports
 from .exceptions import *
@@ -143,15 +143,14 @@ lang = local("lang")
 
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
-if typing.TYPE_CHECKING:
-	from frappe.utils.redis_wrapper import RedisWrapper
-
+if TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.query_builder.builder import MariaDB, Postgres
+	from frappe.utils.redis_wrapper import RedisWrapper
 
-	db: typing.Union[MariaDBDatabase, PostgresDatabase]
-	qb: typing.Union[MariaDB, Postgres]
+	db: Union[MariaDBDatabase, PostgresDatabase]
+	qb: Union[MariaDB, Postgres]
 
 
 # end: static analysis hack
@@ -852,18 +851,25 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 def get_cached_doc(*args, **kwargs):
+	allow_dict = kwargs.pop("_allow_dict", False)
+
+	def _respond(doc, from_redis=False):
+		if not allow_dict and isinstance(doc, dict):
+			local.document_cache[key] = doc = get_doc(doc)
+
+		elif from_redis:
+			local.document_cache[key] = doc
+
+		return doc
+
 	if key := can_cache_doc(args):
 		# local cache
-		doc = local.document_cache.get(key)
-		if doc:
-			return doc
+		if doc := local.document_cache.get(key):
+			return _respond(doc)
 
 		# redis cache
-		doc = cache().hget('document_cache', key)
-		if doc:
-			doc = get_doc(doc)
-			local.document_cache[key] = doc
-			return doc
+		if doc := cache().hget('document_cache', key):
+			return _respond(doc, True)
 
 	# database
 	doc = get_doc(*args, **kwargs)
@@ -896,8 +902,13 @@ def clear_document_cache(doctype, name):
 		del local.document_cache[key]
 	cache().hdel('document_cache', key)
 
-def get_cached_value(doctype, name, fieldname, as_dict=False):
-	doc = get_cached_doc(doctype, name)
+def get_cached_value(doctype, name, fieldname="name", as_dict=False):
+	try:
+		doc = get_cached_doc(doctype, name, _allow_dict=True)
+	except DoesNotExistError:
+		clear_last_message()
+		return
+
 	if isinstance(fieldname, str):
 		if as_dict:
 			throw('Cannot make dict for single fieldname')
@@ -1251,9 +1262,10 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
-		fnargs = inspect.getfullargspec(fn).args
-		fnargs.extend(inspect.getfullargspec(fn).kwonlyargs)
-		varkw = inspect.getfullargspec(fn).varkw
+		fullargspec = inspect.getfullargspec(fn)
+		fnargs = fullargspec.args
+		fnargs.extend(fullargspec.kwonlyargs)
+		varkw = fullargspec.varkw
 
 	newargs = {}
 	for a in kwargs:
@@ -1265,7 +1277,7 @@ def get_newargs(fn, kwargs):
 
 	return newargs
 
-def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
+def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True):
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
 
 	If doctype is not specified, it will create a property setter for all fields with the
@@ -1296,6 +1308,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 			'property': args.property,
 			'value': args.value,
 			'property_type': args.property_type or "Data",
+			'is_system_generated': is_system_generated,
 			'__islocal': 1
 		})
 		ps.flags.ignore_validate = ignore_validate
@@ -1463,7 +1476,7 @@ def get_list(doctype, *args, **kwargs):
 	:param fields: List of fields or `*`.
 	:param filters: List of filters (see example).
 	:param order_by: Order By e.g. `modified desc`.
-	:param limit_page_start: Start results at record #. Default 0.
+	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
 	Example usage:
@@ -1521,12 +1534,16 @@ def get_value(*args, **kwargs):
 	"""
 	return db.get_value(*args, **kwargs)
 
-def as_json(obj, indent=1):
+def as_json(obj: Union[Dict, List], indent=1) -> str:
 	from frappe.utils.response import json_handler
+
 	try:
 		return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
 	except TypeError:
-		return json.dumps(obj, indent=indent, default=json_handler, separators=(',', ': '))
+		# this would break in case the keys are not all os "str" type - as defined in the JSON
+		# adding this to ensure keys are sorted (expected behaviour)
+		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint

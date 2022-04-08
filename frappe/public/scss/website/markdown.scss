@@ -1,30 +1,11 @@
-$font-sizes-desktop: (
-	"sm": 0.75rem,
-	"base": 1rem,
-	"lg": 1.125rem,
-	"xl": 1.41rem,
-	"2xl": 1.6rem,
-	"3xl": 2rem
-);
 
-$font-sizes-mobile: (
-	"sm": 0.75rem,
-	"base": 1rem,
-	"lg": 1.125rem,
-	"xl": 1.25rem,
-	"2xl": 1.5rem,
-	"3xl": 1.75rem
-);
+.section-markdown > .from-markdown {
+	max-width: 50rem;
+	margin: auto;
+}
 
 .from-markdown {
-	color: $gray-700;
 	line-height: 1.7;
-	letter-spacing: -0.011em;
-
-	> * + * {
-		margin-top: 0.75rem;
-		margin-bottom: 0;
-	}
 
 	> :first-child {
 		margin-top: 0;
@@ -45,6 +26,18 @@ $font-sizes-mobile: (
 
 	ol {
 		list-style: decimal;
+	}
+
+	p, li {
+		line-height: 1.7;
+
+		@include media-breakpoint-up(sm) {
+			font-size: 1.05rem;
+		}
+	}
+
+	p.lead {
+		@extend .lead;
 	}
 
 	li {
@@ -85,86 +78,6 @@ $font-sizes-mobile: (
 	b, strong {
 		color: $gray-800;
 		font-weight: 600;
-	}
-
-	h1, h2, h3, h4, h5, h6 {
-		color: $gray-900;
-	}
-
-	h2, h3, h4, h5, h6 {
-		font-weight: 600;
-	}
-
-	h1 {
-		font-size: map-get($font-sizes-mobile, '3xl');
-		line-height: 1.5;
-		letter-spacing: -0.021em;
-		font-weight: 700;
-
-		@include media-breakpoint-up(md) {
-			font-size: map-get($font-sizes-desktop, '3xl');
-			letter-spacing: -0.024em;
-		}
-
-		// for byline
-		& + p {
-			margin-top: 1.5rem;
-			font-size: map-get($font-sizes-mobile, 'xl');
-			letter-spacing: -0.014em;
-			line-height: 1.4;
-
-			@include media-breakpoint-up(md) {
-				font-size: map-get($font-sizes-desktop, 'xl');
-				letter-spacing: -0.0175em;
-			}
-		}
-	}
-
-	h2 {
-		font-size: map-get($font-sizes-mobile, '2xl');
-		line-height: 1.56;
-		letter-spacing: -0.015em;
-		margin-top: 4rem;
-
-		@include media-breakpoint-up(md) {
-			font-size: map-get($font-sizes-desktop, '2xl');
-			letter-spacing: -0.0195em;
-		}
-	}
-
-	h3 {
-		font-size: map-get($font-sizes-mobile, 'xl');
-		line-height: 1.56;
-		letter-spacing: -0.014em;
-		margin-top: 2.25rem;
-
-		@include media-breakpoint-up(md) {
-			font-size: map-get($font-sizes-desktop, 'xl');
-			letter-spacing: -0.0175em;
-		}
-	}
-
-	h4 {
-		font-size: map-get($font-sizes-mobile, 'lg');
-		line-height: 1.56;
-		letter-spacing: -0.014em;
-		margin-top: 2.5rem;
-	}
-
-	h5 {
-		font-size: map-get($font-sizes-mobile, 'base');
-		line-height: 1.5;
-		letter-spacing: -0.011em;
-		font-weight: 600;
-		margin-top: 2rem;
-	}
-
-	h6 {
-		font-size: map-get($font-sizes-mobile, 'sm');
-		line-height: 1.35;
-		font-weight: 600;
-		text-transform: uppercase;
-		margin-top: 1.5rem;
 	}
 
 	tr > td,

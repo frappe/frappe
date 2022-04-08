@@ -1,17 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import textwrap
+
 import frappe, json, os
-import unittest
 from frappe.desk.query_report import run, save_report, add_total_row
 from frappe.desk.reportview import delete_report, save_report as _save_report
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
 from frappe.core.doctype.user_permission.test_user_permission import create_user
+from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records('Report')
 test_dependencies = ['User']
 
-class TestReport(unittest.TestCase):
+class TestReport(FrappeTestCase):
 	def test_report_builder(self):
 		if frappe.db.exists('Report', 'User Activity Report'):
 			frappe.delete_doc('Report', 'User Activity Report')
@@ -335,3 +337,29 @@ result = [
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
+
+	def test_cte_in_query_report(self):
+		cte_query = textwrap.dedent("""
+			with enabled_users as (
+				select name
+				from `tabUser`
+				where enabled = 1
+			)
+			select * from enabled_users;
+		""")
+
+		report = frappe.get_doc({
+			"doctype": "Report",
+			"ref_doctype": "User",
+			"report_name": "Enabled Users List",
+			"report_type": "Query Report",
+			"is_standard": "No",
+			"query": cte_query,
+		}).insert()
+
+		if frappe.db.db_type == "mariadb":
+			col, rows = report.execute_query_report(filters={})
+			self.assertEqual(col[0], "name")
+			self.assertGreaterEqual(len(rows), 1)
+		elif frappe.db.db_type == "postgres":
+			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})
