@@ -139,6 +139,7 @@
 		}
 
 		.kanban-cards {
+			height: 100%;
 			max-height: calc(100vh - 250px);
 			margin: -5px;
 			padding: 5px;
@@ -160,6 +161,7 @@
 				$background-color: var(--kanban-card-bg)
 			);
 			.kanban-card-body {
+				cursor: grab;
 				padding: var(--padding-sm);
 			}
 		}
@@ -167,15 +169,7 @@
 
 	.kanban-card-wrapper {
 		position: relative;
-
-		.kanban-card-redirect {
-			display: block;
-
-			&:hover,
-			&:focus {
-				text-decoration: none;
-			}
-		}
+		display: block;
 
 		&:last-child .kanban-card {
 			margin-bottom: var(--margin-xl);
@@ -189,7 +183,6 @@
 	}
 
 	.kanban-card-wrapper:hover {
-		cursor: pointer;
 		text-decoration: none;
 
 		.kanban-card-edit {
