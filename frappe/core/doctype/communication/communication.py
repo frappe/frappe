@@ -10,7 +10,6 @@ from frappe.utils import validate_email_address, strip_html, cstr, time_diff_in_
 from frappe.core.doctype.communication.email import validate_email
 from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
-from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr, split_emails
 from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import getaddresses
@@ -105,7 +104,7 @@ class Communication(Document, CommunicationEmailMixin):
 		if self.communication_type == "Communication":
 			self.notify_change('add')
 
-		elif self.communication_type in ("Chat", "Notification", "Bot"):
+		elif self.communication_type in ("Chat", "Notification"):
 			if self.reference_name == frappe.session.user:
 				message = self.as_dict()
 				message['broadcast'] = True
@@ -160,7 +159,6 @@ class Communication(Document, CommunicationEmailMixin):
 
 		if self.comment_type != 'Updated':
 			update_parent_document_on_communication(self)
-			self.bot_reply()
 
 	def on_trash(self):
 		if self.communication_type == "Communication":
@@ -277,20 +275,6 @@ class Communication(Document, CommunicationEmailMixin):
 
 				if not self.sender_full_name:
 					self.sender_full_name = sender_email
-
-	def bot_reply(self):
-		if self.comment_type == 'Bot' and self.communication_type == 'Chat':
-			reply = BotReply().get_reply(self.content)
-			if reply:
-				frappe.get_doc({
-					"doctype": "Communication",
-					"comment_type": "Bot",
-					"communication_type": "Bot",
-					"content": cstr(reply),
-					"reference_doctype": self.reference_doctype,
-					"reference_name": self.reference_name
-				}).insert()
-				frappe.local.flags.commit = True
 
 	def set_delivery_status(self, commit=False):
 		'''Look into the status of Email Queue linked to this Communication and set the Delivery Status of this Communication'''

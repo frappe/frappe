@@ -33,29 +33,40 @@ class CustomField(Document):
 
 	def before_insert(self):
 		self.set_fieldname()
-		meta = frappe.get_meta(self.dt, cached=False)
-		fieldnames = [df.fieldname for df in meta.get("fields")]
-
-		if self.fieldname in fieldnames:
-			frappe.throw(_("A field with the name '{}' already exists in doctype {}.").format(self.fieldname, self.dt))
 
 	def validate(self):
+		# these imports have been added to avoid cyclical import, should fix in future
 		from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+		from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
 
-		meta = frappe.get_meta(self.dt, cached=False)
-		fieldnames = [df.fieldname for df in meta.get("fields")]
+		# don't always get meta to improve performance
+		# setting idx is just an improvement, not a requirement
+		if self.is_new() or self.insert_after == "append":
+			meta = frappe.get_meta(self.dt, cached=False)
+			fieldnames = [df.fieldname for df in meta.get("fields")]
 
-		if self.insert_after=='append':
-			self.insert_after = fieldnames[-1]
+			if self.is_new() and self.fieldname in fieldnames:
+				frappe.throw(
+					_("A field with the name {0} already exists in {1}")
+					.format(frappe.bold(self.fieldname), self.dt)
+				)
 
-		if self.insert_after and self.insert_after in fieldnames:
-			self.idx = fieldnames.index(self.insert_after) + 1
+			if self.insert_after == "append":
+				self.insert_after = fieldnames[-1]
 
-		old_fieldtype = self.db_get('fieldtype')
-		is_fieldtype_changed = (not self.is_new()) and (old_fieldtype != self.fieldtype)
+			if self.insert_after and self.insert_after in fieldnames:
+				self.idx = fieldnames.index(self.insert_after) + 1
 
-		if not self.is_virtual and is_fieldtype_changed and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype):
-			frappe.throw(_("Fieldtype cannot be changed from {0} to {1}").format(old_fieldtype, self.fieldtype))
+		if (
+			not self.is_virtual
+			and (doc_before_save := self.get_doc_before_save())
+			and (old_fieldtype := doc_before_save.fieldtype) != self.fieldtype
+			and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype)
+		):
+			frappe.throw(
+				_("Fieldtype cannot be changed from {0} to {1}")
+				.format(old_fieldtype, self.fieldtype)
+			)
 
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
@@ -63,13 +74,12 @@ class CustomField(Document):
 		if self.get('translatable', 0) and not supports_translation(self.fieldtype):
 			self.translatable = 0
 
-		if not self.flags.ignore_validate:
-			from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
-			check_fieldname_conflicts(self)
+		check_fieldname_conflicts(self)
 
 	def on_update(self):
 		if not frappe.flags.in_setup_wizard:
 			frappe.clear_cache(doctype=self.dt)
+
 		if not self.flags.ignore_validate:
 			# validate field
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
@@ -119,7 +129,7 @@ def create_custom_field_if_values_exist(doctype, df):
 		frappe.db.count(dt=doctype, filters=IfNull(df.fieldname, "") != ""):
 		create_custom_field(doctype, df)
 
-def create_custom_field(doctype, df, ignore_validate=False):
+def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=True):
 	df = frappe._dict(df)
 	if not df.fieldname and df.label:
 		df.fieldname = frappe.scrub(df.label)
@@ -130,8 +140,7 @@ def create_custom_field(doctype, df, ignore_validate=False):
 			"permlevel": 0,
 			"fieldtype": 'Data',
 			"hidden": 0,
-			# Looks like we always	use this programatically?
-			# "is_standard": 1
+			"is_system_generated": is_system_generated
 		})
 		custom_field.update(df)
 		custom_field.flags.ignore_validate = ignore_validate

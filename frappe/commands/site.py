@@ -728,7 +728,7 @@ def move(dest_dir, site):
 @click.command('set-password')
 @click.argument('user')
 @click.argument('password', required=False)
-@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@click.option('--logout-all-sessions', help='Log out from all sessions', is_flag=True, default=False)
 @pass_context
 def set_password(context, user, password=None, logout_all_sessions=False):
 	"Set password for a user on a site"
@@ -741,7 +741,7 @@ def set_password(context, user, password=None, logout_all_sessions=False):
 
 @click.command('set-admin-password')
 @click.argument('admin-password', required=False)
-@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
+@click.option('--logout-all-sessions', help='Log out from all sessions', is_flag=True, default=False)
 @pass_context
 def set_admin_password(context, admin_password=None, logout_all_sessions=False):
 	"Set Administrator password for a site"
@@ -780,9 +780,8 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 @pass_context
 def set_last_active_for_user(context, user=None):
 	"Set users last active date to current datetime"
-
 	from frappe.core.doctype.user.user import get_system_users
-	from frappe.utils.user import set_last_active_to_now
+	from frappe.utils import now_datetime
 
 	site = get_site(context)
 
@@ -795,8 +794,9 @@ def set_last_active_for_user(context, user=None):
 			else:
 				return
 
-		set_last_active_to_now(user)
+		frappe.db.set_value("User", user, "last_active", now_datetime())
 		frappe.db.commit()
+
 
 @click.command('publish-realtime')
 @click.argument('event')

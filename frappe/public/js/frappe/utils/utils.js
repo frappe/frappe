@@ -231,7 +231,7 @@ Object.assign(frappe.utils, {
 			if (tt && (tt.substr(0, 1)===">" || tt.substr(0, 4)==="&gt;")) {
 				part.push(t);
 			} else {
-				out.concat(part);
+				out = out.concat(part);
 				out.push(t);
 				part = [];
 			}

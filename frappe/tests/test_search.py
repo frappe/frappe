@@ -70,10 +70,10 @@ class TestSearch(unittest.TestCase):
 		result = frappe.response['results']
 
 		# Check whether the result is sorted or not
-		self.assertEquals(self.parent_doctype_name, result[0]['value'])
+		self.assertEqual(self.parent_doctype_name, result[0]['value'])
 
 		# Check whether searching for parent also list out children
-		self.assertEquals(len(result), len(self.child_doctypes_names) + 1)
+		self.assertEqual(len(result), len(self.child_doctypes_names) + 1)
 
 	#Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
