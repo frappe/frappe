@@ -28,12 +28,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return 'Kanban';
 	}
 
-	get_fields_in_list_view() {
-		let fields = JSON.parse(this.board.fields || "[]").map(e => e.fieldname);
-
-		return this.meta.fields.filter((df) => fields.includes(df.fieldname));
-	}
-
 	setup_defaults() {
 		return super.setup_defaults()
 			.then(() => {
