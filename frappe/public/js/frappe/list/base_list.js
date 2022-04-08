@@ -470,9 +470,14 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
+		let args = this.get_call_args();
+		if (this.no_change(args)) {
+			// console.log('throttled');
+			return Promise.resolve();
+		}
 		this.freeze(true);
 		// fetch data from server
-		return frappe.call(this.get_call_args()).then((r) => {
+		return frappe.call(args).then((r) => {
 			// render
 			this.prepare_data(r);
 			this.toggle_result_area();
@@ -485,6 +490,19 @@ frappe.views.BaseList = class BaseList {
 				this.settings.refresh(this);
 			}
 		});
+	}
+
+	no_change(args) {
+		// returns true if arguments are same for the last 3 seconds
+		// this helps in throttling if called from various sources
+		if (this.last_args && JSON.stringify(args) === this.last_args) {
+			return true;
+		}
+		this.last_args = JSON.stringify(args);
+		setTimeout(() => {
+			this.last_args = null;
+		}, 3000);
+		return false;
 	}
 
 	prepare_data(r) {
@@ -742,6 +760,10 @@ class FilterArea {
 
 		const doctype_fields = this.list_view.meta.fields;
 		const title_field = this.list_view.meta.title_field;
+		const has_existing_filters = (
+			this.list_view.filters
+			&& this.list_view.filters.length > 0
+		);
 
 		fields = fields.concat(
 			doctype_fields
@@ -776,13 +798,17 @@ class FilterArea {
 							options = options.join("\n");
 						}
 					}
-					let default_value =
-						fieldtype === "Link"
-							? frappe.defaults.get_user_default(options)
-							: null;
+
+					let default_value;
+
+					if (fieldtype === "Link" && !has_existing_filters) {
+						default_value = frappe.defaults.get_user_default(options);
+					}
+
 					if (["__default", "__global"].includes(default_value)) {
 						default_value = null;
 					}
+
 					return {
 						fieldtype: fieldtype,
 						label: __(df.label),

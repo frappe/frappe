@@ -1,14 +1,15 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import unittest
+
 import frappe
 
-from frappe.utils import global_search
-from frappe.test_runner import make_test_objects
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+from frappe.utils import global_search, now_datetime
+from frappe.test_runner import make_test_objects
 
-import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
 	def setUp(self):
@@ -17,7 +18,6 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 		doctype = "Event"
 		global_search.reset()
-		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		make_property_setter(doctype, "subject", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "event_type", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "roles", "in_global_search", 1, "Int")
@@ -42,11 +42,10 @@ class TestGlobalSearch(unittest.TestCase):
 				doctype='Event',
 				subject=text,
 				repeat_on='Monthly',
-				starts_on=frappe.utils.now_datetime())).insert()
+				starts_on=now_datetime())).insert()
 
 		global_search.sync_global_search()
 		frappe.db.commit()
-
 
 	def test_search(self):
 		self.insert_test_events()
@@ -75,7 +74,6 @@ class TestGlobalSearch(unittest.TestCase):
 		results = global_search.search('Monthly')
 		self.assertEqual(len(results), 0)
 		doctype = "Event"
-		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
 		global_search.rebuild_for_doctype(doctype)
 		results = global_search.search('Monthly')
@@ -83,7 +81,6 @@ class TestGlobalSearch(unittest.TestCase):
 
 	def test_delete_doc(self):
 		self.insert_test_events()
-
 		event_name = frappe.get_all('Event')[0].name
 		event = frappe.get_doc('Event', event_name)
 		test_subject = event.subject
@@ -92,6 +89,7 @@ class TestGlobalSearch(unittest.TestCase):
 
 		frappe.delete_doc('Event', event_name)
 		global_search.sync_global_search()
+		frappe.db.commit()
 
 		results = global_search.search(test_subject)
 		self.assertTrue(all(r["name"] != event_name for r in results), msg="Deleted documents appearing in global search.")
@@ -112,7 +110,7 @@ class TestGlobalSearch(unittest.TestCase):
 			doc = frappe.get_doc({
 				'doctype':'Event',
 				'subject': text,
-				'starts_on': frappe.utils.now_datetime()
+				'starts_on': now_datetime()
 			})
 			doc.insert()
 
@@ -173,7 +171,7 @@ class TestGlobalSearch(unittest.TestCase):
 			doc = frappe.get_doc({
 				'doctype':'Event',
 				'subject': 'Lorem Ipsum',
-				'starts_on': frappe.utils.now_datetime(),
+				'starts_on': now_datetime(),
 				'description': case["data"]
 			})
 

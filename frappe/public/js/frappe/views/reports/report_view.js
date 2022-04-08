@@ -125,11 +125,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	after_render() {
-		if (this.report_doc) {
-			this.set_dirty_state_for_custom_report();
-		} else {
+		if (!this.report_doc) {
 			this.save_report_settings();
+		} else if (!$.isEmptyObject(this.report_doc.json)) {
+			this.set_dirty_state_for_custom_report();
 		}
+
 		if (!this.group_by) {
 			this.init_chart();
 		}
@@ -651,7 +652,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			&& !df.is_virtual
 			&& !df.hidden
 			// not a standard field i.e., owner, modified_by, etc.
-			&& !frappe.model.std_fields_list.includes(df.fieldname))
+			&& frappe.model.is_non_std_field(df.fieldname))
 			return true;
 		return false;
 	}
@@ -1025,7 +1026,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 		if (!docfield || docfield.report_hide) return;
 
-		let title = __(docfield ? docfield.label : toTitle(fieldname));
+		let title = __(docfield.label);
 		if (doctype !== this.doctype) {
 			title += ` (${__(doctype)})`;
 		}

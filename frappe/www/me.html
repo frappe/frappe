@@ -3,10 +3,9 @@
 {% block title %}
 {{ _("My Account") }}
 {% endblock %}
-{% block header %}
-<h3 class="my-account-header">{{_("My Account") }}</h3>
-{% endblock %}
 {% block page_content %}
+<div class="my-account-container">
+<h3 class="my-account-header">{{_("My Account") }}</h3>
 <div class="row account-info d-flex flex-column">
 	<div class="col d-flex justify-content-between align-items-center">
 		<div>
@@ -79,16 +78,5 @@
 	</div>
 	{% endif %}
 </div>
-<div class="row d-block d-sm-none">
-	<div class="col-12 side-list">
-		<ul class="list-group">
-			{% for item in sidebar_items -%}
-				<a class="list-group-item" href="{{ item.route }}"
-					{% if item.target %}target="{{ item.target }}"{% endif %}>
-					{{ _(item.title or item.label) }}
-				</a>
-			{%- endfor %}	
-		</ul>
-	</div>
 </div>
 {% endblock %}

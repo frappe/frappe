@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.utils.data import cstr
 import os
 import redis
 
@@ -65,7 +66,7 @@ def publish_realtime(event=None, message=None, room=None,
 
 	if after_commit:
 		params = [event, message, room]
-		if not params in frappe.local.realtime_log:
+		if params not in frappe.local.realtime_log:
 			frappe.local.realtime_log.append(params)
 	else:
 		emit_via_redis(event, message, room)
@@ -118,7 +119,7 @@ def get_user_info():
 	}
 
 def get_doc_room(doctype, docname):
-	return ''.join([frappe.local.site, ':doc:', doctype, '/', docname])
+	return ''.join([frappe.local.site, ':doc:', doctype, '/', cstr(docname)])
 
 def get_user_room(user):
 	return ''.join([frappe.local.site, ':user:', user])

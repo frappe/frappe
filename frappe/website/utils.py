@@ -226,7 +226,7 @@ def get_full_index(route=None, app=None):
 
 			# order as per index if present
 			for route, children in children_map.items():
-				if not route in pages:
+				if route not in pages:
 					# no parent (?)
 					continue
 

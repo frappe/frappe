@@ -12,6 +12,13 @@
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--text-muted);
 	font-size: var(--text-md);
+
+	.grid-static-col {
+		.static-area.reqd:after {
+			content: ' *';
+			color: var(--red-400);
+		}
+	}
 }
 
 .rows .grid-row .data-row,
@@ -54,7 +61,7 @@
 }
 
 .form-grid .grid-heading-row .template-row {
-	margin-left: 20px;
+	margin-left: 8px;
 }
 
 .form-grid .template-row {
@@ -82,10 +89,44 @@
 	height: 34px;
 	padding: 8px;
 	max-height: 200px;
+
+	&.search {
+		padding: 7px !important;
+
+		input {
+			height: -webkit-fill-available;
+			padding: 3px 7px;
+		}
+	}
+}
+
+.row-check {
+	height: 34px;
+	padding: 8px 3px !important;
+	text-align: center;
+
+	input {
+		margin-right: 0 !important;
+	}
+
+	&.search {
+		padding: 0 !important;
+	}
 }
 
 .grid-row-check {
 	margin-top: 2px;
+}
+
+.template-row-index {
+	float: left;
+	margin-left: 15px;
+	margin-top: 8px;
+	margin-right: -20px;
+
+	span {
+		margin-left: 5px;
+	}
 }
 
 .editable-form .grid-static-col.bold {
@@ -106,7 +147,6 @@
 
 .grid-row > .row {
 	.col:last-child {
-		margin-right: calc(-1 * var(--margin-sm));
 		border-right: none;
 	}
 
@@ -192,7 +232,7 @@
 		margin-left: var(--margin-xs);
 
 		button {
-			height: 27px;
+			height: 24px;
 		}
 	}
 
@@ -409,6 +449,7 @@
 }
 
 .page-number {
+	background-color: var(--fg-color);
 	padding: 0 3px;
 }
 

@@ -176,9 +176,9 @@ def update_page(name, title, icon, parent, public):
 
 	doc = frappe.get_doc("Workspace", name)
 
-	filters = { 
+	filters = {
 		'parent_page': doc.title,
-		'public': doc.public 
+		'public': doc.public
 	}
 	child_docs = frappe.get_list("Workspace", filters=filters)
 
@@ -255,7 +255,7 @@ def delete_page(page):
 def sort_pages(sb_public_items, sb_private_items):
 	if not loads(sb_public_items) and not loads(sb_private_items):
 		return
-	
+
 	sb_public_items = loads(sb_public_items)
 	sb_private_items = loads(sb_private_items)
 
@@ -277,6 +277,7 @@ def sort_page(workspace_pages, pages):
 				doc = frappe.get_doc('Workspace', page.name)
 				doc.sequence_id = seq + 1
 				doc.parent_page = d.get('parent_page') or ""
+				doc.flags.ignore_links = True
 				doc.save(ignore_permissions=True)
 				break
 
@@ -292,7 +293,7 @@ def last_sequence_id(doc):
 	if not doc_exists:
 		return 0
 
-	return frappe.db.get_list('Workspace', 
+	return frappe.db.get_list('Workspace',
 		fields=['sequence_id'],
 		filters={
 			'public': doc.public,

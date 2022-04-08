@@ -164,7 +164,8 @@ class DatabaseQuery(object):
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
-			args.tables += f" {self.join} {child} on ({child}.parent = {self.tables[0]}.name)"
+			parent_name = self.cast_name(f"{self.tables[0]}.name")
+			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -318,20 +319,59 @@ class DatabaseQuery(object):
 		]
 		# add tables from fields
 		if self.fields:
-			for field in self.fields:
-				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
+			for i, field in enumerate(self.fields):
+				# add cast in locate/strpos
+				func_found = False
+				for func in sql_functions:
+					if func in field.lower():
+						self.fields[i] = self.cast_name(field, func)
+						func_found = True
+						break
+
+				if func_found or not ("tab" in field and "." in field):
 					continue
 
 				table_name = field.split('.')[0]
 
 				if table_name.lower().startswith('group_concat('):
 					table_name = table_name[13:]
-				if table_name.lower().startswith('ifnull('):
-					table_name = table_name[7:]
 				if not table_name[0]=='`':
 					table_name = f"`{table_name}`"
-				if not table_name in self.tables:
+				if table_name not in self.tables:
 					self.append_table(table_name)
+
+	def cast_name(self, column: str, sql_function: str = "",) -> str:
+		if frappe.db.db_type == "postgres":
+			if "name" in column.lower():
+				if "cast(" not in column.lower() or "::" not in column:
+					if not sql_function:
+						return f"cast({column} as varchar)"
+
+					elif sql_function == "locate(":
+						return re.sub(
+							r'locate\(([^,]+),([^)]+)\)',
+							r'locate(\1, cast(\2 as varchar))',
+							column,
+							flags=re.IGNORECASE
+						)
+
+					elif sql_function == "strpos(":
+						return re.sub(
+							r'strpos\(([^,]+),([^)]+)\)',
+							r'strpos(cast(\1 as varchar), \2)',
+							column,
+							flags=re.IGNORECASE
+						)
+
+					elif sql_function == "ifnull(":
+						return re.sub(
+							r"ifnull\(([^,]+)",
+							r"ifnull(cast(\1 as varchar)",
+							column,
+							flags=re.IGNORECASE
+						)
+
+		return column
 
 	def append_table(self, table_name):
 		self.tables.append(table_name)
@@ -423,23 +463,26 @@ class DatabaseQuery(object):
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
+		# TODO: refactor
+
 		from frappe.boot import get_additional_filters_from_hooks
 		additional_filters_config = get_additional_filters_from_hooks()
 		f = get_filter(self.doctype, f, additional_filters_config)
 
 		tname = ('`tab' + f.doctype + '`')
-		if not tname in self.tables:
+		if tname not in self.tables:
 			self.append_table(tname)
 
 		if 'ifnull(' in f.fieldname:
-			column_name = f.fieldname
+			column_name = self.cast_name(f.fieldname, "ifnull(")
 		else:
-			column_name = f"{tname}.{f.fieldname}"
-
-		can_be_null = True
+			column_name = self.cast_name(f"{tname}.{f.fieldname}")
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
+
+		meta = frappe.get_meta(f.doctype)
+		can_be_null = True
 
 		# prepare in condition
 		if f.operator.lower() in ('ancestors of', 'descendants of', 'not ancestors of', 'not descendants of'):
@@ -449,12 +492,8 @@ class DatabaseQuery(object):
 			# if not isinstance(values, (list, tuple)):
 			# 	values = values.split(",")
 
-			ref_doctype = f.doctype
-
-			if frappe.get_meta(f.doctype).get_field(f.fieldname) is not None :
-				ref_doctype = frappe.get_meta(f.doctype).get_field(f.fieldname).options
-
-			result=[]
+			field = meta.get_field(f.fieldname)
+			ref_doctype = field.options if field else f.doctype
 
 			lft, rgt = '', ''
 			if f.value:
@@ -474,15 +513,15 @@ class DatabaseQuery(object):
 				}, order_by='`lft` DESC')
 
 			fallback = "''"
-			value = [frappe.db.escape((v.name or '').strip(), percent=False) for v in result]
+			value = [frappe.db.escape((cstr(v.name) or '').strip(), percent=False) for v in result]
 			if len(value):
 				value = f"({', '.join(value)})"
 			else:
 				value = "('')"
+
 			# changing operator to IN as the above code fetches all the parent / child values and convert into tuple
 			# which can be directly used with IN operator to query.
 			f.operator = 'not in' if f.operator.lower() in ('not ancestors of', 'not descendants of') else 'in'
-
 
 		elif f.operator.lower() in ('in', 'not in'):
 			values = f.value or ''
@@ -490,13 +529,14 @@ class DatabaseQuery(object):
 				values = values.split(",")
 
 			fallback = "''"
-			value = [frappe.db.escape((v or '').strip(), percent=False) for v in values]
+			value = [frappe.db.escape((cstr(v) or '').strip(), percent=False) for v in values]
 			if len(value):
 				value = f"({', '.join(value)})"
 			else:
 				value = "('')"
+
 		else:
-			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
+			df = meta.get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
@@ -513,7 +553,8 @@ class DatabaseQuery(object):
 				fallback = "'0001-01-01 00:00:00'"
 
 			elif f.operator.lower() in ('between') and \
-				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
+				(f.fieldname in ('creation', 'modified') or
+				(df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
 
 				value = get_between_date_filter(f.value, df)
 				fallback = "'0001-01-01 00:00:00'"
@@ -528,7 +569,7 @@ class DatabaseQuery(object):
 				fallback = "''"
 				can_be_null = True
 
-				if 'ifnull' not in column_name:
+				if 'ifnull' not in column_name.lower():
 					column_name = f'ifnull({column_name}, {fallback})'
 
 			elif df and df.fieldtype=="Date":
@@ -570,7 +611,7 @@ class DatabaseQuery(object):
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
-			elif isinstance(value, str) and not f.operator.lower() == 'between':
+			elif isinstance(value, str) and f.operator.lower() != 'between':
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (

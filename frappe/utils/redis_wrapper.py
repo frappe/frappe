@@ -138,6 +138,9 @@ class RedisWrapper(redis.Redis):
 	def lpop(self, key):
 		return super(RedisWrapper, self).lpop(self.make_key(key))
 
+	def rpop(self, key):
+		return super(RedisWrapper, self).rpop(self.make_key(key))
+
 	def llen(self, key):
 		return super(RedisWrapper, self).llen(self.make_key(key))
 
@@ -154,7 +157,7 @@ class RedisWrapper(redis.Redis):
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
-		if not _name in frappe.local.cache:
+		if _name not in frappe.local.cache:
 			frappe.local.cache[_name] = {}
 		frappe.local.cache[_name][key] = value
 
@@ -173,7 +176,7 @@ class RedisWrapper(redis.Redis):
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)
-		if not _name in frappe.local.cache:
+		if _name not in frappe.local.cache:
 			frappe.local.cache[_name] = {}
 
 		if not key: return None

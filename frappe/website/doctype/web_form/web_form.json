@@ -183,7 +183,8 @@
   },
   {
    "fieldname": "introduction_text",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
    "label": "Introduction"
   },
   {
@@ -234,7 +235,7 @@
    "label": "Success Message"
   },
   {
-   "description": "Go to this URL after completing the form (only for Guest users)",
+   "description": "Go to this URL after completing the form",
    "fieldname": "success_url",
    "fieldtype": "Data",
    "label": "Success URL"
@@ -368,7 +369,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2021-11-15 14:12:44.624573",
+ "modified": "2022-03-23 15:44:41.385001",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
@@ -386,6 +387,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "title",
  "track_changes": 1
 }

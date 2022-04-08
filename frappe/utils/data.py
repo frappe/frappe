@@ -1494,7 +1494,7 @@ def expand_relative_urls(html):
 	return html
 
 def quoted(url):
-	return cstr(quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
+	return cstr(quote(encode(cstr(url)), safe=b"~@#$&()*!+=:;,.?/'"))
 
 def quote_urls(html):
 	def _quote_url(match):
@@ -1645,18 +1645,21 @@ def validate_json_string(string: str) -> None:
 		raise frappe.ValidationError
 
 def get_user_info_for_avatar(user_id: str) -> Dict:
-	user_info = {
-		"email": user_id,
-		"image": "",
-		"name": user_id
-	}
 	try:
-		user_info["email"] = frappe.get_cached_value("User", user_id, "email")
-		user_info["name"] = frappe.get_cached_value("User", user_id, "full_name")
-		user_info["image"] = frappe.get_cached_value("User", user_id, "user_image")
-	except Exception:
-		frappe.local.message_log = []
-	return user_info
+		user = frappe.get_cached_doc("User", user_id)
+		return {
+			"email": user.email,
+			"image": user.user_image,
+			"name": user.full_name
+		}
+
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return {
+			"email": user_id,
+			"image": "",
+			"name": user_id
+		}
 
 
 def validate_python_code(string: str, fieldname=None, is_expression: bool = True) -> None:

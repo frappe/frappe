@@ -166,7 +166,7 @@ class Importer:
 
 					if not self.data_import.status == "Partial Success":
 						self.data_import.db_set("status", "Partial Success")
-					
+
 					# commit after every successful import
 					frappe.db.commit()
 
@@ -244,6 +244,7 @@ class Importer:
 		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
 
 		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+
 		updated_doc.update(doc)
 
 		if get_diff(existing_doc, updated_doc):

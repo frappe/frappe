@@ -72,25 +72,28 @@ class FrappeAPITestCase(unittest.TestCase):
 	@property
 	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
-			r = self.post("/api/method/login", {
-				"usr": "Administrator",
-				"pwd": frappe.conf.admin_password or "admin",
-			})
-			self._sid = r.headers[2][1].split(";")[0].lstrip("sid=")
+			from frappe.auth import CookieManager, LoginManager
+			from frappe.utils import set_request
+
+			set_request(path="/")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as('Administrator')
+			self._sid = frappe.session.sid
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params})
+	def get(self, path: str, params: Optional[Dict] = None, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params, **kwargs})
 
-	def post(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data})
+	def post(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data, **kwargs})
 
-	def put(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data})
+	def put(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data, **kwargs})
 
-	def delete(self, path) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.delete, args=(path, ))
+	def delete(self, path, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.delete, args=(path, ), kwargs=kwargs)
 
 
 class TestResourceAPI(FrappeAPITestCase):
@@ -111,16 +114,6 @@ class TestResourceAPI(FrappeAPITestCase):
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
-
-	def setUp(self):
-		# commit to ensure consistency in session (postgres CI randomly fails)
-		if frappe.conf.db_type == "postgres":
-			frappe.db.commit()
-
-		if self._testMethodName == "test_auth_cycle":
-			from frappe.core.doctype.user.user import generate_keys
-			generate_keys("Administrator")
-			frappe.db.commit()
 
 	def test_unauthorized_call(self):
 		# test 1: fetch documents without auth
@@ -225,6 +218,12 @@ class TestResourceAPI(FrappeAPITestCase):
 
 class TestMethodAPI(FrappeAPITestCase):
 	METHOD_PATH = "/api/method"
+
+	def setUp(self):
+		if self._testMethodName == "test_auth_cycle":
+			from frappe.core.doctype.user.user import generate_keys
+			generate_keys("Administrator")
+			frappe.db.commit()
 
 	def test_version(self):
 		# test 1: test for /api/method/version

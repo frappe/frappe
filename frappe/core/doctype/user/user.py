@@ -253,8 +253,8 @@ class User(Document):
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
-			print(frappe.get_traceback())
-			pass # email server not set, don't send email
+			# email server not set, don't send email
+			frappe.log_error(frappe.get_traceback())
 
 	@Document.hook
 	def validate_reset_password(self):
