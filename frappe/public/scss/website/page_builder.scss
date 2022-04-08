@@ -16,12 +16,6 @@
 	}
 }
 
-.hero-title, .hero-subtitle {
-	max-width: 42rem;
-	margin-top: 0rem;
-	margin-bottom: 0.5rem;
-}
-
 .lead {
 	color: var(--text-muted);
 	font-weight: normal;
@@ -38,6 +32,12 @@
 	@include media-breakpoint-up(sm) {
 		font-size: $font-size-xl;
 	}
+}
+
+.hero-title, .hero-subtitle {
+	max-width: 42rem;
+	margin-top: 0rem;
+	margin-bottom: 0.5rem;
 }
 
 .hero.align-center {
