@@ -190,12 +190,6 @@ export default class KanbanSettings {
 			title: __("{0} Fields", [__(this.doctype)]),
 			fields: [
 				{
-					label: __("Reset Fields"),
-					fieldtype: "Button",
-					fieldname: "reset_fields",
-					click: () => this.reset_listview_fields(dialog)
-				},
-				{
 					label: __("Select Fields"),
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
@@ -213,24 +207,9 @@ export default class KanbanSettings {
 		dialog.show();
 	}
 
-	reset_listview_fields(dialog) {
-		let field = dialog.get_field("fields");
-		field.df.options = this.get_subject_field();
-		dialog.refresh();
-	}
-
 	get_fields() {
-		if (!this.settings.fields) {
-			this.fields.push(this.get_subject_field());
-		} else {
-			this.fields = JSON.parse(this.settings.fields);
-		}
-
+		this.fields = JSON.parse(this.settings.fields || "[]");
 		this.fields.uniqBy(f => f.fieldname);
-	}
-
-	get_subject_field() {
-		return this.get_docfield(this.meta.title_field || "name");
 	}
 
 	get_docfield(field_name) {
