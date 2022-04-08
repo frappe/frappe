@@ -69,7 +69,7 @@
   }
  ],
  "links": [],
- "modified": "2022-03-10 22:37:35.101455",
+ "modified": "2022-04-08 03:07:11.392978",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",
@@ -89,6 +89,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
