@@ -5,7 +5,6 @@
 }
 
 .from-markdown {
-	color: $gray-700;
 	line-height: 1.7;
 
 	> :first-child {
@@ -30,7 +29,15 @@
 	}
 
 	p, li {
-		font-size: $font-size-lg;
+		line-height: 1.7;
+
+		@include media-breakpoint-up(sm) {
+			font-size: 1.05rem;
+		}
+	}
+
+	p.lead {
+		@extend .lead;
 	}
 
 	li {

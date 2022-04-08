@@ -44,6 +44,8 @@ frappe.ui.form.Control = class BaseControl {
 		}
 
 		if ((!this.doctype && !this.docname) || this.df.parenttype === 'Web Form' || this.df.is_web_form) {
+			let status = "Write";
+
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
 				// eslint-disable-next-line
@@ -55,10 +57,10 @@ frappe.ui.form.Control = class BaseControl {
 				if(explain) console.log("By Hidden Dependency: None"); // eslint-disable-line no-console
 				return "None";
 
-			} else if (cint(this.df.read_only || this.df.is_virtual)) {
+			} else if (cint(this.df.read_only || this.df.is_virtual || this.df.fieldtype === "Read Only")) {
 				// eslint-disable-next-line
 				if (explain) console.log("By Read Only: Read"); // eslint-disable-line no-console
-				return "Read";
+				status = "Read";
 
 			} else if ((this.grid &&
 						this.grid.display_status == 'Read') ||
@@ -67,10 +69,16 @@ frappe.ui.form.Control = class BaseControl {
 						this.layout.grid.display_status == 'Read')) {
 				// parent grid is read
 				if (explain) console.log("By Parent Grid Read-only: Read"); // eslint-disable-line no-console
-				return "Read";
+				status = "Read";
 			}
 
-			return "Write";
+			if (
+				status === "Read" &&
+				is_null(this.value) &&
+				!in_list(["HTML", "Image", "Button"], this.df.fieldtype)
+			) status = "None";
+
+			return status;
 		}
 
 		var status = frappe.perm.get_field_display_status(this.df,
