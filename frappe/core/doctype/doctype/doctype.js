@@ -69,7 +69,7 @@ frappe.ui.form.on('DocType', {
 	},
 
 	is_submittable: (frm) => {
-		frm.toggle_display('set_name_after_submit', frm.doc.is_submittable);
+		frm.events.toggle_set_name_after_submit(frm);
 	},
 
 	naming_rule: function(frm) {
@@ -101,6 +101,16 @@ frappe.ui.form.on('DocType', {
 			frm.events.set_naming_rule_description(frm);
 		}
 
+		frm.events.toggle_set_name_after_submit(frm);
+	},
+
+	toggle_set_name_after_submit(frm) {
+		if (['Autoincrement', 'Random', 'By script'].indexOf(frm.doc.naming_rule) !== -1 || ['autoincrement', 'hash'].indexOf(frm.doc.autoname) !== -1 || !frm.doc.is_submittable) {
+			frm.set_value('set_name_after_submit', 0);
+			frm.toggle_display('set_name_after_submit', 0);
+		} else {
+		  	frm.toggle_display('set_name_after_submit', 1);
+		}
 	},
 
 	set_naming_rule_description(frm) {
@@ -144,6 +154,7 @@ frappe.ui.form.on('DocType', {
 		}
 
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
+		frm.events.toggle_set_name_after_submit(frm);
 	},
 });
 
