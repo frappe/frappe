@@ -16,7 +16,7 @@ export default class KanbanSettings {
 
 		frappe.model.with_doctype("List View Settings", () => {
 			this.make();
-			this.get_fields(meta);
+			this.get_fields();
 			this.setup_fields();
 			this.setup_remove_fields();
 			this.add_new_fields();
@@ -25,10 +25,8 @@ export default class KanbanSettings {
 	}
 
 	make() {
-		let me = this;
-
-		me.dialog = new frappe.ui.Dialog({
-			title: __("{0} Settings", [__(me.doctype)]),
+		this.dialog = new frappe.ui.Dialog({
+			title: __("{0} Settings", [__(this.doctype)]),
 			fields: [
 				{
 					fieldname: "fields_html",
@@ -41,26 +39,24 @@ export default class KanbanSettings {
 				}
 			]
 		});
-		me.dialog.set_values(me.settings);
-		me.dialog.set_primary_action(__("Save"), () => {
+		this.dialog.set_values(this.settings);
+		this.dialog.set_primary_action(__("Save"), () => {
 			frappe.show_alert({
 				message: __("Saving"),
 				indicator: "green"
 			});
 
-			const dialog_data = me.dialog.get_values();
-
 			frappe.call({
 				method:
 					"frappe.desk.doctype.kanban_board.kanban_board.save_fields",
 				args: {
-					board_name: me.settings.name,
-					fields: dialog_data.fields
+					board_name: this.settings.name,
+					fields: this.dialog.get_values().fields
 				},
-				callback: function(r) {
-					me.kanbanview.board = r.message;
-					me.kanbanview.render();
-					me.dialog.hide();
+				callback: (r) => {
+					this.kanbanview.board = r.message;
+					this.kanbanview.render();
+					this.dialog.hide();
 				}
 			});
 		});
@@ -81,38 +77,29 @@ export default class KanbanSettings {
 	}
 
 	setup_fields() {
-		function is_status_field(field) {
-			return field.fieldname === "status_field";
-		}
-
-		let me = this;
-
-		let fields_html = me.dialog.get_field("fields_html");
-		let wrapper = fields_html.$wrapper[0];
+		const fields_html = this.dialog.get_field("fields_html");
+		const wrapper = fields_html.$wrapper[0];
 		let fields = "";
 
-		for (let idx in me.fields) {
-			let is_sortable = idx == 0 ? "" : "sortable";
-			let show_sortable_handle = idx == 0 ? "hide" : "";
-			let can_remove =
-				idx == 0 || is_status_field(me.fields[idx]) ? "hide" : "";
+		for (let fieldname of this.fields) {
+			let field = this.get_docfield(fieldname);
 
 			fields += `
-				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
+				<div class="control-input flex align-center form-control fields_order sortable"
 					style="display: block; margin-bottom: 5px;"
-					data-fieldname="${me.fields[idx].fieldname}"
-					data-label="${me.fields[idx].label}"
-					data-type="${me.fields[idx].type}">
+					data-fieldname="${field.fieldname}"
+					data-label="${field.label}"
+					data-type="${field.type}">
 
 					<div class="row">
 						<div class="col-md-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
+							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle")}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
-							${__(me.fields[idx].label)}
+							${__(field.label)}
 						</div>
-						<div class="col-md-1 ${can_remove}">
-							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
+						<div class="col-md-1">
+							<a class="text-muted remove-field" data-fieldname="${field.fieldname}">
 								${frappe.utils.icon("delete", "xs")}
 							</a>
 						</div>
@@ -141,67 +128,56 @@ export default class KanbanSettings {
 			{
 				handle: ".sortable-handle",
 				draggable: ".sortable",
-				onUpdate: () => {
-					me.update_fields();
-					me.refresh();
+				onUpdate: params => {
+					this.fields.splice(
+						params.newIndex,
+						0,
+						this.fields.splice(params.oldIndex, 1)[0]
+					);
+					this.dialog.set_value("fields", JSON.stringify(this.fields));
+					this.refresh();
 				}
 			}
 		);
 	}
 
 	add_new_fields() {
-		let me = this;
-
-		let fields_html = me.dialog.get_field("fields_html");
-		let add_new_fields = fields_html.$wrapper[0].getElementsByClassName(
+		let add_new_fields = this.get_dialog_fields_wrapper().getElementsByClassName(
 			"add-new-fields"
 		)[0];
-		add_new_fields.onclick = () => me.column_selector();
+		add_new_fields.onclick = () => this.column_selector();
 	}
 
 	setup_remove_fields() {
-		let me = this;
-
-		let fields_html = me.dialog.get_field("fields_html");
-		let remove_fields = fields_html.$wrapper[0].getElementsByClassName(
+		let remove_fields = this.get_dialog_fields_wrapper().getElementsByClassName(
 			"remove-field"
 		);
 
 		for (let idx = 0; idx < remove_fields.length; idx++) {
 			remove_fields.item(idx).onclick = () =>
-				me.remove_fields(
+				this.remove_fields(
 					remove_fields.item(idx).getAttribute("data-fieldname")
 				);
 		}
 	}
 
+	get_dialog_fields_wrapper() {
+		return this.dialog.get_field("fields_html").$wrapper[0];
+	}
+
 	remove_fields(fieldname) {
-		let me = this;
-
-		for (let idx in me.fields) {
-			let field = me.fields[idx];
-
-			if (field.fieldname == fieldname) {
-				me.fields.splice(idx, 1);
-				break;
-			}
-		}
-
-		me.refresh();
-		me.update_fields();
+		this.fields = this.fields.filter(field => field !== fieldname);
+		this.dialog.set_value("fields", JSON.stringify(this.fields));
+		this.refresh();
 	}
 
 	update_fields() {
-		let me = this;
-
-		let fields_html = me.dialog.get_field("fields_html");
-		let wrapper = fields_html.$wrapper[0];
-
+		const wrapper = this.dialog.get_field("fields_html").$wrapper[0];
 		let fields_order = wrapper.getElementsByClassName("fields_order");
-		me.fields = [];
+		this.fields = [];
 
 		for (let idx = 0; idx < fields_order.length; idx++) {
-			me.fields.push({
+			this.fields.push({
 				fieldname: fields_order
 					.item(idx)
 					.getAttribute("data-fieldname"),
@@ -209,77 +185,35 @@ export default class KanbanSettings {
 			});
 		}
 
-		me.dialog.set_value("fields", JSON.stringify(me.fields));
+		this.dialog.set_value("fields", JSON.stringify(this.fields));
 	}
 
 	column_selector() {
-		let me = this;
-
-		let d = new frappe.ui.Dialog({
-			title: __("{0} Fields", [__(me.doctype)]),
+		let dialog = new frappe.ui.Dialog({
+			title: __("{0} Fields", [__(this.doctype)]),
 			fields: [
 				{
 					label: __("Reset Fields"),
 					fieldtype: "Button",
 					fieldname: "reset_fields",
-					click: () => me.reset_listview_fields(d)
+					click: () => this.reset_listview_fields(dialog)
 				},
 				{
 					label: __("Select Fields"),
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
-					options: me.get_doctype_fields(
-						me.meta,
-						me.fields.map(f => f.fieldname)
-					),
+					options: this.get_multiselect_fields(),
 					columns: 2
 				}
 			]
 		});
-		d.set_primary_action(__("Save"), () => {
-			const field_names = d.get_values().fields;
-			const subject_field = me.get_subject_field(me.meta);
-			let fields = [subject_field];
-
-			let add_field = field => {
-				if (field === subject_field.fieldname) return;
-
-				field = me.get_docfield(field);
-
-				if (field) {
-					fields.push({
-						label: field.label,
-						fieldname: field.fieldname
-					});
-				}
-			};
-
-			/**
-			 * Adds the docfields in me.fields in the fields array to
-			 * preserve the docfields order and then push the newly added fields.
-			 */
-			me.fields.forEach(field => {
-				let _field_names = field_names.filter(value => value === field.fieldname);
-
-				if (_field_names.length) {
-					add_field(_field_names[0]);
-				}
-			});
-
-			const existing_fieldnames = me.fields.map(f => f.fieldname);
-
-			field_names
-				.filter(field_name => !existing_fieldnames.includes(field_name))
-				.forEach(field_name => {
-					add_field(field_name);
-				});
-
-			me.fields = fields;
-			me.refresh();
-			me.dialog.set_value("fields", JSON.stringify(me.fields));
-			d.hide();
+		dialog.set_primary_action(__("Save"), () => {
+			this.fields = dialog.get_values().fields;
+			this.dialog.set_value("fields", JSON.stringify(this.fields));
+			this.refresh();
+			dialog.hide();
 		});
-		d.show();
+		dialog.show();
 	}
 
 	reset_listview_fields(dialog) {
@@ -288,9 +222,9 @@ export default class KanbanSettings {
 		dialog.refresh();
 	}
 
-	get_fields(meta) {
+	get_fields() {
 		if (!this.settings.fields) {
-			this.fields.push(this.get_subject_field(meta));
+			this.fields.push(this.get_subject_field());
 		} else {
 			this.fields = JSON.parse(this.settings.fields);
 		}
@@ -298,25 +232,8 @@ export default class KanbanSettings {
 		this.fields.uniqBy(f => f.fieldname);
 	}
 
-	get_subject_field(meta) {
-		let subject_field = {
-			label: "Name",
-			fieldname: "name"
-		};
-
-		if (meta.title_field) {
-			let field = frappe.meta.get_docfield(
-				this.doctype,
-				meta.title_field.trim()
-			);
-
-			subject_field = {
-				label: field.label,
-				fieldname: field.fieldname
-			};
-		}
-
-		return subject_field;
+	get_subject_field() {
+		return this.get_docfield(this.meta.title_field || "name");
 	}
 
 	get_docfield(field_name) {
@@ -326,30 +243,28 @@ export default class KanbanSettings {
 		);
 	}
 
-	get_doctype_fields(meta, fields) {
-		let multiselect_fields = [];
-		let ignore_std_fields = [
+	get_multiselect_fields() {
+		const ignore_fields = [
 			"idx",
 			"_user_tags",
 			"_liked_by",
 			"_comments",
-			"_assign"
+			"_assign",
+			this.meta.title_field || "name"
 		];
-		let _std_fields = frappe.model.std_fields.filter(
-			field => !in_list(ignore_std_fields, field.fieldname)
-		);
-		let _fields = _std_fields.concat(meta.fields);
 
-		_fields.forEach(field => {
-			if (!in_list(frappe.model.no_value_type, field.fieldtype)) {
-				multiselect_fields.push({
+		return frappe.model.std_fields
+			.concat(this.meta.fields)
+			.filter(field => !ignore_fields.includes(field.fieldname))
+			.filter(
+				field => !frappe.model.no_value_type.includes(field.fieldtype)
+			)
+			.map(field => {
+				return {
 					label: __(field.label),
 					value: field.fieldname,
-					checked: in_list(fields, field.fieldname)
-				});
-			}
-		});
-
-		return multiselect_fields;
+					checked: this.fields.includes(field.fieldname)
+				};
+			});
 	}
 }
