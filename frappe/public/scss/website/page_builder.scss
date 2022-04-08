@@ -23,9 +23,11 @@
 }
 
 .lead {
+	color: var(--text-muted);
 	font-weight: normal;
 	font-size: 1.25rem;
-	margin-bottom: 1.5rem;
+	margin-top: -1rem;
+	margin-bottom: 2.5rem;
 }
 
 .hero-subtitle {
