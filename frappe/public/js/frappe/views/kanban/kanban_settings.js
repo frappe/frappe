@@ -246,6 +246,9 @@ export default class KanbanSettings {
 	get_multiselect_fields() {
 		const ignore_fields = [
 			"idx",
+			"lft",
+			"rgt",
+			"old_parent",
 			"_user_tags",
 			"_liked_by",
 			"_comments",
