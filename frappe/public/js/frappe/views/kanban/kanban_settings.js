@@ -177,12 +177,9 @@ export default class KanbanSettings {
 		this.fields = [];
 
 		for (let idx = 0; idx < fields_order.length; idx++) {
-			this.fields.push({
-				fieldname: fields_order
-					.item(idx)
-					.getAttribute("data-fieldname"),
-				label: fields_order.item(idx).getAttribute("data-label")
-			});
+			this.fields.push(
+				fields_order.item(idx).getAttribute("data-fieldname")
+			);
 		}
 
 		this.dialog.set_value("fields", JSON.stringify(this.fields));
