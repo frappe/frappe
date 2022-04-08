@@ -37,7 +37,6 @@ h1 {
 
 	@include media-breakpoint-up(sm) {
 		font-size: $font-size-5xl;
-		line-height: 2.5rem;
 		margin-top: 3.5rem;
 		margin-bottom: 1.25rem;
 	}
