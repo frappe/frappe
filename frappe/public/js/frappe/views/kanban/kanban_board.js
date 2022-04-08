@@ -649,22 +649,16 @@ frappe.provide("frappe.views");
 
 		function get_doc_content(card) {
 			let fields = [];
-			for (let field_name of JSON.parse(cur_list.board.fields || "[]")) {
-				if (
-					card.doc[field_name] &&
-					card.doc[field_name] !== card.title &&
-					field_name !== "color"
-				) {
-					let field = (
-						frappe.meta.get_docfield(card.doctype, field_name, card.name)
-						|| frappe.model.get_std_field(field_name)
-					);
-					fields.push(`
-						<div class="text-muted text-truncate">
-							<span>${__(field.label)}: </span><span>${frappe.format(card.doc[field_name], field)}</span>
-						</div>
-					`);
-				}
+			for (let field_name of cur_list.board.fields) {
+				let field = (
+					frappe.meta.get_docfield(card.doctype, field_name, card.name)
+					|| frappe.model.get_std_field(field_name)
+				);
+				fields.push(`
+					<div class="text-muted text-truncate">
+						<span>${__(field.label)}: </span><span>${frappe.format(card.doc[field_name], field)}</span>
+					</div>
+				`);
 			}
 
 			return fields.join("");

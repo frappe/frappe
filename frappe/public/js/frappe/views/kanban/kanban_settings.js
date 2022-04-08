@@ -9,10 +9,7 @@ export default class KanbanSettings {
 		this.meta = meta;
 		this.settings = settings;
 		this.dialog = null;
-		this.fields =
-			this.settings && this.settings.fields
-				? JSON.parse(this.settings.fields)
-				: [];
+		this.fields = this.settings && this.settings.fields;
 
 		frappe.model.with_doctype("List View Settings", () => {
 			this.make();
@@ -208,7 +205,7 @@ export default class KanbanSettings {
 	}
 
 	get_fields() {
-		this.fields = JSON.parse(this.settings.fields || "[]");
+		this.fields = this.settings.fields;
 		this.fields.uniqBy(f => f.fieldname);
 	}
 

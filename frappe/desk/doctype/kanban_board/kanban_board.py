@@ -266,10 +266,11 @@ def save_filters(board_name, filters):
 
 @frappe.whitelist()
 def save_fields(board_name: str, fields: str) -> Document:
-	"""Save filters silently"""
 	doc = frappe.get_doc("Kanban Board", board_name)
 	doc.fields = fields
 	doc.save()
 
-	return doc
+	resp = doc.as_dict()
+	resp["fields"] = frappe.parse_json(resp["fields"])
 
+	return resp
