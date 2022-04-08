@@ -54,6 +54,9 @@ def patch_query_execute():
 	This excludes the use of `frappe.db.sql` method while
 	executing the query object
 	"""
+	from frappe.utils.safe_exec import check_safe_sql_query
+
+
 	def execute_query(query, *args, **kwargs):
 		query, params = prepare_query(query)
 		return frappe.db.sql(query, params, *args, **kwargs) # nosemgrep
@@ -63,7 +66,7 @@ def patch_query_execute():
 
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
-		if frappe.flags.in_safe_exec and not query.lower().strip().startswith("select"):
+		if frappe.flags.in_safe_exec and not check_safe_sql_query(query, throw=False):
 			callstack = inspect.stack()
 			if len(callstack) >= 3 and ".py" in callstack[2].filename:
 				# ignore any query builder methods called from python files
@@ -77,7 +80,7 @@ def patch_query_execute():
 				#
 				# if frame2 is server script it wont have a filename and hence
 				# it shouldn't be allowed.
-				# ps. stack() returns `"<unknown>"` as filename.
+				# p.s. stack() returns `"<unknown>"` as filename if not a file.
 				pass
 			else:
 				raise frappe.PermissionError('Only SELECT SQL allowed in scripting')

@@ -51,10 +51,6 @@
 	}
 }
 
-.custom-actions {
-	display: flex;
-}
-
 .page-actions {
 	align-items: center;
 	.btn {
@@ -70,6 +66,11 @@
 	}
 	.custom-btn-group {
 		display: inline-flex;
+	}
+
+	.custom-actions {
+		display: flex;
+		align-items: center;
 	}
 }
 
@@ -88,6 +89,7 @@
 	top: var(--navbar-height);
 	background: var(--bg-color);
 	margin-bottom: 5px;
+	transition: 0.5s top;
 	.page-head-content {
 		height: var(--page-head-height);
 	}

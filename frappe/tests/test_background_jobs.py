@@ -28,6 +28,22 @@ class TestBackgroundJobs(unittest.TestCase):
 				fail_registry = queue.failed_job_registry
 				self.assertEqual(fail_registry.count, 0)
 
+	def test_enqueue_at_front(self):
+		kwargs = {
+			"method": "frappe.handler.ping",
+			"queue": "short",
+		}
+
+		# give worker something to work on first so that get_position doesn't return None
+		frappe.enqueue(**kwargs)
+
+		# test enqueue with at_front=True
+		low_priority_job = frappe.enqueue(**kwargs)
+		high_priority_job = frappe.enqueue(**kwargs, at_front=True)
+
+		# lesser is earlier
+		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
 
 def fail_function():
 	return 1 / 0

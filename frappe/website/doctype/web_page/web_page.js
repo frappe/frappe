@@ -18,7 +18,7 @@ frappe.ui.form.on('Web Page', {
 		frm.set_query('web_template', 'page_blocks', function() {
 			return {
 				filters: {
-					"type": 'Section'
+					"type": ['in', ['Section', 'Component']]
 				}
 			};
 		});
