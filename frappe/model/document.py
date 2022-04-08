@@ -113,7 +113,6 @@ class Document(BaseDocument):
 		if kwargs:
 			# init base document
 			super(Document, self).__init__(kwargs)
-			self.init_child_tables()
 			self.init_valid_columns()
 
 		else:
@@ -149,20 +148,20 @@ class Document(BaseDocument):
 
 			super(Document, self).__init__(d)
 
-		for df in self._get_table_fields():
-			children = frappe.db.get_values(
-				df.options,
-				{
-					"parent": self.name,
-					"parenttype": self.doctype,
-					"parentfield": df.fieldname
-				},
-				"*",
-				as_dict=True,
-				order_by="idx asc"
-			) or []
+		if self.name=="DocType" and self.doctype=="DocType":
+			from frappe.model.meta import DOCTYPE_TABLE_FIELDS
+			table_fields = DOCTYPE_TABLE_FIELDS
+		else:
+			table_fields = self.meta.get_table_fields()
 
-			self.set(df.fieldname, children)
+		for df in table_fields:
+			children = frappe.db.get_values(df.options,
+				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+				"*", as_dict=True, order_by="idx asc")
+			if children:
+				self.set(df.fieldname, children)
+			else:
+				self.set(df.fieldname, [])
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):
@@ -850,7 +849,8 @@ class Document(BaseDocument):
 			if parenttype and df.options != parenttype:
 				continue
 
-			if value := self.get(df.fieldname):
+			value = self.get(df.fieldname)
+			if isinstance(value, list):
 				children.extend(value)
 
 		return children

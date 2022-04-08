@@ -220,9 +220,9 @@ class SendMailContext:
 
 	def message_placeholder(self, placeholder_key):
 		map = {
-			'tracker': '<!--email open check-->',
-			'unsubscribe_url': '<!--unsubscribe url-->',
-			'cc': '<!--cc message-->',
+			'tracker': '<!--email_open_check-->',
+			'unsubscribe_url': '<!--unsubscribe_url-->',
+			'cc': '<!--cc_message-->',
 			'recipient': '<!--recipient-->',
 		}
 		return map.get(placeholder_key)
