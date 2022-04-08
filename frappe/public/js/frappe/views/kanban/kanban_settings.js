@@ -50,7 +50,7 @@ export default class KanbanSettings {
 					board_name: this.settings.name,
 					fields: this.dialog.get_values().fields
 				},
-				callback: (r) => {
+				callback: r => {
 					this.kanbanview.board = r.message;
 					this.kanbanview.render();
 					this.dialog.hide();
@@ -131,7 +131,10 @@ export default class KanbanSettings {
 						0,
 						this.fields.splice(params.oldIndex, 1)[0]
 					);
-					this.dialog.set_value("fields", JSON.stringify(this.fields));
+					this.dialog.set_value(
+						"fields",
+						JSON.stringify(this.fields)
+					);
 					this.refresh();
 				}
 			}
