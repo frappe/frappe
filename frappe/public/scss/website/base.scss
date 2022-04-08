@@ -55,7 +55,7 @@ h2 {
 
 h3 {
 	font-size: 1.2rem;
-	margin-top: 1.5rem;
+	margin-top: 2rem;
 	margin-bottom: 0.5rem;
 
 	@include media-breakpoint-up(sm) {
@@ -70,16 +70,16 @@ h3 {
 
 h4 {
 	font-size: 1.1rem;
-	margin-top: 1.7rem;
+	margin-top: 2rem;
 	margin-bottom: 0.5rem;
 
 	@include media-breakpoint-up(sm) {
 		font-size: 1.3rem;
-		margin-top: 2rem;
+		margin-top: 2.5rem;
 	}
 	@include media-breakpoint-up(xl) {
 		font-size: 1.5rem;
-		margin-top: 2.5rem;
+		margin-top: 3rem;
 	}
 
 	a {

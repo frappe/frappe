@@ -20,8 +20,14 @@
 	color: var(--text-muted);
 	font-weight: normal;
 	font-size: 1.25rem;
-	margin-top: -1rem;
-	margin-bottom: 2.5rem;
+
+	margin-top: -0.5rem;
+	margin-bottom: 1.5rem;
+
+	@include media-breakpoint-up(sm) {
+		margin-top: -1rem;
+		margin-bottom: 2.5rem;
+	}
 }
 
 .hero-subtitle {
@@ -53,6 +59,7 @@
 
 .section-description {
 	max-width: 56rem;
+	color: var(--text-muted);
 	margin-top: 0.5rem;
 	font-size: $font-size-lg;
 

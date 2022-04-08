@@ -29,8 +29,11 @@
 	}
 
 	p, li {
-		font-size: 1.1rem;
 		line-height: 1.7;
+
+		@include media-breakpoint-up(sm) {
+			font-size: 1.05rem;
+		}
 	}
 
 	p.lead {
