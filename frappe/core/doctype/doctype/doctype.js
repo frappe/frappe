@@ -105,7 +105,7 @@ frappe.ui.form.on('DocType', {
 	},
 
 	toggle_set_name_after_submit(frm) {
-		if (!frm.doc.autoname || ['Autoincrement', 'Random', 'By script'].indexOf(frm.doc.naming_rule) !== -1 || ['autoincrement', 'hash'].indexOf(frm.doc.autoname) !== -1 || !frm.doc.is_submittable) {
+		if (!frm.doc.autoname || ['autoincrement', 'hash'].indexOf(frm.doc.autoname) !== -1 || !frm.doc.is_submittable) {
 			frm.set_value('set_name_after_submit', 0);
 			frm.toggle_display('set_name_after_submit', 0);
 		} else {
