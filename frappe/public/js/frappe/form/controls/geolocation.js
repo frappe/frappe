@@ -5,13 +5,13 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	async make() {
 		super.make();
+		$(this.input_area).addClass("hidden");
 	}
 
-	make_wrapper() {
+	set_disp_area(value) {
 		// Create the elements for map area
-		super.make_wrapper();
-
-		let $input_wrapper = this.$wrapper.find(".control-input-wrapper");
+		if (!this.disp_area) return;
+		
 		this.map_id = frappe.dom.get_unique_id();
 		this.map_area = $(
 			`<div class="map-wrapper border">
@@ -20,68 +20,56 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 				`" style="min-height: 400px; z-index: 1; max-width:100%"></div>
 			</div>`
 		);
-		this.map_area.prependTo($input_wrapper);
-		this.$wrapper.find(".control-input").addClass("hidden");
+
+		$(this.disp_area).html(this.map_area);
+		$(this.disp_area).removeClass("like-disabled-input");
+		$(this.disp_area).css("display", "block");
 
 		if (this.frm) {
-			this.make_map();
+			this.make_map(value);
 		} else {
-			$(document).on("frappe.ui.Dialog:shown", () => {
-				this.make_map();
+			$(document).on('frappe.ui.Dialog:shown', () => {
+				this.make_map(value);
 			});
 		}
 	}
 
-	make_map() {
+	make_map(value) {
 		this.bind_leaflet_map();
-		if (this.disabled) {
-			this.map.dragging.disable();
-			this.map.touchZoom.disable();
-			this.map.doubleClickZoom.disable();
-			this.map.scrollWheelZoom.disable();
-			this.map.boxZoom.disable();
-			this.map.keyboard.disable();
-			this.map.zoomControl.remove();
-		} else {
-			this.bind_leaflet_draw_control();
-			this.bind_leaflet_locate_control();
-			this.bind_leaflet_refresh_button();
-		}
-		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
+		this.bind_leaflet_draw_control();
+		this.bind_leaflet_event_listeners();
+		this.bind_leaflet_locate_control();
+		this.bind_leaflet_data(value);
 	}
 
-	format_for_input(value) {
-		if (!this.map) return;
-		// render raw value from db into map
+	bind_leaflet_data(value) {
+		/* render raw value from db into map */
+		if (!this.map || !value) return;
 		this.clear_editable_layers();
-		if (value) {
-			var data_layers = new L.FeatureGroup().addLayer(
-				L.geoJson(JSON.parse(value), {
-					pointToLayer: function (geoJsonPoint, latlng) {
-						if (geoJsonPoint.properties.point_type == "circle") {
-							return L.circle(latlng, { radius: geoJsonPoint.properties.radius });
-						} else if (geoJsonPoint.properties.point_type == "circlemarker") {
-							return L.circleMarker(latlng, {
-								radius: geoJsonPoint.properties.radius,
-							});
-						} else {
-							return L.marker(latlng);
-						}
-					},
-				})
-			);
-			this.add_non_group_layers(data_layers, this.editableLayers);
-			try {
-				this.map.fitBounds(this.editableLayers.getBounds(), {
-					padding: [50, 50],
-				});
-			} catch (err) {
-				// suppress error if layer has a point.
-			}
-			this.editableLayers.addTo(this.map);
-		} else {
-			this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
+
+		var data_layers = new L.FeatureGroup()
+			.addLayer(L.geoJson(JSON.parse(value),{
+				pointToLayer: function(geoJsonPoint, latlng) {
+					if (geoJsonPoint.properties.point_type == "circle"){
+						return L.circle(latlng, {radius: geoJsonPoint.properties.radius});
+					} else if (geoJsonPoint.properties.point_type == "circlemarker") {
+						return L.circleMarker(latlng, {radius: geoJsonPoint.properties.radius});
+					}
+					else {
+						return L.marker(latlng);
+					}
+				}
+			}));
+		this.add_non_group_layers(data_layers, this.editableLayers);
+		try {
+			this.map.fitBounds(this.editableLayers.getBounds(), {
+				padding: [50,50]
+			});
 		}
+		catch(err) {
+			// suppress error if layer has a point.
+		}
+		this.editableLayers.addTo(this.map);
 		this.map.invalidateSize();
 	}
 
@@ -111,10 +99,12 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 		L.Icon.Default.imagePath = "/assets/frappe/images/leaflet/";
 		this.map = L.map(this.map_id);
+		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 
-		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
-			this.map
-		);
+		L.tileLayer(frappe.utils.map_defaults.tiles,
+			frappe.utils.map_defaults.options).addTo(this.map);
+
+		this.editableLayers = new L.FeatureGroup();
 	}
 
 	bind_leaflet_locate_control() {
@@ -124,10 +114,14 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	}
 
 	bind_leaflet_draw_control() {
-		this.editableLayers = new L.FeatureGroup();
+		if (!frappe.perm.has_perm(this.doctype, this.df.permlevel, 'write', this.doc)) return;
 
-		var options = {
-			position: "topleft",
+		this.map.addControl(this.get_leaflet_controls());
+	}
+
+	get_leaflet_controls() {
+		return new L.Control.Draw({
+			position: 'topleft',
 			draw: {
 				polyline: {
 					shapeOptions: {
@@ -154,15 +148,13 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			},
 			edit: {
 				featureGroup: this.editableLayers, //REQUIRED!!
-				remove: true,
-			},
-		};
+				remove: true
+			}
+		});
+	}
 
-		// create control and add to map
-		this.drawControl = new L.Control.Draw(options);
-		this.map.addControl(this.drawControl);
-
-		this.map.on("draw:created", (e) => {
+	bind_leaflet_event_listeners() {
+		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
 			if (type === "marker") {
@@ -177,25 +169,6 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
-	}
-
-	bind_leaflet_refresh_button() {
-		L.easyButton({
-			id: "refresh-map-" + this.df.fieldname,
-			position: "topright",
-			type: "replace",
-			leafletClasses: true,
-			states: [
-				{
-					stateName: "refresh-map",
-					onClick: function (button, map) {
-						map._onResize();
-					},
-					title: "Refresh map",
-					icon: "fa fa-refresh",
-				},
-			],
-		}).addTo(this.map);
 	}
 
 	add_non_group_layers(source_layer, target_group) {
