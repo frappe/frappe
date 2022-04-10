@@ -102,11 +102,7 @@
    "link_fieldname": "server_script"
   }
  ],
-<<<<<<< HEAD
- "modified": "2021-02-18 12:36:19.803425",
-=======
  "modified": "2022-04-07 19:41:23.178772",
->>>>>>> 428b0bc4b1 (feat: add after insert event to server script)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
