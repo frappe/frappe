@@ -64,12 +64,8 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		} else {
 			this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 		}
-<<<<<<< HEAD
-	},
-=======
 		this.map.invalidateSize();
-	}
->>>>>>> 4c901a7074 (fix: stabilize leaflet map)
+	},
 
 	bind_leaflet_map() {
 		var circleToGeoJSON = L.Circle.prototype.toGeoJSON;
