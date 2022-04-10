@@ -259,6 +259,7 @@ function get_build_options(files, outdir, plugins) {
 	return {
 		entryPoints: files,
 		entryNames: "[dir]/[name].[hash]",
+		target: ['es2017'],
 		outdir,
 		sourcemap: true,
 		bundle: true,

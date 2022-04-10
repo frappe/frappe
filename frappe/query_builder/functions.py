@@ -43,11 +43,15 @@ CombineDatetime = ImportMapper(
 	}
 )
 
+DateFormat = ImportMapper({
+	db_type_is.MARIADB: CustomFunction("DATE_FORMAT", ["date", "format"]),
+	db_type_is.POSTGRES: ToChar,
+})
 
 class Cast_(Function):
 	def __init__(self, value, as_type, alias=None):
 		if db_type_is.MARIADB and (
-			(hasattr(as_type, "get_sql") and as_type.get_sql() == "varchar") or str(as_type).lower() == "varchar"
+			(hasattr(as_type, "get_sql") and as_type.get_sql().lower() == "varchar") or str(as_type).lower() == "varchar"
 		):
 			# mimics varchar cast in mariadb
 			# as mariadb doesn't have varchar data cast
@@ -62,7 +66,7 @@ class Cast_(Function):
 
 	def get_special_params_sql(self, **kwargs):
 		if self.name.lower() == "cast":
-			type_sql = self.as_type.get_sql() if hasattr(self.as_type, "get_sql") else str(self.as_type).upper()
+			type_sql = self.as_type.get_sql(**kwargs) if hasattr(self.as_type, "get_sql") else str(self.as_type).upper()
 			return "AS {type}".format(type=type_sql)
 
 
