@@ -49,7 +49,10 @@ def get_public_pages_from_doctypes():
 			controller = get_controller(doctype)
 			meta = frappe.get_meta(doctype)
 			condition_field = meta.is_published_field or controller.website.condition_field
-
+			
+			if not condition_field:
+				continue
+			
 			try:
 				res = frappe.db.get_all(doctype, ['route', 'name', 'modified'], { condition_field: 1 })
 				for r in res:
