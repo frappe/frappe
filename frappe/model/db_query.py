@@ -35,7 +35,7 @@ class DatabaseQuery(object):
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None,
-		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None) -> List:
+		run=True, strict=True, pluck=None, ignore_ddl=False, parent_doctype=None, get_all=False) -> List:
 
 		if (
 			not ignore_permissions
@@ -45,6 +45,10 @@ class DatabaseQuery(object):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
+		from frappe.database.query import Query
+		self.query = Query()
+
+		self.get_all = get_all
 		# filters and fields swappable
 		# its hard to remember what comes first
 		if (
@@ -62,6 +66,9 @@ class DatabaseQuery(object):
 			and len(filters) > 1 and isinstance(filters[0], str):
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
+
+		self.temp_filters = filters
+		self.temp_fields = fields
 
 		if fields:
 			self.fields = fields
@@ -141,6 +148,11 @@ class DatabaseQuery(object):
 			%(group_by)s
 			%(order_by)s
 			%(limit)s""" % args
+
+		if self.get_all:
+			sql = self.query.get_sql(self.doctype, fields=self.temp_fields, filters=self.temp_filters)
+			return sql.run(as_dict=not self.as_list, debug=self.debug,
+				update=self.update, ignore_ddl=self.ignore_ddl, run=self.run)
 
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug,
 				update=self.update, ignore_ddl=self.ignore_ddl, run=self.run)

@@ -1516,8 +1516,10 @@ def get_all(doctype, *args, **kwargs):
 		frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")})
 	"""
 	kwargs["ignore_permissions"] = True
+	kwargs["get_all"] = True
 	if not "limit_page_length" in kwargs:
 		kwargs["limit_page_length"] = 0
+
 	return get_list(doctype, *args, **kwargs)
 
 def get_value(*args, **kwargs):
