@@ -47,6 +47,14 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
         this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(this.input);
 
+        const locationButton = document.createElement("button");
+
+        locationButton.textContent = "Pan to Current Location";
+        locationButton.classList.add("custom-map-control-button");
+
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(locationButton);
+
+
         this.map.addListener("bounds_changed", () => {
             this.searchBox.setBounds(this.map.getBounds());
         });
@@ -55,26 +63,26 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
         this.searchBox.addListener("places_changed", () => {
             const places = this.searchBox.getPlaces();
-        
+
             if (places.length == 0) {
-              return;
+                return;
             }
-        
+
             // Clear out the old markers.
             markers.forEach((marker) => {
-              marker.setMap(null);
+                marker.setMap(null);
             });
             markers = [];
-        
+
             // For each place, get the icon, name and location.
             const bounds = new google.maps.LatLngBounds();
-        
+
             places.forEach((place) => {
                 if (!place.geometry || !place.geometry.location) {
                     console.log("Returned place contains no geometry");
                     return;
                 }
-            
+
                 const icon = {
                     url: place.icon,
                     size: new google.maps.Size(71, 71),
@@ -84,14 +92,14 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                 };
 
                 let map = this.map
-            
+
                 // Create a marker for each place.
                 markers.push(
                     new google.maps.Marker({
-                    map,
-                    icon,
-                    title: place.name,
-                    position: place.geometry.location,
+                        map,
+                        icon,
+                        title: place.name,
+                        position: place.geometry.location,
                     })
                 );
                 if (place.geometry.viewport) {
