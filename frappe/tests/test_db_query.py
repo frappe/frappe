@@ -507,12 +507,39 @@ class TestReportview(unittest.TestCase):
 
 		if frappe.db.db_type == "postgres":
 			self.assertTrue("strpos( cast( \"tabautoinc_dt_test\".\"name\" as varchar), \'1\')" in query)
-			self.assertTrue("where cast(\"tabautoinc_dt_test\".name as varchar) = \'1\'" in query)
+			self.assertTrue("where cast(\"tabautoinc_dt_test\".\"name\" as varchar) = \'1\'" in query)
 		else:
 			self.assertTrue("locate(\'1\', `tabautoinc_dt_test`.`name`)" in query)
-			self.assertTrue("where `tabautoinc_dt_test`.name = 1" in query)
+			self.assertTrue("where `tabautoinc_dt_test`.`name` = 1" in query)
 
 		dt.delete(ignore_permissions=True)
+
+	def test_fieldname_starting_with_int(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype(
+			"dt_with_int_named_fieldname",
+			fields=[{
+				"label": "1field",
+				"fieldname": "1field",
+				"fieldtype": "Int"
+			}]
+		).insert(ignore_permissions=True)
+
+		frappe.get_doc({
+			"doctype": "dt_with_int_named_fieldname",
+			"1field": 10
+		}).insert(ignore_permissions=True)
+
+
+		query = DatabaseQuery("dt_with_int_named_fieldname")
+		self.assertTrue(query.execute(filters={"1field": 10}))
+		self.assertTrue(query.execute(filters={"1field": ["like", "1%"]}))
+		self.assertTrue(query.execute(filters={"1field": ["in", "1,2,10"]}))
+		self.assertTrue(query.execute(filters={"1field": ["is", "set"]}))
+		self.assertFalse(query.execute(filters={"1field": ["not like", "1%"]}))
+
+		dt.delete()
 
 
 def add_child_table_to_blog_post():
