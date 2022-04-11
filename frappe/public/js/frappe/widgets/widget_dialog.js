@@ -231,7 +231,7 @@ class CardDialog extends WidgetDialog {
 		let message = '';
 
 		if (!data.links) {
-			message = "You must add atleast one link."
+			message = "You must add atleast one link.";
 		} else {
 			data.links.map((item, idx) => {
 				let row = idx+1;
