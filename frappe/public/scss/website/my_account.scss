@@ -27,15 +27,16 @@
 	}
 }
 
+.my-account-container {
+	max-width: 800px;
+	margin: auto;
+}
+
 .account-info {
 	background-color: var(--fg-color);
+	box-shadow: var(--card-shadow);
 	border-radius: var(--border-radius-md);
 	padding: var(--padding-sm) 25px;
-	max-width: 850px;
-
-	@include media-breakpoint-up(sm) {
-		margin-left: 0;
-	}
 
 	@include media-breakpoint-down(sm) {
 		padding: 0;
@@ -95,23 +96,5 @@
 
 	:last-child {
 		border: 0;
-	}
-}
-
-//styles for third party apps page
-//center wrt to outer most container and not immediate parent
-.empty-apps-state {
-	position: relative;
-	padding-top: 10rem;
-	margin-left: -250px;
-	text-align: center;
-
-	@include media-breakpoint-down(sm) {
-		margin: auto;
-		padding-top: 5rem;
-	}
-
-	@include media-breakpoint-down(md) {
-		margin-left: 0;
 	}
 }

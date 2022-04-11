@@ -111,7 +111,6 @@ class EmailQueue(Document):
 		""" Send emails to recipients.
 		"""
 		if not self.can_send_now():
-			frappe.db.rollback()
 			return
 
 		with SendMailContext(self, is_background_task) as ctx:
@@ -221,9 +220,9 @@ class SendMailContext:
 
 	def message_placeholder(self, placeholder_key):
 		map = {
-			'tracker': '<!--email open check-->',
-			'unsubscribe_url': '<!--unsubscribe url-->',
-			'cc': '<!--cc message-->',
+			'tracker': '<!--email_open_check-->',
+			'unsubscribe_url': '<!--unsubscribe_url-->',
+			'cc': '<!--cc_message-->',
 			'recipient': '<!--recipient-->',
 		}
 		return map.get(placeholder_key)

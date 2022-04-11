@@ -476,7 +476,7 @@ class DatabaseQuery(object):
 		if 'ifnull(' in f.fieldname:
 			column_name = self.cast_name(f.fieldname, "ifnull(")
 		else:
-			column_name = self.cast_name(f"{tname}.{f.fieldname}")
+			column_name = self.cast_name(f"{tname}.`{f.fieldname}`")
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
