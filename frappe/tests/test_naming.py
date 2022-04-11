@@ -36,6 +36,17 @@ class TestNaming(unittest.TestCase):
 		title2 = append_number_if_name_exists('Note', 'Test', 'title', '_')
 		self.assertEqual(title2, 'Test_1')
 
+	def test_field_autoname_name_sync(self):
+
+		country = frappe.get_last_doc("Country")
+		original_name = country.name
+		country.country_name = "Not a country"
+		country.save()
+		country.reload()
+
+		self.assertEqual(country.name, original_name)
+		self.assertEqual(country.name, country.country_name)
+
 	def test_format_autoname(self):
 		'''
 		Test if braced params are replaced in format autoname
