@@ -103,7 +103,7 @@ frappe.views.CommunicationComposer = class {
 				label: __("Add Signature"),
 				fieldname: 'add_signature',
 				hidden: 1,
-				click: async () => {
+				click: async function() {
 					let sender_email = this.dialog.get_value('sender') || "";
 					this.content_set = false;
 					await this.set_content(sender_email);
