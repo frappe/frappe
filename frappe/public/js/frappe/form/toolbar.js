@@ -205,11 +205,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 	make_menu() {
 		this.page.clear_icons();
 		this.page.clear_menu();
-
-		if (frappe.boot.desk_settings.form_sidebar) {
-			this.make_navigation();
-			this.make_menu_items();
-		}
+		this.make_navigation();
+		this.make_menu_items();
 	}
 
 	make_viewers() {
