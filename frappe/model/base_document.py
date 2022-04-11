@@ -726,7 +726,7 @@ class BaseDocument(object):
 		# data_field options defined in frappe.model.data_field_options
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			frappe.utils.validate_phone_number_with_isd(phone, throw=True)
+			frappe.utils.validate_phone_number_with_isd(phone, phone_field.fieldname, throw=True)
 
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)

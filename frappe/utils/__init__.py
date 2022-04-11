@@ -76,20 +76,22 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_phone_number_with_isd(phone, throw=False):
+def validate_phone_number_with_isd(phone, fieldname, throw=False):
+	from frappe import _
 	if not phone:
 		return
 	try:
 		phone_number = ph.parse(phone)
 	except Exception as e:
 		if e.error_type == 1:
-			frappe.throw(frappe._("{0} is not a valid Phone Number.").format(frappe.bold(phone)), frappe.InvalidPhoneNumberError,
-				title=frappe._("Invalid Number"))
-		frappe.throw(frappe._("Please select a country code for the Phone Number {0}.").format(frappe.bold(phone)), frappe.InvalidPhoneNumberError,
-			title = frappe._("Country Code Required"))
+
+			frappe.throw(_("Phone Number {0} set in field {1} is not valid.").format(frappe.bold(phone), frappe.bold(fieldname)), frappe.InvalidPhoneNumberError,
+				title=_("Invalid Phone Number"))
+		frappe.throw(_("Please select a country code for field {1}.").format(frappe.bold(phone), frappe.bold(fieldname)), frappe.InvalidPhoneNumberError,
+			title = _("Country Code Required"))
 	if not ph.is_valid_number(phone_number):
-		frappe.throw(frappe._("{0} is not a valid Phone Number").format(frappe.bold(phone)), frappe.InvalidPhoneNumberError,
-		title = frappe._("Invalid Number"))
+		frappe.throw(_("Phone Number {0} set in field {1} is not valid.").format(frappe.bold(phone), frappe.bold(fieldname)), frappe.InvalidPhoneNumberError,
+		title = _("Invalid Phone Number"))
 
 def validate_phone_number(phone_number, throw=False):
 	"""Returns True if valid phone number"""
