@@ -22,17 +22,15 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			super.make();
 			this.refresh();
 			// set default
-			$.each(this.fields_list, function(i, field) {
-				if (field.df["default"]) {
-					let def_value = field.df["default"];
+			$.each(this.fields_list, (_, field) => {
+				if (!is_null(field.df.default)) {
+					let def_value = field.df.default;
 
-					if (def_value == 'Today' && field.df["fieldtype"] == 'Date') {
+					if (def_value === "Today" && field.df.fieldtype === "Date") {
 						def_value = frappe.datetime.get_today();
 					}
 
-					field.set_input(def_value);
-					// if default and has depends_on, render its fields.
-					me.refresh_dependency();
+					this.set_value(field.df.fieldname, def_value);
 				}
 			})
 
@@ -129,6 +127,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			if (f) {
 				f.set_value(val).then(() => {
 					f.set_input(val);
+					f.refresh();
 					this.refresh_dependency();
 					resolve();
 				});

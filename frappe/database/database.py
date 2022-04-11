@@ -115,6 +115,7 @@ class Database(object):
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		debug = debug or getattr(self, "debug", False)
 		query = str(query)
 		if not run:
 			return query
