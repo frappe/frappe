@@ -130,18 +130,11 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				resolve();
 			}
 		});
-<<<<<<< HEAD
+	},
+	has_field: function(fieldname) {
+		return !!this.fields_dict[fieldname];
 	},
 	set_input: function(key, val) {
-=======
-	}
-
-	has_field(fieldname) {
-		return !!this.fields_dict[fieldname];
-	}
-
-	set_input(key, val) {
->>>>>>> b9af0ac37e (feat(minor): use specific email signature via from field)
 		return this.set_value(key, val);
 	},
 	set_values: function(dict) {
