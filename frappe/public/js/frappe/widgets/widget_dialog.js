@@ -240,11 +240,11 @@ class CardDialog extends WidgetDialog {
 					message = "Following fields have missing values: <br><br><ul>";
 					message += `<li>Link Type in Row ${row}</li>`;
 				}
-	
+
 				if (!item.link_to) {
 					message += `<li>Link To in Row ${row}</li>`;
 				}
-	
+
 				item.label = item.label ? item.label : item.link_to;
 			});
 		}
