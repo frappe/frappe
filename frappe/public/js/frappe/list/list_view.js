@@ -1552,13 +1552,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		items.push({
-			label: __("Toggle Sidebar", null, "Button in list view menu"),
-			action: () => this.toggle_side_bar(),
-			condition: () => !this.hide_sidebar,
-			standard: true,
-			shortcut: "Ctrl+K",
-		});
+		if (frappe.boot.desk_settings.form_sidebar) {
+			items.push({
+				label: __("Toggle Sidebar", null, "Button in list view menu"),
+				action: () => this.toggle_side_bar(),
+				condition: () => !this.hide_sidebar,
+				standard: true,
+				shortcut: "Ctrl+K",
+			});
+		}
 
 		items.push({
 			label: __("Share URL", null, "Button in list view menu"),
