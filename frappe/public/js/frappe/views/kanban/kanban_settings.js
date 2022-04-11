@@ -199,7 +199,7 @@ export default class KanbanSettings {
 			]
 		});
 		dialog.set_primary_action(__("Save"), () => {
-			this.fields = dialog.get_values().fields;
+			this.fields = dialog.get_values().fields || [];
 			this.dialog.set_value("fields", JSON.stringify(this.fields));
 			this.refresh();
 			dialog.hide();
