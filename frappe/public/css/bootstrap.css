@@ -5683,7 +5683,9 @@ button.close {
   border: 0;
 }
 .modal-open {
-  overflow: hidden;
+  overflow: scroll !important;
+  position:fixed;
+  width: 100%;
 }
 .modal {
   position: fixed;

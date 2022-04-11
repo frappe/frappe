@@ -347,6 +347,7 @@ textarea.form-control {
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
+	width: max-content;
 
 	&:after,
 	&:before {
