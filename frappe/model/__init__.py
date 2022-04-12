@@ -37,7 +37,7 @@ data_fieldtypes = (
 	'Duration',
 	'Icon',
 	'Autocomplete',
-	'Json'
+	'JSON'
 )
 
 attachment_fieldtypes = (

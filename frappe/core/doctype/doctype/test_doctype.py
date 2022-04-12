@@ -546,7 +546,7 @@ class TestDocType(unittest.TestCase):
 			fields=[{
 				"label": "json field",
 				"fieldname": "test_json_field",
-				"fieldtype": "Json"
+				"fieldtype": "JSON"
 			}]
 		)
 		json_doc.insert()
@@ -554,7 +554,7 @@ class TestDocType(unittest.TestCase):
 		doc = frappe.get_doc("DocType", "Test Json Doctype")
 		for field in doc.fields:
 			if field.fieldname == 'test_json_field':
-				self.assertEqual(field.fieldtype, 'Json')
+				self.assertEqual(field.fieldtype, 'JSON')
 				break
 
 		doc = frappe.get_doc({

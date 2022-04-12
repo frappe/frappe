@@ -66,7 +66,7 @@ class PostgresDatabase(Database):
 			'Duration':		('decimal', '21,9'),
 			'Icon':			('varchar', self.VARCHAR_LEN),
 			'Autocomplete': ('varchar', self.VARCHAR_LEN),
-			'Json':			('jsonb', ''),
+			'JSON':			('jsonb', ''),
 		}
 
 	def get_connection(self):
