@@ -44,10 +44,10 @@ def flush_old_route_records():
 
 		frappe.db.sql(
 			"""
-			DELETE
-			FROM `tabRoute History`
-			WHERE `modified` <= %(modified)s and `user`=%(modified)s
-		""",
+				DELETE
+				FROM `tabRoute History`
+				WHERE `modified` <= %(modified)s and `user`=%(modified)s
+			""",
 			{"modified": last_record_to_keep[0].modified, "user": user},
 		)
 
