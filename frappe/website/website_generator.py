@@ -3,10 +3,10 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.website.utils import cleanup_page_name
-from frappe.website.utils import clear_cache
 from frappe.modules import get_module_name
-from frappe.search.website_search import update_index_for_path, remove_document_from_index
+from frappe.search.website_search import remove_document_from_index, update_index_for_path
+from frappe.website.utils import cleanup_page_name, clear_cache
+
 
 class WebsiteGenerator(Document):
 	website = frappe._dict()
@@ -16,7 +16,7 @@ class WebsiteGenerator(Document):
 		super(WebsiteGenerator, self).__init__(*args, **kwargs)
 
 	def get_website_properties(self, key=None, default=None):
-		out = getattr(self, '_website', None) or getattr(self, 'website', None) or {}
+		out = getattr(self, "_website", None) or getattr(self, "website", None) or {}
 		if not isinstance(out, dict):
 			# website may be a property too, so ignore
 			out = {}
@@ -30,10 +30,9 @@ class WebsiteGenerator(Document):
 			self.name = self.scrubbed_title()
 
 	def onload(self):
-		self.get("__onload").update({
-			"is_website_generator": True,
-			"published": self.is_website_published()
-		})
+		self.get("__onload").update(
+			{"is_website_generator": True, "published": self.is_website_published()}
+		)
 
 	def validate(self):
 		self.set_route()
@@ -43,14 +42,14 @@ class WebsiteGenerator(Document):
 			self.route = self.make_route()
 
 		if self.route:
-			self.route = self.route.strip('/.')[:139]
+			self.route = self.route.strip("/.")[:139]
 
 	def make_route(self):
-		'''Returns the default route. If `route` is specified in DocType it will be
-		route/title'''
+		"""Returns the default route. If `route` is specified in DocType it will be
+		route/title"""
 		from_title = self.scrubbed_title()
 		if self.meta.route:
-			return self.meta.route + '/' + from_title
+			return self.meta.route + "/" + from_title
 		else:
 			return from_title
 
@@ -58,15 +57,15 @@ class WebsiteGenerator(Document):
 		return self.scrub(self.get(self.get_title_field()))
 
 	def get_title_field(self):
-		'''return title field from website properties or meta.title_field'''
-		title_field = self.get_website_properties('page_title_field')
+		"""return title field from website properties or meta.title_field"""
+		title_field = self.get_website_properties("page_title_field")
 		if not title_field:
 			if self.meta.title_field:
 				title_field = self.meta.title_field
-			elif self.meta.has_field('title'):
-				title_field = 'title'
+			elif self.meta.has_field("title"):
+				title_field = "title"
 			else:
-				title_field = 'name'
+				title_field = "name"
 
 		return title_field
 
@@ -75,10 +74,10 @@ class WebsiteGenerator(Document):
 		clear_cache(self.route)
 
 	def scrub(self, text):
-		return cleanup_page_name(text).replace('_', '-')
+		return cleanup_page_name(text).replace("_", "-")
 
 	def get_parents(self, context):
-		'''Return breadcrumbs'''
+		"""Return breadcrumbs"""
 		pass
 
 	def on_update(self):
@@ -92,7 +91,7 @@ class WebsiteGenerator(Document):
 
 	def on_trash(self):
 		self.clear_cache()
-		self.send_indexing_request('URL_DELETED')
+		self.send_indexing_request("URL_DELETED")
 		# On deleting the doc, remove the page from the web_routes index
 		if self.allow_website_search_indexing():
 			remove_document_from_index(self.route)
@@ -105,7 +104,7 @@ class WebsiteGenerator(Document):
 			return True
 
 	def get_condition_field(self):
-		condition_field = self.get_website_properties('condition_field')
+		condition_field = self.get_website_properties("condition_field")
 		if not condition_field:
 			if self.meta.is_published_field:
 				condition_field = self.meta.is_published_field
@@ -114,14 +113,16 @@ class WebsiteGenerator(Document):
 
 	def get_page_info(self):
 		route = frappe._dict()
-		route.update({
-			"doc": self,
-			"page_or_generator": "Generator",
-			"ref_doctype":self.doctype,
-			"idx": self.idx,
-			"docname": self.name,
-			"controller": get_module_name(self.doctype, self.meta.module),
-		})
+		route.update(
+			{
+				"doc": self,
+				"page_or_generator": "Generator",
+				"ref_doctype": self.doctype,
+				"idx": self.idx,
+				"docname": self.name,
+				"controller": get_module_name(self.doctype, self.meta.module),
+			}
+		)
 
 		route.update(self.get_website_properties())
 
@@ -132,15 +133,21 @@ class WebsiteGenerator(Document):
 
 		return route
 
-	def send_indexing_request(self, operation_type='URL_UPDATED'):
+	def send_indexing_request(self, operation_type="URL_UPDATED"):
 		"""Send indexing request on update/trash operation."""
 
-		if frappe.db.get_single_value('Website Settings', 'enable_google_indexing') \
-			and self.is_website_published() and self.meta.allow_guest_to_view:
+		if (
+			frappe.db.get_single_value("Website Settings", "enable_google_indexing")
+			and self.is_website_published()
+			and self.meta.allow_guest_to_view
+		):
 
 			url = frappe.utils.get_url(self.route)
-			frappe.enqueue('frappe.website.doctype.website_settings.google_indexing.publish_site', \
-				url=url, operation_type=operation_type)
+			frappe.enqueue(
+				"frappe.website.doctype.website_settings.google_indexing.publish_site",
+				url=url,
+				operation_type=operation_type,
+			)
 
 	# Change the field value in doctype
 	# Override this method to disable indexing
@@ -159,9 +166,9 @@ class WebsiteGenerator(Document):
 
 	def update_website_search_index(self):
 		"""
-			Update the full test index executed on document change event.
-			- remove document from index if document is unpublished
-			- update index otherwise
+		Update the full test index executed on document change event.
+		- remove document from index if document is unpublished
+		- update index otherwise
 		"""
 		if not self.allow_website_search_indexing() or frappe.flags.in_test:
 			return

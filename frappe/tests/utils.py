@@ -8,6 +8,7 @@ import frappe
 
 class FrappeTestCase(unittest.TestCase):
 	"""Base test class for Frappe tests."""
+
 	@classmethod
 	def setUpClass(cls) -> None:
 		frappe.db.commit()
@@ -21,7 +22,7 @@ class FrappeTestCase(unittest.TestCase):
 
 @contextmanager
 def change_settings(doctype, settings_dict):
-	""" A context manager to ensure that settings are changed before running
+	"""A context manager to ensure that settings are changed before running
 	function and restored after running it regardless of exceptions occured.
 	This is useful in tests where you want to make changes in a function but
 	don't retain those changes.
@@ -30,7 +31,7 @@ def change_settings(doctype, settings_dict):
 	example:
 	@change_settings("Print Settings", {"send_print_as_pdf": 1})
 	def test_case(self):
-		...
+	        ...
 	"""
 
 	try:
@@ -46,7 +47,7 @@ def change_settings(doctype, settings_dict):
 		settings.save()
 		# singles are cached by default, clear to avoid flake
 		frappe.db.value_cache[settings] = {}
-		yield # yield control to calling function
+		yield  # yield control to calling function
 
 	finally:
 		# restore settings
@@ -57,9 +58,10 @@ def change_settings(doctype, settings_dict):
 
 
 def timeout(seconds=30, error_message="Test timed out."):
-	""" Timeout decorator to ensure a test doesn't run for too long.
+	"""Timeout decorator to ensure a test doesn't run for too long.
 
-		adapted from https://stackoverflow.com/a/2282656"""
+	adapted from https://stackoverflow.com/a/2282656"""
+
 	def decorator(func):
 		def _handle_timeout(signum, frame):
 			raise Exception(error_message)
@@ -72,5 +74,7 @@ def timeout(seconds=30, error_message="Test timed out."):
 			finally:
 				signal.alarm(0)
 			return result
+
 		return wrapper
+
 	return decorator

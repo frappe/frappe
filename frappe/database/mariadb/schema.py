@@ -15,27 +15,31 @@ class MariaDBTable(DBTable):
 		# columns
 		column_defs = self.get_column_definitions()
 		if column_defs:
-			additional_definitions += ',\n'.join(column_defs) + ',\n'
+			additional_definitions += ",\n".join(column_defs) + ",\n"
 
 		# index
 		index_defs = self.get_index_definitions()
 		if index_defs:
-			additional_definitions += ',\n'.join(index_defs) + ',\n'
+			additional_definitions += ",\n".join(index_defs) + ",\n"
 
 		# child table columns
 		if self.meta.get("istable") or 0:
-			additional_definitions += ',\n'.join(
-				(
-					f"parent varchar({varchar_len})",
-					f"parentfield varchar({varchar_len})",
-					f"parenttype varchar({varchar_len})",
-					"index parent(parent)"
+			additional_definitions += (
+				",\n".join(
+					(
+						f"parent varchar({varchar_len})",
+						f"parentfield varchar({varchar_len})",
+						f"parenttype varchar({varchar_len})",
+						"index parent(parent)",
+					)
 				)
-			) + ',\n'
+				+ ",\n"
+			)
 
 		# creating sequence(s)
-		if (not self.meta.issingle and self.meta.autoname == "autoincrement")\
-			or self.doctype in log_types:
+		if (
+			not self.meta.issingle and self.meta.autoname == "autoincrement"
+		) or self.doctype in log_types:
 
 			# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
 			# it drops the cache and uses the next non cached value in setval func and
@@ -78,7 +82,7 @@ class MariaDBTable(DBTable):
 		add_index_query = []
 		drop_index_query = []
 
-		columns_to_modify =  set(self.change_type + self.add_unique + self.set_default)
+		columns_to_modify = set(self.change_type + self.add_unique + self.set_default)
 
 		for col in self.add_column:
 			add_column_query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
@@ -88,31 +92,43 @@ class MariaDBTable(DBTable):
 
 		for col in self.add_index:
 			# if index key does not exists
-			if not frappe.db.has_index(self.table_name, col.fieldname + '_index'):
+			if not frappe.db.has_index(self.table_name, col.fieldname + "_index"):
 				add_index_query.append("ADD INDEX `{}_index`(`{}`)".format(col.fieldname, col.fieldname))
 
 		for col in self.drop_index + self.drop_unique:
-			if col.fieldname != 'name': # primary key
+			if col.fieldname != "name":  # primary key
 				current_column = self.current_columns.get(col.fieldname.lower())
 				unique_constraint_changed = current_column.unique != col.unique
 				if unique_constraint_changed and not col.unique:
 					# nosemgrep
-					unique_index_record = frappe.db.sql("""
+					unique_index_record = frappe.db.sql(
+						"""
 						SHOW INDEX FROM `{0}`
 						WHERE Key_name=%s
 						AND Non_unique=0
-					""".format(self.table_name), (col.fieldname), as_dict=1)
+					""".format(
+							self.table_name
+						),
+						(col.fieldname),
+						as_dict=1,
+					)
 					if unique_index_record:
 						drop_index_query.append("DROP INDEX `{}`".format(unique_index_record[0].Key_name))
 				index_constraint_changed = current_column.index != col.set_index
 				# if index key exists
 				if index_constraint_changed and not col.set_index:
 					# nosemgrep
-					index_record = frappe.db.sql("""
+					index_record = frappe.db.sql(
+						"""
 						SHOW INDEX FROM `{0}`
 						WHERE Key_name=%s
 						AND Non_unique=1
-					""".format(self.table_name), (col.fieldname + '_index'), as_dict=1)
+					""".format(
+							self.table_name
+						),
+						(col.fieldname + "_index"),
+						as_dict=1,
+					)
 					if index_record:
 						drop_index_query.append("DROP INDEX `{}`".format(index_record[0].Key_name))
 
@@ -125,13 +141,16 @@ class MariaDBTable(DBTable):
 
 		except Exception as e:
 			# sanitize
-			if e.args[0]==1060:
+			if e.args[0] == 1060:
 				frappe.throw(str(e))
-			elif e.args[0]==1062:
+			elif e.args[0] == 1062:
 				fieldname = str(e).split("'")[-2]
-				frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
-					fieldname, self.table_name))
-			elif e.args[0]==1067:
+				frappe.throw(
+					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
+						fieldname, self.table_name
+					)
+				)
+			elif e.args[0] == 1067:
 				frappe.throw(str(e.args[1]))
 			else:
 				raise e
