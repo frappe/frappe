@@ -155,8 +155,10 @@ frappe.ui.form.Control = class BaseControl {
 			&& locals[this.doctype] && locals[this.doctype][this.docname] || {};
 	}
 	get_model_value() {
-		if(this.doc) {
+		if (this.doc) {
 			return this.doc[this.df.fieldname];
+		} else {
+			return this.value;
 		}
 	}
 
@@ -207,12 +209,20 @@ frappe.ui.form.Control = class BaseControl {
 		}
 	}
 	get_value() {
-		if(this.get_status()==='Write') {
-			return this.get_input_value ?
-				(this.parse ? this.parse(this.get_input_value()) : this.get_input_value()) :
-				undefined;
+		if (this.get_status() === 'Write') {
+			let value;
+
+			if (this.get_input_value) {
+				value = this.get_input_value();
+			}
+
+			if (this.parse) {
+				value = this.parse(value);
+			}
+
+			return value;
 		} else {
-			return this.value || undefined;
+			return this.value;
 		}
 	}
 	set_model_value(value) {
