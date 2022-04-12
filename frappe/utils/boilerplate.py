@@ -1,12 +1,14 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import git
 import os
 import re
 
+import git
+
 import frappe
-from frappe.utils import touch_file, cstr
+from frappe.utils import cstr, touch_file
+
 
 def make_boilerplate(dest, app_name, no_git=False):
 	if not os.path.exists(dest):
@@ -19,11 +21,15 @@ def make_boilerplate(dest, app_name, no_git=False):
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
-	for key in ("App Title (default: {0})".format(app_title),
-		"App Description", "App Publisher", "App Email",
+	for key in (
+		"App Title (default: {0})".format(app_title),
+		"App Description",
+		"App Publisher",
+		"App Email",
 		"App Icon (default 'octicon octicon-file-directory')",
 		"App Color (default 'grey')",
-		"App License (default 'MIT')"):
+		"App License (default 'MIT')",
+	):
 		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
@@ -34,38 +40,43 @@ def make_boilerplate(dest, app_name, no_git=False):
 					"app_title": app_title,
 					"app_icon": "octicon octicon-file-directory",
 					"app_color": "grey",
-					"app_license": "MIT"
+					"app_license": "MIT",
 				}
 				if hook_key in defaults:
 					hook_val = defaults[hook_key]
 
-			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
+			if hook_key == "app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print("App Name must be all lowercase and without spaces")
 				hook_val = ""
-			elif hook_key=="app_title" and not re.match(r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
-				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
+			elif hook_key == "app_title" and not re.match(
+				r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE
+			):
+				print(
+					"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+				)
 				hook_val = ""
 
 		hooks[hook_key] = hook_val
 
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
-		with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
+	frappe.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)), with_init=True
+	)
+	frappe.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True
+	)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"pages"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"includes"))
+	frappe.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "pages"), with_init=True
+	)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
-		"css"))
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
-		"js"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
 
 	# add .gitkeep file so that public folder is committed to git
 	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "public", ".gitkeep"), "w") as f:
-		f.write('')
+		f.write("")
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(frappe.as_unicode(init_template))
@@ -77,8 +88,13 @@ def make_boilerplate(dest, app_name, no_git=False):
 		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-		f.write(frappe.as_unicode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
-			hooks.app_description, hooks.app_license)))
+		f.write(
+			frappe.as_unicode(
+				"## {0}\n\n{1}\n\n#### License\n\n{2}".format(
+					hooks.app_title, hooks.app_description, hooks.app_license
+				)
+			)
+		)
 
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode("License: " + hooks.app_license))
@@ -89,7 +105,7 @@ def make_boilerplate(dest, app_name, no_git=False):
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py
 	for key in ("app_publisher", "app_description", "app_license"):
-		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"")
+		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
 
 	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
 		f.write(frappe.as_unicode(setup_template.format(**hooks)))
@@ -109,7 +125,7 @@ def make_boilerplate(dest, app_name, no_git=False):
 
 	if not no_git:
 		with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-			f.write(frappe.as_unicode(gitignore_template.format(app_name = hooks.app_name)))
+			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
 
 		# initialize git repository
 		app_repo = git.Repo.init(app_directory)

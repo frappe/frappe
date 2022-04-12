@@ -1,5 +1,6 @@
 import frappe
 
+
 def execute():
 	frappe.reload_doctype("System Settings")
 	# setting first_day_of_the_week value as "Monday" to avoid breaking change

@@ -19,8 +19,8 @@ from unittest.mock import patch
 
 # imports - third party imports
 import click
-from click.testing import CliRunner, Result
 from click import Command
+from click.testing import CliRunner, Result
 
 # imports - module imports
 import frappe
@@ -32,7 +32,7 @@ from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, n
 from frappe.utils.backups import fetch_latest_backups
 
 _result: Optional[Result] = None
-TEST_SITE = "commands-site-O4PN2QKA.test" # added random string tag to avoid collisions
+TEST_SITE = "commands-site-O4PN2QKA.test"  # added random string tag to avoid collisions
 CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
 
@@ -40,10 +40,10 @@ def clean(value) -> str:
 	"""Strips and converts bytes to str
 
 	Args:
-		value ([type]): [description]
+	        value ([type]): [description]
 
 	Returns:
-		[type]: [description]
+	        [type]: [description]
 	"""
 	if isinstance(value, bytes):
 		value = value.decode()
@@ -56,33 +56,28 @@ def missing_in_backup(doctypes: List, file: os.PathLike) -> List:
 	"""Returns list of missing doctypes in the backup.
 
 	Args:
-		doctypes (list): List of DocTypes to be checked
-		file (str): Path of the database file
+	        doctypes (list): List of DocTypes to be checked
+	        file (str): Path of the database file
 
 	Returns:
-		doctypes(list): doctypes that are missing in backup
+	        doctypes(list): doctypes that are missing in backup
 	"""
-	predicate = (
-		'COPY public."tab{}"'
-		if frappe.conf.db_type == "postgres"
-		else "CREATE TABLE `tab{}`"
-	)
+	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
 	with gzip.open(file, "rb") as f:
 		content = f.read().decode("utf8").lower()
 
-	return [doctype for doctype in doctypes
-			if predicate.format(doctype).lower() not in content]
+	return [doctype for doctype in doctypes if predicate.format(doctype).lower() not in content]
 
 
 def exists_in_backup(doctypes: List, file: os.PathLike) -> bool:
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
 	Args:
-		doctypes (list): List of DocTypes to be checked
-		file (str): Path of the database file
+	        doctypes (list): List of DocTypes to be checked
+	        file (str): Path of the database file
 
 	Returns:
-		bool: True if all tables exist
+	        bool: True if all tables exist
 	"""
 	missing_doctypes = missing_in_backup(doctypes, file)
 	return len(missing_doctypes) == 0
@@ -108,6 +103,7 @@ def pass_test_context(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		return f(CLI_CONTEXT, *args, **kwargs)
+
 	return decorated_function
 
 
@@ -150,9 +146,7 @@ class BaseTestCommands(unittest.TestCase):
 			cmd_input = kwargs.get("cmd_input", None)
 			if cmd_input:
 				if not isinstance(cmd_input, bytes):
-					raise Exception(
-						f"The input should be of type bytes, not {type(cmd_input).__name__}"
-					)
+					raise Exception(f"The input should be of type bytes, not {type(cmd_input).__name__}")
 
 				del kwargs["cmd_input"]
 			kwargs.update(site)
@@ -163,7 +157,9 @@ class BaseTestCommands(unittest.TestCase):
 		click.secho(self.command, fg="bright_black")
 
 		command = shlex.split(self.command)
-		self._proc = subprocess.run(command, input=cmd_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		self._proc = subprocess.run(
+			command, input=cmd_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+		)
 		self.stdout = clean(self._proc.stdout)
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
@@ -178,12 +174,9 @@ class BaseTestCommands(unittest.TestCase):
 			"db_type": frappe.conf.db_type,
 		}
 
-		if not os.path.exists(
-			os.path.join(TEST_SITE, "site_config.json")
-		):
+		if not os.path.exists(os.path.join(TEST_SITE, "site_config.json")):
 			cls.execute(
-				"bench new-site {test_site} --admin-password {admin_password} --db-type"
-				" {db_type}",
+				"bench new-site {test_site} --admin-password {admin_password} --db-type" " {db_type}",
 				cmd_config,
 			)
 
@@ -201,14 +194,16 @@ class BaseTestCommands(unittest.TestCase):
 			stderr = self.stderr
 			returncode = self.returncode
 
-		cmd_execution_summary = "\n".join([
-			"-" * 70,
-			"Last Command Execution Summary:",
-			"Command: {}".format(command) if command else "",
-			"Standard Output: {}".format(stdout) if stdout else "",
-			"Standard Error: {}".format(stderr) if stderr else "",
-			"Return Code: {}".format(returncode) if returncode else "",
-		]).strip()
+		cmd_execution_summary = "\n".join(
+			[
+				"-" * 70,
+				"Last Command Execution Summary:",
+				"Command: {}".format(command) if command else "",
+				"Standard Output: {}".format(stdout) if stdout else "",
+				"Standard Error: {}".format(stderr) if stderr else "",
+				"Return Code: {}".format(returncode) if returncode else "",
+			]
+		).strip()
 
 		return "{}\n\n{}".format(output, cmd_execution_summary)
 
@@ -260,8 +255,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {test_site} backup --exclude 'ToDo'", site_data)
 		site_data.update({"kw": "\"{'partial':True}\""})
 		self.execute(
-			"bench --site {test_site} execute"
-			" frappe.utils.backups.fetch_latest_backups --kwargs {kw}",
+			"bench --site {test_site} execute" " frappe.utils.backups.fetch_latest_backups --kwargs {kw}",
 			site_data,
 		)
 		site_data.update({"database": json.loads(self.stdout)["database"]})
@@ -271,11 +265,13 @@ class TestCommands(BaseTestCommands):
 	def test_partial_restore(self):
 		_now = now()
 		for num in range(10):
-			frappe.get_doc({
-				"doctype": "ToDo",
-				"date": add_to_date(_now, days=num),
-				"description": frappe.mock("paragraph")
-			}).insert()
+			frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"date": add_to_date(_now, days=num),
+					"description": frappe.mock("paragraph"),
+				}
+			).insert()
 		frappe.db.commit()
 		todo_count = frappe.db.count("ToDo")
 
@@ -326,9 +322,7 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
-		list_apps = set(
-			_x.split()[0] for _x in self.stdout.split("\n")
-		)
+		list_apps = set(_x.split()[0] for _x in self.stdout.split("\n"))
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
 			installed_apps = set(x.app_name for x in doctype)
@@ -390,7 +384,7 @@ class TestCommands(BaseTestCommands):
 		os.remove(test2_path)
 
 	def test_frappe_site_env(self):
-		os.putenv('FRAPPE_SITE', frappe.local.site)
+		os.putenv("FRAPPE_SITE", frappe.local.site)
 		self.execute("bench execute frappe.ping")
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
@@ -411,43 +405,39 @@ class TestCommands(BaseTestCommands):
 
 		self.execute("bench --site {site} set-password Administrator test1")
 		self.assertEqual(self.returncode, 0)
-		self.assertEqual(check_password('Administrator', 'test1'), 'Administrator')
+		self.assertEqual(check_password("Administrator", "test1"), "Administrator")
 		# to release the lock taken by check_password
 		frappe.db.commit()
 
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
-		self.assertEqual(check_password('Administrator', 'test2'), 'Administrator')
+		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
 
 	def test_make_app(self):
 		user_input = [
-			b"Test App", # title
-			b"This app's description contains 'single quotes' and \"double quotes\".", # description
-			b"Test Publisher", # publisher
-			b"example@example.org", # email
-			b"", # icon
-			b"", # color
-			b"MIT" # app_license
+			b"Test App",  # title
+			b"This app's description contains 'single quotes' and \"double quotes\".",  # description
+			b"Test Publisher",  # publisher
+			b"example@example.org",  # email
+			b"",  # icon
+			b"",  # color
+			b"MIT",  # app_license
 		]
 		app_name = "testapp0"
 		apps_path = os.path.join(get_bench_path(), "apps")
 		test_app_path = os.path.join(apps_path, app_name)
-		self.execute(f"bench make-app {apps_path} {app_name}", {"cmd_input": b'\n'.join(user_input)})
+		self.execute(f"bench make-app {apps_path} {app_name}", {"cmd_input": b"\n".join(user_input)})
 		self.assertEqual(self.returncode, 0)
-		self.assertTrue(
-			os.path.exists(test_app_path)
-		)
+		self.assertTrue(os.path.exists(test_app_path))
 
 		# cleanup
 		shutil.rmtree(test_app_path)
 
 	@skipIf(
 		not (
-			frappe.conf.root_password
-			and frappe.conf.admin_password
-			and frappe.conf.db_type == "mariadb"
+			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
 		),
-		"DB Root password and Admin password not set in config"
+		"DB Root password and Admin password not set in config",
 	)
 	def test_bench_drop_site_should_archive_site(self):
 		# TODO: Make this test postgres compatible
@@ -465,9 +455,9 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 
 		bench_path = get_bench_path()
-		site_directory = os.path.join(bench_path, f'sites/{site}')
+		site_directory = os.path.join(bench_path, f"sites/{site}")
 		self.assertFalse(os.path.exists(site_directory))
-		archive_directory = os.path.join(bench_path, f'archived/sites/{site}')
+		archive_directory = os.path.join(bench_path, f"archived/sites/{site}")
 		self.assertTrue(os.path.exists(archive_directory))
 
 
@@ -479,13 +469,7 @@ class TestBackups(BaseTestCommands):
 				"Note",
 			]
 		},
-		"excludes": {
-			"excludes": [
-				"Activity Log",
-				"Access Log",
-				"Error Log"
-			]
-		}
+		"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
 	}
 	home = os.path.expanduser("~")
 	site_backup_path = frappe.utils.get_site_path("private", "backups")
@@ -503,8 +487,7 @@ class TestBackups(BaseTestCommands):
 					pass
 
 	def test_backup_no_options(self):
-		"""Take a backup without any options
-		"""
+		"""Take a backup without any options"""
 		before_backup = fetch_latest_backups(partial=True)
 		self.execute("bench --site {site} backup")
 		after_backup = fetch_latest_backups(partial=True)
@@ -514,8 +497,7 @@ class TestBackups(BaseTestCommands):
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
 
 	def test_backup_with_files(self):
-		"""Take a backup with files (--with-files)
-		"""
+		"""Take a backup with files (--with-files)"""
 		before_backup = fetch_latest_backups()
 		self.execute("bench --site {site} backup --with-files")
 		after_backup = fetch_latest_backups()
@@ -528,18 +510,18 @@ class TestBackups(BaseTestCommands):
 		self.assertIsNotNone(after_backup["private"])
 
 	def test_backup_with_custom_path(self):
-		"""Backup to a custom path (--backup-path)
-		"""
+		"""Backup to a custom path (--backup-path)"""
 		backup_path = os.path.join(self.home, "backups")
-		self.execute("bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path})
+		self.execute(
+			"bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path}
+		)
 
 		self.assertEqual(self.returncode, 0)
 		self.assertTrue(os.path.exists(backup_path))
 		self.assertGreaterEqual(len(os.listdir(backup_path)), 2)
 
 	def test_backup_with_different_file_paths(self):
-		"""Backup with different file paths (--backup-path-db, --backup-path-files, --backup-path-private-files, --backup-path-conf)
-		"""
+		"""Backup with different file paths (--backup-path-db, --backup-path-files, --backup-path-private-files, --backup-path-conf)"""
 		kwargs = {
 			key: os.path.join(self.home, key, value)
 			for key, value in {
@@ -565,22 +547,19 @@ class TestBackups(BaseTestCommands):
 			self.assertTrue(os.path.exists(path))
 
 	def test_backup_compress_files(self):
-		"""Take a compressed backup (--compress)
-		"""
+		"""Take a compressed backup (--compress)"""
 		self.execute("bench --site {site} backup --with-files --compress")
 		self.assertEqual(self.returncode, 0)
 		compressed_files = glob(f"{self.site_backup_path}/*.tgz")
 		self.assertGreater(len(compressed_files), 0)
 
 	def test_backup_verbose(self):
-		"""Take a verbose backup (--verbose)
-		"""
+		"""Take a verbose backup (--verbose)"""
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEqual(self.returncode, 0)
 
 	def test_backup_only_specific_doctypes(self):
-		"""Take a backup with (include) backup options set in the site config `frappe.conf.backup.includes`
-		"""
+		"""Take a backup with (include) backup options set in the site config `frappe.conf.backup.includes`"""
 		self.execute(
 			"bench --site {site} set-config backup '{includes}' --parse",
 			{"includes": json.dumps(self.backup_map["includes"])},
@@ -591,8 +570,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
 	def test_backup_excluding_specific_doctypes(self):
-		"""Take a backup with (exclude) backup options set (`frappe.conf.backup.excludes`, `--exclude`)
-		"""
+		"""Take a backup with (exclude) backup options set (`frappe.conf.backup.excludes`, `--exclude`)"""
 		# test 1: take a backup with frappe.conf.backup.excludes
 		self.execute(
 			"bench --site {site} set-config backup '{excludes}' --parse",
@@ -614,8 +592,7 @@ class TestBackups(BaseTestCommands):
 		self.assertFalse(exists_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 	def test_selective_backup_priority_resolution(self):
-		"""Take a backup with conflicting backup options set (`frappe.conf.excludes`, `--include`)
-		"""
+		"""Take a backup with conflicting backup options set (`frappe.conf.excludes`, `--include`)"""
 		self.execute(
 			"bench --site {site} backup --include '{include}'",
 			{"include": ",".join(self.backup_map["includes"]["includes"])},
@@ -625,8 +602,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
 	def test_dont_backup_conf(self):
-		"""Take a backup ignoring frappe.conf.backup settings (with --ignore-backup-conf option)
-		"""
+		"""Take a backup ignoring frappe.conf.backup settings (with --ignore-backup-conf option)"""
 		self.execute("bench --site {site} backup --ignore-backup-conf")
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
@@ -636,9 +612,9 @@ class TestBackups(BaseTestCommands):
 class TestRemoveApp(unittest.TestCase):
 	def test_delete_modules(self):
 		from frappe.installer import (
-				_delete_doctypes,
-				_delete_modules,
-				_get_module_linked_doctype_field_map,
+			_delete_doctypes,
+			_delete_modules,
+			_get_module_linked_doctype_field_map,
 		)
 
 		test_module = frappe.new_doc("Module Def")
@@ -646,18 +622,17 @@ class TestRemoveApp(unittest.TestCase):
 		test_module.update({"module_name": "RemoveThis", "app_name": "frappe"})
 		test_module.save()
 
-		module_def_linked_doctype = frappe.get_doc({
-			"doctype": "DocType",
-			"name": "Doctype linked with module def",
-			"module": "RemoveThis",
-			"custom": 1,
-			"fields": [{
-				"label": "Modulen't",
-				"fieldname": "notmodule",
-				"fieldtype": "Link",
-				"options": "Module Def"
-			}]
-		}).insert()
+		module_def_linked_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Doctype linked with module def",
+				"module": "RemoveThis",
+				"custom": 1,
+				"fields": [
+					{"label": "Modulen't", "fieldname": "notmodule", "fieldtype": "Link", "options": "Module Def"}
+				],
+			}
+		).insert()
 
 		doctype_to_link_field_map = _get_module_linked_doctype_field_map()
 
