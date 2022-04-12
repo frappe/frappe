@@ -11,14 +11,6 @@ from frappe.utils.data import cstr
 redis_server = None
 
 
-@frappe.whitelist()
-def get_pending_tasks_for_doc(doctype, docname):
-	return frappe.db.sql_list(
-		"select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype=%s and reference_name=%s",
-		(doctype, docname),
-	)
-
-
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
 	publish_realtime(
 		"progress",
