@@ -4,7 +4,10 @@
 // }
 
 .freeze-row {
-	.level-left, .level-right, .list-row-col {
+
+	.level-left,
+	.level-right,
+	.list-row-col {
 		height: 100%;
 		width: 100%;
 	}
@@ -32,7 +35,9 @@
 
 
 .no-list-sidebar {
-	&[data-page-route^="List/"], [data-page-route^="List/"]{
+
+	&[data-page-route^="List/"],
+	[data-page-route^="List/"] {
 		@include media-breakpoint-up(md) {
 			.layout-side-section {
 				display: none;
@@ -77,6 +82,7 @@
 		flex: 4;
 		min-width: 80%;
 	}
+
 	.level-right {
 		flex: 1.5;
 		overflow: visible;
@@ -102,7 +108,7 @@
 		justify-content: flex-end;
 		// min-width: 120px;
 
-		&> span {
+		&>span {
 			display: inline-block;
 
 			&:not(:last-child) {
@@ -120,7 +126,8 @@
 			min-width: 30px;
 		}
 
-		.list-assignments, .list-actions {
+		.list-assignments,
+		.list-actions {
 			margin-right: var(--margin-md);
 		}
 	}
@@ -131,7 +138,8 @@
 		}
 	}
 
-	.select-like, .file-select {
+	.select-like,
+	.file-select {
 		padding: 15px 0px 15px 15px;
 	}
 }
@@ -177,12 +185,15 @@ $level-margin-right: 8px;
 	}
 }
 
-.list-paging-area, .footnote-area {
+.list-paging-area,
+.footnote-area {
 	border-top: 1px sol var(--border-color);
 }
 
 .frappe-card {
-	.list-paging-area, .footnote-area {
+
+	.list-paging-area,
+	.footnote-area {
 		padding: var(--padding-md);
 	}
 }
@@ -199,7 +210,8 @@ $level-margin-right: 8px;
 	margin-bottom: 1px;
 }
 
-input.list-check-all, input.list-row-checkbox {
+input.list-check-all,
+input.list-row-checkbox {
 	margin-top: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
@@ -279,7 +291,8 @@ input.list-check-all {
 		margin-right: 5px;
 	}
 
-	.liked-by, .liked-by-filter-button {
+	.liked-by,
+	.liked-by-filter-button {
 		display: inline-block;
 		width: 20px;
 		margin-right: 10px;
@@ -302,7 +315,8 @@ input.list-check-all {
 		margin-right: 5px;
 		min-width: 110px;
 
-		.list-row-modified, .avatar-small {
+		.list-row-modified,
+		.avatar-small {
 			margin-right: 10px;
 		}
 	}
@@ -316,6 +330,7 @@ input.list-check-all {
 		justify-content: flex-end;
 	}
 }
+
 // .like-action.octicon-heart {
 // 	color: $heart-color;
 // }
@@ -386,14 +401,14 @@ input.list-check-all {
 	.icon {
 		width: 14px;
 		height: 14px;
+
 		use {
 			stroke: var(--yellow-800);
 		}
 	}
 
 	&.btn {
-		@include button-variant(
-			$background: $light-yellow,
+		@include button-variant($background: $light-yellow,
 			$border: darken($light-yellow, 5%),
 		);
 		box-shadow: none;
@@ -420,48 +435,59 @@ input.list-check-all {
 	overflow: hidden;
 	font-family: Roboto;
 	padding: 0;
-  }
-  
-  #pac-container {
+}
+
+#pac-container {
 	padding-bottom: 12px;
 	margin-right: 12px;
-  }
-  
-  .pac-controls {
+}
+
+.pac-controls {
 	display: inline-block;
 	padding: 5px 11px;
-  }
-  
-  .pac-controls label {
+}
+
+.pac-controls label {
 	font-family: Roboto;
 	font-size: 13px;
 	font-weight: 300;
-  }
-  
-  #pac-input {
+}
+
+#pac-input {
 	background-color: #fff;
 	font-family: Roboto;
 	font-size: 15px;
 	font-weight: 300;
 	margin-left: 12px;
-	padding: 0 11px 0 13px;
+	padding: 5px 10px;
 	text-overflow: ellipsis;
-	width: 400px;
+	width: 300px;
 	color: black;
-  }
-  
-  #pac-input:focus {
+	border: none;
+	border-radius: 5px;
+	top: 20px !important;
+}
+
+#pac-input:focus {
 	border-color: #4d90fe;
-  }
-  
-  #title {
+}
+
+#title {
 	color: #fff;
 	background-color: #4d90fe;
 	font-size: 25px;
 	font-weight: 500;
 	padding: 6px 12px;
-  }
-  
-  #target {
+}
+
+#target {
 	width: 345px;
-  }
+}
+
+.custom-map-control-button {
+	background-image: url("https: //img.icons8.com/color/48/000000/place-marker--v1.png");
+	border: none;
+	border-radius: 5px;
+	background-color: #fff;
+	top: 18px !important;
+}

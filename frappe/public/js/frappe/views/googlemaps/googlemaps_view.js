@@ -45,7 +45,50 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
         this.input = document.getElementById("pac-input");
         this.searchBox = new google.maps.places.SearchBox(this.input);
 
-        this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(this.input);
+        const locationButton = document.createElement("button");
+
+        locationButton.innerHTML = "<img src='https://img.icons8.com/color/30/000000/place-marker--v1.png'/>";
+
+        locationButton.classList.add("custom-map-control-button");
+
+        this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(locationButton);
+
+
+        locationButton.addEventListener("click", () => {
+            let map = this.map
+            // Try HTML5 geolocation.
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+
+                        new google.maps.Marker({
+                            map,
+                            animation: google.maps.Animation.DROP,
+                            position: pos,
+                        })
+                        // infowindow.setPosition(pos);
+                        // infowindow.setContent("Location found.");
+                        // infowindow.open(this.map);
+                        this.map.setCenter(pos);
+                        this.map.setZoom(16)
+                    },
+                    () => {
+                        handleLocationError(true, infowindow, this.map.getCenter());
+                    }
+                );
+            } else {
+                // Browser doesn't support Geolocation
+                handleLocationError(false, infowindow, this.map.getCenter());
+            }
+        });
+
+
+
+        this.map.controls[google.maps.ControlPosition.TOP_CENTER].push(this.input);
 
         this.map.addListener("bounds_changed", () => {
             this.searchBox.setBounds(this.map.getBounds());
@@ -55,26 +98,26 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
         this.searchBox.addListener("places_changed", () => {
             const places = this.searchBox.getPlaces();
-        
+
             if (places.length == 0) {
-              return;
+                return;
             }
-        
+
             // Clear out the old markers.
             markers.forEach((marker) => {
-              marker.setMap(null);
+                marker.setMap(null);
             });
             markers = [];
-        
+
             // For each place, get the icon, name and location.
             const bounds = new google.maps.LatLngBounds();
-        
+
             places.forEach((place) => {
                 if (!place.geometry || !place.geometry.location) {
                     console.log("Returned place contains no geometry");
                     return;
                 }
-            
+
                 const icon = {
                     url: place.icon,
                     size: new google.maps.Size(71, 71),
@@ -84,14 +127,14 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
                 };
 
                 let map = this.map
-            
+
                 // Create a marker for each place.
                 markers.push(
                     new google.maps.Marker({
-                    map,
-                    icon,
-                    title: place.name,
-                    position: place.geometry.location,
+                        map,
+                        icon,
+                        title: place.name,
+                        position: place.geometry.location,
                     })
                 );
                 if (place.geometry.viewport) {
@@ -213,5 +256,15 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
             this.icons = r.message;
 
         });
+    }
+
+    handleLocationError(browserHasGeolocation, infowindow, pos) {
+        infowindow.setPosition(pos);
+        infowindow.setContent(
+            browserHasGeolocation
+                ? "Error: The Geolocation service failed."
+                : "Error: Your browser doesn't support geolocation."
+        );
+        infowindow.open(map);
     }
 };

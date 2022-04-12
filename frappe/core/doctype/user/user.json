@@ -10,8 +10,9 @@
   "enabled",
   "section_break_3",
   "user_roles",
-  "role_detail",
   "role_unit",
+  "role_detail",
+  "position",
   "role_ampuh",
   "column_break_6",
   "email",
@@ -753,7 +754,13 @@
   {
    "fieldname": "role_ampuh",
    "fieldtype": "Data",
-   "label": "Role Ampuh"
+   "label": "Role Ampuh",
+   "read_only": 1
+  },
+  {
+   "fieldname": "position",
+   "fieldtype": "Data",
+   "label": "Position"
   }
  ],
  "icon": "fa fa-user",
@@ -822,7 +829,7 @@
   }
  ],
  "max_attachments": 5,
- "modified": "2022-04-07 15:50:08.494837",
+ "modified": "2022-04-12 13:24:40.333721",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
