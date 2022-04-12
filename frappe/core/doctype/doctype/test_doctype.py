@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Dict, List, Optional
+import unittest
+
 import frappe
 import unittest
 from frappe.core.doctype.doctype.doctype import (UniqueFieldnameError,
@@ -507,7 +510,7 @@ class TestDocType(unittest.TestCase):
 
 	def test_autoincremented_doctype_transition(self):
 		frappe.delete_doc("testy_autoinc_dt")
-		dt = new_doctype("testy_autoinc_dt", autoincremented=True).insert(ignore_permissions=True)
+		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)
 		dt.autoname = "hash"
 
 		try:
@@ -521,25 +524,31 @@ class TestDocType(unittest.TestCase):
 			dt.delete(ignore_permissions=True)
 
 
-def new_doctype(name, unique=0, depends_on='', fields=None, autoincremented=False):
-	doc = frappe.get_doc({
-		"doctype": "DocType",
-		"module": "Core",
-		"custom": 1,
-		"fields": [{
-			"label": "Some Field",
-			"fieldname": "some_fieldname",
-			"fieldtype": "Data",
-			"unique": unique,
-			"depends_on": depends_on,
-		}],
-		"permissions": [{
-			"role": "System Manager",
-			"read": 1,
-		}],
-		"name": name,
-		"autoname": "autoincrement" if autoincremented else ""
-	})
+def new_doctype(name, unique: bool = False, depends_on: str = "", fields: Optional[List[Dict]] = None, **kwargs):
+	doc = frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{
+					"label": "Some Field",
+					"fieldname": "some_fieldname",
+					"fieldtype": "Data",
+					"unique": unique,
+					"depends_on": depends_on,
+				}
+			],
+			"permissions": [
+				{
+					"role": "System Manager",
+					"read": 1,
+				}
+			],
+			"name": name,
+			**kwargs,
+		}
+	)
 
 	if fields:
 		for f in fields:
