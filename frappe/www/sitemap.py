@@ -5,7 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.model.document import get_controller
-from frappe.utils import get_datetime, get_url, nowdate
+from frappe.utils import get_url, nowdate
 from frappe.website.router import get_pages
 
 no_cache = 1
@@ -18,9 +18,7 @@ def get_context(context):
 
 	for route, page in get_pages().items():
 		if page.sitemap:
-			links.append(
-				{"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()}
-			)
+			links.append({"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()})
 
 	for route, data in get_public_pages_from_doctypes().items():
 		links.append(
@@ -47,9 +45,7 @@ def get_public_pages_from_doctypes():
 		for doctype in doctypes_with_web_view:
 			controller = get_controller(doctype)
 			meta = frappe.get_meta(doctype)
-			condition_field = (
-				meta.is_published_field or controller.website.condition_field
-			)
+			condition_field = meta.is_published_field or controller.website.condition_field
 
 			if not condition_field:
 				continue

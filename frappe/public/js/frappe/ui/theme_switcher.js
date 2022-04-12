@@ -25,6 +25,8 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 				increment_by = 1;
 			} else if (key === "left") {
 				increment_by = -1;
+			} else if (e.keyCode === 13) { // keycode 13 is for 'enter'
+				this.hide();
 			} else {
 				return;
 			}

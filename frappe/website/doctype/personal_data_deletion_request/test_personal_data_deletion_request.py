@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
 import unittest
+from datetime import datetime, timedelta
+
+import frappe
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
-	remove_unverified_record, process_data_deletion_request
+	process_data_deletion_request,
+	remove_unverified_record,
 )
 from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import (
-	create_user_if_not_exists
+	create_user_if_not_exists,
 )
-from datetime import datetime, timedelta
 
 
 class TestPersonalDataDeletionRequest(unittest.TestCase):
@@ -43,7 +45,7 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.assertEqual(deleted_user.phone, self.delete_request.anonymization_value_map["Phone"])
 		self.assertEqual(
 			deleted_user.birth_date,
-			datetime.strptime(self.delete_request.anonymization_value_map["Date"], "%Y-%m-%d").date()
+			datetime.strptime(self.delete_request.anonymization_value_map["Date"], "%Y-%m-%d").date(),
 		)
 		self.assertEqual(self.delete_request.status, "Deleted")
 
@@ -55,9 +57,7 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.delete_request.db_set("status", "Pending Verification")
 
 		remove_unverified_record()
-		self.assertFalse(
-			frappe.db.exists("Personal Data Deletion Request", self.delete_request.name)
-		)
+		self.assertFalse(frappe.db.exists("Personal Data Deletion Request", self.delete_request.name))
 
 	def test_process_auto_request(self):
 		frappe.db.set_value("Website Settings", None, "auto_account_deletion", "1")
