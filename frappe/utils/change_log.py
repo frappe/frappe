@@ -15,10 +15,12 @@ from frappe.utils import cstr
 
 
 def get_change_log(user=None):
-	if not user: user = frappe.session.user
+	if not user:
+		user = frappe.session.user
 
-	last_known_versions = frappe._dict(json.loads(frappe.db.get_value("User",
-		user, "last_known_versions") or "{}"))
+	last_known_versions = frappe._dict(
+		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
+	)
 	current_versions = get_versions()
 
 	if not last_known_versions:
@@ -26,6 +28,7 @@ def get_change_log(user=None):
 		return []
 
 	change_log = []
+
 	def set_in_change_log(app, opts, change_log):
 		from_version = last_known_versions.get(app, {}).get("version") or "0.0.1"
 		to_version = opts["version"]
@@ -34,12 +37,14 @@ def get_change_log(user=None):
 			app_change_log = get_change_log_for_app(app, from_version=from_version, to_version=to_version)
 
 			if app_change_log:
-				change_log.append({
-					"title": opts["title"],
-					"description": opts["description"],
-					"version": to_version,
-					"change_log": app_change_log
-				})
+				change_log.append(
+					{
+						"title": opts["title"],
+						"description": opts["description"],
+						"version": to_version,
+						"change_log": app_change_log,
+					}
+				)
 
 	for app, opts in current_versions.items():
 		if app != "frappe":
@@ -49,6 +54,7 @@ def get_change_log(user=None):
 		set_in_change_log("frappe", current_versions["frappe"], change_log)
 
 	return change_log
+
 
 def get_change_log_for_app(app, from_version, to_version):
 	change_log_folder = os.path.join(frappe.get_app_path(app), "change_log")
@@ -60,7 +66,9 @@ def get_change_log_for_app(app, from_version, to_version):
 	# remove pre-release part
 	to_version.prerelease = None
 
-	major_version_folders = ["v{0}".format(i) for i in range(from_version.major, to_version.major + 1)]
+	major_version_folders = [
+		"v{0}".format(i) for i in range(from_version.major, to_version.major + 1)
+	]
 	app_change_log = []
 
 	for folder in os.listdir(change_log_folder):
@@ -78,10 +86,17 @@ def get_change_log_for_app(app, from_version, to_version):
 	# convert version to string and send
 	return [[cstr(d[0]), d[1]] for d in app_change_log]
 
+
 @frappe.whitelist()
 def update_last_known_versions():
-	frappe.db.set_value("User", frappe.session.user, "last_known_versions",
-		json.dumps(get_versions()), update_modified=False)
+	frappe.db.set_value(
+		"User",
+		frappe.session.user,
+		"last_known_versions",
+		json.dumps(get_versions()),
+		update_modified=False,
+	)
+
 
 @frappe.whitelist()
 def get_versions():
@@ -89,55 +104,68 @@ def get_versions():
 
 	Example:
 
-		{
-			"frappe": {
-				"title": "Frappe Framework",
-				"version": "5.0.0"
-			}
-		}"""
+	        {
+	                "frappe": {
+	                        "title": "Frappe Framework",
+	                        "version": "5.0.0"
+	                }
+	        }"""
 	versions = {}
 	for app in frappe.get_installed_apps(sort=True):
 		app_hooks = frappe.get_hooks(app_name=app)
 		versions[app] = {
 			"title": app_hooks.get("app_title")[0],
 			"description": app_hooks.get("app_description")[0],
-			"branch": get_app_branch(app)
+			"branch": get_app_branch(app),
 		}
 
-		if versions[app]['branch'] != 'master':
-			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
+		if versions[app]["branch"] != "master":
+			branch_version = app_hooks.get("{0}_version".format(versions[app]["branch"]))
 			if branch_version:
-				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
+				versions[app]["branch_version"] = branch_version[0] + " ({0})".format(
+					get_app_last_commit_ref(app)
+				)
 
 		try:
 			versions[app]["version"] = frappe.get_attr(app + ".__version__")
 		except AttributeError:
-			versions[app]["version"] = '0.0.1'
+			versions[app]["version"] = "0.0.1"
 
 	return versions
 
+
 def get_app_branch(app):
-	'''Returns branch of an app'''
+	"""Returns branch of an app"""
 	try:
-		null_stream = open(os.devnull, 'wb')
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True, stdin=null_stream, stderr=null_stream)
+		null_stream = open(os.devnull, "wb")
+		result = subprocess.check_output(
+			"cd ../apps/{0} && git rev-parse --abbrev-ref HEAD".format(app),
+			shell=True,
+			stdin=null_stream,
+			stderr=null_stream,
+		)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
 	except Exception:
-		return ''
+		return ""
+
 
 def get_app_last_commit_ref(app):
 	try:
-		null_stream = open(os.devnull, 'wb')
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
-			shell=True, stdin=null_stream, stderr=null_stream)
+		null_stream = open(os.devnull, "wb")
+		result = subprocess.check_output(
+			"cd ../apps/{0} && git rev-parse HEAD --short 7".format(app),
+			shell=True,
+			stdin=null_stream,
+			stderr=null_stream,
+		)
 		result = safe_decode(result)
 		result = result.strip()
 		return result
 	except Exception:
-		return ''
+		return ""
+
 
 def check_for_update():
 	updates = frappe._dict(major=[], minor=[], patch=[])
@@ -145,25 +173,31 @@ def check_for_update():
 
 	for app in apps:
 		app_details = check_release_on_github(app)
-		if not app_details: continue
+		if not app_details:
+			continue
 
 		github_version, org_name = app_details
 		# Get local instance's current version or the app
 
-		branch_version = apps[app]['branch_version'].split(' ')[0] if apps[app].get('branch_version', '') else ''
-		instance_version = Version(branch_version or apps[app].get('version'))
+		branch_version = (
+			apps[app]["branch_version"].split(" ")[0] if apps[app].get("branch_version", "") else ""
+		)
+		instance_version = Version(branch_version or apps[app].get("version"))
 		# Compare and popup update message
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
-				updates[update_type].append(frappe._dict(
-					current_version=str(instance_version),
-					available_version=str(github_version),
-					org_name=org_name,
-					app_name=app,
-					title=apps[app]['title'],
-				))
+				updates[update_type].append(
+					frappe._dict(
+						current_version=str(instance_version),
+						available_version=str(github_version),
+						org_name=org_name,
+						app_name=app,
+						title=apps[app]["title"],
+					)
+				)
 				break
-			if github_version.__dict__[update_type] < instance_version.__dict__[update_type]: break
+			if github_version.__dict__[update_type] < instance_version.__dict__[update_type]:
+				break
 
 	add_message_to_redis(updates)
 
@@ -178,7 +212,9 @@ def parse_latest_non_beta_release(response):
 	Returns
 	json   : json object pertaining to the latest non-beta release
 	"""
-	version_list = [release.get('tag_name').strip('v') for release in response if not release.get('prerelease')]
+	version_list = [
+		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
+	]
 
 	if version_list:
 		return sorted(version_list, key=Version, reverse=True)[0]
@@ -191,11 +227,11 @@ def check_release_on_github(app: str):
 	Check the latest release for a given Frappe application hosted on Github.
 
 	Args:
-		app (str): The name of the Frappe application.
+	        app (str): The name of the Frappe application.
 
 	Returns:
-		tuple(Version, str): The semantic version object of the latest release and the
-			organization name, if the application exists, otherwise None.
+	        tuple(Version, str): The semantic version object of the latest release and the
+	                organization name, if the application exists, otherwise None.
 	"""
 
 	from giturlparse import parse
@@ -203,7 +239,9 @@ def check_release_on_github(app: str):
 
 	try:
 		# Check if repo remote is on github
-		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+		remote_url = subprocess.check_output(
+			"cd ../apps/{} && git ls-remote --get-url".format(app), shell=True
+		)
 	except subprocess.CalledProcessError:
 		# Passing this since some apps may not have git initialized in them
 		return
@@ -237,8 +275,9 @@ def add_message_to_redis(update_json):
 	cache = frappe.cache()
 	cache.set_value("update-info", json.dumps(update_json))
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
-	system_managers = [user for user in user_list if 'System Manager' in frappe.get_roles(user)]
+	system_managers = [user for user in user_list if "System Manager" in frappe.get_roles(user)]
 	cache.sadd("update-user-set", *system_managers)
+
 
 @frappe.whitelist()
 def show_update_popup():
@@ -262,12 +301,16 @@ def show_update_popup():
 					available_version=app.available_version,
 					org_name=app.org_name,
 					app_name=app.app_name,
-					title=app.title
+					title=app.title,
 				)
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
-				update_message += "<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(message, release_links)
+				update_message += (
+					"<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(
+						message, release_links
+					)
+				)
 
 	if update_message:
-		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')
+		frappe.msgprint(update_message, title=_("New updates are available"), indicator="green")
 		cache.srem("update-user-set", user)

@@ -1,10 +1,13 @@
-from __future__ import unicode_literals, print_function
-import frappe.utils
+from __future__ import print_function, unicode_literals
+
 from collections import defaultdict
-from rq import Worker, Connection
-from frappe.utils.background_jobs import get_redis_conn, get_queue, get_queue_list
-from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
+
+from rq import Connection, Worker
 from six import iteritems
+
+import frappe.utils
+from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
+from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
 
 
 def get_workers():
@@ -23,24 +26,24 @@ def purge_pending_jobs(event=None, site=None, queue=None):
 	for queue in get_queue_list(queue):
 		q = get_queue(queue)
 		for job in q.jobs:
-			if (site and event):
-				if job.kwargs['site'] == site and job.kwargs['event'] == event:
+			if site and event:
+				if job.kwargs["site"] == site and job.kwargs["event"] == event:
 					job.delete()
-					purged_task_count+=1
+					purged_task_count += 1
 			elif site:
-				if job.kwargs['site'] == site:
+				if job.kwargs["site"] == site:
 					job.delete()
-					purged_task_count+=1
+					purged_task_count += 1
 			elif event:
-				if job.kwargs['event'] == event:
+				if job.kwargs["event"] == event:
 					job.delete()
-					purged_task_count+=1
+					purged_task_count += 1
 			else:
 				purged_task_count += q.count
 				q.empty()
 
-
 	return purged_task_count
+
 
 def get_jobs_by_queue(site=None):
 	jobs_per_queue = defaultdict(list)
@@ -49,9 +52,9 @@ def get_jobs_by_queue(site=None):
 		q = get_queue(queue)
 		for job in q.jobs:
 			if not site:
-				jobs_per_queue[queue].append(job.kwargs.get('method') or job.description)
-			elif job.kwargs['site'] == site:
-				jobs_per_queue[queue].append(job.kwargs.get('method') or job.description)
+				jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
+			elif job.kwargs["site"] == site:
+				jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
 
 		consolidated_methods = {}
 
@@ -64,7 +67,6 @@ def get_jobs_by_queue(site=None):
 		job_count[queue] = len(jobs_per_queue[queue])
 		jobs_per_queue[queue] = consolidated_methods
 
-
 	return jobs_per_queue, job_count
 
 
@@ -73,17 +75,16 @@ def get_pending_jobs(site=None):
 	for queue in get_queue_list():
 		q = get_queue(queue)
 		for job in q.jobs:
-			method_kwargs = job.kwargs['kwargs'] if job.kwargs['kwargs'] else ""
-			if job.kwargs['site'] == site:
-				jobs_per_queue[queue].append("{0} {1}".
-					format(job.kwargs['method'], method_kwargs))
+			method_kwargs = job.kwargs["kwargs"] if job.kwargs["kwargs"] else ""
+			if job.kwargs["site"] == site:
+				jobs_per_queue[queue].append("{0} {1}".format(job.kwargs["method"], method_kwargs))
 
 	return jobs_per_queue
 
 
-
 def check_number_of_workers():
 	return len(get_workers())
+
 
 def get_running_tasks():
 	for worker in get_workers():
@@ -136,11 +137,11 @@ def doctor(site=None):
 
 	return True
 
+
 def pending_jobs(site=None):
 	print("-----Pending Jobs-----")
 	pending_jobs = get_pending_jobs(site)
 	for queue in get_queue_list():
-		if(pending_jobs[queue]):
+		if pending_jobs[queue]:
 			print("-----Queue :{0}-----".format(queue))
 			print("\n".join(pending_jobs[queue]))
-

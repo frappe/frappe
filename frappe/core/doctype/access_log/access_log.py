@@ -26,7 +26,14 @@ def make_access_log(
 	columns=None,
 ):
 	_make_access_log(
-		doctype, document, method, file_type, report_name, filters, page, columns,
+		doctype,
+		document,
+		method,
+		file_type,
+		report_name,
+		filters,
+		page,
+		columns,
 	)
 
 
@@ -44,18 +51,20 @@ def _make_access_log(
 	user = frappe.session.user
 	in_request = frappe.request and frappe.request.method == "GET"
 
-	doc = frappe.get_doc({
-		'doctype': 'Access Log',
-		'user': user,
-		'export_from': doctype,
-		'reference_document': document,
-		'file_type': file_type,
-		'report_name': report_name,
-		'page': page,
-		'method': method,
-		'filters': frappe.utils.cstr(filters) if filters else None,
-		'columns': columns
-	})
+	doc = frappe.get_doc(
+		{
+			"doctype": "Access Log",
+			"user": user,
+			"export_from": doctype,
+			"reference_document": document,
+			"file_type": file_type,
+			"report_name": report_name,
+			"page": page,
+			"method": method,
+			"filters": frappe.utils.cstr(filters) if filters else None,
+			"columns": columns,
+		}
+	)
 	doc.insert(ignore_permissions=True)
 
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`

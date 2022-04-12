@@ -2,9 +2,12 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, unittest
 
+import unittest
+
+import frappe
 from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
+
 
 class TestForm(unittest.TestCase):
 	def test_linked_with(self):
@@ -12,6 +15,7 @@ class TestForm(unittest.TestCase):
 		self.assertTrue("User" in results)
 		self.assertTrue("DocType" in results)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
 	frappe.connect()
 	unittest.main()

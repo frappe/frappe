@@ -106,7 +106,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				old_title: this.frm.doc[title_field],
 				new_title,
 				merge,
-				freeze: true, 
+				freeze: true,
 				freeze_message: __("Updating related fields...")
 			}).then(new_docname => {
 				if (new_name != docname) {

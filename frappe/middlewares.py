@@ -3,11 +3,13 @@
 
 from __future__ import unicode_literals
 
-import frappe
 import os
+
 from werkzeug.exceptions import NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
-from frappe.utils import get_site_name, cstr
+
+import frappe
+from frappe.utils import cstr, get_site_name
 
 
 class StaticDataMiddleware(SharedDataMiddleware):
@@ -17,8 +19,8 @@ class StaticDataMiddleware(SharedDataMiddleware):
 
 	def get_directory_loader(self, directory):
 		def loader(path):
-			site = get_site_name(frappe.app._site or self.environ.get('HTTP_HOST'))
-			path = os.path.join(directory, site, 'public', 'files', cstr(path))
+			site = get_site_name(frappe.app._site or self.environ.get("HTTP_HOST"))
+			path = os.path.join(directory, site, "public", "files", cstr(path))
 			if os.path.isfile(path):
 				return os.path.basename(path), self._opener(path)
 			else:

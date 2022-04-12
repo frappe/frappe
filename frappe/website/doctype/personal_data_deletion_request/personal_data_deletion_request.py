@@ -2,16 +2,16 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
 import re
 
 import frappe
 from frappe import _
+from frappe.core.utils import find
 from frappe.model.document import Document
 from frappe.utils import get_fullname
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
-import json
-from frappe.core.utils import find
 
 
 class PersonalDataDeletionRequest(Document):
@@ -19,9 +19,7 @@ class PersonalDataDeletionRequest(Document):
 		super().__init__(*args, **kwargs)
 
 		self.user_data_fields = frappe.get_hooks("user_data_fields")
-		self.full_match_privacy_docs = [
-			x for x in self.user_data_fields if x.get("redact_fields")
-		]
+		self.full_match_privacy_docs = [x for x in self.user_data_fields if x.get("redact_fields")]
 		self.partial_privacy_docs = [
 			x for x in self.user_data_fields if x.get("partial") or not x.get("redact_fields")
 		]
@@ -212,20 +210,19 @@ class PersonalDataDeletionRequest(Document):
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
 
 			if self.email in doc[filter_by]:
-				value = re.sub(
-					self.full_name_regex, self.anonymization_value_map["Data"], doc[filter_by]
-				)
+				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], doc[filter_by])
 				value = re.sub(self.email_regex, self.anon, value)
 				self.anonymize_fields_dict[filter_by] = value
 
 		frappe.db.set_value(
-			ref["doctype"], doc["name"], self.anonymize_fields_dict, modified_by="Administrator",
+			ref["doctype"],
+			doc["name"],
+			self.anonymize_fields_dict,
+			modified_by="Administrator",
 		)
 
 		if ref.get("rename") and doc["name"] != self.anon:
-			frappe.rename_doc(
-				ref["doctype"], doc["name"], self.anon, force=True, show_alert=False
-			)
+			frappe.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
 
 	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False):
 		email = email or self.email
@@ -239,17 +236,13 @@ class PersonalDataDeletionRequest(Document):
 		self.full_match_doctypes = (
 			x
 			for x in self.full_match_privacy_docs
-			if filter(
-				lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps
-			)
+			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
 		)
 
 		self.partial_match_doctypes = (
 			x
 			for x in self.partial_privacy_docs
-			if filter(
-				lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps
-			)
+			if filter(lambda x: x.document_type == x and x.status == "Pending", self.deletion_steps)
 		)
 
 		for doctype in self.full_match_doctypes:
@@ -311,9 +304,7 @@ class PersonalDataDeletionRequest(Document):
 
 		update_predicate = f"SET  {', '.join(match_fields)}"
 		where_predicate = (
-			""
-			if doctype.get("strict")
-			else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
+			"" if doctype.get("strict") else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
 		)
 
 		frappe.db.sql(
@@ -346,8 +337,9 @@ def confirm_deletion(email, name, host_name):
 		frappe.db.commit()
 		frappe.respond_as_web_page(
 			_("Confirmed"),
-			_("The process for deletion of {0} data associated with {1} has been initiated.")
-			.format(host_name, email),
+			_("The process for deletion of {0} data associated with {1} has been initiated.").format(
+				host_name, email
+			),
 			indicator_color="green",
 		)
 

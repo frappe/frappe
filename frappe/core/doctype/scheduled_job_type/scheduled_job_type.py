@@ -33,19 +33,22 @@ class ScheduledJobType(Document):
 				self.execute()
 			else:
 				if not self.is_job_in_queue():
-					enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
-						queue = self.get_queue_name(), job_type=self.method)
+					enqueue(
+						"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
+						queue=self.get_queue_name(),
+						job_type=self.method,
+					)
 					return True
 
 		return False
 
-	def is_event_due(self, current_time = None):
-		'''Return true if event is due based on time lapsed since last execution'''
+	def is_event_due(self, current_time=None):
+		"""Return true if event is due based on time lapsed since last execution"""
 		# if the next scheduled event is before NOW, then its due!
 		return self.get_next_execution() <= (current_time or now_datetime())
 
 	def is_job_in_queue(self):
-		queued_jobs = get_jobs(site=frappe.local.site, key='job_type')[frappe.local.site]
+		queued_jobs = get_jobs(site=frappe.local.site, key="job_type")[frappe.local.site]
 		return self.method in queued_jobs
 
 	def get_next_execution(self):
@@ -66,24 +69,25 @@ class ScheduledJobType(Document):
 		if not self.cron_format:
 			self.cron_format = CRON_MAP[self.frequency]
 
-		return croniter(self.cron_format,
-			get_datetime(self.last_execution or datetime(2000, 1, 1))).get_next(datetime)
+		return croniter(
+			self.cron_format, get_datetime(self.last_execution or datetime(2000, 1, 1))
+		).get_next(datetime)
 
 	def execute(self):
 		self.scheduler_log = None
 		try:
-			self.log_status('Start')
+			self.log_status("Start")
 			if self.server_script:
 				script_name = frappe.db.get_value("Server Script", self.server_script)
 				if script_name:
-					frappe.get_doc('Server Script', script_name).execute_scheduled_method()
+					frappe.get_doc("Server Script", script_name).execute_scheduled_method()
 			else:
 				frappe.get_attr(self.method)()
 			frappe.db.commit()
-			self.log_status('Complete')
+			self.log_status("Complete")
 		except Exception:
 			frappe.db.rollback()
-			self.log_status('Failed')
+			self.log_status("Failed")
 
 	def log_status(self, status):
 		# log file
@@ -93,24 +97,26 @@ class ScheduledJobType(Document):
 	def update_scheduler_log(self, status):
 		if not self.create_log:
 			# self.get_next_execution will work properly iff self.last_execution is properly set
-			if self.frequency == "All" and status == 'Start':
-				self.db_set('last_execution', now_datetime(), update_modified=False)
+			if self.frequency == "All" and status == "Start":
+				self.db_set("last_execution", now_datetime(), update_modified=False)
 				frappe.db.commit()
 			return
 		if not self.scheduler_log:
-			self.scheduler_log = frappe.get_doc(dict(doctype = 'Scheduled Job Log', scheduled_job_type=self.name)).insert(ignore_permissions=True)
-		self.scheduler_log.db_set('status', status)
-		if status == 'Failed':
-			self.scheduler_log.db_set('details', frappe.get_traceback())
-		if status == 'Start':
-			self.db_set('last_execution', now_datetime(), update_modified=False)
+			self.scheduler_log = frappe.get_doc(
+				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
+			).insert(ignore_permissions=True)
+		self.scheduler_log.db_set("status", status)
+		if status == "Failed":
+			self.scheduler_log.db_set("details", frappe.get_traceback())
+		if status == "Start":
+			self.db_set("last_execution", now_datetime(), update_modified=False)
 		frappe.db.commit()
 
 	def get_queue_name(self):
-		return 'long' if ('Long' in self.frequency) else 'default'
+		return "long" if ("Long" in self.frequency) else "default"
 
 	def on_trash(self):
-		frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
+		frappe.db.sql("delete from `tabScheduled Job Log` where scheduled_job_type=%s", self.name)
 
 
 @frappe.whitelist()
@@ -188,9 +194,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str = None):
 
 
 def clear_events(all_events: List):
-	for event in frappe.get_all(
-		"Scheduled Job Type", fields=["name", "method", "server_script"]
-	):
+	for event in frappe.get_all("Scheduled Job Type", fields=["name", "method", "server_script"]):
 		is_server_script = event.server_script
 		is_defined_in_hooks = event.method in all_events
 

@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 from functools import wraps
-from typing import Union, Callable
+from typing import Callable, Union
 
 from werkzeug.wrappers import Response
 
@@ -84,7 +84,14 @@ class RateLimiter:
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
 
-def rate_limit(key: str = None, limit: Union[int, Callable] = 5, seconds: int = 24*60*60, methods: Union[str, list] = 'ALL', ip_based: bool = True):
+
+def rate_limit(
+	key: str = None,
+	limit: Union[int, Callable] = 5,
+	seconds: int = 24 * 60 * 60,
+	methods: Union[str, list] = "ALL",
+	ip_based: bool = True,
+):
 	"""Decorator to rate limit an endpoint.
 
 	This will limit Number of requests per endpoint to `limit` within `seconds`.
@@ -95,18 +102,24 @@ def rate_limit(key: str = None, limit: Union[int, Callable] = 5, seconds: int = 
 	:type limit: Callable or Integer
 	:param seconds: window time to allow requests
 	:param methods: Limit the validation for these methods.
-		`ALL` is a wildcard that applies rate limit on all methods.
+	        `ALL` is a wildcard that applies rate limit on all methods.
 	:type methods: string or list or tuple
 	:param ip_based: flag to allow ip based rate-limiting
 	:type ip_based: Boolean
 
 	:returns: a decorator function that limit the number of requests per endpoint
 	"""
+
 	def ratelimit_decorator(fun):
 		@wraps(fun)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
-			if methods != 'ALL' and frappe.request and frappe.request.method and frappe.request.method.upper() not in methods:
+			if (
+				methods != "ALL"
+				and frappe.request
+				and frappe.request.method
+				and frappe.request.method.upper() not in methods
+			):
 				return frappe.call(fun, **frappe.form_dict or kwargs)
 
 			_limit = limit() if callable(limit) else limit
@@ -123,7 +136,7 @@ def rate_limit(key: str = None, limit: Union[int, Callable] = 5, seconds: int = 
 			identity = identity or ip or user_key
 
 			if not identity:
-				frappe.throw(_('Either key or IP flag is required.'))
+				frappe.throw(_("Either key or IP flag is required."))
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
@@ -133,8 +146,12 @@ def rate_limit(key: str = None, limit: Union[int, Callable] = 5, seconds: int = 
 
 			value = frappe.cache().incrby(cache_key, 1)
 			if value > _limit:
-				frappe.throw(_("You hit the rate limit because of too many requests. Please try after sometime."))
+				frappe.throw(
+					_("You hit the rate limit because of too many requests. Please try after sometime.")
+				)
 
 			return frappe.call(fun, **frappe.form_dict or kwargs)
+
 		return wrapper
+
 	return ratelimit_decorator

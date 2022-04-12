@@ -3,18 +3,21 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+
 import json
 import time
+
 import requests
 from six import iteritems
+
+import frappe
 from frappe import _
-from frappe.model.document import Document
-from frappe.frappeclient import FrappeClient
-from frappe.utils.background_jobs import get_jobs
-from frappe.utils.data import get_url, get_link_to_form
-from frappe.utils.password import get_decrypted_password
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.frappeclient import FrappeClient
+from frappe.model.document import Document
+from frappe.utils.background_jobs import get_jobs
+from frappe.utils.data import get_link_to_form, get_url
+from frappe.utils.password import get_decrypted_password
 
 
 class EventProducer(Document):
@@ -29,19 +32,21 @@ class EventProducer(Document):
 		self.validate_event_subscriber()
 		if frappe.flags.in_test:
 			for entry in self.producer_doctypes:
-				entry.status = 'Approved'
+				entry.status = "Approved"
 
 	def validate_event_subscriber(self):
-		if not frappe.db.get_value('User', self.user, 'api_key'):
-			frappe.throw(_('Please generate keys for the Event Subscriber User {0} first.').format(
-				frappe.bold(get_link_to_form('User', self.user))
-			))
+		if not frappe.db.get_value("User", self.user, "api_key"):
+			frappe.throw(
+				_("Please generate keys for the Event Subscriber User {0} first.").format(
+					frappe.bold(get_link_to_form("User", self.user))
+				)
+			)
 
 	def on_update(self):
 		if not self.incoming_change:
-			if frappe.db.exists('Event Producer', self.name):
+			if frappe.db.exists("Event Producer", self.name):
 				if not self.api_key or not self.api_secret:
-					frappe.throw(_('Please set API Key and Secret on the producer and consumer sites first.'))
+					frappe.throw(_("Please set API Key and Secret on the producer and consumer sites first."))
 				else:
 					doc_before_save = self.get_doc_before_save()
 					if doc_before_save.api_key != self.api_key or doc_before_save.api_secret != self.api_secret:
@@ -51,13 +56,13 @@ class EventProducer(Document):
 					self.create_custom_fields()
 		else:
 			# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
-			self.db_set('incoming_change', 0)
+			self.db_set("incoming_change", 0)
 			self.reload()
 
 	def on_trash(self):
-		last_update = frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name))
+		last_update = frappe.db.get_value("Event Producer Last Update", dict(event_producer=self.name))
 		if last_update:
-			frappe.delete_doc('Event Producer Last Update', last_update)
+			frappe.delete_doc("Event Producer Last Update", last_update)
 
 	def check_url(self):
 		valid_url_schemes = ("http", "https")
@@ -72,73 +77,96 @@ class EventProducer(Document):
 		"""register event consumer on the producer site"""
 		if self.is_producer_online():
 			producer_site = FrappeClient(
-				url=self.producer_url,
-				api_key=self.api_key,
-				api_secret=self.get_password('api_secret')
+				url=self.producer_url, api_key=self.api_key, api_secret=self.get_password("api_secret")
 			)
 
 			response = producer_site.post_api(
-				'frappe.event_streaming.doctype.event_consumer.event_consumer.register_consumer',
-				params={'data': json.dumps(self.get_request_data())}
+				"frappe.event_streaming.doctype.event_consumer.event_consumer.register_consumer",
+				params={"data": json.dumps(self.get_request_data())},
 			)
 			if response:
 				response = json.loads(response)
-				self.set_last_update(response['last_update'])
+				self.set_last_update(response["last_update"])
 			else:
-				frappe.throw(_('Failed to create an Event Consumer or an Event Consumer for the current site is already registered.'))
+				frappe.throw(
+					_(
+						"Failed to create an Event Consumer or an Event Consumer for the current site is already registered."
+					)
+				)
 
 	def set_last_update(self, last_update):
-		last_update_doc_name = frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name))
+		last_update_doc_name = frappe.db.get_value(
+			"Event Producer Last Update", dict(event_producer=self.name)
+		)
 		if not last_update_doc_name:
-			frappe.get_doc(dict(
-				doctype = 'Event Producer Last Update',
-				event_producer = self.producer_url,
-				last_update = last_update
-			)).insert(ignore_permissions=True)
+			frappe.get_doc(
+				dict(
+					doctype="Event Producer Last Update",
+					event_producer=self.producer_url,
+					last_update=last_update,
+				)
+			).insert(ignore_permissions=True)
 		else:
-			frappe.db.set_value('Event Producer Last Update', last_update_doc_name, 'last_update', last_update)
+			frappe.db.set_value(
+				"Event Producer Last Update", last_update_doc_name, "last_update", last_update
+			)
 
 	def get_last_update(self):
-		return frappe.db.get_value('Event Producer Last Update', dict(event_producer=self.name), 'last_update')
+		return frappe.db.get_value(
+			"Event Producer Last Update", dict(event_producer=self.name), "last_update"
+		)
 
 	def get_request_data(self):
 		consumer_doctypes = []
 		for entry in self.producer_doctypes:
 			if entry.has_mapping:
 				# if mapping, subscribe to remote doctype on consumer's site
-				dt = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
+				dt = frappe.db.get_value("Document Type Mapping", entry.mapping, "remote_doctype")
 			else:
 				dt = entry.ref_doctype
-			consumer_doctypes.append({
-				"doctype": dt,
-				"condition": entry.condition
-			})
+			consumer_doctypes.append({"doctype": dt, "condition": entry.condition})
 
-		user_key = frappe.db.get_value('User', self.user, 'api_key')
-		user_secret = get_decrypted_password('User', self.user, 'api_secret')
+		user_key = frappe.db.get_value("User", self.user, "api_key")
+		user_secret = get_decrypted_password("User", self.user, "api_secret")
 		return {
-			'event_consumer': get_url(),
-			'consumer_doctypes': json.dumps(consumer_doctypes),
-			'user': self.user,
-			'api_key': user_key,
-			'api_secret': user_secret
+			"event_consumer": get_url(),
+			"consumer_doctypes": json.dumps(consumer_doctypes),
+			"user": self.user,
+			"api_key": user_key,
+			"api_secret": user_secret,
 		}
 
 	def create_custom_fields(self):
 		"""create custom field to store remote docname and remote site url"""
 		for entry in self.producer_doctypes:
 			if not entry.use_same_name:
-				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_docname', 'dt': entry.ref_doctype}):
-					df = dict(fieldname='remote_docname', label='Remote Document Name', fieldtype='Data', read_only=1, print_hide=1)
+				if not frappe.db.exists(
+					"Custom Field", {"fieldname": "remote_docname", "dt": entry.ref_doctype}
+				):
+					df = dict(
+						fieldname="remote_docname",
+						label="Remote Document Name",
+						fieldtype="Data",
+						read_only=1,
+						print_hide=1,
+					)
 					create_custom_field(entry.ref_doctype, df)
-				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_site_name', 'dt': entry.ref_doctype}):
-					df = dict(fieldname='remote_site_name', label='Remote Site', fieldtype='Data', read_only=1, print_hide=1)
+				if not frappe.db.exists(
+					"Custom Field", {"fieldname": "remote_site_name", "dt": entry.ref_doctype}
+				):
+					df = dict(
+						fieldname="remote_site_name",
+						label="Remote Site",
+						fieldtype="Data",
+						read_only=1,
+						print_hide=1,
+					)
 					create_custom_field(entry.ref_doctype, df)
 
 	def update_event_consumer(self):
 		if self.is_producer_online():
 			producer_site = get_producer_site(self.producer_url)
-			event_consumer = producer_site.get_doc('Event Consumer', get_url())
+			event_consumer = producer_site.get_doc("Event Consumer", get_url())
 			event_consumer = frappe._dict(event_consumer)
 			if event_consumer:
 				config = event_consumer.consumer_doctypes
@@ -146,16 +174,18 @@ class EventProducer(Document):
 				for entry in self.producer_doctypes:
 					if entry.has_mapping:
 						# if mapping, subscribe to remote doctype on consumer's site
-						ref_doctype = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
+						ref_doctype = frappe.db.get_value("Document Type Mapping", entry.mapping, "remote_doctype")
 					else:
 						ref_doctype = entry.ref_doctype
 
-					event_consumer.consumer_doctypes.append({
-						'ref_doctype': ref_doctype,
-						'status': get_approval_status(config, ref_doctype),
-						'unsubscribed': entry.unsubscribe,
-						'condition': entry.condition
-					})
+					event_consumer.consumer_doctypes.append(
+						{
+							"ref_doctype": ref_doctype,
+							"status": get_approval_status(config, ref_doctype),
+							"unsubscribed": entry.unsubscribe,
+							"condition": entry.condition,
+						}
+					)
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)
@@ -169,16 +199,16 @@ class EventProducer(Document):
 				return True
 			retry -= 1
 			time.sleep(5)
-		frappe.throw(_('Failed to connect to the Event Producer site. Retry after some time.'))
+		frappe.throw(_("Failed to connect to the Event Producer site. Retry after some time."))
 
 
 def get_producer_site(producer_url):
 	"""create a FrappeClient object for event producer site"""
-	producer_doc = frappe.get_doc('Event Producer', producer_url)
+	producer_doc = frappe.get_doc("Event Producer", producer_url)
 	producer_site = FrappeClient(
 		url=producer_url,
 		api_key=producer_doc.api_key,
-		api_secret=producer_doc.get_password('api_secret')
+		api_secret=producer_doc.get_password("api_secret"),
 	)
 	return producer_site
 
@@ -186,9 +216,9 @@ def get_producer_site(producer_url):
 def get_approval_status(config, ref_doctype):
 	"""check the approval status for consumption"""
 	for entry in config:
-		if entry.get('ref_doctype') == ref_doctype:
-			return entry.get('status')
-	return 'Pending'
+		if entry.get("ref_doctype") == ref_doctype:
+			return entry.get("status")
+	return "Pending"
 
 
 @frappe.whitelist()
@@ -196,16 +226,16 @@ def pull_producer_data():
 	"""Fetch data from producer node."""
 	response = requests.get(get_url())
 	if response.status_code == 200:
-		for event_producer in frappe.get_all('Event Producer'):
+		for event_producer in frappe.get_all("Event Producer"):
 			pull_from_node(event_producer.name)
-		return 'success'
+		return "success"
 	return None
 
 
 @frappe.whitelist()
 def pull_from_node(event_producer):
 	"""pull all updates after the last update timestamp from event producer site"""
-	event_producer = frappe.get_doc('Event Producer', event_producer)
+	event_producer = frappe.get_doc("Event Producer", event_producer)
 	producer_site = get_producer_site(event_producer.producer_url)
 	last_update = event_producer.get_last_update()
 
@@ -219,7 +249,7 @@ def pull_from_node(event_producer):
 		if mapping:
 			update.mapping = mapping
 			update = get_mapped_update(update, producer_site)
-		if not update.update_type == 'Delete':
+		if not update.update_type == "Delete":
 			update.data = json.loads(update.data)
 
 		sync(update, producer_site, event_producer)
@@ -230,9 +260,11 @@ def get_config(event_config):
 	doctypes, mapping_config, naming_config = [], {}, {}
 
 	for entry in event_config:
-		if entry.status == 'Approved':
+		if entry.status == "Approved":
 			if entry.has_mapping:
-				(mapped_doctype, mapping) = frappe.db.get_value('Document Type Mapping', entry.mapping, ['remote_doctype', 'name'])
+				(mapped_doctype, mapping) = frappe.db.get_value(
+					"Document Type Mapping", entry.mapping, ["remote_doctype", "name"]
+				)
 				mapping_config[mapped_doctype] = mapping
 				naming_config[mapped_doctype] = entry.use_same_name
 				doctypes.append(mapped_doctype)
@@ -245,22 +277,22 @@ def get_config(event_config):
 def sync(update, producer_site, event_producer, in_retry=False):
 	"""Sync the individual update"""
 	try:
-		if update.update_type == 'Create':
+		if update.update_type == "Create":
 			set_insert(update, producer_site, event_producer.name)
-		if update.update_type == 'Update':
+		if update.update_type == "Update":
 			set_update(update, producer_site)
-		if update.update_type == 'Delete':
+		if update.update_type == "Delete":
 			set_delete(update)
 		if in_retry:
-			return 'Synced'
-		log_event_sync(update, event_producer.name, 'Synced')
+			return "Synced"
+		log_event_sync(update, event_producer.name, "Synced")
 
 	except Exception:
 		if in_retry:
 			if frappe.flags.in_test:
 				print(frappe.get_traceback())
-			return 'Failed'
-		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
+			return "Failed"
+		log_event_sync(update, event_producer.name, "Failed", frappe.get_traceback())
 
 	event_producer.set_last_update(update.creation)
 	frappe.db.commit()
@@ -274,10 +306,10 @@ def set_insert(update, producer_site, event_producer):
 	doc = frappe.get_doc(update.data)
 
 	if update.mapping:
-		if update.get('dependencies'):
+		if update.get("dependencies"):
 			dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
 			for fieldname, value in iteritems(dependencies_created):
-				doc.update({ fieldname : value })
+				doc.update({fieldname: value})
 	else:
 		sync_dependencies(doc, producer_site)
 
@@ -306,10 +338,10 @@ def set_update(update, producer_site):
 			local_doc = update_row_added(local_doc, data.added)
 
 		if update.mapping:
-			if update.get('dependencies'):
+			if update.get("dependencies"):
 				dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
 				for fieldname, value in iteritems(dependencies_created):
-					local_doc.update({ fieldname : value })
+					local_doc.update({fieldname: value})
 		else:
 			sync_dependencies(local_doc, producer_site)
 
@@ -331,7 +363,7 @@ def update_row_removed(local_doc, removed):
 
 def get_child_table_row(table_rows, row):
 	for entry in table_rows:
-		if entry.get('name') == row:
+		if entry.get("name") == row:
 			return entry
 
 
@@ -341,7 +373,7 @@ def update_row_changed(local_doc, changed):
 		old = local_doc.get(tablename)
 		for doc in old:
 			for row in rows:
-				if row['name'] == doc.get('name'):
+				if row["name"] == doc.get("name"):
 					doc.update(row)
 
 
@@ -366,12 +398,14 @@ def set_delete(update):
 
 def get_updates(producer_site, last_update, doctypes):
 	"""Get all updates generated after the last update timestamp"""
-	docs = producer_site.post_request({
-			'cmd': 'frappe.event_streaming.doctype.event_update_log.event_update_log.get_update_logs_for_consumer',
-			'event_consumer': get_url(),
-			'doctypes': frappe.as_json(doctypes),
-			'last_update': last_update
-	})
+	docs = producer_site.post_request(
+		{
+			"cmd": "frappe.event_streaming.doctype.event_update_log.event_update_log.get_update_logs_for_consumer",
+			"event_consumer": get_url(),
+			"doctypes": frappe.as_json(doctypes),
+			"last_update": last_update,
+		}
+	)
 	return [frappe._dict(d) for d in (docs or [])]
 
 
@@ -379,7 +413,7 @@ def get_local_doc(update):
 	"""Get the local document if created with a different name"""
 	try:
 		if not update.use_same_name:
-			return frappe.get_doc(update.ref_doctype, {'remote_docname': update.docname})
+			return frappe.get_doc(update.ref_doctype, {"remote_docname": update.docname})
 		return frappe.get_doc(update.ref_doctype, update.docname)
 	except frappe.DoesNotExistError:
 		return None
@@ -479,9 +513,10 @@ def sync_mapped_dependencies(dependencies, producer_site):
 
 	return dependencies_created
 
+
 def log_event_sync(update, event_producer, sync_status, error=None):
 	"""Log event update received with the sync_status as Synced or Failed"""
-	doc = frappe.new_doc('Event Sync Log')
+	doc = frappe.new_doc("Event Sync Log")
 	doc.update_type = update.update_type
 	doc.ref_doctype = update.ref_doctype
 	doc.status = sync_status
@@ -493,7 +528,7 @@ def log_event_sync(update, event_producer, sync_status, error=None):
 	if update.use_same_name:
 		doc.docname = update.docname
 	else:
-		doc.docname = frappe.db.get_value(update.ref_doctype, {'remote_docname': update.docname}, 'name')
+		doc.docname = frappe.db.get_value(update.ref_doctype, {"remote_docname": update.docname}, "name")
 	if error:
 		doc.error = error
 	doc.insert()
@@ -501,28 +536,28 @@ def log_event_sync(update, event_producer, sync_status, error=None):
 
 def get_mapped_update(update, producer_site):
 	"""get the new update document with mapped fields"""
-	mapping = frappe.get_doc('Document Type Mapping', update.mapping)
-	if update.update_type == 'Create':
+	mapping = frappe.get_doc("Document Type Mapping", update.mapping)
+	if update.update_type == "Create":
 		doc = frappe._dict(json.loads(update.data))
 		mapped_update = mapping.get_mapping(doc, producer_site, update.update_type)
-		update.data = mapped_update.get('doc')
-		update.dependencies = mapped_update.get('dependencies', None)
-	elif update.update_type == 'Update':
+		update.data = mapped_update.get("doc")
+		update.dependencies = mapped_update.get("dependencies", None)
+	elif update.update_type == "Update":
 		mapped_update = mapping.get_mapped_update(update, producer_site)
-		update.data = mapped_update.get('doc')
-		update.dependencies = mapped_update.get('dependencies', None)
+		update.data = mapped_update.get("doc")
+		update.dependencies = mapped_update.get("dependencies", None)
 
-	update['ref_doctype'] = mapping.local_doctype
+	update["ref_doctype"] = mapping.local_doctype
 	return update
 
 
 @frappe.whitelist()
 def new_event_notification(producer_url):
 	"""Pull data from producer when notified"""
-	enqueued_method = 'frappe.event_streaming.doctype.event_producer.event_producer.pull_from_node'
+	enqueued_method = "frappe.event_streaming.doctype.event_producer.event_producer.pull_from_node"
 	jobs = get_jobs()
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
-		frappe.enqueue(enqueued_method, queue='default', **{'event_producer': producer_url})
+		frappe.enqueue(enqueued_method, queue="default", **{"event_producer": producer_url})
 
 
 @frappe.whitelist()
@@ -530,7 +565,7 @@ def resync(update):
 	"""Retry syncing update if failed"""
 	update = frappe._dict(json.loads(update))
 	producer_site = get_producer_site(update.event_producer)
-	event_producer = frappe.get_doc('Event Producer', update.event_producer)
+	event_producer = frappe.get_doc("Event Producer", update.event_producer)
 	if update.mapping:
 		update = get_mapped_update(update, producer_site)
 		update.data = json.loads(update.data)
@@ -539,5 +574,5 @@ def resync(update):
 
 def set_custom_fields(local_doc, remote_docname, remote_site_name):
 	"""sets custom field in doc for storing remote docname"""
-	frappe.db.set_value(local_doc.doctype, local_doc.name, 'remote_docname', remote_docname)
-	frappe.db.set_value(local_doc.doctype, local_doc.name, 'remote_site_name', remote_site_name)
+	frappe.db.set_value(local_doc.doctype, local_doc.name, "remote_docname", remote_docname)
+	frappe.db.set_value(local_doc.doctype, local_doc.name, "remote_site_name", remote_site_name)

@@ -2,8 +2,12 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+
+import json
+
+import frappe
 from frappe.desk.form.load import run_onload
+
 
 @frappe.whitelist()
 def savedocs(doc, action):
@@ -13,9 +17,9 @@ def savedocs(doc, action):
 		set_local_name(doc)
 
 		# action
-		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
+		doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 
-		if doc.docstatus==1:
+		if doc.docstatus == 1:
 			doc.submit()
 		else:
 			doc.save()
@@ -24,10 +28,11 @@ def savedocs(doc, action):
 		run_onload(doc)
 		send_updated_docs(doc)
 
-		frappe.msgprint(frappe._("Saved"), indicator='green', alert=True)
+		frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
 		raise
+
 
 @frappe.whitelist()
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
@@ -38,25 +43,28 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 			doc.set(workflow_state_fieldname, workflow_state)
 		doc.cancel()
 		send_updated_docs(doc)
-		frappe.msgprint(frappe._("Cancelled"), indicator='red', alert=True)
+		frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
 		raise
 
+
 def send_updated_docs(doc):
 	from .load import get_docinfo
+
 	get_docinfo(doc)
 
 	d = doc.as_dict()
-	if hasattr(doc, 'localname'):
+	if hasattr(doc, "localname"):
 		d["localname"] = doc.localname
 
 	frappe.response.docs.append(d)
 
+
 def set_local_name(doc):
 	def _set_local_name(d):
-		if doc.get('__islocal') or d.get('__islocal'):
+		if doc.get("__islocal") or d.get("__islocal"):
 			d.localname = d.name
 			d.name = None
 

@@ -2,12 +2,14 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 from frappe.model.utils.rename_field import rename_field
 
+
 def execute():
 	"""
-		Change notification recipient fields from email to receiver fields
+	Change notification recipient fields from email to receiver fields
 	"""
 	frappe.reload_doc("Email", "doctype", "Notification Recipient")
 	frappe.reload_doc("Email", "doctype", "Notification")

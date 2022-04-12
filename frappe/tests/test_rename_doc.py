@@ -1,13 +1,12 @@
 import os
 import unittest
+from random import choice, sample
 
 import frappe
-from frappe.utils import add_to_date, now
 from frappe.exceptions import DoesNotExistError
-
-from random import choice, sample
 from frappe.model.base_document import get_controller
 from frappe.modules.utils import get_doc_path
+from frappe.utils import add_to_date, now
 
 
 class TestRenameDoc(unittest.TestCase):
@@ -23,29 +22,33 @@ class TestRenameDoc(unittest.TestCase):
 		self.test_doctype = "ToDo"
 
 		for num in range(1, 5):
-			doc = frappe.get_doc({
-				"doctype": self.test_doctype,
-				"date": add_to_date(now(), days=num),
-				"description": "this is todo #{}".format(num),
-			}).insert()
+			doc = frappe.get_doc(
+				{
+					"doctype": self.test_doctype,
+					"date": add_to_date(now(), days=num),
+					"description": "this is todo #{}".format(num),
+				}
+			).insert()
 			self.available_documents.append(doc.name)
 
 		#  data generation: for controllers tests
-		self.doctype = frappe._dict({
-			"old": "Test Rename Document Old",
-			"new": "Test Rename Document New",
-		})
+		self.doctype = frappe._dict(
+			{
+				"old": "Test Rename Document Old",
+				"new": "Test Rename Document New",
+			}
+		)
 
-		frappe.get_doc({
-			"doctype": "DocType",
-			"module": "Custom",
-			"name": self.doctype.old,
-			"custom": 0,
-			"fields": [
-				{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data"}
-			],
-			"permissions": [{"role": "System Manager", "read": 1}],
-		}).insert()
+		frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Custom",
+				"name": self.doctype.old,
+				"custom": 0,
+				"fields": [{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data"}],
+				"permissions": [{"role": "System Manager", "read": 1}],
+			}
+		).insert()
 
 	@classmethod
 	def tearDownClass(self):
@@ -149,9 +152,7 @@ class TestRenameDoc(unittest.TestCase):
 		# having the same name
 		old_name = to_rename_record.name
 		new_name = "ToDo"
-		self.assertEqual(
-			new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True)
-		)
+		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
 
 		# delete_doc doesnt drop tables
 		# this is done to bypass inconsistencies in the db
