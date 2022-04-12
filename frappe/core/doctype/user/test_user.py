@@ -115,6 +115,17 @@ class TestUser(unittest.TestCase):
 		# system manager is not added (it is reset)
 		self.assertFalse('System Manager' in [d.role for d in me.roles])
 
+		# ignore permlevel using flags
+		me.flags.ignore_permlevel_for_fields = ["roles"]
+		me.add_roles("System Manager")
+
+		# system manager now added due to flags
+		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
+
+		# reset flags
+		me.flags.ignore_permlevel_for_fields = None
+
+		# change user
 		frappe.set_user("Administrator")
 
 		me = frappe.get_doc("User", "testperm@example.com")

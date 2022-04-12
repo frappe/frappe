@@ -6,6 +6,7 @@ import frappe, unittest
 import frappe.desk.form.assign_to
 from frappe.desk.listview import get_group_by_count
 from frappe.automation.doctype.assignment_rule.test_assignment_rule import make_note
+from frappe.desk.form.load import get_assignments
 
 class TestAssign(unittest.TestCase):
 	def test_assign(self):
@@ -57,6 +58,17 @@ class TestAssign(unittest.TestCase):
 
 		frappe.db.rollback()
 
+	def test_assignment_removal(self):
+		todo = frappe.get_doc({"doctype":"ToDo", "description": "test"}).insert()
+		if not frappe.db.exists("User", "test@example.com"):
+			frappe.get_doc({"doctype":"User", "email":"test@example.com", "first_name":"Test"}).insert()
+
+		new_todo = assign(todo, "test@example.com")
+
+		# remove assignment
+		frappe.db.set_value("ToDo", new_todo[0].name, "owner", "")
+
+		self.assertFalse(get_assignments("ToDo", todo.name))
 
 def assign(doc, user):
 	return frappe.desk.form.assign_to.add({
