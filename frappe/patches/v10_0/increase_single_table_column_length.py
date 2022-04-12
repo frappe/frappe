@@ -1,8 +1,8 @@
-
 """
 Run this after updating country_info.json and or
 """
 import frappe
+
 
 def execute():
 	for col in ("field", "doctype"):

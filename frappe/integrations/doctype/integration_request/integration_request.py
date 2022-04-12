@@ -2,10 +2,12 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
 import json
+
+import frappe
 from frappe.integrations.utils import json_handler
+from frappe.model.document import Document
+
 
 class IntegrationRequest(Document):
 	def autoname(self):

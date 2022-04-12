@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-
 from frappe.model.document import Document
+
 
 class DocPerm(Document):
 	pass
