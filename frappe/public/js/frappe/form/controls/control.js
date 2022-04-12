@@ -41,8 +41,6 @@ import './duration';
 import './icon';
 
 frappe.ui.form.make_control = function (opts) {
-	if (opts.df.fieldtype == "Long Int")
-		return new frappe.ui.form["ControlInt"](opts);
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");
 	if(frappe.ui.form[control_class_name]) {
 		return new frappe.ui.form[control_class_name](opts);
