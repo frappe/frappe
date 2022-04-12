@@ -3,17 +3,18 @@
 from __future__ import unicode_literals
 
 import unittest
-import requests
+from urllib.parse import quote, urlencode
+
 import jwt
-from six.moves.urllib.parse import urlparse, parse_qs, urljoin
-from urllib.parse import urlencode, quote
+import requests
+from six.moves.urllib.parse import parse_qs, urljoin, urlparse
 
 import frappe
-from frappe.test_runner import make_test_records
 from frappe.integrations.oauth2 import encode_params
+from frappe.test_runner import make_test_records
+
 
 class TestOAuth20(unittest.TestCase):
-
 	def setUp(self):
 		make_test_records("OAuth Client")
 		make_test_records("User")
@@ -49,12 +50,14 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params=encode_params({
-					"client_id": self.client_id,
-					"scope": self.scope,
-					"response_type": "code",
-					"redirect_uri": self.redirect_uri
-				})
+				params=encode_params(
+					{
+						"client_id": self.client_id,
+						"scope": self.scope,
+						"response_type": "code",
+						"redirect_uri": self.redirect_uri,
+					}
+				),
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -67,13 +70,15 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data=encode_params({
-				"grant_type": "authorization_code",
-				"code": auth_code,
-				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id,
-				"scope": self.scope,
-			})
+			data=encode_params(
+				{
+					"grant_type": "authorization_code",
+					"code": auth_code,
+					"redirect_uri": self.redirect_uri,
+					"client_id": self.client_id,
+					"scope": self.scope,
+				}
+			),
 		)
 
 		# Parse bearer token json
@@ -99,14 +104,16 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params=encode_params({
-					"client_id": self.client_id,
-					"scope": self.scope,
-					"response_type": "code",
-					"redirect_uri": self.redirect_uri,
-					"code_challenge_method": 'S256',
-					"code_challenge": '21XaP8MJjpxCMRxgEzBP82sZ73PRLqkyBUta1R309J0' ,
-				})
+				params=encode_params(
+					{
+						"client_id": self.client_id,
+						"scope": self.scope,
+						"response_type": "code",
+						"redirect_uri": self.redirect_uri,
+						"code_challenge_method": "S256",
+						"code_challenge": "21XaP8MJjpxCMRxgEzBP82sZ73PRLqkyBUta1R309J0",
+					}
+				),
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -119,14 +126,16 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data=encode_params({
-				"grant_type": "authorization_code",
-				"code": auth_code,
-				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id,
-				"scope": self.scope,
-				"code_verifier": "420",
-			})
+			data=encode_params(
+				{
+					"grant_type": "authorization_code",
+					"code": auth_code,
+					"redirect_uri": self.redirect_uri,
+					"client_id": self.client_id,
+					"scope": self.scope,
+					"code_verifier": "420",
+				}
+			),
 		)
 
 		# Parse bearer token json
@@ -151,12 +160,14 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params=encode_params({
-					"client_id": self.client_id,
-					"scope": self.scope,
-					"response_type": "code",
-					"redirect_uri": self.redirect_uri
-				})
+				params=encode_params(
+					{
+						"client_id": self.client_id,
+						"scope": self.scope,
+						"response_type": "code",
+						"redirect_uri": self.redirect_uri,
+					}
+				),
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -169,12 +180,14 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data=encode_params({
-				"grant_type": "authorization_code",
-				"code": auth_code,
-				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id
-			})
+			data=encode_params(
+				{
+					"grant_type": "authorization_code",
+					"code": auth_code,
+					"redirect_uri": self.redirect_uri,
+					"client_id": self.client_id,
+				}
+			),
 		)
 
 		# Parse bearer token json
@@ -184,7 +197,7 @@ class TestOAuth20(unittest.TestCase):
 		revoke_token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.revoke_token"),
 			headers=self.form_header,
-			data={"token": bearer_token.get("access_token")}
+			data={"token": bearer_token.get("access_token")},
 		)
 
 		self.assertTrue(revoke_token_response.status_code == 200)
@@ -203,13 +216,15 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data=encode_params({
-				"grant_type": "password",
-				"username": "test@example.com",
-				"password": "Eastern_43A1W",
-				"client_id":  self.client_id,
-				"scope": self.scope
-			})
+			data=encode_params(
+				{
+					"grant_type": "password",
+					"username": "test@example.com",
+					"password": "Eastern_43A1W",
+					"client_id": self.client_id,
+					"scope": self.scope,
+				}
+			),
 		)
 
 		# Parse bearer token json
@@ -234,12 +249,14 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params=encode_params({
-					"client_id": self.client_id,
-					"scope": self.scope,
-					"response_type": "token",
-					"redirect_uri": self.redirect_uri
-				})
+				params=encode_params(
+					{
+						"client_id": self.client_id,
+						"scope": self.scope,
+						"response_type": "token",
+						"redirect_uri": self.redirect_uri,
+					}
+				),
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -266,13 +283,15 @@ class TestOAuth20(unittest.TestCase):
 		try:
 			session.get(
 				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params=encode_params({
-					"client_id": self.client_id,
-					"scope": self.scope,
-					"response_type": "code",
-					"redirect_uri": self.redirect_uri,
-					"nonce": nonce,
-				})
+				params=encode_params(
+					{
+						"client_id": self.client_id,
+						"scope": self.scope,
+						"response_type": "code",
+						"redirect_uri": self.redirect_uri,
+						"nonce": nonce,
+					}
+				),
 			)
 		except requests.exceptions.ConnectionError as ex:
 			redirect_destination = ex.request.url
@@ -285,13 +304,15 @@ class TestOAuth20(unittest.TestCase):
 		token_response = requests.post(
 			get_full_url("/api/method/frappe.integrations.oauth2.get_token"),
 			headers=self.form_header,
-			data=encode_params({
-				"grant_type": "authorization_code",
-				"code": auth_code,
-				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id,
-				"scope": self.scope,
-			})
+			data=encode_params(
+				{
+					"grant_type": "authorization_code",
+					"code": auth_code,
+					"redirect_uri": self.redirect_uri,
+					"client_id": self.client_id,
+					"scope": self.scope,
+				}
+			),
 		)
 
 		# Parse bearer token json
@@ -317,8 +338,7 @@ def check_valid_openid_response(access_token=None):
 
 	# check openid for email test@example.com
 	openid_response = requests.get(
-		get_full_url("/api/method/frappe.integrations.oauth2.openid_profile"),
-		headers=headers
+		get_full_url("/api/method/frappe.integrations.oauth2.openid_profile"), headers=headers
 	)
 
 	return openid_response.status_code == 200
@@ -326,11 +346,7 @@ def check_valid_openid_response(access_token=None):
 
 def login(session):
 	session.post(
-		get_full_url("/api/method/login"),
-		data={
-			"usr": "test@example.com",
-			"pwd": "Eastern_43A1W"
-		}
+		get_full_url("/api/method/login"), data={"usr": "test@example.com", "pwd": "Eastern_43A1W"}
 	)
 
 

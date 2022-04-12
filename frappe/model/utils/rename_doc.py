@@ -16,8 +16,8 @@ def update_linked_doctypes(doctype, docname, linked_to, value, ignore_doctypes=N
 		frappe.db.set_value(
 			d.doctype,
 			{
-				d.master_fieldname : docname,
-				d.linked_to_fieldname : ("!=", value),
+				d.master_fieldname: docname,
+				d.linked_to_fieldname: ("!=", value),
 			},
 			d.linked_to_fieldname,
 			value,
@@ -31,11 +31,11 @@ def get_fetch_fields(doctype, linked_to, ignore_doctypes=None):
 	This function fetches list of all DocType where both doctype and linked_to is found
 	as link fields.
 	Forms a list of dict in the form -
-		[{doctype: , master_fieldname: , linked_to_fieldname: ]
+	        [{doctype: , master_fieldname: , linked_to_fieldname: ]
 	where
-		doctype = DocType where changes need to be made
-		master_fieldname = Fieldname where options = doctype
-		linked_to_fieldname = Fieldname where options = linked_to
+	        doctype = DocType where changes need to be made
+	        master_fieldname = Fieldname where options = doctype
+	        linked_to_fieldname = Fieldname where options = linked_to
 	"""
 
 	out = []

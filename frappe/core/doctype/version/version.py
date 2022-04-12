@@ -2,14 +2,17 @@
 # MIT License. See LICENSE
 
 from __future__ import unicode_literals
-import frappe, json
 
-from frappe.model.document import Document
+import json
+
+import frappe
 from frappe.model import no_value_fields, table_fields
+from frappe.model.document import Document
+
 
 class Version(Document):
 	def set_diff(self, old, new):
-		'''Set the data property with the diff of the docs if present'''
+		"""Set the data property with the diff of the docs if present"""
 		diff = get_diff(old, new)
 		if diff:
 			self.ref_doctype = new.doctype
@@ -22,9 +25,9 @@ class Version(Document):
 	def for_insert(self, doc):
 		updater_reference = doc.flags.updater_reference
 		data = {
-			'creation': doc.creation,
-			'updater_reference': updater_reference,
-			'created_by': doc.owner
+			"creation": doc.creation,
+			"updater_reference": updater_reference,
+			"created_by": doc.owner,
 		}
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
@@ -35,20 +38,20 @@ class Version(Document):
 
 
 def get_diff(old, new, for_child=False):
-	'''Get diff between 2 document objects
+	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:
 
-		{
-			"changed"    : [[fieldname1, old, new], [fieldname2, old, new]],
-			"added"      : [[table_fieldname1, {dict}], ],
-			"removed"    : [[table_fieldname1, {dict}], ],
-			"row_changed": [[table_fieldname1, row_name1, row_index,
-				[[child_fieldname1, old, new],
-				[child_fieldname2, old, new]], ]
-			],
+	        {
+	                "changed"    : [[fieldname1, old, new], [fieldname2, old, new]],
+	                "added"      : [[table_fieldname1, {dict}], ],
+	                "removed"    : [[table_fieldname1, {dict}], ],
+	                "row_changed": [[table_fieldname1, row_name1, row_index,
+	                        [[child_fieldname1, old, new],
+	                        [child_fieldname2, old, new]], ]
+	                ],
 
-		}'''
+	        }"""
 	if not new:
 		return None
 
@@ -58,8 +61,14 @@ def get_diff(old, new, for_child=False):
 	data_import = new.flags.via_data_import
 	updater_reference = new.flags.updater_reference
 
-	out = frappe._dict(changed = [], added = [], removed = [],
-		row_changed = [], data_import=data_import, updater_reference=updater_reference)
+	out = frappe._dict(
+		changed=[],
+		added=[],
+		removed=[],
+		row_changed=[],
+		data_import=data_import,
+		updater_reference=updater_reference,
+	)
 
 	for df in new.meta.fields:
 		if df.fieldtype in no_value_fields and df.fieldtype not in table_fields:
@@ -89,7 +98,7 @@ def get_diff(old, new, for_child=False):
 				if not d.name in new_row_by_name:
 					out.removed.append([df.fieldname, d.as_dict()])
 
-		elif (old_value != new_value):
+		elif old_value != new_value:
 			if df.fieldtype not in blacklisted_fields:
 				old_value = old.get_formatted(df.fieldname) if old_value else old_value
 				new_value = new.get_formatted(df.fieldname) if new_value else new_value
@@ -99,13 +108,14 @@ def get_diff(old, new, for_child=False):
 
 	# docstatus
 	if not for_child and old.docstatus != new.docstatus:
-		out.changed.append(['docstatus', old.docstatus, new.docstatus])
+		out.changed.append(["docstatus", old.docstatus, new.docstatus])
 
 	if any((out.changed, out.added, out.removed, out.row_changed)):
 		return out
 
 	else:
 		return None
+
 
 def on_doctype_update():
 	frappe.db.add_index("Version", ["ref_doctype", "docname"])

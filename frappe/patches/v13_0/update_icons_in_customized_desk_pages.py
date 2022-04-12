@@ -1,10 +1,15 @@
 from __future__ import unicode_literals
+
 import frappe
 
-def execute():
-	if not frappe.db.exists('Desk Page'): return
 
-	pages = frappe.get_all("Desk Page", filters={ "is_standard": False }, fields=["name", "extends", "for_user"])
+def execute():
+	if not frappe.db.exists("Desk Page"):
+		return
+
+	pages = frappe.get_all(
+		"Desk Page", filters={"is_standard": False}, fields=["name", "extends", "for_user"]
+	)
 	default_icon = {}
 	for page in pages:
 		if page.extends and page.for_user:

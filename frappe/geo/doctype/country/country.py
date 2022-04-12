@@ -2,9 +2,10 @@
 # License: See license.txt
 
 from __future__ import unicode_literals
-import frappe
 
+import frappe
 from frappe.model.document import Document
+
 
 class Country(Document):
 	pass

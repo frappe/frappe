@@ -293,7 +293,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let $check_all_checkbox = this.$checkbox_actions.find(".list-check-all");
 
 		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
-			$check_all_checkbox.prop("checked", false); 
+			$check_all_checkbox.prop("checked", false);
 		}
 
 		$check_all_checkbox.prop("checked", this.$checks.length === this.data.length);

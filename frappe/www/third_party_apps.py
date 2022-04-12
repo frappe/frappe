@@ -1,17 +1,23 @@
 from __future__ import unicode_literals
+
 import frappe
-from frappe import _
 import frappe.www.list
+from frappe import _
 
 no_cache = 1
 
+
 def get_context(context):
-	if frappe.session.user == 'Guest':
+	if frappe.session.user == "Guest":
 		frappe.throw(_("You need to be logged in to access this page"), frappe.PermissionError)
 
-	active_tokens = frappe.get_all("OAuth Bearer Token",
-							filters=[["user", "=", frappe.session.user]],
-							fields=["client"], distinct=True, order_by="creation")
+	active_tokens = frappe.get_all(
+		"OAuth Bearer Token",
+		filters=[["user", "=", frappe.session.user]],
+		fields=["client"],
+		distinct=True,
+		order_by="creation",
+	)
 
 	client_apps = []
 
@@ -20,7 +26,7 @@ def get_context(context):
 		app = {
 			"name": token.get("client"),
 			"app_name": frappe.db.get_value("OAuth Client", token.get("client"), "app_name"),
-			"creation": creation
+			"creation": creation,
 		}
 		client_apps.append(app)
 
@@ -36,17 +42,25 @@ def get_context(context):
 	context.apps = client_apps
 	context.show_sidebar = True
 
+
 def get_first_login(client):
-	login_date = frappe.get_all("OAuth Bearer Token",
+	login_date = frappe.get_all(
+		"OAuth Bearer Token",
 		filters=[["user", "=", frappe.session.user], ["client", "=", client]],
-		fields=["creation"], order_by="creation", limit=1)
+		fields=["creation"],
+		order_by="creation",
+		limit=1,
+	)
 
 	login_date = login_date[0].get("creation") if login_date and len(login_date) > 0 else None
 
 	return login_date
 
+
 @frappe.whitelist()
 def delete_client(client_id):
-	active_client_id_tokens = frappe.get_all("OAuth Bearer Token", filters=[["user", "=", frappe.session.user], ["client","=", client_id]])
+	active_client_id_tokens = frappe.get_all(
+		"OAuth Bearer Token", filters=[["user", "=", frappe.session.user], ["client", "=", client_id]]
+	)
 	for token in active_client_id_tokens:
-		frappe.delete_doc("OAuth Bearer Token", token.get("name"),  ignore_permissions=True)
+		frappe.delete_doc("OAuth Bearer Token", token.get("name"), ignore_permissions=True)
