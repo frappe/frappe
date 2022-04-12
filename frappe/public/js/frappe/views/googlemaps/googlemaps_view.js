@@ -90,22 +90,6 @@ frappe.views.GooglemapsView = class GooglemapsView extends frappe.views.ListView
 
         this.map.controls[google.maps.ControlPosition.TOP_CENTER].push(this.input);
 
-        const locationButton = document.createElement("button");
-
-        locationButton.textContent = "Pan to Current Location";
-        locationButton.classList.add("custom-map-control-button");
-
-        map.controls[google.maps.ControlPosition.TOP_CENTER].push(locationButton);
-
-
-        const locationButton = document.createElement("button");
-
-        locationButton.textContent = "Pan to Current Location";
-        locationButton.classList.add("custom-map-control-button");
-
-        map.controls[google.maps.ControlPosition.TOP_CENTER].push(locationButton);
-
-
         this.map.addListener("bounds_changed", () => {
             this.searchBox.setBounds(this.map.getBounds());
         });
