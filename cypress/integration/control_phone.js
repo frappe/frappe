@@ -88,8 +88,9 @@ context("Control Phone", () => {
 		cy.fill_field("phone", "+91-9823341291");
 		cy.wait(500);
 		cy.get_field("phone").should("have.value", "9823341291");
+		cy.intercept("POST", "/api/method/frappe.desk.form.save.savedocs").as("save_form");
 		cy.click_doc_primary_button("Save");
-		cy.wait(500);
+		cy.wait("@save_form");
 		cy.go_to_list("Doctype With Phone");
 		cy.clear_cache();
 		cy.click_listview_row_item(0);
