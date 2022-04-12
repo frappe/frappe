@@ -320,12 +320,12 @@ def add_standard_navbar_items():
 		},
 	]
 
-	custom_help_dropdown_items = add_custom_navbar_items(navbar_settings.help_dropdown)
-	custom_settings_dropdown_items = add_custom_navbar_items(navbar_settings.settings_dropdown)
+	custom_help_dropdown_items = get_custom_navbar_items(navbar_settings.help_dropdown)
+	custom_settings_dropdown_items = get_custom_navbar_items(navbar_settings.settings_dropdown)
 
-	# joining custom_items and standard_items list by keeping custom items on top
-	standard_navbar_items = custom_settings_dropdown_items + standard_navbar_items
-	standard_help_items = custom_help_dropdown_items + standard_help_items
+	# joining custom_items and standard_items list by keeping custom items on bottom
+	standard_navbar_items = standard_navbar_items + custom_settings_dropdown_items
+	standard_help_items = standard_help_items + custom_help_dropdown_items
 
 	navbar_settings.settings_dropdown = []
 	navbar_settings.help_dropdown = []
@@ -338,16 +338,17 @@ def add_standard_navbar_items():
 
 	navbar_settings.save()
 
-def add_custom_navbar_items(navbar_items):
+
+def get_custom_navbar_items(navbar_items):
 	non_standard_items = []
 	for item in navbar_items:
-		if not item.is_standard and not item.item_type == 'Separator':
+		if not item.is_standard and not item.item_type == "Separator":
 			row = {
-				'item_label': item.item_label,
-				'item_type': item.item_type,
-				'route': item.route,
-				'action': item.action,
-				'is_standard': 0
+				"item_label": item.item_label,
+				"item_type": item.item_type,
+				"route": item.route,
+				"action": item.action,
+				"is_standard": 0,
 			}
 			non_standard_items.append(row)
 
