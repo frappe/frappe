@@ -1,6 +1,7 @@
 import importlib.util
 import sys
 
+
 def lazy_import(name, package=None):
 	"""Import a module lazily.
 
@@ -24,7 +25,7 @@ def lazy_import(name, package=None):
 	# Find the spec if not loaded
 	spec = importlib.util.find_spec(name, package)
 	if not spec:
-		raise ImportError(f'Module {name} Not found.')
+		raise ImportError(f"Module {name} Not found.")
 
 	loader = importlib.util.LazyLoader(spec.loader)
 	spec.loader = loader

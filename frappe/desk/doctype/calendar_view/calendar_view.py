@@ -4,5 +4,6 @@
 
 from frappe.model.document import Document
 
+
 class CalendarView(Document):
 	pass

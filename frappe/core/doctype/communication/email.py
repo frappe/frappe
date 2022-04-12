@@ -8,17 +8,25 @@ import frappe
 import frappe.email.smtp
 from frappe import _
 from frappe.email.email_body import get_message_id
-from frappe.utils import (cint, get_datetime, get_formatted_email,
-	list_to_str, split_emails, validate_email_address)
+from frappe.utils import (
+	cint,
+	get_datetime,
+	get_formatted_email,
+	list_to_str,
+	split_emails,
+	validate_email_address,
+)
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.communication.communication import Communication
 
 
-OUTGOING_EMAIL_ACCOUNT_MISSING = _("""
+OUTGOING_EMAIL_ACCOUNT_MISSING = _(
+	"""
 	Unable to send mail because of a missing email account.
 	Please setup default Email Account from Setup > Email > Email Account
-""")
+"""
+)
 
 
 @frappe.whitelist()
@@ -64,16 +72,15 @@ def make(
 	"""
 	if kwargs:
 		from frappe.utils.commands import warn
+
 		warn(
 			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
 			"are deprecated or unsupported",
-			category=DeprecationWarning
+			category=DeprecationWarning,
 		)
 
 	if doctype and name and not frappe.has_permission(doctype=doctype, ptype="email", doc=name):
-		raise frappe.PermissionError(
-			f"You are not allowed to send emails related to: {doctype} {name}"
-		)
+		raise frappe.PermissionError(f"You are not allowed to send emails related to: {doctype} {name}")
 
 	return _make(
 		doctype=doctype,
@@ -123,33 +130,34 @@ def _make(
 	communication_type=None,
 	add_signature=True,
 ) -> Dict[str, str]:
-	"""Internal method to make a new communication that ignores Permission checks.
-	"""
+	"""Internal method to make a new communication that ignores Permission checks."""
 
 	sender = sender or get_formatted_email(frappe.session.user)
 	recipients = list_to_str(recipients) if isinstance(recipients, list) else recipients
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
-	comm: "Communication" = frappe.get_doc({
-		"doctype":"Communication",
-		"subject": subject,
-		"content": content,
-		"sender": sender,
-		"sender_full_name":sender_full_name,
-		"recipients": recipients,
-		"cc": cc or None,
-		"bcc": bcc or None,
-		"communication_medium": communication_medium,
-		"sent_or_received": sent_or_received,
-		"reference_doctype": doctype,
-		"reference_name": name,
-		"email_template": email_template,
-		"message_id":get_message_id().strip(" <>"),
-		"read_receipt":read_receipt,
-		"has_attachment": 1 if attachments else 0,
-		"communication_type": communication_type,
-	})
+	comm: "Communication" = frappe.get_doc(
+		{
+			"doctype": "Communication",
+			"subject": subject,
+			"content": content,
+			"sender": sender,
+			"sender_full_name": sender_full_name,
+			"recipients": recipients,
+			"cc": cc or None,
+			"bcc": bcc or None,
+			"communication_medium": communication_medium,
+			"sent_or_received": sent_or_received,
+			"reference_doctype": doctype,
+			"reference_name": name,
+			"email_template": email_template,
+			"message_id": get_message_id().strip(" <>"),
+			"read_receipt": read_receipt,
+			"has_attachment": 1 if attachments else 0,
+			"communication_type": communication_type,
+		}
+	)
 	comm.flags.skip_add_signature = not add_signature
 	comm.insert(ignore_permissions=True)
 
@@ -161,9 +169,7 @@ def _make(
 
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():
-			frappe.throw(
-				msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError
-			)
+			frappe.throw(msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError)
 
 		comm.send_email(
 			print_html=print_html,
@@ -179,7 +185,10 @@ def _make(
 
 def validate_email(doc: "Communication") -> None:
 	"""Validate Email Addresses of Recipients and CC"""
-	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email") or doc.flags.in_receive:
+	if (
+		not (doc.communication_type == "Communication" and doc.communication_medium == "Email")
+		or doc.flags.in_receive
+	):
 		return
 
 	# validate recipients
@@ -193,35 +202,44 @@ def validate_email(doc: "Communication") -> None:
 	for email in split_emails(doc.bcc):
 		validate_email_address(email, throw=True)
 
+
 def set_incoming_outgoing_accounts(doc):
 	from frappe.email.doctype.email_account.email_account import EmailAccount
+
 	incoming_email_account = EmailAccount.find_incoming(
-		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype)
+		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype
+	)
 	doc.incoming_email_account = incoming_email_account.email_id if incoming_email_account else None
 
 	doc.outgoing_email_account = EmailAccount.find_outgoing(
-		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype)
+		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype
+	)
 
 	if doc.sent_or_received == "Sent":
 		doc.db_set("email_account", doc.outgoing_email_account.name)
 
+
 def add_attachments(name, attachments):
-	'''Add attachments to the given Communication'''
+	"""Add attachments to the given Communication"""
 	# loop through attachments
 	for a in attachments:
 		if isinstance(a, str):
-			attach = frappe.db.get_value("File", {"name":a},
-				["file_name", "file_url", "is_private"], as_dict=1)
+			attach = frappe.db.get_value(
+				"File", {"name": a}, ["file_name", "file_url", "is_private"], as_dict=1
+			)
 			# save attachments to new doc
-			_file = frappe.get_doc({
-				"doctype": "File",
-				"file_url": attach.file_url,
-				"attached_to_doctype": "Communication",
-				"attached_to_name": name,
-				"folder": "Home/Attachments",
-				"is_private": attach.is_private
-			})
+			_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_url": attach.file_url,
+					"attached_to_doctype": "Communication",
+					"attached_to_name": name,
+					"folder": "Home/Attachments",
+					"is_private": attach.is_private,
+				}
+			)
 			_file.save(ignore_permissions=True)
+
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
 def mark_email_as_seen(name: str = None):
@@ -233,33 +251,31 @@ def mark_email_as_seen(name: str = None):
 		frappe.log_error(frappe.get_traceback())
 
 	finally:
-		frappe.response.update({
-			"type": "binary",
-			"filename": "imaginary_pixel.png",
-			"filecontent": (
-				b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
-				b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
-				b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
-				b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
-			)
-		})
+		frappe.response.update(
+			{
+				"type": "binary",
+				"filename": "imaginary_pixel.png",
+				"filecontent": (
+					b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+					b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+					b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+					b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+				),
+			}
+		)
+
 
 def update_communication_as_read(name):
 	if not name or not isinstance(name, str):
 		return
 
-	communication = frappe.db.get_value(
-		"Communication",
-		name,
-		"read_by_recipient",
-		as_dict=True
-	)
+	communication = frappe.db.get_value("Communication", name, "read_by_recipient", as_dict=True)
 
 	if not communication or communication.read_by_recipient:
 		return
 
-	frappe.db.set_value("Communication", name, {
-		"read_by_recipient": 1,
-		"delivery_status": "Read",
-		"read_by_recipient_on": get_datetime()
-	})
+	frappe.db.set_value(
+		"Communication",
+		name,
+		{"read_by_recipient": 1, "delivery_status": "Read", "read_by_recipient_on": get_datetime()},
+	)
