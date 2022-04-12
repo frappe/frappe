@@ -23,10 +23,7 @@ class KanbanBoard(Document):
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
-				frappe.msgprint(
-					frappe._("Column Name cannot be empty"), raise_exception=True
-				)
-
+				frappe.msgprint(_("Column Name cannot be empty"), raise_exception=True)
 
 
 def get_permission_query_conditions(user):
@@ -36,12 +33,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return (
-		"""(`tabKanban Board`.private=0 or `tabKanban Board`.owner='{user}')""".format(
-			user=user
-		)
-	)
-
+	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner='{user}')""".format(user=user)
 
 
 def has_permission(doc, ptype, user):
@@ -125,9 +117,7 @@ def update_order_for_single_card(
 	new_index = frappe.parse_json(new_index)
 
 	# save current order and index of columns to be updated
-	from_col_order, from_col_idx = get_kanban_column_order_and_index(
-		board, from_colname
-	)
+	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
 	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
 
 	if from_colname == to_colname:
