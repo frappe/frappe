@@ -1,6 +1,12 @@
 h5.modal-title {
 	margin: 0px !important;
 }
+// Keeping the scroll bar division but unable to scroll behaviour
+body.modal-open {
+	overflow: scroll !important;
+	position:fixed;
+	width: 100%;
+}
 
 // Hack to fix incorrect padding applied by Bootstrap
 body.modal-open[style^="padding-right"] {
