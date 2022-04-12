@@ -17,8 +17,8 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 
-from redis.exceptions import ConnectionError
 import phonenumbers as ph
+from redis.exceptions import ConnectionError
 from werkzeug.test import Client
 
 import frappe
@@ -82,8 +82,10 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
+
 def validate_phone_number_with_isd(phone, fieldname, throw=False):
 	from frappe import _
+
 	if not phone:
 		return
 	try:
@@ -91,13 +93,29 @@ def validate_phone_number_with_isd(phone, fieldname, throw=False):
 	except Exception as e:
 		if e.error_type == 1:
 
-			frappe.throw(_("Phone Number {0} set in field {1} is not valid.").format(frappe.bold(phone), frappe.bold(fieldname)), frappe.InvalidPhoneNumberError,
-				title=_("Invalid Phone Number"))
-		frappe.throw(_("Please select a country code for field {1}.").format(frappe.bold(phone), frappe.bold(fieldname)), frappe.InvalidPhoneNumberError,
-			title = _("Country Code Required"))
+			frappe.throw(
+				_("Phone Number {0} set in field {1} is not valid.").format(
+					frappe.bold(phone), frappe.bold(fieldname)
+				),
+				frappe.InvalidPhoneNumberError,
+				title=_("Invalid Phone Number"),
+			)
+		frappe.throw(
+			_("Please select a country code for field {1}.").format(
+				frappe.bold(phone), frappe.bold(fieldname)
+			),
+			frappe.InvalidPhoneNumberError,
+			title=_("Country Code Required"),
+		)
 	if not ph.is_valid_number(phone_number):
-		frappe.throw(_("Phone Number {0} set in field {1} is not valid.").format(frappe.bold(phone), frappe.bold(fieldname)), frappe.InvalidPhoneNumberError,
-		title = _("Invalid Phone Number"))
+		frappe.throw(
+			_("Phone Number {0} set in field {1} is not valid.").format(
+				frappe.bold(phone), frappe.bold(fieldname)
+			),
+			frappe.InvalidPhoneNumberError,
+			title=_("Invalid Phone Number"),
+		)
+
 
 def validate_phone_number(phone_number, throw=False):
 	"""Returns True if valid phone number"""

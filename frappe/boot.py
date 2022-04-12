@@ -11,8 +11,8 @@ from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, ge
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
-from frappe.model.base_document import get_controller
 from frappe.geo.country_info import get_all
+from frappe.model.base_document import get_controller
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import subqry
@@ -389,6 +389,7 @@ def get_notification_settings():
 def get_country_codes(bootinfo):
 	country_codes = get_all()
 	bootinfo.country_codes = frappe._dict(country_codes)
+
 
 @frappe.whitelist()
 def get_link_title_doctypes():
