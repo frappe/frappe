@@ -80,13 +80,13 @@ class Workspace(Document):
 
 			# remove duplicate before adding
 			for idx, link in enumerate(self.links):
-				if link.get('label') == card.get('label') and link.get('type') == 'Card Break':
+				if link.get("label") == card.get("label") and link.get("type") == "Card Break":
 					# count and set number of links for the card if link_count is 0
 					if link.link_count == 0:
-						for count, card_link in enumerate(self.links[idx+1:]):
-							if card_link.get('type') == 'Card Break':
+						for count, card_link in enumerate(self.links[idx + 1 :]):
+							if card_link.get("type") == "Card Break":
 								break
-							link.link_count = count+1
+							link.link_count = count + 1
 
 					del self.links[idx : idx + link.link_count + 1]
 
