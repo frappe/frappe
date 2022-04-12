@@ -1,7 +1,7 @@
 {
  "actions": [
   {
-   "action": "#List/Console Log/List",
+   "action": "app/console-log",
    "action_type": "Route",
    "label": "Logs"
   },
@@ -46,7 +46,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-08-21 14:44:35.296877",
+ "modified": "2022-04-09 16:35:32.345542",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Console",
@@ -64,5 +64,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
