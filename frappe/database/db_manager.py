@@ -1,4 +1,5 @@
 import os
+
 import frappe
 
 
@@ -11,7 +12,7 @@ class DbManager:
 			self.db = db
 
 	def get_current_host(self):
-		return self.db.sql("select user()")[0][0].split('@')[1]
+		return self.db.sql("select user()")[0][0].split("@")[1]
 
 	def create_user(self, user, password, host=None):
 		# Create user if it doesn't exist.
@@ -47,8 +48,11 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		if frappe.conf.get('rds_db', 0) == 1:
-			self.db.sql("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+		if frappe.conf.get("rds_db", 0) == 1:
+			self.db.sql(
+				"GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES ON `%s`.* TO '%s'@'%s';"
+				% (target, user, host)
+			)
 		else:
 			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
@@ -62,24 +66,27 @@ class DbManager:
 	@staticmethod
 	def restore_database(target, source, user, password):
 		from frappe.utils import make_esc
-		esc = make_esc('$ ')
+
+		esc = make_esc("$ ")
 
 		from distutils.spawn import find_executable
-		pv = find_executable('pv')
+
+		pv = find_executable("pv")
 		if pv:
-			pipe = '{pv} {source} |'.format(
-				pv=pv,
-				source=source
-			)
-			source = ''
+			pipe = "{pv} {source} |".format(pv=pv, source=source)
+			source = ""
 		else:
-			pipe = ''
-			source = '< {source}'.format(source=source)
+			pipe = ""
+			source = "< {source}".format(source=source)
 
 		if pipe:
-			print('Restoring Database file...')
+			print("Restoring Database file...")
 
-		command = '{pipe} mysql -u {user} -p{password} -h{host} ' + ('-P{port}' if frappe.db.port else '') + ' {target} {source}'
+		command = (
+			"{pipe} mysql -u {user} -p{password} -h{host} "
+			+ ("-P{port}" if frappe.db.port else "")
+			+ " {target} {source}"
+		)
 		command = command.format(
 			pipe=pipe,
 			user=esc(user),
@@ -87,6 +94,6 @@ class DbManager:
 			host=esc(frappe.db.host),
 			target=esc(target),
 			source=source,
-			port=frappe.db.port
+			port=frappe.db.port,
 		)
 		os.system(command)
