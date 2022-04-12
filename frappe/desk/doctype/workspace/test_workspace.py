@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
 import unittest
+
+import frappe
+
+
 class TestWorkspace(unittest.TestCase):
 	def setUp(self):
 		create_module("Test Module")
@@ -27,15 +30,15 @@ class TestWorkspace(unittest.TestCase):
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
+
 def create_module(module_name):
-	module = frappe.get_doc({
-		"doctype": "Module Def",
-		"module_name": module_name,
-		"app_name": "frappe"
-	})
-	module.insert(ignore_if_duplicate = True)
+	module = frappe.get_doc(
+		{"doctype": "Module Def", "module_name": module_name, "app_name": "frappe"}
+	)
+	module.insert(ignore_if_duplicate=True)
 
 	return module
+
 
 def create_workspace(**args):
 	workspace = frappe.new_doc("Workspace")
@@ -49,47 +52,51 @@ def create_workspace(**args):
 
 	return workspace
 
+
 def insert_card(workspace, card_label, doctype1, doctype2, country=None):
-	workspace.append("links", {
-		"type": "Card Break",
-		"label": card_label,
-		"only_for": country
-	})
+	workspace.append("links", {"type": "Card Break", "label": card_label, "only_for": country})
 
 	create_doctype(doctype1, "Test Module")
-	workspace.append("links", {
-		"type": "Link",
-		"label": doctype1,
-		"only_for": country,
-		"link_type": "DocType",
-		"link_to": doctype1
-	})
+	workspace.append(
+		"links",
+		{
+			"type": "Link",
+			"label": doctype1,
+			"only_for": country,
+			"link_type": "DocType",
+			"link_to": doctype1,
+		},
+	)
 
 	create_doctype(doctype2, "Test Module")
-	workspace.append("links", {
-		"type": "Link",
-		"label": doctype2,
-		"only_for": country,
-		"link_type": "DocType",
-		"link_to": doctype2
-	})
+	workspace.append(
+		"links",
+		{
+			"type": "Link",
+			"label": doctype2,
+			"only_for": country,
+			"link_type": "DocType",
+			"link_to": doctype2,
+		},
+	)
+
 
 def create_doctype(doctype_name, module):
-	frappe.get_doc({
-		'doctype': 'DocType',
-		'name': doctype_name,
-		'module': module,
-		'custom': 1,
-		'autoname': 'field:title',
-		'fields': [
-			{'label': 'Title', 'fieldname': 'title', 'reqd': 1, 'fieldtype': 'Data'},
-			{'label': 'Description', 'fieldname': 'description', 'fieldtype': 'Small Text'},
-			{'label': 'Date', 'fieldname': 'date', 'fieldtype': 'Date'},
-			{'label': 'Duration', 'fieldname': 'duration', 'fieldtype': 'Duration'},
-			{'label': 'Number', 'fieldname': 'number', 'fieldtype': 'Int'},
-			{'label': 'Number', 'fieldname': 'another_number', 'fieldtype': 'Int'}
-		],
-		'permissions': [
-			{'role': 'System Manager'}
-		]
-	}).insert(ignore_if_duplicate = True)
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"name": doctype_name,
+			"module": module,
+			"custom": 1,
+			"autoname": "field:title",
+			"fields": [
+				{"label": "Title", "fieldname": "title", "reqd": 1, "fieldtype": "Data"},
+				{"label": "Description", "fieldname": "description", "fieldtype": "Small Text"},
+				{"label": "Date", "fieldname": "date", "fieldtype": "Date"},
+				{"label": "Duration", "fieldname": "duration", "fieldtype": "Duration"},
+				{"label": "Number", "fieldname": "number", "fieldtype": "Int"},
+				{"label": "Number", "fieldname": "another_number", "fieldtype": "Int"},
+			],
+			"permissions": [{"role": "System Manager"}],
+		}
+	).insert(ignore_if_duplicate=True)

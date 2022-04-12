@@ -4,8 +4,9 @@
 	Sync's doctype and docfields from txt files to database
 	perms will get synced only if none exist
 """
-import frappe
 import os
+
+import frappe
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import block_user
 from frappe.utils import update_progress_bar
@@ -30,14 +31,27 @@ def sync_for(app_name, force=0, reset_permissions=False):
 
 		FRAPPE_PATH = frappe.get_app_path("frappe")
 
-		for core_module in ["docfield", "docperm", "doctype_action", "doctype_link", "doctype_state", "role", "has_role", "doctype"]:
+		for core_module in [
+			"docfield",
+			"docperm",
+			"doctype_action",
+			"doctype_link",
+			"doctype_state",
+			"role",
+			"has_role",
+			"doctype",
+		]:
 			files.append(os.path.join(FRAPPE_PATH, "core", "doctype", core_module, f"{core_module}.json"))
 
 		for custom_module in ["custom_field", "property_setter"]:
-			files.append(os.path.join(FRAPPE_PATH, "custom", "doctype", custom_module, f"{custom_module}.json"))
+			files.append(
+				os.path.join(FRAPPE_PATH, "custom", "doctype", custom_module, f"{custom_module}.json")
+			)
 
 		for website_module in ["web_form", "web_template", "web_form_field", "portal_menu_item"]:
-			files.append(os.path.join(FRAPPE_PATH, "website", "doctype", website_module, f"{website_module}.json"))
+			files.append(
+				os.path.join(FRAPPE_PATH, "website", "doctype", website_module, f"{website_module}.json")
+			)
 
 		for data_migration_module in [
 			"data_migration_mapping_detail",
@@ -45,7 +59,15 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"data_migration_plan_mapping",
 			"data_migration_plan",
 		]:
-			files.append(os.path.join(FRAPPE_PATH, "data_migration", "doctype", data_migration_module, f"{data_migration_module}.json"))
+			files.append(
+				os.path.join(
+					FRAPPE_PATH,
+					"data_migration",
+					"doctype",
+					data_migration_module,
+					f"{data_migration_module}.json",
+				)
+			)
 
 		for desk_module in [
 			"number_card",
@@ -70,7 +92,9 @@ def sync_for(app_name, force=0, reset_permissions=False):
 
 	if l:
 		for i, doc_path in enumerate(files):
-			import_file_by_path(doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions)
+			import_file_by_path(
+				doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions
+			)
 
 			frappe.db.commit()
 
