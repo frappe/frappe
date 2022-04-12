@@ -18,6 +18,7 @@ from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from frappe.desk.utils import check_enqueue_action
 from frappe.utils.data import get_absolute_url
 
 
@@ -756,8 +757,6 @@ class Document(BaseDocument):
 			elif self.docstatus.is_submitted():
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.docstatus.is_locked():
-				self._action = "save"
 			elif self.docstatus.is_cancelled():
 				frappe.throw("Cannot chnage docstatus from 0 to 2")
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
@@ -771,23 +770,8 @@ class Document(BaseDocument):
 			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.docstatus.is_locked():
-				self._action = "save"
 			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)"))
-			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
-
-
-		elif to_docstatus == DocStatus.locked():
-			if self.docstatus.is_submitted():
-				self._action = "submit"
-				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
-				self._action = "cancel"
-				self.check_permission("cancel")
-			elif self.docstatus.is_draft():
-				self._action = "save"
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
@@ -946,13 +930,19 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = DocStatus.submitted()
-		return self.save()
+		if check_enqueue_action(self.doctype, "submit") and self.docstatus == 0:
+			enqueue_action(self, "submit")
+		else:
+			return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = DocStatus.cancelled()
-		return self.save()
+		if check_enqueue_action(self.doctype, "cancel"):
+			enqueue_action(self, "cancel")
+		else:
+			return self.save()
 
 	@whitelist.__func__
 	def submit(self):
@@ -963,11 +953,6 @@ class Document(BaseDocument):
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
-
-	@whitelist.__func__
-	def lock_doc(self):
-		self.docstatus = DocStatus.locked()
-		return self.save()
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
@@ -1406,6 +1391,13 @@ class Document(BaseDocument):
 
 		return f"{doctype}({name})"
 
+def enqueue_action(obj, action, **kwargs):
+	if action == "delete":
+		job_name = "{0}-{1}-{2}".format(kwargs.get('doctype'), kwargs.get('name'), action)
+		frappe.enqueue(obj, job_name=job_name, **kwargs)
+	else:
+		job_name = "{0}-{1}-{2}".format(obj.doctype, obj.name, action)
+		frappe.enqueue(obj.save, job_name=job_name, **kwargs)
 
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
@@ -1424,6 +1416,4 @@ def execute_action(doctype, name, action, **kwargs):
 
 		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
 		doc.notify_update()
-
-
 

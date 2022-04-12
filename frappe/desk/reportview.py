@@ -13,7 +13,6 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, format_duration
 from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info
-from frappe.desk.doctype.bulk_update.bulk_update import check_enqueue_action
 import frappe.model.delete_doc
 
 
@@ -475,35 +474,19 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 def delete_items():
 	"""delete selected items"""
 	import json
-
+	from frappe.desk.utils import check_enqueue_action
 	items = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
 	doctype = frappe.form_dict.get('doctype')
 	enqueue_action = check_enqueue_action(doctype, "delete")
-	queue_action = False
-	failed = []
-	if enqueue_action:
-		queue_action = True
+	failed = delete_bulk(doctype, items, enqueue_action)
+	return failed, enqueue_action
 
-		for d in items:
-			try:
-				frappe.enqueue(frappe.model.delete_doc.delete_doc, doctype=doctype, name=d)
-				frappe.db.commit()
-			except Exception as e:
-				frappe.db.rollback()
-	else:
-		if len(items) > 10:
-			frappe.enqueue('frappe.desk.reportview.delete_bulk',
-				doctype=doctype, items=items)
-		else:
-			failed = delete_bulk(doctype, items)
-	return failed, queue_action
-
-def delete_bulk(doctype, items):
+def delete_bulk(doctype, items, enqueue_action=False):
 	failed = []
 	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
-			if len(items) >= 5:
+			if len(items) >= 5 and not enqueue_action:
 				frappe.publish_realtime("progress",
 					dict(progress=[i+1, len(items)], title=_('Deleting {0}').format(doctype), description=d),
 						user=frappe.session.user)

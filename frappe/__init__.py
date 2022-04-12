@@ -957,8 +957,17 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	:param ignore_permissions: Ignore user permissions.
 	:param delete_permanently: Do not create a Deleted Document for the document."""
 	import frappe.model.delete_doc
-	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
-		ignore_permissions, flags, ignore_on_trash, ignore_missing, delete_permanently)
+	from frappe.desk.utils import check_enqueue_action
+	from frappe.model.document import enqueue_action
+	if check_enqueue_action(doctype, "delete"):
+		enqueue_action(frappe.model.delete_doc.delete_doc, "delete",doctype=doctype,
+          		name=name, force=force, ignore_doctypes=ignore_doctypes, for_reload=for_reload,
+                ignore_permissions=ignore_permissions,flags=flags,
+                ignore_on_trash=ignore_on_trash, ignore_missing=ignore_missing,
+                delete_permanently=delete_permanently)
+	else:
+		frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
+			ignore_permissions, flags, ignore_on_trash, ignore_missing, delete_permanently)
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""

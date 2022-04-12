@@ -6,6 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import cint
+from frappe.desk.utils import check_enqueue_action
 
 
 class BulkUpdate(Document):
@@ -32,46 +33,12 @@ def update(doctype, field, value, condition='', limit=500):
 @frappe.whitelist()
 def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 	docnames = frappe.parse_json(docnames)
+	enqueue_action = check_enqueue_action(doctype, action)
 
 	if data:
 		data = frappe.parse_json(data)
 
-	failed, queue_action = bulk_update(doctype, docnames, action, data)
-
-	return failed, queue_action
-
-def show_progress(docnames, message, i, description):
-	n = len(docnames)
-	if n >= 10:
-		frappe.publish_progress(
-			float(i) * 100 / n,
-			title = message,
-			description = description
-		)
-
-def check_enqueue_action(doctype, action) -> bool:
-	doc = frappe.db.get_list("Enqueue Selected Action", fields=["*"])
-	for d in doc:
-		if d.document_type == doctype:
-			if action == "submit" and d.submit_action == 1:
-				return True
-			if action == "cancel" and d.cancel_action == 1:
-				return True
-			if action == "delete" and d.delete_action == 1:
-				return True
-			if action == "rename" and d.rename_action == 1:
-				return True
-	return False
-
-
-def bulk_update(doctype, docnames, action, data=None):
 	failed = []
-	i = 0
-	enqueue_action = check_enqueue_action(doctype, action)
-	queue_action = False
-	if enqueue_action:
-		queue_action = True
-		doc_state_before_locking = lock_document(doctype, docnames, action)
 
 	for i, d in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, d)
@@ -88,38 +55,24 @@ def bulk_update(doctype, docnames, action, data=None):
 				doc.update(data)
 				doc.save()
 				message = _('Updating {0}').format(doctype)
-			elif action == 'submit' and doc.docstatus.is_locked():
-				job_name = "{0}-{1}-{2}".format(doctype, d, "submit")
-				frappe.enqueue(doc.submit, job_name=job_name, doc_obj=doc, doc_state_before_locking=doc_state_before_locking)
-			elif action == 'cancel' and doc.docstatus.is_locked():
-				job_name = "{0}-{1}-{2}".format(doctype, d, "cancel")
-				frappe.enqueue(doc.cancel,job_name=job_name, doc_obj=doc, doc_state_before_locking=doc_state_before_locking)
 			else:
 				failed.append(d)
+			frappe.db.commit()
+			if not enqueue_action:
+				show_progress(docnames, message, i, d)
 
 		except Exception:
 			failed.append(d)
 			frappe.db.rollback()
 
-		if not enqueue_action:
-			show_progress(docnames, message, i, d)
+	return failed, enqueue_action
 
-	return failed, queue_action
+def show_progress(docnames, message, i, description):
+	n = len(docnames)
+	if n >= 10:
+		frappe.publish_progress(
+			float(i) * 100 / n,
+			title = message,
+			description = description
+		)
 
-def lock_document(doctype, docnames, action):
-	for d in docnames:
-		doc = frappe.get_doc(doctype, d)
-		doc_state_before_locking = []
-		doc_state_before_locking.append({"name": doc.name, "docstatus": doc.docstatus})
-
-		if doc.docstatus == 2 and action == 'submit':
-			frappe.throw(_("Cannot submit document {0}").format(d))
-		elif doc.docstatus == 1 and action == 'delete':
-			frappe.throw(_("Cannot delete a submitted document. please cancel it first {0}").format(d))
-		elif doc.docstatus == 1 and action == 'submit':
-			frappe.throw(_("Cannot resumbit document {0}").format(d))
-		elif doc.docstatus == 0 and action == 'cancel':
-			frappe.throw(_("Cannot cancel document {0}").format(d))
-		doc.lock_doc()
-
-	return doc_state_before_locking

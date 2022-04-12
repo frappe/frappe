@@ -10,7 +10,6 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.query_builder import Field
 from frappe.utils import cint
 from frappe.utils.password import rename_password
-from frappe.desk.doctype.bulk_update.bulk_update import check_enqueue_action
 if TYPE_CHECKING:
 	from frappe.model.meta import Meta
 
@@ -526,40 +525,28 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 	if not rows:
 		frappe.throw(_("Please select a valid csv file with data"))
 
-	queue_action = check_enqueue_action(doctype, "rename")
-
-	if not queue_action:
-		if not via_console:
-			max_rows = 500
-			if len(rows) > max_rows:
-				frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
+	if not via_console:
+		max_rows = 500
+		if len(rows) > max_rows:
+			frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
 
 	rename_log = []
-
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
 			merge = len(row) > 2 and (row[2] == "1" or row[2].lower() == "true")
 			try:
-				if queue_action:
-					frappe.msgprint("Started background job for renaming docs")
-					job_name = '{0}-{1}-{2}'.format(doctype,row[0],"rename")
-					frappe.enqueue(rename_doc, job_name=job_name, doctype=doctype, old=row[0], new=row[1], force=False, merge=False, ignore_permissions=False, ignore_if_exists=False, show_alert=True, rebuild_search=False)
+				if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
+					msg = _("Successful: {0} to {1}").format(row[0], row[1])
 					frappe.db.commit()
-
 				else:
-					if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
-						msg = _("Successful: {0} to {1}").format(row[0], row[1])
-						frappe.db.commit()
-					else:
-						msg = _("Ignored: {0} to {1}").format(row[0], row[1])
+					msg = _("Ignored: {0} to {1}").format(row[0], row[1])
 					msg = None
 
 			except Exception as e:
 				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
 				frappe.db.rollback()
 
-			if not queue_action:
 				if msg:
 					if via_console:
 						print(msg)

@@ -81,10 +81,6 @@ frappe.get_indicator = function(doc, doctype) {
 		return [__("Submitted"), "blue", "docstatus,=,1"];
 	}
 
-	if (doc.docstatus==3) {
-		return [__("Locked"), "blue", "docstatus,=,3"];
-	}
-
 	// based on status
 	if(doc.status) {
 		return [__(doc.status), frappe.utils.guess_colour(doc.status)];
