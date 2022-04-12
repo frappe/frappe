@@ -41,6 +41,17 @@ def flush_old_route_records():
 			"Route History", {"modified": ("<=", last_record_to_keep[0].modified), "user": user}
 		)
 
+<<<<<<< HEAD
+=======
+		frappe.db.sql('''
+			DELETE
+			FROM `tabRoute History`
+			WHERE `modified` <= %(modified)s and `user`=%(user)s
+		''', {
+			"modified": last_record_to_keep[0].modified,
+			"user": user
+		})
+>>>>>>> 29be3404c (use user as the filter value instead of modified)
 
 @frappe.whitelist()
 def deferred_insert(routes):
