@@ -7,7 +7,7 @@ from frappe import _
 from frappe.query_builder import Criterion, Field, Order, Table
 
 
-def like(key: str, value: str) -> frappe.qb:
+def like(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `LIKE`
 
 	Args:
@@ -17,10 +17,10 @@ def like(key: str, value: str) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `LIKE`
 	"""
-	return Field(key).like(value)
+	return key.like(value)
 
 
-def func_in(key: str, value: Union[List, Tuple]) -> frappe.qb:
+def func_in(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 	"""Wrapper method for `IN`
 
 	Args:
@@ -30,10 +30,10 @@ def func_in(key: str, value: Union[List, Tuple]) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `IN`
 	"""
-	return Field(key).isin(value)
+	return key.isin(value)
 
 
-def not_like(key: str, value: str) -> frappe.qb:
+def not_like(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `NOT LIKE`
 
 	Args:
@@ -43,10 +43,10 @@ def not_like(key: str, value: str) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `NOT LIKE`
 	"""
-	return Field(key).not_like(value)
+	return key.not_like(value)
 
 
-def func_not_in(key: str, value: Union[List, Tuple]):
+def func_not_in(key: Field, value: Union[List, Tuple]):
 	"""Wrapper method for `NOT IN`
 
 	Args:
@@ -56,10 +56,10 @@ def func_not_in(key: str, value: Union[List, Tuple]):
 	Returns:
 	        frappe.qb: `frappe.qb object with `NOT IN`
 	"""
-	return Field(key).notin(value)
+	return key.notin(value)
 
 
-def func_regex(key: str, value: str) -> frappe.qb:
+def func_regex(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `REGEX`
 
 	Args:
@@ -69,10 +69,10 @@ def func_regex(key: str, value: str) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `REGEX`
 	"""
-	return Field(key).regex(value)
+	return key.regex(value)
 
 
-def func_between(key: str, value: Union[List, Tuple]) -> frappe.qb:
+def func_between(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 	"""Wrapper method for `BETWEEN`
 
 	Args:
@@ -82,7 +82,7 @@ def func_between(key: str, value: Union[List, Tuple]) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `BETWEEN`
 	"""
-	return Field(key)[slice(*value)]
+	return key[slice(*value)]
 
 
 def make_function(key: Any, value: Union[int, str]):
@@ -265,7 +265,7 @@ class Query:
 			if isinstance(value, (list, tuple)):
 				if isinstance(value[1], (list, tuple)) or value[0] in list(OPERATOR_MAP.keys())[-4:]:
 					_operator = OPERATOR_MAP[value[0]]
-					conditions = conditions.where(_operator(key, value[1]))
+					conditions = conditions.where(_operator(Field(key), value[1]))
 				else:
 					_operator = OPERATOR_MAP[value[0]]
 					conditions = conditions.where(_operator(Field(key), value[1]))
