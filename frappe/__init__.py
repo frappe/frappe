@@ -1290,7 +1290,12 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 				{'parent': 'DocField', 'fieldname': args.property}, 'fieldtype') or 'Data'
 
 	if not args.doctype:
-		doctype_list = db.sql_list('select distinct parent from tabDocField where fieldname=%s', args.fieldname)
+		DocField_doctype = qb.DocType("DocField")
+		doctype_list = (
+			qb.from_(DocField_doctype).select(DocField_doctype.parent)
+			.where(DocField_doctype.fieldname == args.fieldname).distinct()
+		).run(as_list=True)
+
 	else:
 		doctype_list = [args.doctype]
 
