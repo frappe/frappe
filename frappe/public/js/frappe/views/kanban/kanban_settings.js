@@ -242,7 +242,7 @@ export default class KanbanSettings {
 		];
 
 		return frappe.model.std_fields
-			.concat(this.meta.fields)
+			.concat(this.kanbanview.get_fields_in_list_view())
 			.filter(
 				field =>
 					!ignore_fields.includes(field.fieldname) &&
