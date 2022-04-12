@@ -5,6 +5,7 @@
 import frappe
 from frappe.model.document import Document
 
+
 class HasRole(Document):
 	def before_insert(self):
 		if frappe.db.exists("Has Role", {"parent": self.parent, "role": self.role}):
