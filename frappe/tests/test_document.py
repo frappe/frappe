@@ -19,7 +19,7 @@ class CustomTestNote(Note):
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
-		d = frappe.get_doc({"doctype":"User"})
+		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])
 
 	def test_load(self):
@@ -29,7 +29,7 @@ class TestDocument(unittest.TestCase):
 		self.assertEqual(d.allow_rename, 1)
 		self.assertTrue(isinstance(d.fields, list))
 		self.assertTrue(isinstance(d.permissions, list))
-		self.assertTrue(filter(lambda d: d.fieldname=="email", d.fields))
+		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
 
 	def test_load_single(self):
 		d = frappe.get_doc("Website Settings", "Website Settings")
@@ -38,32 +38,34 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(d.disable_signup in (0, 1))
 
 	def test_insert(self):
-		d = frappe.get_doc({
-			"doctype":"Event",
-			"subject":"test-doc-test-event 1",
-			"starts_on": "2014-01-01",
-			"event_type": "Public"
-		})
+		d = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "test-doc-test-event 1",
+				"starts_on": "2014-01-01",
+				"event_type": "Public",
+			}
+		)
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
-		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"),
-			"test-doc-test-event 1")
+		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"), "test-doc-test-event 1")
 
 		# test if default values are added
 		self.assertEqual(d.send_reminder, 1)
 		return d
 
 	def test_insert_with_child(self):
-		d = frappe.get_doc({
-			"doctype":"Event",
-			"subject":"test-doc-test-event 2",
-			"starts_on": "2014-01-01",
-			"event_type": "Public"
-		})
+		d = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "test-doc-test-event 2",
+				"starts_on": "2014-01-01",
+				"event_type": "Public",
+			}
+		)
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
-		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"),
-			"test-doc-test-event 2")
+		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"), "test-doc-test-event 2")
 
 	def test_update(self):
 		d = self.test_insert()
@@ -76,17 +78,19 @@ class TestDocument(unittest.TestCase):
 		d = self.test_insert()
 		d.subject = "subject changed again"
 		d.save()
-		self.assertTrue(d.has_value_changed('subject'))
-		self.assertFalse(d.has_value_changed('event_type'))
+		self.assertTrue(d.has_value_changed("subject"))
+		self.assertFalse(d.has_value_changed("event_type"))
 
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
 
-		d = frappe.get_doc({
-			"doctype": "User",
-			"email": "test_mandatory@example.com",
-		})
+		d = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_mandatory@example.com",
+			}
+		)
 		self.assertRaises(frappe.MandatoryError, d.insert)
 
 		d.set("first_name", "Test Mandatory")
@@ -123,22 +127,18 @@ class TestDocument(unittest.TestCase):
 	def test_link_validation(self):
 		frappe.delete_doc_if_exists("User", "test_link_validation@example.com", 1)
 
-		d = frappe.get_doc({
-			"doctype": "User",
-			"email": "test_link_validation@example.com",
-			"first_name": "Link Validation",
-			"roles": [
-				{
-					"role": "ABC"
-				}
-			]
-		})
+		d = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_link_validation@example.com",
+				"first_name": "Link Validation",
+				"roles": [{"role": "ABC"}],
+			}
+		)
 		self.assertRaises(frappe.LinkValidationError, d.insert)
 
 		d.roles = []
-		d.append("roles", {
-			"role": "System Manager"
-		})
+		d.append("roles", {"role": "System Manager"})
 		d.insert()
 
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
@@ -166,7 +166,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_varchar_length(self):
 		d = self.test_insert()
-		d.sender = "abcde"*100 + "@user.com"
+		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
 	def test_xss_filter(self):
@@ -174,7 +174,7 @@ class TestDocument(unittest.TestCase):
 
 		# script
 		xss = '<script>alert("XSS")</script>'
-		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
+		escaped_xss = xss.replace("<", "&lt;").replace(">", "&gt;")
 		d.subject += xss
 		d.save()
 		d.reload()
@@ -184,7 +184,7 @@ class TestDocument(unittest.TestCase):
 
 		# onload
 		xss = '<div onload="alert("XSS")">Test</div>'
-		escaped_xss = '<div>Test</div>'
+		escaped_xss = "<div>Test</div>"
 		d.subject += xss
 		d.save()
 		d.reload()
@@ -210,57 +210,56 @@ class TestDocument(unittest.TestCase):
 			prefix = series
 
 			if ".#" in series:
-				prefix = series.rsplit('.',1)[0]
+				prefix = series.rsplit(".", 1)[0]
 
 			prefix = parse_naming_series(prefix)
-			old_current = frappe.db.get_value('Series', prefix, "current", order_by="name")
+			old_current = frappe.db.get_value("Series", prefix, "current", order_by="name")
 
 			revert_series_if_last(series, name)
-			new_current = cint(frappe.db.get_value('Series', prefix, "current", order_by="name"))
+			new_current = cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
 
 			self.assertEqual(cint(old_current) - 1, new_current)
 
 	def test_non_negative_check(self):
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
-		d = frappe.get_doc({
-			'doctype': 'Currency',
-			'currency_name': 'Frappe Coin',
-			'smallest_currency_fraction_value': -1
-		})
+		d = frappe.get_doc(
+			{"doctype": "Currency", "currency_name": "Frappe Coin", "smallest_currency_fraction_value": -1}
+		)
 
 		self.assertRaises(frappe.NonNegativeError, d.insert)
 
-		d.set('smallest_currency_fraction_value', 1)
+		d.set("smallest_currency_fraction_value", 1)
 		d.insert()
 		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
 	def test_get_formatted(self):
-		frappe.get_doc({
-			'doctype': 'DocType',
-			'name': 'Test Formatted',
-			'module': 'Custom',
-			'custom': 1,
-			'fields': [
-				{'label': 'Currency', 'fieldname': 'currency', 'reqd': 1, 'fieldtype': 'Currency'},
-			]
-		}).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Test Formatted",
+				"module": "Custom",
+				"custom": 1,
+				"fields": [
+					{"label": "Currency", "fieldname": "currency", "reqd": 1, "fieldtype": "Currency"},
+				],
+			}
+		).insert(ignore_if_duplicate=True)
 
 		frappe.delete_doc_if_exists("Currency", "INR", 1)
 
-		d = frappe.get_doc({
-			'doctype': 'Currency',
-			'currency_name': 'INR',
-			'symbol': '₹',
-		}).insert()
+		d = frappe.get_doc(
+			{
+				"doctype": "Currency",
+				"currency_name": "INR",
+				"symbol": "₹",
+			}
+		).insert()
 
-		d = frappe.get_doc({
-			'doctype': 'Test Formatted',
-			'currency': 100000
-		})
-		self.assertEqual(d.get_formatted('currency', currency='INR', format="#,###.##"), '₹ 100,000.00')
+		d = frappe.get_doc({"doctype": "Test Formatted", "currency": 100000})
+		self.assertEqual(d.get_formatted("currency", currency="INR", format="#,###.##"), "₹ 100,000.00")
 
 		# should work even if options aren't set in df
 		# and currency param is not passed
@@ -275,29 +274,30 @@ class TestDocument(unittest.TestCase):
 		self.assertEqual(len(doc.get("fields", filters={"fieldtype": "Data"}, limit=3)), 3)
 
 	def test_virtual_fields(self):
-		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked
-		"""
-		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname":"age"})
+		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked"""
+		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname": "age"})
 		note = frappe.new_doc("Note")
 		note.content = "some content"
 		note.title = frappe.generate_hash(length=20)
 		note.insert()
 
 		def patch_note():
-			return patch("frappe.controllers", new={frappe.local.site: {'Note': CustomTestNote}})
+			return patch("frappe.controllers", new={frappe.local.site: {"Note": CustomTestNote}})
 
 		@contextmanager
 		def customize_note(with_options=False):
 			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
-			custom_field = frappe.get_doc({
-				"doctype": "Custom Field",
-				"dt": "Note",
-				"fieldname": "age",
-				"fieldtype": "Data",
-				"read_only": True,
-				"is_virtual": True,
-				"options": options,
-			})
+			custom_field = frappe.get_doc(
+				{
+					"doctype": "Custom Field",
+					"dt": "Note",
+					"fieldname": "age",
+					"fieldtype": "Data",
+					"read_only": True,
+					"is_virtual": True,
+					"options": options,
+				}
+			)
 
 			try:
 				yield custom_field.insert(ignore_if_duplicate=True)
