@@ -264,4 +264,3 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 };
 
 frappe.ui.form.ControlReadOnly = frappe.ui.form.ControlData;
-frappe.ui.form.ControlLongInt = frappe.ui.form.ControlInt;
