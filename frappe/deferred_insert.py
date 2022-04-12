@@ -1,13 +1,16 @@
 import json
-from typing import Dict, List, Union, TYPE_CHECKING
-import frappe
+from typing import TYPE_CHECKING, Dict, List, Union
+
 import redis
+
+import frappe
 from frappe.utils import cstr
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
 
-queue_prefix = 'insert_queue_for_'
+queue_prefix = "insert_queue_for_"
+
 
 def deferred_insert(doctype: str, records: Union[List[Union[Dict, "Document"]], str]):
 	if isinstance(records, (dict, list)):
@@ -21,6 +24,7 @@ def deferred_insert(doctype: str, records: Union[List[Union[Dict, "Document"]], 
 		for record in records:
 			insert_record(record, doctype)
 
+
 def save_to_db():
 	queue_keys = frappe.cache().get_keys(queue_prefix)
 	for key in queue_keys:
@@ -29,7 +33,7 @@ def save_to_db():
 		doctype = get_doctype_name(key)
 		while frappe.cache().llen(queue_key) > 0 and record_count <= 500:
 			records = frappe.cache().lpop(queue_key)
-			records = json.loads(records.decode('utf-8'))
+			records = json.loads(records.decode("utf-8"))
 			if isinstance(records, dict):
 				record_count += 1
 				insert_record(records, doctype)
@@ -40,6 +44,7 @@ def save_to_db():
 
 	frappe.db.commit()
 
+
 def insert_record(record: Union[Dict, "Document"], doctype: str):
 	setattr(record, "doctype", doctype)
 	try:
@@ -47,8 +52,10 @@ def insert_record(record: Union[Dict, "Document"], doctype: str):
 	except Exception as e:
 		frappe.logger().error(f"Error while inserting deferred {doctype} record: {e}")
 
+
 def get_key_name(key: str) -> str:
-	return cstr(key).split('|')[1]
+	return cstr(key).split("|")[1]
+
 
 def get_doctype_name(key: str) -> str:
 	return cstr(key).split(queue_prefix)[1]

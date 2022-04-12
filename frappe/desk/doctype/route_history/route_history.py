@@ -4,8 +4,8 @@
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
-from frappe.query_builder.utils import DocType
 from frappe.query_builder.functions import Count
+from frappe.query_builder.utils import DocType
 
 
 class RouteHistory(Document):
