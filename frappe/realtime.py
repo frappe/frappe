@@ -1,22 +1,36 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+import os
+
+import redis
+
 import frappe
 from frappe.utils.data import cstr
-import os
-import redis
 
 redis_server = None
 
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
-	publish_realtime('progress', {'percent': percent, 'title': title, 'description': description},
-		user=frappe.session.user, doctype=doctype, docname=docname)
+	publish_realtime(
+		"progress",
+		{"percent": percent, "title": title, "description": description},
+		user=frappe.session.user,
+		doctype=doctype,
+		docname=docname,
+	)
 
 
-def publish_realtime(event=None, message=None, room=None,
-	user=None, doctype=None, docname=None, task_id=None,
-	after_commit=False):
+def publish_realtime(
+	event=None,
+	message=None,
+	room=None,
+	user=None,
+	doctype=None,
+	docname=None,
+	task_id=None,
+	after_commit=False,
+):
 	"""Publish real-time updates
 
 	:param event: Event name, like `task_progress` etc. that will be handled by the client (default is `task_progress` if within task or `global`)
@@ -35,7 +49,7 @@ def publish_realtime(event=None, message=None, room=None,
 		else:
 			event = "global"
 
-	if event=='msgprint' and not user:
+	if event == "msgprint" and not user:
 		user = frappe.session.user
 
 	if not room:
@@ -76,7 +90,7 @@ def emit_via_redis(event, message, room):
 	r = get_redis_server()
 
 	try:
-		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
+		r.publish("events", frappe.as_json({"event": event, "message": message, "room": room}))
 	except redis.exceptions.ConnectionError:
 		# print(frappe.get_traceback())
 		pass
@@ -87,45 +101,53 @@ def get_redis_server():
 	global redis_server
 	if not redis_server:
 		from redis import Redis
-		redis_server = Redis.from_url(frappe.conf.redis_socketio
-			or "redis://localhost:12311")
+
+		redis_server = Redis.from_url(frappe.conf.redis_socketio or "redis://localhost:12311")
 	return redis_server
 
 
 @frappe.whitelist(allow_guest=True)
 def can_subscribe_doc(doctype, docname):
-	if os.environ.get('CI'):
+	if os.environ.get("CI"):
 		return True
 
-	from frappe.sessions import Session
 	from frappe.exceptions import PermissionError
+	from frappe.sessions import Session
+
 	session = Session(None, resume=True).get_session_data()
-	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype='read'):
+	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype="read"):
 		raise PermissionError()
 
 	return True
 
+
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
 	from frappe.sessions import Session
+
 	session = Session(None, resume=True).get_session_data()
 	return {
-		'user': session.user,
+		"user": session.user,
 	}
 
+
 def get_doc_room(doctype, docname):
-	return ''.join([frappe.local.site, ':doc:', doctype, '/', cstr(docname)])
+	return "".join([frappe.local.site, ":doc:", doctype, "/", cstr(docname)])
+
 
 def get_user_room(user):
-	return ''.join([frappe.local.site, ':user:', user])
+	return "".join([frappe.local.site, ":user:", user])
+
 
 def get_site_room():
-	return ''.join([frappe.local.site, ':all'])
+	return "".join([frappe.local.site, ":all"])
+
 
 def get_task_progress_room(task_id):
 	return "".join([frappe.local.site, ":task_progress:", task_id])
 
+
 def get_chat_room(room):
-	room = ''.join([frappe.local.site, ":room:", room])
+	room = "".join([frappe.local.site, ":room:", room])
 
 	return room

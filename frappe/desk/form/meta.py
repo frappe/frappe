@@ -11,13 +11,24 @@ from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.translate import extract_messages_from_code, make_dict_from_messages
 from frappe.utils import get_html_format
 
-
 ASSET_KEYS = (
-	"__js", "__css", "__list_js", "__calendar_js", "__map_js",
-	"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-	"__form_grid_templates", "__listview_template", "__tree_js",
-	"__dashboard", "__kanban_column_fields", '__templates',
-	'__custom_js', '__custom_list_js'
+	"__js",
+	"__css",
+	"__list_js",
+	"__calendar_js",
+	"__map_js",
+	"__linked_with",
+	"__messages",
+	"__print_formats",
+	"__workflow_docs",
+	"__form_grid_templates",
+	"__listview_template",
+	"__tree_js",
+	"__dashboard",
+	"__kanban_column_fields",
+	"__templates",
+	"__custom_js",
+	"__custom_list_js",
 )
 
 
@@ -33,10 +44,11 @@ def get_meta(doctype, cached=True):
 	else:
 		meta = FormMeta(doctype)
 
-	if frappe.local.lang != 'en':
+	if frappe.local.lang != "en":
 		meta.set_translations(frappe.local.lang)
 
 	return meta
+
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
@@ -50,7 +62,7 @@ class FormMeta(Meta):
 			super(FormMeta, self).set(key, value, *args, **kwargs)
 
 	def load_assets(self):
-		if self.get('__assets_loaded', False):
+		if self.get("__assets_loaded", False):
 			return
 
 		self.add_search_fields()
@@ -65,7 +77,7 @@ class FormMeta(Meta):
 			self.load_dashboard()
 			self.load_kanban_meta()
 
-		self.set('__assets_loaded', True)
+		self.set("__assets_loaded", True)
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
@@ -85,25 +97,26 @@ class FormMeta(Meta):
 		if self.custom:
 			return
 
-		path = os.path.join(get_module_path(self.module), 'doctype', scrub(self.name))
+		path = os.path.join(get_module_path(self.module), "doctype", scrub(self.name))
+
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
 
 		system_country = frappe.get_system_settings("country")
 
-		self._add_code(_get_path(self.name + '.js'), '__js')
+		self._add_code(_get_path(self.name + ".js"), "__js")
 		if system_country:
-			self._add_code(_get_path(os.path.join('regional', system_country + '.js')), '__js')
+			self._add_code(_get_path(os.path.join("regional", system_country + ".js")), "__js")
 
-		self._add_code(_get_path(self.name + '.css'), "__css")
-		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
+		self._add_code(_get_path(self.name + ".css"), "__css")
+		self._add_code(_get_path(self.name + "_list.js"), "__list_js")
 		if system_country:
-			self._add_code(_get_path(os.path.join('regional', system_country + '_list.js')), '__list_js')
+			self._add_code(_get_path(os.path.join("regional", system_country + "_list.js")), "__list_js")
 
-		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
-		self._add_code(_get_path(self.name + '_tree.js'), '__tree_js')
+		self._add_code(_get_path(self.name + "_calendar.js"), "__calendar_js")
+		self._add_code(_get_path(self.name + "_tree.js"), "__tree_js")
 
-		listview_template = _get_path(self.name + '_list.html')
+		listview_template = _get_path(self.name + "_list.html")
 		if os.path.exists(listview_template):
 			self.set("__listview_template", get_html_format(listview_template))
 
@@ -126,8 +139,8 @@ class FormMeta(Meta):
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with io.open(os.path.join(path, fname), 'r', encoding = 'utf-8') as f:
-					templates[fname.split('.')[0]] = scrub_html_template(f.read())
+				with io.open(os.path.join(path, fname), "r", encoding="utf-8") as f:
+					templates[fname.split(".")[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
 
@@ -138,19 +151,23 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
-		client_scripts = frappe.db.get_all("Client Script",
-			filters={"dt": self.name, "enabled": 1},
-			fields=["script", "view"],
-			order_by="creation asc"
-		) or ""
+		client_scripts = (
+			frappe.db.get_all(
+				"Client Script",
+				filters={"dt": self.name, "enabled": 1},
+				fields=["script", "view"],
+				order_by="creation asc",
+			)
+			or ""
+		)
 
-		list_script = ''
-		form_script = ''
+		list_script = ""
+		form_script = ""
 		for script in client_scripts:
-			if script.view == 'List':
+			if script.view == "List":
 				list_script += script.script
 
-			if script.view == 'Form':
+			if script.view == "Form":
 				form_script += script.script
 
 		file = scrub(self.name)
@@ -162,7 +179,7 @@ class FormMeta(Meta):
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""
-		for df in self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]}):
+		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
 			if df.options:
 				search_fields = frappe.get_meta(df.options).search_fields
 				if search_fields:
@@ -179,9 +196,13 @@ class FormMeta(Meta):
 					pass
 
 	def load_print_formats(self):
-		print_formats = frappe.db.sql("""select * FROM `tabPrint Format`
-			WHERE doc_type=%s AND docstatus<2 and disabled=0""", (self.name,), as_dict=1,
-			update={"doctype":"Print Format"})
+		print_formats = frappe.db.sql(
+			"""select * FROM `tabPrint Format`
+			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
+			(self.name,),
+			as_dict=1,
+			update={"doctype": "Print Format"},
+		)
 
 		self.set("__print_formats", print_formats)
 
@@ -198,7 +219,6 @@ class FormMeta(Meta):
 				workflow_docs.append(frappe.get_doc("Workflow State", d.state))
 
 		self.set("__workflow_docs", workflow_docs)
-
 
 	def load_templates(self):
 		if not self.custom:
@@ -222,7 +242,7 @@ class FormMeta(Meta):
 				self.get("__messages").update(messages)
 
 	def load_dashboard(self):
-		self.set('__dashboard', self.get_dashboard_data())
+		self.set("__dashboard", self.get_dashboard_data())
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()
@@ -230,15 +250,16 @@ class FormMeta(Meta):
 	def load_kanban_column_fields(self):
 		try:
 			values = frappe.get_list(
-				'Kanban Board', fields=['field_name'],
-				filters={'reference_doctype': self.name})
+				"Kanban Board", fields=["field_name"], filters={"reference_doctype": self.name}
+			)
 
-			fields = [x['field_name'] for x in values]
+			fields = [x["field_name"] for x in values]
 			fields = list(set(fields))
 			self.set("__kanban_column_fields", fields)
 		except frappe.PermissionError:
 			# no access to kanban board
 			pass
+
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
@@ -256,6 +277,7 @@ def get_code_files_via_hooks(hook, name):
 			code_files.append(path)
 
 	return code_files
+
 
 def get_js(path):
 	js = frappe.read_file(path)

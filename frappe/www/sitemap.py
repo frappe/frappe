@@ -11,6 +11,7 @@ from frappe.website.router import get_pages
 no_cache = 1
 base_template_path = "www/sitemap.xml"
 
+
 def get_context(context):
 	"""generate the sitemap XML"""
 
@@ -22,28 +23,27 @@ def get_context(context):
 	links = []
 	for route, page in get_pages().items():
 		if page.sitemap:
-			links.append({
-				"loc": get_url(quote(page.name.encode("utf-8"))),
-				"lastmod": nowdate()
-			})
+			links.append({"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()})
 
 	for route, data in get_public_pages_from_doctypes().items():
-		links.append({
-			"loc": get_url(quote((route or "").encode("utf-8"))),
-			"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d")
-		})
+		links.append(
+			{
+				"loc": get_url(quote((route or "").encode("utf-8"))),
+				"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d"),
+			}
+		)
 
-	return {"links":links}
+	return {"links": links}
+
 
 def get_public_pages_from_doctypes():
-	'''Returns pages from doctypes that are publicly accessible'''
+	"""Returns pages from doctypes that are publicly accessible"""
 
 	def get_sitemap_routes():
 		routes = {}
-		doctypes_with_web_view = [d.name for d in frappe.db.get_all('DocType', {
-			'has_web_view': 1,
-			'allow_guest_to_view': 1
-		})]
+		doctypes_with_web_view = [
+			d.name for d in frappe.db.get_all("DocType", {"has_web_view": 1, "allow_guest_to_view": 1})
+		]
 
 		for doctype in doctypes_with_web_view:
 			controller = get_controller(doctype)
@@ -51,12 +51,13 @@ def get_public_pages_from_doctypes():
 			condition_field = meta.is_published_field or controller.website.condition_field
 
 			try:
-				res = frappe.db.get_all(doctype, ['route', 'name', 'modified'], { condition_field: 1 })
+				res = frappe.db.get_all(doctype, ["route", "name", "modified"], {condition_field: 1})
 				for r in res:
 					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
 			except Exception as e:
-				if not frappe.db.is_missing_column(e): raise e
+				if not frappe.db.is_missing_column(e):
+					raise e
 
 		return routes
 
