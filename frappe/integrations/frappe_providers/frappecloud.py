@@ -12,15 +12,22 @@ def frappecloud_migrator(local_site):
 	request = requests.get(request_url)
 
 	if request.status_code / 100 != 2:
-		print("Request exitted with Status Code: {}\nPayload: {}".format(request.status_code, html2text(request.text)))
-		click.secho("Some errors occurred while recovering the migration script. Please contact us @ Frappe Cloud if this issue persists", fg="yellow")
+		print(
+			"Request exitted with Status Code: {}\nPayload: {}".format(
+				request.status_code, html2text(request.text)
+			)
+		)
+		click.secho(
+			"Some errors occurred while recovering the migration script. Please contact us @ Frappe Cloud if this issue persists",
+			fg="yellow",
+		)
 		return
 
 	script_contents = request.json()["message"]
 
-	import tempfile
 	import os
 	import sys
+	import tempfile
 
 	py = sys.executable
 	script = tempfile.NamedTemporaryFile(mode="w")

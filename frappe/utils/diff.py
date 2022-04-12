@@ -33,9 +33,7 @@ def get_version_diff(
 
 
 def _get_value_from_version(version_name: Union[int, str], fieldname: str):
-	version = frappe.get_list(
-		"Version", fields=["data", "modified"], filters={"name": version_name}
-	)
+	version = frappe.get_list("Version", fields=["data", "modified"], filters={"name": version_name})
 	if version:
 		data = json.loads(version[0].data)
 		changed_fields = data.get("changed", [])
