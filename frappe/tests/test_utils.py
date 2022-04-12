@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 import io
-import os
 import json
+import os
 import unittest
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -15,73 +15,127 @@ import pytz
 from PIL import Image
 
 import frappe
-from frappe.utils import ceil, evaluate_filters, floor, format_timedelta, get_bench_path
-from frappe.utils import get_url, money_in_words, parse_timedelta, scrub_urls
-from frappe.utils import validate_email_address, validate_url
-from frappe.utils.data import cast, get_time, get_timedelta, nowtime, now_datetime, validate_python_code
+from frappe.installer import parse_app_name
+from frappe.utils import (
+	ceil,
+	evaluate_filters,
+	floor,
+	format_timedelta,
+	get_bench_path,
+	get_url,
+	money_in_words,
+	parse_timedelta,
+	scrub_urls,
+	validate_email_address,
+	validate_url,
+)
+from frappe.utils.data import (
+	cast,
+	get_time,
+	get_timedelta,
+	now_datetime,
+	nowtime,
+	validate_python_code,
+)
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
-from frappe.installer import parse_app_name
 
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
-		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open'}, {'status': 'Open'}))
-		self.assertFalse(evaluate_filters({'doctype': 'User', 'status': 'Open'}, {'status': 'Closed'}))
+		self.assertTrue(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Open"}))
+		self.assertFalse(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Closed"}))
 
 	def test_multiple_dict(self):
-		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open', 'name': 'Test 1'},
-			{'status': 'Open', 'name':'Test 1'}))
-		self.assertFalse(evaluate_filters({'doctype': 'User', 'status': 'Open', 'name': 'Test 1'},
-			{'status': 'Closed', 'name': 'Test 1'}))
+		self.assertTrue(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "name": "Test 1"}, {"status": "Open", "name": "Test 1"}
+			)
+		)
+		self.assertFalse(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "name": "Test 1"}, {"status": "Closed", "name": "Test 1"}
+			)
+		)
 
 	def test_list_filters(self):
-		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open', 'name': 'Test 1'},
-			[{'status': 'Open'}, {'name':'Test 1'}]))
-		self.assertFalse(evaluate_filters({'doctype': 'User', 'status': 'Open', 'name': 'Test 1'},
-			[{'status': 'Open'}, {'name':'Test 2'}]))
+		self.assertTrue(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "name": "Test 1"},
+				[{"status": "Open"}, {"name": "Test 1"}],
+			)
+		)
+		self.assertFalse(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "name": "Test 1"},
+				[{"status": "Open"}, {"name": "Test 2"}],
+			)
+		)
 
 	def test_list_filters_as_list(self):
-		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open', 'name': 'Test 1'},
-			[['status', '=', 'Open'], ['name', '=', 'Test 1']]))
-		self.assertFalse(evaluate_filters({'doctype': 'User', 'status': 'Open', 'name': 'Test 1'},
-			[['status', '=', 'Open'], ['name', '=', 'Test 2']]))
+		self.assertTrue(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "name": "Test 1"},
+				[["status", "=", "Open"], ["name", "=", "Test 1"]],
+			)
+		)
+		self.assertFalse(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "name": "Test 1"},
+				[["status", "=", "Open"], ["name", "=", "Test 2"]],
+			)
+		)
 
 	def test_lt_gt(self):
-		self.assertTrue(evaluate_filters({'doctype': 'User', 'status': 'Open', 'age': 20},
-			{'status': 'Open', 'age': ('>', 10)}))
-		self.assertFalse(evaluate_filters({'doctype': 'User', 'status': 'Open', 'age': 20},
-			{'status': 'Open', 'age': ('>', 30)}))
+		self.assertTrue(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "age": 20}, {"status": "Open", "age": (">", 10)}
+			)
+		)
+		self.assertFalse(
+			evaluate_filters(
+				{"doctype": "User", "status": "Open", "age": 20}, {"status": "Open", "age": (">", 30)}
+			)
+		)
+
 
 class TestMoney(unittest.TestCase):
 	def test_money_in_words(self):
 		nums_bhd = [
-			(5000, "BHD Five Thousand only."), (5000.0, "BHD Five Thousand only."),
-			(0.1, "One Hundred Fils only."), (0, "BHD Zero only."), ("Fail", "")
+			(5000, "BHD Five Thousand only."),
+			(5000.0, "BHD Five Thousand only."),
+			(0.1, "One Hundred Fils only."),
+			(0, "BHD Zero only."),
+			("Fail", ""),
 		]
 
 		nums_ngn = [
-			(5000, "NGN Five Thousand only."), (5000.0, "NGN Five Thousand only."),
-			(0.1, "Ten Kobo only."), (0, "NGN Zero only."), ("Fail", "")
+			(5000, "NGN Five Thousand only."),
+			(5000.0, "NGN Five Thousand only."),
+			(0.1, "Ten Kobo only."),
+			(0, "NGN Zero only."),
+			("Fail", ""),
 		]
 
 		for num in nums_bhd:
 			self.assertEqual(
 				money_in_words(num[0], "BHD"),
 				num[1],
-				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1])
+				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1]),
 			)
 
 		for num in nums_ngn:
 			self.assertEqual(
-				money_in_words(num[0], "NGN"), num[1],
-				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1])
+				money_in_words(num[0], "NGN"),
+				num[1],
+				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1]),
 			)
+
 
 class TestDataManipulation(unittest.TestCase):
 	def test_scrub_urls(self):
-		html = '''
+		html = """
 			<p>You have a new message from: <b>John</b></p>
 			<p>Hey, wassup!</p>
 			<div class="more-info">
@@ -93,7 +147,7 @@ class TestDataManipulation(unittest.TestCase):
 			<div style="background-image: url('/assets/frappe/bg.jpg')">
 				Please mail us at <a href="mailto:test@example.com">email</a>
 			</div>
-		'''
+		"""
 
 		html = scrub_urls(html)
 		url = get_url()
@@ -102,13 +156,23 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<a href="{0}/about">Test link 2</a>'.format(url) in html)
 		self.assertTrue('<a href="{0}/login">Test link 3</a>'.format(url) in html)
 		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
-		self.assertTrue('style="background-image: url(\'{0}/assets/frappe/bg.jpg\') !important"'.format(url) in html)
+		self.assertTrue(
+			"style=\"background-image: url('{0}/assets/frappe/bg.jpg') !important\"".format(url) in html
+		)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
+
 
 class TestFieldCasting(unittest.TestCase):
 	def test_str_types(self):
 		STR_TYPES = (
-			"Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link"
+			"Data",
+			"Text",
+			"Small Text",
+			"Long Text",
+			"Text Editor",
+			"Select",
+			"Link",
+			"Dynamic Link",
 		)
 		for fieldtype in STR_TYPES:
 			self.assertIsInstance(cast(fieldtype, value=None), str)
@@ -144,97 +208,101 @@ class TestFieldCasting(unittest.TestCase):
 		self.assertIsInstance(cast("Time", value=None), timedelta)
 		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
+
 class TestMathUtils(unittest.TestCase):
 	def test_floor(self):
 		from decimal import Decimal
-		self.assertEqual(floor(2),              2)
-		self.assertEqual(floor(12.32904),       12)
-		self.assertEqual(floor(22.7330),        22)
-		self.assertEqual(floor('24.7'),         24)
-		self.assertEqual(floor('26.7'),         26)
+
+		self.assertEqual(floor(2), 2)
+		self.assertEqual(floor(12.32904), 12)
+		self.assertEqual(floor(22.7330), 22)
+		self.assertEqual(floor("24.7"), 24)
+		self.assertEqual(floor("26.7"), 26)
 		self.assertEqual(floor(Decimal(29.45)), 29)
 
 	def test_ceil(self):
 		from decimal import Decimal
-		self.assertEqual(ceil(2),               2)
-		self.assertEqual(ceil(12.32904),        13)
-		self.assertEqual(ceil(22.7330),         23)
-		self.assertEqual(ceil('24.7'),          25)
-		self.assertEqual(ceil('26.7'),          27)
-		self.assertEqual(ceil(Decimal(29.45)),  30)
+
+		self.assertEqual(ceil(2), 2)
+		self.assertEqual(ceil(12.32904), 13)
+		self.assertEqual(ceil(22.7330), 23)
+		self.assertEqual(ceil("24.7"), 25)
+		self.assertEqual(ceil("26.7"), 27)
+		self.assertEqual(ceil(Decimal(29.45)), 30)
+
 
 class TestHTMLUtils(unittest.TestCase):
 	def test_clean_email_html(self):
 		from frappe.utils.html_utils import clean_email_html
-		sample = '''<script>a=b</script><h1>Hello</h1><p>Para</p>'''
-		clean = clean_email_html(sample)
-		self.assertFalse('<script>' in clean)
-		self.assertTrue('<h1>Hello</h1>' in clean)
 
-		sample = '''<style>body { font-family: Arial }</style><h1>Hello</h1><p>Para</p>'''
+		sample = """<script>a=b</script><h1>Hello</h1><p>Para</p>"""
 		clean = clean_email_html(sample)
-		self.assertFalse('<style>' in clean)
-		self.assertTrue('<h1>Hello</h1>' in clean)
+		self.assertFalse("<script>" in clean)
+		self.assertTrue("<h1>Hello</h1>" in clean)
 
-		sample = '''<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>'''
+		sample = """<style>body { font-family: Arial }</style><h1>Hello</h1><p>Para</p>"""
 		clean = clean_email_html(sample)
-		self.assertTrue('<h1>Hello</h1>' in clean)
+		self.assertFalse("<style>" in clean)
+		self.assertTrue("<h1>Hello</h1>" in clean)
+
+		sample = """<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>"""
+		clean = clean_email_html(sample)
+		self.assertTrue("<h1>Hello</h1>" in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+
 
 class TestValidationUtils(unittest.TestCase):
 	def test_valid_url(self):
 		# Edge cases
-		self.assertFalse(validate_url(''))
+		self.assertFalse(validate_url(""))
 		self.assertFalse(validate_url(None))
 
 		# Valid URLs
-		self.assertTrue(validate_url('https://google.com'))
-		self.assertTrue(validate_url('http://frappe.io', throw=True))
+		self.assertTrue(validate_url("https://google.com"))
+		self.assertTrue(validate_url("http://frappe.io", throw=True))
 
 		# Invalid URLs without throw
-		self.assertFalse(validate_url('google.io'))
-		self.assertFalse(validate_url('google.io'))
+		self.assertFalse(validate_url("google.io"))
+		self.assertFalse(validate_url("google.io"))
 
 		# Invalid URL with throw
-		self.assertRaises(frappe.ValidationError, validate_url, 'frappe', throw=True)
+		self.assertRaises(frappe.ValidationError, validate_url, "frappe", throw=True)
 
 		# Scheme validation
-		self.assertFalse(validate_url('https://google.com', valid_schemes='http'))
-		self.assertTrue(validate_url('ftp://frappe.cloud', valid_schemes=['https', 'ftp']))
-		self.assertFalse(validate_url('bolo://frappe.io', valid_schemes=("http", "https", "ftp", "ftps")))
+		self.assertFalse(validate_url("https://google.com", valid_schemes="http"))
+		self.assertTrue(validate_url("ftp://frappe.cloud", valid_schemes=["https", "ftp"]))
+		self.assertFalse(
+			validate_url("bolo://frappe.io", valid_schemes=("http", "https", "ftp", "ftps"))
+		)
 		self.assertRaises(
-			frappe.ValidationError,
-			validate_url,
-			'gopher://frappe.io',
-			valid_schemes='https',
-			throw=True
+			frappe.ValidationError, validate_url, "gopher://frappe.io", valid_schemes="https", throw=True
 		)
 
 	def test_valid_email(self):
 		# Edge cases
-		self.assertFalse(validate_email_address(''))
+		self.assertFalse(validate_email_address(""))
 		self.assertFalse(validate_email_address(None))
 
 		# Valid addresses
-		self.assertTrue(validate_email_address('someone@frappe.com'))
-		self.assertTrue(validate_email_address('someone@frappe.com, anyone@frappe.io'))
+		self.assertTrue(validate_email_address("someone@frappe.com"))
+		self.assertTrue(validate_email_address("someone@frappe.com, anyone@frappe.io"))
 
 		# Invalid address
-		self.assertFalse(validate_email_address('someone'))
-		self.assertFalse(validate_email_address('someone@----.com'))
+		self.assertFalse(validate_email_address("someone"))
+		self.assertFalse(validate_email_address("someone@----.com"))
 
 		# Invalid with throw
 		self.assertRaises(
-			frappe.InvalidEmailAddressError,
-			validate_email_address,
-			'someone.com',
-			throw=True
+			frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True
 		)
+
 
 class TestImage(unittest.TestCase):
 	def test_strip_exif_data(self):
 		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
-		original_image_content = io.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode='rb').read()
+		original_image_content = io.open(
+			"../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode="rb"
+		).read()
 
 		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
 		new_image = Image.open(io.BytesIO(new_image_content))
@@ -245,7 +313,7 @@ class TestImage(unittest.TestCase):
 	def test_optimize_image(self):
 		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
 		content_type = guess_type(image_file_path)[0]
-		original_content = io.open(image_file_path, mode='rb').read()
+		original_content = io.open(image_file_path, mode="rb").read()
 
 		optimized_content = optimize_image(original_content, content_type, max_width=500, max_height=500)
 		optimized_image = Image.open(io.BytesIO(optimized_content))
@@ -254,6 +322,7 @@ class TestImage(unittest.TestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
 
 class TestPythonExpressions(unittest.TestCase):
 	def test_validation_for_good_python_expression(self):
@@ -281,6 +350,7 @@ class TestPythonExpressions(unittest.TestCase):
 		for expr in invalid_expressions:
 			self.assertRaises(frappe.ValidationError, validate_python_code, expr)
 
+
 class TestDiffUtils(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -291,8 +361,14 @@ class TestDiffUtils(unittest.TestCase):
 		cls.doc.script = "42;"
 		cls.doc.save(ignore_version=False)
 
-		cls.versions = version_query(doctype="Version", txt="", searchfield="name", start=0,
-				page_len=20, filters={"ref_doctype": cls.doc.doctype, "docname": cls.doc.name})
+		cls.versions = version_query(
+			doctype="Version",
+			txt="",
+			searchfield="name",
+			start=0,
+			page_len=20,
+			filters={"ref_doctype": cls.doc.doctype, "docname": cls.doc.name},
+		)
 
 	@classmethod
 	def tearDownClass(cls):
@@ -312,29 +388,36 @@ class TestDiffUtils(unittest.TestCase):
 		latest_version = self.versions[0][0]
 
 		diff = get_version_diff(old_version, latest_version)
-		self.assertIn('-2;', diff)
-		self.assertIn('+42;', diff)
+		self.assertIn("-2;", diff)
+		self.assertIn("+42;", diff)
+
 
 class TestDateUtils(unittest.TestCase):
 	def test_first_day_of_week(self):
 		# Monday as start of the week
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
-			self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"),
-				frappe.utils.getdate("2020-12-21"))
-			self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-20"),
-				frappe.utils.getdate("2020-12-14"))
+			self.assertEqual(
+				frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-21")
+			)
+			self.assertEqual(
+				frappe.utils.get_first_day_of_week("2020-12-20"), frappe.utils.getdate("2020-12-14")
+			)
 
 		# Sunday as start of the week
-		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"),
-			frappe.utils.getdate("2020-12-20"))
-		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-21"),
-			frappe.utils.getdate("2020-12-20"))
+		self.assertEqual(
+			frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-20")
+		)
+		self.assertEqual(
+			frappe.utils.get_first_day_of_week("2020-12-21"), frappe.utils.getdate("2020-12-20")
+		)
 
 	def test_last_day_of_week(self):
-		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-24"),
-			frappe.utils.getdate("2020-12-26"))
-		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"),
-			frappe.utils.getdate("2021-01-02"))
+		self.assertEqual(
+			frappe.utils.get_last_day_of_week("2020-12-24"), frappe.utils.getdate("2020-12-26")
+		)
+		self.assertEqual(
+			frappe.utils.get_last_day_of_week("2020-12-28"), frappe.utils.getdate("2021-01-02")
+		)
 
 	def test_get_time(self):
 		datetime_input = now_datetime()
@@ -362,6 +445,7 @@ class TestDateUtils(unittest.TestCase):
 		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
 
+
 class TestResponse(unittest.TestCase):
 	def test_json_handler(self):
 		class TEST(Enum):
@@ -371,7 +455,9 @@ class TestResponse(unittest.TestCase):
 		GOOD_OBJECT = {
 			"time_types": [
 				date(year=2020, month=12, day=2),
-				datetime(year=2020, month=12, day=2, hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
+				datetime(
+					year=2020, month=12, day=2, hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc
+				),
 				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
 			],
@@ -386,7 +472,7 @@ class TestResponse(unittest.TestCase):
 				(1, 2, 3),
 				"abcdef",
 			],
-			"string": "abcdef"
+			"string": "abcdef",
 		}
 
 		BAD_OBJECT = {"Enum": TEST}
@@ -400,19 +486,25 @@ class TestResponse(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			json.dumps(BAD_OBJECT, default=json_handler)
 
+
 class TestTimeDeltaUtils(unittest.TestCase):
 	def test_format_timedelta(self):
 		self.assertEqual(format_timedelta(timedelta(seconds=0)), "0:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=100)), "100:00:00")
 		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=129)), "0:01:40.000129")
-		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=12212199129)), "3:25:12.199129")
+		self.assertEqual(
+			format_timedelta(timedelta(seconds=100, microseconds=12212199129)), "3:25:12.199129"
+		)
 
 	def test_parse_timedelta(self):
 		self.assertEqual(parse_timedelta("0:0:0"), timedelta(seconds=0))
 		self.assertEqual(parse_timedelta("10:0:0"), timedelta(hours=10))
-		self.assertEqual(parse_timedelta("7 days, 0:32:18.192221"), timedelta(days=7, seconds=1938, microseconds=192221))
+		self.assertEqual(
+			parse_timedelta("7 days, 0:32:18.192221"), timedelta(days=7, seconds=1938, microseconds=192221)
+		)
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
+
 
 class TestXlsxUtils(unittest.TestCase):
 	def test_unescape(self):
@@ -512,6 +604,7 @@ class TestLinkTitle(unittest.TestCase):
 		todo.delete()
 		user.delete()
 		prop_setter.delete()
+
 
 class TestAppParser(unittest.TestCase):
 	def test_app_name_parser(self):

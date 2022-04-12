@@ -5,5 +5,6 @@
 # import frappe
 from frappe.model.document import Document
 
+
 class NumberCardLink(Document):
 	pass

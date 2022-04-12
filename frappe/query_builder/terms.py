@@ -18,10 +18,10 @@ class NamedParameterWrapper:
 		"""returns SQL for a parameter, while adding the real value in a dict
 
 		Args:
-				param_value (Any): Value of the parameter
+		                param_value (Any): Value of the parameter
 
 		Returns:
-				str: parameter used in the SQL query
+		                str: parameter used in the SQL query
 		"""
 		param_key = f"%(param{len(self.parameters) + 1})s"
 		self.parameters[param_key[2:-2]] = param_value
@@ -31,7 +31,7 @@ class NamedParameterWrapper:
 		"""get dict with parameters and values
 
 		Returns:
-				Dict[str, Any]: parameter dict
+		                Dict[str, Any]: parameter dict
 		"""
 		return self.parameters
 
@@ -90,22 +90,22 @@ class ParameterizedFunction(Function):
 
 		if self.schema is not None:
 			function_sql = "{schema}.{function}".format(
-				schema=self.schema.get_sql(
-					quote_char=quote_char, dialect=dialect, **kwargs
-				),
+				schema=self.schema.get_sql(quote_char=quote_char, dialect=dialect, **kwargs),
 				function=function_sql,
 			)
 
 		if with_alias:
-			return format_alias_sql(
-				function_sql, self.alias, quote_char=quote_char, **kwargs
-			)
+			return format_alias_sql(function_sql, self.alias, quote_char=quote_char, **kwargs)
 
 		return function_sql
 
 
 class subqry(Criterion):
-	def __init__(self, subq: QueryBuilder, alias: Optional[str] = None,) -> None:
+	def __init__(
+		self,
+		subq: QueryBuilder,
+		alias: Optional[str] = None,
+	) -> None:
 		super().__init__(alias)
 		self.subq = subq
 

@@ -4,4 +4,5 @@
 # pre loaded
 
 import frappe
-test_records = frappe.get_test_records('Currency')
+
+test_records = frappe.get_test_records("Currency")
