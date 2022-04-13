@@ -543,24 +543,19 @@ class TestDocType(unittest.TestCase):
 		import json
 		json_doc = new_doctype(
 			"Test Json Doctype",
-			fields=[{
-				"label": "json field",
-				"fieldname": "test_json_field",
-				"fieldtype": "JSON"
-			}]
+			fields=[{"label": "json field", "fieldname": "test_json_field", "fieldtype": "JSON"}]
 		)
 		json_doc.insert()
 		json_doc.save()
 		doc = frappe.get_doc("DocType", "Test Json Doctype")
 		for field in doc.fields:
-			if field.fieldname == 'test_json_field':
-				self.assertEqual(field.fieldtype, 'JSON')
+			if field.fieldname == "test_json_field":
+				self.assertEqual(field.fieldtype, "JSON")
 				break
 
-		doc = frappe.get_doc({
-			"doctype": "Test Json Doctype",
-			"test_json_field": json.dumps({"hello": "world"})
-		})
+		doc = frappe.get_doc(
+			{"doctype": "Test Json Doctype", "test_json_field": json.dumps({"hello": "world"})}
+		)
 		doc.insert()
 		doc.save()
 
@@ -569,7 +564,7 @@ class TestDocType(unittest.TestCase):
 		if isinstance(test_json.test_json_field, str):
 			test_json.test_json_field = json.loads(test_json.test_json_field)
 
-		self.assertEqual(test_json.test_json_field['hello'], 'world')
+		self.assertEqual(test_json.test_json_field["hello"], "world")
 
 
 
