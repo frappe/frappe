@@ -1228,15 +1228,7 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
-	def bulk_insert(
-		self,
-		doctype,
-		fields,
-		values,
-		ignore_duplicates=False,
-		*,
-		chunk_size=10000
-	):
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
 		"""
 		Insert multiple records at a time
 
@@ -1250,8 +1242,9 @@ class Database(object):
 			if ignore_duplicates:
 				query = query.ignore()
 
-			values_to_insert = values[start_index: start_index + chunk_size]
+			values_to_insert = values[start_index : start_index + chunk_size]
 			query.columns(fields).insert(*values_to_insert).run()
+
 
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import execute_job, get_queue
