@@ -655,7 +655,7 @@ frappe.provide("frappe.views");
 					|| frappe.model.get_std_field(field_name)
 				);
 				let label = cur_list.board.show_labels ? `<span>${__(field.label)}: </span>` : '';
-				let value = frappe.format(card.doc[field_name], field)
+				let value = frappe.format(card.doc[field_name], field);
 				fields.push(`
 					<div class="text-muted text-truncate">
 						${label}
