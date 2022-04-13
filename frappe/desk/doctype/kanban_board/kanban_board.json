@@ -50,9 +50,9 @@
   },
   {
    "fieldname": "filters",
-   "fieldtype": "Text",
-   "hidden": 1,
+   "fieldtype": "Code",
    "label": "Filters",
+   "options": "JSON",
    "read_only": 1
   },
   {
@@ -65,11 +65,13 @@
   {
    "fieldname": "fields",
    "fieldtype": "Code",
-   "label": "Fields"
+   "label": "Fields",
+   "options": "JSON",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2022-04-08 03:07:11.392978",
+ "modified": "2022-04-13 11:48:55.188596",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",
@@ -92,5 +94,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
