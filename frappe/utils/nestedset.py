@@ -16,39 +16,52 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-class NestedSetRecursionError(frappe.ValidationError): pass
-class NestedSetMultipleRootsError(frappe.ValidationError): pass
-class NestedSetChildExistsError(frappe.ValidationError): pass
-class NestedSetInvalidMergeError(frappe.ValidationError): pass
+
+class NestedSetRecursionError(frappe.ValidationError):
+	pass
+
+
+class NestedSetMultipleRootsError(frappe.ValidationError):
+	pass
+
+
+class NestedSetChildExistsError(frappe.ValidationError):
+	pass
+
+
+class NestedSetInvalidMergeError(frappe.ValidationError):
+	pass
+
 
 # called in the on_update method
 def update_nsm(doc):
 	# get fields, data from the DocType
-	old_parent_field = 'old_parent'
+	old_parent_field = "old_parent"
 	parent_field = "parent_" + frappe.scrub(doc.doctype)
 
-	if hasattr(doc,'nsm_parent_field'):
+	if hasattr(doc, "nsm_parent_field"):
 		parent_field = doc.nsm_parent_field
-	if hasattr(doc,'nsm_oldparent_field'):
+	if hasattr(doc, "nsm_oldparent_field"):
 		old_parent_field = doc.nsm_oldparent_field
 
 	parent, old_parent = doc.get(parent_field) or None, doc.get(old_parent_field) or None
 
 	# has parent changed (?) or parent is None (root)
 	if not doc.lft and not doc.rgt:
-		update_add_node(doc, parent or '', parent_field)
+		update_add_node(doc, parent or "", parent_field)
 	elif old_parent != parent:
 		update_move_node(doc, parent_field)
 
 	# set old parent
 	doc.set(old_parent_field, parent)
-	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or '', update_modified=False)
+	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or "", update_modified=False)
 
 	doc.reload()
 
+
 def update_add_node(doc, parent, parent_field):
 	"""
-		insert a new node
+	insert a new node
 	"""
 
 	doctype = doc.doctype
@@ -56,29 +69,35 @@ def update_add_node(doc, parent, parent_field):
 
 	# get the last sibling of the parent
 	if parent:
-		left, right = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s for update"
-			.format(doctype), parent)[0]
+		left, right = frappe.db.sql(
+			"select lft, rgt from `tab{0}` where name=%s for update".format(doctype), parent
+		)[0]
 		validate_loop(doc.doctype, doc.name, left, right)
-	else: # root
-		right = frappe.db.sql("""
+	else:  # root
+		right = frappe.db.sql(
+			"""
 			SELECT COALESCE(MAX(rgt), 0) + 1 FROM `tab{0}`
 			WHERE COALESCE(`{1}`, '') = ''
-		""".format(doctype, parent_field))[0][0]
+		""".format(
+				doctype, parent_field
+			)
+		)[0][0]
 	right = right or 1
 
 	# update all on the right
-	frappe.db.sql("update `tab{0}` set rgt = rgt+2 where rgt >= %s"
-		.format(doctype), (right,))
-	frappe.db.sql("update `tab{0}` set lft = lft+2 where lft >= %s"
-		.format(doctype), (right,))
+	frappe.db.sql("update `tab{0}` set rgt = rgt+2 where rgt >= %s".format(doctype), (right,))
+	frappe.db.sql("update `tab{0}` set lft = lft+2 where lft >= %s".format(doctype), (right,))
 
 	# update index of new node
-	if frappe.db.sql("select * from `tab{0}` where lft=%s or rgt=%s".format(doctype), (right, right+1)):
+	if frappe.db.sql(
+		"select * from `tab{0}` where lft=%s or rgt=%s".format(doctype), (right, right + 1)
+	):
 		frappe.msgprint(_("Nested set error. Please contact the Administrator."))
 		raise Exception
 
-	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s where name=%s".format(doctype),
-		(right,right+1, name))
+	frappe.db.sql(
+		"update `tab{0}` set lft=%s, rgt=%s where name=%s".format(doctype), (right, right + 1, name)
+	)
 	return right
 
 
@@ -86,42 +105,80 @@ def update_move_node(doc, parent_field):
 	parent = doc.get(parent_field)
 
 	if parent:
-		new_parent = frappe.db.sql("""select lft, rgt from `tab{0}`
-			where name = %s for update""".format(doc.doctype), parent, as_dict=1)[0]
+		new_parent = frappe.db.sql(
+			"""select lft, rgt from `tab{0}`
+			where name = %s for update""".format(
+				doc.doctype
+			),
+			parent,
+			as_dict=1,
+		)[0]
 
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
 	# move to dark side
-	frappe.db.sql("""update `tab{0}` set lft = -lft, rgt = -rgt
-		where lft >= %s and rgt <= %s""".format(doc.doctype), (doc.lft, doc.rgt))
+	frappe.db.sql(
+		"""update `tab{0}` set lft = -lft, rgt = -rgt
+		where lft >= %s and rgt <= %s""".format(
+			doc.doctype
+		),
+		(doc.lft, doc.rgt),
+	)
 
 	# shift left
 	diff = doc.rgt - doc.lft + 1
-	frappe.db.sql("""update `tab{0}` set lft = lft -%s, rgt = rgt - %s
-		where lft > %s""".format(doc.doctype), (diff, diff, doc.rgt))
+	frappe.db.sql(
+		"""update `tab{0}` set lft = lft -%s, rgt = rgt - %s
+		where lft > %s""".format(
+			doc.doctype
+		),
+		(diff, diff, doc.rgt),
+	)
 
 	# shift left rgts of ancestors whose only rgts must shift
-	frappe.db.sql("""update `tab{0}` set rgt = rgt - %s
-		where lft < %s and rgt > %s""".format(doc.doctype), (diff, doc.lft, doc.rgt))
+	frappe.db.sql(
+		"""update `tab{0}` set rgt = rgt - %s
+		where lft < %s and rgt > %s""".format(
+			doc.doctype
+		),
+		(diff, doc.lft, doc.rgt),
+	)
 
 	if parent:
-		new_parent = frappe.db.sql("""select lft, rgt from `tab%s`
-			where name = %s for update""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
-
+		new_parent = frappe.db.sql(
+			"""select lft, rgt from `tab%s`
+			where name = %s for update"""
+			% (doc.doctype, "%s"),
+			parent,
+			as_dict=1,
+		)[0]
 
 		# set parent lft, rgt
-		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
-			where name = %s""".format(doc.doctype), (diff, parent))
+		frappe.db.sql(
+			"""update `tab{0}` set rgt = rgt + %s
+			where name = %s""".format(
+				doc.doctype
+			),
+			(diff, parent),
+		)
 
 		# shift right at new parent
-		frappe.db.sql("""update `tab{0}` set lft = lft + %s, rgt = rgt + %s
-			where lft > %s""".format(doc.doctype), (diff, diff, new_parent.rgt))
+		frappe.db.sql(
+			"""update `tab{0}` set lft = lft + %s, rgt = rgt + %s
+			where lft > %s""".format(
+				doc.doctype
+			),
+			(diff, diff, new_parent.rgt),
+		)
 
 		# shift right rgts of ancestors whose only rgts must shift
-		frappe.db.sql("""update `tab{0}` set rgt = rgt + %s
-			where lft < %s and rgt > %s""".format(doc.doctype),
-			(diff, new_parent.lft, new_parent.rgt))
-
+		frappe.db.sql(
+			"""update `tab{0}` set rgt = rgt + %s
+			where lft < %s and rgt > %s""".format(
+				doc.doctype
+			),
+			(diff, new_parent.lft, new_parent.rgt),
+		)
 
 		new_diff = new_parent.rgt - doc.lft
 	else:
@@ -130,63 +187,81 @@ def update_move_node(doc, parent_field):
 		new_diff = max_rgt + 1 - doc.lft
 
 	# bring back from dark side
-	frappe.db.sql("""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s
-		where lft < 0""".format(doc.doctype), (new_diff, new_diff))
+	frappe.db.sql(
+		"""update `tab{0}` set lft = -lft + %s, rgt = -rgt + %s
+		where lft < 0""".format(
+			doc.doctype
+		),
+		(new_diff, new_diff),
+	)
+
 
 @frappe.whitelist()
 def rebuild_tree(doctype, parent_field):
 	"""
-		call rebuild_node for all root nodes
+	call rebuild_node for all root nodes
 	"""
 
 	# Check for perm if called from client-side
-	if frappe.request and frappe.local.form_dict.cmd == 'rebuild_tree':
-		frappe.only_for('System Manager')
+	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
+		frappe.only_for("System Manager")
 
 	meta = frappe.get_meta(doctype)
 	if not meta.has_field("lft") or not meta.has_field("rgt"):
-		frappe.throw(_("Rebuilding of tree is not supported for {}").format(frappe.bold(doctype)),
-			title=_("Invalid Action"))
+		frappe.throw(
+			_("Rebuilding of tree is not supported for {}").format(frappe.bold(doctype)),
+			title=_("Invalid Action"),
+		)
 
 	# get all roots
 	frappe.db.auto_commit_on_many_writes = 1
 
 	right = 1
-	result = frappe.db.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL ORDER BY name ASC" % (doctype, parent_field, parent_field))
+	result = frappe.db.sql(
+		"SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL ORDER BY name ASC"
+		% (doctype, parent_field, parent_field)
+	)
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	frappe.db.auto_commit_on_many_writes = 0
 
+
 def rebuild_node(doctype, parent, left, parent_field):
 	"""
-		reset lft, rgt and recursive call for all children
+	reset lft, rgt and recursive call for all children
 	"""
 	from frappe.utils import now
+
 	n = now()
 
 	# the right value of this node is the left value + 1
-	right = left+1
+	right = left + 1
 
 	# get all children of this node
-	result = frappe.db.sql("SELECT name FROM `tab{0}` WHERE `{1}`=%s"
-		.format(doctype, parent_field), (parent))
+	result = frappe.db.sql(
+		"SELECT name FROM `tab{0}` WHERE `{1}`=%s".format(doctype, parent_field), (parent)
+	)
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, for_update=False, update_modified=False)
+	frappe.db.set_value(
+		doctype, parent, {"lft": left, "rgt": right}, for_update=False, update_modified=False
+	)
 
-	#return the right value of this node + 1
-	return right+1
+	# return the right value of this node + 1
+	return right + 1
 
 
 def validate_loop(doctype, name, lft, rgt):
 	"""check if item not an ancestor (loop)"""
-	if name in frappe.db.sql_list("""select name from `tab{0}` where lft <= %s and rgt >= %s"""
-		 .format(doctype), (lft, rgt)):
+	if name in frappe.db.sql_list(
+		"""select name from `tab{0}` where lft <= %s and rgt >= %s""".format(doctype), (lft, rgt)
+	):
 		frappe.throw(_("Item cannot be added to its own descendents"), NestedSetRecursionError)
+
 
 class NestedSet(Document):
 	def __setup__(self):
@@ -198,7 +273,7 @@ class NestedSet(Document):
 		self.validate_ledger()
 
 	def on_trash(self, allow_root_deletion=False):
-		if not getattr(self, 'nsm_parent_field', None):
+		if not getattr(self, "nsm_parent_field", None):
 			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 
 		parent = self.get(self.nsm_parent_field)
@@ -220,17 +295,26 @@ class NestedSet(Document):
 				raise
 
 	def validate_if_child_exists(self):
-		has_children = frappe.db.sql("""select count(name) from `tab{doctype}`
-			where `{nsm_parent_field}`=%s""".format(doctype=self.doctype, nsm_parent_field=self.nsm_parent_field),
-			(self.name,))[0][0]
+		has_children = frappe.db.sql(
+			"""select count(name) from `tab{doctype}`
+			where `{nsm_parent_field}`=%s""".format(
+				doctype=self.doctype, nsm_parent_field=self.nsm_parent_field
+			),
+			(self.name,),
+		)[0][0]
 		if has_children:
-			frappe.throw(_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError)
+			frappe.throw(
+				_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError
+			)
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
-				frappe.throw(_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"), NestedSetInvalidMergeError)
+				frappe.throw(
+					_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"),
+					NestedSetInvalidMergeError,
+				)
 
 	def after_rename(self, olddn, newdn, merge=False):
 		if not self.nsm_parent_field:
@@ -239,8 +323,10 @@ class NestedSet(Document):
 			parent_field = self.nsm_parent_field
 
 		# set old_parent for children
-		frappe.db.sql("update `tab{0}` set old_parent=%s where {1}=%s"
-			.format(self.doctype, parent_field), (newdn, newdn))
+		frappe.db.sql(
+			"update `tab{0}` set old_parent=%s where {1}=%s".format(self.doctype, parent_field),
+			(newdn, newdn),
+		)
 
 		if merge:
 			rebuild_tree(self.doctype, parent_field)
@@ -251,42 +337,69 @@ class NestedSet(Document):
 				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
 
 	def get_root_node_count(self):
-		return frappe.db.count(self.doctype, {
-			self.nsm_parent_field: ''
-		})
+		return frappe.db.count(self.doctype, {self.nsm_parent_field: ""})
 
 	def validate_ledger(self, group_identifier="is_group"):
 		if hasattr(self, group_identifier) and not bool(self.get(group_identifier)):
-			if frappe.db.sql("""select name from `tab{0}` where {1}=%s and docstatus!=2"""
-				.format(self.doctype, self.nsm_parent_field), (self.name)):
-				frappe.throw(_("{0} {1} cannot be a leaf node as it has children").format(_(self.doctype), self.name))
+			if frappe.db.sql(
+				"""select name from `tab{0}` where {1}=%s and docstatus!=2""".format(
+					self.doctype, self.nsm_parent_field
+				),
+				(self.name),
+			):
+				frappe.throw(
+					_("{0} {1} cannot be a leaf node as it has children").format(_(self.doctype), self.name)
+				)
 
 	def get_ancestors(self):
 		return get_ancestors_of(self.doctype, self.name)
 
+
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
-	result = frappe.db.sql("""select t1.name from `tab{0}` t1 where
+	result = frappe.db.sql(
+		"""select t1.name from `tab{0}` t1 where
 		(select count(*) from `tab{1}` t2 where
 			t2.lft < t1.lft and t2.rgt > t1.rgt) = 0
-		and t1.rgt > t1.lft""".format(doctype, doctype))
+		and t1.rgt > t1.lft""".format(
+			doctype, doctype
+		)
+	)
 	return result[0][0] if result else None
+
 
 def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
 	"""Get ancestor elements of a DocType with a tree structure"""
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
 
-	result = [d["name"] for d in frappe.db.get_all(doctype, {"lft": ["<", lft], "rgt": [">", rgt]},
-		"name", order_by=order_by, limit_page_length=limit)]
+	result = [
+		d["name"]
+		for d in frappe.db.get_all(
+			doctype,
+			{"lft": ["<", lft], "rgt": [">", rgt]},
+			"name",
+			order_by=order_by,
+			limit_page_length=limit,
+		)
+	]
 
 	return result or []
 
-def get_descendants_of(doctype, name, order_by="lft desc", limit=None,
-	ignore_permissions=False):
-	'''Return descendants of the current record'''
-	lft, rgt = frappe.db.get_value(doctype, name, ['lft', 'rgt'])
 
-	result = [d["name"] for d in frappe.db.get_list(doctype, {"lft": [">", lft], "rgt": ["<", rgt]},
-		"name", order_by=order_by, limit_page_length=limit, ignore_permissions=ignore_permissions)]
+def get_descendants_of(doctype, name, order_by="lft desc", limit=None, ignore_permissions=False):
+	"""Return descendants of the current record"""
+	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
+
+	result = [
+		d["name"]
+		for d in frappe.db.get_list(
+			doctype,
+			{"lft": [">", lft], "rgt": ["<", rgt]},
+			"name",
+			order_by=order_by,
+			limit_page_length=limit,
+			ignore_permissions=ignore_permissions,
+		)
+	]
 
 	return result or []

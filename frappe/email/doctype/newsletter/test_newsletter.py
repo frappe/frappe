@@ -9,17 +9,17 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import frappe
 from frappe.desk.form.load import run_onload
 from frappe.email.doctype.newsletter.exceptions import (
-	NewsletterAlreadySentError, NoRecipientFoundError
+	NewsletterAlreadySentError,
+	NoRecipientFoundError,
 )
 from frappe.email.doctype.newsletter.newsletter import (
 	Newsletter,
 	confirmed_unsubscribe,
 	get_newsletter_list,
-	send_scheduled_email
+	send_scheduled_email,
 )
 from frappe.email.queue import flush
 from frappe.utils import add_days, getdate
-
 
 test_dependencies = ["Email Group"]
 emails = [
@@ -34,8 +34,8 @@ newsletters = []
 def get_dotted_path(obj: type) -> str:
 	klass = obj.__class__
 	module = klass.__module__
-	if module == 'builtins':
-		return klass.__qualname__ # avoid outputs like 'builtins.str'
+	if module == "builtins":
+		return klass.__qualname__  # avoid outputs like 'builtins.str'
 	return f"{module}.{klass.__qualname__}"
 
 
@@ -47,32 +47,31 @@ class TestNewsletterMixin:
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		for newsletter in newsletters:
-			frappe.db.delete("Email Queue", {
-				"reference_doctype": "Newsletter",
-				"reference_name": newsletter,
-			})
+			frappe.db.delete(
+				"Email Queue",
+				{
+					"reference_doctype": "Newsletter",
+					"reference_name": newsletter,
+				},
+			)
 			frappe.delete_doc("Newsletter", newsletter)
 			frappe.db.delete("Newsletter Email Group", newsletter)
 			newsletters.remove(newsletter)
 
 	def setup_email_group(self):
 		if not frappe.db.exists("Email Group", "_Test Email Group"):
-			frappe.get_doc({
-				"doctype": "Email Group",
-				"title": "_Test Email Group"
-			}).insert()
+			frappe.get_doc({"doctype": "Email Group", "title": "_Test Email Group"}).insert()
 
 		for email in emails:
 			doctype = "Email Group Member"
-			email_filters = {
-				"email": email,
-				"email_group": "_Test Email Group"
-			}
+			email_filters = {"email": email, "email_group": "_Test Email Group"}
 			try:
-				frappe.get_doc({
-					"doctype": doctype,
-					**email_filters,
-				}).insert()
+				frappe.get_doc(
+					{
+						"doctype": doctype,
+						**email_filters,
+					}
+				).insert()
 			except Exception:
 				frappe.db.update(doctype, email_filters, "unsubscribed", 0)
 
@@ -84,7 +83,7 @@ class TestNewsletterMixin:
 		newsletter_options = {
 			"published": published,
 			"schedule_sending": bool(schedule_send),
-			"schedule_send": schedule_send
+			"schedule_send": schedule_send,
 		}
 		newsletter = self.get_newsletter(**newsletter_options)
 
@@ -96,8 +95,7 @@ class TestNewsletterMixin:
 
 	@staticmethod
 	def get_newsletter(**kwargs) -> "Newsletter":
-		"""Generate and return Newsletter object
-		"""
+		"""Generate and return Newsletter object"""
 		doctype = "Newsletter"
 		newsletter_content = {
 			"subject": "_Test Newsletter",
@@ -116,7 +114,9 @@ class TestNewsletterMixin:
 		newsletter.reload()
 		newsletters.append(newsletter.name)
 
-		attached_files = frappe.get_all("File", {
+		attached_files = frappe.get_all(
+			"File",
+			{
 				"attached_to_doctype": newsletter.doctype,
 				"attached_to_name": newsletter.name,
 			},
@@ -141,15 +141,15 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 	def test_unsubscribe(self):
 		name = self.send_newsletter()
 		to_unsubscribe = choice(emails)
-		group = frappe.get_all("Newsletter Email Group", filters={"parent": name}, fields=["email_group"])
+		group = frappe.get_all(
+			"Newsletter Email Group", filters={"parent": name}, fields=["email_group"]
+		)
 
 		flush(from_test=True)
 		confirmed_unsubscribe(to_unsubscribe, group[0].email_group)
 
 		name = self.send_newsletter()
-		email_queue_list = [
-			frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")
-		]
+		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 3)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 
@@ -175,15 +175,14 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 	def test_schedule_send(self):
 		self.send_newsletter(schedule_send=add_days(getdate(), -1))
 
-		email_queue_list = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
+		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 		for email in emails:
 			self.assertTrue(email in recipients)
 
 	def test_newsletter_test_send(self):
-		"""Test "Test Send" functionality of Newsletter
-		"""
+		"""Test "Test Send" functionality of Newsletter"""
 		newsletter = self.get_newsletter()
 		newsletter.test_email_id = choice(emails)
 		newsletter.test_send()
@@ -193,8 +192,7 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 		self.assertFalse(newsletter.save.called)
 
 	def test_newsletter_status(self):
-		"""Test for Newsletter's stats on onload event
-		"""
+		"""Test for Newsletter's stats on onload event"""
 		newsletter = self.get_newsletter()
 		newsletter.email_sent = True
 		# had to use run_onload as calling .onload directly bought weird errors
@@ -221,13 +219,15 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 	def test_send_newsletter_with_attachments(self):
 		newsletter = self.get_newsletter()
 		newsletter.reload()
-		file_attachment = frappe.get_doc({
-			"doctype": "File",
-			"file_name": "test1.txt",
-			"attached_to_doctype": newsletter.doctype,
-			"attached_to_name": newsletter.name,
-			"content": frappe.mock("paragraph")
-		})
+		file_attachment = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test1.txt",
+				"attached_to_doctype": newsletter.doctype,
+				"attached_to_name": newsletter.name,
+				"content": frappe.mock("paragraph"),
+			}
+		)
 		file_attachment.save()
 		newsletter.send_attachments = True
 		newsletter_attachments = newsletter.get_newsletter_attachments()

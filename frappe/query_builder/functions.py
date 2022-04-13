@@ -1,7 +1,9 @@
 from pypika.functions import *
-from pypika.terms import Function, CustomFunction, ArithmeticExpression, Arithmetic
+from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
+
+from frappe.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
 from frappe.query_builder.utils import ImportMapper, db_type_is
-from frappe.query_builder.custom import GROUP_CONCAT, STRING_AGG, MATCH, TO_TSVECTOR
+
 from .utils import Column
 
 
@@ -10,19 +12,9 @@ class Concat_ws(Function):
 		super(Concat_ws, self).__init__("CONCAT_WS", *terms, **kwargs)
 
 
-GroupConcat = ImportMapper(
-	{
-		db_type_is.MARIADB: GROUP_CONCAT,
-		db_type_is.POSTGRES: STRING_AGG
-	}
-)
+GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
-Match = ImportMapper(
-	{
-		db_type_is.MARIADB: MATCH,
-		db_type_is.POSTGRES: TO_TSVECTOR
-	}
-)
+Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})
 
 
 class _PostgresTimestamp(ArithmeticExpression):
@@ -32,8 +24,7 @@ class _PostgresTimestamp(ArithmeticExpression):
 		if isinstance(timepart, str):
 			timepart = Cast(timepart, "time")
 
-		super().__init__(operator=Arithmetic.add,
-				left=datepart, right=timepart, alias=alias)
+		super().__init__(operator=Arithmetic.add, left=datepart, right=timepart, alias=alias)
 
 
 CombineDatetime = ImportMapper(

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
-from . import __version__ as app_version
 
+from . import __version__ as app_version
 
 app_name = "frappe"
 app_title = "Frappe Framework"
@@ -10,9 +10,9 @@ app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
-app_logo_url = '/assets/frappe/images/frappe-framework-logo.svg'
+app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 
-develop_version = '13.x.x-develop'
+develop_version = "13.x.x-develop"
 
 app_email = "info@frappe.io"
 
@@ -23,9 +23,7 @@ translator_url = "https://translate.erpnext.com"
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
-page_js = {
-	"setup-wizard": "public/js/frappe/setup_wizard.js"
-}
+page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
 # website
 app_include_js = [
@@ -43,12 +41,10 @@ app_include_css = [
 
 doctype_js = {
 	"Web Page": "public/js/frappe/utils/web_template.js",
-	"Website Settings": "public/js/frappe/utils/web_template.js"
+	"Website Settings": "public/js/frappe/utils/web_template.js",
 }
 
-web_include_js = [
-	"website_script.js"
-]
+web_include_js = ["website_script.js"]
 
 web_include_css = []
 
@@ -83,10 +79,12 @@ leaderboards = "frappe.desk.leaderboard.get_leaderboards"
 
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
-	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager"
+	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 ]
 
-on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
+on_logout = (
+	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
+)
 
 # permissions
 
@@ -106,7 +104,7 @@ permission_query_conditions = {
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
-	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition"
+	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 }
 
 has_permission = {
@@ -122,16 +120,14 @@ has_permission = {
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
 	"File": "frappe.core.doctype.file.file.has_permission",
-	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission"
+	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 }
 
 has_website_permission = {
 	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
 }
 
-standard_queries = {
-	"User": "frappe.core.doctype.user.user.user_query"
-}
+standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
 	"*": {
@@ -146,26 +142,26 @@ doc_events = {
 			"frappe.core.doctype.file.file.attach_files_to_document",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
-			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type"
+			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
-			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
-			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
+			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 		],
 		"on_update_after_submit": [
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
-			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
-		]
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
+		],
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
@@ -183,7 +179,7 @@ doc_events = {
 	"Page": {
 		"after_insert": "frappe.cache_manager.build_domain_restriced_page_cache",
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
-	}
+	},
 }
 
 scheduler_events = {
@@ -191,7 +187,7 @@ scheduler_events = {
 		"0/15 * * * *": [
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
-			"frappe.twofactor.delete_all_barcodes_for_users"
+			"frappe.twofactor.delete_all_barcodes_for_users",
 		]
 	},
 	"all": [
@@ -199,18 +195,18 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		'frappe.utils.global_search.sync_global_search',
+		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
-		'frappe.model.utils.user_settings.sync_user_settings',
+		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email"
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
 	],
 	"daily": [
 		"frappe.email.queue.set_expiry_for_email_queue",
@@ -229,13 +225,13 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
 		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
-		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up"
+		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
 		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
-		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
+		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
@@ -243,20 +239,20 @@ scheduler_events = {
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
-		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup"
+		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_summary"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_summary",
 	],
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
-	]
+	],
 }
 
 get_translated_dict = {
 	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
-	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict"
+	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
 }
 
 sounds = [
@@ -268,26 +264,25 @@ sounds = [
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
 	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
-
 ]
 
 bot_parsers = [
-	'frappe.utils.bot.ShowNotificationBot',
-	'frappe.utils.bot.GetOpenListBot',
-	'frappe.utils.bot.ListBot',
-	'frappe.utils.bot.FindBot',
-	'frappe.utils.bot.CountBot'
+	"frappe.utils.bot.ShowNotificationBot",
+	"frappe.utils.bot.GetOpenListBot",
+	"frappe.utils.bot.ListBot",
+	"frappe.utils.bot.FindBot",
+	"frappe.utils.bot.CountBot",
 ]
 
 setup_wizard_exception = [
 	"frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception",
-	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception"
+	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception",
 ]
 
-before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
-after_migrate = ['frappe.website.doctype.website_theme.website_theme.after_migrate']
+before_migrate = ["frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute"]
+after_migrate = ["frappe.website.doctype.website_theme.website_theme.after_migrate"]
 
-otp_methods = ['OTP App','Email','SMS']
+otp_methods = ["OTP App", "Email", "SMS"]
 
 user_data_fields = [
 	{"doctype": "Access Log", "strict": True},
@@ -369,6 +364,8 @@ global_search_doctypes = {
 		{"doctype": "Letter Head"},
 		{"doctype": "Workflow"},
 		{"doctype": "Web Page"},
-		{"doctype": "Web Form"}
+		{"doctype": "Web Form"},
 	]
 }
+
+translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]

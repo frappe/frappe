@@ -13,23 +13,24 @@ from six import text_type
 import frappe
 from frappe.utils import get_sites
 
-
 default_log_level = logging.DEBUG
 
 
-def get_logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
+def get_logger(
+	module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20
+):
 	"""Application Logger for your given module
 
 	Args:
-		module (str, optional): Name of your logger and consequently your log file. Defaults to None.
-		with_more_info (bool, optional): Will log the form dict using the SiteContextFilter. Defaults to False.
-		allow_site ((str, bool), optional): Pass site name to explicitly log under it's logs. If True and unspecified, guesses which site the logs would be saved under. Defaults to True.
-		filter (function, optional): Add a filter function for your logger. Defaults to None.
-		max_size (int, optional): Max file size of each log file in bytes. Defaults to 100_000.
-		file_count (int, optional): Max count of log files to be retained via Log Rotation. Defaults to 20.
+	        module (str, optional): Name of your logger and consequently your log file. Defaults to None.
+	        with_more_info (bool, optional): Will log the form dict using the SiteContextFilter. Defaults to False.
+	        allow_site ((str, bool), optional): Pass site name to explicitly log under it's logs. If True and unspecified, guesses which site the logs would be saved under. Defaults to True.
+	        filter (function, optional): Add a filter function for your logger. Defaults to None.
+	        max_size (int, optional): Max file size of each log file in bytes. Defaults to 100_000.
+	        file_count (int, optional): Max count of log files to be retained via Log Rotation. Defaults to 20.
 
 	Returns:
-		<class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
+	        <class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
 	"""
 
 	if allow_site is True:

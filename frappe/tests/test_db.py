@@ -13,12 +13,9 @@ from unittest.mock import patch
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.utils import random_string
-from frappe.utils.testutils import clear_custom_fields
-
 from frappe.database.database import Database
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.utils import add_days, now, random_string
+from frappe.utils import add_days, cint, now, random_string
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -30,17 +27,42 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 
-		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
-			frappe.db.get_value("User", {"name": [">", "s"]}))
+		self.assertEqual(
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
+			frappe.db.get_value("User", {"name": [">", "s"]}),
+		)
 
-		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
-			frappe.db.get_value("User", {"name": [">=", "t"]}))
+		self.assertEqual(
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
+			frappe.db.get_value("User", {"name": [">=", "t"]}),
+		)
+
+	def test_get_value_limits(self):
+
+		filters = {"enabled": 1}
+
+		self.assertEqual(1, len(frappe.db.get_values("User", filters=filters, limit=1)))
+		# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
+		self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+		self.assertEqual(2, len(frappe.db.get_values("User", filters=filters, limit=2)))
+		self.assertGreaterEqual(2, cint(frappe.db._cursor.rowcount))
+
+		# without limits length == count
+		self.assertEqual(
+			len(frappe.db.get_values("User", filters=filters)), frappe.db.count("User", filters)
+		)
+
+		frappe.db.get_value("User", filters=filters)
+		self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
+
+		frappe.db.exists("User", filters)
+		self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
 	def test_get_single_value(self):
-		#setup
+		# setup
 		values_dict = {
 			"Float": 1.5,
 			"Int": 1,
@@ -49,76 +71,150 @@ class TestDB(unittest.TestCase):
 			"Data": "Test",
 			"Date": datetime.datetime.now().date(),
 			"Datetime": datetime.datetime.now(),
-			"Time": datetime.timedelta(hours=9, minutes=45, seconds=10)
+			"Time": datetime.timedelta(hours=9, minutes=45, seconds=10),
 		}
-		test_inputs = [{
-			"fieldtype": fieldtype,
-			"value": value} for fieldtype, value in values_dict.items()]
+		test_inputs = [
+			{"fieldtype": fieldtype, "value": value} for fieldtype, value in values_dict.items()
+		]
 		for fieldtype in values_dict.keys():
-			create_custom_field("Print Settings", {
-				"fieldname": f"test_{fieldtype.lower()}",
-				"label": f"Test {fieldtype}",
-				"fieldtype": fieldtype,
-			})
+			create_custom_field(
+				"Print Settings",
+				{
+					"fieldname": f"test_{fieldtype.lower()}",
+					"label": f"Test {fieldtype}",
+					"fieldtype": fieldtype,
+				},
+			)
 
-		#test
+		# test
 		for inp in test_inputs:
 			fieldname = f"test_{inp['fieldtype'].lower()}"
 			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
 			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
-		#teardown
+		# teardown
 		clear_custom_fields("Print Settings")
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
 		frappe.flags.touched_tables = set()
-		frappe.db.set_value('System Settings', 'System Settings', 'backup_limit', 5)
-		self.assertIn('tabSingles', frappe.flags.touched_tables)
+		frappe.db.set_value("System Settings", "System Settings", "backup_limit", 5)
+		self.assertIn("tabSingles", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
-		todo = frappe.get_doc({'doctype': 'ToDo', 'description': 'Random Description'})
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Random Description"})
 		todo.save()
-		self.assertIn('tabToDo', frappe.flags.touched_tables)
+		self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
 		todo.description = "Another Description"
 		todo.save()
-		self.assertIn('tabToDo', frappe.flags.touched_tables)
+		self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		if frappe.db.db_type != "postgres":
 			frappe.flags.touched_tables = set()
 			frappe.db.sql("UPDATE tabToDo SET description = 'Updated Description'")
-			self.assertNotIn('tabToDo SET', frappe.flags.touched_tables)
-			self.assertIn('tabToDo', frappe.flags.touched_tables)
+			self.assertNotIn("tabToDo SET", frappe.flags.touched_tables)
+			self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
 		todo.delete()
-		self.assertIn('tabToDo', frappe.flags.touched_tables)
+		self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
-		create_custom_field('ToDo', {'label': 'ToDo Custom Field'})
+		create_custom_field("ToDo", {"label": "ToDo Custom Field"})
 
-		self.assertIn('tabToDo', frappe.flags.touched_tables)
-		self.assertIn('tabCustom Field', frappe.flags.touched_tables)
+		self.assertIn("tabToDo", frappe.flags.touched_tables)
+		self.assertIn("tabCustom Field", frappe.flags.touched_tables)
 		frappe.flags.in_migrate = False
 		frappe.flags.touched_tables.clear()
-
 
 	def test_db_keywords_as_fields(self):
 		"""Tests if DB keywords work as docfield names. If they're wrapped with grave accents."""
 		# Using random.choices, picked out a list of 40 keywords for testing
 		all_keywords = {
-			"mariadb": ["CHARACTER", "DELAYED", "LINES", "EXISTS", "YEAR_MONTH", "LOCALTIME", "BOTH", "MEDIUMINT",
-			"LEFT", "BINARY", "DEFAULT", "KILL", "WRITE", "SQL_SMALL_RESULT", "CURRENT_TIME", "CROSS", "INHERITS",
-			"SELECT", "TABLE", "ALTER", "CURRENT_TIMESTAMP", "XOR", "CASE", "ALL", "WHERE", "INT", "TO", "SOME",
-			"DAY_MINUTE", "ERRORS", "OPTIMIZE", "REPLACE", "HIGH_PRIORITY", "VARBINARY", "HELP", "IS",
-			"CHAR", "DESCRIBE", "KEY"],
-			"postgres": ["WORK", "LANCOMPILER", "REAL", "HAVING", "REPEATABLE", "DATA", "USING", "BIT", "DEALLOCATE",
-			"SERIALIZABLE", "CURSOR", "INHERITS", "ARRAY", "TRUE", "IGNORE", "PARAMETER_MODE", "ROW", "CHECKPOINT",
-			"SHOW", "BY", "SIZE", "SCALE", "UNENCRYPTED", "WITH", "AND", "CONVERT", "FIRST", "SCOPE", "WRITE", "INTERVAL",
-			"CHARACTER_SET_SCHEMA", "ADD", "SCROLL", "NULL", "WHEN", "TRANSACTION_ACTIVE",
-			"INT", "FORTRAN", "STABLE"]
+			"mariadb": [
+				"CHARACTER",
+				"DELAYED",
+				"LINES",
+				"EXISTS",
+				"YEAR_MONTH",
+				"LOCALTIME",
+				"BOTH",
+				"MEDIUMINT",
+				"LEFT",
+				"BINARY",
+				"DEFAULT",
+				"KILL",
+				"WRITE",
+				"SQL_SMALL_RESULT",
+				"CURRENT_TIME",
+				"CROSS",
+				"INHERITS",
+				"SELECT",
+				"TABLE",
+				"ALTER",
+				"CURRENT_TIMESTAMP",
+				"XOR",
+				"CASE",
+				"ALL",
+				"WHERE",
+				"INT",
+				"TO",
+				"SOME",
+				"DAY_MINUTE",
+				"ERRORS",
+				"OPTIMIZE",
+				"REPLACE",
+				"HIGH_PRIORITY",
+				"VARBINARY",
+				"HELP",
+				"IS",
+				"CHAR",
+				"DESCRIBE",
+				"KEY",
+			],
+			"postgres": [
+				"WORK",
+				"LANCOMPILER",
+				"REAL",
+				"HAVING",
+				"REPEATABLE",
+				"DATA",
+				"USING",
+				"BIT",
+				"DEALLOCATE",
+				"SERIALIZABLE",
+				"CURSOR",
+				"INHERITS",
+				"ARRAY",
+				"TRUE",
+				"IGNORE",
+				"PARAMETER_MODE",
+				"ROW",
+				"CHECKPOINT",
+				"SHOW",
+				"BY",
+				"SIZE",
+				"SCALE",
+				"UNENCRYPTED",
+				"WITH",
+				"AND",
+				"CONVERT",
+				"FIRST",
+				"SCOPE",
+				"WRITE",
+				"INTERVAL",
+				"CHARACTER_SET_SCHEMA",
+				"ADD",
+				"SCROLL",
+				"NULL",
+				"WHEN",
+				"TRANSACTION_ACTIVE",
+				"INT",
+				"FORTRAN",
+				"STABLE",
+			],
 		}
 		created_docs = []
 
@@ -128,11 +224,14 @@ class TestDB(unittest.TestCase):
 		test_doctype = "ToDo"
 
 		def add_custom_field(field):
-			create_custom_field(test_doctype, {
-				"fieldname": field.lower(),
-				"label": field.title(),
-				"fieldtype": 'Data',
-			})
+			create_custom_field(
+				test_doctype,
+				{
+					"fieldname": field.lower(),
+					"label": field.title(),
+					"fieldtype": "Data",
+				},
+			)
 
 		# Create custom fields for test_doctype
 		for field in fields:
@@ -150,30 +249,40 @@ class TestDB(unittest.TestCase):
 		random_value = random_string(20)
 
 		# Testing read
-		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
-		self.assertEqual(list(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])[0], "total")
+		self.assertEqual(
+			list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field
+		)
+		self.assertEqual(
+			list(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])[0], "total"
+		)
 
 		# Testing read for distinct and sql functions
-		self.assertEqual(list(
-			frappe.get_all("ToDo",
-				fields=[f"`{random_field}` as total"],
-				distinct=True,
-				limit=1,
-			)[0]
-		)[0], "total")
-		self.assertEqual(list(
-			frappe.get_all("ToDo",
-			fields=[f"`{random_field}`"],
-			distinct=True,
-			limit=1,
-			)[0]
-		)[0], random_field)
-		self.assertEqual(list(
-			frappe.get_all("ToDo",
-				fields=[f"count(`{random_field}`)"],
-				limit=1
-			)[0]
-		)[0], "count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)")
+		self.assertEqual(
+			list(
+				frappe.get_all(
+					"ToDo",
+					fields=[f"`{random_field}` as total"],
+					distinct=True,
+					limit=1,
+				)[0]
+			)[0],
+			"total",
+		)
+		self.assertEqual(
+			list(
+				frappe.get_all(
+					"ToDo",
+					fields=[f"`{random_field}`"],
+					distinct=True,
+					limit=1,
+				)[0]
+			)[0],
+			random_field,
+		)
+		self.assertEqual(
+			list(frappe.get_all("ToDo", fields=[f"count(`{random_field}`)"], limit=1)[0])[0],
+			"count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)",
+		)
 
 		# Testing update
 		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)
@@ -208,6 +317,7 @@ class TestDB(unittest.TestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_transaction_writes_error(self):
 		from frappe.database.database import Database
+
 		frappe.db.rollback()
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
@@ -273,7 +383,9 @@ class TestDBSetValue(unittest.TestCase):
 		value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		changed_value = not value
 
-		frappe.db.set_value("System Settings", "System Settings", "deny_multiple_sessions", changed_value)
+		frappe.db.set_value(
+			"System Settings", "System Settings", "deny_multiple_sessions", changed_value
+		)
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
 
@@ -295,40 +407,47 @@ class TestDBSetValue(unittest.TestCase):
 	def test_update_single_row_multiple_columns(self):
 		description, status = "Upated by test_update_single_row_multiple_columns", "Closed"
 
-		frappe.db.set_value("ToDo", self.todo1.name, {
-			"description": description,
-			"status": status,
-		}, update_modified=False)
+		frappe.db.set_value(
+			"ToDo",
+			self.todo1.name,
+			{
+				"description": description,
+				"status": status,
+			},
+			update_modified=False,
+		)
 
-		updated_desciption, updated_status = frappe.db.get_value("ToDo",
-			filters={"name": self.todo1.name},
-			fieldname=["description", "status"]
+		updated_desciption, updated_status = frappe.db.get_value(
+			"ToDo", filters={"name": self.todo1.name}, fieldname=["description", "status"]
 		)
 
 		self.assertEqual(description, updated_desciption)
 		self.assertEqual(status, updated_status)
 
 	def test_update_multiple_rows_single_column(self):
-		frappe.db.set_value("ToDo", {"description": ("like", "%test_set_value%")}, "description", "change 2")
+		frappe.db.set_value(
+			"ToDo", {"description": ("like", "%test_set_value%")}, "description", "change 2"
+		)
 
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo1.name, "description"), "change 2")
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo2.name, "description"), "change 2")
 
 	def test_update_multiple_rows_multiple_columns(self):
-		todos_to_update = frappe.get_all("ToDo", filters={
-			"description": ("like", "%test_set_value%"),
-			"status": ("!=", "Closed")
-		}, pluck="name")
+		todos_to_update = frappe.get_all(
+			"ToDo",
+			filters={"description": ("like", "%test_set_value%"), "status": ("!=", "Closed")},
+			pluck="name",
+		)
 
-		frappe.db.set_value("ToDo", {
-			"description": ("like", "%test_set_value%"),
-			"status": ("!=", "Closed")
-		}, {
-			"status": "Closed",
-			"priority": "High"
-		})
+		frappe.db.set_value(
+			"ToDo",
+			{"description": ("like", "%test_set_value%"), "status": ("!=", "Closed")},
+			{"status": "Closed", "priority": "High"},
+		)
 
-		test_result = frappe.get_all("ToDo", filters={"name": ("in", todos_to_update)}, fields=["status", "priority"])
+		test_result = frappe.get_all(
+			"ToDo", filters={"name": ("in", todos_to_update)}, fields=["status", "priority"]
+		)
 
 		self.assertTrue(all(x for x in test_result if x["status"] == "Closed"))
 		self.assertTrue(all(x for x in test_result if x["priority"] == "High"))
@@ -345,10 +464,17 @@ class TestDBSetValue(unittest.TestCase):
 		self.assertEqual(updated_description, frappe.db.get_value("ToDo", todo.name, "description"))
 		self.assertEqual(todo.modified, frappe.db.get_value("ToDo", todo.name, "modified"))
 
-		frappe.db.set_value("ToDo", todo.name, "description", "test_set_value change 1", modified=custom_modified, modified_by=custom_modified_by)
+		frappe.db.set_value(
+			"ToDo",
+			todo.name,
+			"description",
+			"test_set_value change 1",
+			modified=custom_modified,
+			modified_by=custom_modified_by,
+		)
 		self.assertTupleEqual(
 			(custom_modified, custom_modified_by),
-			frappe.db.get_value("ToDo", todo.name, ["modified", "modified_by"])
+			frappe.db.get_value("ToDo", todo.name, ["modified", "modified_by"]),
 		)
 
 	def test_for_update(self):
@@ -359,7 +485,7 @@ class TestDBSetValue(unittest.TestCase):
 				self.todo1.doctype,
 				self.todo1.name,
 				"description",
-				f"{self.todo1.description}-edit by `test_for_update`"
+				f"{self.todo1.description}-edit by `test_for_update`",
 			)
 			first_query = sql_called.call_args_list[0][0][0]
 			second_query = sql_called.call_args_list[1][0][0]
@@ -368,6 +494,7 @@ class TestDBSetValue(unittest.TestCase):
 			self.assertTrue("FOR UPDATE".casefold() in first_query)
 			if frappe.conf.db_type == "postgres":
 				from frappe.database.postgres.database import modify_query
+
 				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in second_query)
 			if frappe.conf.db_type == "mariadb":
 				self.assertTrue("UPDATE `tabToDo` SET" in second_query)
@@ -380,13 +507,19 @@ class TestDBSetValue(unittest.TestCase):
 				self.todo2.doctype,
 				self.todo2.name,
 				"description",
-				f"{self.todo2.description}-edit by `test_cleared_cache`"
+				f"{self.todo2.description}-edit by `test_cleared_cache`",
 			)
 			clear_cache.assert_called()
 
 	def test_update_alias(self):
 		args = (self.todo1.doctype, self.todo1.name, "description", "Updated by `test_update_alias`")
-		kwargs = {"for_update": False, "modified": None, "modified_by": None, "update_modified": True, "debug": False}
+		kwargs = {
+			"for_update": False,
+			"modified": None,
+			"modified_by": None,
+			"update_modified": True,
+			"debug": False,
+		}
 
 		self.assertTrue("return self.set_value(" in inspect.getsource(frappe.db.update))
 

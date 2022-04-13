@@ -3,10 +3,12 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 from frappe import _, safe_encode
 from frappe.model.document import Document
-from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,confirm_otp_token)
+from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
+
 
 class LDAPSettings(Document):
 	def validate(self):
@@ -15,50 +17,74 @@ class LDAPSettings(Document):
 
 		if not self.flags.ignore_mandatory:
 
-			if self.ldap_search_string.count('(') == self.ldap_search_string.count(')') and \
-				self.ldap_search_string.startswith('(') and \
-				self.ldap_search_string.endswith(')') and \
-				self.ldap_search_string and \
-				"{0}" in self.ldap_search_string:
+			if (
+				self.ldap_search_string.count("(") == self.ldap_search_string.count(")")
+				and self.ldap_search_string.startswith("(")
+				and self.ldap_search_string.endswith(")")
+				and self.ldap_search_string
+				and "{0}" in self.ldap_search_string
+			):
 
-				conn = self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
+				conn = self.connect_to_ldap(
+					base_dn=self.base_dn, password=self.get_password(raise_exception=False)
+				)
 
 				try:
-					if conn.result['type'] == 'bindResponse' and self.base_dn:
+					if conn.result["type"] == "bindResponse" and self.base_dn:
 						import ldap3
 
 						conn.search(
 							search_base=self.ldap_search_path_user,
 							search_filter="(objectClass=*)",
-							attributes=self.get_ldap_attributes())
+							attributes=self.get_ldap_attributes(),
+						)
 
 						conn.search(
-							search_base=self.ldap_search_path_group,
-							search_filter="(objectClass=*)",
-							attributes=['cn'])
+							search_base=self.ldap_search_path_group, search_filter="(objectClass=*)", attributes=["cn"]
+						)
 
 				except ldap3.core.exceptions.LDAPAttributeError as ex:
-					frappe.throw(_("LDAP settings incorrect. validation response was: {0}").format(ex),
-						title=_("Misconfigured"))
+					frappe.throw(
+						_("LDAP settings incorrect. validation response was: {0}").format(ex),
+						title=_("Misconfigured"),
+					)
 
 				except ldap3.core.exceptions.LDAPNoSuchObjectResult:
-					frappe.throw(_("Ensure the user and group search paths are correct."),
-						title=_("Misconfigured"))
+					frappe.throw(
+						_("Ensure the user and group search paths are correct."), title=_("Misconfigured")
+					)
 
-				if self.ldap_directory_server.lower() == 'custom':
+				if self.ldap_directory_server.lower() == "custom":
 					if not self.ldap_group_member_attribute or not self.ldap_group_objectclass:
-						frappe.throw(_("Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"),
-						title=_("Misconfigured"))
+						frappe.throw(
+							_(
+								"Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"
+							),
+							title=_("Misconfigured"),
+						)
+
+				if self.ldap_custom_group_search and "{0}" not in self.ldap_custom_group_search:
+					frappe.throw(
+						_(
+							"Custom Group Search if filled needs to contain the user placeholder {0}, eg uid={0},ou=users,dc=example,dc=com"
+						),
+						title=_("Misconfigured"),
+					)
 
 			else:
-				frappe.throw(_("LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"))
+				frappe.throw(
+					_(
+						"LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
+					)
+				)
 
 	def connect_to_ldap(self, base_dn, password, read_only=True):
 		try:
-			import ldap3
 			import ssl
 
-			if self.require_trusted_certificate == 'Yes':
+			import ldap3
+
+			if self.require_trusted_certificate == "Yes":
 				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLS_CLIENT)
 			else:
 				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
@@ -79,7 +105,8 @@ class LDAPSettings(Document):
 				password=password,
 				auto_bind=bind_type,
 				read_only=read_only,
-				raise_exceptions=True)
+				raise_exceptions=True,
+			)
 
 			return conn
 
@@ -94,9 +121,7 @@ class LDAPSettings(Document):
 	@staticmethod
 	def get_ldap_client_settings():
 		# return the settings to be used on the client side.
-		result = {
-			"enabled": False
-		}
+		result = {"enabled": False}
 		ldap = frappe.get_doc("LDAP Settings")
 		if ldap.enabled:
 			result["enabled"] = True
@@ -106,7 +131,7 @@ class LDAPSettings(Document):
 	@classmethod
 	def update_user_fields(cls, user, user_data):
 
-		updatable_data = {key: value for key, value in user_data.items() if key != 'email'}
+		updatable_data = {key: value for key, value in user_data.items() if key != "email"}
 
 		for key, value in updatable_data.items():
 			setattr(user, key, value)
@@ -122,7 +147,9 @@ class LDAPSettings(Document):
 		lower_groups = [g.lower() for g in additional_groups or []]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
-		matched_roles = {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
+		matched_roles = {
+			r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups
+		}
 		unmatched_roles = all_mapped_roles.difference(matched_roles)
 		needed_roles.update(matched_roles)
 		roles_to_remove = current_roles.intersection(unmatched_roles)
@@ -135,20 +162,22 @@ class LDAPSettings(Document):
 
 	def create_or_update_user(self, user_data, groups=None):
 		user = None
-		if frappe.db.exists("User", user_data['email']):
-			user = frappe.get_doc("User", user_data['email'])
+		if frappe.db.exists("User", user_data["email"]):
+			user = frappe.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		else:
 			doc = user_data
-			doc.update({
-				"doctype": "User",
-				"send_welcome_email": 0,
-				"language": "",
-				"user_type": "System User",
-				# "roles": [{
-				# 	"role": self.default_role
-				# }]
-			})
+			doc.update(
+				{
+					"doctype": "User",
+					"send_welcome_email": 0,
+					"language": "",
+					"user_type": "System User",
+					# "roles": [{
+					# 	"role": self.default_role
+					# }]
+				}
+			)
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
 		# always add default role.
@@ -177,40 +206,44 @@ class LDAPSettings(Document):
 
 		return ldap_attributes
 
-
 	def fetch_ldap_groups(self, user, conn):
 		import ldap3
 
 		if type(user) is not ldap3.abstract.entry.Entry:
-			raise TypeError("Invalid type, attribute {0} must be of type '{1}'".format('user', 'ldap3.abstract.entry.Entry'))
+			raise TypeError(
+				"Invalid type, attribute {0} must be of type '{1}'".format(
+					"user", "ldap3.abstract.entry.Entry"
+				)
+			)
 
 		if type(conn) is not ldap3.core.connection.Connection:
-			raise TypeError("Invalid type, attribute {0} must be of type '{1}'".format('conn', 'ldap3.Connection'))
+			raise TypeError(
+				"Invalid type, attribute {0} must be of type '{1}'".format("conn", "ldap3.Connection")
+			)
 
 		fetch_ldap_groups = None
 
 		ldap_object_class = None
 		ldap_group_members_attribute = None
 
+		if self.ldap_directory_server.lower() == "active directory":
 
-		if self.ldap_directory_server.lower() == 'active directory':
-
-			ldap_object_class = 'Group'
-			ldap_group_members_attribute = 'member'
+			ldap_object_class = "Group"
+			ldap_group_members_attribute = "member"
 			user_search_str = user.entry_dn
 
+		elif self.ldap_directory_server.lower() == "openldap":
 
-		elif self.ldap_directory_server.lower() == 'openldap':
-
-			ldap_object_class = 'posixgroup'
-			ldap_group_members_attribute = 'memberuid'
+			ldap_object_class = "posixgroup"
+			ldap_group_members_attribute = "memberuid"
 			user_search_str = getattr(user, self.ldap_username_field).value
 
-		elif self.ldap_directory_server.lower() == 'custom':
+		elif self.ldap_directory_server.lower() == "custom":
 
 			ldap_object_class = self.ldap_group_objectclass
 			ldap_group_members_attribute = self.ldap_group_member_attribute
-			user_search_str = getattr(user, self.ldap_username_field).value
+			ldap_custom_group_search = self.ldap_custom_group_search or "{0}"
+			user_search_str = ldap_custom_group_search.format(getattr(user, self.ldap_username_field).value)
 
 		else:
 			# NOTE: depreciate this else path
@@ -223,19 +256,19 @@ class LDAPSettings(Document):
 		if ldap_object_class is not None:
 			conn.search(
 				search_base=self.ldap_search_path_group,
-				search_filter="(&(objectClass={0})({1}={2}))".format(ldap_object_class,ldap_group_members_attribute, user_search_str),
-				attributes=['cn']) # Build search query
+				search_filter="(&(objectClass={0})({1}={2}))".format(
+					ldap_object_class, ldap_group_members_attribute, user_search_str
+				),
+				attributes=["cn"],
+			)  # Build search query
 
 		if len(conn.entries) >= 1:
 
 			fetch_ldap_groups = []
 			for group in conn.entries:
-				fetch_ldap_groups.append(group['cn'].value)
+				fetch_ldap_groups.append(group["cn"].value)
 
 		return fetch_ldap_groups
-
-
-
 
 	def authenticate(self, username, password):
 
@@ -253,7 +286,8 @@ class LDAPSettings(Document):
 			conn.search(
 				search_base=self.ldap_search_path_user,
 				search_filter="{0}".format(user_filter),
-				attributes=ldap_attributes)
+				attributes=ldap_attributes,
+			)
 
 			if len(conn.entries) == 1 and conn.entries[0]:
 				user = conn.entries[0]
@@ -265,7 +299,7 @@ class LDAPSettings(Document):
 
 					return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 
-			raise ldap3.core.exceptions.LDAPInvalidCredentialsResult # even though nothing foundor failed authentication raise invalid credentials
+			raise ldap3.core.exceptions.LDAPInvalidCredentialsResult  # even though nothing foundor failed authentication raise invalid credentials
 
 		except ldap3.core.exceptions.LDAPInvalidFilterError:
 			frappe.throw(_("Please use a valid LDAP search filter"), title=_("Misconfigured"))
@@ -273,28 +307,29 @@ class LDAPSettings(Document):
 		except ldap3.core.exceptions.LDAPInvalidCredentialsResult:
 			frappe.throw(_("Invalid username or password"))
 
-
 	def reset_password(self, user, password, logout_sessions=False):
 		from ldap3 import HASHED_SALTED_SHA, MODIFY_REPLACE
 		from ldap3.utils.hashed import hashed
 
 		search_filter = "({0}={1})".format(self.ldap_email_field, user)
 
-		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False),
-			read_only=False)
+		conn = self.connect_to_ldap(
+			self.base_dn, self.get_password(raise_exception=False), read_only=False
+		)
 
 		if conn.search(
 			search_base=self.ldap_search_path_user,
 			search_filter=search_filter,
-			attributes=self.get_ldap_attributes()
+			attributes=self.get_ldap_attributes(),
 		):
 			if conn.entries and conn.entries[0]:
 				entry_dn = conn.entries[0].entry_dn
 				hashed_password = hashed(HASHED_SALTED_SHA, safe_encode(password))
-				changes = {'userPassword': [(MODIFY_REPLACE, [hashed_password])]}
+				changes = {"userPassword": [(MODIFY_REPLACE, [hashed_password])]}
 				if conn.modify(entry_dn, changes=changes):
 					if logout_sessions:
 						from frappe.sessions import clear_sessions
+
 						clear_sessions(user=user, force=True)
 					frappe.msgprint(_("Password changed successfully."))
 				else:
@@ -310,24 +345,24 @@ class LDAPSettings(Document):
 		email = user_entry[self.ldap_email_field]
 
 		data = {
-			'username': user_entry[self.ldap_username_field].value,
-			'email': str(email.value[0] if isinstance(email.value, list) else email.value),
-			'first_name': user_entry[self.ldap_first_name_field].value
+			"username": user_entry[self.ldap_username_field].value,
+			"email": str(email.value[0] if isinstance(email.value, list) else email.value),
+			"first_name": user_entry[self.ldap_first_name_field].value,
 		}
 
 		# optional fields
 
 		if self.ldap_middle_name_field:
-			data['middle_name'] = user_entry[self.ldap_middle_name_field].value
+			data["middle_name"] = user_entry[self.ldap_middle_name_field].value
 
 		if self.ldap_last_name_field:
-			data['last_name'] = user_entry[self.ldap_last_name_field].value
+			data["last_name"] = user_entry[self.ldap_last_name_field].value
 
 		if self.ldap_phone_field:
-			data['phone'] = user_entry[self.ldap_phone_field].value
+			data["phone"] = user_entry[self.ldap_phone_field].value
 
 		if self.ldap_mobile_field:
-			data['mobile_no'] = user_entry[self.ldap_mobile_field].value
+			data["mobile_no"] = user_entry[self.ldap_mobile_field].value
 
 		return data
 

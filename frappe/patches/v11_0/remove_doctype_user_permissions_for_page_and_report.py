@@ -2,7 +2,9 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 
+
 def execute():
-        frappe.delete_doc_if_exists("DocType", "User Permission for Page and Report")
+	frappe.delete_doc_if_exists("DocType", "User Permission for Page and Report")

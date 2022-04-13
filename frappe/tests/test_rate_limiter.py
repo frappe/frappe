@@ -5,9 +5,10 @@
 
 from __future__ import unicode_literals
 
-import unittest
-from werkzeug.wrappers import Response
 import time
+import unittest
+
+from werkzeug.wrappers import Response
 
 import frappe
 import frappe.rate_limiter

@@ -11,11 +11,11 @@ def like(key: str, value: str) -> frappe.qb:
 	"""Wrapper method for `LIKE`
 
 	Args:
-		key (str): field
-		value (str): criterion
+	        key (str): field
+	        value (str): criterion
 
 	Returns:
-		frappe.qb: `frappe.qb object with `LIKE`
+	        frappe.qb: `frappe.qb object with `LIKE`
 	"""
 	return Field(key).like(value)
 
@@ -24,11 +24,11 @@ def func_in(key: str, value: Union[List, Tuple]) -> frappe.qb:
 	"""Wrapper method for `IN`
 
 	Args:
-		key (str): field
-		value (Union[int, str]): criterion
+	        key (str): field
+	        value (Union[int, str]): criterion
 
 	Returns:
-		frappe.qb: `frappe.qb object with `IN`
+	        frappe.qb: `frappe.qb object with `IN`
 	"""
 	return Field(key).isin(value)
 
@@ -37,11 +37,11 @@ def not_like(key: str, value: str) -> frappe.qb:
 	"""Wrapper method for `NOT LIKE`
 
 	Args:
-		key (str): field
-		value (str): criterion
+	        key (str): field
+	        value (str): criterion
 
 	Returns:
-		frappe.qb: `frappe.qb object with `NOT LIKE`
+	        frappe.qb: `frappe.qb object with `NOT LIKE`
 	"""
 	return Field(key).not_like(value)
 
@@ -50,11 +50,11 @@ def func_not_in(key: str, value: Union[List, Tuple]):
 	"""Wrapper method for `NOT IN`
 
 	Args:
-		key (str): field
-		value (Union[int, str]): criterion
+	        key (str): field
+	        value (Union[int, str]): criterion
 
 	Returns:
-		frappe.qb: `frappe.qb object with `NOT IN`
+	        frappe.qb: `frappe.qb object with `NOT IN`
 	"""
 	return Field(key).notin(value)
 
@@ -63,11 +63,11 @@ def func_regex(key: str, value: str) -> frappe.qb:
 	"""Wrapper method for `REGEX`
 
 	Args:
-		key (str): field
-		value (str): criterion
+	        key (str): field
+	        value (str): criterion
 
 	Returns:
-		frappe.qb: `frappe.qb object with `REGEX`
+	        frappe.qb: `frappe.qb object with `REGEX`
 	"""
 	return Field(key).regex(value)
 
@@ -76,23 +76,24 @@ def func_between(key: str, value: Union[List, Tuple]) -> frappe.qb:
 	"""Wrapper method for `BETWEEN`
 
 	Args:
-		key (str): field
-		value (Union[int, str]): criterion
+	        key (str): field
+	        value (Union[int, str]): criterion
 
 	Returns:
-		frappe.qb: `frappe.qb object with `BETWEEN`
+	        frappe.qb: `frappe.qb object with `BETWEEN`
 	"""
 	return Field(key)[slice(*value)]
+
 
 def make_function(key: Any, value: Union[int, str]):
 	"""returns fucntion query
 
 	Args:
-		key (Any): field
-		value (Union[int, str]): criterion
+	        key (Any): field
+	        value (Union[int, str]): criterion
 
 	Returns:
-		frappe.qb: frappe.qb object
+	        frappe.qb: frappe.qb object
 	"""
 	return OPERATOR_MAP[value[0]](key, value[1])
 
@@ -101,10 +102,10 @@ def change_orderby(order: str):
 	"""Convert orderby to standart Order object
 
 	Args:
-		order (str): Field, order
+	        order (str): Field, order
 
 	Returns:
-		tuple: field, order
+	        tuple: field, order
 	"""
 	order = order.split()
 	if order[1].lower() == "asc":
@@ -115,21 +116,21 @@ def change_orderby(order: str):
 
 
 OPERATOR_MAP = {
-					"+": operator.add,
-					"=": operator.eq,
-					"-": operator.sub,
-					"!=": operator.ne,
-					"<": operator.lt,
-					">": operator.gt,
-					"<=": operator.le,
-					">=": operator.ge,
-					"in": func_in,
-					"not in": func_not_in,
-					"like": like,
-					"not like": not_like,
-					"regex": func_regex,
-					"between": func_between
-				}
+	"+": operator.add,
+	"=": operator.eq,
+	"-": operator.sub,
+	"!=": operator.ne,
+	"<": operator.lt,
+	">": operator.gt,
+	"<=": operator.le,
+	">=": operator.ge,
+	"in": func_in,
+	"not in": func_not_in,
+	"like": like,
+	"not like": not_like,
+	"regex": func_regex,
+	"between": func_between,
+}
 
 
 class Query:
@@ -137,10 +138,10 @@ class Query:
 		"""Get initial table object
 
 		Args:
-			table (str): DocType
+		        table (str): DocType
 
 		Returns:
-			frappe.qb: DocType with initial condition
+		        frappe.qb: DocType with initial condition
 		"""
 		if kwargs.get("update"):
 			return frappe.qb.update(table)
@@ -152,11 +153,11 @@ class Query:
 		"""Generate filters from Criterion objects
 
 		Args:
-			table (str): DocType
-			criterion (Criterion): Filters
+		        table (str): DocType
+		        criterion (Criterion): Filters
 
 		Returns:
-			frappe.qb: condition object
+		        frappe.qb: condition object
 		"""
 		condition = self.add_conditions(self.get_condition(table, **kwargs), **kwargs)
 		return condition.where(criterion)
@@ -165,10 +166,10 @@ class Query:
 		"""Adding additional conditions
 
 		Args:
-			conditions (frappe.qb): built conditions
+		        conditions (frappe.qb): built conditions
 
 		Returns:
-			conditions (frappe.qb): frappe.qb object
+		        conditions (frappe.qb): frappe.qb object
 		"""
 		if kwargs.get("orderby"):
 			orderby = kwargs.get("orderby")
@@ -192,8 +193,8 @@ class Query:
 		"""Build conditions using the given Lists or Tuple filters
 
 		Args:
-			table (str): DocType
-			filters (Union[List, Tuple], optional): Filters. Defaults to None.
+		        table (str): DocType
+		        filters (Union[List, Tuple], optional): Filters. Defaults to None.
 		"""
 		conditions = self.get_condition(table, **kwargs)
 		if not filters:
@@ -214,15 +215,17 @@ class Query:
 		conditions = self.add_conditions(conditions, **kwargs)
 		return conditions
 
-	def dict_query(self, table: str, filters: Dict[str, Union[str, int]] = None, **kwargs) -> frappe.qb:
+	def dict_query(
+		self, table: str, filters: Dict[str, Union[str, int]] = None, **kwargs
+	) -> frappe.qb:
 		"""Build conditions using the given dictionary filters
 
 		Args:
-			table (str): DocType
-			filters (Dict[str, Union[str, int]], optional): Filters. Defaults to None.
+		        table (str): DocType
+		        filters (Dict[str, Union[str, int]], optional): Filters. Defaults to None.
 
 		Returns:
-			frappe.qb: conditions object
+		        frappe.qb: conditions object
 		"""
 		conditions = self.get_condition(table, **kwargs)
 		if not filters:
@@ -255,19 +258,16 @@ class Query:
 		return conditions
 
 	def build_conditions(
-		self,
-		table: str,
-		filters: Union[Dict[str, Union[str, int]], str, int] = None,
-		**kwargs
+		self, table: str, filters: Union[Dict[str, Union[str, int]], str, int] = None, **kwargs
 	) -> frappe.qb:
 		"""Build conditions for sql query
 
 		Args:
-			filters (Union[Dict[str, Union[str, int]], str, int]): conditions in Dict
-			table (str): DocType
+		        filters (Union[Dict[str, Union[str, int]], str, int]): conditions in Dict
+		        table (str): DocType
 
 		Returns:
-			frappe.qb: frappe.qb conditions object
+		        frappe.qb: frappe.qb conditions object
 		"""
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
@@ -326,9 +326,7 @@ class Permission:
 				user=kwargs.get("user"),
 				parent_doctype=kwargs.get("parent_doctype"),
 			):
-				frappe.throw(
-					_("Insufficient Permission for {0}").format(frappe.bold(dt))
-				)
+				frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(dt)))
 
 	@staticmethod
 	def get_tables_from_query(query: str):

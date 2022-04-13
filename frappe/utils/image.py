@@ -1,11 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
+
 import os
+
 
 def resize_images(path, maxdim=700):
 	from PIL import Image
+
 	size = (maxdim, maxdim)
 	for basepath, folders, files in os.walk(path):
 		for fname in files:
@@ -18,26 +21,28 @@ def resize_images(path, maxdim=700):
 
 					print("resized {0}".format(os.path.join(basepath, fname)))
 
+
 def strip_exif_data(content, content_type):
-	""" Strips EXIF from image files which support it.
+	"""Strips EXIF from image files which support it.
 
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
-	Returns: 
-		Bytes: Stripped image content
+	Returns:
+	        Bytes: Stripped image content
 	"""
 
-	from PIL import Image
 	import io
+
+	from PIL import Image
 
 	original_image = Image.open(io.BytesIO(content))
 	output = io.BytesIO()
-	
+
 	new_image = Image.new(original_image.mode, original_image.size)
 	new_image.putdata(list(original_image.getdata()))
-	new_image.save(output, format=content_type.split('/')[1])
-	
+	new_image.save(output, format=content_type.split("/")[1])
+
 	content = output.getvalue()
 
 	return content

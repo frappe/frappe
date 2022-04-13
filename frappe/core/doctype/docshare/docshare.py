@@ -2,12 +2,14 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
-from frappe.model.document import Document
 from frappe import _
-from frappe.utils import get_fullname, cint
+from frappe.model.document import Document
+from frappe.utils import cint, get_fullname
 
 exclude_from_linked_with = True
+
 
 class DocShare(Document):
 	no_feed_on_delete = True
@@ -37,15 +39,21 @@ class DocShare(Document):
 			frappe.throw(_("User is mandatory for Share"), frappe.MandatoryError)
 
 	def check_share_permission(self):
-		if (not self.flags.ignore_share_permission and
-			not frappe.has_permission(self.share_doctype, "share", self.get_doc())):
+		if not self.flags.ignore_share_permission and not frappe.has_permission(
+			self.share_doctype, "share", self.get_doc()
+		):
 
 			frappe.throw(_('You need to have "Share" permission'), frappe.PermissionError)
 
 	def check_is_submittable(self):
-		if self.submit and not cint(frappe.db.get_value("DocType", self.share_doctype, "is_submittable")):
-			frappe.throw(_("Cannot share {0} with submit permission as the doctype {1} is not submittable").format(
-				frappe.bold(self.share_name), frappe.bold(self.share_doctype)))
+		if self.submit and not cint(
+			frappe.db.get_value("DocType", self.share_doctype, "is_submittable")
+		):
+			frappe.throw(
+				_("Cannot share {0} with submit permission as the doctype {1} is not submittable").format(
+					frappe.bold(self.share_name), frappe.bold(self.share_doctype)
+				)
+			)
 
 	def after_insert(self):
 		doc = self.get_doc()
@@ -54,14 +62,21 @@ class DocShare(Document):
 		if self.everyone:
 			doc.add_comment("Shared", _("{0} shared this document with everyone").format(owner))
 		else:
-			doc.add_comment("Shared", _("{0} shared this document with {1}").format(owner, get_fullname(self.user)))
+			doc.add_comment(
+				"Shared", _("{0} shared this document with {1}").format(owner, get_fullname(self.user))
+			)
 
 	def on_trash(self):
 		if not self.flags.ignore_share_permission:
 			self.check_share_permission()
 
-		self.get_doc().add_comment("Unshared",
-			_("{0} un-shared this document with {1}").format(get_fullname(self.owner), get_fullname(self.user)))
+		self.get_doc().add_comment(
+			"Unshared",
+			_("{0} un-shared this document with {1}").format(
+				get_fullname(self.owner), get_fullname(self.user)
+			),
+		)
+
 
 def on_doctype_update():
 	"""Add index in `tabDocShare` for `(user, share_doctype)`"""

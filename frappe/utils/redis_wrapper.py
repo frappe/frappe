@@ -2,14 +2,19 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, re
-from six.moves import cPickle as pickle
-from frappe.utils import cstr
+import re
+
+import redis
 from six import iteritems
+from six.moves import cPickle as pickle
+
+import frappe
+from frappe.utils import cstr
 
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
+
 	def connected(self):
 		try:
 			self.ping()
@@ -26,7 +31,7 @@ class RedisWrapper(redis.Redis):
 
 			key = "user:{0}:{1}".format(user, key)
 
-		return "{0}|{1}".format(frappe.conf.db_name, key).encode('utf-8')
+		return "{0}|{1}".format(frappe.conf.db_name, key).encode("utf-8")
 
 	def set_value(self, key, val, user=None, expires_in_sec=None):
 		"""Sets cache value.
@@ -52,7 +57,7 @@ class RedisWrapper(redis.Redis):
 
 	def get_value(self, key, generator=None, user=None, expires=False):
 		"""Returns cache value. If not found and generator function is
-			given, it will call the generator.
+		        given, it will call the generator.
 
 		:param key: Cache key.
 		:param generator: Function to be called to generate a value if `None` is returned.
@@ -114,7 +119,7 @@ class RedisWrapper(redis.Redis):
 	def delete_value(self, keys, user=None, make_keys=True, shared=False):
 		"""Delete value, list of values."""
 		if not isinstance(keys, (list, tuple)):
-			keys = (keys, )
+			keys = (keys,)
 
 		for key in keys:
 			if make_keys:
@@ -136,6 +141,9 @@ class RedisWrapper(redis.Redis):
 
 	def lpop(self, key):
 		return super(RedisWrapper, self).lpop(self.make_key(key))
+
+	def rpop(self, key):
+		return super(RedisWrapper, self).rpop(self.make_key(key))
 
 	def llen(self, key):
 		return super(RedisWrapper, self).llen(self.make_key(key))
@@ -159,21 +167,23 @@ class RedisWrapper(redis.Redis):
 
 		# set in redis
 		try:
-			super(RedisWrapper, self).hset(_name,
-				key, pickle.dumps(value))
+			super(RedisWrapper, self).hset(_name, key, pickle.dumps(value))
 		except redis.exceptions.ConnectionError:
 			pass
 
 	def hgetall(self, name):
-		return {key: pickle.loads(value) for key, value in
-			iteritems(super(RedisWrapper, self).hgetall(self.make_key(name)))}
+		return {
+			key: pickle.loads(value)
+			for key, value in iteritems(super(RedisWrapper, self).hgetall(self.make_key(name)))
+		}
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)
 		if not _name in frappe.local.cache:
 			frappe.local.cache[_name] = {}
 
-		if not key: return None
+		if not key:
+			return None
 
 		if key in frappe.local.cache[_name]:
 			return frappe.local.cache[_name][key]
@@ -241,4 +251,3 @@ class RedisWrapper(redis.Redis):
 	def smembers(self, name):
 		"""Return all members of the set"""
 		return super(RedisWrapper, self).smembers(self.make_key(name))
-
