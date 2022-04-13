@@ -6,23 +6,22 @@ import mimetypes
 import os
 import re
 import shutil
-from typing import Union, List, Optional
 import zipfile
-
-from requests.exceptions import HTTPError, SSLError
-from PIL import Image, ImageFile, ImageOps
+from typing import List, Optional, Union
 from urllib.parse import quote, unquote
+
+from PIL import Image, ImageFile, ImageOps
+from requests.exceptions import HTTPError, SSLError
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method
-from frappe.utils.image import strip_exif_data, optimize_image
 from frappe.utils.file_manager import is_safe_path
+from frappe.utils.image import optimize_image, strip_exif_data
 
-from .exceptions import MaxFileSizeReachedError, FolderNotEmpty, AttachmentLimitReached
+from .exceptions import AttachmentLimitReached, FolderNotEmpty, MaxFileSizeReachedError
 from .utils import *
-
 
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -96,9 +95,7 @@ class File(Document):
 		self.validate_empty_folder()
 		self._delete_file_on_disk()
 		if not self.is_folder:
-			self.add_comment_in_reference_doc(
-				"Attachment Removed", _("Removed {0}").format(self.file_name)
-			)
+			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
 
 	def on_rollback(self):
 		# following condition is only executed when an insert has been rolledback
@@ -133,9 +130,7 @@ class File(Document):
 			return os.path.join(self.folder, self.file_name)
 
 	def get_successors(self):
-		return frappe.get_all(
-			"File", filters={"folder": self.name}, pluck="name"
-		)
+		return frappe.get_all("File", filters={"folder": self.name}, pluck="name")
 
 	def validate_file_path(self):
 		if self.is_remote_file:
@@ -216,8 +211,7 @@ class File(Document):
 		if self.attached_to_field:
 			return True
 
-		reference_dict = frappe.get_doc(
-			self.attached_to_doctype, self.attached_to_name).as_dict()
+		reference_dict = frappe.get_doc(self.attached_to_doctype, self.attached_to_name).as_dict()
 
 		for key, value in reference_dict.items():
 			if value == old_file_url:
@@ -230,10 +224,16 @@ class File(Document):
 			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
 
 		if attachment_limit:
-			current_attachment_count = len(frappe.get_all('File', filters={
-				'attached_to_doctype': self.attached_to_doctype,
-				'attached_to_name': self.attached_to_name,
-			}, limit=attachment_limit + 1))
+			current_attachment_count = len(
+				frappe.get_all(
+					"File",
+					filters={
+						"attached_to_doctype": self.attached_to_doctype,
+						"attached_to_name": self.attached_to_name,
+					},
+					limit=attachment_limit + 1,
+				)
+			)
 
 			if current_attachment_count >= attachment_limit:
 				frappe.throw(
@@ -241,7 +241,7 @@ class File(Document):
 						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
 					),
 					exc=AttachmentLimitReached,
-					title=_('Attachment Limit Reached')
+					title=_("Attachment Limit Reached"),
 				)
 
 	def set_folder_name(self):
@@ -256,8 +256,7 @@ class File(Document):
 			self.folder = "Home"
 
 	def validate_file_on_disk(self):
-		"""Validates existence file
-		"""
+		"""Validates existence file"""
 		full_path = self.get_full_path()
 
 		if full_path.startswith(URL_PREFIXES):
@@ -285,9 +284,7 @@ class File(Document):
 						"attached_to_name": self.attached_to_name,
 					}
 				)
-			duplicate_file = frappe.db.get_value(
-				"File", filters, ["name", "file_url"], as_dict=1
-			)
+			duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
 
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
@@ -338,9 +335,7 @@ class File(Document):
 			image.thumbnail(size, Image.ANTIALIAS)
 
 		thumbnail_url = f"{filename}_{suffix}.{extn}"
-		path = os.path.abspath(
-			frappe.get_site_path("public", thumbnail_url.lstrip("/"))
-		)
+		path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 		try:
 			image.save(path)
@@ -360,12 +355,10 @@ class File(Document):
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
-		on_disk_file_not_shared = (
-			self.content_hash
-			and not frappe.get_all("File",
-				filters={"content_hash": self.content_hash, "name": ["!=", self.name]},
-				limit=1,
-			)
+		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
+			"File",
+			filters={"content_hash": self.content_hash, "name": ["!=", self.name]},
+			limit=1,
 		)
 		if on_disk_file_not_shared:
 			self.delete_file_data_content()
@@ -448,9 +441,7 @@ class File(Document):
 				file_path = f"/files/{file_path}"
 
 		if file_path.startswith("/private/files/"):
-			file_path = get_files_path(
-				*file_path.split("/private/files/", 1)[1].split("/"), is_private=1
-			)
+			file_path = get_files_path(*file_path.split("/private/files/", 1)[1].split("/"), is_private=1)
 
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
@@ -459,9 +450,7 @@ class File(Document):
 			pass
 
 		elif not self.file_url:
-			frappe.throw(
-				_("There is some problem with the file url: {0}").format(file_path)
-			)
+			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
 		if not is_safe_path(file_path):
 			frappe.throw(_("Cannot access file path {0}").format(file_path))
@@ -489,7 +478,13 @@ class File(Document):
 
 		return file_path
 
-	def save_file(self, content: Optional[Union[bytes, str]] = None, decode=False, ignore_existing_file_check=False, overwrite=False):
+	def save_file(
+		self,
+		content: Optional[Union[bytes, str]] = None,
+		decode=False,
+		ignore_existing_file_check=False,
+		overwrite=False,
+	):
 		if self.is_remote_file:
 			return
 
@@ -567,9 +562,7 @@ class File(Document):
 
 		if file_size > max_file_size:
 			frappe.throw(
-				_("File size exceeded the maximum allowed size of {0} MB").format(
-					max_file_size / 1048576
-				),
+				_("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
 				exc=MaxFileSizeReachedError,
 			)
 
@@ -666,10 +659,10 @@ def has_permission(doc, ptype=None, user=None):
 	has_access = False
 	user = user or frappe.session.user
 
-	if ptype == 'create':
-		has_access = frappe.has_permission('File', 'create', user=user)
+	if ptype == "create":
+		has_access = frappe.has_permission("File", "create", user=user)
 
-	if not doc.is_private or doc.owner in [user, 'Guest'] or user == 'Administrator':
+	if not doc.is_private or doc.owner in [user, "Guest"] or user == "Administrator":
 		has_access = True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
@@ -679,15 +672,18 @@ def has_permission(doc, ptype=None, user=None):
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
-			if ptype in ['write', 'create', 'delete']:
-				has_access = ref_doc.has_permission('write')
+			if ptype in ["write", "create", "delete"]:
+				has_access = ref_doc.has_permission("write")
 
-				if ptype == 'delete' and not has_access:
-					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
-						doc.attached_to_doctype, doc.attached_to_name),
-						frappe.PermissionError)
+				if ptype == "delete" and not has_access:
+					frappe.throw(
+						_(
+							"Cannot delete file as it belongs to {0} {1} for which you do not have permissions"
+						).format(doc.attached_to_doctype, doc.attached_to_name),
+						frappe.PermissionError,
+					)
 			else:
-				has_access = ref_doc.has_permission('read')
+				has_access = ref_doc.has_permission("read")
 		except frappe.DoesNotExistError:
 			# if parent doc is not created before file is created
 			# we cannot check its permission so we will use file's permission

@@ -4,8 +4,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-
 from frappe.model.document import Document
+
 
 class PatchLog(Document):
 	pass

@@ -1,5 +1,6 @@
 import frappe
 
+
 def execute():
 	providers = frappe.get_all("Social Login Key")
 
