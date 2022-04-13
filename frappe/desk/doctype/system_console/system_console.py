@@ -15,9 +15,18 @@ class SystemConsole(Document):
 	def run(self):
 		frappe.only_for("System Manager")
 		try:
+<<<<<<< HEAD
 			frappe.debug_log = []
 			safe_exec(self.console)
 			self.output = "\n".join(frappe.debug_log)
+=======
+			frappe.local.debug_log = []
+			if self.type == "Python":
+				safe_exec(self.console)
+				self.output = "\n".join(frappe.debug_log)
+			elif self.type == "SQL":
+				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
+>>>>>>> 2fbf8c905f (fix: dont override local proxies (#16611))
 		except:  # noqa: E722
 			self.output = frappe.get_traceback()
 

@@ -57,7 +57,13 @@ def getdoc(doctype, name, user=None):
 		raise
 
 	doc.add_seen()
+<<<<<<< HEAD
 
+=======
+	set_link_titles(doc)
+	if frappe.response.docs is None:
+		frappe.local.response = _dict({"docs": []})
+>>>>>>> 2fbf8c905f (fix: dont override local proxies (#16611))
 	frappe.response.docs.append(doc)
 
 
