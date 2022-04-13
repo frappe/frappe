@@ -242,8 +242,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	# install pre-requisites
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
-			name = parse_app_name(app)
-			install_app(name, verbose=verbose)
+			required_app = parse_app_name(app)
+			install_app(required_app, verbose=verbose)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
