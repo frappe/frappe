@@ -211,21 +211,18 @@ body.modal-open[style^="padding-right"] {
 		display: flex;
 		align-items: center;
 
-		.frappe-control {
+		.frappe-control:first-child {
 			&[data-fieldname="sender"] {
-				flex: 1;
-				margin-bottom: 0px;
+				margin-right: 10px;
 			}
-			&[data-fieldname="recipients"] {
-				margin-left: 10px;
-			}
-			&[data-fieldname="option_toggle_button"] {
-				margin-left: 10px;
-				margin-bottom: -24px;
-				button {
-					// same as form-control input
-					height: calc(1.5em + .75rem + 2px);
-				}
+			flex: 1;
+		}
+		.frappe-control:last-child {
+			margin-left: 10px;
+			margin-bottom: -24px;
+			button {
+				// same as form-control input
+				height: calc(1.5em + .75rem + 2px);
 			}
 		}
 	}
