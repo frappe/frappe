@@ -759,7 +759,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		dt = new_doctype("autoinc_dt_seq_test", autoincremented=True).insert(ignore_permissions=True)
+		dt = new_doctype("autoinc_dt_seq_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		if frappe.db.db_type == "postgres":
 			self.assertTrue(

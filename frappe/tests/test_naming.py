@@ -262,7 +262,7 @@ class TestNaming(unittest.TestCase):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
 		doctype = "autoinc_doctype" + frappe.generate_hash(length=5)
-		dt = new_doctype(doctype, autoincremented=True).insert(ignore_permissions=True)
+		dt = new_doctype(doctype, autoname="autoincrement").insert(ignore_permissions=True)
 
 		for i in range(1, 20):
 			self.assertEqual(frappe.new_doc(doctype).save(ignore_permissions=True).name, i)
