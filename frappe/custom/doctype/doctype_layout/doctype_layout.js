@@ -15,7 +15,6 @@ frappe.ui.form.on('DocType Layout', {
 					for (let f of frappe.get_doc('DocType', frm.doc.document_type).fields) {
 						frm.add_child('fields', { fieldname: f.fieldname, label: f.label });
 					}
-					frm.refresh_fields();
 				}
 			}
 		});

@@ -37,7 +37,6 @@
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route",
-   "reqd": 0,
    "read_only": 1
   }
  ],
