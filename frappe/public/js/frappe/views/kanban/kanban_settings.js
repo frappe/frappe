@@ -150,7 +150,7 @@ export default class KanbanSettings {
 		let add_new_fields = this.get_dialog_fields_wrapper().getElementsByClassName(
 			"add-new-fields"
 		)[0];
-		add_new_fields.onclick = () => this.column_selector();
+		add_new_fields.onclick = () => this.show_column_selector();
 	}
 
 	setup_remove_fields() {
@@ -190,7 +190,7 @@ export default class KanbanSettings {
 		this.dialog.set_value("fields", JSON.stringify(this.fields));
 	}
 
-	column_selector() {
+	show_column_selector() {
 		let dialog = new frappe.ui.Dialog({
 			title: __("{0} Fields", [__(this.doctype)]),
 			fields: [
