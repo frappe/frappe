@@ -4,7 +4,7 @@ import mimetypes
 import os
 import re
 from io import BytesIO
-from typing import Optional, Union, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 from urllib.parse import unquote
 
 import requests
@@ -13,32 +13,33 @@ from PIL import Image
 
 import frappe
 from frappe import _, safe_decode
-from frappe.utils import cstr, encode, random_string, strip, get_files_path
+from frappe.utils import cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
 from frappe.utils.image import optimize_image
 
 if TYPE_CHECKING:
-	from .file import File
 	from PIL.ImageFile import ImageFile
-	from frappe.model.document import Document
 	from requests.models import Response
+
+	from frappe.model.document import Document
+
+	from .file import File
 
 
 def make_home_folder() -> None:
-	home = frappe.get_doc({
-		"doctype": "File",
-		"is_folder": 1,
-		"is_home_folder": 1,
-		"file_name": _("Home")
-	}).insert()
+	home = frappe.get_doc(
+		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
+	).insert()
 
-	frappe.get_doc({
-		"doctype": "File",
-		"folder": home.name,
-		"is_folder": 1,
-		"is_attachments_folder": 1,
-		"file_name": _("Attachments")
-	}).insert()
+	frappe.get_doc(
+		{
+			"doctype": "File",
+			"folder": home.name,
+			"is_folder": 1,
+			"is_attachments_folder": 1,
+			"file_name": _("Attachments"),
+		}
+	).insert()
 
 
 def setup_folder_path(filename: str, new_parent: str) -> None:
@@ -48,10 +49,16 @@ def setup_folder_path(filename: str, new_parent: str) -> None:
 
 	if file.is_folder:
 		from frappe.model.rename_doc import rename_doc
+
 		rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
 
 
-def get_extension(filename, extn: Optional[str] = None, content: Optional[bytes] = None, response: Optional["Response"] = None) -> str:
+def get_extension(
+	filename,
+	extn: Optional[str] = None,
+	content: Optional[bytes] = None,
+	response: Optional["Response"] = None,
+) -> str:
 	mimetype = None
 
 	if response:
@@ -64,8 +71,8 @@ def get_extension(filename, extn: Optional[str] = None, content: Optional[bytes]
 
 	if extn:
 		# remove '?' char and parameters from extn if present
-		if '?' in extn:
-			extn = extn.split('?', 1)[0]
+		if "?" in extn:
+			extn = extn.split("?", 1)[0]
 
 		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
 
@@ -78,7 +85,7 @@ def get_extension(filename, extn: Optional[str] = None, content: Optional[bytes]
 
 def get_local_image(file_url: str) -> Tuple["ImageFile", str, str]:
 	if file_url.startswith("/private"):
-		file_url_path = (file_url.lstrip("/"), )
+		file_url_path = (file_url.lstrip("/"),)
 	else:
 		file_url_path = ("public", file_url.lstrip("/"))
 
@@ -142,10 +149,12 @@ def delete_file(path: str) -> None:
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
-			frappe.throw(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
+			frappe.throw(
+				_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path)
+			)
 
 		parts = os.path.split(path.strip("/"))
-		if parts[0]=="files":
+		if parts[0] == "files":
 			path = frappe.utils.get_site_path("public", "files", parts[-1])
 
 		else:
@@ -158,28 +167,29 @@ def delete_file(path: str) -> None:
 
 def remove_file_by_url(file_url: str, doctype: str = None, name: str = None) -> "Document":
 	if doctype and name:
-		fid = frappe.db.get_value("File", {
-			"file_url": file_url,
-			"attached_to_doctype": doctype,
-			"attached_to_name": name})
+		fid = frappe.db.get_value(
+			"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name}
+		)
 	else:
 		fid = frappe.db.get_value("File", {"file_url": file_url})
 
 	if fid:
 		from frappe.utils.file_manager import remove_file
+
 		return remove_file(fid=fid)
 
 
 def get_content_hash(content: Union[bytes, str]) -> str:
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content).hexdigest() #nosec
+	return hashlib.md5(content).hexdigest()  # nosec
 
 
 def generate_file_name(name: str, suffix: Optional[str] = None, is_private: bool = False) -> str:
 	"""Generate conflict-free file name. Suffix will be ignored if name available. If the
 	provided suffix doesn't result in an available path, a random suffix will be picked.
 	"""
+
 	def path_exists(name, is_private):
 		return os.path.exists(encode(get_files_path(name, is_private=is_private)))
 
@@ -236,15 +246,17 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		doctype = doc.parenttype if doc.get("parent") else doc.doctype
 		name = doc.get("parent") or doc.name
 
-		_file = frappe.get_doc({
-			"doctype": "File",
-			"file_name": filename,
-			"attached_to_doctype": doctype,
-			"attached_to_name": name,
-			"content": content,
-			"decode": False,
-			"is_private": is_private
-		})
+		_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": filename,
+				"attached_to_doctype": doctype,
+				"attached_to_name": name,
+				"content": content,
+				"decode": False,
+				"is_private": is_private,
+			}
+		)
 		_file.save(ignore_permissions=True)
 		file_url = _file.file_url
 		if not frappe.flags.has_dataurl:
@@ -284,24 +296,25 @@ def attach_files_to_document(doc: "File", event) -> None:
 	the file url to the document if it is not already attached.
 	"""
 
-	attach_fields = doc.meta.get(
-		"fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}
-	)
+	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
 
 	for df in attach_fields:
 		# this method runs in on_update hook of all documents
 		# we dont want the update to fail if file cannot be attached for some reason
 		try:
 			value = doc.get(df.fieldname)
-			if not (value or '').startswith(("/files", "/private/files")):
+			if not (value or "").startswith(("/files", "/private/files")):
 				return
 
-			if frappe.db.exists("File", {
-				"file_url": value,
-				"attached_to_name": doc.name,
-				"attached_to_doctype": doc.doctype,
-				"attached_to_field": df.fieldname,
-			}):
+			if frappe.db.exists(
+				"File",
+				{
+					"file_url": value,
+					"attached_to_name": doc.name,
+					"attached_to_doctype": doc.doctype,
+					"attached_to_field": df.fieldname,
+				},
+			):
 				return
 
 			frappe.get_doc(
