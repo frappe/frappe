@@ -107,7 +107,6 @@ def import_file_by_path(
 	Returns:
 	        [bool]: True if import takes place. False if it wasn't imported.
 	"""
-	frappe.flags.dt = frappe.flags.dt or []
 	try:
 		docs = read_doc_from_file(path)
 	except IOError:
@@ -121,20 +120,19 @@ def import_file_by_path(
 			docs = [docs]
 
 		for doc in docs:
-
 			# modified timestamp in db, none if doctype's first import
 			db_modified_timestamp = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
 			is_db_timestamp_latest = db_modified_timestamp and (
 				get_datetime(doc.get("modified")) <= get_datetime(db_modified_timestamp)
 			)
 
-			if not force or db_modified_timestamp:
-				try:
-					stored_hash = None
-					if doc["doctype"] == "DocType":
+			if not force and db_modified_timestamp:
+				stored_hash = None
+				if doc["doctype"] == "DocType":
+					try:
 						stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
-				except Exception:
-					frappe.flags.dt += [doc["doctype"]]
+					except Exception:
+						pass
 
 				# if hash exists and is equal no need to update
 				if stored_hash and stored_hash == calculated_hash:
@@ -170,12 +168,6 @@ def import_file_by_path(
 				update_modified(new_modified_timestamp, doc)
 
 	return True
-
-
-def is_timestamp_changed(doc):
-	# check if timestamps match
-	db_modified = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
-	return not (db_modified and get_datetime(doc.get("modified")) == get_datetime(db_modified))
 
 
 def read_doc_from_file(path):
