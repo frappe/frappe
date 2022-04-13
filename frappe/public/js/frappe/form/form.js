@@ -331,11 +331,11 @@ frappe.ui.form.Form = class FrappeForm {
 								caption: 'image: ' + file.file_name,
 								value: `![](${file.file_url})`,
 								meta: 'image'
-							}
+							};
 						});
 				});
 			}
-		})
+		});
 	}
 
 	// REFRESH

@@ -54,9 +54,9 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				return this._autocompletions || [];
 			},
 			set: (value) => {
-				let getter = value
+				let getter = value;
 				if (typeof getter !== 'function') {
-					getter = () => value
+					getter = () => value;
 				}
 				if (!this._autocompletions) {
 					this._autocompletions = [];
@@ -85,7 +85,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 					completions.push(...values);
 				}
 				return completions;
-			}
+			};
 			let autocompletions = get_autocompletions();
 			if (autocompletions.length) {
 				callback(
@@ -104,7 +104,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 					})
 				);
 			}
-		}
+		};
 
 		ace.config.loadModule("ace/ext/language_tools", langTools => {
 			this.editor.setOptions({
