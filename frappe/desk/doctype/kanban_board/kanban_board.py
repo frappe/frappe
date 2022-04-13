@@ -251,7 +251,12 @@ def set_indicator(board_name, column_name, indicator):
 def save_settings(board_name: str, settings: str) -> Document:
 	settings = json.loads(settings)
 	doc = frappe.get_doc("Kanban Board", board_name)
-	doc.fields = json.dumps(settings["fields"])
+
+	fields = settings["fields"]
+	if not isinstance(fields, str):
+		fields = json.dumps(fields)
+
+	doc.fields = fields
 	doc.show_labels = settings["show_labels"]
 	doc.save()
 
