@@ -543,7 +543,7 @@ class TestDocType(unittest.TestCase):
 		import json
 		json_doc = new_doctype(
 			"Test Json Doctype",
-			fields=[{"label": "json field", "fieldname": "test_json_field", "fieldtype": "JSON"}]
+			fields=[{"label": "json field", "fieldname": "test_json_field", "fieldtype": "JSON"}],
 		)
 		json_doc.insert()
 		json_doc.save()
