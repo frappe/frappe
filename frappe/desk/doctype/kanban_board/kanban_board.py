@@ -13,8 +13,9 @@ class KanbanBoard(Document):
 	def validate(self):
 		self.validate_column_name()
 
-	def on_update(self):
+	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
+		frappe.cache().delete_keys("_user_settings")
 
 	def before_insert(self):
 		for column in self.columns:
@@ -244,12 +245,6 @@ def set_indicator(board_name, column_name, indicator):
 
 	board.save()
 	return board
-
-
-@frappe.whitelist()
-def save_filters(board_name, filters):
-	"""Save filters silently"""
-	frappe.db.set_value("Kanban Board", board_name, "filters", filters, update_modified=False)
 
 
 @frappe.whitelist()

@@ -2,6 +2,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import unittest
+from typing import Dict, List, Optional
 
 import frappe
 from frappe.core.doctype.doctype.doctype import (
@@ -524,7 +525,7 @@ class TestDocType(unittest.TestCase):
 
 	def test_autoincremented_doctype_transition(self):
 		frappe.delete_doc("testy_autoinc_dt")
-		dt = new_doctype("testy_autoinc_dt", autoincremented=True).insert(ignore_permissions=True)
+		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)
 		dt.autoname = "hash"
 
 		try:
@@ -538,7 +539,9 @@ class TestDocType(unittest.TestCase):
 			dt.delete(ignore_permissions=True)
 
 
-def new_doctype(name, unique=0, depends_on="", fields=None, autoincremented=False):
+def new_doctype(
+	name, unique: bool = False, depends_on: str = "", fields: Optional[List[Dict]] = None, **kwargs
+):
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -560,7 +563,7 @@ def new_doctype(name, unique=0, depends_on="", fields=None, autoincremented=Fals
 				}
 			],
 			"name": name,
-			"autoname": "autoincrement" if autoincremented else "",
+			**kwargs,
 		}
 	)
 
