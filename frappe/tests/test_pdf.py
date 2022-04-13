@@ -35,9 +35,9 @@ class TestPdf(unittest.TestCase):
 
 	def test_read_options_from_html(self):
 		_, html_options = pdfgen.read_options_from_html(self.html)
-		self.assertTrue(html_options['margin-top'] == '0')
-		self.assertTrue(html_options['margin-left'] == '10')
-		self.assertTrue(html_options['margin-right'] == '0')
+		self.assertTrue(html_options["margin-top"] == "0")
+		self.assertTrue(html_options["margin-left"] == "10")
+		self.assertTrue(html_options["margin-right"] == "0")
 
 	def test_pdf_encryption(self):
 		password = "qwe"

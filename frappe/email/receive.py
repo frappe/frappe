@@ -5,10 +5,10 @@ import datetime
 import email
 import email.utils
 import imaplib
+import json
 import poplib
 import re
 import time
-import json
 from email.header import decode_header
 
 import _socket
@@ -17,28 +17,50 @@ from email_reply_parser import EmailReplyParser
 
 import frappe
 from frappe import _, safe_decode, safe_encode
-from frappe.core.doctype.file.file import (MaxFileSizeReachedError,
-	get_random_filename)
-from frappe.utils import (cint, convert_utc_to_user_timezone, cstr,
-	extract_email_id, markdown, now, parse_addr, strip, get_datetime,
-	add_days, sanitize_html)
-from frappe.utils.user import is_system_user
+from frappe.core.doctype.file.file import MaxFileSizeReachedError, get_random_filename
+from frappe.utils import (
+	add_days,
+	cint,
+	convert_utc_to_user_timezone,
+	cstr,
+	extract_email_id,
+	get_datetime,
+	markdown,
+	now,
+	parse_addr,
+	sanitize_html,
+	strip,
+)
 from frappe.utils.html_utils import clean_email_html
+from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 20480
 
 
+class EmailSizeExceededError(frappe.ValidationError):
+	pass
 
-class EmailSizeExceededError(frappe.ValidationError): pass
-class EmailTimeoutError(frappe.ValidationError): pass
-class TotalSizeExceededError(frappe.ValidationError): pass
-class LoginLimitExceeded(frappe.ValidationError): pass
+
+class EmailTimeoutError(frappe.ValidationError):
+	pass
+
+
+class TotalSizeExceededError(frappe.ValidationError):
+	pass
+
+
+class LoginLimitExceeded(frappe.ValidationError):
+	pass
+
+
 class SentEmailInInboxError(Exception):
 	pass
 
+
 class EmailServer:
 	"""Wrapper for POP server to pull emails."""
+
 	def __init__(self, args=None):
 		self.setup(args)
 
@@ -65,25 +87,33 @@ class EmailServer:
 		"""Connect to IMAP"""
 		try:
 			if cint(self.settings.use_ssl):
-				self.imap = Timed_IMAP4_SSL(self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
+				self.imap = Timed_IMAP4_SSL(
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+				)
 			else:
-				self.imap = Timed_IMAP4(self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
+				self.imap = Timed_IMAP4(
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+				)
 			self.imap.login(self.settings.username, self.settings.password)
 			# connection established!
 			return True
 
 		except _socket.error:
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
+			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
 			raise
 
 	def connect_pop(self):
-		#this method return pop connection
+		# this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
-				self.pop = Timed_POP3_SSL(self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
+				self.pop = Timed_POP3_SSL(
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+				)
 			else:
-				self.pop = Timed_POP3(self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
+				self.pop = Timed_POP3(
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+				)
 
 			self.pop.user(self.settings.username)
 			self.pop.pass_(self.settings.password)
@@ -96,7 +126,7 @@ class EmailServer:
 			frappe.log_error("receive.connect_pop")
 
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
+			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
 			raise
 
 		except poplib.error_proto as e:
@@ -104,12 +134,12 @@ class EmailServer:
 				return False
 
 			else:
-				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
+				frappe.msgprint(_("Invalid User Name or Support Password. Please rectify and try again."))
 				raise
 
 	def select_imap_folder(self, folder):
 		res = self.imap.select(f'"{folder}"')
-		return res[0] == 'OK'	# The folder exsits TODO: handle other resoponses too
+		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
 
 	def logout(self):
 		if cint(self.settings.use_imap):
@@ -142,7 +172,8 @@ class EmailServer:
 			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
-			if num > 50: num = 50
+			if num > 50:
+				num = 50
 
 			# size limits
 			self.total_size = 0
@@ -151,7 +182,7 @@ class EmailServer:
 
 			for i, message_meta in enumerate(email_list[:num]):
 				try:
-					self.retrieve_message(message_meta, i+1)
+					self.retrieve_message(message_meta, i + 1)
 				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
 					break
 			# WARNING: Mark as read - message number 101 onwards from the pop list
@@ -159,7 +190,7 @@ class EmailServer:
 			num = num_copy
 			if not cint(self.settings.use_imap):
 				if num > 100 and not self.errors:
-					for m in range(101, num+1):
+					for m in range(101, num + 1):
 						self.pop.dele(m)
 
 		except Exception as e:
@@ -168,13 +199,11 @@ class EmailServer:
 			else:
 				raise
 
-		out = { "latest_messages": self.latest_messages }
+		out = {"latest_messages": self.latest_messages}
 		if self.settings.use_imap:
-			out.update({
-				"uid_list": uid_list,
-				"seen_status": self.seen_status,
-				"uid_reindexed": self.uid_reindexed
-			})
+			out.update(
+				{"uid_list": uid_list, "seen_status": self.seen_status, "uid_reindexed": self.uid_reindexed}
+			)
 
 		return out
 
@@ -187,9 +216,9 @@ class EmailServer:
 			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
 
 			self.imap.select(folder, readonly=readonly)
-			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
+			response, message = self.imap.uid("search", None, self.settings.email_sync_rule)
 			if message[0]:
-				email_list =  message[0].split()
+				email_list = message[0].split()
 		else:
 			email_list = self.pop.list()[1]
 
@@ -208,25 +237,23 @@ class EmailServer:
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
 			Communication = frappe.qb.DocType("Communication")
-			frappe.qb.update(Communication) \
-				.set(Communication.uid, -1) \
-				.where(Communication.communication_medium == "Email") \
-				.where(Communication.email_account == self.settings.email_account).run()
+			frappe.qb.update(Communication).set(Communication.uid, -1).where(
+				Communication.communication_medium == "Email"
+			).where(Communication.email_account == self.settings.email_account).run()
 
 			if self.settings.use_imap:
 				# new update for the IMAP Folder DocType
 				IMAPFolder = frappe.qb.DocType("IMAP Folder")
-				frappe.qb.update(IMAPFolder) \
-					.set(IMAPFolder.uidvalidity, current_uid_validity) \
-					.set(IMAPFolder.uidnext, uidnext) \
-					.where(IMAPFolder.parent == self.settings.email_account_name) \
-					.where(IMAPFolder.folder_name == folder).run()
+				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
+					IMAPFolder.uidnext, uidnext
+				).where(IMAPFolder.parent == self.settings.email_account_name).where(
+					IMAPFolder.folder_name == folder
+				).run()
 			else:
 				EmailAccount = frappe.qb.DocType("Email Account")
-				frappe.qb.update(EmailAccount) \
-					.set(EmailAccount.uidvalidity, current_uid_validity) \
-					.set(EmailAccount.uidnext, uidnext) \
-					.where(EmailAccount.name == self.settings.email_account_name).run()
+				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
+					EmailAccount.uidnext, uidnext
+				).where(EmailAccount.name == self.settings.email_account_name).run()
 
 			# uid validity not found pulling emails for first time
 			if not uid_validity:
@@ -234,7 +261,9 @@ class EmailServer:
 				return
 
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
+			from_uid = (
+				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
+			)
 			# sync last 100 email
 			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
 			self.uid_reindexed = True
@@ -244,7 +273,7 @@ class EmailServer:
 
 	def parse_imap_response(self, cmd, response):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
-		match = re.search(pattern, response.decode('utf-8'), re.U | re.I)
+		match = re.search(pattern, response.decode("utf-8"), re.U | re.I)
 
 		if match:
 			return match.group(0)
@@ -257,14 +286,14 @@ class EmailServer:
 			self.validate_message_limits(message_meta)
 
 			if cint(self.settings.use_imap):
-				status, message = self.imap.uid('fetch', message_meta, '(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)')
+				status, message = self.imap.uid("fetch", message_meta, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
 				raw = message[0]
 
 				self.get_email_seen_status(message_meta, raw[0])
 				self.latest_messages.append(raw[1])
 			else:
 				msg = self.pop.retr(msg_num)
-				self.latest_messages.append(b'\n'.join(msg[1]))
+				self.latest_messages.append(b"\n".join(msg[1]))
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
 			self.errors = True
@@ -286,17 +315,17 @@ class EmailServer:
 				else:
 					# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
 					if self.settings.email_sync_rule == "UNSEEN":
-						self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+						self.imap.uid("STORE", message_meta, "+FLAGS", "(\\SEEN)")
 		else:
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
 			else:
 				# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
 				if self.settings.email_sync_rule == "UNSEEN":
-					self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+					self.imap.uid("STORE", message_meta, "+FLAGS", "(\\SEEN)")
 
 	def get_email_seen_status(self, uid, flag_string):
-		""" parse the email FLAGS response """
+		"""parse the email FLAGS response"""
 		if not flag_string:
 			return None
 
@@ -307,9 +336,9 @@ class EmailServer:
 			flags.append(match.group(0))
 
 		if "Seen" in flags:
-			self.seen_status.update({ uid: "SEEN" })
+			self.seen_status.update({uid: "SEEN"})
 		else:
-			self.seen_status.update({ uid: "UNSEEN" })
+			self.seen_status.update({uid: "UNSEEN"})
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
@@ -320,7 +349,7 @@ class EmailServer:
 			"Connection timed out",
 		)
 		for message in messages:
-			if message in strip(cstr(e)) or message in strip(cstr(getattr(e, 'strerror', ''))):
+			if message in strip(cstr(e)) or message in strip(cstr(getattr(e, "strerror", ""))):
 				return True
 		return False
 
@@ -344,18 +373,19 @@ class EmailServer:
 		if not incoming_mail:
 			try:
 				# retrieve headers
-				incoming_mail = Email(b'\n'.join(self.pop.top(msg_num, 5)[1]))
+				incoming_mail = Email(b"\n".join(self.pop.top(msg_num, 5)[1]))
 			except:
 				pass
 
 		if incoming_mail:
 			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
-				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject)
+				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject
+			)
 
 		return error_msg
 
 	def update_flag(self, folder, uid_list=None):
-		""" set all uids mails the flag as seen  """
+		"""set all uids mails the flag as seen"""
 		if not uid_list:
 			return
 
@@ -364,16 +394,19 @@ class EmailServer:
 
 		self.imap.select(folder)
 		for uid, operation in uid_list.items():
-			if not uid: continue
+			if not uid:
+				continue
 
 			op = "+FLAGS" if operation == "Read" else "-FLAGS"
 			try:
-				self.imap.uid('STORE', uid, op, '(\\SEEN)')
+				self.imap.uid("STORE", uid, op, "(\\SEEN)")
 			except Exception:
 				continue
 
+
 class Email:
 	"""Wrapper for an email."""
+
 	def __init__(self, content):
 		"""Parses headers, content, attachments from given raw message.
 
@@ -384,21 +417,21 @@ class Email:
 			self.mail = email.message_from_string(content)
 
 		self.raw_message = content
-		self.text_content = ''
-		self.html_content = ''
+		self.text_content = ""
+		self.html_content = ""
 		self.attachments = []
 		self.cid_map = {}
 		self.parse()
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get('Message-ID') or "").strip(" <>")
+		self.message_id = (self.mail.get("Message-ID") or "").strip(" <>")
 
 		if self.mail["Date"]:
 			try:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 				utc_dt = datetime.datetime.utcfromtimestamp(utc)
-				self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+				self.date = convert_utc_to_user_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
 			except:
 				self.date = now()
 		else:
@@ -434,7 +467,7 @@ class Email:
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
-		if _reply_to and not frappe.db.get_value('Email Account', {"email_id":_reply_to}, 'email_id'):
+		if _reply_to and not frappe.db.get_value("Email Account", {"email_id": _reply_to}, "email_id"):
 			self.from_email = extract_email_id(_reply_to)
 		else:
 			self.from_email = extract_email_id(_from_email)
@@ -445,9 +478,12 @@ class Email:
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
 	def decode_email(self, email):
-		if not email: return
+		if not email:
+			return
 		decoded = ""
-		for part, encoding in decode_header(frappe.as_unicode(email).replace("\""," ").replace("\'"," ")):
+		for part, encoding in decode_header(
+			frappe.as_unicode(email).replace('"', " ").replace("'", " ")
+		):
 			if encoding:
 				decoded += part.decode(encoding)
 			else:
@@ -455,26 +491,29 @@ class Email:
 		return decoded
 
 	def set_content_and_type(self):
-		self.content, self.content_type = '[Blank Email]', 'text/plain'
+		self.content, self.content_type = "[Blank Email]", "text/plain"
 		if self.html_content:
-			self.content, self.content_type = self.html_content, 'text/html'
+			self.content, self.content_type = self.html_content, "text/html"
 		else:
-			self.content, self.content_type = EmailReplyParser.read(self.text_content).text.replace("\n","\n\n"), 'text/plain'
+			self.content, self.content_type = (
+				EmailReplyParser.read(self.text_content).text.replace("\n", "\n\n"),
+				"text/plain",
+			)
 
 	def process_part(self, part):
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
-		if content_type == 'text/plain':
+		if content_type == "text/plain":
 			self.text_content += self.get_payload(part)
 
-		elif content_type == 'text/html':
+		elif content_type == "text/html":
 			self.html_content += self.get_payload(part)
 
-		elif content_type == 'message/rfc822':
+		elif content_type == "message/rfc822":
 			# sent by outlook when another email is sent as an attachment to this email
 			self.show_attached_email_headers_in_content(part)
 
-		elif part.get_filename() or 'image' in content_type:
+		elif part.get_filename() or "image" in content_type:
 			self.get_attachment(part)
 
 	def show_attached_email_headers_in_content(self, part):
@@ -486,15 +525,15 @@ class Email:
 
 		message = list(part.walk())[1]
 		headers = []
-		for key in ('From', 'To', 'Subject', 'Date'):
+		for key in ("From", "To", "Subject", "Date"):
 			value = cstr(message.get(key))
 			if value:
-				headers.append('{label}: {value}'.format(label=_(key), value=escape(value)))
+				headers.append("{label}: {value}".format(label=_(key), value=escape(value)))
 
-		self.text_content += '\n'.join(headers)
-		self.html_content += '<hr>' + '\n'.join('<p>{0}</p>'.format(h) for h in headers)
+		self.text_content += "\n".join(headers)
+		self.html_content += "<hr>" + "\n".join("<p>{0}</p>".format(h) for h in headers)
 
-		if not message.is_multipart() and message.get_content_type()=='text/plain':
+		if not message.is_multipart() and message.get_content_type() == "text/plain":
 			# email.parser didn't parse it!
 			text_content = self.get_payload(message)
 			self.text_content += text_content
@@ -504,7 +543,7 @@ class Email:
 		"""Detect charset."""
 		charset = part.get_content_charset()
 		if not charset:
-			charset = chardet.detect(safe_encode(cstr(part)))['encoding']
+			charset = chardet.detect(safe_encode(cstr(part)))["encoding"]
 
 		return charset
 
@@ -517,7 +556,7 @@ class Email:
 			return part.get_payload()
 
 	def get_attachment(self, part):
-		#charset = self.get_charset(part)
+		# charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
 		if fcontent:
@@ -525,18 +564,20 @@ class Email:
 			fname = part.get_filename()
 			if fname:
 				try:
-					fname = fname.replace('\n', ' ').replace('\r', '')
+					fname = fname.replace("\n", " ").replace("\r", "")
 					fname = cstr(decode_header(fname)[0][0])
 				except:
 					fname = get_random_filename(content_type=content_type)
 			else:
 				fname = get_random_filename(content_type=content_type)
 
-			self.attachments.append({
-				'content_type': content_type,
-				'fname': fname,
-				'fcontent': fcontent,
-			})
+			self.attachments.append(
+				{
+					"content_type": content_type,
+					"fname": fname,
+					"fcontent": fcontent,
+				}
+			)
 
 			cid = (cstr(part.get("Content-Id")) or "").strip("><")
 			if cid:
@@ -548,18 +589,21 @@ class Email:
 
 		for attachment in self.attachments:
 			try:
-				_file = frappe.get_doc({
-					"doctype": "File",
-					"file_name": attachment['fname'],
-					"attached_to_doctype": doc.doctype,
-					"attached_to_name": doc.name,
-					"is_private": 1,
-					"content": attachment['fcontent']})
+				_file = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": attachment["fname"],
+						"attached_to_doctype": doc.doctype,
+						"attached_to_name": doc.name,
+						"is_private": 1,
+						"content": attachment["fcontent"],
+					}
+				)
 				_file.save()
 				saved_attachments.append(_file)
 
-				if attachment['fname'] in self.cid_map:
-					self.cid_map[_file.name] = self.cid_map[attachment['fname']]
+				if attachment["fname"] in self.cid_map:
+					self.cid_map[_file.name] = self.cid_map[attachment["fname"]]
 
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
@@ -574,15 +618,16 @@ class Email:
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
-		l = re.findall(r'(?<=\[)[\w/-]+', self.subject)
+		l = re.findall(r"(?<=\[)[\w/-]+", self.subject)
 		return l and l[0] or None
 
 	def is_reply(self):
 		return bool(self.in_reply_to)
 
+
 class InboundMail(Email):
-	"""Class representation of incoming mail along with mail handlers.
-	"""
+	"""Class representation of incoming mail along with mail handlers."""
+
 	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
 		super().__init__(content)
 		self.email_account = email_account
@@ -598,15 +643,14 @@ class InboundMail(Email):
 		self.flags = frappe._dict()
 
 	def get_content(self):
-		if self.content_type == 'text/html':
+		if self.content_type == "text/html":
 			return clean_email_html(self.content)
 
 	def process(self):
-		"""Create communication record from email.
-		"""
+		"""Create communication record from email."""
 		if self.is_sender_same_as_receiver() and not self.is_reply():
 			if frappe.flags.in_test:
-				print('WARN: Cannot pull email. Sender same as recipient inbox')
+				print("WARN: Cannot pull email. Sender same as recipient inbox")
 			raise SentEmailInInboxError
 
 		communication = self.is_exist_in_system()
@@ -620,30 +664,30 @@ class InboundMail(Email):
 
 	def _build_communication_doc(self):
 		data = self.as_dict()
-		data['doctype'] = "Communication"
+		data["doctype"] = "Communication"
 
 		if self.parent_communication():
-			data['in_reply_to'] = self.parent_communication().name
+			data["in_reply_to"] = self.parent_communication().name
 
 		append_to = self.append_to if self.email_account.use_imap else self.email_account.append_to
 
 		if self.reference_document():
-			data['reference_doctype'] = self.reference_document().doctype
-			data['reference_name'] = self.reference_document().name
+			data["reference_doctype"] = self.reference_document().doctype
+			data["reference_name"] = self.reference_document().name
 		else:
-			if append_to and append_to != 'Communication':
+			if append_to and append_to != "Communication":
 				reference_doc = self._create_reference_document(append_to)
 				if reference_doc:
-					data['reference_doctype'] = reference_doc.doctype
-					data['reference_name'] = reference_doc.name
-			data['is_first'] = True
+					data["reference_doctype"] = reference_doc.doctype
+					data["reference_name"] = reference_doc.name
+			data["is_first"] = True
 
 		if self.is_notification():
 			# Disable notifications for notification.
-			data['unread_notification_sent'] = 1
+			data["unread_notification_sent"] = 1
 
 		if self.seen_status:
-			data['_seen'] = json.dumps(self.get_users_linked_to_account(self.email_account))
+			data["_seen"] = json.dumps(self.get_users_linked_to_account(self.email_account))
 
 		communication = frappe.get_doc(data)
 		communication.flags.in_receive = True
@@ -660,8 +704,7 @@ class InboundMail(Email):
 		content = self.content
 		for file in attachments:
 			if file.name in self.cid_map and self.cid_map[file.name]:
-				content = content.replace("cid:{0}".format(self.cid_map[file.name]),
-					file.file_url)
+				content = content.replace("cid:{0}".format(self.cid_map[file.name]), file.file_url)
 		return content
 
 	def is_notification(self):
@@ -669,21 +712,19 @@ class InboundMail(Email):
 		return isnotification and ("notification" in isnotification)
 
 	def is_exist_in_system(self):
-		"""Check if this email already exists in the system(as communication document).
-		"""
+		"""Check if this email already exists in the system(as communication document)."""
 		from frappe.core.doctype.communication.communication import Communication
+
 		if not self.message_id:
 			return
 
-		return Communication.find_one_by_filters(message_id = self.message_id,
-			order_by = 'creation DESC')
+		return Communication.find_one_by_filters(message_id=self.message_id, order_by="creation DESC")
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
 
 	def is_reply_to_system_sent_mail(self):
-		"""Is it a reply to already sent mail.
-		"""
+		"""Is it a reply to already sent mail."""
 		return self.is_reply() and frappe.local.site in self.in_reply_to
 
 	def parent_email_queue(self):
@@ -696,11 +737,11 @@ class InboundMail(Email):
 		if self._parent_email_queue is not None:
 			return self._parent_email_queue
 
-		parent_email_queue = ''
+		parent_email_queue = ""
 		if self.is_reply_to_system_sent_mail():
 			parent_email_queue = EmailQueue.find_one_by_filters(message_id=self.in_reply_to)
 
-		self._parent_email_queue = parent_email_queue or ''
+		self._parent_email_queue = parent_email_queue or ""
 		return self._parent_email_queue
 
 	def parent_communication(self):
@@ -710,30 +751,32 @@ class InboundMail(Email):
 
 		Here are the cases to handle:
 		1. If mail is a reply to already sent mail, then we can get parent communicaion from
-			Email Queue record.
+		        Email Queue record.
 		2. Sometimes we send communication name in message-ID directly, use that to get parent communication.
 		3. Sender sent a reply but reply is on top of what (s)he sent before,
-			then parent record exists directly in communication.
+		        then parent record exists directly in communication.
 		"""
 		from frappe.core.doctype.communication.communication import Communication
+
 		if self._parent_communication is not None:
 			return self._parent_communication
 
 		if not self.is_reply():
-			return ''
+			return ""
 
 		if not self.is_reply_to_system_sent_mail():
-			communication = Communication.find_one_by_filters(message_id=self.in_reply_to,
-				creation = ['>=', self.get_relative_dt(-30)])
+			communication = Communication.find_one_by_filters(
+				message_id=self.in_reply_to, creation=[">=", self.get_relative_dt(-30)]
+			)
 		elif self.parent_email_queue() and self.parent_email_queue().communication:
 			communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
 		else:
 			reference = self.in_reply_to
-			if '@' in self.in_reply_to:
+			if "@" in self.in_reply_to:
 				reference, _ = self.in_reply_to.split("@", 1)
 			communication = Communication.find(reference, ignore_error=True)
 
-		self._parent_communication = communication or ''
+		self._parent_communication = communication or ""
 		return self._parent_communication
 
 	def reference_document(self):
@@ -755,14 +798,14 @@ class InboundMail(Email):
 		if not reference_document and self.email_account.append_to:
 			reference_document = self.match_record_by_subject_and_sender(self.email_account.append_to)
 
-		self._reference_document = reference_document or ''
+		self._reference_document = reference_document or ""
 		return self._reference_document
 
 	def get_reference_name_from_subject(self):
 		"""
 		Ex: "Re: Your email (#OPP-2020-2334343)"
 		"""
-		return self.subject.rsplit('#', 1)[-1].strip(' ()')
+		return self.subject.rsplit("#", 1)[-1].strip(" ()")
 
 	def match_record_by_subject_and_sender(self, doctype):
 		"""Find a record in the given doctype that matches with email subject and sender.
@@ -771,12 +814,12 @@ class InboundMail(Email):
 		1. Sometimes record name is part of subject. We can get document by parsing name from subject
 		2. Find by matching sender and subject
 		3. Find by matching subject alone (Special case)
-			Ex: when a System User is using Outlook and replies to an email from their own client,
-			it reaches the Email Account with the threading info lost and the (sender + subject match)
-			doesn't work because the sender in the first communication was someone different to whom
-			the system user is replying to via the common email account in Frappe. This fix bypasses
-			the sender match when the sender is a system user and subject is atleast 10 chars long
-			(for additional safety)
+		        Ex: when a System User is using Outlook and replies to an email from their own client,
+		        it reaches the Email Account with the threading info lost and the (sender + subject match)
+		        doesn't work because the sender in the first communication was someone different to whom
+		        the system user is replying to via the common email account in Frappe. This fix bypasses
+		        the sender match when the sender is a system user and subject is atleast 10 chars long
+		        (for additional safety)
 
 		NOTE: We consider not to match by subject if match record is very old.
 		"""
@@ -789,20 +832,19 @@ class InboundMail(Email):
 			subject = self.clean_subject(self.subject)
 			filters = {
 				email_fields.subject_field: ("like", f"%{subject}%"),
-				"creation": (">", self.get_relative_dt(days=-60))
+				"creation": (">", self.get_relative_dt(days=-60)),
 			}
 
 			# Sender check is not needed incase mail is from system user.
 			if not (len(subject) > 10 and is_system_user(self.from_email)):
 				filters[email_fields.sender_field] = self.from_email
 
-			name = frappe.db.get_value(self.email_account.append_to, filters = filters)
+			name = frappe.db.get_value(self.email_account.append_to, filters=filters)
 			record = self.get_doc(doctype, name, ignore_error=True) if name else None
 		return record
 
 	def _create_reference_document(self, doctype):
-		""" Create reference document if it does not exist in the system.
-		"""
+		"""Create reference document if it does not exist in the system."""
 		parent = frappe.new_doc(doctype)
 		email_fileds = self.get_email_fields(doctype)
 
@@ -818,15 +860,14 @@ class InboundMail(Email):
 			parent.insert(ignore_permissions=True)
 		except frappe.DuplicateEntryError:
 			# try and find matching parent
-			parent_name = frappe.db.get_value(self.email_account.append_to,
-				{email_fileds.sender_field: self.from_email}
+			parent_name = frappe.db.get_value(
+				self.email_account.append_to, {email_fileds.sender_field: self.from_email}
 			)
 			if parent_name:
 				parent.name = parent_name
 			else:
 				parent = None
 		return parent
-
 
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):
@@ -839,33 +880,30 @@ class InboundMail(Email):
 
 	@staticmethod
 	def get_relative_dt(days):
-		"""Get relative to current datetime. Only relative days are supported.
-		"""
+		"""Get relative to current datetime. Only relative days are supported."""
 		return add_days(get_datetime(), days)
 
 	@staticmethod
 	def get_users_linked_to_account(email_account):
-		"""Get list of users who linked to Email account.
-		"""
-		users = frappe.get_all("User Email", filters={"email_account": email_account.name},
-			fields=["parent"])
+		"""Get list of users who linked to Email account."""
+		users = frappe.get_all(
+			"User Email", filters={"email_account": email_account.name}, fields=["parent"]
+		)
 		return list(set([user.get("parent") for user in users]))
 
 	@staticmethod
 	def clean_subject(subject):
-		"""Remove Prefixes like 'fw', FWD', 're' etc from subject.
-		"""
+		"""Remove Prefixes like 'fw', FWD', 're' etc from subject."""
 		# Match strings like "fw:", "re	:" etc.
 		regex = r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*"
 		return frappe.as_unicode(strip(re.sub(regex, "", subject, 0, flags=re.IGNORECASE)))
 
 	@staticmethod
 	def get_email_fields(doctype):
-		"""Returns Email related fields of a doctype.
-		"""
+		"""Returns Email related fields of a doctype."""
 		fields = frappe._dict()
 
-		email_fields = ['subject_field', 'sender_field']
+		email_fields = ["subject_field", "sender_field"]
 		meta = frappe.get_meta(doctype)
 
 		for field in email_fields:
@@ -875,20 +913,18 @@ class InboundMail(Email):
 
 	@staticmethod
 	def get_document(self, doctype, name):
-		"""Is same as frappe.get_doc but suppresses the DoesNotExist error.
-		"""
+		"""Is same as frappe.get_doc but suppresses the DoesNotExist error."""
 		try:
 			return frappe.get_doc(doctype, name)
 		except frappe.DoesNotExistError:
 			return None
 
 	def as_dict(self):
-		"""
-		"""
+		""" """
 		return {
 			"subject": self.subject,
 			"content": self.get_content(),
-			'text_content': self.text_content,
+			"text_content": self.text_content,
 			"sent_or_received": "Received",
 			"sender_full_name": self.from_real_name,
 			"sender": self.from_email,
@@ -900,12 +936,13 @@ class InboundMail(Email):
 			"message_id": self.message_id,
 			"communication_date": self.date,
 			"has_attachment": 1 if self.attachments else 0,
-			"seen": self.seen_status or 0
+			"seen": self.seen_status or 0,
 		}
+
 
 class TimerMixin(object):
 	def __init__(self, *args, **kwargs):
-		self.timeout = kwargs.pop('timeout', 0.0)
+		self.timeout = kwargs.pop("timeout", 0.0)
 		self.elapsed_time = 0.0
 		self._super.__init__(self, *args, **kwargs)
 		if self.timeout:
@@ -926,14 +963,18 @@ class TimerMixin(object):
 		self.elapsed_time = 0.0
 		return self._super.quit(self, *args, **kwargs)
 
+
 class Timed_POP3(TimerMixin, poplib.POP3):
 	_super = poplib.POP3
+
 
 class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
 	_super = poplib.POP3_SSL
 
+
 class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
 	_super = imaplib.IMAP4
+
 
 class Timed_IMAP4_SSL(TimerMixin, imaplib.IMAP4_SSL):
 	_super = imaplib.IMAP4_SSL

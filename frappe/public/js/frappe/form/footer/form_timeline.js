@@ -429,13 +429,13 @@ class FormTimeline extends BaseTimeline {
 		}
 
 		if (this.frm.doctype === "Communication") {
-			args.txt = "";
+			args.message = "";
 			args.last_email = this.frm.doc;
 			args.recipients = this.frm.doc.sender;
 			args.subject = __("Re: {0}", [this.frm.doc.subject]);
 		} else {
 			const comment_value = frappe.markdown(this.frm.comment_box.get_value());
-			args.txt = strip_html(comment_value) ? comment_value : '';
+			args.message = strip_html(comment_value) ? comment_value : '';
 		}
 
 		new frappe.views.CommunicationComposer(args);
@@ -454,7 +454,10 @@ class FormTimeline extends BaseTimeline {
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find('.content');
 		let more_actions_wrapper = comment_wrapper.find('.more-actions');
-		if (frappe.model.can_delete("Comment")) {
+		if (frappe.model.can_delete("Comment") && (
+			frappe.session.user == doc.owner ||
+			frappe.user.has_role("System Manager")
+		)) {
 			const delete_option = $(`
 				<li>
 					<a class="dropdown-item">

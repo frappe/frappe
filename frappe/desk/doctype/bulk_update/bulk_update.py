@@ -3,8 +3,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.model.document import Document
 from frappe import _
+from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.desk.utils import check_enqueue_action
 
@@ -12,26 +12,28 @@ from frappe.desk.utils import check_enqueue_action
 class BulkUpdate(Document):
 	pass
 
+
 @frappe.whitelist()
-def update(doctype, field, value, condition='', limit=500):
+def update(doctype, field, value, condition="", limit=500):
 	if not limit or cint(limit) > 500:
 		limit = 500
 
 	if condition:
-		condition = ' where ' + condition
+		condition = " where " + condition
 
-	if ';' in condition:
-		frappe.throw(_('; not allowed in condition'))
+	if ";" in condition:
+		frappe.throw(_("; not allowed in condition"))
 
 	docnames = frappe.db.sql_list(
-		'''select name from `tab{0}`{1} limit {2} offset 0'''.format(doctype, condition, limit)
+		"""select name from `tab{0}`{1} limit {2} offset 0""".format(doctype, condition, limit)
 	)
 	data = {}
 	data[field] = value
-	return submit_cancel_or_update_docs(doctype, docnames, 'update', data)
+	return submit_cancel_or_update_docs(doctype, docnames, "update", data)
+
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
+def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 	docnames = frappe.parse_json(docnames)
 	enqueue_action = check_enqueue_action(doctype, action)
 
@@ -44,17 +46,17 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 		doc = frappe.get_doc(doctype, d)
 
 		try:
-			message = ''
-			if action == 'submit' and doc.docstatus.is_draft():
+			message = ""
+			if action == "submit" and doc.docstatus.is_draft():
 				doc.submit()
-				message = _('Submiting {0}').format(doctype)
-			elif action == 'cancel' and doc.docstatus.is_submitted():
+				message = _("Submiting {0}").format(doctype)
+			elif action == "cancel" and doc.docstatus.is_submitted():
 				doc.cancel()
-				message = _('Cancelling {0}').format(doctype)
-			elif action == 'update' and not doc.docstatus.is_cancelled():
+				message = _("Cancelling {0}").format(doctype)
+			elif action == "update" and not doc.docstatus.is_cancelled():
 				doc.update(data)
 				doc.save()
-				message = _('Updating {0}').format(doctype)
+				message = _("Updating {0}").format(doctype)
 			else:
 				failed.append(d)
 			frappe.db.commit()
@@ -66,6 +68,7 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 			frappe.db.rollback()
 
 	return failed, enqueue_action
+
 
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
