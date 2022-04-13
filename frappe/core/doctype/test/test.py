@@ -2,13 +2,13 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
+
 # import frappe
 from frappe.model.document import Document
-import json
 
 
 class test(Document):
-
 	def db_insert(self):
 		d = self.get_valid_dict(convert_dates_to_str=True)
 		with open("data_file.json", "w+") as read_file:
@@ -42,4 +42,3 @@ class test(Document):
 		# return []
 		with open("data_file.json", "r") as read_file:
 			return [json.load(read_file)]
-
