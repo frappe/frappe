@@ -200,7 +200,7 @@ class StripeSettings(Document):
 		stripe.default_http_client = stripe.http_client.RequestsClient()
 
 		try:
-			self.integration_request = create_request_log(self.data, "Host", "Stripe")
+			self.integration_request = create_request_log(self.data, service_name="Stripe")
 			return self.create_charge_on_stripe()
 
 		except Exception:
