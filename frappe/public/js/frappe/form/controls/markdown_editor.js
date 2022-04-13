@@ -85,7 +85,7 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 					allowed_file_types: ['image/*']
 				},
 				on_success: (file_doc) => {
-					if (this.frm) {
+					if (this.frm && !this.frm.is_new()) {
 						this.frm.attachments.attachment_uploaded(file_doc);
 					}
 					this.editor.session.insert(
