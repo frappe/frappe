@@ -566,8 +566,8 @@ class TestDocType(unittest.TestCase):
 
 		test_json = frappe.get_doc("Test Json Doctype", doc.name)
 
-		if isinstance(test_json['test_json_field'], str):
-			test_json['test_json_field'] = json.loads(test_json['test_json_field'])
+		if isinstance(test_json.test_json_field, str):
+			test_json.test_json_field = json.loads(test_json.test_json_field)
 
 		self.assertEqual(test_json.test_json_field['hello'], 'world')
 
