@@ -39,9 +39,6 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	elif getattr(doc.meta, "istable", False):
-		doc.name = make_autoname("hash", doc.doctype)
-
 	if not doc.name:
 		set_naming_from_document_naming_rule(doc)
 
