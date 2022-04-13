@@ -142,9 +142,8 @@ class Meta(Document):
 
 					value = [serialize(d) for d in value]
 
-				if (
-					(not no_nulls and value is None)
-					or isinstance(value, (str, int, float, datetime, list, tuple))
+				if (not no_nulls and value is None) or isinstance(
+					value, (str, int, float, datetime, list, tuple)
 				):
 					out[key] = value
 
