@@ -3,5 +3,6 @@
 # License: MIT. See LICENSE
 from frappe.model.document import Document
 
+
 class EventParticipants(Document):
 	pass

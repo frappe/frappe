@@ -1,21 +1,37 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from math import ceil
+
 import frappe
 from frappe import _
+from frappe.utils import (
+	cint,
+	get_fullname,
+	global_date_format,
+	markdown,
+	sanitize_html,
+	strip_html_tags,
+	today,
+)
+from frappe.website.utils import (
+	clear_cache,
+	find_first_image,
+	get_comment_list,
+	get_html_content_based_on_type,
+)
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.utils import clear_cache
-from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, sanitize_html
-from math import ceil
-from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
-	get_comment_list)
+
 
 class BlogPost(WebsiteGenerator):
 	@frappe.whitelist()
 	def make_route(self):
 		if not self.route:
-			return frappe.db.get_value('Blog Category', self.blog_category,
-				'route') + '/' + self.scrub(self.title)
+			return (
+				frappe.db.get_value("Blog Category", self.blog_category, "route")
+				+ "/"
+				+ self.scrub(self.title)
+			)
 
 	def get_feed(self):
 		return self.title
@@ -24,7 +40,7 @@ class BlogPost(WebsiteGenerator):
 		super(BlogPost, self).validate()
 
 		if not self.blog_intro:
-			content = get_html_content_based_on_type(self, 'content', self.content_type)
+			content = get_html_content_based_on_type(self, "content", self.content_type)
 			self.blog_intro = content[:200]
 			self.blog_intro = strip_html_tags(self.blog_intro)
 
@@ -75,35 +91,41 @@ class BlogPost(WebsiteGenerator):
 		context.updated = global_date_format(self.published_on)
 		context.social_links = self.fetch_social_links_info()
 		context.cta = self.fetch_cta()
-		context.enable_cta = not self.hide_cta and frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True)
+		context.enable_cta = not self.hide_cta and frappe.db.get_single_value(
+			"Blog Settings", "show_cta_in_blog", cache=True
+		)
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
 			context.author = self.blogger
 
+		context.content = get_html_content_based_on_type(self, "content", self.content_type)
 
-		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
-
-		#if meta description is not present, then blog intro or first 140 characters of the blog will be set as description
-		context.description = self.meta_description or self.blog_intro or strip_html_tags(context.content[:140])
+		# if meta description is not present, then blog intro or first 140 characters of the blog will be set as description
+		context.description = (
+			self.meta_description or self.blog_intro or strip_html_tags(context.content[:140])
+		)
 
 		context.metatags = {
 			"name": self.meta_title,
 			"description": context.description,
 		}
 
-		#if meta image is not present, then first image inside the blog will be set as the meta image
+		# if meta image is not present, then first image inside the blog will be set as the meta image
 		image = find_first_image(context.content)
 		context.metatags["image"] = self.meta_image or image or None
 
 		self.load_comments(context)
 		self.load_feedback(context)
 
-		context.category = frappe.db.get_value("Blog Category",
-			context.doc.blog_category, ["title", "route"], as_dict=1)
-		context.parents = [{"name": _("Home"), "route":"/"},
+		context.category = frappe.db.get_value(
+			"Blog Category", context.doc.blog_category, ["title", "route"], as_dict=1
+		)
+		context.parents = [
+			{"name": _("Home"), "route": "/"},
 			{"name": "Blog", "route": "/blog"},
-			{"label": context.category.title, "route":context.category.route}]
+			{"label": context.category.title, "route": context.category.route},
+		]
 		context.guest_allowed = frappe.db.get_single_value("Blog Settings", "allow_guest_to_comment")
 
 	def fetch_cta(self):
@@ -115,7 +137,7 @@ class BlogPost(WebsiteGenerator):
 				"title": blog_settings.title,
 				"subtitle": blog_settings.subtitle,
 				"cta_label": blog_settings.cta_label,
-				"cta_url": blog_settings.cta_url
+				"cta_url": blog_settings.cta_url,
 			}
 
 		return {}
@@ -124,13 +146,16 @@ class BlogPost(WebsiteGenerator):
 		if not frappe.db.get_single_value("Blog Settings", "enable_social_sharing", cache=True):
 			return []
 
-		url = frappe.local.site + "/" +self.route
+		url = frappe.local.site + "/" + self.route
 
 		social_links = [
-			{ "icon": "twitter", "link": "https://twitter.com/intent/tweet?text=" + self.title + "&url=" + url },
-			{ "icon": "facebook", "link": "https://www.facebook.com/sharer.php?u=" + url },
-			{ "icon": "linkedin", "link": "https://www.linkedin.com/sharing/share-offsite/?url=" + url },
-			{ "icon": "envelope", "link": "mailto:?subject=" + self.title + "&body=" + url }
+			{
+				"icon": "twitter",
+				"link": "https://twitter.com/intent/tweet?text=" + self.title + "&url=" + url,
+			},
+			{"icon": "facebook", "link": "https://www.facebook.com/sharer.php?u=" + url},
+			{"icon": "linkedin", "link": "https://www.linkedin.com/sharing/share-offsite/?url=" + url},
+			{"icon": "envelope", "link": "mailto:?subject=" + self.title + "&body=" + url},
 		]
 
 		return social_links
@@ -146,48 +171,48 @@ class BlogPost(WebsiteGenerator):
 	def load_feedback(self, context):
 		user = frappe.session.user
 
-		feedback = frappe.get_all('Feedback',
-			fields=['like'],
+		feedback = frappe.get_all(
+			"Feedback",
+			fields=["like"],
 			filters=dict(
 				reference_doctype=self.doctype,
 				reference_name=self.name,
 				ip_address=frappe.local.request_ip,
-				owner=user
-			)
+				owner=user,
+			),
 		)
 
 		like_count = 0
 
-		if frappe.db.count('Feedback'):
-			like_count = frappe.db.count('Feedback',
-				filters = dict(
-					reference_doctype = self.doctype,
-					reference_name = self.name,
-					like = True
-				)
+		if frappe.db.count("Feedback"):
+			like_count = frappe.db.count(
+				"Feedback", filters=dict(reference_doctype=self.doctype, reference_name=self.name, like=True)
 			)
 
-		context.user_feedback = feedback[0] if feedback else ''
+		context.user_feedback = feedback[0] if feedback else ""
 		context.like_count = like_count
 
 	def set_read_time(self):
-		content = self.content or self.content_html or ''
+		content = self.content or self.content_html or ""
 		if self.content_type == "Markdown":
 			content = markdown(self.content_md)
 
 		total_words = len(strip_html_tags(content).split())
-		self.read_time = ceil(total_words/250)
+		self.read_time = ceil(total_words / 250)
+
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
-		get_list = get_blog_list,
-		no_breadcrumbs = True,
-		hide_filters = True,
+		get_list=get_blog_list,
+		no_breadcrumbs=True,
+		hide_filters=True,
 		# show_search = True,
-		title = _('Blog')
+		title=_("Blog"),
 	)
 
-	category = frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = frappe.utils.escape_html(
+		frappe.local.form_dict.blog_category or frappe.local.form_dict.category
+	)
 	if category:
 		category_title = get_blog_category(category)
 		list_context.sub_title = _("Posts filed under {0}").format(category_title)
@@ -202,8 +227,7 @@ def get_list_context(context=None):
 		list_context.sub_title = _('Filtered by "{0}"').format(sanitize_html(frappe.local.form_dict.txt))
 
 	if list_context.sub_title:
-		list_context.parents = [{"name": _("Home"), "route": "/"},
-								{"name": "Blog", "route": "/blog"}]
+		list_context.parents = [{"name": _("Home"), "route": "/"}, {"name": "Blog", "route": "/blog"}]
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
@@ -236,27 +260,38 @@ def get_blog_categories():
 		.run(as_dict=1)
 	)
 
+
 def clear_blog_cache():
-	for blog in frappe.db.sql_list("""select route from
-		`tabBlog Post` where ifnull(published,0)=1"""):
+	for blog in frappe.db.sql_list(
+		"""select route from
+		`tabBlog Post` where ifnull(published,0)=1"""
+	):
 		clear_cache(blog)
 
 	clear_cache("writers")
 
+
 def get_blog_category(route):
 	return frappe.db.get_value("Blog Category", {"name": route}, "title") or route
 
-def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
+
+def get_blog_list(
+	doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None
+):
 	conditions = []
-	category = filters.blog_category or frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = filters.blog_category or frappe.utils.escape_html(
+		frappe.local.form_dict.blog_category or frappe.local.form_dict.category
+	)
 	if filters:
 		if filters.blogger:
-			conditions.append('t1.blogger=%s' % frappe.db.escape(filters.blogger))
+			conditions.append("t1.blogger=%s" % frappe.db.escape(filters.blogger))
 	if category:
-		conditions.append('t1.blog_category=%s' % frappe.db.escape(category))
+		conditions.append("t1.blog_category=%s" % frappe.db.escape(category))
 
 	if txt:
-		conditions.append('(t1.content like {0} or t1.title like {0}")'.format(frappe.db.escape('%' + txt + '%')))
+		conditions.append(
+			'(t1.content like {0} or t1.title like {0}")'.format(frappe.db.escape("%" + txt + "%"))
+		)
 
 	if conditions:
 		frappe.local.no_cache = 1
@@ -285,31 +320,37 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 		%(condition)s
 		order by featured desc, published_on desc, name asc
 		limit %(page_len)s OFFSET %(start)s""" % {
-			"start": limit_start, "page_len": limit_page_length,
-				"condition": (" and " + " and ".join(conditions)) if conditions else ""
-		}
+		"start": limit_start,
+		"page_len": limit_page_length,
+		"condition": (" and " + " and ".join(conditions)) if conditions else "",
+	}
 
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
-		post.content = get_html_content_based_on_type(post, 'content', post.content_type)
+		post.content = get_html_content_based_on_type(post, "content", post.content_type)
 		if not post.cover_image:
 			post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
 		post.content = strip_html_tags(post.content)
 
 		if not post.comments:
-			post.comment_text = _('No comments yet')
-		elif post.comments==1:
-			post.comment_text = _('1 comment')
+			post.comment_text = _("No comments yet")
+		elif post.comments == 1:
+			post.comment_text = _("1 comment")
 		else:
-			post.comment_text = _('{0} comments').format(str(post.comments))
+			post.comment_text = _("{0} comments").format(str(post.comments))
 
 		post.avatar = post.avatar or ""
-		post.category = frappe.db.get_value('Blog Category', post.blog_category,
-			['name', 'route', 'title'], as_dict=True)
+		post.category = frappe.db.get_value(
+			"Blog Category", post.blog_category, ["name", "route", "title"], as_dict=True
+		)
 
-		if post.avatar and (not "http:" in post.avatar and not "https:" in post.avatar) and not post.avatar.startswith("/"):
+		if (
+			post.avatar
+			and (not "http:" in post.avatar and not "https:" in post.avatar)
+			and not post.avatar.startswith("/")
+		):
 			post.avatar = "/" + post.avatar
 
 	return posts

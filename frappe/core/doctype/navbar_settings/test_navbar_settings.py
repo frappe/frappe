@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestNavbarSettings(unittest.TestCase):
 	pass

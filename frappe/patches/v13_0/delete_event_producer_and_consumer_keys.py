@@ -3,6 +3,7 @@
 
 import frappe
 
+
 def execute():
 	if frappe.db.exists("DocType", "Event Producer"):
 		frappe.db.sql("""UPDATE `tabEvent Producer` SET api_key='', api_secret=''""")

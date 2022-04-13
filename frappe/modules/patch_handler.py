@@ -60,14 +60,14 @@ def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) 
 
 	def run_patch(patch):
 		try:
-			if not run_single(patchmodule = patch):
-				print(patch + ': failed: STOPPED')
+			if not run_single(patchmodule=patch):
+				print(patch + ": failed: STOPPED")
 				raise PatchError(patch)
 		except Exception:
 			if not skip_failing:
 				raise
 			else:
-				print('Failed to execute patch')
+				print("Failed to execute patch")
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -77,8 +77,9 @@ def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) 
 
 	# patches to be run in the end
 	for patch in frappe.flags.final_patches:
-		patch = patch.replace('finally:', '')
+		patch = patch.replace("finally:", "")
 		run_patch(patch)
+
 
 def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
 
@@ -91,12 +92,13 @@ def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
 
 	return patches
 
-def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> List[str]:
-	""" Get patches from an app's patches.txt
 
-		patches.txt can be:
-			1. ini like file with section for different patch_type
-			2. plain text file with each line representing a patch.
+def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> List[str]:
+	"""Get patches from an app's patches.txt
+
+	patches.txt can be:
+	        1. ini like file with section for different patch_type
+	        2. plain text file with each line representing a patch.
 	"""
 
 	patches_txt = frappe.get_pymodule_path(app, "patches.txt")
@@ -115,8 +117,9 @@ def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> Li
 			return []
 
 		if not patch_type:
-			return [patch for patch in parser[PatchType.pre_model_sync.value]] + \
-					[patch for patch in parser[PatchType.post_model_sync.value]]
+			return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
+				patch for patch in parser[PatchType.post_model_sync.value]
+			]
 
 		if patch_type.value in parser.sections():
 			return [patch for patch in parser[patch_type.value]]
@@ -131,9 +134,12 @@ def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> Li
 
 	return []
 
+
 def reload_doc(args):
 	import frappe.modules
-	run_single(method = frappe.modules.reload_doc, methodargs = args)
+
+	run_single(method=frappe.modules.reload_doc, methodargs=args)
+
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	from frappe import conf
@@ -145,6 +151,7 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 		return execute_patch(patchmodule, method, methodargs)
 	else:
 		return True
+
 
 def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
@@ -163,7 +170,9 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		if docstring:
 			docstring = "\n" + indent(dedent(docstring), "\t")
 
-	print(f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}")
+	print(
+		f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}"
+	)
 
 	start_time = time.time()
 	frappe.db.begin()
@@ -194,16 +203,19 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 	return True
 
+
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
 	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert(ignore_permissions=True)
 
+
 def executed(patchmodule):
 	"""return True if is executed"""
-	if patchmodule.startswith('finally:'):
+	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
-		patchmodule = patchmodule.replace('finally:', '')
+		patchmodule = patchmodule.replace("finally:", "")
 	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
+
 
 def block_user(block, msg=None):
 	"""stop/start execution till patch is run"""
@@ -211,11 +223,12 @@ def block_user(block, msg=None):
 	frappe.db.begin()
 	if not msg:
 		msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.db.set_global('__session_status', block and 'stop' or None)
-	frappe.db.set_global('__session_status_message', block and msg or None)
+	frappe.db.set_global("__session_status", block and "stop" or None)
+	frappe.db.set_global("__session_status_message", block and msg or None)
 	frappe.db.commit()
 
+
 def check_session_stopped():
-	if frappe.db.get_global("__session_status")=='stop':
+	if frappe.db.get_global("__session_status") == "stop":
 		frappe.msgprint(frappe.db.get_global("__session_status_message"))
-		raise frappe.SessionStopped('Session Stopped')
+		raise frappe.SessionStopped("Session Stopped")

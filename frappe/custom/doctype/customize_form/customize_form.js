@@ -49,6 +49,14 @@ frappe.ui.form.on("Customize Form", {
 			if (grid_row.doc && grid_row.doc.fieldtype == "Section Break") {
 				$(grid_row.row).css({ "font-weight": "bold" });
 			}
+
+			grid_row.row.removeClass("highlight");
+
+			if (grid_row.doc.is_custom_field &&
+				!grid_row.row.hasClass('highlight') &&
+				!grid_row.doc.is_system_generated) {
+				grid_row.row.addClass("highlight");
+			}
 		});
 
 		$(frm.wrapper).on("grid-make-sortable", function(e, frm) {
@@ -84,17 +92,11 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	setup_sortable: function(frm) {
-		frm.page.body.find(".highlight").removeClass("highlight");
 		frm.doc.fields.forEach(function(f, i) {
-			var data_row = frm.page.body.find(
-				'[data-fieldname="fields"] [data-idx="' + f.idx + '"] .data-row'
-			);
-
-			if (f.is_custom_field) {
-				data_row.addClass("highlight");
-			} else {
+			if (!f.is_custom_field) {
 				f._sortable = false;
 			}
+
 			if (f.fieldtype == "Table") {
 				frm.add_custom_button(
 					f.options,
