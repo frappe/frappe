@@ -23,7 +23,6 @@ import './table';
 import './color';
 import './signature';
 import './password';
-import './read_only';
 import './button';
 import './html';
 import './markdown_editor';

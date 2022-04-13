@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestEnergyPointSettings(unittest.TestCase):
 	pass
