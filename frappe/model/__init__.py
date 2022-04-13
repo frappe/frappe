@@ -39,6 +39,9 @@ data_fieldtypes = (
 	"Autocomplete",
 )
 
+float_like_fields = {"Float", "Currency", "Percent"}
+datetime_fields = {"Datetime", "Date", "Time"}
+
 attachment_fieldtypes = (
 	"Attach",
 	"Attach Image",
