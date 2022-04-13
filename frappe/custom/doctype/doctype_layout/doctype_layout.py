@@ -9,7 +9,9 @@ from frappe.desk.utils import slug
 
 class DocTypeLayout(Document):
 	def validate(self):
-		if not self.route:
-			self.route = slug(self.name)
+		self.route = slug(self.name)
 		if not self.fields:
 			throw(_("Fields cannot be empty."))
+
+	def after_rename(self):
+		frappe.db.set_value("DocType Layout", self.name, 'route', slug(self.name))
