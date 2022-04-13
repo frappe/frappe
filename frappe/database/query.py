@@ -139,7 +139,7 @@ OPERATOR_MAP = {
 
 
 class Query:
-	tables:dict = {}
+	tables: dict = {}
 
 	def get_condition(self, table: Union[str, Table], **kwargs) -> frappe.qb:
 		"""Get initial table object
@@ -157,7 +157,7 @@ class Query:
 			return frappe.qb.into(table_object)
 		return frappe.qb.from_(table_object)
 
-	def get_table(self, table_name: Union[str, Table])->Table:
+	def get_table(self, table_name: Union[str, Table]) -> Table:
 		if isinstance(table_name, Table):
 			return table_name
 		table_name = table_name.strip('"').strip("'")
@@ -309,7 +309,7 @@ class Query:
 		self,
 		table: str,
 		fields: Union[List, Tuple],
-		filters: Union[Dict[str, Union[str, int]], str, int] = None,
+		filters: Union[Dict[str, Union[str, int]], str, int, List[Union[List, str, int]]] = None,
 		**kwargs,
 	):
 		criterion = self.build_conditions(table, filters, **kwargs)
