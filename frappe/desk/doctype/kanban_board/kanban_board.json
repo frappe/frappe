@@ -10,10 +10,12 @@
   "kanban_board_name",
   "reference_doctype",
   "field_name",
+  "column_break_4",
+  "private",
+  "show_labels",
   "section_break_3",
   "columns",
   "filters",
-  "private",
   "fields"
  ],
  "fields": [
@@ -68,10 +70,21 @@
    "label": "Fields",
    "options": "JSON",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_labels",
+   "fieldtype": "Check",
+   "label": "Show Labels",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2022-04-13 11:55:32.586267",
+ "modified": "2022-04-13 12:10:20.284367",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

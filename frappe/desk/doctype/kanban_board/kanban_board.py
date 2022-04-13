@@ -248,9 +248,11 @@ def set_indicator(board_name, column_name, indicator):
 
 
 @frappe.whitelist()
-def save_fields(board_name: str, fields: str) -> Document:
+def save_settings(board_name: str, settings: str) -> Document:
+	settings = json.loads(settings)
 	doc = frappe.get_doc("Kanban Board", board_name)
-	doc.fields = fields
+	doc.fields = json.dumps(settings["fields"])
+	doc.show_labels = settings["show_labels"]
 	doc.save()
 
 	resp = doc.as_dict()

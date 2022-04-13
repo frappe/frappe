@@ -26,6 +26,11 @@ export default class KanbanSettings {
 			title: __("{0} Settings", [__(this.doctype)]),
 			fields: [
 				{
+					fieldname: "show_labels",
+					label: __("Show Labels"),
+					fieldtype: "Check",
+				},
+				{
 					fieldname: "fields_html",
 					fieldtype: "HTML"
 				},
@@ -45,10 +50,10 @@ export default class KanbanSettings {
 
 			frappe.call({
 				method:
-					"frappe.desk.doctype.kanban_board.kanban_board.save_fields",
+					"frappe.desk.doctype.kanban_board.kanban_board.save_settings",
 				args: {
 					board_name: this.settings.name,
-					fields: this.dialog.get_values().fields
+					settings: this.dialog.get_values()
 				},
 				callback: r => {
 					this.kanbanview.board = r.message;
