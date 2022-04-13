@@ -568,7 +568,6 @@ class TestDocType(unittest.TestCase):
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
 
-
 def new_doctype(
 	name, unique: bool = False, depends_on: str = "", fields: Optional[List[Dict]] = None, **kwargs
 ):
