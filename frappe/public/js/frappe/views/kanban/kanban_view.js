@@ -107,7 +107,13 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	save_kanban_board_filters() {
 		const filters = this.filter_area.get();
 
-		frappe.db.set_value("Kanban Board", this.board_name, "filters", filters).then(r => {
+		frappe.call({
+			method: 'frappe.desk.doctype.kanban_board.kanban_board.save_filters',
+			args: {
+				board_name: this.board_name,
+				filters: filters
+			}
+		}).then(r => {
 			if (r.exc) {
 				frappe.show_alert({
 					indicator: 'red',

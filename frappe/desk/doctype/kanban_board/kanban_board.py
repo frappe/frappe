@@ -250,12 +250,9 @@ def set_indicator(board_name, column_name, indicator):
 
 	board.save()
 	return board
-<<<<<<< HEAD
 
 
 @frappe.whitelist()
 def save_filters(board_name, filters):
 	"""Save filters silently"""
 	frappe.db.set_value("Kanban Board", board_name, "filters", filters, update_modified=False)
-=======
->>>>>>> 540b34347c (fix: Don't update saved filters "silently")
