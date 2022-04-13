@@ -6,7 +6,8 @@
 	<p class="section-description">{{ subtitle }}</p>
 	{%- endif -%}
 
-	<div class="section-features" data-columns="{{ columns or 3 }}">
+	<div class="section-features" data-columns="{{ columns or 3 }}"
+		{% if not subtitle %}style="margin-top: -1.5rem"{% endif %}>
 		{%- for feature in features -%}
 		<div class="section-feature">
 			<div>

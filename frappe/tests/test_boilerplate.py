@@ -42,7 +42,7 @@ class TestBoilerPlate(unittest.TestCase):
 			"setup.py",
 			"license.txt",
 			cls.git_folder,
-			cls.gitignore_file
+			cls.gitignore_file,
 		]
 		cls.paths_inside_app = [
 			"__init__.py",
@@ -52,7 +52,7 @@ class TestBoilerPlate(unittest.TestCase):
 			"www",
 			"config",
 			"modules.txt",
-			"public"
+			"public",
 		]
 
 	@classmethod
@@ -70,10 +70,7 @@ class TestBoilerPlate(unittest.TestCase):
 
 		paths = self.get_paths(new_app_dir, self.app_names[0])
 		for path in paths:
-			self.assertTrue(
-				os.path.exists(path),
-				msg=f"{path} should exist in {self.app_names[0]} app"
-			)
+			self.assertTrue(os.path.exists(path), msg=f"{path} should exist in {self.app_names[0]} app")
 
 		self.check_parsable_python_files(new_app_dir)
 
@@ -87,14 +84,10 @@ class TestBoilerPlate(unittest.TestCase):
 		for path in paths:
 			if os.path.basename(path) in (self.git_folder, self.gitignore_file):
 				self.assertFalse(
-					os.path.exists(path),
-					msg=f"{path} shouldn't exist in {self.app_names[1]} app"
+					os.path.exists(path), msg=f"{path} shouldn't exist in {self.app_names[1]} app"
 				)
 			else:
-				self.assertTrue(
-					os.path.exists(path),
-					msg=f"{path} should exist in {self.app_names[1]} app"
-				)
+				self.assertTrue(os.path.exists(path), msg=f"{path} should exist in {self.app_names[1]} app")
 
 		self.check_parsable_python_files(new_app_dir)
 

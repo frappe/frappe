@@ -1,10 +1,8 @@
-
 import unittest
-import frappe
-from frappe.modules import patch_handler
-
 from unittest.mock import mock_open, patch
 
+import frappe
+from frappe.modules import patch_handler
 
 EMTPY_FILE = ""
 EMTPY_SECTION = """
@@ -48,6 +46,7 @@ app.module.patch3
 app.module.patch4
 """
 
+
 class TestPatches(unittest.TestCase):
 	def test_patch_module_names(self):
 		frappe.flags.final_patches = []
@@ -57,7 +56,7 @@ class TestPatches(unittest.TestCase):
 				pass
 			else:
 				if patchmodule.startswith("finally:"):
-					patchmodule = patchmodule.split('finally:')[-1]
+					patchmodule = patchmodule.split("finally:")[-1]
 				self.assertTrue(frappe.get_attr(patchmodule.split()[0] + ".execute"))
 
 		frappe.flags.in_install = False
@@ -78,14 +77,12 @@ class TestPatches(unittest.TestCase):
 		self.assertGreaterEqual(finished_patches, len(all_patches))
 
 
-
 class TestPatchReader(unittest.TestCase):
-
 	def get_patches(self):
 		return (
 			patch_handler.get_patches_from_app("frappe"),
 			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.pre_model_sync),
-			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync)
+			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync),
 		)
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EMTPY_FILE)
@@ -94,7 +91,6 @@ class TestPatchReader(unittest.TestCase):
 		self.assertEqual(all, [])
 		self.assertEqual(pre, [])
 		self.assertEqual(post, [])
-
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EMTPY_SECTION)
 	def test_empty_sections(self, _file):
@@ -108,7 +104,12 @@ class TestPatchReader(unittest.TestCase):
 		all, pre, post = self.get_patches()
 		self.assertEqual(all, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2"])
-		self.assertEqual(post, ["app.module.patch3",])
+		self.assertEqual(
+			post,
+			[
+				"app.module.patch3",
+			],
+		)
 
 	@patch("builtins.open", new_callable=mock_open, read_data=OLD_STYLE_PATCH_TXT)
 	def test_old_style(self, _file):
@@ -117,16 +118,18 @@ class TestPatchReader(unittest.TestCase):
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(post, [])
 
-
 	@patch("builtins.open", new_callable=mock_open, read_data=EDGE_CASES)
 	def test_new_style_edge_cases(self, _file):
 		all, pre, post = self.get_patches()
-		self.assertEqual(pre, [
-			"App.module.patch1",
-			"app.module.patch2 # rerun",
-			'execute:frappe.db.updatedb("Item")',
-			'execute:frappe.function(arg="1")',
-		])
+		self.assertEqual(
+			pre,
+			[
+				"App.module.patch1",
+				"app.module.patch2 # rerun",
+				'execute:frappe.db.updatedb("Item")',
+				'execute:frappe.function(arg="1")',
+			],
+		)
 
 	@patch("builtins.open", new_callable=mock_open, read_data=COMMENTED_OUT)
 	def test_ignore_comments(self, _file):

@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestEventProducerLastUpdate(unittest.TestCase):
 	pass

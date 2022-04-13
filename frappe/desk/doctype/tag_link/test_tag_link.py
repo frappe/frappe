@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestTagLink(unittest.TestCase):
 	pass

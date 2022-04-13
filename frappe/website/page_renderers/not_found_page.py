@@ -5,13 +5,14 @@ import frappe
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.utils import can_cache
 
-HOMEPAGE_PATHS = ('/', '/index', 'index')
+HOMEPAGE_PATHS = ("/", "/index", "index")
+
 
 class NotFoundPage(TemplatePage):
 	def __init__(self, path, http_status_code=None):
 		self.request_path = path
-		self.request_url = frappe.local.request.url if hasattr(frappe.local, 'request') else ''
-		path = '404'
+		self.request_url = frappe.local.request.url if hasattr(frappe.local, "request") else ""
+		path = "404"
 		http_status_code = http_status_code or 404
 		super().__init__(path=path, http_status_code=http_status_code)
 
@@ -20,7 +21,7 @@ class NotFoundPage(TemplatePage):
 
 	def render(self):
 		if self.can_cache_404():
-			frappe.cache().hset('website_404', self.request_url, True)
+			frappe.cache().hset("website_404", self.request_url, True)
 		return super().render()
 
 	def can_cache_404(self):
