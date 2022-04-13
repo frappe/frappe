@@ -289,7 +289,7 @@ class BaseDocument(object):
 					d[fieldname] = cint(d[fieldname])
 
 				elif df.fieldtype=="JSON" and isinstance(d[fieldname], dict):
-					d[fieldname] = json.dumps(d[fieldname], sort_keys=True, indent=4, separators=(',', ': '))
+					d[fieldname] = json.dumps(d[fieldname], sort_keys=True, indent=4, separators=(",", ": "))
 
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
 					d[fieldname] = flt(d[fieldname])
