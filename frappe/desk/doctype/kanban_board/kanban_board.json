@@ -71,13 +71,25 @@
   }
  ],
  "links": [],
- "modified": "2022-04-13 11:48:55.188596",
+ "modified": "2022-04-13 11:55:32.586267",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
+  {
+   "read": 1,
+   "role": "All"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "All",
+   "write": 1
+  },
   {
    "create": 1,
    "delete": 1,
@@ -86,7 +98,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "All",
+   "role": "System Manager",
    "share": 1,
    "write": 1
   }
