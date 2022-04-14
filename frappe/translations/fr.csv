@@ -418,7 +418,7 @@ Also adding the dependent currency field {0},Ajout également du champ de devise
 "Always add ""Draft"" Heading for printing draft documents","Toujours ajouter ""Brouillon"" pour l'impression des documents brouillons",
 Always use Account's Email Address as Sender,Toujours utiliser l'adresse Email du compte comme Expéditeur,
 Always use Account's Name as Sender's Name,Toujours utiliser le nom du compte comme nom de l&#39;expéditeur,
-Amend, Nouv. version
+Amend,Nouv. version
 Amending,Nouv. version en cours,
 Amount Based On Field,Montant Basé sur le Champ,
 Amount Field,Champ du Montant,
@@ -1100,7 +1100,7 @@ File not attached,Fichier joint manquant,
 File size exceeded the maximum allowed size of {0} MB,La taille du fichier a dépassé la taille maximale autorisée de {0} Mo,
 File too big,Fichier trop grand,
 File {0} does not exist,Fichier {0} n'existe pas,
-Files,Des dossiers,
+Files,Fichiers,
 Filter,Filtre,
 Filter Data,Filtrer les Données,
 Filter List,Liste de filtres,
@@ -4706,14 +4706,14 @@ Message from server: {0},Message du serveur: {0},
 {0} created this {1},{0} a créé {1}
 Report an Issue,Signaler une anomalie
 User Forum,Forum utilisateur
-About, A Propos
-My Profile, Mon profil
-My Settings, Mes paramètres
-Toggle Full Width, Changer l&#39;affichage en pleine largeur
-Toggle Theme, Basculer le thème
-Theme Changed, Thème changé
-Document has been submitted, Document validé
-Document has been cancelled, Document annulé
-Document is in draft state, Document au statut brouillon
+About,A Propos
+My Profile,Mon profil
+My Settings,Mes paramètres
+Toggle Full Width,Changer l&#39;affichage en pleine largeur
+Toggle Theme,Basculer le thème
+Theme Changed,Thème changé
+Document has been submitted,Document validé
+Document has been cancelled,Document annulé
+Document is in draft state,Document au statut brouillon
 Copy to Clipboard,Copier vers le presse-papiers
 Don't have an account?,Vous n&#39;avez pas de compte?
