@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+from cgi import print_form
 import os
 import warnings
 
@@ -1871,14 +1872,15 @@ def get_print(
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_content
+	from frappe.utils.weasyprint import PrintFormatGenerator
 
 	if print_format is not None and db.get_value("Print Format", print_format, "print_format_builder_beta"):
-		print_format = db.get("Print Format", print_format)
-		letterhead = None
+		doc = get_doc(doctype, name) if doc is None else doc
+		generator = PrintFormatGenerator(print_format, doc, letterhead=None)
 		return (
-			print_format.get_pdf(name, letterhead=letterhead)
+			generator.render_pdf()
 			if as_pdf
-			else print_format.get_html(name, letterhead=letterhead)
+			else generator.get_html_preview()
 		)
 
 	local.form_dict.doctype = doctype
