@@ -83,8 +83,8 @@ class _dict(dict):
 def _(msg, lang=None, context=None):
 	"""Returns translated string in current lang, if exists.
 	Usage:
-	        _('Change')
-	        _('Change', context='Coins')
+	                _('Change')
+	                _('Change', context='Coins')
 	"""
 	from frappe.translate import get_full_dict
 	from frappe.utils import is_html, strip_html_tags
@@ -712,9 +712,9 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 	Use as:
 
-	        @frappe.whitelist()
-	        def myfunc(param1, param2):
-	                pass
+	                @frappe.whitelist()
+	                def myfunc(param1, param2):
+	                                pass
 	"""
 
 	if not methods:
@@ -1102,12 +1102,12 @@ def get_doc(*args, **kwargs):
 
 	Examples:
 
-	        # insert a new document
-	        todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-	        todo.insert()
+	                # insert a new document
+	                todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
+	                todo.insert()
 
-	        # open an existing document
-	        todo = frappe.get_doc("ToDo", "TD0001")
+	                # open an existing document
+	                todo = frappe.get_doc("ToDo", "TD0001")
 
 	"""
 	import frappe.model.document
@@ -1173,15 +1173,36 @@ def delete_doc(
 	import frappe.model.delete_doc
 	from frappe.desk.utils import check_enqueue_action
 	from frappe.model.document import enqueue_action
+
 	if check_enqueue_action(doctype, "delete"):
-		enqueue_action(frappe.model.delete_doc.delete_doc, "delete",doctype=doctype,
-          		name=name, force=force, ignore_doctypes=ignore_doctypes, for_reload=for_reload,
-                ignore_permissions=ignore_permissions,flags=flags,
-                ignore_on_trash=ignore_on_trash, ignore_missing=ignore_missing,
-                delete_permanently=delete_permanently)
+		enqueue_action(
+			frappe.model.delete_doc.delete_doc,
+			"delete",
+			doctype=doctype,
+			name=name,
+			force=force,
+			ignore_doctypes=ignore_doctypes,
+			for_reload=for_reload,
+			ignore_permissions=ignore_permissions,
+			flags=flags,
+			ignore_on_trash=ignore_on_trash,
+			ignore_missing=ignore_missing,
+			delete_permanently=delete_permanently,
+		)
 	else:
-		frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
-			ignore_permissions, flags, ignore_on_trash, ignore_missing, delete_permanently)
+		frappe.model.delete_doc.delete_doc(
+			doctype,
+			name,
+			force,
+			ignore_doctypes,
+			for_reload,
+			ignore_permissions,
+			flags,
+			ignore_on_trash,
+			ignore_missing,
+			delete_permanently,
+		)
+
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
@@ -1699,7 +1720,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 	:param http_status_code: HTTP status code.
 
 	Example Usage:
-	        frappe.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
+	                frappe.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
 
 	"""
 
@@ -1740,14 +1761,14 @@ def get_list(doctype, *args, **kwargs):
 
 	Example usage:
 
-	        # simple dict filter
-	        frappe.get_list("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
+	                # simple dict filter
+	                frappe.get_list("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
 
-	        # filter as a list of lists
-	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
+	                # filter as a list of lists
+	                frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
 
-	        # filter as a list of dicts
-	        frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
+	                # filter as a list of dicts
+	                frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
 	"""
 	import frappe.model.db_query
 
@@ -1767,14 +1788,14 @@ def get_all(doctype, *args, **kwargs):
 
 	Example usage:
 
-	        # simple dict filter
-	        frappe.get_all("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
+	                # simple dict filter
+	                frappe.get_all("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
 
-	        # filter as a list of lists
-	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
+	                # filter as a list of lists
+	                frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
 
-	        # filter as a list of dicts
-	        frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")})
+	                # filter as a list of dicts
+	                frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")})
 	"""
 	kwargs["ignore_permissions"] = True
 	if not "limit_page_length" in kwargs:
@@ -2163,11 +2184,11 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	>>> frappe.get_version('User', 'foobar@gmail.com')
 	>>>
 	[
-	        {
-	                "version": [version.data],			# Refer Version DocType get_diff method and data attribute
-	                "user": "admin@gmail.com",			# User that created this version
-	                "creation": <datetime.datetime>		# Creation timestamp of that object.
-	        }
+	                {
+	                                "version": [version.data],			# Refer Version DocType get_diff method and data attribute
+	                                "user": "admin@gmail.com",			# User that created this version
+	                                "creation": <datetime.datetime>		# Creation timestamp of that object.
+	                }
 	]
 	"""
 	meta = get_meta(doctype)

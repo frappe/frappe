@@ -26,19 +26,11 @@ def validate_route_conflict(doctype, name):
 
 
 def slug(name):
-	return name.lower().replace(' ', '-')
+	return name.lower().replace(" ", "-")
 
 
 def check_enqueue_action(doctype, action) -> bool:
-	doc = frappe.db.get_list("Enqueue Selected Action", fields=["*"])
-	for d in doc:
-		if d.document_type == doctype:
-			if action == "submit" and d.submit_action:
-				return True
-			if action == "cancel" and d.cancel_action:
-				return True
-			if action == "delete" and d.delete_action:
-				return True
-			if action == "rename" and d.rename_action:
-				return True
-	return False
+	action_name = "{0}_action".format(action)
+	return frappe.db.get_value(
+		"Queue Document Action", {"document_type": doctype}, fieldname=action_name
+	)

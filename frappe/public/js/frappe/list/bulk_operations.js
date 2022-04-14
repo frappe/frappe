@@ -139,7 +139,7 @@ export default class BulkOperations {
 				let failed = r.message[0];
 				if (!failed) failed = [];
 
-				if (r.message[1] === true) {
+				if (r.message[1] == 1) {
 					frappe.show_alert({
 						message: __('Started a background job to {0} documents. Check {1} for error', ["delete", "<a href='/app/bulk-action-log'><u>Bulk Action Log</u></a>"]),
 						indicator: 'green'
@@ -198,7 +198,7 @@ export default class BulkOperations {
 				let failed = r.message[0];
 				if (!failed) failed = [];
 
-				if (r.message[1] === true) {
+				if (r.message[1] == 1) {
 					frappe.show_alert({
 						message: __('Started a background job to {0} documents. Check {1} for error', [action, "<a href ='/app/bulk-action-log'><u>Bulk Action Log</u></a>"]),
 						indicator: 'green'

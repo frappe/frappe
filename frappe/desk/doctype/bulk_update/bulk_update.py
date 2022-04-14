@@ -4,9 +4,9 @@
 
 import frappe
 from frappe import _
+from frappe.desk.utils import check_enqueue_action
 from frappe.model.document import Document
 from frappe.utils import cint
-from frappe.desk.utils import check_enqueue_action
 
 
 class BulkUpdate(Document):
@@ -73,9 +73,4 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
 	if n >= 10:
-		frappe.publish_progress(
-			float(i) * 100 / n,
-			title = message,
-			description = description
-		)
-
+		frappe.publish_progress(float(i) * 100 / n, title=message, description=description)

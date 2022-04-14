@@ -142,7 +142,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	frappe.monitor.start("job", method_name, kwargs)
 	try:
 		method(**kwargs)
-		bulk_error_report(job_name, None, "Success")
 
 	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
@@ -167,13 +166,16 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	except Exception as e:
 		frappe.db.rollback()
 		frappe.log_error(title=method_name)
-		bulk_error_report(job_name, e, "Failed")
+		if job_name:
+			bulk_error_report(job_name, e, "Failed")
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
 
 	else:
 		frappe.db.commit()
+		if job_name:
+			bulk_error_report(job_name, None, "Success")
 
 	finally:
 		frappe.monitor.stop()
@@ -356,6 +358,7 @@ def test_job(s):
 
 	print("sleeping...")
 	time.sleep(s)
+
 
 def bulk_error_report(job_name, error, status):
 	bulk_action_log = frappe.new_doc("Bulk Action Log")

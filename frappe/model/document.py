@@ -10,14 +10,12 @@ from werkzeug.exceptions import NotFound
 import frappe
 from frappe import _, is_whitelisted, msgprint
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from frappe.desk.form.document_follow import follow_document
+from frappe.desk.utils import check_enqueue_action
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
-from frappe.utils.global_search import update_global_search
-from frappe.integrations.doctype.webhook import run_webhooks
-from frappe.desk.form.document_follow import follow_document
-from frappe.desk.utils import check_enqueue_action
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
@@ -799,7 +797,9 @@ class Document(BaseDocument):
 				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
 				frappe.throw("Cannot chnage docstatus from 0 to 2")
-				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"))
+				raise frappe.DocstatusTransitionError(
+					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
+				)
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
@@ -1494,13 +1494,15 @@ class Document(BaseDocument):
 
 		return f"{doctype}({name})"
 
+
 def enqueue_action(obj, action, **kwargs):
 	if action == "delete":
-		job_name = "{0}-{1}-{2}".format(kwargs.get('doctype'), kwargs.get('name'), action)
+		job_name = "{0}-{1}-{2}".format(kwargs.get("doctype"), kwargs.get("name"), action)
 		frappe.enqueue(obj, job_name=job_name, **kwargs)
 	else:
 		job_name = "{0}-{1}-{2}".format(obj.doctype, obj.name, action)
 		frappe.enqueue(obj.save, job_name=job_name, **kwargs)
+
 
 def execute_action(doctype, name, action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""

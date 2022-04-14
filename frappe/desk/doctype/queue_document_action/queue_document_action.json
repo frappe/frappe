@@ -1,0 +1,100 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2022-04-13 15:47:12.567824",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "select_doctype_section",
+  "document_type",
+  "action_to_queue_section",
+  "submit_action",
+  "column_break_5",
+  "cancel_action",
+  "column_break_7",
+  "delete_action",
+  "column_break_9",
+  "rename_action"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "options": "DocType",
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_action",
+   "fieldtype": "Check",
+   "label": "Submit"
+  },
+  {
+   "default": "0",
+   "fieldname": "cancel_action",
+   "fieldtype": "Check",
+   "label": "Cancel"
+  },
+  {
+   "default": "0",
+   "fieldname": "delete_action",
+   "fieldtype": "Check",
+   "label": "Delete"
+  },
+  {
+   "default": "0",
+   "fieldname": "rename_action",
+   "fieldtype": "Check",
+   "label": "Rename"
+  },
+  {
+   "fieldname": "select_doctype_section",
+   "fieldtype": "Section Break",
+   "label": "Select Doctype"
+  },
+  {
+   "fieldname": "action_to_queue_section",
+   "fieldtype": "Section Break",
+   "label": "Action To Queue"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "links": [],
+ "modified": "2022-04-14 13:35:30.173034",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Queue Document Action",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
