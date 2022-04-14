@@ -198,9 +198,3 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 		frappe.clear_cache(doctype=doctype)
 		frappe.db.updatedb(doctype)
-
-
-@frappe.whitelist()
-def add_custom_field(doctype, df):
-	df = json.loads(df)
-	return create_custom_field(doctype, df)
