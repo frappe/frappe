@@ -56,8 +56,10 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.update(_globals)
 
 	if restrict_commit_rollback:
+		# prevent user from using these in docevents
 		exec_globals.frappe.db.pop("commit", None)
 		exec_globals.frappe.db.pop("rollback", None)
+		exec_globals.frappe.db.pop("add_index", None)
 
 	# execute script compiled by RestrictedPython
 	frappe.flags.in_safe_exec = True
@@ -140,6 +142,24 @@ def get_safe_globals():
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+<<<<<<< HEAD
+=======
+			db=NamespaceDict(
+				get_list=frappe.get_list,
+				get_all=frappe.get_all,
+				get_value=frappe.db.get_value,
+				set_value=frappe.db.set_value,
+				get_single_value=frappe.db.get_single_value,
+				get_default=frappe.db.get_default,
+				exists=frappe.db.exists,
+				count=frappe.db.count,
+				escape=frappe.db.escape,
+				sql=read_sql,
+				commit=frappe.db.commit,
+				rollback=frappe.db.rollback,
+				add_index=frappe.db.add_index,
+			),
+>>>>>>> 2af2b80ba6 (feat: Expose add index in exec_globals (#16605))
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
