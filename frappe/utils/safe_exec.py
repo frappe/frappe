@@ -157,7 +157,7 @@ def get_safe_globals():
 				sql=read_sql,
 				commit=frappe.db.commit,
 				rollback=frappe.db.rollback,
-				add_index=frappe.db.add_index
+				add_index=frappe.db.add_index,
 			),
 		),
 		FrappeClient=FrappeClient,
