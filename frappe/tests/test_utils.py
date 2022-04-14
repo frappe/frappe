@@ -354,8 +354,8 @@ class TestPythonExpressions(unittest.TestCase):
 class TestDiffUtils(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script")
-		cls.doc.save(ignore_version=False)
+		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
+		cls.doc.insert()
 		cls.doc.script = "2;"
 		cls.doc.save(ignore_version=False)
 		cls.doc.script = "42;"
