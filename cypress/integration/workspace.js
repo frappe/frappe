@@ -168,9 +168,8 @@ context('Workspace 2.0', () => {
 			url: 'api/method/frappe.desk.doctype.workspace.workspace.delete_page'
 		}).as('page_deleted');
 
-		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item');
-
-		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
+		cy.get('.codex-editor__redactor .ce-block');
+		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 
 		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
 			.find('.sidebar-item-control .setting-btn').click();
@@ -178,7 +177,8 @@ context('Workspace 2.0', () => {
 			.find('.dropdown-item[title="Delete Workspace"]').click({force: true});
 		cy.wait(300);
 		cy.get('.modal-footer > .standard-actions > .btn-modal-primary:visible').first().click();
-		
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').should('not.exist');
+
 		cy.wait('@page_deleted');
 	});
 
