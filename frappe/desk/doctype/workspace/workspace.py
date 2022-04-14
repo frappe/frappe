@@ -206,21 +206,27 @@ def update_page(name, title, icon, parent, public):
 			doc.sequence_id = frappe.db.count("Workspace", {"public": public}, cache=True)
 			doc.public = public
 		doc.for_user = "" if public else doc.for_user or frappe.session.user
-		doc.label = "{0}-{1}".format(title, doc.for_user) if doc.for_user else title
+		doc.label = new_name = "{0}-{1}".format(title, doc.for_user) if doc.for_user else title
 		doc.save(ignore_permissions=True)
 
-		if name != doc.label:
-			rename_doc("Workspace", name, doc.label, force=True, ignore_permissions=True)
+		if name != new_name:
+			rename_doc("Workspace", name, new_name, force=True, ignore_permissions=True)
 
 		# update new name and public in child pages
 		if child_docs:
 			for child in child_docs:
 				child_doc = frappe.get_doc("Workspace", child.name)
 				child_doc.parent_page = doc.title
-				child_doc.public = doc.public
+				if child_doc.public != public:
+					child_doc.public = public
+				child_doc.for_user = "" if public else child_doc.for_user or frappe.session.user
+				child_doc.label = new_child_name = "{0}-{1}".format(child_doc.title, child_doc.for_user) if child_doc.for_user else child_doc.title
 				child_doc.save(ignore_permissions=True)
 
-	return {"name": doc.title, "public": doc.public, "label": doc.label}
+				if child.name != new_child_name:
+					rename_doc("Workspace", child.name, new_child_name, force=True, ignore_permissions=True)
+
+	return {"name": title, "public": public, "label": new_name}
 
 
 @frappe.whitelist()
