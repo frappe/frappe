@@ -89,24 +89,24 @@ def validate_phone_number_with_country_code(phone_number, fieldname):
 
 	if not phone_number:
 		return
+
+	valid_number = False
+	error_message = _("Phone Number {0} set in field {1} is not valid.")
+	error_title = _("Invalid Phone Number")
 	try:
-		if is_valid_number(parse(phone_number)):
+		if valid_number := is_valid_number(parse(phone_number)):
 			return True
-		error_message = _("Phone Number {0} set in field {1} is not valid.")
-		error_title = _("Invalid Phone Number")
 	except NumberParseException as e:
 		if e.error_type == NumberParseException.INVALID_COUNTRY_CODE:
 			error_message = _("Please select a country code for field {1}.")
 			error_title = _("Country Code Required")
-		if e.error_type == NumberParseException.NOT_A_NUMBER:
-			error_message = _("Phone Number {0} set in field {1} is not valid.")
-			error_title = _("Invalid Phone Number")
 	finally:
-		frappe.throw(
-			error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
-			title=error_title,
-			exc=frappe.InvalidPhoneNumberError,
-		)
+		if not valid_number:
+			frappe.throw(
+				error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
+				title=error_title,
+				exc=frappe.InvalidPhoneNumberError,
+			)
 
 
 def validate_phone_number(phone_number, throw=False):

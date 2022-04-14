@@ -71,10 +71,8 @@ context("Control Phone", () => {
 		//Adding a new entry for the created custom doctype
 		cy.fill_field("title", "Test Phone 1");
 		cy.fill_field("phone", "+91-9823341234");
-		cy.wait(500);
 		cy.get_field("phone").should("have.value", "9823341234");
 		cy.click_doc_primary_button("Save");
-		cy.wait(500);
 		cy.get_doc("Doctype With Phone", "Test Phone 1").then((doc) => {
 			let value = doc.data.phone;
 			expect(value).to.equal("+91-9823341234");
@@ -86,7 +84,6 @@ context("Control Phone", () => {
 		cy.get(".selected-phone .country").should("have.text", "");
 		cy.fill_field("title", "Test Phone 2");
 		cy.fill_field("phone", "+91-9823341291");
-		cy.wait(500);
 		cy.get_field("phone").should("have.value", "9823341291");
 		cy.intercept("POST", "/api/method/frappe.desk.form.save.savedocs").as("save_form");
 		cy.click_doc_primary_button("Save");
