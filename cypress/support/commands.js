@@ -258,6 +258,20 @@ Cypress.Commands.add('hide_dialog', () => {
 	cy.get('.modal:visible').should('not.exist');
 });
 
+Cypress.Commands.add('clear_dialogs', () => {
+	cy.window().then((win) => {
+		win.$('.modal, .modal-backdrop').remove();
+	});
+	cy.get('.modal').should('not.exist');
+})
+
+Cypress.Commands.add('clear_datepickers', () => {
+	cy.window().then((win) => {
+		win.$('.datepicker').remove();
+	});
+	cy.get('.datepicker').should('not.exist');
+})
+
 Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 	return cy
 		.window()
