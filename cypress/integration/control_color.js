@@ -28,8 +28,8 @@ context('Control Color', () => {
 
 		//Checking if the correct color is being selected
 		cy.get('@dialog').then(dialog => {
-		let value = dialog.get_value('color');
-		expect(value).to.equal('#4F9DD9')
+			let value = dialog.get_value('color');
+			expect(value).to.equal('#4F9DD9');
 		});
 
 		//Selecting a color
@@ -41,8 +41,8 @@ context('Control Color', () => {
 
 		//Checking if the correct color is being selected
 		cy.get('@dialog').then(dialog => {
-		let value = dialog.get_value('color');
-		expect(value).to.equal('#CB2929')
+			let value = dialog.get_value('color');
+			expect(value).to.equal('#CB2929');
 		});
 
 		//Selecting color from the palette
@@ -51,8 +51,8 @@ context('Control Color', () => {
 
 		//Checking if the expected color is selected and getting displayed
 		cy.get('@dialog').then(dialog => {
-		let value = dialog.get_value('color');
-		expect(value).to.equal('#380000')
+			let value = dialog.get_value('color');
+			expect(value).to.equal('#380000');
 		});
 
 		//Selecting the color from the hue map
@@ -64,8 +64,8 @@ context('Control Color', () => {
 
 		//Checking if the correct color is being displayed
 		cy.get('@dialog').then(dialog => {
-		let value = dialog.get_value('color');
-		expect(value).to.equal('#2e2500')
+			let value = dialog.get_value('color');
+			expect(value).to.equal('#2e2500');
 		});
 
 		//Clearing the field and checking if the field contains the placeholder "Choose a color"
