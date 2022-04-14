@@ -90,6 +90,8 @@ def get_rendered_template(
 	settings=None,
 ):
 
+	assert not print_format or not print_format.print_format_builder_beta
+
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 

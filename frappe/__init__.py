@@ -1849,8 +1849,8 @@ def format(*args, **kwargs):
 
 
 def get_print(
-	doctype=None,
-	name=None,
+	doctype,
+	name,
 	print_format=None,
 	style=None,
 	html=None,
@@ -1871,6 +1871,16 @@ def get_print(
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_content
+
+	if print_format is not None and db.get_value("Print Format", print_format, "print_format_builder_beta"):
+		print_format = db.get("Print Format", print_format)
+		assert print_format.doctype == doctype
+		letterhead = None
+		return (
+			print_format.get_pdf(name, letterhead=letterhead)
+			if as_pdf
+			else print_format.get_html(name, letterhead=letterhead)
+		)
 
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name

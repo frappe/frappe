@@ -20,5 +20,11 @@ class PrintPage(TemplatePage):
 		parts = self.path.split("/", 1)
 		frappe.form_dict.doctype = parts[0]
 		frappe.form_dict.name = parts[1]
-		self.set_standard_path("printview")
+
+		print_format = frappe.form_dict.get("format")
+		if print_format is not None and frappe.db.get_value("Print Format", print_format, "print_format_builder_beta"):
+			frappe.form_dict.print_format = print_format
+			self.set_standard_path("printpreview")
+		else:
+			self.set_standard_path("printview")
 		return super().render()
