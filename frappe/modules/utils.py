@@ -97,6 +97,7 @@ def export_customizations(
 		frappe.msgprint(
 			_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, file_path)
 		)
+		return file_path
 
 
 def sync_customizations(app: Optional[str] = None):
