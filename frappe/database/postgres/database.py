@@ -67,6 +67,7 @@ class PostgresDatabase(Database):
 			"Icon": ("varchar", self.VARCHAR_LEN),
 			"Phone": ("varchar", self.VARCHAR_LEN),
 			"Autocomplete": ("varchar", self.VARCHAR_LEN),
+			"JSON": ("json", ""),
 		}
 
 	def get_connection(self):

@@ -38,6 +38,7 @@ data_fieldtypes = (
 	"Icon",
 	"Phone",
 	"Autocomplete",
+	"JSON",
 )
 
 attachment_fieldtypes = (
