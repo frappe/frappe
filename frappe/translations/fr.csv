@@ -4139,6 +4139,7 @@ by Role,par rôle,
 Document is only editable by users with role,Le document n&#39;est modifiable que par les utilisateurs avec un rôle,
 {0}: Other permission rules may also apply,{0}: d&#39;autres règles d&#39;autorisation peuvent également s&#39;appliquer,
 {0} Page Views,{0} pages vues,
+{0} Page Views,{0} pages vues,
 Expand,Développer,
 Collapse,Réduire,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","Jeton de porteur non valide, veuillez fournir un jeton d&#39;accès valide avec le préfixe «porteur».",
@@ -4702,8 +4703,9 @@ Negative Value,Valeur négative,
 Authentication failed while receiving emails from Email Account: {0}.,L&#39;authentification a échoué lors de la réception des e-mails du compte de messagerie: {0}.,
 Message from server: {0},Message du serveur: {0},
 {0} edited this {1},{0} a édité {1},
-{0} created this {1}, {0} a créé {1}
-Report an Issue, Signaler une anomalie
+{0} created this {1},{0} a créé {1}
+Report an Issue,Signaler une anomalie
+User Forum,Forum utilisateur
 About, A Propos
 My Profile, Mon profil
 My Settings, Mes paramètres
@@ -4714,3 +4716,4 @@ Document has been submitted, Document validé
 Document has been cancelled, Document annulé
 Document is in draft state, Document au statut brouillon
 Copy to Clipboard,Copier vers le presse-papiers
+Don't have an account?,Vous n&#39;avez pas de compte?
