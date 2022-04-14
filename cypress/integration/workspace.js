@@ -67,7 +67,7 @@ context('Workspace 2.0', () => {
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 
-		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as('sidebar-item')
+		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as('sidebar-item');
 
 		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
 		cy.get('@sidebar-item').find('.dropdown-btn').first().click();
@@ -85,12 +85,12 @@ context('Workspace 2.0', () => {
 			url: 'api/method/frappe.desk.doctype.workspace.workspace.sort_pages'
 		}).as('page_sorted');
 
-		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item')
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item');
 
 		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
 		cy.get('@sidebar-item').find('.drag-handle').first().move({ deltaX: 0, deltaY: 100 });
 
-		cy.get('.sidebar-item-container[item-name="Build"]').as('sidebar-item')
+		cy.get('.sidebar-item-container[item-name="Build"]').as('sidebar-item');
 
 		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
 		cy.get('@sidebar-item').find('.drag-handle').first().move({ deltaX: 0, deltaY: 100 });
@@ -104,7 +104,7 @@ context('Workspace 2.0', () => {
 			url: 'api/method/frappe.desk.doctype.workspace.workspace.update_page'
 		}).as('page_updated');
 
-		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as('sidebar-item')
+		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as('sidebar-item');
 
 		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
 		cy.get('@sidebar-item').find('.dropdown-btn').first().click();
@@ -121,7 +121,7 @@ context('Workspace 2.0', () => {
 	});
 
 	it('Add New Block', () => {
-		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item')
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item');
 
 		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
 
@@ -168,7 +168,7 @@ context('Workspace 2.0', () => {
 			url: 'api/method/frappe.desk.doctype.workspace.workspace.delete_page'
 		}).as('page_deleted');
 
-		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item')
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as('sidebar-item');
 
 		cy.get('@sidebar-item').find('.standard-sidebar-item').first().click();
 
