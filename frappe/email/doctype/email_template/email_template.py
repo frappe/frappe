@@ -1,9 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe, json
+import json
+
+import frappe
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
+
 
 class EmailTemplate(Document):
 	def validate(self):
@@ -25,15 +28,12 @@ class EmailTemplate(Document):
 		if isinstance(doc, str):
 			doc = json.loads(doc)
 
-		return {
-			"subject" : self.get_formatted_subject(doc),
-			"message" : self.get_formatted_response(doc)
-		}
+		return {"subject": self.get_formatted_subject(doc), "message": self.get_formatted_response(doc)}
 
 
 @frappe.whitelist()
 def get_email_template(template_name, doc):
-	'''Returns the processed HTML of a email template with the given doc'''
+	"""Returns the processed HTML of a email template with the given doc"""
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 

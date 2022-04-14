@@ -23,7 +23,6 @@ import './table';
 import './color';
 import './signature';
 import './password';
-import './read_only';
 import './button';
 import './html';
 import './markdown_editor';
@@ -40,6 +39,7 @@ import './multiselect_list';
 import './rating';
 import './duration';
 import './icon';
+import './json';
 
 frappe.ui.form.make_control = function (opts) {
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");

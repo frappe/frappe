@@ -850,9 +850,10 @@ frappe.ui.Page = class Page {
 	}
 	get_form_values() {
 		var values = {};
-		this.page_form.fields_dict.forEach(function(field, key) {
-			values[key] = field.get_value();
-		});
+		for (let fieldname in this.fields_dict) {
+			let field = this.fields_dict[fieldname];
+			values[fieldname] = field.get_value();
+		}
 		return values;
 	}
 	add_view(name, html) {

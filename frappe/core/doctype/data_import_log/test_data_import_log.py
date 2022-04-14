@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestDataImportLog(unittest.TestCase):
 	pass

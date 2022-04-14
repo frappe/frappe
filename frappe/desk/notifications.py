@@ -1,9 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.desk.doctype.notification_settings.notification_settings import get_subscribed_documents
 import json
+
+import frappe
+from frappe.desk.doctype.notification_settings.notification_settings import (
+	get_subscribed_documents,
+)
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -12,8 +16,7 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if (frappe.flags.in_install or
-		not frappe.db.get_single_value('System Settings', 'setup_complete')):
+	if frappe.flags.in_install or not frappe.db.get_single_value("System Settings", "setup_complete"):
 		return out
 
 	config = get_notification_config()
@@ -32,10 +35,11 @@ def get_notifications():
 		if count is not None:
 			notification_count[name] = count
 
-	out['open_count_doctype'] = get_notifications_for_doctypes(config, notification_count)
-	out['targets'] = get_notifications_for_targets(config, notification_percent)
+	out["open_count_doctype"] = get_notifications_for_doctypes(config, notification_count)
+	out["targets"] = get_notifications_for_targets(config, notification_percent)
 
 	return out
+
 
 def get_notifications_for_doctypes(config, notification_count):
 	"""Notifications for DocTypes"""
@@ -51,7 +55,9 @@ def get_notifications_for_doctypes(config, notification_count):
 			else:
 				try:
 					if isinstance(condition, dict):
-						result = frappe.get_list(d, fields=["count(*) as count"], filters=condition, ignore_ifnull=True)[0].count
+						result = frappe.get_list(
+							d, fields=["count(*) as count"], filters=condition, ignore_ifnull=True
+						)[0].count
 					else:
 						result = frappe.get_attr(condition)()
 
@@ -71,6 +77,7 @@ def get_notifications_for_doctypes(config, notification_count):
 					frappe.cache().hset("notification_count:" + d, frappe.session.user, result)
 
 	return open_count_doctype
+
 
 def get_notifications_for_targets(config, notification_percent):
 	"""Notifications for doc targets"""
@@ -96,8 +103,13 @@ def get_notifications_for_targets(config, notification_percent):
 				value_field = d["value_field"]
 				try:
 					if isinstance(condition, dict):
-						doc_list = frappe.get_list(doctype, fields=["name", target_field, value_field],
-							filters=condition, limit_page_length = 100, ignore_ifnull=True)
+						doc_list = frappe.get_list(
+							doctype,
+							fields=["name", target_field, value_field],
+							filters=condition,
+							limit_page_length=100,
+							ignore_ifnull=True,
+						)
 
 				except frappe.PermissionError:
 					frappe.clear_messages()
@@ -110,9 +122,10 @@ def get_notifications_for_targets(config, notification_percent):
 					for doc in doc_list:
 						value = doc[value_field]
 						target = doc[target_field]
-						doc_target_percents[doctype][doc.name] = (value/target * 100) if value < target else 100
+						doc_target_percents[doctype][doc.name] = (value / target * 100) if value < target else 100
 
 	return doc_target_percents
+
 
 def clear_notifications(user=None):
 	if frappe.flags.in_install:
@@ -123,8 +136,8 @@ def clear_notifications(user=None):
 	if not config:
 		return
 
-	for_doctype = list(config.get('for_doctype')) if config.get('for_doctype') else []
-	for_module = list(config.get('for_module')) if config.get('for_module') else []
+	for_doctype = list(config.get("for_doctype")) if config.get("for_doctype") else []
+	for_module = list(config.get("for_module")) if config.get("for_module") else []
 	groups = for_doctype + for_module
 
 	for name in groups:
@@ -133,27 +146,31 @@ def clear_notifications(user=None):
 		else:
 			cache.delete_key("notification_count:" + name)
 
-	frappe.publish_realtime('clear_notifications')
+	frappe.publish_realtime("clear_notifications")
+
 
 def clear_notification_config(user):
-	frappe.cache().hdel('notification_config', user)
+	frappe.cache().hdel("notification_config", user)
+
 
 def delete_notification_count_for(doctype):
 	frappe.cache().delete_key("notification_count:" + doctype)
-	frappe.publish_realtime('clear_notifications')
+	frappe.publish_realtime("clear_notifications")
+
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
 	if not config:
 		return
 	if isinstance(doc, str):
-		doctype = doc # assuming doctype name was passed directly
+		doctype = doc  # assuming doctype name was passed directly
 	else:
 		doctype = doc.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)
 		return
+
 
 @frappe.whitelist()
 def get_notification_info():
@@ -171,15 +188,18 @@ def get_notification_info():
 		if d in doctype_info:
 			module_doctypes.setdefault(doctype_info[d], []).append(d)
 
-	out.update({
-		"conditions": conditions,
-		"module_doctypes": module_doctypes,
-	})
+	out.update(
+		{
+			"conditions": conditions,
+			"module_doctypes": module_doctypes,
+		}
+	)
 
 	return out
 
+
 def get_notification_config():
-	user = frappe.session.user or 'Guest'
+	user = frappe.session.user or "Guest"
 
 	def _get():
 		subscribed_documents = get_subscribed_documents()
@@ -206,28 +226,28 @@ def get_notification_config():
 
 	return frappe.cache().hget("notification_config", user, _get)
 
+
 def get_filters_for(doctype):
-	'''get open filters for doctype'''
+	"""get open filters for doctype"""
 	config = get_notification_config()
 	doctype_config = config.get("for_doctype").get(doctype, {})
 	filters = doctype_config if not isinstance(doctype_config, str) else None
 
 	return filters
 
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_open_count(doctype, name, items=None):
-	'''Get open count for given transactions and filters
+	"""Get open count for given transactions and filters
 
 	:param doctype: Reference DocType
 	:param name: Reference Name
 	:param transactions: List of transactions (json/dict)
-	:param filters: optional filters (json/list)'''
+	:param filters: optional filters (json/list)"""
 
 	if frappe.flags.in_migrate or frappe.flags.in_install:
-		return {
-			"count": []
-		}
+		return {"count": []}
 
 	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 
@@ -250,18 +270,22 @@ def get_open_count(doctype, name, items=None):
 			continue
 
 		filters = get_filters_for(d)
-		fieldname = links.get("non_standard_fieldnames", {}).get(d, links.get('fieldname'))
+		fieldname = links.get("non_standard_fieldnames", {}).get(d, links.get("fieldname"))
 		data = {"name": d}
 		if filters:
 			# get the fieldname for the current document
 			# we only need open documents related to the current document
 			filters[fieldname] = name
-			total = len(frappe.get_all(d, fields="name",
-				filters=filters, limit=100, distinct=True, ignore_ifnull=True))
+			total = len(
+				frappe.get_all(d, fields="name", filters=filters, limit=100, distinct=True, ignore_ifnull=True)
+			)
 			data["open_count"] = total
 
-		total = len(frappe.get_all(d, fields="name",
-			filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True))
+		total = len(
+			frappe.get_all(
+				d, fields="name", filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True
+			)
+		)
 		data["count"] = total
 		out.append(data)
 
