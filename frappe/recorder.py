@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from collections import Counter
 import datetime
 import inspect
 import json
 import re
 import time
-import frappe
+from collections import Counter
+
 import sqlparse
 
+import frappe
 from frappe import _
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
@@ -64,6 +65,7 @@ def get_current_stack_frames():
 	except Exception:
 		pass
 
+
 def record():
 	if __debug__:
 		if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG):
@@ -98,9 +100,7 @@ class Recorder:
 			"cmd": self.cmd,
 			"time": self.time,
 			"queries": len(self.calls),
-			"time_queries": float(
-				"{:0.3f}".format(sum(call["duration"] for call in self.calls))
-			),
+			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
 			"duration": float(
 				"{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)
 			),
