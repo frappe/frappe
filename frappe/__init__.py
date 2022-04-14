@@ -528,6 +528,9 @@ def create_folder(path, with_init=False):
 	if not os.path.exists(path):
 		os.makedirs(path)
 
+		if sys.version_info[0] >= 3:
+			with_init = False
+
 		if with_init:
 			touch_file(os.path.join(path, "__init__.py"))
 

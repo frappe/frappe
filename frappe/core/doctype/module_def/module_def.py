@@ -3,6 +3,7 @@
 
 import json
 import os
+import sys
 
 import frappe
 from frappe.model.document import Document
@@ -14,16 +15,21 @@ class ModuleDef(Document):
 		add in `modules.txt` of app if missing."""
 		frappe.clear_cache()
 		if not self.custom and frappe.conf.get("developer_mode"):
-			self.create_modules_folder()
+			self.create_modules_folder(create_init=True)
 			self.add_to_modules_txt()
 
-	def create_modules_folder(self):
+	def create_modules_folder(self, create_init=False):
 		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
 		module_path = frappe.get_app_path(self.app_name, self.name)
 		if not os.path.exists(module_path):
 			os.mkdir(module_path)
-			with open(os.path.join(module_path, "__init__.py"), "w") as f:
-				f.write("")
+
+			if sys.version_info[0] >= 3:
+				create_init = False
+
+			if create_init:
+				with open(os.path.join(module_path, "__init__.py"), "w") as f:
+					f.write("")
 
 	def add_to_modules_txt(self):
 		"""Adds to `[app]/modules.txt`"""

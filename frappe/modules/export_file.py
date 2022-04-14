@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+import sys
 
 import frappe
 import frappe.model
@@ -104,6 +105,9 @@ def create_folder(module, dt, dn, create_init):
 	frappe.create_folder(folder)
 
 	# create init_py_files
+	if sys.version_info[0] >= 3:
+		create_init = False
+
 	if create_init:
 		create_init_py(module_path, dt, dn)
 

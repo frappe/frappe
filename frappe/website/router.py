@@ -4,6 +4,7 @@
 import io
 import os
 import re
+import sys
 
 from werkzeug.routing import Map, NotFound, Rule
 
@@ -69,20 +70,23 @@ def get_pages(app=None):
 			app_path = frappe.get_app_path(app)
 
 			for start in get_start_folders():
-				pages.update(get_pages_from_path(start, app, app_path))
+				pages.update(get_pages_from_path(start, app, app_path, create_init=True))
 
 		return pages
 
 	return frappe.cache().get_value("website_pages", lambda: _build(app))
 
 
-def get_pages_from_path(start, app, app_path):
+def get_pages_from_path(start, app, app_path, create_init=False):
 	pages = {}
 	start_path = os.path.join(app_path, start)
 	if os.path.exists(start_path):
 		for basepath, folders, files in os.walk(start_path):
 			# add missing __init__.py
-			if not "__init__.py" in files:
+			if sys.version_info[0] >= 3:
+				create_init = False
+
+			if not "__init__.py" in files and create_init:
 				open(os.path.join(basepath, "__init__.py"), "a").close()
 
 			for fname in files:
