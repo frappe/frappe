@@ -869,7 +869,7 @@ class BaseDocument(object):
 		autoname = self.meta.autoname or ""
 		_empty, _field_specifier, fieldname = autoname.partition("field:")
 
-		if fieldname and self.name and self.name != self.get("fieldname"):
+		if fieldname and self.name and self.name != self.get(fieldname):
 			self.set(fieldname, self.name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
