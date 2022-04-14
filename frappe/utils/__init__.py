@@ -17,7 +17,6 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 
-import phonenumbers as ph
 from redis.exceptions import ConnectionError
 from werkzeug.test import Client
 
@@ -83,37 +82,30 @@ def extract_email_id(email):
 	return email_id
 
 
-def validate_phone_number_with_isd(phone, fieldname, throw=False):
+def validate_phone_number_with_country_code(phone_number, fieldname):
+	from phonenumbers import NumberParseException, is_valid_number, parse
+
 	from frappe import _
 
-	if not phone:
+	if not phone_number:
 		return
 	try:
-		phone_number = ph.parse(phone)
-	except Exception as e:
-		if e.error_type == 1:
-
-			frappe.throw(
-				_("Phone Number {0} set in field {1} is not valid.").format(
-					frappe.bold(phone), frappe.bold(fieldname)
-				),
-				frappe.InvalidPhoneNumberError,
-				title=_("Invalid Phone Number"),
-			)
+		if is_valid_number(parse(phone_number)):
+			return True
+		error_message = _("Phone Number {0} set in field {1} is not valid.")
+		error_title = _("Invalid Phone Number")
+	except NumberParseException as e:
+		if e.error_type == NumberParseException.INVALID_COUNTRY_CODE:
+			error_message = _("Please select a country code for field {1}.")
+			error_title = _("Country Code Required")
+		if e.error_type == NumberParseException.NOT_A_NUMBER:
+			error_message = _("Phone Number {0} set in field {1} is not valid.")
+			error_title = _("Invalid Phone Number")
+	finally:
 		frappe.throw(
-			_("Please select a country code for field {1}.").format(
-				frappe.bold(phone), frappe.bold(fieldname)
-			),
-			frappe.InvalidPhoneNumberError,
-			title=_("Country Code Required"),
-		)
-	if not ph.is_valid_number(phone_number):
-		frappe.throw(
-			_("Phone Number {0} set in field {1} is not valid.").format(
-				frappe.bold(phone), frappe.bold(fieldname)
-			),
-			frappe.InvalidPhoneNumberError,
-			title=_("Invalid Phone Number"),
+			error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
+			title=error_title,
+			exc=frappe.InvalidPhoneNumberError,
 		)
 
 

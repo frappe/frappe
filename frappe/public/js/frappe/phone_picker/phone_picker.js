@@ -17,7 +17,7 @@ class PhonePicker {
 		this.phone_picker_wrapper = $(`
 			<div class="phone-picker">
 				<div class="search-phones">
-					<input type="search" placeholder="Search for countries.." class="form-control">
+					<input type="search" placeholder="${__('Search for countries...')}" class="form-control">
 					<span class="search-phone">${frappe.utils.icon('search', "sm")}</span>
 				</div>
 				<div class="phone-section">
@@ -37,8 +37,12 @@ class PhonePicker {
 			if (!info.isd) {
 				return;
 			}
-			let $country = $(`<div id="${country.toLowerCase()}" class="phone-wrapper">${frappe.utils.flag(info.code)}
-				<span class="country">${country} (${info.isd})</span></div>`);
+			let $country = $(`
+				<div id="${country.toLowerCase()}" class="phone-wrapper">
+					${frappe.utils.flag(info.code)}
+					<span class="country">${country} (${info.isd})</span>
+				</div>
+			`);
 			this.phone_wrapper.append($country);
 			const set_values = () => {
 				this.set_country(country);
@@ -88,6 +92,11 @@ class PhonePicker {
 
 	get_country() {
 		return this.country;
+	}
+
+	reset() {
+		this.set_country();
+		this.update_icon_selected();
 	}
 }
 
