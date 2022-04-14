@@ -25,7 +25,7 @@ import importlib
 import inspect
 import json
 import sys
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
@@ -74,7 +74,7 @@ class _dict(dict):
 		return _dict(self)
 
 
-def _(msg, lang=None, context=None):
+def _(msg: str, lang: Optional[str] = None, context: str = None) -> str:
 	"""Returns translated string in current lang, if exists.
 	Usage:
 	        _('Change')
@@ -311,14 +311,13 @@ def get_site_config(sites_path=None, site_path=None):
 	return _dict(config)
 
 
-def get_conf(site=None):
+def get_conf(site: Optional[str] = None) -> _dict:
 	if hasattr(local, "conf"):
 		return local.conf
 
-	else:
-		# if no site, get from common_site_config.json
-		with init_site(site):
-			return local.conf
+	# if no site, get from common_site_config.json
+	with init_site(site):
+		return local.conf
 
 
 class init_site:
