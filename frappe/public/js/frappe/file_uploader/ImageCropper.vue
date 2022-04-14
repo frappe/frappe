@@ -1,12 +1,39 @@
 <template>
 	<div>
 		<div>
-			<img ref="image" :src="src" :alt="file.name"/>
+			<img ref="image" :src="src" :alt="file.name" />
 		</div>
-		<br/>
 		<div class="image-cropper-actions">
-			<button class="btn btn-sm margin-right" v-if="!attach_doc_image" @click="$emit('toggle_image_cropper')">Back</button>
-			<button class="btn btn-primary btn-sm margin-right" @click="crop_image" v-html="crop_button_text"></button>
+			<div>
+				<div class="btn-group" v-if="fixed_aspect_ratio == null">
+					<button
+						v-for="button in aspect_ratio_buttons"
+						type="button"
+						class="btn btn-default btn-sm"
+						:class="{
+							active: isNaN(aspect_ratio)
+								? isNaN(button.value)
+								: button.value === aspect_ratio
+						}"
+						:key="button.label"
+						@click="aspect_ratio = button.value"
+					>
+						{{ button.label }}
+					</button>
+				</div>
+			</div>
+			<div>
+				<button
+					class="btn btn-sm margin-right"
+					@click="$emit('toggle_image_cropper')"
+					v-if="fixed_aspect_ratio == null"
+				>
+					{{ __("Back") }}
+				</button>
+				<button class="btn btn-primary btn-sm" @click="crop_image">
+					{{ __("Crop") }}
+				</button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -15,13 +42,23 @@
 import Cropper from "cropperjs";
 export default {
 	name: "ImageCropper",
-	props: ["file", "attach_doc_image"],
+	props: ["file", "fixed_aspect_ratio"],
 	data() {
+		let aspect_ratio =
+			this.fixed_aspect_ratio != null ? this.fixed_aspect_ratio : NaN;
 		return {
 			src: null,
 			cropper: null,
-			image: null
+			image: null,
+			aspect_ratio
 		};
+	},
+	watch: {
+		aspect_ratio(value) {
+			if (this.cropper) {
+				this.cropper.setAspectRatio(value);
+			}
+		}
 	},
 	mounted() {
 		if (window.FileReader) {
@@ -29,8 +66,7 @@ export default {
 			fr.onload = () => (this.src = fr.result);
 			fr.readAsDataURL(this.file.cropper_file);
 		}
-		aspect_ratio = this.attach_doc_image ? 1 : NaN;
-		crop_box = this.file.crop_box_data;
+		let crop_box = this.file.crop_box_data;
 		this.image = this.$refs.image;
 		this.image.onload = () => {
 			this.cropper = new Cropper(this.image, {
@@ -38,13 +74,31 @@ export default {
 				scalable: false,
 				viewMode: 1,
 				data: crop_box,
-				aspectRatio: aspect_ratio
+				aspectRatio: this.aspect_ratio
 			});
+			window.cropper = this.cropper;
 		};
 	},
 	computed: {
-		crop_button_text() {
-			return this.attach_doc_image ? "Upload" : "Crop";
+		aspect_ratio_buttons() {
+			return [
+				{
+					label: __("1:1"),
+					value: 1
+				},
+				{
+					label: __("4:3"),
+					value: 4 / 3
+				},
+				{
+					label: __("16:9"),
+					value: 16 / 9
+				},
+				{
+					label: __("Free"),
+					value: NaN
+				}
+			];
 		}
 	},
 	methods: {
@@ -58,9 +112,6 @@ export default {
 				});
 				this.file.file_obj = cropped_file_obj;
 				this.$emit("toggle_image_cropper");
-				if(this.attach_doc_image) {
-					this.$emit("upload_after_crop");
-				}
 			}, file_type);
 		}
 	}
@@ -75,6 +126,8 @@ img {
 
 .image-cropper-actions {
 	display: flex;
-	justify-content: flex-end;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: var(--margin-md);
 }
 </style>

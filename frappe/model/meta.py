@@ -134,24 +134,22 @@ class Meta(Document):
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):
 			out = {}
-			for key in doc.__dict__:
-				value = doc.__dict__.get(key)
-
+			for key, value in doc.__dict__.items():
 				if isinstance(value, (list, tuple)):
-					if len(value) > 0 and hasattr(value[0], "__dict__"):
-						value = [serialize(d) for d in value]
-					else:
+					if not value or not isinstance(value[0], BaseDocument):
 						# non standard list object, skip
 						continue
 
-				if isinstance(value, (str, int, float, datetime, list, tuple)) or (
-					not no_nulls and value is None
+					value = [serialize(d) for d in value]
+
+				if (not no_nulls and value is None) or isinstance(
+					value, (str, int, float, datetime, list, tuple)
 				):
 					out[key] = value
 
 			# set empty lists for unset table fields
 			for table_field in DOCTYPE_TABLE_FIELDS:
-				if not out.get(table_field.fieldname):
+				if out.get(table_field.fieldname) is None:
 					out[table_field.fieldname] = []
 
 			return out

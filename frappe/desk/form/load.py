@@ -57,7 +57,7 @@ def getdoc(doctype, name, user=None):
 	doc.add_seen()
 	set_link_titles(doc)
 	if frappe.response.docs is None:
-		frappe.response = _dict({"docs": []})
+		frappe.local.response = _dict({"docs": []})
 	frappe.response.docs.append(doc)
 
 

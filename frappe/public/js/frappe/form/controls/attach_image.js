@@ -19,7 +19,6 @@ frappe.ui.form.ControlAttachImage = class ControlAttachImage extends frappe.ui.f
 	}
 	set_upload_options() {
 		super.set_upload_options();
-		this.upload_options.restrictions = {};
 		this.upload_options.restrictions.allowed_file_types = ['image/*'];
 	}
 };
