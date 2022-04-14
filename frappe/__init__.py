@@ -1874,7 +1874,6 @@ def get_print(
 
 	if print_format is not None and db.get_value("Print Format", print_format, "print_format_builder_beta"):
 		print_format = db.get("Print Format", print_format)
-		assert print_format.doctype == doctype
 		letterhead = None
 		return (
 			print_format.get_pdf(name, letterhead=letterhead)
