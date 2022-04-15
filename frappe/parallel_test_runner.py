@@ -46,7 +46,7 @@ class ParallelTestRunner:
 
 		if hasattr(test_module, "global_test_dependencies"):
 			for doctype in test_module.global_test_dependencies:
-				make_test_records(doctype)
+				make_test_records(doctype, commit=True)
 
 		elapsed = time.time() - start_time
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red")
@@ -76,7 +76,7 @@ class ParallelTestRunner:
 	def create_test_dependency_records(self, module, path, filename):
 		if hasattr(module, "test_dependencies"):
 			for doctype in module.test_dependencies:
-				make_test_records(doctype)
+				make_test_records(doctype, commit=True)
 
 		if os.path.basename(os.path.dirname(path)) == "doctype":
 			# test_data_migration_connector.py > data_migration_connector.json
@@ -86,7 +86,7 @@ class ParallelTestRunner:
 				with open(test_record_file_path, "r") as f:
 					doc = json.loads(f.read())
 					doctype = doc["name"]
-					make_test_records(doctype)
+					make_test_records(doctype, commit=True)
 
 	def get_module(self, path, filename):
 		app_path = frappe.get_pymodule_path(self.app)

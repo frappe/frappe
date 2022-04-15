@@ -226,7 +226,7 @@ def run_tests_for_doctype(
 		if force:
 			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
 				frappe.delete_doc(doctype, name, force=True)
-		make_test_records(doctype, verbose=verbose, force=force)
+		make_test_records(doctype, verbose=verbose, force=force, commit=True)
 		modules.append(importlib.import_module(test_module))
 
 	return _run_unittest(
@@ -245,7 +245,7 @@ def run_tests_for_module(
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
-			make_test_records(doctype, verbose=verbose)
+			make_test_records(doctype, verbose=verbose, commit=True)
 
 	frappe.db.commit()
 	return _run_unittest(
@@ -330,7 +330,7 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
-			make_test_records(doctype, verbose=verbose)
+			make_test_records(doctype, verbose=verbose, commit=True)
 
 	is_ui_test = True if hasattr(module, "TestDriver") else False
 
@@ -346,12 +346,12 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 			with open(txt_file, "r") as f:
 				doc = json.loads(f.read())
 			doctype = doc["name"]
-			make_test_records(doctype, verbose)
+			make_test_records(doctype, verbose, commit=True)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
 
-def make_test_records(doctype, verbose=0, force=False):
+def make_test_records(doctype, verbose=0, force=False, commit=False):
 	if not frappe.db:
 		frappe.connect()
 
@@ -364,8 +364,8 @@ def make_test_records(doctype, verbose=0, force=False):
 
 		if options not in frappe.local.test_objects:
 			frappe.local.test_objects[options] = []
-			make_test_records(options, verbose, force)
-			make_test_records_for_doctype(options, verbose, force)
+			make_test_records(options, verbose, force, commit=commit)
+			make_test_records_for_doctype(options, verbose, force, commit=commit)
 
 
 def get_modules(doctype):
@@ -405,7 +405,7 @@ def get_dependencies(doctype):
 	return options_list
 
 
-def make_test_records_for_doctype(doctype, verbose=0, force=False):
+def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False):
 	if not force and doctype in get_test_record_log():
 		return
 
@@ -420,17 +420,19 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 	elif hasattr(test_module, "test_records"):
 		if doctype in frappe.local.test_objects:
 			frappe.local.test_objects[doctype] += make_test_objects(
-				doctype, test_module.test_records, verbose, force
+				doctype, test_module.test_records, verbose, force, commit=commit
 			)
 		else:
 			frappe.local.test_objects[doctype] = make_test_objects(
-				doctype, test_module.test_records, verbose, force
+				doctype, test_module.test_records, verbose, force, commit=commit
 			)
 
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_records, verbose, force)
+			frappe.local.test_objects[doctype] += make_test_objects(
+				doctype, test_records, verbose, force, commit=commit
+			)
 
 		elif verbose:
 			print_mandatory_fields(doctype)
@@ -438,7 +440,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 	add_to_test_record_log(doctype)
 
 
-def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
+def make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
 	records = []
 
@@ -495,7 +497,8 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		records.append(d.name)
 
-		frappe.db.commit()
+		if commit:
+			frappe.db.commit()
 	return records
 
 
