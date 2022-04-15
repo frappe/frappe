@@ -14,8 +14,6 @@ from cgi import print_form
 import os
 import warnings
 
-from frappe.permissions import get_doc_name
-
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = os.environ.get("DEV_SERVER", False)
