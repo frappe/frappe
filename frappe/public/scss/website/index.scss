@@ -88,6 +88,20 @@
 	border-radius: $dropdown-border-radius;
 }
 
+.dropdown-item:active {
+	color: var(--fg-color);
+	text-decoration: none;
+	background-color: var(--gray-600);
+}
+
+.dropdown-item:active:hover {
+	color: var(--fg-color);
+}
+
+.dropdown-menu a:hover {
+	cursor: pointer;
+}
+
 .input-dark {
 	background-color: $dark;
 	border-color: darken($primary, 40%);
@@ -100,8 +114,8 @@
 
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.page-content-wrapper .container {
-		padding-left: 1rem;
-		padding-right: 1rem;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
 	}
 }
 

@@ -25,7 +25,10 @@ def authorize_access(reauthorize=None):
 	google_settings = frappe.get_doc("Google Settings")
 	website_settings = frappe.get_doc("Website Settings")
 
-	redirect_uri = get_request_site_address(True) + "?cmd=frappe.website.doctype.website_settings.google_indexing.google_callback"
+	redirect_uri = (
+		get_request_site_address(True)
+		+ "?cmd=frappe.website.doctype.website_settings.google_indexing.google_callback"
+	)
 
 	if not website_settings.indexing_authorization_code or reauthorize:
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
@@ -34,14 +37,18 @@ def authorize_access(reauthorize=None):
 			data = {
 				"code": website_settings.indexing_authorization_code,
 				"client_id": google_settings.client_id,
-				"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
+				"client_secret": google_settings.get_password(
+					fieldname="client_secret", raise_exception=False
+				),
 				"redirect_uri": redirect_uri,
-				"grant_type": "authorization_code"
+				"grant_type": "authorization_code",
 			}
 			res = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in res:
-				frappe.db.set_value("Website Settings", website_settings.name, "indexing_refresh_token", res.get("refresh_token"))
+				frappe.db.set_value(
+					"Website Settings", website_settings.name, "indexing_refresh_token", res.get("refresh_token")
+				)
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
@@ -55,7 +62,9 @@ def authorize_access(reauthorize=None):
 def get_authentication_url(client_id, redirect_uri):
 	"""Return authentication url with the client id and redirect uri."""
 	return {
-		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(client_id, SCOPES, redirect_uri)
+		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(
+			client_id, SCOPES, redirect_uri
+		)
 	}
 
 
@@ -79,15 +88,12 @@ def get_google_indexing_object():
 		"token_uri": get_auth_url(),
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": "https://www.googleapis.com/auth/indexing"
+		"scopes": "https://www.googleapis.com/auth/indexing",
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
 	google_indexing = build(
-		serviceName="indexing",
-		version="v3",
-		credentials=credentials,
-		static_discovery=False
+		serviceName="indexing", version="v3", credentials=credentials, static_discovery=False
 	)
 
 	return google_indexing
@@ -97,11 +103,8 @@ def publish_site(url, operation_type="URL_UPDATED"):
 	"""Send an update/remove url request."""
 
 	google_indexing = get_google_indexing_object()
-	body = {
-		"url": url,
-		"type": operation_type
-	}
+	body = {"url": url, "type": operation_type}
 	try:
-		google_indexing.urlNotifications().publish(body=body, x__xgafv='2').execute()
+		google_indexing.urlNotifications().publish(body=body, x__xgafv="2").execute()
 	except HttpError as e:
-		frappe.log_error(message=e, title='API Indexing Issue')
+		frappe.log_error(message=e, title="API Indexing Issue")
