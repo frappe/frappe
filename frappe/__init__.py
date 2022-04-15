@@ -14,6 +14,8 @@ from cgi import print_form
 import os
 import warnings
 
+from frappe.permissions import get_doc_name
+
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = os.environ.get("DEV_SERVER", False)
@@ -1876,7 +1878,8 @@ def get_print(
 
 	if print_format is not None and db.get_value("Print Format", print_format, "print_format_builder_beta"):
 		doc = get_doc(doctype, name) if doc is None else doc
-		generator = PrintFormatGenerator(print_format, doc, letterhead=None)
+		letterhead = db.exists(dict(doctype="Letter Head", is_default=1)) if not no_letterhead else None
+		generator = PrintFormatGenerator(print_format, doc, letterhead=letterhead)
 		return (
 			generator.render_pdf()
 			if as_pdf
