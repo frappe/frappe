@@ -1,12 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import re
-import unittest
 
 from bs4 import BeautifulSoup
 
 import frappe
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import random_string, set_request
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.serve import get_response
@@ -16,7 +16,7 @@ from frappe.website.website_generator import WebsiteGenerator
 test_dependencies = ["Blog Post"]
 
 
-class TestBlogPost(unittest.TestCase):
+class TestBlogPost(FrappeTestCase):
 	def setUp(self):
 		reset_customization("Blog Post")
 
@@ -61,7 +61,7 @@ class TestBlogPost(unittest.TestCase):
 		category_page_link = list(soup.find_all("a", href=re.compile(blog.blog_category)))[0]
 		category_page_url = category_page_link["href"]
 
-		cached_value = frappe.db.value_cache[("DocType", "Blog Post", "name")]
+		cached_value = frappe.db.value_cache.get(("DocType", "Blog Post", "name"))
 		frappe.db.value_cache[("DocType", "Blog Post", "name")] = (("Blog Post",),)
 
 		# Visit the category page (by following the link found in above stage)
