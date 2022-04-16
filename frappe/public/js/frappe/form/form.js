@@ -1768,11 +1768,12 @@ frappe.ui.form.Form = class FrappeForm {
 		// focus if text field
 		$el.find('input, select, textarea').focus();
 
-		// highlight input
-		$el.addClass('has-error');
+		// highlight control inside field
+		let control_element = $el.find('.form-control')
+		control_element.addClass('highlight');
 		setTimeout(() => {
-			$el.removeClass('has-error');
-		}, 1000);
+			control_element.removeClass('highlight');
+		}, 2000);
 	}
 
 	setup_docinfo_change_listener() {
