@@ -1765,11 +1765,13 @@ frappe.ui.form.Form = class FrappeForm {
 		// scroll to input
 		frappe.utils.scroll_to($el, true, 15);
 
+		// focus if text field
+		$el.find('input, select, textarea').focus();
+
 		// highlight input
 		$el.addClass('has-error');
 		setTimeout(() => {
 			$el.removeClass('has-error');
-			$el.find('input, select, textarea').focus();
 		}, 1000);
 	}
 
