@@ -48,8 +48,13 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 			message = ""
 			if action == "submit" and doc.docstatus == 0:
 				doc.submit()
+<<<<<<< HEAD
 				message = _("Submiting {0}").format(doctype)
 			elif action == "cancel" and doc.docstatus == 1:
+=======
+				message = _("Submitting {0}").format(doctype)
+			elif action == "cancel" and doc.docstatus.is_submitted():
+>>>>>>> 746e017aef (fix: Fixed spelling of "Submitting" in Bulk Upload Modal (#16638))
 				doc.cancel()
 				message = _("Cancelling {0}").format(doctype)
 			elif action == "update" and doc.docstatus < 2:
