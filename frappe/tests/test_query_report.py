@@ -4,8 +4,8 @@
 import unittest
 
 import frappe
-from frappe.desk.query_report import build_xlsx_data
 import frappe.utils
+from frappe.desk.query_report import build_xlsx_data
 
 
 class TestQueryReport(unittest.TestCase):

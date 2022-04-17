@@ -1,11 +1,11 @@
+import time
 import unittest
 
 from rq import Queue
 
 import frappe
 from frappe.core.page.background_jobs.background_jobs import remove_failed_jobs
-from frappe.utils.background_jobs import get_redis_conn, generate_qname
-import time
+from frappe.utils.background_jobs import generate_qname, get_redis_conn
 
 
 class TestBackgroundJobs(unittest.TestCase):

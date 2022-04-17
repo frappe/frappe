@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
+
 from frappe.utils.password import get_decrypted_password
+
 
 class BaseConnection(metaclass=ABCMeta):
 	@abstractmethod
@@ -19,4 +21,4 @@ class BaseConnection(metaclass=ABCMeta):
 		pass
 
 	def get_password(self):
-		return get_decrypted_password('Data Migration Connector', self.connector.name)
+		return get_decrypted_password("Data Migration Connector", self.connector.name)

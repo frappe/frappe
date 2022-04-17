@@ -1,27 +1,29 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-import unittest
-from bs4 import BeautifulSoup
 import re
+import unittest
 
-from frappe.utils import set_request
-from frappe.website.serve import get_response
-from frappe.utils import random_string
+from bs4 import BeautifulSoup
+
+import frappe
+from frappe.custom.doctype.customize_form.customize_form import reset_customization
+from frappe.utils import random_string, set_request
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
+from frappe.website.serve import get_response
 from frappe.website.utils import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.custom.doctype.customize_form.customize_form import reset_customization
 
-test_dependencies = ['Blog Post']
+test_dependencies = ["Blog Post"]
+
 
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
-		reset_customization('Blog Post')
+		reset_customization("Blog Post")
 
 	def test_generator_view(self):
-		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
-			filters={'published': 1, 'route': ('!=', '')}, limit =1)
+		pages = frappe.get_all(
+			"Blog Post", fields=["name", "route"], filters={"published": 1, "route": ("!=", "")}, limit=1
+		)
 
 		set_request(path=pages[0].route)
 		response = get_response()
@@ -29,15 +31,16 @@ class TestBlogPost(unittest.TestCase):
 		self.assertTrue(response.status_code, 200)
 
 		html = response.get_data().decode()
-		self.assertTrue('<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">' in html)
+		self.assertTrue(
+			'<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">' in html
+		)
 
 	def test_generator_not_found(self):
-		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
-			filters={'published': 0}, limit =1)
+		pages = frappe.get_all("Blog Post", fields=["name", "route"], filters={"published": 0}, limit=1)
 
-		route = f'test-route-{frappe.generate_hash(length=5)}'
+		route = f"test-route-{frappe.generate_hash(length=5)}"
 
-		frappe.db.set_value('Blog Post', pages[0].name, 'route', route)
+		frappe.db.set_value("Blog Post", pages[0].name, "route", route)
 
 		set_request(path=route)
 		response = get_response()
@@ -46,7 +49,7 @@ class TestBlogPost(unittest.TestCase):
 
 	def test_category_link(self):
 		# Make a temporary Blog Post (and a Blog Category)
-		blog = make_test_blog('Test Category Link')
+		blog = make_test_blog("Test Category Link")
 
 		# Visit the blog post page
 		set_request(path=blog.route)
@@ -55,11 +58,11 @@ class TestBlogPost(unittest.TestCase):
 
 		# On blog post page find link to the category page
 		soup = BeautifulSoup(blog_page_html, "lxml")
-		category_page_link = list(soup.find_all('a', href=re.compile(blog.blog_category)))[0]
+		category_page_link = list(soup.find_all("a", href=re.compile(blog.blog_category)))[0]
 		category_page_url = category_page_link["href"]
 
-		cached_value = frappe.db.value_cache[('DocType', 'Blog Post', 'name')]
-		frappe.db.value_cache[('DocType', 'Blog Post', 'name')] = (('Blog Post',),)
+		cached_value = frappe.db.value_cache[("DocType", "Blog Post", "name")]
+		frappe.db.value_cache[("DocType", "Blog Post", "name")] = (("Blog Post",),)
 
 		# Visit the category page (by following the link found in above stage)
 		set_request(path=category_page_url)
@@ -69,7 +72,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertIn(blog.title, category_page_html)
 
 		# Cleanup
-		frappe.db.value_cache[('DocType', 'Blog Post', 'name')] = cached_value
+		frappe.db.value_cache[("DocType", "Blog Post", "name")] = cached_value
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
@@ -101,8 +104,12 @@ class TestBlogPost(unittest.TestCase):
 
 		clear_website_cache()
 		# first response no-cache
-		pages = frappe.get_all('Blog Post', fields=['name', 'route'],
-			filters={'published': 1, 'title': "_Test Blog Post"}, limit=1)
+		pages = frappe.get_all(
+			"Blog Post",
+			fields=["name", "route"],
+			filters={"published": 1, "title": "_Test Blog Post"},
+			limit=1,
+		)
 
 		route = pages[0].route
 		set_request(path=route)
@@ -113,13 +120,13 @@ class TestBlogPost(unittest.TestCase):
 
 		set_request(path=route)
 		response = get_response()
-		self.assertIn(('X-From-Cache', 'True'), list(response.headers))
+		self.assertIn(("X-From-Cache", "True"), list(response.headers))
 
 		frappe.flags.force_website_cache = True
 
 	def test_spam_comments(self):
 		# Make a temporary Blog Post (and a Blog Category)
-		blog = make_test_blog('Test Spam Comment')
+		blog = make_test_blog("Test Spam Comment")
 
 		# Create a spam comment
 		frappe.get_doc(
@@ -127,10 +134,10 @@ class TestBlogPost(unittest.TestCase):
 			comment_type="Comment",
 			reference_doctype="Blog Post",
 			reference_name=blog.name,
-			comment_email="<a href=\"https://example.com/spam/\">spam</a>",
-			comment_by="<a href=\"https://example.com/spam/\">spam</a>",
+			comment_email='<a href="https://example.com/spam/">spam</a>',
+			comment_by='<a href="https://example.com/spam/">spam</a>',
 			published=1,
-			content="More spam content. <a href=\"https://example.com/spam/\">spam</a> with link.",
+			content='More spam content. <a href="https://example.com/spam/">spam</a> with link.',
 		).insert()
 
 		# Visit the blog post page
@@ -145,30 +152,30 @@ class TestBlogPost(unittest.TestCase):
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 
+
 def scrub(text):
 	return WebsiteGenerator.scrub(None, text)
 
+
 def make_test_blog(category_title="Test Blog Category"):
 	category_name = scrub(category_title)
-	if not frappe.db.exists('Blog Category', category_name):
-		frappe.get_doc(dict(
-			doctype = 'Blog Category',
-			title=category_title)).insert()
-	if not frappe.db.exists('Blogger', 'test-blogger'):
-		frappe.get_doc(dict(
-			doctype = 'Blogger',
-			short_name='test-blogger',
-			full_name='Test Blogger')).insert()
+	if not frappe.db.exists("Blog Category", category_name):
+		frappe.get_doc(dict(doctype="Blog Category", title=category_title)).insert()
+	if not frappe.db.exists("Blogger", "test-blogger"):
+		frappe.get_doc(
+			dict(doctype="Blogger", short_name="test-blogger", full_name="Test Blogger")
+		).insert()
 
-	test_blog = frappe.get_doc(dict(
-		doctype = 'Blog Post',
-		blog_category = category_name,
-		blogger = 'test-blogger',
-		title = random_string(20),
-		route = random_string(20),
-		content = random_string(20),
-		published = 1
-	)).insert()
+	test_blog = frappe.get_doc(
+		dict(
+			doctype="Blog Post",
+			blog_category=category_name,
+			blogger="test-blogger",
+			title=random_string(20),
+			route=random_string(20),
+			content=random_string(20),
+			published=1,
+		)
+	).insert()
 
 	return test_blog
-
