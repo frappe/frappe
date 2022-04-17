@@ -115,6 +115,7 @@ def get_headers(sms_settings=None):
 
 def send_request(gateway_url, params, headers=None, use_post=False, use_json=False):
 	import requests
+	import json
 
 	if not headers:
 		headers = get_headers()
@@ -123,7 +124,7 @@ def send_request(gateway_url, params, headers=None, use_post=False, use_json=Fal
 	if use_json:
 		kwargs["json"] = params
 	elif use_post:
-		kwargs["data"] = params
+		kwargs["data"] = json.dumps(params)
 	else:
 		kwargs["params"] = params
 
