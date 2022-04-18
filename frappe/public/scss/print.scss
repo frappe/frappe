@@ -1,12 +1,6 @@
-<<<<<<< HEAD:frappe/public/scss/print.scss
-@import './common/quill';
-@import './desk/css_variables';
-=======
-@import "frappe/public/css/bootstrap.css";
 @import "./common/quill";
 @import "./desk/css_variables";
 @import "./element/checkbox";
->>>>>>> 155dbb5652 (refactor: Move checkbox style to a separate file to re-use it in print):frappe/public/scss/print.bundle.scss
 
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
