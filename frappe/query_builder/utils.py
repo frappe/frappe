@@ -89,7 +89,17 @@ def patch_query_execute():
 				pass
 			else:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
-		return query, param_collector.get_parameters()
+		params = param_collector.get_parameters()
+
+		# wrap boolean values as integer since we save Check as smallint and pg doesn't
+		# like boolean values in place of ints and frappe doesn't support Boolean types
+		# explicitly.
+		if frappe.conf.db_type == "postgres":
+			for k, v in params.items():
+				if isinstance(v, bool):
+					params[k] = int(v)
+
+		return query, params
 
 	query_class = get_attr(str(frappe.qb).split("'")[1])
 	builder_class = get_type_hints(query_class._builder).get("return")
