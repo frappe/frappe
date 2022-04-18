@@ -512,7 +512,7 @@ class TestDocType(unittest.TestCase):
 		self.assertFalse(frappe.db.table_exists("Test Virtual Doctype"))
 
 
-def new_doctype(name, unique=0, depends_on="", fields=None):
+def new_doctype(name, unique=0, depends_on="", fields=None, **kwargs):
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -534,6 +534,7 @@ def new_doctype(name, unique=0, depends_on="", fields=None):
 				}
 			],
 			"name": name,
+			**kwargs,
 		}
 	)
 
