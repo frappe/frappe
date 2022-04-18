@@ -467,7 +467,7 @@ class TestDB(unittest.TestCase):
 			expected_chuncks = ceil(number_of_values / chunk_size)
 			self.assertEqual(expected_chuncks, frappe.db.transaction_writes - current_transaction_writes)
 
-			frappe.db.rollback()
+			frappe.db.delete("ToDo", {"description": "test_bulk_insert"})
 
 
 @run_only_if(db_type_is.MARIADB)
