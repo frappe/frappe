@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.desk.form.load
@@ -10,6 +11,9 @@ from frappe import _
 from frappe.core.doctype.file.file import extract_images_from_html
 from frappe.core.doctype.file.utils import extract_images_from_html
 from frappe.desk.form.document_follow import follow_document
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.comment.comment import Comment
 
 
 @frappe.whitelist()
@@ -20,25 +24,31 @@ def remove_attach():
 	frappe.delete_doc("File", fid)
 
 
-@frappe.whitelist()
-def add_comment(reference_doctype, reference_name, content, comment_email, comment_by):
-	"""allow any logged user to post a comment"""
-	doc = frappe.get_doc(
-		dict(
-			doctype="Comment",
-			reference_doctype=reference_doctype,
-			reference_name=reference_name,
-			comment_email=comment_email,
-			comment_type="Comment",
-			comment_by=comment_by,
-		)
-	)
+@frappe.whitelist(methods=["POST", "PUT"])
+def add_comment(
+	reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
+) -> "Comment":
+	"""Allow logged user with permission to read document to add a comment"""
 	reference_doc = frappe.get_doc(reference_doctype, reference_name)
-	doc.content = extract_images_from_html(reference_doc, content, is_private=True)
-	doc.insert(ignore_permissions=True)
+	reference_doc.check_permission()
+
+	comment = frappe.new_doc("Comment")
+	comment.update(
+		{
+			"comment_type": "Comment",
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name,
+			"comment_email": comment_email,
+			"comment_by": comment_by,
+			"content": extract_images_from_html(reference_doc, content, is_private=True),
+		}
+	)
+	comment.insert(ignore_permissions=True)
+
 	if frappe.get_cached_value("User", frappe.session.user, "follow_commented_documents"):
-		follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
-	return doc.as_dict()
+		follow_document(comment.reference_doctype, comment.reference_name, frappe.session.user)
+
+	return comment
 
 
 @frappe.whitelist()
