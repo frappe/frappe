@@ -12,7 +12,12 @@ from unittest.mock import patch
 import frappe
 from frappe.exceptions import DoesNotExistError, ValidationError
 from frappe.model.base_document import get_controller
-from frappe.model.rename_doc import bulk_rename, get_fetch_fields, update_document_title, update_linked_doctypes
+from frappe.model.rename_doc import (
+	bulk_rename,
+	get_fetch_fields,
+	update_document_title,
+	update_linked_doctypes,
+)
 from frappe.modules.utils import get_doc_path
 from frappe.utils import add_to_date, now
 
@@ -50,29 +55,33 @@ class TestRenameDoc(unittest.TestCase):
 		self.test_doctype = "ToDo"
 
 		for num in range(1, 5):
-			doc = frappe.get_doc({
-				"doctype": self.test_doctype,
-				"date": add_to_date(now(), days=num),
-				"description": "this is todo #{}".format(num),
-			}).insert()
+			doc = frappe.get_doc(
+				{
+					"doctype": self.test_doctype,
+					"date": add_to_date(now(), days=num),
+					"description": "this is todo #{}".format(num),
+				}
+			).insert()
 			self.available_documents.append(doc.name)
 
 		#  data generation: for controllers tests
-		self.doctype = frappe._dict({
-			"old": "Test Rename Document Old",
-			"new": "Test Rename Document New",
-		})
+		self.doctype = frappe._dict(
+			{
+				"old": "Test Rename Document Old",
+				"new": "Test Rename Document New",
+			}
+		)
 
-		frappe.get_doc({
-			"doctype": "DocType",
-			"module": "Custom",
-			"name": self.doctype.old,
-			"custom": 0,
-			"fields": [
-				{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data"}
-			],
-			"permissions": [{"role": "System Manager", "read": 1}],
-		}).insert()
+		frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Custom",
+				"name": self.doctype.old,
+				"custom": 0,
+				"fields": [{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data"}],
+				"permissions": [{"role": "System Manager", "read": 1}],
+			}
+		).insert()
 
 	@classmethod
 	def tearDownClass(self):
@@ -181,17 +190,17 @@ class TestRenameDoc(unittest.TestCase):
 		# having the same name
 		old_name = to_rename_record.name
 		new_name = "ToDo"
-		self.assertEqual(
-			new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True)
-		)
+		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
 
 	def test_update_document_title_api(self):
 		test_doctype = "Module Def"
-		test_doc = frappe.get_doc({
-			"doctype": test_doctype,
-			"module_name": f"Test-test_update_document_title_api-{frappe.generate_hash()}",
-			"custom": True,
-		})
+		test_doc = frappe.get_doc(
+			{
+				"doctype": test_doctype,
+				"module_name": f"Test-test_update_document_title_api-{frappe.generate_hash()}",
+				"custom": True,
+			}
+		)
 		test_doc.insert(ignore_mandatory=True)
 
 		dt = test_doc.doctype
@@ -225,7 +234,8 @@ class TestRenameDoc(unittest.TestCase):
 			self.assertEqual(len(message_log), len(self.available_documents))
 			self.assertIsInstance(message_log, list)
 			enqueue.assert_called_with(
-				'frappe.utils.global_search.rebuild_for_doctype', doctype=self.test_doctype,
+				"frappe.utils.global_search.rebuild_for_doctype",
+				doctype=self.test_doctype,
 			)
 
 	def test_deprecated_utils(self):

@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-
 from frappe.model.document import Document
+
 
 class SMSParameter(Document):
 	pass

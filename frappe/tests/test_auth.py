@@ -6,14 +6,14 @@ import unittest
 import frappe
 import frappe.utils
 from frappe.auth import LoginAttemptTracker
-from frappe.frappeclient import FrappeClient, AuthError
+from frappe.frappeclient import AuthError, FrappeClient
 
 
 def add_user(email, password, username=None, mobile_no=None):
-	first_name = email.split('@', 1)[0]
+	first_name = email.split("@", 1)[0]
 	user = frappe.get_doc(
-			dict(doctype='User', email=email, first_name=first_name, username=username, mobile_no=mobile_no)
-		).insert()
+		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
+	).insert()
 	user.new_password = password
 	user.add_roles("System Manager")
 	frappe.db.commit()
@@ -22,22 +22,25 @@ def add_user(email, password, username=None, mobile_no=None):
 class TestAuth(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		cls.HOST_NAME = (
-			frappe.get_site_config().host_name
-			or frappe.utils.get_site_url(frappe.local.site)
+		cls.HOST_NAME = frappe.get_site_config().host_name or frappe.utils.get_site_url(
+			frappe.local.site
 		)
-		cls.test_user_email = 'test_auth@test.com'
-		cls.test_user_name = 'test_auth_user'
-		cls.test_user_mobile = '+911234567890'
-		cls.test_user_password = 'pwd_012'
+		cls.test_user_email = "test_auth@test.com"
+		cls.test_user_name = "test_auth_user"
+		cls.test_user_mobile = "+911234567890"
+		cls.test_user_password = "pwd_012"
 
 		cls.tearDownClass()
-		add_user(email=cls.test_user_email, password=cls.test_user_password,
-			username=cls.test_user_name, mobile_no=cls.test_user_mobile)
+		add_user(
+			email=cls.test_user_email,
+			password=cls.test_user_password,
+			username=cls.test_user_name,
+			mobile_no=cls.test_user_mobile,
+		)
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.delete_doc('User', cls.test_user_email, force=True)
+		frappe.delete_doc("User", cls.test_user_email, force=True)
 
 	def set_system_settings(self, k, v):
 		frappe.db.set_value("System Settings", "System Settings", k, v)
@@ -45,8 +48,8 @@ class TestAuth(unittest.TestCase):
 		frappe.db.commit()
 
 	def test_allow_login_using_mobile(self):
-		self.set_system_settings('allow_login_using_mobile_number', 1)
-		self.set_system_settings('allow_login_using_user_name', 0)
+		self.set_system_settings("allow_login_using_mobile_number", 1)
+		self.set_system_settings("allow_login_using_user_name", 0)
 
 		# Login by both email and mobile should work
 		FrappeClient(self.HOST_NAME, self.test_user_mobile, self.test_user_password)
@@ -57,8 +60,8 @@ class TestAuth(unittest.TestCase):
 			FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
 	def test_allow_login_using_only_email(self):
-		self.set_system_settings('allow_login_using_mobile_number', 0)
-		self.set_system_settings('allow_login_using_user_name', 0)
+		self.set_system_settings("allow_login_using_mobile_number", 0)
+		self.set_system_settings("allow_login_using_user_name", 0)
 
 		# Login by mobile number should fail
 		with self.assertRaises(AuthError):
@@ -72,8 +75,8 @@ class TestAuth(unittest.TestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
 	def test_allow_login_using_username(self):
-		self.set_system_settings('allow_login_using_mobile_number', 0)
-		self.set_system_settings('allow_login_using_user_name', 1)
+		self.set_system_settings("allow_login_using_mobile_number", 0)
+		self.set_system_settings("allow_login_using_user_name", 1)
 
 		# Mobile login should fail
 		with self.assertRaises(AuthError):
@@ -84,8 +87,8 @@ class TestAuth(unittest.TestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
 	def test_allow_login_using_username_and_mobile(self):
-		self.set_system_settings('allow_login_using_mobile_number', 1)
-		self.set_system_settings('allow_login_using_user_name', 1)
+		self.set_system_settings("allow_login_using_mobile_number", 1)
+		self.set_system_settings("allow_login_using_user_name", 1)
 
 		# Both email and username and mobile logins should work
 		FrappeClient(self.HOST_NAME, self.test_user_mobile, self.test_user_password)
@@ -93,7 +96,7 @@ class TestAuth(unittest.TestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
 	def test_deny_multiple_login(self):
-		self.set_system_settings('deny_multiple_sessions', 1)
+		self.set_system_settings("deny_multiple_sessions", 1)
 
 		first_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		first_login.get_list("ToDo")
@@ -113,9 +116,10 @@ class TestAuth(unittest.TestCase):
 
 class TestLoginAttemptTracker(unittest.TestCase):
 	def test_account_lock(self):
-		"""Make sure that account locks after `n consecutive failures
-		"""
-		tracker = LoginAttemptTracker(user_name='tester', max_consecutive_login_attempts=3, lock_interval=60)
+		"""Make sure that account locks after `n consecutive failures"""
+		tracker = LoginAttemptTracker(
+			user_name="tester", max_consecutive_login_attempts=3, lock_interval=60
+		)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()
 
@@ -132,10 +136,11 @@ class TestLoginAttemptTracker(unittest.TestCase):
 		self.assertFalse(tracker.is_user_allowed())
 
 	def test_account_unlock(self):
-		"""Make sure that locked account gets unlocked after lock_interval of time.
-		"""
-		lock_interval = 2 # In sec
-		tracker = LoginAttemptTracker(user_name='tester', max_consecutive_login_attempts=1, lock_interval=lock_interval)
+		"""Make sure that locked account gets unlocked after lock_interval of time."""
+		lock_interval = 2  # In sec
+		tracker = LoginAttemptTracker(
+			user_name="tester", max_consecutive_login_attempts=1, lock_interval=lock_interval
+		)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()
 

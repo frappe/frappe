@@ -11,7 +11,7 @@ def create_sequence(
 	start_value: int = 0,
 	increment_by: int = 0,
 	min_value: int = 0,
-	max_value: int = 0
+	max_value: int = 0,
 ) -> str:
 
 	query = "create sequence"
@@ -57,16 +57,12 @@ def create_sequence(
 
 def get_next_val(doctype_name: str, slug: str = "_id_seq") -> int:
 	if db.db_type == "postgres":
-		return db.sql(f"select nextval(\'\"{scrub(doctype_name + slug)}\"\')")[0][0]
+		return db.sql(f"select nextval('\"{scrub(doctype_name + slug)}\"')")[0][0]
 	return db.sql(f"select nextval(`{scrub(doctype_name + slug)}`)")[0][0]
 
 
 def set_next_val(
-	doctype_name: str,
-	next_val: int,
-	*,
-	slug: str = "_id_seq",
-	is_val_used :bool = False
+	doctype_name: str, next_val: int, *, slug: str = "_id_seq", is_val_used: bool = False
 ) -> None:
 
 	if not is_val_used:
