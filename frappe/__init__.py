@@ -2076,6 +2076,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	# the better API for this is log_error(title, message), and used in many cases this way
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
+	traceback = None
 	if message:
 		if "\n" in title:  # traceback sent as title
 			traceback, title = title, message
