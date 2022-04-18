@@ -320,8 +320,12 @@ def add_standard_navbar_items():
 		},
 	]
 
-	standard_navbar_items = get_custom_navbar_items(navbar_settings.settings_dropdown, standard_navbar_items)
-	standard_help_items = get_custom_navbar_items(navbar_settings.help_dropdown, standard_help_items)
+	standard_navbar_items = get_custom_navbar_items(
+			navbar_settings.settings_dropdown, standard_navbar_items
+	)
+	standard_help_items = get_custom_navbar_items(
+			navbar_settings.help_dropdown, standard_help_items
+	)
 
 	navbar_settings.settings_dropdown = []
 	navbar_settings.help_dropdown = []
@@ -335,7 +339,7 @@ def add_standard_navbar_items():
 	navbar_settings.save()
 
 def get_custom_navbar_items(navbar_items, standard_items):
-	#hack to maintain the order of custom and standard items
+	# hack to maintain the order of custom and standard items
 	counter = 0
 	for d in navbar_items:
 		if not d.is_standard:
@@ -345,7 +349,7 @@ def get_custom_navbar_items(navbar_items, standard_items):
 				"route": d.route,
 				"action": d.action,
 				"is_standard": 0,
-				"idx": d.idx
+				"idx": d.idx,
 			}
 			standard_items.insert(d.idx - 1, row)
 			counter += 1
