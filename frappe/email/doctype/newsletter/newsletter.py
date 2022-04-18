@@ -338,16 +338,8 @@ def send_scheduled_email():
 			frappe.db.rollback()
 
 			# wasn't able to send emails :(
-<<<<<<< HEAD
-			frappe.db.set_value("Newsletter", newsletter, "email_sent", 0)
-			message = (
-				f"Newsletter {newsletter} failed to send" "\n\n" f"Traceback: {frappe.get_traceback()}"
-			)
-			frappe.log_error(title="Send Newsletter", message=message)
-=======
 			frappe.db.set_value("Newsletter", newsletter_name, "email_sent", 0)
-			newsletter.log_error('Failed to send newsletter')
->>>>>>> 6d82805831 (feat(minor): Add document reference to Error Log and doc.log_error)
+			newsletter.log_error("Failed to send newsletter")
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()
