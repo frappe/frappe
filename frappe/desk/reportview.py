@@ -7,15 +7,14 @@ import json
 from io import StringIO
 
 import frappe
+import frappe.model.delete_doc
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, optional_fields
 from frappe.model.base_document import get_controller
-import frappe.model.delete_doc
 from frappe.model.db_query import DatabaseQuery
 from frappe.utils import add_user_info, cstr, format_duration
-
 
 
 @frappe.whitelist()
@@ -483,12 +482,15 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 def delete_items():
 	"""delete selected items"""
 	import json
+
 	from frappe.desk.utils import check_enqueue_action
-	items = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
-	doctype = frappe.form_dict.get('doctype')
+
+	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
+	doctype = frappe.form_dict.get("doctype")
 	enqueue_action = check_enqueue_action(doctype, "delete")
 	failed = delete_bulk(doctype, items, enqueue_action)
 	return failed, enqueue_action
+
 
 def delete_bulk(doctype, items, enqueue_action=False):
 	failed = []
@@ -496,9 +498,11 @@ def delete_bulk(doctype, items, enqueue_action=False):
 		try:
 			frappe.delete_doc(doctype, d)
 			if len(items) >= 5 and not enqueue_action:
-				frappe.publish_realtime("progress",
-					dict(progress=[i+1, len(items)], title=_('Deleting {0}').format(doctype), description=d),
-						user=frappe.session.user)
+				frappe.publish_realtime(
+					"progress",
+					dict(progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d),
+					user=frappe.session.user,
+				)
 			# Commit after successful deletion
 			frappe.db.commit()
 		except Exception as e:
