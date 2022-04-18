@@ -565,14 +565,6 @@ export default class GridRow {
 				}
 			}
 		});
-<<<<<<< HEAD
-=======
-
-		if (this.show_search) {
-			// last empty column
-			$(`<div class="col grid-static-col col-xs-1"></div>`)
-				.appendTo(this.row);
-		}
 	}
 
 	set_dependant_property(df) {
@@ -623,72 +615,6 @@ export default class GridRow {
 		}
 
 		return out;
-	}
-
-	show_search_row() {
-		// show or remove search columns based on grid rows
-		this.show_search = this.frm && this.frm.doc &&
-			this.frm.doc[this.grid.df.fieldname] &&
-			this.frm.doc[this.grid.df.fieldname].length >= 20;
-		!this.show_search && this.wrapper.remove();
-		return this.show_search;
-	}
-
-	make_search_column(df, colsize) {
-		let title = "";
-		let input_class = "";
-		let is_disabled = "";
-
-		if (["Text", "Small Text"].includes(df.fieldtype)) {
-			input_class = "grid-overflow-no-ellipsis";
-		} else if (["Int", "Currency", "Float", "Percent"].includes(df.fieldtype)) {
-			input_class = "text-right";
-		} else if (df.fieldtype === "Check") {
-			title = __("1 = True & 0 = False");
-			input_class = "text-center";
-		} else if (df.fieldtype === 'Password') {
-			is_disabled = 'disabled';
-			title = __('Password cannot be filtered');
-		}
-
-		let $col = $('<div class="col grid-static-col col-xs-'+colsize+' search"></div>')
-			.appendTo(this.row);
-
-		let $search_input = $(`
-			<input
-				type="text"
-				class="form-control input-xs ${input_class}"
-				title="${title}"
-				data-fieldtype="${df.fieldtype}"
-				${is_disabled}
-			>
-		`).appendTo($col);
-
-		this.search_columns[df.fieldname] = $col;
-
-		$search_input.on('keyup', frappe.utils.debounce((e) => {
-			this.grid.filter[df.fieldname] = {
-				df: df,
-				value: e.target.value
-			};
-
-			if (e.target.value == '') {
-				delete this.grid.filter[df.fieldname];
-			}
-
-			this.grid.grid_sortable
-				.option('disabled', Object.keys(this.grid.filter).length !== 0);
-
-			this.grid.prevent_build = true;
-			this.grid.refresh();
-			this.grid.prevent_build = false;
-		}, 500));
-
-		["Currency", "Float", "Int", "Percent", "Rating"].includes(df.fieldtype) &&
-			frappe.utils.only_allow_num_decimal($search_input);
-
-		return $col;
->>>>>>> de8f066dce (fix: Set dependant property of grid fields while rendering (#16548))
 	}
 
 	make_column(df, colsize, txt, ci) {
