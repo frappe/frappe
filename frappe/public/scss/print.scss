@@ -1,5 +1,6 @@
-@import './common/quill';
-@import './desk/css_variables';
+@import "./common/quill";
+@import "./desk/css_variables";
+@import "./element/checkbox";
 
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
