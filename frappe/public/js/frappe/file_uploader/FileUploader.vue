@@ -36,7 +36,7 @@
 						ref="file_input"
 						@change="on_file_input"
 						:multiple="allow_multiple"
-						:accept="restrictions.allowed_file_types.join(', ')"
+						:accept="(restrictions.allowed_file_types || []).join(', ')"
 					>
 					<button class="btn btn-file-upload" v-if="!disable_file_browser" @click="show_file_browser = true">
 						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -108,9 +108,9 @@
 			</div>
 		</div>
 		<ImageCropper
-			v-if="show_image_cropper"
+			v-if="show_image_cropper && wrapper_ready"
 			:file="files[crop_image_with_index]"
-			:attach_doc_image="attach_doc_image"
+			:fixed_aspect_ratio="restrictions.crop_image_aspect_ratio"
 			@toggle_image_cropper="toggle_image_cropper(-1)"
 			@upload_after_crop="trigger_upload=true"
 		/>
@@ -171,7 +171,8 @@ export default {
 			default: () => ({
 				max_file_size: null, // 2048 -> 2KB
 				max_number_of_files: null,
-				allowed_file_types: [] // ['image/*', 'video/*', '.jpg', '.gif', '.pdf']
+				allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
+				crop_image_aspect_ratio: null // 1, 16 / 9, 4 / 3, NaN (free)
 			})
 		},
 		attach_doc_image: {
@@ -203,7 +204,8 @@ export default {
 			allow_web_link: true,
 			google_drive_settings: {
 				enabled: false
-			}
+			},
+			wrapper_ready: false
 		}
 	},
 	created() {
@@ -286,11 +288,12 @@ export default {
 				.filter(this.check_restrictions)
 				.map(file => {
 					let is_image = file.type.startsWith('image');
+					let size_kb = file.size / 1024;
 					return {
 						file_obj: file,
 						cropper_file: file,
 						crop_box_data: null,
-						optimize: this.attach_doc_image ? true : false,
+						optimize: size_kb > 200 && is_image && !file.type.includes('svg'),
 						name: file.name,
 						doc: null,
 						progress: 0,
@@ -303,12 +306,15 @@ export default {
 					}
 				});
 			this.files = this.files.concat(files);
-			if(this.files.length != 0 && this.attach_doc_image) {
-				this.toggle_image_cropper(0);
+			// if only one file is allowed and crop_image_aspect_ratio is set, open cropper immediately
+			if (this.files.length === 1 && !this.allow_multiple && this.restrictions.crop_image_aspect_ratio != null) {
+				if (!this.files[0].file_obj.type.includes('svg')) {
+					this.toggle_image_cropper(0);
+				}
 			}
 		},
 		check_restrictions(file) {
-			let { max_file_size, allowed_file_types } = this.restrictions;
+			let { max_file_size, allowed_file_types = [] } = this.restrictions;
 
 			let mime_type = file.type;
 			let extension = '.' + file.name.split('.').pop();
