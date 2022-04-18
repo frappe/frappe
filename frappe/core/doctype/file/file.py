@@ -822,8 +822,7 @@ def extract_images_from_html(doc, content):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
-		data = match.group(1)
-		data = data.split("data:")[1]
+		data = match.group(1).split("data:")[1]
 		headers, content = data.split(",")
 
 		if "filename=" in headers:
@@ -855,9 +854,9 @@ def extract_images_from_html(doc, content):
 			}
 		)
 		_file.save(ignore_permissions=True)
+
 		file_url = _file.file_url
-		if not frappe.flags.has_dataurl:
-			frappe.flags.has_dataurl = True
+		frappe.flags.has_dataurl = True
 
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
