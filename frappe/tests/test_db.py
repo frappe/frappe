@@ -457,6 +457,7 @@ class TestDB(unittest.TestCase):
 				"ToDo",
 				["name", "description"],
 				[[f"ToDo Test Bulk Insert {i}", "test_bulk_insert"] for i in range(number_of_values)],
+				ignore_duplicates=True,
 				chunk_size=chunk_size,
 			)
 
