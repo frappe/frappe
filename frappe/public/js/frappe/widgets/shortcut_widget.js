@@ -79,6 +79,6 @@ export default class ShortcutWidget extends Widget {
 		this.action_area.empty();
 		const label = get_label();
 		let color = this.color && count ? this.color.toLowerCase() : 'gray';
-		$(`<div class="indicator-pill ellipsis ${color}">${label}</div>`).appendTo(this.action_area);
+		$(`<div class="indicator-pill ellipsis" style="color:${color}">${label}</div>`).appendTo(this.action_area);
 	}
 }
