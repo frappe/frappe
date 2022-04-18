@@ -50,7 +50,7 @@
  "icon": "fa fa-warning-sign",
  "idx": 1,
  "links": [],
- "modified": "2022-04-18 14:51:30.604304",
+ "modified": "2022-04-18 17:25:47.406873",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Error Log",
@@ -71,5 +71,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
- "states": []
+ "states": [],
+ "title_field": "method"
 }
