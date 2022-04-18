@@ -57,7 +57,11 @@ class EnergyPointRule(Document):
 						self.apply_only_once,
 					)
 			except Exception as e:
+<<<<<<< HEAD
 				frappe.log_error(frappe.get_traceback(), "apply_energy_point")
+=======
+				self.log_error('Energy points failed')
+>>>>>>> 6d82805831 (feat(minor): Add document reference to Error Log and doc.log_error)
 
 	def rule_condition_satisfied(self, doc):
 		if self.for_doc_event == "New":

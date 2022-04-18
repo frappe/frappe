@@ -1,7 +1,11 @@
 {
  "actions": [
   {
+<<<<<<< HEAD
    "action": "app/console-log",
+=======
+   "action": "/app/console-log",
+>>>>>>> 6d82805831 (feat(minor): Add document reference to Error Log and doc.log_error)
    "action_type": "Route",
    "label": "Logs"
   },
@@ -86,7 +90,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-04-09 16:35:32.345542",
+=======
+ "modified": "2022-04-15 14:15:58.398590",
+>>>>>>> 6d82805831 (feat(minor): Add document reference to Error Log and doc.log_error)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Console",

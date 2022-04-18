@@ -329,19 +329,25 @@ def send_scheduled_email():
 		pluck="name",
 	)
 
-	for newsletter in scheduled_newsletter:
+	for newsletter_name in scheduled_newsletter:
 		try:
-			frappe.get_doc("Newsletter", newsletter).queue_all()
+			newsletter = frappe.get_doc("Newsletter", newsletter_name)
+			newsletter.queue_all()
 
 		except Exception:
 			frappe.db.rollback()
 
 			# wasn't able to send emails :(
+<<<<<<< HEAD
 			frappe.db.set_value("Newsletter", newsletter, "email_sent", 0)
 			message = (
 				f"Newsletter {newsletter} failed to send" "\n\n" f"Traceback: {frappe.get_traceback()}"
 			)
 			frappe.log_error(title="Send Newsletter", message=message)
+=======
+			frappe.db.set_value("Newsletter", newsletter_name, "email_sent", 0)
+			newsletter.log_error('Failed to send newsletter')
+>>>>>>> 6d82805831 (feat(minor): Add document reference to Error Log and doc.log_error)
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()

@@ -198,10 +198,7 @@ class SendMailContext:
 			traceback_string = "".join(traceback.format_tb(exc_tb))
 			traceback_string += f"\n Queue Name: {self.queue_doc.name}"
 
-			if self.is_background_task:
-				frappe.log_error(title="frappe.email.queue.flush", message=traceback_string)
-			else:
-				frappe.log_error(message=traceback_string)
+			self.queue_doc.log_error('Email sending failed', traceback_string)
 
 	@property
 	def smtp_session(self):
@@ -625,12 +622,10 @@ class QueueBuilder:
 			mail_to_string = cstr(mail.as_string())
 		except frappe.InvalidEmailAddressError:
 			# bad Email Address - don't add to queue
-			frappe.log_error(
-				"Invalid Email ID Sender: {0}, Recipients: {1}, \nTraceback: {2} ".format(
-					self.sender, ", ".join(self.final_recipients()), traceback.format_exc()
-				),
-				"Email Not Sent",
-			)
+			self.log_error(
+				title = 'Invalid email address',
+				message = 'Invalid email address Sender: {0}, Recipients: {1}, \nTraceback: {2} '
+					.format(self.sender, ', '.join(self.final_recipients()), traceback.format_exc()))
 			return
 
 		d = {

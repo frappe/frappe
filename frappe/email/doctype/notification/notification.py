@@ -141,7 +141,7 @@ def get_context(context):
 				self.create_system_notification(doc, context)
 
 		except:
-			frappe.log_error(title="Failed to send notification", message=frappe.get_traceback())
+			self.log_error('Failed to send Notification')
 
 		if self.set_property_after_alert:
 			allow_update = True
@@ -168,7 +168,7 @@ def get_context(context):
 					doc.save(ignore_permissions=True)
 					doc.flags.in_notification_update = False
 			except Exception:
-				frappe.log_error(title="Document update failed", message=frappe.get_traceback())
+				self.log_error('Document update failed')
 
 	def create_system_notification(self, doc, context):
 		subject = self.subject
@@ -432,8 +432,8 @@ def evaluate_alert(doc, alert, event):
 
 		if event == "Value Change" and not doc.is_new():
 			if not frappe.db.has_column(doc.doctype, alert.value_changed):
-				alert.db_set("enabled", 0)
-				frappe.log_error("Notification {0} has been disabled due to missing field".format(alert.name))
+				alert.db_set('enabled', 0)
+				alert.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 				return
 
 			doc_before_save = doc.get_doc_before_save()

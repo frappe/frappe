@@ -254,8 +254,9 @@ def bulk_workflow_approval(docnames, doctype, action):
 
 			frappe.db.rollback()
 			frappe.log_error(
-				frappe.get_traceback(),
-				"Workflow {0} threw an error for {1} {2}".format(action, doctype, docname),
+				title = "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname),
+				reference_doctype = 'Workflow',
+				reference_name = action
 			)
 		finally:
 			if not message_dict:
