@@ -174,6 +174,9 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	if (fieldtype === 'Code') {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
 	}
+	if (fieldtype === 'Markdown Editor') {
+		selector = `[data-fieldname="${fieldname}"] .ace-editor-target`;
+	}
 
 	return cy.get(selector).first();
 });
