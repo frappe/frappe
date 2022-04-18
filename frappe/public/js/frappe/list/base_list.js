@@ -120,7 +120,7 @@ frappe.views.BaseList = class BaseList {
 			// df is passed
 			const df = fieldname;
 			fieldname = df.fieldname;
-			doctype = df.parent;
+			doctype = df.parent || doctype;
 		}
 
 		if (!this.fields) this.fields = [];
