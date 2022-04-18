@@ -2,9 +2,8 @@ import json
 from typing import Dict, List
 
 import frappe
-from frappe.utils import cint, cstr
-
 from frappe.core.doctype.file.file import File, setup_folder_path
+from frappe.utils import cint, cstr
 
 
 @frappe.whitelist()
