@@ -1181,7 +1181,7 @@ def delete_doc(
 	:param delete_permanently: Do not create a Deleted Document for the document."""
 	import frappe.model.delete_doc
 
-	frappe.model.delete_doc.delete_doc(
+	return frappe.model.delete_doc.delete_doc(
 		doctype,
 		name,
 		force,
