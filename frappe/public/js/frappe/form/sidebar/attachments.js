@@ -152,6 +152,7 @@ frappe.ui.form.Attachments = class Attachments {
 		var me = this;
 		return frappe.call({
 			method: 'frappe.desk.form.utils.remove_attach',
+			type: 'DELETE',
 			args: {
 				fid: fileid,
 				dt: me.frm.doctype,

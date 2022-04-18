@@ -16,11 +16,10 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.comment.comment import Comment
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["DELETE", "POST"])
 def remove_attach():
 	"""remove attachment"""
 	fid = frappe.form_dict.get("fid")
-	file_name = frappe.form_dict.get("file_name")
 	frappe.delete_doc("File", fid)
 
 
