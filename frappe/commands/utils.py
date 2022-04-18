@@ -793,7 +793,11 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen(
+<<<<<<< HEAD
 			"yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 --no-lockfile"
+=======
+			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+>>>>>>> 803f1fb061 (feat: add/remove fields from kanban board (#16257))
 		)
 
 	# run for headless mode
