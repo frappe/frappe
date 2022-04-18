@@ -47,7 +47,7 @@ def run_background(prepared_report):
 		instance.save(ignore_permissions=True)
 
 	except Exception:
-		report.log_error('Prepared report failed')
+		report.log_error("Prepared report failed")
 		instance = frappe.get_doc("Prepared Report", prepared_report)
 		instance.status = "Error"
 		instance.error_message = frappe.get_traceback()

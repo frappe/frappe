@@ -113,7 +113,7 @@ def start_import(data_import):
 	except Exception:
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
-		data_import.log_error('Data import failed')
+		data_import.log_error("Data import failed")
 	finally:
 		frappe.flags.in_import = False
 

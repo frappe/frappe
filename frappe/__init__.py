@@ -2069,7 +2069,7 @@ def logger(
 
 
 def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
-	'''Log error to Error Log'''
+	"""Log error to Error Log"""
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -2077,7 +2077,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
 	if message:
-		if '\n' in title: # traceback sent as title
+		if "\n" in title:  # traceback sent as title
 			traceback, title = title, message
 		else:
 			traceback = message
@@ -2086,15 +2086,18 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		traceback = get_traceback()
 
 	if not title:
-		title = 'Error'
+		title = "Error"
 
-	return get_doc(dict(
-		doctype='Error Log',
-		error=as_unicode(traceback),
-		method=title,
-		reference_doctype=reference_doctype,
-		reference_name=reference_name
-	)).insert(ignore_permissions=True)
+	return get_doc(
+		dict(
+			doctype="Error Log",
+			error=as_unicode(traceback),
+			method=title,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+		)
+	).insert(ignore_permissions=True)
+
 
 def get_desk_link(doctype, name):
 	html = (

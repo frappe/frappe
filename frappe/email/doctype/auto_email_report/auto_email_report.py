@@ -255,7 +255,10 @@ def send_daily():
 		try:
 			auto_email_report.send()
 		except Exception as e:
-			auto_email_report.log_error('Failed to send {0} Auto Email Report'.format(auto_email_report.name))
+			auto_email_report.log_error(
+				"Failed to send {0} Auto Email Report".format(auto_email_report.name)
+			)
+
 
 def send_monthly():
 	"""Check reports to be sent monthly"""

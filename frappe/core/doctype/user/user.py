@@ -265,7 +265,7 @@ class User(Document):
 
 		except frappe.OutgoingEmailError:
 			# email server not set, don't send email
-			self.log_error('Unable to send new password notification')
+			self.log_error("Unable to send new password notification")
 
 	@Document.hook
 	def validate_reset_password(self):
