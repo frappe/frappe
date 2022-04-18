@@ -870,7 +870,7 @@ def run_ui_tests(
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
 		)
 
 	# run for headless mode

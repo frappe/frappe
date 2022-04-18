@@ -13,7 +13,7 @@ class SystemConsole(Document):
 	def run(self):
 		frappe.only_for("System Manager")
 		try:
-			frappe.debug_log = []
+			frappe.local.debug_log = []
 			if self.type == "Python":
 				safe_exec(self.console)
 				self.output = "\n".join(frappe.debug_log)
