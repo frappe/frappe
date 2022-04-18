@@ -323,9 +323,7 @@ def add_standard_navbar_items():
 	standard_navbar_items = get_custom_navbar_items(
 			navbar_settings.settings_dropdown, standard_navbar_items
 	)
-	standard_help_items = get_custom_navbar_items(
-			navbar_settings.help_dropdown, standard_help_items
-	)
+	standard_help_items = get_custom_navbar_items(navbar_settings.help_dropdown, standard_help_items)
 
 	navbar_settings.settings_dropdown = []
 	navbar_settings.help_dropdown = []
