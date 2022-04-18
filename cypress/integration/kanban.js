@@ -1,7 +1,7 @@
-context('List Paging', () => {
+context('Kanban Board', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/app/todo/view/kanban/ToDo Kanban');
+		cy.visit('/app');
 	});
 
 	it('Create ToDo Kanban', () => {
@@ -10,8 +10,8 @@ context('List Paging', () => {
 		cy.get('.page-actions .custom-btn-group button').click();
 		cy.get('.page-actions .custom-btn-group ul.dropdown-menu li').contains('Kanban').click();
 
-		cy.fill_field('field_name', 'Status', 'Select');
 		cy.fill_field('board_name', 'ToDo Kanban', 'Data');
+		cy.fill_field('field_name', 'Status', 'Select');
 		cy.click_modal_primary_button('Save');
 
 		cy.get('.title-text').should('contain', 'ToDo Kanban');
