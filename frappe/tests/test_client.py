@@ -129,3 +129,15 @@ class TestClient(unittest.TestCase):
 		self.assertTrue("name" in first_item)
 		self.assertTrue("modified" in first_item)
 		frappe.local.login_manager.logout()
+
+	def test_client_get(self):
+		from frappe.client import get
+
+		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
+		filters = {"name": todo.name}
+		filters_json = frappe.as_json(filters)
+
+		self.assertEqual(get("ToDo", filters=filters).description, "test")
+		self.assertEqual(get("ToDo", filters=filters_json).description, "test")
+
+		todo.delete()
