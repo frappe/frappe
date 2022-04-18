@@ -667,7 +667,7 @@ class EmailAccount(Document):
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
 		except Exception:
-			self.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+			self.log_error("Email Connection Error")
 
 		if not email_server:
 			return
@@ -679,7 +679,8 @@ class EmailAccount(Document):
 				message = safe_encode(message)
 				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
-				self.log_error(title="EmailAccount.append_email_to_sent_folder")
+				self.log_error("Unable to add to Sent folder")
+
 
 @frappe.whitelist()
 def get_append_to(

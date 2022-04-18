@@ -170,7 +170,7 @@ def flush(from_test=False):
 			is_background_task = not from_test
 			func(email_queue_name=row.name, is_background_task=is_background_task)
 		except Exception:
-			frappe.get_doc('Email Queue', row.name).log_error()
+			frappe.get_doc("Email Queue", row.name).log_error()
 
 
 def get_queue():
