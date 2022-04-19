@@ -241,8 +241,20 @@ Cypress.Commands.add('clear_cache', () => {
 });
 
 Cypress.Commands.add('dialog', opts => {
-	return cy.window().then(win => {
-		var d = new win.frappe.ui.Dialog(opts);
+	return cy.window({ log: false }).its('frappe', { log: false }).then(frappe => {
+		Cypress.log({
+			name: "dialog",
+			displayName: "dialog",
+			message: 'frappe.ui.Dialog',
+			consoleProps: () => {
+				return {
+					options: opts,
+					dialog: d
+				}
+			}
+		});
+
+		var d = new frappe.ui.Dialog(opts);
 		d.show();
 		return d;
 	});
