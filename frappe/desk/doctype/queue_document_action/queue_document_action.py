@@ -17,7 +17,7 @@ class QueueDocumentAction(Document):
 				{
 					"doctype": "Custom Field",
 					"dt": self.document_type,
-					"label": "enqueue_action",
+					"label": "is_queued",
 					"fieldtype": "Check",
 					"default": 1,
 					"allow_on_submit": 1,
@@ -26,5 +26,5 @@ class QueueDocumentAction(Document):
 
 	def on_trash(self):
 		frappe.delete_doc(
-			"Custom Field", "{0}-{1}".format(self.document_type, "enqueue_action"), delete_permanently=True
+			"Custom Field", "{0}-{1}".format(self.document_type, "is_queued"), delete_permanently=True
 		)
