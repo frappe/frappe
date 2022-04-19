@@ -21,7 +21,6 @@
   "in_global_search",
   "in_preview",
   "bold",
-  "ignore_xss_filter",
   "no_copy",
   "allow_in_quick_entry",
   "translatable",
@@ -47,6 +46,7 @@
   "report_hide",
   "remember_last_selected_value",
   "hide_border",
+  "ignore_xss_filter",
   "property_depends_on_section",
   "mandatory_depends_on",
   "column_break_33",
@@ -457,6 +457,7 @@
   },
   {
    "default": "0",
+   "description": "Don't encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field",
    "fieldname": "ignore_xss_filter",
    "fieldtype": "Check",
    "label": "Ignore XSS Filter"
