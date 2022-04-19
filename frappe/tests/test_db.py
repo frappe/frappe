@@ -448,6 +448,7 @@ class TestDB(unittest.TestCase):
 
 	def test_bulk_insert(self):
 		current_count = frappe.db.count("ToDo")
+		test_body = f"test_bulk_insert - {random_string(10)}"
 		chunk_size = 10
 
 		for number_of_values in (1, 2, 5, 27):
@@ -456,7 +457,7 @@ class TestDB(unittest.TestCase):
 			frappe.db.bulk_insert(
 				"ToDo",
 				["name", "description"],
-				[[f"ToDo Test Bulk Insert {i}", "test_bulk_insert"] for i in range(number_of_values)],
+				[[f"ToDo Test Bulk Insert {i}", test_body] for i in range(number_of_values)],
 				ignore_duplicates=True,
 				chunk_size=chunk_size,
 			)
@@ -465,10 +466,12 @@ class TestDB(unittest.TestCase):
 			self.assertEqual(number_of_values, frappe.db.count("ToDo") - current_count)
 
 			# check if inserts were done in chunks
-			expected_chuncks = ceil(number_of_values / chunk_size)
-			self.assertEqual(expected_chuncks, frappe.db.transaction_writes - current_transaction_writes)
+			expected_number_of_writes = ceil(number_of_values / chunk_size)
+			self.assertEqual(
+				expected_number_of_writes, frappe.db.transaction_writes - current_transaction_writes
+			)
 
-			frappe.db.delete("ToDo", {"description": "test_bulk_insert"})
+		frappe.db.delete("ToDo", {"description": test_body})
 
 
 @run_only_if(db_type_is.MARIADB)
