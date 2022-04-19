@@ -543,7 +543,7 @@ class TestAttachment(unittest.TestCase):
 
 class TestAttachmentsAccess(FrappeTestCase):
 	def setUp(self) -> None:
-		frappe.db.delete("File", {"is_folder": False})
+		frappe.db.delete("File", {"is_folder": 0})
 
 	def test_attachments_access(self):
 		frappe.set_user("test4@example.com")
