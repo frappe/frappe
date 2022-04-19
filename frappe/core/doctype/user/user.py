@@ -777,7 +777,6 @@ def ask_pass_update():
 	set_default("email_user_password", ",".join(password_list))
 
 
-
 def _get_user_for_update_password(key, old_password):
 	# verify old password
 	result = frappe._dict()
