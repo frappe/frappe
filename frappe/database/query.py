@@ -175,7 +175,7 @@ class Query:
 		"""
 		if kwargs.get("orderby"):
 			orderby = kwargs.get("orderby")
-			order = kwargs.get("order") if kwargs.get("order") else Order.desc
+			order = kwargs.get("order") or Order.desc
 			if isinstance(orderby, str) and len(orderby.split()) > 1:
 				orderby, order = change_orderby(orderby)
 			conditions = conditions.orderby(orderby, order=order)

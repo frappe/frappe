@@ -21,7 +21,7 @@ from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, getdate, now, sbool
+from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
 
 from .query import Query
 
@@ -278,9 +278,9 @@ class Database(object):
 		        # doctypes = ["DocType", "DocField", "User", ...]
 		        doctypes = frappe.db.sql_list("select name from DocType")
 		"""
-		return [r[0] for r in self.sql(query, values, **kwargs, debug=debug)]
+		return self.sql(query, values, **kwargs, debug=debug, pluck=True)
 
-	def sql_ddl(self, query, values=(), debug=False):
+	def sql_ddl(self, query, debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
 		self.commit()
@@ -1186,8 +1186,7 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		table = doctype if doctype.startswith("__") else f"tab{doctype}"
-		return self.sql_ddl(f"truncate `{table}`")
+		return self.sql_ddl(f"truncate `{get_table_name(doctype)}`")
 
 	def clear_table(self, doctype):
 		return self.truncate(doctype)
