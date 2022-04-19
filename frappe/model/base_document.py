@@ -1150,7 +1150,6 @@ class BaseDocument(object):
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
 
-
 	def _cast_date_and_time_fields(self) -> None:
 		"""
 		Converts datetime/string value to date and time respectively for Date and Time fields only.
@@ -1175,9 +1174,7 @@ class BaseDocument(object):
 
 			value = get_datetime(_value).date()
 			value = (
-				get_date_str(value)
-				if not isinstance(_value, (datetime.datetime, datetime.date))
-				else value
+				get_date_str(value) if not isinstance(_value, (datetime.datetime, datetime.date)) else value
 			)
 
 			self.set(field.fieldname, value)

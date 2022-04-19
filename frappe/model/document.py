@@ -3,7 +3,6 @@
 import hashlib
 import json
 import time
-
 from typing import List
 
 from werkzeug.exceptions import NotFound
