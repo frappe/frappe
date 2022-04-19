@@ -68,16 +68,15 @@ context('Date Control', () => {
 		cy.clear_dialogs();
 		cy.clear_datepickers();
 
-		get_dialog({ default: '2020-01-15' }).as('dialog');
+		get_dialog().as('dialog');
 		cy.get_field('date', 'Date').click();
 
 		//Clicking on "Today" button
 		cy.get('.datepicker--button').click();
 
-		//Picking up the todays date
-		const todays_date = new Date().toJSON().split('T')[0];
-
 		//Verifying if clicking on "Today" button matches today's date
-		cy.window().its('cur_dialog.fields_dict.date.value').should('be.equal', todays_date);
+		cy.window().then(win => {
+			expect(win.cur_dialog.fields_dict.date.value).to.be.equal(win.frappe.datetime.get_today());
+		});
 	});
 });
