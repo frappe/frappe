@@ -3,61 +3,72 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
+from frappe.model import no_value_fields, table_fields
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_jobs
-from frappe.model import no_value_fields, table_fields
+
 
 class EventUpdateLog(Document):
 	def after_insert(self):
 		"""Send update notification updates to event consumers
 		whenever update log is generated"""
-		enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers'
+		enqueued_method = (
+			"frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers"
+		)
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site]:
-			frappe.enqueue(enqueued_method, doctype=self.ref_doctype, queue='long',
-				enqueue_after_commit=True)
+			frappe.enqueue(
+				enqueued_method, doctype=self.ref_doctype, queue="long", enqueue_after_commit=True
+			)
+
 
 def notify_consumers(doc, event):
-	'''called via hooks'''
+	"""called via hooks"""
 	# make event update log for doctypes having event consumers
 	if frappe.flags.in_install or frappe.flags.in_migrate:
 		return
 
 	consumers = check_doctype_has_consumers(doc.doctype)
 	if consumers:
-		if event=='after_insert':
-			doc.flags.event_update_log = make_event_update_log(doc, update_type='Create')
-		elif event=='on_trash':
-			make_event_update_log(doc, update_type='Delete')
+		if event == "after_insert":
+			doc.flags.event_update_log = make_event_update_log(doc, update_type="Create")
+		elif event == "on_trash":
+			make_event_update_log(doc, update_type="Delete")
 		else:
 			# on_update
 			# called after saving
-			if not doc.flags.event_update_log: # if not already inserted
+			if not doc.flags.event_update_log:  # if not already inserted
 				diff = get_update(doc.get_doc_before_save(), doc)
 				if diff:
 					doc.diff = diff
-					make_event_update_log(doc, update_type='Update')
+					make_event_update_log(doc, update_type="Update")
+
 
 def check_doctype_has_consumers(doctype):
 	"""Check if doctype has event consumers for event streaming"""
-	return frappe.cache_manager.get_doctype_map('Event Consumer Document Type', doctype,
-		dict(ref_doctype=doctype, status='Approved', unsubscribed=0))
+	return frappe.cache_manager.get_doctype_map(
+		"Event Consumer Document Type",
+		doctype,
+		dict(ref_doctype=doctype, status="Approved", unsubscribed=0),
+	)
+
 
 def get_update(old, new, for_child=False):
 	"""
 	Get document objects with updates only
 	If there is a change, then returns a dict like:
 	{
-		"changed"		: {fieldname1: new_value1, fieldname2: new_value2, },
-		"added"			: {table_fieldname1: [{row_dict1}, {row_dict2}], },
-		"removed"		: {table_fieldname1: [row_name1, row_name2], },
-		"row_changed"	: {table_fieldname1:
-			{
-				child_fieldname1: new_val,
-				child_fieldname2: new_val
-			},
-		},
+	        "changed"		: {fieldname1: new_value1, fieldname2: new_value2, },
+	        "added"			: {table_fieldname1: [{row_dict1}, {row_dict2}], },
+	        "removed"		: {table_fieldname1: [row_name1, row_name2], },
+	        "row_changed"	: {table_fieldname1:
+	                {
+	                        child_fieldname1: new_val,
+	                        child_fieldname2: new_val
+	                },
+	        },
 	}
 	"""
 	if not new:
@@ -83,20 +94,24 @@ def get_update(old, new, for_child=False):
 		return out
 	return None
 
+
 def make_event_update_log(doc, update_type):
 	"""Save update info for doctypes that have event consumers"""
-	if update_type != 'Delete':
+	if update_type != "Delete":
 		# diff for update type, doc for create type
-		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
+		data = frappe.as_json(doc) if not doc.get("diff") else frappe.as_json(doc.diff)
 	else:
 		data = None
-	return frappe.get_doc({
-		'doctype': 'Event Update Log',
-		'update_type': update_type,
-		'ref_doctype': doc.doctype,
-		'docname': doc.name,
-		'data': data
-	}).insert(ignore_permissions=True)
+	return frappe.get_doc(
+		{
+			"doctype": "Event Update Log",
+			"update_type": update_type,
+			"ref_doctype": doc.doctype,
+			"docname": doc.name,
+			"data": data,
+		}
+	).insert(ignore_permissions=True)
+
 
 def make_maps(old_value, new_value):
 	"""make maps"""
@@ -116,7 +131,7 @@ def check_for_additions(out, df, new_value, old_row_by_name):
 			if diff and diff.changed:
 				if not out.row_changed.get(df.fieldname):
 					out.row_changed[df.fieldname] = []
-				diff.changed['name'] = d.name
+				diff.changed["name"] = d.name
 				out.row_changed[df.fieldname].append(diff.changed)
 		else:
 			if not out.added.get(df.fieldname):
@@ -138,7 +153,7 @@ def check_for_deletions(out, df, old_value, new_row_by_name):
 def check_docstatus(out, old, new, for_child):
 	"""docstatus changes"""
 	if not for_child and old.docstatus != new.docstatus:
-		out.changed['docstatus'] = new.docstatus
+		out.changed["docstatus"] = new.docstatus
 	return out
 
 
@@ -148,32 +163,32 @@ def is_consumer_uptodate(update_log, consumer):
 	:param update_log: The UpdateLog Doc in context
 	:param consumer: The EventConsumer doc
 	"""
-	if update_log.update_type == 'Create':
+	if update_log.update_type == "Create":
 		# consumer is obviously up to date
 		return True
 
 	prev_logs = frappe.get_all(
-		'Event Update Log',
+		"Event Update Log",
 		filters={
-			'ref_doctype': update_log.ref_doctype,
-			'docname': update_log.docname,
-			'creation': ['<', update_log.creation]
+			"ref_doctype": update_log.ref_doctype,
+			"docname": update_log.docname,
+			"creation": ["<", update_log.creation],
 		},
-		order_by='creation desc',
-		limit_page_length=1
+		order_by="creation desc",
+		limit_page_length=1,
 	)
 
 	if not len(prev_logs):
 		return False
 
 	prev_log_consumers = frappe.get_all(
-		'Event Update Log Consumer',
-		fields=['consumer'],
+		"Event Update Log Consumer",
+		fields=["consumer"],
 		filters={
-				'parent': prev_logs[0].name,
-				'parenttype': 'Event Update Log',
-				'consumer': consumer.name
-		}
+			"parent": prev_logs[0].name,
+			"parenttype": "Event Update Log",
+			"consumer": consumer.name,
+		},
 	)
 
 	return len(prev_log_consumers) > 0
@@ -183,24 +198,29 @@ def mark_consumer_read(update_log_name, consumer_name):
 	"""
 	This function appends the Consumer to the list of Consumers that has 'read' an Update Log
 	"""
-	update_log = frappe.get_doc('Event Update Log', update_log_name)
+	update_log = frappe.get_doc("Event Update Log", update_log_name)
 	if len([x for x in update_log.consumers if x.consumer == consumer_name]):
 		return
 
-	frappe.get_doc(frappe._dict(
-			doctype='Event Update Log Consumer',
+	frappe.get_doc(
+		frappe._dict(
+			doctype="Event Update Log Consumer",
 			consumer=consumer_name,
 			parent=update_log_name,
-			parenttype='Event Update Log',
-			parentfield='consumers'
-	)).insert(ignore_permissions=True)
+			parenttype="Event Update Log",
+			parentfield="consumers",
+		)
+	).insert(ignore_permissions=True)
 
 
 def get_unread_update_logs(consumer_name, dt, dn):
 	"""
 	Get old logs unread by the consumer on a particular document
 	"""
-	already_consumed = [x[0] for x in frappe.db.sql("""
+	already_consumed = [
+		x[0]
+		for x in frappe.db.sql(
+			"""
 		SELECT
 			update_log.name
 		FROM `tabEvent Update Log` update_log
@@ -209,18 +229,17 @@ def get_unread_update_logs(consumer_name, dt, dn):
 			consumer.consumer = %(consumer)s
 			AND update_log.ref_doctype = %(dt)s
 			AND update_log.docname = %(dn)s
-	""", {'consumer': consumer_name, "dt": dt, "dn": dn}, as_dict=0)]
+	""",
+			{"consumer": consumer_name, "dt": dt, "dn": dn},
+			as_dict=0,
+		)
+	]
 
 	logs = frappe.get_all(
-			'Event Update Log',
-			fields=['update_type', 'ref_doctype',
-							'docname', 'data', 'name', 'creation'],
-			filters={
-					'ref_doctype': dt,
-					'docname': dn,
-					'name': ['not in', already_consumed]
-			},
-			order_by='creation'
+		"Event Update Log",
+		fields=["update_type", "ref_doctype", "docname", "data", "name", "creation"],
+		filters={"ref_doctype": dt, "docname": dn, "name": ["not in", already_consumed]},
+		order_by="creation",
 	)
 
 	return logs
@@ -235,17 +254,15 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 
 	if isinstance(doctypes, str):
 		doctypes = frappe.parse_json(doctypes)
-	
+
 	from frappe.event_streaming.doctype.event_consumer.event_consumer import has_consumer_access
 
-	consumer = frappe.get_doc('Event Consumer', event_consumer)
+	consumer = frappe.get_doc("Event Consumer", event_consumer)
 	docs = frappe.get_list(
-			doctype='Event Update Log',
-			filters={'ref_doctype': ('in', doctypes),
-							 'creation': ('>', last_update)},
-			fields=['update_type', 'ref_doctype',
-							'docname', 'data', 'name', 'creation'],
-			order_by='creation desc'
+		doctype="Event Update Log",
+		filters={"ref_doctype": ("in", doctypes), "creation": (">", last_update)},
+		fields=["update_type", "ref_doctype", "docname", "data", "name", "creation"],
+		order_by="creation desc",
 	)
 
 	result = []
@@ -267,7 +284,6 @@ def get_update_logs_for_consumer(event_consumer, doctypes, last_update):
 				result.extend(old_logs)
 		else:
 			result.append(d)
-
 
 	for d in result:
 		mark_consumer_read(update_log_name=d.name, consumer_name=consumer.name)

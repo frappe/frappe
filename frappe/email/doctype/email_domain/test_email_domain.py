@@ -3,16 +3,17 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
 import unittest
+
+import frappe
 from frappe.test_runner import make_test_objects
 
-test_records = frappe.get_test_records('Email Domain')
+test_records = frappe.get_test_records("Email Domain")
+
 
 class TestDomain(unittest.TestCase):
-
 	def setUp(self):
-		make_test_objects('Email Domain', reset=True)
+		make_test_objects("Email Domain", reset=True)
 
 	def tearDown(self):
 		frappe.delete_doc("Email Account", "Test")

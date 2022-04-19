@@ -3,7 +3,10 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import unittest
+
+import frappe
+
 
 class TestAddressTemplate(unittest.TestCase):
 	def setUp(self):
@@ -29,17 +32,12 @@ class TestAddressTemplate(unittest.TestCase):
 	def make_default_address_template(self):
 		template = """{{ address_line1 }}<br>{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}{{ city }}<br>{% if state %}{{ state }}<br>{% endif -%}{% if pincode %}{{ pincode }}<br>{% endif -%}{{ country }}<br>{% if phone %}Phone: {{ phone }}<br>{% endif -%}{% if fax %}Fax: {{ fax }}<br>{% endif -%}{% if email_id %}Email: {{ email_id }}<br>{% endif -%}"""
 
-		if not frappe.db.exists('Address Template', 'India'):
-			frappe.get_doc({
-				"doctype": "Address Template",
-				"country": 'India',
-				"is_default": 1,
-				"template": template
-			}).insert()
+		if not frappe.db.exists("Address Template", "India"):
+			frappe.get_doc(
+				{"doctype": "Address Template", "country": "India", "is_default": 1, "template": template}
+			).insert()
 
-		if not frappe.db.exists('Address Template', 'Brazil'):
-			frappe.get_doc({
-				"doctype": "Address Template",
-				"country": 'Brazil',
-				"template": template
-			}).insert()		
+		if not frappe.db.exists("Address Template", "Brazil"):
+			frappe.get_doc(
+				{"doctype": "Address Template", "country": "Brazil", "template": template}
+			).insert()

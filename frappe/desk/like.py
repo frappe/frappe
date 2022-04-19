@@ -5,11 +5,14 @@ from __future__ import unicode_literals
 
 """Allow adding of likes to documents"""
 
-import frappe, json
-from frappe.database.schema import add_column
+import json
+
+import frappe
 from frappe import _
+from frappe.database.schema import add_column
 from frappe.desk.form.document_follow import follow_document
 from frappe.utils import get_link_to_form
+
 
 @frappe.whitelist()
 def toggle_like(doctype, name, add=False):
@@ -25,6 +28,7 @@ def toggle_like(doctype, name, add=False):
 
 	_toggle_like(doctype, name, add)
 
+
 def _toggle_like(doctype, name, add, user=None):
 	"""Same as toggle_like but hides param `user` from API"""
 
@@ -39,7 +43,7 @@ def _toggle_like(doctype, name, add, user=None):
 		else:
 			liked_by = []
 
-		if add=="Yes":
+		if add == "Yes":
 			if user not in liked_by:
 				liked_by.append(user)
 				add_comment(doctype, name)
@@ -58,28 +62,44 @@ def _toggle_like(doctype, name, add, user=None):
 		else:
 			raise
 
+
 def remove_like(doctype, name):
 	"""Remove previous Like"""
 	# remove Comment
-	frappe.delete_doc("Comment", [c.name for c in frappe.get_all("Comment",
-		filters={
-			"comment_type": "Like",
-			"reference_doctype": doctype,
-			"reference_name": name,
-			"owner": frappe.session.user,
-		}
-	)], ignore_permissions=True)
+	frappe.delete_doc(
+		"Comment",
+		[
+			c.name
+			for c in frappe.get_all(
+				"Comment",
+				filters={
+					"comment_type": "Like",
+					"reference_doctype": doctype,
+					"reference_name": name,
+					"owner": frappe.session.user,
+				},
+			)
+		],
+		ignore_permissions=True,
+	)
+
 
 def add_comment(doctype, name):
 	doc = frappe.get_doc(doctype, name)
 
-	if doctype=="Communication" and doc.reference_doctype and doc.reference_name:
-		link = get_link_to_form(doc.reference_doctype, doc.reference_name,
-			"{0} {1}".format(_(doc.reference_doctype), doc.reference_name))
+	if doctype == "Communication" and doc.reference_doctype and doc.reference_name:
+		link = get_link_to_form(
+			doc.reference_doctype,
+			doc.reference_name,
+			"{0} {1}".format(_(doc.reference_doctype), doc.reference_name),
+		)
 
-		doc.add_comment("Like", _("{0}: {1} in {2}").format(_(doc.communication_type),
-			"<b>" + doc.subject + "</b>", link),
-			link_doctype=doc.reference_doctype, link_name=doc.reference_name)
+		doc.add_comment(
+			"Like",
+			_("{0}: {1} in {2}").format(_(doc.communication_type), "<b>" + doc.subject + "</b>", link),
+			link_doctype=doc.reference_doctype,
+			link_name=doc.reference_name,
+		)
 
 	else:
 		doc.add_comment("Like", _("Liked"))

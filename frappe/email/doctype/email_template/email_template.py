@@ -2,10 +2,15 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+
+import json
+
+from six import string_types
+
+import frappe
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
-from six import string_types
+
 
 class EmailTemplate(Document):
 	def validate(self):
@@ -27,15 +32,12 @@ class EmailTemplate(Document):
 		if isinstance(doc, string_types):
 			doc = json.loads(doc)
 
-		return {
-			"subject" : self.get_formatted_subject(doc),
-			"message" : self.get_formatted_response(doc)
-		}
+		return {"subject": self.get_formatted_subject(doc), "message": self.get_formatted_response(doc)}
 
 
 @frappe.whitelist()
 def get_email_template(template_name, doc):
-	'''Returns the processed HTML of a email template with the given doc'''
+	"""Returns the processed HTML of a email template with the given doc"""
 	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 

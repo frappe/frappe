@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 import frappe
-
 from frappe.utils import cint
+
 
 def execute():
 	"""
@@ -16,7 +16,7 @@ def execute():
 	Security is something we take very seriously at frappe,
 	and hence we chose to make security tighter by default.
 	"""
-	doc = frappe.get_single('System Settings')
+	doc = frappe.get_single("System Settings")
 
 	# Enforce a Password Policy
 	if cint(doc.enable_password_policy) == 0:

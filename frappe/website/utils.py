@@ -2,19 +2,21 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import functools
-import re
-import os
-import frappe
 
-from six import iteritems
+import functools
+import os
+import re
+
 from past.builtins import cmp
+from six import iteritems
+
+import frappe
 from frappe.utils import md_to_html
 
 
 def delete_page_cache(path):
 	cache = frappe.cache()
-	cache.delete_value('full_index')
+	cache.delete_value("full_index")
 	groups = ("website_page", "page_context")
 	if path:
 		for name in groups:
@@ -23,12 +25,14 @@ def delete_page_cache(path):
 		for name in groups:
 			cache.delete_key(name)
 
+
 def find_first_image(html):
 	m = re.finditer(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
 	try:
 		return next(m).groups()[0]
 	except StopIteration:
 		return None
+
 
 def can_cache(no_cache=False):
 	if frappe.conf.disable_website_cache or frappe.conf.developer_mode:
@@ -39,31 +43,40 @@ def can_cache(no_cache=False):
 
 
 def get_comment_list(doctype, name):
-	comments = frappe.get_all('Comment',
-		fields=['name', 'creation', 'owner',
-				'comment_email', 'comment_by', 'content'],
+	comments = frappe.get_all(
+		"Comment",
+		fields=["name", "creation", "owner", "comment_email", "comment_by", "content"],
 		filters=dict(
 			reference_doctype=doctype,
 			reference_name=name,
-			comment_type='Comment',
+			comment_type="Comment",
 		),
-		or_filters=[
-			['owner', '=', frappe.session.user],
-			['published', '=', 1]])
+		or_filters=[["owner", "=", frappe.session.user], ["published", "=", 1]],
+	)
 
-	communications = frappe.get_all("Communication",
-		fields=['name', 'creation', 'owner', 'owner as comment_email',
-				'sender_full_name as comment_by', 'content', 'recipients'],
+	communications = frappe.get_all(
+		"Communication",
+		fields=[
+			"name",
+			"creation",
+			"owner",
+			"owner as comment_email",
+			"sender_full_name as comment_by",
+			"content",
+			"recipients",
+		],
 		filters=dict(
 			reference_doctype=doctype,
 			reference_name=name,
 		),
 		or_filters=[
-			['recipients', 'like', '%{0}%'.format(frappe.session.user)],
-			['cc', 'like', '%{0}%'.format(frappe.session.user)],
-			['bcc', 'like', '%{0}%'.format(frappe.session.user)]])
+			["recipients", "like", "%{0}%".format(frappe.session.user)],
+			["cc", "like", "%{0}%".format(frappe.session.user)],
+			["bcc", "like", "%{0}%".format(frappe.session.user)],
+		],
+	)
 
-	return sorted((comments + communications), key=lambda comment: comment['creation'], reverse=True)
+	return sorted((comments + communications), key=lambda comment: comment["creation"], reverse=True)
 
 
 def get_home_page():
@@ -74,11 +87,12 @@ def get_home_page():
 		home_page = None
 
 		# for user
-		if frappe.session.user != 'Guest':
+		if frappe.session.user != "Guest":
 			# by role
 			for role in frappe.get_roles():
-				home_page = frappe.db.get_value('Role', role, 'home_page')
-				if home_page: break
+				home_page = frappe.db.get_value("Role", role, "home_page")
+				if home_page:
+					break
 
 			# portal default
 			if not home_page:
@@ -93,9 +107,9 @@ def get_home_page():
 			home_page = frappe.db.get_single_value("Website Settings", "home_page")
 
 		if not home_page:
-			home_page = "login" if frappe.session.user == 'Guest' else "me"
+			home_page = "login" if frappe.session.user == "Guest" else "me"
 
-		home_page = home_page.strip('/')
+		home_page = home_page.strip("/")
 
 		return home_page
 
@@ -105,14 +119,15 @@ def get_home_page():
 
 	return frappe.cache().hget("home_page", frappe.session.user, _get_home_page)
 
+
 def get_home_page_via_hooks():
 	home_page = None
 
-	home_page_method = frappe.get_hooks('get_website_user_home_page')
+	home_page_method = frappe.get_hooks("get_website_user_home_page")
 	if home_page_method:
 		home_page = frappe.get_attr(home_page_method[-1])(frappe.session.user)
-	elif frappe.get_hooks('website_user_home_page'):
-		home_page = frappe.get_hooks('website_user_home_page')[-1]
+	elif frappe.get_hooks("website_user_home_page"):
+		home_page = frappe.get_hooks("website_user_home_page")[-1]
 
 	if not home_page:
 		role_home_page = frappe.get_hooks("role_home_page")
@@ -128,7 +143,7 @@ def get_home_page_via_hooks():
 			home_page = home_page[-1]
 
 	if home_page:
-		home_page = home_page.strip('/')
+		home_page = home_page.strip("/")
 
 	return home_page
 
@@ -136,25 +151,28 @@ def get_home_page_via_hooks():
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:
 		frappe.local.is_signup_enabled = True
-		if frappe.utils.cint(frappe.db.get_value("Website Settings",
-			"Website Settings", "disable_signup")):
-				frappe.local.is_signup_enabled = False
+		if frappe.utils.cint(
+			frappe.db.get_value("Website Settings", "Website Settings", "disable_signup")
+		):
+			frappe.local.is_signup_enabled = False
 
 	return frappe.local.is_signup_enabled
 
+
 def is_signup_disabled():
-	return frappe.db.get_single_value('Website Settings', 'disable_signup', True)
+	return frappe.db.get_single_value("Website Settings", "disable_signup", True)
+
 
 def cleanup_page_name(title):
 	"""make page name from title"""
 	if not title:
-		return ''
+		return ""
 
 	name = title.lower()
-	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', '', name)
-	name = re.sub('[:/]', '-', name)
+	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', "", name)
+	name = re.sub("[:/]", "-", name)
 
-	name = '-'.join(name.split())
+	name = "-".join(name.split())
 
 	# replace repeating hyphens
 	name = re.sub(r"(-)\1+", r"\1", name)
@@ -166,7 +184,7 @@ def get_shade(color, percent):
 	color, color_format = detect_color_format(color)
 	r, g, b, a = color
 
-	avg = (float(int(r) + int(g) + int(b)) / 3)
+	avg = float(int(r) + int(g) + int(b)) / 3
 	# switch dark and light shades
 	if avg > 128:
 		percent = -percent
@@ -210,11 +228,11 @@ def detect_color_format(color):
 
 
 def get_shade_for_channel(channel_value, percent):
-	v = int(channel_value) + int(int('ff', 16) * (float(percent)/100))
+	v = int(channel_value) + int(int("ff", 16) * (float(percent) / 100))
 	if v < 0:
-		v=0
+		v = 0
 	if v > 255:
-		v=255
+		v = 255
 
 	return v
 
@@ -239,33 +257,34 @@ def convert_to_hex(channel_value):
 
 	return h
 
+
 def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
 	if not path:
 		return
-	if path.startswith('http://') or path.startswith('https://'):
+	if path.startswith("http://") or path.startswith("https://"):
 		return path
-	if path.startswith('data:'):
+	if path.startswith("data:"):
 		return path
 	if not path.startswith("/"):
 		path = "/" + path
 	return path
 
+
 def get_toc(route, url_prefix=None, app=None):
-	'''Insert full index (table of contents) for {index} tag'''
+	"""Insert full index (table of contents) for {index} tag"""
 
 	full_index = get_full_index(app=app)
 
-	return frappe.get_template("templates/includes/full_index.html").render({
-			"full_index": full_index,
-			"url_prefix": url_prefix or "/",
-			"route": route.rstrip('/')
-		})
+	return frappe.get_template("templates/includes/full_index.html").render(
+		{"full_index": full_index, "url_prefix": url_prefix or "/", "route": route.rstrip("/")}
+	)
+
 
 def get_next_link(route, url_prefix=None, app=None):
 	# insert next link
 	next_item = None
-	route = route.rstrip('/')
+	route = route.rstrip("/")
 	children_map = get_full_index(app=app)
 	parent_route = os.path.dirname(route)
 	children = children_map.get(parent_route, None)
@@ -273,23 +292,28 @@ def get_next_link(route, url_prefix=None, app=None):
 	if parent_route and children:
 		for i, c in enumerate(children):
 			if c.route == route and i < (len(children) - 1):
-				next_item = children[i+1]
+				next_item = children[i + 1]
 				next_item.url_prefix = url_prefix or "/"
 
 	if next_item:
 		if next_item.route and next_item.title:
-			html = ('<p class="btn-next-wrapper">' + frappe._("Next")\
-				+': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>').format(**next_item)
+			html = (
+				'<p class="btn-next-wrapper">'
+				+ frappe._("Next")
+				+ ': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>'
+			).format(**next_item)
 
 			return html
 
-	return ''
+	return ""
+
 
 def get_full_index(route=None, app=None):
 	"""Returns full index of the website for www upto the n-th level"""
 	from frappe.website.router import get_pages
 
 	if not frappe.local.flags.children_map:
+
 		def _build():
 			children_map = {}
 			added = []
@@ -308,19 +332,23 @@ def get_full_index(route=None, app=None):
 					continue
 
 				page_info = pages[route]
-				if page_info.index or ('index' in page_info.template):
+				if page_info.index or ("index" in page_info.template):
 					new_children = []
-					page_info.extn = ''
-					for name in (page_info.index or []):
-						child_route = page_info.route + '/' + name
+					page_info.extn = ""
+					for name in page_info.index or []:
+						child_route = page_info.route + "/" + name
 						if child_route in pages:
 							if child_route not in added:
 								new_children.append(pages[child_route])
 								added.append(child_route)
 
 					# add remaining pages not in index.txt
-					_children = sorted(children, key = functools.cmp_to_key(lambda a, b: cmp(
-						os.path.basename(a.route), os.path.basename(b.route))))
+					_children = sorted(
+						children,
+						key=functools.cmp_to_key(
+							lambda a, b: cmp(os.path.basename(a.route), os.path.basename(b.route))
+						),
+					)
 
 					for child_route in _children:
 						if child_route not in new_children:
@@ -332,73 +360,85 @@ def get_full_index(route=None, app=None):
 
 			return children_map
 
-		children_map = frappe.cache().get_value('website_full_index', _build)
+		children_map = frappe.cache().get_value("website_full_index", _build)
 
 		frappe.local.flags.children_map = children_map
 
 	return frappe.local.flags.children_map
 
+
 def extract_title(source, path):
-	'''Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path'''
-	title = extract_comment_tag(source, 'title')
+	"""Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path"""
+	title = extract_comment_tag(source, "title")
 
 	if not title and "<h1>" in source:
 		# extract title from h1
-		match = re.findall('<h1>([^<]*)', source)
+		match = re.findall("<h1>([^<]*)", source)
 		title_content = match[0].strip()[:300]
-		if '{{' not in title_content:
+		if "{{" not in title_content:
 			title = title_content
 
 	if not title:
 		# make title from name
-		title = os.path.basename(path.rsplit('.', )[0].rstrip('/')).replace('_', ' ').replace('-', ' ').title()
+		title = (
+			os.path.basename(
+				path.rsplit(".",)[
+					0
+				].rstrip("/")
+			)
+			.replace("_", " ")
+			.replace("-", " ")
+			.title()
+		)
 
 	return title
 
+
 def extract_comment_tag(source, tag):
-	'''Extract custom tags in comments from source.
+	"""Extract custom tags in comments from source.
 
 	:param source: raw template source in HTML
 	:param title: tag to search, example "title"
-	'''
+	"""
 
 	if "<!-- {0}:".format(tag) in source:
-		return re.findall('<!-- {0}:([^>]*) -->'.format(tag), source)[0].strip()
+		return re.findall("<!-- {0}:([^>]*) -->".format(tag), source)[0].strip()
 	else:
 		return None
 
 
 def add_missing_headers():
-	'''Walk and add missing headers in docs (to be called from bench execute)'''
-	path = frappe.get_app_path('erpnext', 'docs')
+	"""Walk and add missing headers in docs (to be called from bench execute)"""
+	path = frappe.get_app_path("erpnext", "docs")
 	for basepath, folders, files in os.walk(path):
 		for fname in files:
-			if fname.endswith('.md'):
-				with open(os.path.join(basepath, fname), 'r') as f:
+			if fname.endswith(".md"):
+				with open(os.path.join(basepath, fname), "r") as f:
 					content = frappe.as_unicode(f.read())
 
-				if not content.startswith('# ') and not '<h1>' in content:
-					with open(os.path.join(basepath, fname), 'w') as f:
-						if fname=='index.md':
+				if not content.startswith("# ") and not "<h1>" in content:
+					with open(os.path.join(basepath, fname), "w") as f:
+						if fname == "index.md":
 							fname = os.path.basename(basepath)
 						else:
 							fname = fname[:-3]
-						h = fname.replace('_', ' ').replace('-', ' ').title()
-						content = '# {0}\n\n'.format(h) + content
-						f.write(content.encode('utf-8'))
+						h = fname.replace("_", " ").replace("-", " ").title()
+						content = "# {0}\n\n".format(h) + content
+						f.write(content.encode("utf-8"))
+
 
 def get_html_content_based_on_type(doc, fieldname, content_type):
-		'''
-		Set content based on content_type
-		'''
-		content = doc.get(fieldname)
+	"""
+	Set content based on content_type
+	"""
+	content = doc.get(fieldname)
 
-		if content_type == 'Markdown':
-			content = md_to_html(doc.get(fieldname + '_md'))
-		elif content_type == 'HTML':
-			content = doc.get(fieldname + '_html')
+	if content_type == "Markdown":
+		content = md_to_html(doc.get(fieldname + "_md"))
+	elif content_type == "HTML":
+		content = doc.get(fieldname + "_html")
 
-		if content == None:
-			content = ''
+	if content == None:
+		content = ""
 
-		return content
+	return content

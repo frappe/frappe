@@ -3,13 +3,14 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
 import unittest
 
-test_dependencies = ['Contact', 'Salutation']
+import frappe
+
+test_dependencies = ["Contact", "Salutation"]
+
 
 class TestContact(unittest.TestCase):
-
 	def test_check_default_email(self):
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},
@@ -34,13 +35,11 @@ class TestContact(unittest.TestCase):
 		self.assertEqual(contact.phone, "+91 0000000002")
 		self.assertEqual(contact.mobile_no, "+91 0000000003")
 
+
 def create_contact(name, salutation, emails=None, phones=None, save=True):
-	doc = frappe.get_doc({
-			"doctype": "Contact",
-			"first_name": name,
-			"status": "Open",
-			"salutation": salutation
-		})
+	doc = frappe.get_doc(
+		{"doctype": "Contact", "first_name": name, "status": "Open", "salutation": salutation}
+	)
 
 	if emails:
 		for d in emails:
