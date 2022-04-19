@@ -198,6 +198,7 @@ def get_context(context):
 
 		context.show_in_grid = self.show_in_grid
 		self.load_translations(context)
+		context.link_title_doctypes = frappe.boot.get_link_title_doctypes()
 
 	def load_translations(self, context):
 		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)

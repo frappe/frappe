@@ -24,7 +24,7 @@ class KanbanBoard(Document):
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
-				frappe.msgprint(frappe._("Column Name cannot be empty"), raise_exception=True)
+				frappe.msgprint(_("Column Name cannot be empty"), raise_exception=True)
 
 
 def get_permission_query_conditions(user):
@@ -92,7 +92,6 @@ def update_order(board_name, order):
 
 	updated_cards = []
 	for col_name, cards in order_dict.items():
-		order_list = []
 		for card in cards:
 			column = frappe.get_value(doctype, {"name": card}, fieldname)
 			if column != col_name:
@@ -246,3 +245,22 @@ def set_indicator(board_name, column_name, indicator):
 
 	board.save()
 	return board
+
+
+@frappe.whitelist()
+def save_settings(board_name: str, settings: str) -> Document:
+	settings = json.loads(settings)
+	doc = frappe.get_doc("Kanban Board", board_name)
+
+	fields = settings["fields"]
+	if not isinstance(fields, str):
+		fields = json.dumps(fields)
+
+	doc.fields = fields
+	doc.show_labels = settings["show_labels"]
+	doc.save()
+
+	resp = doc.as_dict()
+	resp["fields"] = frappe.parse_json(resp["fields"])
+
+	return resp

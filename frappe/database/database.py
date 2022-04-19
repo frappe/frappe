@@ -1228,7 +1228,7 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
-	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False):
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
 		"""
 		Insert multiple records at a time
 
@@ -1236,22 +1236,19 @@ class Database(object):
 		:param fields: list of fields
 		:params values: list of list of values
 		"""
-		insert_list = []
-		fields = ", ".join("`" + field + "`" for field in fields)
 
-		for idx, value in enumerate(values):
-			insert_list.append(tuple(value))
-			if idx and (idx % 10000 == 0 or idx < len(values) - 1):
-				self.sql(
-					"""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
-						ignore_duplicates="IGNORE" if ignore_duplicates else "",
-						doctype=doctype,
-						fields=fields,
-						values=", ".join(["%s"] * len(insert_list)),
-					),
-					tuple(insert_list),
-				)
-				insert_list = []
+		table = frappe.qb.DocType(doctype)
+		for start_index in range(0, len(values), chunk_size):
+			query = frappe.qb.into(table)
+			if ignore_duplicates:
+				# Pypika does not have same api for ignoring duplicates
+				if frappe.conf.db_type == "mariadb":
+					query = query.ignore()
+				elif frappe.conf.db_type == "postgres":
+					query = query.on_conflict().do_nothing()
+
+			values_to_insert = values[start_index : start_index + chunk_size]
+			query.columns(fields).insert(*values_to_insert).run()
 
 
 def enqueue_jobs_after_commit():
