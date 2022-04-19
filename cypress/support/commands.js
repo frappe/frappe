@@ -1,5 +1,6 @@
 import 'cypress-file-upload';
 import '@testing-library/cypress/add-commands';
+import '@4tw/cypress-drag-drop';
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -173,6 +174,9 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	}
 	if (fieldtype === 'Code') {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
+	}
+	if (fieldtype === 'Markdown Editor') {
+		selector = `[data-fieldname="${fieldname}"] .ace-editor-target`;
 	}
 
 	return cy.get(selector).first();
