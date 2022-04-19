@@ -20,7 +20,7 @@ import frappe.model.meta
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
-from frappe.query_builder.utils import DocType, db_type_is
+from frappe.query_builder.utils import DocType
 from frappe.utils import cast, get_datetime, getdate, now, sbool
 
 from .query import Query
@@ -1242,9 +1242,9 @@ class Database(object):
 			query = frappe.qb.into(table)
 			if ignore_duplicates:
 				# Pypika does not have same api for ignoring duplicates
-				if frappe.conf.db_type == db_type_is.MARIADB.value:
+				if frappe.conf.db_type == "mariadb":
 					query = query.ignore()
-				elif frappe.conf.db_type == db_type_is.POSTGRES.value:
+				elif frappe.conf.db_type == "postgres":
 					query = query.on_conflict().do_nothing()
 
 			values_to_insert = values[start_index : start_index + chunk_size]
