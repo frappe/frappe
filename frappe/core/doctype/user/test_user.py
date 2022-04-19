@@ -16,6 +16,7 @@ from frappe.utils import get_url
 user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records('User')
 
+
 class TestUser(unittest.TestCase):
 	def tearDown(self):
 		# disable password strength test
@@ -229,7 +230,8 @@ class TestUser(unittest.TestCase):
 				<span class="mention" data-id="Team" data-value="Team" data-is-group="true" data-denotation-char="@">
 					<span><span class="ql-mention-denotation-char">@</span>Team</span>
 				</span> and
-				<span class="mention" data-id="Unknown Team" data-value="Unknown Team" data-is-group="true" data-denotation-char="@">
+				<span class="mention" data-id="Unknown Team" data-value="Unknown Team" data-is-group="true"
+				data-denotation-char="@">
 					<span><span class="ql-mention-denotation-char">@</span>Unknown Team</span>
 				</span><!-- this should be ignored-->
 				please check
@@ -286,7 +288,8 @@ class TestUser(unittest.TestCase):
 			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Sign Up is disabled",
 				sign_up, random_user, random_user_name, "/signup")
 
-		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (1, "Please check your email for verification"))
+		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"),
+							  (1, "Please check your email for verification"))
 		self.assertEqual(frappe.cache().hget('redirect_after_login', random_user), "/welcome")
 
 		# re-register
@@ -304,7 +307,6 @@ class TestUser(unittest.TestCase):
 			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Throttled",
 				sign_up, frappe.mock('email'), random_user_name, "/signup")
 
-
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
@@ -319,7 +321,8 @@ class TestUser(unittest.TestCase):
 		test_user = frappe.get_doc("User", "testpassword@example.com")
 		test_user.reset_password()
 		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/app")
-		self.assertEqual(update_password(new_password, key="wrong_key"), "The Link specified has either been used before or Invalid")
+		self.assertEqual(update_password(new_password, key="wrong_key"),
+						 "The Link specified has either been used before or Invalid")
 
 		# password verification should fail with old password
 		self.assertRaises(frappe.exceptions.AuthenticationError, verify_password, old_password)
@@ -328,7 +331,8 @@ class TestUser(unittest.TestCase):
 		# reset password
 		update_password(old_password, old_password=new_password)
 
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1, ['like', '%'])
+		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1,
+							   ['like', '%'])
 
 		password_strength_response = {
 			"feedback": {
@@ -339,7 +343,8 @@ class TestUser(unittest.TestCase):
 
 		# password strength failure test
 		with patch.object(user_module, "test_password_strength", return_value=password_strength_response):
-			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Fix password", update_password, new_password, 0, test_user.reset_password_key)
+			self.assertRaisesRegex(frappe.exceptions.ValidationError, "Fix password", update_password, new_password, 0,
+								   test_user.reset_password_key)
 
 
 		# test redirect URL for website users
@@ -376,18 +381,17 @@ class TestUser(unittest.TestCase):
 		doc = frappe.response.docs[0]
 		self.assertListEqual(doc.get("__onload").get('all_modules', []),
 			[m.get("module_name") for m in get_modules_from_all_apps()])
-	
+
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
-
 		# set the reset password expiry to 1 second
 		frappe.db.set_value("System Settings", "System Settings", "reset_password_link_expiry_seconds", 1)
-
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
 		test_user.reset_password()
 		time.sleep(1)  # sleep for 1 sec to expire the reset link
-		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "The Link specified has been expired")
+		self.assertEqual(update_password(new_password, key=test_user.reset_password_key),
+						 "The Link specified has been expired")
 
 
 def delete_contact(user):
