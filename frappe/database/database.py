@@ -1019,7 +1019,7 @@ class Database(object):
 
 		return self.get_value(dt, dn, ignore=True, cache=cache)
 
-	def count(self, dt, filters=None, debug=False, cache=False, distinct : bool = True):
+	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
 			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
