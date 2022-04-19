@@ -2,9 +2,11 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import unittest
+
 import frappe
 from frappe.utils import fmt_money
-import unittest
+
 
 class TestFmtMoney(unittest.TestCase):
 	def test_standard(self):
@@ -39,7 +41,6 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEqual(fmt_money(-10000000), "-10.000.000,00")
 		self.assertEqual(fmt_money(-100000000), "-100.000.000,00")
 		self.assertEqual(fmt_money(-1000000000), "-1.000.000.000,00")
-
 
 	def test_lacs(self):
 		frappe.db.set_default("number_format", "#,##,###.##")
@@ -95,8 +96,9 @@ class TestFmtMoney(unittest.TestCase):
 		frappe.db.set_default("currency_precision", "")
 
 	def test_custom_fmt_money_format(self):
-		self.assertEqual(fmt_money(100000, format="#,###.##"), '100,000.00')
+		self.assertEqual(fmt_money(100000, format="#,###.##"), "100,000.00")
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
 	frappe.connect()
 	unittest.main()

@@ -2,17 +2,19 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import os
+import unittest
+
 import frappe
 import frappe.defaults
 from frappe.core.doctype.data_import.data_import import export_csv
-import unittest
-import os
+
 
 class TestDataImportFixtures(unittest.TestCase):
 	def setUp(self):
 		pass
 
-	#start test for Client Script
+	# start test for Client Script
 	def test_Custom_Script_fixture_simple(self):
 		fixture = "Client Script"
 		path = frappe.scrub(fixture) + "_original_style.csv"
@@ -22,7 +24,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_equal_default(self):
-		fixture = ["Client Script", {"name":["Item"]}]
+		fixture = ["Client Script", {"name": ["Item"]}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_equal_default.csv"
 
 		export_csv(fixture, path)
@@ -30,7 +32,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_equal(self):
-		fixture = ["Client Script", {"name":["Item"],"op":"="}]
+		fixture = ["Client Script", {"name": ["Item"], "op": "="}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -38,16 +40,16 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_not_equal(self):
-		fixture = ["Client Script", {"name":["Item"],"op":"!="}]
+		fixture = ["Client Script", {"name": ["Item"], "op": "!="}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_not_equal.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
 
-	#without [] around the name...
+	# without [] around the name...
 	def test_Custom_Script_fixture_simple_name_at_least_equal(self):
-		fixture = ["Client Script", {"name":"Item-Cli"}]
+		fixture = ["Client Script", {"name": "Item-Cli"}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_at_least_equal.csv"
 
 		export_csv(fixture, path)
@@ -55,7 +57,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_multi_name_equal(self):
-		fixture = ["Client Script", {"name":["Item", "Customer"],"op":"="}]
+		fixture = ["Client Script", {"name": ["Item", "Customer"], "op": "="}]
 		path = frappe.scrub(fixture[0]) + "_multi_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -63,7 +65,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_multi_name_not_equal(self):
-		fixture = ["Client Script", {"name":["Item", "Customer"],"op":"!="}]
+		fixture = ["Client Script", {"name": ["Item", "Customer"], "op": "!="}]
 		path = frappe.scrub(fixture[0]) + "_multi_name_not_equal.csv"
 
 		export_csv(fixture, path)
@@ -88,7 +90,7 @@ class TestDataImportFixtures(unittest.TestCase):
 
 	# Client Script regular expression
 	def test_Custom_Script_fixture_rex_no_flags(self):
-		fixture = ["Client Script", {"name":r"^[i|A]"}]
+		fixture = ["Client Script", {"name": r"^[i|A]"}]
 		path = frappe.scrub(fixture[0]) + "_rex_no_flags.csv"
 
 		export_csv(fixture, path)
@@ -96,14 +98,14 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Script_fixture_rex_with_flags(self):
-		fixture = ["Client Script", {"name":r"^[i|A]", "flags":"L,M"}]
+		fixture = ["Client Script", {"name": r"^[i|A]", "flags": "L,M"}]
 		path = frappe.scrub(fixture[0]) + "_rex_with_flags.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
 
-	#start test for Custom Field
+	# start test for Custom Field
 	def test_Custom_Field_fixture_simple(self):
 		fixture = "Custom Field"
 		path = frappe.scrub(fixture) + "_original_style.csv"
@@ -113,7 +115,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Field_fixture_simple_name_equal_default(self):
-		fixture = ["Custom Field", {"name":["Item-vat"]}]
+		fixture = ["Custom Field", {"name": ["Item-vat"]}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_equal_default.csv"
 
 		export_csv(fixture, path)
@@ -121,7 +123,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Field_fixture_simple_name_equal(self):
-		fixture = ["Custom Field", {"name":["Item-vat"],"op":"="}]
+		fixture = ["Custom Field", {"name": ["Item-vat"], "op": "="}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -129,16 +131,16 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Field_fixture_simple_name_not_equal(self):
-		fixture = ["Custom Field", {"name":["Item-vat"],"op":"!="}]
+		fixture = ["Custom Field", {"name": ["Item-vat"], "op": "!="}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_not_equal.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
 
-	#without [] around the name...
+	# without [] around the name...
 	def test_Custom_Field_fixture_simple_name_at_least_equal(self):
-		fixture = ["Custom Field", {"name":"Item-va"}]
+		fixture = ["Custom Field", {"name": "Item-va"}]
 		path = frappe.scrub(fixture[0]) + "_simple_name_at_least_equal.csv"
 
 		export_csv(fixture, path)
@@ -146,7 +148,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Field_fixture_multi_name_equal(self):
-		fixture = ["Custom Field", {"name":["Item-vat", "Bin-vat"],"op":"="}]
+		fixture = ["Custom Field", {"name": ["Item-vat", "Bin-vat"], "op": "="}]
 		path = frappe.scrub(fixture[0]) + "_multi_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -154,7 +156,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Field_fixture_multi_name_not_equal(self):
-		fixture = ["Custom Field", {"name":["Item-vat", "Bin-vat"],"op":"!="}]
+		fixture = ["Custom Field", {"name": ["Item-vat", "Bin-vat"], "op": "!="}]
 		path = frappe.scrub(fixture[0]) + "_multi_name_not_equal.csv"
 
 		export_csv(fixture, path)
@@ -179,7 +181,7 @@ class TestDataImportFixtures(unittest.TestCase):
 
 	# Custom Field regular expression
 	def test_Custom_Field_fixture_rex_no_flags(self):
-		fixture = ["Custom Field", {"name":r"^[r|L]"}]
+		fixture = ["Custom Field", {"name": r"^[r|L]"}]
 		path = frappe.scrub(fixture[0]) + "_rex_no_flags.csv"
 
 		export_csv(fixture, path)
@@ -187,15 +189,14 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Custom_Field_fixture_rex_with_flags(self):
-		fixture = ["Custom Field", {"name":r"^[i|A]", "flags":"L,M"}]
+		fixture = ["Custom Field", {"name": r"^[i|A]", "flags": "L,M"}]
 		path = frappe.scrub(fixture[0]) + "_rex_with_flags.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
 
-
-	#start test for Doctype
+	# start test for Doctype
 	def test_Doctype_fixture_simple(self):
 		fixture = "ToDo"
 		path = "Doctype_" + frappe.scrub(fixture) + "_original_style_should_be_all.csv"
@@ -205,7 +206,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Doctype_fixture_simple_name_equal_default(self):
-		fixture = ["ToDo", {"name":["TDI00000008"]}]
+		fixture = ["ToDo", {"name": ["TDI00000008"]}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_simple_name_equal_default.csv"
 
 		export_csv(fixture, path)
@@ -213,7 +214,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Doctype_fixture_simple_name_equal(self):
-		fixture = ["ToDo", {"name":["TDI00000002"],"op":"="}]
+		fixture = ["ToDo", {"name": ["TDI00000002"], "op": "="}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_simple_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -221,16 +222,16 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Doctype_simple_name_not_equal(self):
-		fixture = ["ToDo", {"name":["TDI00000002"],"op":"!="}]
+		fixture = ["ToDo", {"name": ["TDI00000002"], "op": "!="}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_simple_name_not_equal.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
 
-	#without [] around the name...
+	# without [] around the name...
 	def test_Doctype_fixture_simple_name_at_least_equal(self):
-		fixture = ["ToDo", {"name":"TDI"}]
+		fixture = ["ToDo", {"name": "TDI"}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_simple_name_at_least_equal.csv"
 
 		export_csv(fixture, path)
@@ -238,7 +239,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Doctype_multi_name_equal(self):
-		fixture = ["ToDo", {"name":["TDI00000002", "TDI00000008"],"op":"="}]
+		fixture = ["ToDo", {"name": ["TDI00000002", "TDI00000008"], "op": "="}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_multi_name_equal.csv"
 
 		export_csv(fixture, path)
@@ -246,7 +247,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Doctype_multi_name_not_equal(self):
-		fixture = ["ToDo", {"name":["TDI00000002", "TDI00000008"],"op":"!="}]
+		fixture = ["ToDo", {"name": ["TDI00000002", "TDI00000008"], "op": "!="}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_multi_name_not_equal.csv"
 
 		export_csv(fixture, path)
@@ -271,7 +272,7 @@ class TestDataImportFixtures(unittest.TestCase):
 
 	# Doctype regular expression
 	def test_Doctype_fixture_rex_no_flags(self):
-		fixture = ["ToDo", {"name":r"^TDi"}]
+		fixture = ["ToDo", {"name": r"^TDi"}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_rex_no_flags_should_be_all.csv"
 
 		export_csv(fixture, path)
@@ -279,10 +280,9 @@ class TestDataImportFixtures(unittest.TestCase):
 		os.remove(path)
 
 	def test_Doctype_fixture_rex_with_flags(self):
-		fixture = ["ToDo", {"name":r"^TDi", "flags":"L,M"}]
+		fixture = ["ToDo", {"name": r"^TDi", "flags": "L,M"}]
 		path = "Doctype_" + frappe.scrub(fixture[0]) + "_rex_with_flags_should_be_none.csv"
 
 		export_csv(fixture, path)
 		self.assertTrue(True)
 		os.remove(path)
-

@@ -3,15 +3,16 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
 import unittest
+from datetime import datetime, timedelta
+
+import frappe
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
 	remove_unverified_record,
 )
 from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import (
 	create_user_if_not_exists,
 )
-from datetime import datetime, timedelta
 
 
 class TestPersonalDataDeletionRequest(unittest.TestCase):
@@ -45,19 +46,15 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.assertEqual(deleted_user.phone, self.delete_request.anonymization_value_map["Phone"])
 		self.assertEqual(
 			deleted_user.birth_date,
-			datetime.strptime(self.delete_request.anonymization_value_map["Date"], "%Y-%m-%d").date()
+			datetime.strptime(self.delete_request.anonymization_value_map["Date"], "%Y-%m-%d").date(),
 		)
 		self.assertEqual(self.delete_request.status, "Deleted")
 
 	def test_unverified_record_removal(self):
-		date_time_obj = datetime.strptime(
-			self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f"
-		)
+		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f")
 		date_time_obj += timedelta(days=-7)
 		self.delete_request.creation = date_time_obj
 		self.status = "Pending Verification"
 		self.delete_request.save()
 		remove_unverified_record()
-		self.assertFalse(
-			frappe.db.exists("Personal Data Deletion Request", self.delete_request.name)
-		)
+		self.assertFalse(frappe.db.exists("Personal Data Deletion Request", self.delete_request.name))

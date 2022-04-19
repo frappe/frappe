@@ -2,20 +2,29 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
-from frappe import msgprint, _
-import json
+
 import csv
-import six
+import json
+
 import requests
-from six import StringIO, text_type, string_types
-from frappe.utils import encode, cstr, cint, flt, comma_or
+import six
+from six import StringIO, string_types, text_type
+
+import frappe
+from frappe import _, msgprint
+from frappe.utils import cint, comma_or, cstr, encode, flt
+
 
 def read_csv_content_from_attached_file(doc):
-	fileid = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": doc.doctype,
-		"attached_to_name":doc.name}, order_by="creation desc")
+	fileid = frappe.get_all(
+		"File",
+		fields=["name"],
+		filters={"attached_to_doctype": doc.doctype, "attached_to_name": doc.name},
+		order_by="creation desc",
+	)
 
-	if fileid : fileid = fileid[0].name
+	if fileid:
+		fileid = fileid[0].name
 
 	if not fileid:
 		msgprint(_("File not attached"))
@@ -24,9 +33,12 @@ def read_csv_content_from_attached_file(doc):
 	try:
 		_file = frappe.get_doc("File", fileid)
 		fcontent = _file.get_content()
-		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
+		return read_csv_content(fcontent, frappe.form_dict.get("ignore_encoding_errors"))
 	except Exception:
-		frappe.throw(_("Unable to open attached file. Did you export it as CSV?"), title=_('Invalid CSV Format'))
+		frappe.throw(
+			_("Unable to open attached file. Did you export it as CSV?"), title=_("Invalid CSV Format")
+		)
+
 
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
@@ -42,10 +54,12 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				continue
 
 		if not decoded:
-			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), raise_exception=True)
+			frappe.msgprint(
+				_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), raise_exception=True
+			)
 
 	fcontent = fcontent.encode("utf-8")
-	content  = [ ]
+	content = []
 	for line in fcontent.splitlines(True):
 		if six.PY2:
 			content.append(line)
@@ -60,7 +74,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				# decode everything
 				val = val.strip()
 
-				if val=="":
+				if val == "":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
 					r.append(None)
 				else:
@@ -74,6 +88,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 		frappe.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
 		raise
 
+
 @frappe.whitelist()
 def send_csv_to_client(args):
 	if isinstance(args, string_types):
@@ -85,6 +100,7 @@ def send_csv_to_client(args):
 	frappe.response["doctype"] = args.filename
 	frappe.response["type"] = "csv"
 
+
 def to_csv(data):
 	writer = UnicodeWriter()
 	for row in data:
@@ -92,10 +108,12 @@ def to_csv(data):
 
 	return writer.getvalue()
 
+
 def build_csv_response(data, filename):
 	frappe.response["result"] = cstr(to_csv(data))
 	frappe.response["doctype"] = filename
 	frappe.response["type"] = "csv"
+
 
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8", quoting=csv.QUOTE_NONNUMERIC):
@@ -111,34 +129,39 @@ class UnicodeWriter:
 	def getvalue(self):
 		return self.queue.getvalue()
 
+
 def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	from frappe.utils.dateutils import parse_date
+
 	doc = frappe.get_doc(d)
 
 	for key in d:
 		docfield = doc.meta.get_field(key)
 		val = d[key]
 		if docfield:
-			if docfield.reqd and (val=='' or val==None):
+			if docfield.reqd and (val == "" or val == None):
 				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
-			if docfield.fieldtype=='Select' and val and docfield.options:
-				if val not in docfield.options.split('\n'):
-					frappe.throw(_("{0} must be one of {1}").format(_(docfield.label), comma_or(docfield.options.split("\n"))))
+			if docfield.fieldtype == "Select" and val and docfield.options:
+				if val not in docfield.options.split("\n"):
+					frappe.throw(
+						_("{0} must be one of {1}").format(_(docfield.label), comma_or(docfield.options.split("\n")))
+					)
 
-			if val and docfield.fieldtype=='Date':
+			if val and docfield.fieldtype == "Date":
 				d[key] = parse_date(val)
 			elif val and docfield.fieldtype in ["Int", "Check"]:
 				d[key] = cint(val)
 			elif val and docfield.fieldtype in ["Currency", "Float", "Percent"]:
 				d[key] = flt(val)
 
+
 def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):
 	"""import main (non child) document"""
-	if d.get("name") and frappe.db.exists(doctype, d['name']):
+	if d.get("name") and frappe.db.exists(doctype, d["name"]):
 		if overwrite:
-			doc = frappe.get_doc(doctype, d['name'])
+			doc = frappe.get_doc(doctype, d["name"])
 			doc.flags.ignore_links = ignore_links
 			doc.update(d)
 			if d.get("docstatus") == 1:
@@ -147,10 +170,9 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 				doc.submit()
 			else:
 				doc.save()
-			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))
+			return "Updated row (#%d) %s" % (row_idx + 1, getlink(doctype, d["name"]))
 		else:
-			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1,
-				getlink(doctype, d['name']))
+			return "Ignored row (#%d) %s (exists)" % (row_idx + 1, getlink(doctype, d["name"]))
 	else:
 		doc = frappe.get_doc(d)
 		doc.flags.ignore_links = ignore_links
@@ -159,44 +181,47 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 		if submit:
 			doc.submit()
 
-		return 'Inserted row (#%d) %s' % (row_idx + 1, getlink(doctype,
-			doc.get('name')))
+		return "Inserted row (#%d) %s" % (row_idx + 1, getlink(doctype, doc.get("name")))
+
 
 def getlink(doctype, name):
 	return '<a href="/app/Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
+
 
 def get_csv_content_from_google_sheets(url):
 	# https://docs.google.com/spreadsheets/d/{sheetid}}/edit#gid={gid}
 	validate_google_sheets_url(url)
 	# get gid, defaults to first sheet
 	if "gid=" in url:
-		gid = url.rsplit('gid=', 1)[1]
+		gid = url.rsplit("gid=", 1)[1]
 	else:
 		gid = 0
 	# remove /edit path
-	url = url.rsplit('/edit', 1)[0]
+	url = url.rsplit("/edit", 1)[0]
 	# add /export path,
-	url = url + '/export?format=csv&gid={0}'.format(gid)
+	url = url + "/export?format=csv&gid={0}".format(gid)
 
-	headers = {
-		'Accept': 'text/csv'
-	}
+	headers = {"Accept": "text/csv"}
 	response = requests.get(url, headers=headers)
 
 	if response.ok:
 		# if it returns html, it couldn't find the CSV content
 		# because of invalid url or no access
-		if response.text.strip().endswith('</html>'):
+		if response.text.strip().endswith("</html>"):
 			frappe.throw(
-				_('Google Sheets URL is invalid or not publicly accessible.'),
-				title=_("Invalid URL")
+				_("Google Sheets URL is invalid or not publicly accessible."), title=_("Invalid URL")
 			)
 		return response.content
 	elif response.status_code == 400:
-		frappe.throw(_('Google Sheets URL must end with "gid={number}". Copy and paste the URL from the browser address bar and try again.'),
-			title=_("Incorrect URL"))
+		frappe.throw(
+			_(
+				'Google Sheets URL must end with "gid={number}". Copy and paste the URL from the browser address bar and try again.'
+			),
+			title=_("Incorrect URL"),
+		)
 	else:
 		response.raise_for_status()
+
 
 def validate_google_sheets_url(url):
 	if "docs.google.com/spreadsheets" not in url:

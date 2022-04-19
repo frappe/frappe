@@ -3,11 +3,15 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
-from frappe.model.document import Document
+
 import json
+
 from six import string_types
+
+import frappe
 from frappe.integrations.utils import json_handler
+from frappe.model.document import Document
+
 
 class IntegrationRequest(Document):
 	def autoname(self):
