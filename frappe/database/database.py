@@ -1228,7 +1228,9 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
-	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
+	def bulk_insert(
+		self, doctype: str, fields: list, values: list, ignore_duplicates=False, *, chunk_size=10_000
+	) -> None:
 		"""
 		Insert multiple records at a time
 
@@ -1247,6 +1249,7 @@ class Database(object):
 				elif frappe.conf.db_type == "postgres":
 					query = query.on_conflict().do_nothing()
 
+			print(start_index, chunk_size, values)
 			values_to_insert = values[start_index : start_index + chunk_size]
 			query.columns(fields).insert(*values_to_insert).run()
 

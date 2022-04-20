@@ -144,7 +144,7 @@ def create_multiple_todo_records():
 	for index in range(1, 1002):
 		values.append(("100{}".format(index), "Multiple ToDo {}".format(index)))
 
-	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=set(values))
+	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=values)
 
 
 def insert_contact(first_name, phone_number):
