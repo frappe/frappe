@@ -816,6 +816,17 @@ class DocType(Document):
 				if (self.autoname == "autoincrement" and doc_before_save.autoname != "autoincrement") or (
 					self.autoname != "autoincrement" and doc_before_save.autoname == "autoincrement"
 				):
+					if not frappe.get_all(self.name, limit=1):
+						# allow changing the column type if no data is there
+
+						frappe.db.change_column_type(
+							self.name,
+							"name",
+							"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
+							True
+						)
+						return
+
 					frappe.throw(_("Cannot change to/from Autoincrement naming rule"))
 		if self.autoname == "autoincrement":
 			self.allow_rename = 0
