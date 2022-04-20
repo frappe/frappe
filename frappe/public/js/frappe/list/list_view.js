@@ -1543,13 +1543,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		if (frappe.user.has_role("System Manager")) {
-			items.push({
-				label: __("List Settings", null, "Button in list view menu"),
-				action: () => this.show_list_settings(),
-				standard: true,
-			});
+			if (this.get_view_settings) {
+				items.push(this.get_view_settings());
+			}
 		}
+
 		return items;
+	}
+
+	get_view_settings() {
+		return {
+			label: __("List Settings", null, "Button in list view menu"),
+			action: () => this.show_list_settings(),
+			standard: true,
+		};
 	}
 
 	show_list_settings() {
