@@ -638,8 +638,9 @@ class File(Document):
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
 
+		original_content = self.get_content()
 		optimized_content = optimize_image(
-			content=self.get_content(),
+			content=original_content,
 			content_type=content_type,
 		)
 

@@ -4,6 +4,7 @@ import base64
 import json
 import os
 import unittest
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
@@ -14,16 +15,12 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
-from frappe.core.doctype.file.file import (
-	File,
-	get_attached_images,
-	get_files_in_folder,
-	move_file,
-	unzip_file,
-)
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.file.file import File
 
 test_content1 = "Hello"
 test_content2 = "Hello World"
@@ -63,7 +60,7 @@ class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode("utf-8"))
-		_file: File = frappe.get_doc(
+		_file: "File" = frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "test_base64.txt",
@@ -396,7 +393,7 @@ class TestFile(FrappeTestCase):
 		self.assertRaises(OSError, file1.save)
 
 	def test_file_url_validation(self):
-		test_file: File = frappe.new_doc("File")
+		test_file: "File" = frappe.new_doc("File")
 		test_file.update({"file_name": "logo", "file_url": "https://frappe.io/files/frappe.png"})
 
 		self.assertIsNone(test_file.validate())
@@ -423,7 +420,7 @@ class TestFile(FrappeTestCase):
 
 	def test_make_thumbnail(self):
 		# test web image
-		test_file: File = frappe.get_doc(
+		test_file: "File" = frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "logo",
@@ -641,13 +638,24 @@ class TestFileUtils(FrappeTestCase):
 
 
 class TestFileOptimization(FrappeTestCase):
-	def test_optimize_file(self):
+	@classmethod
+	def setUpClass(cls):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
 		with open(file_path, "rb") as f:
 			file_content = f.read()
-		test_file = frappe.get_doc(
+		cls.test_file = frappe.get_doc(
 			{"doctype": "File", "file_name": "sample_image_for_optimization.jpg", "content": file_content}
 		).insert()
+		cls.test_file.reload()
+		super().setUpClass()
+
+	@classmethod
+	def tearDownClass(cls):
+		cls.test_file.delete()
+		frappe.db.commit()
+
+	def test_optimize_file(self):
+		test_file = self.test_file
 		original_size = test_file.file_size
 		original_content_hash = test_file.content_hash
 
@@ -681,25 +689,14 @@ class TestFileOptimization(FrappeTestCase):
 		self.assertRaises(TypeError, test_folder.optimize_file)
 
 	def test_revert_optimized_file_on_rollback(self):
-		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
-		with open(file_path, "rb") as f:
-			file_content = f.read()
-
-		test_file: File = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "sample_image_for_optimization.jpg",
-				"content": file_content,
-			}
-		).insert()
+		test_file = self.test_file
 		test_file.flags.new_file = False  # so that we can get away with committing this for now
 		image_path = test_file.get_full_path()
 
 		size_before_optimization = os.stat(image_path).st_size
 		test_file.optimize_file()
 
-		test_file.on_rollback()
-
+		frappe.db.rollback()
 		size_after_rollback = os.stat(image_path).st_size
+
 		self.assertEqual(size_before_optimization, size_after_rollback)
-		test_file.delete()
