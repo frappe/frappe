@@ -75,7 +75,7 @@ def get(doctype, name=None, filters=None, parent=None):
 		check_parent_permission(parent, doctype)
 
 	if filters and not name:
-		name = frappe.db.get_value(doctype, json.loads(filters))
+		name = frappe.db.get_value(doctype, frappe.parse_json(filters))
 		if not name:
 			frappe.throw(_("No document found for given filters"))
 
