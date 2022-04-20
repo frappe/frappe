@@ -1236,8 +1236,9 @@ class Database(object):
 		:param fields: list of fields
 		:params values: list of list of values
 		"""
-
+		values = list(values)
 		table = frappe.qb.DocType(doctype)
+
 		for start_index in range(0, len(values), chunk_size):
 			query = frappe.qb.into(table)
 			if ignore_duplicates:
