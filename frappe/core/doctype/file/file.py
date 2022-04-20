@@ -77,6 +77,8 @@ class File(Document):
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
 
+		# when dict is passed to get_doc for creation of new_doc, is_new returns None
+		# this case is handled inside handle_is_private_changed
 		if not self.is_new() and self.has_value_changed("is_private"):
 			self.handle_is_private_changed()
 
@@ -175,6 +177,13 @@ class File(Document):
 			source = private_file_path
 			target = public_file_path
 			url_starts_with = "/files/"
+		updated_file_url = f"{url_starts_with}{file_name}"
+
+		# if a file document is created by passing dict throught get_doc and __local is not set,
+		# handle_is_private_changed would be executed; we're checking if updated_file_url is same
+		# as old_file_url to avoid a FileNotFoundError for this case.
+		if updated_file_url == old_file_url:
+			return
 
 		if not source.exists():
 			frappe.throw(
@@ -192,7 +201,7 @@ class File(Document):
 		self.flags.original_path = {"old": source, "new": target}
 		frappe.local.rollback_observers.append(self)
 
-		self.file_url = f"{url_starts_with}{file_name}"
+		self.file_url = updated_file_url
 		update_existing_file_docs(self)
 
 		if (
