@@ -117,6 +117,7 @@ class ParallelTestRunner:
 
 class ParallelTestResult(unittest.TextTestResult):
 	def startTest(self, test):
+		self.tb_locals = True
 		self._started_at = time.time()
 		super(unittest.TextTestResult, self).startTest(test)
 		test_class = unittest.util.strclass(test.__class__)
