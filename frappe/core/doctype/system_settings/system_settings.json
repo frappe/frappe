@@ -41,6 +41,7 @@
   "allow_login_using_user_name",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
+  "allow_only_safe_files_to_be_uploaded",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -485,12 +486,18 @@
    "fieldtype": "Select",
    "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_only_safe_files_to_be_uploaded",
+   "fieldtype": "Check",
+   "label": "Allow only safe files to be uploaded"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-01-04 11:28:34.881192",
+ "modified": "2022-04-20 15:47:34.238534",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

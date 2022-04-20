@@ -27,6 +27,40 @@ ALLOWED_MIMETYPES = (
 	"application/vnd.oasis.opendocument.spreadsheet",
 )
 
+ALLOWED_EXTENSION = [
+	"jpeg",
+	"jpg",
+	"pdf",
+	"txt",
+	"png",
+	"gif",
+	"doc",
+	"docx",
+	"ppt",
+	"pptx",
+	"xls",
+	"xlsx",
+	"ods",
+	"odp",
+	"odg",
+	"odt",
+	"cvs",
+	"ico",
+	"bmp",
+	"xcf",
+	"bmp",
+	"mp3",
+	"mp4",
+	"mov",
+	"m4a",
+	"wav",
+	"m4v",
+	"wmv",
+	"avi",
+	"zip",
+	"gzip",
+]
+
 
 def handle():
 	"""handle request"""
@@ -182,22 +216,18 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
-<<<<<<< HEAD
-	if 'file' in files:
-		ALLOWED_EXTENSION = ['jpeg', 'jpg', 'pdf', 'txt', 'png', 'gif', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx',
-					'ods', 'odp', 'odg', 'odt', 'cvs', 'ico', 'bmp', 'xcf', 'bmp', 'mp3', 'mp4', 'mov', 'm4a', 'wav',
-					'm4v', 'wmv', 'avi', 'zip', 'gzip']
-		file = files['file']
-=======
 	if "file" in files:
 		file = files["file"]
->>>>>>> develop
 		content = file.stream.read()
 		filename = file.filename
-		file_ext = filename.split('.')[-1]
+		file_ext = filename.split(".")[-1]
 
 		content_type = guess_type(filename)[0]
-		if file_ext and file_ext not in ALLOWED_EXTENSION:
+
+		safe_upload = frappe.db.get_singles_value(
+			"System Settings", "allow_only_safe_files_to_be_uploaded"
+		)
+		if file_ext and safe_upload and file_ext not in ALLOWED_EXTENSION:
 			frappe.throw(_("File is not safe to be uploaded."))
 
 		if optimize and content_type.startswith("image/"):
