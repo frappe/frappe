@@ -4,6 +4,7 @@ import base64
 import json
 import os
 import unittest
+from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 import frappe
@@ -32,6 +33,24 @@ def make_test_doc():
 	d.assigned_by = frappe.session.user
 	d.save()
 	return d.doctype, d.name
+
+
+@contextmanager
+def make_test_image_file():
+	file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+	with open(file_path, "rb") as f:
+		file_content = f.read()
+
+	test_file = frappe.get_doc(
+		{"doctype": "File", "file_name": "sample_image_for_optimization.jpg", "content": file_content}
+	).insert()
+	# remove those flags
+	_test_file: "File" = frappe.get_doc("File", test_file.name)
+
+	try:
+		yield _test_file
+	finally:
+		_test_file.delete()
 
 
 class TestSimpleFile(FrappeTestCase):
@@ -638,34 +657,17 @@ class TestFileUtils(FrappeTestCase):
 
 
 class TestFileOptimization(FrappeTestCase):
-	@classmethod
-	def setUpClass(cls):
-		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
-		with open(file_path, "rb") as f:
-			file_content = f.read()
-		cls.test_file = frappe.get_doc(
-			{"doctype": "File", "file_name": "sample_image_for_optimization.jpg", "content": file_content}
-		).insert()
-		cls.test_file.reload()
-		super().setUpClass()
-
-	@classmethod
-	def tearDownClass(cls):
-		cls.test_file.delete()
-		frappe.db.commit()
-
 	def test_optimize_file(self):
-		test_file = self.test_file
-		original_size = test_file.file_size
-		original_content_hash = test_file.content_hash
+		with make_test_image_file() as test_file:
+			original_size = test_file.file_size
+			original_content_hash = test_file.content_hash
 
-		test_file.optimize_file()
-		optimized_size = test_file.file_size
-		updated_content_hash = test_file.content_hash
+			test_file.optimize_file()
+			optimized_size = test_file.file_size
+			updated_content_hash = test_file.content_hash
 
-		self.assertLess(optimized_size, original_size)
-		self.assertNotEqual(original_content_hash, updated_content_hash)
-		test_file.delete()
+			self.assertLess(optimized_size, original_size)
+			self.assertNotEqual(original_content_hash, updated_content_hash)
 
 	def test_optimize_svg(self):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")
@@ -689,14 +691,11 @@ class TestFileOptimization(FrappeTestCase):
 		self.assertRaises(TypeError, test_folder.optimize_file)
 
 	def test_revert_optimized_file_on_rollback(self):
-		test_file = self.test_file
-		test_file.flags.new_file = False  # so that we can get away with committing this for now
-		image_path = test_file.get_full_path()
+		with make_test_image_file() as test_file:
+			image_path = test_file.get_full_path()
+			size_before_optimization = os.stat(image_path).st_size
+			test_file.optimize_file()
+			frappe.db.rollback()
+			size_after_rollback = os.stat(image_path).st_size
 
-		size_before_optimization = os.stat(image_path).st_size
-		test_file.optimize_file()
-
-		frappe.db.rollback()
-		size_after_rollback = os.stat(image_path).st_size
-
-		self.assertEqual(size_before_optimization, size_after_rollback)
+			self.assertEqual(size_before_optimization, size_after_rollback)
