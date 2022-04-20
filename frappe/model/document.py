@@ -528,6 +528,7 @@ class Document(BaseDocument):
 			d._validate_non_negative()
 			d._validate_length()
 			d._validate_code_fields()
+			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
@@ -1377,6 +1378,12 @@ class Document(BaseDocument):
 				}
 			).insert(ignore_permissions=True)
 			frappe.local.flags.commit = True
+
+	def log_error(self, title=None, message=None):
+		"""Helper function to create an Error Log"""
+		return frappe.log_error(
+			message=message, title=title, reference_doctype=self.doctype, reference_name=self.name
+		)
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""

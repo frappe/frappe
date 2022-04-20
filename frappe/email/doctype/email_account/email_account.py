@@ -473,7 +473,7 @@ class EmailAccount(Document):
 				frappe.db.rollback()
 			except Exception:
 				frappe.db.rollback()
-				frappe.log_error(title="EmailAccount.receive")
+				self.log_error(title="EmailAccount.receive")
 				if self.use_imap:
 					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
 				exceptions.append(frappe.get_traceback())
@@ -521,7 +521,7 @@ class EmailAccount(Document):
 			# close connection to mailserver
 			email_server.logout()
 		except Exception:
-			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+			self.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
 		return mails
 
@@ -667,7 +667,7 @@ class EmailAccount(Document):
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
 		except Exception:
-			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+			self.log_error("Email Connection Error")
 
 		if not email_server:
 			return
@@ -679,7 +679,7 @@ class EmailAccount(Document):
 				message = safe_encode(message)
 				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 			except Exception:
-				frappe.log_error(title="EmailAccount.append_email_to_sent_folder")
+				self.log_error("Unable to add to Sent folder")
 
 
 @frappe.whitelist()

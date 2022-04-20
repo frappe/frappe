@@ -595,6 +595,8 @@ export default class GridRow {
 			// to get update df for the row
 			let df = this.docfields.find(field => field.fieldname === col[0].fieldname);
 
+			this.set_dependant_property(df);
+
 			let colsize = col[1];
 			let txt = this.doc ?
 				frappe.format(this.doc[df.fieldname], df, null, this.doc) :
@@ -631,6 +633,56 @@ export default class GridRow {
 			$(`<div class="col grid-static-col col-xs-1"></div>`)
 				.appendTo(this.row);
 		}
+	}
+
+	set_dependant_property(df) {
+		if (!df.reqd && df.mandatory_depends_on &&
+			this.evaluate_depends_on_value(df.mandatory_depends_on)) {
+			df.reqd = 1;
+		}
+
+		if (!df.read_only && df.read_only_depends_on &&
+			this.evaluate_depends_on_value(df.read_only_depends_on)) {
+			df.read_only = 1;
+		}
+	}
+
+	evaluate_depends_on_value(expression) {
+		let out = null;
+		let doc = this.doc;
+
+		if (!doc) return;
+
+		let parent = this.frm ? this.frm.doc : this.doc || null;
+
+		if (typeof (expression) === 'boolean') {
+			out = expression;
+
+		} else if (typeof (expression) === 'function') {
+			out = expression(doc);
+
+		} else if (expression.substr(0, 5)=='eval:') {
+			try {
+				out = frappe.utils.eval(expression.substr(5), { doc, parent });
+				if (parent && parent.istable && expression.includes('is_submittable')) {
+					out = true;
+				}
+			} catch (e) {
+				frappe.throw(__('Invalid "depends_on" expression'));
+			}
+
+		} else if (expression.substr(0, 3)=='fn:' && this.frm) {
+			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
+		} else {
+			var value = doc[expression];
+			if ($.isArray(value)) {
+				out = !!value.length;
+			} else {
+				out = !!value;
+			}
+		}
+
+		return out;
 	}
 
 	show_search_row() {
