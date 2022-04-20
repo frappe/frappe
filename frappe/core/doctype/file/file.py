@@ -41,7 +41,9 @@ class File(Document):
 
 	@property
 	def is_remote_file(self):
-		return not self.content or (self.file_url or "").startswith(URL_PREFIXES)
+		if self.file_url:
+			return self.file_url.startswith(URL_PREFIXES)
+		return not self.content
 
 	def autoname(self):
 		"""Set name for folder"""
