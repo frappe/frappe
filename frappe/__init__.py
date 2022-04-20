@@ -217,7 +217,6 @@ def init(site, sites_path=None, new_site=False):
 
 	local.module_app = None
 	local.app_modules = None
-	local.system_settings = _dict()
 
 	local.user = None
 	local.user_perms = None
@@ -2068,25 +2067,36 @@ def logger(
 	)
 
 
-def log_error(message=None, title=_("Error")):
+def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
 	"""Log error to Error Log"""
 
-	# AI ALERT:
+	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
+	traceback = None
 	if message:
-		if "\n" in title:
-			error, title = title, message
+		if "\n" in title:  # traceback sent as title
+			traceback, title = title, message
 		else:
-			error = message
-	else:
-		error = get_traceback()
+			traceback = message
 
-	return get_doc(dict(doctype="Error Log", error=as_unicode(error), method=title)).insert(
-		ignore_permissions=True
-	)
+	if not traceback:
+		traceback = get_traceback()
+
+	if not title:
+		title = "Error"
+
+	return get_doc(
+		dict(
+			doctype="Error Log",
+			error=as_unicode(traceback),
+			method=title,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+		)
+	).insert(ignore_permissions=True)
 
 
 def get_desk_link(doctype, name):
@@ -2139,9 +2149,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def get_system_settings(key):
-	if key not in local.system_settings:
-		local.system_settings.update({key: db.get_single_value("System Settings", key)})
-	return local.system_settings.get(key)
+	return db.get_single_value("System Settings", key, cache=True)
 
 
 def get_active_domains():

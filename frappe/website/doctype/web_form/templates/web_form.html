@@ -70,6 +70,8 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 <div class="comments" style="margin-top: 3rem;">
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
+{%- else -%}
+<div style="height: 3rem"></div>
 {%- endif %} {# comments #}
 
 {% endblock page_content %}
