@@ -294,7 +294,7 @@ class Query:
 		table: str,
 		fields: Union[List, Tuple],
 		filters: Union[Dict[str, Union[str, int]], str, int] = None,
-		**kwargs
+		**kwargs,
 	):
 		criterion = self.build_conditions(table, filters, **kwargs)
 		if isinstance(fields, (list, tuple)):

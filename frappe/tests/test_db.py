@@ -90,8 +90,10 @@ class TestDB(unittest.TestCase):
 		# test multiple orderby's
 		delimiter = '"' if frappe.db.db_type == "postgres" else "`"
 		self.assertIn(
-			"ORDER BY {deli}creation{deli} DESC,{deli}modified{deli} ASC,{deli}name{deli} DESC".format(deli=delimiter),
-			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0)
+			"ORDER BY {deli}creation{deli} DESC,{deli}modified{deli} ASC,{deli}name{deli} DESC".format(
+				deli=delimiter
+			),
+			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
 
 	def test_get_value_limits(self):
