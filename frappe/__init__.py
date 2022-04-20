@@ -217,7 +217,6 @@ def init(site, sites_path=None, new_site=False):
 
 	local.module_app = None
 	local.app_modules = None
-	local.system_settings = _dict()
 
 	local.user = None
 	local.user_perms = None
@@ -2139,9 +2138,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def get_system_settings(key):
-	if key not in local.system_settings:
-		local.system_settings.update({key: db.get_single_value("System Settings", key)})
-	return local.system_settings.get(key)
+	return db.get_single_value("System Settings", key, cache=True)
 
 
 def get_active_domains():
