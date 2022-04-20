@@ -218,7 +218,7 @@ def validate_google_sheets_url(url):
 	from urllib.parse import urlparse
 
 	u = urlparse(url)
-	if u.scheme != 'https' and u.netloc != 'docs.google.com':
+	if u.scheme != "https" and u.netloc != "docs.google.com" and "/spreadsheets/" not in u.path:
 		frappe.throw(
 			_('"{0}" is not a valid Google Sheets URL').format(url),
 			title=_("Invalid URL"),
