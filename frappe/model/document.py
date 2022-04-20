@@ -3,6 +3,7 @@
 import hashlib
 import json
 import time
+from typing import List
 
 from werkzeug.exceptions import NotFound
 
@@ -19,9 +20,6 @@ from frappe.model.workflow import set_workflow_state_on_action, validate_workflo
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
-
-# once_only validation
-# methods
 
 
 def get_doc(*args, **kwargs):
@@ -188,7 +186,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permlevel or permtype)
 
-	def has_permission(self, permtype="read", verbose=False):
+	def has_permission(self, permtype="read", verbose=False) -> bool:
 		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
 		is not set.
 
@@ -212,7 +210,7 @@ class Document(BaseDocument):
 		ignore_mandatory=None,
 		set_name=None,
 		set_child_names=True,
-	):
+	) -> "Document":
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -294,7 +292,7 @@ class Document(BaseDocument):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None, ignore_version=None):
+	def _save(self, ignore_permissions=None, ignore_version=None) -> "Document":
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
@@ -524,13 +522,13 @@ class Document(BaseDocument):
 		self._save_passwords()
 		self.validate_workflow()
 
-		children = self.get_all_children()
-		for d in children:
+		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_length()
 			d._validate_code_fields()
+			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
@@ -890,7 +888,7 @@ class Document(BaseDocument):
 			msg = ", ".join((each[2] for each in cancelled_links))
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
-	def get_all_children(self, parenttype=None):
+	def get_all_children(self, parenttype=None) -> List["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
 
 		children = []
