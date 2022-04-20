@@ -8,7 +8,6 @@ import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
-from frappe.core.doctype.file.file import extract_images_from_html
 from frappe.core.doctype.file.utils import extract_images_from_html
 from frappe.desk.form.document_follow import follow_document
 
