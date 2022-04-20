@@ -1249,7 +1249,6 @@ class Database(object):
 				elif frappe.conf.db_type == "postgres":
 					query = query.on_conflict().do_nothing()
 
-			print(start_index, chunk_size, values)
 			values_to_insert = values[start_index : start_index + chunk_size]
 			query.columns(fields).insert(*values_to_insert).run()
 
