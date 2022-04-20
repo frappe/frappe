@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
 import unittest
+
+import frappe
 from frappe.test_runner import make_test_objects
 
-test_records = frappe.get_test_records('Email Domain')
+test_records = frappe.get_test_records("Email Domain")
+
 
 class TestDomain(unittest.TestCase):
-
 	def setUp(self):
-		make_test_objects('Email Domain', reset=True)
+		make_test_objects("Email Domain", reset=True)
 
 	def tearDown(self):
 		frappe.delete_doc("Email Account", "Test")
@@ -20,11 +21,13 @@ class TestDomain(unittest.TestCase):
 		mail_domain = frappe.get_doc("Email Domain", "test.com")
 		mail_account = frappe.get_doc("Email Account", "Test")
 
-		# Initially, incoming_port is different in domain and account
-		self.assertNotEqual(mail_account.incoming_port, mail_domain.incoming_port)
+		# Ensure a different port
+		mail_account.incoming_port = int(mail_domain.incoming_port) + 5
+		mail_account.save()
 		# Trigger update of accounts using this domain
 		mail_domain.on_update()
-		mail_account = frappe.get_doc("Email Account", "Test")
+
+		mail_account.reload()
 		# After update, incoming_port in account should match the domain
 		self.assertEqual(mail_account.incoming_port, mail_domain.incoming_port)
 

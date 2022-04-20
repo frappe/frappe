@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2022, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe import _
-from frappe.utils import get_fullname, now
-from frappe.model.document import Document
-from frappe.core.utils import set_timeline_doc
 import frappe
+from frappe import _
+from frappe.core.utils import set_timeline_doc
+from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
 from frappe.query_builder.functions import Now
-from pypika.terms import PseudoColumn
+from frappe.utils import get_fullname, now
+
 
 class ActivityLog(Document):
 	def before_insert(self):
@@ -27,20 +26,25 @@ class ActivityLog(Document):
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 
+
 def on_doctype_update():
 	"""Add indexes in `tabActivity Log`"""
 	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Activity Log", ["link_doctype", "link_name"])
 
+
 def add_authentication_log(subject, user, operation="Login", status="Success"):
-	frappe.get_doc({
-		"doctype": "Activity Log",
-		"user": user,
-		"status": status,
-		"subject": subject,
-		"operation": operation,
-	}).insert(ignore_permissions=True, ignore_links=True)
+	frappe.get_doc(
+		{
+			"doctype": "Activity Log",
+			"user": user,
+			"status": status,
+			"subject": subject,
+			"operation": operation,
+		}
+	).insert(ignore_permissions=True, ignore_links=True)
+
 
 def clear_activity_logs(days=None):
 	"""clear 90 day old authentication logs or configured in log settings"""
@@ -48,6 +52,4 @@ def clear_activity_logs(days=None):
 	if not days:
 		days = 90
 	doctype = DocType("Activity Log")
-	frappe.db.delete(doctype, filters=(
-		doctype.creation < PseudoColumn(f"({Now() - Interval(days=days)})")
-	))
+	frappe.db.delete(doctype, filters=(doctype.creation < (Now() - Interval(days=days))))

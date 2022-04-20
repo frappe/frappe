@@ -3,5 +3,6 @@
 
 import frappe
 
+
 def execute():
-        frappe.delete_doc_if_exists("DocType", "User Permission for Page and Report")
+	frappe.delete_doc_if_exists("DocType", "User Permission for Page and Report")

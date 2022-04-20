@@ -10,11 +10,12 @@ export default class FileUploader {
 		fieldname,
 		files,
 		folder,
-		restrictions,
+		restrictions = {},
 		upload_notes,
 		allow_multiple,
 		as_dataurl,
 		disable_file_browser,
+		dialog_title,
 		attach_doc_image,
 		frm
 	} = {}) {
@@ -22,13 +23,9 @@ export default class FileUploader {
 		frm && frm.attachments.max_reached(true);
 
 		if (!wrapper) {
-			this.make_dialog();
+			this.make_dialog(dialog_title);
 		} else {
 			this.wrapper = wrapper.get ? wrapper.get(0) : wrapper;
-		}
-
-		if (attach_doc_image) {
-			restrictions.allowed_file_types = ['image/jpeg', 'image/png'];
 		}
 
 		this.$fileuploader = new Vue({
@@ -53,6 +50,10 @@ export default class FileUploader {
 		});
 
 		this.uploader = this.$fileuploader.$children[0];
+
+		if (!this.dialog) {
+			this.uploader.wrapper_ready = true;
+		}
 
 		this.uploader.$watch('files', (files) => {
 			let all_private = files.every(file => file.private);
@@ -94,14 +95,17 @@ export default class FileUploader {
 		return this.uploader.upload_files();
 	}
 
-	make_dialog() {
+	make_dialog(title) {
 		this.dialog = new frappe.ui.Dialog({
-			title: __('Upload'),
+			title: title || __('Upload'),
 			primary_action_label: __('Upload'),
 			primary_action: () => this.upload_files(),
 			secondary_action_label: __('Set all private'),
 			secondary_action: () => {
 				this.uploader.toggle_all_private();
+			},
+			on_page_show: () => {
+				this.uploader.wrapper_ready = true;
 			}
 		});
 

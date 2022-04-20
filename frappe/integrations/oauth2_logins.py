@@ -1,38 +1,47 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
+
 import frappe
 import frappe.utils
 from frappe.utils.oauth import login_via_oauth2, login_via_oauth2_id_token
-import json
+
 
 @frappe.whitelist(allow_guest=True)
 def login_via_google(code, state):
 	login_via_oauth2("google", code, state, decoder=decoder_compat)
 
+
 @frappe.whitelist(allow_guest=True)
 def login_via_github(code, state):
 	login_via_oauth2("github", code, state)
+
 
 @frappe.whitelist(allow_guest=True)
 def login_via_facebook(code, state):
 	login_via_oauth2("facebook", code, state, decoder=decoder_compat)
 
+
 @frappe.whitelist(allow_guest=True)
 def login_via_frappe(code, state):
 	login_via_oauth2("frappe", code, state, decoder=decoder_compat)
+
 
 @frappe.whitelist(allow_guest=True)
 def login_via_office365(code, state):
 	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
+
 @frappe.whitelist(allow_guest=True)
 def login_via_salesforce(code, state):
 	login_via_oauth2("salesforce", code, state, decoder=decoder_compat)
 
+
 @frappe.whitelist(allow_guest=True)
 def login_via_fairlogin(code, state):
 	login_via_oauth2("fairlogin", code, state, decoder=decoder_compat)
+
 
 @frappe.whitelist(allow_guest=True)
 def custom(code, state):
@@ -47,6 +56,7 @@ def custom(code, state):
 		# Validates if provider doctype exists
 		if frappe.db.exists("Social Login Key", provider):
 			login_via_oauth2(provider, code, state, decoder=decoder_compat)
+
 
 def decoder_compat(b):
 	# https://github.com/litl/rauth/issues/145#issuecomment-31199471

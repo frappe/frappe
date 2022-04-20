@@ -246,10 +246,12 @@ frappe.ui.form.Form = class FrappeForm {
 		var me = this;
 
 		// on main doc
-		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
+		frappe.model.on(me.doctype, "*", function(fieldname, value, doc, skip_dirty_trigger=false) {
 			// set input
-			if(doc.name===me.docname) {
-				me.dirty();
+			if (cstr(doc.name) === me.docname) {
+				if (!skip_dirty_trigger) {
+					me.dirty();
+				}
 
 				let field = me.fields_dict[fieldname];
 				field && field.refresh(fieldname);
@@ -315,6 +317,25 @@ frappe.ui.form.Form = class FrappeForm {
 					}
 				});
 			});
+	}
+
+	setup_image_autocompletions_in_markdown() {
+		this.fields.map(field => {
+			if (field.df.fieldtype === 'Markdown Editor') {
+				this.set_df_property(field.df.fieldname, 'autocompletions', () => {
+					let attachments = this.attachments.get_attachments();
+					return attachments
+						.filter(file => frappe.utils.is_image_file(file.file_url))
+						.map(file => {
+							return {
+								caption: 'image: ' + file.file_name,
+								value: `![](${file.file_url})`,
+								meta: 'image'
+							};
+						});
+				});
+			}
+		});
 	}
 
 	// REFRESH
@@ -531,6 +552,7 @@ frappe.ui.form.Form = class FrappeForm {
 				// call onload post render for callbacks to be fired
 				() => {
 					if(this.cscript.is_onload) {
+						this.onload_post_render();
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
@@ -556,6 +578,10 @@ frappe.ui.form.Form = class FrappeForm {
 				this.scroll_to_element();
 			});
 		});
+	}
+
+	onload_post_render() {
+		this.setup_image_autocompletions_in_markdown();
 	}
 
 	set_first_tab_as_active() {
@@ -953,10 +979,12 @@ frappe.ui.form.Form = class FrappeForm {
 		this.toolbar.set_primary_action();
 	}
 
-	disable_save() {
+	disable_save(set_dirty=false) {
 		// IMPORTANT: this function should be called in refresh event
 		this.save_disabled = true;
 		this.toolbar.current_status = null;
+		// field changes should make form dirty
+		this.set_dirty = set_dirty;
 		this.page.clear_primary_action();
 	}
 
@@ -1102,13 +1130,13 @@ frappe.ui.form.Form = class FrappeForm {
 		let list_view = frappe.get_list_view(this.doctype);
 		if (list_view) {
 			filters = list_view.get_filters_for_args();
-			sort_field = list_view.sort_field;
+			sort_field = list_view.sort_by;
 			sort_order = list_view.sort_order;
 		} else {
 			let list_settings = frappe.get_user_settings(this.doctype)['List'];
 			if (list_settings) {
 				filters = list_settings.filters;
-				sort_field = list_settings.sort_field;
+				sort_field = list_settings.sort_by;
 				sort_order = list_settings.sort_order;
 			}
 		}
@@ -1447,7 +1475,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return doc;
 	}
 
-	set_value(field, value, if_missing) {
+	set_value(field, value, if_missing, skip_dirty_trigger=false) {
 		var me = this;
 		var _set = function(f, v) {
 			var fieldobj = me.fields_dict[f];
@@ -1467,7 +1495,7 @@ frappe.ui.form.Form = class FrappeForm {
 						me.refresh_field(f);
 						return Promise.resolve();
 					} else {
-						return frappe.model.set_value(me.doctype, me.doc.name, f, v);
+						return frappe.model.set_value(me.doctype, me.doc.name, f, v, me.fieldtype, skip_dirty_trigger);
 					}
 				}
 			} else {
@@ -1511,7 +1539,9 @@ frappe.ui.form.Form = class FrappeForm {
 						// update child doc
 						opts.child = locals[opts.child.doctype][opts.child.name];
 
-						var std_field_list = ["doctype"].concat(frappe.model.std_fields_list);
+						var std_field_list = ["doctype"]
+							.concat(frappe.model.std_fields_list)
+							.concat(frappe.model.child_table_field_list);
 						for (var key in r.message) {
 							if (std_field_list.indexOf(key)===-1) {
 								opts.child[key] = r.message[key];
@@ -1695,13 +1725,17 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	update_in_all_rows(table_fieldname, fieldname, value) {
-		// update the child value in all tables where it is missing
-		if(!value) return;
-		var cl = this.doc[table_fieldname] || [];
-		for(var i = 0; i < cl.length; i++){
-			if(!cl[i][fieldname]) cl[i][fieldname] = value;
-		}
-		refresh_field("items");
+		// Update the `value` of the field named `fieldname` in all rows of the
+		// child table named `table_fieldname`.
+		// Do not overwrite existing values.
+		if (value === undefined) return;
+
+		frappe.model
+			.get_children(this.doc, table_fieldname)
+			.filter(child => !frappe.model.has_value(child.doctype, child.name, fieldname))
+			.forEach(child =>
+				frappe.model.set_value(child.doctype, child.name, fieldname, value)
+			);
 	}
 
 	get_sum(table_fieldname, fieldname) {

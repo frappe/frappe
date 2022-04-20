@@ -64,9 +64,7 @@ class TestFixtureImport(unittest.TestCase):
 
 		singles_doctype = frappe.qb.DocType("Singles")
 		truncate_query = (
-			frappe.qb.from_(singles_doctype)
-			.delete()
-			.where(singles_doctype.doctype == "temp_singles")
+			frappe.qb.from_(singles_doctype).delete().where(singles_doctype.doctype == "temp_singles")
 		)
 		truncate_query.run()
 

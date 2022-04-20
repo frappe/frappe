@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "creation": "2014-03-11 14:55:00",
+ "creation": "2022-01-10 17:29:51.672911",
  "description": "Represents a User in the system.",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -48,6 +48,12 @@
   "document_follow_notifications_section",
   "document_follow_notify",
   "document_follow_frequency",
+  "column_break_75",
+  "follow_created_documents",
+  "follow_commented_documents",
+  "follow_liked_documents",
+  "follow_assigned_documents",
+  "follow_shared_documents",
   "email_settings",
   "email_signature",
   "thread_notify",
@@ -606,6 +612,45 @@
    "fieldtype": "Link",
    "label": "Module Profile",
    "options": "Module Profile"
+  },
+  {
+   "fieldname": "column_break_75",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_created_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that you create"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_commented_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that you comment on"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_liked_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that you Like"
+  },
+  {
+    "default": "0",
+    "depends_on": "eval:(doc.document_follow_notify== 1)",
+    "fieldname": "follow_shared_documents",
+    "fieldtype": "Check",
+    "label": "Auto follow documents that are shared with you"
+   },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_assigned_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that are assigned to you"
   }
  ],
  "icon": "fa fa-user",
@@ -668,8 +713,7 @@
    "link_fieldname": "user"
   }
  ],
- "max_attachments": 5,
- "modified": "2022-01-03 11:53:25.250822",
+ "modified": "2022-03-09 01:47:56.745069",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

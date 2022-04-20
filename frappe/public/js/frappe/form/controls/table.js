@@ -92,7 +92,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			if (frappe.model.no_value_type.includes(field.fieldtype)) {
 				return false;
 			}
-			
+
 			const is_field_matching = () => {
 				return (
 					field.fieldname.toLowerCase() === field_name ||

@@ -210,9 +210,12 @@ body.modal-open[style^="padding-right"] {
 	form {
 		display: flex;
 		align-items: center;
+
 		.frappe-control:first-child {
+			&[data-fieldname="sender"] {
+				margin-right: 10px;
+			}
 			flex: 1;
-			margin-bottom: 0px;
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
@@ -223,6 +226,11 @@ body.modal-open[style^="padding-right"] {
 			}
 		}
 	}
+}
+
+// modal is xs (for grids)
+.modal .hidden-xs {
+	display: none !important;
 }
 
 .dialog-assignment-row {

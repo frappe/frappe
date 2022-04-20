@@ -1,5 +1,6 @@
 import 'cypress-file-upload';
 import '@testing-library/cypress/add-commands';
+import '@4tw/cypress-drag-drop';
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -174,6 +175,9 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	if (fieldtype === 'Code') {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
 	}
+	if (fieldtype === 'Markdown Editor') {
+		selector = `[data-fieldname="${fieldname}"] .ace-editor-target`;
+	}
 
 	return cy.get(selector).first();
 });
@@ -200,16 +204,15 @@ Cypress.Commands.add('fill_table_field', (tablefieldname, row_idx, fieldname, va
 Cypress.Commands.add('get_table_field', (tablefieldname, row_idx, fieldname, fieldtype = 'Data') => {
 	let selector = `.frappe-control[data-fieldname="${tablefieldname}"]`;
 	selector += ` [data-idx="${row_idx}"]`;
-	selector += ` .form-in-grid`;
 
 	if (fieldtype === 'Text Editor') {
 		selector += ` [data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]`;
 	} else if (fieldtype === 'Code') {
 		selector += ` [data-fieldname="${fieldname}"] .ace_text-input`;
 	} else {
-		selector += ` .form-control[data-fieldname="${fieldname}"]`;
+		selector += ` [data-fieldname="${fieldname}"]`;
+		return cy.get(selector).find('.form-control:visible, .static-area:visible').first();
 	}
-
 	return cy.get(selector);
 });
 
@@ -238,8 +241,20 @@ Cypress.Commands.add('clear_cache', () => {
 });
 
 Cypress.Commands.add('dialog', opts => {
-	return cy.window().then(win => {
-		var d = new win.frappe.ui.Dialog(opts);
+	return cy.window({ log: false }).its('frappe', { log: false }).then(frappe => {
+		Cypress.log({
+			name: "dialog",
+			displayName: "dialog",
+			message: 'frappe.ui.Dialog',
+			consoleProps: () => {
+				return {
+					options: opts,
+					dialog: d
+				}
+			}
+		});
+
+		var d = new frappe.ui.Dialog(opts);
 		d.show();
 		return d;
 	});
@@ -253,6 +268,20 @@ Cypress.Commands.add('hide_dialog', () => {
 	cy.wait(300);
 	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
+});
+
+Cypress.Commands.add('clear_dialogs', () => {
+	cy.window().then((win) => {
+		win.$('.modal, .modal-backdrop').remove();
+	});
+	cy.get('.modal').should('not.exist');
+});
+
+Cypress.Commands.add('clear_datepickers', () => {
+	cy.window().then((win) => {
+		win.$('.datepicker').remove();
+	});
+	cy.get('.datepicker').should('not.exist');
 });
 
 Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
@@ -290,6 +319,7 @@ Cypress.Commands.add('add_filter', () => {
 });
 
 Cypress.Commands.add('clear_filters', () => {
+	let has_filter = false;
 	cy.intercept({
 		method: 'POST',
 		url: 'api/method/frappe.model.utils.user_settings.save'
@@ -297,12 +327,17 @@ Cypress.Commands.add('clear_filters', () => {
 	cy.get('.filter-section .filter-button').click({force: true});
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
+	cy.get('.filter-popover').then(popover => {
+		if (popover.find('input.input-with-feedback')[0].value != '') {
+			has_filter = true;
+		}
+	});
 	cy.get('.filter-popover').find('.clear-filters').click();
 	cy.get('.filter-section .filter-button').click();
 	cy.window().its('cur_list').then(cur_list => {
 		cur_list && cur_list.filter_area && cur_list.filter_area.clear();
+		has_filter && cy.wait('@filter-saved');
 	});
-	cy.wait('@filter-saved');
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {

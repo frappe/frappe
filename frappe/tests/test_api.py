@@ -20,6 +20,7 @@ except Exception:
 
 authorization_token = None
 
+
 @contextmanager
 def suppress_stdout():
 	"""Supress stdout for tests which expectedly make noise
@@ -31,7 +32,9 @@ def suppress_stdout():
 		sys.stdout = sys.__stdout__
 
 
-def make_request(target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None) -> TestResponse:
+def make_request(
+	target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None
+) -> TestResponse:
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
 	t.start()
 	t.join()
@@ -72,25 +75,28 @@ class FrappeAPITestCase(unittest.TestCase):
 	@property
 	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
-			r = self.post("/api/method/login", {
-				"usr": "Administrator",
-				"pwd": frappe.conf.admin_password or "admin",
-			})
-			self._sid = r.headers[2][1].split(";")[0].lstrip("sid=")
+			from frappe.auth import CookieManager, LoginManager
+			from frappe.utils import set_request
+
+			set_request(path="/")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as("Administrator")
+			self._sid = frappe.session.sid
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params})
+	def get(self, path: str, params: Optional[Dict] = None, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
 
-	def post(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data})
+	def post(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data, **kwargs})
 
-	def put(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data})
+	def put(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.put, args=(path,), kwargs={"data": data, **kwargs})
 
-	def delete(self, path) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.delete, args=(path, ))
+	def delete(self, path, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
 
 
 class TestResourceAPI(FrappeAPITestCase):
@@ -100,9 +106,7 @@ class TestResourceAPI(FrappeAPITestCase):
 	@classmethod
 	def setUpClass(cls):
 		for _ in range(10):
-			doc = frappe.get_doc(
-				{"doctype": "ToDo", "description": frappe.mock("paragraph")}
-			).insert()
+			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)
 		frappe.db.commit()
 
@@ -111,16 +115,6 @@ class TestResourceAPI(FrappeAPITestCase):
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
-
-	def setUp(self):
-		# commit to ensure consistency in session (postgres CI randomly fails)
-		if frappe.conf.db_type == "postgres":
-			frappe.db.commit()
-
-		if self._testMethodName == "test_auth_cycle":
-			from frappe.core.doctype.user.user import generate_keys
-			generate_keys("Administrator")
-			frappe.db.commit()
 
 	def test_unauthorized_call(self):
 		# test 1: fetch documents without auth
@@ -164,7 +158,9 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "fields": '["description"]'})
+		response = self.get(
+			f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "fields": '["description"]'}
+		)
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
@@ -212,10 +208,14 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIn(response.status_code, (403, 200))
 
 		if response.status_code == 403:
-			self.assertTrue(set(response.json.keys()) == {'exc_type', 'exception', 'exc', '_server_messages'})
-			self.assertEqual(response.json.get('exc_type'), 'PermissionError')
-			self.assertEqual(response.json.get('exception'), 'frappe.exceptions.PermissionError: Not permitted')
-			self.assertIsInstance(response.json.get('exc'), str)
+			self.assertTrue(
+				set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"}
+			)
+			self.assertEqual(response.json.get("exc_type"), "PermissionError")
+			self.assertEqual(
+				response.json.get("exception"), "frappe.exceptions.PermissionError: Not permitted"
+			)
+			self.assertIsInstance(response.json.get("exc"), str)
 
 		elif response.status_code == 200:
 			data = response.json.get("data")
@@ -225,6 +225,13 @@ class TestResourceAPI(FrappeAPITestCase):
 
 class TestMethodAPI(FrappeAPITestCase):
 	METHOD_PATH = "/api/method"
+
+	def setUp(self):
+		if self._testMethodName == "test_auth_cycle":
+			from frappe.core.doctype.user.user import generate_keys
+
+			generate_keys("Administrator")
+			frappe.db.commit()
 
 	def test_version(self):
 		# test 1: test for /api/method/version

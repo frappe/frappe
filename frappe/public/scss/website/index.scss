@@ -5,7 +5,6 @@
 @import "../common/global";
 @import "../common/icons";
 @import "../common/alert";
-@import 'base';
 @import "../common/flex";
 @import "../common/buttons";
 @import "../common/modal";
@@ -14,6 +13,7 @@
 @import "../common/indicator";
 @import "../common/controls";
 @import "../common/awesomeplete";
+@import 'base';
 @import 'multilevel_dropdown';
 @import 'website_image';
 @import 'website_avatar';
@@ -80,10 +80,26 @@
 
 .dropdown-menu {
 	padding: 0.25rem;
+	box-shadow: var(--shadow-lg);
+	border-color: var(--gray-200);
 }
 
 .dropdown-item {
 	border-radius: $dropdown-border-radius;
+}
+
+.dropdown-item:active {
+	color: var(--fg-color);
+	text-decoration: none;
+	background-color: var(--gray-600);
+}
+
+.dropdown-item:active:hover {
+	color: var(--fg-color);
+}
+
+.dropdown-menu a:hover {
+	cursor: pointer;
 }
 
 .input-dark {
@@ -98,8 +114,8 @@
 
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.page-content-wrapper .container {
-		padding-left: 1rem;
-		padding-right: 1rem;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
 	}
 }
 
@@ -308,4 +324,17 @@ h5.modal-title {
 
 .empty-list-icon {
 	height: 70px;
+}
+
+.null-state {
+	height: 60px;
+	width: auto;
+	margin-bottom: var(--margin-md);
+	img {
+		fill: var(--fg-color);
+	}
+}
+
+.no-result {
+	min-height: #{"calc(100vh - 284px)"};
 }
