@@ -108,11 +108,14 @@ def change_orderby(order: str):
 	        tuple: field, order
 	"""
 	order = order.split()
-	if order[1].lower() == "asc":
-		orderby, order = order[0], Order.asc
-		return orderby, order
-	orderby, order = order[0], Order.desc
-	return orderby, order
+
+	try:
+		if order[1].lower() == "asc":
+			return order[0], Order.asc
+	except IndexError:
+		pass
+
+	return order[0], Order.desc
 
 
 OPERATOR_MAP = {
@@ -175,10 +178,13 @@ class Query:
 		"""
 		if kwargs.get("orderby"):
 			orderby = kwargs.get("orderby")
-			order = kwargs.get("order") if kwargs.get("order") else Order.desc
 			if isinstance(orderby, str) and len(orderby.split()) > 1:
-				orderby, order = change_orderby(orderby)
-			conditions = conditions.orderby(orderby, order=order)
+				for ordby in orderby.split(","):
+					if ordby := ordby.strip():
+						orderby, order = change_orderby(ordby)
+						conditions = conditions.orderby(orderby, order=order)
+			else:
+				conditions = conditions.orderby(orderby, order=kwargs.get("order") or Order.desc)
 
 		if kwargs.get("limit"):
 			conditions = conditions.limit(kwargs.get("limit"))
