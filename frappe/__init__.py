@@ -2011,8 +2011,12 @@ def logger(
 
 def log_error(message=None, title=_("Error")):
 	"""Log error to Error Log"""
+<<<<<<< HEAD
 
 	# AI ALERT:
+=======
+	# Parameter ALERT:
+>>>>>>> 5ecc9fe4ff (refactor(log_error): de-clutter & log context with traceback)
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
@@ -2021,6 +2025,7 @@ def log_error(message=None, title=_("Error")):
 		if "\n" in title:
 			error, title = title, message
 		else:
+<<<<<<< HEAD
 			error = message
 	else:
 		error = get_traceback()
@@ -2028,6 +2033,20 @@ def log_error(message=None, title=_("Error")):
 	return get_doc(dict(doctype="Error Log", error=as_unicode(error), method=title)).insert(
 		ignore_permissions=True
 	)
+=======
+			traceback = message
+
+	title = title or "Error"
+	traceback = as_unicode(traceback or get_traceback(with_context=True))
+
+	return get_doc(
+		doctype="Error Log",
+		error=traceback,
+		method=title,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
+	).insert(ignore_permissions=True)
+>>>>>>> 5ecc9fe4ff (refactor(log_error): de-clutter & log context with traceback)
 
 
 def get_desk_link(doctype, name):
