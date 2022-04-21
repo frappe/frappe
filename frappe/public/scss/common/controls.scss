@@ -346,11 +346,10 @@ textarea.form-control {
 .duration-picker {
 	position: absolute;
 	z-index: 999;
-
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
-
+	width: max-content;
 	&:after,
 	&:before {
 		border: solid transparent;
@@ -463,3 +462,13 @@ button.data-pill {
 	justify-content: space-between;
 	align-items: center;
 }
+<<<<<<< HEAD
+=======
+
+.capture-remove-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+	cursor: pointer;
+}
+>>>>>>> e565deb88e (fix(UI): Duration Filter overlapping issue (#16599))
