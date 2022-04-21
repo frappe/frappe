@@ -2069,7 +2069,6 @@ def logger(
 
 def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
 	"""Log error to Error Log"""
-
 	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
@@ -2082,20 +2081,15 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		else:
 			traceback = message
 
-	if not traceback:
-		traceback = get_traceback()
-
-	if not title:
-		title = "Error"
+	title = title or "Error"
+	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
 	return get_doc(
-		dict(
-			doctype="Error Log",
-			error=as_unicode(traceback),
-			method=title,
-			reference_doctype=reference_doctype,
-			reference_name=reference_name,
-		)
+		doctype="Error Log",
+		error=traceback,
+		method=title,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
 	).insert(ignore_permissions=True)
 
 
