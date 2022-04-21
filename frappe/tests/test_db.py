@@ -182,10 +182,12 @@ class TestDB(unittest.TestCase):
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
-		create_custom_field("ToDo", {"label": "ToDo Custom Field"})
-
+		cf = create_custom_field("ToDo", {"label": "ToDo Custom Field"})
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 		self.assertIn("tabCustom Field", frappe.flags.touched_tables)
+		if cf:
+			cf.delete()
+		frappe.db.commit()
 		frappe.flags.in_migrate = False
 		frappe.flags.touched_tables.clear()
 
