@@ -20,10 +20,12 @@ def get_response(path=None, http_status_code=200):
 	except frappe.PermissionError as e:
 		response = NotPermittedPage(endpoint, http_status_code, exception=e).render()
 	except Exception as e:
+		frappe.log_error(f"{path} failed")
 		response = ErrorPage(exception=e).render()
 
 	return response
 
+
 def get_response_content(path=None, http_status_code=200):
 	response = get_response(path, http_status_code)
-	return str(response.data, 'utf-8')
+	return str(response.data, "utf-8")

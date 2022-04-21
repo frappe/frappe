@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestUserGroupMember(unittest.TestCase):
 	pass
