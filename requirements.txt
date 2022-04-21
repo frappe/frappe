@@ -72,7 +72,11 @@ six~=1.15.0
 sqlparse~=0.4.1
 stripe~=2.56.0
 terminaltables~=3.1.0
+<<<<<<< HEAD
 unittest-xml-reporting~=3.0.4
+=======
+traceback-with-variables~=2.0.4
+>>>>>>> 4e533682ba (feat: get_traceback with context)
 urllib3~=1.26.4
 watchdog~=2.0.2
 Werkzeug~=0.16.1

@@ -19,6 +19,11 @@ from gzip import GzipFile
 from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 
+<<<<<<< HEAD
+=======
+from redis.exceptions import ConnectionError
+from traceback_with_variables import iter_exc_lines
+>>>>>>> 4e533682ba (feat: get_traceback with context)
 from werkzeug.test import Client
 
 import frappe
@@ -270,7 +275,7 @@ def get_gravatar(email):
 	return gravatar_url
 
 
-def get_traceback() -> str:
+def get_traceback(with_context=False) -> str:
 	"""
 	Returns the traceback of the Exception
 	"""
@@ -279,10 +284,15 @@ def get_traceback() -> str:
 	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
-	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	bench_path = get_bench_path() + "/"
+	if with_context:
+		trace_list = iter_exc_lines()
+		tb = "\n".join(trace_list)
+	else:
+		trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
+		tb = "".join(cstr(t) for t in trace_list)
 
-	return "".join(cstr(t) for t in trace_list).replace(bench_path, "")
+	bench_path = get_bench_path() + "/"
+	return tb.replace(bench_path, "")
 
 
 def log(event, details):
