@@ -105,12 +105,17 @@ def sync_customizations(app: Optional[str] = None):
 	apps = frappe.get_installed_apps() if not app else [app]
 
 	for app_name in apps:
-		for json_file in glob(frappe.get_app_path(app_name, "**", "custom", "*.json")):
-			with open(json_file, "r") as f:
-				data = json.loads(f.read())
+		for module_name in frappe.local.app_modules.get(app_name) or []:
+			module_custom_folder = frappe.get_app_path(app_name, module_name, "custom")
+			if not os.path.exists(module_custom_folder):
+				continue
 
-			if data.get("sync_on_migrate"):
-				sync_customizations_for_doctype(data, os.path.dirname(json_file))
+			for json_file in glob(os.path.join(module_custom_folder, "*.json")):
+				with open(os.path.join(module_custom_folder, json_file), "r") as f:
+					data = json.loads(f.read())
+
+				if data.get("sync_on_migrate"):
+					sync_customizations_for_doctype(data, module_custom_folder)
 
 
 def sync_customizations_for_doctype(data: Dict, folder: str):
