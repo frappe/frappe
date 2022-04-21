@@ -4,8 +4,13 @@
 from __future__ import unicode_literals
 
 import datetime
+<<<<<<< HEAD
 
 from six import iteritems, string_types
+=======
+import json
+from typing import Dict, List
+>>>>>>> c691537e61 (chore: Add typing for ease of development)
 
 import frappe
 from frappe import _
@@ -260,7 +265,13 @@ class BaseDocument(object):
 
 		return value
 
+<<<<<<< HEAD
 	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False):
+=======
+	def get_valid_dict(
+		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
+	) -> Dict:
+>>>>>>> c691537e61 (chore: Add typing for ease of development)
 		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
@@ -312,7 +323,7 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-	def get_valid_columns(self):
+	def get_valid_columns(self) -> List[str]:
 		if self.doctype not in frappe.local.valid_columns:
 			if self.doctype in DOCTYPES_FOR_DOCTYPE:
 				from frappe.model.meta import get_table_columns
@@ -325,10 +336,28 @@ class BaseDocument(object):
 
 		return frappe.local.valid_columns[self.doctype]
 
-	def is_new(self):
+	def is_new(self) -> bool:
 		return self.get("__islocal")
 
+<<<<<<< HEAD
 	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
+=======
+	@property
+	def docstatus(self):
+		return DocStatus(self.get("docstatus"))
+
+	@docstatus.setter
+	def docstatus(self, value):
+		self.__dict__["docstatus"] = DocStatus(cint(value))
+
+	def as_dict(
+		self,
+		no_nulls=False,
+		no_default_fields=False,
+		convert_dates_to_str=False,
+		no_child_table_fields=False,
+	) -> Dict:
+>>>>>>> c691537e61 (chore: Add typing for ease of development)
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
