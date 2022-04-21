@@ -195,6 +195,9 @@ class Database(object):
 
 			elif frappe.conf.db_type == "postgres":
 				# TODO: added temporarily
+				import traceback
+
+				traceback.print_stack()
 				print(e)
 				raise
 
