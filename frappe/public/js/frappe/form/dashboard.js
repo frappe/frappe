@@ -366,7 +366,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	set_open_count() {
-		if (!this.data.transactions || !this.data.fieldname) {
+		if (!this.data || (!this.data.transactions || !this.data.fieldname)) {
 			return;
 		}
 
