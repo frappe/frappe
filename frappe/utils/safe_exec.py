@@ -16,6 +16,7 @@ from frappe import _
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
 from frappe.model.delete_doc import delete_doc
+from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
@@ -114,6 +115,7 @@ def get_safe_globals():
 			get_meta=frappe.get_meta,
 			new_doc=frappe.new_doc,
 			get_doc=frappe.get_doc,
+			get_mapped_doc=get_mapped_doc,
 			get_last_doc=frappe.get_last_doc,
 			get_cached_doc=frappe.get_cached_doc,
 			get_list=frappe.get_list,
