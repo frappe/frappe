@@ -14,6 +14,8 @@ from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
 	validate_fields_for_doctype,
 	validate_series,
+	can_change_name_column_type,
+	change_name_column_type,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
@@ -159,7 +161,9 @@ class CustomizeForm(Document):
 	def save_customization(self):
 		if not self.doc_type:
 			return
+
 		validate_series(self, self.autoname, self.doc_type)
+		is_name_type_changable = can_change_name_column_type(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()
@@ -167,6 +171,12 @@ class CustomizeForm(Document):
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 		check_email_append_to(self)
+
+		if is_name_type_changable:
+			change_name_column_type(
+				self.doc_type,
+				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})"
+			)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)
