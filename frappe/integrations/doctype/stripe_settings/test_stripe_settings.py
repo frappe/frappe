@@ -3,5 +3,6 @@
 # License: MIT. See LICENSE
 import unittest
 
+
 class TestStripeSettings(unittest.TestCase):
 	pass

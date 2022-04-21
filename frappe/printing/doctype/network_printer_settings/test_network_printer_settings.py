@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestNetworkPrinterSettings(unittest.TestCase):
 	pass
