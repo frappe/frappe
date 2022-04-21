@@ -354,11 +354,11 @@ def cache() -> "RedisWrapper":
 	return redis_server
 
 
-def get_traceback():
+def get_traceback(with_context=False):
 	"""Returns error traceback."""
 	from frappe.utils import get_traceback
 
-	return get_traceback()
+	return get_traceback(with_context=with_context)
 
 
 def errprint(msg):
