@@ -303,32 +303,33 @@ def attach_files_to_document(doc: "File", event) -> None:
 	for df in attach_fields:
 		# this method runs in on_update hook of all documents
 		# we dont want the update to fail if file cannot be attached for some reason
+		value = doc.get(df.fieldname)
+		if not (value or "").startswith(("/files", "/private/files")):
+			return
+
+		if frappe.db.exists(
+			"File",
+			{
+				"file_url": value,
+				"attached_to_name": doc.name,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_field": df.fieldname,
+			},
+		):
+			return
+
+		file: "File" = frappe.get_doc(
+			doctype="File",
+			file_url=value,
+			attached_to_name=doc.name,
+			attached_to_doctype=doc.doctype,
+			attached_to_field=df.fieldname,
+			folder="Home/Attachments",
+		)
 		try:
-			value = doc.get(df.fieldname)
-			if not (value or "").startswith(("/files", "/private/files")):
-				return
-
-			if frappe.db.exists(
-				"File",
-				{
-					"file_url": value,
-					"attached_to_name": doc.name,
-					"attached_to_doctype": doc.doctype,
-					"attached_to_field": df.fieldname,
-				},
-			):
-				return
-
-			frappe.get_doc(
-				doctype="File",
-				file_url=value,
-				attached_to_name=doc.name,
-				attached_to_doctype=doc.doctype,
-				attached_to_field=df.fieldname,
-				folder="Home/Attachments",
-			).insert()
+			file.insert()
 		except Exception:
-			frappe.log_error(title=_("Error Attaching File"))
+			doc.log_error("Error Attaching File")
 
 
 def decode_file_content(content: bytes) -> bytes:
