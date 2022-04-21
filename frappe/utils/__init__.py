@@ -296,7 +296,7 @@ def get_traceback(with_context=False) -> str:
 
 
 def log(event, details):
-	frappe.logger().info(details)
+	frappe.logger(event).info(details)
 
 
 def dict_to_str(args, sep="&"):
