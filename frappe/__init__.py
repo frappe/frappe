@@ -354,11 +354,11 @@ def cache() -> "RedisWrapper":
 	return redis_server
 
 
-def get_traceback():
+def get_traceback(with_context=False):
 	"""Returns error traceback."""
 	from frappe.utils import get_traceback
 
-	return get_traceback()
+	return get_traceback(with_context=with_context)
 
 
 def errprint(msg):
@@ -1210,18 +1210,35 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 
 
 @whitelist()
-def rename_doc(*args, **kwargs):
+def rename_doc(
+	doctype: str,
+	old: str,
+	new: str,
+	force: bool = False,
+	merge: bool = False,
+	*,
+	ignore_if_exists: bool = False,
+	show_alert: bool = True,
+	rebuild_search: bool = True,
+) -> str:
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
 
 	Calls `frappe.model.rename_doc.rename_doc`
 	"""
-	kwargs.pop("ignore_permissions", None)
-	kwargs.pop("cmd", None)
 
 	from frappe.model.rename_doc import rename_doc
 
-	return rename_doc(*args, **kwargs)
+	return rename_doc(
+		doctype=doctype,
+		old=old,
+		new=new,
+		force=force,
+		merge=merge,
+		ignore_if_exists=ignore_if_exists,
+		show_alert=show_alert,
+		rebuild_search=rebuild_search,
+	)
 
 
 def get_module(modulename):
@@ -2069,7 +2086,6 @@ def logger(
 
 def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
 	"""Log error to Error Log"""
-
 	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
@@ -2082,20 +2098,15 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		else:
 			traceback = message
 
-	if not traceback:
-		traceback = get_traceback()
-
-	if not title:
-		title = "Error"
+	title = title or "Error"
+	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
 	return get_doc(
-		dict(
-			doctype="Error Log",
-			error=as_unicode(traceback),
-			method=title,
-			reference_doctype=reference_doctype,
-			reference_name=reference_name,
-		)
+		doctype="Error Log",
+		error=traceback,
+		method=title,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
 	).insert(ignore_permissions=True)
 
 
