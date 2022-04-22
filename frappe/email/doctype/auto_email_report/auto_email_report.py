@@ -14,6 +14,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import (
 	add_to_date,
+	cint,
 	format_time,
 	get_link_to_form,
 	get_url_to_report,
@@ -53,14 +54,18 @@ class AutoEmailReport(Document):
 		self.email_to = "\n".join(valid)
 
 	def validate_report_count(self):
-		"""check that there are only 3 enabled reports per user"""
-		count = frappe.db.sql(
-			"select count(*) from `tabAuto Email Report` where user=%s and enabled=1", self.user
-		)[0][0]
-		max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
+		count = frappe.db.count("Auto Email Report", {"user": self.user, "enabled": 1})
+
+		max_reports_per_user = (
+			cint(frappe.local.conf.max_reports_per_user)  # kept for backward compatibilty
+			or cint(frappe.db.get_single_value("System Settings", "max_auto_email_report_per_user"))
+			or 20
+		)
 
 		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
-			frappe.throw(_("Only {0} emailed reports are allowed per user").format(max_reports_per_user))
+			msg = _("Only {0} emailed reports are allowed per user.").format(max_reports_per_user)
+			msg += " " + _("To allow more reports update limit in System Settings.")
+			frappe.throw(msg, title=_("Report limit reached"))
 
 	def validate_report_format(self):
 		"""check if user has select correct report format"""
