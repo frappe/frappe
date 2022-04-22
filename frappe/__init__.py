@@ -55,29 +55,23 @@ controllers = {}
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 
-	def __getattr__(self, key):
-		ret = self.get(key)
-		# "__deepcopy__" exception added to fix frappe#14833 via DFP
-		if not ret and key.startswith("__") and key != "__deepcopy__":
-			raise AttributeError()
-		return ret
-
-	def __setattr__(self, key, value):
-		self[key] = value
+	__slots__ = ()
+	__getattr__ = dict.get
+	__setattr__ = dict.__setitem__
+	__delattr__ = dict.__delitem__
+	__setstate__ = dict.update
 
 	def __getstate__(self):
 		return self
 
-	def __setstate__(self, d):
-		self.update(d)
-
-	def update(self, d):
+	def update(self, *args, **kwargs):
 		"""update and return self -- the missing dict feature in python"""
-		super(_dict, self).update(d)
+
+		super().update(*args, **kwargs)
 		return self
 
 	def copy(self):
-		return _dict(dict(self).copy())
+		return _dict(self)
 
 
 def _(msg, lang=None, context=None):
@@ -223,7 +217,6 @@ def init(site, sites_path=None, new_site=False):
 
 	local.module_app = None
 	local.app_modules = None
-	local.system_settings = _dict()
 
 	local.user = None
 	local.user_perms = None
@@ -1217,18 +1210,35 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 
 
 @whitelist()
-def rename_doc(*args, **kwargs):
+def rename_doc(
+	doctype: str,
+	old: str,
+	new: str,
+	force: bool = False,
+	merge: bool = False,
+	*,
+	ignore_if_exists: bool = False,
+	show_alert: bool = True,
+	rebuild_search: bool = True,
+) -> str:
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
 
 	Calls `frappe.model.rename_doc.rename_doc`
 	"""
-	kwargs.pop("ignore_permissions", None)
-	kwargs.pop("cmd", None)
 
 	from frappe.model.rename_doc import rename_doc
 
-	return rename_doc(*args, **kwargs)
+	return rename_doc(
+		doctype=doctype,
+		old=old,
+		new=new,
+		force=force,
+		merge=merge,
+		ignore_if_exists=ignore_if_exists,
+		show_alert=show_alert,
+		rebuild_search=rebuild_search,
+	)
 
 
 def get_module(modulename):
@@ -2074,25 +2084,36 @@ def logger(
 	)
 
 
-def log_error(message=None, title=_("Error")):
+def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
 	"""Log error to Error Log"""
 
-	# AI ALERT:
+	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
+	traceback = None
 	if message:
-		if "\n" in title:
-			error, title = title, message
+		if "\n" in title:  # traceback sent as title
+			traceback, title = title, message
 		else:
-			error = message
-	else:
-		error = get_traceback()
+			traceback = message
 
-	return get_doc(dict(doctype="Error Log", error=as_unicode(error), method=title)).insert(
-		ignore_permissions=True
-	)
+	if not traceback:
+		traceback = get_traceback()
+
+	if not title:
+		title = "Error"
+
+	return get_doc(
+		dict(
+			doctype="Error Log",
+			error=as_unicode(traceback),
+			method=title,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+		)
+	).insert(ignore_permissions=True)
 
 
 def get_desk_link(doctype, name):
@@ -2145,9 +2166,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def get_system_settings(key):
-	if key not in local.system_settings:
-		local.system_settings.update({key: db.get_single_value("System Settings", key)})
-	return local.system_settings.get(key)
+	return db.get_single_value("System Settings", key, cache=True)
 
 
 def get_active_domains():

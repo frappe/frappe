@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import frappe
 from frappe import _
-from frappe.database.sequence import get_next_val, set_next_val
 from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr, now_datetime
@@ -36,6 +35,8 @@ def set_new_name(doc):
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
+		from frappe.database.sequence import get_next_val
+
 		doc.name = get_next_val(doc.doctype)
 		return
 
@@ -45,9 +46,6 @@ def set_new_name(doc):
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
-
-	elif getattr(doc.meta, "istable", False):
-		doc.name = make_autoname("hash", doc.doctype)
 
 	if not doc.name:
 		set_naming_from_document_naming_rule(doc)
@@ -325,11 +323,14 @@ def get_default_naming_series(doctype):
 
 
 def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
+
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
 
 	if isinstance(name, int):
 		if is_autoincremented(doctype):
+			from frappe.database.sequence import set_next_val
+
 			# this will set the sequence val to be the provided name and set it to be used
 			# so that the sequence will start from the next val of the setted val(name)
 			set_next_val(doctype, name, is_val_used=True)

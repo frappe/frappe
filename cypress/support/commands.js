@@ -1,5 +1,6 @@
 import 'cypress-file-upload';
 import '@testing-library/cypress/add-commands';
+import '@4tw/cypress-drag-drop';
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -174,6 +175,9 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	if (fieldtype === 'Code') {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
 	}
+	if (fieldtype === 'Markdown Editor') {
+		selector = `[data-fieldname="${fieldname}"] .ace-editor-target`;
+	}
 
 	return cy.get(selector).first();
 });
@@ -237,8 +241,20 @@ Cypress.Commands.add('clear_cache', () => {
 });
 
 Cypress.Commands.add('dialog', opts => {
-	return cy.window().then(win => {
-		var d = new win.frappe.ui.Dialog(opts);
+	return cy.window({ log: false }).its('frappe', { log: false }).then(frappe => {
+		Cypress.log({
+			name: "dialog",
+			displayName: "dialog",
+			message: 'frappe.ui.Dialog',
+			consoleProps: () => {
+				return {
+					options: opts,
+					dialog: d
+				}
+			}
+		});
+
+		var d = new frappe.ui.Dialog(opts);
 		d.show();
 		return d;
 	});
@@ -252,6 +268,20 @@ Cypress.Commands.add('hide_dialog', () => {
 	cy.wait(300);
 	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
+});
+
+Cypress.Commands.add('clear_dialogs', () => {
+	cy.window().then((win) => {
+		win.$('.modal, .modal-backdrop').remove();
+	});
+	cy.get('.modal').should('not.exist');
+});
+
+Cypress.Commands.add('clear_datepickers', () => {
+	cy.window().then((win) => {
+		win.$('.datepicker').remove();
+	});
+	cy.get('.datepicker').should('not.exist');
 });
 
 Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {

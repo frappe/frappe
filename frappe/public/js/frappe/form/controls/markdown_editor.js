@@ -29,6 +29,8 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 
 		this.markdown_preview = $(`<div class="${editor_class}-preview border rounded">`).hide();
 		this.markdown_container.append(this.markdown_preview);
+
+		this.setup_image_drop();
 	}
 
 	set_language() {
@@ -52,5 +54,46 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 
 	set_disp_area(value) {
 		this.disp_area && $(this.disp_area).text(value);
+	}
+
+	setup_image_drop() {
+		this.ace_editor_target.on('drop', e => {
+			e.stopPropagation();
+			e.preventDefault();
+			let { dataTransfer } = e.originalEvent;
+			if (!dataTransfer?.files?.length) {
+				return;
+			}
+			let files = dataTransfer.files;
+			if (!files[0].type.includes('image')) {
+				frappe.show_alert({
+					message: __('You can only insert images in Markdown fields', [files[0].name]),
+					indicator: 'orange'
+				});
+				return;
+			}
+
+			new frappe.ui.FileUploader({
+				dialog_title: __('Insert Image in Markdown'),
+				doctype: this.doctype,
+				docname: this.docname,
+				frm: this.frm,
+				files,
+				folder: 'Home/Attachments',
+				allow_multiple: false,
+				restrictions: {
+					allowed_file_types: ['image/*']
+				},
+				on_success: (file_doc) => {
+					if (this.frm && !this.frm.is_new()) {
+						this.frm.attachments.attachment_uploaded(file_doc);
+					}
+					this.editor.session.insert(
+						this.editor.getCursorPosition(),
+						`![](${encodeURI(file_doc.file_url)})`
+					);
+				}
+			});
+		});
 	}
 };

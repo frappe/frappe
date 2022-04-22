@@ -319,6 +319,25 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
+	setup_image_autocompletions_in_markdown() {
+		this.fields.map(field => {
+			if (field.df.fieldtype === 'Markdown Editor') {
+				this.set_df_property(field.df.fieldname, 'autocompletions', () => {
+					let attachments = this.attachments.get_attachments();
+					return attachments
+						.filter(file => frappe.utils.is_image_file(file.file_url))
+						.map(file => {
+							return {
+								caption: 'image: ' + file.file_name,
+								value: `![](${file.file_url})`,
+								meta: 'image'
+							};
+						});
+				});
+			}
+		});
+	}
+
 	// REFRESH
 
 	refresh(docname) {
@@ -533,6 +552,7 @@ frappe.ui.form.Form = class FrappeForm {
 				// call onload post render for callbacks to be fired
 				() => {
 					if(this.cscript.is_onload) {
+						this.onload_post_render();
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
@@ -558,6 +578,10 @@ frappe.ui.form.Form = class FrappeForm {
 				this.scroll_to_element();
 			});
 		});
+	}
+
+	onload_post_render() {
+		this.setup_image_autocompletions_in_markdown();
 	}
 
 	set_first_tab_as_active() {

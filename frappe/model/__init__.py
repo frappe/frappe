@@ -37,6 +37,7 @@ data_fieldtypes = (
 	"Duration",
 	"Icon",
 	"Autocomplete",
+	"JSON",
 )
 
 float_like_fields = {"Float", "Currency", "Percent"}
