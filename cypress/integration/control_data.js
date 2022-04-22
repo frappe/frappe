@@ -40,9 +40,9 @@ context('Data Control', () => {
 		//Checking the URL for the new form of the doctype
 		cy.location("pathname").should('eq', '/app/test-data-control/new-test-data-control-1');
 		cy.get('.title-text').should('have.text', 'New Test Data Control');
-		cy.get('.frappe-control[data-fieldname="name1"]').find('label').should('have.class','reqd');
-		cy.get('.frappe-control[data-fieldname="email"]').find('label').should('have.class','reqd');
-		cy.get('.frappe-control[data-fieldname="phone"]').find('label').should('have.class','reqd');
+		cy.get('.frappe-control[data-fieldname="name1"]').find('label').should('have.class', 'reqd');
+		cy.get('.frappe-control[data-fieldname="email"]').find('label').should('have.class', 'reqd');
+		cy.get('.frappe-control[data-fieldname="phone"]').find('label').should('have.class', 'reqd');
 
 		//Checking if the status is "Not Saved" initially
 		cy.get('.indicator-pill').should('have.text', 'Not Saved');
@@ -61,7 +61,7 @@ context('Data Control', () => {
 		cy.get('.msgprint').should('have.text', '@@### is not a valid Name');
 		cy.get('.modal').type('{esc}');
 
-		cy.get_field('name1','Data').clear({force: true});
+		cy.get_field('name1', 'Data').clear({force: true});
 		cy.fill_field('name1', 'Komal{}/!', 'Data');
 		cy.get('.frappe-control[data-fieldname="name1"]').should('have.class', 'has-error');
 		cy.findByRole('button', {name: 'Save'}).click();
@@ -71,7 +71,7 @@ context('Data Control', () => {
 
 	it('Verifying data control by inputting different patterns for "Email" field', () => {
 		cy.get('.modal-actions > .btn-modal-close').trigger("click");
-		cy.get_field('name1','Data').clear({force: true});
+		cy.get_field('name1', 'Data').clear({force: true});
 		cy.fill_field('name1', 'Komal', 'Data');
 		cy.get_field('email', 'Data').clear({force: true});
 		cy.fill_field('email', 'komal', 'Data');
