@@ -10,7 +10,6 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
-from cgi import print_form
 import os
 import warnings
 
