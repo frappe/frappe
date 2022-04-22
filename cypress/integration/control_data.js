@@ -89,17 +89,16 @@ context('Data Control', () => {
 	});
 
 	it('Verifying data control by inputting different patterns for "Phone" field', () => {
-		cy.get('.modal').type('{esc}');
+		cy.get('.modal-actions > .btn-modal-close').trigger("click");
 		cy.get_field('email', 'Data').clear({force: true});
 		cy.fill_field('email', 'komal@test.com', 'Data');
 		cy.get_field('phone', 'Data').clear({force: true});
 		cy.fill_field('phone', 'komal', 'Data');
 		cy.get('.frappe-control[data-fieldname="phone"]').should('have.class', 'has-error');
-		cy.findByRole('button', {name: 'Save'}).click();
+		cy.findByRole('button', {name: 'Save'}).click({force: true});
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'komal is not a valid Phone Number');
 		cy.get('.modal-actions > .btn-modal-close').trigger("click");
-		//cy.get('.modal').type('{esc}');
 	});
 
 	it('Inputting correct data and saving the doc', () => {
