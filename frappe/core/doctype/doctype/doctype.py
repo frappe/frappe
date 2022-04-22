@@ -947,7 +947,7 @@ def change_name_column_type(doctype_name: str, type: str) -> None:
 		doctype_name,
 		"name",
 		type,
-		True
+		True if frappe.db.db_type == "mariadb" else False
 	)
 
 
