@@ -1146,18 +1146,13 @@ class Database(object):
 		return frappe.db.is_missing_column(e)
 
 	def get_descendants(self, doctype, name):
-		"""Return descendants of the current record"""
-		node_location_indexes = self.get_value(doctype, name, ("lft", "rgt"))
-		if node_location_indexes:
-			lft, rgt = node_location_indexes
-			return self.sql_list(
-				"""select name from `tab{doctype}`
-				where lft > {lft} and rgt < {rgt}""".format(
-					doctype=doctype, lft=lft, rgt=rgt
-				)
-			)
-		else:
-			# when document does not exist
+		"""Return descendants of the group node in tree"""
+		from frappe.utils.nestedset import get_descendants_of
+
+		try:
+			return get_descendants_of(doctype, name, ignore_permissions=True)
+		except Exception:
+			# Can only happen if document doesn't exists - kept for backward compatibility
 			return []
 
 	def is_missing_table_or_column(self, e):
@@ -1236,8 +1231,9 @@ class Database(object):
 		:param fields: list of fields
 		:params values: list of list of values
 		"""
-
+		values = list(values)
 		table = frappe.qb.DocType(doctype)
+
 		for start_index in range(0, len(values), chunk_size):
 			query = frappe.qb.into(table)
 			if ignore_duplicates:

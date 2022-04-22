@@ -1211,18 +1211,35 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 
 
 @whitelist()
-def rename_doc(*args, **kwargs):
+def rename_doc(
+	doctype: str,
+	old: str,
+	new: str,
+	force: bool = False,
+	merge: bool = False,
+	*,
+	ignore_if_exists: bool = False,
+	show_alert: bool = True,
+	rebuild_search: bool = True,
+) -> str:
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
 
 	Calls `frappe.model.rename_doc.rename_doc`
 	"""
-	kwargs.pop("ignore_permissions", None)
-	kwargs.pop("cmd", None)
 
 	from frappe.model.rename_doc import rename_doc
 
-	return rename_doc(*args, **kwargs)
+	return rename_doc(
+		doctype=doctype,
+		old=old,
+		new=new,
+		force=force,
+		merge=merge,
+		ignore_if_exists=ignore_if_exists,
+		show_alert=show_alert,
+		rebuild_search=rebuild_search,
+	)
 
 
 def get_module(modulename):
