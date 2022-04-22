@@ -82,6 +82,6 @@ context('Kanban Board', () => {
 	// 		.contains('Test Kanban ToDo').first()
 	// 		.drag('[data-column-value="Closed"] .kanban-cards', { force: true });
 
-		// cy.wait('@drag-completed');
+	// cy.wait('@drag-completed');
 	// });
 });
