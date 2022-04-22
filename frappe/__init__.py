@@ -1490,10 +1490,11 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
-		fullargspec = inspect.getfullargspec(fn)
-		fnargs = fullargspec.args
-		fnargs.extend(fullargspec.kwonlyargs)
-		varkw = fullargspec.varkw
+		signature = inspect.signature(fn)
+		fnargs = list(signature.parameters)
+		varkw = "kwargs" in fnargs
+		if varkw:
+			fnargs.pop(-1)
 
 	newargs = {}
 	for a in kwargs:
@@ -2252,7 +2253,4 @@ def mock(type, size=1, locale="en"):
 	return squashify(results)
 
 
-def validate_and_sanitize_search_inputs(fn):
-	from frappe.desk.search import validate_and_sanitize_search_inputs as func
-
-	return func(fn)
+from frappe.desk.search import validate_and_sanitize_search_inputs  # noqa
