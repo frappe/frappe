@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+from typing import Dict, List
 
 import frappe
 from frappe import _
@@ -252,7 +253,7 @@ class BaseDocument(object):
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
-	):
+	) -> Dict:
 		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
@@ -329,7 +330,7 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-	def get_valid_columns(self):
+	def get_valid_columns(self) -> List[str]:
 		if self.doctype not in frappe.local.valid_columns:
 			if self.doctype in DOCTYPES_FOR_DOCTYPE:
 				from frappe.model.meta import get_table_columns
@@ -342,7 +343,7 @@ class BaseDocument(object):
 
 		return frappe.local.valid_columns[self.doctype]
 
-	def is_new(self):
+	def is_new(self) -> bool:
 		return self.get("__islocal")
 
 	@property
@@ -359,7 +360,7 @@ class BaseDocument(object):
 		no_default_fields=False,
 		convert_dates_to_str=False,
 		no_child_table_fields=False,
-	):
+	) -> Dict:
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
 

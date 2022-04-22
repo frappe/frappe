@@ -1066,7 +1066,7 @@ class Database(object):
 			now_datetime() - relativedelta(minutes=minutes),
 		)[0][0]
 
-	def get_db_table_columns(self, table):
+	def get_db_table_columns(self, table) -> List[str]:
 		"""Returns list of column names from given table."""
 		columns = frappe.cache().hget("table_columns", table)
 		if columns is None:
@@ -1146,18 +1146,13 @@ class Database(object):
 		return frappe.db.is_missing_column(e)
 
 	def get_descendants(self, doctype, name):
-		"""Return descendants of the current record"""
-		node_location_indexes = self.get_value(doctype, name, ("lft", "rgt"))
-		if node_location_indexes:
-			lft, rgt = node_location_indexes
-			return self.sql_list(
-				"""select name from `tab{doctype}`
-				where lft > {lft} and rgt < {rgt}""".format(
-					doctype=doctype, lft=lft, rgt=rgt
-				)
-			)
-		else:
-			# when document does not exist
+		"""Return descendants of the group node in tree"""
+		from frappe.utils.nestedset import get_descendants_of
+
+		try:
+			return get_descendants_of(doctype, name, ignore_permissions=True)
+		except Exception:
+			# Can only happen if document doesn't exists - kept for backward compatibility
 			return []
 
 	def is_missing_table_or_column(self, e):
