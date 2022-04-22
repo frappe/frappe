@@ -213,7 +213,11 @@ class PostgresDatabase(Database):
 	) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
-		return self.sql(
+
+		# postgres allows ddl in transactions but since we've currently made
+		# things same as mariadb (raising exception on ddl commands if the transaction has any writes),
+		# hence using sql_ddl here for committing and then moving forward.
+		return self.sql_ddl(
 			f"""ALTER TABLE "{table_name}"
 								ALTER COLUMN "{column}" TYPE {type},
 								ALTER COLUMN "{column}" {null_constraint}"""
