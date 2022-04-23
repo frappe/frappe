@@ -867,3 +867,18 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.assertIn(
 			"is null", frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower()
 		)
+
+
+@run_only_if(db_type_is.POSTGRES)
+class TestTransactionManagement(unittest.TestCase):
+	def test_create_proper_transactions(self):
+		def _get_transaction_id():
+			return frappe.db.sql("select txid_current()", pluck=True)
+
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+		frappe.db.rollback()
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+		frappe.db.commit()
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
