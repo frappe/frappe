@@ -13,9 +13,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		var $input = $(element);
 		var input = $input.get(0);
 
-		this.options = [];
-		this.global_results = [];
-
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
 			maxItems: 99,
@@ -43,6 +40,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					.get(0);
 			},
 			sort: function(a, b) {
+				// HACK: label here is actually score/relevance
 				return (b.label - a.label);
 			}
 		});
@@ -53,30 +51,22 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.awesomplete = awesomplete;
 
 		$input.on("input", frappe.utils.debounce(function(e) {
-			var value = e.target.value;
-			var txt = value.trim().replace(/\s\s+/g, ' ');
-			var last_space = txt.lastIndexOf(' ');
-			me.global_results = [];
+			let value = e.target.value;
+			let txt = value.trim().replace(/\s\s+/g, ' ');
 
-			me.options = [];
-
-			if (txt && txt.length > 1) {
-				if (last_space !== -1) {
-					me.set_specifics(txt.slice(0, last_space), txt.slice(last_space+1));
+			let options = [];
+			frappe.search.awesomebar_providers.forEach(provider => {
+				try {
+					const results = provider(txt);
+					if (Array.isArray(results)) {
+						options.push(...results);
+					}
+				} catch (e) {
+					console.error(e);
 				}
-				me.add_defaults(txt);
-				me.options = me.options.concat(me.build_options(txt));
-				me.options = me.options.concat(me.global_results);
-			} else {
-				me.options = me.options.concat(
-					me.deduplicate(frappe.search.utils.get_recent_pages(txt || "")));
-				me.options = me.options.concat(frappe.search.utils.get_frequent_links());
-			}
-			frappe.search.awesomebar_providers.forEach(provider => me.options.push(...provider(txt)));
-
-			console.log(me.options)
-			awesomplete.list = me.deduplicate(me.options);
-
+			});
+			options.sort((a, b) => a.index - b.index);
+			awesomplete.list = me.deduplicate(options);
 		}, 100));
 
 		var open_recent = function() {
@@ -124,43 +114,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		frappe.tags.utils.fetch_tags();
 	}
 
-	set_specifics(txt, end_txt) {
-		var me = this;
-		var results = this.build_options(txt);
-		results.forEach(function(r) {
-			if(r.type && (r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
-				me.options.push(r);
-			}
-		});
-	}
-
-	add_defaults(txt) {
-		this.make_global_search(txt);
-		this.make_search_in_current(txt);
-		this.make_calculator(txt);
-		this.make_random(txt);
-	}
-
-	build_options(txt) {
-		var options = frappe.search.utils.get_creatables(txt).concat(
-			frappe.search.utils.get_search_in_list(txt),
-			frappe.search.utils.get_doctypes(txt),
-			frappe.search.utils.get_reports(txt),
-			frappe.search.utils.get_pages(txt),
-			frappe.search.utils.get_workspaces(txt),
-			frappe.search.utils.get_dashboards(txt),
-			frappe.search.utils.get_recent_pages(txt || ""),
-			frappe.search.utils.get_executables(txt)
-		);
-		if (txt.charAt(0) === "#") {
-			options = frappe.tags.utils.get_tags(txt);
-		}
-		var out = this.deduplicate(options);
-		return out.sort(function(a, b) {
-			return b.index - a.index;
-		});
-	}
-
 	deduplicate(options) {
 		var out = [], routes = [];
 		options.forEach(function(option) {
@@ -190,116 +143,5 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 		});
 		return out;
-	}
-
-	set_global_results(global_results, txt) {
-		this.global_results = this.global_results.concat(global_results);
-	}
-
-	make_global_search(txt) {
-		// let search_text = $(this.awesomplete.ul).find('.search-text');
-
-		// if (txt.charAt(0) === "#" || !txt) {
-		// 	search_text && search_text.remove();
-		// 	return;
-		// }
-
-		// if (!search_text.length) {
-		// 	search_text = $(this.awesomplete.ul).prepend(`
-		// 		<div class="search-text">
-		// 			<span class="search-text"></span>
-		// 		<div>`
-		// 	).find(".search-text");
-		// }
-
-		// search_text.html(`
-		// 	<span class="flex justify-between">
-		// 		<span class="ellipsis">Search for ${frappe.utils.xss_sanitise(txt).bold()}</span>
-		// 		<kbd>↵</kbd>
-		// 	</span>
-		// `);
-
-		// search_text.click(() => {
-		// 	frappe.searchdialog.search.init_search(txt, "global_search");
-		// });
-
-		// REDESIGN TODO: Remove this as a selectable option
-		if (txt.charAt(0) === "#") {
-			return;
-		}
-
-		this.options.push({
-			label: `
-				<span class="flex justify-between text-medium">
-					<span class="ellipsis">${ __('Search for {0}', [frappe.utils.xss_sanitise(txt).bold()])}</span>
-					<kbd>↵</kbd>
-				</span>
-			`,
-			value: __("Search for {0}", [txt]),
-			match: txt,
-			index: 100,
-			default: "Search",
-			onclick: function() {
-				frappe.searchdialog.search.init_search(txt, "global_search");
-			}
-		});
-	}
-
-	make_search_in_current(txt) {
-		var route = frappe.get_route();
-		if(route[0]==="List" && txt.indexOf(" in") === -1) {
-			// search in title field
-			var meta = frappe.get_meta(frappe.container.page.list_view.doctype);
-			var search_field = meta.title_field || "name";
-			var options = {};
-			options[search_field] = ["like", "%" + txt + "%"];
-			this.options.push({
-				label: __('Find {0} in {1}', [txt.bold(), __(route[1]).bold()]),
-				value: __('Find {0} in {1}', [txt, __(route[1])]),
-				route_options: options,
-				onclick: function() {
-					cur_list.show();
-				},
-				index: 90,
-				default: "Current",
-				match: txt
-			});
-		}
-	}
-
-	make_calculator(txt) {
-		var first = txt.substr(0,1);
-		if(first==parseInt(first) || first==="(" || first==="=") {
-			if(first==="=") {
-				txt = txt.substr(1);
-			}
-			try {
-				var val = eval(txt);
-				var formatted_value = __('{0} = {1}', [txt, (val + '').bold()]);
-				this.options.push({
-					label: formatted_value,
-					value: __('{0} = {1}', [txt, val]),
-					match: val,
-					index: 80,
-					default: "Calculator",
-					onclick: function() {
-						frappe.msgprint(formatted_value, __("Result"));
-					}
-				});
-			} catch(e) {
-				// pass
-			}
-		}
-	}
-
-	make_random(txt) {
-		if(txt.toLowerCase().includes('random')) {
-			this.options.push({
-				label: __("Generate Random Password"),
-				onclick: function() {
-					frappe.msgprint(frappe.utils.get_random(16), __("Result"));
-				}
-			})
-		}
 	}
 };
