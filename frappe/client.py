@@ -189,7 +189,10 @@ def insert(doc=None):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	if doc.get("parenttype"):
+	doc = frappe._dict(doc)
+	if frappe.is_table(doc.doctype):
+		if not (doc.parenttype and doc.parent and doc.parentfield):
+			frappe.throw(_("parenttype, parent and parentfield are required to insert a child record"))
 		# inserting a child record
 		parent = frappe.get_doc(doc.parenttype, doc.parent)
 		parent.append(doc.parentfield, doc)
