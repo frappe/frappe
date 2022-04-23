@@ -3,6 +3,8 @@
 frappe.provide('frappe.search');
 frappe.provide('frappe.tags');
 
+frappe.search.awesomebar_providers = [];
+
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
 		var me = this;
@@ -70,8 +72,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.deduplicate(frappe.search.utils.get_recent_pages(txt || "")));
 				me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 			}
-			me.add_help();
+			frappe.search.awesomebar_providers.forEach(provider => me.options.push(...provider(txt)));
 
+			console.log(me.options)
 			awesomplete.list = me.deduplicate(me.options);
 
 		}, 100));
@@ -119,31 +122,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		})
 		frappe.search.utils.setup_recent();
 		frappe.tags.utils.fetch_tags();
-	}
-
-	add_help() {
-		this.options.push({
-			value: __("Help on Search"),
-			index: -10,
-			default: "Help",
-			onclick: function() {
-				var txt = '<table class="table table-bordered">\
-					<tr><td style="width: 50%">'+__('Create a new record')+'</td><td>'+
-						__("new type of document")+'</td></tr>\
-					<tr><td>'+__("List a document type")+'</td><td>'+
-						__("document type..., e.g. customer")+'</td></tr>\
-					<tr><td>'+__("Search in a document type")+'</td><td>'+
-						__("text in document type")+'</td></tr>\
-					<tr><td>'+__("Tags")+'</td><td>'+
-						__("tag name..., e.g. #tag")+'</td></tr>\
-					<tr><td>'+__("Open a module or tool")+'</td><td>'+
-						__("module name...")+'</td></tr>\
-					<tr><td>'+__("Calculate")+'</td><td>'+
-						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
-				</table>';
-				frappe.msgprint(txt, __("Search Help"));
-			}
-		});
 	}
 
 	set_specifics(txt, end_txt) {
@@ -318,7 +296,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		if(txt.toLowerCase().includes('random')) {
 			this.options.push({
 				label: __("Generate Random Password"),
-				value: frappe.utils.get_random(16),
 				onclick: function() {
 					frappe.msgprint(frappe.utils.get_random(16), __("Result"));
 				}
