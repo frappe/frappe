@@ -20,6 +20,7 @@ class FrappeTestCase(unittest.TestCase):
 	def setUpClass(cls) -> None:
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
+		frappe.db.begin()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.add_before_commit(_commit_watcher)
 
