@@ -230,19 +230,23 @@ export default class GridRow {
 		var me = this;
 		if(this.doc && !this.grid.df.in_place_edit) {
 			// remove row
-			if(!this.open_form_button) {
-				this.open_form_button = $(`
-					<div class="btn-open-row">
-						<a>${frappe.utils.icon('edit', 'xs')}</a>
-						<div class="hidden-xs edit-grid-row">${ __("Edit") }</div>
-					</div>
-				`)
-					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
-					.on('click', function() {
-						me.toggle_view(); return false;
-					});
+			if (!this.open_form_button) {
+				this.open_form_button = $('<div class="col col-xs-1"></div>').appendTo(this.row);
 
-				if(this.is_too_small()) {
+				if (!this.configure_columns) {
+					this.open_form_button = $(`
+						<div class="btn-open-row">
+							<a>${frappe.utils.icon('edit', 'xs')}</a>
+							<div class="hidden-xs edit-grid-row">${ __("Edit") }</div>
+						</div>
+					`)
+						.appendTo(this.open_form_button)
+						.on('click', function() {
+							me.toggle_view(); return false;
+						});
+				}
+
+				if (this.is_too_small()) {
 					// narrow
 					this.open_form_button.css({'margin-right': '-2px'});
 				}
@@ -251,7 +255,9 @@ export default class GridRow {
 	}
 
 	add_column_configure_button() {
-		if (this.configure_columns) {
+		if (this.grid.df.in_place_edit && !this.frm) return;
+
+		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
 				<div class="col grid-static-col col-xs-1 d-flex justify-content-center" style="cursor: pointer;">
 					<a>${frappe.utils.icon('setting-gear', 'sm', '', 'filter: opacity(0.5)')}</a>
@@ -261,6 +267,10 @@ export default class GridRow {
 				.on('click', () => {
 					this.configure_dialog_for_columns_selector();
 				});
+		} else if (this.configure_columns && !this.frm) {
+			this.configure_columns_button = $(`
+				<div class="col grid-static-col col-xs-1"></div>
+			`).appendTo(this.row);
 		}
 	}
 
