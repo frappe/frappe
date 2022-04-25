@@ -129,3 +129,52 @@ class TestClient(unittest.TestCase):
 		self.assertTrue("name" in first_item)
 		self.assertTrue("modified" in first_item)
 		frappe.local.login_manager.logout()
+
+	def test_client_get(self):
+		from frappe.client import get
+
+		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
+		filters = {"name": todo.name}
+		filters_json = frappe.as_json(filters)
+
+		self.assertEqual(get("ToDo", filters=filters).description, "test")
+		self.assertEqual(get("ToDo", filters=filters_json).description, "test")
+
+		todo.delete()
+
+	def test_client_insert(self):
+		from frappe.client import insert
+
+		def get_random_title():
+			return "test-{0}".format(frappe.generate_hash())
+
+		# test insert dict
+		doc = {"doctype": "Note", "title": get_random_title(), "content": "test"}
+		note1 = insert(doc)
+		self.assertTrue(note1)
+
+		# test insert json
+		doc["title"] = get_random_title()
+		json_doc = frappe.as_json(doc)
+		note2 = insert(json_doc)
+		self.assertTrue(note2)
+
+		# test insert child doc without parent fields
+		child_doc = {"doctype": "Note Seen By", "user": "Administrator"}
+		with self.assertRaises(frappe.ValidationError):
+			insert(child_doc)
+
+		# test insert child doc with parent fields
+		child_doc = {
+			"doctype": "Note Seen By",
+			"user": "Administrator",
+			"parenttype": "Note",
+			"parent": note1.name,
+			"parentfield": "seen_by",
+		}
+		note3 = insert(child_doc)
+		self.assertTrue(note3)
+
+		# cleanup
+		frappe.delete_doc("Note", note1.name)
+		frappe.delete_doc("Note", note2.name)

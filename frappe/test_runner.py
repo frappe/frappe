@@ -15,6 +15,7 @@ import frappe
 import frappe.utils.scheduler
 from frappe.model.naming import revert_series_if_last
 from frappe.modules import get_module_name, load_doctype_module
+from frappe.utils import cint
 
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
@@ -177,10 +178,13 @@ def run_all_tests(
 					_add_test(app, path, filename, verbose, test_suite, ui_tests)
 
 	if junit_xml_output:
-		runner = unittest_runner(verbosity=1 + (verbose and 1 or 0), failfast=failfast)
+		runner = unittest_runner(verbosity=1 + cint(verbose), failfast=failfast)
 	else:
 		runner = unittest_runner(
-			resultclass=TimeLoggingTestResult, verbosity=1 + (verbose and 1 or 0), failfast=failfast
+			resultclass=TimeLoggingTestResult,
+			verbosity=1 + cint(verbose),
+			failfast=failfast,
+			tb_locals=verbose,
 		)
 
 	if profile:
@@ -279,10 +283,13 @@ def _run_unittest(
 			test_suite.addTest(module_test_cases)
 
 	if junit_xml_output:
-		runner = unittest_runner(verbosity=1 + (verbose and 1 or 0), failfast=failfast)
+		runner = unittest_runner(verbosity=1 + cint(verbose), failfast=failfast)
 	else:
 		runner = unittest_runner(
-			resultclass=TimeLoggingTestResult, verbosity=1 + (verbose and 1 or 0), failfast=failfast
+			resultclass=TimeLoggingTestResult,
+			verbosity=1 + cint(verbose),
+			failfast=failfast,
+			tb_locals=verbose,
 		)
 
 	if profile:

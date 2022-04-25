@@ -70,6 +70,8 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 <div class="comments" style="margin-top: 3rem;">
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
+{%- else -%}
+<div style="height: 3rem"></div>
 {%- endif %} {# comments #}
 
 {% endblock page_content %}
@@ -85,7 +87,7 @@ frappe.boot = {
 		system: "{{ frappe.utils.get_time_zone() }}",
 		user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
 	},
-	link_title_doctypes: `{{ frappe.call('frappe.boot.get_link_title_doctypes') }}`
+	link_title_doctypes: {{ link_title_doctypes }}
 };
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;
