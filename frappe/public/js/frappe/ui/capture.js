@@ -118,7 +118,7 @@ frappe.ui.Capture = class {
 			me.input = get_file_input();
 		}
 
-		me.input.onchange = async () => {
+		me.input.onchange = async function () {
 			for (let file of me.input.files) {
 				let f = await read(file);
 				me.images.push(f);
