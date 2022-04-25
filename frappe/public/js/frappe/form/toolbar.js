@@ -323,7 +323,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		// New
-		if(p[CREATE] && !this.frm.meta.issingle) {
+		if (p[CREATE] && !this.frm.meta.issingle && !this.frm.meta.in_create) {
 			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);
 			}, true, {

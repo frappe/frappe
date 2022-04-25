@@ -338,7 +338,7 @@ def get_desktop_page(page):
 			"onboardings": workspace.onboardings,
 		}
 	except DoesNotExistError:
-		frappe.log_error(frappe.get_traceback())
+		frappe.log_error("Workspace Missing")
 		return {}
 
 
@@ -472,7 +472,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		""".format(
 			page, json_config, e
 		)
-		frappe.log_error(log, _("Could not save customization"))
+		doc.log_error("Could not save customization", log)
 		return False
 
 	return True
