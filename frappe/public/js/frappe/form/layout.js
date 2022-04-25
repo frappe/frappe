@@ -3,7 +3,7 @@ import Tab from "./tab.js";
 import Column from "./column.js";
 
 frappe.ui.form.Layout = class Layout {
-	constructor(opts) {
+	constructor (opts) {
 		this.views = {};
 		this.pages = [];
 		this.tabs = [];
@@ -72,7 +72,7 @@ frappe.ui.form.Layout = class Layout {
 			reqd: 1,
 			hidden: 1,
 			label: __('Name'),
-			get_status: function (field) {
+			get_status: function(field) {
 				if (field.frm && field.frm.is_new()
 					&& field.frm.meta.autoname
 					&& ['prompt', 'name'].includes(field.frm.meta.autoname.toLowerCase())) {
@@ -100,7 +100,7 @@ frappe.ui.form.Layout = class Layout {
 		}
 		this.message_color = (color && ['yellow', 'blue', 'red', 'green', 'orange'].includes(color)) ? color : 'blue';
 		if (html) {
-			if (html.substr(0, 1) !== '<') {
+			if (html.substr(0, 1)!=='<') {
 				// wrap in a block
 				html = '<div>' + html + '</div>';
 			}
@@ -118,11 +118,11 @@ frappe.ui.form.Layout = class Layout {
 		this.column = null;
 
 		if (this.no_opening_section() && !this.is_tabbed_layout()) {
-			this.fields.unshift({ fieldtype: 'Section Break' });
+			this.fields.unshift({fieldtype: 'Section Break'});
 		}
 
 		if (this.is_tabbed_layout()) {
-			let default_tab = { label: __('Details'), fieldname: 'details', fieldtype: "Tab Break" };
+			let default_tab = {label: __('Details'), fieldname: 'details', fieldtype: "Tab Break"};
 			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
 			if (!first_tab) {
 				this.fields.splice(1, 0, default_tab);
@@ -199,7 +199,7 @@ frappe.ui.form.Layout = class Layout {
 		}
 	}
 
-	init_field(df, render = false) {
+	init_field(df, render=false) {
 		const fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
@@ -267,7 +267,7 @@ frappe.ui.form.Layout = class Layout {
 		this.section = null;
 		let tab = new Tab(this, df, this.frm, this.tabs_list, this.tabs_content);
 		this.current_tab = tab;
-		this.make_section({ fieldtype: 'Section Break' });
+		this.make_section({fieldtype: 'Section Break'});
 		this.tabs.push(tab);
 		return tab;
 	}
@@ -315,7 +315,7 @@ frappe.ui.form.Layout = class Layout {
 
 	refresh_sections() {
 		// hide invisible sections
-		this.wrapper.find(".form-section:not(.hide-control)").each(function () {
+		this.wrapper.find(".form-section:not(.hide-control)").each(function() {
 			const section = $(this).removeClass("empty-section visible-section");
 			if (section.find(".frappe-control:not(.hide-control)").length) {
 				section.addClass("visible-section");
@@ -369,7 +369,7 @@ frappe.ui.form.Layout = class Layout {
 		this.refresh_fields(fields);
 	}
 
-	refresh_section_collapse() {
+	refresh_section_collapse () {
 		if (!(this.sections && this.sections.length)) return;
 
 		for (let i = 0; i < this.sections.length; i++) {
@@ -529,7 +529,7 @@ frappe.ui.form.Layout = class Layout {
 			field.tab.set_active();
 		}
 		// next is table, show the table
-		if (field.df.fieldtype == "Table") {
+		if (field.df.fieldtype=="Table") {
 			if (!field.grid.grid_rows.length) {
 				field.grid.add_new_row(1);
 			} else {
@@ -644,7 +644,7 @@ frappe.ui.form.Layout = class Layout {
 		} else if (typeof (expression) === 'function') {
 			out = expression(doc);
 
-		} else if (expression.substr(0, 5) == 'eval:') {
+		} else if (expression.substr(0, 5)=='eval:') {
 			try {
 				out = frappe.utils.eval(expression.substr(5), { doc, parent });
 				if (parent && parent.istable && expression.includes('is_submittable')) {
@@ -654,7 +654,7 @@ frappe.ui.form.Layout = class Layout {
 				frappe.throw(__('Invalid "depends_on" expression'));
 			}
 
-		} else if (expression.substr(0, 3) == 'fn:' && this.frm) {
+		} else if (expression.substr(0, 3)=='fn:' && this.frm) {
 			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
 		} else {
 			var value = doc[expression];
