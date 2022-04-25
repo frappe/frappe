@@ -75,7 +75,7 @@ frappe.ui.form.Layout = Class.extend({
 			// remove previous color
 			this.message.removeClass(this.message_color);
 		}
-		this.message_color = (color && ['yellow', 'blue', 'red'].includes(color)) ? color : 'blue';
+		this.message_color = (color && ['yellow', 'blue', 'red', 'green', 'orange'].includes(color)) ? color : 'blue';
 		if (html) {
 			if (html.substr(0, 1)!=='<') {
 				// wrap in a block
@@ -355,10 +355,17 @@ frappe.ui.form.Layout = Class.extend({
 					return me.handle_tab(doctype, fieldname, ev.shiftKey);
 			}
 		});
+<<<<<<< HEAD
 	},
 	handle_tab: function (doctype, fieldname, shift) {
 		var me = this,
 			grid_row = null,
+=======
+	}
+
+	handle_tab(doctype, fieldname, shift) {
+		let grid_row = null,
+>>>>>>> 2767ea9d25 (feat: more color options for form alerts (#16729))
 			prev = null,
 			fields = me.fields_list,
 			in_grid = false,
