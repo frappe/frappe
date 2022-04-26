@@ -639,17 +639,18 @@ class TestReportview(unittest.TestCase):
 	def test_fieldname_starting_with_int(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		frappe.delete_doc_if_exists("DocType", "dt_with_int_named_fieldname")
 		dt = new_doctype(
 			"dt_with_int_named_fieldname",
-			fields=[{"label": "1field", "fieldname": "1field", "fieldtype": "Int"}],
+			fields=[{"label": "1field", "fieldname": "1field", "fieldtype": "Data"}],
 		).insert(ignore_permissions=True)
 
-		frappe.get_doc({"doctype": "dt_with_int_named_fieldname", "1field": 10}).insert(
+		frappe.get_doc({"doctype": "dt_with_int_named_fieldname", "1field": "10"}).insert(
 			ignore_permissions=True
 		)
 
 		query = DatabaseQuery("dt_with_int_named_fieldname")
-		self.assertTrue(query.execute(filters={"1field": 10}))
+		self.assertTrue(query.execute(filters={"1field": "10"}))
 		self.assertTrue(query.execute(filters={"1field": ["like", "1%"]}))
 		self.assertTrue(query.execute(filters={"1field": ["in", "1,2,10"]}))
 		self.assertTrue(query.execute(filters={"1field": ["is", "set"]}))
