@@ -221,11 +221,11 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.on('escape', function(e) {
-	close_grid_and_dialog();
+	handle_escape_key();
 });
 
 frappe.ui.keys.on('esc', function(e) {
-	close_grid_and_dialog();
+	handle_escape_key();
 });
 
 frappe.ui.keys.on('enter', function(e) {
@@ -293,6 +293,11 @@ frappe.ui.keyCode = {
 	BACKSPACE: 8
 }
 
+function handle_escape_key() {
+	close_grid_and_dialog();
+	document.activeElement?.blur();
+}
+
 function close_grid_and_dialog() {
 	// close open grid row
 	var open_row = $(".grid-row-open");
@@ -308,10 +313,3 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
-
-// blur when escape is pressed on dropdowns
-$(document).on('keydown', '.dropdown-toggle', (e) => {
-	if (e.which === frappe.ui.keyCode.ESCAPE) {
-		$(e.currentTarget).blur();
-	}
-});
