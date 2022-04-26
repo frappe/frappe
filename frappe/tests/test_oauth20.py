@@ -35,7 +35,7 @@ class FrappeRequestTestCase(unittest.TestCase):
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None, **kwargs) -> TestResponse:
+	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
 
 	def post(self, path, data, **kwargs) -> TestResponse:
