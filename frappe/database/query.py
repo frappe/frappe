@@ -312,7 +312,16 @@ class Query:
 		filters: Union[Dict[str, Union[str, int]], str, int, List[Union[List, str, int]]] = None,
 		**kwargs,
 	):
+		# Clean up state before each query
+		self.tables = {}
 		criterion = self.build_conditions(table, filters, **kwargs)
+
+		if len(self.tables) > 1:
+			primary_table = self.tables[table]
+			del self.tables[table]
+			for table_object in self.tables.values():
+				criterion = criterion.left_join(table_object).on(table_object.parent == primary_table.name)
+
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*kwargs.get("field_objects", fields))
 
