@@ -226,7 +226,7 @@ def parse_app_name(name: str) -> str:
 	return repo
 
 
-def install_app(name, verbose=False, set_as_patched=True):
+def install_app(name, verbose=False, set_as_patched=True, force=False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
@@ -243,7 +243,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
 			required_app = parse_app_name(app)
-			install_app(required_app, verbose=verbose)
+			install_app(required_app, verbose=verbose, force=force)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
@@ -251,7 +251,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	if name not in frappe.get_all_apps():
 		raise Exception("App not in apps.txt")
 
-	if name in installed_apps:
+	if not force and name in installed_apps:
 		frappe.msgprint(frappe._("App {0} already installed").format(name))
 		return
 
@@ -266,7 +266,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 			return
 
 	if name != "frappe":
-		add_module_defs(name)
+		add_module_defs(name, ignore_if_duplicate=force)
 
 	sync_for(name, force=True, reset_permissions=True)
 
@@ -573,13 +573,13 @@ def make_site_dirs():
 		os.makedirs(path, exist_ok=True)
 
 
-def add_module_defs(app):
+def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
-		d.insert(ignore_permissions=True, ignore_if_duplicate=True)
+		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
 
 
 def remove_missing_apps():

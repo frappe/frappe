@@ -46,6 +46,7 @@ def after_install():
 
 	if not frappe.conf.skip_setup_wizard:
 		frappe.db.set_default("desktop:home_page", "setup-wizard")
+		frappe.db.set_value("System Settings", "System Settings", "setup_complete", 0)
 
 	# clear test log
 	with open(frappe.get_site_path(".test_log"), "w") as f:
