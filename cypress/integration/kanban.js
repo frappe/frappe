@@ -72,19 +72,6 @@ context('Kanban Board', () => {
 
 	});
 
-<<<<<<< HEAD
-	it('Drag todo', () => {
-		cy.intercept({
-			method: 'POST',
-			url: 'api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order_for_single_card'
-		}).as('drag-completed');
-
-		cy.get('.kanban-card-body:first').drag('[data-column-value="Closed"] .kanban-cards', {force: true});
-
-		cy.wait('@drag-completed');
-	});
-});
-=======
 	// it('Drag todo', () => {
 	// 	cy.intercept({
 	// 		method: 'POST',
@@ -98,4 +85,3 @@ context('Kanban Board', () => {
 	// cy.wait('@drag-completed');
 	// });
 });
->>>>>>> 8c953b4f74 (test: removing drag drop test(flaky))
