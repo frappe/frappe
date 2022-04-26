@@ -419,7 +419,7 @@ class Document(BaseDocument):
 				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
 			)
 
-	def get_doc_before_save(self):
+	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
