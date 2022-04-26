@@ -9,6 +9,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.meta import trim_table
 from frappe.modules import export_customizations, export_module_json, get_module_path
 from frappe.modules.utils import export_doc, sync_customizations
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now_datetime
 
 
@@ -22,10 +23,10 @@ def delete_file(path):
 
 
 def delete_path(path):
-	shutil.rmtree(path)
+	shutil.rmtree(path, ignore_errors=True)
 
 
-class TestUtils(unittest.TestCase):
+class TestUtils(FrappeTestCase):
 	def setUp(self):
 		self._dev_mode = frappe.local.conf.developer_mode
 		self._in_import = frappe.local.flags.in_import
@@ -89,12 +90,16 @@ class TestUtils(unittest.TestCase):
 		)
 		with open(export_doc_path, "r") as f:
 			export_doc_before = frappe.parse_json(f.read())
+
 		last_modified_before = os.path.getmtime(export_doc_path)
 		self.addCleanup(write_file, path=export_doc_path, content=frappe.as_json(export_doc_before))
+
 		export_path = export_module_json(doc=doc, is_standard=True, module=doc.module)
 		last_modified_after = os.path.getmtime(export_doc_path)
+
 		with open(f"{export_path}.json", "r") as f:
 			export_doc_after = frappe.parse_json(f.read())
+
 		self.assertTrue(last_modified_after > last_modified_before)
 
 	def test_export_customizations(self):
