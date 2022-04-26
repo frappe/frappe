@@ -199,6 +199,7 @@ def init(site, sites_path=None, new_site=False):
 		}
 	)
 	local.rollback_observers = []
+	local.locked_documents = []
 	local.before_commit = []
 	local.test_objects = {}
 
