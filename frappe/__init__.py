@@ -1865,8 +1865,8 @@ def format(*args, **kwargs):
 
 
 def get_print(
-	doctype,
-	name,
+	doctype=None,
+	name=None,
 	print_format=None,
 	style=None,
 	html=None,
