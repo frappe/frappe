@@ -5,6 +5,7 @@ def create_sequence(
 	doctype_name: str,
 	*,
 	slug: str = "_id_seq",
+	temporary = False,
 	check_not_exists: bool = False,
 	cycle: bool = False,
 	cache: int = 0,
@@ -14,7 +15,7 @@ def create_sequence(
 	max_value: int = 0,
 ) -> str:
 
-	query = "create sequence"
+	query = "create sequence" if not temporary else "create temporary sequence"
 	sequence_name = scrub(doctype_name + slug)
 
 	if check_not_exists:
