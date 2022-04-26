@@ -17,11 +17,17 @@ def sync_fixtures(app=None):
 	frappe.flags.in_fixtures = True
 
 	for app in apps:
+<<<<<<< HEAD
 		if os.path.exists(frappe.get_app_path(app, "fixtures")):
 			fixture_files = sorted(os.listdir(frappe.get_app_path(app, "fixtures")))
 			for fname in fixture_files:
 				if fname.endswith(".json") or fname.endswith(".csv"):
 					import_doc(frappe.get_app_path(app, "fixtures", fname))
+=======
+		fixtures_path = frappe.get_app_path(app, "fixtures")
+		if os.path.exists(fixtures_path):
+			import_doc(fixtures_path)
+>>>>>>> 8f53a039a6 (refactor: Sync fixtures)
 
 		import_custom_scripts(app)
 
