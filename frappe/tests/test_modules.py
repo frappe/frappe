@@ -27,11 +27,13 @@ def delete_path(path):
 
 class TestUtils(unittest.TestCase):
 	def setUp(self):
+		self._dev_mode = frappe.local.conf.developer_mode
+		self._in_import = frappe.local.flags.in_import
+
+		frappe.local.conf.developer_mode = True
+
 		if self._testMethodName == "test_export_module_json_no_export":
-			self._dev_mode = frappe.local.conf.developer_mode
-			self._in_import = frappe.local.flags.in_import
 			frappe.local.flags.in_import = True
-			frappe.local.conf.developer_mode = True
 
 		if self._testMethodName in ("test_export_customizations", "test_sync_customizations"):
 			df = {
@@ -51,9 +53,8 @@ class TestUtils(unittest.TestCase):
 			self.doctype.insert()
 
 	def tearDown(self):
-		if self._testMethodName == "test_export_module_json_no_export":
-			frappe.local.conf.developer_mode = self._dev_mode
-			frappe.local.flags.in_import = self._in_import
+		frappe.local.conf.developer_mode = self._dev_mode
+		frappe.local.flags.in_import = self._in_import
 
 		if self._testMethodName in ("test_export_customizations", "test_sync_customizations"):
 			self.custom_field.delete()
@@ -66,6 +67,11 @@ class TestUtils(unittest.TestCase):
 
 		if self._testMethodName == "test_make_boilerplate":
 			self.doctype.delete()
+			scrubbed = frappe.scrub(self.doctype.name)
+			self.addCleanup(
+				delete_path,
+				path=frappe.get_app_path("frappe", "core", "doctype", scrubbed),
+			)
 			frappe.db.sql_ddl("DROP TABLE `tabTest DocType Boilerplate`")
 			delattr(self, "doctype")
 
