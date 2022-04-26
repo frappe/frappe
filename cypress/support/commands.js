@@ -324,6 +324,13 @@ Cypress.Commands.add('click_listview_row_item', (row_no) => {
 	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis').eq(row_no).click({force: true});
 });
 
+Cypress.Commands.add('click_listview_row_item_with_text', (text) => {
+	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis')
+		.contains(text)
+		.first()
+		.click({force: true});
+});
+
 Cypress.Commands.add('click_filter_button', () => {
 	cy.get('.filter-selector > .btn').click();
 });
