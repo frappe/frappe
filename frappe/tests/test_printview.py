@@ -14,9 +14,8 @@ class PrintViewTest(unittest.TestCase):
 		messages_after = frappe.get_message_log()
 
 		if len(messages_after) > len(messages_before):
-			new_messages = messages_after[len(messages_before):]
-			self.fail("Print view showing error/warnings: \n"
-					+ "\n".join(str(msg) for msg in new_messages))
+			new_messages = messages_after[len(messages_before) :]
+			self.fail("Print view showing error/warnings: \n" + "\n".join(str(msg) for msg in new_messages))
 
 		# html should exist
 		self.assertTrue(bool(ret["html"]))

@@ -10,18 +10,18 @@
 STANDARD_INCLUSIONS = ["*.py"]
 
 STANDARD_EXCLUSIONS = [
-	'*.js',
-	'*.xml',
-	'*.pyc',
-	'*.css',
-	'*.less',
-	'*.scss',
-	'*.vue',
-	'*.html',
-	'*/test_*',
-	'*/node_modules/*',
-	'*/doctype/*/*_dashboard.py',
-	'*/patches/*',
+	"*.js",
+	"*.xml",
+	"*.pyc",
+	"*.css",
+	"*.less",
+	"*.scss",
+	"*.vue",
+	"*.html",
+	"*/test_*",
+	"*/node_modules/*",
+	"*/doctype/*/*_dashboard.py",
+	"*/patches/*",
 ]
 
 FRAPPE_EXCLUSIONS = [

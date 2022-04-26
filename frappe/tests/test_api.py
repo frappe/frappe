@@ -28,9 +28,7 @@ class TestResourceAPI(unittest.TestCase):
 	@maintain_state
 	def setUpClass(self):
 		for _ in range(10):
-			doc = frappe.get_doc(
-				{"doctype": "ToDo", "description": frappe.mock("paragraph")}
-			).insert()
+			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
 			self.GENERATED_DOCUMENTS.append(doc.name)
 
 	@classmethod
@@ -56,14 +54,10 @@ class TestResourceAPI(unittest.TestCase):
 		return requests.get(f"{self.RESOURCE_URL}/{path}?sid={self.sid}{params}")
 
 	def post(self, path, data):
-		return requests.post(
-			f"{self.RESOURCE_URL}/{path}?sid={self.sid}", data=frappe.as_json(data)
-		)
+		return requests.post(f"{self.RESOURCE_URL}/{path}?sid={self.sid}", data=frappe.as_json(data))
 
 	def put(self, path, data):
-		return requests.put(
-			f"{self.RESOURCE_URL}/{path}?sid={self.sid}", data=frappe.as_json(data)
-		)
+		return requests.put(f"{self.RESOURCE_URL}/{path}?sid={self.sid}", data=frappe.as_json(data))
 
 	def delete(self, path):
 		return requests.delete(f"{self.RESOURCE_URL}/{path}?sid={self.sid}")
@@ -168,4 +162,4 @@ class TestMethodAPI(unittest.TestCase):
 		response = requests.get(f"{self.METHOD_URL}/ping")
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json(), dict)
-		self.assertEqual(response.json()['message'], "pong")
+		self.assertEqual(response.json()["message"], "pong")

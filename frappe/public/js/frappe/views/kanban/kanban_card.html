@@ -1,23 +1,24 @@
 <div class="kanban-card-wrapper {{ disable_click }}" data-name="{{escape(name)}}">
-	<a class="kanban-card-redirect" href="#">
-		<div class="kanban-card content">
-			{% if(image_url) { %}
-			<div class="kanban-image">
-				<img  src="{{image_url}}" alt="{{title}}">
-			</div>
-			{% } %}
-			<div class="kanban-card-body">
-				<div class="kanban-title-area">
+	<div class="kanban-card content">
+		{% if(image_url) { %}
+		<div class="kanban-image">
+			<img  src="{{image_url}}" alt="{{title}}">
+		</div>
+		{% } %}
+		<div class="kanban-card-body">
+			<div class="kanban-title-area">
+				<a href="{{ form_link }}">
 					<div class="kanban-card-title ellipsis" title="{{title}}">
 						{{ title }}
 					</div>
-					<div class="kanban-card-creation">
-						{{ creation }}
-					</div>
-				</div>
-				<div class="kanban-card-meta">
+				</a>
+				<br>
+				<div class="kanban-card-doc text-muted">
+					{{ doc_content }}
 				</div>
 			</div>
+			<div class="kanban-card-meta">
+			</div>
 		</div>
-	</a>
+	</div>
 </div>

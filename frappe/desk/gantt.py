@@ -3,7 +3,10 @@
 
 from __future__ import unicode_literals
 
-import frappe, json
+import json
+
+import frappe
+
 
 @frappe.whitelist()
 def update_task(args, field_map):

@@ -3,58 +3,59 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
 import unittest
 
+import frappe
 from frappe import _
+
 
 class TestTranslation(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql('delete from tabTranslation')
+		frappe.db.sql("delete from tabTranslation")
 
 	def tearDown(self):
-		frappe.local.lang = 'en'
-		frappe.local.lang_full_dict=None
+		frappe.local.lang = "en"
+		frappe.local.lang_full_dict = None
 
 	def test_doctype(self):
 		translation_data = get_translation_data()
 		for key, val in translation_data.items():
 			frappe.local.lang = key
-			frappe.local.lang_full_dict=None
+			frappe.local.lang_full_dict = None
 			translation = create_translation(key, val)
 			self.assertEqual(_(val[0]), val[1])
 
-			frappe.delete_doc('Translation', translation.name)
-			frappe.local.lang_full_dict=None
+			frappe.delete_doc("Translation", translation.name)
+			frappe.local.lang_full_dict = None
 
 			self.assertEqual(_(val[0]), val[0])
 
 	def test_parent_language(self):
 		data = [
-			['es', ['Test Data', 'datos de prueba']],
-			['es', ['Test Spanish', 'prueba de español']],
-			['es-MX', ['Test Data', 'pruebas de datos']]
+			["es", ["Test Data", "datos de prueba"]],
+			["es", ["Test Spanish", "prueba de español"]],
+			["es-MX", ["Test Data", "pruebas de datos"]],
 		]
 
 		for key, val in data:
 			create_translation(key, val)
 
-		frappe.local.lang = 'es'
+		frappe.local.lang = "es"
 
-		frappe.local.lang_full_dict=None
+		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[0][0]), data[0][1])
 
-		frappe.local.lang_full_dict=None
+		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[1][0]), data[1][1])
 
-		frappe.local.lang = 'es-MX'
+		frappe.local.lang = "es-MX"
 
 		# different translation for es-MX
-		frappe.local.lang_full_dict=None
+		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[2][0]), data[2][1])
 
 		# from spanish (general)
-		frappe.local.lang_full_dict=None
+		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[1][0]), data[1][1])
 
 	def test_html_content_data_translation(self):
@@ -75,7 +76,7 @@ class TestTranslation(unittest.TestCase):
 			los procesadores Intel Core i5 e i7 de quinta generación con Intel HD Graphics 6000 son capaces de hacerlo.
 		"""
 
-		create_translation('es', [source, target])
+		create_translation("es", [source, target])
 
 		source = """
 			<span style="font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
@@ -88,21 +89,25 @@ class TestTranslation(unittest.TestCase):
 
 		self.assertTrue(_(source), target)
 
+
 def get_translation_data():
 	html_source_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">
 							<span style="font-size: 11px; line-height: 16.9px;">Test Data</span></font>"""
 	html_translated_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">
 							<span style="font-size: 11px; line-height: 16.9px;"> testituloksia </span></font>"""
 
-	return {'hr': ['Test data', 'Testdaten'],
-			'ms': ['Test Data','ujian Data'],
-			'et': ['Test Data', 'testandmed'],
-			'es': ['Test Data', 'datos de prueba'],
-			'en': ['Quotation', 'Tax Invoice'],
-			'fi': [html_source_data, html_translated_data]}
+	return {
+		"hr": ["Test data", "Testdaten"],
+		"ms": ["Test Data", "ujian Data"],
+		"et": ["Test Data", "testandmed"],
+		"es": ["Test Data", "datos de prueba"],
+		"en": ["Quotation", "Tax Invoice"],
+		"fi": [html_source_data, html_translated_data],
+	}
+
 
 def create_translation(key, val):
-	translation = frappe.new_doc('Translation')
+	translation = frappe.new_doc("Translation")
 	translation.language = key
 	translation.source_text = val[0]
 	translation.translated_text = val[1]

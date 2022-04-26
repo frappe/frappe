@@ -1,23 +1,22 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 import os
 import re
-import json
 import shutil
+from distutils.spawn import find_executable
 from subprocess import getoutput
 from tempfile import mkdtemp, mktemp
-from distutils.spawn import find_executable
-
-import frappe
-from frappe.utils.minify import JavascriptMinify
+from urllib.parse import urlparse
 
 import click
 import psutil
-from urllib.parse import urlparse
-from simple_chalk import green
 from requests import head
 from requests.exceptions import HTTPError
+from simple_chalk import green
 
+import frappe
+from frappe.utils.minify import JavascriptMinify
 
 timestamps = {}
 app_paths = None
@@ -27,8 +26,10 @@ sites_path = os.path.abspath(os.getcwd())
 class AssetsNotDownloadedError(Exception):
 	pass
 
+
 class AssetsDontExistError(HTTPError):
 	pass
+
 
 def download_file(url, prefix):
 	from requests import get
@@ -51,10 +52,7 @@ def build_missing_files():
 
 	for type in ["css", "js"]:
 		current_asset_files.extend(
-			[
-				"{0}/{1}".format(type, name)
-				for name in os.listdir(os.path.join(sites_path, "assets", type))
-			]
+			["{0}/{1}".format(type, name) for name in os.listdir(os.path.join(sites_path, "assets", type))]
 		)
 
 	with open(frappe_build) as f:
@@ -65,21 +63,18 @@ def build_missing_files():
 			missing_assets.append(asset)
 
 	if missing_assets:
-		from subprocess import check_call
 		from shlex import split
+		from subprocess import check_call
 
 		click.secho("\nBuilding missing assets...\n", fg="yellow")
-		command = split(
-			"node rollup/build.js --files {0} --no-concat".format(",".join(missing_assets))
-		)
+		command = split("node rollup/build.js --files {0} --no-concat".format(",".join(missing_assets)))
 		check_call(command, cwd=os.path.join("..", "apps", "frappe"))
 
 
 def get_assets_link(frappe_head) -> str:
 	tag = getoutput(
 		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
-		r" refs/tags/,,' -e 's/\^{}//'"
-		% frappe_head
+		r" refs/tags/,,' -e 's/\^{}//'" % frappe_head
 	)
 
 	if tag:
@@ -111,6 +106,7 @@ def fetch_assets(url, frappe_head):
 
 def setup_assets(assets_archive):
 	import tarfile
+
 	directories_created = set()
 
 	click.secho("\nExtracting assets...\n", fg="yellow")
@@ -127,7 +123,7 @@ def setup_assets(assets_archive):
 					directories_created.add(asset_directory)
 
 				tar.makefile(file, dest)
-				print("{0} Restored {1}".format(green('✔'), show))
+				print("{0} Restored {1}".format(green("✔"), show))
 
 	return directories_created
 
@@ -257,19 +253,20 @@ def watch(no_compress):
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], ".."))
 	check_yarn()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
-	frappe.commands.popen("{pacman} run watch".format(pacman=pacman),
-		cwd=frappe_app_path, env=get_node_env())
+	frappe.commands.popen(
+		"{pacman} run watch".format(pacman=pacman), cwd=frappe_app_path, env=get_node_env()
+	)
 
 
 def check_yarn():
 	if not find_executable("yarn"):
 		print("Please install yarn using below command and try again.\nnpm install -g yarn")
 
+
 def get_node_env():
-	node_env = {
-		"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"
-	}
+	node_env = {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
 	return node_env
+
 
 def get_safe_max_old_space_size():
 	safe_max_old_space_size = 0
@@ -283,6 +280,7 @@ def get_safe_max_old_space_size():
 		pass
 
 	return safe_max_old_space_size
+
 
 def generate_assets_map():
 	symlinks = {}
@@ -328,8 +326,7 @@ def clear_broken_symlinks():
 
 
 def unstrip(message: str) -> str:
-	"""Pads input string on the right side until the last available column in the terminal
-	"""
+	"""Pads input string on the right side until the last available column in the terminal"""
 	_len = len(message)
 	try:
 		max_str = os.get_terminal_size().columns
@@ -350,7 +347,9 @@ def make_asset_dirs(hard_link=False):
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+		start_message = unstrip(
+			f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}"
+		)
 		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
 
 		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes
@@ -391,7 +390,6 @@ def clear_broken_symlinks():
 			os.remove(path)
 
 
-
 def unstrip(message):
 	try:
 		max_str = os.get_terminal_size().columns
@@ -408,7 +406,9 @@ def make_asset_dirs(hard_link=False):
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+		start_message = unstrip(
+			f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}"
+		)
 		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
 
 		try:
@@ -523,7 +523,8 @@ def pack(target, sources, no_compress, verbose):
 def html_to_js_template(path, content):
 	"""returns HTML template content as Javascript code, adding it to `frappe.templates`"""
 	return """frappe.templates["{key}"] = '{content}';\n""".format(
-		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))
+		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content)
+	)
 
 
 def scrub_html_template(content):
@@ -534,7 +535,7 @@ def scrub_html_template(content):
 	# strip comments
 	content = re.sub(r"(<!--.*?-->)", "", content)
 
-	return content.replace("'", "\'")
+	return content.replace("'", "'")
 
 
 def files_dirty():

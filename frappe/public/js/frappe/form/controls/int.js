@@ -41,3 +41,5 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 		return cint(this.eval_expression(value), null);
 	}
 });
+
+frappe.ui.form.ControlLongInt = frappe.ui.form.ControlInt;

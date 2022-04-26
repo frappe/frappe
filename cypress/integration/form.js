@@ -27,7 +27,7 @@ context('Form', () => {
 
 		cy.clear_filters();
 		cy.get('.standard-filter-section [data-fieldname="name"] input').type('Test Form Contact 3').blur();
-		cy.click_listview_row_item(0);
+		cy.click_listview_row_item_with_text('Test Form Contact 3');
 
 		cy.get('#page-Contact .page-head').findByTitle('Test Form Contact 3').should('exist');
 		cy.get('.prev-doc').should('be.visible').click();
