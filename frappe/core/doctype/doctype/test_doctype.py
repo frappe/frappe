@@ -524,18 +524,34 @@ class TestDocType(unittest.TestCase):
 		dt.delete()
 
 	def test_autoincremented_doctype_transition(self):
-		frappe.delete_doc("testy_autoinc_dt")
+		frappe.delete_doc_if_exists("DocType", "testy_autoinc_dt")
 		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)
 		dt.autoname = "hash"
+
+		dt.save(ignore_permissions=True)
+
+		dt_data = frappe.get_doc({
+			"doctype": dt.name,
+			"some_fieldname": "test data"
+		}).insert(ignore_permissions=True)
+
+		dt.autoname = "autoincrement"
 
 		try:
 			dt.save(ignore_permissions=True)
 		except frappe.ValidationError as e:
-			self.assertEqual(e.args[0], "Cannot change to/from Autoincrement naming rule")
+			self.assertEqual(
+				e.args[0],
+				"Can only change to/from Autoincrement naming rule when there is no data in the doctype"
+			)
 		else:
-			self.fail("Shouldnt be possible to transition autoincremented doctype to any other naming rule")
+			self.fail(
+				"""Shouldn't be possible to transition to/from autoincremented doctype
+				when data is present in doctype"""
+			)
 		finally:
 			# cleanup
+			dt_data.delete(ignore_permissions=True)
 			dt.delete(ignore_permissions=True)
 
 	def test_json_field(self):
