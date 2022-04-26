@@ -1,3 +1,5 @@
+import KanbanSettings from "./kanban_settings";
+
 frappe.provide('frappe.views');
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
@@ -57,6 +59,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			.then(board => {
 				this.board = board;
 				this.board.filters_array = JSON.parse(this.board.filters || '[]');
+				this.board.fields = JSON.parse(this.board.fields || '[]');
 				this.filters = this.board.filters_array;
 			});
 	}
@@ -191,6 +194,25 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			quick_entry: quick_entry,
 			title_field: title_field
 		};
+	}
+
+	get_view_settings() {
+		return {
+			label: __("Kanban Settings", null, "Button in kanban view menu"),
+			action: () => this.show_kanban_settings(),
+			standard: true,
+		};
+	}
+
+	show_kanban_settings() {
+		frappe.model.with_doctype(this.doctype, () => {
+			new KanbanSettings({
+				kanbanview: this,
+				doctype: this.doctype,
+				settings: this.board,
+				meta: frappe.get_meta(this.doctype)
+			});
+		});
 	}
 
 	get required_libs() {

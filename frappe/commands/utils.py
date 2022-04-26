@@ -793,7 +793,7 @@ def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 --no-lockfile"
+			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 @testing-library/cypress@^8 --no-lockfile"
 		)
 
 	# run for headless mode
@@ -935,6 +935,7 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 def get_version(output):
 	"""Show the versions of all the installed apps."""
 	from git import Repo
+	from git.exc import InvalidGitRepositoryError
 
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
@@ -945,12 +946,16 @@ def get_version(output):
 	for app in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
-		repo = Repo(frappe.get_app_path(app, ".."))
 
 		app_info = frappe._dict()
+
+		try:
+			app_info.commit = Repo(frappe.get_app_path(app, "..")).head.object.hexsha[:7]
+		except InvalidGitRepositoryError:
+			app_info.commit = ""
+
 		app_info.app = app
 		app_info.branch = get_app_branch(app)
-		app_info.commit = repo.head.object.hexsha[:7]
 		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
 		data.append(app_info)

@@ -20,6 +20,7 @@ context('Control Barcode', () => {
 	it('should generate barcode on setting a value', () => {
 		get_dialog_with_barcode().as('dialog');
 
+		cy.focused().blur();
 		cy.get('.frappe-control[data-fieldname=barcode]').findByRole('textbox')
 			.focus()
 			.type('123456789')
@@ -37,6 +38,7 @@ context('Control Barcode', () => {
 	it('should reset when input is cleared', () => {
 		get_dialog_with_barcode().as('dialog');
 
+		cy.focused().blur();
 		cy.get('.frappe-control[data-fieldname=barcode]').findByRole('textbox')
 			.focus()
 			.type('123456789')
