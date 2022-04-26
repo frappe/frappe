@@ -1,5 +1,6 @@
 import 'cypress-file-upload';
 import '@testing-library/cypress/add-commands';
+import '@4tw/cypress-drag-drop';
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -321,6 +322,13 @@ Cypress.Commands.add('click_sidebar_button', (btn_name) => {
 
 Cypress.Commands.add('click_listview_row_item', (row_no) => {
 	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis').eq(row_no).click({force: true});
+});
+
+Cypress.Commands.add('click_listview_row_item_with_text', (text) => {
+	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis')
+		.contains(text)
+		.first()
+		.click({force: true});
 });
 
 Cypress.Commands.add('click_filter_button', () => {
