@@ -150,6 +150,13 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 	}
 
+<<<<<<< HEAD
+=======
+	is_child_selection_enabled() {
+		return this.dialog.fields_dict['allow_child_item_selection']?.get_value();
+	}
+
+>>>>>>> 0334936449 (fix: filters not working on "select items" dialog boxes (#16765))
 	toggle_child_selection() {
 		if (this.dialog.fields_dict['allow_child_item_selection'].get_value()) {
 			this.show_child_results();
