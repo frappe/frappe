@@ -15,12 +15,7 @@ from frappe.utils.scheduler import is_scheduler_inactive
 if TYPE_CHECKING:
 	from rq.job import Job
 
-JOB_COLORS = {
-	'queued': 'orange',
-	'failed': 'red',
-	'started': 'blue',
-	'finished': 'green'
-}
+JOB_COLORS = {"queued": "orange", "failed": "red", "started": "blue", "finished": "green"}
 
 
 @frappe.whitelist()
@@ -33,20 +28,20 @@ def get_info(show_failed=False) -> List[Dict]:
 	workers = Worker.all(conn)
 	jobs = []
 
-	def add_job(job: 'Job', name: str) -> None:
-		if job.kwargs.get('site') == frappe.local.site:
+	def add_job(job: "Job", name: str) -> None:
+		if job.kwargs.get("site") == frappe.local.site:
 			job_info = {
-				'job_name': job.kwargs.get('kwargs', {}).get('playbook_method')
-					or job.kwargs.get('kwargs', {}).get('job_type')
-					or str(job.kwargs.get('job_name')),
-				'status': job.get_status(),
-				'queue': name,
-				'creation': format_datetime(convert_utc_to_user_timezone(job.created_at)),
-				'color': JOB_COLORS[job.get_status()]
+				"job_name": job.kwargs.get("kwargs", {}).get("playbook_method")
+				or job.kwargs.get("kwargs", {}).get("job_type")
+				or str(job.kwargs.get("job_name")),
+				"status": job.get_status(),
+				"queue": name,
+				"creation": format_datetime(convert_utc_to_user_timezone(job.created_at)),
+				"color": JOB_COLORS[job.get_status()],
 			}
 
 			if job.exc_info:
-				job_info['exc_info'] = job.exc_info
+				job_info["exc_info"] = job.exc_info
 
 			jobs.append(job_info)
 
@@ -58,7 +53,7 @@ def get_info(show_failed=False) -> List[Dict]:
 
 	for queue in queues:
 		# show active queued jobs
-		if queue.name != 'failed':
+		if queue.name != "failed":
 			for job in queue.jobs:
 				add_job(job, queue.name)
 

@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 
 
@@ -10,4 +11,3 @@ def execute():
 	# remove unused templates
 	frappe.delete_doc("Web Template", "Navbar with Links on Right", force=1)
 	frappe.delete_doc("Web Template", "Footer Horizontal", force=1)
-

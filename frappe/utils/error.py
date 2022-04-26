@@ -4,18 +4,21 @@
 
 from __future__ import unicode_literals
 
-import frappe
-from frappe.utils import cstr, encode
-import os
-import sys
-import inspect
-import traceback
-import linecache
-import pydoc
 import cgitb
 import datetime
+import inspect
 import json
+import linecache
+import os
+import pydoc
+import sys
+import traceback
+
 import six
+
+import frappe
+from frappe.utils import cstr, encode
+
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
@@ -24,10 +27,10 @@ def make_error_snapshot(exception):
 	logger = frappe.logger(with_more_info=True)
 
 	try:
-		error_id = '{timestamp:s}-{ip:s}-{hash:s}'.format(
+		error_id = "{timestamp:s}-{ip:s}-{hash:s}".format(
 			timestamp=cstr(datetime.datetime.now()),
-			ip=frappe.local.request_ip or '127.0.0.1',
-			hash=frappe.generate_hash(length=3)
+			ip=frappe.local.request_ip or "127.0.0.1",
+			hash=frappe.generate_hash(length=3),
 		)
 		snapshot_folder = get_error_snapshot_path()
 		frappe.create_folder(snapshot_folder)
@@ -35,13 +38,14 @@ def make_error_snapshot(exception):
 		snapshot_file_path = os.path.join(snapshot_folder, "{0}.json".format(error_id))
 		snapshot = get_snapshot(exception)
 
-		with open(encode(snapshot_file_path), 'wb') as error_file:
+		with open(encode(snapshot_file_path), "wb") as error_file:
 			error_file.write(encode(frappe.as_json(snapshot)))
 
-		logger.error('New Exception collected with id: {}'.format(error_id))
+		logger.error("New Exception collected with id: {}".format(error_id))
 
 	except Exception as e:
-		logger.error('Could not take error snapshot: {0}'.format(e), exc_info=True)
+		logger.error("Could not take error snapshot: {0}".format(e), exc_info=True)
+
 
 def get_snapshot(exception, context=10):
 	"""
@@ -55,33 +59,33 @@ def get_snapshot(exception, context=10):
 	# creates a snapshot dict with some basic information
 
 	s = {
-		'pyver': 'Python {version:s}: {executable:s} (prefix: {prefix:s})'.format(
-			version = sys.version.split()[0],
-			executable = sys.executable,
-			prefix = sys.prefix
+		"pyver": "Python {version:s}: {executable:s} (prefix: {prefix:s})".format(
+			version=sys.version.split()[0], executable=sys.executable, prefix=sys.prefix
 		),
-		'timestamp': cstr(datetime.datetime.now()),
-		'traceback': traceback.format_exc(),
-		'frames': [],
-		'etype': cstr(etype),
-		'evalue': cstr(repr(evalue)),
-		'exception': {},
-		'locals': {}
+		"timestamp": cstr(datetime.datetime.now()),
+		"traceback": traceback.format_exc(),
+		"frames": [],
+		"etype": cstr(etype),
+		"evalue": cstr(repr(evalue)),
+		"exception": {},
+		"locals": {},
 	}
 
 	# start to process frames
 	records = inspect.getinnerframes(etb, 5)
 
 	for frame, file, lnum, func, lines, index in records:
-		file = file and os.path.abspath(file) or '?'
+		file = file and os.path.abspath(file) or "?"
 		args, varargs, varkw, locals = inspect.getargvalues(frame)
-		call = ''
+		call = ""
 
-		if func != '?':
-			call = inspect.formatargvalues(args, varargs, varkw, locals, formatvalue=lambda value: '={}'.format(pydoc.text.repr(value)))
+		if func != "?":
+			call = inspect.formatargvalues(
+				args, varargs, varkw, locals, formatvalue=lambda value: "={}".format(pydoc.text.repr(value))
+			)
 
 		# basic frame information
-		f = {'file': file, 'func': func, 'call': call, 'lines': {}, 'lnum': lnum}
+		f = {"file": file, "func": func, "call": call, "lines": {}, "lnum": lnum}
 
 		def reader(lnum=[lnum]):
 			try:
@@ -101,37 +105,38 @@ def get_snapshot(exception, context=10):
 		if index is not None:
 			i = lnum - index
 			for line in lines:
-				f['lines'][i] = line.rstrip()
+				f["lines"][i] = line.rstrip()
 				i += 1
 
 		# dump local variable (referenced in current line only)
-		f['dump'] = {}
+		f["dump"] = {}
 		for name, where, value in vars:
-			if name in f['dump']:
+			if name in f["dump"]:
 				continue
 			if value is not cgitb.__UNDEF__:
-				if where == 'global':
-					name = 'global {name:s}'.format(name=name)
-				elif where != 'local':
-					name = where + ' ' + name.split('.')[-1]
-				f['dump'][name] = pydoc.text.repr(value)
+				if where == "global":
+					name = "global {name:s}".format(name=name)
+				elif where != "local":
+					name = where + " " + name.split(".")[-1]
+				f["dump"][name] = pydoc.text.repr(value)
 			else:
-				f['dump'][name] = 'undefined'
+				f["dump"][name] = "undefined"
 
-		s['frames'].append(f)
+		s["frames"].append(f)
 
 	# add exception type, value and attributes
 	if isinstance(evalue, BaseException):
 		for name in dir(evalue):
-			if name != 'messages' and not name.startswith('__'):
+			if name != "messages" and not name.startswith("__"):
 				value = pydoc.text.repr(getattr(evalue, name))
-				s['exception'][name] = encode(value)
+				s["exception"][name] = encode(value)
 
 	# add all local values (of last frame) to the snapshot
 	for name, value in locals.items():
-		s['locals'][name] = value if isinstance(value, six.text_type) else pydoc.text.repr(value)
+		s["locals"][name] = value if isinstance(value, six.text_type) else pydoc.text.repr(value)
 
 	return s
+
 
 def collect_error_snapshots():
 	"""Scheduled task to collect error snapshots from files and push into Error Snapshot table"""
@@ -147,7 +152,7 @@ def collect_error_snapshots():
 			fullpath = os.path.join(path, fname)
 
 			try:
-				with open(fullpath, 'r') as filedata:
+				with open(fullpath, "r") as filedata:
 					data = json.load(filedata)
 
 			except ValueError:
@@ -155,10 +160,10 @@ def collect_error_snapshots():
 				os.remove(fullpath)
 				continue
 
-			for field in ['locals', 'exception', 'frames']:
+			for field in ["locals", "exception", "frames"]:
 				data[field] = frappe.as_json(data[field])
 
-			doc = frappe.new_doc('Error Snapshot')
+			doc = frappe.new_doc("Error Snapshot")
 			doc.update(data)
 			doc.save()
 
@@ -174,10 +179,13 @@ def collect_error_snapshots():
 		# prevent creation of unlimited error snapshots
 		raise
 
+
 def clear_old_snapshots():
 	"""Clear snapshots that are older than a month"""
-	frappe.db.sql("""delete from `tabError Snapshot`
-		where creation < (NOW() - INTERVAL '1' MONTH)""")
+	frappe.db.sql(
+		"""delete from `tabError Snapshot`
+		where creation < (NOW() - INTERVAL '1' MONTH)"""
+	)
 
 	path = get_error_snapshot_path()
 	today = datetime.datetime.now()
@@ -188,5 +196,6 @@ def clear_old_snapshots():
 		if (today - ctime).days > 31:
 			os.remove(os.path.join(path, p))
 
+
 def get_error_snapshot_path():
-	return frappe.get_site_path('error-snapshots')
+	return frappe.get_site_path("error-snapshots")

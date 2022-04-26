@@ -6,8 +6,8 @@ from __future__ import unicode_literals
 import unittest
 
 import frappe
-from frappe.desk.query_report import build_xlsx_data
 import frappe.utils
+from frappe.desk.query_report import build_xlsx_data
 
 
 class TestQueryReport(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestQueryReport(unittest.TestCase):
 		columns = {
 			0: {"label": "Column A", "fieldname": "column_a"},
 			1: {"label": "Column B", "fieldname": "column_b"},
-			2: {"label": "Column C", "fieldname": "column_c"}
+			2: {"label": "Column C", "fieldname": "column_c"},
 		}
 
 		# Create mock data
@@ -26,7 +26,7 @@ class TestQueryReport(unittest.TestCase):
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a"},
 			{"label": "Column B", "fieldname": "column_b", "width": 150},
-			{"label": "Column C", "fieldname": "column_c", "width": 100}
+			{"label": "Column C", "fieldname": "column_c", "width": 100},
 		]
 		data.result = [
 			[1.0, 3.0, 5.5],

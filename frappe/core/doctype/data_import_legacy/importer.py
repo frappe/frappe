@@ -3,38 +3,61 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
-from six.moves import range
+import json
+
 import requests
-import frappe, json
+from six import string_types
+from six.moves import range
+
+import frappe
 import frappe.permissions
-
 from frappe import _
-
+from frappe.utils import (
+	cint,
+	cstr,
+	duration_to_seconds,
+	flt,
+	get_absolute_url,
+	get_datetime,
+	get_url,
+	getdate,
+)
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
-
-from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url, duration_to_seconds
-from six import string_types
 
 
 @frappe.whitelist()
 def get_data_keys():
-	return frappe._dict({
-		"data_separator": _('Start entering data below this line'),
-		"main_table": _("Table") + ":",
-		"parent_table": _("Parent Table") + ":",
-		"columns": _("Column Name") + ":",
-		"doctype": _("DocType") + ":"
-	})
-
+	return frappe._dict(
+		{
+			"data_separator": _("Start entering data below this line"),
+			"main_table": _("Table") + ":",
+			"parent_table": _("Parent Table") + ":",
+			"columns": _("Column Name") + ":",
+			"doctype": _("DocType") + ":",
+		}
+	)
 
 
 @frappe.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
-	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No",
-	skip_errors = True, data_import_doc=None, validate_template=False, user=None):
+def upload(
+	rows=None,
+	submit_after_import=None,
+	ignore_encoding_errors=False,
+	no_email=True,
+	overwrite=None,
+	update_only=None,
+	ignore_links=False,
+	pre_process=None,
+	via_console=False,
+	from_data_import="No",
+	skip_errors=True,
+	data_import_doc=None,
+	validate_template=False,
+	user=None,
+):
 	"""upload data"""
 
 	# for translations
@@ -53,19 +76,19 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		skip_errors = data_import_doc.skip_errors
 	else:
 		# extra input params
-		params = json.loads(frappe.form_dict.get("params") or '{}')
+		params = json.loads(frappe.form_dict.get("params") or "{}")
 		if params.get("submit_after_import"):
 			submit_after_import = True
 		if params.get("ignore_encoding_errors"):
 			ignore_encoding_errors = True
 		if not params.get("no_email"):
 			no_email = False
-		if params.get('update_only'):
+		if params.get("update_only"):
 			update_only = True
-		if params.get('from_data_import'):
-			from_data_import = params.get('from_data_import')
-		if not params.get('skip_errors'):
-			skip_errors = params.get('skip_errors')
+		if params.get("from_data_import"):
+			from_data_import = params.get("from_data_import")
+		if not params.get("skip_errors"):
+			skip_errors = params.get("skip_errors")
 
 	frappe.flags.in_import = True
 	frappe.flags.mute_emails = no_email
@@ -74,7 +97,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		return get_data_keys()
 
 	def bad_template():
-		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
+		frappe.throw(
+			_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator)
+		)
 
 	def check_data_length():
 		if not data:
@@ -82,8 +107,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def get_start_row():
 		for i, row in enumerate(rows):
-			if row and row[0]==get_data_keys_definition().data_separator:
-				return i+1
+			if row and row[0] == get_data_keys_definition().data_separator:
+				return i + 1
 		bad_template()
 
 	def get_header_row(key):
@@ -91,7 +116,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def get_header_row_and_idx(key):
 		for i, row in enumerate(header):
-			if row and row[0]==key:
+			if row and row[0] == key:
 				return row, i
 		return [], -1
 
@@ -99,34 +124,35 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		empty_cols = list(filter(lambda x: x in ("", None), columns))
 
 		if empty_cols:
-			if columns[-1*len(empty_cols):] == empty_cols:
+			if columns[-1 * len(empty_cols) :] == empty_cols:
 				# filter empty columns if they exist at the end
-				columns = columns[:-1*len(empty_cols)]
+				columns = columns[: -1 * len(empty_cols)]
 			else:
-				frappe.msgprint(_("Please make sure that there are no empty columns in the file."),
-					raise_exception=1)
+				frappe.msgprint(
+					_("Please make sure that there are no empty columns in the file."), raise_exception=1
+				)
 
 		return columns
 
 	def make_column_map():
 		doctype_row, row_idx = get_header_row_and_idx(get_data_keys_definition().doctype)
-		if row_idx == -1: # old style
+		if row_idx == -1:  # old style
 			return
 
 		dt = None
 		for i, d in enumerate(doctype_row[1:]):
 			if d not in ("~", "-"):
-				if d and doctype_row[i] in (None, '' ,'~', '-', _("DocType") + ":"):
+				if d and doctype_row[i] in (None, "", "~", "-", _("DocType") + ":"):
 					dt, parentfield = d, None
 					# xls format truncates the row, so it may not have more columns
-					if len(doctype_row) > i+2:
-						parentfield = doctype_row[i+2]
+					if len(doctype_row) > i + 2:
+						parentfield = doctype_row[i + 2]
 					doctypes.append((dt, parentfield))
 					column_idx_to_fieldname[(dt, parentfield)] = {}
 					column_idx_to_fieldtype[(dt, parentfield)] = {}
 				if dt:
-					column_idx_to_fieldname[(dt, parentfield)][i+1] = rows[row_idx + 2][i+1]
-					column_idx_to_fieldtype[(dt, parentfield)][i+1] = rows[row_idx + 4][i+1]
+					column_idx_to_fieldname[(dt, parentfield)][i + 1] = rows[row_idx + 2][i + 1]
+					column_idx_to_fieldtype[(dt, parentfield)][i + 1] = rows[row_idx + 4][i + 1]
 
 	def get_doc(start_idx):
 		if doctypes:
@@ -134,7 +160,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			attachments = []
 			last_error_row_idx = None
 			for idx in range(start_idx, len(rows)):
-				last_error_row_idx = idx	# pylint: disable=W0612
+				last_error_row_idx = idx  # pylint: disable=W0612
 				if (not doc) or main_doc_empty(rows[idx]):
 					for dt, parentfield in doctypes:
 						d = {}
@@ -159,7 +185,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 										if " " in d[fieldname]:
 											_date, _time = d[fieldname].split()
 										else:
-											_date, _time = d[fieldname], '00:00:00'
+											_date, _time = d[fieldname], "00:00:00"
 										_date = parse_date(d[fieldname])
 										d[fieldname] = get_datetime(_date + " " + _time)
 									else:
@@ -182,22 +208,22 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 							d["name"] = d["name"][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
-							d['doctype'] = dt
+							d["doctype"] = dt
 							if dt == doctype:
 								doc.update(d)
 							else:
 								if not overwrite and doc.get("name"):
-									d['parent'] = doc["name"]
-								d['parenttype'] = doctype
-								d['parentfield'] = parentfield
-								doc.setdefault(d['parentfield'], []).append(d)
+									d["parent"] = doc["name"]
+								d["parenttype"] = doctype
+								d["parentfield"] = parentfield
+								doc.setdefault(d["parentfield"], []).append(d)
 				else:
 					break
 
 			return doc, attachments, last_error_row_idx
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
-			doc['doctype'] = doctype
+			doc["doctype"] = doctype
 			return doc, [], None
 
 	# used in testing whether a row is empty or parent row or child row
@@ -205,7 +231,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# importing the item variant where item code and item name will be blank.
 	def main_doc_empty(row):
 		if row:
-			for i in range(3,0,-1):
+			for i in range(3, 0, -1):
 				if len(row) > i and row[i]:
 					return False
 		return True
@@ -213,20 +239,22 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doctype).autoname
 		if autoname:
-			if autoname[0:5] == 'field':
+			if autoname[0:5] == "field":
 				autoname = autoname[6:]
-			elif autoname == 'naming_series:':
-				autoname = 'naming_series'
+			elif autoname == "naming_series:":
+				autoname = "naming_series"
 			else:
 				return True
 
 			if (autoname not in doc) or (not doc[autoname]):
 				from frappe.model.base_document import get_controller
+
 				if not hasattr(get_controller(doctype), "autoname"):
 					frappe.throw(_("{0} is a mandatory field").format(autoname))
 		return True
 
 	users = frappe.db.sql_list("select name from tabUser")
+
 	def prepare_for_insert(doc):
 		# don't block data import if user is not set
 		# migrating from another system
@@ -256,40 +284,44 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if not is_valid_url(file_url):
 			return
 
-		files = frappe.db.sql("""Select name from `tabFile` where attached_to_doctype='{doctype}' and
+		files = frappe.db.sql(
+			"""Select name from `tabFile` where attached_to_doctype='{doctype}' and
 			attached_to_name='{docname}' and (file_url='{file_url}' or thumbnail_url='{file_url}')""".format(
-				doctype=doctype,
-				docname=docname,
-				file_url=file_url
-			))
+				doctype=doctype, docname=docname, file_url=file_url
+			)
+		)
 
 		if files:
 			# file is already attached
 			return
 
-		_file = frappe.get_doc({
-			"doctype": "File",
-			"file_url": file_url,
-			"attached_to_name": docname,
-			"attached_to_doctype": doctype,
-			"attached_to_field": 0,
-			"folder": "Home/Attachments"})
+		_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": file_url,
+				"attached_to_name": docname,
+				"attached_to_doctype": doctype,
+				"attached_to_field": 0,
+				"folder": "Home/Attachments",
+			}
+		)
 		_file.save()
 
-
 	# header
-	filename, file_extension = ['','']
+	filename, file_extension = ["", ""]
 	if not rows:
 		_file = frappe.get_doc("File", {"file_url": data_import_doc.import_file})
 		fcontent = _file.get_content()
 		filename, file_extension = _file.get_extension()
 
-		if file_extension == '.xlsx' and from_data_import == 'Yes':
+		if file_extension == ".xlsx" and from_data_import == "Yes":
 			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
+
 			rows = read_xlsx_file_from_attached_file(file_url=data_import_doc.import_file)
 
-		elif file_extension == '.csv':
+		elif file_extension == ".csv":
 			from frappe.utils.csvutils import read_csv_content
+
 			rows = read_csv_content(fcontent, ignore_encoding_errors)
 
 		else:
@@ -310,8 +342,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	if skip_errors:
 		data_rows_with_error = header
 
-	if submit_after_import and not cint(frappe.db.get_value("DocType",
-			doctype, "is_submittable")):
+	if submit_after_import and not cint(frappe.db.get_value("DocType", doctype, "is_submittable")):
 		submit_after_import = False
 
 	parenttype = get_header_row(get_data_keys_definition().parent_table)
@@ -334,8 +365,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			data_import_doc.total_rows = total
 		return True
 
-	if overwrite==None:
-		overwrite = params.get('overwrite')
+	if overwrite == None:
+		overwrite = params.get("overwrite")
 
 	# delete child rows (if parenttype)
 	parentfield = None
@@ -346,9 +377,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			delete_child_rows(data, doctype)
 
 	import_log = []
+
 	def log(**kwargs):
 		if via_console:
-			print((kwargs.get("title") + kwargs.get("message")).encode('utf-8'))
+			print((kwargs.get("title") + kwargs.get("message")).encode("utf-8"))
 		else:
 			import_log.append(kwargs)
 
@@ -361,16 +393,22 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# publish realtime task update
 	def publish_progress(achieved, reload=False):
 		if data_import_doc:
-			frappe.publish_realtime("data_import_progress", {"progress": str(int(100.0*achieved/total)),
-				"data_import": data_import_doc.name, "reload": reload}, user=frappe.session.user)
-
+			frappe.publish_realtime(
+				"data_import_progress",
+				{
+					"progress": str(int(100.0 * achieved / total)),
+					"data_import": data_import_doc.name,
+					"reload": reload,
+				},
+				user=frappe.session.user,
+			)
 
 	error_flag = rollback_flag = False
 
 	batch_size = frappe.conf.data_import_batch_size or 1000
 
 	for batch_start in range(0, total, batch_size):
-		batch = data[batch_start:batch_start + batch_size]
+		batch = data[batch_start : batch_start + batch_size]
 
 		for i, row in enumerate(batch):
 			# bypass empty rows
@@ -418,27 +456,67 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 				# log errors
 				if parentfield:
-					log(**{"row": doc.idx, "title": 'Inserted row for "%s"' % (as_link(parenttype, doc.parent)),
-						"link": get_absolute_url(parenttype, doc.parent), "message": 'Document successfully saved', "indicator": "green"})
+					log(
+						**{
+							"row": doc.idx,
+							"title": 'Inserted row for "%s"' % (as_link(parenttype, doc.parent)),
+							"link": get_absolute_url(parenttype, doc.parent),
+							"message": "Document successfully saved",
+							"indicator": "green",
+						}
+					)
 				elif submit_after_import:
-					log(**{"row": row_idx + 1, "title":'Submitted row for "%s"' % (as_link(doc.doctype, doc.name)),
-						"message": "Document successfully submitted", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "blue"})
+					log(
+						**{
+							"row": row_idx + 1,
+							"title": 'Submitted row for "%s"' % (as_link(doc.doctype, doc.name)),
+							"message": "Document successfully submitted",
+							"link": get_absolute_url(doc.doctype, doc.name),
+							"indicator": "blue",
+						}
+					)
 				elif original:
-					log(**{"row": row_idx + 1,"title":'Updated row for "%s"' % (as_link(doc.doctype, doc.name)),
-						"message": "Document successfully updated", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "green"})
+					log(
+						**{
+							"row": row_idx + 1,
+							"title": 'Updated row for "%s"' % (as_link(doc.doctype, doc.name)),
+							"message": "Document successfully updated",
+							"link": get_absolute_url(doc.doctype, doc.name),
+							"indicator": "green",
+						}
+					)
 				elif not update_only:
-					log(**{"row": row_idx + 1, "title":'Inserted row for "%s"' % (as_link(doc.doctype, doc.name)),
-						"message": "Document successfully saved", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "green"})
+					log(
+						**{
+							"row": row_idx + 1,
+							"title": 'Inserted row for "%s"' % (as_link(doc.doctype, doc.name)),
+							"message": "Document successfully saved",
+							"link": get_absolute_url(doc.doctype, doc.name),
+							"indicator": "green",
+						}
+					)
 				else:
-					log(**{"row": row_idx + 1, "title":'Ignored row for %s' % (row[1]), "link": None,
-						"message": "Document updation ignored", "indicator": "orange"})
+					log(
+						**{
+							"row": row_idx + 1,
+							"title": "Ignored row for %s" % (row[1]),
+							"link": None,
+							"message": "Document updation ignored",
+							"indicator": "orange",
+						}
+					)
 
 			except Exception as e:
 				error_flag = True
 
 				# build error message
 				if frappe.local.message_log:
-					err_msg = "\n".join(['<p class="border-bottom small">{}</p>'.format(json.loads(msg).get('message')) for msg in frappe.local.message_log])
+					err_msg = "\n".join(
+						[
+							'<p class="border-bottom small">{}</p>'.format(json.loads(msg).get("message"))
+							for msg in frappe.local.message_log
+						]
+					)
 				else:
 					err_msg = '<p class="border-bottom small">{}</p>'.format(cstr(e))
 
@@ -449,18 +527,20 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				else:
 					error_link = None
 
-				log(**{
-					"row": row_idx + 1,
-					"title": 'Error for row %s' % (len(row)>1 and frappe.safe_decode(row[1]) or ""),
-					"message": err_msg,
-					"indicator": "red",
-					"link":error_link
-				})
+				log(
+					**{
+						"row": row_idx + 1,
+						"title": "Error for row %s" % (len(row) > 1 and frappe.safe_decode(row[1]) or ""),
+						"message": err_msg,
+						"indicator": "red",
+						"link": error_link,
+					}
+				)
 
 				# data with error to create a new file
 				# include the errored data in the last row as last_error_row_idx will not be updated for the last row
 				if skip_errors:
-					if last_error_row_idx == len(rows)-1:
+					if last_error_row_idx == len(rows) - 1:
 						last_error_row_idx = len(rows)
 					data_rows_with_error += rows[row_idx:last_error_row_idx]
 				else:
@@ -485,21 +565,26 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if error_flag and data_import_doc.skip_errors and len(data) != len(data_rows_with_error):
 			import_status = "Partially Successful"
 			# write the file with the faulty row
-			file_name = 'error_' + filename + file_extension
-			if file_extension == '.xlsx':
+			file_name = "error_" + filename + file_extension
+			if file_extension == ".xlsx":
 				from frappe.utils.xlsxutils import make_xlsx
+
 				xlsx_file = make_xlsx(data_rows_with_error, "Data Import Template")
 				file_data = xlsx_file.getvalue()
 			else:
 				from frappe.utils.csvutils import to_csv
+
 				file_data = to_csv(data_rows_with_error)
-			_file = frappe.get_doc({
-				"doctype": "File",
-				"file_name": file_name,
-				"attached_to_doctype": "Data Import Legacy",
-				"attached_to_name": data_import_doc.name,
-				"folder": "Home/Attachments",
-				"content": file_data})
+			_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": file_name,
+					"attached_to_doctype": "Data Import Legacy",
+					"attached_to_name": data_import_doc.name,
+					"folder": "Home/Attachments",
+					"content": file_data,
+				}
+			)
 			_file.save()
 			data_import_doc.error_file = _file.file_url
 
@@ -519,13 +604,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	else:
 		return log_message
 
+
 def get_parent_field(doctype, parenttype):
 	parentfield = None
 
 	# get parentfield
 	if parenttype:
 		for d in frappe.get_meta(parenttype).get_table_fields():
-			if d.options==doctype:
+			if d.options == doctype:
 				parentfield = d.fieldname
 				break
 
@@ -534,6 +620,7 @@ def get_parent_field(doctype, parenttype):
 			raise Exception
 
 	return parentfield
+
 
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""

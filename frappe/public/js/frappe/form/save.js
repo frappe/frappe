@@ -130,7 +130,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 						folded = frm.layout.folded;
 					}
 
-					if (df.reqd && !frappe.model.has_value(doc.doctype, doc.name, df.fieldname)) {
+					if (is_docfield_mandatory(doc, df) &&
+						!frappe.model.has_value(doc.doctype, doc.name, df.fieldname)) {
 						has_errors = true;
 						error_fields[error_fields.length] = __(df.label);
 						// scroll to field
@@ -171,6 +172,42 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		});
 
 		return !has_errors;
+	};
+
+	let is_docfield_mandatory = function(doc, df) {
+		if (df.reqd) return true;
+		if (!df.mandatory_depends_on || !doc) return;
+
+		let out = null;
+		let expression = df.mandatory_depends_on;
+		let parent = frappe.get_meta(df.parent);
+
+		if (typeof (expression) === 'boolean') {
+			out = expression;
+
+		} else if (typeof (expression) === 'function') {
+			out = expression(doc);
+
+		} else if (expression.substr(0, 5) == 'eval:') {
+			try {
+				out = frappe.utils.eval(expression.substr(5), { doc, parent });
+				if (parent && parent.istable && expression.includes('is_submittable')) {
+					out = true;
+				}
+			} catch (e) {
+				frappe.throw(__('Invalid "mandatory_depends_on" expression'));
+			}
+
+		} else {
+			var value = doc[expression];
+			if ($.isArray(value)) {
+				out = !!value.length;
+			} else {
+				out = !!value;
+			}
+		}
+
+		return out;
 	};
 
 	const scroll_to = (fieldname) => {
