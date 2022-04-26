@@ -16,5 +16,5 @@ class TestQuery(unittest.TestCase):
 					["DocType", "parent", "=", "something"],
 				],
 			).get_sql(),
-			"SELECT * FROM `tabDocType` WHERE `tabBOM Update Log`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
+			"SELECT * FROM `tabDocType` LEFT JOIN `tabBOM Update Log` ON `tabBOM Update Log`.`parent`=`tabDocType`.`name` WHERE `tabBOM Update Log`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
 		)
