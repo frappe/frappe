@@ -863,7 +863,7 @@ def validate_series(dt, autoname=None, name=None):
 
 	if not autoname and dt.get("fields", {"fieldname": "naming_series"}):
 		dt.autoname = "naming_series:"
-	elif dt.autoname.startswith("naming_series:"):
+	elif dt.autoname and dt.autoname.startswith("naming_series:"):
 		fieldname = dt.autoname.split("naming_series:")[0] or "naming_series"
 		if not dt.get("fields", {"fieldname": fieldname}):
 			frappe.throw(
