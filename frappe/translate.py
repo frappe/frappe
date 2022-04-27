@@ -25,12 +25,7 @@ from typing import List, Tuple, Union
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
-<<<<<<< HEAD
-from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
-=======
-from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
->>>>>>> b714dbb190 (fix: dont throw error for a bad translation (#16769))
 
 
 def guess_language(lang_list=None):
