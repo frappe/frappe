@@ -225,6 +225,7 @@ class DatabaseQuery(object):
 			args.conditions += (" or " if args.conditions else "") + " or ".join(self.or_conditions)
 
 		self.set_field_tables()
+		self.cast_name_fields()
 
 		fields = []
 
@@ -385,16 +386,8 @@ class DatabaseQuery(object):
 		]
 		# add tables from fields
 		if self.fields:
-			for i, field in enumerate(self.fields):
-				# add cast in locate/strpos
-				func_found = False
-				for func in sql_functions:
-					if func in field.lower():
-						self.fields[i] = cast_name(field) if func.startswith(("locate", "strpos")) else field
-						func_found = True
-						break
-
-				if func_found or not ("tab" in field and "." in field):
+			for field in self.fields:
+				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
 					continue
 
 				table_name = field.split(".")[0]
@@ -429,6 +422,12 @@ class DatabaseQuery(object):
 			for idx, field in enumerate(self.fields):
 				if "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
+
+	def cast_name_fields(self):
+		# add cast in locate/strpos
+		for i, field in enumerate(self.fields):
+			if field.lower().startswith(("locate(", "strpos(")):
+				self.fields[i] = cast_name(field)
 
 	def get_table_columns(self):
 		try:
