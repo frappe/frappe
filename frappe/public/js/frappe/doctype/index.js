@@ -5,7 +5,6 @@ frappe.provide("frappe.model");
 	apply to both DocType form and customize form.
 */
 frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.Controller {
-
 	max_attachments() {
 		if (!this.frm.doc.max_attachments) {
 			return;
@@ -50,7 +49,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 					this.frm.set_value("autoname", "hash");
 					break;
 			}
-			setTimeout(() =>this.frm.__from_naming_rule = false, 500);
+			setTimeout(() => (this.frm.__from_naming_rule = false), 500);
 
 			this.set_naming_rule_description();
 		}
@@ -103,7 +102,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 				default:
 					this.frm.set_value('naming_rule', 'Expression (old style)');
 			}
-			setTimeout(() => this.frm.__from_autoname = false, 500);
+			setTimeout(() => (this.frm.__from_autoname = false), 500);
 		}
 
 		this.frm.set_df_property('fields', 'reqd', this.frm.doc.autoname !== 'Prompt');
