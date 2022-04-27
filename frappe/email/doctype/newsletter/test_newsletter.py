@@ -245,3 +245,24 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 
 		newsletter.reload()
 		self.assertEqual(newsletter.email_sent, 0)
+
+	def test_retry_partially_sent_newsletter(self):
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete("Newsletter")
+
+		newsletter = self.get_newsletter()
+		newsletter.send_emails()
+		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(email_queue_list), 4)
+
+		# emulate partial send
+		email_queue_list[0].status = "Error"
+		email_queue_list[0].recipients[0].status = "Error"
+		email_queue_list[0].save()
+		newsletter.email_sent = False
+
+		# retry
+		newsletter.send_emails()
+		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(email_queue_list), 5)
