@@ -621,6 +621,7 @@ class TestReportview(unittest.TestCase):
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		frappe.delete_doc_if_exists("DocType", "autoinc_dt_test")
 		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		query = DatabaseQuery("autoinc_dt_test").execute(
@@ -630,9 +631,9 @@ class TestReportview(unittest.TestCase):
 		)
 
 		if frappe.db.db_type == "postgres":
-			self.assertTrue("strpos( cast(\"tabautoinc_dt_test\".\"name\" as varchar), \'1\')" in query)
-			self.assertTrue("strpos(cast(name as varchar), \'1\')" in query)
-			self.assertTrue("where cast(\"tabautoinc_dt_test\".\"name\" as varchar) = \'1\'" in query)
+			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
+			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
+			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
 		else:
 			self.assertTrue("locate(\'1\', `tabautoinc_dt_test`.`name`)" in query)
 			self.assertTrue("locate(\'1\', name)" in query)

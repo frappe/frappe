@@ -424,10 +424,8 @@ class DatabaseQuery(object):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
 
 	def cast_name_fields(self):
-		# add cast in locate/strpos
 		for i, field in enumerate(self.fields):
-			if field.lower().startswith(("locate(", "strpos(")):
-				self.fields[i] = cast_name(field)
+			self.fields[i] = cast_name(field)
 
 	def get_table_columns(self):
 		try:
@@ -899,16 +897,34 @@ class DatabaseQuery(object):
 		update_user_settings(self.doctype, user_settings)
 
 def cast_name(column: str) -> str:
-	if frappe.db.db_type == "postgres":
-		if "cast(" not in column.lower() or "::" not in column:
+	"""Casts name field to varchar for postgres
+
+	Handles majorly 4 cases:
+	1. locate
+	2. strpos
+	3. ifnull
+	4. coalesce
+
+	Uses regex substitution."""
+
+	if frappe.db.db_type == "mariadb":
+		return column
+
+	kwargs = {"string": column, "flags": re.IGNORECASE}
+	if "cast(" not in column.lower() and "::" not in column:
+		if re.search(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", **kwargs):
 			return re.sub(
-					r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?(?![\w]))|([,\(])\s*(name)\s*([,\)])",
-					r"\2cast(\1\3 as varchar)\4",
-					column,
-					flags=re.IGNORECASE
-				)
+				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\)", r"locate(\1, cast(\2 as varchar))", **kwargs
+			)
+
+		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*([`\"]?name[`\"]?)\s*,", **kwargs):
+			func = match.groups()[0]
+			return re.sub(rf"{func}\(\s*([`\"]?name[`\"]?)\s*,", rf"{func}(cast(\1 as varchar),", **kwargs)
+
+		return re.sub(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", r"cast(\1 as varchar)", **kwargs)
 
 	return column
+
 
 def check_parent_permission(parent, child_doctype):
 	if parent:
