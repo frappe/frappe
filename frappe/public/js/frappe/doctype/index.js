@@ -27,28 +27,17 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 			// flag to avoid recursion
 			this.frm.__from_naming_rule = true;
 
-			switch (this.frm.doc.naming_rule) {
-				case "Set by user":
-					this.frm.set_value("autoname", "Prompt");
-					break;
-				case "Autoincrement":
-					this.frm.set_value("autoname", "autoincrement");
-					break;
-				case "By fieldname":
-					this.frm.set_value("autoname", "field:");
-					break;
-				case 'By "Naming Series" field':
-					this.frm.set_value("autoname", "naming_series:");
-					break;
-				case "Expression":
-					this.frm.set_value("autoname", "format:");
-					break;
-				case "Expression (old style)":
-					break;
-				case "Random":
-					this.frm.set_value("autoname", "hash");
-					break;
-			}
+			const naming_rule_default_autoname_map = {
+				"Autoincrement": "autoincrement",
+				"Set by user": "prompt",
+				"By fieldname": "field:",
+				'By "Naming Series" field': "naming_series:",
+				"Expression": "format:",
+				"Expression (sld style)": "",
+				"Random": "hash",
+				"By script": ""
+			};
+			this.frm.set_value("autoname", naming_rule_default_autoname_map[this.frm.doc.naming_rule] || "");
 			setTimeout(() => (this.frm.__from_naming_rule = false), 500);
 
 			this.set_naming_rule_description();
@@ -80,28 +69,21 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 			this.frm.__from_autoname = true;
 			const autoname = this.frm.doc.autoname.toLowerCase();
 
-			switch (autoname) {
-				case 'prompt':
-					this.frm.set_value('naming_rule', 'Set by user');
-					break;
-				case 'autoincrement':
-					this.frm.set_value('naming_rule', 'Autoincrement');
-					break;
-				case (autoname.startsWith('field:')):
-					this.frm.set_value('naming_rule', 'By fieldname');
-					break;
-				case (autoname.startsWith('naming_series:')):
-					this.frm.set_value('naming_rule', 'By "Naming Series" field');
-					break;
-				case (autoname.startsWith('format:')):
-					this.frm.set_value('naming_rule', 'Expression');
-					break;
-				case 'hash':
-					this.frm.set_value('naming_rule', 'Random');
-					break;
-				default:
-					this.frm.set_value('naming_rule', 'Expression (old style)');
-			}
+			if (autoname === "prompt")
+				this.frm.set_value("naming_rule", "Set by user");
+			else if (autoname === "autoincrement")
+				this.frm.set_value("naming_rule", "Autoincrement");
+			else if (autoname.startsWith("field:"))
+				this.frm.set_value("naming_rule", "By fieldname");
+			else if (autoname.startsWith("naming_series:"))
+				this.frm.set_value("naming_rule", 'By "Naming Series" field');
+			else if (autoname.startsWith("format:"))
+				this.frm.set_value("naming_rule", "Expression");
+			else if (autoname === "hash")
+				this.frm.set_value("naming_rule", "Random");
+			else
+				this.frm.set_value("naming_rule", "Expression (old style)");
+
 			setTimeout(() => (this.frm.__from_autoname = false), 500);
 		}
 
