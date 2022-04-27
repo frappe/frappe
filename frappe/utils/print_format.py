@@ -92,7 +92,12 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 						pdf_options=options,
 					)
 				except Exception:
-					frappe.log_error("Permission Error on doc {} of doctype {}".format(doc_name, doctype_name))
+					frappe.log_error(
+						title="Error in Multi PDF download",
+						message="Permission Error on doc {} of doctype {}".format(doc_name, doctype_name),
+						reference_doctype=doctype_name,
+						reference_name=doc_name,
+					)
 		frappe.local.response.filename = "{}.pdf".format(name)
 
 	frappe.local.response.filecontent = read_multi_pdf(output)

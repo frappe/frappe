@@ -24,6 +24,15 @@ from frappe.utils.background_jobs import get_jobs
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
+def cprint(*args, **kwargs):
+	"""Prints only if called from STDOUT"""
+	try:
+		os.get_terminal_size()
+		print(*args, **kwargs)
+	except Exception:
+		pass
+
+
 def start_scheduler():
 	"""Run enqueue_events_for_all_sites every 2 minutes (default).
 	Specify scheduler_interval in seconds in common_site_config.json"""
@@ -94,9 +103,11 @@ def enqueue_events(site):
 
 def is_scheduler_inactive():
 	if frappe.local.conf.maintenance_mode:
+		cprint("Maintenance mode is ON")
 		return True
 
 	if frappe.local.conf.pause_scheduler:
+		cprint("frappe.conf.pause_scheduler is SET")
 		return True
 
 	if is_scheduler_disabled():
@@ -107,9 +118,15 @@ def is_scheduler_inactive():
 
 def is_scheduler_disabled():
 	if frappe.conf.disable_scheduler:
+		cprint("frappe.conf.disable_scheduler is SET")
 		return True
 
-	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
+	scheduler_disabled = not frappe.utils.cint(
+		frappe.db.get_single_value("System Settings", "enable_scheduler")
+	)
+	if scheduler_disabled:
+		cprint("SystemSettings.enable_scheduler is UNSET")
+	return scheduler_disabled
 
 
 def toggle_scheduler(enable):

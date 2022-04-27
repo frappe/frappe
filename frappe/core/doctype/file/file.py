@@ -1043,7 +1043,7 @@ def attach_files_to_document(doc, event):
 			):
 				return
 
-			frappe.get_doc(
+			file_doc = frappe.get_doc(
 				doctype="File",
 				file_url=value,
 				attached_to_name=doc.name,
@@ -1052,4 +1052,4 @@ def attach_files_to_document(doc, event):
 				folder="Home/Attachments",
 			).insert()
 		except Exception:
-			frappe.log_error(title=_("Error Attaching File"))
+			file_doc.log_error("Error Attaching File")
