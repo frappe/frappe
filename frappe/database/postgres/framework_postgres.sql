@@ -240,7 +240,7 @@ CREATE TABLE "tabDocType" (
 
 DROP TABLE IF EXISTS "tabSeries";
 CREATE TABLE "tabSeries" (
-  "name" varchar(100) DEFAULT NULL,
+  "name" varchar(100),
   "current" bigint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
