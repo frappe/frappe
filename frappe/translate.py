@@ -25,7 +25,12 @@ from typing import List, Tuple, Union
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
+<<<<<<< HEAD
 from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
+=======
+from frappe.query_builder import DocType, Field
+from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
+>>>>>>> b714dbb190 (fix: dont throw error for a bad translation (#16769))
 
 
 def guess_language(lang_list=None):
@@ -326,11 +331,11 @@ def get_translation_dict_from_file(path, lang, app):
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
-				raise Exception(
-					"Bad translation in '{app}' for language '{lang}': {values}".format(
-						app=app, lang=lang, values=repr(item).encode("utf-8")
-					)
+				msg = "Bad translation in '{app}' for language '{lang}': {values}".format(
+					app=app, lang=lang, values=cstr(item)
 				)
+				frappe.log_error(message=msg, title="Error in translation file")
+				frappe.msgprint(msg)
 
 	return translation_map
 
