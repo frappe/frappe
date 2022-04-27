@@ -571,6 +571,7 @@ doctype_properties = {
 	"email_append_to": "Check",
 	"subject_field": "Data",
 	"sender_field": "Data",
+	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 }
