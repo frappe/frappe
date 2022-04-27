@@ -340,3 +340,7 @@ Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
 Cypress.Commands.add('select_listview_row_checkbox', (row_no) => {
 	cy.get('.frappe-list .select-like > .list-row-checkbox').eq(row_no).click();
 });
+
+Cypress.Commands.add('click_form_section', (section_name) => {
+	cy.get('.section-head').contains(section_name).click();
+});
