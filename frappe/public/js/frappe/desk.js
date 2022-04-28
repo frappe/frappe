@@ -59,8 +59,12 @@ frappe.Application = class Application {
 			shortcut: 'shift+ctrl+g',
 			description: __('Switch Theme'),
 			action: () => {
-				frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
-				frappe.theme_switcher.show();
+				if (frappe.theme_switcher && frappe.theme_switcher.dialog.is_visible) {
+					frappe.theme_switcher.hide();
+				} else {
+					frappe.theme_switcher = new frappe.ui.ThemeSwitcher();
+					frappe.theme_switcher.show();
+				}
 			}
 		});
 

@@ -2,20 +2,17 @@
 # License: MIT. See LICENSE
 
 from datetime import datetime
-import unittest
 
 import frappe
-from frappe.utils import now_datetime, add_to_date
 from frappe.core.doctype.log_settings.log_settings import run_log_clean_up
+from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_to_date, now_datetime
 
 
-class TestLogSettings(unittest.TestCase):
+class TestLogSettings(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
-		cls.savepoint = "TestLogSettings"
-		# SAVEPOINT can only be used in transaction blocks and we don't wan't to take chances
-		frappe.db.begin()
-		frappe.db.savepoint(cls.savepoint)
+		super().setUpClass()
 
 		frappe.db.set_single_value(
 			"Log Settings",
@@ -25,10 +22,6 @@ class TestLogSettings(unittest.TestCase):
 				"clear_email_queue_after": 1,
 			},
 		)
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback(save_point=cls.savepoint)
 
 	def setUp(self) -> None:
 		if self._testMethodName == "test_delete_logs":
@@ -43,15 +36,9 @@ class TestLogSettings(unittest.TestCase):
 
 	def test_delete_logs(self):
 		# make sure test data is present
-		activity_log_count = frappe.db.count(
-			"Activity Log", {"creation": ("<=", self.datetime.past)}
-		)
-		error_log_count = frappe.db.count(
-			"Error Log", {"creation": ("<=", self.datetime.past)}
-		)
-		email_queue_count = frappe.db.count(
-			"Email Queue", {"creation": ("<=", self.datetime.past)}
-		)
+		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<=", self.datetime.past)})
+		error_log_count = frappe.db.count("Error Log", {"creation": ("<=", self.datetime.past)})
+		email_queue_count = frappe.db.count("Email Queue", {"creation": ("<=", self.datetime.past)})
 
 		self.assertNotEqual(activity_log_count, 0)
 		self.assertNotEqual(error_log_count, 0)
@@ -61,15 +48,9 @@ class TestLogSettings(unittest.TestCase):
 		run_log_clean_up()
 
 		# test if logs are deleted
-		activity_log_count = frappe.db.count(
-			"Activity Log", {"creation": ("<", self.datetime.past)}
-		)
-		error_log_count = frappe.db.count(
-			"Error Log", {"creation": ("<", self.datetime.past)}
-		)
-		email_queue_count = frappe.db.count(
-			"Email Queue", {"creation": ("<", self.datetime.past)}
-		)
+		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<", self.datetime.past)})
+		error_log_count = frappe.db.count("Error Log", {"creation": ("<", self.datetime.past)})
+		email_queue_count = frappe.db.count("Email Queue", {"creation": ("<", self.datetime.past)})
 
 		self.assertEqual(activity_log_count, 0)
 		self.assertEqual(error_log_count, 0)

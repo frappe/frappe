@@ -106,7 +106,6 @@ frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 frappe.patches.v12_0.setup_tags
 frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
-frappe.patches.v12_0.copy_to_parent_for_tags
 frappe.patches.v12_0.create_notification_settings_for_user
 frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
@@ -146,7 +145,7 @@ frappe.patches.v13_0.update_duration_options
 frappe.patches.v13_0.replace_old_data_import # 2020-06-24
 frappe.patches.v13_0.create_custom_dashboards_cards_and_charts
 frappe.patches.v13_0.rename_is_custom_field_in_dashboard_chart
-frappe.patches.v13_0.add_standard_navbar_items # 2022-03-15
+frappe.patches.v13_0.add_standard_navbar_items # 2020-12-15
 frappe.patches.v13_0.generate_theme_files_in_public_folder
 frappe.patches.v13_0.increase_password_length
 frappe.patches.v12_0.fix_email_id_formatting

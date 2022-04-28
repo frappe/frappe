@@ -13,7 +13,7 @@ context('Awesome Bar', () => {
 	it('navigates to doctype list', () => {
 		cy.findByPlaceholderText('Search or type a command (Ctrl + G)').type('todo', { delay: 700 });
 		cy.get('.awesomplete').findByRole('listbox').should('be.visible');
-		cy.findByPlaceholderText('Search or type a command (Ctrl + G)').type('{downarrow}{enter}', { delay: 700 });
+		cy.findByPlaceholderText('Search or type a command (Ctrl + G)').type('{enter}', { delay: 700 });
 
 		cy.get('.title-text').should('contain', 'To Do');
 
@@ -22,7 +22,7 @@ context('Awesome Bar', () => {
 
 	it('find text in doctype list', () => {
 		cy.findByPlaceholderText('Search or type a command (Ctrl + G)')
-			.type('test in todo{downarrow}{enter}', { delay: 700 });
+			.type('test in todo{enter}', { delay: 700 });
 
 		cy.get('.title-text').should('contain', 'To Do');
 
@@ -32,7 +32,7 @@ context('Awesome Bar', () => {
 
 	it('navigates to new form', () => {
 		cy.findByPlaceholderText('Search or type a command (Ctrl + G)')
-			.type('new blog post{downarrow}{enter}', { delay: 700 });
+			.type('new blog post{enter}', { delay: 700 });
 
 		cy.get('.title-text:visible').should('have.text', 'New Blog Post');
 	});

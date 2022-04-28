@@ -3,22 +3,32 @@
 # License: MIT. See LICENSE
 
 
+import uuid
 from datetime import timedelta
 from urllib.parse import quote
-from icalendar import Calendar, Event
-import uuid
+
 import requests
+from icalendar import Calendar, Event
+
 import frappe
 from frappe import _
+from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 from frappe.model.document import Document
-from frappe.utils import (add_days, add_to_date, get_datetime,
-	get_request_site_address, get_time_zone, get_weekdays, now_datetime, format_datetime, getdate)
-from frappe.utils.html_utils import unescape_html
-
+from frappe.utils import (
+	add_days,
+	add_to_date,
+	format_datetime,
+	get_datetime,
+	get_request_site_address,
+	get_time_zone,
+	get_weekdays,
+	getdate,
+	now_datetime,
+)
 from frappe.utils.background_jobs import enqueue
+from frappe.utils.html_utils import unescape_html
 from frappe.utils.scheduler import is_scheduler_inactive
-from frappe.core.page.background_jobs.background_jobs import get_info
 
 SCOPES = "https://www.googleapis.com/auth/calendar"
 
@@ -26,7 +36,7 @@ google_calendar_frequencies = {
 	"RRULE:FREQ=DAILY": "Daily",
 	"RRULE:FREQ=WEEKLY": "Weekly",
 	"RRULE:FREQ=MONTHLY": "Monthly",
-	"RRULE:FREQ=YEARLY": "Yearly"
+	"RRULE:FREQ=YEARLY": "Yearly",
 }
 
 google_calendar_days = {
@@ -36,14 +46,14 @@ google_calendar_days = {
 	"TH": "thursday",
 	"FR": "friday",
 	"SA": "saturday",
-	"SU": "sunday"
+	"SU": "sunday",
 }
 
 framework_frequencies = {
-	"Daily": {"FREQ":"DAILY"},
-	"Weekly": {"FREQ":"WEEKLY"},
-	"Monthly": {"FREQ":"MONTHLY"},
-	"Yearly": {"FREQ":"FREQ=YEARLY"}
+	"Daily": {"FREQ": "DAILY"},
+	"Weekly": {"FREQ": "WEEKLY"},
+	"Monthly": {"FREQ": "MONTHLY"},
+	"Yearly": {"FREQ": "FREQ=YEARLY"},
 }
 
 framework_days = {
@@ -53,12 +63,11 @@ framework_days = {
 	"thursday": "TH",
 	"friday": "FR",
 	"saturday": "SA",
-	"sunday": "SU"
+	"sunday": "SU",
 }
 
 
 class GoogleCalendar(Document):
-
 	def validate(self):
 		google_settings = frappe.get_single("Google Settings")
 		if not google_settings.enable:
@@ -81,14 +90,18 @@ class GoogleCalendar(Document):
 			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 			"refresh_token": self.get_password(fieldname="refresh_token", raise_exception=False),
 			"grant_type": "refresh_token",
-			"scope": SCOPES
+			"scope": SCOPES,
 		}
 
 		try:
 			r = requests.post(get_auth_url(), data=data).json()
 		except requests.exceptions.HTTPError:
 			button_label = frappe.bold(_("Allow Google Calendar Access"))
-			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
+			frappe.throw(
+				_(
+					"Something went wrong during the token generation. Click on {0} to generate a new one."
+				).format(button_label)
+			)
 
 		return r.get("access_token")
 
@@ -102,7 +115,10 @@ def authorize_access(g_calendar, reauthorize=None):
 	google_settings = frappe.get_doc("Google Settings")
 	google_calendar = frappe.get_doc("Google Calendar", g_calendar)
 
-	redirect_uri = get_request_site_address(not frappe.flags.in_test) + "?cmd=frappe.integrations.doctype.google_calendar.google_calendar.google_callback"
+	redirect_uri = (
+		get_request_site_address(not frappe.flags.in_test)
+		+ "?cmd=frappe.integrations.doctype.google_calendar.google_calendar.google_callback"
+	)
 
 	if not google_calendar.authorization_code or reauthorize:
 		frappe.cache().hset("google_calendar", "google_calendar", google_calendar.name)
@@ -112,18 +128,24 @@ def authorize_access(g_calendar, reauthorize=None):
 			data = {
 				"code": google_calendar.get_password(fieldname="authorization_code", raise_exception=False),
 				"client_id": google_settings.client_id,
-				"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
+				"client_secret": google_settings.get_password(
+					fieldname="client_secret", raise_exception=False
+				),
 				"redirect_uri": redirect_uri,
-				"grant_type": "authorization_code"
+				"grant_type": "authorization_code",
 			}
 			r = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in r:
-				frappe.db.set_value("Google Calendar", google_calendar.name, "refresh_token", r.get("refresh_token"))
+				frappe.db.set_value(
+					"Google Calendar", google_calendar.name, "refresh_token", r.get("refresh_token")
+				)
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/app/Form/{0}/{1}".format(quote("Google Calendar"), quote(google_calendar.name))
+			frappe.local.response["location"] = "/app/Form/{0}/{1}".format(
+				quote("Google Calendar"), quote(google_calendar.name)
+			)
 
 			frappe.msgprint(_("Google Calendar has been configured."))
 		except Exception as e:
@@ -132,7 +154,9 @@ def authorize_access(g_calendar, reauthorize=None):
 
 def get_authentication_url(client_id=None, redirect_uri=None):
 	return {
-		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(client_id, SCOPES, redirect_uri)
+		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(
+			client_id, SCOPES, redirect_uri
+		)
 	}
 
 
@@ -173,16 +197,25 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 	if job_already_enqueued("calendar_import|{}".format(account.get("name"))):
 		return
 
-	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events?access_token={}".format(account.user,account.get_access_token())
-	response = requests.get(url=caldav_url, headers={"User-Agent": "Mozilla/5.0","Content-Type": "text/xml","Accept": "text/xml, text/calendar"})
+	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events?access_token={}".format(
+		account.user, account.get_access_token()
+	)
+	response = requests.get(
+		url=caldav_url,
+		headers={
+			"User-Agent": "Mozilla/5.0",
+			"Content-Type": "text/xml",
+			"Accept": "text/xml, text/calendar",
+		},
+	)
 	cal = Calendar.from_ical(response.content)
-	return enqueue_job(parse_calendar_events,calendar = cal,account = account)
+	return enqueue_job(parse_calendar_events, calendar=cal, account=account)
 
 
-def parse_calendar_events(calendar,account):
-	event_list =[]
+def parse_calendar_events(calendar, account):
+	event_list = []
 	insert_count = 0
-	for event in calendar.walk('vevent'):
+	for event in calendar.walk("vevent"):
 		recurrence = None
 		event_id = get_event_id(event)
 		if event.get("RRULE"):
@@ -192,18 +225,19 @@ def parse_calendar_events(calendar,account):
 			event_list.append(event_id)
 			if not frappe.db.exists("Event", {"google_calendar_event_id": event_id}):
 				insert_count += 1
-				insert_event_to_calendar(account, event, attendees,recurrence)
+				insert_event_to_calendar(account, event, attendees, recurrence)
 			else:
-				update_event_in_calendar(account, event, attendees,recurrence)
+				update_event_in_calendar(account, event, attendees, recurrence)
 	close_cancelled_events(event_list)
 	account.last_sync_datetime = now_datetime()
 	account.save(ignore_permissions=True)
 
 
 def get_event_id(event):
-	return "{}|{}".format(event["UID"],(event["DTSTART"].dt).strftime("%Y-%m-%d %H:%M"))
+	return "{}|{}".format(event["UID"], (event["DTSTART"].dt).strftime("%Y-%m-%d %H:%M"))
 
-def insert_event_to_calendar(account, event,attendees, recurrence=None):
+
+def insert_event_to_calendar(account, event, attendees, recurrence=None):
 	"""
 	Inserts event in Frappe Calendar during Sync
 	"""
@@ -215,14 +249,20 @@ def insert_event_to_calendar(account, event,attendees, recurrence=None):
 		"google_calendar": account.name,
 		"google_calendar_id": account.google_calendar_id,
 		"google_calendar_event_id": get_event_id(event),
-		"pulled_from_google_calendar": 1
+		"pulled_from_google_calendar": 1,
 	}
-	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("DTSTART").dt, end= (event.get("DTEND").dt if event.get("DTEND") else None)))
-	calendar_event.update({"event_participants":attendees})
+	calendar_event.update(
+		google_calendar_to_repeat_on(
+			recurrence=recurrence,
+			start=event.get("DTSTART").dt,
+			end=(event.get("DTEND").dt if event.get("DTEND") else None),
+		)
+	)
+	calendar_event.update({"event_participants": attendees})
 	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
 
 
-def update_event_in_calendar(account, update_event, attendees,recurrence=None):
+def update_event_in_calendar(account, update_event, attendees, recurrence=None):
 	"""
 	Updates Event in Frappe Calendar if any existing Google Calendar Event is updated
 	"""
@@ -236,24 +276,34 @@ def update_event_in_calendar(account, update_event, attendees,recurrence=None):
 		update_content = True
 	# google_calendar_to_repeat_on(recurrence=recurrence, start=update_event.get("DTSTART").dt, end=update_event.get("DTEND").dt)
 	if update_content:
-		event_doc = frappe.qb.DocType('Event')
-		(frappe.qb.update(event_doc)
-			.set(event_doc.subject ,update_event.get("SUMMARY"))
-			.set(event_doc.description ,update_event.get("DESCRIPTION"))
-			.set(event_doc.modified ,now_datetime())
-			.where(event_doc.google_calendar_event_id == get_event_id(update_event))).run()
+		event_doc = frappe.qb.DocType("Event")
+		(
+			frappe.qb.update(event_doc)
+			.set(event_doc.subject, update_event.get("SUMMARY"))
+			.set(event_doc.description, update_event.get("DESCRIPTION"))
+			.set(event_doc.modified, now_datetime())
+			.where(event_doc.google_calendar_event_id == get_event_id(update_event))
+		).run()
+
 
 def close_cancelled_events(confirmed_list):
-	event_doc = frappe.qb.DocType('Event')
-	(frappe.qb.update(event_doc).set(event_doc.status , "Closed").where(event_doc.google_calendar_event_id.notin(confirmed_list))).run()
+	event_doc = frappe.qb.DocType("Event")
+	(
+		frappe.qb.update(event_doc)
+		.set(event_doc.status, "Closed")
+		.where(event_doc.google_calendar_event_id.notin(confirmed_list))
+	).run()
 
 
 def insert_event_in_google_calendar(doc, method=None):
 	"""
 	Insert Events in Google Calendar if sync_with_google_calendar is checked.
 	"""
-	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.pulled_from_google_calendar \
-		or not doc.sync_with_google_calendar:
+	if (
+		not frappe.db.exists("Google Calendar", {"name": doc.google_calendar})
+		or doc.pulled_from_google_calendar
+		or not doc.sync_with_google_calendar
+	):
 		return
 
 	account = frappe.get_doc("Google Calendar", doc.google_calendar)
@@ -261,36 +311,44 @@ def insert_event_in_google_calendar(doc, method=None):
 	if not account.push_to_google_calendar:
 		return
 
-	event = {
-		"summary": doc.subject,
-		"description": doc.description,
-		"google_calendar_event": 1
-	}
-	event.update(format_date_according_to_google_calendar(doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
+	event = {"summary": doc.subject, "description": doc.description, "google_calendar_event": 1}
+	event.update(
+		format_date_according_to_google_calendar(
+			doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)
+		)
+	)
 
 	if doc.repeat_on:
 		event.update({"recurrence": repeat_on_to_google_calendar_recurrence_rule(doc)})
 
-	caldav_url, cal = create_calendar_object(account,doc)
+	caldav_url, cal = create_calendar_object(account, doc)
 	event = Event()
-	event['DTSTART'] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
-	event['DTEND'] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
-	event['SUMMARY'] = doc.subject
-	event['UID'] = uuid.uuid4()
-	event['DESCRIPTION'] = doc.description
-	event['ATTENDEE'] = []
-	for guest in doc.get('event_participants'):
-		event['ATTENDEE'].append('MAILTO:{}'.format(get_participant_email(guest)))
+	event["DTSTART"] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
+	event["DTEND"] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
+	event["SUMMARY"] = doc.subject
+	event["UID"] = uuid.uuid4()
+	event["DESCRIPTION"] = doc.description
+	event["ATTENDEE"] = []
+	for guest in doc.get("event_participants"):
+		event["ATTENDEE"].append("MAILTO:{}".format(get_participant_email(guest)))
 
 	if doc.repeat_on:
-		event['RRULE'] = repeat_on_to_google_calendar_recurrence_rule(doc)
+		event["RRULE"] = repeat_on_to_google_calendar_recurrence_rule(doc)
 	cal.add_component(event)
-	response = requests.put(url = caldav_url,data=cal.to_ical() , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
+	response = requests.put(
+		url=caldav_url, data=cal.to_ical(), headers={"Content-Type": 'text/calendar; charset="utf-8"'}
+	)
 	if response.status_code == 201:
-		frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event['UID'], update_modified=False)
+		frappe.db.set_value(
+			"Event", doc.name, "google_calendar_event_id", event["UID"], update_modified=False
+		)
 		frappe.msgprint(_("Event Synced with Google Calendar."))
-	else :
-		frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.").format(account.name, response.text))
+	else:
+		frappe.throw(
+			_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.").format(
+				account.name, response.text
+			)
+		)
 
 
 def update_event_in_google_calendar(doc, method=None):
@@ -299,8 +357,11 @@ def update_event_in_google_calendar(doc, method=None):
 	"""
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
-	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.modified == doc.creation \
-		or not doc.sync_with_google_calendar:
+	if (
+		not frappe.db.exists("Google Calendar", {"name": doc.google_calendar})
+		or doc.modified == doc.creation
+		or not doc.sync_with_google_calendar
+	):
 		return
 
 	if doc.sync_with_google_calendar and not doc.google_calendar_event_id:
@@ -314,27 +375,37 @@ def update_event_in_google_calendar(doc, method=None):
 		return
 	repeat_on_to_google_calendar_recurrence_rule(doc)
 	try:
-		caldav_url, cal = create_calendar_object(account,doc)
+		caldav_url, cal = create_calendar_object(account, doc)
 		event = Event()
-		event['DTSTART'] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
-		event['DTEND'] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
-		event['SUMMARY'] = doc.subject
-		event['UID'] = doc.google_calendar_event_id
-		event['DESCRIPTION'] = doc.description
-		event['ATTENDEE'] =[]
+		event["DTSTART"] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
+		event["DTEND"] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
+		event["SUMMARY"] = doc.subject
+		event["UID"] = doc.google_calendar_event_id
+		event["DESCRIPTION"] = doc.description
+		event["ATTENDEE"] = []
 		if doc.repeat_on:
-			event['RRULE']=repeat_on_to_google_calendar_recurrence_rule(doc)
+			event["RRULE"] = repeat_on_to_google_calendar_recurrence_rule(doc)
 
-		for guest in doc.get('event_participants'):
-			event['ATTENDEE'].append('MAILTO:{}'.format(get_participant_email(guest)))
+		for guest in doc.get("event_participants"):
+			event["ATTENDEE"].append("MAILTO:{}".format(get_participant_email(guest)))
 		cal.add_component(event)
-		response = requests.put(url = caldav_url,data=cal.to_ical() , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
+		response = requests.put(
+			url=caldav_url, data=cal.to_ical(), headers={"Content-Type": 'text/calendar; charset="utf-8"'}
+		)
 		if response.status_code == 204:
 			frappe.msgprint(_("Event Synced with Google Calendar."))
-		else :
-			frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(doc.name, response.status_code))
+		else:
+			frappe.throw(
+				_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(
+					doc.name, response.status_code
+				)
+			)
 	except requests.exceptions.HTTPError as err:
-		frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(doc.name, err.resp.status))
+		frappe.throw(
+			_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(
+				doc.name, err.resp.status
+			)
+		)
 
 
 def delete_event_from_google_calendar(doc, method=None):
@@ -351,18 +422,24 @@ def delete_event_from_google_calendar(doc, method=None):
 		return
 
 	try:
-		caldav_url, cal = create_calendar_object(account,doc)
+		caldav_url, cal = create_calendar_object(account, doc)
 		cal["METHOD"] = "CANCEL"
 		event = Event()
-		event['DTSTART'] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
-		event['DTEND'] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
-		event['SUMMARY'] = doc.subject
+		event["DTSTART"] = format_datetime(doc.starts_on, "yyyyMMddTHHmmss")
+		event["DTEND"] = format_datetime(doc.ends_on, "yyyyMMddTHHmmss")
+		event["SUMMARY"] = doc.subject
 		event["UID"] = doc.google_calendar_event_id
 		event["STATUS"] = "CANCELLED"
 		cal.add_component(event)
-		requests.delete(url = caldav_url,data=cal.to_ical()  , headers={"Content-Type": 'text/calendar; charset="utf-8"'})
+		requests.delete(
+			url=caldav_url, data=cal.to_ical(), headers={"Content-Type": 'text/calendar; charset="utf-8"'}
+		)
 	except requests.exceptions.HTTPError as err:
-		frappe.msgprint(_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(doc.name, err.resp.status))
+		frappe.msgprint(
+			_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(
+				doc.name, err.resp.status
+			)
+		)
 
 
 def google_calendar_to_repeat_on(start, end, recurrence=None):
@@ -443,7 +520,7 @@ def format_date_according_to_google_calendar(all_day, starts_on, ends_on=None):
 		"end": {
 			"dateTime": ends_on.isoformat(),
 			"timeZone": get_time_zone(),
-		}
+		},
 	}
 
 	if all_day:
@@ -537,47 +614,69 @@ def get_recurrence_parameters(recurrence):
 
 def get_event_attendees(event):
 	event_participants = []
-	for item in event.get("ATTENDEE",[]):
+	for item in event.get("ATTENDEE", []):
 		if item.startswith("mailto:"):
-			attendee_email = item[len("mailto:"):]
-			if frappe.db.exists('User', {'email':attendee_email}):
-				event_participants.append({"reference_doctype":"User","reference_docname":frappe.get_doc("User", {'email': attendee_email}).name})
-			elif frappe.db.exists('Contact', {'email_id': attendee_email}) :
-				event_participants.append({"reference_doctype":"Contact","reference_docname":frappe.get_doc("Contact", {'email_id': attendee_email}).name})
+			attendee_email = item[len("mailto:") :]
+			if frappe.db.exists("User", {"email": attendee_email}):
+				event_participants.append(
+					{
+						"reference_doctype": "User",
+						"reference_docname": frappe.get_doc("User", {"email": attendee_email}).name,
+					}
+				)
+			elif frappe.db.exists("Contact", {"email_id": attendee_email}):
+				event_participants.append(
+					{
+						"reference_doctype": "Contact",
+						"reference_docname": frappe.get_doc("Contact", {"email_id": attendee_email}).name,
+					}
+				)
 			else:
 				contact = {
 					"doctype": "Contact",
 					"first_name": attendee_email.split("@")[0],
 					"email_id": attendee_email,
-					"email_ids":[{"email_id":attendee_email,"is_primary":1}]
+					"email_ids": [{"email_id": attendee_email, "is_primary": 1}],
 				}
 				doc = frappe.get_doc(contact).insert(ignore_permissions=True)
-				event_participants.append({"reference_doctype":"Contact","reference_docname":doc.name})
+				event_participants.append({"reference_doctype": "Contact", "reference_docname": doc.name})
 	return event_participants
 
 
 def get_participant_email(guest):
-	doc = frappe.get_doc(guest.get('reference_doctype'), guest.get('reference_docname'))
-	return doc.get('email') if guest.get('reference_doctype') =="User" else doc.get('email_id')
+	doc = frappe.get_doc(guest.get("reference_doctype"), guest.get("reference_docname"))
+	return doc.get("email") if guest.get("reference_doctype") == "User" else doc.get("email_id")
 
 
 def create_calendar_object(account, doc):
-	caldav_url = "https://apidata.googleusercontent.com/caldav/v2/{}/events/{}?access_token={}".format(account.user,doc.name,account.get_access_token())
+	caldav_url = (
+		"https://apidata.googleusercontent.com/caldav/v2/{}/events/{}?access_token={}".format(
+			account.user, doc.name, account.get_access_token()
+		)
+	)
 	cal = Calendar()
-	cal['PRODID'] = '-//Google Inc//Google Calendar 70.9054//EN'
-	cal['VERSION'] = '2.0'
-	cal['CALSCALE'] = account.user
-	cal['X-WR-CALNAME'] = account.user
-	cal['X-WR-TIMEZONE'] = frappe.db.get_single_value("System Settings", "time_zone")
-	return caldav_url,cal
+	cal["PRODID"] = "-//Google Inc//Google Calendar 70.9054//EN"
+	cal["VERSION"] = "2.0"
+	cal["CALSCALE"] = account.user
+	cal["X-WR-CALNAME"] = account.user
+	cal["X-WR-TIMEZONE"] = frappe.db.get_single_value("System Settings", "time_zone")
+	return caldav_url, cal
 
 
 def enqueue_job(job, **kwargs):
 	check_scheduler_status()
-	account = kwargs.get('account') or {}
+	account = kwargs.get("account") or {}
 	job_name = "calendar_import|{}".format(account.get("name"))
 	if not job_already_enqueued(job_name):
-		enqueue(job,**kwargs,queue="long",timeout=10000,event="Import events from google ",job_name=job_name,now=frappe.conf.developer_mode or frappe.flags.in_test)
+		enqueue(
+			job,
+			**kwargs,
+			queue="long",
+			timeout=10000,
+			event="Import events from google ",
+			job_name=job_name,
+			now=frappe.conf.developer_mode or frappe.flags.in_test
+		)
 
 
 def check_scheduler_status():

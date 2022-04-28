@@ -1,8 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
-import shutil
 import re
+import shutil
 import subprocess
 from distutils.spawn import find_executable
 from subprocess import getoutput
@@ -25,6 +25,7 @@ sites_path = os.path.abspath(os.getcwd())
 class AssetsNotDownloadedError(Exception):
 	pass
 
+
 class AssetsDontExistError(HTTPError):
 	pass
 
@@ -43,7 +44,7 @@ def download_file(url, prefix):
 
 
 def build_missing_files():
-	'''Check which files dont exist yet from the assets.json and run build for those files'''
+	"""Check which files dont exist yet from the assets.json and run build for those files"""
 
 	missing_assets = []
 	current_asset_files = []
@@ -60,7 +61,7 @@ def build_missing_files():
 		assets_json = frappe.parse_json(assets_json)
 
 		for bundle_file, output_file in assets_json.items():
-			if not output_file.startswith('/assets/frappe'):
+			if not output_file.startswith("/assets/frappe"):
 				continue
 
 			if os.path.basename(output_file) not in current_asset_files:
@@ -78,8 +79,7 @@ def build_missing_files():
 def get_assets_link(frappe_head) -> str:
 	tag = getoutput(
 		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
-		r" refs/tags/,,' -e 's/\^{}//'"
-		% frappe_head
+		r" refs/tags/,,' -e 's/\^{}//'" % frappe_head
 	)
 
 	if tag:
@@ -111,6 +111,7 @@ def fetch_assets(url, frappe_head):
 
 def setup_assets(assets_archive):
 	import tarfile
+
 	directories_created = set()
 
 	click.secho("\nExtracting assets...\n", fg="yellow")
@@ -221,7 +222,16 @@ def setup():
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 
-def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, verbose=False, skip_frappe=False, files=None):
+def bundle(
+	mode,
+	apps=None,
+	hard_link=False,
+	make_copy=False,
+	restore=False,
+	verbose=False,
+	skip_frappe=False,
+	files=None,
+):
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(hard_link=hard_link)
@@ -236,7 +246,7 @@ def bundle(mode, apps=None, hard_link=False, make_copy=False, restore=False, ver
 		command += " --skip_frappe"
 
 	if files:
-		command += " --files {files}".format(files=','.join(files))
+		command += " --files {files}".format(files=",".join(files))
 
 	command += " --run-build-command"
 
@@ -253,9 +263,7 @@ def watch(apps=None):
 	if apps:
 		command += " --apps {apps}".format(apps=apps)
 
-	live_reload = frappe.utils.cint(
-		os.environ.get("LIVE_RELOAD", frappe.conf.live_reload)
-	)
+	live_reload = frappe.utils.cint(os.environ.get("LIVE_RELOAD", frappe.conf.live_reload))
 
 	if live_reload:
 		command += " --live-reload"
@@ -266,8 +274,8 @@ def watch(apps=None):
 
 
 def check_node_executable():
-	node_version = Version(subprocess.getoutput('node -v')[1:])
-	warn = '⚠️ '
+	node_version = Version(subprocess.getoutput("node -v")[1:])
+	warn = "⚠️ "
 	if node_version.major < 14:
 		click.echo(f"{warn} Please update your node version to 14")
 	if not find_executable("yarn"):
@@ -276,9 +284,7 @@ def check_node_executable():
 
 
 def get_node_env():
-	node_env = {
-		"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"
-	}
+	node_env = {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
 	return node_env
 
 
@@ -345,8 +351,7 @@ def clear_broken_symlinks():
 
 
 def unstrip(message: str) -> str:
-	"""Pads input string on the right side until the last available column in the terminal
-	"""
+	"""Pads input string on the right side until the last available column in the terminal"""
 	_len = len(message)
 	try:
 		max_str = os.get_terminal_size().columns
@@ -367,7 +372,9 @@ def make_asset_dirs(hard_link=False):
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+		start_message = unstrip(
+			f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}"
+		)
 		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
 
 		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes
@@ -404,10 +411,11 @@ def scrub_html_template(content):
 	# strip comments
 	content = re.sub(r"(<!--.*?-->)", "", content)
 
-	return content.replace("'", "\'")
+	return content.replace("'", "'")
 
 
 def html_to_js_template(path, content):
 	"""returns HTML template content as Javascript code, adding it to `frappe.templates`"""
 	return """frappe.templates["{key}"] = '{content}';\n""".format(
-		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))
+		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content)
+	)

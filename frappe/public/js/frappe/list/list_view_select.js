@@ -262,19 +262,27 @@ frappe.views.ListViewSelect = class ListViewSelect {
 
 	setup_kanban_boards() {
 		const last_opened_kanban =
-			frappe.model.user_settings[this.doctype]["Kanban"] &&
 			frappe.model.user_settings[this.doctype]["Kanban"]
-				.last_kanban_board;
-		if (last_opened_kanban) {
-			frappe.set_route(
-				"list",
+				?.last_kanban_board;
+
+		if (!last_opened_kanban) {
+			return frappe.views.KanbanView.show_kanban_dialog(
 				this.doctype,
-				"kanban",
-				last_opened_kanban
+				true
 			);
-		} else {
-			frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 		}
+		frappe.db.exists("Kanban Board", last_opened_kanban).then(exists => {
+			if (exists) {
+				frappe.set_route(
+					"list",
+					this.doctype,
+					"kanban",
+					last_opened_kanban
+				);
+			} else {
+				frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			}
+		});
 	}
 
 	get_calendars() {
