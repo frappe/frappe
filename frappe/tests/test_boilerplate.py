@@ -4,6 +4,7 @@ import glob
 import os
 import shutil
 import unittest
+from io import StringIO
 from unittest.mock import patch
 
 import frappe
@@ -80,20 +81,20 @@ class TestBoilerPlate(unittest.TestCase):
 				user_inputs.extend(value)
 			else:
 				user_inputs.append(value)
-		return user_inputs
+		return StringIO("\n".join(user_inputs))
 
 	def test_simple_input_to_boilerplate(self):
-		with patch("builtins.input", side_effect=self.get_user_input_stream(self.default_user_input)):
+		with patch("sys.stdin", self.get_user_input_stream(self.default_user_input)):
 			hooks = _get_inputs(self.default_hooks.app_name)
 		self.assertDictEqual(hooks, self.default_hooks)
 
 	def test_invalid_inputs(self):
-		invalid_inputs = copy.deepcopy(self.default_user_input).update(
+		invalid_inputs = copy.copy(self.default_user_input).update(
 			{
 				"title": ["1nvalid Title", "valid title"],
 			}
 		)
-		with patch("builtins.input", side_effect=self.get_user_input_stream(invalid_inputs)):
+		with patch("sys.stdin", self.get_user_input_stream(invalid_inputs)):
 			hooks = _get_inputs(self.default_hooks.app_name)
 		self.assertEqual(hooks.app_title, "valid title")
 
