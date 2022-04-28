@@ -119,7 +119,7 @@ context('Dynamic Link', () => {
 
 		//Entering System Settings in the Doctype field
 		cy.fill_field('doc_type', 'System Settings', 'Link', {delay: 500});
-		cy.get(`[data-fieldname="${field.fieldname}"] ul:visible li:first-child`)
+		cy.get(`[data-fieldname="doc_type"] ul:visible li:first-child`)
 			.click({scrollBehavior: false});
 
 		cy.get_field('doc_id').click();
