@@ -17,23 +17,32 @@ def make_boilerplate(dest, app_name, no_git=False):
 
 	# app_name should be in snake_case
 	app_name = frappe.scrub(app_name)
+	hooks = _get_inputs(app_name)
+	_create_app_boilerplate(dest, hooks, no_git=no_git)
+
+
+def _get_inputs(app_name):
+	"""Prompt user for various inputs related to new app and return config."""
+	app_name = frappe.scrub(app_name)
 
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
-	for key in (
-		"App Title (default: {0})".format(app_title),
-		"App Description",
-		"App Publisher",
-		"App Email",
-		"App Icon (default 'octicon octicon-file-directory')",
-		"App Color (default 'grey')",
-		"App License (default 'MIT')",
-	):
-		hook_key = key.split(" (")[0].lower().replace(" ", "_")
+
+	NEW_APP_CONFIG = {
+		"app_title": {"prompt": "App Title (default: {0})".format(app_title)},
+		"app_description": {"prompt": "App Description"},
+		"app_publisher": {"prompt": "App Publisher"},
+		"app_email": {"prompt": "App Email"},
+		"app_icon": {"prompt": "App Icon (default 'octicon octicon-file-directory')"},
+		"app_color": {"prompt": "App Color (default 'grey')"},
+		"app_license": {"prompt": "App License (default 'MIT')"},
+	}
+
+	for property, config in NEW_APP_CONFIG.items():
 		hook_val = None
 		while not hook_val:
-			hook_val = cstr(input(key + ": "))
+			hook_val = cstr(input(config["prompt"] + ": "))
 
 			if not hook_val:
 				defaults = {
@@ -42,13 +51,13 @@ def make_boilerplate(dest, app_name, no_git=False):
 					"app_color": "grey",
 					"app_license": "MIT",
 				}
-				if hook_key in defaults:
-					hook_val = defaults[hook_key]
+				if property in defaults:
+					hook_val = defaults[property]
 
-			if hook_key == "app_name" and hook_val.lower().replace(" ", "_") != hook_val:
+			if property == "app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print("App Name must be all lowercase and without spaces")
 				hook_val = ""
-			elif hook_key == "app_title" and not re.match(
+			elif property == "app_title" and not re.match(
 				r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE
 			):
 				print(
@@ -56,8 +65,12 @@ def make_boilerplate(dest, app_name, no_git=False):
 				)
 				hook_val = ""
 
-		hooks[hook_key] = hook_val
+		hooks[property] = hook_val
 
+	return hooks
+
+
+def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)), with_init=True
 	)
@@ -132,7 +145,7 @@ def make_boilerplate(dest, app_name, no_git=False):
 		app_repo.git.add(A=True)
 		app_repo.index.commit("feat: Initialize App")
 
-	print("'{app}' created at {path}".format(app=app_name, path=app_directory))
+	print(f"'{hooks.app_name}' created at {app_directory}")
 
 
 manifest_template = """include MANIFEST.in
