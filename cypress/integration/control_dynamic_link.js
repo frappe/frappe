@@ -118,7 +118,9 @@ context('Dynamic Link', () => {
 		cy.get_field('doc_type').clear();
 
 		//Entering System Settings in the Doctype field
+		cy.intercept('/api').as('api/*/search_link.py');
 		cy.fill_field('doc_type', 'System Settings', 'Link', {delay: 500});
+		cy.wait('@api');
 		cy.get(`[data-fieldname="doc_type"] ul:visible li:first-child`)
 			.click({scrollBehavior: false});
 
