@@ -410,12 +410,10 @@ def set_time_zone(bootinfo):
 		or get_time_zone(),
 	}
 
+
 def get_translatable_doctypes():
 	dts = frappe.get_all("DocType", {"translate_link_fields": 1}, pluck="name")
 	custom_dts = frappe.get_all(
-		"Property Setter",
-		{"property": "translate_link_fields", "value": "1"},
-		pluck="doc_type"
+		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
 	)
 	return dts + custom_dts
-
