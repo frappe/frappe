@@ -4,6 +4,7 @@
 import os
 import re
 
+import click
 import git
 
 import frappe
@@ -29,45 +30,41 @@ def _get_inputs(app_name):
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
 
-	NEW_APP_CONFIG = {
-		"app_title": {"prompt": "App Title (default: {0})".format(app_title)},
+	new_app_config = {
+		"app_title": {
+			"prompt": "App Title".format(app_title),
+			"default": app_title,
+			"validator": is_valid_title,
+		},
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
 		"app_email": {"prompt": "App Email"},
-		"app_icon": {"prompt": "App Icon (default 'octicon octicon-file-directory')"},
-		"app_color": {"prompt": "App Color (default 'grey')"},
-		"app_license": {"prompt": "App License (default 'MIT')"},
+		"app_icon": {"prompt": "App Icon", "default": "octicon octicon-file-directory"},
+		"app_color": {"prompt": "App Color", "default": "grey"},
+		"app_license": {"prompt": "App License", "default": "MIT"},
 	}
 
-	for property, config in NEW_APP_CONFIG.items():
-		hook_val = None
-		while not hook_val:
-			hook_val = cstr(input(config["prompt"] + ": "))
-
-			if not hook_val:
-				defaults = {
-					"app_title": app_title,
-					"app_icon": "octicon octicon-file-directory",
-					"app_color": "grey",
-					"app_license": "MIT",
-				}
-				if property in defaults:
-					hook_val = defaults[property]
-
-			if property == "app_name" and hook_val.lower().replace(" ", "_") != hook_val:
-				print("App Name must be all lowercase and without spaces")
-				hook_val = ""
-			elif property == "app_title" and not re.match(
-				r"^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE
-			):
-				print(
-					"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
-				)
-				hook_val = ""
-
-		hooks[property] = hook_val
+	for property, config in new_app_config.items():
+		value = None
+		while value is None:
+			value = click.prompt(
+				config["prompt"], default=config.get("default"), type=config.get("type", str)
+			)
+			if validator_function := config.get("validator"):
+				if not validator_function(value):
+					value = None
+		hooks[property] = value
 
 	return hooks
+
+
+def is_valid_title(title) -> bool:
+	if not re.match(r"^(?![\W])[^\d_\s][\w -]+$", title, re.UNICODE):
+		print(
+			"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+		)
+		return False
+	return True
 
 
 def _create_app_boilerplate(dest, hooks, no_git=False):
