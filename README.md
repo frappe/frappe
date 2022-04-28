@@ -36,7 +36,7 @@
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
 <div align="center">
-	<a href="https://frappecloud.com/deploy?apps=frappe&source=frappe_readme">
+	<a href="https://frappecloud.com/frappe/signup">
 		<img src=".github/try-on-f-cloud-button.svg" height="40">
 	</a>
 </div>
@@ -52,7 +52,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 * [Install via Docker](https://github.com/frappe/frappe_docker)
 * [Install via Frappe Bench](https://github.com/frappe/bench)
 * [Offical Documentation](https://frappeframework.com/docs/user/en/installation)
-* [Managed Hosting on Frappe Cloud](https://frappecloud.com/deploy?apps=frappe&source=frappe_readme)
+* [Managed Hosting on Frappe Cloud](https://frappecloud.com/frappe/signup)
 
 ## Contributing
 
