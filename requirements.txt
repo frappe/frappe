@@ -67,9 +67,10 @@ traceback-with-variables~=2.0.4
 urllib3~=1.26.4
 Werkzeug~=2.0.3
 Whoosh~=2.7.4
-wrapt~=1.14.0
 xlrd~=2.0.1
 zxcvbn-python~=4.4.24
 tenacity~=8.0.1
 cairocffi==1.2.0
 WeasyPrint==52.5
+phonenumbers==8.12.40
+

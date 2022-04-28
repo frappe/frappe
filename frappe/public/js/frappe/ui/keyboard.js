@@ -37,7 +37,7 @@ frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, con
 		if (is_input_focused && !ignore_inputs) return;
 		if (!condition()) return;
 
-		if (!page || page.wrapper.is(':visible')) {
+		if (action && (!page || page.wrapper.is(':visible'))) {
 			let prevent_default = action(e);
 			// prevent default if true is explicitly returned
 			// or nothing returned (undefined)

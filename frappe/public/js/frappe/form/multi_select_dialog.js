@@ -151,7 +151,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	is_child_selection_enabled() {
-		return this.dialog.fields_dict['allow_child_item_selection'].get_value();
+		return this.dialog.fields_dict['allow_child_item_selection']?.get_value();
 	}
 
 	toggle_child_selection() {

@@ -1,16 +1,16 @@
 <div align="center">
-    <h1>
-        <br>
-        <a href="https://frappeframework.com">
-            <img src=".github/frappe-framework-logo.svg" height="50">
-        </a>
-    </h1>
-    <h3>
-        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
-    </h3>
-    <h5>
-        it's pronounced - <em>fra-pay</em>
-    </h5>
+	<h1>
+		<br>
+		<a href="https://frappeframework.com">
+			<img src=".github/frappe-framework-logo.svg" height="50">
+		</a>
+	</h1>
+	<h3>
+		a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
+	</h3>
+	<h5>
+		it's pronounced - <em>fra-pay</em>
+	</h5>
 </div>
 
 <div align="center">
@@ -27,19 +27,23 @@
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
 	</a>
 	<a href="https://codecov.io/gh/frappe/frappe">
-	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
+		<img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
 	</a>
 </div>
-
 
 
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
-<div align="center">
-	<a href="https://frappecloud.com/deploy?apps=frappe&source=frappe_readme">
+<div align="center" style="max-height: 40px;">
+	<a href="https://frappecloud.com/frappe/signup">
 		<img src=".github/try-on-f-cloud-button.svg" height="40">
 	</a>
+	<a href="https://labs.play-with-docker.com/?stack=https://raw.githubusercontent.com/gavindsouza/install-scripts/main/frappe/pwd.yml">
+		<img src="https://raw.githubusercontent.com/play-with-docker/stacks/master/assets/images/button.png" alt="Try in PWD" height="37"/>
+	</a>
 </div>
+
+> Login for the PWD site: (username: Administrator, password: admin)
 
 ## Table of Contents
 * [Installation](#installation)
@@ -52,7 +56,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 * [Install via Docker](https://github.com/frappe/frappe_docker)
 * [Install via Frappe Bench](https://github.com/frappe/bench)
 * [Offical Documentation](https://frappeframework.com/docs/user/en/installation)
-* [Managed Hosting on Frappe Cloud](https://frappecloud.com/deploy?apps=frappe&source=frappe_readme)
+* [Managed Hosting on Frappe Cloud](https://frappecloud.com/frappe/signup)
 
 ## Contributing
 

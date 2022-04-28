@@ -53,6 +53,7 @@ class MariaDBDatabase(Database):
 			"Geolocation": ("longtext", ""),
 			"Duration": ("decimal", "21,9"),
 			"Icon": ("varchar", self.VARCHAR_LEN),
+			"Phone": ("varchar", self.VARCHAR_LEN),
 			"Autocomplete": ("varchar", self.VARCHAR_LEN),
 			"JSON": ("json", ""),
 		}

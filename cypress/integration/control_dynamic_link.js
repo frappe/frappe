@@ -62,8 +62,8 @@ context('Dynamic Link', () => {
 				"label": "Document ID",
 				"fieldname": "doc_id",
 				"fieldtype": "Dynamic Link",
-				"get_options": () => { 
-					return "User"; 
+				"get_options": () => {
+					return "User";
 				},
 				"in_list_view": 1,
 			}]
@@ -118,7 +118,12 @@ context('Dynamic Link', () => {
 		cy.get_field('doc_type').clear();
 
 		//Entering System Settings in the Doctype field
+		cy.intercept('/api/method/frappe.desk.search.search_link').as('search_query');
 		cy.fill_field('doc_type', 'System Settings', 'Link', {delay: 500});
+		cy.wait('@search_query');
+		cy.get(`[data-fieldname="doc_type"] ul:visible li:first-child`)
+			.click({scrollBehavior: false});
+
 		cy.get_field('doc_id').click();
 
 		//Checking if the system throws error

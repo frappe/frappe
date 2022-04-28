@@ -107,7 +107,24 @@ class TestRenameDoc(unittest.TestCase):
 
 	def setUp(self):
 		frappe.flags.link_fields = {}
+		if self._testMethodName == "test_doc_rename_method":
+			self.property_setter = frappe.get_doc(
+				{
+					"doctype": "Property Setter",
+					"doctype_or_field": "DocType",
+					"doc_type": self.test_doctype,
+					"property": "allow_rename",
+					"property_type": "Check",
+					"value": "1",
+				}
+			).insert()
+
 		super().setUp()
+
+	def tearDown(self) -> None:
+		if self._testMethodName == "test_doc_rename_method":
+			self.property_setter.delete()
+		return super().tearDown()
 
 	def test_rename_doc(self):
 		"""Rename an existing document via frappe.rename_doc"""
@@ -247,3 +264,12 @@ class TestRenameDoc(unittest.TestCase):
 
 			update_linked_doctypes("User", "ToDo", "str", "str")
 			self.assertTrue("Function frappe.model.rename_doc.update_linked_doctypes" in stdout.getvalue())
+
+	def test_doc_rename_method(self):
+		name = choice(self.available_documents)
+		new_name = f"{name}-{frappe.generate_hash(length=4)}"
+		doc = frappe.get_doc(self.test_doctype, name)
+		doc.rename(new_name, merge=frappe.db.exists(self.test_doctype, new_name))
+		self.assertEqual(doc.name, new_name)
+		self.available_documents.append(new_name)
+		self.available_documents.remove(name)
