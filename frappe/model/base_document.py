@@ -1175,9 +1175,7 @@ class BaseDocument(object):
 
 			value = get_datetime(_value).date()
 			value = (
-				get_date_str(value)
-				if not isinstance(_value, (datetime.datetime, datetime.date))
-				else value
+				get_date_str(value) if not isinstance(_value, (datetime.datetime, datetime.date)) else value
 			)
 
 			self.set(field.fieldname, value)

@@ -641,18 +641,18 @@ class Meta(Document):
 	def is_nested_set(self):
 		return self.has_field("lft") and self.has_field("rgt")
 
-
 	def get_date_fields(self):
 		if not hasattr(self, "_date_fields"):
-			self._date_fields = self.get('fields', {"fieldtype": "Date"})
+			self._date_fields = self.get("fields", {"fieldtype": "Date"})
 
 		return self._date_fields
 
 	def get_time_fields(self):
 		if not hasattr(self, "_time_fields"):
-			self._time_fields = self.get('fields', {"fieldtype": "Time"})
+			self._time_fields = self.get("fields", {"fieldtype": "Time"})
 
 		return self._time_fields
+
 
 DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),

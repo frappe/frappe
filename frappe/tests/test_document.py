@@ -7,25 +7,15 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.note.note import Note
-from frappe.model.naming import (
-	make_autoname,
-	parse_naming_series,
-	revert_series_if_last,
-)
-from frappe.utils import (
-	cint,
-	get_date_str,
-	get_datetime,
-	get_time_str,
-	now_datetime,
-	to_timedelta,
-)
+from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
+from frappe.utils import cint, get_date_str, get_datetime, get_time_str, now_datetime, to_timedelta
 
 
 class CustomTestNote(Note):
 	@property
 	def age(self):
 		return now_datetime() - self.creation
+
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
@@ -359,12 +349,14 @@ class TestDocument(unittest.TestCase):
 		_datetime = get_datetime(_datetime_str)
 
 		# Check if the system parses the string for date and time
-		todo = frappe.get_doc({
-			"doctype": "ToDo",
-			"description": "test_date_and_time_casting",
-			"date": _datetime_str,
-			"time": _datetime_str
-		}).insert()
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "test_date_and_time_casting",
+				"date": _datetime_str,
+				"time": _datetime_str,
+			}
+		).insert()
 
 		self.assertEquals(todo.date, get_date_str(_datetime_str))
 		self.assertEquals(todo.time, get_time_str(_datetime_str))
@@ -388,12 +380,13 @@ class TestDocument(unittest.TestCase):
 
 def create_time_custom_field():
 	if not frappe.db.exists({"doctype": "Custom Field", "dt": "ToDo", "fieldname": "time"}):
-		frappe.get_doc({
-			"doctype": "Custom Field",
-			"label": "Time",
-			"dt": "ToDo",
-			"fieldname": "time",
-			"fieldtype": "Time",
-			"insert_after": "date"
-		}).insert()
-
+		frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"label": "Time",
+				"dt": "ToDo",
+				"fieldname": "time",
+				"fieldtype": "Time",
+				"insert_after": "date",
+			}
+		).insert()
