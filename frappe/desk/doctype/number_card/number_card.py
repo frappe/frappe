@@ -200,7 +200,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 			`tabNumber Card`
 		where
 			{conditions} and
-			(`tabNumber Card`.owner = '{user}' or
+			(`tabNumber Card`.owner = "{user}" or
 			`tabNumber Card`.is_public = 1)
 			{search_conditions}
 	""".format(

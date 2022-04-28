@@ -54,7 +54,7 @@ def get_permission_query_conditions(user):
 	).get_sql()
 
 	return f"""(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
-		or `tabWorkflow Action`.`user`='{user}')
+		or `tabWorkflow Action`.`user`="{user}")
 		and `tabWorkflow Action`.`status`='Open'"""
 
 
