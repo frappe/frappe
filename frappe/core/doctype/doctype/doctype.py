@@ -973,9 +973,9 @@ def validate_fields(meta):
 	def check_invalid_fieldnames(docname, fieldname):
 		if fieldname in Document._ignore_in_setter:
 			frappe.throw(
-				_("{0}: fieldname cannot be one of:<br> {1}").format(
+				_("{0}: fieldname cannot be set as reserved keyword {1}").format(
 					frappe.bold(docname),
-					", ".join(frappe.bold(d) for d in Document._ignore_in_setter),
+					frappe.bold(fieldname),
 				),
 				title=_("Invalid Fieldname"),
 			)

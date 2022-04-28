@@ -23,8 +23,6 @@ from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
 
-DOCTYPES_FOR_DOCTYPE = {"DocType", "DocField", "DocPerm", "DocType Action", "DocType Link"}
-
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),
 	_dict(fieldname="permissions", options="DocPerm"),
@@ -32,6 +30,9 @@ DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="links", options="DocType Link"),
 	_dict(fieldname="states", options="DocType State"),
 ]
+
+DOCTYPE_TABLE_DOCTYPES = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}
+DOCTYPES_FOR_DOCTYPE = {"DocType", *DOCTYPE_TABLE_DOCTYPES.values()}
 
 
 def get_controller(doctype):
@@ -88,14 +89,14 @@ def get_controller(doctype):
 class BaseDocument(object):
 	_ignore_in_setter = {
 		"doctype",
-		"_meta",
 		"meta",
+		"_meta",
+		"flags",
 		"_table_fields",
 		"_valid_columns",
 		"_ignore_in_setter",
 		"_table_fieldnames",
 		"dont_update_if_missing",
-		"flags",
 	}
 
 	def __init__(self, d):
@@ -117,8 +118,7 @@ class BaseDocument(object):
 	@property
 	def meta(self):
 		if not (meta := getattr(self, "_meta", None)):
-			meta = frappe.get_meta(self.doctype)
-			self._meta = meta
+			self._meta = meta = frappe.get_meta(self.doctype)
 
 		return meta
 
@@ -443,10 +443,9 @@ class BaseDocument(object):
 		try:
 			return self.meta.get_field(fieldname).options
 		except AttributeError:
-			if self.doctype == "DocType":
-				return dict(links="DocType Link", actions="DocType Action", states="DocType State").get(
-					fieldname
-				)
+			if self.doctype == "DocType" and (table_field_doctype := DOCTYPE_TABLE_DOCTYPES.get(fieldname)):
+				return table_field_doctype
+
 			raise
 
 	def get_parentfield_of_doctype(self, doctype):
