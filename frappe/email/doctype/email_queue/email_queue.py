@@ -622,11 +622,13 @@ class QueueBuilder:
 			mail_to_string = cstr(mail.as_string())
 		except frappe.InvalidEmailAddressError:
 			# bad Email Address - don't add to queue
-			self.log_error(
+			frappe.log_error(
 				title="Invalid email address",
 				message="Invalid email address Sender: {0}, Recipients: {1}, \nTraceback: {2} ".format(
 					self.sender, ", ".join(self.final_recipients()), traceback.format_exc()
 				),
+				reference_doctype=self.reference_doctype,
+				reference_name=self.reference_name,
 			)
 			return
 
