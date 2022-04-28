@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
+ "autoname": "Prompt",
  "creation": "2013-01-10 16:34:01",
  "description": "Adds a custom client script to a DocType",
  "doctype": "DocType",
@@ -52,6 +53,7 @@
    "default": "Form",
    "fieldname": "view",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Apply To",
    "options": "List\nForm",
    "set_only_once": 1
@@ -75,10 +77,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-18 00:43:33.941466",
+ "modified": "2022-04-12 12:48:15.717985",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Client Script",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {

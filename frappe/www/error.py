@@ -4,9 +4,11 @@ import frappe
 
 no_cache = 1
 
+
 def get_context(context):
-	if frappe.flags.in_migrate: return
+	if frappe.flags.in_migrate:
+		return
 	context.http_status_code = 500
 
 	print(frappe.get_traceback())
-	return {"error": frappe.get_traceback().replace("<", "&lt;").replace(">", "&gt;") }
+	return {"error": frappe.get_traceback().replace("<", "&lt;").replace(">", "&gt;")}

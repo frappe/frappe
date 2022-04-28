@@ -37,8 +37,8 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		if(this.frm) {
 			me.parse_validate_and_set_in_model(null);
 			me.refresh();
-			me.frm.attachments.remove_attachment_by_filename(me.value, function() {
-				me.parse_validate_and_set_in_model(null);
+			me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
+				await me.parse_validate_and_set_in_model(null);
 				me.refresh();
 				me.frm.doc.docstatus == 1 ? me.frm.save('Update') : me.frm.save();
 			});
@@ -61,7 +61,8 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	on_attach_doc_image() {
 		this.set_upload_options();
-		this.upload_options["attach_doc_image"] = true;
+		this.upload_options.restrictions.allowed_file_types = ['image/*'];
+		this.upload_options.restrictions.crop_image_aspect_ratio = 1;
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
 	set_upload_options() {
@@ -70,7 +71,8 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			on_success: file => {
 				this.on_upload_complete(file);
 				this.toggle_reload_button();
-			}
+			},
+			restrictions: {}
 		};
 
 		if (this.frm) {
@@ -110,9 +112,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		return this.value || null;
 	}
 
-	on_upload_complete(attachment) {
+	async on_upload_complete(attachment) {
 		if(this.frm) {
-			this.parse_validate_and_set_in_model(attachment.file_url);
+			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
 			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
 		}

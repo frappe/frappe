@@ -11,7 +11,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 	get_all_icons() {
 		frappe.symbols = [];
 		$("#frappe-symbols > symbol[id]").each(function() {
-			frappe.symbols.push(this.id.replace('icon-', ''));
+			this.id.includes('icon-') && frappe.symbols.push(this.id.replace('icon-', ''));
 		});
 	}
 

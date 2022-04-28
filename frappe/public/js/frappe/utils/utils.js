@@ -231,7 +231,7 @@ Object.assign(frappe.utils, {
 			if (tt && (tt.substr(0, 1)===">" || tt.substr(0, 4)==="&gt;")) {
 				part.push(t);
 			} else {
-				out.concat(part);
+				out = out.concat(part);
 				out.push(t);
 				part = [];
 			}
@@ -1190,6 +1190,12 @@ Object.assign(frappe.utils, {
 		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
+	},
+
+	flag(country_code) {
+		return `<img
+		src="https://flagcdn.com/${country_code}.svg"
+		width="20" height="15">`;
 	},
 
 	make_chart(wrapper, custom_options={}) {
