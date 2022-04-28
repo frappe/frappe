@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 	from frappe.model.meta import Meta
 
 
+# NOTE: This is used to keep track of status of sites
+# whether the `log_types`` have autoincremented naming set for the site or not.
 autoincremented_site_status_map = {}
 
 
