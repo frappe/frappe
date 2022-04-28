@@ -1,16 +1,16 @@
 <div align="center">
-    <h1>
-        <br>
-        <a href="https://frappeframework.com">
-            <img src=".github/frappe-framework-logo.svg" height="50">
-        </a>
-    </h1>
-    <h3>
-        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
-    </h3>
-    <h5>
-        it's pronounced - <em>fra-pay</em>
-    </h5>
+	<h1>
+		<br>
+		<a href="https://frappeframework.com">
+			<img src=".github/frappe-framework-logo.svg" height="50">
+		</a>
+	</h1>
+	<h3>
+		a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
+	</h3>
+	<h5>
+		it's pronounced - <em>fra-pay</em>
+	</h5>
 </div>
 
 <div align="center">
@@ -27,10 +27,9 @@
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
 	</a>
 	<a href="https://codecov.io/gh/frappe/frappe">
-	        <img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
+		<img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/>
 	</a>
 </div>
-
 
 
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
