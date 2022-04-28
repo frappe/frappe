@@ -268,9 +268,9 @@ class EMail:
 		self.replace_sender()
 		self.replace_sender_name()
 
-		self.recipients = [strip(r) for r in self.recipients]
-		self.cc = [strip(r) for r in self.cc]
-		self.bcc = [strip(r) for r in self.bcc]
+		self.recipients = [strip(r) for r in self.recipients if r != "Guest"]
+		self.cc = [strip(r) for r in self.cc if r != "Guest"]
+		self.bcc = [strip(r) for r in self.bcc if r != "Guest"]
 
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
 			validate_email_address(e, True)
