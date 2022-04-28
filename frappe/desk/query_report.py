@@ -314,7 +314,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 				latest_report_data = {"columns": columns, "result": data}
 		except Exception:
-			frappe.log_error(frappe.get_traceback())
+			doc.log_error("Prepared report failed")
 			frappe.delete_doc("Prepared Report", doc.name)
 			frappe.db.commit()
 			doc = None

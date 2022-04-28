@@ -571,6 +571,7 @@ doctype_properties = {
 	"email_append_to": "Check",
 	"subject_field": "Data",
 	"sender_field": "Data",
+	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 }
@@ -596,6 +597,7 @@ docfield_properties = {
 	"in_preview": "Check",
 	"bold": "Check",
 	"no_copy": "Check",
+	"ignore_xss_filter": "Check",
 	"hidden": "Check",
 	"collapsible": "Check",
 	"collapsible_depends_on": "Data",

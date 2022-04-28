@@ -817,10 +817,8 @@ class DocType(Document):
 					self.autoname != "autoincrement" and doc_before_save.autoname == "autoincrement"
 				):
 					frappe.throw(_("Cannot change to/from Autoincrement naming rule"))
-
-		else:
-			if self.autoname == "autoincrement":
-				self.allow_rename = 0
+		if self.autoname == "autoincrement":
+			self.allow_rename = 0
 
 	def validate_name(self, name=None):
 		if not name:
@@ -865,8 +863,13 @@ def validate_series(dt, autoname=None, name=None):
 
 	if not autoname and dt.get("fields", {"fieldname": "naming_series"}):
 		dt.autoname = "naming_series:"
-	elif dt.autoname == "naming_series:" and not dt.get("fields", {"fieldname": "naming_series"}):
-		frappe.throw(_("Invalid fieldname '{0}' in autoname").format(dt.autoname))
+	elif dt.autoname and dt.autoname.startswith("naming_series:"):
+		fieldname = dt.autoname.split("naming_series:")[0] or "naming_series"
+		if not dt.get("fields", {"fieldname": fieldname}):
+			frappe.throw(
+				_("Fieldname called {0} must exist to enable autonaming").format(frappe.bold(fieldname)),
+				title=_("Field Missing"),
+			)
 
 	# validate field name if autoname field:fieldname is used
 	# Create unique index on autoname field automatically.

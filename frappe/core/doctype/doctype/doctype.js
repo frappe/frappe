@@ -57,8 +57,8 @@ frappe.ui.form.on('DocType', {
 		frm.get_docfield('fields', 'in_list_view').label = frm.doc.istable ?
 			__('In Grid View') : __('In List View');
 
-		frm.events.autoname(frm);
-		frm.events.set_naming_rule_description(frm);
+		frm.cscript.autoname(frm);
+		frm.cscript.set_naming_rule_description(frm);
 	},
 
 	istable: (frm) => {
@@ -66,80 +66,6 @@ frappe.ui.form.on('DocType', {
 			frm.set_value('autoname', 'autoincrement');
 			frm.set_value('allow_rename', 0);
 		}
-	},
-
-	naming_rule: function(frm) {
-		// set the "autoname" property based on naming_rule
-		if (frm.doc.naming_rule && !frm.__from_autoname) {
-
-			// flag to avoid recursion
-			frm.__from_naming_rule = true;
-
-			if (frm.doc.naming_rule=='Set by user') {
-				frm.set_value('autoname', 'Prompt');
-			} else if (frm.doc.naming_rule === 'Autoincrement') {
-				frm.set_value('autoname', 'autoincrement');
-				// set allow rename to be false when using autoincrement
-				frm.set_value('allow_rename', 0);
-			} else if (frm.doc.naming_rule=='By fieldname') {
-				frm.set_value('autoname', 'field:');
-			} else if (frm.doc.naming_rule=='By "Naming Series" field') {
-				frm.set_value('autoname', 'naming_series:');
-			} else if (frm.doc.naming_rule=='Expression') {
-				frm.set_value('autoname', 'format:');
-			} else if (frm.doc.naming_rule=='Expression (old style)') {
-				// pass
-			} else if (frm.doc.naming_rule=='Random') {
-				frm.set_value('autoname', 'hash');
-			}
-			setTimeout(() =>frm.__from_naming_rule = false, 500);
-
-			frm.events.set_naming_rule_description(frm);
-		}
-
-	},
-
-	set_naming_rule_description(frm) {
-		let naming_rule_description = {
-			'Set by user': '',
-			'Autoincrement': 'Uses Auto Increment feature of database.<br><b>WARNING: After using this option, any other naming option will not be accessible.</b>',
-			'By fieldname': 'Format: <code>field:[fieldname]</code>. Valid fieldname must exist',
-			'By "Naming Series" field': 'Format: <code>naming_series:[fieldname]</code>. Fieldname called <code>naming_series</code> must exist',
-			'Expression': 'Format: <code>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</code> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.',
-			'Expression (old style)': 'Format: <code>EXAMPLE-.#####</code> Series by prefix (separated by a dot)',
-			'Random': '',
-			'By script': ''
-		};
-
-		if (frm.doc.naming_rule) {
-			frm.get_field('autoname').set_description(naming_rule_description[frm.doc.naming_rule]);
-		}
-	},
-
-	autoname: function(frm) {
-		// set naming_rule based on autoname (for old doctypes where its not been set)
-		if (frm.doc.autoname && !frm.doc.naming_rule && !frm.__from_naming_rule) {
-			// flag to avoid recursion
-			frm.__from_autoname = true;
-			if (frm.doc.autoname.toLowerCase() === 'prompt') {
-				frm.set_value('naming_rule', 'Set by user');
-			} else if (frm.doc.autoname.toLowerCase() === 'autoincrement') {
-				frm.set_value('naming_rule', 'Autoincrement');
-			} else if (frm.doc.autoname.startsWith('field:')) {
-				frm.set_value('naming_rule', 'By fieldname');
-			} else if (frm.doc.autoname.startsWith('naming_series:')) {
-				frm.set_value('naming_rule', 'By "Naming Series" field');
-			} else if (frm.doc.autoname.startsWith('format:')) {
-				frm.set_value('naming_rule', 'Expression');
-			} else if (frm.doc.autoname.toLowerCase() === 'hash') {
-				frm.set_value('naming_rule', 'Random');
-			} else {
-				frm.set_value('naming_rule', 'Expression (old style)');
-			}
-			setTimeout(() => frm.__from_autoname = false, 500);
-		}
-
-		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	},
 });
 
