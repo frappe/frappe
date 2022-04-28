@@ -1,4 +1,5 @@
 import ast
+import copy
 import glob
 import os
 import shutil
@@ -6,33 +7,39 @@ import unittest
 from unittest.mock import patch
 
 import frappe
-from frappe.utils.boilerplate import make_boilerplate
+from frappe.utils.boilerplate import _create_app_boilerplate, _get_inputs
 
 
 class TestBoilerPlate(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		title = "Test App"
-		description = "This app's description contains 'single quotes' and \"double quotes\"."
-		publisher = "Test Publisher"
-		email = "example@example.org"
-		icon = ""  # empty -> default
-		color = ""
-		app_license = "MIT"
+		cls.default_hooks = frappe._dict(
+			{
+				"app_name": "test_app",
+				"app_title": "Test App",
+				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
+				"app_publisher": "Test Publisher",
+				"app_email": "example@example.org",
+				"app_icon": "octicon octicon-file-directory",
+				"app_color": "grey",
+				"app_license": "MIT",
+			}
+		)
 
-		cls.user_input = [
-			title,
-			description,
-			publisher,
-			email,
-			icon,
-			color,
-			app_license,
-		]
+		cls.default_user_input = frappe._dict(
+			{
+				"title": "Test App",
+				"description": "This app's description contains 'single quotes' and \"double quotes\".",
+				"publisher": "Test Publisher",
+				"email": "example@example.org",
+				"icon": "",  # empty -> default
+				"color": "",
+				"app_license": "MIT",
+			}
+		)
 
 		cls.bench_path = frappe.utils.get_bench_path()
 		cls.apps_dir = os.path.join(cls.bench_path, "apps")
-		cls.app_names = ("test_app", "test_app_no_git")
 		cls.gitignore_file = ".gitignore"
 		cls.git_folder = ".git"
 
@@ -55,39 +62,91 @@ class TestBoilerPlate(unittest.TestCase):
 			"public",
 		]
 
+	def create_app(self, hooks, no_git=False):
+		self.addCleanup(self.delete_test_app, hooks.app_name)
+		_create_app_boilerplate(self.apps_dir, hooks, no_git)
+
 	@classmethod
-	def tearDownClass(cls):
-		test_app_dirs = (os.path.join(cls.bench_path, "apps", app_name) for app_name in cls.app_names)
-		for test_app_dir in test_app_dirs:
-			if os.path.exists(test_app_dir):
-				shutil.rmtree(test_app_dir)
+	def delete_test_app(cls, app_name):
+		test_app_dir = os.path.join(cls.bench_path, "apps", app_name)
+		if os.path.exists(test_app_dir):
+			shutil.rmtree(test_app_dir)
+
+	@staticmethod
+	def get_user_input_stream(inputs):
+		user_inputs = []
+		for value in inputs.values():
+			if isinstance(value, list):
+				user_inputs.extend(value)
+			else:
+				user_inputs.append(value)
+		return user_inputs
+
+	def test_simple_input_to_boilerplate(self):
+		with patch("builtins.input", side_effect=self.get_user_input_stream(self.default_user_input)):
+			hooks = _get_inputs(self.default_hooks.app_name)
+		self.assertDictEqual(hooks, self.default_hooks)
+
+	def test_invalid_inputs(self):
+		invalid_inputs = copy.deepcopy(self.default_user_input).update(
+			{
+				"title": ["1nvalid Title", "valid title"],
+			}
+		)
+		with patch("builtins.input", side_effect=self.get_user_input_stream(invalid_inputs)):
+			hooks = _get_inputs(self.default_hooks.app_name)
+		self.assertEqual(hooks.app_title, "valid title")
 
 	def test_create_app(self):
-		with patch("builtins.input", side_effect=self.user_input):
-			make_boilerplate(self.apps_dir, self.app_names[0])
+		app_name = "test_app"
 
-		new_app_dir = os.path.join(self.bench_path, self.apps_dir, self.app_names[0])
+		hooks = frappe._dict(
+			{
+				"app_name": app_name,
+				"app_title": "Test App",
+				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
+				"app_publisher": "Test Publisher",
+				"app_email": "example@example.org",
+				"app_icon": "octicon octicon-file-directory",
+				"app_color": "grey",
+				"app_license": "MIT",
+			}
+		)
 
-		paths = self.get_paths(new_app_dir, self.app_names[0])
+		self.create_app(hooks)
+		new_app_dir = os.path.join(self.bench_path, self.apps_dir, app_name)
+
+		paths = self.get_paths(new_app_dir, app_name)
 		for path in paths:
-			self.assertTrue(os.path.exists(path), msg=f"{path} should exist in {self.app_names[0]} app")
+			self.assertTrue(os.path.exists(path), msg=f"{path} should exist in {app_name} app")
 
 		self.check_parsable_python_files(new_app_dir)
 
 	def test_create_app_without_git_init(self):
-		with patch("builtins.input", side_effect=self.user_input):
-			make_boilerplate(self.apps_dir, self.app_names[1], no_git=True)
+		app_name = "test_app_no_git"
 
-		new_app_dir = os.path.join(self.apps_dir, self.app_names[1])
+		hooks = frappe._dict(
+			{
+				"app_name": app_name,
+				"app_title": "Test App",
+				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
+				"app_publisher": "Test Publisher",
+				"app_email": "example@example.org",
+				"app_icon": "octicon octicon-file-directory",
+				"app_color": "grey",
+				"app_license": "MIT",
+			}
+		)
+		self.create_app(hooks, no_git=True)
 
-		paths = self.get_paths(new_app_dir, self.app_names[1])
+		new_app_dir = os.path.join(self.apps_dir, app_name)
+
+		paths = self.get_paths(new_app_dir, app_name)
 		for path in paths:
 			if os.path.basename(path) in (self.git_folder, self.gitignore_file):
-				self.assertFalse(
-					os.path.exists(path), msg=f"{path} shouldn't exist in {self.app_names[1]} app"
-				)
+				self.assertFalse(os.path.exists(path), msg=f"{path} shouldn't exist in {app_name} app")
 			else:
-				self.assertTrue(os.path.exists(path), msg=f"{path} should exist in {self.app_names[1]} app")
+				self.assertTrue(os.path.exists(path), msg=f"{path} should exist in {app_name} app")
 
 		self.check_parsable_python_files(new_app_dir)
 
