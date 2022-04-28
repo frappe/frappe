@@ -51,7 +51,7 @@ export default class Shortcut extends Block {
 		this.new('shortcut');
 
 		if (this.data && this.data.shortcut_name) {
-			let has_data = this.make('shortcut', __(this.data.shortcut_name));
+			let has_data = this.make('shortcut', this.data.shortcut_name);
 			if (!has_data) return;
 		}
 

@@ -6,7 +6,14 @@ from typing import Dict, List
 
 import frappe
 from frappe import _
-from frappe.model import child_table_fields, default_fields, display_fieldtypes, table_fields
+from frappe.model import (
+	child_table_fields,
+	datetime_fields,
+	default_fields,
+	display_fieldtypes,
+	float_like_fields,
+	table_fields,
+)
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
@@ -234,7 +241,6 @@ class BaseDocument(object):
 				raise AttributeError(key)
 
 			value = get_controller(value["doctype"])(value)
-			value.init_valid_columns()
 
 		value.parent = self.name
 		value.parenttype = self.doctype
@@ -256,7 +262,8 @@ class BaseDocument(object):
 	) -> Dict:
 		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
-			d[fieldname] = self.get(fieldname)
+			# column is valid, we can use getattr
+			d[fieldname] = getattr(self, fieldname, None)
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
@@ -264,25 +271,24 @@ class BaseDocument(object):
 
 			df = self.meta.get_field(fieldname)
 
-			if df and df.get("is_virtual"):
-				if ignore_virtual:
-					del d[fieldname]
-					continue
+			if df:
+				if getattr(df, "is_virtual", False):
+					if ignore_virtual:
+						del d[fieldname]
+						continue
 
-				from frappe.utils.safe_exec import get_safe_globals
+					if d[fieldname] is None and (options := getattr(df, "options", None)):
+						from frappe.utils.safe_exec import get_safe_globals
 
-				if d[fieldname] is None:
-					if df.get("options"):
 						d[fieldname] = frappe.safe_eval(
-							code=df.get("options"),
+							code=options,
 							eval_globals=get_safe_globals(),
 							eval_locals={"doc": self},
 						)
-					else:
-						_val = getattr(self, fieldname, None)
-						if _val and not callable(_val):
-							d[fieldname] = _val
-			elif df:
+
+				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
+					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
+
 				if df.fieldtype == "Check":
 					d[fieldname] = 1 if cint(d[fieldname]) else 0
 
@@ -292,25 +298,20 @@ class BaseDocument(object):
 				elif df.fieldtype == "JSON" and isinstance(d[fieldname], dict):
 					d[fieldname] = json.dumps(d[fieldname], sort_keys=True, indent=4, separators=(",", ": "))
 
-				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
+				elif df.fieldtype in float_like_fields and not isinstance(d[fieldname], float):
 					d[fieldname] = flt(d[fieldname])
 
-				elif df.fieldtype in ("Datetime", "Date", "Time") and d[fieldname] == "":
+				elif (df.fieldtype in datetime_fields and d[fieldname] == "") or (
+					getattr(df, "unique", False) and cstr(d[fieldname]).strip() == ""
+				):
 					d[fieldname] = None
-
-				elif df.get("unique") and cstr(d[fieldname]).strip() == "":
-					# unique empty field should be set to None
-					d[fieldname] = None
-
-				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
-					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
 
 			if convert_dates_to_str and isinstance(
 				d[fieldname], (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 			):
 				d[fieldname] = str(d[fieldname])
 
-			if d[fieldname] is None and ignore_nulls:
+			if ignore_nulls and d[fieldname] is None:
 				del d[fieldname]
 
 		return d
@@ -348,7 +349,7 @@ class BaseDocument(object):
 
 	@property
 	def docstatus(self):
-		return DocStatus(self.get("docstatus"))
+		return DocStatus(cint(self.get("docstatus")))
 
 	@docstatus.setter
 	def docstatus(self, value):
@@ -361,7 +362,7 @@ class BaseDocument(object):
 		convert_dates_to_str=False,
 		no_child_table_fields=False,
 	) -> Dict:
-		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
+		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, ignore_nulls=no_nulls)
 		doc["doctype"] = self.doctype
 
 		for df in self.meta.get_table_fields():
@@ -376,20 +377,15 @@ class BaseDocument(object):
 				for d in children
 			]
 
-		if no_nulls:
-			for k in list(doc):
-				if doc[k] is None:
-					del doc[k]
-
 		if no_default_fields:
-			for k in list(doc):
-				if k in default_fields:
-					del doc[k]
+			for key in default_fields:
+				if key in doc:
+					del doc[key]
 
 		if no_child_table_fields:
-			for k in list(doc):
-				if k in child_table_fields:
-					del doc[k]
+			for key in child_table_fields:
+				if key in doc:
+					del doc[key]
 
 		for key in (
 			"_user_tags",
@@ -399,8 +395,8 @@ class BaseDocument(object):
 			"__run_link_triggers",
 			"__unsaved",
 		):
-			if self.get(key):
-				doc[key] = self.get(key)
+			if value := getattr(self, key, None):
+				doc[key] = value
 
 		return doc
 
@@ -772,6 +768,10 @@ class BaseDocument(object):
 
 	def _validate_data_fields(self):
 		# data_field options defined in frappe.model.data_field_options
+		for phone_field in self.meta.get_phone_fields():
+			phone = self.get(phone_field.fieldname)
+			frappe.utils.validate_phone_number_with_country_code(phone, phone_field.fieldname)
+
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
 			data_field_options = data_field.get("options")
