@@ -72,3 +72,5 @@ zxcvbn-python~=4.4.24
 tenacity~=8.0.1
 cairocffi==1.2.0
 WeasyPrint==52.5
+phonenumbers==8.12.40
+

@@ -367,6 +367,10 @@ Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
 	cy.get('.primary-action').contains(btn_name).click({force: true});
 });
 
+Cypress.Commands.add('click_doc_primary_button', (btn_name) => {
+	cy.get('.primary-action').contains(btn_name).click({force: true});
+});
+
 Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
 	cy.get('.timeline-message-box .actions .action-btn').contains(btn_name).click();
 });

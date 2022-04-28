@@ -768,6 +768,10 @@ class BaseDocument(object):
 
 	def _validate_data_fields(self):
 		# data_field options defined in frappe.model.data_field_options
+		for phone_field in self.meta.get_phone_fields():
+			phone = self.get(phone_field.fieldname)
+			frappe.utils.validate_phone_number_with_country_code(phone, phone_field.fieldname)
+
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
 			data_field_options = data_field.get("options")

@@ -162,6 +162,9 @@ class Meta(Document):
 	def get_data_fields(self):
 		return self.get("fields", {"fieldtype": "Data"})
 
+	def get_phone_fields(self):
+		return self.get("fields", {"fieldtype": "Phone"})
+
 	def get_dynamic_link_fields(self):
 		if not hasattr(self, "_dynamic_link_fields"):
 			self._dynamic_link_fields = self.get("fields", {"fieldtype": "Dynamic Link"})

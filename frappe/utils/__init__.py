@@ -83,6 +83,33 @@ def extract_email_id(email):
 	return email_id
 
 
+def validate_phone_number_with_country_code(phone_number, fieldname):
+	from phonenumbers import NumberParseException, is_valid_number, parse
+
+	from frappe import _
+
+	if not phone_number:
+		return
+
+	valid_number = False
+	error_message = _("Phone Number {0} set in field {1} is not valid.")
+	error_title = _("Invalid Phone Number")
+	try:
+		if valid_number := is_valid_number(parse(phone_number)):
+			return True
+	except NumberParseException as e:
+		if e.error_type == NumberParseException.INVALID_COUNTRY_CODE:
+			error_message = _("Please select a country code for field {1}.")
+			error_title = _("Country Code Required")
+	finally:
+		if not valid_number:
+			frappe.throw(
+				error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
+				title=error_title,
+				exc=frappe.InvalidPhoneNumberError,
+			)
+
+
 def validate_phone_number(phone_number, throw=False):
 	"""Returns True if valid phone number"""
 	if not phone_number:
