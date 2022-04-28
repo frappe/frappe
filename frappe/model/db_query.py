@@ -909,7 +909,11 @@ def cast_name(column: str) -> str:
 	3. ifnull
 	4. coalesce
 
-	Uses regex substitution."""
+	Uses regex substitution.
+
+	Example:
+	input - "ifnull(`tabBlog Post`.`name`, '')=''"
+	output - "ifnull(cast(`tabBlog Post`.`name` as varchar), '')=''" """
 
 	if frappe.db.db_type == "mariadb":
 		return column

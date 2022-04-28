@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 # NOTE: This is used to keep track of status of sites
-# whether the `log_types`` have autoincremented naming set for the site or not.
+# whether `log_types` have autoincremented naming set for the site or not.
 autoincremented_site_status_map = {}
 
 
@@ -76,6 +76,8 @@ def set_new_name(doc):
 
 
 def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
+	"""Checks if the doctype has autoincrement autoname set"""
+
 	if doctype in log_types:
 		if autoincremented_site_status_map.get(frappe.local.site) is None:
 			if (
