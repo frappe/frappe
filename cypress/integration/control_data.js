@@ -109,7 +109,7 @@ context('Data Control', () => {
 		cy.fill_field('name1', 'Komal', 'Data');
 		cy.fill_field('email', 'komal@test.com', 'Data');
 		cy.fill_field('phone', '9432380001', 'Data');
-		cy.findByRole('button', {name: 'Save'}).click();
+		cy.findByRole('button', {name: 'Save'}).click({force: true});
 		//Checking if the fields contains the data which has been filled in
 		cy.location("pathname").should('not.be', '/app/test-data-control/new-test-data-control-1');
 		cy.get_field('name1').should('have.value', 'Komal');
@@ -119,8 +119,8 @@ context('Data Control', () => {
 
 	it('Deleting the doc', () => {
 		//Deleting the inserted document
-		cy.visit('/app/test-data-control');
-		cy.get('.list-row-checkbox').eq(0).click();
+		cy.go_to_list('Test Data Control');
+		cy.get('.list-row-checkbox').eq(0).click({force: true});
 		cy.get('.actions-btn-group > .btn').contains('Actions').click();
 		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
 		cy.click_modal_primary_button('Yes');
