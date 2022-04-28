@@ -1,16 +1,25 @@
 # Copyright (c) 2022, Frappe Technologies and Contributors
 # See license.txt
 
-import frappe
 import unittest
-from icalendar import Calendar, Event,vDatetime
 import uuid
+
 import requests
+from icalendar import Calendar, Event, vDatetime
 
-from frappe.utils import (add_to_date, now_datetime)
+import frappe
+from frappe.integrations.doctype.google_calendar.google_calendar import (
+	authorize_access,
+	close_cancelled_events,
+	get_event_attendees,
+	get_event_id,
+	insert_event_to_calendar,
+	parse_calendar_events,
+	update_event_in_calendar,
+)
+from frappe.utils import add_to_date, now_datetime
 
-from frappe.integrations.doctype.google_calendar.google_calendar import (get_event_id,insert_event_to_calendar,
-	update_event_in_calendar,close_cancelled_events,parse_calendar_events, get_event_attendees,authorize_access)
+
 class TestGoogleCalendar(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -21,98 +30,114 @@ class TestGoogleCalendar(unittest.TestCase):
 		frappe.db.rollback()
 
 	def test_insert_event(self):
-		account = frappe.get_doc("Google Calendar",{'name' : 'test user calendar'})
+		account = frappe.get_doc("Google Calendar", {"name": "test user calendar"})
 		event_list = frappe.db.count("Event")
 		event = Event()
-		event['DTSTART'] = vDatetime(now_datetime())
-		event['DTEND'] = vDatetime(add_to_date(now_datetime(),hours=1))
-		event['SUMMARY'] = "test event"
-		event['UID'] = uuid.uuid4()
-		event['DESCRIPTION'] ="test description"
-		event['ATTENDEE'] = ['mailto:test1@example.com','mailto:test2@example.com','mailto:test3@example.com']
-		insert_event_to_calendar(account,event,get_event_attendees(event),None)
-		event_doc = frappe.get_doc('Event',{"google_calendar_event_id": get_event_id(event)})
-		self.assertEqual(event_list+1,frappe.db.count("Event"))
-		self.assertEqual(len(event['ATTENDEE']),len(event_doc.get('event_participants')))
-
+		event["DTSTART"] = vDatetime(now_datetime())
+		event["DTEND"] = vDatetime(add_to_date(now_datetime(), hours=1))
+		event["SUMMARY"] = "test event"
+		event["UID"] = uuid.uuid4()
+		event["DESCRIPTION"] = "test description"
+		event["ATTENDEE"] = [
+			"mailto:test1@example.com",
+			"mailto:test2@example.com",
+			"mailto:test3@example.com",
+		]
+		insert_event_to_calendar(account, event, get_event_attendees(event), None)
+		event_doc = frappe.get_doc("Event", {"google_calendar_event_id": get_event_id(event)})
+		self.assertEqual(event_list + 1, frappe.db.count("Event"))
+		self.assertEqual(len(event["ATTENDEE"]), len(event_doc.get("event_participants")))
 
 	def test_update_event(self):
-		account = frappe.get_doc("Google Calendar",{'name' : 'test user calendar'})
+		account = frappe.get_doc("Google Calendar", {"name": "test user calendar"})
 		event = Event()
-		event['DTSTART'] = vDatetime(now_datetime())
-		event['DTEND'] = vDatetime(add_to_date(now_datetime(),hours=1))
-		event['SUMMARY'] = "test event"
-		event['UID'] = uuid.uuid4()
-		event['DESCRIPTION'] ="test description"
-		insert_event_to_calendar(account,event,[],None)
-		event['SUMMARY'] = "test now"
-		event['DESCRIPTION'] ="test description now"
-		update_event_in_calendar(account,event,[],None)
-		event_doc = frappe.get_doc("Event",{"google_calendar_event_id": get_event_id(event)})
-		self.assertEqual(event_doc.subject,event['SUMMARY'])
-		self.assertEqual(event_doc.description,event['DESCRIPTION'])
+		event["DTSTART"] = vDatetime(now_datetime())
+		event["DTEND"] = vDatetime(add_to_date(now_datetime(), hours=1))
+		event["SUMMARY"] = "test event"
+		event["UID"] = uuid.uuid4()
+		event["DESCRIPTION"] = "test description"
+		insert_event_to_calendar(account, event, [], None)
+		event["SUMMARY"] = "test now"
+		event["DESCRIPTION"] = "test description now"
+		update_event_in_calendar(account, event, [], None)
+		event_doc = frappe.get_doc("Event", {"google_calendar_event_id": get_event_id(event)})
+		self.assertEqual(event_doc.subject, event["SUMMARY"])
+		self.assertEqual(event_doc.description, event["DESCRIPTION"])
 
 	def test_close_event(self):
-		account = frappe.get_doc("Google Calendar",{'name' : 'test user calendar'})
+		account = frappe.get_doc("Google Calendar", {"name": "test user calendar"})
 		event_list = []
 		event = Event()
-		event['DTSTART'] = vDatetime(now_datetime())
-		event['DTEND'] = vDatetime(add_to_date(now_datetime(),hours=1))
-		event['SUMMARY'] = "test event N"
-		event['UID'] = uuid.uuid4()
-		event['DESCRIPTION'] = "test description"
-		insert_event_to_calendar(account,event,get_event_attendees(event),None)
-		initial_open_count = frappe.db.count("Event",{"status": "Open","pulled_from_google_calendar":1})
-		initial_closed_count = frappe.db.count("Event",{"status": "Closed","pulled_from_google_calendar":1})
-		event['DTSTART'] = vDatetime(now_datetime())
-		event['DTEND'] = vDatetime(add_to_date(now_datetime(),hours=1))
-		event['SUMMARY'] = "test event1"
-		event['UID'] = uuid.uuid4()
-		event['DESCRIPTION'] = "test description1"
+		event["DTSTART"] = vDatetime(now_datetime())
+		event["DTEND"] = vDatetime(add_to_date(now_datetime(), hours=1))
+		event["SUMMARY"] = "test event N"
+		event["UID"] = uuid.uuid4()
+		event["DESCRIPTION"] = "test description"
+		insert_event_to_calendar(account, event, get_event_attendees(event), None)
+		initial_open_count = frappe.db.count(
+			"Event", {"status": "Open", "pulled_from_google_calendar": 1}
+		)
+		initial_closed_count = frappe.db.count(
+			"Event", {"status": "Closed", "pulled_from_google_calendar": 1}
+		)
+		event["DTSTART"] = vDatetime(now_datetime())
+		event["DTEND"] = vDatetime(add_to_date(now_datetime(), hours=1))
+		event["SUMMARY"] = "test event1"
+		event["UID"] = uuid.uuid4()
+		event["DESCRIPTION"] = "test description1"
 		event_list.append(get_event_id(event))
-		insert_event_to_calendar(account,event,[],None)
-		event['SUMMARY'] = "test event2"
-		event['UID'] = uuid.uuid4()
-		event['DESCRIPTION'] = "test description2"
+		insert_event_to_calendar(account, event, [], None)
+		event["SUMMARY"] = "test event2"
+		event["UID"] = uuid.uuid4()
+		event["DESCRIPTION"] = "test description2"
 		event_list.append(get_event_id(event))
-		insert_event_to_calendar(account,event,[],None)
+		insert_event_to_calendar(account, event, [], None)
 		close_cancelled_events(event_list)
-		closed_event_count = frappe.db.count("Event",{"status": "Closed","pulled_from_google_calendar":1})
-		self.assertEqual(initial_open_count+initial_closed_count,closed_event_count)
+		closed_event_count = frappe.db.count(
+			"Event", {"status": "Closed", "pulled_from_google_calendar": 1}
+		)
+		self.assertEqual(initial_open_count + initial_closed_count, closed_event_count)
 
 	def test_auth_call(self):
-		auth_url = authorize_access(frappe.get_doc("Google Calendar",{'name' : 'test user calendar'}).name)
-		response = requests.get(auth_url['url'])
-		self.assertEqual(response.status_code,200)
+		auth_url = authorize_access(
+			frappe.get_doc("Google Calendar", {"name": "test user calendar"}).name
+		)
+		response = requests.get(auth_url["url"])
+		self.assertEqual(response.status_code, 200)
 
 	def test_parse_calendar_events(self):
-		account = frappe.get_doc("Google Calendar",{'name' : 'test user calendar'})
+		account = frappe.get_doc("Google Calendar", {"name": "test user calendar"})
 		initial_event_count = frappe.db.count("Event")
 		ical = Calendar.from_ical(get_ical_file())
-		parse_calendar_events(ical,account)
-		self.assertEqual(initial_event_count+3,frappe.db.count("Event"))
+		parse_calendar_events(ical, account)
+		self.assertEqual(initial_event_count + 3, frappe.db.count("Event"))
+
 
 def create_user():
 	google_settings = frappe.get_doc("Google Settings")
 	google_settings.enable = 1
-	google_settings.client_id = "745707082160-5e5jce8se8dmjoe04jnq63dk31b8e0ku.apps.googleusercontent.com"
+	google_settings.client_id = (
+		"745707082160-5e5jce8se8dmjoe04jnq63dk31b8e0ku.apps.googleusercontent.com"
+	)
 	google_settings.client_secret = "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"
-	google_settings.api_key ="AIzaSyCrGD4gBIE5uuuU21sAvnxaUAyvFMArlfE"
+	google_settings.api_key = "AIzaSyCrGD4gBIE5uuuU21sAvnxaUAyvFMArlfE"
 	google_settings.save()
-	new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
-		first_name='Tester')).insert(ignore_if_duplicate=True)
+	new_user = frappe.get_doc(
+		dict(doctype="User", email="test-for-type@example.com", first_name="Tester")
+	).insert(ignore_if_duplicate=True)
 	account = {
 		"doctype": "Google Calendar",
 		"enable": 1,
 		"calendar_name": "test user calendar",
 		"user": new_user.name,
 		"pull_from_google_calendar": 1,
-		"push_to_google_calendar": 1
+		"push_to_google_calendar": 1,
 	}
 	frappe.get_doc(account).insert(ignore_permissions=True)
 
+
 def get_ical_file():
-	return b'''BEGIN:VCALENDAR
+	return b"""BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Google Inc//Google Calendar 70.9054//EN
 CALSCALE:test-for-type@example.com
@@ -149,4 +174,4 @@ DESCRIPTION:test description C
 STATUS:CONFIRMED
 END:VEVENT
 END:VCALENDAR
-'''
+"""
