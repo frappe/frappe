@@ -59,7 +59,7 @@ context('Data Control', () => {
 		//Checking for the error message
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', '@@### is not a valid Name');
-		cy.get('.modal').type('{esc}');
+		cy.hide_dialog();
 
 		cy.get_field('name1', 'Data').clear({force: true});
 		cy.fill_field('name1', 'Komal{}/!', 'Data');
@@ -67,10 +67,10 @@ context('Data Control', () => {
 		cy.findByRole('button', {name: 'Save'}).click();
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'Komal{}/! is not a valid Name');
+		cy.hide_dialog();
 	});
 
 	it('Verifying data control by inputting different patterns for "Email" field', () => {
-		cy.get('.modal-actions > .btn-modal-close').trigger("click");
 		cy.get_field('name1', 'Data').clear({force: true});
 		cy.fill_field('name1', 'Komal', 'Data');
 		cy.get_field('email', 'Data').clear({force: true});
@@ -79,17 +79,17 @@ context('Data Control', () => {
 		cy.findByRole('button', {name: 'Save'}).click();
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'komal is not a valid Email Address');
-		cy.get('.modal-actions > .btn-modal-close').trigger("click");
+		cy.hide_dialog();
 		cy.get_field('email', 'Data').clear({force: true});
 		cy.fill_field('email', 'komal@test', 'Data');
 		cy.get('.frappe-control[data-fieldname="email"]').should('have.class', 'has-error');
 		cy.findByRole('button', {name: 'Save'}).click();
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'komal@test is not a valid Email Address');
+		cy.hide_dialog();
 	});
 
 	it('Verifying data control by inputting different patterns for "Phone" field', () => {
-		cy.get('.modal-actions > .btn-modal-close').trigger("click");
 		cy.get_field('email', 'Data').clear({force: true});
 		cy.fill_field('email', 'komal@test.com', 'Data');
 		cy.get_field('phone', 'Data').clear({force: true});
@@ -98,7 +98,7 @@ context('Data Control', () => {
 		cy.findByRole('button', {name: 'Save'}).click({force: true});
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'komal is not a valid Phone Number');
-		cy.get('.modal-actions > .btn-modal-close').trigger("click");
+		cy.hide_dialog();
 	});
 
 	it('Inputting correct data and saving the doc', () => {
@@ -124,6 +124,6 @@ context('Data Control', () => {
 		cy.get('.actions-btn-group > .btn').contains('Actions').click();
 		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
 		cy.click_modal_primary_button('Yes');
-		cy.get('.btn-modal-close').click();
+		cy.hide_dialog();
 	});
 });
