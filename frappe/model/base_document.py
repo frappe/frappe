@@ -180,15 +180,13 @@ class BaseDocument(object):
 		if key in self._ignore_in_setter:
 			return
 
-		if not as_value:
-			if isinstance(value, list):
-				self.__dict__[key] = []
-				self.extend(key, value)
-				return
+		if not as_value and key in self._table_fieldnames:
+			self.__dict__[key] = []
 
-			# Did you mean empty list?
-			if value is None and key in self._table_fieldnames:
-				value = []
+			if value is not None:
+				self.extend(key, value)
+
+			return
 
 		self.__dict__[key] = value
 
@@ -208,40 +206,26 @@ class BaseDocument(object):
 		"""
 		if value is None:
 			value = {}
-		if isinstance(value, (dict, BaseDocument)):
-			if self.__dict__.get(key) is None:
-				self.__dict__[key] = []
 
-			value = self._init_child(value, key)
-			self.__dict__[key].append(value)
+		if (table := self.__dict__.get(key)) is None:
+			self.__dict__[key] = table = []
 
-			# reference parent document
-			value.parent_doc = self
+		value = self._init_child(value, key)
+		table.append(value)
 
-			return value
+		# reference parent document
+		value.parent_doc = self
 
-		else:
-			# metaclasses may have arbitrary lists
-			# which we can ignore
-			if getattr(self, "_metaclass", None) or self.__class__.__name__ in (
-				"Meta",
-				"FormMeta",
-				"DocField",
-			):
-				return value
-
-			raise ValueError(
-				'Document for field "{0}" attached to child table of "{1}" must be a dict or BaseDocument, not {2} ({3})'.format(
-					key, self.name, str(type(value))[1:-1], value
-				)
-			)
+		return value
 
 	def extend(self, key, value):
-		if isinstance(value, list):
-			for v in value:
-				self.append(key, v)
-		else:
+		try:
+			value = iter(value)
+		except TypeError:
 			raise ValueError
+
+		for v in value:
+			self.append(key, v)
 
 	def remove(self, doc):
 		# Usage: from the parent doc, pass the child table doc
@@ -250,16 +234,12 @@ class BaseDocument(object):
 			self.get(doc.parentfield).remove(doc)
 
 	def _init_child(self, value, key):
-		if not self.doctype:
-			return value
-
 		if not isinstance(value, BaseDocument):
-			value["doctype"] = self.get_table_field_doctype(key)
-			if not value["doctype"]:
+			if not (doctype := self.get_table_field_doctype(key)):
 				raise AttributeError(key)
 
-			value = get_controller(value["doctype"])(value)
-			value.init_valid_columns()
+			value["doctype"] = doctype
+			value = get_controller(doctype)(value)
 
 		value.parent = self.name
 		value.parenttype = self.doctype
@@ -269,7 +249,10 @@ class BaseDocument(object):
 			value.docstatus = DocStatus.draft()
 
 		if not getattr(value, "idx", None):
-			value.idx = len(self.get(key) or []) + 1
+			if table := getattr(self, key, None):
+				value.idx = len(table) + 1
+			else:
+				value.idx = 1
 
 		if not getattr(value, "name", None):
 			value.__dict__["__islocal"] = 1
