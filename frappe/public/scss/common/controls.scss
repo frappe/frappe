@@ -2,6 +2,7 @@
 @import "color_picker";
 @import "icon_picker";
 @import "datepicker";
+@import "phone_picker";
 
 // password
 .form-control[data-fieldtype="Password"] {
@@ -343,11 +344,10 @@ textarea.form-control {
 .duration-picker {
 	position: absolute;
 	z-index: 999;
-
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
-
+	width: max-content;
 	&:after,
 	&:before {
 		border: solid transparent;

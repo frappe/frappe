@@ -2,8 +2,10 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+
 import functools
+
+import frappe
 
 
 @frappe.whitelist()

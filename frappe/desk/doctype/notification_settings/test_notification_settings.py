@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestNotificationSettings(unittest.TestCase):
 	pass

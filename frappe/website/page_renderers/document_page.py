@@ -1,16 +1,18 @@
 import frappe
 from frappe.model.document import get_controller
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
+from frappe.website.router import (
+	get_doctypes_with_web_view,
+	get_page_info_from_web_page_with_dynamic_routes,
+)
 from frappe.website.utils import cache_html
-from frappe.website.router import (get_doctypes_with_web_view,
-	get_page_info_from_web_page_with_dynamic_routes)
 
 
 class DocumentPage(BaseTemplatePage):
 	def can_render(self):
-		'''
+		"""
 		Find a document with matching `route` from all doctypes with `has_web_view`=1
-		'''
+		"""
 		if self.search_in_doctypes_with_web_view():
 			return True
 
@@ -29,7 +31,7 @@ class DocumentPage(BaseTemplatePage):
 				filters[condition_field] = 1
 
 			try:
-				self.docname = frappe.db.get_value(doctype, filters, 'name')
+				self.docname = frappe.db.get_value(doctype, filters, "name")
 				if self.docname:
 					self.doctype = doctype
 					return True
@@ -40,7 +42,7 @@ class DocumentPage(BaseTemplatePage):
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
 		if d:
-			self.doctype = 'Web Page'
+			self.doctype = "Web Page"
 			self.docname = d.name
 			return True
 		else:
