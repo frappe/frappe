@@ -341,3 +341,10 @@ class TestDocument(unittest.TestCase):
 
 		# run_method should get overridden
 		self.assertEqual(doc.run_method("as_dict"), "success")
+
+	def test_extend(self):
+		doc = frappe.get_last_doc("User")
+		self.assertRaises(ValueError, doc.extend, "user_emails", None)
+
+		# allow calling doc.extend with tuples, generators, etc.
+		doc.extend("user_emails", ())
