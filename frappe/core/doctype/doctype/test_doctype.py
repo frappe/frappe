@@ -530,10 +530,9 @@ class TestDocType(unittest.TestCase):
 
 		dt.save(ignore_permissions=True)
 
-		dt_data = frappe.get_doc({
-			"doctype": dt.name,
-			"some_fieldname": "test data"
-		}).insert(ignore_permissions=True)
+		dt_data = frappe.get_doc({"doctype": dt.name, "some_fieldname": "test data"}).insert(
+			ignore_permissions=True
+		)
 
 		dt.autoname = "autoincrement"
 
@@ -542,7 +541,7 @@ class TestDocType(unittest.TestCase):
 		except frappe.ValidationError as e:
 			self.assertEqual(
 				e.args[0],
-				"Can only change to/from Autoincrement naming rule when there is no data in the doctype"
+				"Can only change to/from Autoincrement naming rule when there is no data in the doctype",
 			)
 		else:
 			self.fail(

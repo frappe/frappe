@@ -506,9 +506,7 @@ class DatabaseQuery(object):
 		if tname not in self.tables:
 			self.append_table(tname)
 
-		column_name = cast_name(
-			f.fieldname if 'ifnull(' in f.fieldname else f"{tname}.`{f.fieldname}`"
-		)
+		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
@@ -730,7 +728,10 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return cast_name(f"`tab{self.doctype}`.name") + f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		return (
+			cast_name(f"`tab{self.doctype}`.name")
+			+ f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		)
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
@@ -758,7 +759,9 @@ class DatabaseQuery(object):
 				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
-					empty_value_condition = cast_name(f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''")
+					empty_value_condition = cast_name(
+						f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
+					)
 					condition = empty_value_condition + " or "
 
 				for permission in user_permission_values:
@@ -895,6 +898,7 @@ class DatabaseQuery(object):
 			user_settings["fields"] = self.user_settings_fields
 
 		update_user_settings(self.doctype, user_settings)
+
 
 def cast_name(column: str) -> str:
 	"""Casts name field to varchar for postgres

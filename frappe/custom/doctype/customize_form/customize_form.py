@@ -11,11 +11,11 @@ import frappe
 import frappe.translate
 from frappe import _
 from frappe.core.doctype.doctype.doctype import (
+	can_change_name_column_type,
+	change_name_column_type,
 	check_email_append_to,
 	validate_fields_for_doctype,
 	validate_series,
-	can_change_name_column_type,
-	change_name_column_type,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
@@ -175,7 +175,7 @@ class CustomizeForm(Document):
 		if is_name_type_changable:
 			change_name_column_type(
 				self.doc_type,
-				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})"
+				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
 			)
 
 		if self.flags.update_db:

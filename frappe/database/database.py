@@ -1248,14 +1248,17 @@ class Database(object):
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence
+
 		return create_sequence(*args, **kwargs)
 
 	def set_next_sequence_val(self, *args, **kwargs):
 		from frappe.database.sequence import set_next_val
+
 		set_next_val(*args, **kwargs)
 
 	def get_next_sequence_val(self, *args, **kwargs):
 		from frappe.database.sequence import get_next_val
+
 		return get_next_val(*args, **kwargs)
 
 

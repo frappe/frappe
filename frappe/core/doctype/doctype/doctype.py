@@ -127,7 +127,7 @@ class DocType(Document):
 		if can_change_name_column_type(self):
 			change_name_column_type(
 				self.name,
-				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})"
+				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
 			)
 
 	def validate_field_name_conflicts(self):
@@ -903,13 +903,11 @@ def validate_series(dt, autoname=None, name=None):
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 
-def can_change_name_column_type(dt: DocType, raise_err: bool=True) -> bool:
+def can_change_name_column_type(dt: DocType, raise_err: bool = True) -> bool:
 	def get_autoname_before_save(doctype: str, to_be_customized_dt: str) -> str:
 		if doctype == "Customize Form":
 			property_value = frappe.db.get_value(
-				"Property Setter",
-				{"doc_type": to_be_customized_dt, "property": "autoname"},
-				"value"
+				"Property Setter", {"doc_type": to_be_customized_dt, "property": "autoname"}, "value"
 			)
 
 			# initially no property setter is set,
@@ -927,8 +925,10 @@ def can_change_name_column_type(dt: DocType, raise_err: bool=True) -> bool:
 		autoname_before_save = get_autoname_before_save(dt.doctype, doctype_name)
 		is_autoname_autoincrement = dt.autoname == "autoincrement"
 
-		if is_autoname_autoincrement and autoname_before_save != "autoincrement" or (
-			not is_autoname_autoincrement and autoname_before_save == "autoincrement"
+		if (
+			is_autoname_autoincrement
+			and autoname_before_save != "autoincrement"
+			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
 			if not frappe.get_all(doctype_name, limit=1):
 				# allow changing the column type if there is no data
@@ -944,10 +944,7 @@ def can_change_name_column_type(dt: DocType, raise_err: bool=True) -> bool:
 
 def change_name_column_type(doctype_name: str, type: str) -> None:
 	return frappe.db.change_column_type(
-		doctype_name,
-		"name",
-		type,
-		True if frappe.db.db_type == "mariadb" else False
+		doctype_name, "name", type, True if frappe.db.db_type == "mariadb" else False
 	)
 
 

@@ -5,7 +5,7 @@ def create_sequence(
 	doctype_name: str,
 	*,
 	slug: str = "_id_seq",
-	temporary = False,
+	temporary=False,
 	check_not_exists: bool = False,
 	cycle: bool = False,
 	cache: int = 0,
@@ -57,10 +57,12 @@ def create_sequence(
 
 
 def get_next_val(doctype_name: str, slug: str = "_id_seq") -> int:
-	return db.multisql({
-		"postgres": f"select nextval('\"{scrub(doctype_name + slug)}\"')",
-		"mariadb": f"select nextval(`{scrub(doctype_name + slug)}`)"
-	})[0][0]
+	return db.multisql(
+		{
+			"postgres": f"select nextval('\"{scrub(doctype_name + slug)}\"')",
+			"mariadb": f"select nextval(`{scrub(doctype_name + slug)}`)",
+		}
+	)[0][0]
 
 
 def set_next_val(
@@ -69,7 +71,9 @@ def set_next_val(
 
 	is_val_used = "false" if not is_val_used else "true"
 
-	db.multisql({
-		"postgres": f"SELECT SETVAL('\"{scrub(doctype_name + slug)}\"', {next_val}, {is_val_used})",
-		"mariadb": f"SELECT SETVAL(`{scrub(doctype_name + slug)}`, {next_val}, {is_val_used})"
-	})
+	db.multisql(
+		{
+			"postgres": f"SELECT SETVAL('\"{scrub(doctype_name + slug)}\"', {next_val}, {is_val_used})",
+			"mariadb": f"SELECT SETVAL(`{scrub(doctype_name + slug)}`, {next_val}, {is_val_used})",
+		}
+	)

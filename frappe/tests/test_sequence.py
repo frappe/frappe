@@ -1,13 +1,13 @@
+import psycopg2
+import pymysql
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
-
-import pymysql
-import psycopg2
 
 
 class TestSequence(FrappeTestCase):
 	def generate_sequence_name(self) -> str:
-			return self._testMethodName + "_" + frappe.generate_hash(length=5)
+		return self._testMethodName + "_" + frappe.generate_hash(length=5)
 
 	def test_set_next_val(self):
 		seq_name = self.generate_sequence_name()
