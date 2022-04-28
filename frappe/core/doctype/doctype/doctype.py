@@ -124,7 +124,7 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
 
-		if can_change_name_column_type(self):
+		if check_if_can_change_name_type(self):
 			change_name_column_type(
 				self.name,
 				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
@@ -903,7 +903,7 @@ def validate_series(dt, autoname=None, name=None):
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 
-def can_change_name_column_type(dt: DocType, raise_err: bool = True) -> bool:
+def check_if_can_change_name_type(dt: DocType, raise_err: bool = True) -> bool:
 	def get_autoname_before_save(doctype: str, to_be_customized_dt: str) -> str:
 		if doctype == "Customize Form":
 			property_value = frappe.db.get_value(
