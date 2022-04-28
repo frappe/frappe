@@ -4,6 +4,7 @@
 import datetime
 import inspect
 import unittest
+from math import ceil
 from random import choice
 from unittest.mock import patch
 
@@ -84,6 +85,15 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(
 			frappe.db.sql("select email from tabUser where name='Administrator' order by modified DESC"),
 			frappe.db.get_values("User", filters=[["name", "=", "Administrator"]], fieldname="email"),
+		)
+
+		# test multiple orderby's
+		delimiter = '"' if frappe.db.db_type == "postgres" else "`"
+		self.assertIn(
+			"ORDER BY {deli}creation{deli} DESC,{deli}modified{deli} ASC,{deli}name{deli} DESC".format(
+				deli=delimiter
+			),
+			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
 
 	def test_get_value_limits(self):
@@ -445,6 +455,33 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+	def test_bulk_insert(self):
+		current_count = frappe.db.count("ToDo")
+		test_body = f"test_bulk_insert - {random_string(10)}"
+		chunk_size = 10
+
+		for number_of_values in (1, 2, 5, 27):
+			current_transaction_writes = frappe.db.transaction_writes
+
+			frappe.db.bulk_insert(
+				"ToDo",
+				["name", "description"],
+				[[f"ToDo Test Bulk Insert {i}", test_body] for i in range(number_of_values)],
+				ignore_duplicates=True,
+				chunk_size=chunk_size,
+			)
+
+			# check that all records were inserted
+			self.assertEqual(number_of_values, frappe.db.count("ToDo") - current_count)
+
+			# check if inserts were done in chunks
+			expected_number_of_writes = ceil(number_of_values / chunk_size)
+			self.assertEqual(
+				expected_number_of_writes, frappe.db.transaction_writes - current_transaction_writes
+			)
+
+		frappe.db.delete("ToDo", {"description": test_body})
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
@@ -759,7 +796,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		dt = new_doctype("autoinc_dt_seq_test", autoincremented=True).insert(ignore_permissions=True)
+		dt = new_doctype("autoinc_dt_seq_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		if frappe.db.db_type == "postgres":
 			self.assertTrue(

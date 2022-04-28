@@ -149,7 +149,7 @@ class FormMeta(Meta):
 			frappe.db.get_all(
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
-				fields=["script", "view"],
+				fields=["name", "script", "view"],
 				order_by="creation asc",
 			)
 			or ""
@@ -159,10 +159,18 @@ class FormMeta(Meta):
 		form_script = ""
 		for script in client_scripts:
 			if script.view == "List":
-				list_script += script.script
+				list_script += f"""
+// {script.name}
+{script.script}
+
+"""
 
 			if script.view == "Form":
-				form_script += script.script
+				form_script += f"""
+// {script.name}
+{script.script}
+
+"""
 
 		file = scrub(self.name)
 		form_script += f"\n\n//# sourceURL={file}__custom_js"

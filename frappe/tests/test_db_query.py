@@ -619,7 +619,7 @@ class TestReportview(unittest.TestCase):
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		dt = new_doctype("autoinc_dt_test", autoincremented=True).insert(ignore_permissions=True)
+		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		query = DatabaseQuery("autoinc_dt_test").execute(
 			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "`tabautoinc_dt_test`.`name`"],

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import time
+from typing import List
 
 from werkzeug.exceptions import NotFound
 
@@ -19,9 +20,6 @@ from frappe.model.workflow import set_workflow_state_on_action, validate_workflo
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
-
-# once_only validation
-# methods
 
 
 def get_doc(*args, **kwargs):
@@ -183,7 +181,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permlevel or permtype)
 
-	def has_permission(self, permtype="read", verbose=False):
+	def has_permission(self, permtype="read", verbose=False) -> bool:
 		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
 		is not set.
 
@@ -207,7 +205,7 @@ class Document(BaseDocument):
 		ignore_mandatory=None,
 		set_name=None,
 		set_child_names=True,
-	):
+	) -> "Document":
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -289,7 +287,7 @@ class Document(BaseDocument):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None, ignore_version=None):
+	def _save(self, ignore_permissions=None, ignore_version=None) -> "Document":
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
@@ -519,13 +517,13 @@ class Document(BaseDocument):
 		self._save_passwords()
 		self.validate_workflow()
 
-		children = self.get_all_children()
-		for d in children:
+		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_length()
 			d._validate_code_fields()
+			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
@@ -885,7 +883,7 @@ class Document(BaseDocument):
 			msg = ", ".join((each[2] for each in cancelled_links))
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
-	def get_all_children(self, parenttype=None):
+	def get_all_children(self, parenttype=None) -> List["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
 
 		children = []
@@ -986,6 +984,16 @@ class Document(BaseDocument):
 		return self.save()
 
 	@whitelist.__func__
+	def _rename(
+		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
+	):
+		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
+		from frappe.model.rename_doc import rename_doc
+
+		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)
+		self.reload()
+
+	@whitelist.__func__
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		return self._submit()
@@ -994,6 +1002,13 @@ class Document(BaseDocument):
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
+
+	@whitelist.__func__
+	def rename(
+		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
+	):
+		"""Rename the document to `name`. This transforms the current object."""
+		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
@@ -1358,6 +1373,12 @@ class Document(BaseDocument):
 			).insert(ignore_permissions=True)
 			frappe.local.flags.commit = True
 
+	def log_error(self, title=None, message=None):
+		"""Helper function to create an Error Log"""
+		return frappe.log_error(
+			message=message, title=title, reference_doctype=self.doctype, reference_name=self.name
+		)
+
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
@@ -1388,21 +1409,22 @@ class Document(BaseDocument):
 		# See: Stock Reconciliation
 		from frappe.utils.background_jobs import enqueue
 
-		if hasattr(self, "_" + action):
-			action = "_" + action
+		if hasattr(self, f"_{action}"):
+			action = f"_{action}"
 
-		if file_lock.lock_exists(self.get_signature()):
+		try:
+			self.lock()
+		except frappe.DocumentLockedError:
 			frappe.throw(
 				_("This document is currently queued for execution. Please try again"),
 				title=_("Document Queued"),
 			)
 
-		self.lock()
-		enqueue(
+		return enqueue(
 			"frappe.model.document.execute_action",
-			doctype=self.doctype,
-			name=self.name,
-			action=action,
+			__doctype=self.doctype,
+			__name=self.name,
+			__action=action,
 			**kwargs,
 		)
 
@@ -1423,10 +1445,13 @@ class Document(BaseDocument):
 			if lock_exists:
 				raise frappe.DocumentLockedError
 		file_lock.create_lock(signature)
+		frappe.local.locked_documents.append(self)
 
 	def unlock(self):
 		"""Delete the lock file for this document"""
 		file_lock.delete_lock(self.get_signature())
+		if self in frappe.local.locked_documents:
+			frappe.local.locked_documents.remove(self)
 
 	# validation helpers
 	def validate_from_to_dates(self, from_date_field, to_date_field):
@@ -1485,12 +1510,12 @@ class Document(BaseDocument):
 		return f"{doctype}({name})"
 
 
-def execute_action(doctype, name, action, **kwargs):
+def execute_action(__doctype, __name, __action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_doc(__doctype, __name)
 	doc.unlock()
 	try:
-		getattr(doc, action)(**kwargs)
+		getattr(doc, __action)(**kwargs)
 	except Exception:
 		frappe.db.rollback()
 
@@ -1501,4 +1526,4 @@ def execute_action(doctype, name, action, **kwargs):
 			msg = "<pre><code>" + frappe.get_traceback() + "</pre></code>"
 
 		doc.add_comment("Comment", _("Action Failed") + "<br><br>" + msg)
-		doc.notify_update()
+	doc.notify_update()
