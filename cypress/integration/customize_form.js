@@ -6,6 +6,7 @@ context('Customize Form', () => {
 		cy.fill_field("doc_type", "ToDo", "Link").blur();
 		cy.click_form_section("Naming");
 		const naming_rule_default_autoname_map = {
+			"Autoincrement": "autoincrement",
 			"Set by user": "prompt",
 			"By fieldname": "field:",
 			'By "Naming Series" field': "naming_series:",

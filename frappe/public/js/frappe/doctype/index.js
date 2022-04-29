@@ -48,7 +48,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 	set_naming_rule_description() {
 		let naming_rule_description = {
 			'Set by user': '',
-			'Autoincrement': 'Uses Auto Increment feature of database.<br><b>WARNING: After using this option, any other naming option will not be accessible.</b>',
+			'Autoincrement': 'Uses Auto Increment feature of database.<br><b>WARNING: Can only change to/from this option, if no data is present in the doctype.</b>',
 			'By fieldname': 'Format: <code>field:[fieldname]</code>. Valid fieldname must exist',
 			'By "Naming Series" field': 'Format: <code>naming_series:[fieldname]</code>. Default fieldname is <code>naming_series</code>',
 			'Expression': 'Format: <code>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</code> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.',
