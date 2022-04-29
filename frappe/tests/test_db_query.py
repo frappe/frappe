@@ -61,10 +61,12 @@ class TestReportview(unittest.TestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		self.assertEqual(
-			build_match_conditions(as_condition=True),
-			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""",
-		)
+		if frappe.db.db_type == "mariadb":
+			assertion_string = """(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))"""
+		else:
+			assertion_string = """(((ifnull(cast(`tabBlog Post`.`name` as varchar), '')='' or cast(`tabBlog Post`.`name` as varchar) in ('-test-blog-post-1', '-test-blog-post'))))"""
+
+		self.assertEqual(build_match_conditions(as_condition=True), assertion_string)
 
 		frappe.set_user("Administrator")
 
@@ -619,19 +621,22 @@ class TestReportview(unittest.TestCase):
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		frappe.delete_doc_if_exists("DocType", "autoinc_dt_test")
 		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		query = DatabaseQuery("autoinc_dt_test").execute(
-			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "`tabautoinc_dt_test`.`name`"],
+			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "name", "locate('1', name)"],
 			filters={"name": 1},
 			run=False,
 		)
 
 		if frappe.db.db_type == "postgres":
-			self.assertTrue('strpos( cast( "tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
+			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
+			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
 			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
 		else:
 			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
+			self.assertTrue("locate('1', name)" in query)
 			self.assertTrue("where `tabautoinc_dt_test`.`name` = 1" in query)
 
 		dt.delete(ignore_permissions=True)
