@@ -408,7 +408,8 @@ gitignore_template = """.DS_Store
 *.egg-info
 *.swp
 tags
-{app_name}/docs/current"""
+{app_name}/docs/current
+node_modules/"""
 
 docs_template = '''"""
 Configuration for docs
