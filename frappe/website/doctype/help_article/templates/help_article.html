@@ -5,19 +5,12 @@
 {% endblock %}
 
 {% block page_content %}
-<<<<<<< HEAD
-<article class="help-content" itemscope itemtype="http://schema.org/BlogPost">
+<article class="help-content" itemscope itemtype="http://schema.org/BlogPosting">
 	<div class="help-article-info">
 		<p>
 			<span class="indicator {{ level_class }}">{{ level }}</span>
 		</p>
 	    <h6 class='text-muted'>By {{ author }} on {{ frappe.format_date(creation) }}</h6>
-=======
-<article itemscope itemtype="http://schema.org/BlogPosting">
-	<div>
-		<h6 class='text-muted'>By {{ author }} on {{ frappe.format_date(creation) }}</h6>
-		<span class="indicator {{ level_class }}">{{ level }}</span>
->>>>>>> 6d96f11dd9 (fix: Use BlogPosting schema for Article)
 	</div>
 	<div class="longform" itemprop="articleBody" style='margin: 30px 0px;'>
 	{{ content }}
