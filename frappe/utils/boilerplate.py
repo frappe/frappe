@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 
 import os
+import pathlib
 import re
 
 import click
 import git
 
 import frappe
-from frappe.utils import cstr, touch_file
+from frappe.utils import touch_file
 
 
 def make_boilerplate(dest, app_name, no_git=False):
@@ -18,11 +19,11 @@ def make_boilerplate(dest, app_name, no_git=False):
 
 	# app_name should be in snake_case
 	app_name = frappe.scrub(app_name)
-	hooks = _get_inputs(app_name)
+	hooks = _get_user_inputs(app_name)
 	_create_app_boilerplate(dest, hooks, no_git=no_git)
 
 
-def _get_inputs(app_name):
+def _get_user_inputs(app_name):
 	"""Prompt user for various inputs related to new app and return config."""
 	app_name = frappe.scrub(app_name)
 
@@ -32,7 +33,7 @@ def _get_inputs(app_name):
 
 	new_app_config = {
 		"app_title": {
-			"prompt": "App Title".format(app_title),
+			"prompt": "App Title",
 			"default": app_title,
 			"validator": is_valid_title,
 		},
@@ -42,14 +43,23 @@ def _get_inputs(app_name):
 		"app_icon": {"prompt": "App Icon", "default": "octicon octicon-file-directory"},
 		"app_color": {"prompt": "App Color", "default": "grey"},
 		"app_license": {"prompt": "App License", "default": "MIT"},
+		"create_github_workflow": {
+			"prompt": "Create GitHub Workflow action for unittests",
+			"default": False,
+			"type": bool,
+		},
 	}
 
 	for property, config in new_app_config.items():
 		value = None
+		input_type = config.get("type", str)
+
 		while value is None:
-			value = click.prompt(
-				config["prompt"], default=config.get("default"), type=config.get("type", str)
-			)
+			if input_type == bool:
+				value = click.confirm(config["prompt"], default=config.get("default"))
+			else:
+				value = click.prompt(config["prompt"], default=config.get("default"), type=input_type)
+
 			if validator_function := config.get("validator"):
 				if not validator_function(value):
 					value = None
@@ -133,6 +143,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 
 	app_directory = os.path.join(dest, hooks.app_name)
 
+	if hooks.create_github_workflow:
+		_create_github_workflow_files(dest, hooks)
+
 	if not no_git:
 		with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
 			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
@@ -143,6 +156,15 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		app_repo.index.commit("feat: Initialize App")
 
 	print(f"'{hooks.app_name}' created at {app_directory}")
+
+
+def _create_github_workflow_files(dest, hooks):
+	workflows_path = pathlib.Path(dest) / hooks.app_name / ".github" / "workflows"
+	workflows_path.mkdir(parents=True, exist_ok=True)
+
+	ci_workflow = workflows_path / "ci.yml"
+	with open(ci_workflow, "w") as f:
+		f.write(github_workflow_template.format(**hooks))
 
 
 manifest_template = """include MANIFEST.in
@@ -422,3 +444,96 @@ Configuration for docs
 def get_context(context):
 	context.brand_html = "{app_title}"
 '''
+
+
+github_workflow_template = """
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+
+concurrency:
+  group: develop-{app_name}-${{{{ github.event.number }}}}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    name: Server
+
+    services:
+      mariadb:
+        image: mariadb:10.3
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          check-latest: true
+
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt') }}}}
+          restore-keys: |
+            ${{{{ runner.os }}}}-pip-
+            ${{{{ runner.os }}}}-
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: 'echo "::set-output name=dir::$(yarn cache dir)"'
+
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
+          key: ${{{{ runner.os }}}}-yarn-${{{{ hashFiles('**/yarn.lock') }}}}
+          restore-keys: |
+            ${{{{ runner.os }}}}-yarn-
+
+      - name: Setup
+        run: |
+          pip install frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+
+      - name: Install
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench get-app {app_name} $GITHUB_WORKSPACE
+          bench setup requirements --dev
+          bench new-site --db-root-password root --admin-password admin test_site
+          bench --site test_site install-app {app_name}
+          bench build
+        env:
+          CI: 'Yes'
+
+      - name: Run Tests
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site set-config allow_tests true
+          bench --site test_site run-tests --app {app_name}
+        env:
+          TYPE: server
+"""

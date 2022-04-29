@@ -7,8 +7,14 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
+import yaml
+
 import frappe
-from frappe.utils.boilerplate import _create_app_boilerplate, _get_inputs
+from frappe.utils.boilerplate import (
+	_create_app_boilerplate,
+	_get_user_inputs,
+	github_workflow_template,
+)
 
 
 class TestBoilerPlate(unittest.TestCase):
@@ -24,6 +30,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_icon": "octicon octicon-file-directory",
 				"app_color": "grey",
 				"app_license": "MIT",
+				"create_github_workflow": False,
 			}
 		)
 
@@ -36,6 +43,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"icon": "",  # empty -> default
 				"color": "",
 				"app_license": "MIT",
+				"github_workflow": "n",
 			}
 		)
 
@@ -85,7 +93,7 @@ class TestBoilerPlate(unittest.TestCase):
 
 	def test_simple_input_to_boilerplate(self):
 		with patch("sys.stdin", self.get_user_input_stream(self.default_user_input)):
-			hooks = _get_inputs(self.default_hooks.app_name)
+			hooks = _get_user_inputs(self.default_hooks.app_name)
 		self.assertDictEqual(hooks, self.default_hooks)
 
 	def test_invalid_inputs(self):
@@ -95,8 +103,11 @@ class TestBoilerPlate(unittest.TestCase):
 			}
 		)
 		with patch("sys.stdin", self.get_user_input_stream(invalid_inputs)):
-			hooks = _get_inputs(self.default_hooks.app_name)
+			hooks = _get_user_inputs(self.default_hooks.app_name)
 		self.assertEqual(hooks.app_title, "valid title")
+
+	def test_valid_ci_yaml(self):
+		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
 
 	def test_create_app(self):
 		app_name = "test_app"
