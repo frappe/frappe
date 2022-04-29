@@ -193,6 +193,8 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	conditions, values = frappe.db.build_conditions(filters)
 	values["txt"] = "%" + txt + "%"
 
+	user = frappe.session.user
+
 	return frappe.db.sql(
 		"""select
 			`tabNumber Card`.name, `tabNumber Card`.label, `tabNumber Card`.document_type
@@ -200,12 +202,12 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 			`tabNumber Card`
 		where
 			{conditions} and
-			(`tabNumber Card`.owner = "{user}" or
+			(`tabNumber Card`.owner = {user} or
 			`tabNumber Card`.is_public = 1)
 			{search_conditions}
 	""".format(
 			filters=filters,
-			user=frappe.session.user,
+			user=frappe.db.escape(user),
 			search_conditions=search_conditions,
 			conditions=conditions,
 		),
