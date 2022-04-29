@@ -56,7 +56,9 @@ def get_permission_query_conditions(user):
 	return """(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
 		or `tabWorkflow Action`.`user`={user})
 		and `tabWorkflow Action`.`status`='Open'
-	""".format(permitted_workflow_actions=permitted_workflow_actions, user=frappe.db.escape(user))
+	""".format(
+		permitted_workflow_actions=permitted_workflow_actions, user=frappe.db.escape(user)
+	)
 
 
 def has_permission(doc, user):
