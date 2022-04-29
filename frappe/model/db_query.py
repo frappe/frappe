@@ -213,7 +213,7 @@ class DatabaseQuery(object):
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
-			parent_name = self.cast_name(f"{self.tables[0]}.name")
+			parent_name = cast_name(f"{self.tables[0]}.name")
 			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
 
 		if self.grouped_or_conditions:
@@ -225,6 +225,7 @@ class DatabaseQuery(object):
 			args.conditions += (" or " if args.conditions else "") + " or ".join(self.or_conditions)
 
 		self.set_field_tables()
+		self.cast_name_fields()
 
 		fields = []
 
@@ -385,16 +386,8 @@ class DatabaseQuery(object):
 		]
 		# add tables from fields
 		if self.fields:
-			for i, field in enumerate(self.fields):
-				# add cast in locate/strpos
-				func_found = False
-				for func in sql_functions:
-					if func in field.lower():
-						self.fields[i] = self.cast_name(field, func)
-						func_found = True
-						break
-
-				if func_found or not ("tab" in field and "." in field):
+			for field in self.fields:
+				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
 					continue
 
 				table_name = field.split(".")[0]
@@ -405,38 +398,6 @@ class DatabaseQuery(object):
 					table_name = f"`{table_name}`"
 				if table_name not in self.tables:
 					self.append_table(table_name)
-
-	def cast_name(
-		self,
-		column: str,
-		sql_function: str = "",
-	) -> str:
-		if frappe.db.db_type == "postgres":
-			if "name" in column.lower():
-				if "cast(" not in column.lower() or "::" not in column:
-					if not sql_function:
-						return f"cast({column} as varchar)"
-
-					elif sql_function == "locate(":
-						return re.sub(
-							r"locate\(([^,]+),([^)]+)\)",
-							r"locate(\1, cast(\2 as varchar))",
-							column,
-							flags=re.IGNORECASE,
-						)
-
-					elif sql_function == "strpos(":
-						return re.sub(
-							r"strpos\(([^,]+),([^)]+)\)",
-							r"strpos(cast(\1 as varchar), \2)",
-							column,
-							flags=re.IGNORECASE,
-						)
-
-					elif sql_function == "ifnull(":
-						return re.sub(r"ifnull\(([^,]+)", r"ifnull(cast(\1 as varchar)", column, flags=re.IGNORECASE)
-
-		return column
 
 	def append_table(self, table_name):
 		self.tables.append(table_name)
@@ -461,6 +422,10 @@ class DatabaseQuery(object):
 			for idx, field in enumerate(self.fields):
 				if "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
+
+	def cast_name_fields(self):
+		for i, field in enumerate(self.fields):
+			self.fields[i] = cast_name(field)
 
 	def get_table_columns(self):
 		try:
@@ -541,10 +506,7 @@ class DatabaseQuery(object):
 		if tname not in self.tables:
 			self.append_table(tname)
 
-		if "ifnull(" in f.fieldname:
-			column_name = self.cast_name(f.fieldname, "ifnull(")
-		else:
-			column_name = self.cast_name(f"{tname}.`{f.fieldname}`")
+		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")
 
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
@@ -766,7 +728,10 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return f"`tab{self.doctype}`.name in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		return (
+			cast_name(f"`tab{self.doctype}`.name")
+			+ f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+		)
 
 	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
@@ -794,7 +759,9 @@ class DatabaseQuery(object):
 				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
-					empty_value_condition = f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
+					empty_value_condition = cast_name(
+						f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
+					)
 					condition = empty_value_condition + " or "
 
 				for permission in user_permission_values:
@@ -815,7 +782,7 @@ class DatabaseQuery(object):
 
 				if docs:
 					values = ", ".join(frappe.db.escape(doc, percent=False) for doc in docs)
-					condition += f"`tab{self.doctype}`.`{df.get('fieldname')}` in ({values})"
+					condition += cast_name(f"`tab{self.doctype}`.`{df.get('fieldname')}`") + f" in ({values})"
 					match_conditions.append(f"({condition})")
 					match_filters[df.get("options")] = docs
 
@@ -931,6 +898,40 @@ class DatabaseQuery(object):
 			user_settings["fields"] = self.user_settings_fields
 
 		update_user_settings(self.doctype, user_settings)
+
+
+def cast_name(column: str) -> str:
+	"""Casts name field to varchar for postgres
+
+	Handles majorly 4 cases:
+	1. locate
+	2. strpos
+	3. ifnull
+	4. coalesce
+
+	Uses regex substitution.
+
+	Example:
+	input - "ifnull(`tabBlog Post`.`name`, '')=''"
+	output - "ifnull(cast(`tabBlog Post`.`name` as varchar), '')=''" """
+
+	if frappe.db.db_type == "mariadb":
+		return column
+
+	kwargs = {"string": column, "flags": re.IGNORECASE}
+	if "cast(" not in column.lower() and "::" not in column:
+		if re.search(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", **kwargs):
+			return re.sub(
+				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\)", r"locate(\1, cast(\2 as varchar))", **kwargs
+			)
+
+		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*([`\"]?name[`\"]?)\s*,", **kwargs):
+			func = match.groups()[0]
+			return re.sub(rf"{func}\(\s*([`\"]?name[`\"]?)\s*,", rf"{func}(cast(\1 as varchar),", **kwargs)
+
+		return re.sub(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", r"cast(\1 as varchar)", **kwargs)
+
+	return column
 
 
 def check_parent_permission(parent, child_doctype):
