@@ -211,18 +211,19 @@ class PostgresDatabase(Database):
 		)
 
 	def change_column_type(
-		self, doctype: str, column: str, type: str, nullable: bool = False
+		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
 	) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
+		using_cast = f'using "{column}"::{type}' if use_cast else ""
 
 		# postgres allows ddl in transactions but since we've currently made
 		# things same as mariadb (raising exception on ddl commands if the transaction has any writes),
 		# hence using sql_ddl here for committing and then moving forward.
 		return self.sql_ddl(
 			f"""ALTER TABLE "{table_name}"
-								ALTER COLUMN "{column}" TYPE {type},
-								ALTER COLUMN "{column}" {null_constraint}"""
+				ALTER COLUMN "{column}" TYPE {type} {using_cast},
+				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
 	def create_auth_table(self):

@@ -125,6 +125,9 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
 
+		if self.can_change_name_type:
+			setup_name_type_and_sequence(self)
+
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
 		core_doctypes = [
@@ -172,9 +175,6 @@ class DocType(Document):
 				)
 
 	def after_insert(self):
-		if self.can_change_name_type:
-			setup_name_type_and_sequence(self)
-
 		# clear user cache so that on the next reload this doctype is included in boot
 		clear_user_cache(frappe.session.user)
 
@@ -954,9 +954,14 @@ def setup_name_type_and_sequence(dt: DocType) -> None:
 
 
 def change_name_column_type(doctype_name: str, type: str) -> None:
-	frappe.db.change_column_type(
-		doctype_name, "name", type, True if frappe.db.db_type == "mariadb" else False
+	# postgres requires cast when converting from varchar to bigint
+	args = (
+		(doctype_name, "name", type, False, True)
+		if (frappe.db.db_type == "postgres")
+		else (doctype_name, "name", type, True)
 	)
+
+	frappe.db.change_column_type(*args)
 
 
 def validate_links_table_fieldnames(meta):
