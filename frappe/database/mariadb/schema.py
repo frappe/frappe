@@ -47,7 +47,7 @@ class MariaDBTable(DBTable):
 			# By default the cache is 1000 which will mess up the sequence when
 			# using the system after a restore.
 			# issue link: https://jira.mariadb.org/browse/MDEV-21786
-			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=50)
+			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
 
 			# NOTE: not used nextval func as default as the ability to restore
 			# database with sequences has bugs in mariadb and gives a scary error.

@@ -19,6 +19,8 @@ class MariaDBDatabase(Database):
 	DataError = pymysql.err.DataError
 	REGEX_CHARACTER = "regexp"
 
+	SEQUENCE_CACHE = 50
+
 	def setup_type_map(self):
 		self.db_type = "mariadb"
 		self.type_map = {

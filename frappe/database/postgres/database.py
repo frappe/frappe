@@ -31,6 +31,8 @@ class PostgresDatabase(Database):
 	InterfaceError = psycopg2.InterfaceError
 	REGEX_CHARACTER = "~"
 
+	SEQUENCE_CACHE = 0
+
 	def setup_type_map(self):
 		self.db_type = "postgres"
 		self.type_map = {

@@ -102,6 +102,7 @@ class DocType(Document):
 		validate_series(self)
 		self.validate_document_type()
 		validate_fields(self)
+		self.can_change_name_type = check_if_can_change_name_type(self)
 
 		if not self.istable:
 			validate_permissions(self)
@@ -123,12 +124,6 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
-
-		if check_if_can_change_name_type(self):
-			change_name_column_type(
-				self.name,
-				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
-			)
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
@@ -177,6 +172,9 @@ class DocType(Document):
 				)
 
 	def after_insert(self):
+		if self.can_change_name_type:
+			setup_name_type_and_sequence(self)
+
 		# clear user cache so that on the next reload this doctype is included in boot
 		clear_user_cache(frappe.session.user)
 
@@ -930,6 +928,9 @@ def check_if_can_change_name_type(dt: DocType, raise_err: bool = True) -> bool:
 			and autoname_before_save != "autoincrement"
 			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
+			if frappe.get_meta(doctype_name).issingle:
+				return False
+
 			if not frappe.get_all(doctype_name, limit=1):
 				# allow changing the column type if there is no data
 				return True
@@ -942,8 +943,18 @@ def check_if_can_change_name_type(dt: DocType, raise_err: bool = True) -> bool:
 	return False
 
 
+def setup_name_type_and_sequence(dt: DocType) -> None:
+	doctype_name = dt.doc_type if dt.doctype == "Customize Form" else dt.name
+	name_type = f"varchar({frappe.db.VARCHAR_LEN})"
+	if dt.autoname == "autoincrement":
+		name_type = "bigint"
+		frappe.db.create_sequence(doctype_name, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
+
+	change_name_column_type(doctype_name, name_type)
+
+
 def change_name_column_type(doctype_name: str, type: str) -> None:
-	return frappe.db.change_column_type(
+	frappe.db.change_column_type(
 		doctype_name, "name", type, True if frappe.db.db_type == "mariadb" else False
 	)
 

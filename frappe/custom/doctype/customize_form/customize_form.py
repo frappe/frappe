@@ -11,9 +11,9 @@ import frappe
 import frappe.translate
 from frappe import _
 from frappe.core.doctype.doctype.doctype import (
-	change_name_column_type,
 	check_email_append_to,
 	check_if_can_change_name_type,
+	setup_name_type_and_sequence,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -173,10 +173,7 @@ class CustomizeForm(Document):
 		check_email_append_to(self)
 
 		if can_change_name_type:
-			change_name_column_type(
-				self.doc_type,
-				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
-			)
+			setup_name_type_and_sequence(self)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)
