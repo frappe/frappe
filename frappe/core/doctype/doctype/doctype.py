@@ -100,6 +100,7 @@ class DocType(Document):
 		self.set_default_in_list_view()
 		self.set_default_translatable()
 		validate_series(self)
+		self.set("can_change_name_type", check_if_can_change_name_type(self))
 		self.validate_document_type()
 		validate_fields(self)
 
@@ -123,9 +124,6 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
-
-		if check_if_can_change_name_type(self):
-			change_name_type_and_make_sequence(self)
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
@@ -371,6 +369,9 @@ class DocType(Document):
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
+
+		if self.get("can_change_name_type"):
+			change_name_type_and_make_sequence(self)
 
 		try:
 			frappe.db.updatedb(self.name, Meta(self))
