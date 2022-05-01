@@ -403,7 +403,7 @@ $.extend(frappe.model, {
 				}
 			});
 		} else {
-			if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
+			if (["number", "string"].includes(typeof filters) && locals[doctype] && locals[doctype][filters]) {
 				return locals[doctype][filters][fieldname];
 			} else {
 				var l = frappe.get_list(doctype, filters);

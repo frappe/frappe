@@ -27,8 +27,11 @@ frappe.ui.form.on('Number Card', {
 			frm.trigger('set_method_description');
 			frm.trigger('render_filters_table');
 		}
-		frm.trigger('create_add_to_dashboard_button');
 		frm.trigger('set_parent_document_type');
+
+		if (!frm.is_new()) {
+			frm.trigger('create_add_to_dashboard_button');
+		}
 	},
 
 	create_add_to_dashboard_button: function(frm) {
