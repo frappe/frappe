@@ -1018,9 +1018,9 @@ def validate_fields(meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		if fieldname in Document._ignore_in_setter:
+		if fieldname in Document._reserved_keywords:
 			frappe.throw(
-				_("{0}: fieldname cannot be set as reserved keyword {1}").format(
+				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
 					frappe.bold(docname),
 					frappe.bold(fieldname),
 				),

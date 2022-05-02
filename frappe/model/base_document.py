@@ -87,15 +87,15 @@ def get_controller(doctype):
 
 
 class BaseDocument(object):
-	_ignore_in_setter = {
+	_reserved_keywords = {
 		"doctype",
 		"meta",
 		"_meta",
 		"flags",
 		"_table_fields",
 		"_valid_columns",
-		"_ignore_in_setter",
 		"_table_fieldnames",
+		"_reserved_keywords",
 		"dont_update_if_missing",
 	}
 
@@ -185,7 +185,7 @@ class BaseDocument(object):
 		return self.get(key, filters=filters, limit=1)[0]
 
 	def set(self, key, value, as_value=False):
-		if key in self._ignore_in_setter:
+		if key in self._reserved_keywords:
 			return
 
 		if not as_value and key in self._table_fieldnames:
