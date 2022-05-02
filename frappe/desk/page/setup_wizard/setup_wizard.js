@@ -348,8 +348,9 @@ frappe.setup.slides_settings = [
 			{
 				fieldname: "language",
 				label: __("Your Language"),
-				fieldtype: "Select",
+				fieldtype: "Autocomplete",
 				placeholder: __('Select Language'),
+				default: "English",
 				reqd: 1,
 			},
 			{
@@ -386,9 +387,10 @@ frappe.setup.slides_settings = [
 				frappe.setup.utils.load_regional_data(slide, this.setup_fields);
 			}
 			if (!slide.get_value("language")) {
-				let session_language = frappe.setup.utils.get_language_name_from_code(frappe.boot.lang || navigator.language);
+				let session_language = frappe.setup.utils.get_language_name_from_code(frappe.boot.lang || navigator.language) || "English";
 				let language_field = slide.get_field("language");
-				language_field.set_input(session_language || "English");
+
+				language_field.set_input(session_language);
 				if (!frappe.setup._from_load_messages) {
 					language_field.$input.trigger("change");
 				}
@@ -502,7 +504,7 @@ frappe.setup.utils = {
 	setup_language_field: function (slide) {
 		var language_field = slide.get_field("language");
 		language_field.df.options = frappe.setup.data.lang.languages;
-		language_field.refresh();
+		language_field.set_options();
 	},
 
 	setup_region_fields: function (slide) {
