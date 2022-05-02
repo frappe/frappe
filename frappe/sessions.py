@@ -187,9 +187,6 @@ def get():
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.db.get_single_value("System Settings", "setup_complete"))
-	bootinfo["is_first_startup"] = cint(
-		frappe.db.get_single_value("System Settings", "is_first_startup")
-	)
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 
