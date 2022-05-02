@@ -53,6 +53,7 @@ class MariaDBDatabase(Database):
 			"Geolocation": ("longtext", ""),
 			"Duration": ("decimal", "21,9"),
 			"Icon": ("varchar", self.VARCHAR_LEN),
+			"Phone": ("varchar", self.VARCHAR_LEN),
 			"Autocomplete": ("varchar", self.VARCHAR_LEN),
 			"JSON": ("json", ""),
 		}
@@ -148,7 +149,7 @@ class MariaDBDatabase(Database):
 	) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
 		null_constraint = "NOT NULL" if not nullable else ""
-		return self.sql(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
+		return self.sql_ddl(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
 
 	# exception types
 	@staticmethod

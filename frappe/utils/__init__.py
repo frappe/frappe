@@ -18,6 +18,7 @@ from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
+from traceback_with_variables import iter_exc_lines
 from werkzeug.test import Client
 
 import frappe
@@ -80,6 +81,33 @@ def extract_email_id(email):
 	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
+
+
+def validate_phone_number_with_country_code(phone_number, fieldname):
+	from phonenumbers import NumberParseException, is_valid_number, parse
+
+	from frappe import _
+
+	if not phone_number:
+		return
+
+	valid_number = False
+	error_message = _("Phone Number {0} set in field {1} is not valid.")
+	error_title = _("Invalid Phone Number")
+	try:
+		if valid_number := is_valid_number(parse(phone_number)):
+			return True
+	except NumberParseException as e:
+		if e.error_type == NumberParseException.INVALID_COUNTRY_CODE:
+			error_message = _("Please select a country code for field {1}.")
+			error_title = _("Country Code Required")
+	finally:
+		if not valid_number:
+			frappe.throw(
+				error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
+				title=error_title,
+				exc=frappe.InvalidPhoneNumberError,
+			)
 
 
 def validate_phone_number(phone_number, throw=False):
@@ -255,7 +283,7 @@ def get_gravatar(email):
 	return gravatar_url
 
 
-def get_traceback() -> str:
+def get_traceback(with_context=False) -> str:
 	"""
 	Returns the traceback of the Exception
 	"""
@@ -264,14 +292,19 @@ def get_traceback() -> str:
 	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
-	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
-	bench_path = get_bench_path() + "/"
+	if with_context:
+		trace_list = iter_exc_lines()
+		tb = "\n".join(trace_list)
+	else:
+		trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
+		tb = "".join(cstr(t) for t in trace_list)
 
-	return "".join(cstr(t) for t in trace_list).replace(bench_path, "")
+	bench_path = get_bench_path() + "/"
+	return tb.replace(bench_path, "")
 
 
 def log(event, details):
-	frappe.logger().info(details)
+	frappe.logger(event).info(details)
 
 
 def dict_to_str(args, sep="&"):
