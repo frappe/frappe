@@ -40,8 +40,6 @@ def _get_user_inputs(app_name):
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
 		"app_email": {"prompt": "App Email"},
-		"app_icon": {"prompt": "App Icon", "default": "octicon octicon-file-directory"},
-		"app_color": {"prompt": "App Color", "default": "grey"},
 		"app_license": {"prompt": "App License", "default": "MIT"},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
@@ -197,8 +195,6 @@ app_name = "{app_name}"
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
-app_icon = "{app_icon}"
-app_color = "{app_color}"
 app_email = "{app_email}"
 app_license = "{app_license}"
 
@@ -396,8 +392,6 @@ def get_data():
 	return [
 		{{
 			"module_name": "{app_title}",
-			"color": "{app_color}",
-			"icon": "{app_icon}",
 			"type": "module",
 			"label": _("{app_title}")
 		}}
