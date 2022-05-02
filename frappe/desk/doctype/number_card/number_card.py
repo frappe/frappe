@@ -20,15 +20,24 @@ class NumberCard(Document):
 			self.name = append_number_if_name_exists("Number Card", self.name)
 
 	def validate(self):
-		if not self.document_type:
-			frappe.throw(_("Document type is required to create a number card"))
+		if self.type == "Document Type":
+			if not (self.document_type and self.function):
+				frappe.throw(_("Document Type and Function are required to create a number card"))
 
-		if (
-			self.document_type
-			and frappe.get_meta(self.document_type).istable
-			and not self.parent_document_type
-		):
-			frappe.throw(_("Parent document type is required to create a number card"))
+			if (
+				self.document_type
+				and frappe.get_meta(self.document_type).istable
+				and not self.parent_document_type
+			):
+				frappe.throw(_("Parent Document Type is required to create a number card"))
+
+		elif self.type == "Report":
+			if not (self.report_name and self.report_field and self.function):
+				frappe.throw(_("Report Name, Report Field and Fucntion are required to create a number card"))
+
+		elif self.type == "Custom":
+			if not self.method:
+				frappe.throw(_("Method is required to create a number card"))
 
 	def on_update(self):
 		if frappe.conf.developer_mode and self.is_standard:

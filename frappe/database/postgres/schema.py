@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable, get_definition
-from frappe.database.sequence import create_sequence
 from frappe.model import log_types
 from frappe.utils import cint, flt
 
@@ -39,7 +38,7 @@ class PostgresTable(DBTable):
 			# Since we're opening and closing connections for every transaction this results in skipping the cache
 			# to the next non-cached value hence not using cache in postgres.
 			# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
-			create_sequence(self.doctype, check_not_exists=True)
+			frappe.db.create_sequence(self.doctype, check_not_exists=True)
 			name_column = "name bigint primary key"
 
 		# TODO: set docstatus length
