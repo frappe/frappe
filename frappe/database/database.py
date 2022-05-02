@@ -1066,7 +1066,7 @@ class Database(object):
 			now_datetime() - relativedelta(minutes=minutes),
 		)[0][0]
 
-	def get_db_table_columns(self, table):
+	def get_db_table_columns(self, table) -> List[str]:
 		"""Returns list of column names from given table."""
 		columns = frappe.cache().hget("table_columns", table)
 		if columns is None:
@@ -1245,6 +1245,21 @@ class Database(object):
 
 			values_to_insert = values[start_index : start_index + chunk_size]
 			query.columns(fields).insert(*values_to_insert).run()
+
+	def create_sequence(self, *args, **kwargs):
+		from frappe.database.sequence import create_sequence
+
+		return create_sequence(*args, **kwargs)
+
+	def set_next_sequence_val(self, *args, **kwargs):
+		from frappe.database.sequence import set_next_val
+
+		set_next_val(*args, **kwargs)
+
+	def get_next_sequence_val(self, *args, **kwargs):
+		from frappe.database.sequence import get_next_val
+
+		return get_next_val(*args, **kwargs)
 
 
 def enqueue_jobs_after_commit():

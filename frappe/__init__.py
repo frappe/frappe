@@ -199,6 +199,7 @@ def init(site, sites_path=None, new_site=False):
 		}
 	)
 	local.rollback_observers = []
+	local.locked_documents = []
 	local.before_commit = []
 	local.test_objects = {}
 
@@ -231,7 +232,6 @@ def init(site, sites_path=None, new_site=False):
 	local.cache = {}
 	local.document_cache = {}
 	local.meta_cache = {}
-	local.autoincremented_status_map = {site: -1}
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
@@ -354,11 +354,11 @@ def cache() -> "RedisWrapper":
 	return redis_server
 
 
-def get_traceback():
+def get_traceback(with_context=False):
 	"""Returns error traceback."""
 	from frappe.utils import get_traceback
 
-	return get_traceback()
+	return get_traceback(with_context=with_context)
 
 
 def errprint(msg):
@@ -1507,10 +1507,11 @@ def get_newargs(fn, kwargs):
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
-		fullargspec = inspect.getfullargspec(fn)
-		fnargs = fullargspec.args
-		fnargs.extend(fullargspec.kwonlyargs)
-		varkw = fullargspec.varkw
+		signature = inspect.signature(fn)
+		fnargs = list(signature.parameters)
+		varkw = "kwargs" in fnargs
+		if varkw:
+			fnargs.pop(-1)
 
 	newargs = {}
 	for a in kwargs:
@@ -1924,7 +1925,7 @@ def attach_print(
 
 	if not file_name:
 		file_name = name
-	file_name = file_name.replace(" ", "").replace("/", "-")
+	file_name = cstr(file_name).replace(" ", "").replace("/", "-")
 
 	print_settings = db.get_singles_dict("Print Settings")
 
@@ -2086,7 +2087,6 @@ def logger(
 
 def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
 	"""Log error to Error Log"""
-
 	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
@@ -2099,20 +2099,15 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		else:
 			traceback = message
 
-	if not traceback:
-		traceback = get_traceback()
-
-	if not title:
-		title = "Error"
+	title = title or "Error"
+	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
 	return get_doc(
-		dict(
-			doctype="Error Log",
-			error=as_unicode(traceback),
-			method=title,
-			reference_doctype=reference_doctype,
-			reference_name=reference_name,
-		)
+		doctype="Error Log",
+		error=traceback,
+		method=title,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
 	).insert(ignore_permissions=True)
 
 
@@ -2269,7 +2264,4 @@ def mock(type, size=1, locale="en"):
 	return squashify(results)
 
 
-def validate_and_sanitize_search_inputs(fn):
-	from frappe.desk.search import validate_and_sanitize_search_inputs as func
-
-	return func(fn)
+from frappe.desk.search import validate_and_sanitize_search_inputs  # noqa
