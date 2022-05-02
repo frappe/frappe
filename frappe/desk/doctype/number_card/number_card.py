@@ -8,9 +8,9 @@ from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cint
 from frappe.query_builder import Criterion
 from frappe.query_builder.utils import DocType
+from frappe.utils import cint
 
 
 class NumberCard(Document):
@@ -192,18 +192,16 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	if not frappe.db.exists("DocType", doctype):
 		return
 
+	numberCard = DocType("Number Card")
+
 	if txt:
-		search_conditions = [
-			numberCard[field].like('%{txt}%'.format(txt=txt)) 
-			for field in searchfields
-		]
+		search_conditions = [numberCard[field].like('%{txt}%'.format(txt=txt)) for field in searchfields]
 
 	condition_query = frappe.db.query.build_conditions(doctype, filters)
-	numberCard = DocType('Number Card')
-	user = frappe.session.user
 
-	return (condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
-		.where((numberCard.owner == frappe.db.escape(user)) | (numberCard.is_public == 1))
+	return (
+		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
+		.where((numberCard.owner == frappe.session.user) | (numberCard.is_public == 1))
 		.where(Criterion.any(search_conditions))
 	).run()
 
