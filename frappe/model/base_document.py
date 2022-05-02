@@ -173,7 +173,6 @@ class BaseDocument(object):
 
 			# perhaps you wanted to set a default instead
 			default = filters
-			filters = None
 
 		value = self.__dict__.get(key, default)
 
@@ -192,7 +191,8 @@ class BaseDocument(object):
 		if not as_value and key in self._table_fieldnames:
 			self.__dict__[key] = []
 
-			if value is not None:
+			# if value is falsy, just init to an empty list
+			if value:
 				self.extend(key, value)
 
 			return
