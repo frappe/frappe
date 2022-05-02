@@ -31,8 +31,8 @@ DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="states", options="DocType State"),
 ]
 
-DOCTYPE_TABLE_DOCTYPES = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}
-DOCTYPES_FOR_DOCTYPE = {"DocType", *DOCTYPE_TABLE_DOCTYPES.values()}
+TABLE_DOCTYPES_FOR_DOCTYPE = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}
+DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
@@ -443,8 +443,8 @@ class BaseDocument(object):
 		try:
 			return self.meta.get_field(fieldname).options
 		except AttributeError:
-			if self.doctype == "DocType" and (table_field_doctype := DOCTYPE_TABLE_DOCTYPES.get(fieldname)):
-				return table_field_doctype
+			if self.doctype == "DocType" and (table_doctype := TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)):
+				return table_doctype
 
 			raise
 

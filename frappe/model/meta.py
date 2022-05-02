@@ -30,7 +30,11 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import DOCTYPE_TABLE_DOCTYPES, DOCTYPE_TABLE_FIELDS, BaseDocument
+from frappe.model.base_document import (
+	DOCTYPE_TABLE_FIELDS,
+	TABLE_DOCTYPES_FOR_DOCTYPE,
+	BaseDocument,
+)
 from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
@@ -148,7 +152,7 @@ class Meta(Document):
 					out[key] = value
 
 			# set empty lists for unset table fields
-			for fieldname in DOCTYPE_TABLE_DOCTYPES:
+			for fieldname in TABLE_DOCTYPES_FOR_DOCTYPE.keys():
 				if out.get(fieldname) is None:
 					out[fieldname] = []
 
@@ -225,7 +229,7 @@ class Meta(Document):
 		return self._valid_columns
 
 	def get_table_field_doctype(self, fieldname):
-		return DOCTYPE_TABLE_DOCTYPES.get(fieldname)
+		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
 	def get_field(self, fieldname):
 		"""Return docfield from meta"""
