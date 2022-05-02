@@ -704,6 +704,7 @@ class TestReportview(unittest.TestCase):
 			permission_query_conditions, "(`tabDashboard Settings`.name = 'user\\'a@frappe.io')"
 		)
 
+
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
 		{
