@@ -105,8 +105,8 @@ frappe.ui.Slide = class Slide {
 		});
 	}
 
-	set_values() {
-		this.values = this.form.get_values();
+	set_values(ignore_errors) {
+		this.values = this.form.get_values(ignore_errors);
 		if (this.values === null) {
 			return false;
 		}
