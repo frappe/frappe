@@ -27,8 +27,6 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_icon": "octicon octicon-file-directory",
-				"app_color": "grey",
 				"app_license": "MIT",
 				"create_github_workflow": False,
 			}
@@ -119,8 +117,6 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_icon": "octicon octicon-file-directory",
-				"app_color": "grey",
 				"app_license": "MIT",
 			}
 		)
@@ -144,8 +140,6 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_icon": "octicon octicon-file-directory",
-				"app_color": "grey",
 				"app_license": "MIT",
 			}
 		)
