@@ -692,6 +692,15 @@ class TestReportview(unittest.TestCase):
 		dt.delete()
 		table_dt.delete()
 
+	def test_permission_query_condition(self):
+		from frappe.model.db_query import DatabaseQuery
+
+		self.doctype = 'Dashboard Settings'
+		self.user = "user'a@frappe.io"
+
+		permission_query_conditions = DatabaseQuery.get_permission_query_conditions(self)
+
+		self.assertEqual(permission_query_conditions, "(`tabDashboard Settings`.name = 'user\\'a@frappe.io')")
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
