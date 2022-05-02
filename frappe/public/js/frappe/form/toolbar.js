@@ -84,16 +84,15 @@ frappe.ui.form.Toolbar = class Toolbar {
 			message: __("Unchanged")
 		});
 	}
-	rename_document_title(new_name, new_title, merge=false) {
+	rename_document_title(input_name, input_title, merge=false) {
+		let confirm_message = null;
 		const docname = this.frm.doc.name;
 		const title_field = this.frm.meta.title_field || '';
 		const doctype = this.frm.doctype;
 
-		let confirm_message=null;
-
-		if (new_name) {
+		if (input_name) {
 			const warning = __("This cannot be undone");
-			const message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), new_name.bold()]);
+			const message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), input_name.bold()]);
 			confirm_message = `${message}<br><b>${warning}<b>`;
 		}
 
@@ -101,22 +100,45 @@ frappe.ui.form.Toolbar = class Toolbar {
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
 				doctype,
 				docname,
-				name: new_name,
-				title: new_title,
+				name: input_name,
+				title: input_title,
+				enqueue: true,
 				merge,
 				freeze: true,
 				freeze_message: __("Updating related fields...")
 			}).then(new_docname => {
-				if (new_name != docname) {
-					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
+				const reload_form = (input_name) => {
+					$(document).trigger("rename", [doctype, docname, input_name]);
 					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
+					this.frm.reload_doc();
 				}
-				this.frm.reload_doc();
+
+				// handle document renaming queued action
+				if (input_name && (new_docname == docname)) {
+					frappe.socketio.doc_subscribe(doctype, input_name);
+					frappe.realtime.on("doc_update", data => {
+						if (data.doctype == doctype && data.name == input_name) {
+							reload_form(input_name);
+							frappe.show_alert({
+								message: __('Document renamed from {0} to {1}', [docname.bold(), input_name.bold()]),
+								indicator: 'success',
+							});
+						}
+					});
+					frappe.show_alert(
+						__('Document renaming from {0} to {1} has been queued', [docname.bold(), input_name.bold()])
+					);
+				}
+
+				// handle document sync rename action
+				if (input_name && ((new_docname || input_name) != docname)) {
+					reload_form(new_docname || input_name);
+				}
 			});
 		};
 
 		return new Promise((resolve, reject) => {
-			if (new_title === this.frm.doc[title_field] && new_name === docname) {
+			if (input_title === this.frm.doc[title_field] && input_name === docname) {
 				this.show_unchanged_document_alert();
 				resolve();
 			} else if (merge) {
@@ -323,7 +345,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		// New
-		if(p[CREATE] && !this.frm.meta.issingle) {
+		if (p[CREATE] && !this.frm.meta.issingle && !this.frm.meta.in_create) {
 			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);
 			}, true, {
@@ -569,7 +591,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			primary_action: ({ fieldname }) => {
 				dialog.hide();
 				this.frm.scroll_to_field(fieldname);
-			}
+			},
+			animate: false,
 		});
 
 		dialog.show();
