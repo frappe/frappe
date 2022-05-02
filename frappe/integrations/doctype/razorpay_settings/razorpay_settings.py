@@ -196,7 +196,7 @@ class RazorpaySettings(Document):
 		return kwargs
 
 	def get_payment_url(self, **kwargs):
-		integration_request = create_request_log(kwargs, "Host", "Razorpay")
+		integration_request = create_request_log(kwargs, service_name="Razorpay")
 		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
 
 	def create_order(self, **kwargs):
@@ -206,7 +206,7 @@ class RazorpaySettings(Document):
 		kwargs["amount"] *= 100
 
 		# Create integration log
-		integration_request = create_request_log(kwargs, "Host", "Razorpay")
+		integration_request = create_request_log(kwargs, service_name="Razorpay")
 
 		# Setup payment options
 		payment_options = {
@@ -490,7 +490,8 @@ def razorpay_subscription_callback():
 			{
 				"data": json.dumps(frappe.local.form_dict),
 				"doctype": "Integration Request",
-				"integration_type": "Subscription Notification",
+				"request_description": "Subscription Notification",
+				"is_remote_request": 1,
 				"status": "Queued",
 			}
 		).insert(ignore_permissions=True)
