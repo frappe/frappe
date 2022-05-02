@@ -23,7 +23,6 @@ user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records("User")
 
 
-
 class TestUser(unittest.TestCase):
 	def tearDown(self):
 		# disable password strength test
@@ -320,9 +319,11 @@ class TestUser(unittest.TestCase):
 				"/signup",
 			)
 
-		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"),
-							  (1, "Please check your email for verification"))
-		self.assertEqual(frappe.cache().hget('redirect_after_login', random_user), "/welcome")
+		self.assertTupleEqual(
+			sign_up(random_user, random_user_name, "/welcome"),
+			(1, "Please check your email for verification"),
+		)
+		self.assertEqual(frappe.cache().hget("redirect_after_login", random_user), "/welcome")
 
 		# re-register
 		self.assertTupleEqual(
@@ -429,19 +430,25 @@ class TestUser(unittest.TestCase):
 		frappe.response.docs = []
 		getdoc("User", "Administrator")
 		doc = frappe.response.docs[0]
-		self.assertListEqual(doc.get("__onload").get('all_modules', []),
-							 [m.get("module_name") for m in get_modules_from_all_apps()])
+		self.assertListEqual(
+			doc.get("__onload").get("all_modules", []),
+			[m.get("module_name") for m in get_modules_from_all_apps()],
+		)
 
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		# set the reset password expiry to 1 second
-		frappe.db.set_value("System Settings", "System Settings", "reset_password_link_expiry_seconds", 1)
+		frappe.db.set_value(
+			"System Settings", "System Settings", "reset_password_link_expiry_seconds", 1
+		)
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
 		test_user.reset_password()
 		time.sleep(1)  # sleep for 1 sec to expire the reset link
-		self.assertEqual(update_password(new_password, key=test_user.reset_password_key),
-						 "The Link specified has been expired")
+		self.assertEqual(
+			update_password(new_password, key=test_user.reset_password_key),
+			"The Link specified has been expired",
+		)
 
 
 def delete_contact(user):

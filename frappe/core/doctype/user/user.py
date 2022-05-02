@@ -1,7 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from bs4 import BeautifulSoup
 from datetime import timedelta
+
+from bs4 import BeautifulSoup
+
 import frappe
 import frappe.defaults
 import frappe.permissions
@@ -781,12 +783,17 @@ def _get_user_for_update_password(key, old_password):
 	# verify old password
 	result = frappe._dict()
 	if key:
-		user = frappe.db.get_value("User", {"reset_password_key": key}, ["name", "last_reset_password_key_datetime"])
+		user = frappe.db.get_value(
+			"User", {"reset_password_key": key}, ["name", "last_reset_password_key_datetime"]
+		)
 		result.user, last_reset_password_key_datetime = user if user else (None, None)
 		if result.user:
-			reset_password_link_expiry = frappe.db.get_single_value("System Settings", "reset_password_link_expiry_seconds")
-			if reset_password_link_expiry and \
-				now_datetime() > last_reset_password_key_datetime + timedelta(seconds=reset_password_link_expiry):
+			reset_password_link_expiry = frappe.db.get_single_value(
+				"System Settings", "reset_password_link_expiry_seconds"
+			)
+			if reset_password_link_expiry and now_datetime() > last_reset_password_key_datetime + timedelta(
+				seconds=reset_password_link_expiry
+			):
 				result.message = _("The Link specified has been expired")
 		else:
 			result.message = _("The Link specified has either been used before or Invalid")
@@ -888,7 +895,6 @@ def reset_password(user):
 		return "not found"
 
 
-
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def user_query(doctype, txt, searchfield, start, page_len, filters):
@@ -945,7 +951,6 @@ def get_total_users():
 	)
 
 
-
 def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:
 		exclude_users = []
@@ -983,7 +988,6 @@ def get_active_users():
 	)[0][0]
 
 
-
 def get_website_users():
 	"""Returns total no. of website users"""
 	return frappe.db.count("User", filters={"enabled": True, "user_type": "Website User"})
@@ -998,7 +1002,6 @@ def get_active_website_users():
 	)[0][0]
 
 
-
 def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
@@ -1006,7 +1009,6 @@ def get_permission_query_conditions(user):
 		return """(`tabUser`.name not in ({standard_users}))""".format(
 			standard_users=", ".join(frappe.db.escape(user) for user in STANDARD_USERS)
 		)
-
 
 
 def has_permission(doc, user):
@@ -1066,12 +1068,10 @@ def handle_password_test_fail(result):
 	frappe.throw(" ".join([_("Invalid Password:"), warning, suggestions]))
 
 
-
 def update_gravatar(name):
 	gravatar = has_gravatar(name)
 	if gravatar:
 		frappe.db.set_value("User", name, "user_image", gravatar)
-
 
 
 def throttle_user_creation():
@@ -1080,7 +1080,6 @@ def throttle_user_creation():
 
 	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):
 		frappe.throw(_("Throttled"))
-
 
 
 @frappe.whitelist()
@@ -1093,7 +1092,6 @@ def get_role_profile(role_profile):
 def get_module_profile(module_profile):
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
-
 
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
