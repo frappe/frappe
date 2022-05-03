@@ -500,7 +500,7 @@ class DatabaseQuery(object):
 		if "ifnull(" in f.fieldname:
 			column_name = f.fieldname
 		else:
-			column_name = "{tname}.{fname}".format(tname=tname, fname=f.fieldname)
+			column_name = "{tname}.`{fname}`".format(tname=tname, fname=f.fieldname)
 
 		can_be_null = True
 

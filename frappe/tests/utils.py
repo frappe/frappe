@@ -55,6 +55,7 @@ def change_settings(doctype, settings_dict):
 		for key, value in previous_settings.items():
 			setattr(settings, key, value)
 		settings.save()
+		frappe.db.value_cache[settings] = {}
 
 
 def timeout(seconds=30, error_message="Test timed out."):
