@@ -44,6 +44,11 @@ class PrintFormatGenerator:
 		letterhead: str
 		        Letter Head to apply (optional)
 		"""
+
+		from frappe.www.printview import set_link_titles
+		set_link_titles(doc)
+
+
 		self.base_url = frappe.utils.get_url()
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		self.doc = doc
@@ -213,7 +218,10 @@ class PrintFormatGenerator:
 
 		fieldname = path[-1]
 		df = doc.meta.get_field(fieldname)
-		return frappe.get_doc(df.options, doc.get(fieldname))
+		doc = frappe.get_doc(df.options, doc.get(fieldname))
+		from frappe.www.printview import set_link_titles
+		set_link_titles(doc)
+		return doc
 
 	def set_field_docs(self, layout):
 		for (field, column, section) in self.iter_layout(layout):
