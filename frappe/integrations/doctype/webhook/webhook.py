@@ -121,6 +121,7 @@ def log_request(url, headers, data, res):
 	)
 
 	request_log.save(ignore_permissions=True)
+	frappe.db.commit()
 
 
 def get_webhook_headers(doc, webhook):
