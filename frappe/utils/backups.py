@@ -424,7 +424,7 @@ class BackupGenerator:
 		)
 
 		if self.verbose:
-			print(command + "\n")
+			print(command.replace(args.password, "*" * 10) + "\n")
 
 		frappe.utils.execute_in_shell(command, low_priority=True)
 
