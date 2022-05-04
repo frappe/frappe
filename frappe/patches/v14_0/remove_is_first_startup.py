@@ -2,6 +2,7 @@ import frappe
 
 
 def execute():
-	frappe.db.sql(
-		"""DELETE FROM `tabSingles` where doctype = 'System Settings' and field = 'is_first_startup'"""
-	)
+	singles = frappe.qb.Table("tabSingles")
+	frappe.qb.from_(singles).delete().where(
+		(singles.doctype == "System Settings") & (singles.field == "is_first_startup")
+	).run()
