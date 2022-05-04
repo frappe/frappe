@@ -232,7 +232,6 @@ def init(site, sites_path=None, new_site=False):
 	local.cache = {}
 	local.document_cache = {}
 	local.meta_cache = {}
-	local.autoincremented_status_map = {site: -1}
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
@@ -1926,7 +1925,7 @@ def attach_print(
 
 	if not file_name:
 		file_name = name
-	file_name = file_name.replace(" ", "").replace("/", "-")
+	file_name = cstr(file_name).replace(" ", "").replace("/", "-")
 
 	print_settings = db.get_singles_dict("Print Settings")
 
