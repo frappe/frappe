@@ -42,8 +42,6 @@ def save_to_db():
 				record_count += 1
 				insert_record(record, doctype)
 
-	frappe.db.commit()
-
 
 def insert_record(record: Union[Dict, "Document"], doctype: str):
 	try:
