@@ -55,12 +55,6 @@ class FormMeta(Meta):
 		super(FormMeta, self).__init__(doctype)
 		self.load_assets()
 
-	def set(self, key, value, *args, **kwargs):
-		if key in ASSET_KEYS:
-			self.__dict__[key] = value
-		else:
-			super(FormMeta, self).set(key, value, *args, **kwargs)
-
 	def load_assets(self):
 		if self.get("__assets_loaded", False):
 			return
