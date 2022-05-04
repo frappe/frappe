@@ -46,8 +46,8 @@ def save_to_db():
 
 
 def insert_record(record: Union[Dict, "Document"], doctype: str):
-	setattr(record, "doctype", doctype)
 	try:
+		record.update({"doctype": doctype})
 		frappe.get_doc(record).insert()
 	except Exception as e:
 		frappe.logger().error(f"Error while inserting deferred {doctype} record: {e}")
