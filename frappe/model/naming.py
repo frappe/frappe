@@ -6,13 +6,17 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import frappe
 from frappe import _
-from frappe.database.sequence import get_next_val, set_next_val
 from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr, now_datetime
 
 if TYPE_CHECKING:
 	from frappe.model.meta import Meta
+
+
+# NOTE: This is used to keep track of status of sites
+# whether `log_types` have autoincremented naming set for the site or not.
+autoincremented_site_status_map = {}
 
 
 def set_new_name(doc):
@@ -36,7 +40,7 @@ def set_new_name(doc):
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
-		doc.name = get_next_val(doc.doctype)
+		doc.name = frappe.db.get_next_sequence_val(doc.doctype)
 		return
 
 	if getattr(doc, "amended_from", None):
@@ -71,12 +75,11 @@ def set_new_name(doc):
 	doc.name = validate_name(doc.doctype, doc.name, meta.get_field("name_case"))
 
 
-def is_autoincremented(doctype: str, meta: "Meta" = None):
+def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
+	"""Checks if the doctype has autoincrement autoname set"""
+
 	if doctype in log_types:
-		if (
-			frappe.local.autoincremented_status_map.get(frappe.local.site) is None
-			or frappe.local.autoincremented_status_map[frappe.local.site] == -1
-		):
+		if autoincremented_site_status_map.get(frappe.local.site) is None:
 			if (
 				frappe.db.sql(
 					f"""select data_type FROM information_schema.columns
@@ -84,22 +87,19 @@ def is_autoincremented(doctype: str, meta: "Meta" = None):
 				)[0][0]
 				== "bigint"
 			):
-				frappe.local.autoincremented_status_map[frappe.local.site] = 1
+				autoincremented_site_status_map[frappe.local.site] = 1
 				return True
 			else:
-				frappe.local.autoincremented_status_map[frappe.local.site] = 0
+				autoincremented_site_status_map[frappe.local.site] = 0
 
-		elif frappe.local.autoincremented_status_map[frappe.local.site]:
+		elif autoincremented_site_status_map[frappe.local.site]:
 			return True
 
 	else:
 		if not meta:
 			meta = frappe.get_meta(doctype)
 
-		if getattr(meta, "issingle", False):
-			return False
-
-		if meta.autoname == "autoincrement":
+		if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
 			return True
 
 	return False
@@ -322,14 +322,15 @@ def get_default_naming_series(doctype):
 
 
 def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
+
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
 
 	if isinstance(name, int):
 		if is_autoincremented(doctype):
-			# this will set the sequence val to be the provided name and set it to be used
-			# so that the sequence will start from the next val of the setted val(name)
-			set_next_val(doctype, name, is_val_used=True)
+			# this will set the sequence value to be the provided name/value and set it to be used
+			# so that the sequence will start from the next value
+			frappe.db.set_next_sequence_val(doctype, name, is_val_used=True)
 			return name
 
 		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)

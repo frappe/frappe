@@ -53,7 +53,6 @@ class SystemSettings(Document):
 
 		frappe.cache().delete_value("system_settings")
 		frappe.cache().delete_value("time_zone")
-		frappe.local.system_settings = {}
 
 		if frappe.flags.update_last_reset_password_date:
 			update_last_reset_password_date()

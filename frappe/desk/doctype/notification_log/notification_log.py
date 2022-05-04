@@ -20,7 +20,7 @@ class NotificationLog(Document):
 			try:
 				send_notification_email(self)
 			except frappe.OutgoingEmailError:
-				frappe.log_error(message=frappe.get_traceback(), title=_("Failed to send notification email"))
+				self.log_error(_("Failed to send notification email"))
 
 
 def get_permission_query_conditions(for_user):
@@ -30,7 +30,7 @@ def get_permission_query_conditions(for_user):
 	if for_user == "Administrator":
 		return
 
-	return """(`tabNotification Log`.for_user = '{user}')""".format(user=for_user)
+	return """(`tabNotification Log`.for_user = {user})""".format(user=frappe.db.escape(for_user))
 
 
 def get_title(doctype, docname, title_field=None):

@@ -55,6 +55,10 @@ def DocType(*args, **kwargs):
 	return frappe.qb.DocType(*args, **kwargs)
 
 
+def Table(*args, **kwargs):
+	return frappe.qb.Table(*args, **kwargs)
+
+
 def patch_query_execute():
 	"""Patch the Query Builder with helper execute method
 	This excludes the use of `frappe.db.sql` method while

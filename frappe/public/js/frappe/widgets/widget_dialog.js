@@ -228,30 +228,35 @@ class CardDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-		data.links.map((item, idx) => {
-			let message = '';
-			let row = idx+1;
+		let message = '';
 
-			if (!item.link_type) {
-				message = "Following fields have missing values: <br><br><ul>";
-				message += `<li>Link Type in Row ${row}</li>`;
-			}
+		if (!data.links) {
+			message = "You must add atleast one link.";
+		} else {
+			data.links.map((item, idx) => {
+				let row = idx+1;
 
-			if (!item.link_to) {
-				message += `<li>Link To in Row ${row}</li>`;
-			}
+				if (!item.link_type) {
+					message = "Following fields have missing values: <br><br><ul>";
+					message += `<li>Link Type in Row ${row}</li>`;
+				}
 
-			if (message) {
-				message += "</ul>";
-				frappe.throw({
-					message: __(message),
-					title: __("Missing Values Required"),
-					indicator: 'orange'
-				});
-			}
+				if (!item.link_to) {
+					message += `<li>Link To in Row ${row}</li>`;
+				}
 
-			item.label = item.label ? item.label : item.link_to;
-		});
+				item.label = item.label ? item.label : item.link_to;
+			});
+		}
+
+		if (message) {
+			message += "</ul>";
+			frappe.throw({
+				message: __(message),
+				title: __("Missing Values Required"),
+				indicator: 'orange'
+			});
+		}
 
 		data.label = data.label ? data.label : data.chart_name;
 		return data;

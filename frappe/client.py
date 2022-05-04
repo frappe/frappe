@@ -75,7 +75,7 @@ def get(doctype, name=None, filters=None, parent=None):
 		check_parent_permission(parent, doctype)
 
 	if filters and not name:
-		name = frappe.db.get_value(doctype, json.loads(filters))
+		name = frappe.db.get_value(doctype, frappe.parse_json(filters))
 		if not name:
 			frappe.throw(_("No document found for given filters"))
 
@@ -189,7 +189,10 @@ def insert(doc=None):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	if doc.get("parenttype"):
+	doc = frappe._dict(doc)
+	if frappe.is_table(doc.doctype):
+		if not (doc.parenttype and doc.parent and doc.parentfield):
+			frappe.throw(_("parenttype, parent and parentfield are required to insert a child record"))
 		# inserting a child record
 		parent = frappe.get_doc(doc.parenttype, doc.parent)
 		parent.append(doc.parentfield, doc)

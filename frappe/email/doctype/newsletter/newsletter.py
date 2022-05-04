@@ -124,7 +124,7 @@ class Newsletter(WebsiteGenerator):
 		)
 
 	def get_success_recipients(self) -> List[str]:
-		"""Recipients who have already recieved the newsletter.
+		"""Recipients who have already received the newsletter.
 
 		Couldn't think of a better name ;)
 		"""
@@ -132,7 +132,7 @@ class Newsletter(WebsiteGenerator):
 			"Email Queue Recipient",
 			filters={
 				"status": ("in", ["Not Sent", "Sending", "Sent"]),
-				"parentfield": ("in", self.get_linked_email_queue()),
+				"parent": ("in", self.get_linked_email_queue()),
 			},
 			pluck="recipient",
 		)
@@ -329,19 +329,17 @@ def send_scheduled_email():
 		pluck="name",
 	)
 
-	for newsletter in scheduled_newsletter:
+	for newsletter_name in scheduled_newsletter:
 		try:
-			frappe.get_doc("Newsletter", newsletter).queue_all()
+			newsletter = frappe.get_doc("Newsletter", newsletter_name)
+			newsletter.queue_all()
 
 		except Exception:
 			frappe.db.rollback()
 
 			# wasn't able to send emails :(
-			frappe.db.set_value("Newsletter", newsletter, "email_sent", 0)
-			message = (
-				f"Newsletter {newsletter} failed to send" "\n\n" f"Traceback: {frappe.get_traceback()}"
-			)
-			frappe.log_error(title="Send Newsletter", message=message)
+			frappe.db.set_value("Newsletter", newsletter_name, "email_sent", 0)
+			newsletter.log_error("Failed to send newsletter")
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()

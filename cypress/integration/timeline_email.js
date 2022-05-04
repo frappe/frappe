@@ -16,7 +16,7 @@ context('Timeline Email', () => {
 
 	it('Adding email and verifying timeline content for email attachment', () => {
 		cy.visit('/app/todo');
-		cy.get('.list-row > .level-left > .list-subject').eq(0).click();
+		cy.click_listview_row_item_with_text('Test ToDo');
 
 		//Creating a new email
 		cy.get('.timeline-actions > .timeline-item > .action-buttons > .action-btn').click();
@@ -47,7 +47,7 @@ context('Timeline Email', () => {
 
 	it('Deleting attachment and ToDo', () => {
 		cy.visit('/app/todo');
-		cy.get('.list-row > .level-left > .list-subject > .level-item.ellipsis > .ellipsis').eq(0).click();
+		cy.click_listview_row_item_with_text('Test ToDo');
 
 		//Removing the added attachment
 		cy.get('.attachment-row > .data-pill > .remove-btn > .icon').click();

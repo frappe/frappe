@@ -7,7 +7,7 @@ export default class Block {
 
 	make(block, block_name, widget_type = block) {
 		let block_data = this.config.page_data[block+'s'].items.find(obj => {
-			return frappe.utils.unescape_html(obj.label) == frappe.utils.unescape_html(block_name);
+			return frappe.utils.unescape_html(obj.label) == frappe.utils.unescape_html(__(block_name));
 		});
 		if (!block_data) return false;
 		this.wrapper.innerHTML = '';
