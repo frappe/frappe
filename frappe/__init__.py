@@ -1014,25 +1014,15 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs):
-	allow_dict = kwargs.pop("_allow_dict", False)
-
-	def _respond(doc, from_redis=False):
-		if not allow_dict and isinstance(doc, dict):
-			local.document_cache[key] = doc = get_doc(doc)
-
-		elif from_redis:
-			local.document_cache[key] = doc
-
-		return doc
-
 	if key := can_cache_doc(args):
 		# local cache
 		if doc := local.document_cache.get(key):
-			return _respond(doc)
+			return doc
 
 		# redis cache
 		if doc := cache().hget("document_cache", key):
-			return _respond(doc, True)
+			local.document_cache[key] = doc
+			return doc
 
 	# database
 	doc = get_doc(*args, **kwargs)
@@ -1071,7 +1061,7 @@ def clear_document_cache(doctype, name):
 
 def get_cached_value(doctype, name, fieldname="name", as_dict=False):
 	try:
-		doc = get_cached_doc(doctype, name, _allow_dict=True)
+		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
 		clear_last_message()
 		return
@@ -1110,7 +1100,7 @@ def get_doc(*args, **kwargs):
 	# set in cache
 	if key := can_cache_doc(args):
 		local.document_cache[key] = doc
-		cache().hset("document_cache", key, doc.as_dict())
+		cache().hset("document_cache", key, doc)
 
 	return doc
 
