@@ -198,3 +198,4 @@ frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
 frappe.patches.v14_0.update_is_system_generated_flag
 frappe.patches.v14_0.update_auto_account_deletion_duration
+frappe.patches.v14_0.delete_unnecessary_versions
