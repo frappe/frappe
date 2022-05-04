@@ -38,7 +38,29 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
+<<<<<<< HEAD
 	return "(`tabWorkflow Action`.`user`='{user}')".format(user=user)
+=======
+	roles = frappe.get_roles(user)
+
+	WorkflowAction = DocType("Workflow Action")
+	WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
+
+	permitted_workflow_actions = (
+		frappe.qb.from_(WorkflowAction)
+		.join(WorkflowActionPermittedRole)
+		.on(WorkflowAction.name == WorkflowActionPermittedRole.parent)
+		.select(WorkflowAction.name)
+		.where(WorkflowActionPermittedRole.role.isin(roles))
+	).get_sql()
+
+	return """(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
+		or `tabWorkflow Action`.`user`={user})
+		and `tabWorkflow Action`.`status`='Open'
+	""".format(
+		permitted_workflow_actions=permitted_workflow_actions, user=frappe.db.escape(user)
+	)
+>>>>>>> b4e43257c3 (fix: bad query if user has ' in the email address (#16796))
 
 
 def has_permission(doc, user):
