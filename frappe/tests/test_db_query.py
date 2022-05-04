@@ -585,6 +585,29 @@ class TestReportview(unittest.TestCase):
 
 		dt.delete()
 
+	def test_permission_query_condition(self):
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
+
+		self.doctype = "Dashboard Settings"
+		self.user = "test'5@example.com"
+
+		permission_query_conditions = DatabaseQuery.get_permission_query_conditions(self)
+
+		create_dashboard_settings(self.user)
+
+		dashboard_settings = frappe.db.sql(
+			"""
+				SELECT name
+				FROM `tabDashboard Settings`
+				WHERE {condition}
+			""".format(
+				condition=permission_query_conditions
+			),
+			as_dict=1,
+		)[0]
+
+		self.assertTrue(dashboard_settings)
+
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
