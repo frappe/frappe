@@ -309,6 +309,8 @@ frappe.ui.Slides = class Slides {
 		// Can be called by a slide to update states
 		this.$slide_progress.empty();
 
+		if (this.slides.length <= 1) return
+
 		this.slides.map((slide, id) => {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
