@@ -9,7 +9,6 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
-from frappe.query_builder.utils import DocType, Table
 from frappe.utils.data import sbool
 from frappe.utils.password import rename_password
 from frappe.utils.scheduler import is_scheduler_inactive
@@ -198,7 +197,7 @@ def rename_doc(
 		rename_password(doctype, old, new)
 
 	# update user_permissions
-	DefaultValue = DocType("DefaultValue")
+	DefaultValue = frappe.qb.DocType("DefaultValue")
 	frappe.qb.update(DefaultValue).set(DefaultValue.defvalue, new).where(
 		(DefaultValue.parenttype == "User Permission")
 		& (DefaultValue.defkey == doctype)
@@ -267,7 +266,7 @@ def update_user_settings(old: str, new: str, link_fields: List[Dict]) -> None:
 
 	# find the user settings for the linked doctypes
 	linked_doctypes = {d.parent for d in link_fields if not d.issingle}
-	UserSettings = Table("__UserSettings")
+	UserSettings = frappe.qb.Table("__UserSettings")
 
 	user_settings_details = (
 		frappe.qb.from_(UserSettings)
@@ -299,7 +298,7 @@ def update_customizations(old: str, new: str) -> None:
 
 def update_attachments(doctype: str, old: str, new: str) -> None:
 	if doctype != "DocType":
-		File = DocType("File")
+		File = frappe.qb.DocType("File")
 
 		frappe.qb.update(File).set(File.attached_to_name, new).where(
 			(File.attached_to_name == old) & (File.attached_to_doctype == doctype)
@@ -307,7 +306,7 @@ def update_attachments(doctype: str, old: str, new: str) -> None:
 
 
 def rename_versions(doctype: str, old: str, new: str) -> None:
-	Version = DocType("Version")
+	Version = frappe.qb.DocType("Version")
 
 	frappe.qb.update(Version).set(Version.docname, new).where(
 		(Version.docname == old) & (Version.ref_doctype == doctype)
@@ -315,7 +314,7 @@ def rename_versions(doctype: str, old: str, new: str) -> None:
 
 
 def rename_eps_records(doctype: str, old: str, new: str) -> None:
-	EPL = DocType("Energy Point Log")
+	EPL = frappe.qb.DocType("Energy Point Log")
 
 	frappe.qb.update(EPL).set(EPL.reference_name, new).where(
 		(EPL.reference_doctype == doctype) & (EPL.reference_name == old)
@@ -455,10 +454,10 @@ def get_link_fields(doctype: str) -> List[Dict]:
 		frappe.flags.link_fields = {}
 
 	if doctype not in frappe.flags.link_fields:
-		dt = DocType("DocType")
-		df = DocType("DocField")
-		cf = DocType("Custom Field")
-		ps = DocType("Property Setter")
+		dt = frappe.qb.DocType("DocType")
+		df = frappe.qb.DocType("DocField")
+		cf = frappe.qb.DocType("Custom Field")
+		ps = frappe.qb.DocType("Property Setter")
 
 		st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
 		standard_fields = (
@@ -492,8 +491,8 @@ def get_link_fields(doctype: str) -> List[Dict]:
 
 
 def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
-	CustomField = DocType("Custom Field")
-	PropertySetter = DocType("Property Setter")
+	CustomField = frappe.qb.DocType("Custom Field")
+	PropertySetter = frappe.qb.DocType("Property Setter")
 
 	if frappe.conf.developer_mode:
 		for name in frappe.get_all("DocField", filters={"options": old}, pluck="parent"):
@@ -506,7 +505,7 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 			if save:
 				doctype.save()
 	else:
-		DocField = DocType("DocField")
+		DocField = frappe.qb.DocType("DocField")
 		frappe.qb.update(DocField).set(DocField.options, new).where(
 			(DocField.fieldtype == fieldtype) & (DocField.options == old)
 		).run()
@@ -525,10 +524,10 @@ def get_select_fields(old: str, new: str) -> List[Dict]:
 	get select type fields where doctype's name is hardcoded as
 	new line separated list
 	"""
-	df = DocType("DocField")
-	dt = DocType("DocType")
-	cf = DocType("Custom Field")
-	ps = DocType("Property Setter")
+	df = frappe.qb.DocType("DocField")
+	dt = frappe.qb.DocType("DocType")
+	cf = frappe.qb.DocType("Custom Field")
+	ps = frappe.qb.DocType("Property Setter")
 
 	# get link fields from tabDocField
 	st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
@@ -570,9 +569,9 @@ def get_select_fields(old: str, new: str) -> List[Dict]:
 def update_select_field_values(old: str, new: str):
 	from frappe.query_builder.functions import Replace
 
-	DocField = DocType("DocField")
-	CustomField = DocType("Custom Field")
-	PropertySetter = DocType("Property Setter")
+	DocField = frappe.qb.DocType("DocField")
+	CustomField = frappe.qb.DocType("Custom Field")
+	PropertySetter = frappe.qb.DocType("Property Setter")
 
 	frappe.qb.update(DocField).set(DocField.options, Replace(DocField.options, old, new)).where(
 		(DocField.fieldtype == "Select")
@@ -623,12 +622,12 @@ def update_parenttype_values(old: str, new: str):
 	child_doctypes = set(list(d["options"] for d in child_doctypes) + property_setter_child_doctypes)
 
 	for doctype in child_doctypes:
-		Table = DocType(doctype)
-		frappe.qb.update(Table).set(Table.parenttype, new).where(Table.parenttype == old).run()
+		table = frappe.qb.DocType(doctype)
+		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
 
 
 def rename_dynamic_links(doctype: str, old: str, new: str):
-	Singles = DocType("Singles")
+	Singles = frappe.qb.DocType("Singles")
 	for df in get_dynamic_link_map().get(doctype, []):
 		# dynamic link in single, just one value to check
 		if frappe.get_meta(df.parent).issingle:

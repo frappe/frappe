@@ -1,5 +1,6 @@
 {
- "autoname": "format:AL-{#####}",
+ "actions": [],
+ "autoname": "hash",
  "creation": "2019-07-25 15:44:44.955496",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -127,10 +128,12 @@
    "read_only": 1
   }
  ],
- "modified": "2019-08-05 19:00:13.839471",
+ "links": [],
+ "modified": "2022-05-03 09:34:19.337551",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -146,5 +149,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_seen": 1
 }

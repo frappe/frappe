@@ -341,3 +341,19 @@ class TestDocument(unittest.TestCase):
 
 		# run_method should get overridden
 		self.assertEqual(doc.run_method("as_dict"), "success")
+
+	def test_extend(self):
+		doc = frappe.get_last_doc("User")
+		self.assertRaises(ValueError, doc.extend, "user_emails", None)
+
+		# allow calling doc.extend with iterable objects
+		doc.extend("user_emails", ())
+		doc.extend("user_emails", [])
+		doc.extend("user_emails", (x for x in ()))
+
+	def test_set(self):
+		doc = frappe.get_last_doc("User")
+
+		# setting None should init a table field to empty list
+		doc.set("user_emails", None)
+		self.assertEqual(doc.user_emails, [])

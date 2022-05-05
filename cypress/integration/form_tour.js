@@ -1,5 +1,5 @@
-context('Form Tour', () => {
-	before.skip(() => {
+context.skip('Form Tour', () => {
+	before(() => {
 		cy.login();
 		cy.visit('/app');
 		return cy.window().its('frappe').then(frappe => {

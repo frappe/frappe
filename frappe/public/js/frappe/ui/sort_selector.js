@@ -132,7 +132,7 @@ frappe.ui.SortSelector = class SortSelector {
 			// bold, mandatory and fields that are available in list view
 			meta.fields.forEach(function(df) {
 				if (
-					(df.mandatory || df.bold || df.in_list_view)
+					(df.mandatory || df.bold || df.in_list_view || df.reqd)
 					&& frappe.model.is_value_type(df.fieldtype)
 					&& frappe.perm.has_perm(me.doctype, df.permlevel, "read")
 				) {

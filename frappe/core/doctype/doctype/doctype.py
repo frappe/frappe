@@ -92,10 +92,10 @@ class DocType(Document):
 
 		self.check_developer_mode()
 
-		self.validate_autoname()
 		self.validate_name()
 
 		self.set_defaults_for_single_and_table()
+		self.set_defaults_for_autoincremented()
 		self.scrub_field_names()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
@@ -123,6 +123,12 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
+
+		if check_if_can_change_name_type(self):
+			change_name_column_type(
+				self.name,
+				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
+			)
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
@@ -183,6 +189,10 @@ class DocType(Document):
 		elif self.istable:
 			self.allow_import = 0
 			self.permissions = []
+
+	def set_defaults_for_autoincremented(self):
+		if self.autoname and self.autoname == "autoincrement":
+			self.allow_rename = 0
 
 	def set_default_in_list_view(self):
 		"""Set default in-list-view for first 4 mandatory fields"""
@@ -809,17 +819,6 @@ class DocType(Document):
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
 		return max_idx and max_idx[0][0] or 0
 
-	def validate_autoname(self):
-		if not self.is_new():
-			doc_before_save = self.get_doc_before_save()
-			if doc_before_save:
-				if (self.autoname == "autoincrement" and doc_before_save.autoname != "autoincrement") or (
-					self.autoname != "autoincrement" and doc_before_save.autoname == "autoincrement"
-				):
-					frappe.throw(_("Cannot change to/from Autoincrement naming rule"))
-		if self.autoname == "autoincrement":
-			self.allow_rename = 0
-
 	def validate_name(self, name=None):
 		if not name:
 			name = self.name
@@ -887,7 +886,7 @@ def validate_series(dt, autoname=None, name=None):
 		autoname
 		and (not autoname.startswith("field:"))
 		and (not autoname.startswith("eval:"))
-		and (not autoname.lower() in ("prompt", "hash"))
+		and (autoname.lower() not in ("prompt", "hash"))
 		and (not autoname.startswith("naming_series:"))
 		and (not autoname.startswith("format:"))
 	):
@@ -902,6 +901,51 @@ def validate_series(dt, autoname=None, name=None):
 		).run()
 		if used_in:
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
+
+
+def check_if_can_change_name_type(dt: DocType, raise_err: bool = True) -> bool:
+	def get_autoname_before_save(doctype: str, to_be_customized_dt: str) -> str:
+		if doctype == "Customize Form":
+			property_value = frappe.db.get_value(
+				"Property Setter", {"doc_type": to_be_customized_dt, "property": "autoname"}, "value"
+			)
+
+			# initially no property setter is set,
+			# hence getting autoname value from the doctype itself
+			if not property_value:
+				return frappe.db.get_value("DocType", to_be_customized_dt, "autoname") or ""
+
+			return property_value
+
+		return getattr(dt.get_doc_before_save(), "autoname", "")
+
+	doctype_name = dt.doc_type if dt.doctype == "Customize Form" else dt.name
+
+	if not dt.is_new():
+		autoname_before_save = get_autoname_before_save(dt.doctype, doctype_name)
+		is_autoname_autoincrement = dt.autoname == "autoincrement"
+
+		if (
+			is_autoname_autoincrement
+			and autoname_before_save != "autoincrement"
+			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
+		):
+			if not frappe.get_all(doctype_name, limit=1):
+				# allow changing the column type if there is no data
+				return True
+
+			if raise_err:
+				frappe.throw(
+					_("Can only change to/from Autoincrement naming rule when there is no data in the doctype")
+				)
+
+	return False
+
+
+def change_name_column_type(doctype_name: str, type: str) -> None:
+	return frappe.db.change_column_type(
+		doctype_name, "name", type, True if frappe.db.db_type == "mariadb" else False
+	)
 
 
 def validate_links_table_fieldnames(meta):
@@ -974,12 +1018,13 @@ def validate_fields(meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		invalid_fields = ("doctype",)
-		if fieldname in invalid_fields:
+		if fieldname in Document._reserved_keywords:
 			frappe.throw(
-				_("{0}: Fieldname cannot be one of {1}").format(
-					docname, ", ".join(frappe.bold(d) for d in invalid_fields)
-				)
+				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
+					frappe.bold(docname),
+					frappe.bold(fieldname),
+				),
+				title=_("Invalid Fieldname"),
 			)
 
 	def check_unique_fieldname(docname, fieldname):
