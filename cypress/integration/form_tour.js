@@ -1,4 +1,4 @@
-context('Form Tour', () => {
+context.skip('Form Tour', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/app/form-tour');
