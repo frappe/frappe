@@ -3,6 +3,8 @@
 
 @import "./desk/variables";
 @import "~bootstrap/scss/utilities/spacing";
+@import "./desk/css_variables";
+@import "./element/checkbox";
 
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307

@@ -138,6 +138,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		});
 	}
 
+	has_field(fieldname) {
+		return !!this.fields_dict[fieldname];
+	}
+
 	set_input(key, val) {
 		return this.set_value(key, val);
 	}

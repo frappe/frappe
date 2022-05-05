@@ -915,7 +915,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		const docname = doc.name.match(/[%'"#\s]/)
+		const docname = cstr(doc.name).match(/[%'"#\s]/)
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
@@ -1580,13 +1580,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		if (frappe.user.has_role("System Manager")) {
-			items.push({
-				label: __("List Settings", null, "Button in list view menu"),
-				action: () => this.show_list_settings(),
-				standard: true,
-			});
+			if (this.get_view_settings) {
+				items.push(this.get_view_settings());
+			}
 		}
+
 		return items;
+	}
+
+	get_view_settings() {
+		return {
+			label: __("List Settings", null, "Button in list view menu"),
+			action: () => this.show_list_settings(),
+			standard: true,
+		};
 	}
 
 	show_list_settings() {
@@ -1740,8 +1747,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const docnames = this.get_checked_items(true).map(
 						(docname) => docname.toString()
 					);
+					let message = __("Delete {0} item permanently?", [docnames.length], "Title of confirmation dialog");
+					if (docnames.length > 1) {
+						message = __("Delete {0} items permanently?", [docnames.length], "Title of confirmation dialog");
+					}
 					frappe.confirm(
-						__("Delete {0} items permanently?", [docnames.length], "Title of confirmation dialog"),
+						message,
 						() => {
 							this.disable_list_update = true;
 							bulk_operations.delete(docnames, () => {
