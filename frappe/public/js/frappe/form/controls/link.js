@@ -343,7 +343,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			me.autocomplete_open = false;
 
 			// prevent selection on tab
-			var TABKEY = 9;
+			let TABKEY = 9;
 			if (e.keyCode === TABKEY) {
 				e.preventDefault();
 				me.awesomplete.close();
@@ -373,6 +373,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.$input.val("");
 			}
 		});
+
+		this.$input.on("focus", function () {
+			me.show_untranslated()
+		});
+
+		this.$input.keydown((e) => {
+			let BACKSPACE = 8;
+			if (e.keyCode === BACKSPACE) {
+				me.show_untranslated();
+			}
+		});
+	}
+
+	show_untranslated() {
+		let value = this.get_input_value();
+		this.is_translatable() && this.set_input_value(value);
 	}
 
 	merge_duplicates(results) {
