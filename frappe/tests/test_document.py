@@ -224,7 +224,11 @@ class TestDocument(unittest.TestCase):
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
 
 		d = frappe.get_doc(
-			{"doctype": "Currency", "currency_name": "Frappe Coin", "smallest_currency_fraction_value": -1}
+			{
+				"doctype": "Currency",
+				"currency_name": "Frappe Coin",
+				"smallest_currency_fraction_value": -1,
+			}
 		)
 
 		self.assertRaises(frappe.NonNegativeError, d.insert)
@@ -243,7 +247,12 @@ class TestDocument(unittest.TestCase):
 				"module": "Custom",
 				"custom": 1,
 				"fields": [
-					{"label": "Currency", "fieldname": "currency", "reqd": 1, "fieldtype": "Currency"},
+					{
+						"label": "Currency",
+						"fieldname": "currency",
+						"reqd": 1,
+						"fieldtype": "Currency",
+					},
 				],
 			}
 		).insert(ignore_if_duplicate=True)
@@ -259,7 +268,9 @@ class TestDocument(unittest.TestCase):
 		).insert()
 
 		d = frappe.get_doc({"doctype": "Test Formatted", "currency": 100000})
-		self.assertEqual(d.get_formatted("currency", currency="INR", format="#,###.##"), "₹ 100,000.00")
+		self.assertEqual(
+			d.get_formatted("currency", currency="INR", format="#,###.##"), "₹ 100,000.00"
+		)
 
 		# should work even if options aren't set in df
 		# and currency param is not passed
@@ -341,6 +352,22 @@ class TestDocument(unittest.TestCase):
 
 		# run_method should get overridden
 		self.assertEqual(doc.run_method("as_dict"), "success")
+
+	def test_extend(self):
+		doc = frappe.get_last_doc("User")
+		self.assertRaises(ValueError, doc.extend, "user_emails", None)
+
+		# allow calling doc.extend with iterable objects
+		doc.extend("user_emails", ())
+		doc.extend("user_emails", [])
+		doc.extend("user_emails", (x for x in ()))
+
+	def test_set(self):
+		doc = frappe.get_last_doc("User")
+
+		# setting None should init a table field to empty list
+		doc.set("user_emails", None)
+		self.assertEqual(doc.user_emails, [])
 
 	def test_date_casting(self):
 		create_time_custom_field()
