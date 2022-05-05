@@ -152,6 +152,10 @@ frappe.ui.form.on("Customize Form", {
 				},
 				__("Actions")
 			);
+
+			const is_autoname_autoincrement = frm.doc.autoname === 'autoincrement';
+			frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
+			frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
 		}
 
 		frm.events.setup_export(frm);
