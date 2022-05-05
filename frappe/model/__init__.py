@@ -36,6 +36,7 @@ data_fieldtypes = (
 	"Geolocation",
 	"Duration",
 	"Icon",
+	"Phone",
 	"Autocomplete",
 	"JSON",
 )

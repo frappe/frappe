@@ -182,9 +182,8 @@ class PayPalSettings(Document):
 		kwargs.update(
 			{"token": response.get("TOKEN")[0], "correlation_id": response.get("CORRELATIONID")[0]}
 		)
-		self.integration_request = create_request_log(
-			kwargs, "Remote", "PayPal", response.get("TOKEN")[0]
-		)
+
+		create_request_log(kwargs, service_name="PayPal", name=kwargs["token"])
 
 		return return_url.format(kwargs["token"])
 
@@ -463,7 +462,8 @@ def ipn_handler():
 			{
 				"data": json.dumps(frappe.local.form_dict),
 				"doctype": "Integration Request",
-				"integration_type": "Subscription Notification",
+				"request_description": "Subscription Notification",
+				"is_remote_request": 1,
 				"status": "Queued",
 			}
 		).insert(ignore_permissions=True)
