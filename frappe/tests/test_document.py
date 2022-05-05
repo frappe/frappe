@@ -268,9 +268,7 @@ class TestDocument(unittest.TestCase):
 		).insert()
 
 		d = frappe.get_doc({"doctype": "Test Formatted", "currency": 100000})
-		self.assertEqual(
-			d.get_formatted("currency", currency="INR", format="#,###.##"), "₹ 100,000.00"
-		)
+		self.assertEqual(d.get_formatted("currency", currency="INR", format="#,###.##"), "₹ 100,000.00")
 
 		# should work even if options aren't set in df
 		# and currency param is not passed
