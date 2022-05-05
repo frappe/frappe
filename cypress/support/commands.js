@@ -352,11 +352,22 @@ Cypress.Commands.add('click_listview_row_item', (row_no) => {
 	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis').eq(row_no).click({force: true});
 });
 
+Cypress.Commands.add('click_listview_row_item_with_text', (text) => {
+	cy.get('.list-row > .level-left > .list-subject > .level-item > .ellipsis')
+		.contains(text)
+		.first()
+		.click({force: true});
+});
+
 Cypress.Commands.add('click_filter_button', () => {
 	cy.get('.filter-selector > .btn').click();
 });
 
 Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
+	cy.get('.primary-action').contains(btn_name).click({force: true});
+});
+
+Cypress.Commands.add('click_doc_primary_button', (btn_name) => {
 	cy.get('.primary-action').contains(btn_name).click({force: true});
 });
 
@@ -366,4 +377,8 @@ Cypress.Commands.add('click_timeline_action_btn', (btn_name) => {
 
 Cypress.Commands.add('select_listview_row_checkbox', (row_no) => {
 	cy.get('.frappe-list .select-like > .list-row-checkbox').eq(row_no).click();
+});
+
+Cypress.Commands.add('click_form_section', (section_name) => {
+	cy.get('.section-head').contains(section_name).click();
 });

@@ -7,7 +7,7 @@
 		<div class="email-field">
 			<input type="text" id="login_email" class="form-control"
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
-				required autofocus>
+				required autofocus autocomplete="username">
 
 			<svg class="field-icon email-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
 				xmlns="http://www.w3.org/2000/svg">
@@ -152,7 +152,7 @@
 				<div class="page-card-body">
 					<div class="email-field">
 						<input type="email" id="forgot_email" class="form-control"
-							placeholder="{{ _('Email Address') }}" required autofocus>
+							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
 						<svg class="field-icon email-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
 							xmlns="http://www.w3.org/2000/svg">
 							<path
