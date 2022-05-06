@@ -45,8 +45,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	format_for_input(value) {
 		if (!value) return "";
-
-
 		return frappe.datetime.str_to_user(value, false);
 	}
 	set_description() {
