@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import json
 import os
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.model
@@ -482,20 +482,21 @@ def validate_link(doctype: str, docname: str, fields=None):
 	return values
 
 
-def insert_doc(doc: Dict) -> "Document":
-	"""Inserts document and returns parent document with appended child document
-	if `doc` is child document else just returns the inserted document"""
+def insert_doc(doc) -> "Document":
+	"""Inserts document and returns parent document object with appended child document
+	if `doc` is child document else returns the inserted document object
+
+	:param doc: doc to insert (dict)"""
 
 	doc = frappe._dict(doc)
 	if frappe.is_table(doc.doctype):
 		if not (doc.parenttype and doc.parent and doc.parentfield):
-			frappe.throw(_("parenttype, parent and parentfield are required to insert a child record"))
+			frappe.throw(_("Parenttype, Parent and Parentfield are required to insert a child record"))
 
 		# inserting a child record
 		parent = frappe.get_doc(doc.parenttype, doc.parent)
 		parent.append(doc.parentfield, doc)
 		parent.save()
 		return parent
-	else:
-		doc = frappe.get_doc(doc).insert()
-		return doc
+
+	return frappe.get_doc(doc).insert()
