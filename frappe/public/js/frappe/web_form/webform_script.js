@@ -27,7 +27,7 @@ frappe.ready(function() {
 			}
 		});
 		login_required.show();
-		login_required.set_message(__("You are not permitted to access this page."));
+		login_required.set_message(__("You are not permitted to access this page without login."));
 	}
 
 	function show_grid() {
