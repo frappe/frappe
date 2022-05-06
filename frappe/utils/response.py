@@ -250,11 +250,7 @@ def send_private_file(path):
 
 	# no need for content disposition and force download. let browser handle its opening.
 	# Except for those that can be injected with scripts.
-
-	extension = os.path.splitext(path)[1]
-	blacklist = [".svg", ".html", ".htm", ".xml"]
-
-	if extension.lower() in blacklist:
+	if is_xml_like_file(path):
 		response.headers.add("Content-Disposition", "attachment", filename=filename.encode("utf-8"))
 
 	response.mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
@@ -274,3 +270,10 @@ def handle_session_stopped():
 		primary_action=None,
 	)
 	return get_response("message", http_status_code=503)
+
+
+def is_xml_like_file(path):
+	extension = os.path.splitext(path)[1]
+	xml_extns = [".svg", ".html", ".htm", ".xml"]
+
+	return extension.lower() in xml_extns

@@ -8,6 +8,7 @@ from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 import frappe
 from frappe.utils import cstr, get_site_name
+from frappe.utils.response import is_xml_like_file
 
 
 class StaticDataMiddleware(SharedDataMiddleware):
@@ -26,3 +27,6 @@ class StaticDataMiddleware(SharedDataMiddleware):
 				# return None, None
 
 		return loader
+
+	def is_allowed(self, filename):
+		return not is_xml_like_file(filename)
