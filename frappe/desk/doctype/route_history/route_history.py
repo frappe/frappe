@@ -14,38 +14,43 @@ from frappe.model.document import Document
 class RouteHistory(Document):
 	pass
 
+
 def flush_old_route_records():
 	"""Deletes all route records except last 500 records per user"""
 
 	records_to_keep_limit = 500
-	users = frappe.db.sql('''
+	users = frappe.db.sql(
+		"""
 		SELECT `user`
 		FROM `tabRoute History`
 		GROUP BY `user`
 		HAVING count(`name`) > %(limit)s
-	''', {
-		"limit": records_to_keep_limit
-	})
+	""",
+		{"limit": records_to_keep_limit},
+	)
 
 	for user in users:
 		user = user[0]
-		last_record_to_keep = frappe.db.get_all('Route History',
+		last_record_to_keep = frappe.db.get_all(
+			"Route History",
 			filters={
-				'user': user,
+				"user": user,
 			},
 			limit=1,
 			limit_start=500,
-			fields=['modified'],
-			order_by='modified desc')
+			fields=["modified"],
+			order_by="modified desc",
+		)
 
-		frappe.db.sql('''
-			DELETE
-			FROM `tabRoute History`
-			WHERE `modified` <= %(modified)s and `user`=%(modified)s
-		''', {
-			"modified": last_record_to_keep[0].modified,
-			"user": user
-		})
+		frappe.db.sql(
+			"""
+				DELETE
+				FROM `tabRoute History`
+				WHERE `modified` <= %(modified)s and `user`=%(modified)s
+			""",
+			{"modified": last_record_to_keep[0].modified, "user": user},
+		)
+
 
 @frappe.whitelist()
 def deferred_insert(routes):

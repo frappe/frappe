@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 
 # imports - standard imports
+import glob
 import gzip
 import json
 import os
@@ -8,7 +9,6 @@ import shlex
 import subprocess
 import sys
 import unittest
-import glob
 
 # imports - module imports
 import frappe
@@ -25,9 +25,9 @@ def supports_color():
 	otherwise.
 	"""
 	plat = sys.platform
-	supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
+	supported_platform = plat != "Pocket PC" and (plat != "win32" or "ANSICON" in os.environ)
 	# isatty is not always implemented, #6223.
-	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+	is_a_tty = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
 	return supported_platform and is_a_tty
 
 
@@ -51,10 +51,10 @@ def clean(value):
 	"""Strips and converts bytes to str
 
 	Args:
-		value ([type]): [description]
+	        value ([type]): [description]
 
 	Returns:
-		[type]: [description]
+	        [type]: [description]
 	"""
 	if isinstance(value, bytes):
 		value = value.decode()
@@ -67,17 +67,13 @@ def exists_in_backup(doctypes, file):
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
 	Args:
-		doctypes (list): List of DocTypes to be checked
-		file (str): Path of the database file
+	        doctypes (list): List of DocTypes to be checked
+	        file (str): Path of the database file
 
 	Returns:
-		bool: True if all tables exist
+	        bool: True if all tables exist
 	"""
-	predicate = (
-		'COPY public."tab{}"'
-		if frappe.conf.db_type == "postgres"
-		else "CREATE TABLE `tab{}`"
-	)
+	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
 	with gzip.open(file, "rb") as f:
 		content = f.read().decode("utf8")
 	return all([predicate.format(doctype).lower() in content.lower() for doctype in doctypes])
@@ -100,14 +96,16 @@ class BaseTestCommands(unittest.TestCase):
 
 	def _formatMessage(self, msg, standardMsg):
 		output = super(BaseTestCommands, self)._formatMessage(msg, standardMsg)
-		cmd_execution_summary = "\n".join([
-			"-" * 70,
-			"Last Command Execution Summary:",
-			"Command: {}".format(self.command) if self.command else "",
-			"Standard Output: {}".format(self.stdout) if self.stdout else "",
-			"Standard Error: {}".format(self.stderr) if self.stderr else "",
-			"Return Code: {}".format(self.returncode) if self.returncode else "",
-		]).strip()
+		cmd_execution_summary = "\n".join(
+			[
+				"-" * 70,
+				"Last Command Execution Summary:",
+				"Command: {}".format(self.command) if self.command else "",
+				"Standard Output: {}".format(self.stdout) if self.stdout else "",
+				"Standard Error: {}".format(self.stderr) if self.stderr else "",
+				"Return Code: {}".format(self.returncode) if self.returncode else "",
+			]
+		).strip()
 		return "{}\n\n{}".format(output, cmd_execution_summary)
 
 
@@ -139,13 +137,7 @@ class TestCommands(BaseTestCommands):
 					"Note",
 				]
 			},
-			"excludes": {
-				"excludes": [
-					"Activity Log",
-					"Access Log",
-					"Error Log"
-				]
-			}
+			"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
 		}
 		home = os.path.expanduser("~")
 		site_backup_path = frappe.utils.get_site_path("private", "backups")
@@ -173,7 +165,9 @@ class TestCommands(BaseTestCommands):
 
 		# test 3: take a backup with --backup-path
 		backup_path = os.path.join(home, "backups")
-		self.execute("bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path})
+		self.execute(
+			"bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path}
+		)
 
 		self.assertEquals(self.returncode, 0)
 		self.assertTrue(os.path.exists(backup_path))
@@ -272,8 +266,7 @@ class TestCommands(BaseTestCommands):
 			if value:
 				self.execute(f"bench set-config {key} {value} -g")
 		self.execute(
-			"bench new-site {another_site} --admin-password {admin_password} --db-type"
-			" {db_type}",
+			"bench new-site {another_site} --admin-password {admin_password} --db-type" " {db_type}",
 			site_data,
 		)
 
@@ -301,11 +294,13 @@ class TestCommands(BaseTestCommands):
 	def test_partial_restore(self):
 		_now = now()
 		for num in range(10):
-			frappe.get_doc({
-				"doctype": "ToDo",
-				"date": add_to_date(_now, days=num),
-				"description": frappe.mock("paragraph")
-			}).insert()
+			frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"date": add_to_date(_now, days=num),
+					"description": frappe.mock("paragraph"),
+				}
+			).insert()
 		frappe.db.commit()
 		todo_count = frappe.db.count("ToDo")
 
@@ -355,9 +350,7 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEquals(self.returncode, 0)
-		list_apps = set([
-			_x.split()[0] for _x in self.stdout.split("\n")
-		])
+		list_apps = set([_x.split()[0] for _x in self.stdout.split("\n")])
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
 			installed_apps = set([x.app_name for x in doctype])
@@ -421,7 +414,7 @@ class TestCommands(BaseTestCommands):
 		os.remove(test2_path)
 
 	def test_frappe_site_env(self):
-		os.putenv('FRAPPE_SITE', frappe.local.site)
+		os.putenv("FRAPPE_SITE", frappe.local.site)
 		self.execute("bench execute frappe.ping")
 		self.assertEquals(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
@@ -433,7 +426,7 @@ class TestCommands(BaseTestCommands):
 		for output in ["legacy", "plain", "table", "json"]:
 			self.execute(f"bench version -f {output}")
 			self.assertEqual(self.returncode, 0)
-		
+
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
 
@@ -441,9 +434,9 @@ class TestCommands(BaseTestCommands):
 class RemoveAppUnitTests(unittest.TestCase):
 	def test_delete_modules(self):
 		from frappe.installer import (
-				_delete_doctypes,
-				_delete_modules,
-				_get_module_linked_doctype_field_map,
+			_delete_doctypes,
+			_delete_modules,
+			_get_module_linked_doctype_field_map,
 		)
 
 		test_module = frappe.new_doc("Module Def")
@@ -451,18 +444,17 @@ class RemoveAppUnitTests(unittest.TestCase):
 		test_module.update({"module_name": "RemoveThis", "app_name": "frappe"})
 		test_module.save()
 
-		module_def_linked_doctype = frappe.get_doc({
-			"doctype": "DocType",
-			"name": "Doctype linked with module def",
-			"module": "RemoveThis",
-			"custom": 1,
-			"fields": [{
-				"label": "Modulen't",
-				"fieldname": "notmodule",
-				"fieldtype": "Link",
-				"options": "Module Def"
-			}]
-		}).insert()
+		module_def_linked_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Doctype linked with module def",
+				"module": "RemoveThis",
+				"custom": 1,
+				"fields": [
+					{"label": "Modulen't", "fieldname": "notmodule", "fieldtype": "Link", "options": "Module Def"}
+				],
+			}
+		).insert()
 
 		doctype_to_link_field_map = _get_module_linked_doctype_field_map()
 

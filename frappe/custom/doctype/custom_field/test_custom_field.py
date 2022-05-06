@@ -5,8 +5,9 @@
 
 from __future__ import unicode_literals
 
-import frappe
 import unittest
+
+import frappe
 
 test_records = frappe.get_test_records("Custom Field")
 
@@ -38,12 +39,6 @@ class TestCustomField(unittest.TestCase):
 
 		frappe.db.commit()
 
-		self.assertTrue(
-			frappe.db.exists("Custom Field", "Address-_test_custom_field_1")
-		)
-		self.assertTrue(
-			frappe.db.exists("Custom Field", "Address-_test_custom_field_2")
-		)
-		self.assertTrue(
-			frappe.db.exists("Custom Field", "Contact-_test_custom_field_2")
-		)
+		self.assertTrue(frappe.db.exists("Custom Field", "Address-_test_custom_field_1"))
+		self.assertTrue(frappe.db.exists("Custom Field", "Address-_test_custom_field_2"))
+		self.assertTrue(frappe.db.exists("Custom Field", "Contact-_test_custom_field_2"))

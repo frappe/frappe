@@ -346,11 +346,10 @@ textarea.form-control {
 .duration-picker {
 	position: absolute;
 	z-index: 999;
-
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
-
+	width: max-content;
 	&:after,
 	&:before {
 		border: solid transparent;
@@ -462,4 +461,11 @@ button.data-pill {
 	color: var(--text-color);
 	justify-content: space-between;
 	align-items: center;
+}
+
+.capture-remove-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+	cursor: pointer;
 }

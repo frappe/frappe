@@ -981,7 +981,7 @@ Object.assign(frappe.utils, {
 
 		return $el;
 	},
-	
+
 	eval(code, context={}) {
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);

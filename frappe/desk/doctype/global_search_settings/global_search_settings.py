@@ -3,12 +3,13 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
-from frappe.model.document import Document
 from frappe import _
+from frappe.model.document import Document
+
 
 class GlobalSearchSettings(Document):
-
 	def validate(self):
 		dts, core_dts, repeated_dts = [], [], []
 
@@ -22,15 +23,16 @@ class GlobalSearchSettings(Document):
 			dts.append(dt.document_type)
 
 		if core_dts:
-			core_dts = (", ".join([frappe.bold(dt) for dt in core_dts]))
+			core_dts = ", ".join([frappe.bold(dt) for dt in core_dts])
 			frappe.throw(_("Core Modules {0} cannot be searched in Global Search.").format(core_dts))
 
 		if repeated_dts:
-			repeated_dts = (", ".join([frappe.bold(dt) for dt in repeated_dts]))
+			repeated_dts = ", ".join([frappe.bold(dt) for dt in repeated_dts])
 			frappe.throw(_("Document Type {0} has been repeated.").format(repeated_dts))
 
 		# reset cache
-		frappe.cache().hdel('global_search', 'search_priorities')
+		frappe.cache().hdel("global_search", "search_priorities")
+
 
 def get_doctypes_for_global_search():
 	def get_from_db():
@@ -43,6 +45,7 @@ def get_doctypes_for_global_search():
 @frappe.whitelist()
 def reset_global_search_settings_doctypes():
 	update_global_search_doctypes()
+
 
 def update_global_search_doctypes():
 	global_search_doctypes = []
@@ -78,11 +81,14 @@ def update_global_search_doctypes():
 		if dt not in doctype_list:
 			continue
 
-		global_search_settings.append("allowed_in_global_search", {
-			"document_type": dt
-		})
+		global_search_settings.append("allowed_in_global_search", {"document_type": dt})
 	global_search_settings.save(ignore_permissions=True)
 	show_message(3, "Global Search Documents have been reset.")
 
+
 def show_message(progress, msg):
-	frappe.publish_realtime('global_search_settings', {"progress":progress, "total":3, "msg": msg}, user=frappe.session.user)
+	frappe.publish_realtime(
+		"global_search_settings",
+		{"progress": progress, "total": 3, "msg": msg},
+		user=frappe.session.user,
+	)

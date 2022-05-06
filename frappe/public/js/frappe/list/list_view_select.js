@@ -150,7 +150,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		const views_wrapper = this.sidebar.sidebar.find(".views-section");
 		views_wrapper.find(".sidebar-label").html(`${__(view)}`);
 		const $dropdown = views_wrapper.find(".views-dropdown");
-		
+
 		let placeholder = `${__("Select {0}", [__(view)])}`;
 		let html = ``;
 
@@ -265,16 +265,25 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			frappe.model.user_settings[this.doctype]["Kanban"] &&
 			frappe.model.user_settings[this.doctype]["Kanban"]
 				.last_kanban_board;
-		if (last_opened_kanban) {
-			frappe.set_route(
-				"list",
+
+		if (!last_opened_kanban) {
+			return frappe.views.KanbanView.show_kanban_dialog(
 				this.doctype,
-				"kanban",
-				last_opened_kanban
+				true
 			);
-		} else {
-			frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 		}
+		frappe.db.exists("Kanban Board", last_opened_kanban).then(exists => {
+			if (exists) {
+				frappe.set_route(
+					"list",
+					this.doctype,
+					"kanban",
+					last_opened_kanban
+				);
+			} else {
+				frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			}
+		});
 	}
 
 	get_calendars() {

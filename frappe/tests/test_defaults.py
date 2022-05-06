@@ -2,9 +2,11 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import unittest
 
+import frappe
 from frappe.defaults import *
+
 
 class TestDefaults(unittest.TestCase):
 	def test_global(self):
@@ -54,19 +56,21 @@ class TestDefaults(unittest.TestCase):
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
 
 		old_user = frappe.session.user
-		user = 'test@example.com'
+		user = "test@example.com"
 		frappe.set_user(user)
 
-		perm_doc = frappe.get_doc(dict(
-			doctype='User Permission',
-			user=frappe.session.user,
-			allow="Language",
-			for_value="en-GB",
-		)).insert(ignore_permissions = True)
+		perm_doc = frappe.get_doc(
+			dict(
+				doctype="User Permission",
+				user=frappe.session.user,
+				allow="Language",
+				for_value="en-GB",
+			)
+		).insert(ignore_permissions=True)
 
 		self.assertEqual(get_global_default("language"), None)
 		self.assertEqual(get_user_default("language"), None)
 		self.assertEqual(get_user_default_as_list("language"), [])
 
-		frappe.delete_doc('User Permission', perm_doc.name)
+		frappe.delete_doc("User Permission", perm_doc.name)
 		frappe.set_user(old_user)

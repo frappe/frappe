@@ -3,13 +3,14 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
 import unittest
+
+import frappe
 
 from .google_settings import get_file_picker_settings
 
-class TestGoogleSettings(unittest.TestCase):
 
+class TestGoogleSettings(unittest.TestCase):
 	def setUp(self):
 		settings = frappe.get_single("Google Settings")
 		settings.client_id = "test_client_id"

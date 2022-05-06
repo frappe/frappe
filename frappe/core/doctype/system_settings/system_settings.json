@@ -67,6 +67,8 @@
   "prepared_report_section",
   "enable_prepared_report_auto_deletion",
   "prepared_report_expiry_period",
+  "column_break_64",
+  "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification"
  ],
@@ -443,7 +445,7 @@
    "collapsible": 1,
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
-   "label": "Prepared Report"
+   "label": "Reports"
   },
   {
    "default": "Frappe",
@@ -477,12 +479,22 @@
    "fieldtype": "Select",
    "label": "First Day of the Week",
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+  },
+  {
+   "fieldname": "column_break_64",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "20",
+   "fieldname": "max_auto_email_report_per_user",
+   "fieldtype": "Int",
+   "label": "Max auto email report per user"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-01-04 11:28:34.881192",
+ "modified": "2022-04-21 09:11:35.218721",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
