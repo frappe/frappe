@@ -48,7 +48,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nOn Payment Authorization"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -102,7 +102,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2022-04-07 19:41:23.178772",
+ "modified": "2022-04-27 11:42:52.032963",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

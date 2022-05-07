@@ -10,7 +10,7 @@ no_cache = True
 def get_context(context):
 	frappe.flags.ignore_permissions = True
 	# Called for confirmation.
-	if "email" in frappe.form_dict:
+	if "email" in frappe.form_dict and frappe.request.method == "GET":
 		if verify_request():
 			user_email = frappe.form_dict["email"]
 			context.email = user_email
@@ -20,7 +20,7 @@ def get_context(context):
 			context.status = "waiting_for_confirmation"
 
 	# Called when form is submitted.
-	elif "user_email" in frappe.form_dict:
+	elif "user_email" in frappe.form_dict and frappe.request.method == "POST":
 		context.status = "unsubscribed"
 		email = frappe.form_dict["user_email"]
 		email_group = get_email_groups(email)
