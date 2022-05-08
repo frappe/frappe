@@ -48,7 +48,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+		this.setup_events()
 		this.page.main.addClass('report-view');
+	}
+
+	setup_events() {
+		frappe.realtime.on("list_update", (data) => this.on_update(data));
 	}
 
 	setup_page() {
