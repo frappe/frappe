@@ -269,7 +269,6 @@ def add_all_roles_to(name):
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
 	frappe.db.set_value("System Settings", "System Settings", "setup_complete", 1)
-	frappe.db.set_value("System Settings", "System Settings", "is_first_startup", 1)
 
 	# Enable onboarding after install
 	frappe.db.set_value("System Settings", "System Settings", "enable_onboarding", 1)
@@ -332,11 +331,6 @@ def load_user_details():
 		"full_name": frappe.cache().hget("full_name", "signup"),
 		"email": frappe.cache().hget("email", "signup"),
 	}
-
-
-@frappe.whitelist()
-def reset_is_first_startup():
-	frappe.db.set_value("System Settings", "System Settings", "is_first_startup", 0)
 
 
 def prettify_args(args):
