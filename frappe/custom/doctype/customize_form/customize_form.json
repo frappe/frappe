@@ -15,6 +15,7 @@
   "column_break_5",
   "allow_copy",
   "istable",
+  "is_calendar_and_gantt",
   "editable_grid",
   "quick_entry",
   "track_changes",
@@ -32,6 +33,8 @@
   "translate_link_fields",
   "image_field",
   "default_print_format",
+  "default_view",
+  "force_re_route_to_default_view",
   "column_break_29",
   "show_preview_popup",
   "email_settings_section",
@@ -318,6 +321,25 @@
    "fieldname": "translate_link_fields",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
+  },
+  {
+   "fieldname": "default_view",
+   "fieldtype": "Select",
+   "label": "Default View"
+  },
+  {
+   "default": "0",
+   "depends_on": "doc.default_view",
+   "fieldname": "force_re_route_to_default_view",
+   "fieldtype": "Check",
+   "label": "Force Re-route to Default View"
+  },
+  {
+   "default": "0",
+   "description": "Enables Calendar and Gantt views.",
+   "fieldname": "is_calendar_and_gantt",
+   "fieldtype": "Check",
+   "label": "Is Calendar and Gantt"
   }
  ],
  "hide_toolbar": 1,
@@ -326,7 +348,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-05-13 15:36:16.772277",
+ "modified": "2022-05-14 15:36:16.772277",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

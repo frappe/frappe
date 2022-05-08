@@ -72,6 +72,7 @@ frappe.ui.form.on("Customize Form", {
 						} else {
 							frm.refresh();
 							frm.trigger("setup_sortable");
+							frm.trigger("setup_default_views");
 						}
 					}
 					localStorage["customize_doctype"] = frm.doc.doc_type;
@@ -82,8 +83,12 @@ frappe.ui.form.on("Customize Form", {
 		}
 	},
 
-	setup_sortable: function (frm) {
-		frm.doc.fields.forEach(function (f, i) {
+	is_calendar_and_gantt: function(frm) {
+		frm.trigger("setup_default_views");
+	},
+
+	setup_sortable: function(frm) {
+		frm.doc.fields.forEach(function(f) {
 			if (!f.is_custom_field) {
 				f._sortable = false;
 			}
@@ -221,6 +226,39 @@ frappe.ui.form.on("Customize Form", {
 			frm.set_df_property("sort_field", "options", fields);
 		}
 	},
+
+	setup_default_views(frm) {
+		frappe.model.with_doctype(frm.doc.doc_type, () => {
+			let meta = frappe.get_meta(frm.doc.doc_type);
+			let default_views = ["List", "Report", "Dashboard", "Kanban"];
+
+			if (meta.is_calendar_and_gantt && frappe.views.calendar[frm.doc.doc_type]) {
+				let views = ["Calendar", "Gantt"];
+				default_views.push(...views);
+			}
+
+			if (meta.is_tree) {
+				default_views.push("Tree");
+			}
+
+			if (frm.doc.image_field) {
+				default_views.push("Image");
+			}
+
+			if (frm.doc.doc_type === "Communication" && frappe.boot.email_accounts.length) {
+				default_views.push("Inbox");
+			}
+
+			if ((frm.doc.fields.find(i => i.fieldname === "latitude") &&
+				frm.doc.fields.find(i => i.fieldname === "longitude")) ||
+				(frm.doc.fields.find(i => i.fieldname === 'location' &&
+				i.fieldtype == 'Geolocation'))) {
+				default_views.push("Map");
+			}
+
+			frm.set_df_property("default_view", "options", default_views);
+		});
+	}
 });
 
 // can't delete standard fields
@@ -236,7 +274,8 @@ frappe.ui.form.on("Customize Form Field", {
 		var f = frappe.model.get_doc(cdt, cdn);
 		f.is_system_generated = false;
 		f.is_custom_field = true;
-	},
+		frm.trigger("setup_default_views");
+	}
 });
 
 // can't delete standard links

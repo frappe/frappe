@@ -349,7 +349,7 @@ $.extend(frappe.model, {
 
 	is_tree: function (doctype) {
 		if (!doctype) return false;
-		return frappe.boot.treeviews.indexOf(doctype) != -1;
+		return locals.DocType[doctype] && locals.DocType[doctype].is_tree;
 	},
 
 	is_fresh(doc) {
