@@ -80,7 +80,13 @@ def _new_site(
 	)
 
 	for app in apps_to_install:
-		install_app(app, verbose=verbose, set_as_patched=not source_sql)
+		# NOTE: not using force here for 2 reasons:
+		# 	1. It's not really needed here as we've freshly installed a new db
+		# 	2. If someone uses a sql file to do restore and that file already had
+		# 		installed_apps then it might cause problems as that sql file can be of any previous version(s)
+		# 		which might be incompatible with the current version and using force might cause problems.
+		# 		Example: the DocType DocType might not have `migration_hash` column which will cause failure in the restore.
+		install_app(app, verbose=verbose, set_as_patched=not source_sql, force=False)
 
 	os.remove(installing)
 
@@ -252,8 +258,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		raise Exception("App not in apps.txt")
 
 	if not force and name in installed_apps:
-		frappe.msgprint(frappe._("App {0} already installed").format(name))
-		return
+		raise Exception("App {0} already installed".format(name))
 
 	print("\nInstalling {0}...".format(name))
 
@@ -268,7 +273,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	if name != "frappe":
 		add_module_defs(name, ignore_if_duplicate=force)
 
-	sync_for(name, force=True, reset_permissions=True)
+	sync_for(name, force=force, reset_permissions=True)
 
 	add_to_installed_apps(name)
 
