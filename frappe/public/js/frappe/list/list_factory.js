@@ -9,30 +9,32 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		const me = this;
 		const doctype = route[1];
 
-		// List / Gantt / Kanban / etc
-		let view_name = frappe.utils.to_title_case(route[2] || "List");
+		frappe.model.with_doctype(doctype, () => {
+			// List / Gantt / Kanban / etc
+			// File is a special view
+			let meta = frappe.get_meta(doctype);
 
-		// File is a special view
-		if (doctype == "File" && !["Report", "Dashboard"].includes(view_name)) {
-			view_name = "File";
-		}
+			let view_name = frappe.utils.to_title_case(
+				meta.force_re_route_to_default_view ?
+				meta.default_view :
+				route[2] || meta.default_view || "List"
+			);
 
-		let view_class = frappe.views[view_name + "View"];
-		if (!view_class) view_class = frappe.views.ListView;
+			let view_class = frappe.views[view_name + "View"] || frappe.views.ListView;
 
-		if (view_class && view_class.load_last_view && view_class.load_last_view()) {
-			// view can have custom routing logic
-			return;
-		}
+			if (view_class && view_class.load_last_view && view_class.load_last_view()) {
+				// view can have custom routing logic
+				return;
+			}
 
-		frappe.provide("frappe.views.list_view." + doctype);
+			frappe.provide('frappe.views.list_view.' + doctype);
+			frappe.views.list_view[me.page_name] = new view_class({
+				doctype: doctype,
+				parent: me.make_page(true, me.page_name)
+			});
 
-		frappe.views.list_view[me.page_name] = new view_class({
-			doctype: doctype,
-			parent: me.make_page(true, me.page_name),
+			me.set_cur_list();
 		});
-
-		me.set_cur_list();
 	}
 
 	before_show() {

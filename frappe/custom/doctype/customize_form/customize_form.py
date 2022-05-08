@@ -586,7 +586,14 @@ doctype_properties = {
 	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
+<<<<<<< HEAD
 	"translated_doctype": "Check",
+=======
+	"translate_link_fields": "Check",
+	"is_calendar_and_gantt": "Check",
+	"default_view": "Select",
+	"force_re_route_to_default_view": "Check",
+>>>>>>> fcaa0ac76b (feat: configurable default views)
 }
 
 docfield_properties = {

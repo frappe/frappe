@@ -13,6 +13,7 @@
   "search_fields",
   "column_break_5",
   "istable",
+  "is_calendar_and_gantt",
   "editable_grid",
   "quick_entry",
   "track_changes",
@@ -35,6 +36,8 @@
   "show_title_field_in_link",
   "translated_doctype",
   "default_print_format",
+  "default_view",
+  "force_re_route_to_default_view",
   "column_break_29",
   "show_preview_popup",
   "email_settings_section",
@@ -323,6 +326,7 @@
    "label": "Translate Link Fields"
   },
   {
+<<<<<<< HEAD
    "collapsible": 1,
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
@@ -337,6 +341,25 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+=======
+   "fieldname": "default_view",
+   "fieldtype": "Select",
+   "label": "Default View"
+  },
+  {
+   "default": "0",
+   "depends_on": "doc.default_view",
+   "fieldname": "force_re_route_to_default_view",
+   "fieldtype": "Check",
+   "label": "Force Re-route to Default View"
+  },
+  {
+   "default": "0",
+   "description": "Enables Calendar and Gantt views.",
+   "fieldname": "is_calendar_and_gantt",
+   "fieldtype": "Check",
+   "label": "Is Calendar and Gantt"
+>>>>>>> fcaa0ac76b (feat: configurable default views)
   }
  ],
  "hide_toolbar": 1,
@@ -345,7 +368,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-08-24 06:57:47.966331",
+=======
+ "modified": "2022-05-14 15:36:16.772277",
+>>>>>>> fcaa0ac76b (feat: configurable default views)
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
