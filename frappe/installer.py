@@ -7,6 +7,8 @@ import sys
 from collections import OrderedDict
 from typing import Dict, List, Tuple
 
+import click
+
 import frappe
 from frappe.defaults import _clear_cache
 from frappe.utils import is_git_url
@@ -258,7 +260,8 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		raise Exception("App not in apps.txt")
 
 	if not force and name in installed_apps:
-		raise Exception("App {0} already installed".format(name))
+		click.secho(f"App {name} already installed", fg="yellow")
+		return
 
 	print("\nInstalling {0}...".format(name))
 
@@ -320,7 +323,6 @@ def remove_from_installed_apps(app_name):
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
-	import click
 
 	site = frappe.local.site
 	app_hooks = frappe.get_hooks(app_name=app_name)
@@ -757,11 +759,9 @@ def partial_restore(sql_file_path, verbose=False):
 	elif frappe.conf.db_type == "postgres":
 		import warnings
 
-		from click import style
-
 		from frappe.database.postgres.setup_db import import_db_from_sql
 
-		warn = style(
+		warn = click.style(
 			"Delete the tables you want to restore manually before attempting"
 			" partial restore operation for PostreSQL databases",
 			fg="yellow",
@@ -803,8 +803,6 @@ def validate_database_sql(path, _raise=True):
 			error_message = "Table `tabDefaultValue` not found in file."
 
 	if error_message:
-		import click
-
 		click.secho(error_message, fg="red")
 
 	if _raise and (missing_table or empty_file):
