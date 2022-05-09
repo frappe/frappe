@@ -137,13 +137,13 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		});
 	}
 	parse(value) {
-		if(value) {
-			return frappe.datetime.user_to_str(value);
+		if (value) {
+			return frappe.datetime.user_to_str(value, false, true);
 		}
 	}
 	format_for_input(value) {
-		if(value) {
-			return frappe.datetime.str_to_user(value);
+		if (value) {
+			return frappe.datetime.str_to_user(value, false, true);
 		}
 		return "";
 	}

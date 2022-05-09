@@ -11,7 +11,6 @@
   "language",
   "column_break_3",
   "time_zone",
-  "is_first_startup",
   "enable_onboarding",
   "setup_complete",
   "date_and_number_format",
@@ -103,14 +102,6 @@
    "label": "Time Zone",
    "read_only": 1,
    "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "is_first_startup",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is First Startup",
-   "read_only": 1
   },
   {
    "default": "0",
@@ -509,7 +500,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-04-28 14:31:50.330954",
+ "modified": "2022-05-09 18:53:35.218721",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -482,6 +482,33 @@ class TestDB(unittest.TestCase):
 
 		frappe.db.delete("ToDo", {"description": test_body})
 
+	def test_count(self):
+		frappe.db.delete("Note")
+
+		frappe.get_doc(doctype="Note", title="note1", content="something").insert()
+		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
+
+		# Count with no filtes
+		self.assertEquals((frappe.db.count("Note")), 2)
+
+		# simple filters
+		self.assertEquals((frappe.db.count("Note", ["title", "=", "note1"])), 1)
+
+		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
+
+		# List of list filters with tables
+		self.assertEquals(
+			(
+				frappe.db.count(
+					"Note",
+					[["Note", "title", "like", "note%"], ["Note", "content", "like", "some%"]],
+				)
+			),
+			3,
+		)
+
+		frappe.db.rollback()
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
