@@ -49,7 +49,6 @@ frappe.pages['setup-wizard'].on_page_load = function (wrapper) {
 				}
 				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
 				frappe.setup.run_event("after_load");
-				// frappe.wizard.values = test_values_edu;
 				let route = frappe.get_route();
 				if (route) {
 					frappe.wizard.show_slide(route[1]);
@@ -145,7 +144,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	refresh_slides() {
 		// For Translations, etc.
-		if (this.in_refresh_slides || !this.current_slide.set_values()) {
+		if (this.in_refresh_slides || !this.current_slide.set_values(true)) {
 			return;
 		}
 		this.in_refresh_slides = true;
@@ -344,63 +343,40 @@ frappe.setup.slides_settings = [
 		// Welcome (language) slide
 		name: "welcome",
 		title: __("Hello!"),
-		icon: "fa fa-world",
-		// help: __("Let's prepare the system for first use."),
 
 		fields: [
 			{
-				fieldname: "language", label: __("Your Language"),
-				fieldtype: "Select", reqd: 1
-			}
-		],
-
-		onload: function (slide) {
-			this.setup_fields(slide);
-			let browser_language = frappe.setup.utils.get_language_name_from_code(navigator.language);
-			let language_field = slide.get_field("language");
-
-			language_field.set_input(browser_language || "English");
-
-			if (!frappe.setup._from_load_messages) {
-				language_field.$input.trigger("change");
-			}
-			delete frappe.setup._from_load_messages;
-			moment.locale("en");
-		},
-
-		setup_fields: function (slide) {
-			frappe.setup.utils.setup_language_field(slide);
-			frappe.setup.utils.bind_language_events(slide);
-		},
-	},
-
-	{
-		// Region slide
-		name: 'region',
-		title: __("Select Your Region"),
-		icon: "fa fa-flag",
-		// help: __("Select your Country, Time Zone and Currency"),
-		fields: [
-			{
-				fieldname: "country", label: __("Your Country"), reqd: 1,
+				fieldname: "language",
+				label: __("Your Language"),
 				fieldtype: "Autocomplete",
-				placeholder: __('Select Country')
+				placeholder: __('Select Language'),
+				default: "English",
+				reqd: 1,
 			},
-			{ fieldtype: "Section Break" },
+			{
+				fieldname: "country",
+				label: __("Your Country"),
+				fieldtype: "Autocomplete",
+				placeholder: __('Select Country'),
+				reqd: 1,
+			},
+			{
+				fieldtype: "Section Break"
+			},
 			{
 				fieldname: "timezone",
 				label: __("Time Zone"),
 				placeholder: __('Select Time Zone'),
-				reqd: 1,
 				fieldtype: "Select",
+				reqd: 1,
 			},
 			{ fieldtype: "Column Break" },
 			{
 				fieldname: "currency",
 				label: __("Currency"),
 				placeholder: __('Select Currency'),
-				reqd: 1,
 				fieldtype: "Select",
+				reqd: 1,
 			}
 		],
 
@@ -410,14 +386,26 @@ frappe.setup.slides_settings = [
 			} else {
 				frappe.setup.utils.load_regional_data(slide, this.setup_fields);
 			}
+			if (!slide.get_value("language")) {
+				let session_language = frappe.setup.utils.get_language_name_from_code(frappe.boot.lang || navigator.language) || "English";
+				let language_field = slide.get_field("language");
+
+				language_field.set_input(session_language);
+				if (!frappe.setup._from_load_messages) {
+					language_field.$input.trigger("change");
+				}
+				delete frappe.setup._from_load_messages;
+				moment.locale("en");
+			}
+			frappe.setup.utils.bind_region_events(slide);
+			frappe.setup.utils.bind_language_events(slide);
 		},
 
 		setup_fields: function (slide) {
 			frappe.setup.utils.setup_region_fields(slide);
-			frappe.setup.utils.bind_region_events(slide);
-		}
+			frappe.setup.utils.setup_language_field(slide);
+		},
 	},
-
 	{
 		// Profile slide
 		name: 'user',
@@ -438,7 +426,7 @@ frappe.setup.slides_settings = [
 			},
 			{ "fieldname": "password", "label": __("Password"), "fieldtype": "Password" }
 		],
-		// help: __('The first user will become the System Manager (you can change this later).'),
+
 		onload: function (slide) {
 			if (frappe.session.user !== "Administrator") {
 				slide.form.fields_dict.email.$wrapper.toggle(false);
@@ -516,7 +504,7 @@ frappe.setup.utils = {
 	setup_language_field: function (slide) {
 		var language_field = slide.get_field("language");
 		language_field.df.options = frappe.setup.data.lang.languages;
-		language_field.refresh();
+		language_field.set_options();
 	},
 
 	setup_region_fields: function (slide) {
@@ -555,9 +543,7 @@ frappe.setup.utils = {
 		}
 
 		slide.get_field("currency").set_input(frappe.wizard.values.currency);
-
 		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
-
 	},
 
 	bind_language_events: function (slide) {
