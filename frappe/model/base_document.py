@@ -18,19 +18,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.utils import (
-	cast,
-	cast_fieldtype,
-	cint,
-	cstr,
-	flt,
-	now,
-	sanitize_html,
-	strip_html,
-	to_date_field,
-	to_datetime_field,
-	to_time_field,
-)
+from frappe.utils import cast, cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
@@ -127,19 +115,19 @@ class BaseDocument(object):
 		self._datetime_fieldnames = (
 			d["_datetime_fieldnames"]	# from cache
 			if "_datetime_fieldnames" in d
-			else {df.fieldname for df in self.meta.get_datetime_fields()}
+			else {df.fieldname for df in self._get_datetime_fields()}
 		)
 
 		self._date_fieldnames = (
 			d["_date_fieldnames"]	# from cache
 			if "_date_fieldnames" in d
-			else {df.fieldname for df in self.meta.get_date_fields()}
+			else {df.fieldname for df in self._get_date_fields()}
 		)
 
 		self._time_fieldnames = (
 			d["_time_fieldnames"]	# from cache
 			if "_time_fieldnames" in d
-			else {df.fieldname for df in self.meta.get_time_fields()}
+			else {df.fieldname for df in self._get_time_fields()}
 		)
 
 		self.update(d)
@@ -159,18 +147,18 @@ class BaseDocument(object):
 		self._meta = None
 		return self.__dict__
 
-	def __setattr__(self, key: str, value: Any) -> None:
+	def __setattr__(self, __name: str, __value: Any) -> None:
 		"""
 		Cast datetime/date/time/string value to datetime, date and time respectively for Datetime, Date and Time fields only.
 		"""
-		if key in self._datetime_fieldnames:
-			value = cast("Datetime", value)
-		elif key in self._date_fieldnames:
-			value = cast("Date", value)
-		elif key in self._time_fieldnames:
-			value = cast("Time", value)
+		if hasattr(self, "_datetime_fieldnames") and __value and __name in self._datetime_fieldnames:
+			__value = cast("Datetime", __value)
+		elif hasattr(self, "_date_fieldnames") and __value and __name in self._date_fieldnames:
+			__value = cast("Date", __value)
+		elif hasattr(self, "_time_fieldnames") and __value and __name in self._time_fieldnames:
+			__value = cast("Time", __value)
 
-		self[key] = value
+		self.__dict__[__name] = __value
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -242,6 +230,12 @@ class BaseDocument(object):
 				self.extend(key, value)
 
 			return
+		elif value and key in self._datetime_fieldnames:
+			value = cast("Datetime", value)
+		elif value and key in self._date_fieldnames:
+			value = cast("Date", value)
+		elif value and key in self._time_fieldnames:
+			value = cast("Time", value)
 
 		self.__dict__[key] = value
 
@@ -328,6 +322,36 @@ class BaseDocument(object):
 			return ()
 
 		return self.meta.get_table_fields()
+
+	def _get_datetime_fields(self):
+		"""
+		To get table fields during Document init
+		Meta.get_table_fields goes into recursion for special doctypes
+		"""
+		if self.doctype == "DocType" or self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+			return ()
+
+		return self.meta.get_datetime_fields()
+
+	def _get_date_fields(self):
+		"""
+		To get table fields during Document init
+		Meta.get_table_fields goes into recursion for special doctypes
+		"""
+		if self.doctype == "DocType" or self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+			return ()
+
+		return self.meta.get_date_fields()
+
+	def _get_time_fields(self):
+		"""
+		To get table fields during Document init
+		Meta.get_table_fields goes into recursion for special doctypes
+		"""
+		if self.doctype == "DocType" or self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+			return ()
+
+		return self.meta.get_time_fields()
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
