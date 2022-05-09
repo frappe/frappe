@@ -54,7 +54,6 @@ def new_site(
 	db_root_password=None,
 	admin_password=None,
 	verbose=False,
-	install_apps=None,
 	source_sql=None,
 	force=None,
 	no_mariadb_socket=False,
@@ -923,7 +922,6 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		frappe.db.commit()
-		password = None
 	finally:
 		frappe.destroy()
 
