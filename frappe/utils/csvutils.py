@@ -208,7 +208,7 @@ def get_csv_content_from_google_sheets(url):
 		response.raise_for_status()
 
 def validate_google_sheets_url(url):
-	from urlparse import urlparse
+	from six.moves.urllib.parse import urlparse
 
 	u = urlparse(url)
 	if u.scheme != "https" or u.netloc != "docs.google.com" or "/spreadsheets/" not in u.path:
