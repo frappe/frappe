@@ -8,7 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
-from frappe.utils import cint, get_date_str, get_datetime, get_time_str, now_datetime, to_timedelta
+from frappe.utils import cast, cint, get_datetime, now_datetime
 
 
 class CustomTestNote(Note):
@@ -383,16 +383,16 @@ class TestDocument(unittest.TestCase):
 			}
 		).insert()
 
-		self.assertEquals(todo.date, get_date_str(_datetime_str))
-		self.assertEquals(todo.time, get_time_str(_datetime_str))
+		self.assertEquals(todo.date, cast("Date", _datetime_str))
+		self.assertEquals(todo.time, cast("Time", _datetime_str))
 
 		# Check if the system parses the datetime object for date and time
 		todo.date = _datetime
 		todo.time = _datetime
 		todo.save()
 
-		self.assertEquals(todo.date, _datetime.date())
-		self.assertEquals(todo.time, to_timedelta(_datetime.time()))
+		self.assertEquals(todo.date, cast("Date", _datetime))
+		self.assertEquals(todo.time, cast("Time", _datetime))
 
 		# Check if the system parses the datetime object for date and time
 		todo.date = None
