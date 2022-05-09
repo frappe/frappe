@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import frappe
 from frappe import _, _dict
@@ -19,17 +19,17 @@ from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.utils import (
+	cast,
 	cast_fieldtype,
 	cint,
 	cstr,
 	flt,
-	get_date_str,
-	get_datetime,
-	get_time_str,
 	now,
 	sanitize_html,
 	strip_html,
-	to_timedelta,
+	to_date_field,
+	to_datetime_field,
+	to_time_field,
 )
 from frappe.utils.html_utils import unescape_html
 
@@ -109,6 +109,9 @@ class BaseDocument(object):
 		"_table_fieldnames",
 		"_reserved_keywords",
 		"dont_update_if_missing",
+		"_datetime_fieldnames",
+		"_date_fieldnames",
+		"_time_fieldnames",
 	}
 
 	def __init__(self, d):
@@ -119,6 +122,24 @@ class BaseDocument(object):
 			d["_table_fieldnames"]	# from cache
 			if "_table_fieldnames" in d
 			else {df.fieldname for df in self._get_table_fields()}
+		)
+
+		self._datetime_fieldnames = (
+			d["_datetime_fieldnames"]	# from cache
+			if "_datetime_fieldnames" in d
+			else {df.fieldname for df in self.meta.get_datetime_fields()}
+		)
+
+		self._date_fieldnames = (
+			d["_date_fieldnames"]	# from cache
+			if "_date_fieldnames" in d
+			else {df.fieldname for df in self.meta.get_date_fields()}
+		)
+
+		self._time_fieldnames = (
+			d["_time_fieldnames"]	# from cache
+			if "_time_fieldnames" in d
+			else {df.fieldname for df in self.meta.get_time_fields()}
 		)
 
 		self.update(d)
@@ -137,6 +158,19 @@ class BaseDocument(object):
 	def __getstate__(self):
 		self._meta = None
 		return self.__dict__
+
+	def __setattr__(self, key: str, value: Any) -> None:
+		"""
+		Cast datetime/date/time/string value to datetime, date and time respectively for Datetime, Date and Time fields only.
+		"""
+		if key in self._datetime_fieldnames:
+			value = cast("Datetime", value)
+		elif key in self._date_fieldnames:
+			value = cast("Date", value)
+		elif key in self._time_fieldnames:
+			value = cast("Time", value)
+
+		self[key] = value
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -1186,54 +1220,6 @@ class BaseDocument(object):
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
 
-	def _cast_date_and_time_fields(self) -> None:
-		"""
-		Converts datetime/string value to date and time respectively for Date and Time fields only.
-		This is necessary since the values with which the Document class is initialized can differ.
-
-		For eg: The user initializes document with datetime values for Date and Time field, the framework
-		should parse them into correct format.
-		If the values are in datetime format, preserve it in datetime format
-		If the values are in string format, convert it to datetime format
-		"""
-		self._cast_date_fields()
-		self._cast_time_fields()
-
-	def _cast_date_fields(self) -> None:
-		for field in self.meta.get_date_fields():
-			if not self.get(field.fieldname):
-				continue
-
-			_value = self.get(field.fieldname)
-			if get_datetime(_value) is None:
-				continue
-
-			value = get_datetime(_value).date()
-			value = (
-				get_date_str(value) if not isinstance(_value, (datetime.datetime, datetime.date)) else value
-			)
-
-			self.set(field.fieldname, value)
-
-	def _cast_time_fields(self) -> None:
-		for field in self.meta.get_time_fields():
-			if not self.get(field.fieldname):
-				continue
-
-			_value = self.get(field.fieldname)
-			if get_datetime(_value) is None:
-				continue
-
-			if not isinstance(_value, datetime.timedelta):
-				_value = get_datetime(_value).time()
-			value = to_timedelta(_value)
-			value = (
-				get_time_str(value)
-				if not isinstance(_value, (datetime.datetime, datetime.timedelta))
-				else value
-			)
-
-			self.set(field.fieldname, value)
 
 
 def _filter(data, filters, limit=None):
