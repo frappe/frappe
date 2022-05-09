@@ -435,7 +435,7 @@ def msgprint(
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
 
-	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
 	if flags.print_messages and out.message:

@@ -48,15 +48,12 @@ def get_list():
 @frappe.read_only()
 def get_count():
 	args = get_form_params()
-
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = controller(args.doctype).get_count(args)
 	else:
-		distinct = "distinct " if args.distinct == "true" else ""
-		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
-		data = execute(**args)[0].get("total_count")
-
+		distinct = args["distinct"] == "true"
+		data = frappe.db.count(args["doctype"], args["filters"], distinct=distinct)
 	return data
 
 
