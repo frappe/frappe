@@ -34,7 +34,7 @@ class PaytmSettings(Document):
 	def get_payment_url(self, **kwargs):
 		"""Return payment url with several params"""
 		# create unique order id by making it equal to the integration request
-		integration_request = create_request_log(kwargs, "Host", "Paytm")
+		integration_request = create_request_log(kwargs, service_name="Paytm")
 		kwargs.update(dict(order_id=integration_request.name))
 
 		return get_url("./integrations/paytm_checkout?{0}".format(urlencode(kwargs)))
