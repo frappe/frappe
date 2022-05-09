@@ -1225,8 +1225,8 @@ class BaseDocument(object):
 				continue
 
 			if not isinstance(_value, datetime.timedelta):
-				value = get_datetime(_value).time()
-			value = to_timedelta(value)
+				_value = get_datetime(_value).time()
+			value = to_timedelta(_value)
 			value = (
 				get_time_str(value)
 				if not isinstance(_value, (datetime.datetime, datetime.timedelta))

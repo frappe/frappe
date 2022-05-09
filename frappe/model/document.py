@@ -31,23 +31,23 @@ def get_doc(*args, **kwargs):
 
 	There are multiple ways to call `get_doc`
 
-	                # will fetch the latest user object (with child table) from the database
-	                user = get_doc("User", "test@example.com")
+		# will fetch the latest user object (with child table) from the database
+		user = get_doc("User", "test@example.com")
 
-	                # create a new object
-	                user = get_doc({
-	                                "doctype":"User"
-	                                "email_id": "test@example.com",
-	                                "roles: [
-	                                                {"role": "System Manager"}
-	                                ]
-	                })
+		# create a new object
+		user = get_doc({
+						"doctype":"User"
+						"email_id": "test@example.com",
+						"roles: [
+										{"role": "System Manager"}
+						]
+		})
 
-	                # create new object with keyword arguments
-	                user = get_doc(doctype='User', email_id='test@example.com')
+		# create new object with keyword arguments
+		user = get_doc(doctype='User', email_id='test@example.com')
 
-	                # select a document for update
-	                user = get_doc("User", "test@example.com", for_update=True)
+		# select a document for update
+		user = get_doc("User", "test@example.com", for_update=True)
 	"""
 	if args:
 		if isinstance(args[0], BaseDocument):
@@ -645,12 +645,12 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access("read")
 
 		for df in self.meta.fields:
-			if df.permlevel and not df.permlevel in has_access_to:
+			if df.permlevel and df.permlevel not in has_access_to:
 				self.set(df.fieldname, None)
 
 		for table_field in self.meta.get_table_fields():
 			for df in frappe.get_meta(table_field.options).fields or []:
-				if df.permlevel and not df.permlevel in has_access_to:
+				if df.permlevel and df.permlevel not in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
 						child.set(df.fieldname, None)
 
@@ -951,7 +951,7 @@ class Document(BaseDocument):
 			return
 
 		def _evaluate_alert(alert):
-			if not alert.name in self.flags.notifications_executed:
+			if alert.name not in self.flags.notifications_executed:
 				evaluate_alert(self, alert.name, alert.event)
 				self.flags.notifications_executed.append(alert.name)
 
