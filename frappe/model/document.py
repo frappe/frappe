@@ -516,7 +516,6 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
-		self._cast_date_and_time_fields()
 
 		for d in self.get_all_children():
 			d._validate_data_fields()
@@ -528,7 +527,7 @@ class Document(BaseDocument):
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
-			d._cast_date_and_time_fields()
+
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
