@@ -18,9 +18,6 @@ def before_install():
 
 
 def after_install():
-	# reset installed apps for re-install
-	frappe.db.set_global("installed_apps", '["frappe"]')
-
 	create_user_type()
 	install_basic_docs()
 
@@ -241,6 +238,10 @@ def add_country_and_currency(name, country):
 
 def add_standard_navbar_items():
 	navbar_settings = frappe.get_single("Navbar Settings")
+
+	# don't add settings/help options if they're already present
+	if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
+		return
 
 	standard_navbar_items = [
 		{
