@@ -18,7 +18,18 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.utils import cast, cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
+from frappe.utils import (
+	DEFAULT_DATETIME_SHORTCUTS,
+	cast,
+	cast_fieldtype,
+	cint,
+	cstr,
+	flt,
+	now,
+	now_datetime,
+	sanitize_html,
+	strip_html,
+)
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
@@ -151,17 +162,14 @@ class BaseDocument(object):
 		"""
 		Cast datetime/date/time/string value to datetime, date and time respectively for Datetime, Date and Time fields only.
 		"""
+		if __value in DEFAULT_DATETIME_SHORTCUTS:
+			__value = now_datetime()
+
 		if hasattr(self, "_datetime_fieldnames") and __value and __name in self._datetime_fieldnames:
-			if __value in ["Today", "__today", "now", "Now"]:
-				__value = frappe.utils.now_datetime()
 			__value = cast("Datetime", __value)
 		elif hasattr(self, "_date_fieldnames") and __value and __name in self._date_fieldnames:
-			if __value in ["Today", "__today", "now", "Now"]:
-				__value = frappe.utils.now_datetime()
 			__value = cast("Date", __value)
 		elif hasattr(self, "_time_fieldnames") and __value and __name in self._time_fieldnames:
-			if __value in ["Today", "__today", "now", "Now"]:
-				__value = frappe.utils.now_datetime()
 			__value = cast("Time", __value)
 
 		self.__dict__[__name] = __value
@@ -228,6 +236,9 @@ class BaseDocument(object):
 		if key in self._reserved_keywords:
 			return
 
+		if value in DEFAULT_DATETIME_SHORTCUTS:
+			value = now_datetime()
+
 		if not as_value and key in self._table_fieldnames:
 			self.__dict__[key] = []
 
@@ -237,16 +248,10 @@ class BaseDocument(object):
 
 			return
 		elif value and key in self._datetime_fieldnames:
-			if value in ["Today", "__today", "now", "Now"]:
-				value = frappe.utils.now_datetime()
 			value = cast("Datetime", value)
 		elif value and key in self._date_fieldnames:
-			if value in ["Today", "__today", "now", "Now"]:
-				value = frappe.utils.now_datetime()
 			value = cast("Date", value)
 		elif value and key in self._time_fieldnames:
-			if value in ["Today", "__today", "now", "Now"]:
-				value = frappe.utils.now_datetime()
 			value = cast("Time", value)
 
 		self.__dict__[key] = value

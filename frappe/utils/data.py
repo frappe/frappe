@@ -105,13 +105,13 @@ def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 	valid time format. Returns None if `time` is not a valid format
 
 	Args:
-	        time (str): A valid time representation. This string is parsed
-	        using `dateutil.parser.parse`. Examples of valid inputs are:
-	        '0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
-	        https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
+			time (str): A valid time representation. This string is parsed
+			using `dateutil.parser.parse`. Examples of valid inputs are:
+			'0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
+			https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
 
 	Returns:
-	        datetime.timedelta: Timedelta object equivalent of the passed `time` string
+			datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
 	from dateutil import parser
 	from dateutil.parser import ParserError
@@ -242,7 +242,7 @@ def get_eta(from_time, percent_complete):
 
 
 def _get_time_zone():
-	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"  # Default to India ?!
+	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"	# Default to India ?!
 
 
 def get_time_zone():
@@ -443,7 +443,7 @@ def get_user_date_format():
 	return frappe.local.user_date_format or "yyyy-mm-dd"
 
 
-get_user_format = get_user_date_format  # for backwards compatibility
+get_user_format = get_user_date_format	# for backwards compatibility
 
 
 def get_user_time_format():
@@ -747,12 +747,12 @@ def cast(fieldtype, value=None):
 	If value can't be cast as fieldtype due to an invalid input, None will be returned.
 
 	Mapping of Python types => Frappe types:
-	        * str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
-	        * float => ("Currency", "Float", "Percent")
-	        * int => ("Int", "Check")
-	        * datetime.datetime => ("Datetime",)
-	        * datetime.date => ("Date",)
-	        * datetime.time => ("Time",)
+			* str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
+			* float => ("Currency", "Float", "Percent")
+			* int => ("Int", "Check")
+			* datetime.datetime => ("Datetime",)
+			* datetime.date => ("Date",)
+			* datetime.time => ("Time",)
 	"""
 	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
@@ -851,12 +851,12 @@ def floor(s):
 	Parameters
 	----------
 	s : int or str or Decimal object
-	        The mathematical value to be floored
+			The mathematical value to be floored
 
 	Returns
 	-------
 	int
-	        number representing the largest integer less than or equal to the specified number
+			number representing the largest integer less than or equal to the specified number
 
 	"""
 	try:
@@ -873,12 +873,12 @@ def ceil(s):
 	Parameters
 	----------
 	s : int or str or Decimal object
-	        The mathematical value to be ceiled
+			The mathematical value to be ceiled
 
 	Returns
 	-------
 	int
-	        smallest integer greater than or equal to the given number
+			smallest integer greater than or equal to the given number
 
 	"""
 	try:
@@ -895,15 +895,15 @@ def cstr(s, encoding="utf-8"):
 def sbool(x: str) -> Union[bool, Any]:
 	"""Converts str object to Boolean if possible.
 	Example:
-	        "true" becomes True
-	        "1" becomes True
-	        "{}" remains "{}"
+			"true" becomes True
+			"1" becomes True
+			"{}" remains "{}"
 
 	Args:
-	        x (str): String to be converted to Bool
+			x (str): String to be converted to Bool
 
 	Returns:
-	        object: Returns Boolean or x
+			object: Returns Boolean or x
 	"""
 	try:
 		val = x.lower()
@@ -1576,11 +1576,11 @@ def get_filter(doctype: str, f: Union[Dict, List, Tuple], filters_config=None) -
 	"""Returns a _dict like
 
 	{
-	        "doctype":
-	        "fieldname":
-	        "operator":
-	        "value":
-	        "fieldtype":
+			"doctype":
+			"fieldname":
+			"operator":
+			"value":
+			"fieldtype":
 	}
 	"""
 	from frappe.model import child_table_fields, default_fields, optional_fields
@@ -1925,8 +1925,8 @@ def validate_python_code(string: str, fieldname=None, is_expression: bool = True
 	"""Validate python code fields by using compile_command to ensure that expression is valid python.
 
 	args:
-	        fieldname: name of field being validated.
-	        is_expression: true for validating simple single line python expression, else validated as script.
+			fieldname: name of field being validated.
+			is_expression: true for validating simple single line python expression, else validated as script.
 	"""
 
 	if not string:
@@ -1985,3 +1985,5 @@ def parse_timedelta(s: str) -> datetime.timedelta:
 		m = re.match(r"(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)", s)
 
 	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})
+
+DEFAULT_DATETIME_SHORTCUTS = ["Today", "__today", "now", "Now"]
