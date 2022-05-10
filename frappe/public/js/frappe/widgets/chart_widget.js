@@ -55,7 +55,7 @@ export default class ChartWidget extends Widget {
 
 		this.empty = $(
 			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-				"No Data..."
+				"No Data"
 			)}</div>`
 		);
 		this.empty.hide().appendTo(this.body);
