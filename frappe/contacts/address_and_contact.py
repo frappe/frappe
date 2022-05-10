@@ -17,9 +17,7 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "link_name", "=", doc.name],
 		["Dynamic Link", "parenttype", "=", "Address"],
 	]
-	address_list = frappe.get_list(
-		"Address", filters=filters, fields=["*"], order_by="creation asc"
-	)
+	address_list = frappe.get_list("Address", filters=filters, fields=["*"], order_by="creation asc")
 
 	address_list = [a.update({"display": get_address_display(a)}) for a in address_list]
 
@@ -119,9 +117,7 @@ def get_permission_query_conditions(doctype):
 		for df in links.get("not_permitted_links"):
 			# like ifnull(customer, '')='' and ifnull(supplier, '')=''
 			conditions.append(
-				"ifnull(`tab{doctype}`.`{fieldname}`, '')=''".format(
-					doctype=doctype, fieldname=df.fieldname
-				)
+				"ifnull(`tab{doctype}`.`{fieldname}`, '')=''".format(doctype=doctype, fieldname=df.fieldname)
 			)
 
 		return "( " + " and ".join(conditions) + " )"
@@ -132,9 +128,7 @@ def get_permission_query_conditions(doctype):
 		for df in links.get("permitted_links"):
 			# like ifnull(customer, '')!='' or ifnull(supplier, '')!=''
 			conditions.append(
-				"ifnull(`tab{doctype}`.`{fieldname}`, '')!=''".format(
-					doctype=doctype, fieldname=df.fieldname
-				)
+				"ifnull(`tab{doctype}`.`{fieldname}`, '')!=''".format(doctype=doctype, fieldname=df.fieldname)
 			)
 
 		return "( " + " or ".join(conditions) + " )"
