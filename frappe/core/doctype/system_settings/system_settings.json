@@ -70,7 +70,8 @@
   "column_break_64",
   "max_auto_email_report_per_user",
   "system_updates_section",
-  "disable_system_update_notification"
+  "disable_system_update_notification",
+  "disable_change_log_notification"
  ],
  "fields": [
   {
@@ -489,12 +490,18 @@
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
    "label": "Max auto email report per user"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_change_log_notification",
+   "fieldtype": "Check",
+   "label": "Disable Change Log Notification"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-04-21 09:11:35.218721",
+ "modified": "2022-04-28 14:31:50.330954",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
