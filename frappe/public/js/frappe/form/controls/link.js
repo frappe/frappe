@@ -375,12 +375,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		});
 
 		this.$input.on("focus", function () {
-			me.show_untranslated()
+			if (!frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+				me.show_untranslated();
+			}
 		});
 
 		this.$input.keydown((e) => {
 			let BACKSPACE = 8;
-			if (e.keyCode === BACKSPACE) {
+			if (e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options)) {
 				me.show_untranslated();
 			}
 		});
