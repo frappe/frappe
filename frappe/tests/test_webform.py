@@ -1,10 +1,27 @@
 import unittest
 
 import frappe
+from frappe.utils import set_request
+from frappe.website.serve import get_response
 from frappe.www.list import get_list_context
 
 
-class TestWebsite(unittest.TestCase):
+class TestWebform(unittest.TestCase):
+	def test_webform_publish_functionality(self):
+		edit_profile = frappe.get_doc("Web Form", "edit-profile")
+		# publish webform
+		edit_profile.published = True
+		edit_profile.save()
+		set_request(method="GET", path="update-profile")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+		# un-publish webform
+		edit_profile.published = False
+		edit_profile.save()
+		response = get_response()
+		self.assertEqual(response.status_code, 404)
+
 	def test_get_context_hook_of_webform(self):
 		create_custom_doctype()
 		create_webform()
