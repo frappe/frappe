@@ -253,9 +253,9 @@ def get_open_count(doctype, name, items=None):
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {"count": []}
 
-	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
-
-	meta = frappe.get_meta(doctype)
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission()
+	meta = doc.meta
 	links = meta.get_dashboard_data()
 
 	# compile all items in a list
@@ -270,7 +270,6 @@ def get_open_count(doctype, name, items=None):
 	out = []
 	for d in items:
 		if d in links.get("internal_links", {}):
-			# internal link
 			continue
 
 		filters = get_filters_for(d)
