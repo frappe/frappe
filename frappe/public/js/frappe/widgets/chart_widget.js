@@ -601,7 +601,7 @@ export default class ChartWidget extends Widget {
 			options = field.options;
 		}
 
-		if (this.chart_doc.chart_type == "Report" && this.report_result?.chart?.fieldtype) {
+		if (this.chart_doc.chart_type == "Report" && this.report_result && this.report_result.chart && this.report_result.chart.fieldtype) {
 			fieldtype = this.report_result.chart.fieldtype;
 			options = this.report_result.chart.options;
 		}
