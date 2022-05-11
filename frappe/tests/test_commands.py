@@ -413,26 +413,6 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
 
-	def test_make_app(self):
-		user_input = [
-			b"Test App",  # title
-			b"This app's description contains 'single quotes' and \"double quotes\".",  # description
-			b"Test Publisher",  # publisher
-			b"example@example.org",  # email
-			b"",  # icon
-			b"",  # color
-			b"MIT",  # app_license
-		]
-		app_name = "testapp0"
-		apps_path = os.path.join(get_bench_path(), "apps")
-		test_app_path = os.path.join(apps_path, app_name)
-		self.execute(f"bench make-app {apps_path} {app_name}", {"cmd_input": b"\n".join(user_input)})
-		self.assertEqual(self.returncode, 0)
-		self.assertTrue(os.path.exists(test_app_path))
-
-		# cleanup
-		shutil.rmtree(test_app_path)
-
 	@skipIf(
 		not (
 			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
