@@ -385,7 +385,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (window.innerWidth <= 1366) {
 			total_fields = 4;
 		} else if (window.innerWidth >= 1920) {
-			total_fields = 8;
+			total_fields = 10;
 		}
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
@@ -1973,22 +1973,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return filters;
 	}
-
-	static trigger_list_update(data) {
-		const doctype = data.doctype;
-		if (!doctype) return;
-		frappe.provide("frappe.views.trees");
-
-		// refresh list view
-		const page_name = frappe.get_route_str();
-		const list_view = frappe.views.list_view[page_name];
-		list_view && list_view.on_update(data);
-	}
 };
 
-$(document).on("save", (event, doc) => {
-	frappe.views.ListView.trigger_list_update(doc);
-});
 
 frappe.get_list_view = (doctype) => {
 	let route = `List/${doctype}/List`;
