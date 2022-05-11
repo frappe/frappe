@@ -841,3 +841,13 @@ class TestDDLCommandsPost(unittest.TestCase):
 			)
 
 		dt.delete(ignore_permissions=True)
+
+	def test_is(self):
+		user = frappe.qb.DocType("User")
+		self.assertIn(
+			"is null",
+			frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower()
+		)
+		query = frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower()
+		self.assertIn("not", query)
+		self.assertIn("is null", query)
