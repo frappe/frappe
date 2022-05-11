@@ -19,12 +19,7 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "link_name", "=", doc.name],
 		["Dynamic Link", "parenttype", "=", "Address"],
 	]
-<<<<<<< HEAD
-	address_list = frappe.get_all("Address", filters=filters, fields=["*"])
-=======
 	address_list = frappe.get_list("Address", filters=filters, fields=["*"], order_by="creation asc")
->>>>>>> 5ac729252f (fix: change ordering to creation (#16863))
-
 	address_list = [a.update({"display": get_address_display(a)}) for a in address_list]
 
 	address_list = sorted(
