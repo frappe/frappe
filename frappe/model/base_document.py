@@ -113,35 +113,35 @@ class BaseDocument(object):
 		"_time_fieldnames",
 	}
 
-	def __init__(self, d):
-		if d.get("doctype"):
-			self.doctype = d["doctype"]
+	def __init__(self, doc):
+		if doc.get("doctype"):
+			self.doctype = doc["doctype"]
 
 		self._table_fieldnames = (
-			d["_table_fieldnames"]	# from cache
-			if "_table_fieldnames" in d
+			doc["_table_fieldnames"]
+			if "_table_fieldnames" in doc
 			else {df.fieldname for df in self._get_table_fields()}
 		)
 
 		self._datetime_fieldnames = (
-			d["_datetime_fieldnames"]	# from cache
-			if "_datetime_fieldnames" in d
+			doc["_datetime_fieldnames"]
+			if "_datetime_fieldnames" in doc
 			else {df.fieldname for df in self._get_datetime_fields()}
 		)
 
 		self._date_fieldnames = (
-			d["_date_fieldnames"]	# from cache
-			if "_date_fieldnames" in d
+			doc["_date_fieldnames"]
+			if "_date_fieldnames" in doc
 			else {df.fieldname for df in self._get_date_fields()}
 		)
 
 		self._time_fieldnames = (
-			d["_time_fieldnames"]	# from cache
-			if "_time_fieldnames" in d
+			doc["_time_fieldnames"]
+			if "_time_fieldnames" in doc
 			else {df.fieldname for df in self._get_time_fields()}
 		)
 
-		self.update(d)
+		self.update(doc)
 		self.dont_update_if_missing = []
 
 		if hasattr(self, "__setup__"):
