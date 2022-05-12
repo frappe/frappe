@@ -38,34 +38,30 @@ class TestDocType(unittest.TestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
-	def test_change_autoname(self):
-		# delete all data from Event doctype
-		frappe.db.sql("delete from `tabEvent`")
-
-		d = frappe.get_doc("DocType", "Event")
-		naming_rule = d.naming_rule
-		autoname = d.autoname
+	def test_making_sequence_on_change(self):
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+		dt = new_doctype(self._testMethodName).insert(ignore_permissions=True)
+		autoname = dt.autoname
 
 		# change autoname
-		d.naming_rule = "Autoincrement"
-		d.autoname = "autoincrement"
-		d.save()
+		dt.autoname = "autoincrement"
+		dt.save()
 
 		# check if name type has been changed
 		self.assertEqual(
 			frappe.db.sql(
-				"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tabEvent'"""
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{self._testMethodName}'"""
 			)[0][0],
 			"bigint",
 		)
 
 		if frappe.db.db_type == "mariadb":
 			table_name = "information_schema.tables"
-			conditions = "table_type = 'sequence' and table_name = 'event_id_seq'"
+			conditions = f"table_type = 'sequence' and table_name = '{self._testMethodName}_id_seq'"
 		else:
 			table_name = "information_schema.sequences"
-			conditions = "sequence_name = 'event_id_seq'"
+			conditions = f"sequence_name = '{self._testMethodName}_id_seq'"
 
 		# check if sequence table is created
 		self.assertTrue(
@@ -76,15 +72,14 @@ class TestDocType(unittest.TestCase):
 		)
 
 		# change the autoname/naming rule back to original
-		d.autoname = autoname
-		d.naming_rule = naming_rule
-		d.save()
+		dt.autoname = autoname
+		dt.save()
 
 		# check if name type has changed
 		self.assertEqual(
 			frappe.db.sql(
-				"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tabEvent'"""
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{self._testMethodName}'"""
 			)[0][0],
 			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
 		)

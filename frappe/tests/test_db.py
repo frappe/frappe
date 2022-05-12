@@ -524,10 +524,16 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		)
 
 	def test_change_type(self) -> None:
+		def get_table_description():
+			return frappe.db.sql(f"DESC `tab{self.test_table_name}`")
+
+		# try changing from int to varchar
 		frappe.db.change_column_type("TestNotes", "id", "varchar(255)")
-		test_table_description = frappe.db.sql(f"DESC tab{self.test_table_name};")
-		self.assertGreater(len(test_table_description), 0)
-		self.assertIn("varchar(255)", test_table_description[0])
+		self.assertIn("varchar(255)", get_table_description()[0])
+
+		# try changing from varchar to bigint
+		frappe.db.change_column_type("TestNotes", "id", "bigint")
+		self.assertIn("bigint(20)", get_table_description()[0])
 
 	def test_add_index(self) -> None:
 		index_name = "test_index"
@@ -736,21 +742,34 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.assertEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
 
 	def test_change_type(self) -> None:
+		from psycopg2.errors import DatatypeMismatch
+
+		def get_table_description():
+			return frappe.db.sql(
+				f"""
+				SELECT
+					table_name,
+					column_name,
+					data_type
+				FROM
+					information_schema.columns
+				WHERE
+					table_name = 'tab{self.test_table_name}'"""
+			)
+
+		# try changing from int to varchar
 		frappe.db.change_column_type(self.test_table_name, "id", "varchar(255)")
-		check_change = frappe.db.sql(
-			f"""
-			SELECT
-				table_name,
-				column_name,
-				data_type
-			FROM
-				information_schema.columns
-			WHERE
-				table_name = 'tab{self.test_table_name}'
-			"""
-		)
-		self.assertGreater(len(check_change), 0)
-		self.assertIn("character varying", check_change[0])
+		self.assertIn("character varying", get_table_description()[0])
+
+		# try changing from varchar to int
+		try:
+			frappe.db.change_column_type(self.test_table_name, "id", "bigint")
+		except DatatypeMismatch:
+			frappe.db.rollback()
+
+		# try changing from varchar to int (using cast)
+		frappe.db.change_column_type(self.test_table_name, "id", "bigint", use_cast=True)
+		self.assertIn("bigint", get_table_description()[0])
 
 	def test_add_index(self) -> None:
 		index_name = "test_index"
@@ -765,7 +784,6 @@ class TestDDLCommandsPost(unittest.TestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
-	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
 		from frappe.database.postgres.database import modify_query
 
@@ -783,7 +801,6 @@ class TestDDLCommandsPost(unittest.TestCase):
 			modify_query(query),
 		)
 
-	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_values(self):
 		from frappe.database.postgres.database import modify_values
 
