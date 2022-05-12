@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 import os
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.model
@@ -10,6 +11,9 @@ from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.utils import get_safe_filters
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 """
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -189,18 +193,7 @@ def insert(doc=None):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	doc = frappe._dict(doc)
-	if frappe.is_table(doc.doctype):
-		if not (doc.parenttype and doc.parent and doc.parentfield):
-			frappe.throw(_("parenttype, parent and parentfield are required to insert a child record"))
-		# inserting a child record
-		parent = frappe.get_doc(doc.parenttype, doc.parent)
-		parent.append(doc.parentfield, doc)
-		parent.save()
-		return parent.as_dict()
-	else:
-		doc = frappe.get_doc(doc).insert()
-		return doc.as_dict()
+	return insert_doc(doc).as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -211,21 +204,12 @@ def insert_many(docs=None):
 	if isinstance(docs, str):
 		docs = json.loads(docs)
 
-	out = []
-
 	if len(docs) > 200:
 		frappe.throw(_("Only 200 inserts allowed in one request"))
 
+	out = set()
 	for doc in docs:
-		if doc.get("parenttype"):
-			# inserting a child record
-			parent = frappe.get_doc(doc.parenttype, doc.parent)
-			parent.append(doc.parentfield, doc)
-			parent.save()
-			out.append(parent.name)
-		else:
-			doc = frappe.get_doc(doc).insert()
-			out.append(doc.name)
+		out.add(insert_doc(doc).name)
 
 	return out
 
@@ -496,3 +480,23 @@ def validate_link(doctype: str, docname: str, fields=None):
 		)
 
 	return values
+
+
+def insert_doc(doc) -> "Document":
+	"""Inserts document and returns parent document object with appended child document
+	if `doc` is child document else returns the inserted document object
+
+	:param doc: doc to insert (dict)"""
+
+	doc = frappe._dict(doc)
+	if frappe.is_table(doc.doctype):
+		if not (doc.parenttype and doc.parent and doc.parentfield):
+			frappe.throw(_("Parenttype, Parent and Parentfield are required to insert a child record"))
+
+		# inserting a child record
+		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		parent.append(doc.parentfield, doc)
+		parent.save()
+		return parent
+
+	return frappe.get_doc(doc).insert()
