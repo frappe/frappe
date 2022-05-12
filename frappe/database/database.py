@@ -1019,21 +1019,17 @@ class Database(object):
 
 		return self.get_value(dt, dn, ignore=True, cache=cache)
 
-	def count(self, dt, filters=None, debug=False, cache=False):
+	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
 			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"))
-		if filters:
-			count = self.sql(query, debug=debug)[0][0]
-			return count
-		else:
-			count = self.sql(query, debug=debug)[0][0]
-			if cache:
-				frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
-			return count
+		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
+		count = query.run(debug=debug)[0][0]
+		if not filters and cache:
+			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
+		return count
 
 	@staticmethod
 	def format_date(date):
@@ -1245,6 +1241,21 @@ class Database(object):
 
 			values_to_insert = values[start_index : start_index + chunk_size]
 			query.columns(fields).insert(*values_to_insert).run()
+
+	def create_sequence(self, *args, **kwargs):
+		from frappe.database.sequence import create_sequence
+
+		return create_sequence(*args, **kwargs)
+
+	def set_next_sequence_val(self, *args, **kwargs):
+		from frappe.database.sequence import set_next_val
+
+		set_next_val(*args, **kwargs)
+
+	def get_next_sequence_val(self, *args, **kwargs):
+		from frappe.database.sequence import get_next_val
+
+		return get_next_val(*args, **kwargs)
 
 
 def enqueue_jobs_after_commit():

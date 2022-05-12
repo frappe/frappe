@@ -1,0 +1,144 @@
+.phone-picker {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	--phone-picker-width: 290px;
+	width: var(--phone-picker-width);
+	.phones {
+		margin-top: 10px;
+		display: flex;
+		flex-wrap: wrap;
+		overflow-y: scroll;
+		max-height: 210px;
+		cursor: pointer;
+
+		/* Hide scrollbar for IE, Edge and Firefox */
+		-ms-overflow-style: none;  /* IE and Edge */
+		scrollbar-width: none;  /* Firefox */
+
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		.phone-wrapper {
+			display: flex;
+			width: 290px;
+			height: 30px;
+			text-align: center;
+			align-items: center;
+			border-radius: 0.375rem;
+			padding: 0.5rem;
+
+			img {
+				height: 15px;
+			}
+			.country {
+				display: flex;
+				margin-left: 0.6rem;
+				flex-grow: 1;
+				width: 290px;
+			}
+		}
+	}
+
+	.search-phones {
+		position: relative;
+
+		input[type='search'] {
+			height: inherit;
+			padding-left: 30px;
+		}
+
+		.search-phone {
+			position: absolute;
+			top: 7px;
+			left: 7px;
+		}
+	}
+}
+
+.phone-picker-popover {
+	max-width: 325px;
+    left: 29px !important;
+	.picker-arrow {
+		left: 15px !important;
+	}
+	@media (max-width: 992px) {
+		max-width: 325px;
+		left: 48px !important;
+	}
+}
+
+
+.frappe-control[data-fieldtype='Phone']
+{
+	input {
+		padding-left: 30px;
+	}
+	.selected-phone {
+		display: flex;
+		cursor: pointer;
+		height: 20px;
+		border-radius: 5px;
+		position: absolute;
+		top: calc(50% + 2px);
+		left: 8px;
+		content: ' ';
+		align-items: center;
+		z-index: 1;
+
+		.country {
+			display: flex;
+			margin-left: 0.6rem;
+			align-items: flex-end;
+			flex-grow: 1;
+		}
+
+		img {
+			height: 15px;
+		}
+
+	}
+	.like-disabled-input {
+		.phone-value {
+			padding-left: 25px;
+		}
+		.selected-phone {
+			top: 20%;
+			cursor: default;
+		}
+	}
+}
+
+.modal-body {
+	.frappe-control[data-fieldtype='Phone']
+		{
+			.selected-phone {
+				top: calc(50% - 0.5px);
+			}
+		}
+}
+
+.data-row.row {
+	.selected-phone {
+		top: calc(50% - 10.1px);
+		z-index: 2;
+	}
+}
+
+.bg-gray-100 {
+	--tw-bg-opacity: 1;
+	background-color: rgba(244,245,246,var(--tw-bg-opacity));
+}
+
+.dt-cell__content {
+	.selected-phone {
+		display: contents;
+	}
+}
+
+.dt-cell__edit, .filter-field {
+	.selected-phone {
+		top: 5.5px !important;
+	}
+}

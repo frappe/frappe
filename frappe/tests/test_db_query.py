@@ -61,10 +61,12 @@ class TestReportview(unittest.TestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		self.assertEqual(
-			build_match_conditions(as_condition=True),
-			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""",
-		)
+		if frappe.db.db_type == "mariadb":
+			assertion_string = """(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))"""
+		else:
+			assertion_string = """(((ifnull(cast(`tabBlog Post`.`name` as varchar), '')='' or cast(`tabBlog Post`.`name` as varchar) in ('-test-blog-post-1', '-test-blog-post'))))"""
+
+		self.assertEqual(build_match_conditions(as_condition=True), assertion_string)
 
 		frappe.set_user("Administrator")
 
@@ -619,19 +621,22 @@ class TestReportview(unittest.TestCase):
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		frappe.delete_doc_if_exists("DocType", "autoinc_dt_test")
 		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		query = DatabaseQuery("autoinc_dt_test").execute(
-			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "`tabautoinc_dt_test`.`name`"],
+			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "name", "locate('1', name)"],
 			filters={"name": 1},
 			run=False,
 		)
 
 		if frappe.db.db_type == "postgres":
-			self.assertTrue('strpos( cast( "tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
+			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
+			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
 			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
 		else:
 			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
+			self.assertTrue("locate('1', name)" in query)
 			self.assertTrue("where `tabautoinc_dt_test`.`name` = 1" in query)
 
 		dt.delete(ignore_permissions=True)
@@ -639,23 +644,76 @@ class TestReportview(unittest.TestCase):
 	def test_fieldname_starting_with_int(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		frappe.delete_doc_if_exists("DocType", "dt_with_int_named_fieldname")
+		frappe.delete_doc_if_exists("DocType", "table_dt")
+
+		table_dt = new_doctype(
+			"table_dt", istable=1, fields=[{"label": "1field", "fieldname": "2field", "fieldtype": "Data"}]
+		).insert()
+
 		dt = new_doctype(
 			"dt_with_int_named_fieldname",
-			fields=[{"label": "1field", "fieldname": "1field", "fieldtype": "Int"}],
+			fields=[
+				{"label": "1field", "fieldname": "1field", "fieldtype": "Data"},
+				{
+					"label": "2table_field",
+					"fieldname": "2table_field",
+					"fieldtype": "Table",
+					"options": table_dt.name,
+				},
+			],
 		).insert(ignore_permissions=True)
 
-		frappe.get_doc({"doctype": "dt_with_int_named_fieldname", "1field": 10}).insert(
+		dt_data = frappe.get_doc({"doctype": "dt_with_int_named_fieldname", "1field": "10"}).insert(
 			ignore_permissions=True
 		)
 
 		query = DatabaseQuery("dt_with_int_named_fieldname")
-		self.assertTrue(query.execute(filters={"1field": 10}))
+		self.assertTrue(query.execute(filters={"1field": "10"}))
 		self.assertTrue(query.execute(filters={"1field": ["like", "1%"]}))
 		self.assertTrue(query.execute(filters={"1field": ["in", "1,2,10"]}))
 		self.assertTrue(query.execute(filters={"1field": ["is", "set"]}))
 		self.assertFalse(query.execute(filters={"1field": ["not like", "1%"]}))
+		self.assertTrue(query.execute(filters=[["table_dt", "2field", "is", "not set"]]))
 
+		frappe.get_doc(
+			{
+				"doctype": table_dt.name,
+				"2field": "10",
+				"parent": dt_data.name,
+				"parenttype": dt_data.doctype,
+				"parentfield": "2table_field",
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertTrue(query.execute(filters=[["table_dt", "2field", "is", "set"]]))
+
+		# cleanup
 		dt.delete()
+		table_dt.delete()
+
+	def test_permission_query_condition(self):
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
+
+		self.doctype = "Dashboard Settings"
+		self.user = "test'5@example.com"
+
+		permission_query_conditions = DatabaseQuery.get_permission_query_conditions(self)
+
+		create_dashboard_settings(self.user)
+
+		dashboard_settings = frappe.db.sql(
+			"""
+				SELECT name
+				FROM `tabDashboard Settings`
+				WHERE {condition}
+			""".format(
+				condition=permission_query_conditions
+			),
+			as_dict=1,
+		)[0]
+
+		self.assertTrue(dashboard_settings)
 
 
 def add_child_table_to_blog_post():
