@@ -87,7 +87,7 @@ def func_between(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 
 def func_is(key, value):
 	"Wrapper for IS"
-	return key.isnull() if value.lower() == "set" else key.notnull()
+	return key.isnotnull() if value.lower() == "set" else key.isnull()
 
 
 def make_function(key: Any, value: Union[int, str]):
