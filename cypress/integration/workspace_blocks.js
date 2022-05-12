@@ -1,7 +1,7 @@
 context('Workspace Blocks', () => {
 	before(() => {
-		cy.visit('/login');
 		cy.login();
+		cy.visit('/app');
 	});
 
 	it('Create Test Page', () => {
@@ -134,7 +134,7 @@ context('Workspace Blocks', () => {
 			.then(title => {
 				cy.get('@todo-quick-list').find('.quick-list-item').contains(title).click();
 				cy.get_field('description', 'Text Editor').should('contain', title);
-			})
+			});
 		cy.go('back');
 
 
