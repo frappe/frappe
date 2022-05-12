@@ -1513,15 +1513,15 @@ Object.assign(frappe.utils, {
 			const filters_json = new Function(`return ${filter_json}`)();
 			if (!doctype) {
 				// e.g. return {
-					// priority: (2) ['=', 'Medium'],
-					// status: (2) ['=', 'Open']
+				//    priority: (2) ['=', 'Medium'],
+				//    status: (2) ['=', 'Open']
 				// }
 				return filters_json || [];
 			}
 
 			// e.g. return [
-				// ['ToDo', 'status', '=', 'Open', false],
-				// ['ToDo', 'priority', '=', 'Medium', false]
+			//    ['ToDo', 'status', '=', 'Open', false],
+			//    ['ToDo', 'priority', '=', 'Medium', false]
 			// ]
 			return Object.keys(filters_json).map(filter => {
 				let val = filters_json[filter];

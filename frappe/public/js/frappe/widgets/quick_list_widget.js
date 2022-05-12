@@ -33,7 +33,9 @@ export default class QuickListWidget extends Widget {
 
 		this.add_new_button.appendTo(this.action_area);
 		this.add_new_button.on("click", () => {
-			frappe.set_route(`/app/${encodeURIComponent(this.document_type.toLowerCase().replace(/ /g, '-'))}/new`)
+			frappe.set_route(
+				frappe.utils.generate_route({type: 'doctype', name: this.document_type, doc_view: 'New'})
+			);
 		});
 	}
 
@@ -146,7 +148,7 @@ export default class QuickListWidget extends Widget {
 					</div>
 				</div>
 			</div>
-		`)
+		`);
 
 		if (indicator) {
 			$(`
@@ -238,7 +240,7 @@ export default class QuickListWidget extends Widget {
 				if (filters) {
 					frappe.route_options = filters;
 				}
-				frappe.set_route(`/app/${encodeURIComponent(this.document_type.toLowerCase().replace(/ /g, '-'))}`)
+				frappe.set_route(frappe.utils.generate_route({type: 'doctype', name: this.document_type}));
 			});
 		}
 	}
