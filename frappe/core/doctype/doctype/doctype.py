@@ -100,7 +100,7 @@ class DocType(Document):
 		self.set_default_in_list_view()
 		self.set_default_translatable()
 		validate_series(self)
-		self.set("can_change_name_type", check_if_can_change_name_type(self))
+		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
 
@@ -902,26 +902,25 @@ def validate_series(dt, autoname=None, name=None):
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 
-def check_if_can_change_name_type(dt: DocType, raise_err: bool = True) -> bool:
-	def get_autoname_before_save(doctype: str, to_be_customized_dt: str) -> str:
-		if doctype == "Customize Form":
-			property_value = frappe.db.get_value(
-				"Property Setter", {"doc_type": to_be_customized_dt, "property": "autoname"}, "value"
-			)
+def validate_autoincrement_autoname(dt: DocType) -> bool:
+	"""Checks if chan change to/from autoincrement autoname"""
 
+	def get_autoname_before_save(dt) -> str:
+		if dt.name == "Customize Form":
+			property_value = frappe.db.get_value(
+				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
+			)
 			# initially no property setter is set,
 			# hence getting autoname value from the doctype itself
 			if not property_value:
-				return frappe.db.get_value("DocType", to_be_customized_dt, "autoname") or ""
+				return frappe.db.get_value("DocType", dt.doc_type, "autoname") or ""
 
 			return property_value
 
 		return getattr(dt.get_doc_before_save(), "autoname", "")
 
-	doctype_name = dt.doc_type if dt.doctype == "Customize Form" else dt.name
-
 	if not dt.is_new():
-		autoname_before_save = get_autoname_before_save(dt.doctype, doctype_name)
+		autoname_before_save = get_autoname_before_save(dt)
 		is_autoname_autoincrement = dt.autoname == "autoincrement"
 
 		if (
@@ -929,17 +928,19 @@ def check_if_can_change_name_type(dt: DocType, raise_err: bool = True) -> bool:
 			and autoname_before_save != "autoincrement"
 			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
-			if frappe.get_meta(doctype_name).issingle:
+			if dt.name == "Customize Form":
+				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
+
+			if frappe.get_meta(dt.name).issingle:
 				return False
 
-			if not frappe.get_all(doctype_name, limit=1):
+			if not frappe.get_all(dt.name, limit=1):
 				# allow changing the column type if there is no data
 				return True
 
-			if raise_err:
-				frappe.throw(
-					_("Can only change to/from Autoincrement naming rule when there is no data in the doctype")
-				)
+			frappe.throw(
+				_("Can only change to/from Autoincrement naming rule when there is no data in the doctype")
+			)
 
 	return False
 

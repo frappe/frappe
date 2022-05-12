@@ -397,53 +397,9 @@ class TestCustomizeForm(unittest.TestCase):
 		d.run_method("save_customization")
 		self.assertEqual(d.label, "")
 
-	def test_change_autoname(self):
-		# delete all data from Event doctype
-		frappe.db.sql("delete from `tabEvent`")
-
+	def test_autoincrement_autoname(self):
 		d = self.get_customize_form("Event")
-		naming_rule = d.naming_rule
-		autoname = d.autoname
-
-		# change autoname
-		d.naming_rule = "Autoincrement"
 		d.autoname = "autoincrement"
-		d.run_method("save_customization")
 
-		# check if name type has been changed
-		self.assertEqual(
-			frappe.db.sql(
-				"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tabEvent'"""
-			)[0][0],
-			"bigint",
-		)
-
-		if frappe.db.db_type == "mariadb":
-			table_name = "information_schema.tables"
-			conditions = "table_type = 'sequence' and table_name = 'event_id_seq'"
-		else:
-			table_name = "information_schema.sequences"
-			conditions = "sequence_name = 'event_id_seq'"
-
-		# check if sequence table is created
-		self.assertTrue(
-			frappe.db.sql(
-				f"""select * from {table_name}
-				where {conditions}"""
-			)
-		)
-
-		# change the autoname/naming rule back to original
-		d.autoname = autoname
-		d.naming_rule = naming_rule
-		d.run_method("save_customization")
-
-		# check if name type has changed
-		self.assertEqual(
-			frappe.db.sql(
-				"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tabEvent'"""
-			)[0][0],
-			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
-		)
+		with self.assertRaises(frappe.ValidationError):
+			d.run_method("save_customization")

@@ -38,6 +38,57 @@ class TestDocType(unittest.TestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	def test_change_autoname(self):
+		# delete all data from Event doctype
+		frappe.db.sql("delete from `tabEvent`")
+
+		d = frappe.get_doc("DocType", "Event")
+		naming_rule = d.naming_rule
+		autoname = d.autoname
+
+		# change autoname
+		d.naming_rule = "Autoincrement"
+		d.autoname = "autoincrement"
+		d.save()
+
+		# check if name type has been changed
+		self.assertEqual(
+			frappe.db.sql(
+				"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tabEvent'"""
+			)[0][0],
+			"bigint",
+		)
+
+		if frappe.db.db_type == "mariadb":
+			table_name = "information_schema.tables"
+			conditions = "table_type = 'sequence' and table_name = 'event_id_seq'"
+		else:
+			table_name = "information_schema.sequences"
+			conditions = "sequence_name = 'event_id_seq'"
+
+		# check if sequence table is created
+		self.assertTrue(
+			frappe.db.sql(
+				f"""select * from {table_name}
+				where {conditions}"""
+			)
+		)
+
+		# change the autoname/naming rule back to original
+		d.autoname = autoname
+		d.naming_rule = naming_rule
+		d.save()
+
+		# check if name type has changed
+		self.assertEqual(
+			frappe.db.sql(
+				"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tabEvent'"""
+			)[0][0],
+			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
+		)
+
 	def test_doctype_unique_constraint_dropped(self):
 		if frappe.db.exists("DocType", "With_Unique"):
 			frappe.delete_doc("DocType", "With_Unique")
