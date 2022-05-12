@@ -371,7 +371,7 @@ class DocType(Document):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 
 		if self.get("can_change_name_type"):
-			change_name_type_and_make_sequence(self)
+			self.setup_autoincrement_and_sequence()
 
 		try:
 			frappe.db.updatedb(self.name, Meta(self))
@@ -411,6 +411,17 @@ class DocType(Document):
 			del frappe.local.meta_cache[self.name]
 
 		clear_linked_doctype_cache()
+
+	def setup_autoincrement_and_sequence(self):
+		"""Changes name type and makes sequence on change (if required)"""
+
+		name_type = f"varchar({frappe.db.VARCHAR_LEN})"
+
+		if self.autoname == "autoincrement":
+			name_type = "bigint"
+			frappe.db.create_sequence(self.name, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
+
+		change_name_column_type(self.name, name_type)
 
 	def sync_global_search(self):
 		"""If global search settings are changed, rebuild search properties for this table"""
@@ -903,9 +914,9 @@ def validate_series(dt, autoname=None, name=None):
 
 
 def validate_autoincrement_autoname(dt: DocType) -> bool:
-	"""Checks if chan change to/from autoincrement autoname"""
+	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt) -> str:
+	def get_autoname_before_save(dt: DocType) -> str:
 		if dt.name == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
@@ -928,10 +939,11 @@ def validate_autoincrement_autoname(dt: DocType) -> bool:
 			and autoname_before_save != "autoincrement"
 			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
-			if dt.name == "Customize Form":
-				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
 
 			if frappe.get_meta(dt.name).issingle:
+				if dt.name == "Customize Form":
+					frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
+
 				return False
 
 			if not frappe.get_all(dt.name, limit=1):
@@ -945,18 +957,9 @@ def validate_autoincrement_autoname(dt: DocType) -> bool:
 	return False
 
 
-def change_name_type_and_make_sequence(dt: DocType) -> None:
-	doctype_name = dt.doc_type if dt.doctype == "Customize Form" else dt.name
-	name_type = f"varchar({frappe.db.VARCHAR_LEN})"
-	if dt.autoname == "autoincrement":
-		name_type = "bigint"
-		frappe.db.create_sequence(doctype_name, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
-
-	change_name_column_type(doctype_name, name_type)
-
-
 def change_name_column_type(doctype_name: str, type: str) -> None:
-	# postgres requires cast when converting from varchar to bigint
+	"""Changes name column type"""
+
 	args = (
 		(doctype_name, "name", type, False, True)
 		if (frappe.db.db_type == "postgres")
