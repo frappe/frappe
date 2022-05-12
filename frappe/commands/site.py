@@ -397,8 +397,9 @@ def _reinstall(
 
 @click.command("install-app")
 @click.argument("apps", nargs=-1)
+@click.option("--force", is_flag=True, default=False)
 @pass_context
-def install_app(context, apps):
+def install_app(context, apps, force=False):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
 
@@ -413,7 +414,7 @@ def install_app(context, apps):
 
 		for app in apps:
 			try:
-				_install_app(app, verbose=context.verbose)
+				_install_app(app, verbose=context.verbose, force=force)
 			except frappe.IncompatibleApp as err:
 				err_msg = ":\n{}".format(err) if str(err) else ""
 				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
@@ -824,7 +825,7 @@ def _drop_site(
 	try:
 		if not no_backup:
 			click.secho(f"Taking backup of {site}", fg="green")
-			odb = scheduled_backup(ignore_files=False, force=True, verbose=True)
+			odb = scheduled_backup(ignore_files=False, ignore_conf=True, force=True, verbose=True)
 			odb.print_summary()
 	except Exception as err:
 		if force:
