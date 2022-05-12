@@ -397,7 +397,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d.run_method("save_customization")
 		self.assertEqual(d.label, "")
 
-	def test_autoincrement_autoname(self):
+	def test_change_to_autoincrement_autoname(self):
 		d = self.get_customize_form("Event")
 		d.autoname = "autoincrement"
 
