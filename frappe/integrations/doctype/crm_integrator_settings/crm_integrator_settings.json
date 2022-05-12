@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "host_url",
-  "google_map_key"
+  "google_map_key",
+  "base_url"
  ],
  "fields": [
   {
@@ -18,11 +19,16 @@
    "fieldname": "google_map_key",
    "fieldtype": "Data",
    "label": "GMap Key"
+  },
+  {
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-03-02 10:12:03.163765",
+ "modified": "2022-04-22 14:04:13.022695",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "CRM Integrator Settings",

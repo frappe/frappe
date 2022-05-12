@@ -50,7 +50,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Open\nOn Progress\nClosed"
+   "options": "Open\nOn Progress\nWaiting for Feedback\nClosed"
   },
   {
    "fieldname": "section_break_6",
@@ -85,7 +85,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-04-07 13:53:09.784007",
+ "modified": "2022-04-20 14:18:44.754182",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Ticketing Support",
