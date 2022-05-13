@@ -11,9 +11,8 @@ import frappe
 import frappe.translate
 from frappe import _
 from frappe.core.doctype.doctype.doctype import (
-	change_name_column_type,
 	check_email_append_to,
-	check_if_can_change_name_type,
+	validate_autoincrement_autoname,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -163,7 +162,7 @@ class CustomizeForm(Document):
 			return
 
 		validate_series(self, self.autoname, self.doc_type)
-		can_change_name_type = check_if_can_change_name_type(self)
+		validate_autoincrement_autoname(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()
@@ -171,12 +170,6 @@ class CustomizeForm(Document):
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 		check_email_append_to(self)
-
-		if can_change_name_type:
-			change_name_column_type(
-				self.doc_type,
-				"bigint" if self.autoname == "autoincrement" else f"varchar({frappe.db.VARCHAR_LEN})",
-			)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)

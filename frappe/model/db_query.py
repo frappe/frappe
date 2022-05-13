@@ -920,12 +920,12 @@ def cast_name(column: str) -> str:
 
 	kwargs = {"string": column, "flags": re.IGNORECASE}
 	if "cast(" not in column.lower() and "::" not in column:
-		if re.search(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", **kwargs):
+		if re.search(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", **kwargs):
 			return re.sub(
-				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\)", r"locate(\1, cast(\2 as varchar))", **kwargs
+				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", r"locate(\1, cast(\2 as varchar))", **kwargs
 			)
 
-		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*([`\"]?name[`\"]?)\s*,", **kwargs):
+		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", **kwargs):
 			func = match.groups()[0]
 			return re.sub(rf"{func}\(\s*([`\"]?name[`\"]?)\s*,", rf"{func}(cast(\1 as varchar),", **kwargs)
 
