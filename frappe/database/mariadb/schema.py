@@ -40,14 +40,7 @@ class MariaDBTable(DBTable):
 			not self.meta.issingle and self.meta.autoname == "autoincrement"
 		) or self.doctype in log_types:
 
-			# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
-			# it drops the cache and uses the next non cached value in setval func and
-			# puts that in the backup file, which will start the counter
-			# from that value when inserting any new record in the doctype.
-			# By default the cache is 1000 which will mess up the sequence when
-			# using the system after a restore.
-			# issue link: https://jira.mariadb.org/browse/MDEV-21786
-			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=50)
+			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
 
 			# NOTE: not used nextval func as default as the ability to restore
 			# database with sequences has bugs in mariadb and gives a scary error.
