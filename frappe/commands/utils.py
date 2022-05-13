@@ -769,6 +769,9 @@ def run_tests(
 	failfast=False,
 	case=None,
 ):
+	# remove pre-imported frappe modules
+	for frappe_module in [x for x in sys.modules if x.startswith("frappe")]:
+		del sys.modules[frappe_module]
 
 	with CodeCoverage(coverage, app):
 		import frappe
@@ -823,6 +826,10 @@ def run_tests(
 def run_parallel_tests(
 	context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False
 ):
+	# remove pre-imported frappe modules
+	for frappe_module in [x for x in sys.modules if x.startswith("frappe")]:
+		del sys.modules[frappe_module]
+
 	with CodeCoverage(with_coverage, app):
 		site = get_site(context)
 		if use_orchestrator:
