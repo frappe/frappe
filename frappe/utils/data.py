@@ -2035,8 +2035,8 @@ def validate_python_code(
 	"""Validate python code fields by using compile_command to ensure that expression is valid python.
 
 	args:
-			fieldname: name of field being validated.
-			is_expression: true for validating simple single line python expression, else validated as script.
+		fieldname: name of field being validated.
+		is_expression: true for validating simple single line python expression, else validated as script.
 	"""
 
 	if not string:

@@ -178,10 +178,10 @@ class BaseDocument(object):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
 
 		Example:
-			doc.update({
-				"user": "admin",
-				"balance": 42000
-			})
+		doc.update({
+			"user": "admin",
+			"balance": 42000
+		})
 		"""
 
 		# set name first, as it is used a reference in child document
@@ -264,11 +264,11 @@ class BaseDocument(object):
 		"""Append an item to a child table.
 
 		Example:
-			doc.append("childtable", {
-				"child_table_field": "value",
-				"child_table_int_field": 0,
-				...
-			})
+		doc.append("childtable", {
+			"child_table_field": "value",
+			"child_table_int_field": 0,
+			...
+		})
 		"""
 		if value is None:
 			value = {}
@@ -544,8 +544,7 @@ class BaseDocument(object):
 
 		args:
 		ignore_if_duplicate: ignore primary key collision
-			at database level (postgres)
-			in python (mariadb)
+			at database level (postgres) in python (mariadb)
 		"""
 		if not self.name:
 			# name will be set by document class in most cases
@@ -1070,7 +1069,10 @@ class BaseDocument(object):
 
 			if df and (
 				df.get("ignore_xss_filter")
-				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
+				or (
+					df.get("fieldtype") in ("Data", "Small Text", "Text")
+					and df.get("options") == "Email"
+				)
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()

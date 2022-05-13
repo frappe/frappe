@@ -31,23 +31,23 @@ def get_doc(*args, **kwargs):
 
 	There are multiple ways to call `get_doc`
 
-		# will fetch the latest user object (with child table) from the database
-		user = get_doc("User", "test@example.com")
+	1. will fetch the latest user object (with child table) from the database
+	user = get_doc("User", "test@example.com")
 
-		# create a new object
-		user = get_doc({
-						"doctype":"User"
-						"email_id": "test@example.com",
-						"roles: [
-										{"role": "System Manager"}
-						]
-		})
+	2. create a new object
+	user = get_doc({
+		"doctype":"User"
+		"email_id": "test@example.com",
+		"roles: [
+			{"role": "System Manager"}
+		]
+	})
 
-		# create new object with keyword arguments
-		user = get_doc(doctype='User', email_id='test@example.com')
+	3. create new object with keyword arguments
+	user = get_doc(doctype='User', email_id='test@example.com')
 
-		# select a document for update
-		user = get_doc("User", "test@example.com", for_update=True)
+	4. select a document for update
+	user = get_doc("User", "test@example.com", for_update=True)
 	"""
 	if args:
 		if isinstance(args[0], BaseDocument):
