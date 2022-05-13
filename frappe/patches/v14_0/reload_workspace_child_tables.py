@@ -10,5 +10,5 @@ def execute():
 	)
 
 	for child_table in child_tables:
-		module = get_doctype_module(child_table).lower()
-		frappe.reload_doc(module, "doctype", child_table, force=True)
+		if child_table != "Has Role":
+			frappe.reload_doc("desk", "doctype", child_table, force=True)
