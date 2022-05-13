@@ -394,37 +394,3 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 			del e[w]
 
 	return events
-
-
-def delete_events(ref_type, ref_name, delete_event=False):
-	participations = frappe.get_all(
-		"Event Participants",
-		filters={"reference_doctype": ref_type, "reference_docname": ref_name, "parenttype": "Event"},
-		fields=["parent", "name"],
-	)
-
-	if participations:
-		for participation in participations:
-			if delete_event:
-				frappe.delete_doc("Event", participation.parent, for_reload=True)
-			else:
-				total_participants = frappe.get_all(
-					"Event Participants", filters={"parenttype": "Event", "parent": participation.parent}
-				)
-
-				if len(total_participants) <= 1:
-					frappe.db.delete("Event", {"name": participation.parent})
-					frappe.db.delete("Event Participants", {"name": participation.name})
-
-
-# Close events if ends_on or repeat_till is less than now_datetime
-def set_status_of_events():
-	events = frappe.get_list(
-		"Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"]
-	)
-	for event in events:
-		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) or (
-			event.repeat_till and getdate(event.repeat_till) < getdate(nowdate())
-		):
-
-			frappe.db.set_value("Event", event.name, "status", "Closed")
