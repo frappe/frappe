@@ -268,7 +268,6 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabAddress`.idx desc, `tabAddress`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
-			key=searchfield,
 			search_condition=search_condition,
 			condition=condition or "",
 		),
