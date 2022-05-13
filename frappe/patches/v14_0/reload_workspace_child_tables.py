@@ -1,5 +1,4 @@
 import frappe
-from frappe.modules import get_doctype_module
 
 
 def execute():
