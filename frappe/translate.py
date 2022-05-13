@@ -323,7 +323,6 @@ def get_translation_dict_from_file(path, lang, app):
 					app=app, lang=lang, values=cstr(item)
 				)
 				frappe.log_error(message=msg, title="Error in translation file")
-				frappe.msgprint(msg)
 
 	return translation_map
 
