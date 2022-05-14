@@ -5,7 +5,7 @@ def create_sequence(
 	doctype_name: str,
 	*,
 	slug: str = "_id_seq",
-	temporary=False,
+	temporary: bool = False,
 	check_not_exists: bool = False,
 	cycle: bool = False,
 	cache: int = 0,
@@ -51,7 +51,7 @@ def create_sequence(
 	else:
 		query += " cycle"
 
-	db.sql(query)
+	db.sql_ddl(query)
 
 	return sequence_name
 

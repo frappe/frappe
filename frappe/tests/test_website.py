@@ -312,6 +312,11 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn("test.__test", content)
 		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
 
+	def test_metatags(self):
+		content = get_response_content("/_test/_test_metatags")
+		self.assertIn('<meta name="title" content="Test Title Metatag">', content)
+		self.assertIn('<meta name="description" content="Test Description for Metatag">', content)
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks

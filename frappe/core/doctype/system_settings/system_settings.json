@@ -11,7 +11,6 @@
   "language",
   "column_break_3",
   "time_zone",
-  "is_first_startup",
   "enable_onboarding",
   "setup_complete",
   "date_and_number_format",
@@ -71,7 +70,8 @@
   "column_break_64",
   "max_auto_email_report_per_user",
   "system_updates_section",
-  "disable_system_update_notification"
+  "disable_system_update_notification",
+  "disable_change_log_notification"
  ],
  "fields": [
   {
@@ -102,14 +102,6 @@
    "label": "Time Zone",
    "read_only": 1,
    "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "is_first_startup",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is First Startup",
-   "read_only": 1
   },
   {
    "default": "0",
@@ -497,12 +489,18 @@
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
    "label": "Max auto email report per user"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_change_log_notification",
+   "fieldtype": "Check",
+   "label": "Disable Change Log Notification"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-04-21 09:11:35.218721",
+ "modified": "2022-05-09 18:53:35.218721",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

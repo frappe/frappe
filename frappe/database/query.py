@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Tuple, Union
 
 import frappe
 from frappe import _
-from frappe.query_builder import Criterion, Field, Order
+from frappe.query_builder import Criterion, Field, Order, Table
 
 
-def like(key: str, value: str) -> frappe.qb:
+def like(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `LIKE`
 
 	Args:
@@ -17,10 +17,10 @@ def like(key: str, value: str) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `LIKE`
 	"""
-	return Field(key).like(value)
+	return key.like(value)
 
 
-def func_in(key: str, value: Union[List, Tuple]) -> frappe.qb:
+def func_in(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 	"""Wrapper method for `IN`
 
 	Args:
@@ -30,10 +30,10 @@ def func_in(key: str, value: Union[List, Tuple]) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `IN`
 	"""
-	return Field(key).isin(value)
+	return key.isin(value)
 
 
-def not_like(key: str, value: str) -> frappe.qb:
+def not_like(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `NOT LIKE`
 
 	Args:
@@ -43,10 +43,10 @@ def not_like(key: str, value: str) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `NOT LIKE`
 	"""
-	return Field(key).not_like(value)
+	return key.not_like(value)
 
 
-def func_not_in(key: str, value: Union[List, Tuple]):
+def func_not_in(key: Field, value: Union[List, Tuple]):
 	"""Wrapper method for `NOT IN`
 
 	Args:
@@ -56,10 +56,10 @@ def func_not_in(key: str, value: Union[List, Tuple]):
 	Returns:
 	        frappe.qb: `frappe.qb object with `NOT IN`
 	"""
-	return Field(key).notin(value)
+	return key.notin(value)
 
 
-def func_regex(key: str, value: str) -> frappe.qb:
+def func_regex(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `REGEX`
 
 	Args:
@@ -69,10 +69,10 @@ def func_regex(key: str, value: str) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `REGEX`
 	"""
-	return Field(key).regex(value)
+	return key.regex(value)
 
 
-def func_between(key: str, value: Union[List, Tuple]) -> frappe.qb:
+def func_between(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 	"""Wrapper method for `BETWEEN`
 
 	Args:
@@ -82,7 +82,7 @@ def func_between(key: str, value: Union[List, Tuple]) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `BETWEEN`
 	"""
-	return Field(key)[slice(*value)]
+	return key[slice(*value)]
 
 
 def make_function(key: Any, value: Union[int, str]):
@@ -139,7 +139,9 @@ OPERATOR_MAP = {
 
 
 class Query:
-	def get_condition(self, table: str, **kwargs) -> frappe.qb:
+	tables: dict = {}
+
+	def get_condition(self, table: Union[str, Table], **kwargs) -> frappe.qb:
 		"""Get initial table object
 
 		Args:
@@ -148,11 +150,20 @@ class Query:
 		Returns:
 		        frappe.qb: DocType with initial condition
 		"""
+		table_object = self.get_table(table)
 		if kwargs.get("update"):
-			return frappe.qb.update(table)
+			return frappe.qb.update(table_object)
 		if kwargs.get("into"):
-			return frappe.qb.into(table)
-		return frappe.qb.from_(table)
+			return frappe.qb.into(table_object)
+		return frappe.qb.from_(table_object)
+
+	def get_table(self, table_name: Union[str, Table]) -> Table:
+		if isinstance(table_name, Table):
+			return table_name
+		table_name = table_name.strip('"').strip("'")
+		if table_name not in self.tables:
+			self.tables[table_name] = frappe.qb.DocType(table_name)
+		return self.tables[table_name]
 
 	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> frappe.qb:
 		"""Generate filters from Criterion objects
@@ -217,8 +228,13 @@ class Query:
 					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
 					break
 				else:
-					_operator = OPERATOR_MAP[f[1]]
-					conditions = conditions.where(_operator(Field(f[0]), f[2]))
+					_operator = OPERATOR_MAP[f[-2]]
+					if len(f) == 4:
+						table_object = self.get_table(f[0])
+						_field = table_object[f[1]]
+					else:
+						_field = Field(f[0])
+					conditions = conditions.where(_operator(_field, f[-1]))
 
 		return self.add_conditions(conditions, **kwargs)
 
@@ -249,7 +265,7 @@ class Query:
 			if isinstance(value, (list, tuple)):
 				if isinstance(value[1], (list, tuple)) or value[0] in list(OPERATOR_MAP.keys())[-4:]:
 					_operator = OPERATOR_MAP[value[0]]
-					conditions = conditions.where(_operator(key, value[1]))
+					conditions = conditions.where(_operator(Field(key), value[1]))
 				else:
 					_operator = OPERATOR_MAP[value[0]]
 					conditions = conditions.where(_operator(Field(key), value[1]))
@@ -293,10 +309,19 @@ class Query:
 		self,
 		table: str,
 		fields: Union[List, Tuple],
-		filters: Union[Dict[str, Union[str, int]], str, int] = None,
+		filters: Union[Dict[str, Union[str, int]], str, int, List[Union[List, str, int]]] = None,
 		**kwargs,
 	):
+		# Clean up state before each query
+		self.tables = {}
 		criterion = self.build_conditions(table, filters, **kwargs)
+
+		if len(self.tables) > 1:
+			primary_table = self.tables[table]
+			del self.tables[table]
+			for table_object in self.tables.values():
+				criterion = criterion.left_join(table_object).on(table_object.parent == primary_table.name)
+
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*kwargs.get("field_objects", fields))
 

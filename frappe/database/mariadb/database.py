@@ -19,6 +19,15 @@ class MariaDBDatabase(Database):
 	DataError = pymysql.err.DataError
 	REGEX_CHARACTER = "regexp"
 
+	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
+	# it drops the cache and uses the next non cached value in setval query and
+	# puts that in the backup file, which will start the counter
+	# from that value when inserting any new record in the doctype.
+	# By default the cache is 1000 which will mess up the sequence when
+	# using the system after a restore.
+	# issue link: https://jira.mariadb.org/browse/MDEV-21786
+	SEQUENCE_CACHE = 50
+
 	def setup_type_map(self):
 		self.db_type = "mariadb"
 		self.type_map = {
