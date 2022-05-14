@@ -15,7 +15,7 @@ import warnings
 
 STANDARD_USERS = ("Guest", "Administrator")
 
-_dev_server = os.environ.get("DEV_SERVER", False)
+_dev_server = int(os.environ.get("DEV_SERVER", False))
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
