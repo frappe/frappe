@@ -103,7 +103,7 @@ def get_apps():
 
 
 if __name__ == "__main__":
-	if not frappe.local.dev_server:
+	if not frappe._dev_server:
 		warnings.simplefilter("ignore")
 
 	main()
