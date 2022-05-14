@@ -874,7 +874,7 @@ def cast(fieldtype, value=None):
 
 
 @typing.overload
-def flt(s: Union[NumericType, str], precision: Literal[0] = None) -> int:
+def flt(s: Union[NumericType, str], precision: Literal[0]) -> int:
 	...
 
 
