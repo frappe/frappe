@@ -342,30 +342,39 @@ class BaseDocument(object):
 
 	def _get_datetime_fields(self):
 		"""
-		To get table fields during Document init
-		Meta.get_table_fields goes into recursion for special doctypes
+		To get datetime fields during Document init
 		"""
-		if self.doctype == "DocType" or self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+		if (
+			self.doctype == "DocType"
+			or self.doctype in DOCTYPES_FOR_DOCTYPE
+			or getattr(self, "parentfield", None)
+		):
 			return ()
 
 		return self.meta.get_datetime_fields()
 
 	def _get_date_fields(self):
 		"""
-		To get table fields during Document init
-		Meta.get_table_fields goes into recursion for special doctypes
+		To get date fields during Document init
 		"""
-		if self.doctype == "DocType" or self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+		if (
+			self.doctype == "DocType"
+			or self.doctype in DOCTYPES_FOR_DOCTYPE
+			or getattr(self, "parentfield", None)
+		):
 			return ()
 
 		return self.meta.get_date_fields()
 
 	def _get_time_fields(self):
 		"""
-		To get table fields during Document init
-		Meta.get_table_fields goes into recursion for special doctypes
+		To get time fields during Document init
 		"""
-		if self.doctype == "DocType" or self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+		if (
+			self.doctype == "DocType"
+			or self.doctype in DOCTYPES_FOR_DOCTYPE
+			or getattr(self, "parentfield", None)
+		):
 			return ()
 
 		return self.meta.get_time_fields()
@@ -543,8 +552,7 @@ class BaseDocument(object):
 		"""INSERT the document (with valid columns) in the database.
 
 		args:
-		ignore_if_duplicate: ignore primary key collision
-			at database level (postgres) in python (mariadb)
+		ignore_if_duplicate: ignore primary key collision at database level (postgres) in python (mariadb)
 		"""
 		if not self.name:
 			# name will be set by document class in most cases
@@ -1069,10 +1077,7 @@ class BaseDocument(object):
 
 			if df and (
 				df.get("ignore_xss_filter")
-				or (
-					df.get("fieldtype") in ("Data", "Small Text", "Text")
-					and df.get("options") == "Email"
-				)
+				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()

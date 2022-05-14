@@ -115,13 +115,13 @@ def get_timedelta(time: Optional[str] = None) -> Optional[datetime.timedelta]:
 	valid time format. Returns None if `time` is not a valid format
 
 	Args:
-			time (str): A valid time representation. This string is parsed
-			using `dateutil.parser.parse`. Examples of valid inputs are:
-			'0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
-			https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
+		time (str): A valid time representation. This string is parsed
+		using `dateutil.parser.parse`. Examples of valid inputs are:
+		'0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
+		https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
 
 	Returns:
-			datetime.timedelta: Timedelta object equivalent of the passed `time` string
+		datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
 	from dateutil import parser
 	from dateutil.parser import ParserError
@@ -943,13 +943,11 @@ def floor(s):
 
 	Parameters
 	----------
-	s : int or str or Decimal object
-			The mathematical value to be floored
+	s : int or str or Decimal object. The mathematical value to be floored.
 
 	Returns
 	-------
-	int
-			number representing the largest integer less than or equal to the specified number
+	int: number representing the largest integer less than or equal to the specified number
 
 	"""
 	try:
@@ -965,13 +963,11 @@ def ceil(s):
 
 	Parameters
 	----------
-	s : int or str or Decimal object
-			The mathematical value to be ceiled
+	s : int or str or Decimal object. The mathematical value to be ceiled
 
 	Returns
 	-------
-	int
-			smallest integer greater than or equal to the given number
+	int: smallest integer greater than or equal to the given number
 
 	"""
 	try:
@@ -988,15 +984,15 @@ def cstr(s, encoding="utf-8"):
 def sbool(x: str) -> Union[bool, Any]:
 	"""Converts str object to Boolean if possible.
 	Example:
-			"true" becomes True
-			"1" becomes True
-			"{}" remains "{}"
+		"true" becomes True
+		"1" becomes True
+		"{}" remains "{}"
 
 	Args:
-			x (str): String to be converted to Bool
+		x (str): String to be converted to Bool
 
 	Returns:
-			object: Returns Boolean or x
+		object: Returns Boolean or x
 	"""
 	try:
 		val = x.lower()
