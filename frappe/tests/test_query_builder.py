@@ -163,7 +163,7 @@ class TestParameterization(unittest.TestCase):
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "Administrator' --")
 
-	def test_set_cnoditions(self):
+	def test_set_conditions(self):
 		DocType = frappe.qb.DocType("DocType")
 		query = frappe.qb.update(DocType).set(DocType.value, "some_value")
 
@@ -260,3 +260,10 @@ class TestMisc(unittest.TestCase):
 		rand_func = frappe.qb.functions("rand", "45")
 		self.assertIsInstance(rand_func, Function)
 		self.assertEqual(rand_func.get_sql(), "rand('45')")
+
+	def test_function_with_schema(self):
+		from frappe.query_builder import ParameterizedFunction
+
+		x = ParameterizedFunction("rand", "45")
+		x.schema = frappe.qb.DocType("DocType")
+		self.assertEqual("tabDocType.rand('45')", x.get_sql())
