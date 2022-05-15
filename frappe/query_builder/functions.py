@@ -1,6 +1,7 @@
 from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
 
+import frappe
 from frappe.database.query import Query
 from frappe.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
 from frappe.query_builder.utils import ImportMapper, db_type_is
@@ -45,7 +46,7 @@ DateFormat = ImportMapper(
 
 class Cast_(Function):
 	def __init__(self, value, as_type, alias=None):
-		if db_type_is.MARIADB and (
+		if frappe.db.db_type == "mariadb" and (
 			(hasattr(as_type, "get_sql") and as_type.get_sql().lower() == "varchar")
 			or str(as_type).lower() == "varchar"
 		):

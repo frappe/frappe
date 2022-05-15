@@ -75,8 +75,12 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 
 	def test_cast(self):
 		note = frappe.qb.DocType("Note")
-		self.assertEqual("CONCAT(`tabnote`.`name`, '')", Cast_(note.name, "varchar"))
-		self.assertEqual("CAST(`tabnote`.`name` AS INTEGER)", Cast_(note.name, "integer"))
+		self.assertEqual("CONCAT(name,'')", Cast_(note.name, "varchar").get_sql())
+		self.assertEqual("CAST(name AS INTEGER)", Cast_(note.name, "integer").get_sql())
+		self.assertEqual(
+			frappe.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
+			"SELECT `tabred`.`other`,CONCAT(`tabNote`.`name`,'') FROM `tabred`,`tabNote`",
+		)
 
 
 @run_only_if(db_type_is.POSTGRES)
@@ -138,8 +142,12 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 
 	def test_cast(self):
 		note = frappe.qb.DocType("Note")
-		self.assertEqual("CAST(`tabnote`.`name` AS VARCHAR)", Cast_(note.name, "varchar"))
-		self.assertEqual("CAST(`tabnote`.`name` AS INTEGER)", Cast_(note.name, "integer"))
+		self.assertEqual("CAST(name AS VARCHAR)", Cast_(note.name, "varchar").get_sql())
+		self.assertEqual("CAST(name AS INTEGER)", Cast_(note.name, "integer").get_sql())
+		self.assertEqual(
+			frappe.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
+			'SELECT "tabred"."other",CAST("tabNote"."name" AS VARCHAR) FROM "tabred","tabNote"',
+		)
 
 
 class TestBuilderBase(object):
