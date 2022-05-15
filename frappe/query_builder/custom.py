@@ -45,7 +45,7 @@ class MATCH(DistinctOptionFunction):
 
 		if self._Against:
 			return f"{s} AGAINST ({frappe.db.escape(f'+{self._Against}*')} IN BOOLEAN MODE)"
-		return s
+		raise Exception("Chain the `Against()` method with match to complete the query")
 
 	@builder
 	def Against(self, text: str):

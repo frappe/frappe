@@ -3,6 +3,7 @@ from typing import Callable
 
 import frappe
 from frappe.query_builder import Case
+from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Cast_, Coalesce, CombineDatetime, GroupConcat, Match
 from frappe.query_builder.utils import db_type_is
@@ -18,7 +19,10 @@ class TestCustomFunctionsMariaDB(unittest.TestCase):
 		self.assertEqual("GROUP_CONCAT('Notes')", GroupConcat("Notes").get_sql())
 
 	def test_match(self):
-		query = Match("Notes").Against("text")
+		query = Match("Notes")
+		with self.assertRaises(Exception):
+			query.get_sql()
+		query = query.Against("text")
 		self.assertEqual(" MATCH('Notes') AGAINST ('+text*' IN BOOLEAN MODE)", query.get_sql())
 
 	def test_constant_column(self):
@@ -81,6 +85,8 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
 
 	def test_match(self):
+		query = Match("Notes")
+		self.assertEqual("TO_TSVECTOR('Notes')", query.get_sql())
 		query = Match("Notes").Against("text")
 		self.assertEqual("TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql())
 
