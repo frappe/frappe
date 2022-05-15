@@ -253,3 +253,10 @@ class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):
 
 	def test_replace_fields_post(self):
 		self.assertEqual("relname", frappe.qb.Field("table_name").get_sql())
+
+
+class TestMisc(unittest.TestCase):
+	def test_custom_func(self):
+		rand_func = frappe.qb.functions("rand", "45")
+		self.assertIsInstance(rand_func, Function)
+		self.assertEqual(rand_func.get_sql(), "rand('45')")
