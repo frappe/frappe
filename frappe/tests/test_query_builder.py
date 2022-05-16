@@ -283,6 +283,12 @@ class TestBuilderMaria(unittest.TestCase, TestBuilderBase):
 		self.assertEqual("SELECT * FROM `tabNotes`", frappe.qb.from_("Notes").select("*").get_sql())
 		self.assertEqual("SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql())
 
+	def test_get_qb_type(self):
+		from frappe.query_builder import get_query_builder
+
+		qb = get_query_builder(frappe.db.db_type)
+		self.assertEqual("SELECT * FROM `tabDocType`", qb().from_("DocType").select("*").get_sql())
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):
@@ -299,6 +305,12 @@ class TestBuilderPostgres(unittest.TestCase, TestBuilderBase):
 
 	def test_replace_fields_post(self):
 		self.assertEqual("relname", frappe.qb.Field("table_name").get_sql())
+
+	def test_get_qb_type(self):
+		from frappe.query_builder import get_query_builder
+
+		qb = get_query_builder(frappe.db.db_type)
+		self.assertEqual('SELECT * FROM "tabDocType"', qb().from_("DocType").select("*").get_sql())
 
 
 class TestMisc(unittest.TestCase):
