@@ -40,7 +40,7 @@
    "link_fieldname": "module_profile"
   }
  ],
- "modified": "2021-12-03 15:47:21.296443",
+ "modified": "2022-05-16 16:03:55.036420",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Profile",
@@ -62,5 +62,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1
+ "states": [],
+ "track_changes": 1,
+ "translate_link_fields": 1
 }

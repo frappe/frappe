@@ -373,6 +373,7 @@ translated_search_doctypes = [
 	"DocType",
 	"Role",
 	"Role Profile",
+	"Module Profile",
 	"Country",
 	"Gender",
 	"Salutation",
