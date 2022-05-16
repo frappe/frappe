@@ -1,6 +1,4 @@
-import re
 import unittest
-from random import sample
 from typing import Callable
 
 import frappe
@@ -315,3 +313,9 @@ class TestMisc(unittest.TestCase):
 		x = ParameterizedFunction("rand", "45")
 		x.schema = frappe.qb.DocType("DocType")
 		self.assertEqual("tabDocType.rand('45')", x.get_sql())
+
+	def test_util_table(self):
+		from frappe.query_builder.utils import Table
+
+		DocType = Table("DocType")
+		self.assertEqual(DocType.get_sql(), "DocType")
