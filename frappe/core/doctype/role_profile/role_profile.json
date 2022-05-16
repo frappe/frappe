@@ -42,7 +42,7 @@
    "link_fieldname": "role_profile_name"
   }
  ],
- "modified": "2021-12-03 15:45:45.270963",
+ "modified": "2022-05-16 16:04:14.555142",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role Profile",
@@ -75,6 +75,8 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "role_profile",
- "track_changes": 1
+ "track_changes": 1,
+ "translate_link_fields": 1
 }
