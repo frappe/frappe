@@ -1,5 +1,54 @@
 @import "../common/form";
 
+<<<<<<< HEAD
+=======
+[data-doctype="Web Form"] {
+	.page_content {
+		max-width: 800px;
+		margin: auto;
+
+		.frappe-card {
+			padding: 1rem;
+
+			h1 {
+				font-size: 1.9rem;
+				margin-top: 0;
+				margin-bottom: 0;
+			}
+
+			.web-form-head {
+				margin: 0 -1rem;
+				padding: 0 1rem 1rem 1rem;
+				margin-bottom: 1rem;
+				border-bottom: 1px solid var(--border-color);
+			}
+
+			#introduction {
+				margin-bottom: 2rem;
+			}
+
+			#introduction p {
+				color: var(--text-muted);
+			}
+
+			.web-form-actions button {
+				margin-top: 0.1rem;
+			}
+		}
+
+		.frappe-card.list-card {
+			min-height: 400px;
+		}
+
+		.breadcrumb-container.container {
+			@include media-breakpoint-up(sm) {
+				padding-left: 0;
+			}
+		}
+	}
+}
+
+>>>>>>> 4b13d6d7e4 (fix(webform): only title on the page should be h1 (#16880))
 .web-form-wrapper {
 	.form-control {
 		color: var(--text-color);

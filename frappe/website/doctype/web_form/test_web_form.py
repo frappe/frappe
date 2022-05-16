@@ -68,3 +68,13 @@ class TestWebForm(unittest.TestCase):
 		self.assertEqual(
 			frappe.db.get_value("Event", self.event_name, "description"), doc.get("description")
 		)
+<<<<<<< HEAD
+=======
+
+	def test_webform_render(self):
+		content = get_response_content("request-data")
+		self.assertIn("<h1>Request Data</h1>", content)
+		self.assertIn('data-doctype="Web Form"', content)
+		self.assertIn('data-path="request-data"', content)
+		self.assertIn('source-type="Generator"', content)
+>>>>>>> 4b13d6d7e4 (fix(webform): only title on the page should be h1 (#16880))
