@@ -142,7 +142,7 @@ frappe.ui.form.add_options = function(input, options_list) {
 // add <option> list to <select>
 (function($) {
 	$.fn.add_options = function(options_list) {
-		return frappe.ui.add_options(this.get(0), options_list);
+		return frappe.ui.form.add_options(this.get(0), options_list);
 	};
 	$.fn.set_working = function() {
 		this.prop('disabled', true);
