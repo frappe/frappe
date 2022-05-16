@@ -1,4 +1,5 @@
 import unittest
+from random import sample
 from typing import Callable
 
 import frappe
@@ -162,6 +163,25 @@ class TestBuilderBase(object):
 		self.assertTrue("run" in dir(query))
 		self.assertIsInstance(query.run, Callable)
 		self.assertIsInstance(data, list)
+
+	def test_agg_funcs(self):
+		frappe.db.truncate("Communication")
+		sample_data = {
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"content": "testing",
+			"rating": 1,
+		}
+		frappe.get_doc(sample_data).insert()
+		sample_data["rating"] = 3
+		frappe.get_doc(sample_data).insert()
+		sample_data["rating"] = 4
+		frappe.get_doc(sample_data).insert()
+		self.assertEqual(frappe.qb.max("Communication", "rating"), 4)
+		self.assertEqual(frappe.qb.min("Communication", "rating"), 1)
+		self.assertAlmostEqual(frappe.qb.avg("Communication", "rating"), 2.666, places=2)
+		self.assertEqual(frappe.qb.sum("Communication", "rating"), 8.0)
+		frappe.db.rollback()
 
 
 class TestParameterization(unittest.TestCase):

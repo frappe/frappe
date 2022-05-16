@@ -6,7 +6,7 @@ from frappe.database.query import Query
 from frappe.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
 from frappe.query_builder.utils import ImportMapper, db_type_is
 
-from .utils import Column
+from .utils import PseudoColumn
 
 
 class Concat_ws(Function):
@@ -73,7 +73,10 @@ class Cast_(Function):
 
 def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
-		Query().build_conditions(dt, filters).select(function(Column(fieldname))).run(**kwargs)[0][0]
+		Query()
+		.build_conditions(dt, filters)
+		.select(function(PseudoColumn(fieldname)))
+		.run(**kwargs)[0][0]
 		or 0
 	)
 
