@@ -1,3 +1,4 @@
+import re
 import unittest
 from random import sample
 from typing import Callable
@@ -263,6 +264,19 @@ class TestParameterization(unittest.TestCase):
 		self.assertEqual(params["param3"], "subject_in_function")
 		self.assertEqual(params["param4"], "true_value")
 		self.assertEqual(params["param5"], "Overdue")
+
+	def test_named_parameter_wrapper(self):
+		from frappe.query_builder.terms import NamedParameterWrapper
+
+		test_npw = NamedParameterWrapper()
+		self.assertTrue(hasattr(test_npw, "parameters"))
+		self.assertEqual(test_npw.get_sql("test_string_one"), "%(param1)s")
+		self.assertEqual(test_npw.get_sql("test_string_two"), "%(param2)s")
+		params = test_npw.get_parameters()
+		for key in params.keys():
+			# checks for param# format
+			self.assertRegex(key, r"param\d")
+		self.assertEqual(params["param1"], "test_string_one")
 
 
 @run_only_if(db_type_is.MARIADB)
