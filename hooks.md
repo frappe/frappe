@@ -7,8 +7,6 @@
 1. `app_publisher`
 1. `app_description`
 1. `app_version`
-1. `app_icon` - font-awesome icon or image url
-1. `app_color` - hex colour background of the app icon
 
 #### Install
 

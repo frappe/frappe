@@ -103,11 +103,11 @@ def enqueue_events(site):
 
 def is_scheduler_inactive():
 	if frappe.local.conf.maintenance_mode:
-		cprint("Maintenance mode is ON")
+		cprint(f"{frappe.local.site}: Maintenance mode is ON")
 		return True
 
 	if frappe.local.conf.pause_scheduler:
-		cprint("frappe.conf.pause_scheduler is SET")
+		cprint(f"{frappe.local.site}: frappe.conf.pause_scheduler is SET")
 		return True
 
 	if is_scheduler_disabled():
@@ -118,14 +118,14 @@ def is_scheduler_inactive():
 
 def is_scheduler_disabled():
 	if frappe.conf.disable_scheduler:
-		cprint("frappe.conf.disable_scheduler is SET")
+		cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
 		return True
 
 	scheduler_disabled = not frappe.utils.cint(
 		frappe.db.get_single_value("System Settings", "enable_scheduler")
 	)
 	if scheduler_disabled:
-		cprint("SystemSettings.enable_scheduler is UNSET")
+		cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")
 	return scheduler_disabled
 
 

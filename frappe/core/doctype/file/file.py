@@ -608,7 +608,7 @@ def on_doctype_update():
 def make_home_folder():
 	home = frappe.get_doc(
 		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
-	).insert()
+	).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc(
 		{
@@ -618,7 +618,7 @@ def make_home_folder():
 			"is_attachments_folder": 1,
 			"file_name": _("Attachments"),
 		}
-	).insert()
+	).insert(ignore_if_duplicate=True)
 
 
 @frappe.whitelist()
