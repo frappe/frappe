@@ -69,7 +69,7 @@ class TestWebForm(unittest.TestCase):
 
 	def test_webform_render(self):
 		content = get_response_content("request-data")
-		self.assertIn("<h3>Request Data</h3>", content)
+		self.assertIn("<h1>Request Data</h1>", content)
 		self.assertIn('data-doctype="Web Form"', content)
 		self.assertIn('data-path="request-data"', content)
 		self.assertIn('source-type="Generator"', content)
