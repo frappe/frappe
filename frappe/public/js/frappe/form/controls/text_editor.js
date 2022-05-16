@@ -10,8 +10,8 @@ CodeBlockContainer.tagName = 'PRE';
 Quill.register(CodeBlockContainer, true);
 
 // font size
-let font_sizes = [false,'8px','9px','10px','11px','12px','13px','14px','15px','16px','18px','20px','22px','24px','32px','36px','40px','48px','54px','64px','96px','128px'];
-Size = Quill.import('attributors/style/size');
+let font_sizes = [false, '8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '18px', '20px', '22px', '24px', '32px', '36px', '40px', '48px', '54px', '64px', '96px', '128px'];
+const Size = Quill.import('attributors/style/size');
 Size.whitelist = font_sizes;
 Quill.register(Size, true);
 
