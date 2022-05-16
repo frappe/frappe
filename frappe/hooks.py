@@ -371,6 +371,7 @@ global_search_doctypes = {
 translated_search_doctypes = [
 	"Module Def",
 	"DocType",
+	"User Type",
 	"Role",
 	"Role Profile",
 	"Module Profile",

@@ -107,10 +107,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-03-12 16:25:18.639050",
+ "modified": "2022-05-16 16:09:21.746568",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Type",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -137,5 +138,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1
+ "states": [],
+ "track_changes": 1,
+ "translate_link_fields": 1
 }
