@@ -3,8 +3,6 @@
 # License: MIT. See LICENSE
 import unittest
 
-import frappe
-
 
 class TestEmailRule(unittest.TestCase):
 	pass

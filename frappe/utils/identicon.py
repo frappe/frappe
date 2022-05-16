@@ -100,8 +100,6 @@ class Identicon(object):
 		if format.upper() not in Image.SAVE:
 			Image.init()
 		save_handler = Image.SAVE[format.upper()]
-		try:
-			save_handler(self.image, fp, "")
-		finally:
-			fp.seek(0)
-			return "data:image/png;base64,{0}".format(base64.b64encode(fp.read()))
+		save_handler(self.image, fp, "")
+		fp.seek(0)
+		return "data:image/png;base64,{0}".format(base64.b64encode(fp.read()))

@@ -1,12 +1,10 @@
 import time
 from unittest import TestCase
 
-from dateutil.relativedelta import relativedelta
-
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.utils import add_days, get_datetime
-from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.background_jobs import enqueue
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
 

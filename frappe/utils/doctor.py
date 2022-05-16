@@ -20,8 +20,8 @@ def purge_pending_jobs(event=None, site=None, queue=None):
 	mintues and would any leave daily, hourly and weekly tasks
 	"""
 	purged_task_count = 0
-	for queue in get_queue_list(queue):
-		q = get_queue(queue)
+	for _queue in get_queue_list(queue):
+		q = get_queue(_queue)
 		for job in q.jobs:
 			if site and event:
 				if job.kwargs["site"] == site and job.kwargs["event"] == event:
