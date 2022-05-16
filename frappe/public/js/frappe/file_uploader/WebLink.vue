@@ -13,6 +13,14 @@
 				v-model="url"
 			>
 		</div>
+		<div class="input-group">
+			<input
+				type="text"
+				class="form-control"
+				:placeholder="__('URL Title')"
+				v-model="url_title"
+			>
+		</div>
 	</div>
 </template>
 <script>
@@ -21,6 +29,7 @@ export default {
 	data() {
 		return {
 			url: '',
+			url_title: ''
 		}
 	}
 }

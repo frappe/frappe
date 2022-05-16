@@ -390,6 +390,7 @@ export default {
 		},
 		upload_via_web_link() {
 			let file_url = this.$refs.web_link.url;
+			let file_name = this.$refs.web_link.url_title;
 			if (!file_url) {
 				frappe.msgprint(__('Invalid URL'));
 				this.close_dialog = true;
@@ -398,7 +399,8 @@ export default {
 			file_url = decodeURI(file_url)
 			this.close_dialog = true;
 			return this.upload_file({
-				file_url
+				file_url,
+				file_name
 			});
 		},
 		return_as_dataurl() {
