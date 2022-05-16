@@ -1149,7 +1149,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				let status = frappe.get_indicator(d, this.doctype);
 				if (status) {
 					// get_indicator returns the dependent field's condition as the 3rd parameter
-					let dependent_col = status[2]?.split(',')[0];
+					let dependent_col = status[2] && status[2].split(',')[0];
 					// add status dependency column
 					this.add_status_dependency_column(dependent_col, this.doctype);
 					return {
