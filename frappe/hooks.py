@@ -368,4 +368,4 @@ global_search_doctypes = {
 	]
 }
 
-translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]
+translated_search_doctypes = ["Module Def", "DocType", "Role", "Country", "Gender", "Salutation"]

@@ -123,7 +123,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2022-01-03 13:56:52.817954",
+ "modified": "2022-05-16 15:59:22.030007",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
@@ -162,5 +162,6 @@
  "sort_field": "modified",
  "sort_order": "ASC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "translate_link_fields": 1
 }
