@@ -100,6 +100,7 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	bootinfo.translatable_doctypes = get_translatable_doctypes()
 
 	return bootinfo
 
@@ -408,3 +409,11 @@ def set_time_zone(bootinfo):
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
 		or get_time_zone(),
 	}
+
+
+def get_translatable_doctypes():
+	dts = frappe.get_all("DocType", {"translate_link_fields": 1}, pluck="name")
+	custom_dts = frappe.get_all(
+		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
+	)
+	return dts + custom_dts

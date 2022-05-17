@@ -440,6 +440,36 @@ class TestCommands(BaseTestCommands):
 		archive_directory = os.path.join(bench_path, f"archived/sites/{site}")
 		self.assertTrue(os.path.exists(archive_directory))
 
+	@skipIf(
+		not (
+			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
+		),
+		"DB Root password and Admin password not set in config",
+	)
+	def test_force_install_app(self):
+		if not os.path.exists(os.path.join(get_bench_path(), f"sites/{TEST_SITE}")):
+			self.execute(
+				f"bench new-site {TEST_SITE} --verbose "
+				f"--admin-password {frappe.conf.admin_password} "
+				f"--mariadb-root-password {frappe.conf.root_password} "
+				f"--db-type {frappe.conf.db_type or 'mariadb'} "
+			)
+
+		app_name = "frappe"
+
+		# set admin password in site_config as when frappe force installs, we don't have the conf
+		self.execute(f"bench --site {TEST_SITE} set-config admin_password {frappe.conf.admin_password}")
+
+		# try installing the frappe_docs app again on test site
+		self.execute(f"bench --site {TEST_SITE} install-app {app_name}")
+		self.assertIn(f"{app_name} already installed", self.stdout)
+		self.assertEqual(self.returncode, 0)
+
+		# force install frappe_docs app on the test site
+		self.execute(f"bench --site {TEST_SITE} install-app {app_name} --force")
+		self.assertIn(f"Installing {app_name}", self.stdout)
+		self.assertEqual(self.returncode, 0)
+
 
 class TestBackups(BaseTestCommands):
 	backup_map = {

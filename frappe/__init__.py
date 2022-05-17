@@ -25,7 +25,7 @@ import importlib
 import inspect
 import json
 import sys
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
@@ -973,7 +973,7 @@ def get_precision(doctype, fieldname, currency=None, doc=None):
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
 
-def generate_hash(txt=None, length=None):
+def generate_hash(txt: Optional[str] = None, length: Optional[int] = None) -> str:
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib
 	import time
