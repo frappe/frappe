@@ -145,9 +145,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 			e.preventDefault();
 		});
-<<<<<<< HEAD
-	},
-=======
 
 		// font size dropdown
 		let $font_size_label = this.$wrapper.find('.ql-size .ql-picker-label:first');
@@ -157,8 +154,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			$font_size_label.attr('data-value', '---');
 			$default_font_size.attr('data-value', '---');
 		}
-	}
->>>>>>> fcfb5ca901 (feat: Add font sizes dropdown in text editor(quill) (#16910))
+	},
 
 	is_quill_dirty(source) {
 		if (source === 'api') return false;
