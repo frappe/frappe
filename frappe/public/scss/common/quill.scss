@@ -89,6 +89,25 @@
 	color: var(--text-light);
 }
 
+// font-size dropdown
+.ql-snow .ql-picker.ql-size {
+	width: 58px;
+
+	&.ql-expanded {
+		.ql-picker-options {
+			overflow-y: auto;
+			height: 200px;
+		}
+	}
+
+	.ql-picker-label,
+	.ql-picker-item {
+		&:before {
+			content: attr(data-value) !important;
+		}
+	}
+}
+
 .ql-snow .ql-picker-label {
 	outline: none;
 }
