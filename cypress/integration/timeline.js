@@ -57,7 +57,7 @@ context('Timeline', () => {
 		cy.click_listview_primary_button('Add Custom Submittable DocType');
 
 		//Adding a new entry for the created custom doctype
-		cy.fill_field('title', 'Test');
+		cy.fill_field('title', 'Test').wait(200);
 		cy.click_modal_primary_button('Save');
 		cy.click_modal_primary_button('Submit');
 
@@ -74,13 +74,6 @@ context('Timeline', () => {
 
 		//Deleting the document
 		cy.visit('/app/custom-submittable-doctype');
-		cy.select_listview_row_checkbox(0);
-		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
-		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
-		cy.click_modal_primary_button('Yes');
-
-		//Deleting the custom doctype
-		cy.visit('/app/doctype');
 		cy.select_listview_row_checkbox(0);
 		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
 		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();

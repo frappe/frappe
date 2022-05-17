@@ -17,7 +17,7 @@ context('Folder Navigation', () => {
 		//Adding folder (Test Folder)
 		cy.get('.menu-btn-group > .btn').click();
 		cy.get('.menu-btn-group [data-label="New Folder"]').click();
-		cy.get('form > [data-fieldname="value"]').type('Test Folder');
+		cy.fill_field('value', 'Test Folder');
 		cy.findByRole('button', {name: 'Create'}).click();   
 	});
 
@@ -32,7 +32,7 @@ context('Folder Navigation', () => {
 		//Adding folder inside the attachments folder
 		cy.get('.menu-btn-group > .btn').click();
 		cy.get('.menu-btn-group [data-label="New Folder"]').click();
-		cy.get('form > [data-fieldname="value"]').type('Test Folder');
+		cy.fill_field('value', 'Test Folder');
 		cy.findByRole('button', {name: 'Create'}).click();
 
 		//Navigating inside the added folder in the Attachments folder
@@ -53,12 +53,16 @@ context('Folder Navigation', () => {
 		cy.get('.list-row-container').eq(0).should('contain.text', '72402.jpg');
 		cy.get('.list-row-checkbox').eq(0).click();
 
+		cy.intercept({
+			method: 'POST',
+			url: 'api/method/frappe.desk.reportview.delete_items'
+		}).as('file_deleted');
+
 		//Deleting the added file from the Test folder
 		cy.findByRole('button', {name: 'Actions'}).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
-		cy.wait(700);
 		cy.findByRole('button', {name: 'Yes'}).click();
-		cy.wait(700);
+		cy.wait('@file_deleted');
 
 		//Deleting the Test Folder
 		cy.visit('/app/file/view/home/Attachments');
@@ -66,6 +70,7 @@ context('Folder Navigation', () => {
 		cy.findByRole('button', {name: 'Actions'}).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();  
 		cy.findByRole('button', {name: 'Yes'}).click();
+		cy.wait('@file_deleted');
 	});
 
 	it('Deleting Test Folder from the home', () => {
