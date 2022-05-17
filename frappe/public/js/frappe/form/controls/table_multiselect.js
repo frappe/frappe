@@ -161,4 +161,14 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 			return true;
 		};
 	}
+	get_input_value() {
+		return this.$input ? this.$input.val() : undefined;
+	}
+	update_value() {
+		let value = this.get_input_value();
+
+		if (value !== this.last_value) {
+			this.parse_validate_and_set_in_model(value);
+		}
+	}
 };
