@@ -147,6 +147,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			.html(label)
 			.click(function() {
 				me.primary_action_fulfilled = true;
+				// refresh docfields
+				me.attach_doc_and_docfields(true);
 				// get values and send it
 				// as first parameter to click callback
 				// if no values then return
