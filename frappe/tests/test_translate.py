@@ -10,7 +10,7 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
-from frappe.translate import get_language, get_parent_language
+from frappe.translate import get_language, get_parent_language, get_translation_dict_from_file
 from frappe.utils import set_request
 
 dirname = os.path.dirname(__file__)
@@ -120,6 +120,23 @@ class TestTranslate(unittest.TestCase):
 		set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
 		return_val = get_language()
 		self.assertNotIn(return_val, [third_lang, get_parent_language(third_lang)])
+
+	def test_load_all_translate_files(self):
+		"""Load all CSV files to ensure they have correct format"""
+		verify_translation_files("frappe")
+
+
+def verify_translation_files(app):
+	"""Function to verify translation file syntax in app."""
+	# Do not remove/rename this, other apps depend on it to test their translations
+
+	from pathlib import Path
+
+	translations_dir = Path(frappe.get_app_path(app)) / "translations"
+
+	for file in translations_dir.glob("*.csv"):
+		lang = file.stem  # basename of file = lang
+		get_translation_dict_from_file(file, lang, app, throw=True)
 
 
 expected_output = [
