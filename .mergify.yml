@@ -6,6 +6,7 @@ pull_request_rules:
           - author!=surajshetty3416
           - author!=gavindsouza
           - author!=deepeshgarg007
+          - author!=ankush
         - or:
           - base=version-13
           - base=version-12
@@ -13,7 +14,7 @@ pull_request_rules:
       close:
       comment:
           message: |
-            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch. 
+            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch.
             https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist#which-branch
 
   - name: Automatic merge on CI success and review
@@ -53,7 +54,7 @@ pull_request_rules:
             {{ title }} (#{{ number }})
 
             {{ body }}
-            
+
   - name: backport to develop
     conditions:
       - label="backport develop"
