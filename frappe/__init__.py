@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+<<<<<<< HEAD
 import os
 import warnings
 
@@ -19,18 +20,31 @@ if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
 
+=======
+>>>>>>> 378149375d (fix: Passing `dev server` variable to jenv globals correctly (#16843))
 import importlib
 import inspect
 import json
+import os
 import sys
+<<<<<<< HEAD
 import typing
+=======
+import warnings
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
+>>>>>>> 378149375d (fix: Passing `dev server` variable to jenv globals correctly (#16843))
 
 import click
 from past.builtins import cmp
 from six import binary_type, iteritems, string_types, text_type
 from werkzeug.local import Local, release_local
 
+<<<<<<< HEAD
 from frappe.query_builder import get_query_builder, patch_query_execute
+=======
+from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
+from frappe.utils.data import cstr, sbool
+>>>>>>> 378149375d (fix: Passing `dev server` variable to jenv globals correctly (#16843))
 
 # Local application imports
 from .exceptions import *
@@ -43,15 +57,26 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
+<<<<<<< HEAD
 # Lazy imports
 faker = lazy_import("faker")
 
 __version__ = "13.22.2"
 
+=======
+__version__ = "14.0.0-dev"
+>>>>>>> 378149375d (fix: Passing `dev server` variable to jenv globals correctly (#16843))
 __title__ = "Frappe Framework"
 
-local = Local()
 controllers = {}
+local = Local()
+STANDARD_USERS = ("Guest", "Administrator")
+
+_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+
+if _dev_server:
+	warnings.simplefilter("always", DeprecationWarning)
+	warnings.simplefilter("always", PendingDeprecationWarning)
 
 
 class _dict(dict):
