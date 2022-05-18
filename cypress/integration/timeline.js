@@ -57,7 +57,7 @@ context('Timeline', () => {
 		cy.click_listview_primary_button('Add Custom Submittable DocType');
 
 		//Adding a new entry for the created custom doctype
-		cy.fill_field('title', 'Test').wait(300);
+		cy.fill_field('title', 'Test');
 		cy.click_modal_primary_button('Save');
 		cy.click_modal_primary_button('Submit');
 
