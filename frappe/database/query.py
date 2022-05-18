@@ -85,6 +85,11 @@ def func_between(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 	return key[slice(*value)]
 
 
+def func_is(key, value):
+	"Wrapper for IS"
+	return Field(key).isnotnull() if value.lower() == "set" else Field(key).isnull()
+
+
 def make_function(key: Any, value: Union[int, str]):
 	"""returns fucntion query
 
@@ -135,6 +140,7 @@ OPERATOR_MAP = {
 	"not like": not_like,
 	"regex": func_regex,
 	"between": func_between,
+	"is": func_is,
 }
 
 
