@@ -115,7 +115,7 @@ def make_function(key: Any, value: Union[int, str]):
 	Returns:
 	        frappe.qb: frappe.qb object
 	"""
-	return OPERATOR_MAP[value[0]](key, value[1])
+	return OPERATOR_MAP[value[0].casefold()](key, value[1])
 
 
 def change_orderby(order: str):
@@ -138,7 +138,7 @@ def change_orderby(order: str):
 	return order[0], Order.desc
 
 
-OPERATOR_MAP = {
+OPERATOR_MAP: Dict[str, "function"] = {
 	"+": operator.add,
 	"=": operator.eq,
 	"-": operator.sub,
@@ -243,14 +243,14 @@ class Query:
 		if isinstance(filters, list):
 			for f in filters:
 				if not isinstance(f, (list, tuple)):
-					_operator = OPERATOR_MAP[filters[1]]
+					_operator = OPERATOR_MAP[filters[1].casefold()]
 					if not isinstance(filters[0], str):
 						conditions = make_function(filters[0], filters[2])
 						break
 					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
 					break
 				else:
-					_operator = OPERATOR_MAP[f[-2]]
+					_operator = OPERATOR_MAP[f[-2].casefold()]
 					if len(f) == 4:
 						table_object = self.get_table(f[0])
 						_field = table_object[f[1]]
