@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import frappe
 from frappe import _
+from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table
 
 
@@ -90,6 +91,20 @@ def func_is(key, value):
 	return Field(key).isnotnull() if value.lower() == "set" else Field(key).isnull()
 
 
+def func_timespan(key: Field, value: str) -> frappe.qb:
+	"""Wrapper method for `TIMESPAN`
+
+	Args:
+	        key (str): field
+	        value (str): criterion
+
+	Returns:
+	        frappe.qb: `frappe.qb object with `TIMESPAN`
+	"""
+
+	return func_between(key, get_timespan_date_range(value))
+
+
 def make_function(key: Any, value: Union[int, str]):
 	"""returns fucntion query
 
@@ -141,6 +156,7 @@ OPERATOR_MAP = {
 	"regex": func_regex,
 	"between": func_between,
 	"is": func_is,
+	"timespan": func_timespan,
 }
 
 
