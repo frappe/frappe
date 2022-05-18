@@ -17,7 +17,7 @@ context('Folder Navigation', () => {
 		//Adding folder (Test Folder)
 		cy.get('.menu-btn-group > .btn').click();
 		cy.get('.menu-btn-group [data-label="New Folder"]').click();
-		cy.fill_field('value', 'Test Folder');
+		cy.fill_field('value', 'Test Folder').wait(300);
 		cy.findByRole('button', {name: 'Create'}).click();   
 	});
 
@@ -32,7 +32,7 @@ context('Folder Navigation', () => {
 		//Adding folder inside the attachments folder
 		cy.get('.menu-btn-group > .btn').click();
 		cy.get('.menu-btn-group [data-label="New Folder"]').click();
-		cy.fill_field('value', 'Test Folder');
+		cy.fill_field('value', 'Test Folder').wait(300);
 		cy.findByRole('button', {name: 'Create'}).click();
 
 		//Navigating inside the added folder in the Attachments folder
