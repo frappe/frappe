@@ -1026,10 +1026,14 @@ class Database(object):
 			if cache_count is not None:
 				return cache_count
 		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
-		count = query.run(debug=debug)[0][0]
-		if not filters and cache:
-			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
-		return count
+		if filters:
+			count = self.sql(query, debug=debug)[0][0]
+			return count
+		else:
+			count = self.sql(query, debug=debug)[0][0]
+			if cache:
+				frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
+			return count
 
 	@staticmethod
 	def format_date(date):
