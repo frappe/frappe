@@ -269,12 +269,8 @@ class Query:
 				conditions = conditions.where(make_function(key, value))
 				continue
 			if isinstance(value, (list, tuple)):
-				if isinstance(value[1], (list, tuple)) or value[0] in list(OPERATOR_MAP.keys())[-4:]:
-					_operator = OPERATOR_MAP[value[0]]
-					conditions = conditions.where(_operator(Field(key), value[1]))
-				else:
-					_operator = OPERATOR_MAP[value[0]]
-					conditions = conditions.where(_operator(Field(key), value[1]))
+				_operator = OPERATOR_MAP[value[0].casefold()]
+				conditions = conditions.where(_operator(Field(key), value[1]))
 			else:
 				if value is not None:
 					conditions = conditions.where(_operator(Field(key), value))
