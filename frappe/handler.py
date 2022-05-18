@@ -25,6 +25,7 @@ ALLOWED_MIMETYPES = (
 	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	"application/vnd.oasis.opendocument.text",
 	"application/vnd.oasis.opendocument.spreadsheet",
+	"text/plain",
 )
 
 
@@ -202,7 +203,7 @@ def upload_file():
 	if not file_url and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
 		filetype = guess_type(filename)[0]
 		if filetype not in ALLOWED_MIMETYPES:
-			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
+			frappe.throw(_("You can only upload JPG, PNG, PDF, TXT or Microsoft documents."))
 
 	if method:
 		method = frappe.get_attr(method)
