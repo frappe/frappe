@@ -29,16 +29,14 @@ def read_csv_content_from_attached_file(doc):
 	try:
 		_file = frappe.get_doc("File", fileid)
 		fcontent = _file.get_content()
-		return read_csv_content(fcontent, frappe.form_dict.get("ignore_encoding_errors"))
+		return read_csv_content(fcontent)
 	except Exception:
 		frappe.throw(
 			_("Unable to open attached file. Did you export it as CSV?"), title=_("Invalid CSV Format")
 		)
 
 
-def read_csv_content(fcontent, ignore_encoding=False):
-	rows = []
-
+def read_csv_content(fcontent):
 	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:

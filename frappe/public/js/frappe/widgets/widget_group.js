@@ -5,6 +5,7 @@ import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
 import NewWidget from "../widgets/new_widget";
 import NumberCardWidget from "../widgets/number_card_widget";
+import QuickListWidget from "../widgets/quick_list_widget";
 
 frappe.provide("frappe.widget");
 
@@ -15,6 +16,7 @@ frappe.widget.widget_factory = {
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
 	number_card: NumberCardWidget,
+	quick_list: QuickListWidget
 };
 
 frappe.widget.make_widget = (opts) => {

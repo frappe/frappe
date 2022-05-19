@@ -1,4 +1,3 @@
-import "./lib/clusterize.min.js";
 import "./frappe/views/reports/report_factory.js";
 import "./frappe/views/reports/report_view.js";
 import "./frappe/views/reports/query_report.js";

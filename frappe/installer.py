@@ -7,6 +7,8 @@ import sys
 from collections import OrderedDict
 from typing import Dict, List, Tuple
 
+import click
+
 import frappe
 from frappe.defaults import _clear_cache
 from frappe.utils import is_git_url
@@ -80,7 +82,13 @@ def _new_site(
 	)
 
 	for app in apps_to_install:
-		install_app(app, verbose=verbose, set_as_patched=not source_sql)
+		# NOTE: not using force here for 2 reasons:
+		# 	1. It's not really needed here as we've freshly installed a new db
+		# 	2. If someone uses a sql file to do restore and that file already had
+		# 		installed_apps then it might cause problems as that sql file can be of any previous version(s)
+		# 		which might be incompatible with the current version and using force might cause problems.
+		# 		Example: the DocType DocType might not have `migration_hash` column which will cause failure in the restore.
+		install_app(app, verbose=verbose, set_as_patched=not source_sql, force=False)
 
 	os.remove(installing)
 
@@ -226,7 +234,7 @@ def parse_app_name(name: str) -> str:
 	return repo
 
 
-def install_app(name, verbose=False, set_as_patched=True):
+def install_app(name, verbose=False, set_as_patched=True, force=False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
@@ -243,7 +251,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
 			required_app = parse_app_name(app)
-			install_app(required_app, verbose=verbose)
+			install_app(required_app, verbose=verbose, force=force)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
@@ -251,8 +259,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	if name not in frappe.get_all_apps():
 		raise Exception("App not in apps.txt")
 
-	if name in installed_apps:
-		frappe.msgprint(frappe._("App {0} already installed").format(name))
+	if not force and name in installed_apps:
+		click.secho(f"App {name} already installed", fg="yellow")
 		return
 
 	print("\nInstalling {0}...".format(name))
@@ -266,9 +274,9 @@ def install_app(name, verbose=False, set_as_patched=True):
 			return
 
 	if name != "frappe":
-		add_module_defs(name)
+		add_module_defs(name, ignore_if_duplicate=force)
 
-	sync_for(name, force=True, reset_permissions=True)
+	sync_for(name, force=force, reset_permissions=True)
 
 	add_to_installed_apps(name)
 
@@ -315,7 +323,6 @@ def remove_from_installed_apps(app_name):
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
-	import click
 
 	site = frappe.local.site
 	app_hooks = frappe.get_hooks(app_name=app_name)
@@ -573,13 +580,13 @@ def make_site_dirs():
 		os.makedirs(path, exist_ok=True)
 
 
-def add_module_defs(app):
+def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
-		d.insert(ignore_permissions=True, ignore_if_duplicate=True)
+		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
 
 
 def remove_missing_apps():
@@ -752,11 +759,9 @@ def partial_restore(sql_file_path, verbose=False):
 	elif frappe.conf.db_type == "postgres":
 		import warnings
 
-		from click import style
-
 		from frappe.database.postgres.setup_db import import_db_from_sql
 
-		warn = style(
+		warn = click.style(
 			"Delete the tables you want to restore manually before attempting"
 			" partial restore operation for PostreSQL databases",
 			fg="yellow",
@@ -798,8 +803,6 @@ def validate_database_sql(path, _raise=True):
 			error_message = "Table `tabDefaultValue` not found in file."
 
 	if error_message:
-		import click
-
 		click.secho(error_message, fg="red")
 
 	if _raise and (missing_table or empty_file):
