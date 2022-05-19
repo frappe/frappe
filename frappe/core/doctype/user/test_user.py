@@ -367,7 +367,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/app")
 		self.assertEqual(
 			update_password(new_password, key="wrong_key"),
-			"The Link specified has either been used before or Invalid",
+			"The reset password link has either been used before or is invalid",
 		)
 
 		# password verification should fail with old password
@@ -439,7 +439,7 @@ class TestUser(unittest.TestCase):
 		new_password = "new_password"
 		# set the reset password expiry to 1 second
 		frappe.db.set_value(
-			"System Settings", "System Settings", "reset_password_link_expiry_seconds", 1
+			"System Settings", "System Settings", "reset_password_link_expiry_duration", 1
 		)
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
@@ -447,7 +447,7 @@ class TestUser(unittest.TestCase):
 		time.sleep(1)  # sleep for 1 sec to expire the reset link
 		self.assertEqual(
 			update_password(new_password, key=test_user.reset_password_key),
-			"The Link specified has been expired",
+			"The reset password link has been expired",
 		)
 
 

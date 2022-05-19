@@ -278,7 +278,7 @@ class User(Document):
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
-		self.db_set("last_reset_password_key_datetime", now_datetime())
+		self.db_set("last_reset_password_key_generated_on", now_datetime())
 
 		url = "/update-password?key=" + key
 		if password_expired:
@@ -784,19 +784,21 @@ def _get_user_for_update_password(key, old_password):
 	result = frappe._dict()
 	if key:
 		user = frappe.db.get_value(
-			"User", {"reset_password_key": key}, ["name", "last_reset_password_key_datetime"]
+			"User", {"reset_password_key": key}, ["name", "last_reset_password_key_generated_on"]
 		)
-		result.user, last_reset_password_key_datetime = user if user else (None, None)
+		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
-			reset_password_link_expiry = frappe.db.get_single_value(
-				"System Settings", "reset_password_link_expiry_seconds"
+			reset_password_link_expiry = cint(
+				frappe.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
 			)
-			if reset_password_link_expiry and now_datetime() > last_reset_password_key_datetime + timedelta(
-				seconds=reset_password_link_expiry
+			if (
+				reset_password_link_expiry
+				and now_datetime()
+				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
 			):
-				result.message = _("The Link specified has been expired")
+				result.message = _("The reset password link has been expired")
 		else:
-			result.message = _("The Link specified has either been used before or Invalid")
+			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:
 		# verify old password
 		frappe.local.login_manager.check_password(frappe.session.user, old_password)
