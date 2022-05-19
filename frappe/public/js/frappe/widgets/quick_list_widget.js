@@ -104,6 +104,7 @@ export default class QuickListWidget extends Widget {
 
 				if (old_filter != me.quick_list_filter) {
 					me.body.empty();
+					me.set_footer();
 					me.set_body();
 				}
 			},
@@ -191,6 +192,10 @@ export default class QuickListWidget extends Widget {
 			if (this.has_status_field) {
 				fields.push('status');
 				fields.push('docstatus');
+
+				// add workflow state field if workflow exist & is active
+				let workflow_fieldname = frappe.workflow.get_state_fieldname(this.document_type);
+				workflow_fieldname && fields.push(workflow_fieldname);
 			}
 
 			fields.push('modified');
@@ -230,18 +235,15 @@ export default class QuickListWidget extends Widget {
 	}
 
 	set_footer() {
-		if (!this.see_all_button) {
-			this.see_all_button = $(`
-				<div class="see-all btn">See all</div>
-			`).appendTo(this.footer);
+		this.footer.empty();
 
-			this.see_all_button.click(() => {
-				let filters = frappe.utils.get_filter_from_json(this.quick_list_filter);
-				if (filters) {
-					frappe.route_options = filters;
-				}
-				frappe.set_route(frappe.utils.generate_route({type: 'doctype', name: this.document_type}));
-			});
+		let filters = frappe.utils.get_filter_from_json(this.quick_list_filter);
+		if (filters) {
+			frappe.route_options = filters;
 		}
+		let route = frappe.utils.generate_route({type: 'doctype', name: this.document_type});
+		this.see_all_button = $(`
+			<a href="${route}"class="see-all btn btn-xs">View List</a>
+		`).appendTo(this.footer);
 	}
 }

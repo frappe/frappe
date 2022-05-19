@@ -59,10 +59,12 @@ $('body').on('click', 'a', function(e) {
 	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
 		// target has "/app, this is a v2 style route.
 
-		frappe.route_options = {};
-		let params = new URLSearchParams(e.currentTarget.search);
-		for (const [key, value] of params) {
-			frappe.route_options[key] = value;
+		if (e.currentTarget.search) {
+			frappe.route_options = {};
+			let params = new URLSearchParams(e.currentTarget.search);
+			for (const [key, value] of params) {
+				frappe.route_options[key] = value;
+			}
 		}
 		return override(e.currentTarget.pathname + e.currentTarget.hash);
 	}
