@@ -181,11 +181,11 @@ class Query:
 
 			warn("'filters_config' hook is not completely implemented yet in frappe.db.query engine")
 
-		for operator, function in additional_filters_config.items():
+		for _operator, function in additional_filters_config.items():
 			if callable(function):
-				all_operators.update({operator.casefold(): function})
+				all_operators.update({_operator.casefold(): function})
 			elif isinstance(function, dict):
-				all_operators[operator.casefold()] = frappe.get_attr(function.get("get_field"))()["operator"]
+				all_operators[_operator.casefold()] = frappe.get_attr(function.get("get_field"))()["operator"]
 
 		return all_operators
 
