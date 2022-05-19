@@ -116,7 +116,7 @@ jobs:
 
       - name: Run Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: cd ~/frappe-bench/ && ./env/bin/python3 ./apps/frappe/.github/helper/ci.py
+        run: cd ~/frappe-bench/sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
         env:
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
