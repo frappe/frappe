@@ -116,9 +116,11 @@ jobs:
 
       - name: Run Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --use-orchestrator --with-coverage
+        run: cd ~/frappe-bench/ && ./env/bin/python3 ./apps/frappe/.github/helper/ci.py
         env:
+          SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
+          USE_ORCHESTRATOR: 1
           ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
 
       - name: Upload coverage data
