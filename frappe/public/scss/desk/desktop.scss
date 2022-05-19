@@ -734,6 +734,27 @@ body {
 			}
 		}
 
+		&:hover {
+			.widget-head .widget-control {
+				width: auto;
+				visibility: visible;
+				opacity: 1;
+			}
+		}
+
+		.widget-head {
+			.widget-label {
+				padding-left: 6px;
+			}
+
+			.widget-control {
+				width: 0px;
+				visibility: hidden;
+				opacity: 0;
+				transition: visibility 0s, opacity 0.5s ease-in-out;
+			}
+		}
+
 		.widget-body {
 			display: flex;
 			flex-direction: column;
@@ -757,7 +778,6 @@ body {
 					display: flex;
 					flex-direction: column;
 					flex: 1;
-					margin-left: 3px;
 
 					.timestamp {
 						font-size: smaller;
@@ -770,14 +790,16 @@ body {
 
 				.right-arrow {
 					margin-left: 6px;
+					margin-right: -2px;
 				}
 			}
 		}
 
 		.widget-footer {
 			.see-all {
-				background-color: var(--btn-default-bg);
 				width: 100%;
+				text-decoration: none;
+				background-color: var(--btn-default-bg);
 
 				&:hover {
 					background-color: var(--btn-default-hover-bg);
