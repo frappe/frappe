@@ -157,58 +157,65 @@ class MariaDBDatabase(Database):
 		null_constraint = "NOT NULL" if not nullable else ""
 		return self.sql_ddl(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
 
-	# exception types
 	@staticmethod
-	def is_deadlocked(e):
-		return getattr(e, "errno", 0) == ER.LOCK_DEADLOCK
+	def is_deadlocked(e: mariadb.Error) -> bool:
+		return e.errno == ER.LOCK_DEADLOCK
 
 	@staticmethod
-	def is_timedout(e):
-		return getattr(e, "errno", 0) == ER.LOCK_WAIT_TIMEOUT
+	def is_timedout(e: mariadb.Error) -> bool:
+		return e.errno == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
-	def is_table_missing(e):
-		return getattr(e, "errno", 0) == ER.NO_SUCH_TABLE
+	def is_table_missing(e: mariadb.Error) -> bool:
+		return e.errno == ER.NO_SUCH_TABLE
 
 	@staticmethod
-	def is_missing_table(e):
+	def is_missing_table(e: mariadb.Error) -> bool:
 		return MariaDBDatabase.is_table_missing(e)
 
 	@staticmethod
-	def is_missing_column(e):
-		return getattr(e, "errno", 0) == ER.BAD_FIELD_ERROR
+	def is_missing_column(e: mariadb.Error) -> bool:
+		return e.errno == ER.BAD_FIELD_ERROR
 
 	@staticmethod
-	def is_duplicate_fieldname(e):
-		return getattr(e, "errno", 0) == ER.DUP_FIELDNAME
+	def is_duplicate_fieldname(e: mariadb.Error) -> bool:
+		return e.errno == ER.DUP_FIELDNAME
 
 	@staticmethod
-	def is_duplicate_entry(e):
-		return getattr(e, "errno", 0) == ER.DUP_ENTRY
+	def is_duplicate_entry(e: mariadb.Error) -> bool:
+		return e.errno == ER.DUP_ENTRY
 
 	@staticmethod
-	def is_access_denied(e):
-		return getattr(e, "errno", 0) == ER.ACCESS_DENIED_ERROR
+	def is_access_denied(e: mariadb.Error) -> bool:
+		return e.errno == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
-	def cant_drop_field_or_key(e):
-		return getattr(e, "errno", 0) == ER.CANT_DROP_FIELD_OR_KEY
+	def cant_drop_field_or_key(e: mariadb.Error) -> bool:
+		return e.errno == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
-	def is_syntax_error(e):
-		return getattr(e, "errno", 0) == ER.PARSE_ERROR
+	def is_syntax_error(e: mariadb.Error) -> bool:
+		return e.errno == ER.PARSE_ERROR
 
 	@staticmethod
-	def is_data_too_long(e):
-		return getattr(e, "errno", 0) == ER.DATA_TOO_LONG
+	def is_data_too_long(e: mariadb.Error) -> bool:
+		return e.errno == ER.DATA_TOO_LONG
 
 	@staticmethod
-	def is_primary_key_violation(self, e):
-		return self.is_duplicate_entry(e) and "PRIMARY" in cstr(e.args[1])
+	def is_primary_key_violation(e: mariadb.Error) -> bool:
+		return (
+			MariaDBDatabase.is_duplicate_entry(e)
+			and "PRIMARY" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
+		)
 
 	@staticmethod
-	def is_unique_key_violation(self, e):
-		return self.is_duplicate_entry(e) and "Duplicate" in cstr(e.args[1])
+	def is_unique_key_violation(e: mariadb.Error) -> bool:
+		return (
+			MariaDBDatabase.is_duplicate_entry(e)
+			and "Duplicate" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
+		)
 
 	def create_auth_table(self):
 		self.sql_ddl(
