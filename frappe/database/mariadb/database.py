@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 import mariadb
 from mariadb.constants import FIELD_TYPE
@@ -9,6 +9,19 @@ import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
+
+if TYPE_CHECKING:
+	from mariadb import ConnectionPool
+
+_SITE_POOLS: Dict[str, "ConnectionPool"] = {}
+_MAX_POOL_SIZE = 64  # max pool size supported by MariaDB client
+_POOL_SIZE = (
+	4  # selected arbitrarily to avoid overloading the server and being mindful of multitenancy
+)
+
+# init size of connection pool will be _POOL_SIZE for each site. This pool may expand up to _MAX_POOL_SIZE
+# as per requirement. This cannot be a function of @@global.max_connections, # of sites since there may be
+# multiple processes holding connections; and this defines the size for each of those processes/workers
 
 
 class MariaDBExceptionUtil:
@@ -132,6 +145,44 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 		}
 
 	def get_connection(self):
+		# get pooled connection
+		global _SITE_POOLS
+
+		if frappe.local.site not in _SITE_POOLS:
+			pool = mariadb.ConnectionPool(
+				pool_name=f"{frappe.local.site}_conn_pool",
+				pool_size=_MAX_POOL_SIZE,
+				pool_reset_connection=False,
+			)
+			pool.set_config(**self.get_connection_settings())
+
+			for _ in range(_POOL_SIZE):
+				pool.add_connection()
+
+			_SITE_POOLS[frappe.local.site] = pool
+
+		site_pool = _SITE_POOLS[frappe.local.site]
+
+		try:
+			conn = site_pool.get_connection()
+		except mariadb.PoolError:
+			# PoolError is raised when the pool is exhausted
+			conn = self.create_connection()
+			try:
+				site_pool.add_connection(conn)
+				# log this via frappe.logger & continue - site needs bigger pool...over _POOL_SIZE
+			except mariadb.PoolError:
+				# PoolError is raised when size limit is reached
+				# log this via frappe.logger & continue - site needs a much bigger pool...over _MAX_POOL_SIZE
+				pass
+
+		return conn
+
+	def create_connection(self):
+		# get new connection
+		return mariadb.connect(**self.get_connection_settings())
+
+	def get_connection_settings(self) -> Dict:
 		conn_settings = {
 			"host": self.host,
 			"user": self.user,
@@ -158,8 +209,7 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 				"ssl_key": frappe.conf.db_ssl_key,
 			}
 			conn_settings.update(ssl_params)
-
-		return mariadb.connect(**conn_settings)
+		return conn_settings
 
 	def get_database_size(self):
 		"""'Returns database size in MB"""
