@@ -183,7 +183,6 @@ class Database(object):
 
 		except Exception as e:
 			if self.is_syntax_error(e):
-				# only for mariadb
 				frappe.errprint("Syntax error in query:")
 				frappe.errprint(query)
 
