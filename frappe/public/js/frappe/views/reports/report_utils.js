@@ -1,10 +1,10 @@
 frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
-	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors, height }) {
+	make_chart_options: function (columns, raw_data, { y_fields, x_field, chart_type, colors, height }) {
 		const type = chart_type.toLowerCase();
 
-		let rows =  raw_data.result.filter(value => Object.keys(value).length);
+		let rows = raw_data.result.filter(value => Object.keys(value).length);
 
 		let labels = get_column_values(x_field);
 		let datasets = y_fields.map(y_field => ({
@@ -21,7 +21,7 @@ frappe.report_utils = {
 
 		return {
 			data: {
-				labels: labels.length? labels: null,
+				labels: labels.length ? labels : null,
 				datasets: datasets
 			},
 			truncateLegends: 1,
@@ -32,9 +32,9 @@ frappe.report_utils = {
 				shortenYAxisNumbers: 1,
 				xAxisMode: 'tick'
 			},
-			lineOpsitons: {
-				spline: 1,
-			}
+			// lineOpsitons: {
+			// 	spline: 1,
+			// }
 		};
 
 		function get_column_values(column_name) {
@@ -47,8 +47,8 @@ frappe.report_utils = {
 		}
 	},
 
-	get_field_options_from_report: function(columns, data) {
-		const rows =  data.result.filter(value => Object.keys(value).length);
+	get_field_options_from_report: function (columns, data) {
+		const rows = data.result.filter(value => Object.keys(value).length);
 		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
 
 		const indices = first_row.reduce((accumulator, current_value, current_index) => {
@@ -61,10 +61,10 @@ frappe.report_utils = {
 		function get_options(fields) {
 			return fields.map((field) => {
 				if (field.fieldname) {
-					return {label: field.label, value: field.fieldname};
+					return { label: field.label, value: field.fieldname };
 				} else {
 					field = frappe.report_utils.prepare_field_from_column(field);
-					return {label: field.label, value: field.fieldname};
+					return { label: field.label, value: field.fieldname };
 				}
 			});
 		}
@@ -81,7 +81,7 @@ frappe.report_utils = {
 		};
 	},
 
-	prepare_field_from_column: function(column) {
+	prepare_field_from_column: function (column) {
 		if (typeof column === 'string') {
 			if (column.includes(':')) {
 				let [label, fieldtype, width] = column.split(':');
@@ -109,7 +109,7 @@ frappe.report_utils = {
 		return column;
 	},
 
-	get_report_filters: function(report_name) {
+	get_report_filters: function (report_name) {
 
 		if (frappe.query_reports[report_name]) {
 			let filters = frappe.query_reports[report_name].filters;
