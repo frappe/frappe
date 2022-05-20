@@ -1041,7 +1041,7 @@ def get_additional_filter_field(additional_filters_config, f, value):
 	return f
 
 
-def get_date_range(operator, value):
+def get_date_range(operator: str, value: str):
 	timespan_map = {
 		"1 week": "week",
 		"1 month": "month",
@@ -1054,7 +1054,10 @@ def get_date_range(operator, value):
 		"next": "next",
 	}
 
-	timespan = period_map[operator] + " " + timespan_map[value] if operator != "timespan" else value
+	if operator != "timespan":
+		timespan = f"{period_map[operator]} {timespan_map[value]}"
+	else:
+		timespan = value
 
 	return get_timespan_date_range(timespan)
 

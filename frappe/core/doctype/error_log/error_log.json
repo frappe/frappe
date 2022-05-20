@@ -39,18 +39,20 @@
    "in_standard_filter": 1,
    "label": "Reference DocType",
    "options": "DocType",
+   "read_only": 1,
    "search_index": 1
   },
   {
    "fieldname": "reference_name",
    "fieldtype": "Data",
-   "label": "Reference Name"
+   "label": "Reference Name",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-warning-sign",
  "idx": 1,
  "links": [],
- "modified": "2022-04-18 17:25:47.406873",
+ "modified": "2022-05-19 05:32:16.026684",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Error Log",
