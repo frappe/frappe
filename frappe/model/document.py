@@ -763,10 +763,11 @@ class Document(BaseDocument):
 				self.check_docstatus_transition(tmp.docstatus)
 
 			if conflict:
+				# fmt: off
+				msg = _("Error: Document {2} has been modified after you have opened it ({0}, {1}). Please refresh to get the latest document")
+				# fmt: on
 				frappe.msgprint(
-					_("Error: Document has been modified after you have opened it")
-					+ (" (%s, %s). " % (modified, self.modified))
-					+ _("Please refresh to get the latest document."),
+					msg.format(modified, self.modified, self),
 					raise_exception=frappe.TimestampMismatchError,
 				)
 		else:
@@ -1420,13 +1421,40 @@ class Document(BaseDocument):
 				title=_("Document Queued"),
 			)
 
-		return enqueue(
+		job = enqueue(
 			"frappe.model.document.execute_action",
 			__doctype=self.doctype,
 			__name=self.name,
 			__action=action,
 			**kwargs,
 		)
+
+		frappe.cache().hset("document_jobs", f"{self.doctype}:{self.name}", job.id)
+		return job
+
+	@frappe.whitelist()
+	def get_queued_action(self):
+		job_id = frappe.cache().hget("document_jobs", f"{self.doctype}:{self.name}")
+		if job_id:
+			from rq.exceptions import NoSuchJobError
+			from rq.job import Job
+
+			from frappe.utils.background_jobs import get_redis_conn, redis_connection
+
+			try:
+				job = Job.fetch(job_id, connection=get_redis_conn())
+			except NoSuchJobError:
+				frappe.cache().hdel("document_jobs", f"{self.doctype}:{self.name}")
+				return
+
+			return {
+				"status": job.get_status(),
+				"created_at": job.created_at,
+				"started_at": job.started_at,
+				"ended_at": job.ended_at,
+				"worker": job.origin,
+				"kwargs": job.kwargs.get("kwargs", {}),
+			}
 
 	def lock(self, timeout=None):
 		"""Creates a lock file for the given document. If timeout is set,

@@ -130,6 +130,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
+			"queued_action": get_queued_action(doc),
 		}
 	)
 
@@ -486,6 +487,10 @@ def send_link_titles(link_titles):
 		frappe.local.response["_link_titles"] = {}
 
 	frappe.local.response["_link_titles"].update(link_titles)
+
+
+def get_queued_action(doc):
+	return doc.get_queued_action()
 
 
 def update_user_info(docinfo):

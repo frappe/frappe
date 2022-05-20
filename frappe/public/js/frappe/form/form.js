@@ -77,6 +77,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.on("hide", () => {
 			this.script_manager.trigger("on_hide");
+
+			// clear queued action interval, if any
+			this.cancel_queued_action_interval();
 		});
 
 		this.toolbar = new frappe.ui.form.Toolbar({
@@ -391,6 +394,25 @@ frappe.ui.form.Form = class FrappeForm {
 					// show print view
 					this.print_doc();
 				}
+			}
+
+			// queued action
+			this.cancel_queued_action_interval();
+			let { queued_action } = this.get_docinfo();
+			this.render_queued_action(queued_action);
+			if (queued_action && queued_action.status !== 'finished') {
+				this.queued_action_interval = setInterval(() => {
+					this.call('get_queued_action')
+						.then(r => {
+							if (r.exc_type === 'TimestampMismatchError') {
+								this.cancel_queued_action_interval()
+							} else if (r.status === 'finished') {
+								this.cancel_queued_action_interval()
+							} else {
+								this.render_queued_action(r.message)
+							}
+						});
+				}, 2000);
 			}
 
 			// set status classes
@@ -1822,6 +1844,48 @@ frappe.ui.form.Form = class FrappeForm {
 				resolve(options);
 			});
 		});
+	}
+
+	cancel_queued_action_interval() {
+		console.log('asdf')
+		if (this.queued_action_interval) {
+			console.log('canceling queued action interval');
+			clearInterval(this.queued_action_interval);
+			this.queued_action_interval = null;
+		}
+	}
+
+	render_queued_action(queued_action) {
+		console.log('render queued action');
+		let $wrapper = this.layout.wrapper.find('.queued-action-message');
+		if (!$wrapper.length) {
+			$wrapper = $('<div class="queued-action-message form-message blue">');
+			this.layout.wrapper.prepend($wrapper);
+		}
+		if (queued_action) {
+			$wrapper.show();
+			let html = `
+				<p><strong>${__('Queued Action')}</strong></p>
+				<div class="row">
+					<div class="col-md-3">
+						${__('Action: {0}', [frappe.unscrub(queued_action.kwargs.__action)])}
+					</div>
+					<div class="col-md-3">
+						${__('Status: {0}', [queued_action.status])}
+					</div>
+					<div class="col-md-3">
+						${queued_action.started_at ? __('Started At: {0}', [frappe.datetime.str_to_user(queued_action.started_at)]) : ''}
+					</div>
+					<div class="col-md-3">
+						${queued_action.ended_at ? __('Ended At: {0}', [frappe.datetime.str_to_user(queued_action.ended_at)]) : ''}
+					</div>
+				</div>
+			`;
+			$wrapper.html(html);
+		} else {
+			$wrapper.hide();
+			$wrapper.html('');
+		}
 	}
 };
 
