@@ -8,16 +8,79 @@ from pymysql.converters import escape_string
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
+from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 
 
-class MariaDBDatabase(Database):
+class MariaDBExceptionUtil:
 	ProgrammingError = mariadb.ProgrammingError
 	TableMissingError = mariadb.ProgrammingError
 	OperationalError = mariadb.OperationalError
 	InternalError = mariadb.InternalError
 	SQLError = mariadb.ProgrammingError
 	DataError = mariadb.DataError
+
+	@staticmethod
+	def is_deadlocked(e: mariadb.Error) -> bool:
+		return e.errno == ER.LOCK_DEADLOCK
+
+	@staticmethod
+	def is_timedout(e: mariadb.Error) -> bool:
+		return e.errno == ER.LOCK_WAIT_TIMEOUT
+
+	@staticmethod
+	def is_table_missing(e: mariadb.Error) -> bool:
+		return e.errno == ER.NO_SUCH_TABLE
+
+	@staticmethod
+	def is_missing_table(e: mariadb.Error) -> bool:
+		return MariaDBDatabase.is_table_missing(e)
+
+	@staticmethod
+	def is_missing_column(e: mariadb.Error) -> bool:
+		return e.errno == ER.BAD_FIELD_ERROR
+
+	@staticmethod
+	def is_duplicate_fieldname(e: mariadb.Error) -> bool:
+		return e.errno == ER.DUP_FIELDNAME
+
+	@staticmethod
+	def is_duplicate_entry(e: mariadb.Error) -> bool:
+		return e.errno == ER.DUP_ENTRY
+
+	@staticmethod
+	def is_access_denied(e: mariadb.Error) -> bool:
+		return e.errno == ER.ACCESS_DENIED_ERROR
+
+	@staticmethod
+	def cant_drop_field_or_key(e: mariadb.Error) -> bool:
+		return e.errno == ER.CANT_DROP_FIELD_OR_KEY
+
+	@staticmethod
+	def is_syntax_error(e: mariadb.Error) -> bool:
+		return e.errno == ER.PARSE_ERROR
+
+	@staticmethod
+	def is_data_too_long(e: mariadb.Error) -> bool:
+		return e.errno == ER.DATA_TOO_LONG
+
+	@staticmethod
+	def is_primary_key_violation(e: mariadb.Error) -> bool:
+		return (
+			MariaDBDatabase.is_duplicate_entry(e)
+			and "PRIMARY" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
+		)
+
+	@staticmethod
+	def is_unique_key_violation(e: mariadb.Error) -> bool:
+		return (
+			MariaDBDatabase.is_duplicate_entry(e)
+			and "Duplicate" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
+		)
+
+
+class MariaDBDatabase(Database, MariaDBExceptionUtil):
 	REGEX_CHARACTER = "regexp"
 
 	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
@@ -156,66 +219,6 @@ class MariaDBDatabase(Database):
 		table_name = get_table_name(doctype)
 		null_constraint = "NOT NULL" if not nullable else ""
 		return self.sql_ddl(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
-
-	@staticmethod
-	def is_deadlocked(e: mariadb.Error) -> bool:
-		return e.errno == ER.LOCK_DEADLOCK
-
-	@staticmethod
-	def is_timedout(e: mariadb.Error) -> bool:
-		return e.errno == ER.LOCK_WAIT_TIMEOUT
-
-	@staticmethod
-	def is_table_missing(e: mariadb.Error) -> bool:
-		return e.errno == ER.NO_SUCH_TABLE
-
-	@staticmethod
-	def is_missing_table(e: mariadb.Error) -> bool:
-		return MariaDBDatabase.is_table_missing(e)
-
-	@staticmethod
-	def is_missing_column(e: mariadb.Error) -> bool:
-		return e.errno == ER.BAD_FIELD_ERROR
-
-	@staticmethod
-	def is_duplicate_fieldname(e: mariadb.Error) -> bool:
-		return e.errno == ER.DUP_FIELDNAME
-
-	@staticmethod
-	def is_duplicate_entry(e: mariadb.Error) -> bool:
-		return e.errno == ER.DUP_ENTRY
-
-	@staticmethod
-	def is_access_denied(e: mariadb.Error) -> bool:
-		return e.errno == ER.ACCESS_DENIED_ERROR
-
-	@staticmethod
-	def cant_drop_field_or_key(e: mariadb.Error) -> bool:
-		return e.errno == ER.CANT_DROP_FIELD_OR_KEY
-
-	@staticmethod
-	def is_syntax_error(e: mariadb.Error) -> bool:
-		return e.errno == ER.PARSE_ERROR
-
-	@staticmethod
-	def is_data_too_long(e: mariadb.Error) -> bool:
-		return e.errno == ER.DATA_TOO_LONG
-
-	@staticmethod
-	def is_primary_key_violation(e: mariadb.Error) -> bool:
-		return (
-			MariaDBDatabase.is_duplicate_entry(e)
-			and "PRIMARY" in e.errmsg
-			and isinstance(e, mariadb.IntegrityError)
-		)
-
-	@staticmethod
-	def is_unique_key_violation(e: mariadb.Error) -> bool:
-		return (
-			MariaDBDatabase.is_duplicate_entry(e)
-			and "Duplicate" in e.errmsg
-			and isinstance(e, mariadb.IntegrityError)
-		)
 
 	def create_auth_table(self):
 		self.sql_ddl(
