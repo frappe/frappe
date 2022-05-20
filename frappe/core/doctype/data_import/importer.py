@@ -487,7 +487,7 @@ class ImportFile:
 	######
 
 	def read_file(self, file_path):
-		extn = file_path.split(".")[1]
+		extn = os.path.splitext(file_path)[1][1:]
 
 		file_content = None
 		with io.open(file_path, mode="rb") as f:
