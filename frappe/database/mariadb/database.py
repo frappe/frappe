@@ -362,5 +362,5 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 			db_table.sync()
 			self.begin()
 
-	def get_database_list(self, target):
-		return [d[0] for d in self.sql("SHOW DATABASES;")]
+	def get_database_list(self):
+		return self.sql("SHOW DATABASES", pluck=True)

@@ -375,8 +375,8 @@ class PostgresDatabase(Database):
 			as_dict=1,
 		)
 
-	def get_database_list(self, target):
-		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
+	def get_database_list(self):
+		return self.sql("SELECT datname FROM pg_database", pluck=True)
 
 
 def modify_query(query):
