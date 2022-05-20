@@ -414,7 +414,7 @@ frappe.ui.Page = class Page {
 			parent.parent().removeClass("hide");
 		}
 
-		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link', label);
+		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link > span', label);
 		if ($link) return $link;
 
 		let $li;
