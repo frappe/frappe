@@ -510,12 +510,10 @@ frappe.ui.Page = class Page {
 
 		if (!label || !parent) return false;
 
-		const result = $(parent).find(`${selector}:contains('${label}')`)
-			.filter(function() {
-				let item = $(this).html();
-				return $(item).attr('data-label') === label;
-			});
-		return result.length > 0 && result;
+		const item_selector = `${selector}[data-label='${encodeURIComponent(label)}']`;
+
+		const existing_items = $(parent).find(item_selector);
+		return existing_items?.length > 0;
 	}
 
 	clear_btn_group(parent) {
