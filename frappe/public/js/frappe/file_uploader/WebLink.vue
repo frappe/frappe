@@ -17,7 +17,7 @@
 			<input
 				type="text"
 				class="form-control"
-				:placeholder="__('URL Title')"
+				:placeholder="__('File Name')"
 				v-model="url_title"
 			>
 		</div>
