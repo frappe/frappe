@@ -107,14 +107,6 @@ body {
 	}
 }
 
-.divider {
-	height: 30%;
-	position: absolute;
-	top: 18px;
-	right: 0;
-	border-right: 1px solid var(--gray-400);
-}
-
 .widget {
 	@include flex(flex, null, null, column);
 	min-height: 1px;
@@ -1070,6 +1062,14 @@ body {
 				width: 100%;
 				padding-left: 0;
 				padding-right: 0;
+
+				.divider {
+					height: 30%;
+					position: absolute;
+					top: 18px;
+					right: 0;
+					border-right: 1px solid var(--gray-400);
+				}
 
 				.ce-header b {
 					font-weight: 600 !important;
