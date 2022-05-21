@@ -18,7 +18,7 @@
 				type="text"
 				class="form-control"
 				:placeholder="__('File Name')"
-				v-model="url_title"
+				v-model="file_name"
 			>
 		</div>
 	</div>
@@ -29,7 +29,7 @@ export default {
 	data() {
 		return {
 			url: '',
-			url_title: ''
+			file_name: ''
 		}
 	}
 }
