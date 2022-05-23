@@ -409,7 +409,7 @@ frappe.ui.Page = Class.extend({
 			parent.parent().removeClass("hide");
 		}
 
-		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link', label);
+		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link > span', label);
 		if ($link) return $link;
 
 		let $li;
@@ -505,6 +505,7 @@ frappe.ui.Page = Class.extend({
 
 		if (!label || !parent) return false;
 
+<<<<<<< HEAD
 		const result = $(parent).find(`${selector}:contains('${label}')`)
 			.filter(function() {
 				let item = $(this).html();
@@ -512,6 +513,13 @@ frappe.ui.Page = Class.extend({
 			});
 		return result.length > 0 && result;
 	},
+=======
+		const item_selector = `${selector}[data-label='${encodeURIComponent(label)}']`;
+
+		const existing_items = $(parent).find(item_selector);
+		return existing_items?.length > 0;
+	}
+>>>>>>> fe8520a2bd (fix: duplicate buttons on desk (#16941))
 
 	clear_btn_group: function(parent) {
 		parent.empty();
