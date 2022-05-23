@@ -82,10 +82,11 @@ class Database(object):
 		self._conn.select_db(db_name)
 
 	def get_connection(self):
-		pass
+		"""Returns a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects"""
+		raise NotImplementedError
 
 	def get_database_size(self):
-		pass
+		raise NotImplementedError
 
 	def sql(
 		self,
