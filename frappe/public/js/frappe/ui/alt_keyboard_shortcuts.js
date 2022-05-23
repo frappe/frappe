@@ -128,7 +128,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 			return !this.is_taken(letter) && is_valid_char;
 		});
 		if (!shortcut_letter) {
-			$text_el.attr('data-label', text_content);
+			$text_el.attr('data-label', encodeURIComponent(text_content));
 			return;
 		}
 		for (let key in this.shortcuts_dict) {
@@ -152,7 +152,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 	}
 
 	underline_text(shortcut) {
-		shortcut.$text_el.attr('data-label', shortcut.text);
+		shortcut.$text_el.attr('data-label', encodeURIComponent(shortcut.text));
 		let underline_el_found = false;
 		let text_html = shortcut.text.split('').map(letter => {
 			if (letter === shortcut.letter && !underline_el_found) {
