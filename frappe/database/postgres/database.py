@@ -267,17 +267,6 @@ class PostgresDatabase(Database):
 			)"""
 		)
 
-	def create_help_table(self):
-		self.sql(
-			"""CREATE TABLE "help"(
-				"path" varchar(255),
-				"content" text,
-				"title" text,
-				"intro" text,
-				"full_path" text)"""
-		)
-		self.sql("""CREATE INDEX IF NOT EXISTS "help_index" ON "help" ("path")""")
-
 	def updatedb(self, doctype, meta=None):
 		"""
 		Syncs a `DocType` to the table

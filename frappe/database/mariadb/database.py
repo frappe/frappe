@@ -354,22 +354,6 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8"""
 		)
 
-	def create_help_table(self):
-		self.sql(
-			"""create table help(
-				path varchar(255),
-				content text,
-				title text,
-				intro text,
-				full_path text,
-				fulltext(title),
-				fulltext(content),
-				index (path))
-				COLLATE=utf8mb4_unicode_ci
-				ENGINE=MyISAM
-				CHARACTER SET=utf8mb4"""
-		)
-
 	@staticmethod
 	def get_on_duplicate_update(key=None):
 		return "ON DUPLICATE key UPDATE "
