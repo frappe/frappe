@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 import mariadb
@@ -13,12 +14,11 @@ from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 if TYPE_CHECKING:
 	from mariadb import ConnectionPool
 
-_SITE_POOLS: Dict[str, "ConnectionPool"] = {}
-_MAX_POOL_SIZE = 64  # max pool size supported by MariaDB client
-_POOL_SIZE = (
-	4  # selected arbitrarily to avoid overloading the server and being mindful of multitenancy
-)
+_SITE_POOLS = defaultdict(frappe._dict)
+_MAX_POOL_SIZE = 64
+_POOL_SIZE = 4
 
+# _POOL_SIZE is selected "arbitrarily" to avoid overloading the server and being mindful of multitenancy
 # init size of connection pool will be _POOL_SIZE for each site. This pool may expand up to _MAX_POOL_SIZE
 # as per requirement. This cannot be a function of @@global.max_connections, # of sites since there may be
 # multiple processes holding connections; and this defines the size for each of those processes/workers
@@ -154,29 +154,15 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 		global _SITE_POOLS
 
 		if frappe.conf.disable_database_connection_pooling:
-			if frappe.local.site in _SITE_POOLS:
-				pool = _SITE_POOLS[frappe.local.site]
-				try:
-					pool.close()
-				except Exception:
-					pass
-				_SITE_POOLS.pop(frappe.local.site, None)
+			self.close_connection_pools()
 			return self.create_connection()
 
+		is_read_only_conn = hasattr(frappe.local, "primary_db")
+
 		if frappe.local.site not in _SITE_POOLS:
-			pool = mariadb.ConnectionPool(
-				pool_name=f"{frappe.local.site}_conn_pool",
-				pool_size=_MAX_POOL_SIZE,
-				pool_reset_connection=False,
-			)
-			pool.set_config(**self.get_connection_settings())
-
-			for _ in range(_POOL_SIZE):
-				pool.add_connection()
-
-			_SITE_POOLS[frappe.local.site] = pool
-
-		site_pool = _SITE_POOLS[frappe.local.site]
+			site_pool = self.create_connection_pool(read_only=is_read_only_conn)
+		else:
+			site_pool = self.get_connection_pool(read_only=is_read_only_conn)
 
 		try:
 			conn = site_pool.get_connection()
@@ -193,8 +179,46 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 
 		return conn
 
+	def close_connection_pools(self):
+		if frappe.local.site in _SITE_POOLS:
+			pools = _SITE_POOLS[frappe.local.site]
+			for pool in pools.values():
+				try:
+					pool.close()
+				except Exception:
+					pass
+			_SITE_POOLS.pop(frappe.local.site, None)
+
+	def get_pool_name(self, read_only=False) -> str:
+		pool_type = "read-only" if read_only else "default"
+		return f"{frappe.local.site}-{pool_type}"
+
+	def get_connection_pool(self, read_only=False) -> "ConnectionPool":
+		"""Return MariaDB connection pool object.
+
+		If `read_only` is True, return a read only pool.
+		"""
+		return _SITE_POOLS[frappe.local.site]["read_only" if read_only else "default"]
+
+	def create_connection_pool(self, read_only=False):
+		pool = mariadb.ConnectionPool(
+			pool_name=self.get_pool_name(read_only=read_only),
+			pool_size=_MAX_POOL_SIZE,
+			pool_reset_connection=False,
+		)
+		pool.set_config(**self.get_connection_settings())
+
+		for _ in range(_POOL_SIZE):
+			pool.add_connection()
+
+		if read_only:
+			_SITE_POOLS[frappe.local.site].read_only = pool
+		else:
+			_SITE_POOLS[frappe.local.site].default = pool
+
+		return pool
+
 	def create_connection(self):
-		# get new connection
 		return mariadb.connect(**self.get_connection_settings())
 
 	def get_connection_settings(self) -> Dict:
