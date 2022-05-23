@@ -505,6 +505,7 @@ frappe.ui.Page = Class.extend({
 
 		if (!label || !parent) return false;
 
+<<<<<<< HEAD
 		const result = $(parent).find(`${selector}:contains('${label}')`)
 			.filter(function() {
 				let item = $(this).html();
@@ -512,6 +513,13 @@ frappe.ui.Page = Class.extend({
 			});
 		return result.length > 0 && result;
 	},
+=======
+		const item_selector = `${selector}[data-label='${encodeURIComponent(label)}']`;
+
+		const existing_items = $(parent).find(item_selector);
+		return existing_items?.length > 0 && existing_items;
+	}
+>>>>>>> 3c6542f0d (fix: return found items from duplicate btn check)
 
 	clear_btn_group: function(parent) {
 		parent.empty();
