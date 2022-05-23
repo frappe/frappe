@@ -57,14 +57,14 @@ context('Folder Navigation', () => {
 		}).as('file_deleted');
 
 		//Deleting the added file from the Test folder
-		cy.click_action_button("Delete")
+		cy.click_action_button("Delete");
 		cy.click_modal_primary_button('Yes');
 		cy.wait('@file_deleted');
 
 		//Deleting the Test Folder
 		cy.visit('/app/file/view/home/Attachments');
 		cy.get('.list-row-checkbox').eq(0).click();
-		cy.click_action_button("Delete")
+		cy.click_action_button("Delete");
 		cy.click_modal_primary_button('Yes');
 		cy.wait('@file_deleted');
 	});
@@ -73,7 +73,7 @@ context('Folder Navigation', () => {
 	//Deleting the Test Folder added in the home directory
 		cy.visit('/app/file/view/home');
 		cy.get('.level-left > .list-subject > .file-select >.list-row-checkbox').eq(0).click({force: true, delay: 500});
-		cy.click_action_button("Delete")
+		cy.click_action_button("Delete");
 		cy.click_modal_primary_button('Yes');
 	});
 });
