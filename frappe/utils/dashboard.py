@@ -7,7 +7,7 @@ from os.path import join
 import frappe
 from frappe import _
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils import add_to_date, cint, get_link_to_form
+from frappe.utils import cint, get_link_to_form
 
 
 def cache_source(function):

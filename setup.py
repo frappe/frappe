@@ -1,9 +1,11 @@
 # imports - standard imports
-import os, shutil
+import ast
+import os
+import re
+import shutil
 from distutils.command.clean import clean as Clean
 
-from setuptools import setup, find_packages
-import re, ast
+from setuptools import find_packages, setup
 
 # get version from __version__ variable in frappe/__init__.py
 _version_re = re.compile(r"__version__\s+=\s+(.*)")

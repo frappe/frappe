@@ -5,7 +5,6 @@
 import os
 
 import frappe
-from frappe import _
 from frappe.model.document import Document
 from frappe.modules import get_module_path, scrub
 from frappe.modules.export_file import export_to_files

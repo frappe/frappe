@@ -106,7 +106,7 @@ def delete_doc(
 			):
 				try:
 					delete_controllers(name, doc.module)
-				except (FileNotFoundError, OSError, KeyError):
+				except (OSError, KeyError):
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 

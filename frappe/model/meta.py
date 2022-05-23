@@ -774,7 +774,10 @@ def trim_table(doctype, dry_run=True):
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
-	is_internal = lambda f: f not in ignore_fields and not f.startswith("_")
+
+	def is_internal(field):
+		return field not in ignore_fields and not field.startswith("_")
+
 	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 

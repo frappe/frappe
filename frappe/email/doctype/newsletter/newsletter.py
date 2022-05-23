@@ -237,7 +237,7 @@ def confirmed_unsubscribe(email, group):
 
 
 @frappe.whitelist(allow_guest=True)
-def subscribe(email, email_group=_("Website")):
+def subscribe(email, email_group=_("Website")):  # noqa
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
 
 	# build subscription confirmation URL
@@ -282,7 +282,7 @@ def subscribe(email, email_group=_("Website")):
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_subscription(email, email_group=_("Website")):
+def confirm_subscription(email, email_group=_("Website")):  # noqa
 	"""API endpoint to confirm email subscription.
 	This endpoint is called when user clicks on the link sent to their mail.
 	"""
