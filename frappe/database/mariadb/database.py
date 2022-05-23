@@ -145,8 +145,23 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 		}
 
 	def get_connection(self):
+		"""Return MariaDB connection object.
+
+		If frappe.conf.disable_database_connection_pooling is set, return a new connection
+		object and close existing pool if exists. Else, return a connection from the pool.
+		"""
 		# get pooled connection
 		global _SITE_POOLS
+
+		if frappe.conf.disable_database_connection_pooling:
+			if frappe.local.site in _SITE_POOLS:
+				pool = _SITE_POOLS[frappe.local.site]
+				try:
+					pool.close()
+				except Exception:
+					pass
+				_SITE_POOLS.pop(frappe.local.site, None)
+			return self.create_connection()
 
 		if frappe.local.site not in _SITE_POOLS:
 			pool = mariadb.ConnectionPool(
