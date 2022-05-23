@@ -21,3 +21,5 @@ sudo apt-get install libcups2-dev
 # install redis
 sudo apt-get install redis-server
 
+# install redis
+sudo apt-get install libmariadb-dev
