@@ -19,9 +19,11 @@ _MAX_POOL_SIZE = 64
 _POOL_SIZE = 4
 
 # _POOL_SIZE is selected "arbitrarily" to avoid overloading the server and being mindful of multitenancy
-# init size of connection pool will be _POOL_SIZE for each site. This pool may expand up to _MAX_POOL_SIZE
-# as per requirement. This cannot be a function of @@global.max_connections, # of sites since there may be
-# multiple processes holding connections; and this defines the size for each of those processes/workers
+# init size of connection pool will be _POOL_SIZE for each site. Replica setups will have separate pool.
+# This means each site with a replica setup can have 2 active pools of size _POOL_SIZE each. Each pool may
+# expand up to _MAX_POOL_SIZE as per requirement. This cannot be a function of @@global.max_connections,
+# no. of sites since there may be multiple processes holding connections; and this defines the size for each
+# of those processes/workers. Check MariaDBConnectionUtil for connection & pool management.
 
 
 class MariaDBExceptionUtil:
@@ -93,57 +95,7 @@ class MariaDBExceptionUtil:
 		)
 
 
-class MariaDBDatabase(Database, MariaDBExceptionUtil):
-	REGEX_CHARACTER = "regexp"
-
-	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
-	# it drops the cache and uses the next non cached value in setval query and
-	# puts that in the backup file, which will start the counter
-	# from that value when inserting any new record in the doctype.
-	# By default the cache is 1000 which will mess up the sequence when
-	# using the system after a restore.
-	# issue link: https://jira.mariadb.org/browse/MDEV-21786
-	SEQUENCE_CACHE = 50
-
-	def setup_type_map(self):
-		self.db_type = "mariadb"
-		self.type_map = {
-			"Currency": ("decimal", "21,9"),
-			"Int": ("int", "11"),
-			"Long Int": ("bigint", "20"),
-			"Float": ("decimal", "21,9"),
-			"Percent": ("decimal", "21,9"),
-			"Check": ("int", "1"),
-			"Small Text": ("text", ""),
-			"Long Text": ("longtext", ""),
-			"Code": ("longtext", ""),
-			"Text Editor": ("longtext", ""),
-			"Markdown Editor": ("longtext", ""),
-			"HTML Editor": ("longtext", ""),
-			"Date": ("date", ""),
-			"Datetime": ("datetime", "6"),
-			"Time": ("time", "6"),
-			"Text": ("text", ""),
-			"Data": ("varchar", self.VARCHAR_LEN),
-			"Link": ("varchar", self.VARCHAR_LEN),
-			"Dynamic Link": ("varchar", self.VARCHAR_LEN),
-			"Password": ("text", ""),
-			"Select": ("varchar", self.VARCHAR_LEN),
-			"Rating": ("decimal", "3,2"),
-			"Read Only": ("varchar", self.VARCHAR_LEN),
-			"Attach": ("text", ""),
-			"Attach Image": ("text", ""),
-			"Signature": ("longtext", ""),
-			"Color": ("varchar", self.VARCHAR_LEN),
-			"Barcode": ("longtext", ""),
-			"Geolocation": ("longtext", ""),
-			"Duration": ("decimal", "21,9"),
-			"Icon": ("varchar", self.VARCHAR_LEN),
-			"Phone": ("varchar", self.VARCHAR_LEN),
-			"Autocomplete": ("varchar", self.VARCHAR_LEN),
-			"JSON": ("json", ""),
-		}
-
+class MariaDBConnectionUtil:
 	def get_connection(self):
 		"""Return MariaDB connection object.
 
@@ -249,6 +201,58 @@ class MariaDBDatabase(Database, MariaDBExceptionUtil):
 			}
 			conn_settings.update(ssl_params)
 		return conn_settings
+
+
+class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
+	REGEX_CHARACTER = "regexp"
+
+	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
+	# it drops the cache and uses the next non cached value in setval query and
+	# puts that in the backup file, which will start the counter
+	# from that value when inserting any new record in the doctype.
+	# By default the cache is 1000 which will mess up the sequence when
+	# using the system after a restore.
+	# issue link: https://jira.mariadb.org/browse/MDEV-21786
+	SEQUENCE_CACHE = 50
+
+	def setup_type_map(self):
+		self.db_type = "mariadb"
+		self.type_map = {
+			"Currency": ("decimal", "21,9"),
+			"Int": ("int", "11"),
+			"Long Int": ("bigint", "20"),
+			"Float": ("decimal", "21,9"),
+			"Percent": ("decimal", "21,9"),
+			"Check": ("int", "1"),
+			"Small Text": ("text", ""),
+			"Long Text": ("longtext", ""),
+			"Code": ("longtext", ""),
+			"Text Editor": ("longtext", ""),
+			"Markdown Editor": ("longtext", ""),
+			"HTML Editor": ("longtext", ""),
+			"Date": ("date", ""),
+			"Datetime": ("datetime", "6"),
+			"Time": ("time", "6"),
+			"Text": ("text", ""),
+			"Data": ("varchar", self.VARCHAR_LEN),
+			"Link": ("varchar", self.VARCHAR_LEN),
+			"Dynamic Link": ("varchar", self.VARCHAR_LEN),
+			"Password": ("text", ""),
+			"Select": ("varchar", self.VARCHAR_LEN),
+			"Rating": ("decimal", "3,2"),
+			"Read Only": ("varchar", self.VARCHAR_LEN),
+			"Attach": ("text", ""),
+			"Attach Image": ("text", ""),
+			"Signature": ("longtext", ""),
+			"Color": ("varchar", self.VARCHAR_LEN),
+			"Barcode": ("longtext", ""),
+			"Geolocation": ("longtext", ""),
+			"Duration": ("decimal", "21,9"),
+			"Icon": ("varchar", self.VARCHAR_LEN),
+			"Phone": ("varchar", self.VARCHAR_LEN),
+			"Autocomplete": ("varchar", self.VARCHAR_LEN),
+			"JSON": ("json", ""),
+		}
 
 	def get_database_size(self):
 		"""'Returns database size in MB"""
