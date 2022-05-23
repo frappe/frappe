@@ -80,7 +80,7 @@ def return_coordinates(doctype, filters_sql):
 				"""SELECT name, latitude, longitude FROM `tab{}`  WHERE {}""".format(doctype, filters_sql),
 				as_dict=True,
 			)
-		except InternalError:
+		except frappe.db.InternalError:
 			frappe.msgprint(
 				frappe._("This Doctype does not contain latitude and longitude fields"), raise_exception=True
 			)
