@@ -102,19 +102,18 @@ class MariaDBConnectionUtil:
 		If frappe.conf.disable_database_connection_pooling is set, return a new connection
 		object and close existing pool if exists. Else, return a connection from the pool.
 		"""
-		# get pooled connection
 		global _SITE_POOLS
 
 		if frappe.conf.disable_database_connection_pooling:
 			self.close_connection_pools()
 			return self.create_connection()
 
-		is_read_only_conn = hasattr(frappe.local, "primary_db")
+		read_only = frappe.conf.read_from_replica and frappe.conf.replica_host
 
 		if frappe.local.site not in _SITE_POOLS:
-			site_pool = self.create_connection_pool(read_only=is_read_only_conn)
+			site_pool = self.create_connection_pool(read_only=read_only)
 		else:
-			site_pool = self.get_connection_pool(read_only=is_read_only_conn)
+			site_pool = self.get_connection_pool(read_only=read_only)
 
 		try:
 			conn = site_pool.get_connection()
