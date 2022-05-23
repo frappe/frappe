@@ -32,7 +32,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, now
+from frappe.utils import cint
 from frappe.website.utils import clear_cache
 
 

@@ -7,7 +7,6 @@ import importlib
 import json
 import os
 import shlex
-import shutil
 import subprocess
 import unittest
 from contextlib import contextmanager

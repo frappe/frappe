@@ -7,7 +7,6 @@ from frappe import _
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 	is_notifications_enabled,
-	set_seen_value,
 )
 from frappe.model.document import Document
 

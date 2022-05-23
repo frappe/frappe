@@ -84,7 +84,7 @@ def get_snapshot(exception, context=10):
 		# basic frame information
 		f = {"file": file, "func": func, "call": call, "lines": {}, "lnum": lnum}
 
-		def reader(lnum=[lnum]):
+		def reader(lnum=[lnum]):  # noqa
 			try:
 				return linecache.getline(file, lnum[0])
 			finally:
