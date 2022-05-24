@@ -26,6 +26,16 @@ _POOL_SIZE = 4
 # of those processes/workers. Check MariaDBConnectionUtil for connection & pool management.
 
 
+def is_connection_pooling_enabled() -> bool:
+	"""Set `frappe.DISABLE_CONNECTION_POOLING` to enable/disable connection pooling for all on current
+	process. This will override config key `disable_database_connection_pooling`. Set key
+	`disable_database_connection_pooling` in site config for persistent settings across workers."""
+
+	if frappe.DISABLE_DATABASE_POOLING is not None:
+		return not frappe.DISABLE_DATABASE_POOLING
+	return frappe.local.conf.disable_database_connection_pooling
+
+
 class MariaDBExceptionUtil:
 	ProgrammingError = mariadb.ProgrammingError
 	TableMissingError = mariadb.ProgrammingError
@@ -104,7 +114,11 @@ class MariaDBConnectionUtil:
 		"""
 		global _SITE_POOLS
 
-		if frappe.conf.disable_database_connection_pooling:
+		# don't pool root connections
+		if self.user == "root":
+			return self.create_connection()
+
+		if is_connection_pooling_enabled():
 			self.close_connection_pools()
 			return self.create_connection()
 
