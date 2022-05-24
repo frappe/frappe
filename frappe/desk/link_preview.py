@@ -1,5 +1,3 @@
-import json
-
 import frappe
 from frappe.model import no_value_fields, table_fields
 

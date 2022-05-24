@@ -654,14 +654,14 @@ class Backup:
 			print("Invalid path", self.file_path)
 			return
 		else:
-			os.rename(self.file_path, self.file_path + ".gpg")
-			file_path = self.file_path + ".gpg"
+			file_path_with_ext = self.file_path + ".gpg"
+			os.rename(self.file_path, file_path_with_ext)
 
 			cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
 			command = cmd_string.format(
 				passphrase=passphrase,
-				file_location=file_path,
-				decrypted_file=file_path.rstrip(".gpg"),
+				file_location=file_path_with_ext,
+				decrypted_file=self.file_path,
 			)
 		frappe.utils.execute_in_shell(command)
 

@@ -20,7 +20,6 @@ from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
 from frappe.model.document import Document
 from frappe.utils import (
-	cstr,
 	parse_addr,
 	split_emails,
 	strip_html,

@@ -1,13 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 from typing import TYPE_CHECKING, Dict, List
 
-from rq import Worker
-
 import frappe
-from frappe import _
 from frappe.utils import convert_utc_to_user_timezone
 from frappe.utils.background_jobs import get_queues, get_workers
 from frappe.utils.scheduler import is_scheduler_inactive

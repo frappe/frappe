@@ -41,7 +41,6 @@ from frappe.utils.file_manager import safe_b64decode
 from frappe.utils.image import optimize_image, strip_exif_data
 
 if TYPE_CHECKING:
-	from PIL.ImageFile import ImageFile
 	from requests.models import Response
 
 
