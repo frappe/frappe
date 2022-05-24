@@ -43,6 +43,7 @@
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
+  "reset_password_link_expiry_duration",
   "password_reset_limit",
   "column_break_31",
   "enable_password_policy",
@@ -495,12 +496,19 @@
    "fieldname": "disable_change_log_notification",
    "fieldtype": "Check",
    "label": "Disable Change Log Notification"
+  },
+  {
+   "default": "1200",
+   "fieldname": "reset_password_link_expiry_duration",
+   "fieldtype": "Duration",
+   "label": "Reset Password Link Expiry Duration",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-05-09 18:53:35.218721",
+ "modified": "2022-05-19 00:00:18.095269",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

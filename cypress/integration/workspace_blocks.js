@@ -71,6 +71,11 @@ context('Workspace Blocks', () => {
 			}
 		]);
 
+		cy.intercept({
+			method: 'GET',
+			url: 'api/method/frappe.desk.form.load.getdoctype'
+		}).as('get_doctype');
+
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.standard-actions .btn-secondary[data-label=Edit]').click();
 
@@ -82,6 +87,7 @@ context('Workspace Blocks', () => {
 
 		cy.fill_field('document_type', 'ToDo', 'Link').blur();
 		cy.fill_field('label', 'ToDo', 'Data').blur();
+		cy.wait('@get_doctype');
 
 		cy.get_open_dialog().find('.filter-edit-area').should('contain', 'No filters selected');
 		cy.get_open_dialog().find('.filter-area .add-filter').click();
@@ -102,7 +108,7 @@ context('Workspace Blocks', () => {
 		cy.get('@todo-quick-list').find('.quick-list-item .status').should('contain', 'Open');
 
 		// test filter-list
-		cy.get('@todo-quick-list').find('.widget-control .filter-list').click();
+		cy.get('@todo-quick-list').realHover().find('.widget-control .filter-list').click();
 
 		cy.get_open_dialog().find('select.input-with-feedback').select('Closed');
 		cy.get_open_dialog().find('.modal-header').click();
@@ -117,12 +123,12 @@ context('Workspace Blocks', () => {
 			url: 'api/method/frappe.desk.reportview.get'
 		}).as('refresh-list');
 
-		cy.get('@todo-quick-list').find('.widget-control .refresh-list').click();
+		cy.get('@todo-quick-list').realHover().find('.widget-control .refresh-list').click();
 		cy.wait('@refresh-list');
 
 
 		// test add-new
-		cy.get('@todo-quick-list').find('.widget-control .add-new').click();
+		cy.get('@todo-quick-list').realHover().find('.widget-control .add-new').click();
 		cy.url().should('include', `/todo/new-todo-1`);
 		cy.go('back');
 

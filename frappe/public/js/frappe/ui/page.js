@@ -414,7 +414,7 @@ frappe.ui.Page = class Page {
 			parent.parent().removeClass("hide");
 		}
 
-		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link', label);
+		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link > span', label);
 		if ($link) return $link;
 
 		let $li;
@@ -510,12 +510,10 @@ frappe.ui.Page = class Page {
 
 		if (!label || !parent) return false;
 
-		const result = $(parent).find(`${selector}:contains('${label}')`)
-			.filter(function() {
-				let item = $(this).html();
-				return $(item).attr('data-label') === label;
-			});
-		return result.length > 0 && result;
+		const item_selector = `${selector}[data-label='${encodeURIComponent(label)}']`;
+
+		const existing_items = $(parent).find(item_selector);
+		return existing_items?.length > 0 && existing_items;
 	}
 
 	clear_btn_group(parent) {

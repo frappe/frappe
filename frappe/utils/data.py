@@ -714,7 +714,7 @@ def get_weekday(datetime: Optional[datetime.datetime] = None) -> str:
 	return weekdays[datetime.weekday()]
 
 
-def get_timespan_date_range(timespan):
+def get_timespan_date_range(timespan: str) -> Tuple[datetime.datetime, datetime.datetime]:
 	today = nowdate()
 	date_range_map = {
 		"last week": lambda: (

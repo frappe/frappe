@@ -4,7 +4,6 @@
 import hashlib
 
 import frappe
-from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import cint, now_datetime

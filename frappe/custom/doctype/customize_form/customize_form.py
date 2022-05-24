@@ -524,7 +524,10 @@ class CustomizeForm(Document):
 		"""allow type change, if both old_type and new_type are in same field group.
 		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
 		"""
-		in_field_group = lambda group: (old_type in group) and (new_type in group)
+
+		def in_field_group(group):
+			return (old_type in group) and (new_type in group)
+
 		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 

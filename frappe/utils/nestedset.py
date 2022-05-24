@@ -15,7 +15,7 @@ from typing import Iterator
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import DocType, Order
+from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce, Max
 from frappe.query_builder.utils import DocType
 

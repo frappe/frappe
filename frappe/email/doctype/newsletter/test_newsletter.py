@@ -7,7 +7,6 @@ from typing import Union
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import frappe
-from frappe.desk.form.load import run_onload
 from frappe.email.doctype.newsletter.exceptions import (
 	NewsletterAlreadySentError,
 	NoRecipientFoundError,
