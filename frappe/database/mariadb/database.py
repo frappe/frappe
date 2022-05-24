@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 _SITE_POOLS = defaultdict(frappe._dict)
 _MAX_POOL_SIZE = 64
-_POOL_SIZE = 4
+_POOL_SIZE = 1
 
 # _POOL_SIZE is selected "arbitrarily" to avoid overloading the server and being mindful of multitenancy
 # init size of connection pool will be _POOL_SIZE for each site. Replica setups will have separate pool.
@@ -107,6 +107,11 @@ class MariaDBExceptionUtil:
 
 class MariaDBConnectionUtil:
 	def get_connection(self):
+		conn = self._get_connection()
+		conn.auto_reconnect = True
+		return conn
+
+	def _get_connection(self) -> "mariadb.Connection":
 		"""Return MariaDB connection object.
 
 		If frappe.conf.disable_database_connection_pooling is set, return a new connection
@@ -173,13 +178,13 @@ class MariaDBConnectionUtil:
 		)
 		pool.set_config(**self.get_connection_settings())
 
-		for _ in range(_POOL_SIZE):
-			pool.add_connection()
-
 		if read_only:
 			_SITE_POOLS[frappe.local.site].read_only = pool
 		else:
 			_SITE_POOLS[frappe.local.site].default = pool
+
+		for _ in range(_POOL_SIZE):
+			pool.add_connection()
 
 		return pool
 
@@ -191,13 +196,15 @@ class MariaDBConnectionUtil:
 			"host": self.host,
 			"user": self.user,
 			"password": self.password,
-			"database": self.user,
 			"converter": {
 				FIELD_TYPE.NEWDECIMAL: float,
 				FIELD_TYPE.DATETIME: get_datetime,
 				UnicodeWithAttrs: escape_string,
 			},
 		}
+
+		if self.user != "root":
+			conn_settings["database"] = self.user
 
 		if self.port:
 			conn_settings["port"] = int(self.port)
