@@ -2,6 +2,9 @@ context('Workspace Blocks', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/app');
+		return cy.window().its('frappe').then(frappe => {
+			return frappe.xcall("frappe.tests.ui_test_helpers.setup_workflow");
+		});
 	});
 
 	it('Create Test Page', () => {
@@ -10,6 +13,7 @@ context('Workspace Blocks', () => {
 			url: 'api/method/frappe.desk.doctype.workspace.workspace.new_page'
 		}).as('new_page');
 
+		cy.visit('/app/website');
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field('title', 'Test Block Page', 'Data');
@@ -48,26 +52,6 @@ context('Workspace Blocks', () => {
 				doctype: 'ToDo',
 				description: 'Quick List ToDo 4',
 				status: 'Open'
-			},
-			{
-				doctype: 'ToDo',
-				description: 'Quick List ToDo 5',
-				status: 'Closed'
-			},
-			{
-				doctype: 'ToDo',
-				description: 'Quick List ToDo 6',
-				status: 'Closed'
-			},
-			{
-				doctype: 'ToDo',
-				description: 'Quick List ToDo 7',
-				status: 'Closed'
-			},
-			{
-				doctype: 'ToDo',
-				description: 'Quick List ToDo 8',
-				status: 'Closed'
 			}
 		]);
 
@@ -92,8 +76,8 @@ context('Workspace Blocks', () => {
 		cy.get_open_dialog().find('.filter-edit-area').should('contain', 'No filters selected');
 		cy.get_open_dialog().find('.filter-area .add-filter').click();
 
-		cy.get_open_dialog().find('.fieldname-select-area input').type('Status{enter}').blur();
-		cy.get_open_dialog().find('select.input-with-feedback').select('Open');
+		cy.get_open_dialog().find('.fieldname-select-area input').type('Workflow State{enter}').blur();
+		cy.get_open_dialog().find('.filter-field .input-with-feedback').type('Pending');
 
 		cy.get_open_dialog().find('.modal-header').click();
 		cy.get_open_dialog().find('.btn-primary').click();
@@ -105,16 +89,27 @@ context('Workspace Blocks', () => {
 
 		cy.get('.ce-block .quick-list-widget-box').first().as('todo-quick-list');
 
-		cy.get('@todo-quick-list').find('.quick-list-item .status').should('contain', 'Open');
+		cy.get('@todo-quick-list').find('.quick-list-item .status').should('contain', 'Pending');
+
+		// test quick-list-item
+		cy.get('@todo-quick-list').find('.quick-list-item .title')
+			.first()
+			.invoke('attr', 'title')
+			.then(title => {
+				cy.get('@todo-quick-list').find('.quick-list-item').contains(title).click();
+				cy.get_field('description', 'Text Editor').should('contain', title);
+				cy.click_action_button('Approve');
+			});
+		cy.go('back');
 
 		// test filter-list
 		cy.get('@todo-quick-list').realHover().find('.widget-control .filter-list').click();
 
-		cy.get_open_dialog().find('select.input-with-feedback').select('Closed');
+		cy.get_open_dialog().find('.filter-field .input-with-feedback').clear().type('Approved');
 		cy.get_open_dialog().find('.modal-header').click();
 		cy.get_open_dialog().find('.btn-primary').click();
 
-		cy.get('@todo-quick-list').find('.quick-list-item .status').should('contain', 'Closed');
+		cy.get('@todo-quick-list').find('.quick-list-item .status').should('contain', 'Approved');
 
 
 		// test refresh-list
@@ -133,23 +128,12 @@ context('Workspace Blocks', () => {
 		cy.go('back');
 
 
-		// test quick-list-item
-		cy.get('@todo-quick-list').find('.quick-list-item .title')
-			.first()
-			.invoke('attr', 'title')
-			.then(title => {
-				cy.get('@todo-quick-list').find('.quick-list-item').contains(title).click();
-				cy.get_field('description', 'Text Editor').should('contain', title);
-			});
-		cy.go('back');
-
-
 		// test see-all
 		cy.get('@todo-quick-list').find('.widget-footer .see-all').click();
-
-		cy.get('.standard-filter-section select[data-fieldname="status"]')
+		cy.open_list_filter();
+		cy.get('.filter-field input[data-fieldname="workflow_state"]')
 			.invoke('val')
-			.should('eq', 'Open');
+			.should('eq', 'Pending');
 		cy.go('back');
 	});
 
