@@ -199,7 +199,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 		frappe.db.delete(doctype, {"name": name})
 	# get child tables
 	if doc:
-		tables = [d.options for d in doc.meta.get_table_fields()]
+		tables = [d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0]
 
 	else:
 
