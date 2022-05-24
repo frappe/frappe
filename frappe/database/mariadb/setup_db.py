@@ -83,9 +83,9 @@ def setup_help_database(help_db_name):
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
+	dbman.drop_database(db_name)
 	dbman.delete_user(db_name, host="%")
 	dbman.delete_user(db_name)
-	dbman.drop_database(db_name)
 
 
 def bootstrap_database(db_name, verbose, source_sql=None):
@@ -131,7 +131,7 @@ def check_database_settings():
 	else:
 		expected_variables = expected_settings_10_3_later
 
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
+	mariadb_variables = frappe._dict(frappe.db.sql("show variables"))
 	# Check each expected value vs. actuals:
 	result = True
 	for key, expected_value in expected_variables.items():
@@ -142,16 +142,19 @@ def check_database_settings():
 			)
 			result = False
 	if not result:
-		site = frappe.local.site
-		msg = (
-			"Creation of your site - {x} failed because MariaDB is not properly {sep}"
-			"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
-			"the Barracuda storage engine. {sep}{sep}"
-			"Please verify the settings above in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
-			"then run `bench new-site {x}` again.{sep2}"
-			""
-		).format(x=site, sep2="\n" * 2, sep="\n")
-		print_db_config(msg)
+		print(
+			(
+				"=" * 80 + "\n"
+				"Creation of your site - {x} failed because MariaDB is not properly {sep}"
+				"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
+				"the Barracuda storage engine. {sep}{sep}"
+				"Please verify the settings above in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
+				"then run `bench new-site {x}` again.{sep2}"
+				""
+				"=" * 80
+			).format(x=frappe.local.site, sep2="\n" * 2, sep="\n")
+		)
+
 	return result
 
 
@@ -173,9 +176,3 @@ def get_root_connection(root_login, root_password):
 		)
 
 	return frappe.local.flags.root_connection
-
-
-def print_db_config(explanation):
-	print("=" * 80)
-	print(explanation)
-	print("=" * 80)

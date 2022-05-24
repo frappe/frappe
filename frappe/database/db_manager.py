@@ -27,7 +27,7 @@ class DbManager:
 		self.db.sql(f"CREATE DATABASE `{target}`")
 
 	def drop_database(self, target):
-		self.db.sql(f"DROP DATABASE IF EXISTS `{target}`")
+		self.db.sql_ddl(f"DROP DATABASE IF EXISTS `{target}`")
 
 	def grant_all_privileges(self, target, user, host=None):
 		host = host or self.get_current_host()
