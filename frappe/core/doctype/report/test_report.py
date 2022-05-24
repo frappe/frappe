@@ -189,7 +189,7 @@ class TestReport(FrappeTestCase):
 	def test_report_custom_permissions(self):
 		frappe.set_user("test@example.com")
 		frappe.db.delete("Custom Role", {"report": "Test Custom Role Report"})
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		if not frappe.db.exists("Report", "Test Custom Role Report"):
 			report = frappe.get_doc(
 				{
@@ -206,7 +206,7 @@ class TestReport(FrappeTestCase):
 
 		self.assertEqual(report.is_permitted(), True)
 
-		custom_role = frappe.get_doc(
+		frappe.get_doc(
 			{
 				"doctype": "Custom Role",
 				"report": "Test Custom Role Report",
