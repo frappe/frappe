@@ -75,11 +75,7 @@ if __name__ == "__main__":
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 
-<<<<<<< HEAD
-	elif only_py_changed and build_type == "ui":
-=======
 	elif build_type == "ui" and only_py_changed:
->>>>>>> 909ce30f0a (ci: Skip CI label for stopping build process)
 		print("Only Python code was updated, stopping Cypress build process.")
 		sys.exit(0)
 
