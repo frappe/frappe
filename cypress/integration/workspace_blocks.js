@@ -13,6 +13,7 @@ context('Workspace Blocks', () => {
 			url: 'api/method/frappe.desk.doctype.workspace.workspace.new_page'
 		}).as('new_page');
 
+		cy.visit('/app/website');
 		cy.get('.codex-editor__redactor .ce-block');
 		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field('title', 'Test Block Page', 'Data');
