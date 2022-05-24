@@ -166,6 +166,10 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "sender",
 				options: this.user_email_accounts
 			});
+			//Preselect email senders if there is only one
+			if (this.user_email_accounts.length==1) {
+				this['sender'] = this.user_email_accounts
+			}
 		}
 
 		return fields;
