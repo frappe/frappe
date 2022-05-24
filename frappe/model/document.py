@@ -113,6 +113,7 @@ class Document(BaseDocument):
 		if kwargs:
 			# init base document
 			super(Document, self).__init__(kwargs)
+			self.init_child_tables()
 			self.init_valid_columns()
 
 		else:
@@ -150,25 +151,19 @@ class Document(BaseDocument):
 
 			super(Document, self).__init__(d)
 
-		if self.name == "DocType" and self.doctype == "DocType":
-			from frappe.model.meta import DOCTYPE_TABLE_FIELDS
-
-			table_fields = DOCTYPE_TABLE_FIELDS
-		else:
-			table_fields = self.meta.get_table_fields()
-
-		for df in table_fields:
-			children = frappe.db.get_values(
-				df.options,
-				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-				"*",
-				as_dict=True,
-				order_by="idx asc",
+		for df in self._get_table_fields():
+			children = (
+				frappe.db.get_values(
+					df.options,
+					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+					"*",
+					as_dict=True,
+					order_by="idx asc",
+				)
+				or []
 			)
-			if children:
-				self.set(df.fieldname, children)
-			else:
-				self.set(df.fieldname, [])
+
+			self.set(df.fieldname, children)
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):
@@ -528,6 +523,7 @@ class Document(BaseDocument):
 			d._validate_non_negative()
 			d._validate_length()
 			d._validate_code_fields()
+			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
@@ -896,8 +892,7 @@ class Document(BaseDocument):
 			if parenttype and df.options != parenttype:
 				continue
 
-			value = self.get(df.fieldname)
-			if isinstance(value, list):
+			if value := self.get(df.fieldname):
 				children.extend(value)
 
 		return children
@@ -989,6 +984,16 @@ class Document(BaseDocument):
 		return self.save()
 
 	@whitelist.__func__
+	def _rename(
+		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
+	):
+		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
+		from frappe.model.rename_doc import rename_doc
+
+		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)
+		self.reload()
+
+	@whitelist.__func__
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		return self._submit()
@@ -997,6 +1002,13 @@ class Document(BaseDocument):
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
+
+	@whitelist.__func__
+	def rename(
+		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
+	):
+		"""Rename the document to `name`. This transforms the current object."""
+		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
@@ -1361,6 +1373,12 @@ class Document(BaseDocument):
 			).insert(ignore_permissions=True)
 			frappe.local.flags.commit = True
 
+	def log_error(self, title=None, message=None):
+		"""Helper function to create an Error Log"""
+		return frappe.log_error(
+			message=message, title=title, reference_doctype=self.doctype, reference_name=self.name
+		)
+
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
@@ -1391,21 +1409,22 @@ class Document(BaseDocument):
 		# See: Stock Reconciliation
 		from frappe.utils.background_jobs import enqueue
 
-		if hasattr(self, "_" + action):
-			action = "_" + action
+		if hasattr(self, f"_{action}"):
+			action = f"_{action}"
 
-		if file_lock.lock_exists(self.get_signature()):
+		try:
+			self.lock()
+		except frappe.DocumentLockedError:
 			frappe.throw(
 				_("This document is currently queued for execution. Please try again"),
 				title=_("Document Queued"),
 			)
 
-		self.lock()
-		enqueue(
+		return enqueue(
 			"frappe.model.document.execute_action",
-			doctype=self.doctype,
-			name=self.name,
-			action=action,
+			__doctype=self.doctype,
+			__name=self.name,
+			__action=action,
 			**kwargs,
 		)
 
@@ -1426,10 +1445,13 @@ class Document(BaseDocument):
 			if lock_exists:
 				raise frappe.DocumentLockedError
 		file_lock.create_lock(signature)
+		frappe.local.locked_documents.append(self)
 
 	def unlock(self):
 		"""Delete the lock file for this document"""
 		file_lock.delete_lock(self.get_signature())
+		if self in frappe.local.locked_documents:
+			frappe.local.locked_documents.remove(self)
 
 	# validation helpers
 	def validate_from_to_dates(self, from_date_field, to_date_field):
@@ -1488,12 +1510,12 @@ class Document(BaseDocument):
 		return f"{doctype}({name})"
 
 
-def execute_action(doctype, name, action, **kwargs):
+def execute_action(__doctype, __name, __action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_doc(__doctype, __name)
 	doc.unlock()
 	try:
-		getattr(doc, action)(**kwargs)
+		getattr(doc, __action)(**kwargs)
 	except Exception:
 		frappe.db.rollback()
 
@@ -1504,4 +1526,4 @@ def execute_action(doctype, name, action, **kwargs):
 			msg = "<pre><code>" + frappe.get_traceback() + "</pre></code>"
 
 		doc.add_comment("Comment", _("Action Failed") + "<br><br>" + msg)
-		doc.notify_update()
+	doc.notify_update()

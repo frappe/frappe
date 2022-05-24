@@ -20,7 +20,6 @@ from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
 from frappe.model.document import Document
 from frappe.utils import (
-	cstr,
 	parse_addr,
 	split_emails,
 	strip_html,
@@ -151,8 +150,6 @@ class Communication(Document, CommunicationEmailMixin):
 
 		if not email_body:
 			return
-
-		email_body = email_body[0]
 
 		user_email_signature = (
 			frappe.db.get_value(
@@ -450,8 +447,7 @@ def get_contacts(email_strings: List[str], auto_create_contact=False) -> List[st
 				contact.insert(ignore_permissions=True)
 				contact_name = contact.name
 			except Exception:
-				traceback = frappe.get_traceback()
-				frappe.log_error(traceback)
+				contact.log_error("Unable to add contact")
 
 		if contact_name:
 			contacts.append(contact_name)

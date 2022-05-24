@@ -38,6 +38,52 @@ class TestDocType(unittest.TestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	def test_making_sequence_on_change(self):
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+		dt = new_doctype(self._testMethodName).insert(ignore_permissions=True)
+		autoname = dt.autoname
+
+		# change autoname
+		dt.autoname = "autoincrement"
+		dt.save()
+
+		# check if name type has been changed
+		self.assertEqual(
+			frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{self._testMethodName}'"""
+			)[0][0],
+			"bigint",
+		)
+
+		if frappe.db.db_type == "mariadb":
+			table_name = "information_schema.tables"
+			conditions = f"table_type = 'sequence' and table_name = '{self._testMethodName}_id_seq'"
+		else:
+			table_name = "information_schema.sequences"
+			conditions = f"sequence_name = '{self._testMethodName}_id_seq'"
+
+		# check if sequence table is created
+		self.assertTrue(
+			frappe.db.sql(
+				f"""select * from {table_name}
+				where {conditions}"""
+			)
+		)
+
+		# change the autoname/naming rule back to original
+		dt.autoname = autoname
+		dt.save()
+
+		# check if name type has changed
+		self.assertEqual(
+			frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{self._testMethodName}'"""
+			)[0][0],
+			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
+		)
+
 	def test_doctype_unique_constraint_dropped(self):
 		if frappe.db.exists("DocType", "With_Unique"):
 			frappe.delete_doc("DocType", "With_Unique")
@@ -524,18 +570,33 @@ class TestDocType(unittest.TestCase):
 		dt.delete()
 
 	def test_autoincremented_doctype_transition(self):
-		frappe.delete_doc("testy_autoinc_dt")
+		frappe.delete_doc_if_exists("DocType", "testy_autoinc_dt")
 		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)
 		dt.autoname = "hash"
+
+		dt.save(ignore_permissions=True)
+
+		dt_data = frappe.get_doc({"doctype": dt.name, "some_fieldname": "test data"}).insert(
+			ignore_permissions=True
+		)
+
+		dt.autoname = "autoincrement"
 
 		try:
 			dt.save(ignore_permissions=True)
 		except frappe.ValidationError as e:
-			self.assertEqual(e.args[0], "Cannot change to/from Autoincrement naming rule")
+			self.assertEqual(
+				e.args[0],
+				"Can only change to/from Autoincrement naming rule when there is no data in the doctype",
+			)
 		else:
-			self.fail("Shouldnt be possible to transition autoincremented doctype to any other naming rule")
+			self.fail(
+				"""Shouldn't be possible to transition to/from autoincremented doctype
+				when data is present in doctype"""
+			)
 		finally:
 			# cleanup
+			dt_data.delete(ignore_permissions=True)
 			dt.delete(ignore_permissions=True)
 
 	def test_json_field(self):

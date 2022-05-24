@@ -41,7 +41,6 @@ from frappe.utils.file_manager import safe_b64decode
 from frappe.utils.image import optimize_image, strip_exif_data
 
 if TYPE_CHECKING:
-	from PIL.ImageFile import ImageFile
 	from requests.models import Response
 
 
@@ -608,7 +607,7 @@ def on_doctype_update():
 def make_home_folder():
 	home = frappe.get_doc(
 		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
-	).insert()
+	).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc(
 		{
@@ -618,7 +617,7 @@ def make_home_folder():
 			"is_attachments_folder": 1,
 			"file_name": _("Attachments"),
 		}
-	).insert()
+	).insert(ignore_if_duplicate=True)
 
 
 @frappe.whitelist()
@@ -1043,7 +1042,7 @@ def attach_files_to_document(doc, event):
 			):
 				return
 
-			frappe.get_doc(
+			file_doc = frappe.get_doc(
 				doctype="File",
 				file_url=value,
 				attached_to_name=doc.name,
@@ -1052,4 +1051,4 @@ def attach_files_to_document(doc, event):
 				folder="Home/Attachments",
 			).insert()
 		except Exception:
-			frappe.log_error(title=_("Error Attaching File"))
+			file_doc.log_error("Error Attaching File")

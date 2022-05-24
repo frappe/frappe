@@ -856,6 +856,8 @@ def run_ui_tests(
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = f"{node_bin}/cypress"
 	plugin_path = f"{node_bin}/../cypress-file-upload"
+	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
+	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
 	testing_library_path = f"{node_bin}/../@testing-library"
 	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
 
@@ -863,6 +865,8 @@ def run_ui_tests(
 	if not (
 		os.path.exists(cypress_path)
 		and os.path.exists(plugin_path)
+		and os.path.exists(drag_drop_plugin_path)
+		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
 		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
@@ -870,7 +874,7 @@ def run_ui_tests(
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 cypress-real-events @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
 		)
 
 	# run for headless mode
@@ -1024,6 +1028,7 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 def get_version(output):
 	"""Show the versions of all the installed apps."""
 	from git import Repo
+	from git.exc import InvalidGitRepositoryError
 
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
@@ -1034,12 +1039,16 @@ def get_version(output):
 	for app in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
-		repo = Repo(frappe.get_app_path(app, ".."))
 
 		app_info = frappe._dict()
+
+		try:
+			app_info.commit = Repo(frappe.get_app_path(app, "..")).head.object.hexsha[:7]
+		except InvalidGitRepositoryError:
+			app_info.commit = ""
+
 		app_info.app = app
 		app_info.branch = get_app_branch(app)
-		app_info.commit = repo.head.object.hexsha[:7]
 		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
 		data.append(app_info)

@@ -5,7 +5,7 @@ from PyPDF2 import PdfFileWriter
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.utils.pdf import cleanup, get_pdf
+from frappe.utils.pdf import get_pdf
 
 no_cache = 1
 
@@ -92,7 +92,12 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 						pdf_options=options,
 					)
 				except Exception:
-					frappe.log_error("Permission Error on doc {} of doctype {}".format(doc_name, doctype_name))
+					frappe.log_error(
+						title="Error in Multi PDF download",
+						message="Permission Error on doc {} of doctype {}".format(doc_name, doctype_name),
+						reference_doctype=doctype_name,
+						reference_name=doc_name,
+					)
 		frappe.local.response.filename = "{}.pdf".format(name)
 
 	frappe.local.response.filecontent = read_multi_pdf(output)
@@ -160,5 +165,3 @@ def print_by_server(
 			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
-	finally:
-		return

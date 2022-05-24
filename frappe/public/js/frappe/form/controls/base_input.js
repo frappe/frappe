@@ -159,6 +159,13 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		this.$wrapper.find(".help-box").html("");
 	}
 	set_mandatory(value) {
+		// do not set has-error class on form load
+		if (this.frm && this.frm.cscript && this.frm.cscript.is_onload) return;
+
+		// do not set has-error class while dialog is rendered
+		// set has-error if dialog primary button is clicked
+		if (this.layout && this.layout.is_dialog && !this.layout.primary_action_fulfilled) return;
+
 		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
 	}
 	set_invalid () {

@@ -58,6 +58,8 @@ def get_report_doc(report_name):
 
 
 def get_report_result(report, filters):
+	res = None
+
 	if report.report_type == "Query Report":
 		res = report.execute_query_report(filters)
 
@@ -84,7 +86,7 @@ def generate_report_result(
 	res = get_report_result(report, filters) or []
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
-	columns = [get_column_as_dict(col) for col in columns]
+	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
 
 	# convert to list of dicts
@@ -314,7 +316,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 				latest_report_data = {"columns": columns, "result": data}
 		except Exception:
-			frappe.log_error(frappe.get_traceback())
+			doc.log_error("Prepared report failed")
 			frappe.delete_doc("Prepared Report", doc.name)
 			frappe.db.commit()
 			doc = None

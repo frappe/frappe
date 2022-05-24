@@ -174,6 +174,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.db.commit()
 
 	finally:
+		# background job hygiene: release file locks if unreleased
+		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
+		for doc in frappe.local.locked_documents:
+			doc.unlock()
+
 		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
@@ -222,8 +227,8 @@ def get_jobs(site=None, queue=None, key="method"):
 			# optional keyword arguments are stored in 'kwargs' of 'kwargs'
 			jobs_per_site[job.kwargs["site"]].append(job.kwargs["kwargs"][key])
 
-	for queue in get_queue_list(queue):
-		q = get_queue(queue)
+	for _queue in get_queue_list(queue):
+		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
 			if job.kwargs.get("site"):

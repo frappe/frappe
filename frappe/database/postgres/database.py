@@ -31,6 +31,12 @@ class PostgresDatabase(Database):
 	InterfaceError = psycopg2.InterfaceError
 	REGEX_CHARACTER = "~"
 
+	# NOTE; The sequence cache for postgres is per connection.
+	# Since we're opening and closing connections for every transaction this results in skipping the cache
+	# to the next non-cached value hence not using cache in postgres.
+	# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
+	SEQUENCE_CACHE = 0
+
 	def setup_type_map(self):
 		self.db_type = "postgres"
 		self.type_map = {
@@ -65,6 +71,7 @@ class PostgresDatabase(Database):
 			"Geolocation": ("text", ""),
 			"Duration": ("decimal", "21,9"),
 			"Icon": ("varchar", self.VARCHAR_LEN),
+			"Phone": ("varchar", self.VARCHAR_LEN),
 			"Autocomplete": ("varchar", self.VARCHAR_LEN),
 			"JSON": ("json", ""),
 		}
@@ -208,14 +215,19 @@ class PostgresDatabase(Database):
 		)
 
 	def change_column_type(
-		self, doctype: str, column: str, type: str, nullable: bool = False
+		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
 	) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
-		return self.sql(
+		using_cast = f'using "{column}"::{type}' if use_cast else ""
+
+		# postgres allows ddl in transactions but since we've currently made
+		# things same as mariadb (raising exception on ddl commands if the transaction has any writes),
+		# hence using sql_ddl here for committing and then moving forward.
+		return self.sql_ddl(
 			f"""ALTER TABLE "{table_name}"
-								ALTER COLUMN "{column}" TYPE {type},
-								ALTER COLUMN "{column}" {null_constraint}"""
+				ALTER COLUMN "{column}" TYPE {type} {using_cast},
+				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
 	def create_auth_table(self):
@@ -381,12 +393,10 @@ def modify_query(query):
 	# drop .0 from decimals and add quotes around them
 	#
 	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
-	# >>> re.sub(r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query)
+	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
-	query = re.sub(
-		r"([=><]+)\s*(?!\d+[a-zA-Z])(?![+-]?\d+\.\d\d+)([+-]?\d+)(\.0)?", r"\1 '\2'", query
-	)
+	query = re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	return query
 
 

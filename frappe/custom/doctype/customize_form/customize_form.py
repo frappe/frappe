@@ -12,6 +12,7 @@ import frappe.translate
 from frappe import _
 from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
+	validate_autoincrement_autoname,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -159,7 +160,9 @@ class CustomizeForm(Document):
 	def save_customization(self):
 		if not self.doc_type:
 			return
+
 		validate_series(self, self.autoname, self.doc_type)
+		validate_autoincrement_autoname(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()
@@ -521,7 +524,10 @@ class CustomizeForm(Document):
 		"""allow type change, if both old_type and new_type are in same field group.
 		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
 		"""
-		in_field_group = lambda group: (old_type in group) and (new_type in group)
+
+		def in_field_group(group):
+			return (old_type in group) and (new_type in group)
+
 		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 
@@ -571,8 +577,10 @@ doctype_properties = {
 	"email_append_to": "Check",
 	"subject_field": "Data",
 	"sender_field": "Data",
+	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
+	"translate_link_fields": "Check",
 }
 
 docfield_properties = {
@@ -596,6 +604,7 @@ docfield_properties = {
 	"in_preview": "Check",
 	"bold": "Check",
 	"no_copy": "Check",
+	"ignore_xss_filter": "Check",
 	"hidden": "Check",
 	"collapsible": "Check",
 	"collapsible_depends_on": "Data",
