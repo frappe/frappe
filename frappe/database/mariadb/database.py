@@ -36,15 +36,15 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: mariadb.Error) -> bool:
-		return e.errno == ER.LOCK_DEADLOCK
+		return getattr(e, "errno", None) == ER.LOCK_DEADLOCK
 
 	@staticmethod
 	def is_timedout(e: mariadb.Error) -> bool:
-		return e.errno == ER.LOCK_WAIT_TIMEOUT
+		return getattr(e, "errno", None) == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_table_missing(e: mariadb.Error) -> bool:
-		return e.errno == ER.NO_SUCH_TABLE
+		return getattr(e, "errno", None) == ER.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: mariadb.Error) -> bool:
@@ -52,31 +52,31 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: mariadb.Error) -> bool:
-		return e.errno == ER.BAD_FIELD_ERROR
+		return getattr(e, "errno", None) == ER.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: mariadb.Error) -> bool:
-		return e.errno == ER.DUP_FIELDNAME
+		return getattr(e, "errno", None) == ER.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: mariadb.Error) -> bool:
-		return e.errno == ER.DUP_ENTRY
+		return getattr(e, "errno", None) == ER.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: mariadb.Error) -> bool:
-		return e.errno == ER.ACCESS_DENIED_ERROR
+		return getattr(e, "errno", None) == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: mariadb.Error) -> bool:
-		return e.errno == ER.CANT_DROP_FIELD_OR_KEY
+		return getattr(e, "errno", None) == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: mariadb.Error) -> bool:
-		return e.errno == ER.PARSE_ERROR
+		return getattr(e, "errno", None) == ER.PARSE_ERROR
 
 	@staticmethod
 	def is_data_too_long(e: mariadb.Error) -> bool:
-		return e.errno == ER.DATA_TOO_LONG
+		return getattr(e, "errno", None) == ER.DATA_TOO_LONG
 
 	@staticmethod
 	def is_primary_key_violation(e: mariadb.Error) -> bool:
