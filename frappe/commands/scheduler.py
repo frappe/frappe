@@ -5,22 +5,6 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import cint
-
-
-def _is_scheduler_enabled():
-	enable_scheduler = False
-	try:
-		frappe.connect()
-		enable_scheduler = (
-			cint(frappe.db.get_single_value("System Settings", "enable_scheduler")) and True or False
-		)
-	except:
-		pass
-	finally:
-		frappe.db.close()
-
-	return enable_scheduler
 
 
 @click.command("trigger-scheduler-event", help="Trigger a scheduler event")
