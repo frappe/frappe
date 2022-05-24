@@ -46,7 +46,7 @@ from .utils.lazy_loader import lazy_import
 # Lazy imports
 faker = lazy_import("faker")
 
-__version__ = "13.28.0"
+__version__ = "13.29.2"
 
 __title__ = "Frappe Framework"
 
@@ -441,7 +441,7 @@ def msgprint(
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
 
-	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
 	if flags.print_messages and out.message:

@@ -38,7 +38,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return "(`tabWorkflow Action`.`user`='{user}')".format(user=user)
+	return "(`tabWorkflow Action`.`user`={user})".format(user=frappe.db.escape(user))
 
 
 def has_permission(doc, user):

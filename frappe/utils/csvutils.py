@@ -224,7 +224,10 @@ def get_csv_content_from_google_sheets(url):
 
 
 def validate_google_sheets_url(url):
-	if "docs.google.com/spreadsheets" not in url:
+	from urllib.parse import urlparse
+
+	u = urlparse(url)
+	if u.scheme != "https" or u.netloc != "docs.google.com" or "/spreadsheets/" not in u.path:
 		frappe.throw(
 			_('"{0}" is not a valid Google Sheets URL').format(url),
 			title=_("Invalid URL"),

@@ -313,7 +313,7 @@ def load_lang(lang, apps=None):
 	return out or {}
 
 
-def get_translation_dict_from_file(path, lang, app):
+def get_translation_dict_from_file(path, lang, app, throw=False):
 	"""load translation dict from given path"""
 	translation_map = {}
 	if os.path.exists(path):
@@ -330,7 +330,8 @@ def get_translation_dict_from_file(path, lang, app):
 					app=app, lang=lang, values=cstr(item)
 				)
 				frappe.log_error(message=msg, title="Error in translation file")
-				frappe.msgprint(msg)
+				if throw:
+					frappe.throw(msg, title="Error in translation file")
 
 	return translation_map
 
