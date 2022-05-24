@@ -123,7 +123,7 @@ class MariaDBConnectionUtil:
 		if self.user == "root":
 			return self.create_connection()
 
-		if is_connection_pooling_enabled():
+		if not is_connection_pooling_enabled():
 			self.close_connection_pools()
 			return self.create_connection()
 
