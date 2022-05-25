@@ -560,6 +560,41 @@ class TestDocType(unittest.TestCase):
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertFalse(frappe.db.table_exists("Test Virtual Doctype"))
 
+	def test_create_virtual_doctype_as_child_table(self):
+		"""Test virtual DocType as Child Table below a normal DocType."""
+		virtual_doc = new_doctype("Test Virtual DocType as Child Table")
+		virtual_doc.is_virtual = 1
+		virtual_doc.istable = 1
+		virtual_doc.insert()
+		virtual_doc.save()
+		doc = frappe.get_doc("DocType", "Test Virtual DocType as Child Table")
+
+		self.assertEqual(doc.is_virtual, 1)
+		self.assertEqual(doc.istable, 1)
+		self.assertFalse(frappe.db.table_exists("Test Virtual DocType as Child Table"))
+
+		parent_doc = new_doctype("Test Virtual DocType Parent of Virtual DocType")
+		field_1 = parent_doc.append("fields", {})
+		field_1.fieldname = "virtual_child_table"
+		field_1.fieldtype = "Table"
+		field_1.options = "Test Virtual DocType as Child Table"
+		parent_doc.insert()
+		parent_doc.save()
+
+		# create entry for parent doctype
+		parent_doc_entry = frappe.new_doc("Test Virtual DocType Parent of Virtual DocType")
+		parent_doc_entry.some_fieldname = "Test"
+		parent_doc_entry.insert()
+		parent_doc_entry.save()
+
+		# now update the new parent doc
+		parent_doc_entry.some_fieldname = "Test update"
+		parent_doc_entry.save()
+
+		# now delete the parent doc
+		parent_doc_entry.delete()
+
+
 	def test_default_fieldname(self):
 		fields = [
 			{"label": "title", "fieldname": "title", "fieldtype": "Data", "default": "{some_fieldname}"}
