@@ -75,6 +75,7 @@
    "unique": 1
   },
   {
+   "depends_on": "eval: doc.content_type !== 'Page Builder'",
    "fieldname": "slideshow",
    "fieldtype": "Link",
    "label": "Slideshow",
@@ -313,7 +314,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-09 01:45:28.548671",
+ "modified": "2022-05-24 14:12:07.015819",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

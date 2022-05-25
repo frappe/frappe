@@ -314,7 +314,7 @@ def get_names_for_mentions(search_term):
 
 
 def get_users_for_mentions():
-	return frappe.get_all(
+	return frappe.get_list(
 		"User",
 		fields=["name as id", "full_name as value"],
 		filters={
@@ -327,6 +327,6 @@ def get_users_for_mentions():
 
 
 def get_user_groups():
-	return frappe.get_all(
+	return frappe.get_list(
 		"User Group", fields=["name as id", "name as value"], update={"is_group": True}
 	)
