@@ -379,7 +379,10 @@ class Document(BaseDocument):
 			d.db_update()
 			rows.append(d.name)
 
-		if df.options in (self.flags.ignore_children_type or []) or frappe.get_meta(df.options).is_virtual == 1:
+		if (
+			df.options in (self.flags.ignore_children_type or [])
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
 			# do not delete rows for this because of flags
 			# hack for docperm :(
 			return
