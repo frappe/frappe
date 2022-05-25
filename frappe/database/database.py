@@ -1,10 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # Database Module
 # --------------------
 
 import datetime
+import json
 import random
 import re
 import string
@@ -159,24 +160,16 @@ class Database(object):
 			if debug:
 				time_start = time()
 
-			self.log_query(query, values, debug, explain)
-
 			if values != ():
-
-				# MySQL-python==1.2.5 hack!
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				self._cursor.execute(query, values)
+			self.log_query(query, values, debug, explain)
 
-				if frappe.flags.in_migrate:
-					self.log_touched_tables(query, values)
+			self._cursor.execute(query, values)
 
-			else:
-				self._cursor.execute(query)
-
-				if frappe.flags.in_migrate:
-					self.log_touched_tables(query)
+			if frappe.flags.in_migrate:
+				self.log_touched_tables(query, values)
 
 			if debug:
 				time_end = time()
@@ -184,8 +177,7 @@ class Database(object):
 
 		except Exception as e:
 			if self.is_syntax_error(e):
-				frappe.errprint("Syntax error in query:")
-				frappe.errprint(query)
+				frappe.errprint(f"Syntax error in query:\n{query}")
 
 			elif self.is_deadlocked(e):
 				raise frappe.QueryDeadlockError(e)
@@ -195,7 +187,7 @@ class Database(object):
 
 			elif frappe.conf.db_type == "postgres":
 				# TODO: added temporarily
-				print(e)
+				frappe.errprint(f"Error in query:\n{e}")
 				raise
 
 			if ignore_ddl and (
@@ -229,21 +221,23 @@ class Database(object):
 			return self._cursor.fetchall()
 
 	def log_query(self, query, values, debug, explain):
+		mogrified_query = None
+
 		# for debugging in tests
 		if frappe.conf.get("allow_tests") and frappe.cache().get_value("flag_print_sql"):
-			print(self.mogrify(query, values))
+			mogrified_query = mogrified_query or self.mogrify(query, values)
+			print(mogrified_query)
 
 		# debug
 		if debug:
 			if explain and query.strip().lower().startswith("select"):
 				self.explain_query(query, values)
-			frappe.errprint(self.mogrify(query, values))
+			mogrified_query = mogrified_query or self.mogrify(query, values)
+			frappe.errprint(mogrified_query)
 
-		# info
-		if (frappe.conf.get("logging") or False) == 2:
-			frappe.log("<<<< query")
-			frappe.log(self.mogrify(query, values))
-			frappe.log(">>>>")
+		if frappe.conf.logging == 2:
+			mogrified_query = mogrified_query or self.mogrify(query, values)
+			frappe.log(f"<<<< query\n{mogrified_query}\n>>>>")
 
 	def mogrify(self, query, values):
 		"""build the query string with values"""
@@ -252,23 +246,22 @@ class Database(object):
 		else:
 			try:
 				return self._cursor.mogrify(query, values)
-			except:  # noqa: E722
+			except BaseException:  # noqa: E722
 				return (query, values)
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
 		try:
 			frappe.errprint("--- query explain ---")
-			if values is None:
-				self._cursor.execute("explain " + query)
-			else:
-				self._cursor.execute("explain " + query, values)
-			import json
+
+			explain_query = f"EXPLAIN {query}"
+			values = values or ()
+			self._cursor.execute(explain_query, values)
 
 			frappe.errprint(json.dumps(self.fetch_as_dict(), indent=1))
 			frappe.errprint("--- query explain end ---")
-		except Exception:
-			frappe.errprint("error in query explain")
+		except Exception as e:
+			frappe.errprint(f"error in query explain: {e}")
 
 	def sql_list(self, query, values=(), debug=False, **kwargs):
 		"""Return data as list of single elements (first column).
@@ -278,7 +271,7 @@ class Database(object):
 		        # doctypes = ["DocType", "DocField", "User", ...]
 		        doctypes = frappe.db.sql_list("select name from DocType")
 		"""
-		return [r[0] for r in self.sql(query, values, **kwargs, debug=debug)]
+		return self.sql(query, values, **kwargs, debug=debug, pluck=True)
 
 	def sql_ddl(self, query, values=(), debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
@@ -1193,7 +1186,7 @@ class Database(object):
 
 	def log_touched_tables(self, query, values=None):
 		if values:
-			query = frappe.safe_decode(self._cursor.mogrify(query, values))
+			query = frappe.safe_decode(self.mogrify(query, values))
 		if query.strip().lower().split()[0] in ("insert", "delete", "update", "alter", "drop", "rename"):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
