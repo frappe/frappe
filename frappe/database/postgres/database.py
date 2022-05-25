@@ -3,7 +3,17 @@ from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
-from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
+from psycopg2.errorcodes import (
+	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
+	DEADLOCK_DETECTED,
+	DUPLICATE_COLUMN,
+	INSUFFICIENT_PRIVILEGE,
+	STRING_DATA_RIGHT_TRUNCATION,
+	UNDEFINED_COLUMN,
+	UNDEFINED_TABLE,
+	UNIQUE_VIOLATION,
+)
+from psycopg2.errors import SyntaxError
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
@@ -21,7 +31,7 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 psycopg2.extensions.register_type(DEC2FLOAT)
 
 
-class PostgresDatabase(Database):
+class PostgresExceptionUtil:
 	ProgrammingError = psycopg2.ProgrammingError
 	TableMissingError = psycopg2.ProgrammingError
 	OperationalError = psycopg2.OperationalError
@@ -29,6 +39,62 @@ class PostgresDatabase(Database):
 	SQLError = psycopg2.ProgrammingError
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
+
+	@staticmethod
+	def is_deadlocked(e):
+		return getattr(e, "pgcode", None) == DEADLOCK_DETECTED
+
+	@staticmethod
+	def is_timedout(e):
+		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
+		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+
+	@staticmethod
+	def is_syntax_error(e):
+		return isinstance(e, SyntaxError)
+
+	@staticmethod
+	def is_table_missing(e):
+		return getattr(e, "pgcode", None) == UNDEFINED_TABLE
+
+	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
+
+	@staticmethod
+	def is_missing_column(e):
+		return getattr(e, "pgcode", None) == UNDEFINED_COLUMN
+
+	@staticmethod
+	def is_access_denied(e):
+		return getattr(e, "pgcode", None) == INSUFFICIENT_PRIVILEGE
+
+	@staticmethod
+	def cant_drop_field_or_key(e):
+		return getattr(e, "pgcode", None) == CLASS_INTEGRITY_CONSTRAINT_VIOLATION
+
+	@staticmethod
+	def is_duplicate_entry(e):
+		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION
+
+	@staticmethod
+	def is_primary_key_violation(e):
+		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_pkey" in cstr(e.args[0])
+
+	@staticmethod
+	def is_unique_key_violation(e):
+		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_key" in cstr(e.args[0])
+
+	@staticmethod
+	def is_duplicate_fieldname(e):
+		return getattr(e, "pgcode", None) == DUPLICATE_COLUMN
+
+	@staticmethod
+	def is_data_too_long(e):
+		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+
+
+class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
 
 	# NOTE; The sequence cache for postgres is per connection.
@@ -148,60 +214,6 @@ class PostgresDatabase(Database):
 	@staticmethod
 	def is_type_datetime(code):
 		return code == psycopg2.DATETIME
-
-	# exception type
-	@staticmethod
-	def is_deadlocked(e):
-		return e.pgcode == "40P01"
-
-	@staticmethod
-	def is_timedout(e):
-		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
-		return isinstance(e, psycopg2.extensions.QueryCanceledError)
-
-	@staticmethod
-	def is_syntax_error(e):
-		return isinstance(e, psycopg2.errors.SyntaxError)
-
-	@staticmethod
-	def is_table_missing(e):
-		return getattr(e, "pgcode", None) == "42P01"
-
-	@staticmethod
-	def is_missing_table(e):
-		return PostgresDatabase.is_table_missing(e)
-
-	@staticmethod
-	def is_missing_column(e):
-		return getattr(e, "pgcode", None) == "42703"
-
-	@staticmethod
-	def is_access_denied(e):
-		return e.pgcode == "42501"
-
-	@staticmethod
-	def cant_drop_field_or_key(e):
-		return e.pgcode.startswith("23")
-
-	@staticmethod
-	def is_duplicate_entry(e):
-		return e.pgcode == "23505"
-
-	@staticmethod
-	def is_primary_key_violation(e):
-		return getattr(e, "pgcode", None) == "23505" and "_pkey" in cstr(e.args[0])
-
-	@staticmethod
-	def is_unique_key_violation(e):
-		return getattr(e, "pgcode", None) == "23505" and "_key" in cstr(e.args[0])
-
-	@staticmethod
-	def is_duplicate_fieldname(e):
-		return e.pgcode == "42701"
-
-	@staticmethod
-	def is_data_too_long(e):
-		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
 
 	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
 		old_name = get_table_name(old_name)
