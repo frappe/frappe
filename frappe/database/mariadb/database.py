@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
@@ -14,6 +15,7 @@ from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 if TYPE_CHECKING:
 	from mariadb import ConnectionPool
 
+_PARAM_COMP = re.compile(r"%\([\w]*\)s")
 _SITE_POOLS = defaultdict(frappe._dict)
 _MAX_POOL_SIZE = 64
 _POOL_SIZE = 1
@@ -221,6 +223,27 @@ class MariaDBConnectionUtil:
 			}
 			conn_settings.update(ssl_params)
 		return conn_settings
+
+	def _transform_query(self, query: str, values: Dict) -> str:
+		"""Converts a query with named placeholders to a query with %s and values dict to a tuple.
+
+		This is a workaround since the MariaDB Python client (1.0.11) responds inconsistently
+		depending on the substitions in the query & type of values passed.
+
+		ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-205
+		"""
+		pos_values = []
+		named_tokens = _PARAM_COMP.findall(query)
+
+		if len(named_tokens) == len(values):
+			return query, values
+
+		for token in named_tokens:
+			key = token[2:-2]
+			pos_values.append(values[key])
+			query = query.replace(token, "%s", 1)
+
+		return query, pos_values
 
 
 class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):

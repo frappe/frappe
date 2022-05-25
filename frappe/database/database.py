@@ -89,6 +89,9 @@ class Database(object):
 	def get_database_size(self):
 		raise NotImplementedError
 
+	def _transform_query(self, query, values):
+		return query, values
+
 	def sql(
 		self,
 		query,
@@ -163,6 +166,8 @@ class Database(object):
 			if values != ():
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
+
+				query, values = self._transform_query(query, values)
 
 			self.log_query(query, values, debug, explain)
 
