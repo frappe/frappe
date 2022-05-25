@@ -428,7 +428,7 @@ frappe.views.BaseList = class BaseList {
 		const filter = this.get_filters_for_args().filter(f => f[1] == fieldname)[0];
 		if (!filter) return;
 		return {
-			'like': filter[3].replace(/^%?|%$/g, ''),
+			'like': filter[3]?.replace(/^%?|%$/g, ''),
 			'not set': null
 		}[filter[2]] || filter[3];
 	}
