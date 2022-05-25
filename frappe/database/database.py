@@ -22,7 +22,7 @@ from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, getdate, now, sbool
+from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
 
 from .query import Query
 
@@ -842,13 +842,8 @@ class Database(object):
 	def touch(self, doctype, docname):
 		"""Update the modified timestamp of this document."""
 		modified = now()
-		self.sql(
-			"""update `tab{doctype}` set `modified`=%s
-			where name=%s""".format(
-				doctype=doctype
-			),
-			(modified, docname),
-		)
+		DocType = frappe.qb.DocType(doctype)
+		frappe.qb.update(DocType).set(DocType.modified, modified).where(DocType.name == docname).run()
 		return modified
 
 	@staticmethod
@@ -960,22 +955,11 @@ class Database(object):
 		return self.table_exists(doctype)
 
 	def get_tables(self, cached=True):
-		tables = frappe.cache().get_value("db_tables")
-		if not tables or not cached:
-			table_rows = self.sql(
-				"""
-				SELECT table_name
-				FROM information_schema.tables
-				WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
-			"""
-			)
-			tables = {d[0] for d in table_rows}
-			frappe.cache().set_value("db_tables", tables)
-		return tables
+		raise NotImplementedError
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
-		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
+		return frappe.get_all(doctype, limit=1, order_by=None, as_list=True)
 
 	def exists(self, dt, dn=None, cache=False):
 		"""Return the document name of a matching document, or None.
@@ -1047,28 +1031,27 @@ class Database(object):
 
 		from frappe.utils import now_datetime
 
-		return self.sql(
-			"""select count(name) from `tab{doctype}`
-			where creation >= %s""".format(
-				doctype=doctype
-			),
-			now_datetime() - relativedelta(minutes=minutes),
-		)[0][0]
+		Table = frappe.qb.DocType(doctype)
+
+		return (
+			frappe.qb.from_(Table)
+			.select(Count(Table.name))
+			.where(Table.creation >= now_datetime() - relativedelta(minutes=minutes))
+			.run()[0][0]
+		)
 
 	def get_db_table_columns(self, table) -> List[str]:
 		"""Returns list of column names from given table."""
 		columns = frappe.cache().hget("table_columns", table)
 		if columns is None:
-			columns = [
-				r[0]
-				for r in self.sql(
-					"""
-				select column_name
-				from information_schema.columns
-				where table_name = %s """,
-					table,
-				)
-			]
+			information_schema = frappe.qb.Schema("information_schema")
+
+			columns = (
+				frappe.qb.from_(information_schema.columns)
+				.select(information_schema.columns.column_name)
+				.where(information_schema.columns.table_name == table)
+				.run(pluck=True)
+			)
 
 			if columns:
 				frappe.cache().hset("table_columns", table, columns)
@@ -1087,12 +1070,19 @@ class Database(object):
 		return column in self.get_table_columns(doctype)
 
 	def get_column_type(self, doctype, column):
-		return self.sql(
-			"""SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
-			WHERE table_name = 'tab{0}' AND column_name = '{1}' """.format(
-				doctype, column
+		"""Returns column type from database."""
+		information_schema = frappe.qb.Schema("information_schema")
+		table = get_table_name(doctype)
+
+		return (
+			frappe.qb.from_(information_schema.columns)
+			.select(information_schema.columns.column_type)
+			.where(
+				(information_schema.columns.table_name == table)
+				& (information_schema.columns.column_name == column)
 			)
-		)[0][0]
+			.run(pluck=True)[0]
+		)
 
 	def has_index(self, table_name, index_name):
 		raise NotImplementedError

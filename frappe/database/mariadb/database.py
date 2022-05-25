@@ -461,3 +461,24 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
+
+	def get_tables(self, cached=True):
+		"""Returns list of tables"""
+		to_query = not cached
+
+		if cached:
+			tables = frappe.cache().get_value("db_tables")
+			to_query = not tables
+
+		if to_query:
+			information_schema = frappe.qb.Schema("information_schema")
+
+			tables = (
+				frappe.qb.from_(information_schema.tables)
+				.select(information_schema.tables.table_name)
+				.where(information_schema.tables.table_schema != "information_schema")
+				.run(pluck=True)
+			)
+			frappe.cache().set_value("db_tables", tables)
+
+		return tables
