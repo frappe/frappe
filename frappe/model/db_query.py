@@ -920,12 +920,12 @@ def cast_name(column: str) -> str:
 
 	kwargs = {"string": column, "flags": re.IGNORECASE}
 	if "cast(" not in column.lower() and "::" not in column:
-		if re.search(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", **kwargs):
+		if re.search(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", **kwargs):
 			return re.sub(
-				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\)", r"locate(\1, cast(\2 as varchar))", **kwargs
+				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", r"locate(\1, cast(\2 as varchar))", **kwargs
 			)
 
-		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*([`\"]?name[`\"]?)\s*,", **kwargs):
+		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", **kwargs):
 			func = match.groups()[0]
 			return re.sub(rf"{func}\(\s*([`\"]?name[`\"]?)\s*,", rf"{func}(cast(\1 as varchar),", **kwargs)
 
@@ -982,11 +982,11 @@ def is_parent_only_filter(doctype, filters):
 	only_parent_doctype = True
 
 	if isinstance(filters, list):
-		for flt in filters:
-			if doctype not in flt:
+		for filter in filters:
+			if doctype not in filter:
 				only_parent_doctype = False
-			if "Between" in flt:
-				flt[3] = get_between_date_filter(flt[3])
+			if "Between" in filter:
+				filter[3] = get_between_date_filter(flt[3])
 
 	return only_parent_doctype
 
@@ -1041,7 +1041,7 @@ def get_additional_filter_field(additional_filters_config, f, value):
 	return f
 
 
-def get_date_range(operator, value):
+def get_date_range(operator: str, value: str):
 	timespan_map = {
 		"1 week": "week",
 		"1 month": "month",
@@ -1054,7 +1054,10 @@ def get_date_range(operator, value):
 		"next": "next",
 	}
 
-	timespan = period_map[operator] + " " + timespan_map[value] if operator != "timespan" else value
+	if operator != "timespan":
+		timespan = f"{period_map[operator]} {timespan_map[value]}"
+	else:
+		timespan = value
 
 	return get_timespan_date_range(timespan)
 

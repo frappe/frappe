@@ -26,7 +26,7 @@ context('Kanban Board', () => {
 
 		cy.click_listview_primary_button('Add ToDo');
 
-		cy.fill_field('description', 'Test Kanban ToDo', 'Text Editor');
+		cy.fill_field('description', 'Test Kanban ToDo', 'Text Editor').wait(300);
 		cy.get('.modal-footer .btn-primary').last().click();
 
 		cy.wait('@save-todo');

@@ -2,7 +2,6 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import ast
 from types import FunctionType, MethodType, ModuleType
 from typing import Dict, List
 
@@ -17,6 +16,7 @@ class ServerScript(Document):
 		frappe.only_for("Script Manager", True)
 		self.sync_scheduled_jobs()
 		self.clear_scheduled_events()
+		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
 		frappe.cache().delete_value("server_script_map")
@@ -59,6 +59,15 @@ class ServerScript(Document):
 		if self.script_type == "Scheduler Event" and self.has_value_changed("event_frequency"):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
+
+	def check_if_compilable_in_restricted_context(self):
+		"""Check compilation errors and send them back as warnings."""
+		from RestrictedPython import compile_restricted
+
+		try:
+			compile_restricted(self.script)
+		except Exception as e:
+			frappe.msgprint(str(e), title=_("Compilation warning"))
 
 	def execute_method(self) -> Dict:
 		"""Specific to API endpoint Server Scripts

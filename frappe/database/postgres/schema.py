@@ -34,11 +34,7 @@ class PostgresTable(DBTable):
 			not self.meta.issingle and self.meta.autoname == "autoincrement"
 		) or self.doctype in log_types:
 
-			# The sequence cache is per connection.
-			# Since we're opening and closing connections for every transaction this results in skipping the cache
-			# to the next non-cached value hence not using cache in postgres.
-			# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
-			frappe.db.create_sequence(self.doctype, check_not_exists=True)
+			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
 			name_column = "name bigint primary key"
 
 		# TODO: set docstatus length

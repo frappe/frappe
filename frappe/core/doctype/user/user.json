@@ -43,6 +43,7 @@
   "new_password",
   "logout_all_sessions",
   "reset_password_key",
+  "last_reset_password_key_generated_on",
   "last_password_reset_date",
   "redirect_url",
   "document_follow_notifications_section",
@@ -613,6 +614,14 @@
    "label": "Module Profile",
    "options": "Module Profile"
   },
+  {
+    "description": "Stores the datetime when the last reset password key was generated.",
+    "fieldname": "last_reset_password_key_generated_on",
+    "fieldtype": "Datetime",
+    "hidden": 1,
+    "label": "Last Reset Password Key Generated On",
+    "read_only": 1
+   },
   {
    "fieldname": "column_break_75",
    "fieldtype": "Column Break"
