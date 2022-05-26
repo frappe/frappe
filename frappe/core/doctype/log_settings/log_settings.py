@@ -11,9 +11,9 @@ from frappe.model.document import Document
 
 class LogSettings(Document):
 	def clear_logs(self):
+		self.clear_email_queue()
 		self.clear_error_logs()
 		self.clear_activity_logs()
-		self.clear_email_queue()
 
 	def clear_error_logs(self):
 		frappe.db.sql(

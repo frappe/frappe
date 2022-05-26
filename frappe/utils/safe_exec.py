@@ -151,7 +151,7 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=1 if frappe._dev_server else 0,
+		dev_server=frappe.local.dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 	)

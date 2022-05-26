@@ -2214,7 +2214,7 @@
  "Singapore": {
   "code": "sg",
   "currency": "SGD",
-  "currency_fraction": "Sen",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_name": "Singapore Dollar",
   "currency_symbol": "$",

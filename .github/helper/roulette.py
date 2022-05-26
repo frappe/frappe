@@ -7,16 +7,26 @@ import sys
 import urllib.request
 
 
-def get_files_list(pr_number, repo="frappe/frappe"):
-	req = urllib.request.Request(f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files")
+def fetch_pr_data(pr_number, repo, endpoint):
+	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
+
+	if endpoint:
+		api_url += f"/{endpoint}"
+
+	req = urllib.request.Request(api_url)
 	res = urllib.request.urlopen(req)
-	dump = json.loads(res.read().decode('utf8'))
-	return [change["filename"] for change in dump]
+	return json.loads(res.read().decode('utf8'))
+
+def get_files_list(pr_number, repo="frappe/frappe"):
+	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
 
 def get_output(command, shell=True):
 	print(command)
 	command = shlex.split(command)
 	return subprocess.check_output(command, shell=shell, encoding="utf8").strip()
+
+def has_skip_ci_label(pr_number, repo="frappe/frappe"):
+	return any([label["name"] for label in fetch_pr_data(pr_number, repo, "")["labels"] if label["name"] == "Skip CI"])
 
 def is_py(file):
 	return file.endswith("py")
@@ -53,6 +63,10 @@ if __name__ == "__main__":
 	if ci_files_changed:
 		print("CI related files were updated, running all build processes.")
 
+	elif has_skip_ci_label(pr_number, repo):
+		print("Found `Skip CI` label on pr, stopping build process.")
+		sys.exit(0)
+
 	elif only_docs_changed:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
@@ -61,7 +75,7 @@ if __name__ == "__main__":
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 
-	elif only_py_changed and build_type == "ui":
+	elif build_type == "ui" and only_py_changed:
 		print("Only Python code was updated, stopping Cypress build process.")
 		sys.exit(0)
 
