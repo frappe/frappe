@@ -1,7 +1,6 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
-import unittest
 from random import choice
 from typing import Union
 from unittest.mock import MagicMock, PropertyMock, patch
@@ -17,9 +16,9 @@ from frappe.email.doctype.newsletter.newsletter import (
 	send_scheduled_email,
 )
 from frappe.email.queue import flush
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, getdate
 
-test_dependencies = ["Email Group"]
 emails = [
 	"test_subscriber1@example.com",
 	"test_subscriber2@example.com",
@@ -63,6 +62,10 @@ class TestNewsletterMixin:
 		for email in emails:
 			doctype = "Email Group Member"
 			email_filters = {"email": email, "email_group": "_Test Email Group"}
+
+			savepoint = "setup_email_group"
+			frappe.db.savepoint(savepoint)
+
 			try:
 				frappe.get_doc(
 					{
@@ -71,7 +74,10 @@ class TestNewsletterMixin:
 					}
 				).insert()
 			except Exception:
+				frappe.db.rollback(save_point=savepoint)
 				frappe.db.update(doctype, email_filters, "unsubscribed", 0)
+
+			frappe.db.release_savepoint(savepoint)
 
 	def send_newsletter(self, published=0, schedule_send=None) -> Union[str, None]:
 		frappe.db.delete("Email Queue")
@@ -127,7 +133,7 @@ class TestNewsletterMixin:
 		return newsletter
 
 
-class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
+class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 	def test_send(self):
 		self.send_newsletter()
 
