@@ -425,7 +425,7 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get("Message-ID") or "").strip(" <>")
+		self.message_id = (self.mail.get("Message-ID") or "").strip("\n\r\t <>")
 
 		if self.mail["Date"]:
 			try:
@@ -441,7 +441,7 @@ class Email:
 
 	@property
 	def in_reply_to(self):
-		return (self.mail.get("In-Reply-To") or "").strip(" <>")
+		return (self.mail.get("In-Reply-To") or "").strip("\n\r\t <>")
 
 	def parse(self):
 		"""Walk and process multi-part email."""
