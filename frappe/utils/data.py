@@ -1894,7 +1894,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 	regex = "{0}(.*){1}".format(start, end)
 	out = re.search(regex, string)
 
-	return out.group(1) if out else ""
+	return out.group(1) if out else string
 
 
 def to_markdown(html: str) -> str:
