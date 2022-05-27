@@ -270,7 +270,6 @@ frappe.views.BaseList = class BaseList {
 			doctype: this.doctype,
 			stats: this.stats,
 			parent: this.$page.find(".layout-side-section"),
-			// set_filter: this.set_filter.bind(this),
 			page: this.page,
 			list_view: this,
 		});
@@ -620,9 +619,7 @@ class FilterArea {
 			filters = [filter];
 		}
 
-		filters = filters.filter((f) => {
-			return !this.exists(f);
-		});
+		filters = filters.filter(f => !this.exists(f));
 
 		const { non_standard_filters, promise } = this.set_standard_filter(
 			filters

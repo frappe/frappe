@@ -443,16 +443,16 @@ frappe.ui.filter_utils = {
 			val = val == 'Yes' ? 1 : 0;
 		}
 
-		if (condition.indexOf('like', 'not like') !== -1) {
+		if (['like', 'not like'].includes(condition)) {
 			// automatically append wildcards
 			if (val && !(val.startsWith('%') || val.endsWith('%'))) {
 				val = '%' + val + '%';
 			}
-		} else if (in_list(['in', 'not in'], condition)) {
+		} else if (['in', 'not in'].includes(condition)) {
 			if (val) {
 				val = val.split(',').map((v) => strip(v));
 			}
-		} else if(frappe.boot.additional_filters_config[condition]) {
+		} else if (frappe.boot.additional_filters_config[condition]) {
 			val = field.value || val;
 		}
 		if (val === '%') {
