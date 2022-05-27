@@ -228,7 +228,7 @@ frappe.ui.form.Timeline = class Timeline {
 	compare_dates(b, c) {
 		let b_date = b.communication_date ? b.communication_date : b.creation;
 		let c_date = c.communication_date ? c.communication_date : c.creation;
-		let comparison = new Date(b_date) > new Date(c_date) ? -1 : 1;
+		let comparison = frappe.datetime.str_to_obj(b_date) > frappe.datetime.str_to_obj(c_date) ? -1 : 1;
 		return comparison;
 	}
 
