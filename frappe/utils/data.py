@@ -1775,15 +1775,14 @@ def strip(val, chars=None):
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
 
-def strip_whitespace(input_string):
-	import string
+def get_string_between(start, string, end):
+	if not string:
+		return ""
 
-	new_string = ""
-	for character in input_string:
-		if character not in string.whitespace:
-			new_string = new_string + character
+	regex = "{0}(.*){1}".format(start, end)
+	out = re.search(regex, string)
 
-	return new_string
+	return out.group(1) if out else ""
 
 
 def to_markdown(html):

@@ -23,11 +23,11 @@ from frappe.utils import (
 	convert_utc_to_user_timezone,
 	cstr,
 	extract_email_id,
+	get_string_between,
 	markdown,
 	now,
 	parse_addr,
 	strip,
-	strip_whitespace,
 )
 
 # fix due to a python bug in poplib that limits it to 2048
@@ -417,7 +417,7 @@ class Email:
 		self.set_from()
 
 		message_id = self.mail.get("Message-ID") or ""
-		self.message_id = strip_whitespace(message_id).strip("<>")
+		self.message_id = get_string_between("<", message_id, ">")
 
 		if self.mail["Date"]:
 			try:
