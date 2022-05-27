@@ -318,7 +318,7 @@ frappe.ui.Filter = class {
 	}
 
 	get_selected_value() {
-		return this.utils.get_selected_value(this.field, this.get_condition());
+		return this.value || this.utils.get_selected_value(this.field, this.get_condition());
 	}
 
 	get_selected_label() {
@@ -452,6 +452,8 @@ frappe.ui.filter_utils = {
 			if (val) {
 				val = val.split(',').map((v) => strip(v));
 			}
+		} else if(frappe.boot.additional_filters_config[condition]) {
+			val = field.value || val;
 		}
 		if (val === '%') {
 			val = '';
