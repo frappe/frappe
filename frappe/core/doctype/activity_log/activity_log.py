@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe import _
 from frappe.core.utils import set_timeline_doc
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval

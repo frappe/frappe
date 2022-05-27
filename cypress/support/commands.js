@@ -313,10 +313,20 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 		});
 });
 
-Cypress.Commands.add('add_filter', () => {
+Cypress.Commands.add('open_list_filter', () => {
 	cy.get('.filter-section .filter-button').click();
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
+});
+
+Cypress.Commands.add('click_action_button', (name) => {
+	cy.findByRole('button', {name: 'Actions'}).click();
+	cy.get(`.actions-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
+});
+
+Cypress.Commands.add('click_menu_button', (name) => {
+	cy.get('.standard-actions .menu-btn-group > .btn').click();
+	cy.get(`.menu-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
 });
 
 Cypress.Commands.add('clear_filters', () => {

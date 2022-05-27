@@ -1,7 +1,7 @@
 import operator
 import re
 from functools import cached_property
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import frappe
 from frappe import _
@@ -141,7 +141,7 @@ def change_orderby(order: str):
 
 
 # default operators
-OPERATOR_MAP: Dict[str, "function"] = {
+OPERATOR_MAP: Dict[str, Callable] = {
 	"+": operator.add,
 	"=": operator.eq,
 	"-": operator.sub,
