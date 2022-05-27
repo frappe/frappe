@@ -8,6 +8,7 @@ import socket
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
+from urllib.parse import quote
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
@@ -15,8 +16,16 @@ from frappe.desk.form import assign_to
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
+from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
-from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
+from frappe.utils import (
+	cint,
+	comma_or,
+	cstr,
+	get_request_site_address,
+	parse_addr,
+	validate_email_address,
+)
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.error import raise_error_on_no_output
 from frappe.utils.jinja import render_template
@@ -63,6 +72,7 @@ class EmailAccount(Document):
 
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
+
 		if self.email_id:
 			validate_email_address(self.email_id, True)
 
@@ -76,25 +86,11 @@ class EmailAccount(Document):
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
 
-		duplicate_email_account = frappe.get_all(
-			"Email Account", filters={"email_id": self.email_id, "name": ("!=", self.name)}
-		)
-		if duplicate_email_account:
-			frappe.throw(
-				_("Email ID must be unique, Email Account already exists for {0}").format(
-					frappe.bold(self.email_id)
-				)
-			)
-
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if (
-			not self.awaiting_password
-			and not frappe.local.flags.in_install
-			and not frappe.local.flags.in_patch
-		):
-			if self.password or self.smtp_server in ("127.0.0.1", "localhost"):
+		if not frappe.local.flags.in_install and (self.use_google_oauth or not self.awaiting_password):
+			if self.google_refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
@@ -103,7 +99,10 @@ class EmailAccount(Document):
 					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
-					frappe.throw(_("Password is required or select Awaiting Password"))
+					if self.use_google_oauth:
+						frappe.throw(_("Please Authorize Google by using `Authorize API access` button"))
+					else:
+						frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
@@ -208,6 +207,9 @@ class EmailAccount(Document):
 				"email_sync_rule": email_sync_rule,
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
+				"use_google_oauth": self.use_google_oauth or 0,
+				"google_refresh_token": getattr(self, "google_refresh_token", None),
+				"google_access_token": getattr(self, "google_access_token", None),
 			}
 		)
 
@@ -274,7 +276,9 @@ class EmailAccount(Document):
 
 	@property
 	def _password(self):
-		raise_exception = not (self.no_smtp_authentication or frappe.flags.in_test)
+		raise_exception = not (
+			self.use_google_oauth or self.no_smtp_authentication or frappe.flags.in_test
+		)
 		return self.get_password(raise_exception=raise_exception)
 
 	@property
@@ -405,12 +409,16 @@ class EmailAccount(Document):
 
 	def sendmail_config(self):
 		return {
+			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
 			"login": getattr(self, "login_id", None) or self.email_id,
 			"password": self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
+			"use_google_oauth": self.use_google_oauth or 0,
+			"google_refresh_token": getattr(self, "google_refresh_token", None),
+			"google_access_token": getattr(self, "google_access_token", None),
 		}
 
 	def get_smtp_server(self):
@@ -491,6 +499,7 @@ class EmailAccount(Document):
 		def process_mail(messages, append_to=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages["uid_list"][index] if messages.get("uid_list") else None
+				uid = uid.decode() if isinstance(uid, bytes) else uid
 				seen_status = messages.get("seen_status", {}).get(uid)
 				if self.email_sync_option != "UNSEEN" or seen_status != "SEEN":
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
@@ -771,14 +780,18 @@ def notify_unreplied():
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
+
 	if frappe.cache().get_value("workers:no-internet") == True:
 		if test_internet():
 			frappe.cache().set_value("workers:no-internet", False)
 		else:
 			return
+
 	queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
 	for email_account in frappe.get_list(
-		"Email Account", filters={"enable_incoming": 1, "awaiting_password": 0}
+		"Email Account",
+		filters={"enable_incoming": 1},
+		or_filters={"awaiting_password": 0, "use_google_oauth": 1},
 	):
 		if now:
 			pull_from_email_account(email_account.name)
@@ -906,3 +919,24 @@ def set_email_password(email_account, user, password):
 			return False
 
 	return True
+
+
+@frappe.whitelist(methods=["POST"])
+def authorize_google_access(email_account, reauthorize=False, code=None):
+	doctype = "Email Account"
+	refresh_token = frappe.db.get_value(doctype, email_account, "google_refresh_token")
+	oauth_obj = GoogleOAuth("mail")
+
+	if not (refresh_token or code) or reauthorize:
+		return oauth_obj.get_authentication_url(
+			get_request_site_address(True),
+			state={
+				"method": "frappe.email.doctype.email_account.email_account.authorize_google_access",
+				"redirect": "/app/Form/{0}/{1}".format(quote(doctype), quote(email_account)),
+				"email_account": email_account,
+			},
+		)
+
+	res = oauth_obj.authorize(code, get_request_site_address(True))
+	frappe.db.set_value(doctype, email_account, "google_refresh_token", res.get("refresh_token"))
+	frappe.db.set_value(doctype, email_account, "google_access_token", res.get("access_token"))

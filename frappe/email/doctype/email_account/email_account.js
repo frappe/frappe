@@ -1,6 +1,7 @@
 frappe.email_defaults = {
 	"GMail": {
 		"email_server": "imap.gmail.com",
+		"incoming_port": 993,
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.gmail.com",
@@ -140,6 +141,22 @@ frappe.ui.form.on("Email Account", {
 		if (frm.doc.service==="GMail") {
 			frm.dashboard.set_headline_alert(msg);
 		}
+	},
+
+	authorize_google_api_access: function(frm) {
+		frappe.call({
+			method: "frappe.email.doctype.email_account.email_account.authorize_google_access",
+			args: {
+				"email_account": frm.doc.name,
+				"reauthorize": frm.doc.refresh_token ? 1 : 0
+			},
+			callback: function(r) {
+				if (!r.exc) {
+					frm.save();
+					window.open(r.message.url);
+				}
+			}
+		});
 	},
 
 	email_id:function(frm) {

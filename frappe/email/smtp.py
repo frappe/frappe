@@ -5,6 +5,7 @@ import smtplib
 
 import frappe
 from frappe import _
+from frappe.email.utils import connect_google_oauth
 from frappe.utils import cint, cstr
 
 
@@ -43,13 +44,29 @@ def send(email, append_to=None, retry=1):
 
 
 class SMTPServer:
-	def __init__(self, server, login=None, password=None, port=None, use_tls=None, use_ssl=None):
+	def __init__(
+		self,
+		server,
+		login=None,
+		email_account=None,
+		password=None,
+		port=None,
+		use_tls=None,
+		use_ssl=None,
+		use_google_oauth=0,
+		google_refresh_token=None,
+		google_access_token=None,
+	):
 		self.login = login
+		self.email_account = email_account
 		self.password = password
 		self._server = server
 		self._port = port
 		self.use_tls = use_tls
 		self.use_ssl = use_ssl
+		self.use_google_oauth = use_google_oauth
+		self.google_refresh_token = google_refresh_token
+		self.google_access_token = google_access_token
 		self._session = None
 
 		if not self.server:
@@ -91,7 +108,17 @@ class SMTPServer:
 				)
 
 			self.secure_session(_session)
-			if self.login and self.password:
+
+			if self.use_google_oauth and self.google_refresh_token:
+				connect_google_oauth(
+					_session,
+					self.email_account,
+					self.login,
+					self.google_access_token,
+					self.google_refresh_token,
+				)
+
+			elif self.password:
 				res = _session.login(str(self.login or ""), str(self.password or ""))
 
 				# check if logged correctly

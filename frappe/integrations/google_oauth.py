@@ -3,7 +3,7 @@ from typing import Dict, Union
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from requests import post, get
+from requests import get, post
 
 import frappe
 
@@ -12,22 +12,30 @@ _SCOPES = {
 	"mail": ("https://mail.google.com/"),
 	"contacts": ("https://www.googleapis.com/auth/contacts"),
 	"drive": ("https://www.googleapis.com/auth/drive"),
-	"indexing": ("https://www.googleapis.com/auth/indexing")
+	"indexing": ("https://www.googleapis.com/auth/indexing"),
 }
 _SERVICES = {
 	"contacts": ("people", "v1"),
 	"drive": ("drive", "v3"),
-	"indexing": ("indexing", "v3")
+	"indexing": ("indexing", "v3"),
 }
+
+
+class GoogleAuthenticationError(Exception):
+	pass
 
 
 class GoogleOAuth:
 	OAUTH_URL = "https://oauth2.googleapis.com/token"
 
-	def __init__(self, domain: str, validate: bool=True):
+	def __init__(self, domain: str, validate: bool = True):
 		self.google_settings = frappe.get_single("Google Settings")
 		self.domain = domain.lower()
-		self.scopes = " ".join(_SCOPES[self.domain]) if isinstance(_SCOPES[self.domain], (list, tuple)) else _SCOPES[self.domain]
+		self.scopes = (
+			" ".join(_SCOPES[self.domain])
+			if isinstance(_SCOPES[self.domain], (list, tuple))
+			else _SCOPES[self.domain]
+		)
 
 		if validate:
 			self.validate_google_settings()
@@ -132,8 +140,7 @@ def handle_response(
 
 def is_valid_access_token(access_token: str) -> bool:
 	response = get(
-		"https://oauth2.googleapis.com/tokeninfo",
-		params={'access_token': access_token}
+		"https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token}
 	).json()
 
 	if "error" in response:

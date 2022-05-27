@@ -95,7 +95,6 @@ class WebsiteSettings(Document):
 		res = oauth_obj.refresh_access_token(
 			self.get_password(fieldname="indexing_refresh_token", raise_exception=False)
 		)
-		print(res)
 
 		return res.get("access_token")
 

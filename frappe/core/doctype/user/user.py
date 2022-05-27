@@ -763,19 +763,11 @@ def has_email_account(email):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
-	waiting = frappe.get_all(
+	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
 		filters={"awaiting_password": 1, "parent": user},
 	)
-	if waiting:
-		return waiting
-	else:
-		user_email_table = DocType("User Email")
-		frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(
-			user_email_table.parent == user
-		).run()
-		return False
 
 
 def ask_pass_update():
