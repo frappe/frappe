@@ -23,6 +23,23 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			this.refresh();
 			// set default
 			$.each(this.fields_list, function(i, field) {
+				if (field.df["fieldtype"] == 'Date') {
+					// set min date
+					if (field.df["minDate"]) {
+						console.log('minDate');
+						field.datepicker.update({
+							minDate: new Date(field.df["minDate"])
+						});
+					}
+					// set max date
+					if (field.df["maxDate"]) {
+						console.log('maxDate');
+						field.datepicker.update({
+							maxDate: new Date(field.df["maxDate"])
+						});
+					}
+				}
+
 				if (field.df["default"]) {
 					let def_value = field.df["default"];
 
