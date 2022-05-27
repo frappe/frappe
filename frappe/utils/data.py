@@ -1775,6 +1775,16 @@ def strip(val, chars=None):
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
 
+def get_string_between(start, string, end):
+	if not string:
+		return ""
+
+	regex = "{0}(.*){1}".format(start, end)
+	out = re.search(regex, string)
+
+	return out.group(1) if out else string
+
+
 def to_markdown(html):
 	from html.parser import HTMLParser
 
