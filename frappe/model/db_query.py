@@ -287,6 +287,21 @@ class DatabaseQuery(object):
 		# remove empty strings / nulls in fields
 		self.fields = [f for f in self.fields if f]
 
+		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
+		for field in self.fields:
+			if "." in field and "tab" not in field:
+				original_field = field
+				alias = None
+				if " as " in field:
+					field, alias = field.split(" as ")
+				tablefield, fieldname = field.split(".")
+				child_doctype = frappe.get_meta(self.doctype).get_field(tablefield).options
+				field = field.replace(tablefield, f"`tab{child_doctype}`")
+				field = field.replace(fieldname, f"`{fieldname}`")
+				if alias:
+					field = f"{field} as {alias}"
+				self.fields[self.fields.index(original_field)] = field
+
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
 			if isinstance(filters, str):

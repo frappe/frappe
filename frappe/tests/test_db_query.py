@@ -35,6 +35,22 @@ class TestReportview(unittest.TestCase):
 
 		clear_custom_fields("DocType")
 
+	def test_child_table_field_syntax(self):
+		note = frappe.get_doc(
+			doctype="Note",
+			title=f"Test {frappe.utils.random_string(8)}",
+			content="test",
+			seen_by=[{"user": "Administrator"}],
+		).insert()
+		result = frappe.db.get_all(
+			"Note",
+			filters={"name": note.name},
+			fields=["name", "seen_by.user as seen_by"],
+			limit=1,
+		)
+		self.assertEqual(result[0].seen_by, "Administrator")
+		note.delete()
+
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype("Blog Post", "test2@example.com")
 
