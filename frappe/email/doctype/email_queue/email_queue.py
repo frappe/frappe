@@ -24,9 +24,9 @@ from frappe.utils import (
 	cint,
 	cstr,
 	get_hook_method,
+	get_string_between,
 	nowdate,
 	split_emails,
-	strip_whitespace,
 )
 
 MAX_RETRY_COUNT = 3
@@ -643,7 +643,7 @@ class QueueBuilder:
 		d = {
 			"priority": self.send_priority,
 			"attachments": json.dumps(self.get_attachments()),
-			"message_id": strip_whitespace(mail.msg_root["Message-Id"]).strip("<>"),
+			"message_id": get_string_between("<", mail.msg_root["Message-Id"], ">"),
 			"message": mail_to_string,
 			"sender": self.sender,
 			"reference_doctype": self.reference_doctype,

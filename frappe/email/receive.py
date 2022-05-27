@@ -25,12 +25,12 @@ from frappe.utils import (
 	cstr,
 	extract_email_id,
 	get_datetime,
+	get_string_between,
 	markdown,
 	now,
 	parse_addr,
 	sanitize_html,
 	strip,
-	strip_whitespace,
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
@@ -428,7 +428,7 @@ class Email:
 		self.set_from()
 
 		message_id = self.mail.get("Message-ID") or ""
-		self.message_id = strip_whitespace(message_id).strip("<>")
+		self.message_id = get_string_between("<", message_id, ">")
 
 		if self.mail["Date"]:
 			try:
@@ -445,7 +445,7 @@ class Email:
 	@property
 	def in_reply_to(self):
 		in_reply_to = self.mail.get("In-Reply-To") or ""
-		return strip_whitespace(in_reply_to).strip("<>")
+		return get_string_between("<", in_reply_to, ">")
 
 	def parse(self):
 		"""Walk and process multi-part email."""
