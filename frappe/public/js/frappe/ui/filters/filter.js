@@ -249,14 +249,21 @@ frappe.ui.Filter = class {
 				const filter_value = this.filter_list.get_filter_value(fieldname);
 				args[field_name] = filter_value;
 			}
-			frappe
-				.xcall(this.filters_config[condition].get_field, args)
-				.then(field => {
-					df.fieldtype = field.fieldtype;
-					df.options = field.options;
-					df.fieldname = fieldname;
-					this.make_field(df, cur.fieldtype);
+			let setup_field = (field) => {
+				df.fieldtype = field.fieldtype;
+				df.options = field.options;
+				df.fieldname = fieldname;
+				this.make_field(df, cur.fieldtype);
+			}
+			if (this.filters_config[condition].data) {
+				let field = this.filters_config[condition].data;
+				setup_field(field);
+			} else {
+				frappe.xcall(this.filters_config[condition].get_field, args).then(field => {
+					this.filters_config[condition].data = field;
+					setup_field(field);
 				});
+			}
 		} else {
 			this.make_field(df, cur.fieldtype);
 		}
