@@ -27,6 +27,7 @@ from frappe.utils import (
 	now,
 	parse_addr,
 	strip,
+	strip_whitespace,
 )
 
 # fix due to a python bug in poplib that limits it to 2048
@@ -414,7 +415,9 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get("Message-ID") or "").strip(" <>")
+
+		message_id = self.mail.get("Message-ID") or ""
+		self.message_id = strip_whitespace(message_id).strip("<>")
 
 		if self.mail["Date"]:
 			try:

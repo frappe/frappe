@@ -30,6 +30,7 @@ from frappe.utils import (
 	get_datetime,
 	sanitize_html,
 	strip,
+	strip_whitespace,
 	validate_email_address,
 )
 from frappe.utils.background_jobs import enqueue, get_jobs
@@ -664,7 +665,7 @@ class EmailAccount(Document):
 
 		Message-ID is formatted as `{message_id}@{site}`"""
 		parent = None
-		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
+		in_reply_to = strip_whitespace(email.mail.get("In-Reply-To") or "").strip("<>")
 
 		if in_reply_to:
 			if "@{0}".format(frappe.local.site) in in_reply_to:

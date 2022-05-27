@@ -27,6 +27,7 @@ from frappe.utils import (
 	now_datetime,
 	nowdate,
 	split_emails,
+	strip_whitespace,
 )
 from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -281,7 +282,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 		if kwargs.get("in_reply_to"):
 			mail.set_in_reply_to(kwargs.get("in_reply_to"))
 
-		e.message_id = mail.msg_root["Message-Id"].strip(" <>")
+		e.message_id = strip_whitespace(mail.msg_root["Message-Id"]).strip("<>")
 		e.message = cstr(mail.as_string())
 		e.sender = mail.sender
 
