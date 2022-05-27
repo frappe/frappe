@@ -3,6 +3,7 @@
 
 import os
 import shutil
+from typing import List
 
 import frappe
 import frappe.defaults
@@ -188,39 +189,24 @@ def update_naming_series(doc):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
-def delete_from_table(doctype, name, ignore_doctypes, doc):
+def delete_from_table(doctype: str, name: str, ignore_doctypes: List[str], doc):
 	if doctype != "DocType" and doctype == name:
 		frappe.db.delete("Singles", {"doctype": name})
 	else:
 		frappe.db.delete(doctype, {"name": name})
-	# get child tables
 	if doc:
-		tables = [d.options for d in doc.meta.get_table_fields()]
-
+		child_doctypes = [d.options for d in doc.meta.get_table_fields()]
 	else:
+		child_doctypes = frappe.get_all(
+			"DocField",
+			fields="options",
+			filters={"fieldtype": ["in", frappe.model.table_fields], "parent": doctype},
+			pluck="options",
+		)
 
-		def get_table_fields(field_doctype):
-			if field_doctype == "Custom Field":
-				return []
-
-			return [
-				r[0]
-				for r in frappe.get_all(
-					field_doctype,
-					fields="options",
-					filters={"fieldtype": ["in", frappe.model.table_fields], "parent": doctype},
-					as_list=1,
-				)
-			]
-
-		tables = get_table_fields("DocField")
-		if not frappe.flags.in_install == "frappe":
-			tables += get_table_fields("Custom Field")
-
-	# delete from child tables
-	for t in list(set(tables)):
-		if t not in ignore_doctypes:
-			frappe.db.delete(t, {"parenttype": doctype, "parent": name})
+	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
+	for child_doctype in child_doctypes_to_delete:
+		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
 def update_flags(doc, flags=None, ignore_permissions=False):
