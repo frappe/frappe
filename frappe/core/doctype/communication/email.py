@@ -14,6 +14,7 @@ from frappe.utils import (
 	get_formatted_email,
 	list_to_str,
 	split_emails,
+	strip_whitespace,
 	validate_email_address,
 )
 
@@ -152,7 +153,7 @@ def _make(
 			"reference_doctype": doctype,
 			"reference_name": name,
 			"email_template": email_template,
-			"message_id": get_message_id().strip(" <>"),
+			"message_id": strip_whitespace(get_message_id()).strip("<>"),
 			"read_receipt": read_receipt,
 			"has_attachment": 1 if attachments else 0,
 			"communication_type": communication_type,

@@ -19,7 +19,15 @@ from frappe.email.email_body import add_attachment, get_email, get_formatted_htm
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.model.document import Document
 from frappe.query_builder.utils import DocType
-from frappe.utils import add_days, cint, cstr, get_hook_method, nowdate, split_emails
+from frappe.utils import (
+	add_days,
+	cint,
+	cstr,
+	get_hook_method,
+	nowdate,
+	split_emails,
+	strip_whitespace,
+)
 
 MAX_RETRY_COUNT = 3
 
@@ -635,7 +643,7 @@ class QueueBuilder:
 		d = {
 			"priority": self.send_priority,
 			"attachments": json.dumps(self.get_attachments()),
-			"message_id": mail.msg_root["Message-Id"].strip(" <>"),
+			"message_id": strip_whitespace(mail.msg_root["Message-Id"]).strip("<>"),
 			"message": mail_to_string,
 			"sender": self.sender,
 			"reference_doctype": self.reference_doctype,

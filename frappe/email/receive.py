@@ -30,6 +30,7 @@ from frappe.utils import (
 	parse_addr,
 	sanitize_html,
 	strip,
+	strip_whitespace,
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
@@ -425,7 +426,9 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get("Message-ID") or "").strip("\n\r\t <>")
+
+		message_id = self.mail.get("Message-ID") or ""
+		self.message_id = strip_whitespace(message_id).strip("<>")
 
 		if self.mail["Date"]:
 			try:
@@ -441,7 +444,8 @@ class Email:
 
 	@property
 	def in_reply_to(self):
-		return (self.mail.get("In-Reply-To") or "").strip("\n\r\t <>")
+		in_reply_to = self.mail.get("In-Reply-To") or ""
+		return strip_whitespace(in_reply_to).strip("<>")
 
 	def parse(self):
 		"""Walk and process multi-part email."""

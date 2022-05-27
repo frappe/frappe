@@ -1887,6 +1887,17 @@ def strip(val: str, chars: Optional[str] = None) -> str:
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
 
+def strip_whitespace(input_string: str) -> str:
+	import string
+
+	new_string = ""
+	for character in input_string:
+		if character not in string.whitespace:
+			new_string = new_string + character
+
+	return new_string
+
+
 def to_markdown(html: str) -> str:
 	from html.parser import HTMLParser
 
