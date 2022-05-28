@@ -51,6 +51,19 @@ class TestReportview(unittest.TestCase):
 		self.assertEqual(result[0].seen_by, "Administrator")
 		note.delete()
 
+	def test_link_field_syntax(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description=f"Test ToDo", allocated_to="Administrator"
+		).insert()
+		result = frappe.db.get_all(
+			"ToDo",
+			filters={"name": todo.name},
+			fields=["name", "allocated_to.email as allocated_user_email"],
+			limit=1,
+		)
+		self.assertEqual(result[0].allocated_user_email, "admin@example.com")
+		todo.delete()
+
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype("Blog Post", "test2@example.com")
 
