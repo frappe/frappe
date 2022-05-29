@@ -576,6 +576,7 @@ class TestDocType(unittest.TestCase):
 		virtual_doc.is_virtual = 1
 		virtual_doc.istable = 1
 		virtual_doc.insert(ignore_permissions=True)
+
 		doc = frappe.get_doc("DocType", "Test Virtual DocType as Child Table")
 
 		self.assertEqual(doc.is_virtual, 1)
