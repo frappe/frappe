@@ -1501,18 +1501,26 @@ def call(fn, *args, **kwargs):
 
 
 def get_newargs(fn, kwargs):
+
+	# if function has any **kwargs parameter that capture arbitrary keyword arguments
+	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+	varkw_exist = False
+
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
 		signature = inspect.signature(fn)
 		fnargs = list(signature.parameters)
-		varkw = "kwargs" in fnargs
-		if varkw:
-			fnargs.pop(-1)
+
+		for param_name, parameter in signature.parameters.items():
+			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+				varkw_exist = True
+				fnargs.remove(param_name)
+				break
 
 	newargs = {}
 	for a in kwargs:
-		if (a in fnargs) or varkw:
+		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
 	newargs.pop("ignore_permissions", None)

@@ -621,6 +621,7 @@ class TestIntrospectionMagic(unittest.TestCase):
 	"""Test utils that inspect live objects"""
 
 	def test_get_newargs(self):
+		# `kwargs` is just convention any **varname should work.
 		def f(a, b=2, **args):
 			pass
 
@@ -630,3 +631,13 @@ class TestIntrospectionMagic(unittest.TestCase):
 		unsafe_args = dict(safe_kwargs)
 		unsafe_args.update({"ignore_permissions": True, "flags": {"ignore_mandatory": True}})
 		self.assertEqual(frappe.get_newargs(f, unsafe_args), safe_kwargs)
+
+	def test_strip_off_kwargs_when_not_supported(self):
+		def f(a, b=2):
+			pass
+
+		args = {"company": "Wind Power", "b": 1}
+		self.assertEqual(frappe.get_newargs(f, args), {"b": 1})
+
+		# No args
+		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
