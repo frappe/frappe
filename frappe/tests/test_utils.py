@@ -615,3 +615,18 @@ class TestAppParser(unittest.TestCase):
 		self.assertEqual("healthcare", parse_app_name("https://github.com/frappe/healthcare.git"))
 		self.assertEqual("healthcare", parse_app_name("git@github.com:frappe/healthcare.git"))
 		self.assertEqual("healthcare", parse_app_name("frappe/healthcare@develop"))
+
+
+class TestIntrospectionMagic(unittest.TestCase):
+	"""Test utils that inspect live objects"""
+
+	def test_get_newargs(self):
+		def f(a, b=2, **args):
+			pass
+
+		safe_kwargs = {"company": "Wind Power", "b": 1}
+		self.assertEqual(frappe.get_newargs(f, safe_kwargs), safe_kwargs)
+
+		unsafe_args = dict(safe_kwargs)
+		unsafe_args.update({"ignore_permissions": True, "flags": {"ignore_mandatory": True}})
+		self.assertEqual(frappe.get_newargs(f, unsafe_args), safe_kwargs)
