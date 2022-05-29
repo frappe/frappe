@@ -562,15 +562,8 @@ class TestDocType(unittest.TestCase):
 
 	def test_create_virtual_doctype_as_child_table(self):
 		"""Test virtual DocType as Child Table below a normal DocType."""
-		try:
-			frappe.delete_doc("DocType", "Test Parent Virtual DocType", force=1)
-		except Exception:
-			pass
-
-		try:
-			frappe.delete_doc("DocType", "Test Virtual DocType as Child Table", force=1)
-		except Exception:
-			pass
+		frappe.delete_doc_if_exists("DocType", "Test Parent Virtual DocType", force=1)
+		frappe.delete_doc_if_exists("DocType", "Test Virtual DocType as Child Table", force=1)
 
 		virtual_doc = new_doctype("Test Virtual DocType as Child Table")
 		virtual_doc.is_virtual = 1
@@ -584,22 +577,27 @@ class TestDocType(unittest.TestCase):
 		self.assertFalse(frappe.db.table_exists("Test Virtual DocType as Child Table"))
 
 		parent_doc = new_doctype("Test Parent Virtual DocType")
-		field_1 = parent_doc.append("fields", {})
-		field_1.fieldname = "virtual_child_table"
-		field_1.fieldtype = "Table"
-		field_1.options = "Test Virtual DocType as Child Table"
+		parent_doc.append(
+			"fields",
+			{
+				"fieldname": "virtual_child_table",
+				"fieldtype": "Table",
+				"options": "Test Virtual DocType as Child Table",
+			},
+		)
 		parent_doc.insert(ignore_permissions=True)
 
 		# create entry for parent doctype
-		parent_doc_entry = frappe.new_doc("Test Parent Virtual DocType")
-		parent_doc_entry.some_fieldname = "Test"
+		parent_doc_entry = frappe.get_doc(
+			{"doctype": "Test Parent Virtual DocType", "some_fieldname": "Test"}
+		)
 		parent_doc_entry.insert(ignore_permissions=True)
 
-		# now update the new parent doc
+		# update the parent doc (should not abort because of any DB query to a virtual child table, as there is none)
 		parent_doc_entry.some_fieldname = "Test update"
 		parent_doc_entry.save(ignore_permissions=True)
 
-		# now delete the parent doc
+		# delete the parent doc (should not abort because of any DB query to a virtual child table, as there is none)
 		parent_doc_entry.delete()
 
 	def test_default_fieldname(self):
