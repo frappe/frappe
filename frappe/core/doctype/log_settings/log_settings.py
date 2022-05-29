@@ -10,8 +10,13 @@ from frappe.query_builder.functions import Now
 
 
 class LogSettings(Document):
-	def clear_logs(self):
+	def clear_logs(self, commit=False):
 		self.clear_email_queue()
+		if commit:
+			# Since since deleting many logs can take significant amount of time, commit is required to relase locks.
+			# Error log table doesn't require commit - myisam
+			# activity logs are deleted last so background job finishes and commits.
+			frappe.db.commit()
 		self.clear_error_logs()
 		self.clear_activity_logs()
 
@@ -34,7 +39,7 @@ class LogSettings(Document):
 
 def run_log_clean_up():
 	doc = frappe.get_doc("Log Settings")
-	doc.clear_logs()
+	doc.clear_logs(commit=True)
 
 
 @frappe.whitelist()
