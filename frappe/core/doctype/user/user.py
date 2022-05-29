@@ -586,10 +586,7 @@ class User(Document):
 		self.append("social_logins", social_logins)
 
 	def get_restricted_ip_list(self):
-		if not self.restrict_ip:
-			return
-
-		return [i.strip() for i in self.restrict_ip.split(",")]
+		return get_restricted_ip_list(self)
 
 	@classmethod
 	def find_by_credentials(cls, user_name: str, password: str, validate_password: bool = True):
@@ -1154,6 +1151,13 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			)
 
 		contact.save(ignore_permissions=True)
+
+
+def get_restricted_ip_list(user):
+	if not user.restrict_ip:
+		return
+
+	return [i.strip() for i in user.restrict_ip.split(",")]
 
 
 @frappe.whitelist()
