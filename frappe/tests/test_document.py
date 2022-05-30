@@ -319,12 +319,12 @@ class TestDocumentWebView(FrappeAPITestCase):
 		frappe.db.commit()
 
 		# with old-style signature key
-		update_system_settings({"allow_older_web_view_links": 1}, True)
+		update_system_settings({"allow_older_web_view_links": True}, True)
 		old_document_key = todo.get_signature()
 		url = f"/ToDo/{todo.name}?key={old_document_key}"
 		self.assertEquals(self.get(url).status, "200 OK")
 
-		update_system_settings({"allow_older_web_view_links": 0}, True)
+		update_system_settings({"allow_older_web_view_links": False}, True)
 		self.assertEquals(self.get(url).status, "401 UNAUTHORIZED")
 
 		# with valid key
