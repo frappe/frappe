@@ -205,7 +205,8 @@ def get_website_settings(context=None):
 
 	context["hide_login"] = settings.hide_login
 
-	context["splash_image"] = settings.splash_image or context["splash_image"]
+	if splash_image := settings.splash_image or context.get("splash_image"):
+		context["splash_image"] = splash_image
 
 	return context
 
