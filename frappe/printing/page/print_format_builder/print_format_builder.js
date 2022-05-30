@@ -441,7 +441,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			const field = $(e.currentTarget).parent();
 			// new dialog
 			var d = new frappe.ui.Dialog({
-				title: "Set Properties",
+				title: __("Set Properties"),
 				fields: [
 					{
 						label: __("Label"),
