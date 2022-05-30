@@ -1895,6 +1895,17 @@ def get_print(
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_content
+	from frappe.utils.weasyprint import PrintFormatGenerator
+
+	if print_format is not None and db.get_value("Print Format", print_format, "print_format_builder_beta"):
+		doc = get_doc(doctype, name) if doc is None else doc
+		letterhead = db.exists(dict(doctype="Letter Head", is_default=1)) if not no_letterhead else None
+		generator = PrintFormatGenerator(print_format, doc, letterhead=letterhead)
+		return (
+			generator.render_pdf()
+			if as_pdf
+			else generator.get_html_preview()
+		)
 
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name

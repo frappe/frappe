@@ -94,6 +94,7 @@ export function getStore(print_format_name) {
 											}
 										);
 									}
+									console.log(df.fieldname, df.ancestors)
 									return pluck(df, [
 										"label",
 										"fieldname",
@@ -101,7 +102,8 @@ export function getStore(print_format_name) {
 										"options",
 										"table_columns",
 										"html",
-										"field_template"
+										"field_template",
+										"ancestors"
 									]);
 								});
 							return column;

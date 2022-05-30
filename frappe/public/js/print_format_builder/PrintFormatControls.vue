@@ -126,20 +126,56 @@
 
 <script>
 import draggable from "vuedraggable";
-import { get_table_columns, pluck } from "./utils";
+import { get_table_columns, resolve_fields_from_path, pluck } from "./utils";
 import { storeMixin } from "./store";
+
+const DEFAULT_FIELDS = [
+	{
+		label: __("Custom HTML"),
+		fieldname: "custom_html",
+		fieldtype: "HTML",
+		html: "",
+		custom: 1
+	},
+	{
+		label: __("ID (name)"),
+		fieldname: "name",
+		fieldtype: "Data"
+	},
+	{
+		label: __("Spacer"),
+		fieldname: "spacer",
+		fieldtype: "Spacer",
+		custom: 1
+	},
+	{
+		label: __("Divider"),
+		fieldname: "divider",
+		fieldtype: "Divider",
+		custom: 1
+	}
+]
 
 export default {
 	name: "PrintFormatControls",
 	mixins: [storeMixin],
 	data() {
 		return {
+			fields: [],
 			search_text: "",
 			google_fonts: []
 		};
 	},
+	watch: {
+		search_text: frappe.utils.debounce(async function (value) {
+			await this.get_fields(value)
+		}, 500)
+	},
 	components: {
 		draggable
+	},
+	async created() {
+		await this.get_fields("")
 	},
 	mounted() {
 		let method =
@@ -167,13 +203,53 @@ export default {
 				"options",
 				"table_columns",
 				"html",
-				"field_template"
+				"field_template",
+				"ancestors"
 			]);
 			if (cloned.custom) {
 				// generate unique fieldnames for custom blocks
 				cloned.fieldname += "_" + frappe.utils.get_random(8);
 			}
 			return cloned;
+		},
+		async get_fields(search_text) {
+			let path = []
+			const parts = this.search_text.split(".")
+			if (parts.length > 1) {
+				search_text = parts[parts.length - 1]
+				path = parts.slice(0, parts.length - 1)
+			}
+
+			search_text = search_text.toLowerCase()
+
+			let fields = await resolve_fields_from_path(this.meta.fields, path)
+
+			fields = fields
+				.filter(df => !["Section Break", "Column Break"].includes(df.fieldtype))
+				.map(df => {
+					let out = {
+						label: df.label,
+						fieldname: df.fieldname,
+						fieldtype: df.fieldtype,
+						options: df.options,
+						ancestors: Array.from(path)
+					};
+					if (df.fieldtype == "Table") {
+						out.table_columns = get_table_columns(df);
+					}
+					return out;
+				});
+
+			fields = path.length > 0 ? fields : [
+				...DEFAULT_FIELDS,
+				...this.print_templates,
+				...fields
+			]
+
+			this.fields = (
+				fields.filter((field => field.fieldname.toLowerCase().includes(search_text)
+				|| field.label.toLowerCase().includes(search_text)))
+			)
 		}
 	},
 	computed: {
@@ -183,68 +259,6 @@ export default {
 				{ label: __("Bottom"), fieldname: "margin_bottom" },
 				{ label: __("Left"), fieldname: "margin_left" },
 				{ label: __("Right"), fieldname: "margin_right" }
-			];
-		},
-		fields() {
-			let fields = this.meta.fields
-				.filter(df => {
-					if (
-						["Section Break", "Column Break"].includes(df.fieldtype)
-					) {
-						return false;
-					}
-					if (this.search_text) {
-						if (df.fieldname.includes(this.search_text)) {
-							return true;
-						}
-						if (df.label && df.label.includes(this.search_text)) {
-							return true;
-						}
-						return false;
-					} else {
-						return true;
-					}
-				})
-				.map(df => {
-					let out = {
-						label: df.label,
-						fieldname: df.fieldname,
-						fieldtype: df.fieldtype,
-						options: df.options
-					};
-					if (df.fieldtype == "Table") {
-						out.table_columns = get_table_columns(df);
-					}
-					return out;
-				});
-
-			return [
-				{
-					label: __("Custom HTML"),
-					fieldname: "custom_html",
-					fieldtype: "HTML",
-					html: "",
-					custom: 1
-				},
-				{
-					label: __("ID (name)"),
-					fieldname: "name",
-					fieldtype: "Data"
-				},
-				{
-					label: __("Spacer"),
-					fieldname: "spacer",
-					fieldtype: "Spacer",
-					custom: 1
-				},
-				{
-					label: __("Divider"),
-					fieldname: "divider",
-					fieldtype: "Divider",
-					custom: 1
-				},
-				...this.print_templates,
-				...fields
 			];
 		},
 		print_templates() {

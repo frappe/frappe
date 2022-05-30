@@ -1,7 +1,7 @@
 import operator
 import re
 from functools import cached_property
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union, Literal
 
 import frappe
 from frappe import _
@@ -34,6 +34,19 @@ def func_in(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 	        frappe.qb: `frappe.qb object with `IN`
 	"""
 	return key.isin(value)
+
+
+def func_is(key: Field, value: Union[Literal["set"], Literal["not set"]]) -> frappe.qb:
+	"""Wrapper method for `IS`
+
+	Args:
+	        key (str): field
+	        value ( Union[Literal["set"], Literal["not set"]]): criterion
+
+	Returns:
+	        frappe.qb: `frappe.qb object with `IS NULL` or `IS NOT NULL`
+	"""
+	return key.isnull() if value == "set" else key.notnull()
 
 
 def not_like(key: Field, value: str) -> frappe.qb:
@@ -152,6 +165,7 @@ OPERATOR_MAP: Dict[str, Callable] = {
 	"=<": operator.le,
 	">=": operator.ge,
 	"=>": operator.ge,
+	"is": func_is,
 	"in": func_in,
 	"not in": func_not_in,
 	"like": like,

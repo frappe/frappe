@@ -28,7 +28,7 @@
 			{% for column in section.columns %}
 			<div class="column col">
 				{% for df in column.fields %}
-				{{ macros.render_field(df, doc) }}
+				{{ macros.render_field(df, df.doc) }}
 				{% endfor %}
 			</div>
 			{% endfor %}

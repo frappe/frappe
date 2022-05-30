@@ -91,6 +91,23 @@ export function create_default_layout(meta, print_format) {
 	return layout;
 }
 
+export async function resolve_fields_from_path(fields, path) {
+	const promise = path.reduce((acc, fieldname) => acc.then((fields) => {
+		const df = fields.find(df => df.fieldtype == 'Link' && df.fieldname == fieldname)
+		if (df !== undefined) {
+			return new Promise((resolve, reject) => {
+				frappe.model.with_doctype((df.options), () => {
+					resolve(frappe.get_meta(df.options).fields)
+				})
+			})
+		}
+
+		return Promise.resolve([])
+	}), Promise.resolve(fields))
+
+	return await promise
+}
+
 export function get_table_columns(df) {
 	let table_columns = [];
 	let table_fields = frappe.get_meta(df.options).fields;

@@ -44,13 +44,16 @@ class PrintFormatGenerator:
 		letterhead: str
 		        Letter Head to apply (optional)
 		"""
+
+		from frappe.www.printview import set_link_titles
+		set_link_titles(doc)
+
+
 		self.base_url = frappe.utils.get_url()
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		self.doc = doc
 		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
 		self.build_context()
-		self.layout = self.get_layout(self.print_format)
-		self.context.layout = self.layout
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
@@ -62,9 +65,13 @@ class PrintFormatGenerator:
 			if self.print_settings.print_style
 			else None
 		)
+
+		layout = self.get_layout(self.print_format)
+
 		context = frappe._dict(
 			{
 				"doc": self.doc,
+				"layout": layout,
 				"print_format": self.print_format,
 				"print_settings": self.print_settings,
 				"print_style": print_style,
@@ -189,21 +196,50 @@ class PrintFormatGenerator:
 		self.footer_body = footer_body
 		self.footer_height = footer_height
 
+	def iter_layout(self, layout):
+		return [
+			(field, column, section)
+			for section in layout["sections"]
+			for column in section["columns"]
+			for field in column["fields"]
+		]
+
 	def get_layout(self, print_format):
 		layout = frappe.parse_json(print_format.format_data)
+		layout = self.set_field_docs(layout)
 		layout = self.set_field_renderers(layout)
 		layout = self.process_margin_texts(layout)
 		return layout
 
+	def get_linked_doc(self, path):
+		doc = self.doc
+		if len(path) > 1:
+			doc = self.get_linked_doc(path[:-1])
+
+		fieldname = path[-1]
+		df = doc.meta.get_field(fieldname)
+		doc = frappe.get_doc(df.options, doc.get(fieldname))
+		from frappe.www.printview import set_link_titles
+		set_link_titles(doc)
+		return doc
+
+	def set_field_docs(self, layout):
+		for (field, column, section) in self.iter_layout(layout):
+			ancestors = field.get("ancestors")
+			if ancestors:
+				field["doc"] = self.get_linked_doc(ancestors)
+			else:
+				field["doc"] = self.doc
+
+		return layout
+
 	def set_field_renderers(self, layout):
 		renderers = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
-		for section in layout["sections"]:
-			for column in section["columns"]:
-				for df in column["fields"]:
-					fieldtype = df["fieldtype"]
-					renderer_name = fieldtype.replace(" ", "")
-					df["renderer"] = renderers.get(fieldtype) or renderer_name
-					df["section"] = section
+		for (field, column, section) in self.iter_layout(layout):
+			fieldtype = field["fieldtype"]
+			renderer_name = fieldtype.replace(" ", "")
+			field["renderer"] = renderers.get(fieldtype) or renderer_name
+			field["section"] = section
 		return layout
 
 	def process_margin_texts(self, layout):

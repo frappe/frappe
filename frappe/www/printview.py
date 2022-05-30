@@ -90,6 +90,9 @@ def get_rendered_template(
 	settings=None,
 ):
 
+	if print_format and print_format.print_format_builder_beta:
+		raise NotImplementedError("Print Format with flag 'print_format_builder_beta' set cannot be rendered this way.")
+
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
