@@ -7,7 +7,6 @@ frappe.ui.form.Share = class Share {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.shares = this.parent.find('.shares');
-		this.share_link = this.parent.find('.share-link');
 	}
 	refresh() {
 		this.render_sidebar();
@@ -15,13 +14,6 @@ frappe.ui.form.Share = class Share {
 	render_sidebar() {
 		const shared = this.shared || this.frm.get_docinfo().shared;
 		const shared_users = shared.filter(Boolean).map(s => s.user);
-
-		this.share_link.attr("title", __("Get Shareable Link"))
-			.tooltip({ delay: { "show": 600, "hide": 100 }});
-
-		this.share_link.click(() => {
-			this.share_modal();
-		});
 
 		if (this.frm.is_new()) {
 			this.parent.find(".share-doc-btn").hide();
@@ -194,53 +186,5 @@ frappe.ui.form.Share = class Share {
 				}
 			});
 		});
-	}
-	async share_modal() {
-		const default_expiry = frappe.boot.sysdefaults.document_share_key_expiry;
-		const share_modal = new frappe.ui.Dialog({
-			title: __("Share Link"),
-			fields: [{
-				fieldname: "link_expiration_date",
-				label: __("Link Expiration Date"),
-				fieldtype: "Date",
-				default: frappe.datetime.add_days(moment(), default_expiry),
-				min_date: new Date(),
-				description: __("The default expiration date is {0} days from today.", [default_expiry]),
-				read_only_depends_on: "eval: doc.link"
-			}, {
-				fieldtype: "Check",
-				label: __("No Expiry"),
-				fieldname: "no_expiry",
-				change: () => {
-					const no_expiry_warning = `<span>
-						${__('Note: Person with the link user will be able to see all changes to this document as long as the key is not deleted manually.')}
-					</span>`;
-					const no_expiry = share_modal.get_value('no_expiry');
-					share_modal.get_field('link_expiration_date').toggle(!no_expiry);
-					share_modal.get_field('no_expiry')
-						.set_description(`${no_expiry ? no_expiry_warning : ''}`);
-				},
-			}, {
-				fieldtype: "Button",
-				label: __("Get Link"),
-				click: () => {
-					this.frm.call("get_document_share_key", {
-						expires_on: share_modal.get_value("link_expiration_date"),
-						no_expiry: share_modal.get_value("no_expiry")
-					}).then(res => {
-						let key = res.message;
-						share_modal.set_value("link", this.frm.get_share_link(key));
-					});
-				}
-			}, {
-				fieldname: "link",
-				label: __("Link"),
-				fieldtype: "Data",
-				depends_on: "eval: doc.link",
-				with_copy_button: true
-			}],
-		});
-
-		share_modal.show();
 	}
 };

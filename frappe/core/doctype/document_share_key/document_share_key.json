@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:DOCUMENT-SHARE-KEY-{########}",
+ "autoname": "hash",
  "creation": "2022-01-14 13:40:49.487646",
  "doctype": "DocType",
  "editable_grid": 1,
