@@ -18,7 +18,7 @@ from email_reply_parser import EmailReplyParser
 import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
-from frappe.email.utils import connect_google_oauth
+from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
 	cint,
@@ -100,14 +100,16 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			if self.settings.use_google_oauth and self.settings.google_refresh_token:
-				connect_google_oauth(
+			if self.settings.use_oauth and self.settings.refresh_token:
+				Oauth(
 					self.imap,
 					self.settings.email_account,
 					self.settings.username,
-					self.settings.google_access_token,
-					self.settings.google_refresh_token,
-				)
+					self.settings.access_token,
+					self.settings.refresh_token,
+					self.settings.service
+				).connect()
+
 			else:
 				self.imap.login(self.settings.username, self.settings.password)
 
@@ -131,14 +133,16 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			if self.settings.use_google_oauth and self.settings.google_refresh_token:
-				connect_google_oauth(
+			if self.settings.use_oauth and self.settings.refresh_token:
+				Oauth(
 					self.pop,
 					self.settings.email_account,
 					self.settings.username,
-					self.settings.google_access_token,
-					self.settings.google_refresh_token,
-				)
+					self.settings.access_token,
+					self.settings.refresh_token,
+					self.settings.service
+				).connect()
+
 			else:
 				self.pop.user(self.settings.username)
 				self.pop.pass_(self.settings.password)

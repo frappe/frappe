@@ -89,8 +89,11 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if not frappe.local.flags.in_install and (self.use_google_oauth or not self.awaiting_password):
-			if self.google_refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
+		if getattr(self, "service", "") != "GMail" and self.use_oauth:
+			self.use_oauth = 0
+
+		if not frappe.local.flags.in_install and (self.use_oauth or not self.awaiting_password):
+			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
@@ -99,9 +102,9 @@ class EmailAccount(Document):
 					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
-					if self.use_google_oauth:
+					if self.use_oauth:
 						if not self.is_new():
-							frappe.throw(_("Please Authorize Google by using `Authorize API access` button"))
+							frappe.throw(_("Please Enable OAuth by using `Authorize API access` button"))
 					else:
 						frappe.throw(_("Password is required or select Awaiting Password"))
 
@@ -158,9 +161,9 @@ class EmailAccount(Document):
 		)
 
 	def after_insert(self):
-		if self.use_google_oauth and not self.google_refresh_token:
+		if self.use_oauth and not self.refresh_token:
 			frappe.msgprint(
-				_("Please Authorize Google by using `Authorize API access` button"),
+				_("Please Enable OAuth by using `Authorize API access` button"),
 				indicator="orange"
 			)
 
@@ -211,13 +214,14 @@ class EmailAccount(Document):
 				"host": self.email_server,
 				"use_ssl": self.use_ssl,
 				"username": getattr(self, "login_id", None) or self.email_id,
+				"service": getattr(self, "service", None),
 				"use_imap": self.use_imap,
 				"email_sync_rule": email_sync_rule,
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
-				"use_google_oauth": self.use_google_oauth or 0,
-				"google_refresh_token": getattr(self, "google_refresh_token", None),
-				"google_access_token": getattr(self, "google_access_token", None),
+				"use_oauth": self.use_oauth or 0,
+				"refresh_token": getattr(self, "refresh_token", None),
+				"access_token": getattr(self, "access_token", None),
 			}
 		)
 
@@ -285,7 +289,7 @@ class EmailAccount(Document):
 	@property
 	def _password(self):
 		raise_exception = not (
-			self.use_google_oauth or self.no_smtp_authentication or frappe.flags.in_test
+			self.use_oauth or self.no_smtp_authentication or frappe.flags.in_test
 		)
 		return self.get_password(raise_exception=raise_exception)
 
@@ -424,9 +428,10 @@ class EmailAccount(Document):
 			"password": self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
-			"use_google_oauth": self.use_google_oauth or 0,
-			"google_refresh_token": getattr(self, "google_refresh_token", None),
-			"google_access_token": getattr(self, "google_access_token", None),
+			"service": getattr(self, "service", None),
+			"use_oauth": self.use_oauth or 0,
+			"refresh_token": getattr(self, "refresh_token", None),
+			"access_token": getattr(self, "access_token", None),
 		}
 
 	def get_smtp_server(self):
@@ -799,7 +804,7 @@ def pull(now=False):
 	for email_account in frappe.get_list(
 		"Email Account",
 		filters={"enable_incoming": 1},
-		or_filters={"awaiting_password": 0, "use_google_oauth": 1},
+		or_filters={"awaiting_password": 0, "use_oauth": 1},
 	):
 		if now:
 			pull_from_email_account(email_account.name)
@@ -930,9 +935,15 @@ def set_email_password(email_account, user, password):
 
 
 @frappe.whitelist(methods=["POST"])
-def authorize_google_access(email_account, reauthorize=False, code=None):
+def oauth_access(email_account: str, reauthorize: bool = False, service: str = None):
 	doctype = "Email Account"
-	refresh_token = frappe.db.get_value(doctype, email_account, "google_refresh_token")
+	refresh_token = frappe.db.get_value(doctype, email_account, "refresh_token")
+
+	if service == "GMail":
+		return authorize_google_access(email_account, reauthorize, refresh_token, doctype)
+
+
+def authorize_google_access(email_account, reauthorize: bool = False, refresh_token: str = None, doctype: str = "Email Account", code: str = None):
 	oauth_obj = GoogleOAuth("mail")
 
 	if not (refresh_token or code) or reauthorize:
@@ -946,5 +957,5 @@ def authorize_google_access(email_account, reauthorize=False, code=None):
 		)
 
 	res = oauth_obj.authorize(code, get_request_site_address(True))
-	frappe.db.set_value(doctype, email_account, "google_refresh_token", res.get("refresh_token"))
-	frappe.db.set_value(doctype, email_account, "google_access_token", res.get("access_token"))
+	frappe.db.set_value(doctype, email_account, "refresh_token", res.get("refresh_token"))
+	frappe.db.set_value(doctype, email_account, "access_token", res.get("access_token"))

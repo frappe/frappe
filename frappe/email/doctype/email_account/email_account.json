@@ -18,10 +18,10 @@
   "awaiting_password",
   "ascii_encode_password",
   "column_break_10",
-  "use_google_oauth",
-  "authorize_google_api_access",
-  "google_refresh_token",
-  "google_access_token",
+  "use_oauth",
+  "authorize_api_access",
+  "refresh_token",
+  "access_token",
   "login_id_is_different",
   "login_id",
   "mailbox_settings",
@@ -585,28 +585,28 @@
   {
    "default": "0",
    "depends_on": "eval: doc.service === \"GMail\"",
-   "fieldname": "use_google_oauth",
+   "fieldname": "use_oauth",
    "fieldtype": "Check",
-   "label": "Use Google OAuth"
+   "label": "Use OAuth"
   },
   {
-   "depends_on": "eval: doc.service === \"GMail\" && doc.use_google_oauth && !doc.__islocal",
-   "fieldname": "authorize_google_api_access",
+   "depends_on": "eval: doc.service === \"GMail\" && doc.use_oauth && !doc.__islocal",
+   "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
   },
   {
-   "fieldname": "google_refresh_token",
+   "fieldname": "refresh_token",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Google Refresh Token",
+   "label": "Refresh Token",
    "read_only": 1
   },
   {
-   "fieldname": "google_access_token",
+   "fieldname": "access_token",
    "fieldtype": "Small Text",
    "hidden": 1,
-   "label": "Google Access Token",
+   "label": "Access Token",
    "read_only": 1
   }
  ],
