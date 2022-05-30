@@ -1258,8 +1258,10 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	module = scrub(module)
-	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
+	from frappe.modules.utils import get_module_app
+
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -1501,18 +1503,26 @@ def call(fn, *args, **kwargs):
 
 
 def get_newargs(fn, kwargs):
+
+	# if function has any **kwargs parameter that capture arbitrary keyword arguments
+	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+	varkw_exist = False
+
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
 		signature = inspect.signature(fn)
 		fnargs = list(signature.parameters)
-		varkw = "kwargs" in fnargs
-		if varkw:
-			fnargs.pop(-1)
+
+		for param_name, parameter in signature.parameters.items():
+			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+				varkw_exist = True
+				fnargs.remove(param_name)
+				break
 
 	newargs = {}
 	for a in kwargs:
-		if (a in fnargs) or varkw:
+		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
 	newargs.pop("ignore_permissions", None)
