@@ -590,7 +590,7 @@
    "label": "Use Google OAuth"
   },
   {
-   "depends_on": "eval: doc.service === \"GMail\" && doc.use_google_oauth",
+   "depends_on": "eval: doc.service === \"GMail\" && doc.use_google_oauth && !doc.__islocal",
    "fieldname": "authorize_google_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
@@ -613,7 +613,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-05-29 18:11:06.463553",
+ "modified": "2022-05-30 15:45:05.282867",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

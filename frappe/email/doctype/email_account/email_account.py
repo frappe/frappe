@@ -100,7 +100,8 @@ class EmailAccount(Document):
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					if self.use_google_oauth:
-						frappe.throw(_("Please Authorize Google by using `Authorize API access` button"))
+						if not self.is_new():
+							frappe.throw(_("Please Authorize Google by using `Authorize API access` button"))
 					else:
 						frappe.throw(_("Password is required or select Awaiting Password"))
 
@@ -155,6 +156,13 @@ class EmailAccount(Document):
 			email_id=self.email_id,
 			enable_outgoing=self.enable_outgoing,
 		)
+
+	def after_insert(self):
+		if self.use_google_oauth and not self.google_refresh_token:
+			frappe.msgprint(
+				_("Please Authorize Google by using `Authorize API access` button"),
+				indicator="orange"
+			)
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""

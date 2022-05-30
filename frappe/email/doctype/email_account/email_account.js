@@ -135,7 +135,7 @@ frappe.ui.form.on("Email Account", {
 
 	show_gmail_message_for_less_secure_apps: function(frm) {
 		frm.dashboard.clear_headline();
-		let msg = __("GMail will only work if you enable 2-step authentication and use app-specific password.");
+		let msg = __("GMail will only work if you enable 2-step authentication and use app-specific password OR use Google OAuth.");
 		let cta = __("Read the step by step guide here.");
 		msg += ` <a target="_blank" href="https://docs.erpnext.com/docs/v13/user/manual/en/setting-up/email/email_account_setup_with_gmail">${cta}</a>`;
 		if (frm.doc.service==="GMail") {
@@ -152,7 +152,6 @@ frappe.ui.form.on("Email Account", {
 			},
 			callback: function(r) {
 				if (!r.exc) {
-					frm.save();
 					window.open(r.message.url);
 				}
 			}
