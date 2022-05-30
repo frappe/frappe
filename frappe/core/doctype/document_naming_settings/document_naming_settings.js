@@ -57,10 +57,10 @@ frappe.ui.form.on("Document Naming Settings", {
 			doc: frm.doc,
 			callback: function(r) {
 				if (!r.exc) {
-					frm.set_value("preview", r.message);
+					frm.set_value("series_preview", r.message);
 				} else {
 					frm.set_value(
-						"preview",
+						"series_preview",
 						__("Failed to generate preview of series")
 					);
 				}

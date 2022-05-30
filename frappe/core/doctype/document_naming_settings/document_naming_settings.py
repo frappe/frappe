@@ -38,7 +38,6 @@ class DocumentNamingSettings(Document):
 				options = self.get_options(d)
 			except frappe.DoesNotExistError:
 				frappe.msgprint(_("Unable to find DocType {0}").format(d))
-				# frappe.pass_does_not_exist_error()
 				continue
 
 			if options:
