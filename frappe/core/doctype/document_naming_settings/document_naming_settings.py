@@ -58,9 +58,7 @@ class DocumentNamingSettings(Document):
 		if custom_prefixes:
 			prefixes = prefixes + [d.autoname.rsplit(".", 1)[0] for d in custom_prefixes]
 
-		prefixes = "\n".join(sorted(prefixes))
-
-		return {"transactions": "\n".join([""] + sorted(doctypes)), "prefixes": prefixes}
+		return {"transactions": sorted(doctypes), "prefixes": sorted(prefixes)}
 
 	def scrub_options_list(self, ol):
 		options = list(filter(lambda x: x, [cstr(n).strip() for n in ol]))

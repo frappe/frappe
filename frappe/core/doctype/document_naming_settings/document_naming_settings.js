@@ -2,25 +2,18 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Document Naming Settings", {
-	onload: function(frm) {
-		frm.events.get_doc_and_prefix(frm);
-	},
-
 	refresh: function(frm) {
+		frm.trigger("setup_transaction_autocomplete");
 		frm.disable_save();
 	},
 
-	get_doc_and_prefix: function(frm) {
+	setup_transaction_autocomplete: function(frm) {
 		frappe.call({
 			method: "get_transactions",
 			doc: frm.doc,
 			callback: function(r) {
-				frm.set_df_property(
-					"transaction_type",
-					"options",
-					r.message.transactions
-				);
-				frm.set_df_property("prefix", "options", r.message.prefixes);
+				frm.fields_dict.transaction_type.set_data(r.message.transactions);
+				frm.fields_dict.prefix.set_data(r.message.prefixes);
 			},
 		});
 	},
@@ -53,7 +46,7 @@ frappe.ui.form.on("Document Naming Settings", {
 			method: "update_series",
 			doc: frm.doc,
 			callback: function(r) {
-				frm.events.get_doc_and_prefix(frm);
+				frm.trigger("setup_transaction_autocomplete");
 			},
 		});
 	},
