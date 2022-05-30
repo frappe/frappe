@@ -35,6 +35,35 @@ class TestReportview(unittest.TestCase):
 
 		clear_custom_fields("DocType")
 
+	def test_child_table_field_syntax(self):
+		note = frappe.get_doc(
+			doctype="Note",
+			title=f"Test {frappe.utils.random_string(8)}",
+			content="test",
+			seen_by=[{"user": "Administrator"}],
+		).insert()
+		result = frappe.db.get_all(
+			"Note",
+			filters={"name": note.name},
+			fields=["name", "seen_by.user as seen_by"],
+			limit=1,
+		)
+		self.assertEqual(result[0].seen_by, "Administrator")
+		note.delete()
+
+	def test_link_field_syntax(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"
+		).insert()
+		result = frappe.db.get_all(
+			"ToDo",
+			filters={"name": todo.name},
+			fields=["name", "allocated_to.email as allocated_user_email"],
+			limit=1,
+		)
+		self.assertEqual(result[0].allocated_user_email, "admin@example.com")
+		todo.delete()
+
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype("Blog Post", "test2@example.com")
 
