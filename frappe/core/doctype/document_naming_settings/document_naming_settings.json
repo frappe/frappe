@@ -1,20 +1,21 @@
 {
  "actions": [],
  "creation": "2022-05-30 07:24:07.736646",
- "description": "Set prefix for numbering series on your transactions",
+ "description": "Configure various aspects of how document naming works like naming series, current counter.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series_tab",
   "setup_series",
   "transaction_type",
-  "help_html",
   "try_naming_series",
   "preview",
   "add_series",
   "naming_series_options",
   "user_must_always_select",
   "update",
-  "column_break_13",
+  "column_break_9",
+  "help_html",
   "update_series",
   "prefix",
   "current_value",
@@ -22,10 +23,11 @@
  ],
  "fields": [
   {
-   "description": "Set prefix for numbering series on your transactions",
+   "collapsible": 1,
+   "description": "Set Naming Series options on your transactions.",
    "fieldname": "setup_series",
    "fieldtype": "Section Break",
-   "label": "Setup Series"
+   "label": "Setup Series for transactions"
   },
   {
    "depends_on": "transaction_type",
@@ -61,14 +63,11 @@
    "label": "Update"
   },
   {
-   "fieldname": "column_break_13",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "Change the starting / current sequence number of an existing series.",
+   "collapsible": 1,
+   "description": "Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created. ",
    "fieldname": "update_series",
    "fieldtype": "Section Break",
-   "label": "Update Series"
+   "label": "Update Series Counter"
   },
   {
    "fieldname": "prefix",
@@ -84,7 +83,8 @@
   {
    "fieldname": "update_series_start",
    "fieldtype": "Button",
-   "label": "Update Series Number"
+   "label": "Update Series Number",
+   "options": "update_series_start"
   },
   {
    "depends_on": "transaction_type",
@@ -101,13 +101,22 @@
    "fieldname": "transaction_type",
    "fieldtype": "Select",
    "label": "Select Transaction"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series_tab",
+   "fieldtype": "Tab Break",
+   "label": "Naming Series"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2022-05-30 08:07:28.047633",
+ "modified": "2022-05-30 23:51:36.136535",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",

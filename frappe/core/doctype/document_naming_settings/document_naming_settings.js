@@ -34,7 +34,6 @@ frappe.ui.form.on("Document Naming Settings", {
 				frm.set_value("naming_series_options", r.message);
 				if (r.message && r.message.split("\n")[0] == "")
 					frm.set_value("user_must_always_select", 1);
-				frm.refresh();
 			},
 		});
 	},
@@ -74,21 +73,5 @@ frappe.ui.form.on("Document Naming Settings", {
 				}
 			},
 		});
-	},
-
-	add_series(frm) {
-		const series = frm.doc.try_naming_series;
-
-		if (!series) {
-			frappe.show_alert(__("Please type a valid series."));
-			return;
-		}
-
-		if (!frm.doc.naming_series_options.includes(series)) {
-			const current_series = frm.doc.naming_series_options;
-			frm.set_value("naming_series_options", `${current_series}\n${series}`);
-		} else {
-			frappe.show_alert(__("Series already added to transaction."));
-		}
 	},
 });
