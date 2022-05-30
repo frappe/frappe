@@ -16,13 +16,13 @@ class TestNamingSeries(FrappeTestCase):
 		frappe.db.rollback()
 
 	def test_naming_preview(self):
-		self.ns.select_doc_for_series = "Sales Invoice"
+		self.ns.transaction_type = "Sales Invoice"
 
-		self.ns.naming_series_to_check = "AXBZ.####"
+		self.ns.try_naming_series = "AXBZ.####"
 		serieses = self.ns.preview_series().split("\n")
 		self.assertEqual(["AXBZ0001", "AXBZ0002", "AXBZ0003"], serieses)
 
-		self.ns.naming_series_to_check = "AXBZ-.{currency}.-"
+		self.ns.try_naming_series = "AXBZ-.{currency}.-"
 		serieses = self.ns.preview_series().split("\n")
 
 	def test_get_transactions(self):

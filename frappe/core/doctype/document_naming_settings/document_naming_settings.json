@@ -6,12 +6,12 @@
  "engine": "InnoDB",
  "field_order": [
   "setup_series",
-  "select_doc_for_series",
+  "transaction_type",
   "help_html",
-  "naming_series_to_check",
+  "try_naming_series",
   "preview",
   "add_series",
-  "set_options",
+  "naming_series_options",
   "user_must_always_select",
   "update",
   "column_break_13",
@@ -28,21 +28,11 @@
    "label": "Setup Series"
   },
   {
-   "fieldname": "select_doc_for_series",
-   "fieldtype": "Select",
-   "label": "Select Transaction"
-  },
-  {
-   "depends_on": "select_doc_for_series",
+   "depends_on": "transaction_type",
    "fieldname": "help_html",
    "fieldtype": "HTML",
    "label": "Help HTML",
    "options": "<div class=\"well\">\n    Edit list of Series in the box below. Rules:\n    <ul>\n        <li>Each Series Prefix on a new line.</li>\n        <li>Allowed special characters are \"/\" and \"-\"</li>\n        <li>\n            Optionally, set the number of digits in the series using dot (.)\n            followed by hashes (#). For example, \".####\" means that the series\n            will have four digits. Default is five digits.\n        </li>\n        <li>\n            You can also use variables in the series name by putting them\n            between (.) dots\n            <br>\n            Support Variables:\n            <ul>\n                <li><code>.YYYY.</code> - Year in 4 digits</li>\n                <li><code>.YY.</code> - Year in 2 digits</li>\n                <li><code>.MM.</code> - Month</li>\n                <li><code>.DD.</code> - Day of month</li>\n                <li><code>.WW.</code> - Week of the year</li>\n                <li><code>.FY.</code> - Fiscal Year</li>\n                <li>\n                    <code>.{fieldname}.</code> - fieldname on the document e.g.\n                    <code>branch</code>\n                </li>\n            </ul>\n        </li>\n    </ul>\n    Examples:\n    <ul>\n        <li>INV-</li>\n        <li>INV-10-</li>\n        <li>INVK-</li>\n        <li>INV-.YYYY.-.{branch}.-.MM.-.####</li>\n    </ul>\n</div>\n<br>\n"
-  },
-  {
-   "fieldname": "naming_series_to_check",
-   "fieldtype": "Data",
-   "label": "Try a naming Series"
   },
   {
    "default": " ",
@@ -57,21 +47,15 @@
    "label": "Add this Series"
   },
   {
-   "depends_on": "select_doc_for_series",
-   "fieldname": "set_options",
-   "fieldtype": "Text",
-   "label": "Series List for this Transaction"
-  },
-  {
    "default": "0",
-   "depends_on": "select_doc_for_series",
+   "depends_on": "transaction_type",
    "description": "Check this if you want to force the user to select a series before saving. There will be no default if you check this.",
    "fieldname": "user_must_always_select",
    "fieldtype": "Check",
    "label": "User must always select"
   },
   {
-   "depends_on": "select_doc_for_series",
+   "depends_on": "transaction_type",
    "fieldname": "update",
    "fieldtype": "Button",
    "label": "Update"
@@ -101,13 +85,29 @@
    "fieldname": "update_series_start",
    "fieldtype": "Button",
    "label": "Update Series Number"
+  },
+  {
+   "depends_on": "transaction_type",
+   "fieldname": "naming_series_options",
+   "fieldtype": "Text",
+   "label": "Series List for this Transaction"
+  },
+  {
+   "fieldname": "try_naming_series",
+   "fieldtype": "Data",
+   "label": "Try a naming Series"
+  },
+  {
+   "fieldname": "transaction_type",
+   "fieldtype": "Select",
+   "label": "Select Transaction"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2022-05-30 08:00:20.236345",
+ "modified": "2022-05-30 08:07:28.047633",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",

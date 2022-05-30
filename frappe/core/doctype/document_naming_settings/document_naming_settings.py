@@ -71,10 +71,10 @@ class DocumentNamingSettings(Document):
 		"""update series list"""
 		self.validate_series_set()
 		self.check_duplicate()
-		series_list = self.set_options.split("\n")
+		series_list = self.naming_series_options.split("\n")
 
 		# set in doctype
-		self.set_series_for(self.select_doc_for_series, series_list)
+		self.set_series_for(self.transaction_type, series_list)
 
 		# create series
 		map(self.insert_series, [d.split(".")[0] for d in series_list if d.strip()])
@@ -84,7 +84,7 @@ class DocumentNamingSettings(Document):
 		return self.get_transactions()
 
 	def validate_series_set(self):
-		if self.select_doc_for_series and not self.set_options:
+		if self.transaction_type and not self.naming_series_options:
 			frappe.throw(_("Please set the series to be used."))
 
 	def set_series_for(self, doctype, ol):
@@ -126,7 +126,7 @@ class DocumentNamingSettings(Document):
 				)
 				ps.save()
 
-		self.set_options = "\n".join(options)
+		self.naming_series_options = "\n".join(options)
 
 		frappe.clear_cache(doctype=doctype)
 
@@ -137,19 +137,19 @@ class DocumentNamingSettings(Document):
 					"""select dt.name
 				from `tabDocField` df, `tabDocType` dt
 				where dt.name = df.parent and df.fieldname='naming_series' and dt.name != %s""",
-					self.select_doc_for_series,
+					self.transaction_type,
 				)
 				+ frappe.db.sql_list(
 					"""select dt.name
 				from `tabCustom Field` df, `tabDocType` dt
 				where dt.name = df.dt and df.fieldname='naming_series' and dt.name != %s""",
-					self.select_doc_for_series,
+					self.transaction_type,
 				)
 			)
 		)
 		sr = [[frappe.get_meta(p).get_field("naming_series").options, p] for p in parent]
-		dt = frappe.get_doc("DocType", self.select_doc_for_series)
-		options = self.scrub_options_list(self.set_options.split("\n"))
+		dt = frappe.get_doc("DocType", self.transaction_type)
+		options = self.scrub_options_list(self.naming_series_options.split("\n"))
 		for series in options:
 			validate_series(dt, series)
 			for i in sr:
@@ -168,8 +168,8 @@ class DocumentNamingSettings(Document):
 
 	@frappe.whitelist()
 	def get_options(self, arg=None):
-		if frappe.get_meta(arg or self.select_doc_for_series).get_field("naming_series"):
-			return frappe.get_meta(arg or self.select_doc_for_series).get_field("naming_series").options
+		if frappe.get_meta(arg or self.transaction_type).get_field("naming_series"):
+			return frappe.get_meta(arg or self.transaction_type).get_field("naming_series").options
 
 	@frappe.whitelist()
 	def get_current(self, arg=None):
@@ -210,7 +210,7 @@ class DocumentNamingSettings(Document):
 		"""Preview what the naming series will generate."""
 
 		generated_names = []
-		series = self.naming_series_to_check
+		series = self.try_naming_series
 		if not series:
 			return ""
 
@@ -230,7 +230,7 @@ class DocumentNamingSettings(Document):
 	def _fetch_last_doc_if_available(self):
 		"""Fetch last doc for evaluating naming series with fields."""
 		try:
-			return frappe.get_last_doc(self.select_doc_for_series)
+			return frappe.get_last_doc(self.transaction_type)
 		except Exception:
 			return None
 

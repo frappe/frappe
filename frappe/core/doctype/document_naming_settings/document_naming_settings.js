@@ -16,7 +16,7 @@ frappe.ui.form.on("Document Naming Settings", {
 			doc: frm.doc,
 			callback: function(r) {
 				frm.set_df_property(
-					"select_doc_for_series",
+					"transaction_type",
 					"options",
 					r.message.transactions
 				);
@@ -25,13 +25,13 @@ frappe.ui.form.on("Document Naming Settings", {
 		});
 	},
 
-	select_doc_for_series: function(frm) {
+	transaction_type: function(frm) {
 		frm.set_value("user_must_always_select", 0);
 		frappe.call({
 			method: "get_options",
 			doc: frm.doc,
 			callback: function(r) {
-				frm.set_value("set_options", r.message);
+				frm.set_value("naming_series_options", r.message);
 				if (r.message && r.message.split("\n")[0] == "")
 					frm.set_value("user_must_always_select", 1);
 				frm.refresh();
@@ -59,7 +59,7 @@ frappe.ui.form.on("Document Naming Settings", {
 		});
 	},
 
-	naming_series_to_check(frm) {
+	try_naming_series(frm) {
 		frappe.call({
 			method: "preview_series",
 			doc: frm.doc,
@@ -77,16 +77,16 @@ frappe.ui.form.on("Document Naming Settings", {
 	},
 
 	add_series(frm) {
-		const series = frm.doc.naming_series_to_check;
+		const series = frm.doc.try_naming_series;
 
 		if (!series) {
 			frappe.show_alert(__("Please type a valid series."));
 			return;
 		}
 
-		if (!frm.doc.set_options.includes(series)) {
-			const current_series = frm.doc.set_options;
-			frm.set_value("set_options", `${current_series}\n${series}`);
+		if (!frm.doc.naming_series_options.includes(series)) {
+			const current_series = frm.doc.naming_series_options;
+			frm.set_value("naming_series_options", `${current_series}\n${series}`);
 		} else {
 			frappe.show_alert(__("Series already added to transaction."));
 		}
