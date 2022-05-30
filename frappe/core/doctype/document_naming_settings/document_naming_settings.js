@@ -9,7 +9,7 @@ frappe.ui.form.on("Document Naming Settings", {
 
 	setup_transaction_autocomplete: function(frm) {
 		frappe.call({
-			method: "get_transactions",
+			method: "get_transactions_and_prefixes",
 			doc: frm.doc,
 			callback: function(r) {
 				frm.fields_dict.transaction_type.set_data(r.message.transactions);

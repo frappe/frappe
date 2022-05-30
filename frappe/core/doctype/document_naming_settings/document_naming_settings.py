@@ -1,8 +1,10 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from typing import List
+
 import frappe
-from frappe import _, msgprint, throw
+from frappe import _
 from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname, parse_naming_series
@@ -16,21 +18,23 @@ class NamingSeriesNotSetError(frappe.ValidationError):
 
 class DocumentNamingSettings(Document):
 	@frappe.whitelist()
-	def get_transactions(self, arg=None):
-		doctypes = list(
-			set(
-				frappe.db.sql_list(
-					"""select parent
-				from `tabDocField` df where fieldname='naming_series'"""
-				)
-				+ frappe.db.sql_list(
-					"""select dt from `tabCustom Field`
-				where fieldname='naming_series'"""
-				)
-			)
-		)
+	def get_transactions_and_prefixes(self, arg=None):
 
-		doctypes = list(set(get_doctypes_with_read()).intersection(set(doctypes)))
+		transactions = self._get_transactions()
+		prefixes = self._get_prefixes(transactions)
+
+		return {"transactions": transactions, "prefixes": prefixes}
+
+	def _get_transactions(self) -> List[str]:
+
+		readable_doctypes = set(get_doctypes_with_read())
+
+		standard = frappe.get_all("DocField", {"fieldname": "naming_series"}, "parent", pluck="parent")
+		custom = frappe.get_all("Custom Field", {"fieldname": "naming_series"}, "dt", pluck="dt")
+
+		return sorted(readable_doctypes.intersection(standard + custom))
+
+	def _get_prefixes(self, doctypes) -> List[str]:
 		prefixes = ""
 		for d in doctypes:
 			options = ""
@@ -57,35 +61,28 @@ class DocumentNamingSettings(Document):
 		if custom_prefixes:
 			prefixes = prefixes + [d.autoname.rsplit(".", 1)[0] for d in custom_prefixes]
 
-		return {"transactions": sorted(doctypes), "prefixes": sorted(prefixes)}
+		return sorted(set(prefixes))
 
-	def scrub_options_list(self, ol):
-		options = list(filter(lambda x: x, [cstr(n).strip() for n in ol]))
-		return options
+	def get_options_list(self, options: str) -> List[str]:
+		return [op.strip() for op in options.split("\n") if op.strip()]
 
 	@frappe.whitelist()
-	def update_series(self, arg=None):
+	def update_series(self):
 		"""update series list"""
 		self.validate_series_set()
 		self.check_duplicate()
-		series_list = self.naming_series_options.split("\n")
+		self.set_series_options_in_meta(self.transaction_type, self.naming_series_options)
 
-		# set in doctype
-		self.set_series_for(self.transaction_type, series_list)
-
-		# create series
-		map(self.insert_series, [d.split(".")[0] for d in series_list if d.strip()])
-
-		msgprint(_("Series Updated"))
-
-		return self.get_transactions()
+		frappe.msgprint(
+			_("Series Updated for {}").format(self.transaction_type), alert=True, indicator="green"
+		)
 
 	def validate_series_set(self):
 		if self.transaction_type and not self.naming_series_options:
 			frappe.throw(_("Please set the series to be used."))
 
-	def set_series_for(self, doctype, ol):
-		options = self.scrub_options_list(ol)
+	def set_series_options_in_meta(self, doctype: str, options: str) -> None:
+		options = self.get_options_list(options)
 
 		# validate names
 		for i in options:
@@ -146,7 +143,7 @@ class DocumentNamingSettings(Document):
 		)
 		sr = [[frappe.get_meta(p).get_field("naming_series").options, p] for p in parent]
 		dt = frappe.get_doc("DocType", self.transaction_type)
-		options = self.scrub_options_list(self.naming_series_options.split("\n"))
+		options = self.get_options_list(self.naming_series_options)
 		for series in options:
 			validate_series(dt, series)
 			for i in sr:
@@ -159,7 +156,7 @@ class DocumentNamingSettings(Document):
 		import re
 
 		if not re.match(r"^[\w\- \/.#{}]+$", n, re.UNICODE):
-			throw(
+			frappe.throw(
 				_('Special Characters except "-", "#", ".", "/", "{" and "}" not allowed in naming series')
 			)
 
@@ -192,9 +189,9 @@ class DocumentNamingSettings(Document):
 			frappe.db.sql(
 				"update `tabSeries` set current = %s where name = %s", (cint(self.current_value), prefix)
 			)
-			msgprint(_("Series Updated Successfully"))
+			frappe.msgprint(_("Series Updated Successfully"))
 		else:
-			msgprint(_("Please select prefix first"))
+			frappe.msgprint(_("Please select prefix first"))
 
 	def parse_naming_series(self):
 		parts = self.prefix.split(".")
@@ -234,70 +231,3 @@ class DocumentNamingSettings(Document):
 			return frappe.get_last_doc(self.transaction_type)
 		except Exception:
 			return None
-
-
-def set_by_naming_series(
-	doctype, fieldname, naming_series, hide_name_field=True, make_mandatory=1
-):
-	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
-	if naming_series:
-		make_property_setter(
-			doctype, "naming_series", "hidden", 0, "Check", validate_fields_for_doctype=False
-		)
-		make_property_setter(
-			doctype, "naming_series", "reqd", make_mandatory, "Check", validate_fields_for_doctype=False
-		)
-
-		# set values for mandatory
-		try:
-			frappe.db.sql(
-				"""update `tab{doctype}` set naming_series={s} where
-				ifnull(naming_series, '')=''""".format(
-					doctype=doctype, s="%s"
-				),
-				get_default_naming_series(doctype),
-			)
-		except NamingSeriesNotSetError:
-			pass
-
-		if hide_name_field:
-			make_property_setter(doctype, fieldname, "reqd", 0, "Check", validate_fields_for_doctype=False)
-			make_property_setter(
-				doctype, fieldname, "hidden", 1, "Check", validate_fields_for_doctype=False
-			)
-	else:
-		make_property_setter(
-			doctype, "naming_series", "reqd", 0, "Check", validate_fields_for_doctype=False
-		)
-		make_property_setter(
-			doctype, "naming_series", "hidden", 1, "Check", validate_fields_for_doctype=False
-		)
-
-		if hide_name_field:
-			make_property_setter(
-				doctype, fieldname, "hidden", 0, "Check", validate_fields_for_doctype=False
-			)
-			make_property_setter(doctype, fieldname, "reqd", 1, "Check", validate_fields_for_doctype=False)
-
-			# set values for mandatory
-			frappe.db.sql(
-				"""update `tab{doctype}` set `{fieldname}`=`name` where
-				ifnull({fieldname}, '')=''""".format(
-					doctype=doctype, fieldname=fieldname
-				)
-			)
-
-
-def get_default_naming_series(doctype):
-	naming_series = frappe.get_meta(doctype).get_field("naming_series").options or ""
-	naming_series = naming_series.split("\n")
-	out = naming_series[0] or (naming_series[1] if len(naming_series) > 1 else None)
-
-	if not out:
-		frappe.throw(
-			_("Please set Naming Series for {0} via Setup > Settings > Naming Series").format(doctype),
-			NamingSeriesNotSetError,
-		)
-	else:
-		return out

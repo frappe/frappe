@@ -17,6 +17,7 @@ Example:
 import json
 import os
 from datetime import datetime
+from typing import List
 
 import click
 
@@ -340,6 +341,16 @@ class Meta(Document):
 
 	def get_workflow(self):
 		return get_workflow_name(self.name)
+
+	def get_naming_series_options(self) -> List[str]:
+		"""Get list naming series options."""
+
+		field = self.get_field("naming_series")
+		if field:
+			options = field.options or ""
+
+			return options.split("\n")
+		return []
 
 	def add_custom_fields(self):
 		if not frappe.db.table_exists("Custom Field"):

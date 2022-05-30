@@ -311,14 +311,15 @@ def revert_series_if_last(key, name, doc=None):
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
 
 
-def get_default_naming_series(doctype):
+def get_default_naming_series(doctype: str) -> Optional[str]:
 	"""get default value for `naming_series` property"""
-	naming_series = frappe.get_meta(doctype).get_field("naming_series").options or ""
-	if naming_series:
-		naming_series = naming_series.split("\n")
-		return naming_series[0] or naming_series[1]
-	else:
-		return None
+	naming_series_options = frappe.get_meta(doctype).get_naming_series_options()
+
+	# Return first truthy options
+	# Empty strings are used to avoid populating forms by default
+	for option in naming_series_options:
+		if option:
+			return option
 
 
 def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
