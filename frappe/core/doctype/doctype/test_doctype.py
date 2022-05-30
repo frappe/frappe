@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import random
+import string
 import unittest
 from typing import Dict, List, Optional
+from unittest.mock import patch
 
 import frappe
+from frappe.cache_manager import clear_doctype_cache
 from frappe.core.doctype.doctype.doctype import (
 	CannotIndexedError,
 	DoctypeLinkError,
@@ -15,8 +19,8 @@ from frappe.core.doctype.doctype.doctype import (
 	WrongOptionsDoctypeLinkError,
 	validate_links_table_fieldnames,
 )
-
-# test_records = frappe.get_test_records('DocType')
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.desk.form.load import getdoc
 
 
 class TestDocType(unittest.TestCase):
@@ -628,10 +632,55 @@ class TestDocType(unittest.TestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_delete_doctype_with_customization(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		custom_field = "customfield"
+
+		doctype = new_doctype(custom=0).insert().name
+
+		# Create property setter and custom field
+		field = "some_fieldname"
+		make_property_setter(doctype, field, "default", "DELETETHIS", "Data")
+		create_custom_fields({doctype: [{"fieldname": custom_field, "fieldtype": "Data"}]})
+
+		# Create 1 record
+		original_doc = frappe.get_doc(doctype=doctype, custom_field_name="wat").insert()
+		self.assertEqual(original_doc.some_fieldname, "DELETETHIS")
+
+		# delete doctype
+		frappe.delete_doc("DocType", doctype)
+		clear_doctype_cache(doctype)
+
+		# "restore" doctype by inserting doctype with same schema again
+		new_doctype(doctype, custom=0).insert()
+
+		# Ensure basically same doctype getting "restored"
+		restored_doc = frappe.get_last_doc(doctype)
+		verify_fields = ["doctype", field, custom_field]
+		for f in verify_fields:
+			self.assertEqual(original_doc.get(f), restored_doc.get(f))
+
+		# Check form load of restored doctype
+		getdoc(doctype, restored_doc.name)
+
+		# ensure meta - property setter
+		self.assertEqual(frappe.get_meta(doctype).get_field(field).default, "DELETETHIS")
+		frappe.delete_doc("DocType", doctype)
+
 
 def new_doctype(
-	name, unique: bool = False, depends_on: str = "", fields: Optional[List[Dict]] = None, **kwargs
+	name: Optional[str] = None,
+	unique: bool = False,
+	depends_on: str = "",
+	fields: Optional[List[Dict]] = None,
+	**kwargs,
 ):
+	if not name:
+		# Test prefix is required to avoid coverage
+		name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
+
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",
