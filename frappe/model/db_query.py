@@ -34,6 +34,7 @@ class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
 		self.tables = []
+		self.link_tables = []
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -131,7 +132,6 @@ class DatabaseQuery(object):
 		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
-		self.link_tables = []
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype

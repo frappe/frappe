@@ -53,7 +53,7 @@ class TestReportview(unittest.TestCase):
 
 	def test_link_field_syntax(self):
 		todo = frappe.get_doc(
-			doctype="ToDo", description=f"Test ToDo", allocated_to="Administrator"
+			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"
 		).insert()
 		result = frappe.db.get_all(
 			"ToDo",
