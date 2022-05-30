@@ -10,7 +10,7 @@ from frappe.tests.utils import FrappeTestCase
 
 class TestNamingSeries(FrappeTestCase):
 	def setUp(self):
-		self.ns: DocumentNamingSettings = frappe.get_doc("Naming Series Settings")
+		self.ns: DocumentNamingSettings = frappe.get_doc("Document Naming Settings")
 
 	def tearDown(self):
 		frappe.db.rollback()

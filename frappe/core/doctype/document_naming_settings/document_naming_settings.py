@@ -167,9 +167,13 @@ class DocumentNamingSettings(Document):
 			)
 
 	@frappe.whitelist()
-	def get_options(self, arg=None):
-		if frappe.get_meta(arg or self.transaction_type).get_field("naming_series"):
-			return frappe.get_meta(arg or self.transaction_type).get_field("naming_series").options
+	def get_options(self, doctype=None):
+		doctype = doctype or self.transaction_type
+		if not doctype:
+			return
+
+		if frappe.get_meta(doctype or self.transaction_type).get_field("naming_series"):
+			return frappe.get_meta(doctype or self.transaction_type).get_field("naming_series").options
 
 	@frappe.whitelist()
 	def get_current(self, arg=None):
