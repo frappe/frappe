@@ -4,7 +4,7 @@ from typing import Dict, List
 
 import frappe
 from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import subqry
+from frappe.query_builder.terms import SubQuery
 from frappe.query_builder.utils import DocType
 
 
@@ -46,7 +46,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> List[D
 				(ToDo.status != "Cancelled")
 				& (ToDo.allocated_to == User.name)
 				& (User.user_type == "System User")
-				& (ToDo.reference_name.isin(subqry(filtered_records)))
+				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
 			)
 			.groupby(ToDo.allocated_to)
 			.orderby(count)
