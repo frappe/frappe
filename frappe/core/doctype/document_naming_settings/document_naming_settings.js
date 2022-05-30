@@ -45,8 +45,11 @@ frappe.ui.form.on("Document Naming Settings", {
 		frappe.call({
 			method: "update_series",
 			doc: frm.doc,
+			freeze: true,
+			freeze_msg: __("Updating naming series options"),
 			callback: function(r) {
 				frm.trigger("setup_transaction_autocomplete");
+				frm.trigger("transaction_type");
 			},
 		});
 	},
