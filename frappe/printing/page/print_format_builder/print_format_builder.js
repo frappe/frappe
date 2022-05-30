@@ -452,7 +452,8 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 						label: __("Align Value"),
 						fieldname: "align",
 						fieldtype: "Select",
-						options: [{'label': __('Left'), 'value': 'left'}, {'label': __('Right'), 'value': 'right'}]
+						options: [{'label': __('Left', null, 'direction'), 'value': 'left'},
+							{'label': __('Right', null, 'direction'), 'value': 'right'}]
 					},
 					{
 						label: __("Remove Field"),
