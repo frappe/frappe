@@ -9,7 +9,7 @@ from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname, parse_naming_series
 from frappe.permissions import get_doctypes_with_read
-from frappe.utils import cint, cstr
+from frappe.utils import cint
 
 
 class NamingSeriesNotSetError(frappe.ValidationError):
@@ -93,36 +93,19 @@ class DocumentNamingSettings(Document):
 
 		default = options[0] if options else ""
 
-		# update in property setter
-		prop_dict = {"options": "\n".join(options), "default": default}
+		option_string = "\n".join(options)
 
-		for prop in prop_dict:
-			ps_exists = frappe.db.get_value(
-				"Property Setter", {"field_name": "naming_series", "doc_type": doctype, "property": prop}
-			)
+		self.update_naming_series_property_setter(doctype, "options", option_string)
+		self.update_naming_series_property_setter(doctype, "default", default)
 
-			if ps_exists:
-				ps = frappe.get_doc("Property Setter", ps_exists)
-				ps.value = prop_dict[prop]
-				ps.save()
-			else:
-				ps = frappe.get_doc(
-					{
-						"doctype": "Property Setter",
-						"doctype_or_field": "DocField",
-						"doc_type": doctype,
-						"field_name": "naming_series",
-						"property": prop,
-						"value": prop_dict[prop],
-						"property_type": "Text",
-						"__islocal": 1,
-					}
-				)
-				ps.save()
-
-		self.naming_series_options = "\n".join(options)
+		self.naming_series_options = option_string
 
 		frappe.clear_cache(doctype=doctype)
+
+	def update_naming_series_property_setter(self, doctype, property, value):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		make_property_setter(doctype, "naming_series", property, value, "Text")
 
 	def check_duplicate(self):
 		parent = list(
