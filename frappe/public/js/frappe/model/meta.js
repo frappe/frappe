@@ -177,12 +177,17 @@ $.extend(frappe.meta, {
 
 	get_label: function(dt, fn, dn) {
 		var standard = {
-			'owner': __('Owner'),
-			'creation': __('Created On'),
-			'modified': __('Last Modified On'),
-			'idx': __('Idx'),
 			'name': __('Name'),
-			'modified_by': __('Last Modified By')
+			'creation': __('Created On'),
+			'docstatus': __('Document Status'),
+			'idx': __('Index'),
+			'modified': __('Last Updated On'),
+			'modified_by': __('Last Updated By'),
+			'owner': __('Created By'),
+			'_user_tags': __('Tags'),
+			'_liked_by': __('Liked By'),
+			'_comments': __('Comments'),
+			'_assign': __('Assigned To'),
 		}
 		if(standard[fn]) {
 			return standard[fn];
