@@ -1105,10 +1105,6 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
-	get_share_link(key) {
-		return frappe.urllib.get_full_url(`${this.doctype}/${this.docname}?key=${key}`);
-	}
-
 	copy_doc(onload, from_amend) {
 		this.validate_form_action("Create");
 		var newdoc = frappe.model.copy_doc(this.doc, from_amend);

@@ -1386,20 +1386,20 @@ class Document(BaseDocument):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
-	@frappe.whitelist()
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
 			expires_on = None
 
-		if document_key_exist := frappe.db.exists(
+		existing_key = frappe.db.exists(
 			"Document Share Key",
 			{
 				"reference_doctype": self.doctype,
 				"reference_docname": self.name,
 				"expires_on": expires_on,
 			},
-		):
-			doc = frappe.get_doc("Document Share Key", document_key_exist)
+		)
+		if existing_key:
+			doc = frappe.get_doc("Document Share Key", existing_key)
 		else:
 			doc = frappe.new_doc("Document Share Key")
 			doc.reference_doctype = self.doctype
