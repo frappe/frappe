@@ -4717,6 +4717,6 @@ Document has been cancelled,Document annulé
 Document is in draft state,Document au statut brouillon
 Copy to Clipboard,Copier vers le presse-papiers
 Don't have an account?,Vous n&#39;avez pas de compte?
-Left:direction,Gauche
-Right:direction,Droite
+Left:align,Gauche
+Right:align,Droite
 Set Properties,Gérer les proriétés
