@@ -3,8 +3,9 @@
 
 import json
 from collections import defaultdict
+from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import frappe
 
@@ -60,7 +61,7 @@ def request_cache(func: Callable) -> Callable:
 	return wrapper
 
 
-def site_cache(func: Callable) -> Callable:
+def site_cache(ttl: Optional[int] = None) -> Callable:
 	"""Decorator to cache method calls across requests. The cache is stored in
 	frappe.utils.caching._SITE_CACHE. The cache persists on the parent process.
 	It offers a light-weight cache for the current process without the additional
@@ -83,24 +84,41 @@ def site_cache(func: Callable) -> Callable:
 	        calculate_pi.clear_cache() # clear this function's cache for all sites
 	        calculate_pi(10) # will calculate value
 	"""
-	func_key = f"{func.__module__}.{func.__name__}"
 
-	def clear_cache():
-		"""Clear cache for this function for all sites if not specified."""
-		_SITE_CACHE[func_key].clear()
+	def time_cache_wrapper(func: Callable = None) -> Callable:
+		nonlocal ttl
 
-	func.clear_cache = clear_cache
+		func_key = f"{func.__module__}.{func.__name__}"
 
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		if getattr(frappe.local, "initialised", None):
-			func_call_key = json.dumps((args, kwargs))
+		def clear_cache():
+			"""Clear cache for this function for all sites if not specified."""
+			_SITE_CACHE[func_key].clear()
 
-			if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
-				_SITE_CACHE[func_key][frappe.local.site][func_call_key] = func(*args, **kwargs)
+		func.clear_cache = clear_cache
 
-			return _SITE_CACHE[func_key][frappe.local.site][func_call_key]
+		if ttl is not None and not callable(ttl):
+			func.ttl = ttl
+			func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
 
-		return func(*args, **kwargs)
+		@wraps(func)
+		def site_cache_wrapper(*args, **kwargs):
+			if getattr(frappe.local, "initialised", None):
+				func_call_key = json.dumps((args, kwargs))
 
-	return wrapper
+				if hasattr(func, "ttl") and datetime.utcnow() >= func.expiration:
+					func.clear_cache()
+					func.expiration = datetime.utcnow() + +timedelta(seconds=func.ttl)
+
+				if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
+					_SITE_CACHE[func_key][frappe.local.site][func_call_key] = func(*args, **kwargs)
+
+				return _SITE_CACHE[func_key][frappe.local.site][func_call_key]
+
+			return func(*args, **kwargs)
+
+		return site_cache_wrapper
+
+	if callable(ttl):
+		return time_cache_wrapper(ttl)
+
+	return time_cache_wrapper
