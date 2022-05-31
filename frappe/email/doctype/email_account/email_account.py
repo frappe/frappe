@@ -403,6 +403,9 @@ class EmailAccount(Document):
 				"default": 0,
 			},
 			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
+			"use_oauth": {"conf_names": ("use_oauth"), "default": 0},
+			"access_token": {"conf_names": ("mail_access_token")},
+			"refresh_token": {"conf_names": ("mail_refresh_token")},
 			"from_site_config": {"default": True},
 		}
 
