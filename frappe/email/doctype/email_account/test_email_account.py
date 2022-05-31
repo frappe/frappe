@@ -235,7 +235,7 @@ class TestEmailAccount(unittest.TestCase):
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
-			test_mails = [f.read().replace("{{ message_id }}", last_mail.message_id)]
+			test_mails = [f.read().replace("{{ message_id }}", "<" + last_mail.message_id + ">")]
 
 		# pull the mail
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")

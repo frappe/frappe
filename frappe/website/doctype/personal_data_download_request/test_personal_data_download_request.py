@@ -4,17 +4,17 @@
 from __future__ import unicode_literals
 
 import json
-import unittest
 
 import frappe
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.core.doctype.user.user import create_contact
+from frappe.tests.utils import FrappeTestCase
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import (
 	get_user_data,
 )
 
 
-class TestRequestPersonalData(unittest.TestCase):
+class TestRequestPersonalData(FrappeTestCase):
 	def setUp(self):
 		create_user_if_not_exists(email="test_privacy@example.com")
 
@@ -50,7 +50,7 @@ class TestRequestPersonalData(unittest.TestCase):
 		email_queue = frappe.get_all(
 			"Email Queue", fields=["message"], order_by="creation DESC", limit=1
 		)
-		self.assertTrue("Subject: Download Your Data" in email_queue[0].message)
+		self.assertIn(frappe._("Download Your Data"), email_queue[0].message)
 
 		frappe.db.sql("delete from `tabEmail Queue`")
 

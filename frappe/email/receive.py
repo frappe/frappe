@@ -23,6 +23,7 @@ from frappe.utils import (
 	convert_utc_to_user_timezone,
 	cstr,
 	extract_email_id,
+	get_string_between,
 	markdown,
 	now,
 	parse_addr,
@@ -414,7 +415,9 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get("Message-ID") or "").strip(" <>")
+
+		message_id = self.mail.get("Message-ID") or ""
+		self.message_id = get_string_between("<", message_id, ">")
 
 		if self.mail["Date"]:
 			try:
