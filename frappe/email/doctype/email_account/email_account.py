@@ -16,13 +16,7 @@ from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
 from frappe.model.document import Document
-from frappe.utils import (
-	cint,
-	comma_or,
-	cstr,
-	parse_addr,
-	validate_email_address,
-)
+from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.error import raise_error_on_no_output
 from frappe.utils.jinja import render_template
