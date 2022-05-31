@@ -54,7 +54,7 @@ class NamingSeries:
 	def generate_next_name(self, doc: "Document") -> str:
 		self.validate()
 		parts = self.series.split(".")
-		return parse_naming_series(parts, doc)
+		return parse_naming_series(parts, doc=doc)
 
 	def get_prefix(self) -> str:
 		"""Naming series stores prefix to maintain a counter in DB. This prefix can be used to update counter or validations.

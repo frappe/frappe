@@ -319,6 +319,15 @@ class TestNaming(FrappeTestCase):
 		for series in invalid:
 			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
 
+	def test_naming_using_fields(self):
+
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = "on_update"
+		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
+		self.assertTrue(
+			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
+		)
+
 
 def make_invalid_todo():
 	frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert(set_name="ToDo")
