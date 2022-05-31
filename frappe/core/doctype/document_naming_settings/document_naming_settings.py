@@ -144,6 +144,7 @@ class DocumentNamingSettings(Document):
 		if self.prefix:
 			prefix = NamingSeries(self.prefix).get_prefix()
 			self.current_value = frappe.db.get_value("Series", prefix, "current", order_by="name")
+		return self.current_value
 
 	@frappe.whitelist()
 	def update_series_start(self):
@@ -155,7 +156,7 @@ class DocumentNamingSettings(Document):
 		db_prefix = NamingSeries(self.prefix).get_prefix()
 
 		if frappe.db.get_value("Series", db_prefix, "name", order_by="name") is None:
-			series.insert(db_prefix, 0).columns(series.name, series.current).run()
+			frappe.db.sql("insert into `tabSeries` (`name`, `current`) values (%s, 0)", (db_prefix))
 
 		(
 			frappe.qb.update(series)
