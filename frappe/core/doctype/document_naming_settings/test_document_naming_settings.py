@@ -62,4 +62,4 @@ class TestNamingSeries(FrappeTestCase):
 			new_count = self.dns.current_value = current_count + 1
 			self.dns.update_series_start()
 
-			self.assertEqual(self.dns.get_current(), new_count)
+			self.assertEqual(self.dns.get_current(), new_count, f"Incorrect update for {series}")

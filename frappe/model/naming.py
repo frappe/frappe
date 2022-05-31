@@ -91,6 +91,23 @@ class NamingSeries:
 			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
 		return generated_names
 
+	def update_counter(self, new_count: int) -> None:
+		"""Warning: Incorrectly updating series can result in unusable transactions"""
+		Series = frappe.qb.DocType("Series")
+		prefix = self.get_prefix()
+
+		# Initialize if not present in DB
+		if frappe.db.get_value("Series", prefix, "name", order_by="name") is None:
+			frappe.qb.into(Series).insert(prefix, 0).columns("name", "current").run()
+
+		(
+			frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)
+		).run()
+
+	def get_current_value(self) -> int:
+		prefix = self.get_prefix()
+		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
+
 
 def set_new_name(doc):
 	"""
