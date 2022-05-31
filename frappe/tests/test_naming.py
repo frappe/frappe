@@ -4,9 +4,10 @@
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.naming import (
+	InvalidNamingSeriesError,
+	NamingSeries,
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
-	get_naming_series_prefix,
 	getseries,
 	revert_series_if_last,
 )
@@ -300,7 +301,23 @@ class TestNaming(FrappeTestCase):
 		}
 
 		for series, prefix in prefix_test_cases.items():
-			self.assertEqual(prefix, get_naming_series_prefix(series))
+			self.assertEqual(prefix, NamingSeries(series).get_prefix())
+
+	def test_naming_series_validation(self):
+		dns = frappe.get_doc("Document Naming Settings")
+		exisiting_series = dns.get_transactions_and_prefixes()["prefixes"]
+		valid = ["SINV-", "SI-.{field}.", "SI-#.###", ""] + exisiting_series
+		invalid = ["$INV-", r"WINDOWS\NAMING"]
+
+		for series in valid:
+			if series.strip():
+				try:
+					NamingSeries(series).validate()
+				except Exception as e:
+					self.fail(f"{series} should be valid\n{e}")
+
+		for series in invalid:
+			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
 
 
 def make_invalid_todo():

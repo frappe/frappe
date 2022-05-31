@@ -1,13 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import re
 from typing import List
 
 import frappe
 from frappe import _
 from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
-from frappe.model.naming import get_naming_series_prefix, make_autoname
+from frappe.model.naming import NamingSeries, make_autoname
 from frappe.permissions import get_doctypes_with_read
 from frappe.utils import cint
 
@@ -80,8 +81,8 @@ class DocumentNamingSettings(Document):
 		options = self.get_options_list(options)
 
 		# validate names
-		for i in options:
-			self.validate_series_name(i)
+		for series in options:
+			self.validate_series_name(series)
 
 		if options and self.user_must_always_select:
 			options = [""] + options
@@ -125,13 +126,8 @@ class DocumentNamingSettings(Document):
 				frappe.throw(_("Series {0} already used in {1}").format(series, existing_series[series]))
 			validate_series(dt, series)
 
-	def validate_series_name(self, n):
-		import re
-
-		if not re.match(r"^[\w\- \/.#{}]+$", n, re.UNICODE):
-			frappe.throw(
-				_('Special Characters except "-", "#", ".", "/", "{" and "}" not allowed in naming series')
-			)
+	def validate_series_name(self, series):
+		NamingSeries(series).validate()
 
 	@frappe.whitelist()
 	def get_options(self, doctype=None):
@@ -146,7 +142,7 @@ class DocumentNamingSettings(Document):
 	def get_current(self):
 		"""get series current"""
 		if self.prefix:
-			prefix = get_naming_series_prefix(self.prefix)
+			prefix = NamingSeries(self.prefix).get_prefix()
 			self.current_value = frappe.db.get_value("Series", prefix, "current", order_by="name")
 
 	@frappe.whitelist()
@@ -156,7 +152,7 @@ class DocumentNamingSettings(Document):
 
 		series = frappe.qb.DocType("Series")
 
-		db_prefix = get_naming_series_prefix(self.prefix)
+		db_prefix = NamingSeries(self.prefix).get_prefix()
 
 		if frappe.db.get_value("Series", db_prefix, "name", order_by="name") is None:
 			series.insert(db_prefix, 0).columns(series.name, series.current).run()
