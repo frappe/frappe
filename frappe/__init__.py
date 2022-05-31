@@ -688,17 +688,19 @@ def sendmail(
 
 whitelisted = []
 guest_methods = []
+system_user_methods = []
 xss_safe_methods = []
 allowed_http_methods_for_whitelisted_func = {}
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, system_user_only=False):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
 	:param methods: Allowed http method to access the method.
+	:param system_user_only: Allow only desk/system user to access this method.
 
 	Use as:
 
@@ -711,7 +713,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		methods = ["GET", "POST", "PUT", "DELETE"]
 
 	def innerfn(fn):
-		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func, system_user_methods
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
@@ -722,6 +724,9 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
+
+		if system_user_only:
+			system_user_methods.append(fn)
 
 		if allow_guest:
 			guest_methods.append(fn)
@@ -736,9 +741,12 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 def is_whitelisted(method):
 	from frappe.utils import sanitize_html
+	from frappe.utils.user import is_website_user
 
 	is_guest = session["user"] == "Guest"
-	if method not in whitelisted or is_guest and method not in guest_methods:
+	website_user = is_website_user()
+	if method not in whitelisted or is_guest and method not in guest_methods \
+		or (website_user and method in system_user_methods):
 		throw(_("Not permitted"), PermissionError)
 
 	if is_guest and method not in xss_safe_methods:

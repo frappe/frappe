@@ -48,7 +48,7 @@ def sanitize_searchfield(searchfield):
 
 
 # this is called by the Link Field
-@frappe.whitelist()
+@frappe.whitelist(system_user_only=True)
 def search_link(
 	doctype,
 	txt,
@@ -75,7 +75,7 @@ def search_link(
 
 
 # this is called by the search box
-@frappe.whitelist()
+@frappe.whitelist(system_user_only=True)
 def search_widget(
 	doctype,
 	txt,
