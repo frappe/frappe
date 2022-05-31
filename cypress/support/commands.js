@@ -1,6 +1,7 @@
 import 'cypress-file-upload';
 import '@testing-library/cypress/add-commands';
 import '@4tw/cypress-drag-drop';
+import "cypress-real-events/support";
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -312,10 +313,20 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 		});
 });
 
-Cypress.Commands.add('add_filter', () => {
+Cypress.Commands.add('open_list_filter', () => {
 	cy.get('.filter-section .filter-button').click();
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
+});
+
+Cypress.Commands.add('click_action_button', (name) => {
+	cy.findByRole('button', {name: 'Actions'}).click();
+	cy.get(`.actions-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
+});
+
+Cypress.Commands.add('click_menu_button', (name) => {
+	cy.get('.standard-actions .menu-btn-group > .btn').click();
+	cy.get(`.menu-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
 });
 
 Cypress.Commands.add('clear_filters', () => {
@@ -341,7 +352,8 @@ Cypress.Commands.add('clear_filters', () => {
 });
 
 Cypress.Commands.add('click_modal_primary_button', (btn_name) => {
-	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).trigger('click', {force: true});
+	cy.wait(400);
+	cy.get('.modal-footer > .standard-actions > .btn-primary').contains(btn_name).click({force: true});
 });
 
 Cypress.Commands.add('click_sidebar_button', (btn_name) => {

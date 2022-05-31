@@ -15,7 +15,7 @@ from frappe.geo.country_info import get_all
 from frappe.model.base_document import get_controller
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import subqry
+from frappe.query_builder.terms import SubQuery
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
@@ -100,6 +100,7 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	bootinfo.translatable_doctypes = get_translatable_doctypes()
 
 	return bootinfo
 
@@ -210,7 +211,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			if parent == "Report":
 				has_role[p.name].update({"ref_doctype": p.ref_doctype})
 
-	no_of_roles = (
+	no_of_roles = SubQuery(
 		frappe.qb.from_(hasRole).select(Count("*")).where(hasRole.parent == parentTable.name)
 	)
 
@@ -220,7 +221,7 @@ def get_user_pages_or_reports(parent, cache=False):
 		pages_with_no_roles = (
 			frappe.qb.from_(parentTable)
 			.select(parentTable.name, parentTable.modified, *columns)
-			.where(subqry(no_of_roles) == 0)
+			.where(no_of_roles == 0)
 		).run(as_dict=True)
 
 		for p in pages_with_no_roles:
@@ -326,7 +327,7 @@ def get_unseen_notes():
 			(note.notify_on_every_login == 1)
 			& (note.expire_notification_on > frappe.utils.now())
 			& (
-				subqry(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name)).notin(
+				SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name)).notin(
 					[frappe.session.user]
 				)
 			)
@@ -408,3 +409,11 @@ def set_time_zone(bootinfo):
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
 		or get_time_zone(),
 	}
+
+
+def get_translatable_doctypes():
+	dts = frappe.get_all("DocType", {"translate_link_fields": 1}, pluck="name")
+	custom_dts = frappe.get_all(
+		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
+	)
+	return dts + custom_dts

@@ -48,7 +48,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		super.setup_new_doc_event();
+		this.setup_events()
 		this.page.main.addClass('report-view');
+	}
+
+	setup_events() {
+		frappe.realtime.on("list_update", (data) => this.on_update(data));
 	}
 
 	setup_page() {
@@ -804,7 +809,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	add_status_dependency_column(col, doctype) {
 		// Adds dependent column from which status is derived if required
-		if (!this.fields.find(f => f[0] === col)) {
+		if (col && !this.fields.find(f => f[0] === col)) {
 			const field = [col, doctype];
 			this.fields.push(field);
 			this.refresh();
@@ -1152,12 +1157,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				// get status from docstatus
 				let status = frappe.get_indicator(d, this.doctype);
 				if (status) {
-					if (!status[0]) {
-						// get_indicator returns the dependent field's condition as the 3rd parameter
-						let dependent_col = status[2].split(',')[0];
-						// add status dependency column
-						this.add_status_dependency_column(dependent_col, this.doctype);
-					}
+					// get_indicator returns the dependent field's condition as the 3rd parameter
+					let dependent_col = status[2]?.split(',')[0];
+					// add status dependency column
+					this.add_status_dependency_column(dependent_col, this.doctype);
 					return {
 						name: d.name,
 						doctype: col.docfield.parent,

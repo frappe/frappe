@@ -856,6 +856,8 @@ def run_ui_tests(
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = f"{node_bin}/cypress"
 	plugin_path = f"{node_bin}/../cypress-file-upload"
+	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
+	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
 	testing_library_path = f"{node_bin}/../@testing-library"
 	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
 
@@ -863,6 +865,8 @@ def run_ui_tests(
 	if not (
 		os.path.exists(cypress_path)
 		and os.path.exists(plugin_path)
+		and os.path.exists(drag_drop_plugin_path)
+		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
 		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
@@ -870,7 +874,7 @@ def run_ui_tests(
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")
 		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 cypress-real-events @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
 		)
 
 	# run for headless mode

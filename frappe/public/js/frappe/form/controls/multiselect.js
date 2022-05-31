@@ -78,4 +78,26 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends frappe.ui.f
 		if(data) data.filter(d => !values.includes(d));
 		return data;
 	}
+
+	validate(value) {
+		if (this.df.ignore_validation) {
+			return value || '';
+		}
+
+		let valid_values = this.awesomplete._list.map(d => d.value);
+
+		if (!valid_values.length) {
+			return value;
+		}
+
+		// remove last comma and convert into array
+		let value_arr = value.replace(/,\s*$/, "").split(',');
+		let include_all_values = value_arr.every(val => valid_values.includes(val));
+
+		if (include_all_values) {
+			return value;
+		} else {
+			return '';
+		}
+	}
 };

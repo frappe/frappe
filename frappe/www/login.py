@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
-
 import frappe
 import frappe.utils
 from frappe import _
@@ -11,9 +9,13 @@ from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.integrations.oauth2_logins import decoder_compat
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
-from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys
-from frappe.utils.oauth import login_oauth_user as _login_oauth_user
-from frappe.utils.oauth import login_via_oauth2, login_via_oauth2_id_token, redirect_post_login
+from frappe.utils.oauth import (
+	get_oauth2_authorize_url,
+	get_oauth_keys,
+	login_via_oauth2,
+	login_via_oauth2_id_token,
+	redirect_post_login,
+)
 from frappe.utils.password import get_decrypted_password
 from frappe.website.utils import get_home_page
 

@@ -197,7 +197,7 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 	if not allowed_roles:
 		return
 	if workflow_action := get_workflow_action_by_role(doc, allowed_roles):
-		update_completed_workflow_actions_using_role(doc, user, allowed_roles, workflow_action)
+		update_completed_workflow_actions_using_role(user, workflow_action)
 	else:
 		# backwards compatibility
 		# for workflow actions saved using user
@@ -238,9 +238,7 @@ def get_workflow_action_by_role(doc, allowed_roles):
 	).run(as_dict=True)
 
 
-def update_completed_workflow_actions_using_role(
-	doc, user=None, allowed_roles=set(), workflow_action=None
-):
+def update_completed_workflow_actions_using_role(user=None, workflow_action=None):
 	user = user if user else frappe.session.user
 	WorkflowAction = DocType("Workflow Action")
 
