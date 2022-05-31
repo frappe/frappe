@@ -3,7 +3,6 @@
 
 import frappe
 from frappe.core.doctype.document_naming_settings.document_naming_settings import (
-	NAMING_SERIES_PATTERN,
 	DocumentNamingSettings,
 )
 from frappe.model.naming import get_default_naming_series

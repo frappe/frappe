@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
-from frappe.model.naming import NamingSeries, make_autoname
+from frappe.model.naming import NamingSeries, parse_naming_series
 from frappe.permissions import get_doctypes_with_read
 from frappe.utils import cint
 
@@ -173,23 +173,16 @@ class DocumentNamingSettings(Document):
 	def preview_series(self) -> str:
 		"""Preview what the naming series will generate."""
 
-		generated_names = []
 		series = self.try_naming_series
 		if not series:
 			return ""
-
 		try:
 			doc = self._fetch_last_doc_if_available()
-			for _count in range(3):
-				generated_names.append(make_autoname(series, doc=doc))
+			return "\n".join(NamingSeries(series).get_preview(doc=doc))
 		except Exception as e:
 			if frappe.message_log:
 				frappe.message_log.pop()
 			return _("Failed to generate names from the series") + f"\n{str(e)}"
-
-		# Explcitly rollback in case any changes were made to series table.
-		frappe.db.rollback()  # nosemgrep
-		return "\n".join(generated_names)
 
 	def _fetch_last_doc_if_available(self):
 		"""Fetch last doc for evaluating naming series with fields."""

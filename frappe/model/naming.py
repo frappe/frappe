@@ -80,6 +80,17 @@ class NamingSeries:
 
 		return prefix
 
+	def get_preview(self, doc=None) -> List[str]:
+		"""Generate preview of naming series without using DB counters"""
+		generated_names = []
+		for count in range(1, 4):
+
+			def fake_counter(_prefix, digits):
+				return str(count).zfill(digits)
+
+			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
+		return generated_names
+
 
 def set_new_name(doc):
 	"""
