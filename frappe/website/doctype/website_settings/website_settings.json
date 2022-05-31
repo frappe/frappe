@@ -387,37 +387,11 @@
    "fieldname": "app_logo",
    "fieldtype": "Attach Image",
    "label": "App Logo"
-<<<<<<< HEAD
-=======
   },
   {
-   "collapsible": 1,
-   "fieldname": "account_deletion_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Account Deletion Settings"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_account_deletion_link",
-   "fieldtype": "Check",
-   "label": "Show Account Deletion Link in My Account Page"
-  },
-  {
-   "default": "72",
-   "fieldname": "auto_account_deletion",
-   "fieldtype": "Int",
-   "label": "Auto Account Deletion within (Hours)"
-  },
-  {
-   "fieldname": "footer_powered",
-   "fieldtype": "Small Text",
-   "label": "Footer \"Powered By\""
-  },
-  {
-   "fieldname": "splash_image",
-   "fieldtype": "Attach Image",
-   "label": "Splash Image"
->>>>>>> f416e2a1d2 (feat(website-settings): Configurable Splash Image)
+    "fieldname": "splash_image",
+    "fieldtype": "Attach Image",
+    "label": "Splash Image"
   }
  ],
  "icon": "fa fa-cog",
