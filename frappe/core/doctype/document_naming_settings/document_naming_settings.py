@@ -180,17 +180,30 @@ class DocumentNamingSettings(Document):
 		if frappe.db.get_value("Series", db_prefix, "name", order_by="name") is None:
 			frappe.db.sql("insert into `tabSeries` (`name`, `current`) values (%s, 0)", (db_prefix))
 
+		previous_value = frappe.db.get_value("Series", db_prefix, "current", order_by="name")
+
 		(
 			frappe.qb.update(series)
 			.set(series.current, cint(self.current_value))
 			.where(series.name == db_prefix)
 		).run()
 
+		self.create_version_log_for_change(db_prefix, previous_value, cint(self.current_value))
+
 		frappe.msgprint(
 			_("Series counter for {} updated to {} successfully").format(self.prefix, self.current_value),
 			alert=True,
 			indicator="green",
 		)
+
+	def create_version_log_for_change(self, series, old, new):
+		version = frappe.new_doc("Version")
+		version.ref_doctype = "Series"
+		version.docname = series
+		version.data = frappe.as_json({"changed": [["current", old, new]]})
+		version.flags.ignore_links = True  # series is not a "real" doctype
+		version.flags.ignore_permissions = True
+		version.insert()
 
 	@frappe.whitelist()
 	def preview_series(self) -> str:
