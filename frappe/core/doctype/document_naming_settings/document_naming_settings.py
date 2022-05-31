@@ -1,8 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import re
-from typing import List
+from typing import List, Set
 
 import frappe
 from frappe import _
@@ -36,16 +35,21 @@ class DocumentNamingSettings(Document):
 		return sorted(readable_doctypes.intersection(standard + custom))
 
 	def _get_prefixes(self, doctypes) -> List[str]:
-		prefixes = set()
+		"""Get all prefixes for naming series.
+
+		- For all templates prefix is evaluated considering today's date
+		- All existing prefix in DB are shared as is.
+		"""
+		series_templates = set()
 		for d in doctypes:
 			try:
 				options = frappe.get_meta(d).get_naming_series_options()
-				prefixes.update(options)
+				series_templates.update(options)
 			except frappe.DoesNotExistError:
 				frappe.msgprint(_("Unable to find DocType {0}").format(d))
 				continue
 
-		custom_prefixes = frappe.get_all(
+		custom_templates = frappe.get_all(
 			"DocType",
 			fields=["autoname"],
 			filters={
@@ -54,10 +58,26 @@ class DocumentNamingSettings(Document):
 				"module": ("not in", ["Core"]),
 			},
 		)
-		if custom_prefixes:
-			prefixes.update([d.autoname.rsplit(".", 1)[0] for d in custom_prefixes])
+		if custom_templates:
+			series_templates.update([d.autoname.rsplit(".", 1)[0] for d in custom_templates])
 
-		return sorted(prefixes)
+		return self._evaluate_and_clean_templates(series_templates)
+
+	def _evaluate_and_clean_templates(self, series_templates: Set[str]) -> List[str]:
+		evalauted_prefix = set()
+
+		series = frappe.qb.DocType("Series")
+		prefixes_from_db = frappe.qb.from_(series).select(series.name).run(pluck=True)
+		evalauted_prefix.update(prefixes_from_db)
+
+		for series_template in series_templates:
+			prefix = NamingSeries(series_template).get_prefix()
+			if "{" in prefix:
+				# fieldnames can't be evalauted, rely on data in DB instead
+				continue
+			evalauted_prefix.add(prefix)
+
+		return sorted(evalauted_prefix)
 
 	def get_options_list(self, options: str) -> List[str]:
 		return [op.strip() for op in options.split("\n") if op.strip()]
@@ -148,6 +168,8 @@ class DocumentNamingSettings(Document):
 
 	@frappe.whitelist()
 	def update_series_start(self):
+		frappe.only_for("System Manager")
+
 		if not self.prefix:
 			frappe.throw(_("Please select prefix first"))
 

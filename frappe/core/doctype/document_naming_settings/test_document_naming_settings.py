@@ -5,7 +5,7 @@ import frappe
 from frappe.core.doctype.document_naming_settings.document_naming_settings import (
 	DocumentNamingSettings,
 )
-from frappe.model.naming import get_default_naming_series
+from frappe.model.naming import NamingSeries, get_default_naming_series
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 
@@ -40,7 +40,7 @@ class TestNamingSeries(FrappeTestCase):
 		existing_naming_series = frappe.get_meta("Webhook").get_field("naming_series").options
 
 		for series in existing_naming_series.split("\n"):
-			self.assertIn(series, naming_info["prefixes"])
+			self.assertIn(NamingSeries(series).get_prefix(), naming_info["prefixes"])
 
 	def test_default_naming_series(self):
 		self.assertIn("HOOK", get_default_naming_series("Webhook"))
