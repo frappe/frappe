@@ -17,6 +17,7 @@ expected_keys = (
 	"payer_name",
 	"payer_email",
 	"order_id",
+	"currency"
 )
 
 
