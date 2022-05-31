@@ -69,7 +69,7 @@ class DocumentNamingSettings(Document):
 	@frappe.whitelist()
 	def update_series(self):
 		"""update series list"""
-		self.validate_series_set()
+		self.validate_set_series()
 		self.check_duplicate()
 		self.set_series_options_in_meta(self.transaction_type, self.naming_series_options)
 
@@ -77,7 +77,7 @@ class DocumentNamingSettings(Document):
 			_("Series Updated for {}").format(self.transaction_type), alert=True, indicator="green"
 		)
 
-	def validate_series_set(self):
+	def validate_set_series(self):
 		if self.transaction_type and not self.naming_series_options:
 			frappe.throw(_("Please set the series to be used."))
 
@@ -108,32 +108,27 @@ class DocumentNamingSettings(Document):
 		make_property_setter(doctype, "naming_series", property, value, "Text")
 
 	def check_duplicate(self):
-		parent = list(
-			set(
-				frappe.db.sql_list(
-					"""select dt.name
-				from `tabDocField` df, `tabDocType` dt
-				where dt.name = df.parent and df.fieldname='naming_series' and dt.name != %s""",
-					self.transaction_type,
-				)
-				+ frappe.db.sql_list(
-					"""select dt.name
-				from `tabCustom Field` df, `tabDocType` dt
-				where dt.name = df.dt and df.fieldname='naming_series' and dt.name != %s""",
-					self.transaction_type,
-				)
-			)
-		)
-		sr = [[frappe.get_meta(p).get_field("naming_series").options, p] for p in parent]
+		def stripped_series(s: str) -> str:
+			return s.strip().rstrip("#")
+
+		standard = frappe.get_all("DocField", {"fieldname": "naming_series"}, "parent", pluck="parent")
+		custom = frappe.get_all("Custom Field", {"fieldname": "naming_series"}, "dt", pluck="dt")
+
+		all_doctypes_with_naming_series = set(standard + custom)
+		all_doctypes_with_naming_series.remove(self.transaction_type)
+
+		existing_series = {}
+		for doctype in all_doctypes_with_naming_series:
+			for series in frappe.get_meta(doctype).get_naming_series_options():
+				existing_series[stripped_series(series)] = doctype
+
 		dt = frappe.get_doc("DocType", self.transaction_type)
+
 		options = self.get_options_list(self.naming_series_options)
 		for series in options:
+			if stripped_series(series) in existing_series:
+				frappe.throw(_("Series {0} already used in {1}").format(series, existing_series[series]))
 			validate_series(dt, series)
-			for i in sr:
-				if i[0]:
-					existing_series = [d.split(".")[0] for d in i[0].split("\n")]
-					if series.split(".")[0] in existing_series:
-						frappe.throw(_("Series {0} already used in {1}").format(series, i[1]))
 
 	def validate_series_name(self, n):
 		import re
