@@ -511,7 +511,8 @@ frappe.Application = class Application {
 		// 	"version": "12.2.0"
 		// }];
 
-		if (!Array.isArray(change_log) || !change_log.length || window.Cypress) {
+		if (!Array.isArray(change_log) || !change_log.length ||
+			window.Cypress || cint(frappe.boot.sysdefaults.disable_change_log_notification)) {
 			return;
 		}
 

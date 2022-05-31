@@ -26,7 +26,15 @@ repos:
     rev: 5.9.1
     hooks:
       - id: isort
-        exclude: ".*setup.py$"
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+        additional_dependencies: [
+          'flake8-bugbear',
+        ]
+        args: ['--config', '.github/helper/flake8.conf']
 
 ci:
     autoupdate_schedule: weekly

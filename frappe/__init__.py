@@ -10,28 +10,19 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
-import os
-import warnings
-
-STANDARD_USERS = ("Guest", "Administrator")
-
-_dev_server = os.environ.get("DEV_SERVER", False)
-
-if _dev_server:
-	warnings.simplefilter("always", DeprecationWarning)
-	warnings.simplefilter("always", PendingDeprecationWarning)
-
 import importlib
 import inspect
 import json
+import os
 import sys
-from typing import TYPE_CHECKING, Dict, List, Union
+import warnings
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
-from frappe.utils.data import cstr
+from frappe.utils.data import cstr, sbool
 
 # Local application imports
 from .exceptions import *
@@ -45,11 +36,17 @@ from .utils.jinja import (
 from .utils.lazy_loader import lazy_import
 
 __version__ = "14.0.0-dev"
-
 __title__ = "Frappe Framework"
 
-local = Local()
 controllers = {}
+local = Local()
+STANDARD_USERS = ("Guest", "Administrator")
+
+_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+
+if _dev_server:
+	warnings.simplefilter("always", DeprecationWarning)
+	warnings.simplefilter("always", PendingDeprecationWarning)
 
 
 class _dict(dict):
@@ -435,7 +432,7 @@ def msgprint(
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
 
-	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
 	if flags.print_messages and out.message:
@@ -973,7 +970,7 @@ def get_precision(doctype, fieldname, currency=None, doc=None):
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
 
-def generate_hash(txt=None, length=None):
+def generate_hash(txt: Optional[str] = None, length: Optional[int] = None) -> str:
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib
 	import time
@@ -1261,8 +1258,10 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	module = scrub(module)
-	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
+	from frappe.modules.utils import get_module_app
+
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -1504,18 +1503,26 @@ def call(fn, *args, **kwargs):
 
 
 def get_newargs(fn, kwargs):
+
+	# if function has any **kwargs parameter that capture arbitrary keyword arguments
+	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+	varkw_exist = False
+
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
 		signature = inspect.signature(fn)
 		fnargs = list(signature.parameters)
-		varkw = "kwargs" in fnargs
-		if varkw:
-			fnargs.pop(-1)
+
+		for param_name, parameter in signature.parameters.items():
+			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+				varkw_exist = True
+				fnargs.remove(param_name)
+				break
 
 	newargs = {}
 	for a in kwargs:
-		if (a in fnargs) or varkw:
+		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
 	newargs.pop("ignore_permissions", None)

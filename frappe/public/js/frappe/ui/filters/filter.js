@@ -94,7 +94,7 @@ frappe.ui.Filter = class {
 	}
 
 	set_events() {
-		this.filter_edit_area.find('span.remove-filter').on('click', () => {
+		this.filter_edit_area.find('.remove-filter').on('click', () => {
 			this.remove();
 			this.on_change();
 		});

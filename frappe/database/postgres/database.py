@@ -31,6 +31,12 @@ class PostgresDatabase(Database):
 	InterfaceError = psycopg2.InterfaceError
 	REGEX_CHARACTER = "~"
 
+	# NOTE; The sequence cache for postgres is per connection.
+	# Since we're opening and closing connections for every transaction this results in skipping the cache
+	# to the next non-cached value hence not using cache in postgres.
+	# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
+	SEQUENCE_CACHE = 0
+
 	def setup_type_map(self):
 		self.db_type = "postgres"
 		self.type_map = {
@@ -209,18 +215,19 @@ class PostgresDatabase(Database):
 		)
 
 	def change_column_type(
-		self, doctype: str, column: str, type: str, nullable: bool = False
+		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
 	) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
+		using_cast = f'using "{column}"::{type}' if use_cast else ""
 
 		# postgres allows ddl in transactions but since we've currently made
 		# things same as mariadb (raising exception on ddl commands if the transaction has any writes),
 		# hence using sql_ddl here for committing and then moving forward.
 		return self.sql_ddl(
 			f"""ALTER TABLE "{table_name}"
-								ALTER COLUMN "{column}" TYPE {type},
-								ALTER COLUMN "{column}" {null_constraint}"""
+				ALTER COLUMN "{column}" TYPE {type} {using_cast},
+				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
 	def create_auth_table(self):
