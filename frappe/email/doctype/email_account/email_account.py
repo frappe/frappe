@@ -8,7 +8,6 @@ import socket
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
-from urllib.parse import quote
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
@@ -16,13 +15,11 @@ from frappe.desk.form import assign_to
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
-from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
 	comma_or,
 	cstr,
-	get_request_site_address,
 	parse_addr,
 	validate_email_address,
 )
@@ -929,36 +926,3 @@ def set_email_password(email_account, user, password):
 			return False
 
 	return True
-
-
-@frappe.whitelist(methods=["POST"])
-def oauth_access(email_account: str, reauthorize: bool = False, service: str = None):
-	doctype = "Email Account"
-	refresh_token = frappe.db.get_value(doctype, email_account, "refresh_token")
-
-	if service == "GMail":
-		return authorize_google_access(email_account, reauthorize, refresh_token, doctype)
-
-
-def authorize_google_access(
-	email_account,
-	reauthorize: bool = False,
-	refresh_token: str = None,
-	doctype: str = "Email Account",
-	code: str = None,
-):
-	oauth_obj = GoogleOAuth("mail")
-
-	if not (refresh_token or code) or reauthorize:
-		return oauth_obj.get_authentication_url(
-			get_request_site_address(True),
-			state={
-				"method": "frappe.email.doctype.email_account.email_account.authorize_google_access",
-				"redirect": "/app/Form/{0}/{1}".format(quote(doctype), quote(email_account)),
-				"email_account": email_account,
-			},
-		)
-
-	res = oauth_obj.authorize(code, get_request_site_address(True))
-	frappe.db.set_value(doctype, email_account, "refresh_token", res.get("refresh_token"))
-	frappe.db.set_value(doctype, email_account, "access_token", res.get("access_token"))

@@ -3,9 +3,11 @@ from imaplib import IMAP4
 from poplib import POP3
 from smtplib import SMTP
 from typing import Union
+from urllib.parse import quote
 
 import frappe
 from frappe.integrations.google_oauth import GoogleOAuth
+from frappe.utils import get_request_site_address
 
 
 class OAuthenticationError(Exception):
@@ -107,5 +109,43 @@ class Oauth:
 
 	def _get_service_object(self):
 		return {
-			"GMail": GoogleOAuth("mail"),
+			"GMail": GoogleOAuth("mail", validate=False),
 		}[self.service]
+
+
+@frappe.whitelist(methods=["POST"])
+def oauth_access(email_account: str, reauthorize: bool = False, service: str = None):
+	doctype = "Email Account"
+	refresh_token = frappe.db.get_value(doctype, email_account, "refresh_token")
+
+	# NOTE: setting this here, since we redirect to the service's auth page,
+	# we lose the use_oauth value in the emal account form
+	frappe.db.set_value(doctype, email_account, "use_oauth", 1)
+
+	if service:
+		if service == "GMail":
+			return authorize_google_access(email_account, reauthorize, refresh_token, doctype)
+
+
+def authorize_google_access(
+	email_account,
+	reauthorize: bool = False,
+	refresh_token: str = None,
+	doctype: str = "Email Account",
+	code: str = None,
+):
+	oauth_obj = GoogleOAuth("mail")
+
+	if not (refresh_token or code) or reauthorize:
+		return oauth_obj.get_authentication_url(
+			get_request_site_address(True),
+			state={
+				"method": "frappe.email.oauth.authorize_google_access",
+				"redirect": "/app/Form/{0}/{1}".format(quote(doctype), quote(email_account)),
+				"email_account": email_account,
+			},
+		)
+
+	res = oauth_obj.authorize(code, get_request_site_address(True))
+	frappe.db.set_value(doctype, email_account, "refresh_token", res.get("refresh_token"))
+	frappe.db.set_value(doctype, email_account, "access_token", res.get("access_token"))

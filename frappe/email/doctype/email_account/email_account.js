@@ -145,7 +145,7 @@ frappe.ui.form.on("Email Account", {
 
 	authorize_api_access: function(frm) {
 		frappe.call({
-			method: "frappe.email.doctype.email_account.email_account.oauth_access",
+			method: "frappe.email.oauth.oauth_access",
 			args: {
 				"email_account": frm.doc.name,
 				"service": frm.doc.service || "",
