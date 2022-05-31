@@ -745,8 +745,12 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	website_user = is_website_user()
-	if method not in whitelisted or is_guest and method not in guest_methods \
-		or (website_user and method in system_user_methods):
+	if (
+		method not in whitelisted
+		or is_guest
+		and method not in guest_methods
+		or (website_user and method in system_user_methods)
+	):
 		throw(_("Not permitted"), PermissionError)
 
 	if is_guest and method not in xss_safe_methods:
