@@ -76,6 +76,7 @@ def render(path=None, http_status_code=None):
 				if not data:
 					try:
 						data = render_page(path)
+						http_status_code = http_status_code or frappe.flags.response_status_code
 					except frappe.PermissionError as e:
 						data, http_status_code = render_403(e, path)
 
@@ -102,7 +103,6 @@ def render(path=None, http_status_code=None):
 				"Cache-Control": "no-store, no-cache, must-revalidate",
 			},
 		)
-
 	return build_response(path, data, http_status_code or 200)
 
 
@@ -249,6 +249,8 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
+
+	frappe.flags.response_status_code = context.get("http_status_code") or 200
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
