@@ -827,7 +827,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		if (field[0] === 'name') {
 			this.refresh();
-			frappe.throw(__('Cannot remove ID field'));
+			frappe.throw(__('Cannot remove Name field'));
 		}
 
 		this.fields.splice(index, 1);
@@ -877,7 +877,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		doctype_fields = [{
-			label: __('ID', null, 'Label of name column in report'),
+			label: __('Name', null, 'Label of name column in report'),
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1

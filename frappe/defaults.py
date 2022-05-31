@@ -172,7 +172,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	:param key: Default key.
 	:param value: Default value.
 	:param parent: User name, or `__global`, `__default`.
-	:param name: Default ID.
+	:param name: Default Name.
 	:param parenttype: Clear defaults table for a particular type e.g. **User**.
 	"""
 	filters = {}

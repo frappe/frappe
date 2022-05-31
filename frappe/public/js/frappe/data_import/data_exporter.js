@@ -327,7 +327,7 @@ export function get_columns_for_picker(doctype) {
 
 	out[doctype] = [
 		{
-			label: __('ID'),
+			label: __('Name'),
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1
@@ -344,7 +344,7 @@ export function get_columns_for_picker(doctype) {
 
 		out[df.fieldname] = [
 			{
-				label: __('ID'),
+				label: __('Name'),
 				fieldname: 'name',
 				fieldtype: 'Data',
 				reqd: 1

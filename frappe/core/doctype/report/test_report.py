@@ -27,7 +27,7 @@ class TestReport(FrappeTestCase):
 
 		report = frappe.get_doc("Report", "User Activity Report")
 		columns, data = report.get_data()
-		self.assertEqual(columns[0].get("label"), "ID")
+		self.assertEqual(columns[0].get("label"), "Name")
 		self.assertEqual(columns[1].get("label"), "User Type")
 		self.assertTrue("Administrator" in [d[0] for d in data])
 
@@ -230,7 +230,7 @@ class TestReport(FrappeTestCase):
 		report = frappe.get_doc("Report", "User Activity Report Without Sort")
 		columns, data = report.get_data()
 
-		self.assertEqual(columns[0].get("label"), "ID")
+		self.assertEqual(columns[0].get("label"), "Name")
 		self.assertEqual(columns[1].get("label"), "User Type")
 		self.assertTrue("Administrator" in [d[0] for d in data])
 		frappe.delete_doc("Report", "User Activity Report Without Sort")

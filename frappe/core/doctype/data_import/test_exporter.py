@@ -62,7 +62,7 @@ class TestExporter(unittest.TestCase):
 				"Description",
 				"Number",
 				"another_number",
-				"ID (Table Field 1)",
+				"Name (Table Field 1)",
 				"Child Title (Table Field 1)",
 				"Child Description (Table Field 1)",
 				"Child 2 Date (Table Field 2)",
