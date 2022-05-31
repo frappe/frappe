@@ -34,12 +34,14 @@
   "security",
   "session_expiry",
   "session_expiry_mobile",
+  "document_share_key_expiry",
   "column_break_13",
   "deny_multiple_sessions",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
+  "allow_older_web_view_links",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -496,12 +498,25 @@
    "fieldname": "disable_change_log_notification",
    "fieldtype": "Check",
    "label": "Disable Change Log Notification"
+  },
+  {
+   "default": "30",
+   "description": "Number of days after which the document Web View link shared on email will be expired",
+   "fieldname": "document_share_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Share Key Expiry (in Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_older_web_view_links",
+   "fieldtype": "Check",
+   "label": "Allow Older Web View Links (Insecure)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-04-28 14:31:50.330954",
+ "modified": "2022-05-31 09:43:57.163643",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -518,6 +533,5 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
- "states": [],
  "track_changes": 1
 }

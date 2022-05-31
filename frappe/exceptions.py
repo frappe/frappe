@@ -271,3 +271,11 @@ class InvalidDatabaseFile(ValidationError):
 
 class ExecutableNotFound(FileNotFoundError):
 	pass
+
+
+class LinkExpiredError(ValidationError):
+	pass
+
+
+class InvalidKey(ValidationError):
+	pass
