@@ -32,12 +32,19 @@ class Oauth:
 		self._access_token = access_token
 		self._refresh_token = refresh_token
 
-		self.validate_implementation()
+		self.validate()
 
-	def validate_implementation(self) -> None:
+	def validate(self) -> None:
 		if self.service != "GMail":
 			raise NotImplementedError(
 				f"Service {self.service} currently doesn't have oauth implementation."
+			)
+
+		if not self._refresh_token:
+			frappe.throw(
+				frappe._("Please Authorize OAuth."),
+				OAuthenticationError,
+				frappe._("OAuth Error"),
 			)
 
 	@property

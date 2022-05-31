@@ -111,7 +111,7 @@ class SMTPServer:
 
 			self.secure_session(_session)
 
-			if self.use_oauth and self.refresh_token:
+			if self.use_oauth:
 				Oauth(
 					_session, self.email_account, self.login, self.access_token, self.refresh_token, self.service
 				).connect()

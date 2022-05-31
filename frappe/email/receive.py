@@ -100,7 +100,7 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			if self.settings.use_oauth and self.settings.refresh_token:
+			if self.settings.use_oauth:
 				Oauth(
 					self.imap,
 					self.settings.email_account,
@@ -133,7 +133,7 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			if self.settings.use_oauth and self.settings.refresh_token:
+			if self.settings.use_oauth:
 				Oauth(
 					self.pop,
 					self.settings.email_account,
