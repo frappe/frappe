@@ -18,7 +18,7 @@ class NamingSeriesNotSetError(frappe.ValidationError):
 
 class DocumentNamingSettings(Document):
 	@frappe.whitelist()
-	def get_transactions_and_prefixes(self, arg=None):
+	def get_transactions_and_prefixes(self):
 
 		transactions = self._get_transactions()
 		prefixes = self._get_prefixes(transactions)
@@ -35,19 +35,14 @@ class DocumentNamingSettings(Document):
 		return sorted(readable_doctypes.intersection(standard + custom))
 
 	def _get_prefixes(self, doctypes) -> List[str]:
-		prefixes = ""
+		prefixes = set()
 		for d in doctypes:
-			options = ""
 			try:
-				options = self.get_options(d)
+				options = frappe.get_meta(d).get_naming_series_options()
+				prefixes.update(options)
 			except frappe.DoesNotExistError:
 				frappe.msgprint(_("Unable to find DocType {0}").format(d))
 				continue
-
-			if options:
-				prefixes = prefixes + "\n" + options
-		prefixes.replace("\n\n", "\n")
-		prefixes = prefixes.split("\n")
 
 		custom_prefixes = frappe.get_all(
 			"DocType",
@@ -59,9 +54,9 @@ class DocumentNamingSettings(Document):
 			},
 		)
 		if custom_prefixes:
-			prefixes = prefixes + [d.autoname.rsplit(".", 1)[0] for d in custom_prefixes]
+			prefixes.update([d.autoname.rsplit(".", 1)[0] for d in custom_prefixes])
 
-		return sorted(set(prefixes))
+		return sorted(prefixes)
 
 	def get_options_list(self, options: str) -> List[str]:
 		return [op.strip() for op in options.split("\n") if op.strip()]
