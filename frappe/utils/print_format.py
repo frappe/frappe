@@ -125,17 +125,11 @@ def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
 		validate_print_permission(doc)
 	except frappe.exceptions.LinkExpiredError:
 		frappe.local.response.http_status_code = 410
-		frappe.local.response = frappe.get_template(
-			"templates/print_format/print_key_invalid.html"
-		).render({})
+		frappe.local.response.message = _("Link Expired")
 		return
 	except frappe.exceptions.InvalidKey:
-		frappe.local.response.type = "page"
-		frappe.local.response.message = frappe.get_template(
-			"templates/print_format/print_key_invalid.html"
-		).render({})
 		frappe.local.response.http_status_code = 401
-		# frappe.local.response.route = "/api/method/frappe.utils.print_format.download_pdf"
+		frappe.local.response.message = _("Invalid Key")
 		return
 
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
