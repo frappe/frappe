@@ -17,7 +17,7 @@ class Version(Document):
 		if diff:
 			self.ref_doctype = new.doctype
 			self.docname = new.name
-			self.data = frappe.as_json(diff)
+			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
 			return True
 		else:
 			return False
