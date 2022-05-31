@@ -1,8 +1,8 @@
 import base64
-from typing import Callable, Union
 from imaplib import IMAP4
 from poplib import POP3
 from smtplib import SMTP
+from typing import Union
 
 import frappe
 from frappe.integrations.google_oauth import GoogleOAuth
@@ -13,7 +13,8 @@ class OAuthenticationError(Exception):
 
 
 class Oauth:
-	def __init__(self,
+	def __init__(
+		self,
 		conn: Union[IMAP4, POP3, SMTP],
 		email_account: str,
 		email: str,
@@ -35,7 +36,9 @@ class Oauth:
 
 	def validate_implementation(self) -> None:
 		if self.service != "GMail":
-			raise NotImplementedError(f"Service {self.service} currently doesn't have oauth implementation.")
+			raise NotImplementedError(
+				f"Service {self.service} currently doesn't have oauth implementation."
+			)
 
 	@property
 	def _auth_string(self) -> str:
@@ -74,7 +77,9 @@ class Oauth:
 	def _connect_pop(self) -> bytes:
 		# poplib doesn't have AUTH command implementation
 		res = self._conn._shortcmd(
-			"AUTH {0} {1}".format(self._mechanism, base64.b64encode(bytes(self._auth_string, "utf-8")).decode("utf-8"))
+			"AUTH {0} {1}".format(
+				self._mechanism, base64.b64encode(bytes(self._auth_string, "utf-8")).decode("utf-8")
+			)
 		)
 
 		return res

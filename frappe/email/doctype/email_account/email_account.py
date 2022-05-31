@@ -163,8 +163,7 @@ class EmailAccount(Document):
 	def after_insert(self):
 		if self.use_oauth and not self.refresh_token:
 			frappe.msgprint(
-				_("Please Enable OAuth by using `Authorize API access` button"),
-				indicator="orange"
+				_("Please Enable OAuth by using `Authorize API access` button"), indicator="orange"
 			)
 
 	def there_must_be_only_one_default(self):
@@ -288,9 +287,7 @@ class EmailAccount(Document):
 
 	@property
 	def _password(self):
-		raise_exception = not (
-			self.use_oauth or self.no_smtp_authentication or frappe.flags.in_test
-		)
+		raise_exception = not (self.use_oauth or self.no_smtp_authentication or frappe.flags.in_test)
 		return self.get_password(raise_exception=raise_exception)
 
 	@property
@@ -943,7 +940,13 @@ def oauth_access(email_account: str, reauthorize: bool = False, service: str = N
 		return authorize_google_access(email_account, reauthorize, refresh_token, doctype)
 
 
-def authorize_google_access(email_account, reauthorize: bool = False, refresh_token: str = None, doctype: str = "Email Account", code: str = None):
+def authorize_google_access(
+	email_account,
+	reauthorize: bool = False,
+	refresh_token: str = None,
+	doctype: str = "Email Account",
+	code: str = None,
+):
 	oauth_obj = GoogleOAuth("mail")
 
 	if not (refresh_token or code) or reauthorize:

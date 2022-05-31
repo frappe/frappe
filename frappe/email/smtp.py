@@ -56,7 +56,7 @@ class SMTPServer:
 		use_oauth=0,
 		refresh_token=None,
 		access_token=None,
-		service=None
+		service=None,
 	):
 		self.login = login
 		self.email_account = email_account
@@ -113,12 +113,7 @@ class SMTPServer:
 
 			if self.use_oauth and self.refresh_token:
 				Oauth(
-					_session,
-					self.email_account,
-					self.login,
-					self.access_token,
-					self.refresh_token,
-					self.service
+					_session, self.email_account, self.login, self.access_token, self.refresh_token, self.service
 				).connect()
 
 			elif self.password:
