@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Union
 
 import frappe
 from frappe import _
@@ -11,6 +11,7 @@ from frappe.query_builder import DocType
 from frappe.utils import cint, cstr, now_datetime
 
 if TYPE_CHECKING:
+	from frappe.model.document import Document
 	from frappe.model.meta import Meta
 
 
@@ -189,10 +190,28 @@ def make_autoname(key="", doctype="", doc=""):
 	return n
 
 
-def parse_naming_series(parts, doctype="", doc=""):
-	n = ""
+def parse_naming_series(
+	parts: Union[List[str], str],
+	doctype=None,
+	doc: Optional["Document"] = None,
+	number_generator: Optional[Callable[[str, int], str]] = None,
+) -> str:
+
+	"""Parse the naming series and get next name.
+
+	args:
+	        parts: naming series parts (split by `.`)
+	        doc: document to use for series that have parts using fieldnames
+	        number_generator: Use different counter backend other than `tabSeries`. Primarily used for testing.
+	"""
+
+	name = ""
 	if isinstance(parts, str):
 		parts = parts.split(".")
+
+	if not number_generator:
+		number_generator = getseries
+
 	series_set = False
 	today = now_datetime()
 	for e in parts:
@@ -200,7 +219,7 @@ def parse_naming_series(parts, doctype="", doc=""):
 		if e.startswith("#"):
 			if not series_set:
 				digits = len(e)
-				part = getseries(n, digits)
+				part = number_generator(name, digits)
 				series_set = True
 		elif e == "YY":
 			part = today.strftime("%y")
@@ -225,9 +244,37 @@ def parse_naming_series(parts, doctype="", doc=""):
 			part = e
 
 		if isinstance(part, str):
-			n += part
+			name += part
 
-	return n
+	return name
+
+
+def get_naming_series_prefix(series: str) -> str:
+	"""Naming series stores prefix to maintain a counter in DB. This prefix can be used to update counter and/or other validations.
+
+	e.g. `SINV-.YY.-.####` has prefix of `SINV-22-` in database for year 2022.
+	"""
+
+	prefix = None
+
+	if "#" not in series:
+		series += ".#####"
+
+	def fake_counter_backend(partial_series, digits):
+		nonlocal prefix
+		prefix = partial_series
+		return "#" * digits
+
+	# This function evaluates all parts till we hit numerical parts and then
+	# sends prefix + digits to DB to find next number.
+	# Instead of reimplemnted the whole parsing logic in multiple places we can
+	# just ask this function to give us the prefix.
+	parse_naming_series(series, number_generator=fake_counter_backend)
+
+	if prefix is None:
+		frappe.throw(_("Invalid Naming Series"))
+
+	return prefix
 
 
 def determine_consecutive_week_number(datetime):

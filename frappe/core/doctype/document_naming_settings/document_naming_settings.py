@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
-from frappe.model.naming import make_autoname, parse_naming_series
+from frappe.model.naming import get_naming_series_prefix, make_autoname
 from frappe.permissions import get_doctypes_with_read
 from frappe.utils import cint
 
@@ -153,38 +153,35 @@ class DocumentNamingSettings(Document):
 			return frappe.get_meta(doctype or self.transaction_type).get_field("naming_series").options
 
 	@frappe.whitelist()
-	def get_current(self, arg=None):
+	def get_current(self):
 		"""get series current"""
 		if self.prefix:
-			prefix = self.parse_naming_series()
+			prefix = get_naming_series_prefix(self.prefix)
 			self.current_value = frappe.db.get_value("Series", prefix, "current", order_by="name")
-
-	def insert_series(self, series):
-		"""insert series if missing"""
-		if frappe.db.get_value("Series", series, "name", order_by="name") == None:
-			frappe.db.sql("insert into tabSeries (name, current) values (%s, 0)", (series))
 
 	@frappe.whitelist()
 	def update_series_start(self):
-		if self.prefix:
-			prefix = self.parse_naming_series()
-			self.insert_series(prefix)
-			frappe.db.sql(
-				"update `tabSeries` set current = %s where name = %s", (cint(self.current_value), prefix)
-			)
-			frappe.msgprint(_("Series Updated Successfully"))
-		else:
-			frappe.msgprint(_("Please select prefix first"))
+		if not self.prefix:
+			frappe.throw(_("Please select prefix first"))
 
-	def parse_naming_series(self):
-		parts = self.prefix.split(".")
+		series = frappe.qb.DocType("Series")
 
-		# Remove ### from the end of series
-		if parts[-1] == "#" * len(parts[-1]):
-			del parts[-1]
+		db_prefix = get_naming_series_prefix(self.prefix)
 
-		prefix = parse_naming_series(parts)
-		return prefix
+		if frappe.db.get_value("Series", db_prefix, "name", order_by="name") is None:
+			series.insert(db_prefix, 0).columns(series.name, series.current).run()
+
+		(
+			frappe.qb.update(series)
+			.set(series.current, cint(self.current_value))
+			.where(series.name == db_prefix)
+		).run()
+
+		frappe.msgprint(
+			_("Series counter for {} updated to {} successfully").format(self.prefix, self.current_value),
+			alert=True,
+			indicator="green",
+		)
 
 	@frappe.whitelist()
 	def preview_series(self) -> str:

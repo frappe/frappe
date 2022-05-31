@@ -1,13 +1,12 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.naming import (
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
+	get_naming_series_prefix,
 	getseries,
 	revert_series_if_last,
 )
@@ -287,6 +286,21 @@ class TestNaming(FrappeTestCase):
 			self.assertEqual(frappe.new_doc(doctype).save(ignore_permissions=True).name, i)
 
 		dt.delete(ignore_permissions=True)
+
+	def test_naming_series_prefix(self):
+		today = now_datetime()
+		year = today.strftime("%y")
+		month = today.strftime("%m")
+
+		prefix_test_cases = {
+			"SINV-.YY.-.####": f"SINV-{year}-",
+			"SINV-.YY.-.MM.-.####": f"SINV-{year}-{month}-",
+			"SINV": "SINV",
+			"SINV-.": "SINV-",
+		}
+
+		for series, prefix in prefix_test_cases.items():
+			self.assertEqual(prefix, get_naming_series_prefix(series))
 
 
 def make_invalid_todo():
