@@ -69,7 +69,6 @@ class Oauth:
 		except Exception:
 			# maybe the access token expired - refreshing
 			access_token = self._refresh_access_token()
-			print(self._auth_string)
 
 			if not access_token or _retry > 0:
 				frappe.throw(

@@ -148,7 +148,7 @@ frappe.ui.form.on("Email Account", {
 			method: "frappe.email.doctype.email_account.email_account.oauth_access",
 			args: {
 				"email_account": frm.doc.name,
-				"service": frm.doc.service,
+				"service": frm.doc.service || "",
 				"reauthorize": frm.doc.refresh_token ? 1 : 0
 			},
 			callback: function(r) {
