@@ -1258,8 +1258,10 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	module = scrub(module)
-	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
+	from frappe.modules.utils import get_module_app
+
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -1501,18 +1503,26 @@ def call(fn, *args, **kwargs):
 
 
 def get_newargs(fn, kwargs):
+
+	# if function has any **kwargs parameter that capture arbitrary keyword arguments
+	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+	varkw_exist = False
+
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
 		signature = inspect.signature(fn)
 		fnargs = list(signature.parameters)
-		varkw = "kwargs" in fnargs
-		if varkw:
-			fnargs.pop(-1)
+
+		for param_name, parameter in signature.parameters.items():
+			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+				varkw_exist = True
+				fnargs.remove(param_name)
+				break
 
 	newargs = {}
 	for a in kwargs:
-		if (a in fnargs) or varkw:
+		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
 	newargs.pop("ignore_permissions", None)
@@ -1808,18 +1818,21 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: Union[Dict, List], indent=1) -> str:
+def as_json(obj: Union[Dict, List], indent=1, separators=None) -> str:
 	from frappe.utils.response import json_handler
+
+	if separators is None:
+		separators = (",", ": ")
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=(",", ": ")
+			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(",", ": "))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
 
 
 def are_emails_muted():

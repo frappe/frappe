@@ -284,7 +284,7 @@ class TestEmailAccount(unittest.TestCase):
 			messages = {
 				# append_to = ToDo
 				'"INBOX"': {
-					"latest_messages": [f.read().replace("{{ message_id }}", last_mail.message_id)],
+					"latest_messages": [f.read().replace("{{ message_id }}", "<" + last_mail.message_id + ">")],
 					"seen_status": {2: "UNSEEN"},
 					"uid_list": [2],
 				}

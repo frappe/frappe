@@ -171,7 +171,7 @@ def raise_invalid_field(fieldname):
 
 def is_standard(fieldname):
 	if "." in fieldname:
-		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
+		fieldname = fieldname.split(".")[1].strip("`")
 	return (
 		fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 	)
@@ -235,7 +235,16 @@ def parse_json(data):
 
 def get_parenttype_and_fieldname(field, data):
 	if "." in field:
-		parenttype, fieldname = field.split(".")[0][4:-1], field.split(".")[1].strip("`")
+		parts = field.split(".")
+		parenttype = parts[0]
+		fieldname = parts[1]
+		if parenttype.startswith("`tab"):
+			# `tabChild DocType`.`fieldname`
+			parenttype = parenttype[4:-1]
+			fieldname = fieldname.strip("`")
+		else:
+			# tablefield.fieldname
+			parenttype = frappe.get_meta(data.doctype).get_field(parenttype).options
 	else:
 		parenttype = data.doctype
 		fieldname = field.strip("`")

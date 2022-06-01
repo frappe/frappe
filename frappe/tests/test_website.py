@@ -118,7 +118,7 @@ class TestWebsite(unittest.TestCase):
 	def test_error_page(self):
 		set_request(method="GET", path="/_test/problematic_page")
 		response = get_response()
-		self.assertEqual(response.status_code, 500)
+		self.assertEqual(response.status_code, 417)
 
 	def test_login(self):
 		set_request(method="GET", path="/login")
