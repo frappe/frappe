@@ -1818,18 +1818,21 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: Union[Dict, List], indent=1) -> str:
+def as_json(obj: Union[Dict, List], indent=1, separators=None) -> str:
 	from frappe.utils.response import json_handler
+
+	if separators is None:
+		separators = (",", ": ")
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=(",", ": ")
+			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(",", ": "))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
 
 
 def are_emails_muted():
