@@ -67,6 +67,21 @@ frappe.email_defaults_pop = {
 
 };
 
+function oauth_access(frm) {
+	return frappe.call({
+		method: "frappe.email.oauth.oauth_access",
+		args: {
+			"email_account": frm.doc.name,
+			"service": frm.doc.service || ""
+		},
+		callback: function(r) {
+			if (!r.exc) {
+				window.open(r.message.url);
+			}
+		}
+	});
+}
+
 frappe.ui.form.on("Email Account", {
 	service: function(frm) {
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
@@ -126,10 +141,17 @@ frappe.ui.form.on("Email Account", {
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
+		frm.events.show_oauth_authorization_message(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals['User'][frappe.route_flags.linked_user];
+		}
+	},
+
+	after_save(frm) {
+		if (frm.doc.use_oauth && !frm.doc.refresh_token) {
+			oauth_access(frm);
 		}
 	},
 
@@ -143,19 +165,16 @@ frappe.ui.form.on("Email Account", {
 		}
 	},
 
+	show_oauth_authorization_message(frm) {
+		let msg = __("Oauth Enabled but not Authorized. Please use `Authorize API Access` Button to do the same.");
+		if (frm.doc.use_oauth && !frm.doc.refresh_token) {
+			frm.dashboard.clear_headline();
+			frm.dashboard.set_headline_alert(msg, "yellow");
+		}
+	},
+
 	authorize_api_access: function(frm) {
-		frappe.call({
-			method: "frappe.email.oauth.oauth_access",
-			args: {
-				"email_account": frm.doc.name,
-				"service": frm.doc.service || ""
-			},
-			callback: function(r) {
-				if (!r.exc) {
-					window.open(r.message.url);
-				}
-			}
-		});
+		oauth_access(frm);
 	},
 
 	email_id:function(frm) {

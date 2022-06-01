@@ -145,7 +145,7 @@ def handle_response(
 		)
 
 		if raise_err:
-			frappe.throw(frappe._(error_title), frappe._(error_message))
+			frappe.throw(frappe._(error_title), GoogleAuthenticationError, frappe._(error_message))
 
 		return {}
 

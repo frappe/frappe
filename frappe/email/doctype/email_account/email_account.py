@@ -83,8 +83,16 @@ class EmailAccount(Document):
 		if getattr(self, "service", "") != "GMail" and self.use_oauth:
 			self.use_oauth = 0
 
+		if not self.use_oauth and self.refresh_token:
+			# clear access & refresh token
+			self.refresh_token = self.access_token = None
+
 		if not frappe.local.flags.in_install and (self.use_oauth or not self.awaiting_password):
-			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
+			if (
+				(self.use_oauth and self.refresh_token)
+				or self.password
+				or self.smtp_server in ("127.0.0.1", "localhost")
+			):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
@@ -93,10 +101,7 @@ class EmailAccount(Document):
 					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
-					if self.use_oauth:
-						if not self.is_new():
-							frappe.throw(_("Please Enable OAuth by using `Authorize API access` button"))
-					else:
+					if not self.use_oauth:
 						frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
@@ -150,12 +155,6 @@ class EmailAccount(Document):
 			email_id=self.email_id,
 			enable_outgoing=self.enable_outgoing,
 		)
-
-	def after_insert(self):
-		if self.use_oauth and not self.refresh_token:
-			frappe.msgprint(
-				_("Please Enable OAuth by using `Authorize API access` button"), indicator="orange"
-			)
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
