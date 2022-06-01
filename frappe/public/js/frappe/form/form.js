@@ -1847,16 +1847,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	cancel_queued_action_interval() {
-		console.log('asdf')
 		if (this.queued_action_interval) {
-			console.log('canceling queued action interval');
 			clearInterval(this.queued_action_interval);
 			this.queued_action_interval = null;
 		}
 	}
 
 	render_queued_action(queued_action) {
-		console.log('render queued action');
 		let $wrapper = this.layout.wrapper.find('.queued-action-message');
 		if (!$wrapper.length) {
 			$wrapper = $('<div class="queued-action-message form-message blue">');
