@@ -268,10 +268,10 @@ class InvalidRemoteException(Exception):
 class LinkExpired(ValidationError):
 	http_status_code = 410
 	title = "Link Expired"
-	message = "The link has been expired"
+	message = "The link has expired"
 
 
 class InvalidKeyError(ValidationError):
 	http_status_code = 401
 	title = "Invalid Key"
-	message = "The key you are using is invalid"
+	message = "The document key is invalid"
