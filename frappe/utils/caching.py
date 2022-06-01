@@ -12,9 +12,11 @@ import frappe
 _SITE_CACHE = defaultdict(lambda: defaultdict(dict))
 
 
-def __generate_request_cache_key(func: Callable, args: Tuple, kwargs: Dict):
+def __generate_request_cache_key(args: Tuple, kwargs: Dict):
 	"""Generate a key for the cache."""
-	return f"{func.__module__}.{func.__name__}{json.dumps((args, kwargs))}"
+	if not kwargs:
+		return hash(args)
+	return hash((args, frozenset(kwargs.items())))
 
 
 def request_cache(func: Callable) -> Callable:
@@ -42,21 +44,19 @@ def request_cache(func: Callable) -> Callable:
 		if not getattr(frappe.local, "initialised", None):
 			return func(*args, **kwargs)
 		if not hasattr(frappe.local, "request_cache"):
-			frappe.local.request_cache = {}
-
-		logger = frappe.logger(module=__name__)
+			frappe.local.request_cache = defaultdict(dict)
 
 		try:
-			key = __generate_request_cache_key(func, args, kwargs)
+			args_key = __generate_request_cache_key(args, kwargs)
 		except Exception:
-			logger.warning(f"request_cache: Couldn't generate key for args: {args}, kwargs: {kwargs}")
 			return func(*args, **kwargs)
 
-		if key not in frappe.local.request_cache:
-			frappe.local.request_cache[key] = func(*args, **kwargs)
-			logger.debug(f"request_cache: Cached key {key}")
-		logger.debug(f"request_cache: Hit cache with key {key}")
-		return frappe.local.request_cache[key]
+		try:
+			return frappe.local.request_cache[func][args_key]
+		except KeyError:
+			return_val = func(*args, **kwargs)
+			frappe.local.request_cache[func][args_key] = return_val
+			return return_val
 
 	return wrapper
 
