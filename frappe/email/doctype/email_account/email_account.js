@@ -76,7 +76,7 @@ function oauth_access(frm) {
 		},
 		callback: function(r) {
 			if (!r.exc) {
-				window.open(r.message.url);
+				window.open(r.message.url, "_self");
 			}
 		}
 	});
