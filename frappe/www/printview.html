@@ -6,15 +6,29 @@
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
 	{{ include_style("printview.css") }}
-	<style>
-	{{ css }}
-	</style>
+	{% if print_style %}
+		<style>
+		{{ print_style }}
+		</style>
+	{% endif %}
 </head>
 <body>
+	{% if is_invalid_print %}
+	{{ body }}
+	{% else %}
+	<div class="action-banner print-hide">
+		<a class="p-2" onclick="window.print();">
+			{{ _("Print") }}
+		</a>
+		<a class="p-2"
+			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype}}&name={{name}}&key={{key}}">
+			{{ _('Get PDF') }}
+		</a>
+	</div>
 	<div class="print-format-gutter">
-	    <div class="print-format">
-		{{ body }}
-	    </div>
+		<div class="print-format">
+			{{ body }}
+		</div>
 	</div>
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
@@ -30,6 +44,7 @@
 			footer_html.style.marginTop = '20px';
 		});
 	</script>
+	{% endif %}
 </body>
 {%- if comment -%}
 <!-- {{ comment }} -->
