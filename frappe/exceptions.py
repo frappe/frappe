@@ -273,9 +273,9 @@ class ExecutableNotFound(FileNotFoundError):
 	pass
 
 
-class LinkExpiredError(ValidationError):
+class LinkExpired(ValidationError):
 	pass
 
 
-class InvalidKey(ValidationError):
+class InvalidKeyError(ValidationError):
 	pass

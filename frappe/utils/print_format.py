@@ -118,11 +118,11 @@ def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
 	doc = doc or frappe.get_doc(doctype, name)
 	try:
 		validate_print_permission(doc)
-	except frappe.exceptions.LinkExpiredError:
+	except frappe.exceptions.LinkExpired:
 		frappe.local.response.http_status_code = 410
 		frappe.local.response.message = _("Link Expired")
 		return
-	except frappe.exceptions.InvalidKey:
+	except frappe.exceptions.InvalidKeyError:
 		frappe.local.response.http_status_code = 401
 		frappe.local.response.message = _("Invalid Key")
 		return

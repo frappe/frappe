@@ -66,11 +66,11 @@ def get_context(context):
 			settings=settings,
 		)
 		print_style = get_print_style(frappe.form_dict.style, print_format)
-	except frappe.exceptions.LinkExpiredError:
+	except frappe.exceptions.LinkExpired:
 		body = frappe.get_template("templates/print_formats/print_key_expired.html").render({})
 		context.http_status_code = 410
 		is_invalid_print = True
-	except frappe.exceptions.InvalidKey:
+	except frappe.exceptions.InvalidKeyError:
 		body = frappe.get_template("templates/print_formats/print_key_invalid.html").render({})
 		context.http_status_code = 401
 		is_invalid_print = True
@@ -321,7 +321,7 @@ def validate_key(key, doc):
 			"expires_on",
 		)
 		if is_expired(document_key_expiry):
-			raise frappe.exceptions.LinkExpiredError
+			raise frappe.exceptions.LinkExpired
 		else:
 			return
 	except frappe.DoesNotExistError:
@@ -330,7 +330,8 @@ def validate_key(key, doc):
 	# TODO: Deprecate this! kept it for backward compatibility
 	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
 		return
-	raise frappe.exceptions.InvalidKey
+
+	raise frappe.exceptions.InvalidKeyError
 
 
 def get_letter_head(doc, no_letterhead, letterhead=None):
