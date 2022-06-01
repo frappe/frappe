@@ -48,9 +48,15 @@ def create_notification_settings(user):
 		_doc.insert(ignore_permissions=True)
 
 
-def toggle_notifications(user, enable=False):
-	if frappe.db.exists("Notification Settings", user):
-		frappe.db.set_value("Notification Settings", user, "enabled", enable)
+def toggle_notifications(user: str, enable: bool = False):
+	try:
+		settings = frappe.get_doc("Notification Settings", user)
+	except frappe.DoesNotExistError:
+		return
+
+	if settings.enabled != enable:
+		settings.enabled = enable
+		settings.save()
 
 
 @frappe.whitelist()
@@ -81,7 +87,7 @@ def get_permission_query_conditions(user):
 	if "System Manager" in roles:
 		return """(`tabNotification Settings`.name != 'Administrator')"""
 
-	return """(`tabNotification Settings`.name = '{user}')""".format(user=user)
+	return """(`tabNotification Settings`.name = {user})""".format(user=frappe.db.escape(user))
 
 
 @frappe.whitelist()

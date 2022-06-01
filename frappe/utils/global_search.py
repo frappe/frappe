@@ -447,13 +447,13 @@ def search(text, start=0, limit=20, doctype=""):
 
 	allowed_doctypes = get_doctypes_for_global_search()
 
-	for text in set(text.split("&")):
-		text = text.strip()
-		if not text:
+	for word in set(text.split("&")):
+		word = word.strip()
+		if not word:
 			continue
 
 		global_search = frappe.qb.Table("__global_search")
-		rank = Match(global_search.content).Against(text).as_("rank")
+		rank = Match(global_search.content).Against(word).as_("rank")
 		query = (
 			frappe.qb.from_(global_search)
 			.select(global_search.doctype, global_search.name, global_search.content, rank)

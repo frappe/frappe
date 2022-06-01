@@ -7,23 +7,13 @@ import io
 import json
 import mimetypes
 import os
-import re
 from copy import copy
 from urllib.parse import unquote
 
 import frappe
 from frappe import _, conf
 from frappe.query_builder.utils import DocType
-from frappe.utils import (
-	call_hook_method,
-	cint,
-	cstr,
-	encode,
-	get_files_path,
-	get_hook_method,
-	random_string,
-)
-from frappe.utils.image import optimize_image
+from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):

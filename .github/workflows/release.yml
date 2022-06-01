@@ -2,7 +2,7 @@ name: Generate Semantic Release
 on:
   push:
     branches:
-      - version-13
+      - [version-13, version-14-beta]
 jobs:
   release:
     name: Release
@@ -22,7 +22,6 @@ jobs:
           npm install @semantic-release/git @semantic-release/exec --no-save
       - name: Create Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           GIT_AUTHOR_NAME: "Frappe PR Bot"

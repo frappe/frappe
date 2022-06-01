@@ -22,7 +22,7 @@ from pypika.terms import PseudoColumn
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
-from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
+from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
 
 TRANSLATE_PATTERN = re.compile(
 	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
@@ -265,7 +265,7 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, "lang_full_dict", None) and frappe.local.lang_full_dict.get(lang, None):
+	if getattr(frappe.local, "lang_full_dict", None) is not None:
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
@@ -306,7 +306,7 @@ def load_lang(lang, apps=None):
 	return out or {}
 
 
-def get_translation_dict_from_file(path, lang, app):
+def get_translation_dict_from_file(path, lang, app, throw=False):
 	"""load translation dict from given path"""
 	translation_map = {}
 	if os.path.exists(path):
@@ -319,11 +319,12 @@ def get_translation_dict_from_file(path, lang, app):
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
-				raise Exception(
-					"Bad translation in '{app}' for language '{lang}': {values}".format(
-						app=app, lang=lang, values=repr(item).encode("utf-8")
-					)
+				msg = "Bad translation in '{app}' for language '{lang}': {values}".format(
+					app=app, lang=lang, values=cstr(item)
 				)
+				frappe.log_error(message=msg, title="Error in translation file")
+				if throw:
+					frappe.throw(msg, title="Error in translation file")
 
 	return translation_map
 

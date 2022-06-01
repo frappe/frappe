@@ -47,8 +47,6 @@ $.extend(frappe.model, {
 	init: function() {
 		// setup refresh if the document is updated somewhere else
 		frappe.realtime.on("doc_update", function(data) {
-			// set list dirty
-			frappe.views.ListView.trigger_list_update(data);
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 
 			if(doc) {
@@ -69,11 +67,6 @@ $.extend(frappe.model, {
 				}
 			}
 		});
-
-		frappe.realtime.on("list_update", function(data) {
-			frappe.views.ListView.trigger_list_update(data);
-		});
-
 	},
 
 	is_value_type: function(fieldtype) {
@@ -403,7 +396,7 @@ $.extend(frappe.model, {
 				}
 			});
 		} else {
-			if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
+			if (["number", "string"].includes(typeof filters) && locals[doctype] && locals[doctype][filters]) {
 				return locals[doctype][filters][fieldname];
 			} else {
 				var l = frappe.get_list(doctype, filters);

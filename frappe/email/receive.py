@@ -18,7 +18,6 @@ from email_reply_parser import EmailReplyParser
 import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
-from frappe.core.doctype.file.file import MaxFileSizeReachedError, get_random_filename
 from frappe.utils import (
 	add_days,
 	cint,
@@ -26,6 +25,7 @@ from frappe.utils import (
 	cstr,
 	extract_email_id,
 	get_datetime,
+	get_string_between,
 	markdown,
 	now,
 	parse_addr,
@@ -426,7 +426,9 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get("Message-ID") or "").strip(" <>")
+
+		message_id = self.mail.get("Message-ID") or ""
+		self.message_id = get_string_between("<", message_id, ">")
 
 		if self.mail["Date"]:
 			try:
@@ -442,7 +444,8 @@ class Email:
 
 	@property
 	def in_reply_to(self):
-		return (self.mail.get("In-Reply-To") or "").strip(" <>")
+		in_reply_to = self.mail.get("In-Reply-To") or ""
+		return get_string_between("<", in_reply_to, ">")
 
 	def parse(self):
 		"""Walk and process multi-part email."""

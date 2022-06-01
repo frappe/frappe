@@ -15,6 +15,9 @@ import frappe.utils.data
 from frappe import _
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
+from frappe.model.delete_doc import delete_doc
+from frappe.model.mapper import get_mapped_doc
+from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.website.utils import get_next_link, get_shade, get_toc
@@ -110,12 +113,16 @@ def get_safe_globals():
 			errprint=frappe.errprint,
 			qb=frappe.qb,
 			get_meta=frappe.get_meta,
+			new_doc=frappe.new_doc,
 			get_doc=frappe.get_doc,
+			get_mapped_doc=get_mapped_doc,
+			get_last_doc=frappe.get_last_doc,
 			get_cached_doc=frappe.get_cached_doc,
 			get_list=frappe.get_list,
 			get_all=frappe.get_all,
 			get_system_settings=frappe.get_system_settings,
-			rename_doc=frappe.rename_doc,
+			rename_doc=rename_doc,
+			delete_doc=delete_doc,
 			utils=datautils,
 			get_url=frappe.utils.get_url,
 			render_template=frappe.render_template,
@@ -139,6 +146,7 @@ def get_safe_globals():
 			),
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
+			get_payment_gateway_controller=frappe.integrations.utils.get_payment_gateway_controller,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
@@ -169,7 +177,7 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=1 if frappe._dev_server else 0,
+		dev_server=frappe.local.dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,

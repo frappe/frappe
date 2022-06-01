@@ -184,12 +184,10 @@ def get():
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 
 	bootinfo["lang"] = frappe.translate.get_user_lang()
+	bootinfo["translated_search_doctypes"] = frappe.get_hooks("translated_search_doctypes")
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	bootinfo["setup_complete"] = cint(frappe.db.get_single_value("System Settings", "setup_complete"))
-	bootinfo["is_first_startup"] = cint(
-		frappe.db.get_single_value("System Settings", "is_first_startup")
-	)
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 

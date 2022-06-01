@@ -24,10 +24,12 @@
   "fields_section_break",
   "fields",
   "naming_section",
+  "naming_rule",
   "autoname",
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
+  "translate_link_fields",
   "image_field",
   "default_print_format",
   "column_break_29",
@@ -50,6 +52,13 @@
   "sort_order"
  ],
  "fields": [
+  {
+   "fieldname": "naming_rule",
+   "fieldtype": "Select",
+   "label": "Naming Rule",
+   "length": 40,
+   "options": "\nSet by user\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nBy script"
+  },
   {
    "fieldname": "doc_type",
    "fieldtype": "Link",
@@ -279,7 +288,7 @@
    "label": "Naming"
   },
   {
-   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",
+   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
@@ -303,6 +312,12 @@
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
    "label": "Show Title in Link Fields"
+  },
+  {
+   "default": "0",
+   "fieldname": "translate_link_fields",
+   "fieldtype": "Check",
+   "label": "Translate Link Fields"
   }
  ],
  "hide_toolbar": 1,
@@ -311,7 +326,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-01-07 16:07:06.196534",
+ "modified": "2022-05-13 15:36:16.772277",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

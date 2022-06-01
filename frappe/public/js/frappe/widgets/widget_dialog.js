@@ -75,13 +75,7 @@ class WidgetDialog {
 
 		this.filters = [];
 
-		if (this.values && this.values.stats_filter) {
-			const filters_json = new Function(`return ${this.values.stats_filter}`)();
-			this.filters = Object.keys(filters_json).map((filter) => {
-				let val = filters_json[filter];
-				return [this.values.link_to, filter, val[0], val[1], false];
-			});
-		}
+		this.generate_filter_from_json();
 
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
@@ -121,6 +115,74 @@ class ChartDialog extends WidgetDialog {
 
 	process_data(data) {
 		data.label = data.label ? data.label : data.chart_name;
+		return data;
+	}
+}
+class QuickListDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "document_type",
+				label: "DocType",
+				options: "DocType",
+				reqd: 1,
+				onchange: () => {
+					this.document_type = this.dialog.get_value("document_type");
+					this.document_type && this.setup_filter(this.document_type);
+				},
+				get_query: () => {
+					return {
+						filters: {
+							issingle: 0,
+							istable: 0
+						}
+					};
+				}
+			},
+			{
+				fieldtype: "Column Break",
+				fieldname: "column_break_4",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "label",
+				label: "Label",
+			},
+			{
+				fieldtype: "Section Break",
+				fieldname: "filter_section",
+				label: __('Add Filters'),
+				depends_on: 'eval: doc.document_type'
+			},
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area_loading",
+			},
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area"
+			},
+		];
+	}
+
+	generate_filter_from_json() {
+		if (this.values && this.values.quick_list_filter) {
+			this.filters = frappe.utils.get_filter_from_json(this.values.quick_list_filter, this.values.document_type);
+		}
+	}
+
+	process_data(data) {
+		if (this.filter_group) {
+			let filters = this.filter_group.get_filters();
+			data.quick_list_filter = frappe.utils.get_filter_as_json(filters);
+		}
+
+		data.label = data.label ? data.label : data.document_type;
 		return data;
 	}
 }
@@ -228,30 +290,35 @@ class CardDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-		data.links.map((item, idx) => {
-			let message = '';
-			let row = idx+1;
+		let message = '';
 
-			if (!item.link_type) {
-				message = "Following fields have missing values: <br><br><ul>";
-				message += `<li>Link Type in Row ${row}</li>`;
-			}
+		if (!data.links) {
+			message = "You must add atleast one link.";
+		} else {
+			data.links.map((item, idx) => {
+				let row = idx+1;
 
-			if (!item.link_to) {
-				message += `<li>Link To in Row ${row}</li>`;
-			}
+				if (!item.link_type) {
+					message = "Following fields have missing values: <br><br><ul>";
+					message += `<li>Link Type in Row ${row}</li>`;
+				}
 
-			if (message) {
-				message += "</ul>";
-				frappe.throw({
-					message: __(message),
-					title: __("Missing Values Required"),
-					indicator: 'orange'
-				});
-			}
+				if (!item.link_to) {
+					message += `<li>Link To in Row ${row}</li>`;
+				}
 
-			item.label = item.label ? item.label : item.link_to;
-		});
+				item.label = item.label ? item.label : item.link_to;
+			});
+		}
+
+		if (message) {
+			message += "</ul>";
+			frappe.throw({
+				message: __(message),
+				title: __("Missing Values Required"),
+				indicator: 'orange'
+			});
+		}
 
 		data.label = data.label ? data.label : data.chart_name;
 		return data;
@@ -405,20 +472,17 @@ class ShortcutDialog extends WidgetDialog {
 		});
 	}
 
+	generate_filter_from_json() {
+		if (this.values && this.values.stats_filter) {
+			this.filters = frappe.utils.get_filter_from_json(this.values.stats_filter, this.values.link_to);
+		}
+	}
+
 	process_data(data) {
 
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			let stats_filter = null;
-
-			if (filters.length) {
-				stats_filter = {};
-				filters.forEach((arr) => {
-					stats_filter[arr[1]] = [arr[2], arr[3]];
-				});
-				stats_filter = JSON.stringify(stats_filter);
-			}
-			data.stats_filter = stats_filter;
+			data.stats_filter = frappe.utils.get_filter_as_json(filters);
 		}
 
 		data.label = data.label
@@ -574,7 +638,8 @@ export default function get_dialog_constructor(type) {
 		shortcut: ShortcutDialog,
 		number_card: NumberCardDialog,
 		links: CardDialog,
-		onboarding: OnboardingDialog
+		onboarding: OnboardingDialog,
+		quick_list: QuickListDialog
 	};
 
 	return widget_map[type] || WidgetDialog;

@@ -231,6 +231,7 @@ CREATE TABLE "tabDocType" (
   "sender_field" varchar(255) DEFAULT NULL,
   "show_title_field_in_link" smallint NOT NULL DEFAULT 0,
   "migration_hash" varchar(255) DEFAULT NULL,
+  "translate_link_fields" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
 
@@ -240,7 +241,7 @@ CREATE TABLE "tabDocType" (
 
 DROP TABLE IF EXISTS "tabSeries";
 CREATE TABLE "tabSeries" (
-  "name" varchar(100) DEFAULT NULL,
+  "name" varchar(100),
   "current" bigint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;

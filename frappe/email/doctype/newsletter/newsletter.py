@@ -124,7 +124,7 @@ class Newsletter(WebsiteGenerator):
 		)
 
 	def get_success_recipients(self) -> List[str]:
-		"""Recipients who have already recieved the newsletter.
+		"""Recipients who have already received the newsletter.
 
 		Couldn't think of a better name ;)
 		"""
@@ -132,7 +132,7 @@ class Newsletter(WebsiteGenerator):
 			"Email Queue Recipient",
 			filters={
 				"status": ("in", ["Not Sent", "Sending", "Sent"]),
-				"parentfield": ("in", self.get_linked_email_queue()),
+				"parent": ("in", self.get_linked_email_queue()),
 			},
 			pluck="recipient",
 		)
@@ -237,7 +237,7 @@ def confirmed_unsubscribe(email, group):
 
 
 @frappe.whitelist(allow_guest=True)
-def subscribe(email, email_group=_("Website")):
+def subscribe(email, email_group=_("Website")):  # noqa
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
 
 	# build subscription confirmation URL
@@ -282,7 +282,7 @@ def subscribe(email, email_group=_("Website")):
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_subscription(email, email_group=_("Website")):
+def confirm_subscription(email, email_group=_("Website")):  # noqa
 	"""API endpoint to confirm email subscription.
 	This endpoint is called when user clicks on the link sent to their mail.
 	"""

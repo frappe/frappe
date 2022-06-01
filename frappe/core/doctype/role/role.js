@@ -1,8 +1,15 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
+// Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+// MIT License. See LICENSE
 
 frappe.ui.form.on('Role', {
 	refresh: function(frm) {
+		if (frm.doc.name === "All") {
+			frm.dashboard.add_comment(
+				__("Role 'All' will be given to all System Users."),
+				"yellow"
+			);
+		}
+
 		frm.set_df_property('is_custom', 'read_only', frappe.session.user !== 'Administrator');
 
 		frm.add_custom_button("Role Permissions Manager", function() {

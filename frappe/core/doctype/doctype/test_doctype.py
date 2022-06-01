@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import random
+import string
 import unittest
 from typing import Dict, List, Optional
+from unittest.mock import patch
 
 import frappe
+from frappe.cache_manager import clear_doctype_cache
 from frappe.core.doctype.doctype.doctype import (
 	CannotIndexedError,
 	DoctypeLinkError,
@@ -15,8 +19,8 @@ from frappe.core.doctype.doctype.doctype import (
 	WrongOptionsDoctypeLinkError,
 	validate_links_table_fieldnames,
 )
-
-# test_records = frappe.get_test_records('DocType')
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.desk.form.load import getdoc
 
 
 class TestDocType(unittest.TestCase):
@@ -37,6 +41,52 @@ class TestDocType(unittest.TestCase):
 
 			doc = new_doctype(name).insert()
 			doc.delete()
+
+	def test_making_sequence_on_change(self):
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+		dt = new_doctype(self._testMethodName).insert(ignore_permissions=True)
+		autoname = dt.autoname
+
+		# change autoname
+		dt.autoname = "autoincrement"
+		dt.save()
+
+		# check if name type has been changed
+		self.assertEqual(
+			frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{self._testMethodName}'"""
+			)[0][0],
+			"bigint",
+		)
+
+		if frappe.db.db_type == "mariadb":
+			table_name = "information_schema.tables"
+			conditions = f"table_type = 'sequence' and table_name = '{self._testMethodName}_id_seq'"
+		else:
+			table_name = "information_schema.sequences"
+			conditions = f"sequence_name = '{self._testMethodName}_id_seq'"
+
+		# check if sequence table is created
+		self.assertTrue(
+			frappe.db.sql(
+				f"""select * from {table_name}
+				where {conditions}"""
+			)
+		)
+
+		# change the autoname/naming rule back to original
+		dt.autoname = autoname
+		dt.save()
+
+		# check if name type has changed
+		self.assertEqual(
+			frappe.db.sql(
+				f"""select data_type FROM information_schema.columns
+				where column_name = 'name' and table_name = 'tab{self._testMethodName}'"""
+			)[0][0],
+			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
+		)
 
 	def test_doctype_unique_constraint_dropped(self):
 		if frappe.db.exists("DocType", "With_Unique"):
@@ -524,18 +574,33 @@ class TestDocType(unittest.TestCase):
 		dt.delete()
 
 	def test_autoincremented_doctype_transition(self):
-		frappe.delete_doc("testy_autoinc_dt")
+		frappe.delete_doc_if_exists("DocType", "testy_autoinc_dt")
 		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)
 		dt.autoname = "hash"
+
+		dt.save(ignore_permissions=True)
+
+		dt_data = frappe.get_doc({"doctype": dt.name, "some_fieldname": "test data"}).insert(
+			ignore_permissions=True
+		)
+
+		dt.autoname = "autoincrement"
 
 		try:
 			dt.save(ignore_permissions=True)
 		except frappe.ValidationError as e:
-			self.assertEqual(e.args[0], "Cannot change to/from Autoincrement naming rule")
+			self.assertEqual(
+				e.args[0],
+				"Can only change to/from Autoincrement naming rule when there is no data in the doctype",
+			)
 		else:
-			self.fail("Shouldnt be possible to transition autoincremented doctype to any other naming rule")
+			self.fail(
+				"""Shouldn't be possible to transition to/from autoincremented doctype
+				when data is present in doctype"""
+			)
 		finally:
 			# cleanup
+			dt_data.delete(ignore_permissions=True)
 			dt.delete(ignore_permissions=True)
 
 	def test_json_field(self):
@@ -567,10 +632,55 @@ class TestDocType(unittest.TestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_delete_doctype_with_customization(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		custom_field = "customfield"
+
+		doctype = new_doctype(custom=0).insert().name
+
+		# Create property setter and custom field
+		field = "some_fieldname"
+		make_property_setter(doctype, field, "default", "DELETETHIS", "Data")
+		create_custom_fields({doctype: [{"fieldname": custom_field, "fieldtype": "Data"}]})
+
+		# Create 1 record
+		original_doc = frappe.get_doc(doctype=doctype, custom_field_name="wat").insert()
+		self.assertEqual(original_doc.some_fieldname, "DELETETHIS")
+
+		# delete doctype
+		frappe.delete_doc("DocType", doctype)
+		clear_doctype_cache(doctype)
+
+		# "restore" doctype by inserting doctype with same schema again
+		new_doctype(doctype, custom=0).insert()
+
+		# Ensure basically same doctype getting "restored"
+		restored_doc = frappe.get_last_doc(doctype)
+		verify_fields = ["doctype", field, custom_field]
+		for f in verify_fields:
+			self.assertEqual(original_doc.get(f), restored_doc.get(f))
+
+		# Check form load of restored doctype
+		getdoc(doctype, restored_doc.name)
+
+		# ensure meta - property setter
+		self.assertEqual(frappe.get_meta(doctype).get_field(field).default, "DELETETHIS")
+		frappe.delete_doc("DocType", doctype)
+
 
 def new_doctype(
-	name, unique: bool = False, depends_on: str = "", fields: Optional[List[Dict]] = None, **kwargs
+	name: Optional[str] = None,
+	unique: bool = False,
+	depends_on: str = "",
+	fields: Optional[List[Dict]] = None,
+	**kwargs,
 ):
+	if not name:
+		# Test prefix is required to avoid coverage
+		name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
+
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",

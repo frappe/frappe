@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 def make_home_folder() -> None:
 	home = frappe.get_doc(
 		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
-	).insert()
+	).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc(
 		{
@@ -39,7 +39,7 @@ def make_home_folder() -> None:
 			"is_attachments_folder": 1,
 			"file_name": _("Attachments"),
 		}
-	).insert()
+	).insert(ignore_if_duplicate=True)
 
 
 def setup_folder_path(filename: str, new_parent: str) -> None:

@@ -104,4 +104,4 @@ class Identicon(object):
 			save_handler(self.image, fp, "")
 		finally:
 			fp.seek(0)
-			return "data:image/png;base64,{0}".format(base64.b64encode(fp.read()))
+			return "data:image/png;base64,{0}".format(base64.b64encode(fp.read()))  # noqa

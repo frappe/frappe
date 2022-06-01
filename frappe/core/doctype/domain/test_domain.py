@@ -3,8 +3,6 @@
 # License: MIT. See LICENSE
 import unittest
 
-import frappe
-
 
 class TestDomain(unittest.TestCase):
 	pass

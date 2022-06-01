@@ -11,28 +11,19 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 import functools
-import os
-import warnings
-
-STANDARD_USERS = ("Guest", "Administrator")
-
-_dev_server = os.environ.get("DEV_SERVER", False)
-
-if _dev_server:
-	warnings.simplefilter("always", DeprecationWarning)
-	warnings.simplefilter("always", PendingDeprecationWarning)
-
 import importlib
 import inspect
 import json
+import os
 import sys
-from typing import TYPE_CHECKING, Dict, List, Union
+import warnings
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
-from frappe.utils.data import cstr
+from frappe.utils.data import cstr, sbool
 
 # Local application imports
 from .exceptions import *
@@ -46,11 +37,17 @@ from .utils.jinja import (
 from .utils.lazy_loader import lazy_import
 
 __version__ = "14.0.0-dev"
-
 __title__ = "Frappe Framework"
 
-local = Local()
 controllers = {}
+local = Local()
+STANDARD_USERS = ("Guest", "Administrator")
+
+_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+
+if _dev_server:
+	warnings.simplefilter("always", DeprecationWarning)
+	warnings.simplefilter("always", PendingDeprecationWarning)
 
 
 class _dict(dict):
@@ -200,6 +197,7 @@ def init(site, sites_path=None, new_site=False):
 		}
 	)
 	local.rollback_observers = []
+	local.locked_documents = []
 	local.before_commit = []
 	local.test_objects = {}
 
@@ -232,7 +230,6 @@ def init(site, sites_path=None, new_site=False):
 	local.cache = {}
 	local.document_cache = {}
 	local.meta_cache = {}
-	local.autoincremented_status_map = {site: -1}
 	local.form_dict = _dict()
 	local.session = _dict()
 	local.dev_server = _dev_server
@@ -355,11 +352,11 @@ def cache() -> "RedisWrapper":
 	return redis_server
 
 
-def get_traceback():
+def get_traceback(with_context=False):
 	"""Returns error traceback."""
 	from frappe.utils import get_traceback
 
-	return get_traceback()
+	return get_traceback(with_context=with_context)
 
 
 def errprint(msg):
@@ -441,7 +438,7 @@ def msgprint(
 	if as_table and type(msg) in (list, tuple):
 		out.as_table = 1
 
-	if as_list and type(msg) in (list, tuple) and len(msg) > 1:
+	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
 	if sys.stdin.isatty():
@@ -982,7 +979,7 @@ def get_precision(doctype, fieldname, currency=None, doc=None):
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
 
-def generate_hash(txt=None, length=None):
+def generate_hash(txt: Optional[str] = None, length: Optional[int] = None) -> str:
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib
 	import time
@@ -1219,18 +1216,35 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 
 
 @whitelist()
-def rename_doc(*args, **kwargs):
+def rename_doc(
+	doctype: str,
+	old: str,
+	new: str,
+	force: bool = False,
+	merge: bool = False,
+	*,
+	ignore_if_exists: bool = False,
+	show_alert: bool = True,
+	rebuild_search: bool = True,
+) -> str:
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
 
 	Calls `frappe.model.rename_doc.rename_doc`
 	"""
-	kwargs.pop("ignore_permissions", None)
-	kwargs.pop("cmd", None)
 
 	from frappe.model.rename_doc import rename_doc
 
-	return rename_doc(*args, **kwargs)
+	return rename_doc(
+		doctype=doctype,
+		old=old,
+		new=new,
+		force=force,
+		merge=merge,
+		ignore_if_exists=ignore_if_exists,
+		show_alert=show_alert,
+		rebuild_search=rebuild_search,
+	)
 
 
 def get_module(modulename):
@@ -1253,8 +1267,10 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	module = scrub(module)
-	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
+	from frappe.modules.utils import get_module_app
+
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -1496,17 +1512,26 @@ def call(fn, *args, **kwargs):
 
 
 def get_newargs(fn, kwargs):
+
+	# if function has any **kwargs parameter that capture arbitrary keyword arguments
+	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+	varkw_exist = False
+
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
-		fullargspec = inspect.getfullargspec(fn)
-		fnargs = fullargspec.args
-		fnargs.extend(fullargspec.kwonlyargs)
-		varkw = fullargspec.varkw
+		signature = inspect.signature(fn)
+		fnargs = list(signature.parameters)
+
+		for param_name, parameter in signature.parameters.items():
+			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+				varkw_exist = True
+				fnargs.remove(param_name)
+				break
 
 	newargs = {}
 	for a in kwargs:
-		if (a in fnargs) or varkw:
+		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
 	newargs.pop("ignore_permissions", None)
@@ -1802,18 +1827,21 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: Union[Dict, List], indent=1) -> str:
+def as_json(obj: Union[Dict, List], indent=1, separators=None) -> str:
 	from frappe.utils.response import json_handler
+
+	if separators is None:
+		separators = (",", ": ")
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=(",", ": ")
+			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(",", ": "))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
 
 
 def are_emails_muted():
@@ -1916,7 +1944,7 @@ def attach_print(
 
 	if not file_name:
 		file_name = name
-	file_name = file_name.replace(" ", "").replace("/", "-")
+	file_name = cstr(file_name).replace(" ", "").replace("/", "-")
 
 	print_settings = db.get_singles_dict("Print Settings")
 
@@ -2078,7 +2106,6 @@ def logger(
 
 def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
 	"""Log error to Error Log"""
-
 	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
@@ -2091,20 +2118,15 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		else:
 			traceback = message
 
-	if not traceback:
-		traceback = get_traceback()
-
-	if not title:
-		title = "Error"
+	title = title or "Error"
+	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
 	return get_doc(
-		dict(
-			doctype="Error Log",
-			error=as_unicode(traceback),
-			method=title,
-			reference_doctype=reference_doctype,
-			reference_name=reference_name,
-		)
+		doctype="Error Log",
+		error=traceback,
+		method=title,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
 	).insert(ignore_permissions=True)
 
 
@@ -2261,7 +2283,4 @@ def mock(type, size=1, locale="en"):
 	return squashify(results)
 
 
-def validate_and_sanitize_search_inputs(fn):
-	from frappe.desk.search import validate_and_sanitize_search_inputs as func
-
-	return func(fn)
+from frappe.desk.search import validate_and_sanitize_search_inputs  # noqa
