@@ -1,20 +1,21 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.naming import (
+	InvalidNamingSeriesError,
+	NamingSeries,
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
 	getseries,
 	revert_series_if_last,
 )
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now_datetime
 
 
-class TestNaming(unittest.TestCase):
+class TestNaming(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Note")
 
@@ -52,16 +53,13 @@ class TestNaming(unittest.TestCase):
 		self.assertEqual(country.name, country.country_name)
 
 	def test_child_table_naming(self):
-		child_dt_with_naming = new_doctype(
-			"childtable_with_autonaming", istable=1, autoname="field:some_fieldname"
-		).insert()
+		child_dt_with_naming = new_doctype(istable=1, autoname="field:some_fieldname").insert()
 		dt_with_child_autoname = new_doctype(
-			"dt_with_childtable_naming",
 			fields=[
 				{
 					"label": "table with naming",
 					"fieldname": "table_with_naming",
-					"options": "childtable_with_autonaming",
+					"options": child_dt_with_naming.name,
 					"fieldtype": "Table",
 				}
 			],
@@ -69,7 +67,7 @@ class TestNaming(unittest.TestCase):
 
 		name = frappe.generate_hash(length=10)
 
-		doc = frappe.new_doc("dt_with_childtable_naming")
+		doc = frappe.new_doc(dt_with_child_autoname.name)
 		doc.append("table_with_naming", {"some_fieldname": name})
 		doc.save()
 		self.assertEqual(doc.table_with_naming[0].name, name)
@@ -89,31 +87,18 @@ class TestNaming(unittest.TestCase):
 		"""
 		Test if braced params are replaced in format autoname
 		"""
-		doctype = "ToDo"
-
-		todo_doctype = frappe.get_doc("DocType", doctype)
-		todo_doctype.autoname = "format:TODO-{MM}-{status}-{##}"
-		todo_doctype.save()
+		doctype = new_doctype(autoname="format:TODO-{MM}-{some_fieldname}-{##}").insert()
 
 		description = "Format"
 
-		todo = frappe.new_doc(doctype)
-		todo.description = description
-		todo.insert()
+		doc = frappe.new_doc(doctype.name)
+		doc.some_fieldname = description
+		doc.insert()
 
 		series = getseries("", 2)
+		series = int(series) - 1
 
-		series = str(int(series) - 1)
-
-		if len(series) < 2:
-			series = "0" + series
-
-		self.assertEqual(
-			todo.name,
-			"TODO-{month}-{status}-{series}".format(
-				month=now_datetime().strftime("%m"), status=todo.status, series=series
-			),
-		)
+		self.assertEqual(doc.name, f"TODO-{now_datetime().strftime('%m')}-{description}-{series:02}")
 
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""
@@ -302,6 +287,46 @@ class TestNaming(unittest.TestCase):
 			self.assertEqual(frappe.new_doc(doctype).save(ignore_permissions=True).name, i)
 
 		dt.delete(ignore_permissions=True)
+
+	def test_naming_series_prefix(self):
+		today = now_datetime()
+		year = today.strftime("%y")
+		month = today.strftime("%m")
+
+		prefix_test_cases = {
+			"SINV-.YY.-.####": f"SINV-{year}-",
+			"SINV-.YY.-.MM.-.####": f"SINV-{year}-{month}-",
+			"SINV": "SINV",
+			"SINV-.": "SINV-",
+		}
+
+		for series, prefix in prefix_test_cases.items():
+			self.assertEqual(prefix, NamingSeries(series).get_prefix())
+
+	def test_naming_series_validation(self):
+		dns = frappe.get_doc("Document Naming Settings")
+		exisiting_series = dns.get_transactions_and_prefixes()["prefixes"]
+		valid = ["SINV-", "SI-.{field}.", "SI-#.###", ""] + exisiting_series
+		invalid = ["$INV-", r"WINDOWS\NAMING"]
+
+		for series in valid:
+			if series.strip():
+				try:
+					NamingSeries(series).validate()
+				except Exception as e:
+					self.fail(f"{series} should be valid\n{e}")
+
+		for series in invalid:
+			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
+
+	def test_naming_using_fields(self):
+
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = "on_update"
+		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
+		self.assertTrue(
+			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
+		)
 
 
 def make_invalid_todo():
