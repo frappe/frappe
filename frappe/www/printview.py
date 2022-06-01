@@ -47,7 +47,6 @@ def get_context(context):
 		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
 	)
 
-	is_invalid_print = False
 	print_style = None
 	body = get_rendered_template(
 		doc,
@@ -67,7 +66,6 @@ def get_context(context):
 		"title": frappe.utils.strip_html(doc.get_title()),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
-		"is_invalid_print": is_invalid_print,
 		"doctype": frappe.form_dict.doctype,
 		"name": frappe.form_dict.name,
 		"key": frappe.form_dict.get("key"),

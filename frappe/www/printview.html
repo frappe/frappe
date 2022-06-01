@@ -13,9 +13,6 @@
 	{% endif %}
 </head>
 <body>
-	{% if is_invalid_print %}
-	{{ body }}
-	{% else %}
 	<div class="action-banner print-hide">
 		<a class="p-2" onclick="window.print();">
 			{{ _("Print") }}
@@ -44,7 +41,6 @@
 			footer_html.style.marginTop = '20px';
 		});
 	</script>
-	{% endif %}
 </body>
 {%- if comment -%}
 <!-- {{ comment }} -->
