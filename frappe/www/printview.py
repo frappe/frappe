@@ -48,25 +48,16 @@ def get_context(context):
 
 	is_invalid_print = False
 	print_style = None
-	try:
-		body = get_rendered_template(
-			doc,
-			print_format=print_format,
-			meta=meta,
-			trigger_print=frappe.form_dict.trigger_print,
-			no_letterhead=frappe.form_dict.no_letterhead,
-			letterhead=letterhead,
-			settings=settings,
-		)
-		print_style = get_print_style(frappe.form_dict.style, print_format)
-	except frappe.exceptions.LinkExpiredError:
-		body = frappe.get_template("templates/print_format/print_key_expired.html").render({})
-		context.http_status_code = 410
-		is_invalid_print = True
-	except frappe.exceptions.InvalidKey:
-		body = frappe.get_template("templates/print_format/print_key_invalid.html").render({})
-		context.http_status_code = 401
-		is_invalid_print = True
+	body = get_rendered_template(
+		doc,
+		print_format=print_format,
+		meta=meta,
+		trigger_print=frappe.form_dict.trigger_print,
+		no_letterhead=frappe.form_dict.no_letterhead,
+		letterhead=letterhead,
+		settings=settings,
+	)
+	print_style = get_print_style(frappe.form_dict.style, print_format)
 
 	return {
 		"body": body,
