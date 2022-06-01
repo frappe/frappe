@@ -105,7 +105,9 @@ class Oauth:
 		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token", None)
 
 		# set the new access token in db
-		frappe.db.set_value("Email Account", self.email_account, "access_token", access_token)
+		frappe.db.set_value(
+			"Email Account", self.email_account, "access_token", access_token, update_modified=True
+		)
 		frappe.db.commit()
 		return access_token
 
@@ -129,7 +131,7 @@ def oauth_access(email_account: str, service: str = None):
 
 	# NOTE: setting this here, since we redirect to the service's auth page,
 	# we lose the use_oauth value in the emal account form
-	frappe.db.set_value(doctype, email_account, "use_oauth", 1)
+	frappe.db.set_value(doctype, email_account, "use_oauth", 1, update_modified=False)
 
 	if service == "GMail":
 		return authorize_google_access(email_account, doctype)
@@ -153,5 +155,9 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 		)
 
 	res = oauth_obj.authorize(code, get_request_site_address(True))
-	frappe.db.set_value(doctype, email_account, "refresh_token", res.get("refresh_token"))
-	frappe.db.set_value(doctype, email_account, "access_token", res.get("access_token"))
+	frappe.db.set_value(
+		doctype, email_account, "refresh_token", res.get("refresh_token"), update_modified=False
+	)
+	frappe.db.set_value(
+		doctype, email_account, "access_token", res.get("access_token"), update_modified=False
+	)
