@@ -48,6 +48,12 @@ class GoogleOAuth:
 			frappe.throw(frappe._("Please update Google Settings before continuing."))
 
 	def authorize(self, oauth_code: str, site_address: str) -> Dict[str, Union[str, int]]:
+		"""Returns a dict with access and refresh token.
+
+		:param oauth_code: code got back from google upon successful auhtorization
+		:param site_address: side address from which the request is being made
+		"""
+
 		data = {
 			"code": oauth_code,
 			"client_id": self.google_settings.client_id,
@@ -66,6 +72,8 @@ class GoogleOAuth:
 		)
 
 	def refresh_access_token(self, refresh_token: str) -> Dict[str, Union[str, int]]:
+		"""Refreshes google access token using refresh token"""
+
 		data = {
 			"client_id": self.google_settings.client_id,
 			"client_secret": self.google_settings.get_password(
@@ -86,7 +94,11 @@ class GoogleOAuth:
 	def get_authentication_url(
 		self, site_address: str, state: Dict[str, str] = None
 	) -> Dict[str, str]:
-		"""Return authentication url with the client id and redirect uri."""
+		"""Returns google authentication url.
+
+		:param site_address: side address from which the request is being made (for redirect back to site)
+		:param state: [optional] dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
+		"""
 
 		state = json.dumps(state)
 		callback_url = site_address + CALLBACK_METHOD
@@ -100,6 +112,8 @@ class GoogleOAuth:
 		}
 
 	def get_google_service_object(self, access_token: str, refresh_token: str):
+		"""Returns google service object"""
+
 		credentials_dict = {
 			"token": access_token,
 			"refresh_token": refresh_token,
@@ -151,6 +165,10 @@ def is_valid_access_token(access_token: str) -> bool:
 
 @frappe.whitelist(methods=["GET"])
 def callback(state: str, code: str = None, error: str = None) -> None:
+	"""Common callback for google integrations.
+	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
+	along with committing and redirecting us back to frappe site."""
+
 	state = json.loads(state)
 	redirect = state.pop("redirect", "/app")
 

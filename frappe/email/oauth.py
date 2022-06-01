@@ -34,9 +34,9 @@ class Oauth:
 		self._access_token = access_token
 		self._refresh_token = refresh_token
 
-		self.validate()
+		self._validate()
 
-	def validate(self) -> None:
+	def _validate(self) -> None:
 		if self.service != "GMail":
 			raise NotImplementedError(
 				f"Service {self.service} currently doesn't have oauth implementation."
@@ -54,6 +54,7 @@ class Oauth:
 		return "user=%s\1auth=Bearer %s\1\1" % (self.email, self._access_token)
 
 	def connect(self, _retry: int = 0) -> None:
+		"""Connection method with retry on exception for Oauth"""
 		try:
 			if isinstance(self._conn, POP3):
 				res = self._connect_pop()
@@ -99,6 +100,7 @@ class Oauth:
 		self._conn.auth(self._mechanism, lambda x: self._auth_string, initial_response_ok=False)
 
 	def _refresh_access_token(self) -> str:
+		"""Refreshes access token via calling `refresh_access_token` method of oauth service object"""
 		service_obj = self._get_service_object()
 		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token", None)
 
@@ -108,6 +110,8 @@ class Oauth:
 		return access_token
 
 	def _get_service_object(self):
+		"""Get Oauth service object"""
+
 		return {
 			"GMail": GoogleOAuth("mail", validate=False),
 		}[self.service]
@@ -115,18 +119,27 @@ class Oauth:
 
 @frappe.whitelist(methods=["POST"])
 def oauth_access(email_account: str, service: str = None):
+	"""Used as a default endpoint/caller for all oauth services.
+	Returns authorization url for redirection"""
+
+	if not service:
+		frappe.throw(frappe._("No Service is selected. Please select one and try again!"))
+
 	doctype = "Email Account"
 
 	# NOTE: setting this here, since we redirect to the service's auth page,
 	# we lose the use_oauth value in the emal account form
 	frappe.db.set_value(doctype, email_account, "use_oauth", 1)
 
-	if service:
-		if service == "GMail":
-			return authorize_google_access(email_account, doctype)
+	if service == "GMail":
+		return authorize_google_access(email_account, doctype)
 
 
 def authorize_google_access(email_account, doctype: str = "Email Account", code: str = None):
+	"""Facilitates google oauth for email.
+	This is invoked 2 times - first time when user clicks `Authorze API Access` for getting the authorization url
+	and second time for setting the refresh and access token in db when google redirects back with oauth code."""
+
 	oauth_obj = GoogleOAuth("mail")
 
 	if not code:
