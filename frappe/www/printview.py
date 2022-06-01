@@ -13,6 +13,7 @@ from six import string_types
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.modules import get_doc_path
 from frappe.utils import cint, sanitize_html, strip_html
 from frappe.utils.jinja import is_rtl
@@ -313,16 +314,18 @@ def validate_print_permission(doc):
 
 
 def validate_key(key, doc):
-	document_share_key = frappe.db.exists(
-		"Document Share Key",
-		{"reference_doctype": doc.doctype, "reference_docname": doc.name, "key": key},
-		cache=True,
-	)
-	if document_share_key:
-		if frappe.get_cached_doc("Document Share Key", document_share_key).is_expired():
+	try:
+		document_key_expiry = frappe.get_cached_value(
+			"Document Share Key",
+			{"reference_doctype": doc.doctype, "reference_docname": doc.name, "key": key},
+			"expires_on",
+		)
+		if is_expired(document_key_expiry):
 			raise frappe.exceptions.LinkExpiredError
 		else:
 			return
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
 
 	# TODO: Deprecate this! kept it for backward compatibility
 	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():

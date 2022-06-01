@@ -13,5 +13,6 @@ class DocumentShareKey(Document):
 				None, days=frappe.get_system_settings("document_share_key_expiry") or 90
 			)
 
-	def is_expired(self):
-		return self.expires_on and self.expires_on < frappe.utils.getdate()
+
+def is_expired(expires_on):
+	return expires_on and expires_on < frappe.utils.getdate()

@@ -115,8 +115,7 @@ def read_multi_pdf(output):
 
 @frappe.whitelist(allow_guest=True)
 def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
-	doc = frappe.get_doc(doctype, name)
-	doc.doctype = doctype
+	doc = doc or frappe.get_doc(doctype, name)
 	try:
 		validate_print_permission(doc)
 	except frappe.exceptions.LinkExpiredError:
