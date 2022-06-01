@@ -265,13 +265,13 @@ class InvalidRemoteException(Exception):
 	pass
 
 
-class LinkExpiredError(ValidationError):
+class LinkExpired(ValidationError):
 	http_status_code = 410
 	title = "Link Expired"
 	message = "The link has been expired"
 
 
-class InvalidKey(ValidationError):
+class InvalidKeyError(ValidationError):
 	http_status_code = 401
 	title = "Invalid Key"
 	message = "The key you are using is invalid"

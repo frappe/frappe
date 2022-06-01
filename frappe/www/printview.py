@@ -352,7 +352,7 @@ def validate_key(key, doc):
 	)
 	if document_key_expiry is not None:
 		if is_expired(document_key_expiry[0]):
-			raise frappe.exceptions.LinkExpiredError
+			raise frappe.exceptions.LinkExpired
 		else:
 			return
 
@@ -360,7 +360,7 @@ def validate_key(key, doc):
 	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
 		return
 
-	raise frappe.exceptions.InvalidKey
+	raise frappe.exceptions.InvalidKeyError
 
 
 def get_letter_head(doc, no_letterhead, letterhead=None):
