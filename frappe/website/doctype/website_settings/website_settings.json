@@ -21,6 +21,7 @@
   "website_theme_image_link",
   "brand",
   "banner_image",
+  "splash_image",
   "brand_html",
   "set_banner_from_image",
   "favicon",
@@ -386,6 +387,11 @@
    "fieldname": "app_logo",
    "fieldtype": "Attach Image",
    "label": "App Logo"
+  },
+  {
+    "fieldname": "splash_image",
+    "fieldtype": "Attach Image",
+    "label": "Splash Image"
   }
  ],
  "icon": "fa fa-cog",
@@ -393,7 +399,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-03-09 01:47:31.094462",
+ "modified": "2022-05-27 12:33:29.019998",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

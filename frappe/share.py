@@ -94,7 +94,7 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 
 		if not (share.read or share.write or share.submit or share.share):
 			share.delete()
-			share = {}
+			share = None
 
 	return share
 
