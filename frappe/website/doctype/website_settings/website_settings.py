@@ -139,7 +139,7 @@ def get_website_settings(context=None):
 		}
 	)
 
-	settings = frappe.get_single("Website Settings")
+	settings: "WebsiteSettings" = frappe.get_single("Website Settings")
 	for k in [
 		"banner_html",
 		"banner_image",
@@ -204,6 +204,9 @@ def get_website_settings(context=None):
 		context["favicon"] = settings.favicon
 
 	context["hide_login"] = settings.hide_login
+
+	if settings.splash_image:
+		context["splash_image"] = settings.splash_image
 
 	return context
 

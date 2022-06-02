@@ -10,20 +10,13 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
-import os
-import warnings
-
-_dev_server = os.environ.get("DEV_SERVER", False)
-
-if _dev_server:
-	warnings.simplefilter("always", DeprecationWarning)
-	warnings.simplefilter("always", PendingDeprecationWarning)
-
 import importlib
 import inspect
 import json
+import os
 import sys
 import typing
+import warnings
 
 import click
 from past.builtins import cmp
@@ -31,6 +24,7 @@ from six import binary_type, iteritems, string_types, text_type
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import get_query_builder, patch_query_execute
+from frappe.utils.data import sbool
 
 # Local application imports
 from .exceptions import *
@@ -46,12 +40,19 @@ from .utils.lazy_loader import lazy_import
 # Lazy imports
 faker = lazy_import("faker")
 
-__version__ = "13.29.2"
+__version__ = "13.31.0"
 
 __title__ = "Frappe Framework"
 
-local = Local()
 controllers = {}
+local = Local()
+STANDARD_USERS = ("Guest", "Administrator")
+
+_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+
+if _dev_server:
+	warnings.simplefilter("always", DeprecationWarning)
+	warnings.simplefilter("always", PendingDeprecationWarning)
 
 
 class _dict(dict):

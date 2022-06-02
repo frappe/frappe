@@ -1296,7 +1296,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		for (var i=0, l=fnames.length; i<l; i++) {
 			var fieldname = fnames[i];
-			var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, this.docname);
+			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if(field) {
 				fn(field);
 				this.refresh_field(fieldname);
@@ -1549,11 +1549,11 @@ frappe.ui.form.Form = class FrappeForm {
 	set_indicator_formatter(fieldname, get_color, get_text) {
 		// get doctype from parent
 		var doctype;
-		if(frappe.meta.docfield_map[this.doctype][fieldname]) {
+		if (frappe.meta.docfield_map[this.doctype][fieldname]) {
 			doctype = this.doctype;
 		} else {
 			frappe.meta.get_table_fields(this.doctype).every(function(df) {
-				if(frappe.meta.docfield_map[df.options][fieldname]) {
+				if (frappe.meta.docfield_map[df.options][fieldname]) {
 					doctype = df.options;
 					return false;
 				} else {
@@ -1564,11 +1564,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		frappe.meta.docfield_map[doctype][fieldname].formatter =
 			function(value, df, options, doc) {
-				if(value) {
+				if (value) {
 					var label;
-					if(get_text) {
+					if (get_text) {
 						label = get_text(doc);
-					} else if(frappe.form.link_formatters[df.options]) {
+					} else if (frappe.form.link_formatters[df.options]) {
 						label = frappe.form.link_formatters[df.options](value, doc);
 					} else {
 						label = value;
@@ -1576,7 +1576,14 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>`;
+					return `
+						<a class="indicator ${get_color(doc || {})}"
+							href="/app/${frappe.router.slug(df.options)}/${escaped_name}"
+							data-doctype="${df.options}"
+							data-name="${value}">
+							${label}
+						</a>
+					`;
 				} else {
 					return '';
 				}
