@@ -112,6 +112,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.setup_file_drop();
 		this.setup_doctype_actions();
 		this.setup_notify_on_rename();
+		this.set_dirty_listener()
 
 		this.setup_done = true;
 	}
@@ -419,6 +420,17 @@ frappe.ui.form.Form = class FrappeForm {
 				});
 			}
 		}
+	}
+
+
+	// Adds un beforeunload Listener to trigger a "Leave Site" Dialog, when a dirty (unsaved) form is closed
+	set_dirty_listener() {
+		addEventListener('beforeunload', (event) => {
+			if (cur_frm.is_dirty()) {
+			event.preventDefault();
+			return event.returnValue = 'There are unsaved changes, are you sure you want to exit?';
+			}
+			}, {capture: true});
 	}
 
 	execute_action(action) {
