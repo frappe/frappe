@@ -179,7 +179,7 @@ frappe.ui.form.Form = class FrappeForm {
 		grid_shortcut_keys.forEach(row => {
 			frappe.ui.keys.add_shortcut({
 				shortcut: row.shortcut,
-				page: this,
+				page: this.page,
 				description: __(row.description),
 				ignore_inputs: true,
 				condition: () => !this.is_new()
@@ -248,7 +248,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// on main doc
 		frappe.model.on(me.doctype, "*", function(fieldname, value, doc, skip_dirty_trigger=false) {
 			// set input
-			if (cstr(doc.name) === me.docname) {
+			if (doc.name == me.docname) {
 				if (!skip_dirty_trigger) {
 					me.dirty();
 				}
@@ -273,7 +273,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// using $.each to preserve df via closure
 		$.each(table_fields, function(i, df) {
 			frappe.model.on(df.options, "*", function(fieldname, value, doc) {
-				if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
+				if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
 					me.dirty();
 					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
@@ -319,6 +319,25 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
+	setup_image_autocompletions_in_markdown() {
+		this.fields.map(field => {
+			if (field.df.fieldtype === 'Markdown Editor') {
+				this.set_df_property(field.df.fieldname, 'autocompletions', () => {
+					let attachments = this.attachments.get_attachments();
+					return attachments
+						.filter(file => frappe.utils.is_image_file(file.file_url))
+						.map(file => {
+							return {
+								caption: 'image: ' + file.file_name,
+								value: `![](${file.file_url})`,
+								meta: 'image'
+							};
+						});
+				});
+			}
+		});
+	}
+
 	// REFRESH
 
 	refresh(docname) {
@@ -337,7 +356,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 			// check permissions
 			if (!this.has_read_permission()) {
-				frappe.show_not_permitted(__(this.doctype) + " " + __(this.docname));
+				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
 
@@ -533,6 +552,7 @@ frappe.ui.form.Form = class FrappeForm {
 				// call onload post render for callbacks to be fired
 				() => {
 					if(this.cscript.is_onload) {
+						this.onload_post_render();
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
@@ -558,6 +578,10 @@ frappe.ui.form.Form = class FrappeForm {
 				this.scroll_to_element();
 			});
 		});
+	}
+
+	onload_post_render() {
+		this.setup_image_autocompletions_in_markdown();
 	}
 
 	set_first_tab_as_active() {
@@ -1346,7 +1370,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		for (var i=0, l=fnames.length; i<l; i++) {
 			var fieldname = fnames[i];
-			var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, this.docname);
+			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if(field) {
 				fn(field);
 				this.refresh_field(fieldname);
@@ -1604,11 +1628,11 @@ frappe.ui.form.Form = class FrappeForm {
 	set_indicator_formatter(fieldname, get_color, get_text) {
 		// get doctype from parent
 		var doctype;
-		if(frappe.meta.docfield_map[this.doctype][fieldname]) {
+		if (frappe.meta.docfield_map[this.doctype][fieldname]) {
 			doctype = this.doctype;
 		} else {
 			frappe.meta.get_table_fields(this.doctype).every(function(df) {
-				if(frappe.meta.docfield_map[df.options][fieldname]) {
+				if (frappe.meta.docfield_map[df.options][fieldname]) {
 					doctype = df.options;
 					return false;
 				} else {
@@ -1619,11 +1643,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		frappe.meta.docfield_map[doctype][fieldname].formatter =
 			function(value, df, options, doc) {
-				if(value) {
+				if (value) {
 					var label;
-					if(get_text) {
+					if (get_text) {
 						label = get_text(doc);
-					} else if(frappe.form.link_formatters[df.options]) {
+					} else if (frappe.form.link_formatters[df.options]) {
 						label = frappe.form.link_formatters[df.options](value, doc);
 					} else {
 						label = value;
@@ -1631,7 +1655,14 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>`;
+					return `
+						<a class="indicator ${get_color(doc || {})}"
+							href="/app/${frappe.router.slug(df.options)}/${escaped_name}"
+							data-doctype="${df.options}"
+							data-name="${value}">
+							${label}
+						</a>
+					`;
 				} else {
 					return '';
 				}
@@ -1741,12 +1772,15 @@ frappe.ui.form.Form = class FrappeForm {
 		// scroll to input
 		frappe.utils.scroll_to($el, true, 15);
 
-		// highlight input
-		$el.addClass('has-error');
+		// focus if text field
+		$el.find('input, select, textarea').focus();
+
+		// highlight control inside field
+		let control_element = $el.find('.form-control')
+		control_element.addClass('highlight');
 		setTimeout(() => {
-			$el.removeClass('has-error');
-			$el.find('input, select, textarea').focus();
-		}, 1000);
+			control_element.removeClass('highlight');
+		}, 2000);
 	}
 
 	setup_docinfo_change_listener() {

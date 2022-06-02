@@ -44,7 +44,7 @@ PyMySQL~=1.0.2
 pyOpenSSL~=20.0.1
 pyotp~=2.6.0
 PyPDF2~=1.26.0
-PyPika~=0.48.6
+PyPika~=0.48.9
 pypng~=0.0.20
 PyQRCode~=1.2.1
 python-dateutil~=2.8.1
@@ -63,12 +63,14 @@ semantic-version~=2.8.5
 sqlparse~=0.4.1
 stripe~=2.56.0
 terminaltables~=3.1.0
+traceback-with-variables~=2.0.4
 urllib3~=1.26.4
 Werkzeug~=2.0.3
 Whoosh~=2.7.4
-wrapt~=1.12.1
 xlrd~=2.0.1
 zxcvbn-python~=4.4.24
 tenacity~=8.0.1
 cairocffi==1.2.0
 WeasyPrint==52.5
+phonenumbers==8.12.40
+

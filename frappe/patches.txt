@@ -106,13 +106,12 @@ frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 frappe.patches.v12_0.setup_tags
 frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
-frappe.patches.v12_0.copy_to_parent_for_tags
 frappe.patches.v12_0.create_notification_settings_for_user
 frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
 frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
-execute:frappe.delete_doc("Test Runner")
+execute:frappe.delete_doc('DocType', 'Test Runner') # 2022-05-19
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
@@ -190,6 +189,8 @@ frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.transform_todo_schema
 frappe.patches.v14_0.remove_post_and_post_comment
 frappe.patches.v14_0.reset_creation_datetime
+frappe.patches.v14_0.remove_is_first_startup
+frappe.patches.v14_0.reload_workspace_child_tables
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy

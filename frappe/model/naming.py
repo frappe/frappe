@@ -1,17 +1,112 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Optional, TYPE_CHECKING, Union
+import re
+from typing import TYPE_CHECKING, Callable, List, Optional, Union
+
 import frappe
 from frappe import _
-from frappe.database.sequence import get_next_val, set_next_val
-from frappe.utils import now_datetime, cint, cstr
-import re
 from frappe.model import log_types
 from frappe.query_builder import DocType
+from frappe.utils import cint, cstr, now_datetime
 
 if TYPE_CHECKING:
+	from frappe.model.document import Document
 	from frappe.model.meta import Meta
+
+
+# NOTE: This is used to keep track of status of sites
+# whether `log_types` have autoincremented naming set for the site or not.
+autoincremented_site_status_map = {}
+
+NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
+
+
+class InvalidNamingSeriesError(frappe.ValidationError):
+	pass
+
+
+class NamingSeries:
+	__slots__ = ("series",)
+
+	def __init__(self, series: str):
+		self.series = series
+
+		# Add default number part if missing
+		if "#" not in self.series:
+			self.series += ".#####"
+
+	def validate(self):
+		if "." not in self.series:
+			frappe.throw(
+				_("Invalid naming series {}: dot (.) missing").format(frappe.bold(self.series)),
+				exc=InvalidNamingSeriesError,
+			)
+
+		if not NAMING_SERIES_PATTERN.match(self.series):
+			frappe.throw(
+				_(
+					'Special Characters except "-", "#", ".", "/", "{" and "}" not allowed in naming series',
+				),
+				exc=InvalidNamingSeriesError,
+			)
+
+	def generate_next_name(self, doc: "Document") -> str:
+		self.validate()
+		parts = self.series.split(".")
+		return parse_naming_series(parts, doc=doc)
+
+	def get_prefix(self) -> str:
+		"""Naming series stores prefix to maintain a counter in DB. This prefix can be used to update counter or validations.
+
+		e.g. `SINV-.YY.-.####` has prefix of `SINV-22-` in database for year 2022.
+		"""
+
+		prefix = None
+
+		def fake_counter_backend(partial_series, digits):
+			nonlocal prefix
+			prefix = partial_series
+			return "#" * digits
+
+		# This function evaluates all parts till we hit numerical parts and then
+		# sends prefix + digits to DB to find next number.
+		# Instead of reimplementing the whole parsing logic in multiple places we
+		# can just ask this function to give us the prefix.
+		parse_naming_series(self.series, number_generator=fake_counter_backend)
+
+		if prefix is None:
+			frappe.throw(_("Invalid Naming Series"))
+
+		return prefix
+
+	def get_preview(self, doc=None) -> List[str]:
+		"""Generate preview of naming series without using DB counters"""
+		generated_names = []
+		for count in range(1, 4):
+
+			def fake_counter(_prefix, digits):
+				return str(count).zfill(digits)
+
+			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
+		return generated_names
+
+	def update_counter(self, new_count: int) -> None:
+		"""Warning: Incorrectly updating series can result in unusable transactions"""
+		Series = frappe.qb.DocType("Series")
+		prefix = self.get_prefix()
+
+		# Initialize if not present in DB
+		if frappe.db.get_value("Series", prefix, "name", order_by="name") is None:
+			frappe.qb.into(Series).insert(prefix, 0).columns("name", "current").run()
+
+		(
+			frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)
+		).run()
+
+	def get_current_value(self) -> int:
+		prefix = self.get_prefix()
+		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
 
 
 def set_new_name(doc):
@@ -35,7 +130,7 @@ def set_new_name(doc):
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
-		doc.name = get_next_val(doc.doctype)
+		doc.name = frappe.db.get_next_sequence_val(doc.doctype)
 		return
 
 	if getattr(doc, "amended_from", None):
@@ -44,9 +139,6 @@ def set_new_name(doc):
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
-
-	elif getattr(doc.meta, "istable", False):
-		doc.name = make_autoname("hash", doc.doctype)
 
 	if not doc.name:
 		set_naming_from_document_naming_rule(doc)
@@ -70,39 +162,38 @@ def set_new_name(doc):
 	if not doc.name:
 		doc.name = make_autoname("hash", doc.doctype)
 
-	doc.name = validate_name(
-		doc.doctype,
-		doc.name,
-		meta.get_field("name_case")
-	)
+	doc.name = validate_name(doc.doctype, doc.name, meta.get_field("name_case"))
 
-def is_autoincremented(doctype: str, meta: "Meta" = None):
+
+def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
+	"""Checks if the doctype has autoincrement autoname set"""
+
 	if doctype in log_types:
-		if frappe.local.autoincremented_status_map.get(frappe.local.site) is None or \
-			frappe.local.autoincremented_status_map[frappe.local.site] == -1:
-			if frappe.db.sql(
-				f"""select data_type FROM information_schema.columns
+		if autoincremented_site_status_map.get(frappe.local.site) is None:
+			if (
+				frappe.db.sql(
+					f"""select data_type FROM information_schema.columns
 				where column_name = 'name' and table_name = 'tab{doctype}'"""
-			)[0][0] == "bigint":
-				frappe.local.autoincremented_status_map[frappe.local.site] = 1
+				)[0][0]
+				== "bigint"
+			):
+				autoincremented_site_status_map[frappe.local.site] = 1
 				return True
 			else:
-				frappe.local.autoincremented_status_map[frappe.local.site] = 0
+				autoincremented_site_status_map[frappe.local.site] = 0
 
-		elif frappe.local.autoincremented_status_map[frappe.local.site]:
+		elif autoincremented_site_status_map[frappe.local.site]:
 			return True
 
 	else:
 		if not meta:
 			meta = frappe.get_meta(doctype)
 
-		if getattr(meta, "issingle", False):
-			return False
-
-		if meta.autoname == "autoincrement":
+		if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
 			return True
 
 	return False
+
 
 def set_name_from_naming_options(autoname, doc):
 	"""
@@ -122,19 +213,25 @@ def set_name_from_naming_options(autoname, doc):
 	elif "#" in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
 
+
 def set_naming_from_document_naming_rule(doc):
-	'''
+	"""
 	Evaluate rules based on "Document Naming Series" doctype
-	'''
+	"""
 	if doc.doctype in log_types:
 		return
 
 	# ignore_ddl if naming is not yet bootstrapped
-	for d in frappe.get_all('Document Naming Rule',
-		dict(document_type=doc.doctype, disabled=0), order_by='priority desc', ignore_ddl=True):
-		frappe.get_cached_doc('Document Naming Rule', d.name).apply(doc)
+	for d in frappe.get_all(
+		"Document Naming Rule",
+		dict(document_type=doc.doctype, disabled=0),
+		order_by="priority desc",
+		ignore_ddl=True,
+	):
+		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
 		if doc.name:
 			break
+
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
@@ -144,72 +241,81 @@ def set_name_by_naming_series(doc):
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
 
-	doc.name = make_autoname(doc.naming_series+".#####", "", doc)
+	doc.name = make_autoname(doc.naming_series + ".#####", "", doc)
+
 
 def make_autoname(key="", doctype="", doc=""):
 	"""
-	Creates an autoname from the given key:
+	     Creates an autoname from the given key:
 
-	**Autoname rules:**
+	     **Autoname rules:**
 
-		 * The key is separated by '.'
-		 * '####' represents a series. The string before this part becomes the prefix:
-			Example: ABC.#### creates a series ABC0001, ABC0002 etc
-		 * 'MM' represents the current month
-		 * 'YY' and 'YYYY' represent the current year
+	              * The key is separated by '.'
+	              * '####' represents a series. The string before this part becomes the prefix:
+	                     Example: ABC.#### creates a series ABC0001, ABC0002 etc
+	              * 'MM' represents the current month
+	              * 'YY' and 'YYYY' represent the current year
 
 
-   *Example:*
+	*Example:*
 
-		 * DE/./.YY./.MM./.##### will create a series like
-		   DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
+	              * DE/./.YY./.MM./.##### will create a series like
+	                DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
 	if key == "hash":
 		return frappe.generate_hash(doctype, 10)
 
-	if "#" not in key:
-		key = key + ".#####"
-	elif "." not in key:
-		error_message = _("Invalid naming series (. missing)")
-		if doctype:
-			error_message = _("Invalid naming series (. missing) for {0}").format(doctype)
-
-		frappe.throw(error_message)
-
-	parts = key.split('.')
-	n = parse_naming_series(parts, doctype, doc)
-	return n
+	series = NamingSeries(key)
+	return series.generate_next_name(doc)
 
 
-def parse_naming_series(parts, doctype='', doc=''):
-	n = ''
+def parse_naming_series(
+	parts: Union[List[str], str],
+	doctype=None,
+	doc: Optional["Document"] = None,
+	number_generator: Optional[Callable[[str, int], str]] = None,
+) -> str:
+
+	"""Parse the naming series and get next name.
+
+	args:
+	        parts: naming series parts (split by `.`)
+	        doc: document to use for series that have parts using fieldnames
+	        number_generator: Use different counter backend other than `tabSeries`. Primarily used for testing.
+	"""
+
+	name = ""
 	if isinstance(parts, str):
-		parts = parts.split('.')
+		parts = parts.split(".")
+
+	if not number_generator:
+		number_generator = getseries
+
 	series_set = False
 	today = now_datetime()
 	for e in parts:
-		part = ''
-		if e.startswith('#'):
+		part = ""
+		if e.startswith("#"):
 			if not series_set:
 				digits = len(e)
-				part = getseries(n, digits)
+				part = number_generator(name, digits)
 				series_set = True
-		elif e == 'YY':
-			part = today.strftime('%y')
-		elif e == 'MM':
-			part = today.strftime('%m')
-		elif e == 'DD':
+		elif e == "YY":
+			part = today.strftime("%y")
+		elif e == "MM":
+			part = today.strftime("%m")
+		elif e == "DD":
 			part = today.strftime("%d")
-		elif e == 'YYYY':
-			part = today.strftime('%Y')
-		elif e == 'WW':
+		elif e == "YYYY":
+			part = today.strftime("%Y")
+		elif e == "WW":
 			part = determine_consecutive_week_number(today)
-		elif e == 'timestamp':
+		elif e == "timestamp":
 			part = str(today)
-		elif e == 'FY':
+		elif e == "FY":
 			part = frappe.defaults.get_user_default("fiscal_year")
-		elif e.startswith('{') and doc:
-			e = e.replace('{', '').replace('}', '')
+		elif e.startswith("{") and doc:
+			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
 		elif doc and doc.get(e):
 			part = doc.get(e)
@@ -217,21 +323,21 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = e
 
 		if isinstance(part, str):
-			n += part
+			name += part
 
-	return n
+	return name
 
 
 def determine_consecutive_week_number(datetime):
 	"""Determines the consecutive calendar week"""
 	m = datetime.month
 	# ISO 8601 calandar week
-	w = datetime.strftime('%V')
+	w = datetime.strftime("%V")
 	# Ensure consecutiveness for the first and last days of a year
 	if m == 1 and int(w) >= 52:
-		w = '00'
+		w = "00"
 	elif m == 12 and int(w) <= 1:
-		w = '53'
+		w = "53"
 	return w
 
 
@@ -239,12 +345,7 @@ def getseries(key, digits):
 	# series created ?
 	# Using frappe.qb as frappe.get_values does not allow order_by=None
 	series = DocType("Series")
-	current = (
-		frappe.qb.from_(series)
-		.where(series.name == key)
-		.for_update()
-		.select("current")
-	).run()
+	current = (frappe.qb.from_(series).where(series.name == key).for_update().select("current")).run()
 
 	if current and current[0][0] is not None:
 		current = current[0][0]
@@ -255,7 +356,7 @@ def getseries(key, digits):
 		# no, create it
 		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
 		current = 1
-	return ('%0'+str(digits)+'d') % current
+	return ("%0" + str(digits) + "d") % current
 
 
 def revert_series_if_last(key, name, doc=None):
@@ -273,15 +374,15 @@ def revert_series_if_last(key, name, doc=None):
 	2. If hash doesn't exit in hashes, we get the hash from prefix, then update name and prefix accordingly.
 
 	*Example:*
-		1. key = SINV-.YYYY.-
-			* If key doesn't have hash it will add hash at the end
-			* prefix will be SINV-YYYY based on this will get current index from Series table.
-		2. key = SINV-.####.-2021
-			* now prefix = SINV-#### and hashes = 2021 (hash doesn't exist)
-			* will search hash in key then accordingly get prefix = SINV-
-		3. key = ####.-2021
-			* prefix = #### and hashes = 2021 (hash doesn't exist)
-			* will search hash in key then accordingly get prefix = ""
+	        1. key = SINV-.YYYY.-
+	                * If key doesn't have hash it will add hash at the end
+	                * prefix will be SINV-YYYY based on this will get current index from Series table.
+	        2. key = SINV-.####.-2021
+	                * now prefix = SINV-#### and hashes = 2021 (hash doesn't exist)
+	                * will search hash in key then accordingly get prefix = SINV-
+	        3. key = ####.-2021
+	                * prefix = #### and hashes = 2021 (hash doesn't exist)
+	                * will search hash in key then accordingly get prefix = ""
 	"""
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
@@ -295,47 +396,48 @@ def revert_series_if_last(key, name, doc=None):
 	else:
 		prefix = key
 
-	if '.' in prefix:
-		prefix = parse_naming_series(prefix.split('.'), doc=doc)
+	if "." in prefix:
+		prefix = parse_naming_series(prefix.split("."), doc=doc)
 
 	count = cint(name.replace(prefix, ""))
 	series = DocType("Series")
 	current = (
-		frappe.qb.from_(series)
-		.where(series.name == prefix)
-		.for_update()
-		.select("current")
+		frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")
 	).run()
 
-	if current and current[0][0]==count:
+	if current and current[0][0] == count:
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
 
 
-def get_default_naming_series(doctype):
+def get_default_naming_series(doctype: str) -> Optional[str]:
 	"""get default value for `naming_series` property"""
-	naming_series = frappe.get_meta(doctype).get_field("naming_series").options or ""
-	if naming_series:
-		naming_series = naming_series.split("\n")
-		return naming_series[0] or naming_series[1]
-	else:
-		return None
+	naming_series_options = frappe.get_meta(doctype).get_naming_series_options()
+
+	# Return first truthy options
+	# Empty strings are used to avoid populating forms by default
+	for option in naming_series_options:
+		if option:
+			return option
 
 
 def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
+
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
 
 	if isinstance(name, int):
 		if is_autoincremented(doctype):
-			# this will set the sequence val to be the provided name and set it to be used
-			# so that the sequence will start from the next val of the setted val(name)
-			set_next_val(doctype, name, is_val_used=True)
+			# this will set the sequence value to be the provided name/value and set it to be used
+			# so that the sequence will start from the next value
+			frappe.db.set_next_sequence_val(doctype, name, is_val_used=True)
 			return name
 
 		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)
 
-	if name.startswith("New "+doctype):
-		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
+	if name.startswith("New " + doctype):
+		frappe.throw(
+			_("There were some errors setting the name, please contact the administrator"), frappe.NameError
+		)
 	if case == "Title Case":
 		name = name.title()
 	if case == "UPPER CASE":
@@ -348,7 +450,9 @@ def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = Non
 	special_characters = "<>"
 	if re.findall("[{0}]+".format(special_characters), name):
 		message = ", ".join("'{0}'".format(c) for c in special_characters)
-		frappe.throw(_("Name cannot contain special characters like {0}").format(message), frappe.NameError)
+		frappe.throw(
+			_("Name cannot contain special characters like {0}").format(message), frappe.NameError
+		)
 
 	return name
 
@@ -362,14 +466,15 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	regex = "^{value}{separator}\\d+$".format(value=re.escape(value), separator=separator)
 
 	if exists:
-		last = frappe.db.sql("""SELECT `{fieldname}` FROM `tab{doctype}`
+		last = frappe.db.sql(
+			"""SELECT `{fieldname}` FROM `tab{doctype}`
 			WHERE `{fieldname}` {regex_character} %s
 			ORDER BY length({fieldname}) DESC,
 			`{fieldname}` DESC LIMIT 1""".format(
-				doctype=doctype,
-				fieldname=fieldname,
-				regex_character=frappe.db.REGEX_CHARACTER),
-			regex)
+				doctype=doctype, fieldname=fieldname, regex_character=frappe.db.REGEX_CHARACTER
+			),
+			regex,
+		)
 
 		if last:
 			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)
@@ -401,6 +506,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	name = (cstr(doc.get(fieldname)) or "").strip()
 	return name
 
+
 def _prompt_autoname(autoname, doc):
 	"""
 	Generate a name using Prompt option. This simply means the user will have to set the name manually.
@@ -409,6 +515,7 @@ def _prompt_autoname(autoname, doc):
 	# set from __newname in save.py
 	if not doc.name:
 		frappe.throw(_("Please set the document name"))
+
 
 def _format_autoname(autoname, doc):
 	"""
@@ -419,7 +526,7 @@ def _format_autoname(autoname, doc):
 	"""
 
 	first_colon_index = autoname.find(":")
-	autoname_value = autoname[first_colon_index + 1:]
+	autoname_value = autoname[first_colon_index + 1 :]
 
 	def get_param_value_for_match(match):
 		param = match.group()

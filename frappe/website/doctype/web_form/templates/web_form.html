@@ -22,24 +22,24 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	{% if is_list %}
 	<!-- list -->
 	<div class="d-flex justify-content-between">
-		<h3>{{ _(title) }}</h3>
+		<h3 class="mt-0">{{ _(title) }}</h3>
 		<div class="list-view-actions"></div>
 	</div>
 
 	<div class="web-form-wrapper" {{ container_attributes() }}></div>
-	<div id="list-filters" class="row mt-4"></div>
-	<div id="list-table" class="list-table pt-4 overflow-auto"></div>
-	<div class="list-view-footer text-right"></div>
+	<div id="list-filters" class="mt-4 row"></div>
+	<div id="list-table" class="pt-4 overflow-auto list-table"></div>
+	<div class="text-right list-view-footer"></div>
 	{% else %}
 	<!-- web form -->
 	<div class="d-flex justify-content-between web-form-head">
-		<h3>{{ _(title) }}</h3>
+		<h1>{{ _(title) }}</h1>
 		<div class="web-form-actions"></div>
 	</div>
 	<div role="form">
-		<div id="introduction" class="text-muted hidden"></div>
+		<div id="introduction" class="hidden text-muted"></div>
 		<div class="web-form-wrapper" {{ container_attributes() }}></div>
-		<div class="web-form-footer text-right"></div>
+		<div class="text-right web-form-footer"></div>
 	</div>
 
 	{% if show_attachments and not frappe.form_dict.new and attachments %}
@@ -70,6 +70,8 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 <div class="comments" style="margin-top: 3rem;">
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
+{%- else -%}
+<div style="height: 3rem"></div>
 {%- endif %} {# comments #}
 
 {% endblock page_content %}
@@ -85,7 +87,7 @@ frappe.boot = {
 		system: "{{ frappe.utils.get_time_zone() }}",
 		user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
 	},
-	link_title_doctypes: `{{ frappe.call('frappe.boot.get_link_title_doctypes') }}`
+	link_title_doctypes: {{ link_title_doctypes }}
 };
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;

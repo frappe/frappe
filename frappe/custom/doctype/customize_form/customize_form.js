@@ -16,7 +16,6 @@ frappe.ui.form.on("Customize Form", {
 	onload: function(frm) {
 		frm.set_query("doc_type", function() {
 			return {
-				translate_values: false,
 				filters: [
 					["DocType", "issingle", "=", 0],
 					["DocType", "custom", "=", 0],
@@ -152,6 +151,10 @@ frappe.ui.form.on("Customize Form", {
 				},
 				__("Actions")
 			);
+
+			const is_autoname_autoincrement = frm.doc.autoname === 'autoincrement';
+			frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
+			frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
 		}
 
 		frm.events.setup_export(frm);

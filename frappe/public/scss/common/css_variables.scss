@@ -16,7 +16,7 @@
 	--blue-900: #1A4469;
 	--blue-800: #154875;
 	--blue-700: #1366AE;
-	--blue-600: #1579D0;
+	--blue-600: #1673C5;
 	--blue-500: #2490EF;
 	--blue-400: #50A6F2;
 	--blue-300: #7CBCF5;
@@ -143,7 +143,7 @@
 	--btn-shadow: var(--shadow-xs);
 
 	// Type Colors
-	--text-muted: var(--gray-600);
+	--text-muted: var(--gray-700);
 	--text-light: var(--gray-800);
 	--text-color: var(--gray-900);
 	--heading-color: var(--gray-900);
@@ -177,19 +177,18 @@
 	--text-2xl: 20px;
 	--text-3xl: 22px;
 
-	--text-on-blue: var(--blue-600);
-	--text-on-light-blue: var(--blue-500);
-	--text-on-dark-blue: var(--blue-700);
-	--text-on-blue: var(--blue-600);
-	--text-on-green: var(--dark-green-500);
-	--text-on-yellow: var(--yellow-500);
-	--text-on-orange: var(--orange-500);
-	--text-on-red: var(--red-500);
+	--text-on-blue: var(--blue-700);
+	--text-on-light-blue: var(--blue-600);
+	--text-on-dark-blue: var(--blue-800);
+	--text-on-green: var(--dark-green-700);
+	--text-on-yellow: var(--yellow-700);
+	--text-on-orange: var(--orange-600);
+	--text-on-red: var(--red-600);
 	--text-on-gray: var(--gray-600);
 	--text-on-light-gray: var(--gray-800);
-	--text-on-purple: var(--purple-500);
-	--text-on-pink: var(--pink-500);
-	--text-on-cyan: var(--cyan-600);
+	--text-on-purple: var(--purple-700);
+	--text-on-pink: var(--pink-600);
+	--text-on-cyan: var(--cyan-800);
 
 	// alert colors
 	--alert-text-danger: var(--red-600);
@@ -217,6 +216,10 @@
 	--popover-bg: white;
 
 	--awesomplete-hover-bg: var(--control-bg);
+
+	// Button Colors
+	--btn-default-bg: var(--gray-100);
+	--btn-default-hover-bg: var(--gray-300);
 
 	// Other Colors
 	--sidebar-select-color: var(--gray-200);

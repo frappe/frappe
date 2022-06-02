@@ -78,12 +78,5 @@ context('Timeline', () => {
 		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
 		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
 		cy.click_modal_primary_button('Yes');
-
-		//Deleting the custom doctype
-		cy.visit('/app/doctype');
-		cy.select_listview_row_checkbox(0);
-		cy.get('.page-actions').findByRole('button', {name: 'Actions'}).click();
-		cy.get('.page-actions .actions-btn-group [data-label="Delete"]').click();
-		cy.click_modal_primary_button('Yes');
 	});
 });

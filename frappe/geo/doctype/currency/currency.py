@@ -2,9 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe import throw, _
-
 from frappe.model.document import Document
+
 
 class Currency(Document):
 	def validate(self):

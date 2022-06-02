@@ -385,7 +385,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (window.innerWidth <= 1366) {
 			total_fields = 4;
 		} else if (window.innerWidth >= 1920) {
-			total_fields = 8;
+			total_fields = 10;
 		}
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
@@ -870,9 +870,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>`;
 		}
 
-		const comment_count = `<span class="${
-			!doc._comment_count ? "text-extra-muted" : ""
-		} comment-count">
+		const comment_count = `<span class="comment-count">
 				${frappe.utils.icon('small-message')}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count}
 			</span>`;
@@ -1580,13 +1578,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		if (frappe.user.has_role("System Manager")) {
-			items.push({
-				label: __("List Settings", null, "Button in list view menu"),
-				action: () => this.show_list_settings(),
-				standard: true,
-			});
+			if (this.get_view_settings) {
+				items.push(this.get_view_settings());
+			}
 		}
+
 		return items;
+	}
+
+	get_view_settings() {
+		return {
+			label: __("List Settings", null, "Button in list view menu"),
+			action: () => this.show_list_settings(),
+			standard: true,
+		};
 	}
 
 	show_list_settings() {
@@ -1966,22 +1971,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return filters;
 	}
-
-	static trigger_list_update(data) {
-		const doctype = data.doctype;
-		if (!doctype) return;
-		frappe.provide("frappe.views.trees");
-
-		// refresh list view
-		const page_name = frappe.get_route_str();
-		const list_view = frappe.views.list_view[page_name];
-		list_view && list_view.on_update(data);
-	}
 };
 
-$(document).on("save", (event, doc) => {
-	frappe.views.ListView.trigger_list_update(doc);
-});
 
 frappe.get_list_view = (doctype) => {
 	let route = `List/${doctype}/List`;

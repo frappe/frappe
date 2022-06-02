@@ -1192,6 +1192,12 @@ Object.assign(frappe.utils, {
 		</svg>`;
 	},
 
+	flag(country_code) {
+		return `<img
+		src="https://flagcdn.com/${country_code}.svg"
+		width="20" height="15">`;
+	},
+
 	make_chart(wrapper, custom_options={}) {
 		let chart_args = {
 			type: 'bar',
@@ -1479,6 +1485,48 @@ Object.assign(frappe.utils, {
 			case "t": case "true": case "y": case "yes": case "1": return true;
 			case "f": case "false": case "n": case "no": case "0": case null: return false;
 			default: return string;
+		}
+	},
+
+	get_filter_as_json(filters) {
+		// convert filter array to json
+		let filter = null;
+
+		if (filters.length) {
+			filter = {};
+			filters.forEach(arr => {
+				filter[arr[1]] = [arr[2], arr[3]];
+			});
+			filter = JSON.stringify(filter);
+		}
+
+		return filter;
+	},
+
+	get_filter_from_json(filter_json, doctype) {
+		// convert json to filter array
+		if (filter_json) {
+			if (!filter_json.length) {
+				return [];
+			}
+
+			const filters_json = new Function(`return ${filter_json}`)();
+			if (!doctype) {
+				// e.g. return {
+				//    priority: (2) ['=', 'Medium'],
+				//    status: (2) ['=', 'Open']
+				// }
+				return filters_json || [];
+			}
+
+			// e.g. return [
+			//    ['ToDo', 'status', '=', 'Open', false],
+			//    ['ToDo', 'priority', '=', 'Medium', false]
+			// ]
+			return Object.keys(filters_json).map(filter => {
+				let val = filters_json[filter];
+				return [doctype, filter, val[0], val[1], false];
+			});
 		}
 	}
 });

@@ -22,15 +22,17 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			super.make();
 			this.refresh();
 			// set default
-			$.each(this.fields_list, (_, field) => {
-				if (!is_null(field.df.default)) {
-					let def_value = field.df.default;
+			$.each(this.fields_list, function(i, field) {
+				if (field.df["default"]) {
+					let def_value = field.df["default"];
 
-					if (def_value === "Today" && field.df.fieldtype === "Date") {
+					if (def_value == 'Today' && field.df["fieldtype"] == 'Date') {
 						def_value = frappe.datetime.get_today();
 					}
 
-					this.set_value(field.df.fieldname, def_value);
+					field.set_input(def_value);
+					// if default and has depends_on, render its fields.
+					me.refresh_dependency();
 				}
 			})
 
@@ -103,6 +105,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 				if (!is_null(v)) ret[f.df.fieldname] = v;
 			}
+
+			if (this.is_dialog && f.df.reqd && !f.value) {
+				f.refresh_input();
+			}
 		}
 		if (errors.length && !ignore_errors) {
 			frappe.msgprint({
@@ -126,8 +132,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			var f = this.fields_dict[key];
 			if (f) {
 				f.set_value(val).then(() => {
-					f.set_input(val);
-					f.refresh();
+					f.set_input?.(val);
 					this.refresh_dependency();
 					resolve();
 				});
@@ -135,6 +140,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				resolve();
 			}
 		});
+	}
+
+	has_field(fieldname) {
+		return !!this.fields_dict[fieldname];
 	}
 
 	set_input(key, val) {

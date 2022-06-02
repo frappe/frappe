@@ -4,12 +4,14 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import frappe
 from frappe import _, bold
+from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
-from frappe.utils import cint
+from frappe.utils.data import sbool
 from frappe.utils.password import rename_password
+from frappe.utils.scheduler import is_scheduler_inactive
 
 if TYPE_CHECKING:
 	from frappe.model.meta import Meta
@@ -23,10 +25,19 @@ def update_document_title(
 	title: Optional[str] = None,
 	name: Optional[str] = None,
 	merge: bool = False,
-	**kwargs
+	enqueue: bool = False,
+	**kwargs,
 ) -> str:
 	"""
-		Update title from header in form view
+	Update the name or title of a document. Returns `name` if document was renamed,
+	`docname` if renaming operation was queued.
+
+	:param doctype: DocType of the document
+	:param docname: Name of the document
+	:param title: New Title of the document
+	:param name: New Name of the document
+	:param merge: Merge the current Document with the existing one if exists
+	:param enqueue: Enqueue the rename operation, title is updated in current process
 	"""
 
 	# to maintain backwards API compatibility
@@ -38,20 +49,49 @@ def update_document_title(
 		if not isinstance(obj, (str, type(None))):
 			frappe.throw(f"{obj=} must be of type str or None")
 
+	# handle bad API usages
+	merge = sbool(merge)
+	enqueue = sbool(enqueue)
+
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission(permtype="write")
 
 	title_field = doc.meta.get_title_field()
 
-	title_updated = updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
+	title_updated = (
+		updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
+	)
 	name_updated = updated_name and (updated_name != doc.name)
 
 	if name_updated:
-		docname = rename_doc(doctype=doctype, old=docname, new=updated_name, merge=merge)
+		if enqueue and not is_scheduler_inactive():
+			current_name = doc.name
+
+			# before_name hook may have DocType specific validations or transformations
+			transformed_name = doc.run_method("before_rename", current_name, updated_name, merge)
+			if isinstance(transformed_name, dict):
+				transformed_name = transformed_name.get("new")
+			transformed_name = transformed_name or updated_name
+
+			# run rename validations before queueing
+			# use savepoints to avoid partial renames / commits
+			validate_rename(
+				doctype=doctype,
+				old=current_name,
+				new=transformed_name,
+				meta=doc.meta,
+				merge=merge,
+				save_point=True,
+			)
+
+			doc.queue_action("rename", name=transformed_name, merge=merge)
+		else:
+			doc.rename(updated_name, merge=merge)
 
 	if title_updated:
 		try:
-			frappe.db.set_value(doctype, docname, title_field, updated_title)
+			setattr(doc, title_field, updated_title)
+			doc.save()
 			frappe.msgprint(_("Saved"), alert=True, indicator="green")
 		except Exception as e:
 			if frappe.db.is_duplicate_entry(e):
@@ -62,41 +102,64 @@ def update_document_title(
 				)
 			raise
 
-	return docname
+	return doc.name
+
 
 def rename_doc(
-	doctype: str,
-	old: str,
-	new: str,
+	doctype: Optional[str] = None,
+	old: Optional[str] = None,
+	new: str = None,
 	force: bool = False,
 	merge: bool = False,
 	ignore_permissions: bool = False,
 	ignore_if_exists: bool = False,
 	show_alert: bool = True,
 	rebuild_search: bool = True,
+	doc: Optional[Document] = None,
+	validate: bool = True,
 ) -> str:
-	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link"."""
-	if not frappe.db.exists(doctype, old):
-		frappe.errprint(_("Failed: {0} to {1} because {0} doesn't exist.").format(old, new))
-		return
+	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link".
 
-	if ignore_if_exists and frappe.db.exists(doctype, new):
-		frappe.errprint(_("Failed: {0} to {1} because {1} already exists.").format(old, new))
-		return
+	doc: Document object to be renamed.
+	new: New name for the record. If None, and doctype is specified, new name may be automatically generated via before_rename hooks.
+	doctype: DocType of the document. Not required if doc is passed.
+	old: Current name of the document. Not required if doc is passed.
+	force: Allow even if document is not allowed to be renamed.
+	merge: Merge with existing document of new name.
+	ignore_permissions: Ignore user permissions while renaming.
+	ignore_if_exists: Don't raise exception if document with new name already exists. This will quietely overwrite the existing document.
+	show_alert: Display alert if document is renamed successfully.
+	rebuild_search: Rebuild linked doctype search after renaming.
+	validate: Validate before renaming. If False, it is assumed that the caller has already validated.
+	"""
+	old_usage_style = doctype and old and new
+	new_usage_style = doc and new
 
-	if old==new:
-		frappe.errprint(_("Ignored: {0} to {1} no changes made because old and new name are the same.").format(old, new))
-		return
+	if not (new_usage_style or old_usage_style):
+		raise TypeError(
+			"{doctype, old, new} or {doc, new} are required arguments for frappe.model.rename_doc"
+		)
 
-	force = cint(force)
-	merge = cint(merge)
+	old = old or doc.name
+	doctype = doctype or doc.doctype
+	force = sbool(force)
+	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
 
-	# call before_rename
-	old_doc = frappe.get_doc(doctype, old)
-	out = old_doc.run_method("before_rename", old, new, merge) or {}
-	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
-	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
+	if validate:
+		old_doc = doc or frappe.get_doc(doctype, old)
+		out = old_doc.run_method("before_rename", old, new, merge) or {}
+		new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
+		new = validate_rename(
+			doctype=doctype,
+			old=old,
+			new=new,
+			meta=meta,
+			merge=merge,
+			force=force,
+			ignore_permissions=ignore_permissions,
+			ignore_if_exists=ignore_if_exists,
+		)
 
 	if not merge:
 		rename_parent_and_child(doctype, old, new, meta)
@@ -112,7 +175,7 @@ def rename_doc(
 	# save the user settings in the db
 	update_user_settings(old, new, link_fields)
 
-	if doctype=='DocType':
+	if doctype == "DocType":
 		rename_doctype(doctype, old, new)
 		update_customizations(old, new)
 
@@ -134,13 +197,19 @@ def rename_doc(
 		rename_password(doctype, old, new)
 
 	# update user_permissions
-	frappe.db.sql("""UPDATE `tabDefaultValue` SET `defvalue`=%s WHERE `parenttype`='User Permission'
-		AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
+	DefaultValue = frappe.qb.DocType("DefaultValue")
+	frappe.qb.update(DefaultValue).set(DefaultValue.defvalue, new).where(
+		(DefaultValue.parenttype == "User Permission")
+		& (DefaultValue.defkey == doctype)
+		& (DefaultValue.defvalue == old)
+	).run()
 
 	if merge:
-		new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
+		new_doc.add_comment("Edit", _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
 	else:
-		new_doc.add_comment('Edit', _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
+		new_doc.add_comment(
+			"Edit", _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new))
+		)
 
 	if merge:
 		frappe.delete_doc(doctype, old)
@@ -148,54 +217,67 @@ def rename_doc(
 	new_doc.clear_cache()
 	frappe.clear_cache()
 	if rebuild_search:
-		frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+		frappe.enqueue("frappe.utils.global_search.rebuild_for_doctype", doctype=doctype)
 
 	if show_alert:
-		frappe.msgprint(_('Document renamed from {0} to {1}').format(bold(old), bold(new)), alert=True, indicator='green')
+		frappe.msgprint(
+			_("Document renamed from {0} to {1}").format(bold(old), bold(new)),
+			alert=True,
+			indicator="green",
+		)
 
 	return new
 
+
 def update_assignments(old: str, new: str, doctype: str) -> None:
-	old_assignments = frappe.parse_json(frappe.db.get_value(doctype, old, '_assign')) or []
-	new_assignments = frappe.parse_json(frappe.db.get_value(doctype, new, '_assign')) or []
+	old_assignments = frappe.parse_json(frappe.db.get_value(doctype, old, "_assign")) or []
+	new_assignments = frappe.parse_json(frappe.db.get_value(doctype, new, "_assign")) or []
 	common_assignments = list(set(old_assignments).intersection(new_assignments))
 
 	for user in common_assignments:
 		# delete todos linked to old doc
-		todos = frappe.db.get_all('ToDo',
+		todos = frappe.db.get_all(
+			"ToDo",
 			{
-				'owner': user,
-				'reference_type': doctype,
-				'reference_name': old,
+				"owner": user,
+				"reference_type": doctype,
+				"reference_name": old,
 			},
-			['name', 'description']
+			["name", "description"],
 		)
 
 		for todo in todos:
-			frappe.delete_doc('ToDo', todo.name)
+			frappe.delete_doc("ToDo", todo.name)
 
 	unique_assignments = list(set(old_assignments + new_assignments))
-	frappe.db.set_value(doctype, new, '_assign', frappe.as_json(unique_assignments, indent=0))
+	frappe.db.set_value(doctype, new, "_assign", frappe.as_json(unique_assignments, indent=0))
+
 
 def update_user_settings(old: str, new: str, link_fields: List[Dict]) -> None:
-	'''
-		Update the user settings of all the linked doctypes while renaming.
-	'''
+	"""
+	Update the user settings of all the linked doctypes while renaming.
+	"""
 
 	# store the user settings data from the redis to db
 	sync_user_settings()
 
-	if not link_fields: return
+	if not link_fields:
+		return
 
 	# find the user settings for the linked doctypes
 	linked_doctypes = {d.parent for d in link_fields if not d.issingle}
-	user_settings_details = frappe.db.sql('''SELECT `user`, `doctype`, `data`
-			FROM `__UserSettings`
-			WHERE `data` like %s
-			AND `doctype` IN ('{doctypes}')'''.format(doctypes="', '".join(linked_doctypes)), (old), as_dict=1)
+	UserSettings = frappe.qb.Table("__UserSettings")
+
+	user_settings_details = (
+		frappe.qb.from_(UserSettings)
+		.select("user", "doctype", "data")
+		.where(UserSettings.data.like(old) & UserSettings.doctype.isin(linked_doctypes))
+		.run(as_dict=True)
+	)
 
 	# create the dict using the doctype name as key and values as list of the user settings
 	from collections import defaultdict
+
 	user_settings_dict = defaultdict(list)
 	for user_setting in user_settings_details:
 		user_settings_dict[user_setting.doctype].append(user_setting)
@@ -209,55 +291,77 @@ def update_user_settings(old: str, new: str, link_fields: List[Dict]) -> None:
 		else:
 			continue
 
+
 def update_customizations(old: str, new: str) -> None:
 	frappe.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
 
+
 def update_attachments(doctype: str, old: str, new: str) -> None:
-	try:
-		if old != "File Data" and doctype != "DocType":
-			frappe.db.sql("""update `tabFile` set attached_to_name=%s
-				where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
-	except frappe.db.ProgrammingError as e:
-		if not frappe.db.is_column_missing(e):
-			raise
+	if doctype != "DocType":
+		File = frappe.qb.DocType("File")
+
+		frappe.qb.update(File).set(File.attached_to_name, new).where(
+			(File.attached_to_name == old) & (File.attached_to_doctype == doctype)
+		).run()
+
 
 def rename_versions(doctype: str, old: str, new: str) -> None:
-	frappe.db.sql("""UPDATE `tabVersion` SET `docname`=%s WHERE `ref_doctype`=%s AND `docname`=%s""",
-		(new, doctype, old))
+	Version = frappe.qb.DocType("Version")
 
-def rename_eps_records(doctype: str, old: str, new: str) -> None:
-	epl = frappe.qb.DocType("Energy Point Log")
-	(frappe.qb.update(epl)
-		.set(epl.reference_name, new)
-		.where(
-			(epl.reference_doctype == doctype)
-			& (epl.reference_name == old)
-		)
+	frappe.qb.update(Version).set(Version.docname, new).where(
+		(Version.docname == old) & (Version.ref_doctype == doctype)
 	).run()
 
+
+def rename_eps_records(doctype: str, old: str, new: str) -> None:
+	EPL = frappe.qb.DocType("Energy Point Log")
+
+	frappe.qb.update(EPL).set(EPL.reference_name, new).where(
+		(EPL.reference_doctype == doctype) & (EPL.reference_name == old)
+	).run()
+
+
 def rename_parent_and_child(doctype: str, old: str, new: str, meta: "Meta") -> None:
-	# rename the doc
-	frappe.db.sql("UPDATE `tab{0}` SET `name`={1} WHERE `name`={1}".format(doctype, '%s'), (new, old))
+	frappe.qb.update(doctype).set("name", new).where(Field("name") == old).run()
+
 	update_autoname_field(doctype, new, meta)
 	update_child_docs(old, new, meta)
 
+
 def update_autoname_field(doctype: str, new: str, meta: "Meta") -> None:
 	# update the value of the autoname field on rename of the docname
-	if meta.get('autoname'):
-		field = meta.get('autoname').split(':')
+	if meta.get("autoname"):
+		field = meta.get("autoname").split(":")
 		if field and field[0] == "field":
-			frappe.db.sql("UPDATE `tab{0}` SET `{1}`={2} WHERE `name`={2}".format(doctype, field[1], '%s'), (new, new))
+			frappe.qb.update(doctype).set(field[1], new).where(Field("name") == new).run()
 
-def validate_rename(doctype: str, new: str, meta: "Meta", merge: bool, force: bool, ignore_permissions: bool) -> str:
+
+def validate_rename(
+	doctype: str,
+	old: str,
+	new: str,
+	meta: "Meta",
+	merge: bool,
+	force: bool = False,
+	ignore_permissions: bool = False,
+	ignore_if_exists: bool = False,
+	save_point=False,
+) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
+	if save_point:
+		_SAVE_POINT = f"validate_rename_{frappe.generate_hash(length=8)}"
+		frappe.db.savepoint(_SAVE_POINT)
+
 	exists = (
-		frappe.qb.from_(doctype)
-		.where(Field("name") == new)
-		.for_update()
-		.select("name")
-		.run(pluck=True)
+		frappe.qb.from_(doctype).where(Field("name") == new).for_update().select("name").run(pluck=True)
 	)
 	exists = exists[0] if exists else None
+
+	if not frappe.db.exists(doctype, old):
+		frappe.throw(_("Can't rename {0} to {1} because {0} doesn't exist.").format(old, new))
+
+	if old == new:
+		frappe.throw(_("No changes made because old and new name are the same.").format(old, new))
 
 	if merge and not exists:
 		frappe.throw(_("{0} {1} does not exist, select a new target to merge").format(doctype, new))
@@ -266,10 +370,12 @@ def validate_rename(doctype: str, new: str, meta: "Meta", merge: bool, force: bo
 		# for fixing case, accents
 		exists = None
 
-	if (not merge) and exists:
+	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
-	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)):
+	if not (
+		ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)
+	):
 		frappe.throw(_("You need write permission to rename"))
 
 	if not (force or ignore_permissions) and not meta.allow_rename:
@@ -278,7 +384,11 @@ def validate_rename(doctype: str, new: str, meta: "Meta", merge: bool, force: bo
 	# validate naming like it's done in doc.py
 	new = validate_name(doctype, new)
 
+	if save_point:
+		frappe.db.rollback(save_point=_SAVE_POINT)
+
 	return new
+
 
 def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change options for fieldtype Table, Table MultiSelect and Link
@@ -295,19 +405,20 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 
+
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
 	for df in meta.get_table_fields():
-		frappe.db.sql("update `tab%s` set parent=%s where parent=%s" \
-			% (df.options, '%s', '%s'), (new, old))
+		frappe.qb.update(df.options).set("parent", new).where(Field("parent") == old).run()
+
 
 def update_link_field_values(link_fields: List[Dict], old: str, new: str, doctype: str) -> None:
 	for field in link_fields:
-		if field['issingle']:
+		if field["issingle"]:
 			try:
-				single_doc = frappe.get_doc(field['parent'])
-				if single_doc.get(field['fieldname'])==old:
-					single_doc.set(field['fieldname'], new)
+				single_doc = frappe.get_doc(field["parent"])
+				if single_doc.get(field["fieldname"]) == old:
+					single_doc.set(field["fieldname"], new)
 					# update single docs using ORM rather then query
 					# as single docs also sometimes sets defaults!
 					single_doc.flags.ignore_mandatory = True
@@ -317,7 +428,7 @@ def update_link_field_values(link_fields: List[Dict], old: str, new: str, doctyp
 				# or no longer exists
 				pass
 		else:
-			parent = field['parent']
+			parent = field["parent"]
 			docfield = field["fieldname"]
 
 			# Handles the case where one of the link fields belongs to
@@ -333,8 +444,9 @@ def update_link_field_values(link_fields: List[Dict], old: str, new: str, doctyp
 			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
 
 		# update cached link_fields as per new
-		if doctype=='DocType' and field['parent'] == old:
-			field['parent'] = new
+		if doctype == "DocType" and field["parent"] == old:
+			field["parent"] = new
+
 
 def get_link_fields(doctype: str) -> List[Dict]:
 	# get link fields from tabDocField
@@ -342,44 +454,46 @@ def get_link_fields(doctype: str) -> List[Dict]:
 		frappe.flags.link_fields = {}
 
 	if doctype not in frappe.flags.link_fields:
-		link_fields = frappe.db.sql("""\
-			select parent, fieldname,
-				(select issingle from tabDocType dt
-				where dt.name = df.parent) as issingle
-			from tabDocField df
-			where
-				df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
+		dt = frappe.qb.DocType("DocType")
+		df = frappe.qb.DocType("DocField")
+		cf = frappe.qb.DocType("Custom Field")
+		ps = frappe.qb.DocType("Property Setter")
 
-		# get link fields from tabCustom Field
-		custom_link_fields = frappe.db.sql("""\
-			select dt as parent, fieldname,
-				(select issingle from tabDocType dt
-				where dt.name = df.dt) as issingle
-			from `tabCustom Field` df
-			where
-				df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
+		st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
+		standard_fields = (
+			frappe.qb.from_(df)
+			.select(df.parent, df.fieldname, st_issingle)
+			.where((df.options == doctype) & (df.fieldtype == "Link"))
+			.run(as_dict=True)
+		)
 
-		# add custom link fields list to link fields list
-		link_fields += custom_link_fields
+		cf_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == cf.dt).as_("issingle")
+		custom_fields = (
+			frappe.qb.from_(cf)
+			.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
+			.where((cf.options == doctype) & (cf.fieldtype == "Link"))
+			.run(as_dict=True)
+		)
 
-		# remove fields whose options have been changed using property setter
-		property_setter_link_fields = frappe.db.sql("""\
-			select ps.doc_type as parent, ps.field_name as fieldname,
-				(select issingle from tabDocType dt
-				where dt.name = ps.doc_type) as issingle
-			from `tabProperty Setter` ps
-			where
-				ps.property_type='options' and
-				ps.field_name is not null and
-				ps.value=%s""", (doctype,), as_dict=1)
+		ps_issingle = (
+			frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
+		)
+		property_setter_fields = (
+			frappe.qb.from_(ps)
+			.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
+			.where((ps.property == "options") & (ps.value == doctype) & (ps.field_name.notnull()))
+			.run(as_dict=True)
+		)
 
-		link_fields += property_setter_link_fields
-
-		frappe.flags.link_fields[doctype] = link_fields
+		frappe.flags.link_fields[doctype] = standard_fields + custom_fields + property_setter_fields
 
 	return frappe.flags.link_fields[doctype]
 
+
 def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
+	CustomField = frappe.qb.DocType("Custom Field")
+	PropertySetter = frappe.qb.DocType("Property Setter")
+
 	if frappe.conf.developer_mode:
 		for name in frappe.get_all("DocField", filters={"options": old}, pluck="parent"):
 			doctype = frappe.get_doc("DocType", name)
@@ -391,135 +505,149 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 			if save:
 				doctype.save()
 	else:
-		frappe.db.sql("""update `tabDocField` set options=%s
-			where fieldtype=%s and options=%s""", (new, fieldtype, old))
+		DocField = frappe.qb.DocType("DocField")
+		frappe.qb.update(DocField).set(DocField.options, new).where(
+			(DocField.fieldtype == fieldtype) & (DocField.options == old)
+		).run()
 
-	frappe.db.sql("""update `tabCustom Field` set options=%s
-		where fieldtype=%s and options=%s""", (new, fieldtype, old))
+	frappe.qb.update(CustomField).set(CustomField.options, new).where(
+		(CustomField.fieldtype == fieldtype) & (CustomField.options == old)
+	).run()
 
-	frappe.db.sql("""update `tabProperty Setter` set value=%s
-		where property='options' and value=%s""", (new, old))
+	frappe.qb.update(PropertySetter).set(PropertySetter.value, new).where(
+		(PropertySetter.property == "options") & (PropertySetter.value == old)
+	).run()
+
 
 def get_select_fields(old: str, new: str) -> List[Dict]:
 	"""
-		get select type fields where doctype's name is hardcoded as
-		new line separated list
+	get select type fields where doctype's name is hardcoded as
+	new line separated list
 	"""
+	df = frappe.qb.DocType("DocField")
+	dt = frappe.qb.DocType("DocType")
+	cf = frappe.qb.DocType("Custom Field")
+	ps = frappe.qb.DocType("Property Setter")
+
 	# get link fields from tabDocField
-	select_fields = frappe.db.sql("""
-		select parent, fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = df.parent) as issingle
-		from tabDocField df
-		where
-			df.parent != %s and df.fieldtype = 'Select' and
-			df.options like {0} """.format(frappe.db.escape('%' + old + '%')), (new,), as_dict=1)
-
-	# get link fields from tabCustom Field
-	custom_select_fields = frappe.db.sql("""
-		select dt as parent, fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = df.dt) as issingle
-		from `tabCustom Field` df
-		where
-			df.dt != %s and df.fieldtype = 'Select' and
-			df.options like {0} """ .format(frappe.db.escape('%' + old + '%')), (new,), as_dict=1)
-
-	# add custom link fields list to link fields list
-	select_fields += custom_select_fields
-
-	# remove fields whose options have been changed using property setter
-	property_setter_select_fields = frappe.db.sql("""
-		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = ps.doc_type) as issingle
-		from `tabProperty Setter` ps
-		where
-			ps.doc_type != %s and
-			ps.property_type='options' and
-			ps.field_name is not null and
-			ps.value like {0} """.format(frappe.db.escape('%' + old + '%')), (new,), as_dict=1)
-
-	select_fields += property_setter_select_fields
-
-	return select_fields
-
-def update_select_field_values(old: str, new: str):
-	frappe.db.sql("""
-		update `tabDocField` set options=replace(options, %s, %s)
-		where
-			parent != %s and fieldtype = 'Select' and
-			(options like {0} or options like {1})"""
-			.format(frappe.db.escape('%' + '\n' + old + '%'), frappe.db.escape('%' + old + '\n' + '%')), (old, new, new))
-
-	frappe.db.sql("""
-		update `tabCustom Field` set options=replace(options, %s, %s)
-		where
-			dt != %s and fieldtype = 'Select' and
-			(options like {0} or options like {1})"""
-			.format(frappe.db.escape('%' + '\n' + old + '%'), frappe.db.escape('%' + old + '\n' + '%')), (old, new, new))
-
-	frappe.db.sql("""
-		update `tabProperty Setter` set value=replace(value, %s, %s)
-		where
-			doc_type != %s and field_name is not null and
-			property='options' and
-			(value like {0} or value like {1})"""
-			.format(frappe.db.escape('%' + '\n' + old + '%'), frappe.db.escape('%' + old + '\n' + '%')), (old, new, new))
-
-def update_parenttype_values(old: str, new: str):
-	child_doctypes = frappe.db.get_all('DocField',
-		fields=['options', 'fieldname'],
-		filters={
-			'parent': new,
-			'fieldtype': ['in', frappe.model.table_fields]
-		}
+	st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
+	standard_fields = (
+		frappe.qb.from_(df)
+		.select(df.parent, df.fieldname, st_issingle)
+		.where((df.parent != new) & (df.fieldtype == "Select") & (df.options.like(f"%{old}%")))
+		.run(as_dict=True)
 	)
 
-	custom_child_doctypes = frappe.db.get_all('Custom Field',
-		fields=['options', 'fieldname'],
-		filters={
-			'dt': new,
-			'fieldtype': ['in', frappe.model.table_fields]
-		}
+	# get link fields from tabCustom Field
+	cf_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == cf.dt).as_("issingle")
+	custom_select_fields = (
+		frappe.qb.from_(cf)
+		.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
+		.where((cf.dt != new) & (cf.fieldtype == "Select") & (cf.options.like(f"%{old}%")))
+		.run(as_dict=True)
+	)
+
+	# remove fields whose options have been changed using property setter
+	ps_issingle = (
+		frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
+	)
+	property_setter_select_fields = (
+		frappe.qb.from_(ps)
+		.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
+		.where(
+			(ps.doc_type != new)
+			& (ps.property == "options")
+			& (ps.field_name.notnull())
+			& (ps.value.like(f"%{old}%"))
+		)
+		.run(as_dict=True)
+	)
+
+	return standard_fields + custom_select_fields + property_setter_select_fields
+
+
+def update_select_field_values(old: str, new: str):
+	from frappe.query_builder.functions import Replace
+
+	DocField = frappe.qb.DocType("DocField")
+	CustomField = frappe.qb.DocType("Custom Field")
+	PropertySetter = frappe.qb.DocType("Property Setter")
+
+	frappe.qb.update(DocField).set(DocField.options, Replace(DocField.options, old, new)).where(
+		(DocField.fieldtype == "Select")
+		& (DocField.parent != new)
+		& (DocField.options.like(f"%\n{old}%") | DocField.options.like(f"%{old}\n%"))
+	).run()
+
+	frappe.qb.update(CustomField).set(
+		CustomField.options, Replace(CustomField.options, old, new)
+	).where(
+		(CustomField.fieldtype == "Select")
+		& (CustomField.dt != new)
+		& (CustomField.options.like(f"%\n{old}%") | CustomField.options.like(f"%{old}\n%"))
+	).run()
+
+	frappe.qb.update(PropertySetter).set(
+		PropertySetter.value, Replace(PropertySetter.value, old, new)
+	).where(
+		(PropertySetter.property == "options")
+		& (PropertySetter.field_name.notnull())
+		& (PropertySetter.doc_type != new)
+		& (PropertySetter.value.like(f"%\n{old}%") | PropertySetter.value.like(f"%{old}\n%"))
+	).run()
+
+
+def update_parenttype_values(old: str, new: str):
+	child_doctypes = frappe.get_all(
+		"DocField",
+		fields=["options", "fieldname"],
+		filters={"parent": new, "fieldtype": ["in", frappe.model.table_fields]},
+	)
+
+	custom_child_doctypes = frappe.get_all(
+		"Custom Field",
+		fields=["options", "fieldname"],
+		filters={"dt": new, "fieldtype": ["in", frappe.model.table_fields]},
 	)
 
 	child_doctypes += custom_child_doctypes
-	fields = [d['fieldname'] for d in child_doctypes]
+	fields = [d["fieldname"] for d in child_doctypes]
 
 	property_setter_child_doctypes = frappe.get_all(
 		"Property Setter",
-		filters={
-			"doc_type": new,
-			"property": "options",
-			"field_name": ("in", fields)
-		},
-		pluck="value"
+		filters={"doc_type": new, "property": "options", "field_name": ("in", fields)},
+		pluck="value",
 	)
 
-	child_doctypes = list(d['options'] for d in child_doctypes)
-	child_doctypes += property_setter_child_doctypes
+	child_doctypes = set(list(d["options"] for d in child_doctypes) + property_setter_child_doctypes)
 
 	for doctype in child_doctypes:
-		frappe.db.sql(f"update `tab{doctype}` set parenttype=%s where parenttype=%s", (new, old))
+		table = frappe.qb.DocType(doctype)
+		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
+
 
 def rename_dynamic_links(doctype: str, old: str, new: str):
+	Singles = frappe.qb.DocType("Singles")
 	for df in get_dynamic_link_map().get(doctype, []):
 		# dynamic link in single, just one value to check
 		if frappe.get_meta(df.parent).issingle:
 			refdoc = frappe.db.get_singles_dict(df.parent)
-			if refdoc.get(df.options)==doctype and refdoc.get(df.fieldname)==old:
-
-				frappe.db.sql("""update tabSingles set value=%s where
-					field=%s and value=%s and doctype=%s""", (new, df.fieldname, old, df.parent))
+			if refdoc.get(df.options) == doctype and refdoc.get(df.fieldname) == old:
+				frappe.qb.update(Singles).set(Singles.value, new).where(
+					(Singles.field == df.fieldname) & (Singles.doctype == df.parent) & (Singles.value == old)
+				).run()
 		else:
 			# because the table hasn't been renamed yet!
 			parent = df.parent if df.parent != new else old
-			frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
-				where {options}=%s and {fieldname}=%s""".format(parent = parent,
-					fieldname=df.fieldname, options=df.options), (new, doctype, old))
 
-def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bool = False) -> Optional[List[str]]:
+			frappe.qb.update(parent).set(df.fieldname, new).where(
+				(Field(df.options) == doctype) & (Field(df.fieldname) == old)
+			).run()
+
+
+def bulk_rename(
+	doctype: str, rows: Optional[List[List]] = None, via_console: bool = False
+) -> Optional[List[str]]:
 	"""Bulk rename documents
 
 	:param doctype: DocType to be renamed
@@ -553,13 +681,17 @@ def bulk_rename(doctype: str, rows: Optional[List[List]] = None, via_console: bo
 				else:
 					rename_log.append(msg)
 
-	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+	frappe.enqueue("frappe.utils.global_search.rebuild_for_doctype", doctype=doctype)
 
 	if not via_console:
 		return rename_log
 
-def update_linked_doctypes(doctype: str, docname: str, linked_to: str, value: str, ignore_doctypes: Optional[List] = None) -> None:
+
+def update_linked_doctypes(
+	doctype: str, docname: str, linked_to: str, value: str, ignore_doctypes: Optional[List] = None
+) -> None:
 	from frappe.model.utils.rename_doc import update_linked_doctypes
+
 	show_deprecation_warning("update_linked_doctypes")
 
 	return update_linked_doctypes(
@@ -571,16 +703,19 @@ def update_linked_doctypes(doctype: str, docname: str, linked_to: str, value: st
 	)
 
 
-def get_fetch_fields(doctype: str, linked_to: str, ignore_doctypes: Optional[List] = None) -> List[Dict]:
+def get_fetch_fields(
+	doctype: str, linked_to: str, ignore_doctypes: Optional[List] = None
+) -> List[Dict]:
 	from frappe.model.utils.rename_doc import get_fetch_fields
+
 	show_deprecation_warning("get_fetch_fields")
 
-	return get_fetch_fields(
-		doctype=doctype, linked_to=linked_to, ignore_doctypes=ignore_doctypes
-	)
+	return get_fetch_fields(doctype=doctype, linked_to=linked_to, ignore_doctypes=ignore_doctypes)
+
 
 def show_deprecation_warning(funct: str) -> None:
 	from click import secho
+
 	message = (
 		f"Function frappe.model.rename_doc.{funct} has been deprecated and "
 		"moved to the frappe.model.utils.rename_doc"

@@ -105,8 +105,8 @@ frappe.ui.Slide = class Slide {
 		});
 	}
 
-	set_values() {
-		this.values = this.form.get_values();
+	set_values(ignore_errors) {
+		this.values = this.form.get_values(ignore_errors);
 		if (this.values === null) {
 			return false;
 		}
@@ -308,6 +308,8 @@ frappe.ui.Slides = class Slides {
 		// Depends on this.unidirectional and this.done_state
 		// Can be called by a slide to update states
 		this.$slide_progress.empty();
+
+		if (this.slides.length <= 1) return
 
 		this.slides.map((slide, id) => {
 			let $dot = $(`<div class="slide-step">
