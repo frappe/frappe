@@ -4,7 +4,7 @@
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
-frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
+frappe.views.CalendarView = class CalendarView extends frappe.views.BaseList {
 	static load_last_view() {
 		const route = frappe.get_route();
 		if (route.length === 3) {
@@ -18,35 +18,56 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		}
 	}
 
-	toggle_result_area() {}
+	constructor(opts) {
+		super(opts);
+		this.show();
+	}
 
 	get view_name() {
 		return 'Calendar';
 	}
 
 	setup_defaults() {
-		return super.setup_defaults()
-			.then(() => {
-				this.page_title = __('{0} Calendar', [this.page_title]);
-				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-				this.calendar_name = frappe.get_route()[3];
-			});
+		super.setup_defaults()
+		this.page_title = __('{0} Calendar', [this.page_title]);
+		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+		this.calendar_name = frappe.get_route()[3];
+		this.patch_refresh_and_load_lib();
+	}
+
+	patch_refresh_and_load_lib() {
+		// throttle refresh for 1s
+		this.refresh = this.refresh.bind(this);
+		this.refresh = frappe.utils.throttle(this.refresh, 1000);
+		this.load_lib = new Promise((resolve) => {
+			if (this.required_libs) {
+				frappe.require(this.required_libs, resolve);
+			} else {
+				resolve();
+			}
+		});
+		// call refresh every 5 minutes
+		const interval = 5 * 60 * 1000;
+		setInterval(() => {
+			// don't call if route is different
+			if (frappe.get_route_str() === this.page_name) {
+				this.refresh();
+			}
+		}, interval);
 	}
 
 	setup_page() {
+		this.parent.list_view = this;
 		this.hide_page_form = true;
 		super.setup_page();
 	}
 
 	setup_view() {
-
+		super.setup_view();
 	}
 
 	before_render() {
 		super.before_render();
-		this.save_view_user_settings({
-			last_calendar: this.calendar_name
-		});
 	}
 
 	render() {
