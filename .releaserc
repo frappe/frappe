@@ -1,7 +1,5 @@
 {
-	"branches": [
-		{"name": "version-14-beta", "channel": "beta", "prerelease": true}
-	],
+	"branches": ["develop", {"name": "version-14-beta", "channel": "beta", "prerelease": true}],
 	"plugins": [
 		"@semantic-release/commit-analyzer", {
 			"preset": "angular"
