@@ -502,11 +502,10 @@ class EmailAccount(Document):
 		def process_mail(messages, append_to=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages["uid_list"][index] if messages.get("uid_list") else None
-				uid = uid.decode() if isinstance(uid, bytes) else uid
 				seen_status = messages.get("seen_status", {}).get(uid)
 				if self.email_sync_option != "UNSEEN" or seen_status != "SEEN":
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
-					mails.append(InboundMail(message, self, uid, seen_status, append_to))
+					mails.append(InboundMail(message, self, frappe.safe_decode(uid), seen_status, append_to))
 
 		if not self.enable_incoming:
 			return []
