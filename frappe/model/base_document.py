@@ -4,6 +4,7 @@ import datetime
 import json
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
+import weakref
 
 import frappe
 from frappe import _, _dict
@@ -163,6 +164,7 @@ class BaseDocument:
 
 		state.pop("meta", None)
 		state.pop("permitted_fieldnames", None)
+		state.pop("_parent_doc", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -265,6 +267,24 @@ class BaseDocument:
 		ret_value.parent_doc = self
 
 		return ret_value
+
+	@property
+	def parent_doc(self):
+		parent_doc_ref = getattr(self, "_parent_doc", None)
+
+		if isinstance(parent_doc_ref, BaseDocument):
+			return parent_doc_ref
+		elif isinstance(parent_doc_ref, weakref.ReferenceType):
+			return parent_doc_ref()
+
+	@parent_doc.setter
+	def parent_doc(self, value):
+		if isinstance(value, BaseDocument):
+			self._parent_doc = weakref.ref(value)
+
+	@parent_doc.deleter
+	def parent_doc(self):
+		self._parent_doc = None
 
 	def extend(self, key, value):
 		try:
@@ -1231,7 +1251,7 @@ class BaseDocument:
 				ref_doc = frappe.new_doc(self.doctype)
 			else:
 				# get values from old doc
-				if self.get("parent_doc"):
+				if self.parent_doc:
 					parent_doc = self.parent_doc.get_latest()
 					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
 					if not child_docs:
