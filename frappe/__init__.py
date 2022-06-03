@@ -871,6 +871,10 @@ def clear_cache(user=None, doctype=None):
 	local.role_permissions = {}
 	if hasattr(local, "request_cache"):
 		local.request_cache.clear()
+	if hasattr(local, "system_settings"):
+		del local.system_settings
+	if hasattr(local, "website_settings"):
+		del local.website_settings
 
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
@@ -1094,6 +1098,10 @@ def clear_document_cache(doctype, name):
 	if key in local.document_cache:
 		del local.document_cache[key]
 	cache().hdel("document_cache", key)
+	if doctype == "System Settings" and hasattr(local, "system_settings"):
+		delattr(local, "system_settings")
+	if doctype == "Website Settings" and hasattr(local, "website_settings"):
+		delattr(local, "website_settings")
 
 
 def get_cached_value(doctype, name, fieldname="name", as_dict=False):
@@ -2206,8 +2214,18 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return eval(code, eval_globals, eval_locals)
 
 
+def get_website_settings(key):
+	if not hasattr(local, "website_settings"):
+		local.website_settings = db.get_singles_dict("Website Settings")
+
+	return local.website_settings[key]
+
+
 def get_system_settings(key):
-	return db.get_single_value("System Settings", key, cache=True)
+	if not hasattr(local, "system_settings"):
+		local.system_settings = db.get_singles_dict("System Settings")
+
+	return local.system_settings[key]
 
 
 def get_active_domains():
