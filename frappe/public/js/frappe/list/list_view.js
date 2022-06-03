@@ -1535,8 +1535,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		if (frappe.model.can_create("Custom Field")
-			&& frappe.model.can_create("Property Setter")
-			&& frappe.model.can_create("DocType")) {
+			&& frappe.model.can_create("Property Setter")) {
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),
 				action: () => {
