@@ -30,6 +30,7 @@ doctypes_to_skip = (
 	"Tag Link",
 	"Notification Log",
 	"Email Queue",
+	"Document Share Key",
 )
 
 
