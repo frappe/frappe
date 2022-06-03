@@ -4,6 +4,9 @@ import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
 
+SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
+VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
+
 
 class InvalidColumnName(frappe.ValidationError):
 	pass
@@ -130,7 +133,7 @@ class DBTable:
 				if not current_col:
 					continue
 				current_type = self.current_columns[col.fieldname]["type"]
-				current_length = re.findall(r"varchar\(([\d]+)\)", current_type)
+				current_length = VARCHAR_CAST_PATTERN.findall(current_type)
 				if not current_length:
 					# case when the field is no longer a varchar
 					continue
@@ -304,8 +307,7 @@ class DbColumn:
 
 
 def validate_column_name(n):
-	special_characters = re.findall(r"[\W]", n, re.UNICODE)
-	if special_characters:
+	if special_characters := SPECIAL_CHAR_PATTERN.findall(n):
 		special_characters = ", ".join('"{0}"'.format(c) for c in special_characters)
 		frappe.throw(
 			_("Fieldname {0} cannot have special characters like {1}").format(

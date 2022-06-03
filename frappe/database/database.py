@@ -23,6 +23,11 @@ from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
 from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
 
+IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
+INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
+SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
+MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
 
 class Database(object):
 	"""
@@ -143,9 +148,8 @@ class Database(object):
 		# remove whitespace / indentation from start and end of query
 		query = query.strip()
 
-		if re.search(r"ifnull\(", query, flags=re.IGNORECASE):
-			# replaces ifnull in query with coalesce
-			query = re.sub(r"ifnull\(", "coalesce(", query, flags=re.IGNORECASE)
+		# replaces ifnull in query with coalesce
+		query = IFNULL_PATTERN.sub("coalesce(", query)
 
 		if not self._conn:
 			self.connect()
@@ -1126,8 +1130,7 @@ class Database(object):
 	def get_index_name(fields):
 		index_name = "_".join(fields) + "_index"
 		# remove index length if present e.g. (10) from index name
-		index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
-		return index_name
+		return INDEX_PATTERN.sub(r"", index_name)
 
 	def get_system_setting(self, key):
 		def _load_system_settings():
@@ -1219,11 +1222,9 @@ class Database(object):
 			# and are continued with multiple words that start with a captital letter
 			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
 
-			single_word_regex = r'([`"]?)(tab([A-Z]\w+))\1'
-			multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
 			tables = []
-			for regex in (single_word_regex, multi_word_regex):
-				tables += [groups[1] for groups in re.findall(regex, query)]
+			for regex in (SINGLE_WORD_PATTERN, MULTI_WORD_PATTERN):
+				tables += [groups[1] for groups in regex.findall(query)]
 
 			if frappe.flags.touched_tables is None:
 				frappe.flags.touched_tables = set()
