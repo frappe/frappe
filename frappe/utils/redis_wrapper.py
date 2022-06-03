@@ -33,7 +33,11 @@ class RedisWrapper(redis.Redis):
 
 		return "{0}|{1}".format(frappe.conf.db_name, key).encode("utf-8")
 
+<<<<<<< HEAD
 	def set_value(self, key, val, user=None, expires_in_sec=None):
+=======
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False, cache_locally=True):
+>>>>>>> d3b366f147 (feat: cache_locally to limit caching in local.cache)
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -43,7 +47,7 @@ class RedisWrapper(redis.Redis):
 		"""
 		key = self.make_key(key, user)
 
-		if not expires_in_sec:
+		if not expires_in_sec and cache_locally:
 			frappe.local.cache[key] = val
 
 		try:
@@ -154,16 +158,23 @@ class RedisWrapper(redis.Redis):
 	def ltrim(self, key, start, stop):
 		return super(RedisWrapper, self).ltrim(self.make_key(key), start, stop)
 
-	def hset(self, name, key, value, shared=False):
+	def hset(self, name: str, key: str, value, shared: bool = False, cache_locally: bool = True):
 		if key is None:
 			return
 
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
+<<<<<<< HEAD
 		if not _name in frappe.local.cache:
 			frappe.local.cache[_name] = {}
 		frappe.local.cache[_name][key] = value
+=======
+		if cache_locally:
+			if _name not in frappe.local.cache:
+				frappe.local.cache[_name] = {}
+			frappe.local.cache[_name][key] = value
+>>>>>>> d3b366f147 (feat: cache_locally to limit caching in local.cache)
 
 		# set in redis
 		try:
