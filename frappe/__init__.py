@@ -1002,12 +1002,30 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs):
+<<<<<<< HEAD
 	if args and len(args) > 1 and isinstance(args[1], text_type):
 		key = get_document_cache_key(args[0], args[1])
 		# local cache
 		doc = local.document_cache.get(key)
 		if doc:
 			return doc
+=======
+	allow_dict = kwargs.pop("_allow_dict", False)
+
+	def _respond(doc, from_redis=False):
+		if not allow_dict and isinstance(doc, dict):
+			local.document_cache[key] = doc = get_doc(doc)
+
+		elif from_redis:
+			local.document_cache[key] = doc
+
+		return doc
+
+	if key := can_cache_doc(args):
+		# local cache - has "ready" `Document` objects
+		if doc := local.document_cache.get(key):
+			return _respond(doc)
+>>>>>>> 111df3a8d7 (perf: improve document caching)
 
 		# redis cache
 		doc = cache().hget("document_cache", key)
@@ -1016,8 +1034,15 @@ def get_cached_doc(*args, **kwargs):
 			local.document_cache[key] = doc
 			return doc
 
-	# database
+	# Not found in local/redis, fetch from DB and store in cache
 	doc = get_doc(*args, **kwargs)
+
+	# Store in redis cache
+	key = get_document_cache_key(doc.doctype, doc.name)
+
+	local.document_cache[key] = doc
+	# Avoid setting in local.cache since there's separate cache
+	cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
 
 	return doc
 
@@ -1067,11 +1092,20 @@ def get_doc(*args, **kwargs):
 
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
+<<<<<<< HEAD
 	# set in cache
 	if args and len(args) > 1:
 		key = get_document_cache_key(args[0], args[1])
 		local.document_cache[key] = doc
 		cache().hset("document_cache", key, doc.as_dict())
+=======
+	# Replace cache
+	if key := can_cache_doc(args):
+		if key in local.document_cache:
+			local.document_cache[key] = doc
+		if cache().hexists("document_cache", key):
+			cache().hset("document_cache", key, doc.as_dict())
+>>>>>>> 111df3a8d7 (perf: improve document caching)
 
 	return doc
 
