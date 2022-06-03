@@ -29,6 +29,10 @@ SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
 
+def is_query_type(query: str, query_type: Union[str, Tuple[str]]) -> bool:
+	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
+
+
 class Database(object):
 	"""
 	Open a database connection with the given parmeters, if use_default is True, use the
@@ -248,7 +252,7 @@ class Database(object):
 
 		# debug
 		if debug:
-			if explain and query.strip().lower().startswith("select"):
+			if explain and is_query_type(query, "select"):
 				self.explain_query(query, values)
 			frappe.errprint(self.mogrify(query, values))
 
@@ -305,7 +309,7 @@ class Database(object):
 		could cause the system to hang."""
 		self.check_implicit_commit(query)
 
-		if query and query.strip().lower() in ("commit", "rollback"):
+		if query and is_query_type(query, ("commit", "rollback")):
 			self.transaction_writes = 0
 
 		if query[:6].lower() in ("update", "insert", "delete"):
@@ -322,8 +326,7 @@ class Database(object):
 		if (
 			self.transaction_writes
 			and query
-			and query.strip().split()[0].lower()
-			in ["start", "alter", "drop", "create", "begin", "truncate"]
+			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
 			raise Exception("This statement can cause implicit commit")
 
@@ -346,7 +349,7 @@ class Database(object):
 
 	@staticmethod
 	def clear_db_table_cache(query):
-		if query and query.strip().split()[0].lower() in {"drop", "create"}:
+		if query and is_query_type(query, ("drop", "create")):
 			frappe.cache().delete_key("db_tables")
 
 	@staticmethod
@@ -1207,7 +1210,7 @@ class Database(object):
 	def log_touched_tables(self, query, values=None):
 		if values:
 			query = frappe.safe_decode(self._cursor.mogrify(query, values))
-		if query.strip().lower().split()[0] in ("insert", "delete", "update", "alter", "drop", "rename"):
+		if is_query_type(query, ("insert", "delete", "update", "alter", "drop", "rename")):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
 
