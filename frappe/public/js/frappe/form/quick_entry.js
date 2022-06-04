@@ -25,6 +25,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		this.init_callback = init_callback;
 		this.doc = doc;
 		this.force = force ? force : false;
+		this.show_edit_in_full_page_button = true;
 	},
 
 	setup: function() {
@@ -57,6 +58,8 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		this.mandatory = fields.filter(df => {
 			return ((df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only);
 		});
+
+		this.show_edit_in_full_page_button = !(this.mandatory === fields);
 	},
 
 	check_quick_entry_doc: function() {
@@ -265,9 +268,13 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	render_edit_in_full_page_link: function() {
+		if(!this.show_edit_in_full_page_button){
+			return;
+		}
+
 		var me = this;
 		this.dialog.add_custom_action(
-			`${__("Edit in full page")}`,
+			`${__("Edit Full Form")}`,
 			() => me.open_doc(true)
 		);
 	},
