@@ -25,7 +25,12 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		this.init_callback = init_callback;
 		this.doc = doc;
 		this.force = force ? force : false;
+<<<<<<< HEAD
 	}
+=======
+		this.show_edit_in_full_page_button = true;
+	},
+>>>>>>> 14d5387ef (fix: Update label for editing in full page and add custom logic for rendering it.)
 
 	setup() {
 		return new Promise(resolve => {
@@ -57,7 +62,13 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		this.mandatory = fields.filter(df => {
 			return ((df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only && !df.is_virtual);
 		});
+<<<<<<< HEAD
 	}
+=======
+
+		this.show_edit_in_full_page_button = !(this.mandatory === fields);
+	},
+>>>>>>> 14d5387ef (fix: Update label for editing in full page and add custom logic for rendering it.)
 
 	check_quick_entry_doc() {
 		if (!this.doc) {
@@ -264,10 +275,18 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		frappe.set_route('Form', this.doctype, this.doc.name);
 	}
 
+<<<<<<< HEAD
 	render_edit_in_full_page_link() {
+=======
+	render_edit_in_full_page_link: function() {
+		if(!this.show_edit_in_full_page_button){
+			return;
+		}
+
+>>>>>>> 14d5387ef (fix: Update label for editing in full page and add custom logic for rendering it.)
 		var me = this;
 		this.dialog.add_custom_action(
-			`${__("Edit in full page")}`,
+			`${__("Edit Full Form")}`,
 			() => me.open_doc(true)
 		);
 	}
