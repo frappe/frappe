@@ -4642,7 +4642,7 @@ Not permitted to view {0},Non autorisé à afficher {0},
 Camera,Caméra,
 Invalid filter: {0},Filtre non valide: {0},
 Let's Get Started,Commençons,
-Reports & Masters,Rapports et masters,
+Reports & Masters,Ecrans principaux et Rapports,
 New {0} {1} added to Dashboard {2},Nouveau {0} {1} ajouté au tableau de bord {2},
 New {0} {1} created,Nouveau {0} {1} créé,
 New {0} Created,Nouveau {0} créé,
@@ -4721,3 +4721,4 @@ Don't have an account?,Vous n&#39;avez pas de compte?
 Create Workspace,Créer un espace de travail
 Always use this email address as sender address,Toujours utiliser cet email comme expediteur
 Always use this name as sender name,Toujours utiliser ce nom comme expediteur
+Login to {0},Se connecter à {0}
