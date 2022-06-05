@@ -263,3 +263,15 @@ class ExecutableNotFound(FileNotFoundError):
 
 class InvalidRemoteException(Exception):
 	pass
+
+
+class LinkExpired(ValidationError):
+	http_status_code = 410
+	title = "Link Expired"
+	message = "The link has expired"
+
+
+class InvalidKeyError(ValidationError):
+	http_status_code = 401
+	title = "Invalid Key"
+	message = "The document key is invalid"

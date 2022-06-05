@@ -152,7 +152,7 @@ class CommunicationEmailMixin:
 				"doctype": self.reference_doctype,
 				"name": self.reference_name,
 				"print_format": print_format,
-				"key": get_parent_doc(self).get_signature(),
+				"key": get_parent_doc(self).get_document_share_key(),
 			}
 		)
 

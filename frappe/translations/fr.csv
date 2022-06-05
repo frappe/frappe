@@ -418,9 +418,9 @@ Also adding the dependent currency field {0},Ajout également du champ de devise
 "Always add ""Draft"" Heading for printing draft documents","Toujours ajouter ""Brouillon"" pour l'impression des documents brouillons",
 Always use Account's Email Address as Sender,Toujours utiliser l'adresse Email du compte comme Expéditeur,
 Always use Account's Name as Sender's Name,Toujours utiliser le nom du compte comme nom de l&#39;expéditeur,
-Amend,"Nouv. version"
+Amend,Nouv. version
 amend,"Nouv. version"
-Amending,"Nouv. version en cours"
+Amending,Nouv. version en cours,
 Amount Based On Field,Montant Basé sur le Champ,
 Amount Field,Champ du Montant,
 Amount must be greater than 0.,Le montant doit être supérieur à 0.,
@@ -800,9 +800,9 @@ DESC,DESC,
 Daily Event Digest is sent for Calendar Events where reminders are set.,Un Récapitulatif Quotidien est envoyé pour les Événements du Calendrier ayant des rappels.,
 Danger,Danger,
 Dark Color,Couleur sombre,
-Dashboard Chart,Tableau de bord,
-Dashboard Chart Link,Lien de tableau de bord,
-Dashboard Chart Source,Source du graphique du tableau de bord,
+Dashboard Chart,Tableau de bord - indicateur,
+Dashboard Chart Link,Lien de tableau de bord - indicateur,
+Dashboard Chart Source,Source du graphique du tableau de bord - indicateur,
 Dashboard Name,Nom du tableau de bord,
 Dashboards,Tableaux de bord,
 Data,Données,
@@ -4718,6 +4718,9 @@ Document has been cancelled,Document annulé
 Document is in draft state,Document au statut brouillon
 Copy to Clipboard,Copier vers le presse-papiers
 Don't have an account?,Vous n&#39;avez pas de compte?
+Left:alignment,Gauche
+Right:alignment,Droite
+Set Properties,Gérer les proriétés
 Create Workspace,Créer un espace de travail
 Always use this email address as sender address,Toujours utiliser cet email comme expediteur
 Always use this name as sender name,Toujours utiliser ce nom comme expediteur

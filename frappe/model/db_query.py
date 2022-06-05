@@ -34,6 +34,7 @@ class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
 		self.tables = []
+		self.link_tables = []
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -216,6 +217,10 @@ class DatabaseQuery(object):
 			parent_name = cast_name(f"{self.tables[0]}.name")
 			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
 
+		# left join link tables
+		for link in self.link_tables:
+			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
 
@@ -286,6 +291,29 @@ class DatabaseQuery(object):
 
 		# remove empty strings / nulls in fields
 		self.fields = [f for f in self.fields if f]
+
+		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
+		for field in self.fields:
+			if "." in field and "tab" not in field:
+				original_field = field
+				alias = None
+				if " as " in field:
+					field, alias = field.split(" as ")
+				linked_fieldname, fieldname = field.split(".")
+				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				linked_doctype = linked_field.options
+				if linked_field.fieldtype == "Link":
+					self.link_tables.append(
+						frappe._dict(
+							doctype=linked_doctype, fieldname=linked_fieldname, table_name=f"`tab{linked_doctype}`"
+						)
+					)
+
+				field = field.replace(linked_fieldname, f"`tab{linked_doctype}`")
+				field = field.replace(fieldname, f"`{fieldname}`")
+				if alias:
+					field = f"{field} as {alias}"
+				self.fields[self.fields.index(original_field)] = field
 
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
@@ -396,7 +424,9 @@ class DatabaseQuery(object):
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.tables:
+				if table_name not in self.tables and table_name not in (
+					d.table_name for d in self.link_tables
+				):
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -418,7 +448,7 @@ class DatabaseQuery(object):
 			methods = ("count(", "avg(", "sum(", "extract(", "dayofyear(")
 			return field.lower().startswith(methods)
 
-		if len(self.tables) > 1:
+		if len(self.tables) > 1 or len(self.link_tables) > 0:
 			for idx, field in enumerate(self.fields):
 				if "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
