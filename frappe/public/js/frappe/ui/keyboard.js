@@ -81,6 +81,7 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 		}
 		let html = shortcuts
 			.filter(s => s.condition ? s.condition() : true)
+			.filter(s => !!s.description)
 			.map(shortcut => {
 				let shortcut_label = shortcut.shortcut
 					.split('+')
@@ -94,6 +95,8 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 					<td width="60%">${shortcut.description || ''}</td>
 				</tr>`;
 			}).join('');
+		if (!html) return '';
+
 		html = `<h5 style="margin: 0;">${heading}</h5>
 			<table style="margin-top: 10px;" class="table table-bordered">
 				${html}
