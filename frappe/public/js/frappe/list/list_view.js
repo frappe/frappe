@@ -1454,7 +1454,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	on_update() {}
 
-	get_share_url() {
+	on_filter_change() {
+		window.history.replaceState(null, null, this.get_url_with_filters());
+	}
+
+	get_url_with_filters() {
 		const query_params = this.get_filters_for_args()
 			.map((filter) => {
 				filter[3] = encodeURIComponent(filter[3]);
@@ -1474,27 +1478,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			full_url += "?" + query_params;
 		}
 		return full_url;
-	}
-
-	share_url() {
-		const d = new frappe.ui.Dialog({
-			title: __("Share URL"),
-			fields: [
-				{
-					fieldtype: "Code",
-					fieldname: "url",
-					label: "URL",
-					default: this.get_share_url(),
-					read_only: 1,
-				},
-			],
-			primary_action_label: __("Copy to clipboard"),
-			primary_action: () => {
-				frappe.utils.copy_to_clipboard(this.get_share_url());
-				d.hide();
-			},
-		});
-		d.show();
 	}
 
 	get_menu_items() {
@@ -1559,13 +1542,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			condition: () => !this.hide_sidebar,
 			standard: true,
 			shortcut: "Ctrl+K",
-		});
-
-		items.push({
-			label: __("Share URL", null, "Button in list view menu"),
-			action: () => this.share_url(),
-			standard: true,
-			shortcut: "Ctrl+L",
 		});
 
 		if (
