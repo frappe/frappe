@@ -57,6 +57,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = [];
 	}
 
+	on_filter_change() {
+		window.history.replaceState(null, null, this.get_url_with_filters());
+	}
+
+	get_url_with_filters() {
+		const query_params = Object.entries(this.get_filter_values())
+			.map(([field, value], _idx) => {
+				// multiselects
+				if (Array.isArray(value)) {
+					if (!value.length) return '';
+					value = JSON.stringify(value);
+				}
+				return `${field}=${encodeURIComponent(value)}`;
+			})
+			.filter(Boolean)
+			.join("&");
+
+		let full_url = window.location.href.replace(window.location.search, "");
+		if (query_params) {
+			full_url += "?" + query_params;
+		}
+		return full_url;
+	}
+
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon("refresh", () => {
@@ -482,6 +506,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				this.on_filter_change();
 				this.refresh_filters_dependency();
 
 				let current_filters = this.get_filter_values();
