@@ -1418,9 +1418,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_share_url() {
 		const query_params = this.get_filters_for_args()
 			.map((filter) => {
-				filter[3] = encodeURIComponent(filter[3]);
 				if (filter[2] === "=") {
-					return `${filter[1]}=${filter[3]}`;
+					return `${filter[1]}=${encodeURIComponent(filter[3])}`;
 				}
 				return [
 					filter[1],
