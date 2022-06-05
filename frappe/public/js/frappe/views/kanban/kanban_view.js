@@ -64,10 +64,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			});
 	}
 
-	before_refresh() {
-
-	}
-
 	setup_page() {
 		this.hide_sidebar = true;
 		this.hide_page_form = true;
@@ -105,6 +101,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		} else {
 			this.page.clear_indicator();
 		}
+		super.on_filter_change();
 	}
 
 	save_kanban_board_filters() {
@@ -154,7 +151,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	get_card_meta() {
 		var meta = frappe.get_meta(this.doctype);
+		// preserve route options erased by new doc
+		let route_options = {...frappe.route_options};
 		var doc = frappe.model.get_new_doc(this.doctype);
+		frappe.route_options = route_options;
 		var title_field = null;
 		var quick_entry = false;
 
