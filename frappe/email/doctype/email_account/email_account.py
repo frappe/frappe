@@ -83,13 +83,17 @@ class EmailAccount(Document):
 		if getattr(self, "service", "") != "GMail" and self.use_oauth:
 			self.use_oauth = 0
 
-		if not self.use_oauth and self.refresh_token:
+		if self.use_oauth:
+			# no need for awaiting password for oauth
+			self.awaiting_password = 0
+
+		elif self.refresh_token:
 			# clear access & refresh token
 			self.refresh_token = self.access_token = None
 
 		if not frappe.local.flags.in_install and (self.use_oauth or not self.awaiting_password):
 			if (
-				(self.use_oauth and self.refresh_token)
+				self.refresh_token
 				or self.password
 				or self.smtp_server in ("127.0.0.1", "localhost")
 			):
@@ -154,6 +158,7 @@ class EmailAccount(Document):
 			awaiting_password=self.awaiting_password,
 			email_id=self.email_id,
 			enable_outgoing=self.enable_outgoing,
+			used_oauth=self.use_oauth,
 		)
 
 	def there_must_be_only_one_default(self):
@@ -839,7 +844,7 @@ def get_max_email_uid(email_account):
 		return max_uid
 
 
-def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing):
+def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing, used_oauth):
 	"""setup email inbox for user"""
 	from frappe.core.doctype.user.user import ask_pass_update
 
@@ -850,6 +855,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 		row.email_id = email_id
 		row.email_account = email_account
 		row.awaiting_password = awaiting_password or 0
+		row.used_oauth = used_oauth or 0
 		row.enable_outgoing = enable_outgoing or 0
 
 		user.save(ignore_permissions=True)
@@ -881,8 +887,12 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 
 	if update_user_email_settings:
 		UserEmail = frappe.qb.DocType("User Email")
-		frappe.qb.update(UserEmail).set(UserEmail.awaiting_password, (awaiting_password or 0)).set(
-			UserEmail.enable_outgoing, enable_outgoing
+		frappe.qb.update(UserEmail).set(
+			UserEmail.awaiting_password, (awaiting_password or 0)
+		).set(
+			UserEmail.enable_outgoing, (enable_outgoing or 0)
+		).set(
+			UserEmail.used_oauth, (used_oauth or 0)
 		).where(UserEmail.email_account == email_account).run()
 
 	else:
@@ -908,10 +918,10 @@ def remove_user_email_inbox(email_account):
 		doc.save(ignore_permissions=True)
 
 
-@frappe.whitelist(allow_guest=False)
-def set_email_password(email_account, user, password):
+@frappe.whitelist()
+def set_email_password(email_account, password):
 	account = frappe.get_doc("Email Account", email_account)
-	if account.awaiting_password:
+	if account.awaiting_password and not account.use_oauth:
 		account.awaiting_password = 0
 		account.password = password
 		try:

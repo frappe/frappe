@@ -766,7 +766,7 @@ def get_email_awaiting(user):
 	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
-		filters={"awaiting_password": 1, "parent": user},
+		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
 	)
 
 
@@ -775,7 +775,7 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": True}, pluck="parent", distinct=True
+		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
 	)
 	set_default("email_user_password", ",".join(password_list))
 
