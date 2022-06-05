@@ -1430,7 +1430,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 			.join("&");
 
-		let full_url = window.location.href;
+		let full_url = window.location.href.replace(window.location.search, "");
 		if (query_params) {
 			full_url += "?" + query_params;
 		}
