@@ -538,7 +538,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			const promises = filters_to_set.map(f => {
 				return () => {
-					const value = route_options[f.df.fieldname];
+					let value = route_options[f.df.fieldname];
+					if (typeof value === 'string' && value[0] === '[') {
+						// multiselect array
+						value = JSON.parse(value);
+					}
 					f.set_value(value);
 				};
 			});
