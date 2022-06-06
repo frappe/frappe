@@ -1023,7 +1023,7 @@ def get_cached_doc(*args, **kwargs):
 		return doc
 
 	if key := can_cache_doc(args):
-		# local cache
+		# local cache - has "ready" `Document` objects
 		if doc := local.document_cache.get(key):
 			return _respond(doc)
 
@@ -1031,8 +1031,15 @@ def get_cached_doc(*args, **kwargs):
 		if doc := cache().hget("document_cache", key):
 			return _respond(doc, True)
 
-	# database
+	# Not found in local/redis, fetch from DB and store in cache
 	doc = get_doc(*args, **kwargs)
+
+	# Store in redis cache
+	key = get_document_cache_key(doc.doctype, doc.name)
+
+	local.document_cache[key] = doc
+	# Avoid setting in local.cache since there's separate cache
+	cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
 
 	return doc
 
@@ -1104,10 +1111,12 @@ def get_doc(*args, **kwargs):
 
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
-	# set in cache
+	# Replace cache
 	if key := can_cache_doc(args):
-		local.document_cache[key] = doc
-		cache().hset("document_cache", key, doc.as_dict())
+		if key in local.document_cache:
+			local.document_cache[key] = doc
+		if cache().hexists("document_cache", key):
+			cache().hset("document_cache", key, doc.as_dict())
 
 	return doc
 
