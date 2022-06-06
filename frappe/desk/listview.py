@@ -3,6 +3,7 @@
 from typing import Dict, List
 
 import frappe
+from frappe.query_builder import Order
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import SubQuery
 from frappe.query_builder.utils import DocType
@@ -49,7 +50,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> List[D
 				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
 			)
 			.groupby(ToDo.allocated_to)
-			.orderby(count)
+			.orderby(count, order=Order.desc)
 			.limit(50)
 			.run(as_dict=True)
 		)
