@@ -23,8 +23,6 @@ from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
 from frappe.utils import cast, get_datetime, getdate, now, sbool
 
-from .query import Query
-
 
 class Database(object):
 	"""
@@ -65,7 +63,15 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
-		self.query = Query()
+
+	@property
+	def query(self):
+		if not hasattr(self, "_query"):
+			from .query import Query
+
+			self._query = Query()
+			del Query
+		return self._query
 
 	def setup_type_map(self):
 		pass
