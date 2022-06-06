@@ -37,6 +37,7 @@ frappe.views.Workspace = class Workspace {
 
 		this.prepare_container();
 		this.setup_pages();
+		this.register_awesomebar_shortcut();
 	}
 
 	prepare_container() {
@@ -1227,5 +1228,19 @@ frappe.views.Workspace = class Workspace {
 	remove_sidebar_skeleton() {
 		$('.desk-sidebar').removeClass('hidden');
 		$('.list-sidebar').find('.workspace-sidebar-skeleton').remove();
+	}
+
+	register_awesomebar_shortcut() {
+		'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
+			const default_shortcut = {
+				action: (e) => {
+					$("#navbar-search").focus();
+					return false; // don't prevent default = type the letter in awesomebar
+				},
+				page: this.page,
+			};
+			frappe.ui.keys.add_shortcut({shortcut: letter, ...default_shortcut});
+			frappe.ui.keys.add_shortcut({shortcut: `shift+${letter}`, ...default_shortcut});
+		});
 	}
 };
