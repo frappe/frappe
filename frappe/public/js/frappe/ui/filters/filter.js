@@ -318,7 +318,7 @@ frappe.ui.Filter = class {
 	}
 
 	get_selected_value() {
-		return this.value || this.utils.get_selected_value(this.field, this.get_condition());
+		return this.utils.get_selected_value(this.field, this.get_condition());
 	}
 
 	get_selected_label() {
