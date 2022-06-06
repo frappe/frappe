@@ -144,7 +144,7 @@ export default class WebFormList {
 				new_button = `
 					<a
 						class="btn btn-primary btn-sm btn-new-doc hidden-xs"
-						href="${window.location.pathname}?new=1">
+						href="${location.pathname.replace('/list', '')}/new">
 						${__("Create a new {0}", [__(this.doctype)])}
 					</a>
 				`;
@@ -225,14 +225,14 @@ export default class WebFormList {
 			);
 		});
 
-		this.addButton(
-			actions,
-			"new",
-			"primary",
-			false,
-			"New",
-			() => (window.location.href = window.location.pathname + "?new=1")
-		);
+		// this.addButton(
+		// 	actions,
+		// 	"new",
+		// 	"primary",
+		// 	false,
+		// 	"New",
+		// 	() => (window.location.href = window.location.pathname + "?new=1")
+		// );
 	}
 
 	addButton(wrapper, id, type, hidden, name, action) {
@@ -279,7 +279,13 @@ export default class WebFormList {
 	}
 
 	open_form(name) {
-		window.location.href = window.location.pathname + "?name=" + name;
+		// window.location.href = window.location.pathname + "?name=" + name;
+		let path = window.location.pathname;
+		if (path.includes('/list')) {
+			path = path.replace('/list', '');
+		}
+
+		window.location.href = path + "/" + name + "/edit";
 	}
 
 	get_selected() {

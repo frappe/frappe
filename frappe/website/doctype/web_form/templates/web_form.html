@@ -5,7 +5,7 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% macro container_attributes() %}
-data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-required="{{ frappe.utils.cint(login_required and frappe.session.user=='Guest') }}" data-is-list="{{ frappe.utils.cint(is_list) }}" data-allow-delete="{{ allow_delete }}"
+data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-web-form-docname="{{ doc_name or '' }}" data-login-required="{{ frappe.utils.cint(login_required and frappe.session.user=='Guest') }}" data-is-list="{{ frappe.utils.cint(is_list) }}" data-allow-delete="{{ allow_delete }}"
 {% endmacro %}
 
 {% block page_content %}
@@ -23,7 +23,11 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	<!-- list -->
 	<div class="d-flex justify-content-between">
 		<h3 class="mt-0">{{ _(title) }}</h3>
-		<div class="list-view-actions"></div>
+		<div class="list-view-actions">
+			{%- if allow_multiple -%}
+				<a class="btn btn-primary btn-sm" href="/{{ route }}/new">New</a>
+			{%- endif -%}
+		</div>
 	</div>
 
 	<div class="web-form-wrapper" {{ container_attributes() }}></div>
@@ -42,7 +46,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 		<div class="text-right web-form-footer"></div>
 	</div>
 
-	{% if show_attachments and not frappe.form_dict.new and attachments %}
+	{% if show_attachments and not frappe.form_dict.is_new and attachments %}
 	<div class="attachments">
 		<h5>{{ _("Attachments") }}</h5>
 		{% for attachment in attachments %}
@@ -65,7 +69,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	{% endif %}
 </div>
 
-{% if allow_comments and not frappe.form_dict.new and not is_list -%}
+{% if allow_comments and not frappe.form_dict.is_new and not is_list -%}
 <!-- comments -->
 <div class="comments" style="margin-top: 3rem;">
 	{% include 'templates/includes/comments/comments.html' %}

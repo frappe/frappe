@@ -360,7 +360,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	cancel() {
-		window.location.href = window.location.pathname;
+		window.location.href = window.location.pathname.replace('/new', '');
 	}
 
 	handle_success(data) {

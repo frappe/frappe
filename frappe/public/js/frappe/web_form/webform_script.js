@@ -9,8 +9,8 @@ frappe.ready(function() {
 	let webform_name = wrapper.data('web-form');
 	let login_required = parseInt(wrapper.data('login-required'));
 	let allow_delete = parseInt(wrapper.data('allow-delete'));
-	let doc_name = query_params.name || '';
-	let is_new = query_params.new;
+	let doc_name = wrapper.data('web-form-docname') || query_params.name || '';
+	let is_new = window.location.pathname.includes('/new') || query_params.new;
 
 	if (login_required) show_login_prompt();
 	else if (is_list) show_grid();

@@ -135,10 +135,6 @@ def get_context(context):
 		"""Build context to render the `web_form.html` template"""
 		self.set_web_form_module()
 
-		doc, delimeter = make_route_string(frappe.form_dict)
-		context.doc = doc
-		context.delimeter = delimeter
-
 		# check permissions
 		if frappe.session.user == "Guest" and frappe.form_dict.name:
 			frappe.throw(
@@ -152,6 +148,32 @@ def get_context(context):
 				_("You don't have the permissions to access this document"), frappe.PermissionError
 			)
 
+		if frappe.local.path == self.route:
+			path = f"/{self.route}/list" if self.allow_multiple else f"/{self.route}/new"
+			frappe.redirect(path)
+
+		if frappe.form_dict.is_list and not self.allow_multiple:
+			frappe.redirect(f"/{self.route}/new")
+
+		if frappe.form_dict.is_edit and not self.allow_edit:
+			path = frappe.local.path.rstrip("/edit")
+			frappe.redirect("/" + path)
+
+		if not frappe.form_dict.is_edit and self.allow_edit and frappe.form_dict.name:
+			frappe.redirect("/" + frappe.local.path + "/edit")
+
+		if frappe.session.user != "Guest" and not self.allow_multiple and not frappe.form_dict.name and not frappe.form_dict.is_list:
+			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+			if name:
+				frappe.redirect(f"/{self.route}/{name}")
+
+		# Show new form when
+		# - User is Guest
+		# - Login not required
+		route_to_new = frappe.session.user == 'Guest' or not self.login_required
+		if not frappe.form_dict.is_new and route_to_new:
+			frappe.redirect(f'/{self.route}/new')
+
 		self.reset_field_parent()
 
 		if self.is_standard:
@@ -160,7 +182,7 @@ def get_context(context):
 		if not frappe.session.user == "Guest":
 			if self.allow_edit:
 				if self.allow_multiple:
-					if not frappe.form_dict.name and not frappe.form_dict.new:
+					if not frappe.form_dict.name and not frappe.form_dict.is_new:
 						# list data is queried via JS
 						context.is_list = True
 				else:
@@ -171,14 +193,17 @@ def get_context(context):
 
 					if not frappe.form_dict.name:
 						# only a single doc allowed and no existing doc, hence new
-						frappe.form_dict.new = 1
+						frappe.form_dict.is_new = 1
 
 		if frappe.form_dict.is_list:
 			context.is_list = True
 
+		if frappe.form_dict.name:
+			context.doc_name = frappe.form_dict.name
+
 		# always render new form if login is not required or doesn't allow editing existing ones
 		if not self.login_required or not self.allow_edit:
-			frappe.form_dict.new = 1
+			frappe.form_dict.is_new = 1
 
 		self.load_document(context)
 		context.parents = self.get_parents(context)
@@ -186,7 +211,7 @@ def get_context(context):
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 
-		context.has_header = (frappe.form_dict.name or frappe.form_dict.new) and (
+		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
 			frappe.session.user != "Guest" or not self.login_required
 		)
 
