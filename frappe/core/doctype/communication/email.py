@@ -612,7 +612,7 @@ def get_attach_link(doc, print_format):
 			"doctype": doc.reference_doctype,
 			"name": doc.reference_name,
 			"print_format": print_format,
-			"key": get_parent_doc(doc).get_signature(),
+			"key": get_parent_doc(doc).get_document_share_key(),
 		}
 	)
 
