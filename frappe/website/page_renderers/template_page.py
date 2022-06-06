@@ -212,19 +212,13 @@ class TemplatePage(BaseTemplatePage):
 
 	def run_pymodule_method(self, method_name):
 		if hasattr(self.pymodule, method_name):
-			try:
-				import inspect
+			import inspect
 
-				method = getattr(self.pymodule, method_name)
-				if inspect.getfullargspec(method).args:
-					return method(self.context)
-				else:
-					return method()
-			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
-				raise
-			except Exception:
-				if not frappe.flags.in_migrate:
-					frappe.errprint(frappe.utils.get_traceback())
+			method = getattr(self.pymodule, method_name)
+			if inspect.getfullargspec(method).args:
+				return method(self.context)
+			else:
+				return method()
 
 	def render_template(self):
 		if self.template_path.endswith("min.js"):
