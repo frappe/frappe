@@ -235,7 +235,7 @@ frappe.views.BaseList = class BaseList {
 				item.shortcut
 			);
 			if (item.class) {
-				$item && $item.addClass(item.class);
+				$item[0] && $item.addClass(item.class);
 			}
 		});
 	}
