@@ -431,22 +431,12 @@ def make_records(records, debug=False):
 		if doc.meta.get_field(parent_link_field) and not doc.get(parent_link_field):
 			doc.flags.ignore_mandatory = True
 
+		savepoint = "setup_fixtures_creation"
 		try:
-			doc.insert(ignore_permissions=True)
-			frappe.db.commit()
-
-		except frappe.DuplicateEntryError as e:
-			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
-
-			# pass DuplicateEntryError and continue
-			if e.args and e.args[0] == doc.doctype and e.args[1] == doc.name:
-				# make sure DuplicateEntryError is for the exact same doc and not a related doc
-				frappe.clear_messages()
-			else:
-				raise
-
+			frappe.db.savepoint(savepoint)
+			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 		except Exception as e:
-			frappe.db.rollback()
+			frappe.db.rollback(save_point=savepoint)
 			exception = record.get("__exception")
 			if exception:
 				config = _dict(exception)
