@@ -86,9 +86,9 @@ frappe.ui.form.PrintView = class {
 			{ icon: 'refresh' }
 		);
 
-		this.page.add_action_icon("printer", () => {
+		this.page.add_action_icon("file", () => {
 			this.hide_print_doc();
-		}, '', __("Print"));
+		}, '', __("Form"));
 	}
 
 	setup_sidebar() {
