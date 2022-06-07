@@ -106,6 +106,8 @@ def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
 		months = 1
 	elif "Quarterly" == timegrain:
 		months = 3
+	elif "Yearly" == timegrain:
+		months = 1
 
 	if "Weekly" == timegrain:
 		dates = [get_last_day_of_week(from_date)]
