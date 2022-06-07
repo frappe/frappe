@@ -14,14 +14,14 @@ import importlib
 import inspect
 import json
 import os
-import sys
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
+from frappe.utils.caching import request_cache
 from frappe.utils.data import cstr, sbool
 
 # Local application imports
@@ -1322,6 +1322,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 	return apps
 
 
+@request_cache
 def get_installed_apps(sort=False, frappe_last=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
@@ -1363,47 +1364,49 @@ def get_doc_hooks():
 	return local.doc_events_hooks
 
 
-def get_hooks(hook=None, default=None, app_name=None):
+@request_cache
+def _load_app_hooks(app_name: Optional[str] = None):
+	hooks = {}
+	apps = [app_name] if app_name else get_installed_apps(sort=True)
+
+	for app in apps:
+		try:
+			app_hooks = get_module(f"{app}.hooks")
+		except ImportError:
+			if local.flags.in_install_app:
+				# if app is not installed while restoring
+				# ignore it
+				pass
+			print(f'Could not find app "{app}"')
+			if not request:
+				raise SystemExit
+			raise
+		for key in dir(app_hooks):
+			if not key.startswith("_"):
+				append_hook(hooks, key, getattr(app_hooks, key))
+	return hooks
+
+
+def get_hooks(
+	hook: str = None, default: Optional[Any] = "_KEEP_DEFAULT_LIST", app_name: str = None
+) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
 	:param default: Default if no hook found.
 	:param app_name: Filter by app."""
 
-	def load_app_hooks(app_name=None):
-		hooks = {}
-		for app in [app_name] if app_name else get_installed_apps(sort=True):
-			app = "frappe" if app == "webnotes" else app
-			try:
-				app_hooks = get_module(app + ".hooks")
-			except ImportError:
-				if local.flags.in_install_app:
-					# if app is not installed while restoring
-					# ignore it
-					pass
-				print('Could not find app "{0}"'.format(app_name))
-				if not request:
-					sys.exit(1)
-				raise
-			for key in dir(app_hooks):
-				if not key.startswith("_"):
-					append_hook(hooks, key, getattr(app_hooks, key))
-		return hooks
-
-	no_cache = conf.developer_mode or False
-
 	if app_name:
-		hooks = _dict(load_app_hooks(app_name))
+		hooks = _dict(_load_app_hooks(app_name))
 	else:
-		if no_cache:
-			hooks = _dict(load_app_hooks())
+		if conf.developer_mode:
+			hooks = _dict(_load_app_hooks())
 		else:
-			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+			hooks = _dict(cache().get_value("app_hooks", _load_app_hooks))
 
 	if hook:
-		return hooks.get(hook) or (default if default is not None else [])
-	else:
-		return hooks
+		return hooks.get(hook, ([] if default == "_KEEP_DEFAULT_LIST" else default))
+	return hooks
 
 
 def append_hook(target, key, value):
