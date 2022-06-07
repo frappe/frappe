@@ -85,6 +85,11 @@ frappe.ui.form.PrintView = class {
 			() => this.refresh_print_format(),
 			{ icon: 'refresh' }
 		);
+		this.page.add_button(
+			__(''),
+			() => this.hide_print_doc(),
+			{ icon: 'printer' }
+		);
 	}
 
 	setup_sidebar() {
@@ -496,6 +501,13 @@ frappe.ui.form.PrintView = class {
 					: this.frm.page.previous_view_name || 'main'
 			);
 		}
+	}
+
+	hide_print_doc() {
+		frappe.route_options = {
+			frm: this,
+		};
+		frappe.set_route('Form', this.frm.doctype, this.frm.doc.name);
 	}
 
 	show_footer() {
