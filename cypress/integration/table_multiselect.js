@@ -46,6 +46,6 @@ context('Table MultiSelect', () => {
 		cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
 		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').as('existing_value');
 		cy.get('@existing_value').find('.btn-link-to-form').click();
-		cy.location('pathname').should('contain', '/user/test@erpnext.com');
+		cy.location('pathname').should('contain', '/user/test%40erpnext.com');
 	});
 });
