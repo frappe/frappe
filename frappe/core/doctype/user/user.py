@@ -423,6 +423,9 @@ class User(Document):
 
 		frappe.cache().delete_key("enabled_users")
 
+		# delete user permissions
+		frappe.db.delete("User Permission", {"user": self.name})
+
 	def before_rename(self, old_name, new_name, merge=False):
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)

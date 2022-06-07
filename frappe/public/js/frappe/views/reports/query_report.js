@@ -557,8 +557,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		this.toggle_message(true);
 		this.toggle_report(false);
-		this.show_loading_screen();
 		let filters = this.get_filter_values(true);
+		this.show_loading_screen();
 
 		// only one refresh at a time
 		if (this.last_ajax) {
@@ -1166,9 +1166,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (raise && missing_mandatory.length > 0) {
 			let message = __('Please set filters');
+			this.hide_loading_screen();
 			this.toggle_message(raise, message);
 			throw "Filter missing";
 		}
+
+		raise && this.toggle_message(false);
 
 		const filters = this.filters
 			.filter(f => f.get_value())
