@@ -30,7 +30,7 @@ class RedisWrapper(redis.Redis):
 
 		return "{0}|{1}".format(frappe.conf.db_name, key).encode("utf-8")
 
-	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False, cache_locally=True):
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -40,7 +40,7 @@ class RedisWrapper(redis.Redis):
 		"""
 		key = self.make_key(key, user, shared)
 
-		if not expires_in_sec:
+		if not expires_in_sec and cache_locally:
 			frappe.local.cache[key] = val
 
 		try:
@@ -151,22 +151,32 @@ class RedisWrapper(redis.Redis):
 	def ltrim(self, key, start, stop):
 		return super(RedisWrapper, self).ltrim(self.make_key(key), start, stop)
 
-	def hset(self, name, key, value, shared=False):
+	def hset(self, name: str, key: str, value, shared: bool = False, cache_locally: bool = True):
 		if key is None:
 			return
 
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
-		if _name not in frappe.local.cache:
-			frappe.local.cache[_name] = {}
-		frappe.local.cache[_name][key] = value
+		if cache_locally:
+			if _name not in frappe.local.cache:
+				frappe.local.cache[_name] = {}
+			frappe.local.cache[_name][key] = value
 
 		# set in redis
 		try:
 			super(RedisWrapper, self).hset(_name, key, pickle.dumps(value))
 		except redis.exceptions.ConnectionError:
 			pass
+
+	def hexists(self, name: str, key: str, shared: bool = False) -> bool:
+		if key is None:
+			return False
+		_name = self.make_key(name, shared=shared)
+		try:
+			return super(RedisWrapper, self).hexists(_name, key)
+		except redis.exceptions.ConnectionError:
+			return False
 
 	def hgetall(self, name):
 		value = super(RedisWrapper, self).hgetall(self.make_key(name))

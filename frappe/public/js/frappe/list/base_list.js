@@ -270,7 +270,6 @@ frappe.views.BaseList = class BaseList {
 			doctype: this.doctype,
 			stats: this.stats,
 			parent: this.$page.find(".layout-side-section"),
-			// set_filter: this.set_filter.bind(this),
 			page: this.page,
 			list_view: this,
 		});
@@ -428,7 +427,7 @@ frappe.views.BaseList = class BaseList {
 		const filter = this.get_filters_for_args().filter(f => f[1] == fieldname)[0];
 		if (!filter) return;
 		return {
-			'like': filter[3].replace(/^%?|%$/g, ''),
+			'like': filter[3]?.replace(/^%?|%$/g, ''),
 			'not set': null
 		}[filter[2]] || filter[3];
 	}
@@ -620,9 +619,7 @@ class FilterArea {
 			filters = [filter];
 		}
 
-		filters = filters.filter((f) => {
-			return !this.exists(f);
-		});
+		filters = filters.filter(f => !this.exists(f));
 
 		const { non_standard_filters, promise } = this.set_standard_filter(
 			filters
