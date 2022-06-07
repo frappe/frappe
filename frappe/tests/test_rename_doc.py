@@ -100,8 +100,6 @@ class TestRenameDoc(unittest.TestCase):
 				frappe.delete_doc("DocType", dt)
 				frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{dt}`")
 
-		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
-
 		# reset original value of developer_mode conf
 		frappe.conf.developer_mode = self._original_developer_flag
 

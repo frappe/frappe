@@ -201,6 +201,9 @@ class Database(object):
 
 			elif frappe.conf.db_type == "postgres":
 				# TODO: added temporarily
+				import traceback
+
+				traceback.print_stack()
 				print(e)
 				raise
 
@@ -920,6 +923,9 @@ class Database(object):
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
+		if frappe.conf.db_type == "postgres":
+			# Postgres requires explicitly starting new transaction
+			self.begin()
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
