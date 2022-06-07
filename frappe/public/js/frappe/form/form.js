@@ -44,7 +44,7 @@ frappe.ui.form.Form = class FrappeForm {
 			event.preventDefault();
 			// A String is returned for compatability with older Browsers. Return Value has to be truthy to trigger "Leave Site" Dialog
 			return event.returnValue = 'There are unsaved changes, are you sure you want to exit?';
-	 	};
+		};
 	}
 
 	setup_meta() {
