@@ -834,6 +834,7 @@ def clear_cache(user=None, doctype=None):
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
+	import frappe.utils.caching
 
 	if doctype:
 		frappe.cache_manager.clear_doctype_cache(doctype)
@@ -853,7 +854,10 @@ def clear_cache(user=None, doctype=None):
 		for fn in get_hooks("clear_cache"):
 			get_attr(fn)()
 
+	frappe.utils.caching._SITE_CACHE.clear()
 	local.role_permissions = {}
+	if hasattr(local, "request_cache"):
+		local.request_cache.clear()
 
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
