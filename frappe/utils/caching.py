@@ -61,7 +61,7 @@ def request_cache(func: Callable) -> Callable:
 	return wrapper
 
 
-def site_cache(ttl: Optional[int] = None) -> Callable:
+def site_cache(ttl: Optional[int] = None, maxsize: Optional[int] = None) -> Callable:
 	"""Decorator to cache method calls across requests. The cache is stored in
 	frappe.utils.caching._SITE_CACHE. The cache persists on the parent process.
 	It offers a light-weight cache for the current process without the additional
@@ -86,7 +86,7 @@ def site_cache(ttl: Optional[int] = None) -> Callable:
 	"""
 
 	def time_cache_wrapper(func: Callable = None) -> Callable:
-		nonlocal ttl
+		nonlocal ttl, maxsize
 
 		func_key = f"{func.__module__}.{func.__name__}"
 
@@ -100,6 +100,9 @@ def site_cache(ttl: Optional[int] = None) -> Callable:
 			func.ttl = ttl
 			func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
 
+		if maxsize is not None and not callable(maxsize):
+			func.maxsize = maxsize
+
 		@wraps(func)
 		def site_cache_wrapper(*args, **kwargs):
 			if getattr(frappe.local, "initialised", None):
@@ -107,7 +110,12 @@ def site_cache(ttl: Optional[int] = None) -> Callable:
 
 				if hasattr(func, "ttl") and datetime.utcnow() >= func.expiration:
 					func.clear_cache()
-					func.expiration = datetime.utcnow() + +timedelta(seconds=func.ttl)
+					func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
+
+				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
+					_SITE_CACHE[func_key][frappe.local.site].pop(
+						next(iter(_SITE_CACHE[func_key][frappe.local.site]))
+					)
 
 				if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
 					_SITE_CACHE[func_key][frappe.local.site][func_call_key] = func(*args, **kwargs)
