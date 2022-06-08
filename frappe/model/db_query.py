@@ -303,14 +303,8 @@ class DatabaseQuery(object):
 				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
-					self.link_tables.append(
-						frappe._dict(
-							doctype=linked_doctype, fieldname=linked_fieldname, table_name=f"`tab{linked_doctype}`"
-						)
-					)
-
-				field = field.replace(linked_fieldname, f"`tab{linked_doctype}`")
-				field = field.replace(fieldname, f"`{fieldname}`")
+					self.append_link_table(linked_doctype, linked_fieldname)
+				field = f"`tab{linked_doctype}`.`{fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
 				self.fields[self.fields.index(original_field)] = field
@@ -432,6 +426,19 @@ class DatabaseQuery(object):
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
+		self.check_read_permission(doctype)
+
+	def append_link_table(self, doctype, fieldname):
+		for d in self.link_tables:
+			if d.doctype == doctype and d.fieldname == fieldname:
+				return
+
+		self.check_read_permission(doctype)
+		self.link_tables.append(
+			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
+		)
+
+	def check_read_permission(self, doctype):
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 
 		if not self.flags.ignore_permissions and not frappe.has_permission(

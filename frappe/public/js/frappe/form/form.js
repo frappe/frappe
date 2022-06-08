@@ -913,7 +913,7 @@ frappe.ui.form.Form = class FrappeForm {
 		} else {
 			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
 		}
-	};
+	}
 
 	savetrash() {
 		this.validate_form_action("Delete");
