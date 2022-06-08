@@ -1244,7 +1244,7 @@ frappe.ui.form.Form = class FrappeForm {
 	dirty() {
 		this.doc.__unsaved = 1;
 		this.$wrapper.trigger('dirty');
-		if(!frappe.boot.developer_mode){
+		if (!frappe.boot.developer_mode) {
 			addEventListener("beforeunload", this.beforeUnloadListener, {capture: true});
 		}
 	}
