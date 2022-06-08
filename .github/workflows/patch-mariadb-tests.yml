@@ -117,6 +117,8 @@ jobs:
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
 
+          LAST_COMMIT_ID=$(git rev-parse HEAD)
+
           for version in $(seq 12 13)
           do
               echo "Updating to v$version"
@@ -129,6 +131,6 @@ jobs:
           done
 
           echo "Updating to last commit"
-          git checkout -q -f "$GITHUB_SHA"
+          git checkout -q -f "$LAST_COMMIT_ID"
           bench setup requirements --python
           bench --site test_site migrate
