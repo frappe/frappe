@@ -6,7 +6,6 @@ frappe.provide("frappe.model");
 */
 frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.Controller {
 	setup() {
-		console.log(this.frm.doctype);
 		// setup formatters for fieldtype
 		frappe.meta.docfield_map[this.frm.doctype==='DocType' ? 'DocField' : 'Customize Form Field'].fieldtype.formatter = (value) => {
 			const prefix = {
