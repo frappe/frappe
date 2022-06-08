@@ -356,9 +356,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_customize_buttons() {
+		let is_doctype_form = this.frm.doctype === 'DocType';
 		if (frappe.model.can_create("Custom Field")
 			&& frappe.model.can_create("Property Setter")) {
-			let is_doctype_form = this.frm.doctype === 'DocType';
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
 
