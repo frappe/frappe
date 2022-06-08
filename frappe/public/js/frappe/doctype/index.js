@@ -5,6 +5,26 @@ frappe.provide("frappe.model");
 	apply to both DocType form and customize form.
 */
 frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.Controller {
+	setup() {
+		// setup formatters for fieldtype
+		frappe.meta.docfield_map['DocField'].fieldtype.formatter = (value) => {
+			const prefix = {
+				'Tab Break': '🔴',
+				'Section Break': '🔵',
+				'Column Break': '🟡',
+				'Check': '☑',
+				'Link': '🔗',
+				'Currency': '💲',
+				'Date': '📆',
+				'Table': '🗂'
+			}
+			if (prefix[value]) {
+				value = prefix[value] + ' ' + value;
+			}
+			return value;
+		}
+	}
+
 	max_attachments() {
 		if (!this.frm.doc.max_attachments) {
 			return;
