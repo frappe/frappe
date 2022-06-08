@@ -1314,7 +1314,7 @@ def get_thumbnail_base64_for_image(src):
 	from PIL import Image
 
 	from frappe import cache, safe_decode
-	from frappe.core.doctype.file.file import get_local_image
+	from frappe.core.doctype.file.utils import get_local_image
 
 	if not src:
 		frappe.throw("Invalid source for image: {0}".format(src))

@@ -1012,7 +1012,7 @@ class Document(BaseDocument):
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
-		frappe.delete_doc(
+		return frappe.delete_doc(
 			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
 		)
 
@@ -1382,6 +1382,30 @@ class Document(BaseDocument):
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+
+	def get_document_share_key(self, expires_on=None, no_expiry=False):
+		if no_expiry:
+			expires_on = None
+
+		existing_key = frappe.db.exists(
+			"Document Share Key",
+			{
+				"reference_doctype": self.doctype,
+				"reference_docname": self.name,
+				"expires_on": expires_on,
+			},
+		)
+		if existing_key:
+			doc = frappe.get_doc("Document Share Key", existing_key)
+		else:
+			doc = frappe.new_doc("Document Share Key")
+			doc.reference_doctype = self.doctype
+			doc.reference_docname = self.name
+			doc.expires_on = expires_on
+			doc.flags.no_expiry = no_expiry
+			doc.insert(ignore_permissions=True)
+
+		return doc.key
 
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)
