@@ -15,6 +15,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import md_to_html
 
+FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
+H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
+IMAGE_TAG_PATTERN = re.compile(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""")
+CLEANUP_PATTERN_1 = re.compile(r'[~!@#$%^&*+()<>,."\'\?]')
+CLEANUP_PATTERN_2 = re.compile("[:/]")
+CLEANUP_PATTERN_3 = re.compile(r"(-)\1+")
+
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -29,7 +36,7 @@ def delete_page_cache(path):
 
 
 def find_first_image(html):
-	m = re.finditer(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
+	m = IMAGE_TAG_PATTERN.finditer(html)
 	try:
 		return next(m).groups()[0]
 	except StopIteration:
@@ -156,17 +163,17 @@ def is_signup_disabled():
 	return frappe.db.get_single_value("Website Settings", "disable_signup", True)
 
 
-def cleanup_page_name(title):
+def cleanup_page_name(title: str) -> str:
 	"""make page name from title"""
 	if not title:
 		return ""
 
 	name = title.lower()
-	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', "", name)
-	name = re.sub("[:/]", "-", name)
+	name = CLEANUP_PATTERN_1.sub("", name)
+	name = CLEANUP_PATTERN_2.sub("-", name)
 	name = "-".join(name.split())
 	# replace repeating hyphens
-	name = re.sub(r"(-)\1+", r"\1", name)
+	name = CLEANUP_PATTERN_3.sub(r"\1", name)
 	return name[:140]
 
 
@@ -287,8 +294,8 @@ def extract_title(source, path):
 
 	if not title and "<h1>" in source:
 		# extract title from h1
-		match = re.findall("<h1>([^<]*)", source)
-		title_content = match[0].strip()[:300]
+		match = H1_TAG_PATTERN.search(source).group()
+		title_content = match.strip()[:300]
 		if "{{" not in title_content:
 			title = title_content
 
@@ -308,17 +315,16 @@ def extract_title(source, path):
 	return title
 
 
-def extract_comment_tag(source, tag):
+def extract_comment_tag(source: str, tag: str):
 	"""Extract custom tags in comments from source.
 
 	:param source: raw template source in HTML
 	:param title: tag to search, example "title"
 	"""
 
-	if "<!-- {0}:".format(tag) in source:
-		return re.findall("<!-- {0}:([^>]*) -->".format(tag), source)[0].strip()
-	else:
-		return None
+	if f"<!-- {tag}:" in source:
+		return re.search(f"<!-- {tag}:([^>]*) -->", source).group().strip()
+	return None
 
 
 def get_html_content_based_on_type(doc, fieldname, content_type):
@@ -378,7 +384,8 @@ def get_frontmatter(string):
 	"Reference: https://github.com/jonbeebe/frontmatter"
 	frontmatter = ""
 	body = ""
-	result = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M).search(string)
+	result = FRONTMATTER_PATTERN.search(string)
+
 	if result:
 		frontmatter = result.group(1)
 		body = result.group(2)
