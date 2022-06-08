@@ -185,7 +185,7 @@ frappe.ui.form.Attachments = class Attachments {
 				this.attachment_uploaded(file_doc);
 			},
 			restrictions: {
-				max_number_of_files: this.frm.meta.max_attachments,
+				max_number_of_files: this.frm.meta.max_attachments - this.frm.attachments.get_attachments().length,
 			}
 		});
 	}
