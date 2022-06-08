@@ -52,6 +52,7 @@ def toggle_notifications(user: str, enable: bool = False):
 	try:
 		settings = frappe.get_doc("Notification Settings", user)
 	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
 		return
 
 	if settings.enabled != enable:

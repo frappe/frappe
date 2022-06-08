@@ -21,7 +21,7 @@ def after_install():
 	create_user_type()
 	install_basic_docs()
 
-	from frappe.core.doctype.file.file import make_home_folder
+	from frappe.core.doctype.file.utils import make_home_folder
 
 	make_home_folder()
 

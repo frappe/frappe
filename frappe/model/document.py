@@ -1026,7 +1026,7 @@ class Document(BaseDocument):
 
 	def delete(self, ignore_permissions=False):
 		"""Delete document."""
-		frappe.delete_doc(
+		return frappe.delete_doc(
 			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
 		)
 

@@ -21,9 +21,7 @@ from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, getdate, now, sbool
-
-from .query import Query
+from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
 
 
 class Database(object):
@@ -65,7 +63,15 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
-		self.query = Query()
+
+	@property
+	def query(self):
+		if not hasattr(self, "_query"):
+			from .query import Query
+
+			self._query = Query()
+			del Query
+		return self._query
 
 	def setup_type_map(self):
 		pass
@@ -195,6 +201,9 @@ class Database(object):
 
 			elif frappe.conf.db_type == "postgres":
 				# TODO: added temporarily
+				import traceback
+
+				traceback.print_stack()
 				print(e)
 				raise
 
@@ -278,9 +287,9 @@ class Database(object):
 		        # doctypes = ["DocType", "DocField", "User", ...]
 		        doctypes = frappe.db.sql_list("select name from DocType")
 		"""
-		return [r[0] for r in self.sql(query, values, **kwargs, debug=debug)]
+		return self.sql(query, values, **kwargs, debug=debug, pluck=True)
 
-	def sql_ddl(self, query, values=(), debug=False):
+	def sql_ddl(self, query, debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
 		self.commit()
@@ -914,6 +923,9 @@ class Database(object):
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
+		if frappe.conf.db_type == "postgres":
+			# Postgres requires explicitly starting new transaction
+			self.begin()
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
@@ -950,7 +962,7 @@ class Database(object):
 		else:
 			self.sql("rollback")
 			self.begin()
-			for obj in frappe.local.rollback_observers:
+			for obj in dict.fromkeys(frappe.local.rollback_observers):
 				if hasattr(obj, "on_rollback"):
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
@@ -1165,12 +1177,11 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		values = ()
 		filters = filters or kwargs.get("conditions")
 		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-		return self.sql(query, values, **kwargs)
+		return query.run(**kwargs)
 
 	def truncate(self, doctype: str):
 		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
@@ -1178,8 +1189,7 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		table = doctype if doctype.startswith("__") else f"tab{doctype}"
-		return self.sql_ddl(f"truncate `{table}`")
+		return self.sql_ddl(f"truncate `{get_table_name(doctype)}`")
 
 	def clear_table(self, doctype):
 		return self.truncate(doctype)
