@@ -506,7 +506,7 @@ frappe.ui.form.PrintView = class {
 		frappe.route_options = {
 			frm: this,
 		};
-		frappe.set_route('Form', this.frm.doctype, this.frm.doc.name);
+		frappe.set_route('Form', this.frm.doctype, this.frm.docname);
 	}
 
 	show_footer() {
