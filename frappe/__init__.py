@@ -1040,15 +1040,21 @@ def get_cached_doc(*args, **kwargs):
 		if doc := cache().hget("document_cache", key):
 			return _respond(doc, True)
 
-	# Not found in local/redis, fetch from DB and store in cache
+	# Not found in local/redis, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
-	# Store in redis cache
-	key = get_document_cache_key(doc.doctype, doc.name)
+	# Store in cache
+	if not key:
+		key = get_document_cache_key(doc.doctype, doc.name)
 
 	local.document_cache[key] = doc
-	# Avoid setting in local.cache since there's separate cache
-	cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+
+	# Avoid setting in local.cache since we're already using local.document_cache above
+	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
+	try:
+		cache().hset("document_cache", key, doc, cache_locally=False)
+	except Exception:
+		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
 
 	return doc
 
@@ -1124,6 +1130,7 @@ def get_doc(*args, **kwargs):
 	if key := can_cache_doc(args):
 		if key in local.document_cache:
 			local.document_cache[key] = doc
+
 		if cache().hexists("document_cache", key):
 			cache().hset("document_cache", key, doc.as_dict())
 
