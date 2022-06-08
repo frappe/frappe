@@ -35,7 +35,7 @@ frappe.form.formatters = {
 		if (df && df.options == "URL") {
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
-		value = value==null ? "" : value
+		value = value==null ? "" : value;
 
 		return frappe.form.formatters._apply_custom_formatter(value, df);
 	},

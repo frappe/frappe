@@ -17,7 +17,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 				'Currency': '💲',
 				'Date': '📆',
 				'Table': '🗂'
-			}
+			};
 			if (prefix[value]) {
 				value = prefix[value] + ' ' + value;
 			}
