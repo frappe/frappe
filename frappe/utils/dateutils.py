@@ -110,11 +110,10 @@ def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
 		months = 1
 	elif "Quarterly" == timegrain:
 		months = 3
+	elif "Yearly" == timegrain:
+		months = 1
 
-	if "Weekly" == timegrain:
-		dates = [get_last_day_of_week(from_date)]
-	else:
-		dates = [get_period_ending(from_date, timegrain)]
+	dates = [get_period_ending(from_date, timegrain)]
 
 	while getdate(dates[-1]) < getdate(to_date):
 		if "Weekly" == timegrain:
@@ -167,16 +166,12 @@ def get_period_beginning(date, timegrain, as_str=True):
 
 
 def get_period_ending(date, timegrain):
-	date = getdate(date)
-	if timegrain == "Daily":
-		return date
-	else:
-		return getdate(
-			{
-				"Daily": date,
-				"Weekly": get_last_day_of_week(date),
-				"Monthly": get_last_day(date),
-				"Quarterly": get_quarter_ending(date),
-				"Yearly": get_year_ending(date),
-			}[timegrain]
-		)
+	return getdate(
+		{
+			"Daily": date,
+			"Weekly": get_last_day_of_week(date),
+			"Monthly": get_last_day(date),
+			"Quarterly": get_quarter_ending(date),
+			"Yearly": get_year_ending(date),
+		}[timegrain]
+	)
