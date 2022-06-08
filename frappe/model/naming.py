@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 autoincremented_site_status_map = {}
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
+BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
 
 
 class InvalidNamingSeriesError(frappe.ValidationError):
@@ -448,7 +449,7 @@ def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = Non
 		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
 
 	special_characters = "<>"
-	if re.findall("[{0}]+".format(special_characters), name):
+	if re.findall(f"[{special_characters}]+", name):
 		message = ", ".join("'{0}'".format(c) for c in special_characters)
 		frappe.throw(
 			_("Name cannot contain special characters like {0}").format(message), frappe.NameError
@@ -535,6 +536,6 @@ def _format_autoname(autoname, doc):
 		return parse_naming_series([trimmed_param], doc=doc)
 
 	# Replace braced params with their parsed value
-	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
+	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
 
 	return name
