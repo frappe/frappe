@@ -258,6 +258,7 @@ def save_filters(board_name, filters):
 	"""Save filters silently"""
 	frappe.db.set_value("Kanban Board", board_name, "filters", filters, update_modified=False)
 
+
 @frappe.whitelist()
 def save_settings(board_name: str, settings: str) -> Document:
 	settings = json.loads(settings)

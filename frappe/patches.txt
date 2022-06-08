@@ -184,3 +184,4 @@ frappe.patches.v13_0.remove_twilio_settings
 frappe.patches.v12_0.rename_uploaded_files_with_proper_name
 frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.set_first_day_of_the_week
+frappe.patches.v13_0.set_document_expiry_default
