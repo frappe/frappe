@@ -6,8 +6,9 @@ frappe.provide("frappe.model");
 */
 frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.Controller {
 	setup() {
+		console.log(this.frm.doctype);
 		// setup formatters for fieldtype
-		frappe.meta.docfield_map['DocField'].fieldtype.formatter = (value) => {
+		frappe.meta.docfield_map[this.frm.doctype==='DocType' ? 'DocField' : 'Customize Form Field'].fieldtype.formatter = (value) => {
 			const prefix = {
 				'Tab Break': '🔴',
 				'Section Break': '🔵',
@@ -22,7 +23,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 				value = prefix[value] + ' ' + value;
 			}
 			return value;
-		}
+		};
 	}
 
 	max_attachments() {

@@ -16,7 +16,7 @@ frappe.form.formatters = {
 		}
 	},
 	_apply_custom_formatter: function(value, df) {
-		/* you can add an arbitrary formatter in df.formatter
+		/* you can add a custom formatter in df.formatter
 		example:
 			frappe.meta.docfield_map[df.parent][df.fieldname].formatter = (value) => {
 				if (value==='Test') return '😜';
