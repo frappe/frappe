@@ -436,6 +436,7 @@ def make_records(records, debug=False):
 			frappe.db.savepoint(savepoint)
 			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 		except Exception as e:
+			frappe.clear_last_message()
 			frappe.db.rollback(save_point=savepoint)
 			exception = record.get("__exception")
 			if exception:
@@ -451,3 +452,4 @@ def make_records(records, debug=False):
 def show_document_insert_error():
 	print("Document Insert Error")
 	print(frappe.get_traceback())
+	frappe.log_error("Exception during Setup")
