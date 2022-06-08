@@ -36,11 +36,29 @@ class LetterHead(Document):
 					<img src="{self.image}" alt="{self.name}" {dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
 				</div>
 				"""
-				frappe.msgprint(frappe._("Header HTML set from attachment {0}").format(self.image), alert=True)
+				frappe.msgprint(_("Header HTML set from attachment {0}").format(self.image), alert=True)
 			else:
 				frappe.msgprint(
-					frappe._("Please attach an image file to set HTML"), alert=True, indicator="orange"
+					_("Please attach an image file to set HTML for Letter Head."), alert=True, indicator="orange"
 				)
+
+		if self.footer_source == "Image":
+			if self.footer_image and is_image(self.footer_image):
+				self.footer_image_width = flt(self.footer_image_width)
+				self.footer_image_height = flt(self.footer_image_height)
+				dimension = "width" if self.footer_image_width > self.footer_image_height else "height"
+				dimension_value = self.get("footer_image_" + dimension)
+				self.footer = f"""
+				<div style="text-align: {self.footer_align.lower()};">
+					<img src="{self.footer_image}" alt="{self.name}" {dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
+				</div>
+				"""
+				frappe.msgprint(_("Footer HTML set from attachment {0}").format(self.footer_image), alert=True)
+			else:
+				frappe.msgprint(
+					_("Please attach an image file to set HTML for Footer."), alert=True, indicator="orange"
+				)
+
 
 	def on_update(self):
 		self.set_as_default()
