@@ -87,7 +87,7 @@ frappe.ui.form.PrintView = class {
 		);
 
 		this.page.add_action_icon("file", () => {
-			this.hide_print_doc();
+			this.go_to_form_view();
 		}, '', __("Form"));
 	}
 
@@ -502,7 +502,7 @@ frappe.ui.form.PrintView = class {
 		}
 	}
 
-	hide_print_doc() {
+	go_to_form_view() {
 		frappe.route_options = {
 			frm: this,
 		};
