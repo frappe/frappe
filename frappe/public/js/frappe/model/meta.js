@@ -109,7 +109,7 @@ $.extend(frappe.meta, {
 		var fields = $.map(frappe.meta.get_docfields(doctype, name), function(df) {
 			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1) ? df : null;
 		});
-		fields = fields.concat({label: "Name", fieldname: name, options: doctype});
+		fields = fields.concat({label: "ID", fieldname: name, options: doctype});
 		return fields;
 	},
 
@@ -177,12 +177,17 @@ $.extend(frappe.meta, {
 
 	get_label: function(dt, fn, dn) {
 		var standard = {
-			'owner': __('Owner'),
+			'name': __('ID'),
 			'creation': __('Created On'),
-			'modified': __('Last Modified On'),
-			'idx': __('Idx'),
-			'name': __('Name'),
-			'modified_by': __('Last Modified By')
+			'docstatus': __('Document Status'),
+			'idx': __('Index'),
+			'modified': __('Last Updated On'),
+			'modified_by': __('Last Updated By'),
+			'owner': __('Created By'),
+			'_user_tags': __('Tags'),
+			'_liked_by': __('Liked By'),
+			'_comments': __('Comments'),
+			'_assign': __('Assigned To'),
 		}
 		if(standard[fn]) {
 			return standard[fn];
