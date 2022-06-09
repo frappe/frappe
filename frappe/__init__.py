@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import functools
 import importlib
 import inspect
 import json
@@ -409,16 +410,21 @@ def msgprint(
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
+	import inspect
+
 	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
 
+	@functools.lru_cache(maxsize=1024)
+	def _strip_html_tags(message):
+		return strip_html_tags(message)
+
 	def _raise_exception():
 		if raise_exception:
 			if flags.rollback_on_exception:
 				db.rollback()
-			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception(msg)
@@ -435,8 +441,11 @@ def msgprint(
 	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
+	if sys.stdin.isatty():
+		msg = _strip_html_tags(out.message)
+
 	if flags.print_messages and out.message:
-		print(f"Message: {strip_html_tags(out.message)}")
+		print(f"Message: {_strip_html_tags(out.message)}")
 
 	out.title = title or _("Message", context="Default title of the message dialog")
 
@@ -1035,15 +1044,21 @@ def get_cached_doc(*args, **kwargs):
 		if doc := cache().hget("document_cache", key):
 			return _respond(doc, True)
 
-	# Not found in local/redis, fetch from DB and store in cache
+	# Not found in local/redis, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
-	# Store in redis cache
-	key = get_document_cache_key(doc.doctype, doc.name)
+	# Store in cache
+	if not key:
+		key = get_document_cache_key(doc.doctype, doc.name)
 
 	local.document_cache[key] = doc
-	# Avoid setting in local.cache since there's separate cache
-	cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+
+	# Avoid setting in local.cache since we're already using local.document_cache above
+	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
+	try:
+		cache().hset("document_cache", key, doc, cache_locally=False)
+	except Exception:
+		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
 
 	return doc
 
@@ -1119,6 +1134,7 @@ def get_doc(*args, **kwargs):
 	if key := can_cache_doc(args):
 		if key in local.document_cache:
 			local.document_cache[key] = doc
+
 		if cache().hexists("document_cache", key):
 			cache().hset("document_cache", key, doc.as_dict())
 
@@ -1175,7 +1191,7 @@ def delete_doc(
 	:param delete_permanently: Do not create a Deleted Document for the document."""
 	import frappe.model.delete_doc
 
-	frappe.model.delete_doc.delete_doc(
+	return frappe.model.delete_doc.delete_doc(
 		doctype,
 		name,
 		force,
