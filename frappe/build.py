@@ -20,6 +20,8 @@ import frappe
 timestamps = {}
 app_paths = None
 sites_path = os.path.abspath(os.getcwd())
+WHITESPACE_PATTERN = re.compile(r"\s+")
+HTML_COMMENT_PATTERN = re.compile(r"(<!--.*?-->)")
 
 
 class AssetsNotDownloadedError(Exception):
@@ -406,10 +408,10 @@ def link_assets_dir(source, target, hard_link=False):
 def scrub_html_template(content):
 	"""Returns HTML content with removed whitespace and comments"""
 	# remove whitespace to a single space
-	content = re.sub(r"\s+", " ", content)
+	content = WHITESPACE_PATTERN.sub(" ", content)
 
 	# strip comments
-	content = re.sub(r"(<!--.*?-->)", "", content)
+	content = HTML_COMMENT_PATTERN.sub("", content)
 
 	return content.replace("'", "'")
 

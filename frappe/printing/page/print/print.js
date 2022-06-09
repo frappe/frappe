@@ -19,7 +19,8 @@ frappe.pages['print'].on_page_load = function(wrapper) {
 				});
 			});
 		} else {
-			print_view.frm = frappe.route_options.frm;
+			print_view.frm = frappe.route_options.frm.doctype ?
+				frappe.route_options.frm : frappe.route_options.frm.frm;
 			frappe.route_options.frm = null;
 			print_view.show(print_view.frm);
 		}
@@ -85,6 +86,10 @@ frappe.ui.form.PrintView = class {
 			() => this.refresh_print_format(),
 			{ icon: 'refresh' }
 		);
+
+		this.page.add_action_icon("file", () => {
+			this.go_to_form_view();
+		}, '', __("Form"));
 	}
 
 	setup_sidebar() {
@@ -496,6 +501,13 @@ frappe.ui.form.PrintView = class {
 					: this.frm.page.previous_view_name || 'main'
 			);
 		}
+	}
+
+	go_to_form_view() {
+		frappe.route_options = {
+			frm: this,
+		};
+		frappe.set_route('Form', this.frm.doctype, this.frm.docname);
 	}
 
 	show_footer() {

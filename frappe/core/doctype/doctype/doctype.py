@@ -35,6 +35,12 @@ from frappe.query_builder.functions import Concat
 from frappe.utils import cint
 from frappe.website.utils import clear_cache
 
+DEPENDS_ON_PATTERN = re.compile(r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+')
+ILLEGAL_FIELDNAME_PATTERN = re.compile("""['",./%@()<>{}]""")
+WHITESPACE_PADDING_PATTERN = re.compile(r"^[ \t\n\r]+|[ \t\n\r]+$", flags=re.ASCII)
+START_WITH_LETTERS_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.ASCII)
+FIELD_PATTERN = re.compile("{(.*?)}", flags=re.UNICODE)
+
 
 class InvalidFieldNameError(frappe.ValidationError):
 	pass
@@ -357,8 +363,7 @@ class DocType(Document):
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
-
-				d.fieldname = re.sub("""['",./%@()<>{}]""", "", d.fieldname)
+				d.fieldname = ILLEGAL_FIELDNAME_PATTERN.sub("", d.fieldname)
 
 				# fieldnames should be lowercase
 				d.fieldname = d.fieldname.lower()
@@ -842,15 +847,13 @@ class DocType(Document):
 				_("Doctype name is limited to {0} characters ({1})").format(max_length, name), frappe.NameError
 			)
 
-		flags = {"flags": re.ASCII}
-
 		# a DocType name should not start or end with an empty space
-		if re.search(r"^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+		if WHITESPACE_PADDING_PATTERN.search(name):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers, underscore, and hyphen
-		if not re.match(r"^(?![\W])[^\d_\s][\w -]+$", name, **flags):
+		if not START_WITH_LETTERS_PATTERN.match(name):
 			frappe.throw(
 				_(
 					"A DocType's name should start with a letter and can only "
@@ -1254,7 +1257,7 @@ def validate_fields(meta):
 			if not pattern:
 				return
 
-			for fieldname in re.findall("{(.*?)}", pattern, re.UNICODE):
+			for fieldname in FIELD_PATTERN.findall(pattern):
 				if fieldname.startswith("{"):
 					# edge case when double curlies are used for escape
 					continue
@@ -1336,9 +1339,7 @@ def validate_fields(meta):
 		]
 		for field in depends_on_fields:
 			depends_on = docfield.get(field, None)
-			if (
-				depends_on and ("=" in depends_on) and re.match(r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+', depends_on)
-			):
+			if depends_on and ("=" in depends_on) and DEPENDS_ON_PATTERN.match(depends_on):
 				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
 	def check_table_multiselect_option(docfield):
