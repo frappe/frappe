@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils.pdf import cleanup, get_pdf
+from frappe.www.printview import validate_print_permission
 
 no_cache = 1
 
@@ -112,8 +113,20 @@ def read_multi_pdf(output):
 	return filedata
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
+	doc = doc or frappe.get_doc(doctype, name)
+	try:
+		validate_print_permission(doc)
+	except frappe.exceptions.LinkExpired:
+		frappe.local.response.http_status_code = 410
+		frappe.local.response.message = _("Link Expired")
+		return
+	except frappe.exceptions.InvalidKeyError:
+		frappe.local.response.http_status_code = 401
+		frappe.local.response.message = _("Invalid Key")
+		return
+
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
 	frappe.local.response.filename = "{name}.pdf".format(
 		name=name.replace(" ", "-").replace("/", "-")

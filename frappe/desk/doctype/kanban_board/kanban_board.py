@@ -38,7 +38,9 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner='{user}')""".format(user=user)
+	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner={user})""".format(
+		user=frappe.db.escape(user)
+	)
 
 
 def has_permission(doc, ptype, user):
@@ -255,6 +257,7 @@ def set_indicator(board_name, column_name, indicator):
 def save_filters(board_name, filters):
 	"""Save filters silently"""
 	frappe.db.set_value("Kanban Board", board_name, "filters", filters, update_modified=False)
+
 
 @frappe.whitelist()
 def save_settings(board_name: str, settings: str) -> Document:

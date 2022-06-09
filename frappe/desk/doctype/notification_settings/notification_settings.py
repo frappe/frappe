@@ -83,7 +83,7 @@ def get_permission_query_conditions(user):
 	if "System Manager" in roles:
 		return """(`tabNotification Settings`.name != 'Administrator')"""
 
-	return """(`tabNotification Settings`.name = '{user}')""".format(user=user)
+	return """(`tabNotification Settings`.name = {user})""".format(user=frappe.db.escape(user))
 
 
 @frappe.whitelist()

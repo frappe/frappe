@@ -30,7 +30,7 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
-	return """(`tabDashboard Settings`.name = '{user}')""".format(user=user)
+	return """(`tabDashboard Settings`.name = {user})""".format(user=frappe.db.escape(user))
 
 
 @frappe.whitelist()

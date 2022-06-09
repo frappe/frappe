@@ -55,7 +55,7 @@ export default class ChartWidget extends Widget {
 
 		this.empty = $(
 			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-				"No Data..."
+				"No Data"
 			)}</div>`
 		);
 		this.empty.hide().appendTo(this.body);
@@ -340,7 +340,8 @@ export default class ChartWidget extends Widget {
 				handler: () => {
 					frappe.set_route(
 						"query-report",
-						this.chart_doc.report_name
+						this.chart_doc.report_name,
+						this.filters
 					);
 				}
 			});
@@ -527,7 +528,26 @@ export default class ChartWidget extends Widget {
 		return frappe.xcall(method, args);
 	}
 
-	render() {
+	async get_source_doctype() {
+		if (this.chart_doc.document_type) {
+			return this.chart_doc.document_type;
+		}
+		if (this.chart_doc.chart_type == "Report" && this.chart_doc.report_name) {
+			return await frappe.db.get_value("Report", this.chart_doc.report_name, "ref_doctype").then(r => r.message.ref_doctype);
+		}
+	}
+
+	async render() {
+		let setup_dashboard_chart = () => {
+			const chart_args = this.get_chart_args();
+
+			if (!this.dashboard_chart) {
+				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
+			} else {
+				this.dashboard_chart.update(this.data);
+			}
+		}
+
 		if (!this.data || !this.data.labels || !Object.keys(this.data).length) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
@@ -537,13 +557,12 @@ export default class ChartWidget extends Widget {
 			this.loading.hide();
 			this.empty.hide();
 			this.chart_wrapper.show();
+			this.chart_doc.document_type = await this.get_source_doctype();
 
-			const chart_args = this.get_chart_args();
-
-			if (!this.dashboard_chart) {
-				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
+			if (this.chart_doc.document_type) {
+				frappe.model.with_doctype(this.chart_doc.document_type, setup_dashboard_chart);
 			} else {
-				this.dashboard_chart.update(this.data);
+				setup_dashboard_chart();
 			}
 
 			this.width == "Full" && this.summary && this.set_summary();
@@ -553,6 +572,7 @@ export default class ChartWidget extends Widget {
 
 	get_chart_args() {
 		let colors = this.get_chart_colors();
+		let fieldtype, options;
 
 		const chart_type_map = {
 			Line: "line",
@@ -575,15 +595,23 @@ export default class ChartWidget extends Widget {
 			},
 		};
 
-		if (this.report_result && this.report_result.chart) {
-			chart_args.tooltipOptions = {
-				formatTooltipY: value =>
-					frappe.format(value, {
-						fieldtype: this.report_result.chart.fieldtype,
-						options: this.report_result.chart.options
-					}, { always_show_decimals: true, inline: true })
-			};
+		if (this.chart_doc.document_type) {
+			let doctype_meta = frappe.get_meta(this.chart_doc.document_type);
+			let field = doctype_meta.fields.find(x => x.fieldname == this.chart_doc.value_based_on);
+			if (field) {
+				fieldtype = field.fieldtype;
+				options = field.options;
+			}
 		}
+
+		if (this.chart_doc.chart_type == "Report" && this.report_result && this.report_result.chart && this.report_result.chart.fieldtype) {
+			fieldtype = this.report_result.chart.fieldtype;
+			options = this.report_result.chart.options;
+		}
+
+		chart_args.tooltipOptions = {
+			formatTooltipY: value => frappe.format(value, { fieldtype, options }, { always_show_decimals: true, inline: true })
+		};
 
 		if (this.chart_doc.type == "Heatmap") {
 			const heatmap_year = parseInt(this.selected_heatmap_year || this.chart_settings.heatmap_year || this.chart_doc.heatmap_year);

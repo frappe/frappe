@@ -255,18 +255,21 @@ export default class NumberCardWidget extends Widget {
 			};
 			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
 
-			let get_stat = () => {
+			let stat = (() => {
 				if (this.percentage_stat == undefined) return NaN;
 				const parts = this.percentage_stat.split(' ');
 				const symbol = parts[1] || '';
 				return Math.abs(parts[0]) + ' ' + symbol;
-			};
+			})();
+
+			// don't show stats if not valid number - skip showing `NaN %` in card
+			if (isNaN(stat)) return;
 
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
 				<span class="percentage-stat-area">
 					${caret_html}
 					<span class="percentage-stat">
-						${get_stat()} %
+						${stat} %
 					</span>
 				</span>
 				<span class="stat-period text-muted">

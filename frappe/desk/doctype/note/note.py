@@ -40,7 +40,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabNote`.public=1 or `tabNote`.owner="{user}")""".format(user=user)
+	return """(`tabNote`.public=1 or `tabNote`.owner={user})""".format(user=frappe.db.escape(user))
 
 
 def has_permission(doc, ptype, user):

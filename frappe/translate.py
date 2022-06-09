@@ -354,7 +354,7 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, "lang_full_dict", None) and frappe.local.lang_full_dict.get(lang, None):
+	if getattr(frappe.local, "lang_full_dict", None) is not None:
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
@@ -395,7 +395,7 @@ def load_lang(lang, apps=None):
 	return out or {}
 
 
-def get_translation_dict_from_file(path, lang, app):
+def get_translation_dict_from_file(path, lang, app, throw=False):
 	"""load translation dict from given path"""
 	translation_map = {}
 	if os.path.exists(path):
@@ -413,7 +413,8 @@ def get_translation_dict_from_file(path, lang, app):
 					app=app, lang=lang, values=cstr(item)
 				)
 				frappe.log_error(message=msg, title="Error in translation file")
-				frappe.msgprint(msg)
+				if throw:
+					frappe.throw(msg, title="Error in translation file")
 
 	return translation_map
 

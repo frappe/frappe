@@ -419,6 +419,7 @@ Also adding the dependent currency field {0},Ajout également du champ de devise
 Always use Account's Email Address as Sender,Toujours utiliser l'adresse Email du compte comme Expéditeur,
 Always use Account's Name as Sender's Name,Toujours utiliser le nom du compte comme nom de l&#39;expéditeur,
 Amend,Nouv. version
+amend,Nouv. version
 Amending,Nouv. version en cours,
 Amount Based On Field,Montant Basé sur le Champ,
 Amount Field,Champ du Montant,
@@ -799,9 +800,9 @@ DESC,DESC,
 Daily Event Digest is sent for Calendar Events where reminders are set.,Un Récapitulatif Quotidien est envoyé pour les Événements du Calendrier ayant des rappels.,
 Danger,Danger,
 Dark Color,Couleur sombre,
-Dashboard Chart,Tableau de bord,
-Dashboard Chart Link,Lien de tableau de bord,
-Dashboard Chart Source,Source du graphique du tableau de bord,
+Dashboard Chart,Tableau de bord - indicateur,
+Dashboard Chart Link,Lien de tableau de bord - indicateur,
+Dashboard Chart Source,Source du graphique du tableau de bord - indicateur,
 Dashboard Name,Nom du tableau de bord,
 Dashboards,Tableaux de bord,
 Data,Données,
@@ -4641,7 +4642,7 @@ Not permitted to view {0},Non autorisé à afficher {0},
 Camera,Caméra,
 Invalid filter: {0},Filtre non valide: {0},
 Let's Get Started,Commençons,
-Reports & Masters,Rapports et masters,
+Reports & Masters,Ecrans principaux et Rapports,
 New {0} {1} added to Dashboard {2},Nouveau {0} {1} ajouté au tableau de bord {2},
 New {0} {1} created,Nouveau {0} {1} créé,
 New {0} Created,Nouveau {0} créé,
@@ -4701,8 +4702,8 @@ Value cannot be negative for,La valeur ne peut pas être négative pour,
 Value cannot be negative for {0}: {1},La valeur ne peut pas être négative pour {0}: {1},
 Negative Value,Valeur négative,
 Authentication failed while receiving emails from Email Account: {0}.,L&#39;authentification a échoué lors de la réception des e-mails du compte de messagerie: {0}.,
-Message from server: {0},Message du serveur: {0},
-{0} edited this {1},{0} a édité {1},
+Message from server: {0},Message du serveur: {0}
+{0} edited this {1},{0} a édité {1}
 {0} created this {1},{0} a créé {1}
 Report an Issue,Signaler une anomalie
 User Forum,Forum utilisateur
@@ -4717,3 +4718,10 @@ Document has been cancelled,Document annulé
 Document is in draft state,Document au statut brouillon
 Copy to Clipboard,Copier vers le presse-papiers
 Don't have an account?,Vous n&#39;avez pas de compte?
+Left:alignment,Gauche
+Right:alignment,Droite
+Set Properties,Gérer les proriétés
+Create Workspace,Créer un espace de travail
+Always use this email address as sender address,Toujours utiliser cet email comme expediteur
+Always use this name as sender name,Toujours utiliser ce nom comme expediteur
+Login to {0},Se connecter à {0}

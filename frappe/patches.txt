@@ -113,7 +113,7 @@ frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
 frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
-execute:frappe.delete_doc("Test Runner")
+execute:frappe.delete_doc('DocType', 'Test Runner') # 2022-05-19
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
@@ -184,3 +184,4 @@ frappe.patches.v13_0.remove_twilio_settings
 frappe.patches.v12_0.rename_uploaded_files_with_proper_name
 frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.set_first_day_of_the_week
+frappe.patches.v13_0.set_document_expiry_default
