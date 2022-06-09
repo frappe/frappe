@@ -251,7 +251,7 @@ class Meta(Document):
 			label = df.label
 		else:
 			label = {
-				"name": _("Name"),
+				"name": _("ID"),
 				"creation": _("Created On"),
 				"docstatus": _("Document Status"),
 				"idx": _("Index"),

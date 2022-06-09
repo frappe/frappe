@@ -109,7 +109,7 @@ $.extend(frappe.meta, {
 		var fields = $.map(frappe.meta.get_docfields(doctype, name), function(df) {
 			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1) ? df : null;
 		});
-		fields = fields.concat({label: "Name", fieldname: name, options: doctype});
+		fields = fields.concat({label: "ID", fieldname: name, options: doctype});
 		return fields;
 	},
 
@@ -177,7 +177,7 @@ $.extend(frappe.meta, {
 
 	get_label: function(dt, fn, dn) {
 		var standard = {
-			'name': __('Name'),
+			'name': __('ID'),
 			'creation': __('Created On'),
 			'docstatus': __('Document Status'),
 			'idx': __('Index'),
