@@ -72,7 +72,7 @@ class TestNewsletterMixin:
 						"doctype": doctype,
 						**email_filters,
 					}
-				).insert()
+				).insert(ignore_if_duplicate=True)
 			except Exception:
 				frappe.db.rollback(save_point=savepoint)
 				frappe.db.update(doctype, email_filters, "unsubscribed", 0)

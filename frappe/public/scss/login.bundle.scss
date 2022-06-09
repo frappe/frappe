@@ -16,7 +16,7 @@ body {
 .for-forgot,
 .for-signup,
 .for-email-login {
-	padding: max(15vh, 70px) 0;
+	padding: max(10vh, 60px) 0;
 
 	@include media-breakpoint-up(sm) {
 		.page-card {
@@ -177,6 +177,7 @@ body {
 		}
 
 		h4 {
+			margin-top: 1rem;
 			font-size: var(--text-xl);
 			color: var(--text-color);
 		}
