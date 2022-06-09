@@ -227,7 +227,7 @@ export default {
 					custom: 1
 				},
 				{
-					label: __("Name (name)"),
+					label: __("ID (name)"),
 					fieldname: "name",
 					fieldtype: "Data"
 				},

@@ -447,7 +447,7 @@ def get_labels(fields, doctype):
 			fieldname = fieldname.strip("`")
 
 		if parenttype == doctype and fieldname == "name":
-			label = _("Name", context="Label of name column in report")
+			label = _("ID", context="Label of name column in report")
 		else:
 			df = frappe.get_meta(parenttype).get_field(fieldname)
 			label = _(df.label if df else fieldname.title())

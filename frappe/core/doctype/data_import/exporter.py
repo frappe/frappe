@@ -100,7 +100,7 @@ class Exporter:
 			{
 				"fieldtype": "Data",
 				"fieldname": "name",
-				"label": "Name",
+				"label": "ID",
 				"reqd": 1,
 				"parent": doctype,
 			}

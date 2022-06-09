@@ -33,7 +33,7 @@ def execute(filters=None):
 	)
 
 	columns = [
-		_("Name") + ":Link/ToDo:90",
+		_("ID") + ":Link/ToDo:90",
 		_("Priority") + "::60",
 		_("Date") + ":Date",
 		_("Description") + "::150",

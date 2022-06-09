@@ -1096,7 +1096,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 			{
 				"fieldtype": "Data",
 				"fieldname": "name",
-				"label": "Name",
+				"label": "ID",
 				"reqd": 1,  # self.import_type == UPDATE,
 				"parent": doctype,
 			}
@@ -1105,14 +1105,14 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		if doctype == parent_doctype:
 			name_headers = (
 				"name",  # fieldname
-				"Name",  # label
-				_("Name"),  # translated label
+				"ID",  # label
+				_("ID"),  # translated label
 			)
 		else:
 			name_headers = (
 				"{0}.name".format(table_df.fieldname),  # fieldname
-				"Name ({0})".format(table_df.label),  # label
-				"{0} ({1})".format(_("Name"), translated_table_label),  # translated label
+				"ID ({0})".format(table_df.label),  # label
+				"{0} ({1})".format(_("ID"), translated_table_label),  # translated label
 			)
 
 			name_df.is_child_table_field = True
@@ -1173,15 +1173,15 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					out[header] = new_df
 
 	# if autoname is based on field
-	# add an entry for "Name (Autoname Field)"
+	# add an entry for "ID (Autoname Field)"
 	autoname_field = get_autoname_field(parent_doctype)
 	if autoname_field:
 		for header in (
-			"Name ({})".format(autoname_field.label),  # label
-			"{0} ({1})".format(_("Name"), _(autoname_field.label)),  # translated label
-			# Name field should also map to the autoname field
-			"Name",
-			_("Name"),
+			"ID ({})".format(autoname_field.label),  # label
+			"{0} ({1})".format(_("ID"), _(autoname_field.label)),  # translated label
+			# ID field should also map to the autoname field
+			"ID",
+			_("ID"),
 			"name",
 		):
 			out[header] = autoname_field
@@ -1206,7 +1206,7 @@ def get_id_field(doctype):
 	autoname_field = get_autoname_field(doctype)
 	if autoname_field:
 		return autoname_field
-	return frappe._dict({"label": "Name", "fieldname": "name", "fieldtype": "Data"})
+	return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
 
 
 def get_autoname_field(doctype):
