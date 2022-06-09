@@ -274,7 +274,7 @@ Cypress.Commands.add('save', () => {
 
 Cypress.Commands.add('hide_dialog', () => {
 	cy.wait(400);
-	cy.get_open_dialog().find('.btn-modal-close').click({force: true});
+	cy.get('.btn-modal-close:visible').click({force: true});
 	cy.get('.modal:visible').should('not.exist');
 });
 
