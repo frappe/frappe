@@ -27,6 +27,7 @@ import "cypress-real-events/support";
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
+
 Cypress.Commands.add('login', (email, password) => {
 	if (!email) {
 		email = 'Administrator';
@@ -265,9 +266,15 @@ Cypress.Commands.add('get_open_dialog', () => {
 	return cy.get('.modal:visible').last();
 });
 
+Cypress.Commands.add('save', () => {
+	cy.intercept('/api').as('api');
+	cy.get(`button[data-label="Save"]:visible`).click({scrollBehavior: false, force: true});
+	cy.wait('@api');
+});
+
 Cypress.Commands.add('hide_dialog', () => {
-	cy.wait(300);
-	cy.get_open_dialog().find('.btn-modal-close').click();
+	cy.wait(400);
+	cy.get('.btn-modal-close:visible').click({force: true});
 	cy.get('.modal:visible').should('not.exist');
 });
 
