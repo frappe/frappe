@@ -218,7 +218,7 @@ frappe.form.formatters = {
 			}
 		}
 
-		return frappe.form.formatters.Data(value);
+		return frappe.form.formatters.Data(value, df);
 	},
 	Time: function(value) {
 		if (value) {

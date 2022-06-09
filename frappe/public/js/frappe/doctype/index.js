@@ -12,11 +12,6 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 				'Tab Break': '🔴',
 				'Section Break': '🔵',
 				'Column Break': '🟡',
-				'Check': '☑',
-				'Link': '🔗',
-				'Currency': '💲',
-				'Date': '📆',
-				'Table': '🗂'
 			};
 			if (prefix[value]) {
 				value = prefix[value] + ' ' + value;
