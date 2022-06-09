@@ -140,10 +140,6 @@ Cypress.Commands.add('create_records', doc => {
 		.then(r => r.message);
 });
 
-Cypress.Commands.add('open_doc', (doctype, name) => {
-	cy.visit(`/app/${doctype}/${name}`)
-});
-
 Cypress.Commands.add('set_value', (doctype, name, obj) => {
 	return cy.call('frappe.client.set_value', {
 		doctype,
@@ -272,13 +268,13 @@ Cypress.Commands.add('get_open_dialog', () => {
 
 Cypress.Commands.add('save', () => {
 	cy.intercept('/api').as('api');
-	cy.get(`button[data-label="Save"]:visible`).click({scrollBehavior: false, force:true});
+	cy.get(`button[data-label="Save"]:visible`).click({scrollBehavior: false, force: true});
 	cy.wait('@api');
 });
 
 Cypress.Commands.add('hide_dialog', () => {
 	cy.wait(400);
-	cy.get_open_dialog().find('.btn-modal-close').click({force:true});
+	cy.get_open_dialog().find('.btn-modal-close').click({force: true});
 	cy.get('.modal:visible').should('not.exist');
 });
 
