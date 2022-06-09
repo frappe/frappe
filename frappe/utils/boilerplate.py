@@ -11,7 +11,7 @@ import git
 import frappe
 from frappe.utils import touch_file
 
-APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$")
+APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
 
 def make_boilerplate(dest, app_name, no_git=False):
@@ -69,7 +69,7 @@ def _get_user_inputs(app_name):
 
 
 def is_valid_title(title) -> bool:
-	if not APP_TITLE_PATTERN.match(title, re.UNICODE):
+	if not APP_TITLE_PATTERN.match(title):
 		print(
 			"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
 		)
