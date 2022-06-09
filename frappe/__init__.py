@@ -411,6 +411,7 @@ def msgprint(
 	:param wide: [optional] Show wide modal
 	"""
 	import inspect
+	import sys
 
 	from frappe.utils import strip_html_tags
 
