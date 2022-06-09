@@ -155,8 +155,6 @@ def setup_group_by(data):
 					**data
 				)
 			)
-			if data.aggregate_on_field:
-				data.fields.append(f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`")
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -435,10 +433,18 @@ def get_labels(fields, doctype):
 	"""get column labels based on column names"""
 	labels = []
 	for key in fields:
-		key = key.split(" as ")[0]
+		aggregate_function = ""
+
+		for sep in (" as ", " AS "):
+			if sep in key:
+				key = key.split(sep)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
-			continue
+			if key.strip().endswith(")"):
+				aggregate_function = key.split("(")[0].lower()
+				key = key.split("(", 1)[1][:-1]
+			else:
+				continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -456,6 +462,9 @@ def get_labels(fields, doctype):
 				# For example, "Item Code (Sales Invoice Item)".
 				label += f" ({ _(parenttype) })"
 
+		if aggregate_function:
+			label = aggregate_function.capitalize() + " of " + label
+
 		labels.append(label)
 
 	return labels
@@ -463,7 +472,10 @@ def get_labels(fields, doctype):
 
 def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
-		key = field.split(" as ")[0]
+		key = field
+		for sep in (" as ", " AS "):
+			if sep in key:
+				key = key.split(sep)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
 			continue

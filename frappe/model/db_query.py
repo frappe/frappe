@@ -409,8 +409,11 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for field in self.fields:
-				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
+				if not ("tab" in field and "." in field):
 					continue
+
+				if any(x for x in sql_functions if x in field):
+					field = field.split("(", 1)[1][:-1]
 
 				table_name = field.split(".")[0]
 
