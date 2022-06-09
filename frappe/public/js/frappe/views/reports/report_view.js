@@ -616,9 +616,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				title: __('Edit {0}', [col.docfield.label]),
 				fields: [col.docfield],
 				primary_action: () => {
-					this.datatable.cellmanager.submitEditing();
 					this.datatable.cellmanager.deactivateEditing();
 					d.hide();
+				},
+				on_hide: () => {
+					this.datatable.cellmanager.deactivateEditing(false);
 				}
 			});
 			d.show();
