@@ -42,7 +42,7 @@ context('Kanban Board', () => {
 		cy.get('.page-actions .menu-btn-group .dropdown-menu li').contains('Kanban Settings').click();
 		cy.get('.add-new-fields').click();
 
-		cy.get('.checkbox-options .checkbox').contains('Name').click();
+		cy.get('.checkbox-options .checkbox').contains('ID').click();
 		cy.get('.checkbox-options .checkbox').contains('Status').first().click();
 		cy.get('.checkbox-options .checkbox').contains('Priority').click();
 
@@ -54,13 +54,13 @@ context('Kanban Board', () => {
 		cy.wait('@save-kanban');
 
 		cy.get('.kanban-column[data-column-value="Open"] .kanban-cards').as('open-cards');
-		cy.get('@open-cards').find('.kanban-card .kanban-card-doc').first().should('contain', 'Name:');
+		cy.get('@open-cards').find('.kanban-card .kanban-card-doc').first().should('contain', 'ID:');
 		cy.get('@open-cards').find('.kanban-card .kanban-card-doc').first().should('contain', 'Status:');
 		cy.get('@open-cards').find('.kanban-card .kanban-card-doc').first().should('contain', 'Priority:');
 
 		cy.get('.page-actions .menu-btn-group > .btn').click();
 		cy.get('.page-actions .menu-btn-group .dropdown-menu li').contains('Kanban Settings').click();
-		cy.get_open_dialog().find('.frappe-control[data-fieldname="fields_html"] div[data-fieldname="name"] .remove-field').click();
+		cy.get_open_dialog().find('.frappe-control[data-fieldname="fields_html"] div[data-label="ID"] .remove-field').click();
 
 		cy.wait('@update-order');
 		cy.get_open_dialog().find('.frappe-control .label-area').contains('Show Labels').click();
