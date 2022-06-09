@@ -201,7 +201,7 @@ frappe.form.formatters = {
 			return "";
 		}
 	},
-	Text: function(value) {
+	Text: function(value, df) {
 		if(value) {
 			var tags = ["<p", "<div", "<br", "<table"];
 			var match = false;
