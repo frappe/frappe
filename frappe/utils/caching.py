@@ -86,8 +86,6 @@ def site_cache(ttl: Optional[int] = None, maxsize: Optional[int] = None) -> Call
 	"""
 
 	def time_cache_wrapper(func: Callable = None) -> Callable:
-		nonlocal ttl, maxsize
-
 		func_key = f"{func.__module__}.{func.__name__}"
 
 		def clear_cache():
@@ -114,7 +112,7 @@ def site_cache(ttl: Optional[int] = None, maxsize: Optional[int] = None) -> Call
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
 					_SITE_CACHE[func_key][frappe.local.site].pop(
-						next(iter(_SITE_CACHE[func_key][frappe.local.site]))
+						next(iter(_SITE_CACHE[func_key][frappe.local.site])), None
 					)
 
 				if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
