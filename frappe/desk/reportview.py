@@ -464,7 +464,7 @@ def get_labels(fields, doctype):
 				label += f" ({ _(parenttype) })"
 
 		if aggregate_function:
-			label = aggregate_function.capitalize() + " of " + label
+			label = _("{0} of {1}").format(aggregate_function.capitalize(), label)
 
 		labels.append(label)
 
