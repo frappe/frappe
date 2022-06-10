@@ -44,6 +44,7 @@ local = Local()
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+_qb_patched = False
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
@@ -236,8 +237,10 @@ def init(site, sites_path=None, new_site=False):
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
-	patch_query_execute()
-	patch_query_aggregation()
+
+	if not _qb_patched:
+		patch_query_execute()
+		patch_query_aggregation()
 
 	local.initialised = True
 
