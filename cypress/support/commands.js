@@ -271,10 +271,9 @@ Cypress.Commands.add('save', () => {
 	cy.get(`button[data-label="Save"]:visible`).click({scrollBehavior: false, force: true});
 	cy.wait('@api');
 });
-
 Cypress.Commands.add('hide_dialog', () => {
-	cy.wait(400);
-	cy.get('.btn-modal-close:visible').click({force: true});
+	cy.wait(300);
+	cy.get_open_dialog().focus().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
 
