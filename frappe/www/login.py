@@ -55,10 +55,10 @@ def get_context(context):
 	)
 
 	signup_form_template = frappe.get_hooks("signup_form_template")
-	if signup_form_template and len(signup_form_template) and signup_form_template[0]:
-		path = signup_form_template[0]
+	if signup_form_template and len(signup_form_template):
+		path = signup_form_template[-1]
 		if not guess_is_path(path):
-			path = frappe.get_attr(signup_form_template[0])()
+			path = frappe.get_attr(signup_form_template[-1])()
 	else:
 		path = "frappe/templates/signup.html"
 	if path:
