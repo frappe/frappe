@@ -65,7 +65,7 @@ stripe~=2.56.0
 terminaltables~=3.1.0
 traceback-with-variables~=2.0.4
 urllib3~=1.26.4
-Werkzeug~=2.0.3
+Werkzeug~=2.1.2
 Whoosh~=2.7.4
 xlrd~=2.0.1
 zxcvbn-python~=4.4.24
@@ -73,4 +73,3 @@ tenacity~=8.0.1
 cairocffi==1.2.0
 WeasyPrint==52.5
 phonenumbers==8.12.40
-
