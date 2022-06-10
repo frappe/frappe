@@ -58,6 +58,7 @@ class _dict(dict):
 	__setattr__ = dict.__setitem__
 	__delattr__ = dict.__delitem__
 	__setstate__ = dict.update
+	set = dict.__setitem__
 
 	def __getstate__(self):
 		return self

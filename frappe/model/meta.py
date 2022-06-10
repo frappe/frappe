@@ -43,23 +43,17 @@ from frappe.utils import cast, cint, cstr
 
 
 def get_meta(doctype, cached=True):
-	if cached:
-		if not frappe.local.meta_cache.get(doctype):
-			meta = frappe.cache().hget("meta", doctype)
-			if meta:
-				meta = Meta(meta)
-			else:
-				meta = Meta(doctype)
-				frappe.cache().hset("meta", doctype, meta.as_dict())
-			frappe.local.meta_cache[doctype] = meta
+	if not cached:
+		return Meta(doctype)
 
-		return frappe.local.meta_cache[doctype]
+	if meta := frappe.cache().hget("meta", doctype):
+		meta = Meta(meta)
+
 	else:
-		return load_meta(doctype)
+		meta = Meta(doctype)
+		frappe.cache().hset("meta", doctype, meta.as_dict())
 
-
-def load_meta(doctype):
-	return Meta(doctype)
+	return meta
 
 
 def get_table_columns(doctype):
@@ -114,6 +108,12 @@ class Meta(Document):
 			super(Meta, self).__init__("DocType", doctype)
 			self.process()
 
+	def _init_child(self, value, key):
+		if key in TABLE_DOCTYPES_FOR_DOCTYPE:
+			return frappe._dict(value)
+
+		return super()._init_child(value, key)
+
 	def load_from_db(self):
 		try:
 			super(Meta, self).load_from_db()
@@ -141,6 +141,9 @@ class Meta(Document):
 			out = {}
 			for key, value in doc.__dict__.items():
 				if isinstance(value, (list, tuple)):
+					if key in TABLE_DOCTYPES_FOR_DOCTYPE:
+						out[key] = value
+
 					if not value or not isinstance(value[0], BaseDocument):
 						# non standard list object, skip
 						continue
@@ -160,6 +163,29 @@ class Meta(Document):
 			return out
 
 		return serialize(self)
+
+	def append(self, key, value=None):
+		"""Append an item to a child table.
+
+		Example:
+		        doc.append("childtable", {
+		                "child_table_field": "value",
+		                "child_table_int_field": 0,
+		                ...
+		        })
+		"""
+		if value is None:
+			value = {}
+
+		if (table := self.__dict__.get(key)) is None:
+			self.__dict__[key] = table = []
+
+		value = self._init_child(value, key)
+		table.append(value)
+
+		# dont reference parent document
+
+		return value
 
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})

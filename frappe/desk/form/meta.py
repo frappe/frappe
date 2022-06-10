@@ -6,6 +6,7 @@ import os
 import frappe
 from frappe.build import scrub_html_template
 from frappe.model.meta import Meta
+from frappe.model.meta import get_meta as get_model_meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.translate import extract_messages_from_code, make_dict_from_messages
@@ -29,20 +30,22 @@ ASSET_KEYS = (
 	"__templates",
 	"__custom_js",
 	"__custom_list_js",
+	"__assets_loaded",
 )
 
 
 def get_meta(doctype, cached=True):
 	# don't cache for developer mode as js files, templates may be edited
-	if cached and not frappe.conf.developer_mode:
-		meta = frappe.cache().hget("form_meta", doctype)
-		if meta:
-			meta = FormMeta(meta)
-		else:
-			meta = FormMeta(doctype)
-			frappe.cache().hset("form_meta", doctype, meta.as_dict())
+
+	if frappe.conf.developer_mode:
+		cached = False
+
+	if cached and (meta := frappe.cache().hget("form_meta", doctype)):
+		meta = FormMeta(meta)
 	else:
-		meta = FormMeta(doctype)
+		meta = FormMeta(get_model_meta(doctype))
+		if cached:
+			frappe.cache().hset("form_meta", doctype, meta.as_dict())
 
 	if frappe.local.lang != "en":
 		meta.set_translations(frappe.local.lang)
@@ -52,7 +55,11 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super(FormMeta, self).__init__(doctype)
+		if isinstance(doctype, Meta):
+			self.__dict__.update(doctype.__dict__)
+		else:
+			super(FormMeta, self).__init__(doctype)
+
 		self.load_assets()
 
 	def load_assets(self):
