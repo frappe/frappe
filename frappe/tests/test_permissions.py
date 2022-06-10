@@ -691,8 +691,7 @@ class TestPermissions(FrappeTestCase):
 
 		# Sales User cannot query shares on Blog Post
 		frappe.set_user("test3@example.com")
-		shares = get_users("Blog Post", "-test-blog-post")
-		self.assertEqual(len(shares), 0)
+		self.assertRaises(frappe.ValidationError, get_users, "Blog Post", "-test-blog-post")
 
 		# Blogger shares Blog Post with Sales User
 		frappe.set_user("test2@example.com")
