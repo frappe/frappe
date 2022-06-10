@@ -1349,7 +1349,7 @@ def get_thumbnail_base64_for_image(src):
 
 		original_size = image.size
 		size = 50, 50
-		image.thumbnail(size, Image.ANTIALIAS)
+		image.thumbnail(size, Image.Resampling.LANCZOS)
 
 		base64_string = image_to_base64(image, extn)
 		return {
