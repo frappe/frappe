@@ -213,7 +213,7 @@ def set_name_from_naming_options(autoname, doc):
 		doc.name = _format_autoname(autoname, doc)
 	elif "#" in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
-
+	return doc.name
 
 def set_naming_from_document_naming_rule(doc):
 	"""
@@ -317,9 +317,9 @@ def parse_naming_series(
 			part = frappe.defaults.get_user_default("fiscal_year")
 		elif e.startswith("{") and doc:
 			e = e.replace("{", "").replace("}", "")
-			part = doc.get(e)
+			part = (cstr(doc.get(e)) or "").strip()
 		elif doc and doc.get(e):
-			part = doc.get(e)
+			part = (cstr(doc.get(e)) or "").strip()
 		else:
 			part = e
 
