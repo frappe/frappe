@@ -330,8 +330,17 @@ def validate_and_sanitize_search_inputs(fn):
 
 @frappe.whitelist()
 def get_names_for_mentions(search_term):
-	users_for_mentions = frappe.cache().get_value("users_for_mentions", get_users_for_mentions)
-	user_groups = frappe.cache().get_value("user_groups", get_user_groups)
+	users_for_mentions = frappe.cache().get_value(
+		key="users_for_mentions",
+		generator=get_users_for_mentions,
+		user=frappe.session.user,
+	)
+
+	user_groups = frappe.cache().get_value(
+		key="user_groups",
+		generator=get_user_groups,
+		user=frappe.session.user,
+	)
 
 	filtered_mentions = []
 	for mention_data in users_for_mentions + user_groups:
@@ -348,7 +357,7 @@ def get_names_for_mentions(search_term):
 
 
 def get_users_for_mentions():
-	return frappe.get_all(
+	return frappe.get_list(
 		"User",
 		fields=["name as id", "full_name as value"],
 		filters={
@@ -361,7 +370,7 @@ def get_users_for_mentions():
 
 
 def get_user_groups():
-	return frappe.get_all(
+	return frappe.get_list(
 		"User Group", fields=["name as id", "name as value"], update={"is_group": True}
 	)
 
