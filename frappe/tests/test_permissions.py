@@ -672,3 +672,33 @@ class TestPermissions(FrappeTestCase):
 			doctype="Has Role",
 			parent_doctype="Has Role",
 		)
+
+	def test_read_docshare(self):
+		"""Test if users can query only docshares on doctypes they can read."""
+		from frappe.share import add, get_users
+
+		add("Blog Post", "-test-blog-post", "test2@example.com")
+
+		# System manager can query shares on Blog Post
+		frappe.set_user("test1@example.com")
+		shares = get_users("Blog Post", "-test-blog-post")
+		self.assertEqual(len(shares) == 1)
+
+		# Blogger can query shares on Blog Post
+		frappe.set_user("test2@example.com")
+		shares = get_users("Blog Post", "-test-blog-post")
+		self.assertEqual(len(shares) == 1)
+
+		# Sales User cannot query shares on Blog Post
+		frappe.set_user("test3@example.com")
+		shares = get_users("Blog Post", "-test-blog-post")
+		self.assertEqual(len(shares) == 0)
+
+		# Blogger shares Blog Post with Sales User
+		frappe.set_user("test2@example.com")
+		add("Blog Post", "-test-blog-post", "test3@example.com")
+
+		# Sales User can query shares on Blog Post
+		frappe.set_user("test3@example.com")
+		shares = get_users("Blog Post", "-test-blog-post")
+		self.assertEqual(len(shares) == 2)
