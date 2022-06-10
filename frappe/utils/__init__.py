@@ -145,7 +145,7 @@ def validate_name(name, throw=False):
 		return False
 
 	name = name.strip()
-	match = PERSON_NAME_PATTERN.match(PERSON_NAME_PATTERN, name)
+	match = PERSON_NAME_PATTERN.match(name)
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)

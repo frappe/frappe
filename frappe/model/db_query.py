@@ -29,13 +29,17 @@ from frappe.utils import (
 	make_filter_tuple,
 )
 
-LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)")
-LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)")
-FUNC_IFNULL_PATTERN = re.compile(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,")
-CAST_VARCHAR_PATTERN = re.compile(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)")
-ORDER_BY_PATTERN = re.compile(
-	r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC",
+LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
+LOCATE_CAST_PATTERN = re.compile(
+	r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", flags=re.IGNORECASE
 )
+FUNC_IFNULL_PATTERN = re.compile(
+	r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE
+)
+CAST_VARCHAR_PATTERN = re.compile(
+	r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE
+)
+ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
 
 
 class DatabaseQuery(object):
@@ -963,7 +967,7 @@ def cast_name(column: str) -> str:
 	if frappe.db.db_type == "mariadb":
 		return column
 
-	kwargs = {"string": column, "flags": re.IGNORECASE}
+	kwargs = {"string": column}
 	if "cast(" not in column.lower() and "::" not in column:
 		if LOCATE_PATTERN.search(**kwargs):
 			return LOCATE_CAST_PATTERN.sub(r"locate(\1, cast(\2 as varchar))", **kwargs)

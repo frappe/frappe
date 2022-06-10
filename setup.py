@@ -53,7 +53,6 @@ setup(
 	zip_safe=False,
 	include_package_data=True,
 	install_requires=install_requires,
-	dependency_links=["https://github.com/frappe/python-pdfkit.git#egg=pdfkit"],
 	cmdclass={"clean": CleanCommand},
 	python_requires=">=3.8",
 )

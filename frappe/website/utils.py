@@ -321,10 +321,8 @@ def extract_comment_tag(source: str, tag: str):
 	:param source: raw template source in HTML
 	:param title: tag to search, example "title"
 	"""
-
-	if f"<!-- {tag}:" in source:
-		return re.search(f"<!-- {tag}:([^>]*) -->", source).group().strip()
-	return None
+	matched_pattern = re.search(f"<!-- {tag}:([^>]*) -->", source)
+	return matched_pattern.groups()[0].strip() if matched_pattern else None
 
 
 def get_html_content_based_on_type(doc, fieldname, content_type):
