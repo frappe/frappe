@@ -22,7 +22,7 @@ gunicorn~=20.1.0
 html2text==2020.1.16
 html5lib~=1.1
 ipython~=8.4.0
-Jinja2~=3.0.1
+Jinja2~=3.1.2
 ldap3~=2.9
 markdown2~=2.4.0
 maxminddb-geolite2==2018.703
