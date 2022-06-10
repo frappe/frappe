@@ -213,7 +213,7 @@ def set_name_from_naming_options(autoname, doc):
 		doc.name = _format_autoname(autoname, doc)
 	elif "#" in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
-	return doc.name
+
 
 def set_naming_from_document_naming_rule(doc):
 	"""
