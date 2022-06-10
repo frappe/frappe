@@ -144,10 +144,6 @@ def restore(
 	)
 	from frappe.utils.backups import Backup
 
-	if not os.path.exists(sql_file_path):
-		print("Invalid path", sql_file_path)
-		sys.exit(1)
-
 	_backup = Backup(sql_file_path)
 
 	site = get_site(context)

@@ -10,18 +10,19 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import functools
 import importlib
 import inspect
 import json
 import os
-import sys
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
+from frappe.utils.caching import request_cache
 from frappe.utils.data import cstr, sbool
 
 # Local application imports
@@ -409,16 +410,22 @@ def msgprint(
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
 	"""
+	import inspect
+	import sys
+
 	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
 
+	@functools.lru_cache(maxsize=1024)
+	def _strip_html_tags(message):
+		return strip_html_tags(message)
+
 	def _raise_exception():
 		if raise_exception:
 			if flags.rollback_on_exception:
 				db.rollback()
-			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception(msg)
@@ -435,8 +442,11 @@ def msgprint(
 	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
+	if sys.stdin.isatty():
+		msg = _strip_html_tags(out.message)
+
 	if flags.print_messages and out.message:
-		print(f"Message: {strip_html_tags(out.message)}")
+		print(f"Message: {_strip_html_tags(out.message)}")
 
 	out.title = title or _("Message", context="Default title of the message dialog")
 
@@ -834,6 +844,7 @@ def clear_cache(user=None, doctype=None):
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
+	import frappe.utils.caching
 
 	if doctype:
 		frappe.cache_manager.clear_doctype_cache(doctype)
@@ -853,7 +864,10 @@ def clear_cache(user=None, doctype=None):
 		for fn in get_hooks("clear_cache"):
 			get_attr(fn)()
 
+	frappe.utils.caching._SITE_CACHE.clear()
 	local.role_permissions = {}
+	if hasattr(local, "request_cache"):
+		local.request_cache.clear()
 
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
@@ -1023,7 +1037,7 @@ def get_cached_doc(*args, **kwargs):
 		return doc
 
 	if key := can_cache_doc(args):
-		# local cache
+		# local cache - has "ready" `Document` objects
 		if doc := local.document_cache.get(key):
 			return _respond(doc)
 
@@ -1031,8 +1045,21 @@ def get_cached_doc(*args, **kwargs):
 		if doc := cache().hget("document_cache", key):
 			return _respond(doc, True)
 
-	# database
+	# Not found in local/redis, fetch from DB
 	doc = get_doc(*args, **kwargs)
+
+	# Store in cache
+	if not key:
+		key = get_document_cache_key(doc.doctype, doc.name)
+
+	local.document_cache[key] = doc
+
+	# Avoid setting in local.cache since we're already using local.document_cache above
+	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
+	try:
+		cache().hset("document_cache", key, doc, cache_locally=False)
+	except Exception:
+		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
 
 	return doc
 
@@ -1104,10 +1131,13 @@ def get_doc(*args, **kwargs):
 
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
-	# set in cache
+	# Replace cache
 	if key := can_cache_doc(args):
-		local.document_cache[key] = doc
-		cache().hset("document_cache", key, doc.as_dict())
+		if key in local.document_cache:
+			local.document_cache[key] = doc
+
+		if cache().hexists("document_cache", key):
+			cache().hset("document_cache", key, doc.as_dict())
 
 	return doc
 
@@ -1162,7 +1192,7 @@ def delete_doc(
 	:param delete_permanently: Do not create a Deleted Document for the document."""
 	import frappe.model.delete_doc
 
-	frappe.model.delete_doc.delete_doc(
+	return frappe.model.delete_doc.delete_doc(
 		doctype,
 		name,
 		force,
@@ -1258,8 +1288,10 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	module = scrub(module)
-	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
+	from frappe.modules.utils import get_module_app
+
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
 
 
 def get_app_path(app_name, *joins):
@@ -1311,6 +1343,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 	return apps
 
 
+@request_cache
 def get_installed_apps(sort=False, frappe_last=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
@@ -1352,47 +1385,49 @@ def get_doc_hooks():
 	return local.doc_events_hooks
 
 
-def get_hooks(hook=None, default=None, app_name=None):
+@request_cache
+def _load_app_hooks(app_name: Optional[str] = None):
+	hooks = {}
+	apps = [app_name] if app_name else get_installed_apps(sort=True)
+
+	for app in apps:
+		try:
+			app_hooks = get_module(f"{app}.hooks")
+		except ImportError:
+			if local.flags.in_install_app:
+				# if app is not installed while restoring
+				# ignore it
+				pass
+			print(f'Could not find app "{app}"')
+			if not request:
+				raise SystemExit
+			raise
+		for key in dir(app_hooks):
+			if not key.startswith("_"):
+				append_hook(hooks, key, getattr(app_hooks, key))
+	return hooks
+
+
+def get_hooks(
+	hook: str = None, default: Optional[Any] = "_KEEP_DEFAULT_LIST", app_name: str = None
+) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
 	:param default: Default if no hook found.
 	:param app_name: Filter by app."""
 
-	def load_app_hooks(app_name=None):
-		hooks = {}
-		for app in [app_name] if app_name else get_installed_apps(sort=True):
-			app = "frappe" if app == "webnotes" else app
-			try:
-				app_hooks = get_module(app + ".hooks")
-			except ImportError:
-				if local.flags.in_install_app:
-					# if app is not installed while restoring
-					# ignore it
-					pass
-				print('Could not find app "{0}"'.format(app_name))
-				if not request:
-					sys.exit(1)
-				raise
-			for key in dir(app_hooks):
-				if not key.startswith("_"):
-					append_hook(hooks, key, getattr(app_hooks, key))
-		return hooks
-
-	no_cache = conf.developer_mode or False
-
 	if app_name:
-		hooks = _dict(load_app_hooks(app_name))
+		hooks = _dict(_load_app_hooks(app_name))
 	else:
-		if no_cache:
-			hooks = _dict(load_app_hooks())
+		if conf.developer_mode:
+			hooks = _dict(_load_app_hooks())
 		else:
-			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+			hooks = _dict(cache().get_value("app_hooks", _load_app_hooks))
 
 	if hook:
-		return hooks.get(hook) or (default if default is not None else [])
-	else:
-		return hooks
+		return hooks.get(hook, ([] if default == "_KEEP_DEFAULT_LIST" else default))
+	return hooks
 
 
 def append_hook(target, key, value):
@@ -1501,18 +1536,26 @@ def call(fn, *args, **kwargs):
 
 
 def get_newargs(fn, kwargs):
+
+	# if function has any **kwargs parameter that capture arbitrary keyword arguments
+	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+	varkw_exist = False
+
 	if hasattr(fn, "fnargs"):
 		fnargs = fn.fnargs
 	else:
 		signature = inspect.signature(fn)
 		fnargs = list(signature.parameters)
-		varkw = "kwargs" in fnargs
-		if varkw:
-			fnargs.pop(-1)
+
+		for param_name, parameter in signature.parameters.items():
+			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+				varkw_exist = True
+				fnargs.remove(param_name)
+				break
 
 	newargs = {}
 	for a in kwargs:
-		if (a in fnargs) or varkw:
+		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
 	newargs.pop("ignore_permissions", None)
@@ -1808,18 +1851,21 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: Union[Dict, List], indent=1) -> str:
+def as_json(obj: Union[Dict, List], indent=1, separators=None) -> str:
 	from frappe.utils.response import json_handler
+
+	if separators is None:
+		separators = (",", ": ")
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=(",", ": ")
+			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=(",", ": "))
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
 
 
 def are_emails_muted():

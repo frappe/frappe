@@ -55,11 +55,11 @@ class PackageImport(Document):
 		for module in os.listdir(package_path):
 			module_path = os.path.join(package_path, module)
 			if os.path.isdir(module_path):
-				get_doc_files(files, module_path)
+				files = get_doc_files(files, module_path)
 
 		# import files
 		for file in files:
-			import_file_by_path(file, force=self.force, ignore_version=True, for_sync=True)
+			import_file_by_path(file, force=self.force, ignore_version=True)
 			log.append("Imported {}".format(file))
 
 		self.log = "\n".join(log)

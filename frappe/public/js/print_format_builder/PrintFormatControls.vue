@@ -181,8 +181,8 @@ export default {
 			return [
 				{ label: __("Top"), fieldname: "margin_top" },
 				{ label: __("Bottom"), fieldname: "margin_bottom" },
-				{ label: __("Left"), fieldname: "margin_left" },
-				{ label: __("Right"), fieldname: "margin_right" }
+				{ label: __("Left", null, 'alignment'), fieldname: "margin_left" },
+				{ label: __("Right", null, 'alignment'), fieldname: "margin_right" }
 			];
 		},
 		fields() {

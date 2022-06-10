@@ -39,6 +39,12 @@ frappe.ui.form.Form = class FrappeForm {
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
 		this.setup_meta(doctype);
+
+		this.beforeUnloadListener = (event) => {
+			event.preventDefault();
+			// A String is returned for compatability with older Browsers. Return Value has to be truthy to trigger "Leave Site" Dialog
+			return event.returnValue = 'There are unsaved changes, are you sure you want to exit?';
+		};
 	}
 
 	setup_meta() {
@@ -342,6 +348,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 	refresh(docname) {
 		var switched = docname ? true : false;
+
+		removeEventListener("beforeunload", this.beforeUnloadListener, {capture: true});
 
 		if(docname) {
 			this.switch_doc(docname);
@@ -913,7 +921,7 @@ frappe.ui.form.Form = class FrappeForm {
 		} else {
 			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
 		}
-	};
+	}
 
 	savetrash() {
 		this.validate_form_action("Delete");
@@ -1236,6 +1244,9 @@ frappe.ui.form.Form = class FrappeForm {
 	dirty() {
 		this.doc.__unsaved = 1;
 		this.$wrapper.trigger('dirty');
+		if (!frappe.boot.developer_mode) {
+			addEventListener("beforeunload", this.beforeUnloadListener, {capture: true});
+		}
 	}
 
 	get_docinfo() {
@@ -1482,15 +1493,21 @@ frappe.ui.form.Form = class FrappeForm {
 			if(fieldobj) {
 				if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
 					if(frappe.model.table_fields.includes(fieldobj.df.fieldtype) && $.isArray(v)) {
-
+						// set entire child table from specified array as value
 						frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 
-						for (var i=0, j=v.length; i < j; i++) {
-							var d = v[i];
-							var child = frappe.model.add_child(me.doc, fieldobj.df.options,
-								fieldobj.df.fieldname, i+1);
-							$.extend(child, d);
-						}
+						const standard_fields = [...frappe.model.std_fields_list, ...frappe.model.child_table_field_list];
+						v.forEach((d, idx) => {
+							let child = frappe.model.add_child(me.doc, fieldobj.df.options,
+								fieldobj.df.fieldname, idx+1);
+
+							// Don't set standard field, avoid mutating input too.
+							let doc_copy = {...d};
+							standard_fields.forEach(field => {
+								delete doc_copy[field];
+							});
+							$.extend(child, doc_copy);
+						});
 
 						me.refresh_field(f);
 						return Promise.resolve();

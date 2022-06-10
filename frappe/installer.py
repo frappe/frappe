@@ -473,13 +473,20 @@ def set_all_patches_as_completed(app):
 
 
 def init_singles():
-	singles = [single["name"] for single in frappe.get_all("DocType", filters={"issingle": True})]
+	singles = frappe.get_all("DocType", filters={"issingle": True}, pluck="name")
 	for single in singles:
-		if not frappe.db.get_singles_dict(single):
+		if frappe.db.get_singles_dict(single):
+			continue
+
+		try:
 			doc = frappe.new_doc(single)
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_validate = True
 			doc.save()
+		except ImportError:
+			# The doctype exists, but controller is deleted,
+			# no need to attempt to init such single, ref: #16917
+			continue
 
 
 def make_conf(

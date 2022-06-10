@@ -106,6 +106,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.set_route(item.route);
 			}
 			$input.val("");
+			$input.trigger('blur');
 		});
 
 		$input.on("awesomplete-selectcomplete", function(e) {
