@@ -25,7 +25,7 @@ def run_webhooks(doc, method):
 			# query webhooks
 			webhooks_list = frappe.get_all(
 				"Webhook",
-				fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"],
+				fields=["name", "condition", "webhook_docevent", "webhook_doctype"],
 				filters={"enabled": True},
 			)
 

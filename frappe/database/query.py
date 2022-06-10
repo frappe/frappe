@@ -93,7 +93,7 @@ def func_between(key: Field, value: Union[List, Tuple]) -> frappe.qb:
 
 def func_is(key, value):
 	"Wrapper for IS"
-	return Field(key).isnotnull() if value.lower() == "set" else Field(key).isnull()
+	return key.isnotnull() if value.lower() == "set" else key.isnull()
 
 
 def func_timespan(key: Field, value: str) -> frappe.qb:
@@ -238,7 +238,7 @@ class Query:
 		Returns:
 		        conditions (frappe.qb): frappe.qb object
 		"""
-		if kwargs.get("orderby"):
+		if kwargs.get("orderby") and kwargs.get("orderby") != "KEEP_DEFAULT_ORDERING":
 			orderby = kwargs.get("orderby")
 			if isinstance(orderby, str) and len(orderby.split()) > 1:
 				for ordby in orderby.split(","):
@@ -250,12 +250,16 @@ class Query:
 
 		if kwargs.get("limit"):
 			conditions = conditions.limit(kwargs.get("limit"))
+			conditions = conditions.offset(kwargs.get("offset", 0))
 
 		if kwargs.get("distinct"):
 			conditions = conditions.distinct()
 
 		if kwargs.get("for_update"):
 			conditions = conditions.for_update()
+
+		if kwargs.get("groupby"):
+			conditions = conditions.groupby(kwargs.get("groupby"))
 
 		return conditions
 
@@ -308,6 +312,10 @@ class Query:
 			conditions = self.add_conditions(conditions, **kwargs)
 			return conditions
 
+		for key, value in filters.items():
+			if isinstance(value, bool):
+				filters.update({key: str(int(value))})
+
 		for key in filters:
 			value = filters.get(key)
 			_operator = self.OPERATOR_MAP["="]
@@ -354,6 +362,36 @@ class Query:
 
 		return criterion
 
+	def set_fields(self, fields, **kwargs):
+		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
+		if isinstance(fields, str) and "," in fields:
+			fields = fields.split(",")
+			fields = [field.replace(" ", "") if "as" not in field else field for field in fields]
+
+		if isinstance(fields, str):
+			if fields == "*":
+				return fields
+			if " as " in fields:
+				fields, reference = fields.split(" as ")
+				fields = Field(fields).as_(reference)
+		else:
+			if issubclass(type(fields), Criterion):
+				return fields
+			updated_fields = list()
+			for field in fields:
+				if not isinstance(field, Criterion) and field:
+					if " as " in field:
+						field, reference = field.split(" as ")
+						updated_fields.append(Field(field).as_(reference))
+					else:
+						updated_fields.append(Field(field))
+			fields = updated_fields
+
+		if not isinstance(fields, (list, tuple, str, Criterion)):
+			fields = list(fields)
+
+		return fields
+
 	def get_sql(
 		self,
 		table: str,
@@ -364,12 +402,17 @@ class Query:
 		# Clean up state before each query
 		self.tables = {}
 		criterion = self.build_conditions(table, filters, **kwargs)
+		fields = self.set_fields(fields, **kwargs)
+
+		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 
 		if len(self.tables) > 1:
 			primary_table = self.tables[table]
 			del self.tables[table]
 			for table_object in self.tables.values():
-				criterion = criterion.left_join(table_object).on(table_object.parent == primary_table.name)
+				criterion = getattr(criterion, join)(table_object).on(
+					table_object.parent == primary_table.name
+				)
 
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*kwargs.get("field_objects", fields))
