@@ -922,12 +922,12 @@ def validate_autoincrement_autoname(dt: DocType) -> bool:
 	def get_autoname_before_save(dt: DocType) -> str:
 		if dt.name == "Customize Form":
 			property_value = frappe.db.get_value(
-				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
+				"Property Setter", {"doc_type": dt.doctype, "property": "autoname"}, "value"
 			)
 			# initially no property setter is set,
 			# hence getting autoname value from the doctype itself
 			if not property_value:
-				return frappe.db.get_value("DocType", dt.doc_type, "autoname") or ""
+				return frappe.db.get_value("DocType", dt.doctype, "autoname") or ""
 
 			return property_value
 
