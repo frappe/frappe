@@ -4,6 +4,8 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder import Interval
+from frappe.query_builder.functions import Now
 
 
 class ErrorLog(Document):
@@ -11,6 +13,11 @@ class ErrorLog(Document):
 		if not self.seen:
 			self.db_set("seen", 1, update_modified=0)
 			frappe.db.commit()
+
+	@staticmethod
+	def clear_old_logs(days=30):
+		table = frappe.qb.DocType("Error Log")
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()
