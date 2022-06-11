@@ -6,6 +6,9 @@ def execute():
 		"Error Log": get_current_setting("clear_error_log_after") or 30,
 		"Activity Log": get_current_setting("clear_activity_log_after") or 90,
 		"Email Queue": get_current_setting("clear_email_queue_after") or 30,
+		"Route History": 90,
+		"Error Snapshot": 30,
+		"Scheduled Job Log": 90,
 	}
 
 	frappe.reload_doc("core", "doctype", "Logs To Clear")

@@ -72,7 +72,8 @@ class LogSettings(Document):
 			frappe.db.commit()
 
 	def register_doctype(self, doctype: str, days=30):
-		if doctype not in {d.ref_doctype for d in self.logs_to_clear}:
+		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
+		if doctype not in existing_logtypes and _supports_log_clearing(doctype):
 			self.append("logs_to_clear", {"ref_doctype": doctype, "days": cint(days)})
 
 
