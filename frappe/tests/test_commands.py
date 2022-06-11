@@ -27,6 +27,8 @@ import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
@@ -517,6 +519,18 @@ class TestBackups(BaseTestCommands):
 		self.assertNotEqual(before_backup, after_backup)
 		self.assertIsNotNone(after_backup["public"])
 		self.assertIsNotNone(after_backup["private"])
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_clear_log_table(self):
+		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
+		d.db_set("modified", "2010-01-01", update_modified=False)
+		frappe.db.commit()
+
+		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
+		self.assertEqual(self.returncode, 0)
+		frappe.db.commit()
+
+		self.assertFalse(frappe.db.exists("Error Log", d.name))
 
 	def test_backup_with_custom_path(self):
 		"""Backup to a custom path (--backup-path)"""
