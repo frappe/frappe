@@ -230,7 +230,7 @@ class Meta(Document):
 
 		return fields
 
-	def get_valid_columns(self):
+	def get_valid_columns(self) -> list[str]:
 		if not hasattr(self, "_valid_columns"):
 			table_exists = frappe.db.table_exists(self.name)
 			if self.name in self.special_doctypes and table_exists:

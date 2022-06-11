@@ -2,15 +2,15 @@
 # License: MIT. See LICENSE
 
 import datetime
-import json
 import itertools
+import json
 import random
 import re
 import string
 import traceback
 from contextlib import contextmanager, suppress
 from time import time
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Iterable, Sequence
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue
@@ -1209,7 +1209,7 @@ class Database:
 	def bulk_insert(
 		self,
 		doctype: str,
-		fields: List[str],
+		fields: list[str],
 		values: Iterable[Sequence[Any]],
 		ignore_duplicates=False,
 		*,
