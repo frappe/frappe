@@ -11,6 +11,15 @@ from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.caching import site_cache
 
+DEFAULT_LOGTYPES = {
+	"Error Log": 30,
+	"Activity Log": 90,
+	"Email Queue": 30,
+	"Route History": 90,
+	"Error Snapshot": 30,
+	"Scheduled Job Log": 90,
+}
+
 
 @runtime_checkable
 class LogType(Protocol):
@@ -34,6 +43,7 @@ class LogSettings(Document):
 	def validate(self):
 		self.validate_supported_doctypes()
 		self.validate_duplicates()
+		self.add_default_logtypes()
 
 	def validate_supported_doctypes(self):
 		for entry in self.logs_to_clear:
@@ -54,6 +64,19 @@ class LogSettings(Document):
 				)
 			seen.add(entry.ref_doctype)
 
+	def add_default_logtypes(self):
+		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
+		added_logtypes = set()
+		for logtype, frequency in DEFAULT_LOGTYPES.items():
+			if logtype not in existing_logtypes and _supports_log_clearing(logtype):
+				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(frequency)})
+				added_logtypes.add(logtype)
+
+		if added_logtypes:
+			frappe.msgprint(
+				_("Added default log doctypes: {}").format(",".join(added_logtypes)), alert=True
+			)
+
 	def clear_logs(self):
 		"""
 		Log settings can clear any log type that's registered to it and provides a method to delete old logs.
@@ -73,12 +96,20 @@ class LogSettings(Document):
 
 	def register_doctype(self, doctype: str, days=30):
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
+
 		if doctype not in existing_logtypes and _supports_log_clearing(doctype):
 			self.append("logs_to_clear", {"ref_doctype": doctype, "days": cint(days)})
+		else:
+			for entry in self.logs_to_clear:
+				if entry.ref_doctype == doctype:
+					entry.days = days
+					break
 
 
 def run_log_clean_up():
 	doc = frappe.get_doc("Log Settings")
+	doc.add_default_logtypes()
+	doc.save()
 	doc.clear_logs()
 
 
