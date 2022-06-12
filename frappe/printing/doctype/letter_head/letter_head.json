@@ -156,6 +156,7 @@
    "options": "Left\nRight\nCenter"
   },
   {
+   "depends_on": "letter_head_name",
    "fieldname": "footer_source",
    "fieldtype": "Select",
    "label": "Footer Based On",
@@ -166,7 +167,7 @@
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2022-06-09 13:57:40.890875",
+ "modified": "2022-06-12 15:31:45.046774",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
