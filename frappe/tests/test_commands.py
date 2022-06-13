@@ -526,11 +526,16 @@ class TestBackups(BaseTestCommands):
 		d.db_set("modified", "2010-01-01", update_modified=False)
 		frappe.db.commit()
 
+		tables_before = frappe.db.get_tables(cached=False)
+
 		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
 		self.assertEqual(self.returncode, 0)
 		frappe.db.commit()
 
 		self.assertFalse(frappe.db.exists("Error Log", d.name))
+		tables_after = frappe.db.get_tables(cached=False)
+
+		self.assertEqual(set(tables_before), set(tables_after))
 
 	def test_backup_with_custom_path(self):
 		"""Backup to a custom path (--backup-path)"""
