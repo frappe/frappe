@@ -21,12 +21,12 @@
 				border-bottom: 1px solid var(--border-color);
 			}
 
-			#introduction {
+			.web-form-introduction {
 				margin-bottom: 2rem;
-			}
 
-			#introduction p {
-				color: var(--text-muted);
+				p {
+					color: var(--text-muted);
+				}
 			}
 
 			.web-form-actions button {

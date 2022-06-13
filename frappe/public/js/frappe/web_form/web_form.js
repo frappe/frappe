@@ -23,13 +23,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.set_sections();
 		this.set_field_values();
 		this.setup_listeners();
-		if (this.introduction_text) this.set_form_description(this.introduction_text);
 		if (this.allow_print && !this.is_new) this.setup_print_button();
 		if (this.is_new) this.setup_cancel_button();
-		this.setup_primary_action();
+		this.allow_edit && this.setup_primary_action();
 		this.setup_previous_next_button();
 		this.toggle_section();
-		$(".link-btn").remove();
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
@@ -135,12 +133,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let values = frappe.utils.get_query_params();
 		delete values.new;
 		this.set_values(values);
-	}
-
-	set_form_description(intro) {
-		let intro_wrapper = document.getElementById('introduction');
-		intro_wrapper.innerHTML = intro;
-		intro_wrapper.classList.remove('hidden');
 	}
 
 	add_button(name, type, action, wrapper_class=".web-form-actions") {

@@ -4,6 +4,9 @@ import WebForm from './web_form'
 frappe.ready(function() {
 	let query_params = frappe.utils.get_query_params();
 	let wrapper = $(".web-form-wrapper");
+	if (wrapper.length == 0) {
+		wrapper = $(".web-list-wrapper");
+	}
 	let is_list = parseInt(wrapper.data('is-list')) || query_params.is_list;
 	let webform_doctype = wrapper.data('web-form-doctype');
 	let webform_name = wrapper.data('web-form');
@@ -52,11 +55,6 @@ frappe.ready(function() {
 			const data = setup_fields(r.message);
 			let web_form_doc = data.web_form;
 
-			// if (web_form_doc.name && web_form_doc.allow_edit === 0) {
-			// 	if (!window.location.href.includes("?new=1")) {
-			// 		window.location.replace(window.location.pathname + "?new=1");
-			// 	}
-			// }
 			let doc = r.message.doc || build_doc(r.message);
 			web_form.prepare(web_form_doc, r.message.doc && web_form_doc.allow_edit === 1 ? r.message.doc : {});
 			web_form.make();

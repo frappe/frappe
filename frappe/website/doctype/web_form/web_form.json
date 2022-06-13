@@ -5,31 +5,33 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "title_and_route_section",
   "title",
   "route",
+  "published",
+  "column_break_4",
   "doc_type",
   "module",
-  "column_break_4",
   "is_standard",
+  "configuration_section",
   "is_multi_step_form",
-  "published",
   "login_required",
   "route_to_success_link",
   "allow_edit",
   "allow_multiple",
-  "apply_document_permissions",
-  "show_in_grid",
   "allow_delete",
+  "allow_incomplete",
+  "column_break_17",
+  "apply_document_permissions",
   "allow_print",
   "print_format",
   "allow_comments",
   "show_attachments",
-  "allow_incomplete",
+  "max_attachment_size",
   "introduction",
   "introduction_text",
   "fields",
   "web_form_fields",
-  "max_attachment_size",
   "client_script_section",
   "client_script",
   "custom_css_section",
@@ -118,21 +120,14 @@
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Edit"
+   "label": "Allow Editing After Submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple"
-  },
-  {
-   "default": "0",
-   "depends_on": "allow_multiple",
-   "fieldname": "show_in_grid",
-   "fieldtype": "Check",
-   "label": "Show as Grid"
+   "label": "Allow Multiple Responses"
   },
   {
    "default": "0",
@@ -363,13 +358,27 @@
    "fieldname": "is_multi_step_form",
    "fieldtype": "Check",
    "label": "Is Multi Step Form"
+  },
+  {
+   "fieldname": "title_and_route_section",
+   "fieldtype": "Section Break",
+   "label": "Title & Route"
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "fieldname": "column_break_17",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-23 15:44:41.385001",
+ "modified": "2022-06-13 18:16:15.880084",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

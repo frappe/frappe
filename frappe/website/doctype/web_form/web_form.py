@@ -12,7 +12,7 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cstr
+from frappe.utils import cstr, dict_with_keys
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -135,6 +135,11 @@ def get_context(context):
 		"""Build context to render the `web_form.html` template"""
 		self.set_web_form_module()
 
+		if frappe.form_dict.is_list:
+			context.template = 'website/doctype/web_form/templates/web_list.html'
+		else:
+			context.template = 'website/doctype/web_form/templates/web_form.html'
+
 		# check permissions
 		if frappe.session.user == "Guest" and frappe.form_dict.name:
 			frappe.throw(
@@ -179,33 +184,19 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if not frappe.session.user == "Guest":
-			if self.allow_edit:
-				if self.allow_multiple:
-					if not frappe.form_dict.name and not frappe.form_dict.is_new:
-						# list data is queried via JS
-						context.is_list = True
-				else:
-					if frappe.session.user != "Guest" and not frappe.form_dict.name:
-						frappe.form_dict.name = frappe.db.get_value(
-							self.doc_type, {"owner": frappe.session.user}, "name"
-						)
+		# add keys from form_dict to context
+		context.update(dict_with_keys(frappe.form_dict, ['is_list', 'is_new', 'is_edit', 'is_read']))
 
-					if not frappe.form_dict.name:
-						# only a single doc allowed and no existing doc, hence new
-						frappe.form_dict.is_new = 1
-
-		if frappe.form_dict.is_list:
-			context.is_list = True
+		for df in self.web_form_fields:
+			if df.fieldtype == "Column Break":
+				context.has_column_break = True
+				break
 
 		if frappe.form_dict.name:
 			context.doc_name = frappe.form_dict.name
 
-		# always render new form if login is not required or doesn't allow editing existing ones
-		if not self.login_required or not self.allow_edit:
-			frappe.form_dict.is_new = 1
-
 		self.load_document(context)
+
 		context.parents = self.get_parents(context)
 
 		if self.breadcrumbs:
@@ -224,7 +215,6 @@ def get_context(context):
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
-		context.show_in_grid = self.show_in_grid
 		self.load_translations(context)
 		context.link_title_doctypes = frappe.boot.get_link_title_doctypes()
 
@@ -621,7 +611,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = frappe.get_meta(field.options).fields
+			field.fields = get_in_list_view_fields(field.options)
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
