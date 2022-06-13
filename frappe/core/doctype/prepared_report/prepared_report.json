@@ -23,16 +23,14 @@
   {
    "fieldname": "report_name",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Report Name",
    "read_only": 1
   },
   {
    "fieldname": "ref_report_doctype",
    "fieldtype": "Link",
-   "hidden": 1,
    "in_standard_filter": 1,
-   "label": "Ref Report DocType",
+   "label": "Report Type",
    "options": "Report",
    "read_only": 1
   },
@@ -105,7 +103,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-06-13 06:14:30.144230",
+ "modified": "2022-06-13 06:20:34.496412",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
@@ -134,10 +132,9 @@
    "share": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "report_name",
+ "title_field": "ref_report_doctype",
  "track_changes": 1
 }
