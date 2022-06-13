@@ -1,3 +1,5 @@
+from enum import Enum
+
 from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
 
@@ -12,6 +14,11 @@ from .utils import PseudoColumn
 class Concat_ws(Function):
 	def __init__(self, *terms, **kwargs):
 		super(Concat_ws, self).__init__("CONCAT_WS", *terms, **kwargs)
+
+
+class Locate(Function):
+	def __init__(self, *terms, **kwargs):
+		super(Locate, self).__init__("LOCATE", *terms, **kwargs)
 
 
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
@@ -79,6 +86,15 @@ def _aggregate(function, dt, fieldname, filters, **kwargs):
 		.run(**kwargs)[0][0]
 		or 0
 	)
+
+
+class SqlFunctions(Enum):
+	DayOfYear = "dayofyear"
+	Extract = "extract"
+	Locate = "locate"
+	Count = "count"
+	Sum = "sum"
+	Avg = "avg"
 
 
 def _max(dt, fieldname, filters=None, **kwargs):

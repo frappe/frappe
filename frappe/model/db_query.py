@@ -163,7 +163,7 @@ class DatabaseQuery(object):
 		if not self.columns:
 			return []
 
-		result = self.build_and_run(ignore_permissions=ignore_permissions, pluck=pluck)
+		result = self.build_and_run()
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -177,7 +177,7 @@ class DatabaseQuery(object):
 
 		return result
 
-	def build_and_run(self, ignore_permissions, pluck):
+	def build_and_run(self):
 		args = self.prepare_args()
 		args.limit = self.add_limit()
 
@@ -202,27 +202,6 @@ class DatabaseQuery(object):
 			%(limit)s"""
 			% args
 		)
-		if ignore_permissions:
-			sql = self.query.get_sql(
-				self.doctype,
-				fields=self.temp_fields,
-				filters=self.temp_filters,
-				pluck=pluck,
-				join=self.join,
-				orderby=self.order_by,
-				groupby=self.group_by,
-				distinct=self.distinct,
-				limit=self.limit_page_length,
-				offset=self.limit_start,
-			)
-			return sql.run(
-				as_dict=not self.as_list,
-				debug=self.debug,
-				update=self.update,
-				ignore_ddl=self.ignore_ddl,
-				run=self.run,
-			)
-
 		return frappe.db.sql(
 			query,
 			as_dict=not self.as_list,
