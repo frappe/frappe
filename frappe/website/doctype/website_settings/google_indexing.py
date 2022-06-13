@@ -12,7 +12,7 @@ from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.utils import get_request_site_address
 
 
-@frappe.whitelist(methods=["POST", "GET"])
+@frappe.whitelist(methods=["POST"])
 def authorize_access(reauthorize=False, code=None):
 	"""If no Authorization code get it from Google and then request for Refresh Token."""
 
