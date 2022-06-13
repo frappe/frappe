@@ -14,9 +14,9 @@ def execute():
 	log_settings = frappe.get_doc("Log Settings")
 	log_settings.add_default_logtypes()
 
-	for doctype, days in old_settings.items():
-		if days:
-			log_settings.register_doctype(doctype, days)
+	for doctype, retention in old_settings.items():
+		if retention:
+			log_settings.register_doctype(doctype, retention)
 
 	log_settings.save()
 
@@ -25,4 +25,5 @@ def get_current_setting(fieldname):
 	try:
 		return frappe.db.get_single_value("Log Settings", fieldname)
 	except Exception:
+		# Field might be gone if patch is reattempted
 		pass

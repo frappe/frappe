@@ -67,9 +67,9 @@ class LogSettings(Document):
 	def add_default_logtypes(self):
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 		added_logtypes = set()
-		for logtype, frequency in DEFAULT_LOGTYPES_RETENTION.items():
+		for logtype, retention in DEFAULT_LOGTYPES_RETENTION.items():
 			if logtype not in existing_logtypes and _supports_log_clearing(logtype):
-				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(frequency)})
+				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(retention)})
 				added_logtypes.add(logtype)
 
 		if added_logtypes:
@@ -142,3 +142,48 @@ def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	supported_doctypes = [(d,) for d in doctypes if _supports_log_clearing(d)]
 
 	return supported_doctypes[start:page_len]
+
+
+LOG_DOCTYPES = [
+	"Scheduled Job Log",
+	"Activity Log",
+	"Route History",
+	"Email Queue",
+	"Email Queue Recipient",
+	"Error Snapshot",
+	"Error Log",
+]
+
+
+def clear_log_table(doctype, days=90):
+	"""If any logtype table grows too large then clearing it with DELETE query
+	is not feasible in reasonable time. This command copies recent data to new
+	table and replaces current table with new smaller table.
+
+	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
+	"""
+	from frappe.utils import get_table_name
+
+	if doctype not in LOG_DOCTYPES:
+		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
+
+	original = get_table_name(doctype)
+	temporary = f"{original} temp_table"
+	backup = f"{original} backup_table"
+
+	try:
+		frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
+
+		# Copy all recent data to new table
+		frappe.db.sql(
+			f"""INSERT INTO `{temporary}`
+				SELECT * FROM `{original}`
+				WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
+		)
+		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
+	except Exception:
+		frappe.db.rollback()
+		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
+		raise
+	else:
+		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")

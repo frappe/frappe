@@ -9,6 +9,7 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
+from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 from frappe.exceptions import SiteNotSpecifiedError
 
 
@@ -1088,16 +1089,6 @@ def build_search_index(context):
 		frappe.destroy()
 
 
-LOG_DOCTYPES = [
-	"Scheduled Job Log",
-	"Activity Log",
-	"Route History",
-	"Email Queue",
-	"Error Snapshot",
-	"Error Log",
-]
-
-
 @click.command("clear-log-table")
 @click.option("--doctype", default="text", type=click.Choice(LOG_DOCTYPES), help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
@@ -1111,7 +1102,7 @@ def clear_log_table(context, doctype, days, no_backup):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
-	from frappe.utils import get_table_name
+	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
 
 	if not context.sites:
@@ -1124,10 +1115,6 @@ def clear_log_table(context, doctype, days, no_backup):
 		frappe.init(site=site)
 		frappe.connect()
 
-		if frappe.db.db_type != "mariadb":
-			click.echo("Postgres database isn't supported by this command")
-			sys.exit(1)
-
 		if not no_backup:
 			scheduled_backup(
 				ignore_conf=False,
@@ -1137,29 +1124,13 @@ def clear_log_table(context, doctype, days, no_backup):
 			)
 			click.echo(f"Backed up {doctype}")
 
-		original = get_table_name(doctype)
-		temporary = f"{original} temp_table"
-		backup = f"{original} backup_table"
-
 		try:
-			frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
-
 			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
-			# Copy all recent data to new table
-			frappe.db.sql(
-				f"""INSERT INTO `{temporary}`
-					SELECT * FROM `{original}`
-					WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
-			)
-			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
+			clear_logs(doctype, days=days)
 		except Exception as e:
-			frappe.db.rollback()
-			frappe.db.sql_list(f"DROP TABLE IF EXISTS `{temporary}`")
 			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
 			sys.exit(1)
 		else:
-			frappe.db.commit()
-			frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
 			click.secho(f"Cleared {doctype} records older than {days} days", fg="green")
 
 
