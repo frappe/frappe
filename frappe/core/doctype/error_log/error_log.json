@@ -6,10 +6,12 @@
  "engine": "MyISAM",
  "field_order": [
   "seen",
-  "method",
-  "error",
   "reference_doctype",
-  "reference_name"
+  "column_break_3",
+  "reference_name",
+  "section_break_5",
+  "method",
+  "error"
  ],
  "fields": [
   {
@@ -47,12 +49,20 @@
    "fieldtype": "Data",
    "label": "Reference Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-warning-sign",
  "idx": 1,
  "links": [],
- "modified": "2022-05-19 05:32:16.026684",
+ "modified": "2022-06-13 05:43:30.969901",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Error Log",
