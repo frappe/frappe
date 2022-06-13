@@ -63,7 +63,7 @@ def get_context(context):
 		"body": body,
 		"print_style": print_style,
 		"comment": frappe.session.user,
-		"title": frappe.utils.strip_html(doc.get_title()),
+		"title": frappe.utils.strip_html(doc.get_title() or doc.name),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,

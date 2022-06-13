@@ -10,6 +10,9 @@ import frappe.sessions
 from frappe import _
 from frappe.utils.jinja_globals import is_rtl
 
+SCRIPT_TAG_PATTERN = re.compile(r"\<script[^<]*\</script\>")
+CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
+
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -34,10 +37,10 @@ def get_context(context):
 	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
-	boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json)
+	boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
 
 	# TODO: Find better fix
-	boot_json = re.sub(r"</script\>", "", boot_json)
+	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
 
 	context.update(
 		{

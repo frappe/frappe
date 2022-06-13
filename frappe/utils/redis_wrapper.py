@@ -159,9 +159,7 @@ class RedisWrapper(redis.Redis):
 
 		# set in local
 		if cache_locally:
-			if _name not in frappe.local.cache:
-				frappe.local.cache[_name] = {}
-			frappe.local.cache[_name][key] = value
+			frappe.local.cache.setdefault(_name, {})[key] = value
 
 		# set in redis
 		try:

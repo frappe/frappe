@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - version-14-beta
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Release

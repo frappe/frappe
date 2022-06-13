@@ -30,6 +30,8 @@ local_manager = LocalManager([frappe.local])
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
+SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
+UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
 class RequestContext(object):
@@ -292,7 +294,10 @@ def handle_exception(e):
 
 
 def after_request(rollback):
-	if (frappe.local.request.method in ("POST", "PUT") or frappe.local.flags.commit) and frappe.db:
+	# if HTTP method would change server state, commit if necessary
+	if frappe.db and (
+		frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS
+	):
 		if frappe.db.transaction_writes:
 			frappe.db.commit()
 			rollback = False

@@ -21,10 +21,7 @@ STANDARD_FIELD_CONVERSION_MAP = {
 	"_assign": "Text",
 	"docstatus": "Int",
 }
-
-"""
-Model utilities, unclassified functions
-"""
+INCLUDE_DIRECTIVE_PATTERN = re.compile(r"""{% include\s['"](.*)['"]\s%}""")
 
 
 def set_default(doc, key):
@@ -67,7 +64,7 @@ def render_include(content):
 	# try 5 levels of includes
 	for i in range(5):
 		if "{% include" in content:
-			paths = re.findall(r"""{% include\s['"](.*)['"]\s%}""", content)
+			paths = INCLUDE_DIRECTIVE_PATTERN.findall(content)
 			if not paths:
 				frappe.throw(_("Invalid include path"), InvalidIncludePath)
 
@@ -78,7 +75,7 @@ def render_include(content):
 					if path.endswith(".html"):
 						include = html_to_js_template(path, include)
 
-					content = re.sub(r"""{{% include\s['"]{0}['"]\s%}}""".format(path), include, content)
+					content = re.sub(rf"""{{% include\s['"]{path}['"]\s%}}""", include, content)
 
 		else:
 			break
