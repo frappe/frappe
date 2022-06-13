@@ -51,10 +51,12 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 			},
 		)
 
-	frappe.db.set_value("Google Contacts", g_contact, "authorization_code", oauth_code)
 	r = oauth_obj.authorize(oauth_code, get_request_site_address(True))
-	if r:
-		frappe.db.set_value("Google Contacts", g_contact, "refresh_token", r.get("refresh_token"))
+	frappe.db.set_value(
+		"Google Contacts",
+		g_contact,
+		{"authorization_code": oauth_code, "refresh_token": r.get("refresh_token")},
+	)
 
 
 def get_google_contacts_object(g_contact):

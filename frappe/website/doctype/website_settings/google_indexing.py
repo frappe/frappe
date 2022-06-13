@@ -33,10 +33,11 @@ def authorize_access(reauthorize=False, code=None):
 			},
 		)
 
-	frappe.db.set_value("Website Settings", None, "indexing_authorization_code", oauth_code)
 	res = oauth_obj.authorize(oauth_code, get_request_site_address(True))
 	frappe.db.set_value(
-		"Website Settings", "Website Settings", "indexing_refresh_token", res.get("refresh_token")
+		"Website Settings",
+		"Website Settings",
+		{"indexing_authorization_code": oauth_code, "indexing_refresh_token": res.get("refresh_token")},
 	)
 
 

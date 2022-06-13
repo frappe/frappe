@@ -63,9 +63,12 @@ def authorize_access(reauthorize=False, code=None):
 			},
 		)
 
-	frappe.db.set_value("Google Drive", None, "authorization_code", oauth_code)
 	r = oauth_obj.authorize(oauth_code, get_request_site_address(True))
-	frappe.db.set_value("Google Drive", "Google Drive", "refresh_token", r.get("refresh_token"))
+	frappe.db.set_value(
+		"Google Drive",
+		"Google Drive",
+		{"authorization_code": oauth_code, "refresh_token": r.get("refresh_token")},
+	)
 
 
 def get_google_drive_object():

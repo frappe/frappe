@@ -156,8 +156,8 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 
 	res = oauth_obj.authorize(code, get_request_site_address(True))
 	frappe.db.set_value(
-		doctype, email_account, "refresh_token", res.get("refresh_token"), update_modified=False
-	)
-	frappe.db.set_value(
-		doctype, email_account, "access_token", res.get("access_token"), update_modified=False
+		doctype,
+		email_account,
+		{"refresh_token": res.get("refresh_token"), "access_token": res.get("access_token")},
+		update_modified=False,
 	)
