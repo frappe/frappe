@@ -270,7 +270,7 @@ def get_code_files_via_hooks(hook, name):
 		if not code_hook:
 			continue
 
-		files = code_hook.get(name, [])
+		files = code_hook.get(name, []) + code_hook.get('*', [])
 		if not isinstance(files, list):
 			files = [files]
 
