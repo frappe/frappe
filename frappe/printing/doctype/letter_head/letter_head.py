@@ -59,7 +59,6 @@ class LetterHead(Document):
 					_("Please attach an image file to set HTML for Footer."), alert=True, indicator="orange"
 				)
 
-
 	def on_update(self):
 		self.set_as_default()
 
