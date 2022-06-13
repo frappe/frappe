@@ -25,7 +25,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		this.init_callback = init_callback;
 		this.doc = doc;
 		this.force = force ? force : false;
-		this.show_edit_in_full_page_button = true;	
+		this.show_edit_in_full_page_button = true;
 	}
 	setup() {
 		return new Promise(resolve => {
