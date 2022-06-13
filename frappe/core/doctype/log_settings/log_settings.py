@@ -11,7 +11,7 @@ from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.caching import site_cache
 
-DEFAULT_LOGTYPES = {
+DEFAULT_LOGTYPES_RETENTION = {
 	"Error Log": 30,
 	"Activity Log": 90,
 	"Email Queue": 30,
@@ -67,7 +67,7 @@ class LogSettings(Document):
 	def add_default_logtypes(self):
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 		added_logtypes = set()
-		for logtype, frequency in DEFAULT_LOGTYPES.items():
+		for logtype, frequency in DEFAULT_LOGTYPES_RETENTION.items():
 			if logtype not in existing_logtypes and _supports_log_clearing(logtype):
 				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(frequency)})
 				added_logtypes.add(logtype)

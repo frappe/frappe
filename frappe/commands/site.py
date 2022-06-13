@@ -1111,6 +1111,7 @@ def clear_log_table(context, doctype, days, no_backup):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
+	from frappe.utils import get_table_name
 	from frappe.utils.backups import scheduled_backup
 
 	if not context.sites:
@@ -1136,30 +1137,29 @@ def clear_log_table(context, doctype, days, no_backup):
 			)
 			click.echo(f"Backed up {doctype}")
 
-		original = f"`tab{doctype}`"
-		temporary = f"`tab{doctype} temp_table`"
-		backup = f"`tab{doctype} backup_table`"
+		original = get_table_name(doctype)
+		temporary = f"{original} temp_table"
+		backup = f"{original} backup_table"
 
 		try:
-			frappe.db.sql(f"CREATE TABLE {temporary} LIKE {original}")
+			frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
 
 			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
 			# Copy all recent data to new table
 			frappe.db.sql(
-				f"""INSERT INTO {temporary}
-					SELECT * FROM {original}
-					WHERE {original}.`modified` > NOW() - INTERVAL '{days}' DAY"""
+				f"""INSERT INTO `{temporary}`
+					SELECT * FROM `{original}`
+					WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
 			)
-			frappe.db.sql(f"RENAME TABLE {original} TO {backup}, {temporary} TO {original}")
+			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 		except Exception as e:
-			# Discard created tables
 			frappe.db.rollback()
-			frappe.db.sql(f"DROP TABLE IF EXISTS {temporary}")
+			frappe.db.sql_list(f"DROP TABLE IF EXISTS `{temporary}`")
 			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
 			sys.exit(1)
 		else:
 			frappe.db.commit()
-			frappe.db.sql(f"DROP TABLE {backup}")
+			frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
 			click.secho(f"Cleared {doctype} records older than {days} days", fg="green")
 
 
