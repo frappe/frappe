@@ -310,7 +310,7 @@ export default class ListSettings {
 		let me = this;
 
 		me.subject_field = {
-			label: "Name",
+			label: "ID",
 			fieldname: "name"
 		};
 

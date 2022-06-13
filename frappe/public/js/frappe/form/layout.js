@@ -122,7 +122,8 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		if (this.is_tabbed_layout()) {
-			let default_tab = {label: __('Details'), fieldname: 'details', fieldtype: "Tab Break"};
+			// add a tab without `fieldname` to avoid conflicts
+			let default_tab = {label: __('Details'), fieldtype: "Tab Break"};
 			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
 			if (!first_tab) {
 				this.fields.splice(1, 0, default_tab);

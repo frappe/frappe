@@ -438,7 +438,7 @@ class Document(BaseDocument):
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
-		return self.get(self.meta.get_title_field())
+		return self.get(self.meta.get_title_field()) or ""
 
 	def set_title_field(self):
 		"""Set title field based on template"""
@@ -1198,11 +1198,10 @@ class Document(BaseDocument):
 			return
 
 		version = frappe.new_doc("Version")
-		if not self._doc_before_save:
-			version.for_insert(self)
+
+		if is_useful_diff := version.update_version_info(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
-		elif version.set_diff(self._doc_before_save, self):
-			version.insert(ignore_permissions=True)
+
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
 				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):

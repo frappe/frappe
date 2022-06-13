@@ -740,7 +740,7 @@ class FilterArea {
 		let fields = [
 			{
 				fieldtype: "Data",
-				label: "Name",
+				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.refresh_list_view(),
