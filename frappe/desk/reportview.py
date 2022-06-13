@@ -4,6 +4,7 @@
 """build query for doclistview and return results"""
 
 import json
+import re
 from io import StringIO
 
 import frappe
@@ -436,13 +437,13 @@ def get_labels(fields, doctype):
 	for key in fields:
 		aggregate_function = ""
 
-		for sep in (" as ", " AS "):
-			if sep in key:
-				key = key.split(sep)[0]
+		if " as " in key.casefold():
+			key = re.sub(" as ", " AS ", key, flags=re.IGNORECASE)
+			key = key.split(" AS ", 1)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
 			if key.strip().endswith(")"):
-				aggregate_function = key.split("(")[0].lower()
+				aggregate_function = key.split("(", 1)[0].lower()
 				key = key.split("(", 1)[1][:-1]
 			else:
 				continue
@@ -474,9 +475,9 @@ def get_labels(fields, doctype):
 def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
 		key = field
-		for sep in (" as ", " AS "):
-			if sep in key:
-				key = key.split(sep)[0]
+		if " as " in key.casefold():
+			key = re.sub(" as ", " AS ", key, flags=re.IGNORECASE)
+			key = key.split(" AS ", 1)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
 			continue
