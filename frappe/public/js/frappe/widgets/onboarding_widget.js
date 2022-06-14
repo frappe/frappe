@@ -99,12 +99,7 @@ export default class OnboardingWidget extends Widget {
 		const toggle_content = () => {
 			this.step_body.empty();
 			this.step_footer.empty();
-
-			this.step_body.html(
-				step.description ?
-					frappe.markdown(step.description)
-					: `<h1>${step.title}</h1>`
-			);
+			set_description();
 
 			if (step.intro_video_url) {
 				$(`<button class="btn btn-primary btn-sm">${__('Watch Tutorial')}</button>`)
@@ -115,6 +110,21 @@ export default class OnboardingWidget extends Widget {
 					.appendTo(this.step_footer)
 					.on('click', () => actions[step.action](step));
 			}
+		};
+
+		const set_description = () => {
+			let content = step.description ?
+				frappe.markdown(step.description) : `<h1>${step.title}</h1>`;
+
+			if (step.action === 'Create Entry') {
+				// add a secondary action to view list
+				content += `<p>
+					<a href='/app/${frappe.router.slug(step.reference_document)}'>
+						${ __('Show {0} List', [step.reference_document])}</a>
+				</p>`;
+			}
+
+			this.step_body.html(content);
 		};
 
 		const toggle_video = () => {

@@ -36,8 +36,25 @@ export default class Tab {
 
 		// hide if explicitly hidden
 		let hide = this.df.hidden || this.df.hidden_due_to_dependency;
+
+		// hide if dashboard and not saved
+		if (!hide && this.df.show_dashboard && this.frm.is_new() && !this.fields_list.length) {
+			hide = true;
+		}
+
+		// hide if no read permission
 		if (!hide && this.frm && !this.frm.get_perm(this.df.permlevel || 0, "read")) {
 			hide = true;
+		}
+
+		if (!hide && !this.df.show_dashboard) {
+			// show only if there is at least one visibe section or control
+			hide = true;
+			if (this.wrapper.find(
+				".form-section:not(.hide-control, .empty-section), .form-dashboard-section:not(.hide-control, .empty-section)"
+			).length) {
+				hide = false;
+			}
 		}
 
 		this.toggle(!hide);
@@ -62,6 +79,7 @@ export default class Tab {
 	set_active() {
 		this.parent.find('.nav-link').tab('show');
 		this.wrapper.addClass('show');
+		this.frm.active_tab = this;
 	}
 
 	is_active() {
