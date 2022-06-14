@@ -15,6 +15,7 @@ import importlib
 import inspect
 import json
 import os
+import re
 import warnings
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
@@ -45,6 +46,10 @@ STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _qb_patched = False
+re._MAXCACHE = (
+	50  # reduced from default 512 given we are already maintaining this on parent worker
+)
+
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
