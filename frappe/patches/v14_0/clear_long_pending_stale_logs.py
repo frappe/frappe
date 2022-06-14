@@ -18,7 +18,6 @@ def execute():
 		"Error Snapshot": get_current_setting("clear_error_log_after") or 90,
 		# newly added
 		"Scheduled Job Log": 90,
-		"Route History": 90,
 	}
 
 	for doctype, retention in DOCTYPE_RETENTION_MAP.items():
