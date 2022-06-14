@@ -341,10 +341,14 @@ class DatabaseQuery(object):
 
 		for field in self.fields:
 			if sub_query_regex.match(field):
+<<<<<<< HEAD
 				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
 					_raise_exception()
 
 				if any("({0}".format(keyword) in field.lower() for keyword in blacklisted_keywords):
+=======
+				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
+>>>>>>> 60ec324956 (fix: Remove unwanted blacklist over fields)
 					_raise_exception()
 
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
