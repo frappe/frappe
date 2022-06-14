@@ -28,34 +28,40 @@ class LetterHead(Document):
 
 	def set_image(self):
 		if self.source == "Image":
-			self.set_image_as_html(**{
-				"field": "image",
-				"width": "image_width",
-				"height": "image_height",
-				"align": "align",
-				"html_field": "content",
-				"dimension_prefix": "image_",
-				"success_msg": _("Header HTML set from attachment {0}").format(self.image),
-				"failure_msg": _("Please attach an image file to set HTML for Letter Head.")
-			})
+			self.set_image_as_html(
+				**{
+					"field": "image",
+					"width": "image_width",
+					"height": "image_height",
+					"align": "align",
+					"html_field": "content",
+					"dimension_prefix": "image_",
+					"success_msg": _("Header HTML set from attachment {0}").format(self.image),
+					"failure_msg": _("Please attach an image file to set HTML for Letter Head.")
+				}
+			)
 
 		if self.footer_source == "Image":
-			self.set_image_as_html(**{
-				"field": "footer_image",
-				"width": "footer_image_width",
-				"height": "footer_image_height",
-				"align": "footer_align",
-				"html_field": "footer",
-				"dimension_prefix": "footer_image_",
-				"success_msg": _("Footer HTML set from attachment {0}").format(self.footer_image),
-				"failure_msg": _("Please attach an image file to set HTML for Footer.")
-			})
+			self.set_image_as_html(
+				**{
+					"field": "footer_image",
+					"width": "footer_image_width",
+					"height": "footer_image_height",
+					"align": "footer_align",
+					"html_field": "footer",
+					"dimension_prefix": "footer_image_",
+					"success_msg": _("Footer HTML set from attachment {0}").format(self.footer_image),
+					"failure_msg": _("Please attach an image file to set HTML for Footer.")
+				}
+			)
 
 	def set_image_as_html(self, **kwargs):
 		if self.get(kwargs.get("field")) and is_image(self.get(kwargs.get("field"))):
 			self.set(kwargs.get("width"), flt(self.get(kwargs.get("width"))))
 			self.set(kwargs.get("height"), flt(self.get(kwargs.get("height"))))
-			dimension, dimension_value = self.get_dimension(kwargs.get("width"), kwargs.get("height"), kwargs.get("dimension_prefix"))
+			dimension, dimension_value = self.get_dimension(
+				kwargs.get("width"), kwargs.get("height"), kwargs.get("dimension_prefix")
+			)
 
 
 			html = f"""
@@ -77,6 +83,7 @@ class LetterHead(Document):
 		To preserve the aspect ratio the contraints are only applied on dimension
 		with the greater size and allow the other dimension to scale accordingly
 		"""
+
 		dimension = "width" if width > height else "height"
 		return dimension, self.get(f"{prefix}{dimension}")
 
