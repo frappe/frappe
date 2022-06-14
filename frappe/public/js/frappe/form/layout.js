@@ -294,7 +294,7 @@ frappe.ui.form.Layout = class Layout {
 		this.refresh_sections();
 
 		// refresh tabs
-		this.tabbed_layout && this.refresh_tabs();
+		this.is_tabbed_layout() && this.refresh_tabs();
 
 		if (this.frm) {
 			// collapse sections
@@ -328,25 +328,20 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	refresh_tabs() {
-		this.tabs.forEach(tab => {
-			if (!tab.wrapper.hasClass('hide') || !tab.parent.hasClass('hide')) {
-				tab.parent.removeClass('show hide');
-				tab.wrapper.removeClass('show hide');
-				if (
-					tab.wrapper.find(
-						".form-section:not(.hide-control, .empty-section), .form-dashboard-section:not(.hide-control, .empty-section)"
-					).length
-				) {
-					tab.toggle(true);
-				} else {
-					tab.toggle(false);
-				}
-			}
-		});
+		for (let tab of this.tabs) {
+			tab.refresh();
+		}
 
 		const visible_tabs = this.tabs.filter(tab => !tab.hidden);
 		if (visible_tabs && visible_tabs.length == 1) {
 			visible_tabs[0].parent.toggleClass('hide show');
+		}
+	}
+
+	set_first_tab_as_active(switched) {
+		if (this.tabs.length && (switched || !this.frm.active_tab)) {
+			// set first tab as active when opening for first time, or new doc
+			this.tabs[0].set_active();
 		}
 	}
 
