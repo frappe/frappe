@@ -575,7 +575,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
-		this.cscript.is_onload && this.set_first_tab_as_active();
+		this.layout.set_first_tab_as_active(switched || this.cscript.is_onload);
 
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
@@ -590,11 +590,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 	onload_post_render() {
 		this.setup_image_autocompletions_in_markdown();
-	}
-
-	set_first_tab_as_active() {
-		this.layout.tabs[0]
-			&& this.layout.tabs[0].set_active();
 	}
 
 	focus_on_first_input() {
