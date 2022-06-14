@@ -110,9 +110,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 	}
 
 	parse(value) {
-		if (!value) {
-			return "";
-		}
+		return !value ? "" : value;
 	}
 
 	refresh_input() {

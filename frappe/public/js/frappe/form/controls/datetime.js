@@ -43,8 +43,8 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			if (value == "Invalid date") {
 				value = "";
 			}
-			return value;
 		}
+		return value;
 	}
 	format_for_input(value) {
 		if (!value) return "";
