@@ -378,9 +378,6 @@ class DatabaseQuery(object):
 
 		for field in self.fields:
 			if sub_query_regex.match(field):
-				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
-					_raise_exception()
-
 				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
 					_raise_exception()
 
