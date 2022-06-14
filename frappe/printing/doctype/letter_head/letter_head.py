@@ -37,7 +37,7 @@ class LetterHead(Document):
 					"html_field": "content",
 					"dimension_prefix": "image_",
 					"success_msg": _("Header HTML set from attachment {0}").format(self.image),
-					"failure_msg": _("Please attach an image file to set HTML for Letter Head.")
+					"failure_msg": _("Please attach an image file to set HTML for Letter Head."),
 				}
 			)
 
@@ -51,7 +51,7 @@ class LetterHead(Document):
 					"html_field": "footer",
 					"dimension_prefix": "footer_image_",
 					"success_msg": _("Footer HTML set from attachment {0}").format(self.footer_image),
-					"failure_msg": _("Please attach an image file to set HTML for Footer.")
+					"failure_msg": _("Please attach an image file to set HTML for Footer."),
 				}
 			)
 
