@@ -442,8 +442,12 @@ def get_labels(fields, doctype):
 			key = key.split(" AS ", 1)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
+			# Get aggregate function and _aggregate_column
+			# key = 'sum(`tabDocType`.`fieldname`)'
 			if key.strip().endswith(")"):
+				# aggregate_function = 'sum'
 				aggregate_function = key.split("(", 1)[0].lower()
+				# key = `tabDocType`.`fieldname`
 				key = key.split("(", 1)[1][:-1]
 			else:
 				continue
