@@ -14,8 +14,12 @@ import importlib
 import inspect
 import json
 import os
+<<<<<<< HEAD
 import sys
 import typing
+=======
+import re
+>>>>>>> 678eebe4fb (perf: Limit re internal cache to avoid caching patterns twice)
 import warnings
 
 import click
@@ -49,6 +53,14 @@ local = Local()
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+<<<<<<< HEAD
+=======
+_qb_patched = False
+re._MAXCACHE = (
+	50  # reduced from default 512 given we are already maintaining this on parent worker
+)
+
+>>>>>>> 678eebe4fb (perf: Limit re internal cache to avoid caching patterns twice)
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
