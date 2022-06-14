@@ -63,7 +63,6 @@ class LetterHead(Document):
 				kwargs.get("width"), kwargs.get("height"), kwargs.get("dimension_prefix")
 			)
 
-
 			html = f"""
 				<div style="text-align: {self.get(kwargs.get("align"), "").lower()};">
 					<img src="{self.get(kwargs.get("field"))}" alt="{self.get("name")}"
