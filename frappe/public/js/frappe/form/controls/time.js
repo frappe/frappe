@@ -12,7 +12,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 				// ignore micro seconds
 				if (moment(me.get_value(), 'hh:mm:ss').format('HH:mm:ss') != moment(me.value, 'hh:mm:ss').format('HH:mm:ss')) {
 					me.$input.trigger('change');
-				}				
+				}
 			},
 			onShow: function() {
 				$('.datepicker--button:visible').text(__('Now'));
@@ -49,5 +49,24 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			}
 		}
 		this._super();
+	},
+	parse: function(value) {
+		if (value) {
+			return frappe.datetime.user_to_str(value, true);
+		}
+	},
+	format_for_input: function(value) {
+		if (value) {
+			return frappe.datetime.str_to_user(value, true);
+		}
+		return "";
+	},
+	validate: function(value) {
+		if (value && !frappe.datetime.validate(value)) {
+			let time_format = 'HH:mm:ss';
+			frappe.msgprint(__("Time {0} must be in format: {1}", [value, time_format.bold()]));
+			return '';
+		}
+		return value;
 	}
 });

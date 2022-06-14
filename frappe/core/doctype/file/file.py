@@ -859,8 +859,7 @@ def extract_images_from_html(doc, content):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
-		data = match.group(1)
-		data = data.split("data:")[1]
+		data = match.group(1).split("data:")[1]
 		headers, content = data.split(",")
 
 		if "filename=" in headers:
@@ -873,8 +872,12 @@ def extract_images_from_html(doc, content):
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
+		if doc.meta.istable:
+			doctype = doc.parenttype
+			name = doc.parent
+		else:
+			doctype = doc.doctype
+			name = doc.name
 
 		_file = frappe.get_doc({
 			"doctype": "File",
@@ -885,9 +888,9 @@ def extract_images_from_html(doc, content):
 			"decode": True
 		})
 		_file.save(ignore_permissions=True)
+
 		file_url = _file.file_url
-		if not frappe.flags.has_dataurl:
-			frappe.flags.has_dataurl = True
+		frappe.flags.has_dataurl = True
 
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
