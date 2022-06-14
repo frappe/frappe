@@ -853,7 +853,7 @@ class DatabaseQuery(object):
 					)
 
 				# draft docs always on top
-				if meta.is_submittable:
+				if hasattr(meta, 'is_submittable') and meta.is_submittable:
 					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
 	def validate_order_by_and_group_by(self, parameters):

@@ -26,13 +26,17 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.data import (
+	add_to_date,
 	cast,
+	get_first_day_of_week,
 	get_time,
 	get_timedelta,
+	getdate,
 	now_datetime,
 	nowtime,
 	validate_python_code,
 )
+from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.image import strip_exif_data
 from frappe.utils.response import json_handler
 
@@ -385,6 +389,31 @@ class TestDateUtils(unittest.TestCase):
 		self.assertIsInstance(get_timedelta(str(datetime_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
+
+	def test_date_from_timegrain(self):
+		start_date = getdate("2021-01-01")
+
+		daily = get_dates_from_timegrain(start_date, add_to_date(start_date, days=6), "Daily")
+		self.assertEqual(len(daily), 7)
+		for idx, d in enumerate(daily):
+			self.assertEqual(d, add_to_date(start_date, days=idx))
+
+		start = get_first_day_of_week(start_date)
+		end = add_to_date(add_to_date(start, weeks=52), days=-1)
+		weekly = get_dates_from_timegrain(start, end, "Weekly")
+		self.assertEqual(len(weekly), 52)
+		for idx, d in enumerate(weekly, start=1):
+			self.assertEqual(d, add_to_date(start, days=7 * idx - 1))
+
+		quarterly = get_dates_from_timegrain(start_date, add_to_date(start_date, months=5), "Quarterly")
+		self.assertEqual(len(quarterly), 2)
+		for idx, d in enumerate(quarterly, start=1):
+			self.assertEqual(d, add_to_date(start_date, months=idx * 3, days=-1))
+
+		yearly = get_dates_from_timegrain(start_date, add_to_date(start_date, years=2), "Yearly")
+		self.assertEqual(len(yearly), 3)
+		for idx, d in enumerate(yearly, start=1):
+			self.assertEqual(d, add_to_date(start_date, years=idx, days=-1))
 
 
 class TestResponse(unittest.TestCase):
