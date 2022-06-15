@@ -22,7 +22,8 @@ from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import cast as cast_fieldtype
+from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -619,23 +620,19 @@ class Database(object):
 			else:
 				return r and [[i[1] for i in r]] or []
 
-	def get_singles_dict(self, doctype, debug=False, *, for_update=False):
+	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
+		:param debug: Execute query in debug mode - print to STDOUT
+		:param for_update: Take `FOR UPDATE` lock on the records
+		:param cast: Cast values to Python data types based on field type
 
 		Example:
 
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		return_value = frappe._dict()
-
-		try:
-			meta = frappe.get_meta(doctype)
-		except DoesNotExistError:
-			return return_value
-
 		queried_result = self.query.get_sql(
 			"Singles",
 			filters={"doctype": doctype},
@@ -643,9 +640,19 @@ class Database(object):
 			for_update=for_update,
 		).run(debug=debug)
 
+		if not cast:
+			return frappe._dict(queried_result)
+
+		try:
+			meta = frappe.get_meta(doctype)
+		except DoesNotExistError:
+			return frappe._dict(queried_result)
+
+		return_value = frappe._dict()
+
 		for fieldname, value in queried_result:
 			if df := meta.get_field(fieldname):
-				casted_value = cast(df.fieldtype, value)
+				casted_value = cast_fieldtype(df.fieldtype, value)
 			else:
 				casted_value = value
 			return_value[fieldname] = casted_value
@@ -713,7 +720,7 @@ class Database(object):
 				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
 			)
 
-		val = cast(df.fieldtype, val)
+		val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 

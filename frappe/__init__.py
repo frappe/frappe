@@ -17,7 +17,7 @@ import json
 import os
 import re
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
@@ -1551,7 +1551,15 @@ def call(fn, *args, **kwargs):
 	return fn(*args, **newargs)
 
 
-def get_newargs(fn, kwargs):
+def get_newargs(fn: Callable, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+	"""Remove any kwargs that are not supported by the function.
+
+	Example:
+	        >>> def fn(a=1, b=2): pass
+
+	        >>> get_newargs(fn, {"a": 2, "c": 1})
+	                {"a": 2}
+	"""
 
 	# if function has any **kwargs parameter that capture arbitrary keyword arguments
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
@@ -2221,14 +2229,14 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
-		local.website_settings = db.get_singles_dict("Website Settings")
+		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
 
 	return local.website_settings[key]
 
 
 def get_system_settings(key):
 	if not hasattr(local, "system_settings"):
-		local.system_settings = db.get_singles_dict("System Settings")
+		local.system_settings = db.get_singles_dict("System Settings", cast=True)
 
 	return local.system_settings[key]
 
