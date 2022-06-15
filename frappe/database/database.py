@@ -22,7 +22,8 @@ from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import cast as cast_fieldtype
+from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -651,7 +652,7 @@ class Database(object):
 
 		for fieldname, value in queried_result:
 			if df := meta.get_field(fieldname):
-				casted_value = cast(df.fieldtype, value)
+				casted_value = cast_fieldtype(df.fieldtype, value)
 			else:
 				casted_value = value
 			return_value[fieldname] = casted_value
@@ -719,7 +720,7 @@ class Database(object):
 				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
 			)
 
-		val = cast(df.fieldtype, val)
+		val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
