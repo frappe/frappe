@@ -26,7 +26,6 @@ def remove_attach():
 @frappe.whitelist()
 def add_comment(reference_doctype, reference_name, content, comment_email, comment_by):
 	"""allow any logged user to post a comment"""
-<<<<<<< HEAD
 	doc = frappe.get_doc(
 		dict(
 			doctype="Comment",
@@ -37,18 +36,7 @@ def add_comment(reference_doctype, reference_name, content, comment_email, comme
 			comment_by=comment_by,
 		)
 	)
-	doc.content = extract_images_from_html(doc, content)
-=======
-	doc = frappe.get_doc(dict(
-		doctype='Comment',
-		reference_doctype=reference_doctype,
-		reference_name=reference_name,
-		comment_email=comment_email,
-		comment_type='Comment',
-		comment_by=comment_by
-	))
 	doc.content = extract_images_from_html(doc, content, is_private=True)
->>>>>>> 05cb2c16cd (fix: Optional parameter for setting extracted image as private)
 	doc.insert(ignore_permissions=True)
 
 	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)

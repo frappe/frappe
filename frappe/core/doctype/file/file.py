@@ -836,7 +836,6 @@ def extract_images_from_html(doc, content, is_private=False):
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
-<<<<<<< HEAD
 		if doc.meta.istable:
 			doctype = doc.parenttype
 			name = doc.parent
@@ -852,22 +851,9 @@ def extract_images_from_html(doc, content, is_private=False):
 				"attached_to_name": name,
 				"content": content,
 				"decode": True,
+				"is_private": is_private,
 			}
 		)
-=======
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
-
-		_file = frappe.get_doc({
-			"doctype": "File",
-			"file_name": filename,
-			"attached_to_doctype": doctype,
-			"attached_to_name": name,
-			"content": content,
-			"decode": False,
-			"is_private": is_private
-		})
->>>>>>> d254ca2f50 (fix: Make images in comments private)
 		_file.save(ignore_permissions=True)
 
 		file_url = _file.file_url
