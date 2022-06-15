@@ -5,6 +5,7 @@ import json
 from urllib.parse import quote
 
 import frappe
+import frappe.exceptions
 import frappe.defaults
 import frappe.desk.form.meta
 import frappe.share
@@ -29,11 +30,19 @@ def getdoc(doctype, name, user=None):
 
 	if not name:
 		name = doctype
-
-	if not frappe.db.exists(doctype, name):
+	try:
+		meta = frappe.get_meta(doctype)
+	except frappe.exceptions.DoesNotExistError:
+		return []
+	if not meta.get("is_virtual") and not frappe.db.exists(doctype, name):
 		return []
 
-	doc = frappe.get_doc(doctype, name)
+	if meta.get("is_virtual"):
+		doc = frappe.get_doc(doctype).get_value(doctype, name)
+		if not doc:
+			return []
+	else:
+		doc = frappe.get_doc(doctype, name)
 	run_onload(doc)
 
 	if not doc.has_permission("read"):

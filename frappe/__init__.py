@@ -1850,6 +1850,14 @@ def get_list(doctype, *args, **kwargs):
 	        # filter as a list of dicts
 	        frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
 	"""
+	
+	try:
+		meta = get_meta(doctype)
+	except exceptions.DoesNotExistError:
+		# We only need this for the installing case, but it is necessary. Please keep it
+		meta = False
+	if meta and meta.get("is_virtual"):
+		return get_doc(doctype).get_list(_dict(**kwargs))
 	import frappe.model.db_query
 
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
