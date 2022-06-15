@@ -16,6 +16,7 @@ from frappe import _
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
 RECORDER_REQUEST_HASH = "recorder-requests"
+TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
 
 
 def sql(*args, **kwargs):
@@ -58,7 +59,7 @@ def get_current_stack_frames():
 		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
 			if "/apps/" in filename:
 				yield {
-					"filename": re.sub(".*/apps/", "", filename),
+					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),
 					"lineno": lineno,
 					"function": function,
 				}

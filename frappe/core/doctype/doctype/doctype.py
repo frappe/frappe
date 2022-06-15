@@ -8,6 +8,7 @@ import os
 # imports - standard imports
 import re
 import shutil
+from typing import TYPE_CHECKING, Union
 
 # imports - module imports
 import frappe
@@ -34,6 +35,15 @@ from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint
 from frappe.website.utils import clear_cache
+
+if TYPE_CHECKING:
+	from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+
+DEPENDS_ON_PATTERN = re.compile(r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+')
+ILLEGAL_FIELDNAME_PATTERN = re.compile("""['",./%@()<>{}]""")
+WHITESPACE_PADDING_PATTERN = re.compile(r"^[ \t\n\r]+|[ \t\n\r]+$", flags=re.ASCII)
+START_WITH_LETTERS_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.ASCII)
+FIELD_PATTERN = re.compile("{(.*?)}", flags=re.UNICODE)
 
 
 class InvalidFieldNameError(frappe.ValidationError):
@@ -357,8 +367,7 @@ class DocType(Document):
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
-
-				d.fieldname = re.sub("""['",./%@()<>{}]""", "", d.fieldname)
+				d.fieldname = ILLEGAL_FIELDNAME_PATTERN.sub("", d.fieldname)
 
 				# fieldnames should be lowercase
 				d.fieldname = d.fieldname.lower()
@@ -842,15 +851,13 @@ class DocType(Document):
 				_("Doctype name is limited to {0} characters ({1})").format(max_length, name), frappe.NameError
 			)
 
-		flags = {"flags": re.ASCII}
-
 		# a DocType name should not start or end with an empty space
-		if re.search(r"^[ \t\n\r]+|[ \t\n\r]+$", name, **flags):
+		if WHITESPACE_PADDING_PATTERN.search(name):
 			frappe.throw(_("DocType's name should not start or end with whitespace"), frappe.NameError)
 
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers, underscore, and hyphen
-		if not re.match(r"^(?![\W])[^\d_\s][\w -]+$", name, **flags):
+		if not START_WITH_LETTERS_PATTERN.match(name):
 			frappe.throw(
 				_(
 					"A DocType's name should start with a letter and can only "
@@ -913,11 +920,11 @@ def validate_series(dt, autoname=None, name=None):
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 
-def validate_autoincrement_autoname(dt: DocType) -> bool:
+def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt: DocType) -> str:
-		if dt.name == "Customize Form":
+	def get_autoname_before_save(dt: Union[DocType, "CustomizeForm"]) -> str:
+		if dt.doctype == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
 			)
@@ -940,10 +947,10 @@ def validate_autoincrement_autoname(dt: DocType) -> bool:
 			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
 
-			if frappe.get_meta(dt.name).issingle:
-				if dt.name == "Customize Form":
-					frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
+			if dt.doctype == "Customize Form":
+				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
 
+			if frappe.get_meta(dt.name).issingle:
 				return False
 
 			if not frappe.get_all(dt.name, limit=1):
@@ -1254,7 +1261,7 @@ def validate_fields(meta):
 			if not pattern:
 				return
 
-			for fieldname in re.findall("{(.*?)}", pattern, re.UNICODE):
+			for fieldname in FIELD_PATTERN.findall(pattern):
 				if fieldname.startswith("{"):
 					# edge case when double curlies are used for escape
 					continue
@@ -1336,9 +1343,7 @@ def validate_fields(meta):
 		]
 		for field in depends_on_fields:
 			depends_on = docfield.get(field, None)
-			if (
-				depends_on and ("=" in depends_on) and re.match(r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+', depends_on)
-			):
+			if depends_on and ("=" in depends_on) and DEPENDS_ON_PATTERN.match(depends_on):
 				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
 	def check_table_multiselect_option(docfield):

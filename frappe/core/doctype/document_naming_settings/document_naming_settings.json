@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "creation": "2022-05-30 07:24:07.736646",
+ "description": "Configure various aspects of how document naming works like naming series, current counter.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series_tab",
+  "setup_series",
+  "transaction_type",
+  "naming_series_options",
+  "user_must_always_select",
+  "update",
+  "column_break_9",
+  "try_naming_series",
+  "series_preview",
+  "help_html",
+  "update_series",
+  "prefix",
+  "current_value",
+  "update_series_start"
+ ],
+ "fields": [
+  {
+   "collapsible": 1,
+   "description": "Set Naming Series options on your transactions.",
+   "fieldname": "setup_series",
+   "fieldtype": "Section Break",
+   "label": "Setup Series for transactions"
+  },
+  {
+   "depends_on": "transaction_type",
+   "fieldname": "help_html",
+   "fieldtype": "HTML",
+   "label": "Help HTML",
+   "options": "<div class=\"well\">\n    Edit list of Series in the box. Rules:\n    <ul>\n        <li>Each Series Prefix on a new line.</li>\n        <li>Allowed special characters are \"/\" and \"-\"</li>\n        <li>\n            Optionally, set the number of digits in the series using dot (.)\n            followed by hashes (#). For example, \".####\" means that the series\n            will have four digits. Default is five digits.\n        </li>\n        <li>\n            You can also use variables in the series name by putting them\n            between (.) dots\n            <br>\n            Supported Variables:\n            <ul>\n                <li><code>.YYYY.</code> - Year in 4 digits</li>\n                <li><code>.YY.</code> - Year in 2 digits</li>\n                <li><code>.MM.</code> - Month</li>\n                <li><code>.DD.</code> - Day of month</li>\n                <li><code>.WW.</code> - Week of the year</li>\n                <li><code>.FY.</code> - Fiscal Year</li>\n                <li>\n                    <code>.{fieldname}.</code> - fieldname on the document e.g.\n                    <code>branch</code>\n                </li>\n            </ul>\n        </li>\n    </ul>\n    Examples:\n    <ul>\n        <li>INV-</li>\n        <li>INV-10-</li>\n        <li>INVK-</li>\n        <li>INV-.YYYY.-.{branch}.-.MM.-.####</li>\n    </ul>\n</div>\n<br>\n"
+  },
+  {
+   "default": "0",
+   "depends_on": "transaction_type",
+   "description": "Check this if you want to force the user to select a series before saving. There will be no default if you check this.",
+   "fieldname": "user_must_always_select",
+   "fieldtype": "Check",
+   "label": "User must always select"
+  },
+  {
+   "depends_on": "transaction_type",
+   "fieldname": "update",
+   "fieldtype": "Button",
+   "label": "Update"
+  },
+  {
+   "collapsible": 1,
+   "description": "Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created. ",
+   "fieldname": "update_series",
+   "fieldtype": "Section Break",
+   "label": "Update Series Counter"
+  },
+  {
+   "fieldname": "prefix",
+   "fieldtype": "Autocomplete",
+   "label": "Prefix"
+  },
+  {
+   "description": "This is the number of the last created transaction with this prefix",
+   "fieldname": "current_value",
+   "fieldtype": "Int",
+   "label": "Current Value"
+  },
+  {
+   "fieldname": "update_series_start",
+   "fieldtype": "Button",
+   "label": "Update Series Number",
+   "options": "update_series_start"
+  },
+  {
+   "depends_on": "transaction_type",
+   "fieldname": "naming_series_options",
+   "fieldtype": "Text",
+   "label": "Series List for this Transaction"
+  },
+  {
+   "depends_on": "transaction_type",
+   "description": "Generate 3 preview of names generate by any valid series.",
+   "fieldname": "try_naming_series",
+   "fieldtype": "Data",
+   "label": "Try a naming Series"
+  },
+  {
+   "fieldname": "transaction_type",
+   "fieldtype": "Autocomplete",
+   "label": "Select Transaction"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series_tab",
+   "fieldtype": "Tab Break",
+   "label": "Naming Series"
+  },
+  {
+   "fieldname": "series_preview",
+   "fieldtype": "Text",
+   "label": "Preview of generated names",
+   "read_only": 1
+  }
+ ],
+ "hide_toolbar": 1,
+ "icon": "fa fa-sort-by-order",
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-05-30 23:51:36.136535",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Document Naming Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

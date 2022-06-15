@@ -17,7 +17,7 @@ from email_reply_parser import EmailReplyParser
 
 import frappe
 from frappe import _, safe_decode, safe_encode
-from frappe.core.doctype.file.file import MaxFileSizeReachedError, get_random_filename
+from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
 from frappe.utils import (
 	add_days,
 	cint,
@@ -25,6 +25,7 @@ from frappe.utils import (
 	cstr,
 	extract_email_id,
 	get_datetime,
+	get_string_between,
 	markdown,
 	now,
 	parse_addr,
@@ -36,6 +37,9 @@ from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 20480
+
+THREAD_ID_PATTERN = re.compile(r"(?<=\[)[\w/-]+")
+WORDS_PATTERN = re.compile(r"\w+")
 
 
 class EmailSizeExceededError(frappe.ValidationError):
@@ -272,7 +276,7 @@ class EmailServer:
 			return
 
 	def parse_imap_response(self, cmd, response):
-		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
+		pattern = rf"(?<={cmd} )[0-9]*"
 		match = re.search(pattern, response.decode("utf-8"), re.U | re.I)
 
 		if match:
@@ -331,8 +335,7 @@ class EmailServer:
 
 		flags = []
 		for flag in imaplib.ParseFlags(flag_string) or []:
-			pattern = re.compile(r"\w+")
-			match = re.search(pattern, frappe.as_unicode(flag))
+			match = WORDS_PATTERN.search(frappe.as_unicode(flag))
 			flags.append(match.group(0))
 
 		if "Seen" in flags:
@@ -425,7 +428,9 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = (self.mail.get("Message-ID") or "").strip(" <>")
+
+		message_id = self.mail.get("Message-ID") or ""
+		self.message_id = get_string_between("<", message_id, ">")
 
 		if self.mail["Date"]:
 			try:
@@ -441,7 +446,8 @@ class Email:
 
 	@property
 	def in_reply_to(self):
-		return (self.mail.get("In-Reply-To") or "").strip(" <>")
+		in_reply_to = self.mail.get("In-Reply-To") or ""
+		return get_string_between("<", in_reply_to, ">")
 
 	def parse(self):
 		"""Walk and process multi-part email."""
@@ -618,7 +624,7 @@ class Email:
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
-		l = re.findall(r"(?<=\[)[\w/-]+", self.subject)
+		l = THREAD_ID_PATTERN.findall(self.subject)
 		return l and l[0] or None
 
 	def is_reply(self):

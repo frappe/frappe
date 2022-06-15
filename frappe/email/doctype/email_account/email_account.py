@@ -23,10 +23,6 @@ from frappe.utils.error import raise_error_on_no_output
 from frappe.utils.jinja import render_template
 from frappe.utils.user import get_system_managers
 
-OUTGOING_EMAIL_ACCOUNT_MISSING = _(
-	"Please setup default Email Account from Setup > Email > Email Account"
-)
-
 
 class SentEmailInInbox(Exception):
 	pass
@@ -319,7 +315,7 @@ class EmailAccount(Document):
 	@classmethod
 	@raise_error_on_no_output(
 		keep_quiet=lambda: not cint(frappe.get_system_settings("setup_complete")),
-		error_message=OUTGOING_EMAIL_ACCOUNT_MISSING,
+		error_message=_("Please setup default Email Account from Setup > Email > Email Account"),
 		error_type=frappe.OutgoingEmailError,
 	)  # noqa
 	@cache_email_account("outgoing_email_account")

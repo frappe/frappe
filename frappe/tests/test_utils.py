@@ -30,13 +30,17 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.data import (
+	add_to_date,
 	cast,
+	get_first_day_of_week,
 	get_time,
 	get_timedelta,
+	getdate,
 	now_datetime,
 	nowtime,
 	validate_python_code,
 )
+from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
@@ -445,6 +449,31 @@ class TestDateUtils(unittest.TestCase):
 		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
 
+	def test_date_from_timegrain(self):
+		start_date = getdate("2021-01-01")
+
+		daily = get_dates_from_timegrain(start_date, add_to_date(start_date, days=6), "Daily")
+		self.assertEqual(len(daily), 7)
+		for idx, d in enumerate(daily):
+			self.assertEqual(d, add_to_date(start_date, days=idx))
+
+		start = get_first_day_of_week(start_date)
+		end = add_to_date(add_to_date(start, weeks=52), days=-1)
+		weekly = get_dates_from_timegrain(start, end, "Weekly")
+		self.assertEqual(len(weekly), 52)
+		for idx, d in enumerate(weekly, start=1):
+			self.assertEqual(d, add_to_date(start, days=7 * idx - 1))
+
+		quarterly = get_dates_from_timegrain(start_date, add_to_date(start_date, months=5), "Quarterly")
+		self.assertEqual(len(quarterly), 2)
+		for idx, d in enumerate(quarterly, start=1):
+			self.assertEqual(d, add_to_date(start_date, months=idx * 3, days=-1))
+
+		yearly = get_dates_from_timegrain(start_date, add_to_date(start_date, years=2), "Yearly")
+		self.assertEqual(len(yearly), 3)
+		for idx, d in enumerate(yearly, start=1):
+			self.assertEqual(d, add_to_date(start_date, years=idx, days=-1))
+
 
 class TestResponse(unittest.TestCase):
 	def test_json_handler(self):
@@ -615,3 +644,29 @@ class TestAppParser(unittest.TestCase):
 		self.assertEqual("healthcare", parse_app_name("https://github.com/frappe/healthcare.git"))
 		self.assertEqual("healthcare", parse_app_name("git@github.com:frappe/healthcare.git"))
 		self.assertEqual("healthcare", parse_app_name("frappe/healthcare@develop"))
+
+
+class TestIntrospectionMagic(unittest.TestCase):
+	"""Test utils that inspect live objects"""
+
+	def test_get_newargs(self):
+		# `kwargs` is just convention any **varname should work.
+		def f(a, b=2, **args):
+			pass
+
+		safe_kwargs = {"company": "Wind Power", "b": 1}
+		self.assertEqual(frappe.get_newargs(f, safe_kwargs), safe_kwargs)
+
+		unsafe_args = dict(safe_kwargs)
+		unsafe_args.update({"ignore_permissions": True, "flags": {"ignore_mandatory": True}})
+		self.assertEqual(frappe.get_newargs(f, unsafe_args), safe_kwargs)
+
+	def test_strip_off_kwargs_when_not_supported(self):
+		def f(a, b=2):
+			pass
+
+		args = {"company": "Wind Power", "b": 1}
+		self.assertEqual(frappe.get_newargs(f, args), {"b": 1})
+
+		# No args
+		self.assertEqual(frappe.get_newargs(lambda: None, args), {})

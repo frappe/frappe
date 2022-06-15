@@ -19,6 +19,8 @@ from frappe.website.utils import (
 )
 from frappe.website.website_generator import WebsiteGenerator
 
+H_TAG_PATTERN = re.compile("<h.>")
+
 
 class WebPage(WebsiteGenerator):
 	def validate(self):
@@ -114,7 +116,7 @@ class WebPage(WebsiteGenerator):
 				context.header = context.title
 
 			# add h1 tag to header
-			if context.get("header") and not re.findall("<h.>", context.header):
+			if context.get("header") and not H_TAG_PATTERN.findall(context.header):
 				context.header = "<h1>" + context.header + "</h1>"
 
 		# if title not set, set title from header

@@ -29,11 +29,34 @@ from frappe.utils import (
 	make_filter_tuple,
 )
 
+LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
+LOCATE_CAST_PATTERN = re.compile(
+	r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", flags=re.IGNORECASE
+)
+FUNC_IFNULL_PATTERN = re.compile(
+	r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE
+)
+CAST_VARCHAR_PATTERN = re.compile(
+	r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE
+)
+ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
+SUB_QUERY_PATTERN = re.compile("^.*[,();@].*")
+IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
+IS_QUERY_PREDICATE_PATTERN = re.compile(
+	r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )"
+)
+FIELD_QUOTE_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*'")
+FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*,")
+STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
+STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
+ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
+
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
 		self.tables = []
+		self.link_tables = []
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -216,6 +239,10 @@ class DatabaseQuery(object):
 			parent_name = cast_name(f"{self.tables[0]}.name")
 			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
 
+		# left join link tables
+		for link in self.link_tables:
+			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
 
@@ -261,7 +288,7 @@ class DatabaseQuery(object):
 		return args
 
 	def prepare_select_args(self, args):
-		order_field = re.sub(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", "", args.order_by)
+		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
 
 		if order_field not in args.fields:
 			extracted_column = order_column = order_field.replace("`", "")
@@ -287,6 +314,23 @@ class DatabaseQuery(object):
 		# remove empty strings / nulls in fields
 		self.fields = [f for f in self.fields if f]
 
+		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
+		for field in self.fields:
+			if "." in field and "tab" not in field:
+				original_field = field
+				alias = None
+				if " as " in field:
+					field, alias = field.split(" as ")
+				linked_fieldname, fieldname = field.split(".")
+				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				linked_doctype = linked_field.options
+				if linked_field.fieldtype == "Link":
+					self.append_link_table(linked_doctype, linked_fieldname)
+				field = f"`tab{linked_doctype}`.`{fieldname}`"
+				if alias:
+					field = f"{field} as {alias}"
+				self.fields[self.fields.index(original_field)] = field
+
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
 			if isinstance(filters, str):
@@ -309,8 +353,6 @@ class DatabaseQuery(object):
 		As field contains `,` and mysql function `version()`, with the help of regex
 		the system will filter out this field.
 		"""
-
-		sub_query_regex = re.compile("^.*[,();@].*")
 		blacklisted_keywords = ["select", "create", "insert", "delete", "drop", "update", "case", "show"]
 		blacklisted_functions = [
 			"concat",
@@ -334,19 +376,14 @@ class DatabaseQuery(object):
 			frappe.throw(_("Use of sub-query or function is restricted"), frappe.DataError)
 
 		def _is_query(field):
-			if re.compile(r"^(select|delete|update|drop|create)\s").match(field):
+			if IS_QUERY_PATTERN.match(field):
 				_raise_exception()
 
-			elif re.compile(r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )").match(
-				field
-			):
+			elif IS_QUERY_PREDICATE_PATTERN.match(field):
 				_raise_exception()
 
 		for field in self.fields:
-			if sub_query_regex.match(field):
-				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
-					_raise_exception()
-
+			if SUB_QUERY_PATTERN.match(field):
 				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
 					_raise_exception()
 
@@ -357,19 +394,19 @@ class DatabaseQuery(object):
 					# prevent access to global variables
 					_raise_exception()
 
-			if re.compile(r"[0-9a-zA-Z]+\s*'").match(field):
+			if FIELD_QUOTE_PATTERN.match(field):
 				_raise_exception()
 
-			if re.compile(r"[0-9a-zA-Z]+\s*,").match(field):
+			if FIELD_COMMA_PATTERN.match(field):
 				_raise_exception()
 
 			_is_query(field)
 
 			if self.strict:
-				if re.compile(r".*/\*.*").match(field):
+				if STRICT_FIELD_PATTERN.match(field):
 					frappe.throw(_("Illegal SQL Query"))
 
-				if re.compile(r".*\s(union).*\s").match(field.lower()):
+				if STRICT_UNION_PATTERN.match(field.lower()):
 					frappe.throw(_("Illegal SQL Query"))
 
 	def extract_tables(self):
@@ -396,12 +433,27 @@ class DatabaseQuery(object):
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.tables:
+				if table_name not in self.tables and table_name not in (
+					d.table_name for d in self.link_tables
+				):
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
+		self.check_read_permission(doctype)
+
+	def append_link_table(self, doctype, fieldname):
+		for d in self.link_tables:
+			if d.doctype == doctype and d.fieldname == fieldname:
+				return
+
+		self.check_read_permission(doctype)
+		self.link_tables.append(
+			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
+		)
+
+	def check_read_permission(self, doctype):
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 
 		if not self.flags.ignore_permissions and not frappe.has_permission(
@@ -418,7 +470,7 @@ class DatabaseQuery(object):
 			methods = ("count(", "avg(", "sum(", "extract(", "dayofyear(")
 			return field.lower().startswith(methods)
 
-		if len(self.tables) > 1:
+		if len(self.tables) > 1 or len(self.link_tables) > 0:
 			for idx, field in enumerate(self.fields):
 				if "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
@@ -861,7 +913,7 @@ class DatabaseQuery(object):
 		if "select" in _lower and "from" in _lower:
 			frappe.throw(_("Cannot use sub-query in order by"))
 
-		if re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*").match(_lower):
+		if ORDER_GROUP_PATTERN.match(_lower):
 			frappe.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
@@ -918,18 +970,16 @@ def cast_name(column: str) -> str:
 	if frappe.db.db_type == "mariadb":
 		return column
 
-	kwargs = {"string": column, "flags": re.IGNORECASE}
+	kwargs = {"string": column}
 	if "cast(" not in column.lower() and "::" not in column:
-		if re.search(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", **kwargs):
-			return re.sub(
-				r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", r"locate(\1, cast(\2 as varchar))", **kwargs
-			)
+		if LOCATE_PATTERN.search(**kwargs):
+			return LOCATE_CAST_PATTERN.sub(r"locate(\1, cast(\2 as varchar))", **kwargs)
 
-		elif match := re.search(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", **kwargs):
+		elif match := FUNC_IFNULL_PATTERN.search(**kwargs):
 			func = match.groups()[0]
 			return re.sub(rf"{func}\(\s*([`\"]?name[`\"]?)\s*,", rf"{func}(cast(\1 as varchar),", **kwargs)
 
-		return re.sub(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", r"cast(\1 as varchar)", **kwargs)
+		return CAST_VARCHAR_PATTERN.sub(r"cast(\1 as varchar)", **kwargs)
 
 	return column
 

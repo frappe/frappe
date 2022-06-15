@@ -8,6 +8,9 @@ from frappe import _
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table
 
+TAB_PATTERN = re.compile("^tab")
+WORDS_PATTERN = re.compile(r"\w+")
+
 
 def like(key: Field, value: str) -> frappe.qb:
 	"""Wrapper method for `LIKE`
@@ -262,14 +265,7 @@ class Query:
 			return conditions
 		if isinstance(filters, list):
 			for f in filters:
-				if not isinstance(f, (list, tuple)):
-					_operator = self.OPERATOR_MAP[filters[1].casefold()]
-					if not isinstance(filters[0], str):
-						conditions = make_function(filters[0], filters[2])
-						break
-					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
-					break
-				else:
+				if isinstance(f, (list, tuple)):
 					_operator = self.OPERATOR_MAP[f[-2].casefold()]
 					if len(f) == 4:
 						table_object = self.get_table(f[0])
@@ -277,6 +273,15 @@ class Query:
 					else:
 						_field = Field(f[0])
 					conditions = conditions.where(_operator(_field, f[-1]))
+				elif isinstance(f, dict):
+					conditions = self.dict_query(table, f, **kwargs)
+				else:
+					_operator = self.OPERATOR_MAP[filters[1].casefold()]
+					if not isinstance(filters[0], str):
+						conditions = make_function(filters[0], filters[2])
+						break
+					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
+					break
 
 		return self.add_conditions(conditions, **kwargs)
 
@@ -383,7 +388,7 @@ class Permission:
 			doctype = [doctype]
 
 		for dt in doctype:
-			dt = re.sub("^tab", "", dt)
+			dt = TAB_PATTERN.sub("", dt)
 			if not frappe.has_permission(
 				dt,
 				"select",
@@ -399,4 +404,4 @@ class Permission:
 
 	@staticmethod
 	def get_tables_from_query(query: str):
-		return [table for table in re.findall(r"\w+", query) if table.startswith("tab")]
+		return [table for table in WORDS_PATTERN.findall(query) if table.startswith("tab")]

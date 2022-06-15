@@ -25,6 +25,13 @@ class ActivityLog(Document):
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 
+	@staticmethod
+	def clear_old_logs(days=None):
+		if not days:
+			days = 90
+		doctype = DocType("Activity Log")
+		frappe.db.delete(doctype, filters=(doctype.modified < (Now() - Interval(days=days))))
+
 
 def on_doctype_update():
 	"""Add indexes in `tabActivity Log`"""
@@ -43,12 +50,3 @@ def add_authentication_log(subject, user, operation="Login", status="Success"):
 			"operation": operation,
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
-
-
-def clear_activity_logs(days=None):
-	"""clear 90 day old authentication logs or configured in log settings"""
-
-	if not days:
-		days = 90
-	doctype = DocType("Activity Log")
-	frappe.db.delete(doctype, filters=(doctype.creation < (Now() - Interval(days=days))))
