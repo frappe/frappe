@@ -124,7 +124,7 @@ jobs:
               git fetch --depth 1 upstream $branch_name:$branch_name
 
               git checkout -q -f $branch_name
-              pip install -q -r requirements.txt
+              bench setup requirements --python
               bench --site test_site migrate
           done
 
