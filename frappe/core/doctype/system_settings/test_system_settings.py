@@ -3,8 +3,6 @@
 # License: MIT. See LICENSE
 import unittest
 
-import frappe
-
 
 class TestSystemSettings(unittest.TestCase):
 	pass

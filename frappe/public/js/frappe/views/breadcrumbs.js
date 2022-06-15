@@ -150,7 +150,7 @@ frappe.breadcrumbs = {
 
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route()[2];
+		const docname = frappe.get_route().slice(2).join("/");
 		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${form_route}">${__(docname)}</a></li>`)
 			.appendTo(this.$breadcrumbs);

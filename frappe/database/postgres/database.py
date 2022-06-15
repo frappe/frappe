@@ -20,6 +20,11 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
+LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
+LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
+PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
+FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
+
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
@@ -30,6 +35,12 @@ class PostgresDatabase(Database):
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
 	REGEX_CHARACTER = "~"
+
+	# NOTE; The sequence cache for postgres is per connection.
+	# Since we're opening and closing connections for every transaction this results in skipping the cache
+	# to the next non-cached value hence not using cache in postgres.
+	# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
+	SEQUENCE_CACHE = 0
 
 	def setup_type_map(self):
 		self.db_type = "postgres"
@@ -209,18 +220,19 @@ class PostgresDatabase(Database):
 		)
 
 	def change_column_type(
-		self, doctype: str, column: str, type: str, nullable: bool = False
+		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
 	) -> Union[List, Tuple]:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
+		using_cast = f'using "{column}"::{type}' if use_cast else ""
 
 		# postgres allows ddl in transactions but since we've currently made
 		# things same as mariadb (raising exception on ddl commands if the transaction has any writes),
 		# hence using sql_ddl here for committing and then moving forward.
 		return self.sql_ddl(
 			f"""ALTER TABLE "{table_name}"
-								ALTER COLUMN "{column}" TYPE {type},
-								ALTER COLUMN "{column}" {null_constraint}"""
+				ALTER COLUMN "{column}" TYPE {type} {using_cast},
+				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
 	def create_auth_table(self):
@@ -375,12 +387,10 @@ class PostgresDatabase(Database):
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
-	query = str(query)
-	query = query.replace("`", '"')
+	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
-	if re.search("from tab", query, flags=re.IGNORECASE):
-		query = re.sub(r"from tab([\w-]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
+	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
 	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
 	# drop .0 from decimals and add quotes around them
@@ -389,8 +399,7 @@ def modify_query(query):
 	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
-	query = re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
-	return query
+	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
 
 
 def modify_values(values):
@@ -423,8 +432,6 @@ def modify_values(values):
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
-	if re.search(r"locate\(", query, flags=re.IGNORECASE):
-		query = re.sub(
-			r"locate\(([^,]+),([^)]+)(\)?)\)", r"strpos(\2\3, \1)", query, flags=re.IGNORECASE
-		)
+	if LOCATE_QUERY_PATTERN.search(query):
+		query = LOCATE_SUB_PATTERN.sub(r"strpos(\2\3, \1)", query)
 	return query

@@ -78,7 +78,7 @@ export default class ListSettings {
 			if (field_count < 4) {
 				field_count = 4;
 			} else if (field_count > 10) {
-				field_count = 4;
+				field_count = 10;
 			}
 
 			me.dialog.set_value("total_fields", field_count);
@@ -310,7 +310,7 @@ export default class ListSettings {
 		let me = this;
 
 		me.subject_field = {
-			label: "Name",
+			label: "ID",
 			fieldname: "name"
 		};
 

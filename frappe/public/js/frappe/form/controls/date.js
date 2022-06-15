@@ -64,6 +64,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			dateFormat: date_format,
 			startDate: this.get_start_date(),
 			keyboardNav: false,
+			minDate: this.df.min_date,
+			maxDate: this.df.max_date,
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			onSelect: () => {
 				this.$input.trigger('change');
@@ -137,13 +139,16 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		});
 	}
 	parse(value) {
-		if(value) {
-			return frappe.datetime.user_to_str(value);
+		if (value) {
+			if (value == "Invalid date") {
+				return "";
+			}
+			return frappe.datetime.user_to_str(value, false, true);
 		}
 	}
 	format_for_input(value) {
-		if(value) {
-			return frappe.datetime.str_to_user(value);
+		if (value) {
+			return frappe.datetime.str_to_user(value, false, true);
 		}
 		return "";
 	}

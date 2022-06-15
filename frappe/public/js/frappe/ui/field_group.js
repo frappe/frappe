@@ -105,6 +105,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 				if (!is_null(v)) ret[f.df.fieldname] = v;
 			}
+
+			if (this.is_dialog && f.df.reqd && !f.value) {
+				f.refresh_input();
+			}
 		}
 		if (errors.length && !ignore_errors) {
 			frappe.msgprint({
@@ -128,7 +132,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			var f = this.fields_dict[key];
 			if (f) {
 				f.set_value(val).then(() => {
-					f.set_input(val);
+					f.set_input?.(val);
 					this.refresh_dependency();
 					resolve();
 				});

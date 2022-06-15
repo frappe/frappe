@@ -7,23 +7,13 @@ import io
 import json
 import mimetypes
 import os
-import re
 from copy import copy
 from urllib.parse import unquote
 
 import frappe
 from frappe import _, conf
 from frappe.query_builder.utils import DocType
-from frappe.utils import (
-	call_hook_method,
-	cint,
-	cstr,
-	encode,
-	get_files_path,
-	get_hook_method,
-	random_string,
-)
-from frappe.utils.image import optimize_image
+from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
@@ -459,3 +449,15 @@ def add_attachments(doctype, name, attachments):
 			files.append(f)
 
 	return files
+
+
+def is_safe_path(path: str) -> bool:
+	if path.startswith(("http://", "https://")):
+		return True
+
+	basedir = frappe.get_site_path()
+	# ref: https://docs.python.org/3/library/os.path.html#os.path.commonpath
+	matchpath = os.path.realpath(os.path.abspath(path))
+	basedir = os.path.realpath(os.path.abspath(basedir))
+
+	return basedir == os.path.commonpath((basedir, matchpath))

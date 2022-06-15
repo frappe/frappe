@@ -43,6 +43,7 @@
   "new_password",
   "logout_all_sessions",
   "reset_password_key",
+  "last_reset_password_key_generated_on",
   "last_password_reset_date",
   "redirect_url",
   "document_follow_notifications_section",
@@ -614,6 +615,14 @@
    "options": "Module Profile"
   },
   {
+    "description": "Stores the datetime when the last reset password key was generated.",
+    "fieldname": "last_reset_password_key_generated_on",
+    "fieldtype": "Datetime",
+    "hidden": 1,
+    "label": "Last Reset Password Key Generated On",
+    "read_only": 1
+   },
+  {
    "fieldname": "column_break_75",
    "fieldtype": "Column Break"
   },
@@ -713,7 +722,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2022-03-09 01:47:56.745069",
+ "modified": "2022-05-25 01:00:51.345319",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -738,6 +747,10 @@
    "read": 1,
    "role": "System Manager",
    "write": 1
+  },
+  {
+   "role": "All",
+   "select": 1
   }
  ],
  "quick_entry": 1,

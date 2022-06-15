@@ -118,7 +118,7 @@ class TestWebsite(unittest.TestCase):
 	def test_error_page(self):
 		set_request(method="GET", path="/_test/problematic_page")
 		response = get_response()
-		self.assertEqual(response.status_code, 500)
+		self.assertEqual(response.status_code, 417)
 
 	def test_login(self):
 		set_request(method="GET", path="/login")
@@ -311,6 +311,11 @@ class TestWebsite(unittest.TestCase):
 		self.assertIn("Safe Render Off", content)
 		self.assertIn("test.__test", content)
 		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
+
+	def test_metatags(self):
+		content = get_response_content("/_test/_test_metatags")
+		self.assertIn('<meta name="title" content="Test Title Metatag">', content)
+		self.assertIn('<meta name="description" content="Test Description for Metatag">', content)
 
 
 def set_home_page_hook(key, value):

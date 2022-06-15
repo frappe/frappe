@@ -3,6 +3,7 @@ $(document).ready(function(){
 		var options = {
 			"key": "{{ api_key }}",
 			"amount": cint({{ amount }} * 100), // 2000 paise = INR 20
+			"currency": "{{ currency }}",
 			"name": "{{ title }}",
 			"description": "{{ description }}",
 			"subscription_id": "{{ subscription_id }}",

@@ -3,7 +3,7 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import List
+from typing import TYPE_CHECKING, List
 from uuid import uuid4
 
 import redis
@@ -18,6 +18,9 @@ from frappe import _
 from frappe.utils import cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.redis_queue import RedisQueue
+
+if TYPE_CHECKING:
+	from rq.job import Job
 
 
 @lru_cache()
@@ -52,7 +55,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-):
+) -> "Job":
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -227,8 +230,8 @@ def get_jobs(site=None, queue=None, key="method"):
 			# optional keyword arguments are stored in 'kwargs' of 'kwargs'
 			jobs_per_site[job.kwargs["site"]].append(job.kwargs["kwargs"][key])
 
-	for queue in get_queue_list(queue):
-		q = get_queue(queue)
+	for _queue in get_queue_list(queue):
+		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
 			if job.kwargs.get("site"):

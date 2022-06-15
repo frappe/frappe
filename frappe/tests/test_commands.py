@@ -7,7 +7,6 @@ import importlib
 import json
 import os
 import shlex
-import shutil
 import subprocess
 import unittest
 from contextlib import contextmanager
@@ -28,6 +27,8 @@ import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 
@@ -413,26 +414,6 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
 
-	def test_make_app(self):
-		user_input = [
-			b"Test App",  # title
-			b"This app's description contains 'single quotes' and \"double quotes\".",  # description
-			b"Test Publisher",  # publisher
-			b"example@example.org",  # email
-			b"",  # icon
-			b"",  # color
-			b"MIT",  # app_license
-		]
-		app_name = "testapp0"
-		apps_path = os.path.join(get_bench_path(), "apps")
-		test_app_path = os.path.join(apps_path, app_name)
-		self.execute(f"bench make-app {apps_path} {app_name}", {"cmd_input": b"\n".join(user_input)})
-		self.assertEqual(self.returncode, 0)
-		self.assertTrue(os.path.exists(test_app_path))
-
-		# cleanup
-		shutil.rmtree(test_app_path)
-
 	@skipIf(
 		not (
 			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
@@ -459,6 +440,36 @@ class TestCommands(BaseTestCommands):
 		self.assertFalse(os.path.exists(site_directory))
 		archive_directory = os.path.join(bench_path, f"archived/sites/{site}")
 		self.assertTrue(os.path.exists(archive_directory))
+
+	@skipIf(
+		not (
+			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
+		),
+		"DB Root password and Admin password not set in config",
+	)
+	def test_force_install_app(self):
+		if not os.path.exists(os.path.join(get_bench_path(), f"sites/{TEST_SITE}")):
+			self.execute(
+				f"bench new-site {TEST_SITE} --verbose "
+				f"--admin-password {frappe.conf.admin_password} "
+				f"--mariadb-root-password {frappe.conf.root_password} "
+				f"--db-type {frappe.conf.db_type or 'mariadb'} "
+			)
+
+		app_name = "frappe"
+
+		# set admin password in site_config as when frappe force installs, we don't have the conf
+		self.execute(f"bench --site {TEST_SITE} set-config admin_password {frappe.conf.admin_password}")
+
+		# try installing the frappe_docs app again on test site
+		self.execute(f"bench --site {TEST_SITE} install-app {app_name}")
+		self.assertIn(f"{app_name} already installed", self.stdout)
+		self.assertEqual(self.returncode, 0)
+
+		# force install frappe_docs app on the test site
+		self.execute(f"bench --site {TEST_SITE} install-app {app_name} --force")
+		self.assertIn(f"Installing {app_name}", self.stdout)
+		self.assertEqual(self.returncode, 0)
 
 
 class TestBackups(BaseTestCommands):
@@ -508,6 +519,23 @@ class TestBackups(BaseTestCommands):
 		self.assertNotEqual(before_backup, after_backup)
 		self.assertIsNotNone(after_backup["public"])
 		self.assertIsNotNone(after_backup["private"])
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_clear_log_table(self):
+		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
+		d.db_set("modified", "2010-01-01", update_modified=False)
+		frappe.db.commit()
+
+		tables_before = frappe.db.get_tables(cached=False)
+
+		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
+		self.assertEqual(self.returncode, 0)
+		frappe.db.commit()
+
+		self.assertFalse(frappe.db.exists("Error Log", d.name))
+		tables_after = frappe.db.get_tables(cached=False)
+
+		self.assertEqual(set(tables_before), set(tables_after))
 
 	def test_backup_with_custom_path(self):
 		"""Backup to a custom path (--backup-path)"""

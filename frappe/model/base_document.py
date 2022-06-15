@@ -1168,7 +1168,7 @@ class BaseDocument(object):
 		return cast_fieldtype(df.fieldtype, value, show_warning=False)
 
 	def _extract_images_from_text_editor(self):
-		from frappe.core.doctype.file.file import extract_images_from_doc
+		from frappe.core.doctype.file.utils import extract_images_from_doc
 
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):

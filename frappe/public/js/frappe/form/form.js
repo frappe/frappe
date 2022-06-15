@@ -39,6 +39,12 @@ frappe.ui.form.Form = class FrappeForm {
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
 		this.setup_meta(doctype);
+
+		this.beforeUnloadListener = (event) => {
+			event.preventDefault();
+			// A String is returned for compatability with older Browsers. Return Value has to be truthy to trigger "Leave Site" Dialog
+			return event.returnValue = 'There are unsaved changes, are you sure you want to exit?';
+		};
 	}
 
 	setup_meta() {
@@ -343,6 +349,8 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh(docname) {
 		var switched = docname ? true : false;
 
+		removeEventListener("beforeunload", this.beforeUnloadListener, {capture: true});
+
 		if(docname) {
 			this.switch_doc(docname);
 		}
@@ -567,7 +575,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
-		this.cscript.is_onload && this.set_first_tab_as_active();
+		this.layout.set_first_tab_as_active(switched || this.cscript.is_onload);
 
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
@@ -582,11 +590,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 	onload_post_render() {
 		this.setup_image_autocompletions_in_markdown();
-	}
-
-	set_first_tab_as_active() {
-		this.layout.tabs[0]
-			&& this.layout.tabs[0].set_active();
 	}
 
 	focus_on_first_input() {
@@ -913,7 +916,7 @@ frappe.ui.form.Form = class FrappeForm {
 		} else {
 			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
 		}
-	};
+	}
 
 	savetrash() {
 		this.validate_form_action("Delete");
@@ -1236,6 +1239,9 @@ frappe.ui.form.Form = class FrappeForm {
 	dirty() {
 		this.doc.__unsaved = 1;
 		this.$wrapper.trigger('dirty');
+		if (!frappe.boot.developer_mode) {
+			addEventListener("beforeunload", this.beforeUnloadListener, {capture: true});
+		}
 	}
 
 	get_docinfo() {
@@ -1370,7 +1376,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		for (var i=0, l=fnames.length; i<l; i++) {
 			var fieldname = fnames[i];
-			var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, this.docname);
+			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if(field) {
 				fn(field);
 				this.refresh_field(fieldname);
@@ -1482,15 +1488,21 @@ frappe.ui.form.Form = class FrappeForm {
 			if(fieldobj) {
 				if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
 					if(frappe.model.table_fields.includes(fieldobj.df.fieldtype) && $.isArray(v)) {
-
+						// set entire child table from specified array as value
 						frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 
-						for (var i=0, j=v.length; i < j; i++) {
-							var d = v[i];
-							var child = frappe.model.add_child(me.doc, fieldobj.df.options,
-								fieldobj.df.fieldname, i+1);
-							$.extend(child, d);
-						}
+						const standard_fields = [...frappe.model.std_fields_list, ...frappe.model.child_table_field_list];
+						v.forEach((d, idx) => {
+							let child = frappe.model.add_child(me.doc, fieldobj.df.options,
+								fieldobj.df.fieldname, idx+1);
+
+							// Don't set standard field, avoid mutating input too.
+							let doc_copy = {...d};
+							standard_fields.forEach(field => {
+								delete doc_copy[field];
+							});
+							$.extend(child, doc_copy);
+						});
 
 						me.refresh_field(f);
 						return Promise.resolve();
@@ -1628,11 +1640,11 @@ frappe.ui.form.Form = class FrappeForm {
 	set_indicator_formatter(fieldname, get_color, get_text) {
 		// get doctype from parent
 		var doctype;
-		if(frappe.meta.docfield_map[this.doctype][fieldname]) {
+		if (frappe.meta.docfield_map[this.doctype][fieldname]) {
 			doctype = this.doctype;
 		} else {
 			frappe.meta.get_table_fields(this.doctype).every(function(df) {
-				if(frappe.meta.docfield_map[df.options][fieldname]) {
+				if (frappe.meta.docfield_map[df.options][fieldname]) {
 					doctype = df.options;
 					return false;
 				} else {
@@ -1643,11 +1655,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		frappe.meta.docfield_map[doctype][fieldname].formatter =
 			function(value, df, options, doc) {
-				if(value) {
+				if (value) {
 					var label;
-					if(get_text) {
+					if (get_text) {
 						label = get_text(doc);
-					} else if(frappe.form.link_formatters[df.options]) {
+					} else if (frappe.form.link_formatters[df.options]) {
 						label = frappe.form.link_formatters[df.options](value, doc);
 					} else {
 						label = value;
@@ -1655,7 +1667,14 @@ frappe.ui.form.Form = class FrappeForm {
 
 					const escaped_name = encodeURIComponent(value);
 
-					return `<a class="indicator ${get_color(doc || {})}" href="/app/${frappe.router.slug(df.options)}/${escaped_name}" data-doctype="${doctype}" data-name="${value}">${label}</a>`;
+					return `
+						<a class="indicator ${get_color(doc || {})}"
+							href="/app/${frappe.router.slug(df.options)}/${escaped_name}"
+							data-doctype="${df.options}"
+							data-name="${value}">
+							${label}
+						</a>
+					`;
 				} else {
 					return '';
 				}

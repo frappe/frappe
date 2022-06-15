@@ -1,9 +1,11 @@
 # imports - standard imports
-import os, shutil
+import ast
+import os
+import re
+import shutil
 from distutils.command.clean import clean as Clean
 
-from setuptools import setup, find_packages
-import re, ast
+from setuptools import find_packages, setup
 
 # get version from __version__ variable in frappe/__init__.py
 _version_re = re.compile(r"__version__\s+=\s+(.*)")
@@ -51,7 +53,6 @@ setup(
 	zip_safe=False,
 	include_package_data=True,
 	install_requires=install_requires,
-	dependency_links=["https://github.com/frappe/python-pdfkit.git#egg=pdfkit"],
 	cmdclass={"clean": CleanCommand},
 	python_requires=">=3.8",
 )

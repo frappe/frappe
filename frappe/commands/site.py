@@ -9,6 +9,7 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
+from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 from frappe.exceptions import SiteNotSpecifiedError
 
 
@@ -54,7 +55,6 @@ def new_site(
 	db_root_password=None,
 	admin_password=None,
 	verbose=False,
-	install_apps=None,
 	source_sql=None,
 	force=None,
 	no_mariadb_socket=False,
@@ -144,10 +144,6 @@ def restore(
 		validate_database_sql,
 	)
 	from frappe.utils.backups import Backup
-
-	if not os.path.exists(sql_file_path):
-		print("Invalid path", sql_file_path)
-		sys.exit(1)
 
 	_backup = Backup(sql_file_path)
 
@@ -398,8 +394,9 @@ def _reinstall(
 
 @click.command("install-app")
 @click.argument("apps", nargs=-1)
+@click.option("--force", is_flag=True, default=False)
 @pass_context
-def install_app(context, apps):
+def install_app(context, apps, force=False):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
 
@@ -414,7 +411,7 @@ def install_app(context, apps):
 
 		for app in apps:
 			try:
-				_install_app(app, verbose=context.verbose)
+				_install_app(app, verbose=context.verbose, force=force)
 			except frappe.IncompatibleApp as err:
 				err_msg = ":\n{}".format(err) if str(err) else ""
 				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
@@ -825,7 +822,7 @@ def _drop_site(
 	try:
 		if not no_backup:
 			click.secho(f"Taking backup of {site}", fg="green")
-			odb = scheduled_backup(ignore_files=False, force=True, verbose=True)
+			odb = scheduled_backup(ignore_files=False, ignore_conf=True, force=True, verbose=True)
 			odb.print_summary()
 	except Exception as err:
 		if force:
@@ -923,7 +920,6 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		frappe.db.commit()
-		password = None
 	finally:
 		frappe.destroy()
 
@@ -1091,6 +1087,51 @@ def build_search_index(context):
 		build_index_for_all_routes()
 	finally:
 		frappe.destroy()
+
+
+@click.command("clear-log-table")
+@click.option("--doctype", default="text", type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--days", type=int, help="Keep records for days")
+@click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
+@pass_context
+def clear_log_table(context, doctype, days, no_backup):
+	"""If any logtype table grows too large then clearing it with DELETE query
+	is not feasible in reasonable time. This command copies recent data to new
+	table and replaces current table with new smaller table.
+
+
+	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
+	"""
+	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
+	from frappe.utils.backups import scheduled_backup
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	if doctype not in LOG_DOCTYPES:
+		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+
+		if not no_backup:
+			scheduled_backup(
+				ignore_conf=False,
+				include_doctypes=doctype,
+				ignore_files=True,
+				force=True,
+			)
+			click.echo(f"Backed up {doctype}")
+
+		try:
+			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
+			clear_logs(doctype, days=days)
+		except Exception as e:
+			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
+			sys.exit(1)
+		else:
+			click.secho(f"Cleared {doctype} records older than {days} days", fg="green")
 
 
 @click.command("trim-database")
@@ -1265,4 +1306,5 @@ commands = [
 	partial_restore,
 	trim_tables,
 	trim_database,
+	clear_log_table,
 ]

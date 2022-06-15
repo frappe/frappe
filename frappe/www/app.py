@@ -10,6 +10,9 @@ import frappe.sessions
 from frappe import _
 from frappe.utils.jinja_globals import is_rtl
 
+SCRIPT_TAG_PATTERN = re.compile(r"\<script[^<]*\</script\>")
+CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
+
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -29,15 +32,13 @@ def get_context(context):
 
 	frappe.db.commit()
 
-	desk_theme = frappe.db.get_value("User", frappe.session.user, "desk_theme")
-
 	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
-	boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json)
+	boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
 
 	# TODO: Find better fix
-	boot_json = re.sub(r"</script\>", "", boot_json)
+	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
 
 	context.update(
 		{
@@ -49,7 +50,7 @@ def get_context(context):
 			"lang": frappe.local.lang,
 			"sounds": hooks["sounds"],
 			"boot": boot if context.get("for_mobile") else boot_json,
-			"desk_theme": desk_theme or "Light",
+			"desk_theme": boot.get("desk_theme") or "Light",
 			"csrf_token": csrf_token,
 			"google_analytics_id": frappe.conf.get("google_analytics_id"),
 			"google_analytics_anonymize_ip": frappe.conf.get("google_analytics_anonymize_ip"),

@@ -7,7 +7,6 @@ from frappe import _
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 	is_notifications_enabled,
-	set_seen_value,
 )
 from frappe.model.document import Document
 
@@ -149,6 +148,6 @@ def trigger_indicator_hide():
 
 def set_notifications_as_unseen(user):
 	try:
-		frappe.db.set_value("Notification Settings", user, "seen", 0)
+		frappe.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
 	except frappe.DoesNotExistError:
 		return

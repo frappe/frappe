@@ -18,13 +18,10 @@ def before_install():
 
 
 def after_install():
-	# reset installed apps for re-install
-	frappe.db.set_global("installed_apps", '["frappe"]')
-
 	create_user_type()
 	install_basic_docs()
 
-	from frappe.core.doctype.file.file import make_home_folder
+	from frappe.core.doctype.file.utils import make_home_folder
 
 	make_home_folder()
 
@@ -45,7 +42,10 @@ def after_install():
 	update_password("Administrator", get_admin_password())
 
 	if not frappe.conf.skip_setup_wizard:
-		frappe.db.set_default("desktop:home_page", "setup-wizard")
+		# only set home_page if the value doesn't exist in the db
+		if not frappe.db.get_default("desktop:home_page"):
+			frappe.db.set_default("desktop:home_page", "setup-wizard")
+			frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
 	with open(frappe.get_site_path(".test_log"), "w") as f:
@@ -240,6 +240,10 @@ def add_country_and_currency(name, country):
 
 def add_standard_navbar_items():
 	navbar_settings = frappe.get_single("Navbar Settings")
+
+	# don't add settings/help options if they're already present
+	if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
+		return
 
 	standard_navbar_items = [
 		{

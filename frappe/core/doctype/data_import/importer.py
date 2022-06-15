@@ -4,6 +4,7 @@
 import io
 import json
 import os
+import re
 import timeit
 from datetime import date, datetime
 
@@ -11,7 +12,6 @@ import frappe
 from frappe import _
 from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
-from frappe.model import table_fields as table_fieldtypes
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.xlsxutils import (
@@ -23,6 +23,7 @@ INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
 INSERT = "Insert New Records"
 UPDATE = "Update Existing Records"
+DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 
 
 class Importer:
@@ -574,7 +575,7 @@ class ImportFile:
 	######
 
 	def read_file(self, file_path):
-		extn = file_path.split(".")[1]
+		extn = os.path.splitext(file_path)[1][1:]
 
 		file_content = None
 		with io.open(file_path, mode="rb") as f:
@@ -726,10 +727,7 @@ class Row:
 				)
 				return
 		elif df.fieldtype == "Duration":
-			import re
-
-			is_valid_duration = re.match(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", value)
-			if not is_valid_duration:
+			if not DURATION_PATTERN.match(value):
 				self.warnings.append(
 					{
 						"row": self.row_number,
