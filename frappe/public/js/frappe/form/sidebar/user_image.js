@@ -65,7 +65,7 @@ frappe.ui.form.setup_user_image_event = function(frm) {
 		});
 	}
 
-	if (frm.fields_dict[frm.meta.image_field].df.read_only == 0) {
+	if (frm.meta.image_field && !frm.fields_dict[frm.meta.image_field].df.read_only) {
 		frm.sidebar.image_wrapper.on('click', ':not(.sidebar-image-actions)', (e) => {
 			let $target = $(e.currentTarget);
 			if ($target.is('a.dropdown-toggle, .dropdown')) {
