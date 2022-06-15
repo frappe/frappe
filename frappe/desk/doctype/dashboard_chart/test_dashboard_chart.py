@@ -173,7 +173,8 @@ class TestDashboardChart(FrappeTestCase):
 
 		self.assertEqual(result.get("datasets")[0].get("values"), [200.0, 400.0, 300.0, 0.0, 100.0, 0.0])
 		self.assertEqual(
-			result.get("labels"), ["06-01-19", "07-01-19", "08-01-19", "09-01-19", "10-01-19", "11-01-19"]
+			result.get("labels"),
+			["06-01-2019", "07-01-2019", "08-01-2019", "09-01-2019", "10-01-2019", "11-01-2019"],
 		)
 
 	def test_weekly_dashboard_chart(self):
@@ -203,7 +204,7 @@ class TestDashboardChart(FrappeTestCase):
 			result = get(chart_name="Test Weekly Dashboard Chart", refresh=1)
 
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 300.0, 800.0, 0.0])
-			self.assertEqual(result.get("labels"), ["30-12-18", "06-01-19", "13-01-19", "20-01-19"])
+			self.assertEqual(result.get("labels"), ["12-30-2018", "06-01-2019", "01-13-2019", "01-20-2019"])
 
 	def test_avg_dashboard_chart(self):
 		insert_test_records()
@@ -230,7 +231,7 @@ class TestDashboardChart(FrappeTestCase):
 
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			result = get(chart_name="Test Average Dashboard Chart", refresh=1)
-			self.assertEqual(result.get("labels"), ["30-12-18", "06-01-19", "13-01-19", "20-01-19"])
+			self.assertEqual(result.get("labels"), ["12-30-2018", "06-01-2019", "01-13-2019", "01-20-2019"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
 
 	def test_user_date_label_dashboard_chart(self):
