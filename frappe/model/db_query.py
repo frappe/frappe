@@ -33,19 +33,6 @@ from frappe.utils import (
 	make_filter_tuple,
 )
 
-<<<<<<< HEAD
-=======
-LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
-LOCATE_CAST_PATTERN = re.compile(
-	r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", flags=re.IGNORECASE
-)
-FUNC_IFNULL_PATTERN = re.compile(
-	r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE
-)
-CAST_VARCHAR_PATTERN = re.compile(
-	r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE
-)
-ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
 SUB_QUERY_PATTERN = re.compile("^.*[,();@].*")
 IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
 IS_QUERY_PREDICATE_PATTERN = re.compile(
@@ -57,7 +44,6 @@ STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 
->>>>>>> 9b4db43b84 (perf(db_query): Maintain compiled pattern globally)
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -361,19 +347,8 @@ class DatabaseQuery(object):
 				_raise_exception()
 
 		for field in self.fields:
-<<<<<<< HEAD
-			if sub_query_regex.match(field):
-<<<<<<< HEAD
-				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
-					_raise_exception()
-
-				if any("({0}".format(keyword) in field.lower() for keyword in blacklisted_keywords):
-=======
-=======
 			if SUB_QUERY_PATTERN.match(field):
->>>>>>> 9b4db43b84 (perf(db_query): Maintain compiled pattern globally)
 				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
->>>>>>> 60ec324956 (fix: Remove unwanted blacklist over fields)
 					_raise_exception()
 
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
@@ -882,7 +857,7 @@ class DatabaseQuery(object):
 					)
 
 				# draft docs always on top
-				if hasattr(meta, 'is_submittable') and meta.is_submittable:
+				if hasattr(meta, "is_submittable") and meta.is_submittable:
 					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
 	def validate_order_by_and_group_by(self, parameters):
