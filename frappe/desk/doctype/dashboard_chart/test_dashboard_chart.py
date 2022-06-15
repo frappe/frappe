@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
+
 from datetime import datetime
 from unittest.mock import patch
 
@@ -9,11 +9,12 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import formatdate, get_last_day, getdate
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
-class TestDashboardChart(unittest.TestCase):
+class TestDashboardChart(FrappeTestCase):
 	def test_period_ending(self):
 		self.assertEqual(get_period_ending("2019-04-10", "Daily"), getdate("2019-04-10"))
 
@@ -57,8 +58,6 @@ class TestDashboardChart(unittest.TestCase):
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
-		frappe.db.rollback()
-
 	def test_empty_dashboard_chart(self):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
@@ -88,8 +87,6 @@ class TestDashboardChart(unittest.TestCase):
 			month = formatdate(month.strftime("%Y-%m-%d"))
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
-
-		frappe.db.rollback()
 
 	def test_chart_wih_one_value(self):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
@@ -127,8 +124,6 @@ class TestDashboardChart(unittest.TestCase):
 		# only 1 data point with value
 		self.assertEqual(result.get("datasets")[0].get("values")[2], 0)
 
-		frappe.db.rollback()
-
 	def test_group_by_chart_type(self):
 		if frappe.db.exists("Dashboard Chart", "Test Group By Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Group By Dashboard Chart")
@@ -150,8 +145,6 @@ class TestDashboardChart(unittest.TestCase):
 		todo_status_count = frappe.db.count("ToDo", {"status": result.get("labels")[0]})
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
-
-		frappe.db.rollback()
 
 	def test_daily_dashboard_chart(self):
 		insert_test_records()
@@ -183,8 +176,6 @@ class TestDashboardChart(unittest.TestCase):
 			result.get("labels"), ["06-01-19", "07-01-19", "08-01-19", "09-01-19", "10-01-19", "11-01-19"]
 		)
 
-		frappe.db.rollback()
-
 	def test_weekly_dashboard_chart(self):
 		insert_test_records()
 
@@ -214,8 +205,6 @@ class TestDashboardChart(unittest.TestCase):
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 300.0, 800.0, 0.0])
 			self.assertEqual(result.get("labels"), ["30-12-18", "06-01-19", "13-01-19", "20-01-19"])
 
-		frappe.db.rollback()
-
 	def test_avg_dashboard_chart(self):
 		insert_test_records()
 
@@ -244,7 +233,36 @@ class TestDashboardChart(unittest.TestCase):
 			self.assertEqual(result.get("labels"), ["30-12-18", "06-01-19", "13-01-19", "20-01-19"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
 
-		frappe.db.rollback()
+	def test_user_date_label_dashboard_chart(self):
+		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
+
+		frappe.get_doc(
+			dict(
+				doctype="Dashboard Chart",
+				chart_name="Test Dashboard Chart Date Label",
+				chart_type="Count",
+				document_type="DocType",
+				based_on="creation",
+				timespan="Select Date Range",
+				time_interval="Weekly",
+				from_date=datetime(2018, 12, 30),
+				to_date=datetime(2019, 1, 15),
+				filters_json="[]",
+				timeseries=1,
+			)
+		).insert()
+
+		with patch.object(frappe.utils.data, "get_user_date_format", return_value="dd.mm.yyyy"):
+			result = get(chart_name="Test Dashboard Chart Date Label")
+			self.assertEqual(
+				sorted(result.get("labels")), sorted(["01.05.2019", "01.12.2019", "19.01.2019"])
+			)
+
+		with patch.object(frappe.utils.data, "get_user_date_format", return_value="mm-dd-yyyy"):
+			result = get(chart_name="Test Dashboard Chart Date Label")
+			self.assertEqual(
+				sorted(result.get("labels")), sorted(["01-19-2019", "05-01-2019", "12-01-2019"])
+			)
 
 
 def insert_test_records():
