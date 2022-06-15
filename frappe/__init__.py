@@ -2221,14 +2221,14 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
-		local.website_settings = db.get_singles_dict("Website Settings")
+		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
 
 	return local.website_settings[key]
 
 
 def get_system_settings(key):
 	if not hasattr(local, "system_settings"):
-		local.system_settings = db.get_singles_dict("System Settings")
+		local.system_settings = db.get_singles_dict("System Settings", cast=True)
 
 	return local.system_settings[key]
 
