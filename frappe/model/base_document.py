@@ -704,12 +704,22 @@ class BaseDocument(object):
 				# get a map of values ot fetch along with this link query
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
-
+				from frappe.utils.safe_exec import get_safe_globals
 				fields_to_fetch = [
 					_df
 					for _df in self.meta.get_fields_to_fetch(df.fieldname)
-					if not _df.get("fetch_if_empty")
-					or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
+					if
+						(
+							not _df.get("fetch_if_empty")
+							or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
+						)
+						and
+						(
+							not _df.get("fetch_depends_on")
+							or frappe.safe_eval(_df.get("fetch_depends_on"),
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},)
+						)
 				]
 				if not frappe.get_meta(doctype).get("is_virtual"):
 					if not fields_to_fetch:

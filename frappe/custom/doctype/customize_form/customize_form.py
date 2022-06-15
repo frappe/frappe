@@ -616,6 +616,7 @@ docfield_properties = {
 	"mandatory_depends_on": "Data",
 	"read_only_depends_on": "Data",
 	"depends_on": "Data",
+	"fetch_depends_on": "Data",
 	"description": "Text",
 	"default": "Text",
 	"precision": "Select",
