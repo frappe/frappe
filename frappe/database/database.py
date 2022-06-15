@@ -189,9 +189,6 @@ class Database(object):
 
 			self._cursor.execute(query, values)
 
-			if frappe.flags.in_migrate:
-				self.log_touched_tables(query, values)
-
 			if debug:
 				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
@@ -262,6 +259,9 @@ class Database(object):
 		if frappe.conf.logging == 2:
 			mogrified_query = mogrified_query or self.mogrify(query, values)
 			frappe.log(f"<<<< query\n{mogrified_query}\n>>>>")
+
+		if frappe.flags.in_migrate:
+			self.log_touched_tables(mogrified_query or query)
 
 	def mogrify(self, query, values):
 		"""build the query string with values"""
@@ -1217,9 +1217,7 @@ class Database(object):
 		else:
 			return None
 
-	def log_touched_tables(self, query, values=None):
-		if values:
-			query = frappe.safe_decode(self._cursor.mogrify(query, values))
+	def log_touched_tables(self, query):
 		if is_query_type(query, ("insert", "delete", "update", "alter", "drop", "rename")):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
