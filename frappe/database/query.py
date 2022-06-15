@@ -370,6 +370,10 @@ class Query:
 			return None
 
 		is_list = isinstance(fields, (list, tuple, set))
+		if is_list and len(fields) == 1:
+			fields = fields[0]
+			is_list = False
+
 		is_str = isinstance(fields, str)
 
 		def add_functions(fields):
@@ -389,7 +393,7 @@ class Query:
 				func = fields.split("(")[0].casefold().split()
 				func = [f for f in func if f in sql_functions][0]
 				args = fields[len(func) + 1 : fields.index(")")].split(",")
-				args = [literal_eval_(arg.strip()) for arg in args]
+				args = [Field(literal_eval_((arg.strip()))) for arg in args]
 				return getattr(functions, func.capitalize())(*args)
 
 			if is_str and any(
@@ -474,7 +478,7 @@ class Query:
 		# Clean up state before each query
 		self.tables = {}
 		criterion = self.build_conditions(table, filters, **kwargs)
-		fields = self.set_fields(fields, **kwargs)
+		fields = self.set_fields(kwargs.get("field_objects") or fields, **kwargs)
 
 		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 
@@ -487,7 +491,7 @@ class Query:
 				)
 
 		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*kwargs.get("field_objects", fields))
+			query = criterion.select(*fields)
 
 		elif isinstance(fields, Criterion):
 			query = criterion.select(fields)

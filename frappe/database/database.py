@@ -723,13 +723,6 @@ class Database(object):
 	):
 		field_objects = []
 
-		if not isinstance(fields, Criterion):
-			for field in fields:
-				if "(" in str(field) or " as " in str(field):
-					field_objects.append(PseudoColumn(field))
-				else:
-					field_objects.append(field)
-
 		query = self.query.get_sql(
 			table=doctype,
 			filters=filters,
