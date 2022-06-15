@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # Database Module
@@ -18,12 +18,21 @@ import frappe
 import frappe.defaults
 import frappe.model.meta
 from frappe import _
+from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, getdate, now, sbool
+from frappe.utils import cast as cast_fieldtype
+from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
 
-from .query import Query
+IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
+INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
+SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
+MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+
+def is_query_type(query: str, query_type: Union[str, Tuple[str]]) -> bool:
+	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
 
 class Database(object):
@@ -65,7 +74,15 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
-		self.query = Query()
+
+	@property
+	def query(self):
+		if not hasattr(self, "_query"):
+			from .query import Query
+
+			self._query = Query()
+			del Query
+		return self._query
 
 	def setup_type_map(self):
 		pass
@@ -137,9 +154,8 @@ class Database(object):
 		# remove whitespace / indentation from start and end of query
 		query = query.strip()
 
-		if re.search(r"ifnull\(", query, flags=re.IGNORECASE):
-			# replaces ifnull in query with coalesce
-			query = re.sub(r"ifnull\(", "coalesce(", query, flags=re.IGNORECASE)
+		# replaces ifnull in query with coalesce
+		query = IFNULL_PATTERN.sub("coalesce(", query)
 
 		if not self._conn:
 			self.connect()
@@ -195,6 +211,9 @@ class Database(object):
 
 			elif frappe.conf.db_type == "postgres":
 				# TODO: added temporarily
+				import traceback
+
+				traceback.print_stack()
 				print(e)
 				raise
 
@@ -235,7 +254,7 @@ class Database(object):
 
 		# debug
 		if debug:
-			if explain and query.strip().lower().startswith("select"):
+			if explain and is_query_type(query, "select"):
 				self.explain_query(query, values)
 			frappe.errprint(self.mogrify(query, values))
 
@@ -278,9 +297,9 @@ class Database(object):
 		        # doctypes = ["DocType", "DocField", "User", ...]
 		        doctypes = frappe.db.sql_list("select name from DocType")
 		"""
-		return [r[0] for r in self.sql(query, values, **kwargs, debug=debug)]
+		return self.sql(query, values, **kwargs, debug=debug, pluck=True)
 
-	def sql_ddl(self, query, values=(), debug=False):
+	def sql_ddl(self, query, debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
 		self.commit()
@@ -292,7 +311,7 @@ class Database(object):
 		could cause the system to hang."""
 		self.check_implicit_commit(query)
 
-		if query and query.strip().lower() in ("commit", "rollback"):
+		if query and is_query_type(query, ("commit", "rollback")):
 			self.transaction_writes = 0
 
 		if query[:6].lower() in ("update", "insert", "delete"):
@@ -309,8 +328,7 @@ class Database(object):
 		if (
 			self.transaction_writes
 			and query
-			and query.strip().split()[0].lower()
-			in ["start", "alter", "drop", "create", "begin", "truncate"]
+			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
 			raise Exception("This statement can cause implicit commit")
 
@@ -333,7 +351,7 @@ class Database(object):
 
 	@staticmethod
 	def clear_db_table_cache(query):
-		if query and query.strip().split()[0].lower() in {"drop", "create"}:
+		if query and is_query_type(query, ("drop", "create")):
 			frappe.cache().delete_key("db_tables")
 
 	@staticmethod
@@ -602,24 +620,44 @@ class Database(object):
 			else:
 				return r and [[i[1] for i in r]] or []
 
-	def get_singles_dict(self, doctype, debug=False, *, for_update=False):
+	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
+		:param debug: Execute query in debug mode - print to STDOUT
+		:param for_update: Take `FOR UPDATE` lock on the records
+		:param cast: Cast values to Python data types based on field type
 
 		Example:
 
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		result = self.query.get_sql(
+		queried_result = self.query.get_sql(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
 			for_update=for_update,
-		).run()
+		).run(debug=debug)
 
-		return frappe._dict(result)
+		if not cast:
+			return frappe._dict(queried_result)
+
+		try:
+			meta = frappe.get_meta(doctype)
+		except DoesNotExistError:
+			return frappe._dict(queried_result)
+
+		return_value = frappe._dict()
+
+		for fieldname, value in queried_result:
+			if df := meta.get_field(fieldname):
+				casted_value = cast_fieldtype(df.fieldtype, value)
+			else:
+				casted_value = value
+			return_value[fieldname] = casted_value
+
+		return return_value
 
 	@staticmethod
 	def get_all(*args, **kwargs):
@@ -682,7 +720,7 @@ class Database(object):
 				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
 			)
 
-		val = cast(df.fieldtype, val)
+		val = cast_fieldtype(df.fieldtype, val)
 
 		self.value_cache[doctype][fieldname] = val
 
@@ -914,6 +952,9 @@ class Database(object):
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
+		if frappe.conf.db_type == "postgres":
+			# Postgres requires explicitly starting new transaction
+			self.begin()
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
@@ -950,7 +991,7 @@ class Database(object):
 		else:
 			self.sql("rollback")
 			self.begin()
-			for obj in frappe.local.rollback_observers:
+			for obj in dict.fromkeys(frappe.local.rollback_observers):
 				if hasattr(obj, "on_rollback"):
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
@@ -1114,8 +1155,7 @@ class Database(object):
 	def get_index_name(fields):
 		index_name = "_".join(fields) + "_index"
 		# remove index length if present e.g. (10) from index name
-		index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
-		return index_name
+		return INDEX_PATTERN.sub(r"", index_name)
 
 	def get_system_setting(self, key):
 		def _load_system_settings():
@@ -1165,12 +1205,11 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		values = ()
 		filters = filters or kwargs.get("conditions")
 		query = self.query.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-		return self.sql(query, values, **kwargs)
+		return query.run(**kwargs)
 
 	def truncate(self, doctype: str):
 		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
@@ -1178,8 +1217,7 @@ class Database(object):
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
-		table = doctype if doctype.startswith("__") else f"tab{doctype}"
-		return self.sql_ddl(f"truncate `{table}`")
+		return self.sql_ddl(f"truncate `{get_table_name(doctype)}`")
 
 	def clear_table(self, doctype):
 		return self.truncate(doctype)
@@ -1194,7 +1232,7 @@ class Database(object):
 	def log_touched_tables(self, query, values=None):
 		if values:
 			query = frappe.safe_decode(self._cursor.mogrify(query, values))
-		if query.strip().lower().split()[0] in ("insert", "delete", "update", "alter", "drop", "rename"):
+		if is_query_type(query, ("insert", "delete", "update", "alter", "drop", "rename")):
 			# single_word_regex is designed to match following patterns
 			# `tabXxx`, tabXxx and "tabXxx"
 
@@ -1209,11 +1247,9 @@ class Database(object):
 			# and are continued with multiple words that start with a captital letter
 			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
 
-			single_word_regex = r'([`"]?)(tab([A-Z]\w+))\1'
-			multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
 			tables = []
-			for regex in (single_word_regex, multi_word_regex):
-				tables += [groups[1] for groups in re.findall(regex, query)]
+			for regex in (SINGLE_WORD_PATTERN, MULTI_WORD_PATTERN):
+				tables += [groups[1] for groups in regex.findall(query)]
 
 			if frappe.flags.touched_tables is None:
 				frappe.flags.touched_tables = set()

@@ -40,7 +40,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
 				# Remove illegal characters from the string
-				value = re.sub(ILLEGAL_CHARACTERS_RE, "", value)
+				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
 			clean_row.append(value)
 

@@ -2,7 +2,10 @@ name: Generate Semantic Release
 on:
   push:
     branches:
-      - [version-13, version-14-beta]
+      - version-14-beta
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Release

@@ -191,6 +191,8 @@ frappe.patches.v14_0.remove_post_and_post_comment
 frappe.patches.v14_0.reset_creation_datetime
 frappe.patches.v14_0.remove_is_first_startup
 frappe.patches.v14_0.reload_workspace_child_tables
+frappe.patches.v14_0.clear_long_pending_stale_logs
+frappe.patches.v14_0.log_settings_migration
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy
@@ -200,3 +202,5 @@ frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
 frappe.patches.v14_0.update_is_system_generated_flag
 frappe.patches.v14_0.update_auto_account_deletion_duration
+frappe.patches.v14_0.set_document_expiry_default
+frappe.patches.v14_0.delete_data_migration_tool

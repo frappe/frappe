@@ -356,8 +356,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_customize_buttons() {
-		if (frappe.user_roles.includes("System Manager")) {
-			let is_doctype_form = this.frm.doctype === 'DocType';
+		let is_doctype_form = this.frm.doctype === 'DocType';
+		if (frappe.model.can_create("Custom Field")
+			&& frappe.model.can_create("Property Setter")) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
 
@@ -372,7 +373,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 					}
 				}, true);
 			}
+		}
 
+		if (frappe.model.can_create("DocType")) {
 			if (frappe.boot.developer_mode===1 && !is_doctype_form) {
 				// edit doctype
 				this.page.add_menu_item(__("Edit DocType"), () => {

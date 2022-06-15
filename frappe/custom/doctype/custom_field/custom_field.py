@@ -161,6 +161,7 @@ def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=
 		custom_field.update(df)
 		custom_field.flags.ignore_validate = ignore_validate
 		custom_field.insert()
+		return custom_field
 
 
 def create_custom_fields(custom_fields, ignore_validate=False, update=True):

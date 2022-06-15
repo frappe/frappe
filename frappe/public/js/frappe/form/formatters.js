@@ -15,17 +15,35 @@ frappe.form.formatters = {
 			return "<div style='text-align: right'>" + value + "</div>";
 		}
 	},
+	_apply_custom_formatter: function(value, df) {
+		/* you can add a custom formatter in df.formatter
+		example:
+			frappe.meta.docfield_map[df.parent][df.fieldname].formatter = (value) => {
+				if (value==='Test') return '😜';
+			}
+		*/
+
+		if (df) {
+			const std_df = frappe.meta.docfield_map[df.parent] && frappe.meta.docfield_map[df.parent][df.fieldname];
+			if (std_df && std_df.formatter && typeof std_df.formatter==='function') {
+				value = std_df.formatter(value);
+			}
+		}
+		return value;
+	},
 	Data: function(value, df) {
 		if (df && df.options == "URL") {
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
-		return value==null ? "" : value;
+		value = value==null ? "" : value;
+
+		return frappe.form.formatters._apply_custom_formatter(value, df);
 	},
-	Autocomplete: function(value) {
-		return __(frappe.form.formatters["Data"](value));
+	Autocomplete: function(value, df) {
+		return __(frappe.form.formatters["Data"](value, df));
 	},
-	Select: function(value) {
-		return __(frappe.form.formatters["Data"](value));
+	Select: function(value, df) {
+		return __(frappe.form.formatters["Data"](value, df));
 	},
 	Float: function(value, docfield, options, doc) {
 		// don't allow 0 precision for Floats, hence or'ing with null
@@ -183,7 +201,7 @@ frappe.form.formatters = {
 			return "";
 		}
 	},
-	Text: function(value) {
+	Text: function(value, df) {
 		if(value) {
 			var tags = ["<p", "<div", "<br", "<table"];
 			var match = false;
@@ -200,7 +218,7 @@ frappe.form.formatters = {
 			}
 		}
 
-		return frappe.form.formatters.Data(value);
+		return frappe.form.formatters.Data(value, df);
 	},
 	Time: function(value) {
 		if (value) {

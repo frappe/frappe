@@ -298,8 +298,6 @@ def apply(doc=None, method=None, doctype=None, name=None):
 					if reopened:
 						break
 
-				# print(f"Rule:{assignment_rule}\nDoc: {doc}\nReOpened: {reopened}")
-
 			assignment_rule.close_assignments(doc)
 
 

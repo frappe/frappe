@@ -1,6 +1,6 @@
 import os
 
-from PyPDF2 import PdfFileWriter
+from PyPDF2 import PdfWriter
 
 import frappe
 from frappe import _
@@ -11,6 +11,8 @@ no_cache = 1
 
 base_template_path = "www/printview.html"
 standard_format = "templates/print_formats/standard.html"
+
+from frappe.www.printview import validate_print_permission
 
 
 @frappe.whitelist()
@@ -56,7 +58,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 
 	import json
 
-	output = PdfFileWriter()
+	output = PdfWriter()
 
 	if isinstance(options, str):
 		options = json.loads(options)
@@ -115,8 +117,11 @@ def read_multi_pdf(output):
 	return filedata
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
+	doc = doc or frappe.get_doc(doctype, name)
+	validate_print_permission(doc)
+
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
 	frappe.local.response.filename = "{name}.pdf".format(
 		name=name.replace(" ", "-").replace("/", "-")
@@ -147,7 +152,7 @@ def print_by_server(
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
-		output = PdfFileWriter()
+		output = PdfWriter()
 		output = frappe.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
 		)

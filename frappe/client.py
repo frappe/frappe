@@ -100,7 +100,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	if not frappe.has_permission(doctype):
+	if not frappe.has_permission(doctype, parent_doctype=parent):
 		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
@@ -385,7 +385,7 @@ def attach_file(
 	is_private=None,
 	docfield=None,
 ):
-	"""Attach a file to Document (POST)
+	"""Attach a file to Document
 
 	:param filename: filename e.g. test-file.txt
 	:param filedata: base64 encode filedata which must be urlencoded
@@ -396,17 +396,10 @@ def attach_file(
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)"""
 
-	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
-
-	if request_method.upper() != "POST":
-		frappe.throw(_("Invalid Request"))
-
 	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission()
 
-	if not doc.has_permission():
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-	_file = frappe.get_doc(
+	file = frappe.get_doc(
 		{
 			"doctype": "File",
 			"file_name": filename,
@@ -418,14 +411,13 @@ def attach_file(
 			"content": filedata,
 			"decode": decode_base64,
 		}
-	)
-	_file.save()
+	).save()
 
 	if docfield and doctype:
-		doc.set(docfield, _file.file_url)
+		doc.set(docfield, file.file_url)
 		doc.save()
 
-	return _file.as_dict()
+	return file
 
 
 @frappe.whitelist()

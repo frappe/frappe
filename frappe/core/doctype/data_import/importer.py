@@ -4,6 +4,7 @@
 import io
 import json
 import os
+import re
 import timeit
 from datetime import date, datetime
 
@@ -22,6 +23,7 @@ INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
 INSERT = "Insert New Records"
 UPDATE = "Update Existing Records"
+DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 
 
 class Importer:
@@ -725,10 +727,7 @@ class Row:
 				)
 				return
 		elif df.fieldtype == "Duration":
-			import re
-
-			is_valid_duration = re.match(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", value)
-			if not is_valid_duration:
+			if not DURATION_PATTERN.match(value):
 				self.warnings.append(
 					{
 						"row": self.row_number,

@@ -58,7 +58,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.has_input = true;
 		this.bind_change_event();
 		this.setup_autoname_check();
-
+		this.setup_copy_button();
 		if (this.df.options == 'URL') {
 			this.setup_url_field();
 		}
@@ -110,6 +110,18 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 				this.$link.toggle(false);
 			}, 500);
 		});
+	}
+
+	setup_copy_button() {
+		if (this.df.with_copy_button) {
+			this.$wrapper.find('.control-input').append(
+				`<button class="btn action-btn">
+					${frappe.utils.icon('clipboard', 'sm')}
+				</button>`
+			).find(".action-btn").click(() => {
+				frappe.utils.copy_to_clipboard(this.value);
+			});
+		}
 	}
 
 	setup_barcode_field() {
