@@ -462,7 +462,8 @@ class Query:
 
 					fields = updated_fields
 
-		if not is_list:
+		# Need to check instance again since fields modified.
+		if not isinstance(fields, (list, tuple, set)):
 			fields = [fields] if fields else []
 
 		fields.extend(function_objects)

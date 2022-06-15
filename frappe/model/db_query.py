@@ -89,9 +89,6 @@ class DatabaseQuery(object):
 		ignore_ddl=False,
 		parent_doctype=None,
 	) -> List:
-		from frappe.database.query import Query
-
-		self.query = Query()
 
 		if (
 			not ignore_permissions
@@ -114,8 +111,6 @@ class DatabaseQuery(object):
 		elif fields and isinstance(filters, list) and len(filters) > 1 and isinstance(filters[0], str):
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
-
-		self.temp_filters, self.temp_fields = filters, fields
 
 		if fields:
 			self.fields = fields
@@ -202,6 +197,7 @@ class DatabaseQuery(object):
 			%(limit)s"""
 			% args
 		)
+
 		return frappe.db.sql(
 			query,
 			as_dict=not self.as_list,
