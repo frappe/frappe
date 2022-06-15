@@ -118,8 +118,9 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		if (frm.doc.docstatus == 2) return true; // don't check for cancel
 
 		$.each(frappe.model.get_all_docs(frm.doc), function (i, doc) {
-			var error_fields = [];
-			var folded = false;
+			let error_fields = [];
+			let folded = false;
+			let tab = null;
 
 			$.each(frappe.meta.docfield_list[doc.doctype] || [], function (i, docfield) {
 				if (docfield.fieldname) {
@@ -130,10 +131,18 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 						folded = frm.layout.folded;
 					}
 
+					if (df.fieldtype === 'Tab Break') {
+						tab = df;
+					}
+
 					if (is_docfield_mandatory(doc, df) &&
 						!frappe.model.has_value(doc.doctype, doc.name, df.fieldname)) {
 						has_errors = true;
 						error_fields[error_fields.length] = __(df.label);
+
+						// show tab
+						frm.layout.tabs_dict[tab.fieldname].set_active();
+
 						// scroll to field
 						if (!frm.scroll_set) {
 							scroll_to(doc.parentfield || df.fieldname);

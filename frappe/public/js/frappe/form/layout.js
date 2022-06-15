@@ -7,6 +7,7 @@ frappe.ui.form.Layout = class Layout {
 		this.views = {};
 		this.pages = [];
 		this.tabs = [];
+		this.tabs_dict = {};
 		this.sections = [];
 		this.fields_list = [];
 		this.fields_dict = {};
@@ -270,6 +271,7 @@ frappe.ui.form.Layout = class Layout {
 		this.current_tab = tab;
 		this.make_section({fieldtype: 'Section Break'});
 		this.tabs.push(tab);
+		this.tabs_dict[df.fieldname] = tab;
 		return tab;
 	}
 
