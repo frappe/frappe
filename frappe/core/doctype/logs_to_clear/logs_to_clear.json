@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "autoincrement",
+ "autoname": "hash",
  "creation": "2022-06-11 02:02:39.472511",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -35,7 +35,6 @@
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Logs To Clear",
- "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
