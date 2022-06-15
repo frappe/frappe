@@ -293,9 +293,6 @@ frappe.ui.form.Layout = class Layout {
 		// refresh sections
 		this.refresh_sections();
 
-		// refresh tabs
-		this.is_tabbed_layout() && this.refresh_tabs();
-
 		if (this.frm) {
 			// collapse sections
 			this.refresh_section_collapse();
@@ -325,6 +322,9 @@ frappe.ui.form.Layout = class Layout {
 				section.addClass("empty-section");
 			}
 		});
+
+		// refresh tabs
+		this.is_tabbed_layout() && this.refresh_tabs();
 	}
 
 	refresh_tabs() {
