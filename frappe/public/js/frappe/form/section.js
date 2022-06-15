@@ -4,6 +4,7 @@ export default class Section {
 		this.card_layout = card_layout;
 		this.parent = parent;
 		this.df = df || {};
+		this.columns = [];
 		this.fields_list = [];
 		this.fields_dict = {};
 
@@ -80,6 +81,12 @@ export default class Section {
 			this.set_icon();
 			this.indicator.show();
 		}
+	}
+
+	add_field(fieldobj) {
+		this.fields_list.push(fieldobj);
+		this.fields_dict[fieldobj.fieldname] = fieldobj;
+		fieldobj.section = this.section;
 	}
 
 	refresh(hide) {

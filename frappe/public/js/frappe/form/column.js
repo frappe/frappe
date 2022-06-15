@@ -4,6 +4,8 @@ export default class Column {
 
 		this.df = df;
 		this.section = section;
+		this.section.columns.push(this);
+		this.fields_list = [];
 		this.make();
 		this.resize_all_columns();
 	}
@@ -15,8 +17,9 @@ export default class Column {
 				</form>
 			</div>
 		`)
-			.appendTo(this.section.body)
-			.find("form")
+			.appendTo(this.section.body);
+
+		this.form = this.wrapper.find("form")
 			.on("submit", function () {
 				return false;
 			});
@@ -41,7 +44,17 @@ export default class Column {
 			.addClass("col-sm-" + colspan);
 	}
 
+	add_field(fieldobj) {
+		this.fields_list.push(fieldobj);
+	}
+
 	refresh() {
 		this.section.refresh();
+	}
+
+	make_sortable() {
+		this.sortable = new Sortable(this.form.get(0), {
+			group: this.section.layout.frm.doctype
+		});
 	}
 }

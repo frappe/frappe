@@ -211,14 +211,11 @@ frappe.ui.form.Layout = class Layout {
 			fieldobj.perm = this.frm.perm;
 		}
 
-		this.section.fields_list.push(fieldobj);
-		this.section.fields_dict[df.fieldname] = fieldobj;
-		fieldobj.section = this.section;
+		this.section.add_field(fieldobj);
+		this.column.add_field(fieldobj);
 
 		if (this.current_tab) {
-			fieldobj.tab = this.current_tab;
-			this.current_tab.fields_list.push(fieldobj);
-			this.current_tab.fields_dict[df.fieldname] = fieldobj;
+			this.current_tab.add_field(fieldobj);
 		}
 	}
 
@@ -226,7 +223,7 @@ frappe.ui.form.Layout = class Layout {
 		const fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
-			parent: this.column.wrapper.get(0),
+			parent: this.column.form.get(0),
 			frm: this.frm,
 			render_input: render,
 			doc: this.doc,

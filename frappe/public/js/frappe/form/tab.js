@@ -79,6 +79,12 @@ export default class Tab {
 		this.parent.hide();
 	}
 
+	add_field(fieldobj) {
+		fieldobj.tab = this;
+		this.fields_list.push(fieldobj);
+		this.fields_dict[fieldobj.df.fieldname] = fieldobj;
+	}
+
 	set_active() {
 		this.parent.find(".nav-link").tab("show");
 		this.wrapper.addClass("active");

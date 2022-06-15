@@ -13,6 +13,7 @@ import "./script_helpers";
 import "./sidebar/form_sidebar";
 import "./footer/footer";
 import "./form_tour";
+import './form_editor';
 import { UndoManager } from "./undo_manager";
 
 frappe.ui.form.Controller = class FormController {
@@ -266,6 +267,10 @@ frappe.ui.form.Form = class FrappeForm {
 		// workflow state
 		this.states = new frappe.ui.form.States({
 			frm: this,
+		});
+
+		this.form_editor = new frappe.ui.form.FormEditor({
+			frm: this
 		});
 	}
 
