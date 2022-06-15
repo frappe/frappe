@@ -100,7 +100,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	if not frappe.has_permission(doctype):
+	if not frappe.has_permission(doctype, parent_doctype=parent):
 		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
