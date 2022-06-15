@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
-<<<<<<< HEAD
+
 # See license.txt
 from __future__ import unicode_literals
 
 import unittest
-=======
-# License: MIT. See LICENSE
 
->>>>>>> 57a4d590d0 (test: test_user_date_label_dashboard_chart)
 from datetime import datetime
 from unittest.mock import patch
 
