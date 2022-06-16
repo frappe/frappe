@@ -36,11 +36,11 @@ def get_doc(*args, **kwargs):
 
 	2. create a new object
 	user = get_doc({
-		"doctype":"User"
-		"email_id": "test@example.com",
-		"roles: [
-			{"role": "System Manager"}
-		]
+	        "doctype":"User"
+	        "email_id": "test@example.com",
+	        "roles: [
+	                {"role": "System Manager"}
+	        ]
 	})
 
 	3. create new object with keyword arguments

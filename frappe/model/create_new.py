@@ -145,7 +145,6 @@ def set_dynamic_default_values(doc, parent_doc, parentfield):
 				if default_value is not None and not doc.get(df.fieldname):
 					doc[df.fieldname] = default_value
 
-
 	if parent_doc:
 		doc["parent"] = parent_doc.name
 		doc["parenttype"] = parent_doc.doctype

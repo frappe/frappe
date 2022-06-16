@@ -407,7 +407,7 @@ def modify_query(query):
 	#
 	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =	40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
 	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
-	#	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
+	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
 	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
 
