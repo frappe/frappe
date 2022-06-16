@@ -311,6 +311,10 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		return db_size[0].get("database_size")
 
+	def log_query(self, query, values, debug, explain):
+		self.last_query = super().log_query(query, values, debug, explain)
+		return self.last_query
+
 	@staticmethod
 	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""

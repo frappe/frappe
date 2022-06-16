@@ -9,6 +9,7 @@ import string
 import traceback
 from contextlib import contextmanager
 from time import time
+from types import NoneType
 from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
@@ -17,6 +18,7 @@ import frappe
 import frappe.defaults
 import frappe.model.meta
 from frappe import _
+from frappe.database.query import Query as FilterEngine
 from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
@@ -28,6 +30,9 @@ IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+Query = Union[str, frappe.qb]
+QueryValues = Union[Tuple, List, Dict, NoneType]
 
 
 def is_query_type(query: str, query_type: Union[str, Tuple[str]]) -> bool:
@@ -78,10 +83,7 @@ class Database(object):
 	@property
 	def query(self):
 		if not hasattr(self, "_filter_engine"):
-			from .query import Query
-
-			self._filter_engine = Query()
-			del Query
+			self._filter_engine = FilterEngine()
 		return self._filter_engine
 
 	def setup_type_map(self):
@@ -105,13 +107,13 @@ class Database(object):
 	def get_database_size(self):
 		raise NotImplementedError
 
-	def _transform_query(self, query, values):
+	def _transform_query(self, query: Query, values: QueryValues):
 		return query, values
 
 	def sql(
 		self,
-		query,
-		values=(),
+		query: Query,
+		values: QueryValues = None,
 		as_dict=0,
 		as_list=0,
 		formatted=0,
@@ -127,7 +129,7 @@ class Database(object):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
-		:param values: List / dict of values to be escaped and substituted in the query.
+		:param values: Tuple / List / Dict of values to be escaped and substituted in the query.
 		:param as_dict: Return as a dictionary.
 		:param as_list: Always return as a list.
 		:param formatted: Format values like date etc.
@@ -234,51 +236,56 @@ class Database(object):
 		else:
 			return self._cursor.fetchall()
 
-	def log_query(self, query, values, debug, explain):
-		mogrified_query = None
-
-		# for debugging in tests
+	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
+		"""Takes the query and logs it to various interfaces according to the settings."""
 		if frappe.conf.get("allow_tests") and frappe.cache().get_value("flag_print_sql"):
-			mogrified_query = mogrified_query or self.mogrify(query, values)
 			print(mogrified_query)
 
-		# debug
 		if debug:
-			if explain and is_query_type(query, "select"):
-				self.explain_query(query, values)
-			mogrified_query = mogrified_query or self.mogrify(query, values)
+			if explain and is_query_type(mogrified_query, "select"):
+				self.explain_query(mogrified_query)
 			frappe.errprint(mogrified_query)
 
 		if frappe.conf.logging == 2:
-			mogrified_query = mogrified_query or self.mogrify(query, values)
 			frappe.log(f"<<<< query\n{mogrified_query}\n>>>>")
 
 		if frappe.flags.in_migrate:
-			self.log_touched_tables(mogrified_query or query)
+			self.log_touched_tables(mogrified_query)
+
+	def log_query(
+		self, query: str, values: QueryValues = None, debug: bool = False, explain: bool = False
+	) -> str:
+		# TODO: Use mogrify until MariaDB Connector/C 1.1 is released and we can fetch something
+		# like cursor._transformed_statement from the cursor object. We can also avoid setting
+		# mogrified_query if we don't need to log it.
+		mogrified_query = self.mogrify(query, values)
+		self._log_query(mogrified_query, debug, explain)
+		return mogrified_query
 
 	def mogrify(self, query, values):
 		"""build the query string with values"""
 		if not values:
 			return query
-		else:
-			try:
-				return self._cursor.mogrify(query, values)
-			except BaseException:  # noqa: E722
-				return (query, values)
+
+		try:
+			return self._cursor.mogrify(query, values)
+		except BaseException:  # noqa: E722
+			if isinstance(values, dict):
+				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
+			elif isinstance(values, (list, tuple)):
+				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
+			return (query, values)
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
+		frappe.errprint("--- query explain ---")
 		try:
-			frappe.errprint("--- query explain ---")
-
-			explain_query = f"EXPLAIN {query}"
-			values = values or ()
-			self._cursor.execute(explain_query, values)
-
-			frappe.errprint(json.dumps(self.fetch_as_dict(), indent=1))
-			frappe.errprint("--- query explain end ---")
+			self._cursor.execute(f"EXPLAIN {query}", values)
 		except Exception as e:
 			frappe.errprint(f"error in query explain: {e}")
+		else:
+			frappe.errprint(json.dumps(self.fetch_as_dict(), indent=1))
+			frappe.errprint("--- query explain end ---")
 
 	def sql_list(self, query, values=(), debug=False, **kwargs):
 		"""Return data as list of single elements (first column).

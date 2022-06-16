@@ -147,6 +147,10 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			"JSON": ("json", ""),
 		}
 
+	@property
+	def last_query(self):
+		return self._cursor.query
+
 	def get_connection(self):
 		conn = psycopg2.connect(
 			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
