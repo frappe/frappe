@@ -9,7 +9,6 @@ import string
 import traceback
 from contextlib import contextmanager
 from time import time
-from types import NoneType
 from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn

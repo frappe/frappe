@@ -2,7 +2,11 @@
 # License: MIT. See LICENSE
 
 from functools import cached_property
-from types import NoneType
+
+try:
+	from types import NoneType
+except ImportError:
+	NoneType = type(None)
 from typing import Dict, List, Tuple, Union
 
 import frappe
