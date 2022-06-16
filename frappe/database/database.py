@@ -166,32 +166,23 @@ class Database(object):
 
 		# in transaction validations
 		self.check_transaction_status(query)
-
 		self.clear_db_table_cache(query)
 
-		# autocommit
 		if auto_commit:
 			self.commit()
 
-		# execute
+		if debug:
+			time_start = time()
+
+		if values:
+			if not isinstance(values, (tuple, dict, list)):
+				values = (values,)
+			query, values = self._transform_query(query, values)
+		else:
+			values = None
+
 		try:
-			if debug:
-				time_start = time()
-
-			if values != ():
-				if not isinstance(values, (dict, tuple, list)):
-					values = (values,)
-
-				query, values = self._transform_query(query, values)
-
-			self.log_query(query, values, debug, explain)
-
 			self._cursor.execute(query, values)
-
-			if debug:
-				time_end = time()
-				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
-
 		except Exception as e:
 			if self.is_syntax_error(e):
 				frappe.errprint(f"Syntax error in query:\n{query}")
@@ -202,18 +193,23 @@ class Database(object):
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e)
 
+			# TODO: added temporarily
 			elif frappe.conf.db_type == "postgres":
-				# TODO: added temporarily
 				traceback.print_stack()
 				frappe.errprint(f"Error in query:\n{e}")
 				raise
 
-			if ignore_ddl and (
-				self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e)
+			if not (
+				ignore_ddl
+				and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e))
 			):
-				pass
-			else:
 				raise
+
+		if debug:
+			time_end = time()
+			frappe.errprint(f"Execution time: {time_end - time_start:.2f} sec")
+
+		self.log_query(query, values, debug, explain)
 
 		if auto_commit:
 			self.commit()
