@@ -156,6 +156,7 @@
    "options": "Left\nRight\nCenter"
   },
   {
+   "default": "HTML",
    "depends_on": "letter_head_name",
    "fieldname": "footer_source",
    "fieldtype": "Select",
@@ -167,7 +168,7 @@
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2022-06-12 15:31:45.046774",
+ "modified": "2022-06-16 23:10:46.852116",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
