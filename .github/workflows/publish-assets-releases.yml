@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: 'frappe'
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
           python-version: '12.x'
       - uses: actions/setup-python@v2
