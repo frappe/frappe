@@ -104,7 +104,7 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
-	frappe._qb_patched = True
+	frappe._qb_patched[frappe.conf.db_type] = True
 
 
 def patch_query_aggregation():
@@ -115,4 +115,4 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
-	frappe._qb_patched = True
+	frappe._qb_patched[frappe.conf.db_type] = True
