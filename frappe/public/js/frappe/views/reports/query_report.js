@@ -57,7 +57,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = [];
 	}
 
-	on_filter_change() {
+	update_url_with_filters() {
 		window.history.replaceState(null, null, this.get_url_with_filters());
 	}
 
@@ -506,7 +506,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
-				this.on_filter_change();
 				this.refresh_filters_dependency();
 
 				let current_filters = this.get_filter_values();
@@ -681,6 +680,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			frappe.hide_progress();
 		}).finally(() => {
 			this.hide_loading_screen();
+			this.update_url_with_filters();
 		});
 	}
 

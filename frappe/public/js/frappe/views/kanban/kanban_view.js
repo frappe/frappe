@@ -101,7 +101,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		} else {
 			this.page.clear_indicator();
 		}
-		super.on_filter_change();
 	}
 
 	save_kanban_board_filters() {

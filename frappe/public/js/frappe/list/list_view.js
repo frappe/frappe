@@ -291,6 +291,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.refresh().then(() => {
 			this.render_header(refresh_header);
 			this.update_checkbox();
+			this.update_url_with_filters();
 		});
 	}
 
@@ -1454,7 +1455,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	on_update() {}
 
-	on_filter_change() {
+	update_url_with_filters() {
 		window.history.replaceState(null, null, this.get_url_with_filters());
 	}
 
