@@ -19,6 +19,7 @@ import frappe.defaults
 import frappe.model.meta
 from frappe import _
 from frappe.database.query import Query as FilterEngine
+from frappe.database.utils import LazyMogrify, Query, QueryValues, is_query_type
 from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
@@ -30,13 +31,6 @@ IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
-
-Query = Union[str, frappe.qb]
-QueryValues = Union[Tuple, List, Dict, NoneType]
-
-
-def is_query_type(query: str, query_type: Union[str, Tuple[str]]) -> bool:
-	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
 
 class Database(object):
@@ -78,7 +72,7 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
-		# self.last_query last sql query executed
+		# self.last_query lazy attribute of last sql query executed
 
 	@property
 	def query(self):
@@ -238,19 +232,25 @@ class Database(object):
 
 	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
-		if frappe.conf.get("allow_tests") and frappe.cache().get_value("flag_print_sql"):
-			print(mogrified_query)
+		_query = None
+
+		if frappe.conf.allow_tests and frappe.cache().get_value("flag_print_sql"):
+			_query = _query or str(mogrified_query)
+			print(_query)
 
 		if debug:
-			if explain and is_query_type(mogrified_query, "select"):
-				self.explain_query(mogrified_query)
-			frappe.errprint(mogrified_query)
+			_query = _query or str(mogrified_query)
+			if explain and is_query_type(_query, "select"):
+				self.explain_query(_query)
+			frappe.errprint(_query)
 
 		if frappe.conf.logging == 2:
-			frappe.log(f"<<<< query\n{mogrified_query}\n>>>>")
+			_query = _query or str(mogrified_query)
+			frappe.log(f"<<<< query\n{_query}\n>>>>")
 
 		if frappe.flags.in_migrate:
-			self.log_touched_tables(mogrified_query)
+			_query = _query or str(mogrified_query)
+			self.log_touched_tables(_query)
 
 	def log_query(
 		self, query: str, values: QueryValues = None, debug: bool = False, explain: bool = False
@@ -258,11 +258,11 @@ class Database(object):
 		# TODO: Use mogrify until MariaDB Connector/C 1.1 is released and we can fetch something
 		# like cursor._transformed_statement from the cursor object. We can also avoid setting
 		# mogrified_query if we don't need to log it.
-		mogrified_query = self.mogrify(query, values)
+		mogrified_query = self.lazy_mogrify(query, values)
 		self._log_query(mogrified_query, debug, explain)
 		return mogrified_query
 
-	def mogrify(self, query, values):
+	def mogrify(self, query: Query, values: QueryValues):
 		"""build the query string with values"""
 		if not values:
 			return query
@@ -275,6 +275,10 @@ class Database(object):
 			elif isinstance(values, (list, tuple)):
 				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
 			return (query, values)
+
+	def lazy_mogrify(self, query: Query, values: QueryValues) -> LazyMogrify:
+		"""Wrap the object with str to generate mogrified query."""
+		return LazyMogrify(query, values)
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""

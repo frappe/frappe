@@ -26,8 +26,7 @@ def sql(*args, **kwargs):
 	end_time = time.time()
 
 	stack = list(get_current_stack_frames())
-	last_query = frappe.db.last_query
-	query = sqlparse.format(last_query.strip(), keyword_case="upper", reindent=True)
+	query = sqlparse.format(str(frappe.db.last_query).strip(), keyword_case="upper", reindent=True)
 
 	# Collect EXPLAIN for executed query
 	if is_query_type(query, ("select", "update", "delete")):
