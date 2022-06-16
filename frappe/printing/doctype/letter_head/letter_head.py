@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Tuple
-
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -29,62 +27,52 @@ class LetterHead(Document):
 	def set_image(self):
 		if self.source == "Image":
 			self.set_image_as_html(
-				**{
-					"field": "image",
-					"width": "image_width",
-					"height": "image_height",
-					"align": "align",
-					"html_field": "content",
-					"dimension_prefix": "image_",
-					"success_msg": _("Header HTML set from attachment {0}").format(self.image),
-					"failure_msg": _("Please attach an image file to set HTML for Letter Head."),
-				}
+				field="image",
+				width="image_width",
+				height="image_height",
+				align="align",
+				html_field="content",
+				dimension_prefix="image_",
+				success_msg=_("Header HTML set from attachment {0}").format(self.image),
+				failure_msg=_("Please attach an image file to set HTML for Letter Head."),
 			)
 
 		if self.footer_source == "Image":
 			self.set_image_as_html(
-				**{
-					"field": "footer_image",
-					"width": "footer_image_width",
-					"height": "footer_image_height",
-					"align": "footer_align",
-					"html_field": "footer",
-					"dimension_prefix": "footer_image_",
-					"success_msg": _("Footer HTML set from attachment {0}").format(self.footer_image),
-					"failure_msg": _("Please attach an image file to set HTML for Footer."),
-				}
+				field="footer_image",
+				width="footer_image_width",
+				height="footer_image_height",
+				align="footer_align",
+				html_field="footer",
+				dimension_prefix="footer_image_",
+				success_msg=_("Footer HTML set from attachment {0}").format(self.footer_image),
+				failure_msg=_("Please attach an image file to set HTML for Footer."),
 			)
 
-	def set_image_as_html(self, **kwargs):
-		if self.get(kwargs.get("field")) and is_image(self.get(kwargs.get("field"))):
-			self.set(kwargs.get("width"), flt(self.get(kwargs.get("width"))))
-			self.set(kwargs.get("height"), flt(self.get(kwargs.get("height"))))
-			dimension, dimension_value = self.get_dimension(
-				kwargs.get("width"), kwargs.get("height"), kwargs.get("dimension_prefix")
-			)
+	def set_image_as_html(
+		self, field, width, height, dimension_prefix, align, html_field, success_msg, failure_msg
+	):
+		if not self.get(field) or not is_image(self.get(field)):
+			frappe.msgprint(failure_msg, alert=True, indicator="orange")
+			return
 
-			html = f"""
-				<div style="text-align: {self.get(kwargs.get("align"), "").lower()};">
-					<img src="{self.get(kwargs.get("field"))}" alt="{self.get("name")}"
-					{dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
-				</div>
-			"""
+		self.set(width, flt(self.get(width)))
+		self.set(height, flt(self.get(height)))
 
-			self.set(kwargs.get("html_field"), html)
-
-			frappe.msgprint(kwargs.get("success_msg"), alert=True)
-		else:
-			frappe.msgprint(kwargs.get("failure_msg"), alert=True, indicator="orange")
-
-	def get_dimension(self, width: float, height: float, prefix: str) -> Tuple[str, float]:
-		"""
-		Preserves the aspect ratio of the image for either Letterhead or Footer.
-		To preserve the aspect ratio the contraints are only applied on dimension
-		with the greater size and allow the other dimension to scale accordingly
-		"""
-
+		# To preserve the aspect ratio of the image, apply constraints only on
+		# the greater dimension and allow the other to scale accordingly
 		dimension = "width" if width > height else "height"
-		return dimension, self.get(f"{prefix}{dimension}")
+		dimension_value = self.get(f"{dimension_prefix}{dimension}")
+
+		self.set(
+			html_field,
+			f"""<div style="text-align: {self.get(align, "").lower()};">
+<img src="{self.get(field)}" alt="{self.get("name")}"
+{dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
+</div>""",
+		)
+
+		frappe.msgprint(success_msg, alert=True)
 
 	def on_update(self):
 		self.set_as_default()
