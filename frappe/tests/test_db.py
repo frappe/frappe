@@ -517,10 +517,9 @@ class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"
 
 	def setUp(self) -> None:
-		frappe.db.commit()
-		frappe.db.sql(
+		frappe.db.sql_ddl(
 			f"""
-			CREATE TABLE `tab{self.test_table_name}` (`id` INT NULL, content TEXT, PRIMARY KEY (`id`));
+			CREATE TABLE IF NOT EXISTS `tab{self.test_table_name}` (`id` INT NULL, content TEXT, PRIMARY KEY (`id`));
 			"""
 		)
 
@@ -545,10 +544,10 @@ class TestDDLCommandsMaria(unittest.TestCase):
 
 	def test_describe(self) -> None:
 		self.assertEqual(
-			(
+			[
 				("id", "int(11)", "NO", "PRI", None, ""),
 				("content", "text", "YES", "", None, ""),
-			),
+			],
 			frappe.db.describe(self.test_table_name),
 		)
 
