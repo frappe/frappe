@@ -26,6 +26,9 @@ class NumberCard(Document):
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
 
+			if self.function != "Count" and not self.aggregate_function_based_on:
+				frappe.throw(_("Aggregate Field is required to create a number card"))
+
 			if frappe.get_meta(self.document_type).istable and not self.parent_document_type:
 				frappe.throw(_("Parent Document Type is required to create a number card"))
 
