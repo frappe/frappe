@@ -1,14 +1,12 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-# Database Module
-# --------------------
-
 import datetime
 import json
 import random
 import re
 import string
+import traceback
 from contextlib import contextmanager
 from time import time
 from typing import Dict, List, Optional, Tuple, Union
@@ -75,15 +73,16 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		# self.last_query last sql query executed
 
 	@property
 	def query(self):
-		if not hasattr(self, "_query"):
+		if not hasattr(self, "_filter_engine"):
 			from .query import Query
 
-			self._query = Query()
+			self._filter_engine = Query()
 			del Query
-		return self._query
+		return self._filter_engine
 
 	def setup_type_map(self):
 		pass
@@ -205,8 +204,6 @@ class Database(object):
 
 			elif frappe.conf.db_type == "postgres":
 				# TODO: added temporarily
-				import traceback
-
 				traceback.print_stack()
 				frappe.errprint(f"Error in query:\n{e}")
 				raise
