@@ -212,8 +212,10 @@ class Database(object):
 		if not self._cursor.description:
 			return ()
 
+		self.last_result = self._cursor.fetchall()
+
 		if pluck:
-			return [r[0] for r in self._cursor.fetchall()]
+			return [r[0] for r in self.last_result]
 
 		# scrub output if required
 		if as_dict:
@@ -223,11 +225,11 @@ class Database(object):
 					r.update(update)
 			return ret
 		elif as_list:
-			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
+			return self.convert_to_lists(self.last_result, formatted, as_utf8)
 		elif as_utf8:
-			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
+			return self.convert_to_lists(self.last_result, formatted, as_utf8)
 		else:
-			return self._cursor.fetchall()
+			return self.last_result
 
 	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
@@ -335,7 +337,7 @@ class Database(object):
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
-		result = self._cursor.fetchall()
+		result = self.last_result
 		ret = []
 		if result:
 			keys = [column[0] for column in self._cursor.description]
