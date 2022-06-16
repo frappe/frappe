@@ -182,10 +182,12 @@ class TestDB(unittest.TestCase):
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
-		create_custom_field("ToDo", {"label": "ToDo Custom Field"})
-
+		cf = create_custom_field("ToDo", {"label": "ToDo Custom Field"})
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 		self.assertIn("tabCustom Field", frappe.flags.touched_tables)
+		if cf:
+			cf.delete()
+		frappe.db.commit()
 		frappe.flags.in_migrate = False
 		frappe.flags.touched_tables.clear()
 
@@ -867,3 +869,18 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.assertIn(
 			"is null", frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower()
 		)
+
+
+@run_only_if(db_type_is.POSTGRES)
+class TestTransactionManagement(unittest.TestCase):
+	def test_create_proper_transactions(self):
+		def _get_transaction_id():
+			return frappe.db.sql("select txid_current()", pluck=True)
+
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+		frappe.db.rollback()
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+		frappe.db.commit()
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())

@@ -5,6 +5,7 @@ from os.path import abspath
 from os.path import exists as path_exists
 from os.path import join as join_path
 from os.path import splitext
+from typing import Optional
 
 import frappe
 from frappe import _
@@ -131,17 +132,8 @@ class WebsiteTheme(Document):
 		return out
 
 
-def add_website_theme(context):
-	context.theme = frappe._dict()
-
-	if not context.disable_website_theme:
-		website_theme = get_active_theme()
-		context.theme = website_theme or frappe._dict()
-
-
-def get_active_theme():
-	website_theme = frappe.db.get_single_value("Website Settings", "website_theme")
-	if website_theme:
+def get_active_theme() -> Optional["WebsiteTheme"]:
+	if website_theme := frappe.db.get_single_value("Website Settings", "website_theme"):
 		try:
 			return frappe.get_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:

@@ -145,7 +145,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	get_attached_images() {
 		return frappe
 			.call({
-				method: "frappe.core.doctype.file.file.get_attached_images",
+				method: "frappe.core.api.file.get_attached_images",
 				args: {
 					doctype: this.doctype,
 					names: this.items.map(i => i.name)

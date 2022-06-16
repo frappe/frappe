@@ -23,8 +23,6 @@ def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
 
 	doc = copy.deepcopy(frappe.local.new_doc_templates[doctype])
 
-	# doc = make_new_doc(doctype)
-
 	set_dynamic_default_values(doc, parent_doc, parentfield)
 
 	if as_dict:

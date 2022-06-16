@@ -21,6 +21,11 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
+LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
+LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
+PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
+FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
+
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
@@ -392,12 +397,10 @@ class PostgresDatabase(Database):
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
-	query = str(query)
-	query = query.replace("`", '"')
+	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
-	if re.search("from tab", query, flags=re.IGNORECASE):
-		query = re.sub(r"from tab([\w-]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
+	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
 	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
 	# drop .0 from decimals and add quotes around them
@@ -406,8 +409,7 @@ def modify_query(query):
 	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	#	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
-	query = re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
-	return query
+	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
 
 
 def modify_values(values):
@@ -440,8 +442,6 @@ def modify_values(values):
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
-	if re.search(r"locate\(", query, flags=re.IGNORECASE):
-		query = re.sub(
-			r"locate\(([^,]+),([^)]+)(\)?)\)", r"strpos(\2\3, \1)", query, flags=re.IGNORECASE
-		)
+	if LOCATE_QUERY_PATTERN.search(query):
+		query = LOCATE_SUB_PATTERN.sub(r"strpos(\2\3, \1)", query)
 	return query
