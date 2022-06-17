@@ -178,7 +178,7 @@ def read_options_from_html(html):
 
 	css_units = ["cm", "mm", "in", "px", "pt", "pc"]
 	margin_units = {
-		k:v[-2:] if v[-2:] in css_units else "" for k,v in options.items() if k.startswith("margin")
+		k: v[-2:] if v[-2:] in css_units else "" for k, v in options.items() if k.startswith("margin")
 	}
 	if len(margin_units) > 0:
 		if not all(u == u[0] for u in margin_units.values()):
