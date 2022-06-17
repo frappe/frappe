@@ -343,7 +343,7 @@ frappe.ui.form.Layout = class Layout {
 		if (this.tabs.length && !this.frm.active_tab) {
 			// set first tab as active when opening for first time, or new doc
 			let first_visible_tab = this.tabs.find(tab => !tab.is_hidden());
-			first_visible_tab.set_active();
+			first_visible_tab && first_visible_tab.set_active();
 		}
 	}
 
