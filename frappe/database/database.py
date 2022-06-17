@@ -188,7 +188,7 @@ class Database(object):
 				raise frappe.QueryTimeoutError(e)
 
 			# TODO: added temporarily
-			elif frappe.conf.db_type == "postgres":
+			elif self.db_type == "postgres":
 				traceback.print_stack()
 				frappe.errprint(f"Error in query:\n{e}")
 				raise
@@ -949,7 +949,7 @@ class Database(object):
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
-		if frappe.conf.db_type == "postgres":
+		if self.db_type == "postgres":
 			# Postgres requires explicitly starting new transaction
 			self.begin()
 
@@ -1187,7 +1187,7 @@ class Database(object):
 		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
-		current_dialect = frappe.db.db_type or "mariadb"
+		current_dialect = self.db_type or "mariadb"
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
@@ -1260,9 +1260,9 @@ class Database(object):
 			query = frappe.qb.into(table)
 			if ignore_duplicates:
 				# Pypika does not have same api for ignoring duplicates
-				if frappe.conf.db_type == "mariadb":
+				if self.db_type == "mariadb":
 					query = query.ignore()
-				elif frappe.conf.db_type == "postgres":
+				elif self.db_type == "postgres":
 					query = query.on_conflict().do_nothing()
 
 			values_to_insert = values[start_index : start_index + chunk_size]
