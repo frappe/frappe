@@ -87,7 +87,6 @@ export default class Tab {
 	}
 
 	is_hidden() {
-		this.wrapper.hasClass('hide')
-			&& this.parent.hasClass('hide');
+		return this.wrapper.hasClass('hide');
 	}
 }
