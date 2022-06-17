@@ -12,7 +12,7 @@ from frappe.model.naming import (
 	revert_series_if_last,
 )
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, nowdate
 
 
 class TestNaming(FrappeTestCase):
@@ -99,6 +99,23 @@ class TestNaming(FrappeTestCase):
 		series = int(series) - 1
 
 		self.assertEqual(doc.name, f"TODO-{now_datetime().strftime('%m')}-{description}-{series:02}")
+
+	def test_format_autoname_for_date_field(self):
+		"""
+		Test if braced params are replaced in format autoname for date field
+		"""
+		doctype = new_doctype(autoname="format:TODO-{date}-{##}").insert()
+
+		date =  nowdate()
+
+		doc = frappe.new_doc(doctype.name)
+		doc.date = date
+		doc.insert()
+
+		series = getseries("", 2)
+		series = int(series) - 1
+
+		self.assertEqual(doc.name, f"TODO-{date}-{series:02}")
 
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""
