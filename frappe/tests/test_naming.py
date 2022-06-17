@@ -106,7 +106,7 @@ class TestNaming(FrappeTestCase):
 		"""
 		doctype = new_doctype(autoname="format:TODO-{date}-{##}").insert()
 
-		date =  nowdate()
+		date = nowdate()
 
 		doc = frappe.new_doc(doctype.name)
 		doc.date = date
