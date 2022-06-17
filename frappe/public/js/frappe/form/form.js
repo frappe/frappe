@@ -1840,6 +1840,15 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 		});
 	}
+	set_active_tab(tab) {
+		if (!this.active_tab_map) {
+			this.active_tab_map = {};
+		}
+		this.active_tab_map[this.docname] = tab;
+	}
+	get_active_tab() {
+		return this.active_tab_map && this.active_tab_map[this.docname];
+	}
 };
 
 frappe.validated = 0;
