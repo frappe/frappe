@@ -17,8 +17,12 @@ from frappe.model.naming import (
 from frappe.utils import now_datetime
 =======
 from frappe.tests.utils import FrappeTestCase
+<<<<<<< HEAD
 from frappe.utils import now_datetime, nowdate
 >>>>>>> a9e222a706 (chore: test case added for _auto_name format for date field)
+=======
+from frappe.utils import now_datetime, nowdate, nowtime
+>>>>>>> 80de434984 (chore: Test case added for datetime, date and time field)
 
 
 class TestNaming(unittest.TestCase):
@@ -122,22 +126,26 @@ class TestNaming(unittest.TestCase):
 			),
 		)
 
-	def test_format_autoname_for_date_field(self):
+	def test_format_autoname_for_datetime_field(self):
 		"""
-		Test if braced params are replaced in format autoname for date field
+		Test if braced params are replaced in format autoname for datetime, date and time field
 		"""
-		doctype = new_doctype(autoname="format:TODO-{date}-{##}").insert()
 
+		datetime = now_datetime()
 		date = nowdate()
+		time = nowtime()
 
-		doc = frappe.new_doc(doctype.name)
-		doc.date = date
-		doc.insert()
+		for field in [datetime, date, time]:
+			doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
 
-		series = getseries("", 2)
-		series = int(series) - 1
+			doc = frappe.new_doc(doctype.name)
+			doc.field = field
+			doc.insert()
 
-		self.assertEqual(doc.name, f"TODO-{date}-{series:02}")
+			series = getseries("", 2)
+			series = int(series) - 1
+
+			self.assertEqual(doc.name, f"TODO-{field}-{series:02}")
 
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""
