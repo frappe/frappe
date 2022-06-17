@@ -418,10 +418,16 @@ def modify_values(values):
 
 	if isinstance(values, dict):
 		for k, v in values.items():
+			if isinstance(v, list):
+				v = tuple(v)
+
 			values[k] = stringify_value(v)
 	elif isinstance(values, (tuple, list)):
 		new_values = []
 		for val in values:
+			if isinstance(val, list):
+				val = tuple(val)
+
 			new_values.append(stringify_value(val))
 		values = new_values
 	else:
