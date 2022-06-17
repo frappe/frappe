@@ -120,7 +120,7 @@ class LDAPSettings(Document):
 	def get_ldap_client_settings():
 		# return the settings to be used on the client side.
 		result = {"enabled": False}
-		ldap = frappe.get_doc("LDAP Settings")
+		ldap = frappe.get_cached_doc("LDAP Settings")
 		if ldap.enabled:
 			result["enabled"] = True
 			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"

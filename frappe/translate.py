@@ -48,6 +48,8 @@ TRANSLATE_PATTERN = re.compile(
 	# END: JS context search
 	r"[\s\n]*\)"  # Closing function call ignore leading whitespace/newlines
 )
+REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
+CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
 
 def get_language(lang_list: List = None) -> str:
@@ -602,7 +604,7 @@ def get_messages_from_report(name):
 		messages.extend(
 			[
 				(None, message)
-				for message in re.findall('"([^:,^"]*):', report.query)
+				for message in REPORT_TRANSLATE_PATTERN.findall(report.query)
 				if is_translatable(message)
 			]
 		)
@@ -801,7 +803,7 @@ def write_csv_file(path, app_messages, lang_dict):
 
 			t = lang_dict.get(message, "")
 			# strip whitespaces
-			translated_string = re.sub(r"{\s?([0-9]+)\s?}", r"{\g<1>}", t)
+			translated_string = CSV_STRIP_WHITESPACE_PATTERN.sub(r"{\g<1>}", t)
 			if translated_string:
 				w.writerow([message, translated_string, context])
 

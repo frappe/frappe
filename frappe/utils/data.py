@@ -29,7 +29,22 @@ if typing.TYPE_CHECKING:
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
-DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
+DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
+TIMEDELTA_DAY_PATTERN = re.compile(
+	r"(?P<days>[-\d]+) day[s]*, (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)"
+)
+TIMEDELTA_BASE_PATTERN = re.compile(r"(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)")
+URLS_HTTP_TAG_PATTERN = re.compile(
+	r'(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)'
+)  # href='https://...
+URLS_NOT_HTTP_TAG_PATTERN = re.compile(
+	r'(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)'
+)  # href=/assets/...
+URL_NOTATION_PATTERN = re.compile(
+	r'(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))'
+)  # background-image: url('/assets/...')
+DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
+HTML_TAG_PATTERN = re.compile("<[^>]+>")
 
 
 class Weekday(Enum):
@@ -692,10 +707,7 @@ def duration_to_seconds(duration):
 
 
 def validate_duration_format(duration):
-	import re
-
-	is_valid_duration = re.match(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$", duration)
-	if not is_valid_duration:
+	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(
 				frappe.bold(duration)
@@ -1297,7 +1309,7 @@ def in_words(integer: int, in_million=True) -> str:
 def is_html(text: str) -> bool:
 	if not isinstance(text, str):
 		return False
-	return re.search("<[^>]+>", text)
+	return HTML_TAG_PATTERN.search(text)
 
 
 def is_image(filepath: str) -> bool:
@@ -1314,7 +1326,7 @@ def get_thumbnail_base64_for_image(src):
 	from PIL import Image
 
 	from frappe import cache, safe_decode
-	from frappe.core.doctype.file.file import get_local_image
+	from frappe.core.doctype.file.utils import get_local_image
 
 	if not src:
 		frappe.throw("Invalid source for image: {0}".format(src))
@@ -1337,7 +1349,7 @@ def get_thumbnail_base64_for_image(src):
 
 		original_size = image.size
 		size = 50, 50
-		image.thumbnail(size, Image.ANTIALIAS)
+		image.thumbnail(size, Image.Resampling.LANCZOS)
 
 		base64_string = image_to_base64(image, extn)
 		return {
@@ -1851,12 +1863,8 @@ def expand_relative_urls(html: str) -> str:
 
 		return "".join(to_expand)
 
-	html = re.sub(
-		r'(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html
-	)
-
-	# background-image: url('/assets/...')
-	html = re.sub(r'(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))', _expand_relative_urls, html)
+	html = URLS_NOT_HTTP_TAG_PATTERN.sub(_expand_relative_urls, html)
+	html = URL_NOTATION_PATTERN.sub(_expand_relative_urls, html)
 	return html
 
 
@@ -1870,7 +1878,7 @@ def quote_urls(html: str) -> str:
 		groups[2] = quoted(groups[2])
 		return "".join(groups)
 
-	return re.sub(r'(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)', _quote_url, html)
+	return URLS_HTTP_TAG_PATTERN.sub(_quote_url, html)
 
 
 def unique(seq: typing.Sequence["T"]) -> List["T"]:
@@ -1891,8 +1899,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 	if not string:
 		return ""
 
-	regex = "{0}(.*){1}".format(start, end)
-	out = re.search(regex, string)
+	out = re.search(f"{start}(.*){end}", string)
 
 	return out.group(1) if out else string
 
@@ -2107,10 +2114,8 @@ def format_timedelta(o: datetime.timedelta) -> str:
 def parse_timedelta(s: str) -> datetime.timedelta:
 	# ref: https://stackoverflow.com/a/21074460/10309266
 	if "day" in s:
-		m = re.match(
-			r"(?P<days>[-\d]+) day[s]*, (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)", s
-		)
+		m = TIMEDELTA_DAY_PATTERN.match(s)
 	else:
-		m = re.match(r"(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)", s)
+		m = TIMEDELTA_BASE_PATTERN.match(s)
 
 	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})

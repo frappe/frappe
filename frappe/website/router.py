@@ -8,7 +8,7 @@ import re
 from werkzeug.routing import Map, NotFound, Rule
 
 import frappe
-from frappe.website.utils import extract_title
+from frappe.website.utils import extract_title, get_frontmatter
 
 
 def get_page_info_from_web_page_with_dynamic_routes(path):
@@ -185,26 +185,6 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	load_properties_from_controller(page_info)
 
 	return page_info
-
-
-def get_frontmatter(string):
-	"""
-	Reference: https://github.com/jonbeebe/frontmatter
-	"""
-	import yaml
-
-	fmatter = ""
-	body = ""
-	result = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M).search(string)
-
-	if result:
-		fmatter = result.group(1)
-		body = result.group(2)
-
-	return {
-		"attributes": yaml.safe_load(fmatter),
-		"body": body,
-	}
 
 
 def setup_source(page_info):

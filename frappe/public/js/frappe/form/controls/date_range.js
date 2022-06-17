@@ -41,9 +41,11 @@ frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.
 		this.set_mandatory && this.set_mandatory(value);
 	}
 	parse(value) {
+		if (value == undefined || typeof value == 'object') return value;
+
 		// replace the separator (which can be in user language) with comma
 		const to = __('{0} to {1}').replace('{0}', '').replace('{1}', '');
-		value = value.replace(to, ',');
+		value = value && value.replace(to, ',');
 
 		if(value && value.includes(',')) {
 			var vals = value.split(',');

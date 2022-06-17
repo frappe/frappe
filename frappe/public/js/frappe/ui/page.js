@@ -510,7 +510,7 @@ frappe.ui.Page = class Page {
 
 		if (!label || !parent) return false;
 
-		const item_selector = `${selector}[data-label='${encodeURIComponent(label)}']`;
+		const item_selector = `${selector}[data-label="${encodeURIComponent(label)}"]`;
 
 		const existing_items = $(parent).find(item_selector);
 		return existing_items?.length > 0 && existing_items;

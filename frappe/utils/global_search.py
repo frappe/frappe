@@ -13,6 +13,8 @@ from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
 
+HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
+
 
 def setup_global_search_table():
 	"""
@@ -360,7 +362,7 @@ def get_formatted_value(value, field):
 
 	if getattr(field, "fieldtype", None) in ["Text", "Text Editor"]:
 		value = unescape_html(frappe.safe_decode(value))
-		value = re.subn(r"(?s)<[\s]*(script|style).*?</\1>", "", str(value))[0]
+		value = HTML_TAGS_PATTERN.subn("", str(value))[0]
 		value = " ".join(value.split())
 	return field.label + " : " + strip_html_tags(str(value))
 

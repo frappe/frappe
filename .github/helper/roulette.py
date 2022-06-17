@@ -5,8 +5,10 @@ import shlex
 import subprocess
 import sys
 import urllib.request
+from functools import cache
 
 
+@cache
 def fetch_pr_data(pr_number, repo, endpoint):
 	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
 
@@ -26,7 +28,16 @@ def get_output(command, shell=True):
 	return subprocess.check_output(command, shell=shell, encoding="utf8").strip()
 
 def has_skip_ci_label(pr_number, repo="frappe/frappe"):
-	return any([label["name"] for label in fetch_pr_data(pr_number, repo, "")["labels"] if label["name"] == "Skip CI"])
+	return has_label(pr_number, "Skip CI", repo)
+
+def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
+	return has_label(pr_number, "Run Server Tests", repo)
+
+def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
+	return has_label(pr_number, "Run UI Tests", repo)
+
+def has_label(pr_number, label, repo="frappe/frappe"):
+	return any([label["name"] for label in fetch_pr_data(pr_number, repo, "")["labels"] if label["name"] == label])
 
 def is_py(file):
 	return file.endswith("py")
@@ -77,11 +88,11 @@ if __name__ == "__main__":
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
 
-	elif only_frontend_code_changed and build_type == "server":
+	elif only_frontend_code_changed and build_type == "server" and not has_run_server_tests_label(pr_number, repo):
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 
-	elif build_type == "ui" and only_py_changed:
+	elif build_type == "ui" and only_py_changed and not has_run_ui_tests_label(pr_number, repo):
 		print("Only Python code was updated, stopping Cypress build process.")
 		sys.exit(0)
 

@@ -693,11 +693,6 @@ frappe.views.Workspace = class Workspace {
 			$button.filter('.dropdown-list').toggleClass('hidden');
 		});
 
-		$(document).click(event => {
-			event.stopPropagation();
-			$('.dropdown-list:not(.hidden)').addClass('hidden');
-		});
-
 		sidebar_control.append($button);
 
 		this.dropdown_list.forEach((i) => {

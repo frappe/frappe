@@ -190,31 +190,6 @@ def get_queue():
 	)
 
 
-def clear_outbox(days: int = None) -> None:
-	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
-	Note: Used separate query to avoid deadlock
-	"""
-	days = days or 31
-	email_queue = frappe.qb.DocType("Email Queue")
-	email_recipient = frappe.qb.DocType("Email Queue Recipient")
-
-	# Delete queue table
-	(
-		frappe.qb.from_(email_queue)
-		.delete()
-		.where((email_queue.modified < (Now() - Interval(days=days))))
-	).run()
-
-	# delete child tables, note that this has potential to leave some orphan
-	# child table behind if modified time was later than parent doc (rare).
-	# But it's safe since child table doesn't contain links.
-	(
-		frappe.qb.from_(email_recipient)
-		.delete()
-		.where((email_recipient.modified < (Now() - Interval(days=days))))
-	).run()
-
-
 def set_expiry_for_email_queue():
 	"""Mark emails as expire that has not sent for 7 days.
 	Called daily via scheduler.
