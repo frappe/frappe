@@ -181,7 +181,8 @@ def read_options_from_html(html):
 		k: v[-2:] if v[-2:] in css_units else "" for k, v in options.items() if k.startswith("margin")
 	}
 	if len(margin_units) > 0:
-		if not all(u == u[0] for u in margin_units.values()):
+		margin_unit = next(iter(margin_units.values()))
+		if not all(u == margin_unit for u in margin_units.values()):
 			raise Exception(f"All units used for margins must be the same (got {margin_units})")
 
 	return str(soup), options
