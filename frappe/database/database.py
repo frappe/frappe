@@ -169,12 +169,10 @@ class Database(object):
 		if debug:
 			time_start = time()
 
-		if values:
+		if values != None:
 			if not isinstance(values, (tuple, dict, list)):
 				values = (values,)
 			query, values = self._transform_query(query, values)
-		else:
-			values = None
 
 		try:
 			self._cursor.execute(query, values)
