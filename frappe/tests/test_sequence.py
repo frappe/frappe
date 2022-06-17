@@ -1,5 +1,3 @@
-import psycopg2
-
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
@@ -34,10 +32,8 @@ class TestSequence(FrappeTestCase):
 
 		try:
 			frappe.db.get_next_sequence_val(seq_name)
-		except psycopg2.errors.SequenceGeneratorLimitExceeded:
+		except frappe.db.SequenceGeneratorLimitExceeded:
 			pass
-		except frappe.db.ProgrammingError as e:
-			self.assertEqual(getattr(e, "errno", None), 4084)
 		else:
 			self.fail("NEXTVAL didn't raise any error upon sequence's end")
 

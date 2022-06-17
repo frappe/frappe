@@ -13,7 +13,7 @@ from psycopg2.errorcodes import (
 	UNDEFINED_TABLE,
 	UNIQUE_VIOLATION,
 )
-from psycopg2.errors import SyntaxError
+from psycopg2.errors import SequenceGeneratorLimitExceeded, SyntaxError
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
@@ -44,6 +44,7 @@ class PostgresExceptionUtil:
 	SQLError = psycopg2.ProgrammingError
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	@staticmethod
 	def is_deadlocked(e):

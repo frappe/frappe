@@ -46,6 +46,10 @@ class MariaDBExceptionUtil:
 	SQLError = mariadb.ProgrammingError
 	DataError = mariadb.DataError
 
+	# match ER_SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
+	SequenceGeneratorLimitExceeded = mariadb.ProgrammingError
+	SequenceGeneratorLimitExceeded.errno = 4084
+
 	@staticmethod
 	def is_deadlocked(e: mariadb.Error) -> bool:
 		return getattr(e, "errno", None) == ER.LOCK_DEADLOCK
