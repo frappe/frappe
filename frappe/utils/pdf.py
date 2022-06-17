@@ -169,12 +169,19 @@ def read_options_from_html(html):
 		"page-height",
 	):
 		try:
-			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
+			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+);")
 			match = pattern.findall(html)
 			if match:
 				options[attr] = str(match[-1][3]).strip()
 		except:
 			pass
+
+	css_units = ['cm', 'mm', 'in', 'px', 'pt', 'pc']
+	margin_units = {k:v[-2:] if v[-2:] in css_units else ''
+				for k,v in options.items() if k.startswith("margin")}
+	if len(margin_units) > 0:
+		if not all(u == u[0] for u in margin_units.values()):
+			raise Exception(f'All units used for margins must be the same (got {margin_units})')
 
 	return str(soup), options
 
