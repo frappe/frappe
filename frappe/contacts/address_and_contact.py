@@ -170,7 +170,9 @@ def delete_contact_and_address(doctype, docname):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def filter_dynamic_link_doctypes(txt: str, filters: Dict) -> List[List[str]]:
+def filter_dynamic_link_doctypes(
+	doctype, txt: str, searchfield, start, page_len, filters: Dict
+) -> List[List[str]]:
 	from frappe.permissions import get_doctypes_with_read
 
 	txt = txt or ""
