@@ -71,7 +71,8 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
-		# self.last_query lazy attribute of last sql query executed
+		# self.db_type: str
+		# self.last_query (lazy) attribute of last sql query executed
 
 	@property
 	def query(self):
@@ -101,7 +102,7 @@ class Database(object):
 		raise NotImplementedError
 
 	def _transform_query(self, query: Query, values: QueryValues):
-		return query, values
+		return query, values or None
 
 	def sql(
 		self,

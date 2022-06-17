@@ -193,6 +193,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			modify_query(query), modify_values(values), *args, **kwargs
 		)
 
+	def lazy_mogrify(self, *args, **kwargs) -> str:
+		return self.last_query
+
 	def get_tables(self, cached=True):
 		return [
 			d[0]
