@@ -834,10 +834,13 @@ class TestDDLCommandsPost(unittest.TestCase):
 		from frappe.database.postgres.database import modify_values
 
 		self.assertEqual(
-			{"abcd": "23", "efgh": "23", "ijkl": 23.0345, "mnop": "wow"},
-			modify_values({"abcd": 23, "efgh": 23.0, "ijkl": 23.0345, "mnop": "wow"}),
+			{"a": "23", "b": 23.0, "c": 23.0345, "d": "wow", "e": ("1", "2", "3", "abc")},
+			modify_values({"a": 23, "b": 23.0, "c": 23.0345, "d": "wow", "e": [1, 2, 3, "abc"]}),
 		)
-		self.assertEqual(["23", "23", 23.00004345, "wow"], modify_values((23, 23.0, 23.00004345, "wow")))
+		self.assertEqual(
+			["23", 23.0, 23.00004345, "wow", ("1", "2", "3", "abc")],
+			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
+		)
 
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
