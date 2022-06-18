@@ -27,6 +27,16 @@ import frappe
 from frappe.utils.data import *
 from frappe.utils.html_utils import sanitize_html
 
+EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
+EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
+NON_MD_HTML_PATTERN = re.compile(r"<p[\s]*>|<br[\s]*>")
+HTML_TAGS_PATTERN = re.compile(r"\<[^>]*\>")
+INCLUDE_DIRECTIVE_PATTERN = re.compile("""({% include ['"]([^'"]*)['"] %})""")
+PHONE_NUMBER_PATTERN = re.compile(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$")
+PERSON_NAME_PATTERN = re.compile(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$")
+WHITESPACE_PATTERN = re.compile(r"[\t\n\r]")
+MULTI_EMAIL_STRING_PATTERN = re.compile(r'[,\n](?=(?:[^"]|"[^"]*")*$)')
+
 
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
@@ -116,7 +126,7 @@ def validate_phone_number(phone_number, throw=False):
 		return False
 
 	phone_number = phone_number.strip()
-	match = re.match(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
+	match = PHONE_NUMBER_PATTERN.match(phone_number)
 
 	if not match and throw:
 		frappe.throw(
@@ -135,7 +145,7 @@ def validate_name(name, throw=False):
 		return False
 
 	name = name.strip()
-	match = re.match(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$", name)
+	match = PERSON_NAME_PATTERN.match(name)
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
@@ -201,8 +211,8 @@ def split_emails(txt):
 	email_list = []
 
 	# emails can be separated by comma or newline
-	s = re.sub(r"[\t\n\r]", " ", cstr(txt))
-	for email in re.split(r'[,\n](?=(?:[^"]|"[^"]*")*$)', s):
+	s = WHITESPACE_PATTERN.sub(" ", cstr(txt))
+	for email in MULTI_EMAIL_STRING_PATTERN.split(s):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)
@@ -360,7 +370,7 @@ def remove_blanks(d):
 
 def strip_html_tags(text):
 	"""Remove html tags from text"""
-	return re.sub(r"\<[^>]*\>", "", text)
+	return HTML_TAGS_PATTERN.sub("", text)
 
 
 def get_file_timestamp(fn):
@@ -584,7 +594,7 @@ def get_html_format(print_path):
 		with open(print_path, "r") as f:
 			html_format = f.read()
 
-		for include_directive, path in re.findall("""({% include ['"]([^'"]*)['"] %})""", html_format):
+		for include_directive, path in INCLUDE_DIRECTIVE_PATTERN.findall(html_format):
 			for app_name in frappe.get_installed_apps():
 				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
 				if os.path.exists(include_path):
@@ -601,7 +611,7 @@ def is_markdown(text):
 	elif "<!-- html -->" in text:
 		return False
 	else:
-		return not re.search(r"<p[\s]*>|<br[\s]*>", text)
+		return not NON_MD_HTML_PATTERN.search(text)
 
 
 def get_sites(sites_path=None):
@@ -670,8 +680,7 @@ def parse_addr(email_string):
 		name = get_name_from_email_string(email_string, email, name)
 		return (name, email)
 	else:
-		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
-		email_list = re.findall(email_regex, email_string)
+		email_list = EMAIL_STRING_PATTERN.findall(email_string)
 		if len(email_list) > 0 and check_format(email_list[0]):
 			# take only first email address
 			email = email_list[0]
@@ -698,7 +707,7 @@ def check_format(email_id):
 
 def get_name_from_email_string(email_string, email_id, name):
 	name = email_string.replace(email_id, "")
-	name = re.sub(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+", "", name).strip()
+	name = EMAIL_NAME_PATTERN.sub("", name).strip()
 	if not name:
 		name = email_id
 	return name

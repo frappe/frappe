@@ -15,14 +15,15 @@ import importlib
 import inspect
 import json
 import os
-import sys
+import re
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
+from frappe.utils.caching import request_cache
 from frappe.utils.data import cstr, sbool
 
 # Local application imports
@@ -44,6 +45,11 @@ local = Local()
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+_qb_patched = {}
+re._MAXCACHE = (
+	50  # reduced from default 512 given we are already maintaining this on parent worker
+)
+
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
@@ -236,8 +242,10 @@ def init(site, sites_path=None, new_site=False):
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 
 	setup_module_map()
-	patch_query_execute()
-	patch_query_aggregation()
+
+	if not _qb_patched.get(local.conf.db_type):
+		patch_query_execute()
+		patch_query_aggregation()
 
 	local.initialised = True
 
@@ -411,6 +419,7 @@ def msgprint(
 	:param wide: [optional] Show wide modal
 	"""
 	import inspect
+	import sys
 
 	from frappe.utils import strip_html_tags
 
@@ -843,6 +852,7 @@ def clear_cache(user=None, doctype=None):
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
+	import frappe.utils.caching
 
 	if doctype:
 		frappe.cache_manager.clear_doctype_cache(doctype)
@@ -862,7 +872,14 @@ def clear_cache(user=None, doctype=None):
 		for fn in get_hooks("clear_cache"):
 			get_attr(fn)()
 
+	frappe.utils.caching._SITE_CACHE.clear()
 	local.role_permissions = {}
+	if hasattr(local, "request_cache"):
+		local.request_cache.clear()
+	if hasattr(local, "system_settings"):
+		del local.system_settings
+	if hasattr(local, "website_settings"):
+		del local.website_settings
 
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
@@ -1040,15 +1057,21 @@ def get_cached_doc(*args, **kwargs):
 		if doc := cache().hget("document_cache", key):
 			return _respond(doc, True)
 
-	# Not found in local/redis, fetch from DB and store in cache
+	# Not found in local/redis, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
-	# Store in redis cache
-	key = get_document_cache_key(doc.doctype, doc.name)
+	# Store in cache
+	if not key:
+		key = get_document_cache_key(doc.doctype, doc.name)
 
 	local.document_cache[key] = doc
-	# Avoid setting in local.cache since there's separate cache
-	cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+
+	# Avoid setting in local.cache since we're already using local.document_cache above
+	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
+	try:
+		cache().hset("document_cache", key, doc, cache_locally=False)
+	except Exception:
+		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
 
 	return doc
 
@@ -1080,6 +1103,10 @@ def clear_document_cache(doctype, name):
 	if key in local.document_cache:
 		del local.document_cache[key]
 	cache().hdel("document_cache", key)
+	if doctype == "System Settings" and hasattr(local, "system_settings"):
+		delattr(local, "system_settings")
+	if doctype == "Website Settings" and hasattr(local, "website_settings"):
+		delattr(local, "website_settings")
 
 
 def get_cached_value(doctype, name, fieldname="name", as_dict=False):
@@ -1124,6 +1151,7 @@ def get_doc(*args, **kwargs):
 	if key := can_cache_doc(args):
 		if key in local.document_cache:
 			local.document_cache[key] = doc
+
 		if cache().hexists("document_cache", key):
 			cache().hset("document_cache", key, doc.as_dict())
 
@@ -1331,6 +1359,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 	return apps
 
 
+@request_cache
 def get_installed_apps(sort=False, frappe_last=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
@@ -1372,47 +1401,49 @@ def get_doc_hooks():
 	return local.doc_events_hooks
 
 
-def get_hooks(hook=None, default=None, app_name=None):
+@request_cache
+def _load_app_hooks(app_name: Optional[str] = None):
+	hooks = {}
+	apps = [app_name] if app_name else get_installed_apps(sort=True)
+
+	for app in apps:
+		try:
+			app_hooks = get_module(f"{app}.hooks")
+		except ImportError:
+			if local.flags.in_install_app:
+				# if app is not installed while restoring
+				# ignore it
+				pass
+			print(f'Could not find app "{app}"')
+			if not request:
+				raise SystemExit
+			raise
+		for key in dir(app_hooks):
+			if not key.startswith("_"):
+				append_hook(hooks, key, getattr(app_hooks, key))
+	return hooks
+
+
+def get_hooks(
+	hook: str = None, default: Optional[Any] = "_KEEP_DEFAULT_LIST", app_name: str = None
+) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
 	:param default: Default if no hook found.
 	:param app_name: Filter by app."""
 
-	def load_app_hooks(app_name=None):
-		hooks = {}
-		for app in [app_name] if app_name else get_installed_apps(sort=True):
-			app = "frappe" if app == "webnotes" else app
-			try:
-				app_hooks = get_module(app + ".hooks")
-			except ImportError:
-				if local.flags.in_install_app:
-					# if app is not installed while restoring
-					# ignore it
-					pass
-				print('Could not find app "{0}"'.format(app_name))
-				if not request:
-					sys.exit(1)
-				raise
-			for key in dir(app_hooks):
-				if not key.startswith("_"):
-					append_hook(hooks, key, getattr(app_hooks, key))
-		return hooks
-
-	no_cache = conf.developer_mode or False
-
 	if app_name:
-		hooks = _dict(load_app_hooks(app_name))
+		hooks = _dict(_load_app_hooks(app_name))
 	else:
-		if no_cache:
-			hooks = _dict(load_app_hooks())
+		if conf.developer_mode:
+			hooks = _dict(_load_app_hooks())
 		else:
-			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+			hooks = _dict(cache().get_value("app_hooks", _load_app_hooks))
 
 	if hook:
-		return hooks.get(hook) or (default if default is not None else [])
-	else:
-		return hooks
+		return hooks.get(hook, ([] if default == "_KEEP_DEFAULT_LIST" else default))
+	return hooks
 
 
 def append_hook(target, key, value):
@@ -1520,7 +1551,15 @@ def call(fn, *args, **kwargs):
 	return fn(*args, **newargs)
 
 
-def get_newargs(fn, kwargs):
+def get_newargs(fn: Callable, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+	"""Remove any kwargs that are not supported by the function.
+
+	Example:
+	        >>> def fn(a=1, b=2): pass
+
+	        >>> get_newargs(fn, {"a": 2, "c": 1})
+	                {"a": 2}
+	"""
 
 	# if function has any **kwargs parameter that capture arbitrary keyword arguments
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
@@ -2188,8 +2227,18 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return eval(code, eval_globals, eval_locals)
 
 
+def get_website_settings(key):
+	if not hasattr(local, "website_settings"):
+		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
+
+	return local.website_settings[key]
+
+
 def get_system_settings(key):
-	return db.get_single_value("System Settings", key, cache=True)
+	if not hasattr(local, "system_settings"):
+		local.system_settings = db.get_singles_dict("System Settings", cast=True)
+
+	return local.system_settings[key]
 
 
 def get_active_domains():
