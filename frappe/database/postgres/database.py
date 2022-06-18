@@ -403,13 +403,12 @@ def modify_query(query):
 
 
 def modify_values(values):
-	def stringify_value(value):
-		if isinstance(value, int):
+	def modify_value(value):
+		if isinstance(value, (list, tuple)):
+			value = tuple(modify_values(value))
+
+		elif isinstance(value, int):
 			value = str(value)
-		elif isinstance(value, float):
-			truncated_float = int(value)
-			if value == truncated_float:
-				value = str(truncated_float)
 
 		return value
 
@@ -418,20 +417,15 @@ def modify_values(values):
 
 	if isinstance(values, dict):
 		for k, v in values.items():
-			if isinstance(v, list):
-				v = tuple(v)
-
-			values[k] = stringify_value(v)
+			values[k] = modify_value(v)
 	elif isinstance(values, (tuple, list)):
 		new_values = []
 		for val in values:
-			if isinstance(val, list):
-				val = tuple(val)
+			new_values.append(modify_value(val))
 
-			new_values.append(stringify_value(val))
 		values = new_values
 	else:
-		values = stringify_value(values)
+		values = modify_value(values)
 
 	return values
 
