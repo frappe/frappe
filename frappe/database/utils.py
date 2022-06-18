@@ -35,6 +35,16 @@ class LazyString:
 		return f"'{self.value}'"
 
 
+class LazyDecode(LazyString):
+	__slots__ = ()
+
+	def __init__(self, value: str) -> None:
+		self._value = value
+
+	def _setup(self) -> None:
+		return self._value.decode()
+
+
 class LazyMogrify(LazyString):
 	__slots__ = ()
 

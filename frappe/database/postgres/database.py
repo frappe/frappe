@@ -19,6 +19,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
+from frappe.database.utils import LazyDecode
 from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
@@ -150,7 +151,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	@property
 	def last_query(self):
-		return self._cursor.query
+		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
 		conn = psycopg2.connect(
