@@ -6,7 +6,7 @@ import copy
 import json
 import re
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 import frappe
 import frappe.defaults
@@ -720,7 +720,7 @@ class DatabaseQuery(object):
 
 		return condition
 
-	def build_match_conditions(self, as_condition=True):
+	def build_match_conditions(self, as_condition=True) -> Union[str, List]:
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []

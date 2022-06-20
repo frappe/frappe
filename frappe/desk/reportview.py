@@ -684,8 +684,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 	)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
-	else:
-		return match_conditions
+	return match_conditions
 
 
 def get_filters_cond(
