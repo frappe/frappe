@@ -121,6 +121,7 @@
 
 		tr {
 			color: var(--text-color);
+			cursor: pointer;
 
 			td {
 				font-size: 13px;
@@ -140,5 +141,9 @@
 		.list-col-serial {
 			width: 1.5rem;
 		}
+	}
+
+	.no-result {
+		border-top: 1px solid var(--border-color);
 	}
 }
