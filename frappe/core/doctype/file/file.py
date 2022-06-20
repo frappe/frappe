@@ -445,7 +445,7 @@ class File(Document):
 
 		file_path = self.file_url or self.file_name
 
-		if frappe.utils.get_url() and file_path.startswith(frappe.utils.get_url()):
+		if file_path.startswith(frappe.utils.get_url()) and "/files/" in file_path:
 			file_path = file_path.split(frappe.utils.get_url(), 1)[1]
 
 		if "/" not in file_path:
