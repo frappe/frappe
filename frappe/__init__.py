@@ -897,24 +897,10 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 		doctype, ptype, doc=doc, verbose=verbose, user=user, raise_exception=throw
 	)
 	if throw and not out:
-<<<<<<< HEAD
 		if doc:
-			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
+			frappe.throw(_("No permission for {0}").format(_(doc.doctype) + " " + doc.name))
 		else:
-			frappe.throw(_("No permission for {0}").format(doctype))
-=======
-		# mimics frappe.throw
-		document_label = f"{_(doc.doctype)} {doc.name}" if doc else _(doctype)
-		msgprint(
-			_("No permission for {0}").format(document_label),
-			raise_exception=ValidationError,
-			title=None,
-			indicator="red",
-			is_minimizable=None,
-			wide=None,
-			as_list=False,
-		)
->>>>>>> 7b67e1f847 (fix: translate doctype in error messages (#17239))
+			frappe.throw(_("No permission for {0}").format(_(doctype)))
 
 	return out
 

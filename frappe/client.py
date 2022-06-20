@@ -100,13 +100,8 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-<<<<<<< HEAD
 	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
-=======
-	if not frappe.has_permission(doctype, parent_doctype=parent):
 		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
->>>>>>> 7b67e1f847 (fix: translate doctype in error messages (#17239))
 
 	filters = get_safe_filters(filters)
 	if isinstance(filters, string_types):
