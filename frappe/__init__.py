@@ -926,7 +926,7 @@ def has_permission(
 
 	if throw and not out:
 		# mimics frappe.throw
-		document_label = f"{doc.doctype} {doc.name}" if doc else doctype
+		document_label = f"{_(doc.doctype)} {doc.name}" if doc else _(doctype)
 		msgprint(
 			_("No permission for {0}").format(document_label),
 			raise_exception=ValidationError,

@@ -10,6 +10,7 @@ export default class Tab {
 		this.fields_list = [];
 		this.fields_dict = {};
 		this.make();
+		this.setup_listeners();
 		this.refresh();
 	}
 
@@ -79,7 +80,6 @@ export default class Tab {
 	set_active() {
 		this.parent.find('.nav-link').tab('show');
 		this.wrapper.addClass('active');
-		this.frm.active_tab = this;
 	}
 
 	is_active() {
@@ -87,7 +87,12 @@ export default class Tab {
 	}
 
 	is_hidden() {
-		this.wrapper.hasClass('hide')
-			&& this.parent.hasClass('hide');
+		return this.wrapper.hasClass('hide');
+	}
+
+	setup_listeners() {
+		this.parent.find('.nav-link').on('shown.bs.tab', () => {
+			this?.frm.set_active_tab?.(this);
+		});
 	}
 }

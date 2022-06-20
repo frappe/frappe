@@ -123,7 +123,7 @@ frappe.ui.form.Layout = class Layout {
 
 		if (this.is_tabbed_layout()) {
 			// add a tab without `fieldname` to avoid conflicts
-			let default_tab = {label: __('Details'), fieldtype: "Tab Break"};
+			let default_tab = {label: __('Details'), fieldtype: "Tab Break", fieldname: "__details"};
 			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
 			if (!first_tab) {
 				this.fields.splice(1, 0, default_tab);
@@ -336,12 +336,17 @@ frappe.ui.form.Layout = class Layout {
 		if (visible_tabs && visible_tabs.length == 1) {
 			visible_tabs[0].parent.toggleClass('hide show');
 		}
+		this.set_tab_as_active();
 	}
 
-	set_first_tab_as_active(switched) {
-		if (this.tabs.length && (switched || !this.frm.active_tab)) {
+	set_tab_as_active() {
+		let frm_active_tab = this?.frm.get_active_tab?.();
+		if (frm_active_tab) {
+			frm_active_tab.set_active();
+		} else if (this.tabs.length) {
 			// set first tab as active when opening for first time, or new doc
-			this.tabs[0].set_active();
+			let first_visible_tab = this.tabs.find(tab => !tab.is_hidden());
+			first_visible_tab && first_visible_tab.set_active();
 		}
 	}
 
