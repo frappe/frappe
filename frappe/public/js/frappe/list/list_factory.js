@@ -16,8 +16,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 
 			let view_name = frappe.utils.to_title_case(
 				meta.force_re_route_to_default_view ?
-				meta.default_view :
-				route[2] || meta.default_view || "List"
+					meta.default_view : route[2] || meta.default_view || "List"
 			);
 
 			let view_class = frappe.views[view_name + "View"] || frappe.views.ListView;
