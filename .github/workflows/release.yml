@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Setup Node.js v14
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14
       - name: Setup dependencies

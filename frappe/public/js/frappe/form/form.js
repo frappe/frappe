@@ -575,8 +575,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
-		this.layout.set_first_tab_as_active(switched || this.cscript.is_onload);
-
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
 		}
@@ -1841,6 +1839,15 @@ frappe.ui.form.Form = class FrappeForm {
 				resolve(options);
 			});
 		});
+	}
+	set_active_tab(tab) {
+		if (!this.active_tab_map) {
+			this.active_tab_map = {};
+		}
+		this.active_tab_map[this.docname] = tab;
+	}
+	get_active_tab() {
+		return this.active_tab_map && this.active_tab_map[this.docname];
 	}
 };
 

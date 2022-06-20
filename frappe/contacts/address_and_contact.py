@@ -170,12 +170,13 @@ def delete_contact_and_address(doctype, docname):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def filter_dynamic_link_doctypes(txt: str, filters: Dict) -> List[List[str]]:
+def filter_dynamic_link_doctypes(
+	doctype, txt: str, searchfield, start, page_len, filters: Dict
+) -> List[List[str]]:
 	from frappe.permissions import get_doctypes_with_read
 
 	txt = txt or ""
 	filters = filters or {}
-	TXT_PATTERN = re.compile(f"{txt}.*")
 
 	_doctypes_from_df = frappe.get_all(
 		"DocField",
@@ -184,13 +185,13 @@ def filter_dynamic_link_doctypes(txt: str, filters: Dict) -> List[List[str]]:
 		distinct=True,
 		order_by=None,
 	)
-	doctypes_from_df = {d for d in _doctypes_from_df if TXT_PATTERN.search(_(d), re.IGNORECASE)}
+	doctypes_from_df = {d for d in _doctypes_from_df if txt.lower() in _(d).lower()}
 
 	filters.update({"dt": ("not in", doctypes_from_df)})
 	_doctypes_from_cdf = frappe.get_all(
 		"Custom Field", filters=filters, pluck="dt", distinct=True, order_by=None
 	)
-	doctypes_from_cdf = {d for d in _doctypes_from_cdf if TXT_PATTERN.search(_(d), re.IGNORECASE)}
+	doctypes_from_cdf = {d for d in _doctypes_from_cdf if txt.lower() in _(d).lower()}
 
 	all_doctypes = doctypes_from_df.union(doctypes_from_cdf)
 	allowed_doctypes = set(get_doctypes_with_read())
