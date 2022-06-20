@@ -158,7 +158,7 @@ jobs:
 
       - name: Upload Coverage Data
         if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           name: Cypress
           fail_ci_if_error: true
@@ -168,7 +168,7 @@ jobs:
 
       - name: Upload Server Coverage Data
         if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           name: MariaDB
           fail_ci_if_error: true
