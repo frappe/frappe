@@ -25,7 +25,7 @@
 		{%- endfor -%}
 	</head>
 	<body>
-		{% include "public/icons/timeless/symbol-defs.svg" %}
+		{% include "public/icons/timeless/icons.svg" %}
 		<div class="centered splash">
 			<img src="{{ splash_image or "/assets/frappe/images/frappe-framework-logo.png" }}"
 				style="max-width: 100px; max-height: 100px;">
@@ -42,21 +42,29 @@
 			// browser support
 			window.app = true;
 			window.dev_server = {{ dev_server }};
-
 			if (!window.frappe) window.frappe = {};
-
-			frappe.boot = {{ boot }};
-			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
+			function add_script(src) {
+				return new Promise(resolve => {
+					const script = document.createElement('script');
+					script.setAttribute('src', src);
+					script.addEventListener("load", resolve)
+					document.body.appendChild(script);
+				})
+			}
+			async function setup_app() {
+				response = await fetch("/api/method/frappe.www.app.get_boot_info");
+				frappe.boot = (await response.json()).message;
+				frappe._messages = frappe.boot["__messages"];
+				for (const file in frappe.boot.script_files) {
+					await add_script(frappe.boot.script_files[file]);
+				}
+			}
+			setup_app()
 		</script>
-
-	{% for include in include_js %}
-	{{ include_script(include) }}
-	{% endfor %}
 
 	{% include "templates/includes/app_analytics/google_analytics.html" %}
 	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
-
 		{% for sound in (sounds or []) %}
 		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>
 			<source src="{{ sound.src }}"></source>

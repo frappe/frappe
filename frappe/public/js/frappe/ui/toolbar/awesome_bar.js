@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 frappe.provide('frappe.search');
 frappe.provide('frappe.tags');
+import Awesomplete from 'awesomplete';
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
@@ -327,3 +328,11 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		}
 	}
 };
+
+if (Awesomplete) {
+	Awesomplete.prototype.get_item = function(value) {
+		return this._list.find(function(item) {
+			return item.value === value;
+		});
+	};
+}

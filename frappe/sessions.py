@@ -189,8 +189,6 @@ def get():
 
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
 
-	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
-
 	return bootinfo
 
 
