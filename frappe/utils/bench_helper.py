@@ -110,6 +110,6 @@ if __name__ == "__main__":
 	# disable pooling for commands executed via bench unless explicitly stated otherwise
 	# - except for commands serve & worker
 	if not {"serve", "worker"} & set(sys.argv) and int(os.environ.get("DATABASE_POOLING", 0)):
-		frappe.DISABLE_DATABASE_POOLING = True
+		frappe.DISABLE_DATABASE_CONNECTION_POOLING = True
 
 	main()

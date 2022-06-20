@@ -33,9 +33,9 @@ def is_connection_pooling_enabled() -> bool:
 	process. This will override config key `disable_database_connection_pooling`. Set key
 	`disable_database_connection_pooling` in site config for persistent settings across workers."""
 
-	if frappe.DISABLE_DATABASE_POOLING is not None:
-		return not frappe.DISABLE_DATABASE_POOLING
-	return frappe.local.conf.disable_database_connection_pooling
+	if frappe.DISABLE_DATABASE_CONNECTION_POOLING is not None:
+		return not frappe.DISABLE_DATABASE_CONNECTION_POOLING
+	return not frappe.local.conf.disable_database_connection_pooling
 
 
 class MariaDBExceptionUtil:

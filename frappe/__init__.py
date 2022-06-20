@@ -43,7 +43,7 @@ __title__ = "Frappe Framework"
 controllers = {}
 local = Local()
 STANDARD_USERS = ("Guest", "Administrator")
-DISABLE_DATABASE_POOLING = None
+DISABLE_DATABASE_CONNECTION_POOLING = None
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _qb_patched = {}
