@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 no_cache = 1
 
-import json
 import os
 import re
 
@@ -33,14 +32,13 @@ def get_context(context):
 
 	frappe.db.commit()
 
-	boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
+	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
 	boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
 
 	# TODO: Find better fix
 	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
-	boot_json = json.dumps(boot_json)
 
 	context.update(
 		{
