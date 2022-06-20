@@ -445,6 +445,9 @@ class File(Document):
 
 		file_path = self.file_url or self.file_name
 
+		if frappe.utils.get_url() and file_path.startswith(frappe.utils.get_url()):
+			file_path = file_path.split(frappe.utils.get_url(), 1)[1]
+
 		if "/" not in file_path:
 			if self.is_private:
 				file_path = f"/private/files/{file_path}"
