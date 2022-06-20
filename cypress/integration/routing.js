@@ -16,6 +16,10 @@ describe("SPA Routing", { scrollBehavior: false }, () => {
 		cy.go_to_list("ToDo");
 	});
 
+	after(() => {
+		cy.clear_filters(); // avoid flake in future tests
+	});
+
 	it("should apply filter on list view from route", () => {
 		test_queries.forEach((query) => {
 			const full_url = `${list_view}${query}`;

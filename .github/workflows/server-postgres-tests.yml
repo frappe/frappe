@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -56,7 +56,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         with:
           node-version: '14'
@@ -70,7 +70,7 @@ jobs:
 
       - name: Cache pip
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -80,7 +80,7 @@ jobs:
 
       - name: Cache node modules
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
@@ -96,7 +96,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload coverage data
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           name: Postgres
           fail_ci_if_error: true
