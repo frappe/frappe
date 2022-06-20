@@ -170,7 +170,7 @@ class Database(object):
 		if debug:
 			time_start = time()
 
-		if values != None:
+		if values is not None:
 			if not isinstance(values, (tuple, dict, list)):
 				values = (values,)
 			query, values = self._transform_query(query, values)
@@ -179,7 +179,7 @@ class Database(object):
 			self._cursor.execute(query, values)
 		except Exception as e:
 			if self.is_syntax_error(e):
-				frappe.errprint(f"Syntax error in query:\n{query}")
+				frappe.errprint(f"Syntax error in query:\n{query} {values}")
 
 			elif self.is_deadlocked(e):
 				raise frappe.QueryDeadlockError(e)

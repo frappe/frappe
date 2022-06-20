@@ -239,7 +239,7 @@ class MariaDBConnectionUtil:
 		pos_values = []
 		named_tokens = _PARAM_COMP.findall(query)
 
-		if not named_tokens or len(named_tokens) == len(values):
+		if not named_tokens or len(set(named_tokens)) == len(values):
 			return query, values
 
 		for token in named_tokens:
