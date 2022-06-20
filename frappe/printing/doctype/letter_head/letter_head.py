@@ -28,15 +28,6 @@ class LetterHead(Document):
 
 	def set_image(self):
 		if self.source == "Image":
-<<<<<<< HEAD
-			if self.image and is_image(self.image):
-				self.content = '<img src="{}">'.format(self.image)
-				frappe.msgprint(frappe._("Header HTML set from attachment {0}").format(self.image), alert=True)
-			else:
-				frappe.msgprint(
-					frappe._("Please attach an image file to set HTML"), alert=True, indicator="orange"
-				)
-=======
 			self.set_image_as_html(
 				field="image",
 				width="image_width",
@@ -84,7 +75,6 @@ class LetterHead(Document):
 		)
 
 		frappe.msgprint(success_msg, alert=True)
->>>>>>> 6d6a67e9e3 (feat: set image as footer in letter head (#17119))
 
 	def on_update(self):
 		self.set_as_default()
