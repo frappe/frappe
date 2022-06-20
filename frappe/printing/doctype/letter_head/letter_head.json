@@ -106,8 +106,6 @@
    "fieldname": "footer",
    "fieldtype": "HTML Editor",
    "label": "Footer HTML"
-<<<<<<< HEAD
-=======
   },
   {
    "default": "Left",
@@ -160,17 +158,12 @@
    "fieldtype": "Select",
    "label": "Footer Based On",
    "options": "Image\nHTML"
->>>>>>> 6d6a67e9e3 (feat: set image as footer in letter head (#17119))
   }
  ],
  "icon": "fa fa-font",
  "idx": 1,
  "max_attachments": 3,
-<<<<<<< HEAD
- "modified": "2019-11-11 18:46:43.375120",
-=======
  "modified": "2022-06-16 23:10:46.852116",
->>>>>>> 6d6a67e9e3 (feat: set image as footer in letter head (#17119))
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
