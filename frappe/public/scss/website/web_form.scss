@@ -35,7 +35,7 @@
 
 			&.list-card {
 				min-height: 400px;
-	
+
 				.list-filters {
 					display: flex;
 					margin: 0 -1rem;
@@ -43,12 +43,12 @@
 					margin-top: 1rem;
 					border-top: 1px solid var(--border-color);
 					gap: 10px;
-	
+
 					.form-group.frappe-control {
 						min-width: 150px;
 						padding: 0px;
 						margin: 0px;
-	
+
 						.input-xs {
 							height: 28px;
 							line-height: 1.2;

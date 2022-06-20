@@ -13,7 +13,7 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cstr, strip_html, dict_with_keys
+from frappe.utils import cstr, dict_with_keys, strip_html
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -40,7 +40,7 @@ class WebForm(WebsiteGenerator):
 		)
 		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
 			# only published can be changed for standard web forms
-			if self.has_value_changed('published'):
+			if self.has_value_changed("published"):
 				published_value = self.published
 				self.reload()
 				self.published = published_value
@@ -137,9 +137,9 @@ def get_context(context):
 		self.set_web_form_module()
 
 		if frappe.form_dict.is_list:
-			context.template = 'website/doctype/web_form/templates/web_list.html'
+			context.template = "website/doctype/web_form/templates/web_list.html"
 		else:
-			context.template = 'website/doctype/web_form/templates/web_form.html'
+			context.template = "website/doctype/web_form/templates/web_form.html"
 
 		# check permissions
 		if frappe.session.user == "Guest" and frappe.form_dict.name:
@@ -167,7 +167,12 @@ def get_context(context):
 		if not frappe.form_dict.is_edit and self.allow_edit and frappe.form_dict.name:
 			frappe.redirect(f"/{frappe.local.path}/edit")
 
-		if frappe.session.user != "Guest" and not self.allow_multiple and not frappe.form_dict.name and not frappe.form_dict.is_list:
+		if (
+			frappe.session.user != "Guest"
+			and not self.allow_multiple
+			and not frappe.form_dict.name
+			and not frappe.form_dict.is_list
+		):
 			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 			if name:
 				frappe.redirect(f"/{self.route}/{name}")
@@ -175,9 +180,9 @@ def get_context(context):
 		# Show new form when
 		# - User is Guest
 		# - Login not required
-		route_to_new = frappe.session.user == 'Guest' or not self.login_required
+		route_to_new = frappe.session.user == "Guest" or not self.login_required
 		if not frappe.form_dict.is_new and route_to_new:
-			frappe.redirect(f'/{self.route}/new')
+			frappe.redirect(f"/{self.route}/new")
 
 		self.reset_field_parent()
 
@@ -185,7 +190,7 @@ def get_context(context):
 			self.use_meta_fields()
 
 		# add keys from form_dict to context
-		context.update(dict_with_keys(frappe.form_dict, ['is_list', 'is_new', 'is_edit', 'is_read']))
+		context.update(dict_with_keys(frappe.form_dict, ["is_list", "is_new", "is_edit", "is_read"]))
 
 		for df in self.web_form_fields:
 			if df.fieldtype == "Column Break":
@@ -229,13 +234,15 @@ def get_context(context):
 		context.translated_messages = frappe.as_json(translated_messages)
 
 	def load_form_data(self, context):
-		'''Load document `doc` and `layout` properties for template'''
+		"""Load document `doc` and `layout` properties for template"""
 		context.parents = []
 		if self.allow_multiple:
-			context.parents.append({
-				"label": _(self.title),
-				"route": f"{self.route}/list",
-			})
+			context.parents.append(
+				{
+					"label": _(self.title),
+					"route": f"{self.route}/list",
+				}
+			)
 
 		# For Table fields, server-side processing for meta
 		for field in context.web_form_doc.web_form_fields:
@@ -245,15 +252,15 @@ def get_context(context):
 			if field.fieldtype == "Link":
 				field.fieldtype = "Autocomplete"
 				field.options = get_link_options(
-					self.name,
-					field.options,
-					field.allow_read_on_all_link_options
+					self.name, field.options, field.allow_read_on_all_link_options
 				)
 
 		# load reference doc
 		if frappe.form_dict.name:
 			context.reference_doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
-			context.title = strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+			context.title = strip_html(
+				context.reference_doc.get(context.reference_doc.meta.get_title_field())
+			)
 			context.reference_doc.add_seen()
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name
@@ -261,16 +268,18 @@ def get_context(context):
 			if self.show_attachments:
 				context.attachments = frappe.get_all(
 					"File",
-					filters= {
+					filters={
 						"attached_to_name": context.reference_name,
 						"attached_to_doctype": context.reference_doctype,
-						"is_private": 0
+						"is_private": 0,
 					},
-					fields=["file_name", "file_url", "file_size"]
+					fields=["file_name", "file_url", "file_size"],
 				)
 
 			if self.allow_comments:
-				context.comment_list = get_comment_list(context.reference_doc.doctype, context.reference_doc.name)
+				context.comment_list = get_comment_list(
+					context.reference_doc.doctype, context.reference_doc.name
+				)
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:

@@ -57,7 +57,7 @@ frappe.ready(function() {
 					df.get_data = () => {
 						let data = [];
 						if (doc_data && doc_data[df.fieldname]) {
-							return doc_data[df.fieldname]
+							return doc_data[df.fieldname];
 						}
 						return data;
 					};

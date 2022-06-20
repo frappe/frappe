@@ -1769,7 +1769,7 @@ def respond_as_web_page(
 
 
 def redirect(url):
-	'''Raise a 301 redirect to url'''
+	"""Raise a 301 redirect to url"""
 	from frappe.exceptions import Redirect
 
 	flags.redirect_location = url

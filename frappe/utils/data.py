@@ -1948,7 +1948,7 @@ def generate_hash(*args, **kwargs) -> str:
 
 
 def dict_with_keys(dict, keys):
-	'''Returns a new dict with a subset of keys'''
+	"""Returns a new dict with a subset of keys"""
 	out = {}
 	for key in dict:
 		if key in keys:
