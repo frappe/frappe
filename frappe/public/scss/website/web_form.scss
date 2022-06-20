@@ -32,10 +32,30 @@
 			.web-form-actions button {
 				margin-top: 0.1rem;
 			}
-		}
 
-		.frappe-card.list-card {
-			min-height: 400px;
+			&.list-card {
+				min-height: 400px;
+	
+				.list-filters {
+					display: flex;
+					margin: 0 -1rem;
+					padding: 1rem 1rem 0 1rem;
+					margin-top: 1rem;
+					border-top: 1px solid var(--border-color);
+					gap: 10px;
+	
+					.form-group.frappe-control {
+						min-width: 150px;
+						padding: 0px;
+						margin: 0px;
+	
+						.input-xs {
+							height: 28px;
+							line-height: 1.2;
+						}
+					}
+				}
+			}
 		}
 
 		.breadcrumb-container.container {
@@ -80,8 +100,12 @@
 .list-table {
 	margin-left: -1rem;
 	margin-right: -1rem;
+	margin-top: 1rem;
 
 	.table {
+		border-bottom: 1px solid var(--border-color);
+		border-top: 1px solid var(--border-color);
+
 		thead {
 			th {
 				border: 0;

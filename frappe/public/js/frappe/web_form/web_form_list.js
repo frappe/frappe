@@ -6,7 +6,7 @@ export default class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
-		this.wrapper = document.getElementById("list-table");
+		this.wrapper = $(".list-table");
 		this.make_actions();
 		this.make_filters();
 		$('.link-btn').remove();
@@ -20,7 +20,7 @@ export default class WebFormList {
 				check.checked = false;
 		}
 		this.rows = [];
-		this.page_length = 20;
+		this.page_length = 10;
 		this.web_list_start = 0;
 
 		frappe.run_serially([
@@ -34,16 +34,14 @@ export default class WebFormList {
 	make_filters() {
 		this.filters = {};
 		this.filter_input = [];
-		const filter_area = document.getElementById('list-filters');
+		const filter_area = $('.list-filters');
 
 		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
 			web_form_name: this.web_form_name
 		}).then(response => {
 			let fields = response.message;
+			fields.length && filter_area.removeClass('hide');
 			fields.forEach(field => {
-				let col = document.createElement('div.col-sm-4');
-				col.classList.add('col', 'col-sm-3');
-				filter_area.appendChild(col);
 				if (field.default) this.add_filter(field.fieldname, field.default, field.fieldtype);
 
 				let input = frappe.ui.form.make_control({
@@ -51,6 +49,7 @@ export default class WebFormList {
 						fieldtype: field.fieldtype,
 						fieldname: field.fieldname,
 						options: field.options,
+						input_class: 'input-xs',
 						only_select: true,
 						label: __(field.label),
 						onchange: (event) => {
@@ -59,10 +58,18 @@ export default class WebFormList {
 							this.refresh();
 						}
 					},
-					parent: col,
+					parent: filter_area,
 					value: field.default,
 					render_input: 1,
+					only_input: field.fieldtype == "Check" ? false : true,
 				});
+				$(input.wrapper)
+					.addClass('col-md-2')
+					.attr("title", __(field.label)).tooltip({
+						delay: { "show": 600, "hide": 100},
+						trigger: "hover"
+				});
+				input.$input.attr("placeholder", __(field.label));
 				this.filter_input.push(input);
 			});
 			this.refresh();
@@ -95,6 +102,7 @@ export default class WebFormList {
 				doctype: this.doctype,
 				fields: this.fields_list.map(df => df.fieldname),
 				limit_start: this.web_list_start,
+				limit: this.page_length,
 				web_form_name: this.web_form_name,
 				...this.filters
 			}
@@ -134,14 +142,10 @@ export default class WebFormList {
 
 		if (this.data.length) {
 			this.append_rows(this.data);
-			this.wrapper.appendChild(this.table);
+			$(this.table).appendTo(this.wrapper);
 		} else {
-			let new_button = "";
-			let empty_state = document.createElement("div");
-			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
-
 			frappe.has_permission(this.doctype, "", "create", () => {
-				new_button = `
+				let new_button = `
 					<a
 						class="btn btn-primary btn-sm btn-new-doc hidden-xs"
 						href="${location.pathname.replace('/list', '')}/new">
@@ -149,20 +153,22 @@ export default class WebFormList {
 					</a>
 				`;
 
-				empty_state.innerHTML = `
-					<div class="text-center">
-						<div>
-							<img
-								src="/assets/frappe/images/ui-states/list-empty-state.svg"
-								alt="Generic Empty State"
-								class="null-state">
+				let empty_state = $(`
+					<div class="no-result text-muted flex justify-center align-center">
+						<div class="text-center">
+							<div>
+								<img
+									src="/assets/frappe/images/ui-states/list-empty-state.svg"
+									alt="Generic Empty State"
+									class="null-state">
+							</div>
+							<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
+							${new_button}
 						</div>
-						<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
-						${new_button}
 					</div>
-				`;
+				`);
 
-				this.wrapper.appendChild(empty_state);
+				empty_state.appendTo(this.wrapper);
 			});
 		}
 	}
@@ -224,15 +230,6 @@ export default class WebFormList {
 				this.delete_rows()
 			);
 		});
-
-		// this.addButton(
-		// 	actions,
-		// 	"new",
-		// 	"primary",
-		// 	false,
-		// 	"New",
-		// 	() => (window.location.href = window.location.pathname + "?new=1")
-		// );
 	}
 
 	addButton(wrapper, id, type, hidden, name, action) {
@@ -279,7 +276,6 @@ export default class WebFormList {
 	}
 
 	open_form(name) {
-		// window.location.href = window.location.pathname + "?name=" + name;
 		let path = window.location.pathname;
 		if (path.includes('/list')) {
 			path = path.replace('/list', '');

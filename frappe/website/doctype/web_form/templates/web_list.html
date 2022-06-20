@@ -27,8 +27,8 @@
 	<!-- main card -->
 	<div class="frappe-card list-card">
 		<!-- list -->
-		<div class="d-flex justify-content-between">
-			<h3 class="mt-0">{{ _(list_title or title) }}</h3>
+		<div class="d-flex justify-content-between web-list-head">
+			<h1>{{ _(list_title or title) }}</h1>
 			<div class="list-view-actions">
 				{%- if allow_multiple -%}
 					<a class="btn btn-primary btn-sm" href="/{{ route }}/new">New</a>
@@ -37,8 +37,8 @@
 		</div>
 
 		<div class="web-list-wrapper" {{ container_attributes() }}></div>
-		<div id="list-filters" class="mt-4 row"></div>
-		<div id="list-table" class="pt-4 overflow-auto list-table"></div>
+		<div class="list-filters hide"></div>
+		<div class="list-table overflow-auto"></div>
 		<div class="text-right list-view-footer"></div>
 	</div>
 {% endblock page_content %}
@@ -49,7 +49,11 @@
 			sysdefaults: {
 				float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
 				date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
-			}
+			},
+			time_zone: {
+				system: "{{ frappe.utils.get_time_zone() }}",
+				user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
+			},
 		};
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
