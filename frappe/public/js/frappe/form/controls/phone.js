@@ -22,7 +22,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		// Replaces code when selected and removes previously selected.
 		this.country_code_picker.on_change = (country) => {
 			if (!country) {
-				return this.reset_inputx();
+				return this.reset_input();
 			}
 			const country_code = frappe.boot.country_codes[country].code;
 			const country_isd = frappe.boot.country_codes[country].isd;
