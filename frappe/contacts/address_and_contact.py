@@ -185,13 +185,13 @@ def filter_dynamic_link_doctypes(
 		distinct=True,
 		order_by=None,
 	)
-	doctypes_from_df = {d for d in _doctypes_from_df if txt.lower() in d.lower()}
+	doctypes_from_df = {d for d in _doctypes_from_df if txt.lower() in _(d).lower()}
 
 	filters.update({"dt": ("not in", doctypes_from_df)})
 	_doctypes_from_cdf = frappe.get_all(
 		"Custom Field", filters=filters, pluck="dt", distinct=True, order_by=None
 	)
-	doctypes_from_cdf = {d for d in _doctypes_from_cdf if txt.lower() in d.lower()}
+	doctypes_from_cdf = {d for d in _doctypes_from_cdf if txt.lower() in _(d).lower()}
 
 	all_doctypes = doctypes_from_df.union(doctypes_from_cdf)
 	allowed_doctypes = set(get_doctypes_with_read())
