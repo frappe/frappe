@@ -1,7 +1,3 @@
-import "./frappe/provide.js";
-import "./frappe/translate.js";
-import "./frappe/class.js";
-import "./frappe/polyfill.js";
 import "./frappe/assets.js";
 import "./frappe/format.js";
 import "./frappe/form/formatters.js";
@@ -21,12 +17,10 @@ import "./frappe/router_history.js";
 import "./frappe/defaults.js";
 import "./frappe/roles_editor.js";
 import "./frappe/module_editor.js";
-import "./frappe/microtemplate.js";
 
 import "./frappe/ui/page.html";
 import "./frappe/ui/page.js";
 import "./frappe/ui/slides.js";
-// import "./frappe/ui/onboarding_dialog.js";
 import "./frappe/ui/find.js";
 import "./frappe/ui/iconbar.js";
 import "./frappe/form/layout.js";
@@ -48,7 +42,6 @@ import "./frappe/model/sync.js";
 import "./frappe/model/create_new.js";
 import "./frappe/model/perm.js";
 import "./frappe/model/workflow.js";
-import "./frappe/model/user_settings.js";
 
 import "./frappe/utils/user.js";
 import "./frappe/utils/common.js";
@@ -70,8 +63,6 @@ import "./frappe/ui/tree.js";
 
 import "./frappe/views/container.js";
 import "./frappe/views/breadcrumbs.js";
-import "./frappe/views/factory.js";
-import "./frappe/views/pageview.js";
 
 import "./frappe/ui/toolbar/awesome_bar.js";
 // import "./frappe/ui/toolbar/energy_points_notifications.js";

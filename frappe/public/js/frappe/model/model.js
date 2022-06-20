@@ -42,7 +42,6 @@ $.extend(frappe.model, {
 
 	new_names: {},
 	events: {},
-	user_settings: {},
 
 	init: function() {
 		// setup refresh if the document is updated somewhere else
