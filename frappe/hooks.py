@@ -24,10 +24,10 @@ page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 # website
 app_include_js = [
 	"libs.bundle.js",
+	"controls.bundle.js",
 	"desk.bundle.js",
 	"list.bundle.js",
 	"form.bundle.js",
-	"controls.bundle.js",
 	"report.bundle.js",
 ]
 app_include_css = [
