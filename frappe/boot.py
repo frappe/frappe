@@ -11,7 +11,6 @@ from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, ge
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
-from frappe.geo.country_info import get_all
 from frappe.model.base_document import get_controller
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
@@ -68,7 +67,6 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
-	get_country_codes(bootinfo)
 	set_time_zone(bootinfo)
 
 	# ipinfo
@@ -387,11 +385,6 @@ def get_desk_settings():
 
 def get_notification_settings():
 	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
-
-
-def get_country_codes(bootinfo):
-	country_codes = get_all()
-	bootinfo.country_codes = frappe._dict(country_codes)
 
 
 @frappe.whitelist()
