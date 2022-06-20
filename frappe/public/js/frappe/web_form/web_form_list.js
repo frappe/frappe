@@ -176,7 +176,7 @@ export default class WebFormList {
 
 		this.check_all = $thead.find('input.select-all');
 		this.check_all.on("click", event => {
-			this.toggle_select_all(event.target.checked)
+			this.toggle_select_all(event.target.checked);
 		});
 
 		this.columns.forEach(col => {
@@ -313,7 +313,7 @@ export default class WebFormList {
 	}
 
 	toggle_delete() {
-		if (!this.settings.allow_delete) return
+		if (!this.settings.allow_delete) return;
 		let btn = $(".delete-rows");
 		!this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
 	}

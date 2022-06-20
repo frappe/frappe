@@ -25,7 +25,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.setup_listeners();
 		if (this.allow_print && !this.is_new) this.setup_print_button();
 		if (this.is_new) this.setup_cancel_button();
-		this.allow_edit && this.setup_primary_action();
+		if (this.is_new || this.allow_edit) {
+			this.setup_primary_action();
+		}
 		this.setup_previous_next_button();
 		this.toggle_section();
 
@@ -130,8 +132,15 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_default_values() {
+		let defaults = {};
+		for (let df of this.fields) {
+			if (df.default) {
+				defaults[df.fieldname] = df.default;
+			}
+		}
 		let values = frappe.utils.get_query_params();
 		delete values.new;
+		Object.assign(defaults, values);
 		this.set_values(values);
 	}
 

@@ -13,7 +13,7 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cstr, dict_with_keys
+from frappe.utils import cstr, strip_html, dict_with_keys
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -162,11 +162,10 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
-			path = frappe.local.path.rstrip("/edit")
-			frappe.redirect("/" + path)
+			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
 		if not frappe.form_dict.is_edit and self.allow_edit and frappe.form_dict.name:
-			frappe.redirect("/" + frappe.local.path + "/edit")
+			frappe.redirect(f"/{frappe.local.path}/edit")
 
 		if frappe.session.user != "Guest" and not self.allow_multiple and not frappe.form_dict.name and not frappe.form_dict.is_list:
 			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
@@ -196,7 +195,11 @@ def get_context(context):
 		if frappe.form_dict.name:
 			context.doc_name = frappe.form_dict.name
 
-		self.load_document(context)
+		# load web form doc
+		context.web_form_doc = self.as_dict(no_nulls=True)
+
+		if not frappe.form_dict.is_list:
+			self.load_form_data(context)
 
 		context.parents = self.get_parents(context)
 
@@ -225,33 +228,49 @@ def get_context(context):
 		translated_messages["Sr"] = _("Sr")
 		context.translated_messages = frappe.as_json(translated_messages)
 
-	def load_document(self, context):
-		"""Load document `doc` and `layout` properties for template"""
-		if frappe.form_dict.name or frappe.form_dict.new:
-			context.layout = self.get_layout()
-			context.parents = [{"route": self.route, "label": _(self.title)}]
+	def load_form_data(self, context):
+		'''Load document `doc` and `layout` properties for template'''
+		context.parents = []
+		if self.allow_multiple:
+			context.parents.append({
+				"label": _(self.title),
+				"route": f"{self.route}/list",
+			})
 
+		# For Table fields, server-side processing for meta
+		for field in context.web_form_doc.web_form_fields:
+			if field.fieldtype == "Table":
+				field.fields = get_in_list_view_fields(field.options)
+
+			if field.fieldtype == "Link":
+				field.fieldtype = "Autocomplete"
+				field.options = get_link_options(
+					self.name,
+					field.options,
+					field.allow_read_on_all_link_options
+				)
+
+		# load reference doc
 		if frappe.form_dict.name:
-			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
-			context.title = context.doc.get(context.doc.meta.get_title_field())
-			context.doc.add_seen()
-
-			context.reference_doctype = context.doc.doctype
-			context.reference_name = context.doc.name
+			context.reference_doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
+			context.title = strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+			context.reference_doc.add_seen()
+			context.reference_doctype = context.reference_doc.doctype
+			context.reference_name = context.reference_doc.name
 
 			if self.show_attachments:
 				context.attachments = frappe.get_all(
 					"File",
-					filters={
+					filters= {
 						"attached_to_name": context.reference_name,
 						"attached_to_doctype": context.reference_doctype,
-						"is_private": 0,
+						"is_private": 0
 					},
-					fields=["file_name", "file_url", "file_size"],
+					fields=["file_name", "file_url", "file_size"]
 				)
 
 			if self.allow_comments:
-				context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
+				context.comment_list = get_comment_list(context.reference_doc.doctype, context.reference_doc.name)
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:

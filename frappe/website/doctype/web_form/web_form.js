@@ -61,7 +61,7 @@ frappe.ui.form.on("Web Form", {
 		let update_options = options => {
 			[
 				frm.fields_dict.web_form_fields.grid,
-				frm.fields_dict.list_columns.grid
+				// frm.fields_dict.list_columns.grid
 			].forEach(obj => {
 				obj.update_docfield_property("fieldname", "options", options);
 			});
