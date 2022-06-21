@@ -348,7 +348,7 @@
   },
   {
    "default": "0",
-   "depends_on": "doc.default_view",
+   "depends_on": "default_view",
    "fieldname": "force_re_route_to_default_view",
    "fieldtype": "Check",
    "label": "Force Re-route to Default View"
@@ -369,10 +369,14 @@
  "issingle": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2022-08-24 06:57:47.966331",
 =======
  "modified": "2022-05-14 15:36:16.772277",
 >>>>>>> fcaa0ac76b (feat: configurable default views)
+=======
+ "modified": "2022-06-21 01:12:45.141124",
+>>>>>>> 4b21f4d0be (fix: show force reroute check)
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
