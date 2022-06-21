@@ -8,10 +8,13 @@ import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
 from frappe.model.db_query import get_timespan_date_range
-from frappe.query_builder import Criterion, Field, Order, Table
+from frappe.query_builder import Criterion, Field, Order, Table, functions
+from frappe.query_builder.functions import SqlFunctions
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
+BRACKETS_PATTERN = re.compile(r"\(.*?\)")
+SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -142,6 +145,13 @@ def change_orderby(order: str):
 		pass
 
 	return order[0], Order.desc
+
+
+def literal_eval_(literal):
+	try:
+		return literal_eval(literal)
+	except (ValueError, SyntaxError):
+		return literal
 
 
 # default operators
@@ -364,6 +374,34 @@ class Engine:
 
 		return criterion
 
+	def get_function_objects(self, fields):
+		func = fields.split("(")[0].casefold().split()
+		func = [f for f in func if f in SQL_FUNCTIONS][0]
+		args = fields[len(func) + 1 : fields.index(")")].split(",")
+		args = [
+			Field(literal_eval_((arg.strip()))) if "*" not in args else literal_eval_((arg.strip()))
+			for arg in args
+		]
+		return getattr(functions, func.capitalize())(*args)
+
+	def function_objects_to_fields(self, fields, is_str: bool):
+		if is_str:
+			functions = ""
+			for func in SQL_FUNCTIONS:
+				if f"{func}(" in fields:
+					functions = str(func) + str(BRACKETS_PATTERN.findall(fields)[0])
+					return [self.get_function_objects(functions)]
+			if not functions:
+				return []
+		else:
+			functions = []
+			for field in fields:
+				field = field.casefold() if isinstance(field, str) else field
+				if not issubclass(type(field), Criterion):
+					if any([func in field and f"{func}(" in field for func in SQL_FUNCTIONS]):
+						functions.append(field)
+			return [self.get_function_objects(function) for function in functions]
+
 	def set_fields(self, fields, **kwargs):
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		if isinstance(fields, list) and None in fields and Field not in fields:
@@ -375,57 +413,26 @@ class Engine:
 			is_list = False
 
 		is_str = isinstance(fields, str)
-
-		def add_functions(fields):
-			from frappe.query_builder.functions import SqlFunctions
-
-			sql_functions = [sql_function.value for sql_function in SqlFunctions]
-
-			def get_function_objects(fields):
-				from frappe.query_builder import functions
-
-				def literal_eval_(literal):
-					try:
-						return literal_eval(literal)
-					except (ValueError, SyntaxError):
-						return literal
-
-				func = fields.split("(")[0].casefold().split()
-				func = [f for f in func if f in sql_functions][0]
-				args = fields[len(func) + 1 : fields.index(")")].split(",")
-				args = [Field(literal_eval_((arg.strip()))) for arg in args]
-				return getattr(functions, func.capitalize())(*args)
-
-			if is_str and any(
-				[func in fields.casefold() and f"{func}(" in fields.casefold() for func in sql_functions]
-			):
-				function_objects = []
-				return function_objects or [get_function_objects(fields)]
-			else:
-				functions = []
-				for field in fields:
-					if not issubclass(type(field), Criterion):
-						if any(
-							[func in field.casefold() and f"{func}(" in field.casefold() for func in sql_functions]
-						):
-							functions.append(field.casefold())
-				return [get_function_objects(function) for function in functions]
+		if is_str:
+			fields = fields.casefold()
 
 		function_objects = (
-			add_functions(fields=fields) if not issubclass(type(fields), Criterion) else []
+			self.function_objects_to_fields(fields=fields, is_str=is_str)
+			if not issubclass(type(fields), Criterion)
+			else []
 		)
+
 		for function in function_objects:
 			if is_str:
-				fields = re.sub(
-					r"\(.*?\)", "", fields.casefold().replace(str(type(function).__name__).strip().casefold(), "")
+				fields = BRACKETS_PATTERN.sub(
+					"", fields.replace(str(type(function).__name__).strip().casefold(), "")
 				)
-
 			else:
 				updated_fields = []
 				for field in fields:
 					if isinstance(field, str):
 						updated_fields.append(
-							re.sub(r"\(.*?\)", "", field)
+							BRACKETS_PATTERN.sub("", field)
 							.strip()
 							.casefold()
 							.replace(str(type(function).__name__).strip().casefold(), "")
@@ -433,11 +440,12 @@ class Engine:
 					else:
 						updated_fields.append(field)
 
-					fields = updated_fields
+					fields = [field for field in updated_fields if field]
 
 		if is_str and "," in fields:
 			fields = fields.split(",")
 			fields = [field.replace(" ", "") if "as" not in field else field for field in fields]
+			is_list, is_str = True, False
 
 		if is_str:
 			if fields == "*":
@@ -469,7 +477,7 @@ class Engine:
 		fields.extend(function_objects)
 		return fields
 
-	def get_sql(
+	def get_query(
 		self,
 		table: str,
 		fields: Union[List, Tuple],

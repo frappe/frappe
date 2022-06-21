@@ -586,7 +586,7 @@ class Database(object):
 				return [map(values.get, fields)]
 
 		else:
-			r = frappe.qb.engine.get_sql(
+			r = frappe.qb.engine.get_query(
 				"Singles",
 				filters={"field": ("in", tuple(fields)), "doctype": doctype},
 				fields=["field", "value"],
@@ -616,7 +616,7 @@ class Database(object):
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		queried_result = frappe.qb.engine.get_sql(
+		queried_result = frappe.qb.engine.get_query(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
@@ -672,7 +672,7 @@ class Database(object):
 		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = frappe.qb.engine.get_sql(
+		val = frappe.qb.engine.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
@@ -714,7 +714,7 @@ class Database(object):
 	):
 		field_objects = []
 
-		query = frappe.qb.engine.get_sql(
+		query = frappe.qb.engine.get_query(
 			table=doctype,
 			filters=filters,
 			orderby=order_by,
@@ -1025,7 +1025,7 @@ class Database(object):
 			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = frappe.qb.engine.get_sql(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
+		query = frappe.qb.engine.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
 		count = self.sql(query, debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
