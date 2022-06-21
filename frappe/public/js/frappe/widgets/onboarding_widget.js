@@ -170,7 +170,7 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	open_report(step) {
-		let route = frappe.utils.generate_route({
+		const [route, route_options] = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
 			is_query_report: step.report_type !== "Report Builder",
@@ -179,7 +179,7 @@ export default class OnboardingWidget extends Widget {
 
 		let current_route = frappe.get_route();
 
-		frappe.set_route(route).then(() => {
+		frappe.set_route(route, route_options).then(() => {
 			let msg_dialog = frappe.msgprint({
 				message: __(step.report_description),
 				title: __(step.reference_report),
@@ -373,38 +373,39 @@ export default class OnboardingWidget extends Widget {
 		let current_route = frappe.get_route_str();
 		frappe.ui.form.make_quick_entry(
 			step.reference_document,
-			() => {
-				if (frappe.get_route_str() != current_route) {
-					let success_dialog = frappe.msgprint({
-						message: __("Let's take you back to onboarding"),
-						title: __("Looks Great"),
-						primary_action: {
-							action: () => {
-								success_dialog.hide();
-								frappe.set_route(current_route).then(() => {
-									this.mark_complete(step);
-								});
+			null,
+			{
+				force: true,
+				after_insert: () => {
+					if (frappe.get_route_str() != current_route) {
+						let success_dialog = frappe.msgprint({
+							message: __("Let's take you back to onboarding"),
+							title: __("Looks Great"),
+							primary_action: {
+								action: () => {
+									success_dialog.hide();
+									frappe.set_route(current_route).then(() => {
+										this.mark_complete(step);
+									});
+								},
+								label: __("Continue"),
 							},
-							label: __("Continue"),
-						},
-					});
-
-					frappe.msg_dialog.custom_onhide = () => {
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
 						});
-					};
-				} else {
-					frappe.msgprint({
-						message: __("Let us continue with the onboarding"),
-						title: __("Looks Great")
-					});
-					this.mark_complete(step);
-				}
-			},
-			null,
-			null,
-			true
+
+						frappe.msg_dialog.custom_onhide = () => {
+							frappe.set_route(current_route).then(() => {
+								this.mark_complete(step);
+							});
+						};
+					} else {
+						frappe.msgprint({
+							message: __("Let us continue with the onboarding"),
+							title: __("Looks Great")
+						});
+						this.mark_complete(step);
+					}
+				},
+			}
 		);
 	}
 

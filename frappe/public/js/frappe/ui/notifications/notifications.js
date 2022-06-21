@@ -150,14 +150,8 @@ frappe.ui.notifications = {
 	},
 
 	route_to_list_with_filters(doctype) {
-		let filters = frappe.ui.notifications.config['conditions'][doctype];
-		if (filters && $.isPlainObject(filters)) {
-			if (!frappe.route_options) {
-				frappe.route_options = {};
-			}
-			$.extend(frappe.route_options, filters);
-		}
-		frappe.set_route('List', doctype);
+		const filters = frappe.ui.notifications.config['conditions'][doctype];
+		frappe.set_route('List', doctype, filters && typeof filters === "object" ? filters : {});
 	}
 };
 

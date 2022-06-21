@@ -529,8 +529,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	set_route_filters(route_options) {
-		if (!route_options) route_options = frappe.route_options;
-
 		if (route_options) {
 			const fields = Object.keys(route_options);
 
@@ -541,9 +539,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					const value = route_options[f.df.fieldname];
 					f.set_value(value);
 				};
-			});
-			promises.push(() => {
-				frappe.route_options = null;
 			});
 
 			return frappe.run_serially(promises);

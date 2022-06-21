@@ -7,10 +7,10 @@ frappe.ui.form.on("Error Snapshot", "refresh", function(frm){
 
 	if (frm.doc.relapses) {
 		frm.add_custom_button(__('Show Relapses'), function() {
-			frappe.route_options = {
+			const route_options = {
 				parent_error_snapshot: frm.doc.name
 			};
-			frappe.set_route("List", "Error Snapshot");
+			frappe.set_route("List", "Error Snapshot", route_options);
 		});
 	}
 });

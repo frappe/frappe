@@ -5,26 +5,6 @@
 frappe.provide("frappe.views");
 
 frappe.views.InboxView = class InboxView extends frappe.views.ListView {
-	static load_last_view() {
-		const route = frappe.get_route();
-		if (!route[3] && frappe.boot.email_accounts.length) {
-			let email_account;
-			if (frappe.boot.email_accounts[0].email_id == "All Accounts") {
-				email_account = "All Accounts";
-			} else {
-				email_account = frappe.boot.email_accounts[0].email_account;
-			}
-			frappe.set_route("List", "Communication", "Inbox", email_account);
-			return true;
-		} else if (!route[3] || (route[3] !== "All Accounts" && !is_valid(route[3]))) {
-			frappe.throw(__('No email account associated with the User. Please add an account under User > Email Inbox.'));
-		}
-		return false;
-
-		function is_valid(email_account) {
-			return frappe.boot.email_accounts.find(d => d.email_account === email_account);
-		}
-	}
 
 	get view_name() {
 		return 'Inbox';
@@ -200,10 +180,10 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	make_new_doc() {
 		if (!this.email_account && !frappe.boot.email_accounts.length) {
-			frappe.route_options = {
+			const route_options = {
 				'email_id': frappe.session.user_email
 			};
-			frappe.new_doc('Email Account');
+			frappe.new_doc('Email Account', route_options);
 		} else {
 			new frappe.views.CommunicationComposer();
 		}

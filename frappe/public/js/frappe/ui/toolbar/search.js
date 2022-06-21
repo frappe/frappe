@@ -403,16 +403,13 @@ frappe.search.SearchDialog = class {
 	}
 
 	handle_result_click(result, $result) {
-		if (result.route_options) {
-			frappe.route_options = result.route_options;
-		}
 		$result.on("click", () => {
 			// this.toggle_minimize();
 			if (result.onclick) {
 				result.onclick(result.match);
 			} else {
 				var previous_hash = window.location.hash;
-				frappe.set_route(result.route);
+				frappe.set_route(result.route, result.route_options);
 				// hashchange didn't fire!
 				if (window.location.hash == previous_hash) {
 					frappe.router.route();

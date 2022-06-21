@@ -166,8 +166,8 @@ frappe.ui.form.on('Notification', {
 		frappe.notification.setup_fieldname_select(frm);
 	},
 	view_properties: function(frm) {
-		frappe.route_options = { doc_type: frm.doc.document_type };
-		frappe.set_route('Form', 'Customize Form');
+		const route_options = { doc_type: frm.doc.document_type };
+		frappe.set_route('Form', 'Customize Form', route_options);
 	},
 	event: function(frm) {
 		if (in_list(['Days Before', 'Days After'], frm.doc.event)) {

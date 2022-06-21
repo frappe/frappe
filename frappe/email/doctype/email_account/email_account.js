@@ -176,7 +176,6 @@ frappe.ui.form.on("Email Account", {
 		}
 
 		delete frappe.route_flags.set_domain_values;
-		frappe.route_options = {};
 	},
 
 	email_sync_option: function(frm) {

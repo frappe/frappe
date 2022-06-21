@@ -135,15 +135,8 @@ frappe.breadcrumbs = {
 			|| (doctype_meta && doctype_meta.issingle)) {
 			// no user listview for non-system managers and single doctypes
 		} else {
-			let route;
-			const doctype_route = frappe.router.slug(frappe.router.doctype_layout || doctype);
-			if (frappe.boot.treeviews.indexOf(doctype) !== -1) {
-				let view = frappe.model.user_settings[doctype].last_view || 'Tree';
-				route = `${doctype_route}/view/${view}`;
-			} else {
-				route = doctype_route;
-			}
-			$(`<li><a href="/app/${route}">${__(doctype)}</a></li>`)
+			const url = frappe.router.resolve_url(["List", breadcrumbs.doctype])
+			$(`<li><a href="${url}">${__(doctype)}</a></li>`)
 				.appendTo(this.$breadcrumbs);
 		}
 	},

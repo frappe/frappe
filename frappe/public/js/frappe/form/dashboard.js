@@ -331,9 +331,11 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			? (this.data.non_standard_fieldnames[report] || this.data.fieldname)
 			: this.data.fieldname;
 
-		frappe.provide('frappe.route_options');
-		frappe.route_options[fieldname] = this.frm.doc.name;
-		frappe.set_route("query-report", report);
+		const route_options = {
+			[fieldname] :this.frm.doc.name
+		}
+
+		frappe.set_route("query-report", report, route_options);
 	}
 
 	open_document_list($link, show_open) {
@@ -341,20 +343,21 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		let doctype = $link.attr('data-doctype'),
 			names = $link.attr('data-names') || [];
 
+		let route_options = {}
 		if (this.data.internal_links[doctype]) {
 			if (names.length) {
-				frappe.route_options = {'name': ['in', names]};
+				route_options = {'name': ['in', names]};
 			} else {
 				return false;
 			}
 		} else if (this.data.fieldname) {
-			frappe.route_options = this.get_document_filter(doctype);
+			route_options = this.get_document_filter(doctype);
 			if (show_open && frappe.ui.notifications) {
 				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		}
 
-		frappe.set_route("List", doctype, "List");
+		frappe.set_route("List", doctype, "List", route_options);
 	}
 
 	get_document_filter(doctype) {

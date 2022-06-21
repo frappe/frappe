@@ -38,6 +38,12 @@ frappe.views.Container = class Container {
 
 		return page;
 	}
+	remove_page(label) {
+		if (frappe.pages[label] !== undefined) {
+			frappe.pages[label].remove();
+			delete frappe.pages[label];
+		}
+	}
 	change_to(label) {
 		cur_page = this;
 		if(label.tagName) {

@@ -111,22 +111,13 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	make_new_document(e) {
 		// If user wants to close the modal
 		if (e) {
-			this.set_route_options();
-			frappe.new_doc(this.doctype, true);
-		}
-	}
+			const keys = Array.isArray(this.setters) ? this.setters.map(df => df.fieldname) : Object.keys(this.setters)
+			const route_options = keys.reduce((acc, key) => {
+				acc[key] = this.dialog.fields_dict[key].get_value() || undefined;
+				return acc
+			}, {});
 
-	set_route_options() {
-		// set route options to get pre-filled form fields
-		frappe.route_options = {};
-		if (Array.isArray(this.setters)) {
-			for (let df of this.setters) {
-				frappe.route_options[df.fieldname] = this.dialog.fields_dict[df.fieldname].get_value() || undefined;
-			}
-		} else {
-			Object.keys(this.setters).forEach(setter => {
-				frappe.route_options[setter] = this.dialog.fields_dict[setter].get_value() || undefined;
-			});
+			frappe.new_doc(this.doctype, true, route_options);
 		}
 	}
 

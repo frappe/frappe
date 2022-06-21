@@ -56,8 +56,6 @@ $.extend(frappe.model, {
 			} else if (meta.title_field) {
 				doc[meta.title_field] = frappe.route_options.name_field;
 			}
-
-			delete frappe.route_options.name_field;
 		}
 
 		// set route options
@@ -75,7 +73,6 @@ $.extend(frappe.model, {
 					doc[fieldname] = value;
 				}
 			});
-			frappe.route_options = null;
 		}
 
 		return doc;
@@ -405,18 +402,16 @@ frappe.new_doc = function(doctype, opts, init_callback) {
 		});
 		return;
 	}
+
 	return new Promise(resolve => {
-		if (opts && $.isPlainObject(opts)) {
-			frappe.route_options = opts;
-		}
 		frappe.model.with_doctype(doctype, function() {
 			if (frappe.create_routes[doctype]) {
 				frappe
-					.set_route(frappe.create_routes[doctype])
+					.set_route(frappe.create_routes[doctype], opts)
 					.then(() => resolve());
 			} else {
 				frappe.ui.form
-					.make_quick_entry(doctype, null, init_callback)
+					.make_quick_entry(doctype, null, { init_callback, route_options: opts })
 					.then(() => resolve());
 			}
 		});

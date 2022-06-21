@@ -5,18 +5,6 @@ frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
 frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
-	static load_last_view() {
-		const route = frappe.get_route();
-		if (route.length === 3) {
-			const doctype = route[1];
-			const user_settings = frappe.get_user_settings(doctype)['Calendar'] || {};
-			route.push(user_settings.last_calendar || 'default');
-			frappe.set_route(route);
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	toggle_result_area() {}
 

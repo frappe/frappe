@@ -14,7 +14,7 @@ frappe.ui.form.on("Email Domain", {
 			delete frappe.route_flags.return_to_email_account;
 			frappe.route_flags.set_domain_values = true
 
-			frappe.route_options = {
+			const route_options = {
 				domain: frm.doc.name,
 				use_imap: frm.doc.use_imap,
 				email_server: frm.doc.email_server,
@@ -22,8 +22,8 @@ frappe.ui.form.on("Email Domain", {
 				smtp_server: frm.doc.smtp_server,
 				use_tls: frm.doc.use_tls,
 				smtp_port: frm.doc.smtp_port
-			},
-			frappe.set_route(route);
+			};
+			frappe.set_route(route, route_options);
 		}
 	}
 })

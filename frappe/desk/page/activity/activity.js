@@ -36,13 +36,12 @@ frappe.pages['activity'].on_page_load = function (wrapper) {
 		link_name = link_name && link_name !== 'null' ? link_name : null;
 
 		if (doctype && docname) {
+			const route_options = {}
 			if (link_doctype && link_name) {
-				frappe.route_options = {
-					scroll_to: { "doctype": doctype, "name": docname }
-				}
+				route_options["scroll_to"] = { "doctype": doctype, "name": docname }
 			}
 
-			frappe.set_route(["Form", link_doctype || doctype, link_name || docname]);
+			frappe.set_route(["Form", link_doctype || doctype, link_name || docname], route_options);
 		}
 	});
 
@@ -54,11 +53,11 @@ frappe.pages['activity'].on_page_load = function (wrapper) {
 	}
 
 	this.page.add_menu_item(__('Activity Log'), function () {
-		frappe.route_options = {
+		const route_options = {
 			"user": frappe.session.user
 		}
 
-		frappe.set_route("List", "Activity Log", "Report");
+		frappe.set_route("List", "Activity Log", "Report", route_options);
 	}, 'fa fa-th');
 };
 

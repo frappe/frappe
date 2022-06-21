@@ -159,23 +159,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			// incase of grid use common df set in grid
 			df = this.frm.get_docfield(this.doc.parentfield, this.df.fieldname);
 		}
-		// set values to fill in the new document
-		if (df && df.get_route_options_for_new_doc) {
-			frappe.route_options = df.get_route_options_for_new_doc(this);
-		} else {
-			frappe.route_options = {};
-		}
+
+		const route_options = df && df.get_route_options_for_new_doc ?df.get_route_options_for_new_doc(this) : {}
 
 		// partially entered name field
-		frappe.route_options.name_field = this.get_label_value();
+		route_options.name_field = this.get_label_value();
 
 		// reference to calling link
 		frappe._from_link = this;
 		frappe._from_link_scrollY = $(document).scrollTop();
 
-		frappe.ui.form.make_quick_entry(doctype, (doc) => {
-			return me.set_value(doc.name);
-		});
+		frappe.ui.form.make_quick_entry(doctype, null, {
+			route_options,
+			after_insert: (doc) => {
+				return me.set_value(doc.name);
+			}
+		})
 
 		return false;
 	}

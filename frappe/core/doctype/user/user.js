@@ -103,10 +103,10 @@ frappe.ui.form.on('User', {
 			if(has_access_to_edit_user()) {
 
 				frm.add_custom_button(__("Set User Permissions"), function() {
-					frappe.route_options = {
+					const route_options = {
 						"user": doc.name
 					};
-					frappe.set_route('List', 'User Permission');
+					frappe.set_route('List', 'User Permission', route_options);
 				}, __("Permissions"));
 
 				frm.add_custom_button(__('View Permitted Documents'),
@@ -241,7 +241,7 @@ frappe.ui.form.on('User', {
 			},
 			callback: function(r) {
 				if (!Array.isArray(r.message)) {
-					frappe.route_options = {
+					const route_options = {
 						"email_id": frm.doc.email,
 						"awaiting_password": 1,
 						"enable_incoming": 1
@@ -250,7 +250,7 @@ frappe.ui.form.on('User', {
 						var doc = frappe.model.get_new_doc("Email Account");
 						frappe.route_flags.linked_user = frm.doc.name;
 						frappe.route_flags.delete_user_from_locals = true;
-						frappe.set_route("Form", "Email Account", doc.name);
+						frappe.set_route("Form", "Email Account", doc.name, route_options);
 					});
 				} else {
 					frappe.route_flags.create_user_account = frm.doc.name;

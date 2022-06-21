@@ -13,11 +13,9 @@ frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 	} else if(frappe.route_options) {
 		if(frappe.route_options.make_new) {
 			let { doctype, name, based_on, beta } = frappe.route_options;
-			frappe.route_options = null;
 			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on, beta);
 		} else {
 			frappe.print_format_builder.print_format = frappe.route_options.doc;
-			frappe.route_options = null;
 			frappe.print_format_builder.refresh();
 		}
 	}

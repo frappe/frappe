@@ -27,8 +27,10 @@ export default class ShortcutWidget extends Widget {
 		this.widget.click(() => {
 			if (this.in_customize_mode) return;
 
-			let route = frappe.utils.generate_route({
+			const filters = frappe.utils.get_filter_from_json(this.stats_filter);
+			const route = frappe.utils.generate_route({
 				route: this.route,
+				route_options: filters,
 				name: this.link_to,
 				type: this.type,
 				is_query_report: this.is_query_report,
@@ -36,11 +38,7 @@ export default class ShortcutWidget extends Widget {
 				doc_view: this.doc_view
 			});
 
-			let filters = frappe.utils.get_filter_from_json(this.stats_filter);
-			if (this.type == "DocType" && filters) {
-				frappe.route_options = filters;
-			}
-			frappe.set_route(route);
+			frappe.router.push_route(route);
 		});
 	}
 

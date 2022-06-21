@@ -196,6 +196,28 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
+	is_json_serializable: function(obj) {
+		if (
+			obj === undefined ||
+			obj === null ||
+			typeof obj === "boolean" ||
+			typeof obj === "number" ||
+			typeof obj === "string") {
+			return true;
+		}
+
+		if (!$.isPlainObject(obj) && !Array.isArray(obj)) {
+			return false;
+		}
+
+		for (var key in obj) {
+			if (!this.is_json_serializable(obj[key])) {
+				return false;
+			}
+		}
+
+		return true;
+	},
 	parse_json: function(str) {
 		let parsed_json = '';
 		try {
@@ -1225,15 +1247,15 @@ Object.assign(frappe.utils, {
 		if (type === "doctype") {
 			item.doctype = item.name;
 		}
-		let route = "";
+		let path = "";
 		if (!item.route) {
 			if (item.link) {
-				route = strip(item.link, "#");
+				path = strip(item.link, "#");
 			} else if (type === "doctype") {
 				let doctype_slug = frappe.router.slug(item.doctype);
 
 				if (frappe.model.is_single(item.doctype)) {
-					route = doctype_slug;
+					path = doctype_slug;
 				} else {
 					if (!item.doc_view) {
 						if (frappe.model.is_tree(item.doctype)) {
@@ -1245,64 +1267,51 @@ Object.assign(frappe.utils, {
 
 					switch (item.doc_view) {
 						case "List":
-							if (item.filters) {
-								frappe.route_options = item.filters;
-							}
-							route = doctype_slug;
+							path = doctype_slug;
 							break;
 						case "Tree":
-							route = `${doctype_slug}/view/tree`;
+							path = `${doctype_slug}/view/tree`;
 							break;
 						case "Report Builder":
-							route = `${doctype_slug}/view/report`;
+							path = `${doctype_slug}/view/report`;
 							break;
 						case "Dashboard":
-							route = `${doctype_slug}/view/dashboard`;
+							path = `${doctype_slug}/view/dashboard`;
 							break;
 						case "New":
-							route = `${doctype_slug}/new`;
+							path = `${doctype_slug}/new`;
 							break;
 						case "Calendar":
-							route = `${doctype_slug}/view/calendar/default`;
+							path = `${doctype_slug}/view/calendar/default`;
 							break;
 						default:
 							frappe.throw({ message: __("Not a valid view:") + item.doc_view, title: __("Unknown View") });
-							route = "";
+							path = "";
 					}
 				}
 			} else if (type === "report") {
 				if (item.is_query_report) {
-					route = "query-report/" + item.name;
+					path = "query-report/" + item.name;
 				} else if (!item.doctype) {
-					route = "/report/" + item.name;
+					path = "/report/" + item.name;
 				} else {
-					route = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+					path = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
 				}
 			} else if (type === "page") {
-				route = item.name;
+				path = item.name;
 			} else if (type === "dashboard") {
-				route = `dashboard-view/${item.name}`;
+				path = `dashboard-view/${item.name}`;
 			}
 
 		} else {
-			route = item.route;
+			path = item.route;
 		}
 
-		if (item.route_options) {
-			route +=
-				"?" +
-				$.map(item.route_options, function (value, key) {
-					return (
-						encodeURIComponent(key) + "=" + encodeURIComponent(value)
-					);
-				}).join("&");
-		}
+		return [path, item.route_options || item.filters]
+	},
 
-		// if(type==="page" || type==="help" || type==="report" ||
-		// (item.doctype && frappe.model.can_read(item.doctype))) {
-		//     item.shown = true;
-		// }
-		return `/app/${route}`;
+	generate_url(item) {
+		return frappe.router.resolve_url(this.generate_route(item))
 	},
 
 	shorten_number: function (number, country, min_length=4, max_no_of_decimals=2) {

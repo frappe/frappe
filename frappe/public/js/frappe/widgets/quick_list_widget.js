@@ -33,9 +33,8 @@ export default class QuickListWidget extends Widget {
 
 		this.add_new_button.appendTo(this.action_area);
 		this.add_new_button.on("click", () => {
-			frappe.set_route(
-				frappe.utils.generate_route({type: 'doctype', name: this.document_type, doc_view: 'New'})
-			);
+			const route = frappe.utils.generate_route({type: 'doctype', name: this.document_type, doc_view: 'New'})
+			frappe.router.push_route(route);
 		});
 	}
 
@@ -236,14 +235,10 @@ export default class QuickListWidget extends Widget {
 
 	set_footer() {
 		this.footer.empty();
-
-		let filters = frappe.utils.get_filter_from_json(this.quick_list_filter);
-		if (filters) {
-			frappe.route_options = filters;
-		}
-		let route = frappe.utils.generate_route({type: 'doctype', name: this.document_type});
+		const filters = frappe.utils.get_filter_from_json(this.quick_list_filter);
+		const url = frappe.utils.generate_url({type: 'doctype', name: this.document_type, route_options: filters});
 		this.see_all_button = $(`
-			<a href="${route}"class="see-all btn btn-xs">View List</a>
+			<a href="${url}"class="see-all btn btn-xs">View List</a>
 		`).appendTo(this.footer);
 	}
 }

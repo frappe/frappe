@@ -4,27 +4,6 @@ import ListSettings from "./list_settings";
 frappe.provide("frappe.views");
 
 frappe.views.ListView = class ListView extends frappe.views.BaseList {
-	static load_last_view() {
-		const route = frappe.get_route();
-		const doctype = route[1];
-
-		if (route.length === 2) {
-			const user_settings = frappe.get_user_settings(doctype);
-			const last_view = user_settings.last_view;
-			frappe.set_route(
-				"list",
-				frappe.router.doctype_layout || doctype,
-				frappe.views.is_valid(last_view) ? last_view.toLowerCase() : "list"
-			);
-			return true;
-		}
-		return false;
-	}
-
-	constructor(opts) {
-		super(opts);
-		this.show();
-	}
 
 	has_permissions() {
 		const can_read = frappe.perm.has_perm(this.doctype, 0, "read");
@@ -79,32 +58,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_defaults();
 
 		this.view = "List";
+
+		// build menu items
+		this.menu_items = this.menu_items.concat(this.get_menu_items());
+		if (this.view_name == 'List') this.toggle_paging = true;
+
 		// initialize with saved order by
 		this.sort_by = this.view_user_settings.sort_by || "modified";
 		this.sort_order = this.view_user_settings.sort_order || "desc";
 
-		// build menu items
-		this.menu_items = this.menu_items.concat(this.get_menu_items());
-
-		// set filters from view_user_settings or list_settings
-		if (
-			this.view_user_settings.filters &&
-			this.view_user_settings.filters.length
-		) {
-			// Priority 1: view_user_settings
-			const saved_filters = this.view_user_settings.filters;
-			this.filters = this.validate_filters(saved_filters);
+		let filters = []
+		if (frappe.has_route_options()) {
+			// Priority 1: route_filters
+			filters = this.parse_filters_from_route_options();
+		}
+		else if (this.view_user_settings.filters && this.view_user_settings.filters.length > 0) {
+			// Priority 2: view_user_settings
+			filters = this.view_user_settings.filters;
 		} else {
-			// Priority 2: filters in listview_settings
-			this.filters = (this.settings.filters || []).map((f) => {
-				if (f.length === 3) {
-					f = [this.doctype, f[0], f[1], f[2]];
-				}
-				return f;
-			});
+			// Priority 3: filters in listview_settings
+			filters = this.parse_filters_from_settings()
 		}
 
-		if (this.view_name == 'List') this.toggle_paging = true;
+		this.filters = this.validate_filters(filters)
+		if (this.filters.length !== filters.length) {
+			console.warn("One or more configured filters was not valid", filters)
+		}
 
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
@@ -115,7 +94,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.call("frappe.desk.listview.get_list_settings", {
 				doctype: this.doctype,
 			})
-			.then((doc) => (this.list_view_settings = doc.message || {}));
+			.then((doc) => {
+				this.list_view_settings = doc.message || {}
+			});
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -216,24 +197,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	patch_refresh_and_load_lib() {
-		// throttle refresh for 1s
-		this.refresh = this.refresh.bind(this);
-		this.refresh = frappe.utils.throttle(this.refresh, 1000);
-		this.load_lib = new Promise((resolve) => {
-			if (this.required_libs) {
-				frappe.require(this.required_libs, resolve);
-			} else {
-				resolve();
-			}
-		});
-		// call refresh every 5 minutes
-		const interval = 5 * 60 * 1000;
-		setInterval(() => {
-			// don't call if route is different
-			if (frappe.get_route_str() === this.page_name) {
-				this.refresh();
-			}
-		}, interval);
+		if (this.load_lib === undefined) {
+			this.refresh = this.refresh.bind(this);
+			this.refresh = frappe.utils.throttle(this.refresh, 1000);
+			this.load_lib = new Promise((resolve) => {
+				if (this.required_libs) {
+					frappe.require(this.required_libs, resolve);
+				} else {
+					resolve();
+				}
+			});
+			// call refresh every 5 minutes
+			const interval = 5 * 60 * 1000;
+			setInterval(() => {
+				// don't call if route is different
+				if (frappe.get_route_str() === this.page_name) {
+					this.refresh();
+				}
+			}, interval);
+		}
 	}
 
 	set_primary_action() {
@@ -275,7 +257,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_header();
 		this.render_skeleton();
 		this.setup_events();
-		this.settings.onload && this.settings.onload(this);
+		if(this.settings.onload) this.settings.onload(this);
 		this.show_restricted_list_indicator_if_applicable();
 	}
 
@@ -486,21 +468,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return Object.assign(args, {
 			with_comment_count: true,
 		});
-	}
-
-	before_refresh() {
-		if (frappe.route_options && this.filter_area) {
-			this.filters = this.parse_filters_from_route_options();
-			frappe.route_options = null;
-
-			if (this.filters.length > 0) {
-				return this.filter_area
-					.clear(false)
-					.then(() => this.filter_area.set(this.filters));
-			}
-		}
-
-		return Promise.resolve();
 	}
 
 	parse_filters_from_settings() {

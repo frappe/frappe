@@ -38,8 +38,8 @@ frappe.ui.form.on("Email Group", "refresh", function(frm) {
 		}, __("Action"));
 
 		frm.add_custom_button(__("New Newsletter"), function() {
-			frappe.route_options = {"email_group": frm.doc.name};
-			frappe.new_doc("Newsletter");
+			const route_options = {"email_group": frm.doc.name};
+			frappe.new_doc("Newsletter", route_options);
 		}, __("Action"));
 
 	}

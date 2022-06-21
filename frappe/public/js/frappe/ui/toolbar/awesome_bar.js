@@ -96,14 +96,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			var value = o.text.value;
 			var item = awesomplete.get_item(value);
 
-			if(item.route_options) {
-				frappe.route_options = item.route_options;
-			}
-
 			if(item.onclick) {
 				item.onclick(item.match);
 			} else {
-				frappe.set_route(item.route);
+				frappe.set_route(item.route, item.route_options);
 			}
 			$input.val("");
 			$input.trigger('blur');

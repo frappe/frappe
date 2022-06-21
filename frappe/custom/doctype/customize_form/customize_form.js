@@ -166,7 +166,6 @@ frappe.ui.form.on("Customize Form", {
 		let doc_type;
 		if (frappe.route_options && frappe.route_options.doc_type) {
 			doc_type = frappe.route_options.doc_type;
-			frappe.route_options = null;
 			localStorage.removeItem("customize_doctype");
 		}
 		if (!doc_type) {

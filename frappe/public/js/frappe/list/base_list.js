@@ -18,8 +18,6 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	init() {
-		if (this.init_promise) return this.init_promise;
-
 		let tasks = [
 			this.setup_defaults,
 			this.set_stats,
@@ -32,8 +30,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_view_menu,
 		].map((fn) => fn.bind(this));
 
-		this.init_promise = frappe.run_serially(tasks);
-		return this.init_promise;
+		return frappe.run_serially(tasks);
 	}
 
 	setup_defaults() {
@@ -41,6 +38,10 @@ frappe.views.BaseList = class BaseList {
 		this.page_title = this.page_title || frappe.router.doctype_layout || __(this.doctype);
 		this.meta = frappe.get_meta(this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
+		if (this.settings.init) {
+			this.settings.init()
+		}
+
 		this.user_settings = frappe.get_user_settings(this.doctype);
 
 		this.start = 0;
@@ -485,9 +486,7 @@ frappe.views.BaseList = class BaseList {
 			this.after_render();
 			this.freeze(false);
 			this.reset_defaults();
-			if (this.settings.refresh) {
-				this.settings.refresh(this);
-			}
+			if (this.settings.refresh) this.settings.refresh(this);
 		});
 	}
 

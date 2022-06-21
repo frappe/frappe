@@ -1021,7 +1021,7 @@ frappe.views.Workspace = class Workspace {
 			message = `Page with title ${new_page.title} already exist.`;
 		}
 
-		if (frappe.router.doctype_route_exist(frappe.router.slug(new_page.title))) {
+		if (frappe.router.is_reserved_path(frappe.router.slug(new_page.title))) {
 			message = "Doctype with same route already exist. Please choose different title.";
 		}
 

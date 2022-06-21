@@ -78,7 +78,6 @@ frappe.PermissionEngine = class PermissionEngine {
 			if (frappe.route_options.role) {
 				this.role_select.val(frappe.route_options.role);
 			}
-			frappe.route_options = null;
 		}
 		this.refresh();
 	}
@@ -349,8 +348,8 @@ frappe.PermissionEngine = class PermissionEngine {
 	add_check_events() {
 		let me = this;
 		this.body.on("click", ".show-user-permissions", () => {
-			frappe.route_options = { allow: this.get_doctype() || "" };
-			frappe.set_route('List', 'User Permission');
+			const route_options = { allow: this.get_doctype() || "" };
+			frappe.set_route('List', 'User Permission', route_options);
 		});
 
 		this.body.on("click", "input[type='checkbox']", function () {

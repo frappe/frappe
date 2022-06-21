@@ -76,22 +76,19 @@ export default class NumberCardWidget extends Widget {
 	set_route() {
 		const is_document_type = this.card_doc.type !== 'Report';
 		const name = is_document_type ? this.card_doc.document_type : this.card_doc.report_name;
-		const route = frappe.utils.generate_route({
+		const filters = JSON.parse(this.card_doc.filters_json);
+		const [route, route_options] = frappe.utils.generate_route({
 			name: name,
 			type: is_document_type ? 'doctype' : 'report',
 			is_query_report: !is_document_type,
-		});
-
-		if (is_document_type) {
-			const filters = JSON.parse(this.card_doc.filters_json);
-			frappe.route_options = filters.reduce((acc, filter) => {
+			route_options: is_document_type ? filters.reduce((acc, filter) => {
 				return Object.assign(acc, {
 					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]]
 				});
-			}, {});
-		}
+			}, {}) : undefined
+		});
 
-		frappe.set_route(route);
+		frappe.set_route(route, route_options);
 	}
 
 	set_doc_args() {

@@ -11,14 +11,15 @@ frappe.route_flags = {};
 frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
-frappe.route_options = null;
+frappe.route_options = {};
 frappe.route_hooks = {};
 
 $(window).on('hashchange', function(e) {
 	// v1 style routing, route is in hash
 	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
 		let sub_path = frappe.router.get_sub_path(window.location.hash);
-		frappe.router.push_state(sub_path);
+		frappe.router.push_url(sub_path);
+		frappe.router.route();
 		return false;
 	}
 });
@@ -32,9 +33,9 @@ window.addEventListener('popstate', (e) => {
 
 // routing v2, capture all clicks so that the target is managed with push-state
 $('body').on('click', 'a', function(e) {
-	let override = (route) => {
+	let override = (route, route_options) => {
 		e.preventDefault();
-		frappe.set_route(route);
+		frappe.set_route(route, route_options);
 		return false;
 	};
 
@@ -58,25 +59,19 @@ $('body').on('click', 'a', function(e) {
 
 	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
 		// target has "/app, this is a v2 style route.
-
-		if (e.currentTarget.search) {
-			frappe.route_options = {};
-			let params = new URLSearchParams(e.currentTarget.search);
-			for (const [key, value] of params) {
-				frappe.route_options[key] = value;
-			}
-		}
-		return override(e.currentTarget.pathname + e.currentTarget.hash);
+		const [route, route_options] = frappe.router.reverse_url(e.currentTarget.pathname)
+		return override(route, route_options);
 	}
 
 });
 
 frappe.router = {
 	current_route: null,
+	current_view_factory: null,
+
 	routes: {},
 	factory_views: ['form', 'list', 'report', 'tree', 'print', 'dashboard'],
 	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard', 'image', 'inbox'],
-	layout_mapped: {},
 
 	is_app_route(path) {
 		// desk paths must begin with /app or doctype route
@@ -110,53 +105,73 @@ frappe.router = {
 		if (this.re_route(sub_path)) return;
 
 		this.current_sub_path = sub_path;
-		this.current_route = this.parse();
-		this.set_history(sub_path);
+		const reversed = this.reverse_url(this.current_url())
+		this.current_route = reversed[0];
+		frappe.route_options = reversed[1];
+		Object.freeze(frappe.route_options);
+		frappe.route_flags = {};
+		frappe.route_history.push(this.current_route);
+		frappe.ui.hide_open_dialog();
 		this.render();
 		this.set_title(sub_path);
 		this.trigger('change');
+
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				frappe.after_ajax && frappe.after_ajax(() => {
+					resolve();
+				});
+			});
+		})
 	},
 
-	parse(route) {
-		route = this.get_sub_path_string(route).split('/');
-		if (!route) return [];
-		route = $.map(route, this.decode_component);
-		this.set_route_options_from_url(route);
-		return this.convert_to_standard_route(route);
+	reverse_url(url) {
+		const [path, search] = url.split("?")
+		const sub_path = this.get_sub_path(path).split('/')
+		const route = this.convert_to_standard_route(sub_path);
+		const route_options = this.decode_route_options(search)
+		return [route, route_options]
 	},
 
-	convert_to_standard_route(route) {
-		// /app/settings = ["Workspaces", "Settings"]
-		// /app/private/settings = ["Workspaces", "private", "Settings"]
-		// /app/user = ["List", "User"]
-		// /app/user/view/report = ["List", "User", "Report"]
-		// /app/user/view/tree = ["Tree", "User"]
-		// /app/user/user-001 = ["Form", "User", "user-001"]
-		// /app/user/user-001 = ["Form", "User", "user-001"]
-		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
+	resolve_url(route, route_options) {
+		route_options = route_options || {}
+		route = this.convert_to_standard_route(route)
 
-		let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
-
-		if (frappe.workspaces[route[0]]) {
-			// public workspace
-			route = ['Workspaces', frappe.workspaces[route[0]].title];
-		} else if (route[0] == 'private' && frappe.workspaces[private_workspace]) {
-			// private workspace
-			route = ['Workspaces', 'private', frappe.workspaces[private_workspace].title];
-		} else if (this.routes[route[0]]) {
-			// route
-			route = this.set_doctype_route(route);
+		// See if we are routing between same doctype
+		if(this.current_route && this.current_route[1] !== undefined && this.current_route[1] === route[1]) {
+			// See if this url moves from list to form
+			if(this.current_route[0] === "List" && route[0] === "Form") {
+				// Keep list state
+				route_options["__list"] = frappe.route_options
+			} else if(this.current_route[0] === "Form" && route[0] === "List") {
+				// Append list state
+				route_options = Object.keys(route_options).length === 0 ? frappe.route_options.__list || {} : route_options
+			}
 		}
 
-		return route;
+		const path = this.convert_from_standard_route(route).map(encodeURIComponent).join('/')
+		const search = this.encode_route_options(route_options)
+		const url = search ? `${path}?${search}` : path;
+		const private_home = frappe.workspaces[`home-${frappe.user.name.toLowerCase()}`];
+		const default_page = private_home ? 'private/home' : frappe.workspaces['home'] ? 'home' : Object.keys(frappe.workspaces)[0];
+		return '/app/' + (url || default_page);
 	},
 
-	doctype_route_exist(route) {
-		route = this.get_sub_path_string(route).split('/');
-		return this.routes[route[0]];
+	encode_route_options(route_options) {
+		return Object.entries(route_options || {}).map(
+			([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(v))}`
+		).join('&')
 	},
 
-	set_doctype_route(route) {
+	decode_route_options(search) {
+		const params = new URLSearchParams(search || "")
+		return Array.from(params.entries()).reduce((acc, [k, v]) => {
+			acc[k] = JSON.parse(v)
+			return acc
+		}, {})
+	},
+
+	get_doctype_route(route) {
 		let doctype_route = this.routes[route[0]];
 		// doctype route
 		if (route[1]) {
@@ -183,6 +198,11 @@ frappe.router = {
 		return route;
 	},
 
+	is_reserved_path(path) {
+		route = this.convert_to_standard_route(this.get_sub_path(path).split('/'))
+		return !!this.routes[route[0]];
+	},
+
 	get_standard_route_for_list(route, doctype_route) {
 		let standard_route;
 		if (route[2].toLowerCase()==='tree') {
@@ -193,11 +213,6 @@ frappe.router = {
 			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}
 		return standard_route;
-	},
-
-	set_history() {
-		frappe.route_history.push(this.current_route);
-		frappe.ui.hide_open_dialog();
 	},
 
 	render() {
@@ -216,6 +231,10 @@ frappe.router = {
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
 
+		if (this.current_view_factory !== null) {
+			this.current_view_factory.teardown()
+		}
+
 		if (route[1] && frappe.views[factory + "Factory"]) {
 			route[0] = factory;
 			// has a view generator, generate!
@@ -223,7 +242,8 @@ frappe.router = {
 				frappe.view_factory[factory] = new frappe.views[factory + "Factory"]();
 			}
 
-			frappe.view_factory[factory].show();
+			this.current_view_factory = frappe.view_factory[factory]
+			this.current_view_factory.show();
 		} else {
 			// show page
 			const route_name = frappe.utils.xss_sanitise(route[0]);
@@ -258,51 +278,82 @@ frappe.router = {
 		}
 	},
 
-	set_route() {
-		// set the route (push state) with given arguments
-		// example 1: frappe.set_route('a', 'b', 'c');
-		// example 2: frappe.set_route(['a', 'b', 'c']);
-		// example 3: frappe.set_route('a/b/c');
-		let route = Array.from(arguments);
-
-		return new Promise(resolve => {
-			route = this.get_route_from_arguments(route);
-			route = this.convert_from_standard_route(route);
-			let sub_path = this.make_url(route);
-			// replace each # occurrences in the URL with encoded character except for last
-			// sub_path = sub_path.replace(/[#](?=.*[#])/g, "%23");
-			this.push_state(sub_path);
-
-			setTimeout(() => {
-				frappe.after_ajax && frappe.after_ajax(() => {
-					resolve();
-				});
-			}, 100);
-		}).finally(() => frappe.route_flags = {});
+	async push_route() {
+		const [route, route_options] = this.parse_route_arguments(Array.from(arguments))
+		if (this.push_url(this.resolve_url(route, {...route_options}))) {
+			await this.route();
+		}
 	},
 
-	get_route_from_arguments(route) {
-		if (route.length===1 && $.isArray(route[0])) {
-			// called as frappe.set_route(['a', 'b', 'c']);
-			route = route[0];
+	async replace_route() {
+		const [route, route_options] = this.parse_route_arguments(Array.from(arguments))
+		if (this.replace_url(this.resolve_url(route, {...route_options}))) {
+			await this.route();
+		}
+	},
+
+
+	parse_route_arguments(route) {
+		// example 1: ['a', 'b', 'c', route_options?];
+		// example 2: [['a', 'b', 'c'], route_options?];
+		// example 3: []'a/b/c', route_options?];
+		// example 4: [['a', b, 'c, route_options]]
+
+		let route_options = {}
+
+		if (route.length > 1 && typeof route[route.length - 1] !== 'string') {
+			route_options = route.pop()
 		}
 
-		if (route.length===1 && route[0] && route[0].includes('/')) {
-			// called as frappe.set_route('a/b/c')
-			route = $.map(route[0].split('/'), this.decode_component);
+		if (route.length === 1) {
+			if ($.isArray(route[0])) {
+				// called as frappe.set_route(['a', 'b', 'c']);
+				route = route[0];
+			} else if (route[0].includes('/')) {
+				// called as frappe.set_route('a/b/c')
+				route = route[0].split('/').map(decodeURIComponent)
+			}
 		}
 
-		if (route && route[0] == '') {
+		if (route.length > 1 && typeof route[route.length - 1] !== 'string') {
+			route_options = route.pop()
+		}
+
+		if (!frappe.utils.is_json_serializable(route_options)) {
+			throw new Error("Invalid route options, must be a compatible json object")
+		}
+
+		while (route.length > 0 && ['', 'desk', 'app'].includes(route[0])) {
 			route.shift();
 		}
 
-		if (route && ['desk', 'app'].includes(route[0])) {
-			// we only need subpath, remove "app" (or "desk")
-			route.shift();
+		return [route, route_options]
+	},
+
+	convert_to_standard_route(route) {
+		// /app/settings = ["Workspaces", "Settings"]
+		// /app/private/settings = ["Workspaces", "private", "Settings"]
+		// /app/user = ["List", "User"]
+		// /app/user/view/report = ["List", "User", "Report"]
+		// /app/user/view/tree = ["Tree", "User"]
+		// /app/user/user-001 = ["Form", "User", "user-001"]
+		// /app/user/user-001 = ["Form", "User", "user-001"]
+		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
+
+		let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+
+		if (frappe.workspaces[route[0]]) {
+			// public workspace
+			route = ['Workspaces', frappe.workspaces[route[0]].title];
+		} else if (route[0] == 'private' && frappe.workspaces[private_workspace]) {
+			// private workspace
+			route = ['Workspaces', 'private', frappe.workspaces[private_workspace].title];
+		} else if (this.routes[route[0]]) {
+			// route
+			route = this.get_doctype_route(route);
 		}
 
 		return route;
-
 	},
 
 	convert_from_standard_route(route) {
@@ -312,17 +363,13 @@ frappe.router = {
 
 		const view = route[0] ? route[0].toLowerCase() : '';
 		let new_route = route;
+
 		if (view === 'list') {
-			if (route[2] && route[2] !== 'list' && !$.isPlainObject(route[2])) {
+			if (route[2] && route[2] !== 'list') {
 				new_route = [this.slug(route[1]), 'view', route[2].toLowerCase()];
 
 				// calendar / inbox / file folder
 				if (route[3]) new_route.push(...route.slice(3, route.length));
-			} else {
-				if ($.isPlainObject(route[2])) {
-					frappe.route_options = route[2];
-				}
-				new_route = [this.slug(route[1])];
 			}
 		} else if (view === 'form') {
 			new_route = [this.slug(route[1])];
@@ -333,109 +380,41 @@ frappe.router = {
 		} else if (view === 'tree') {
 			new_route = [this.slug(route[1]), 'view', 'tree'];
 		}
-		return new_route;
+		return new_route
 	},
 
-	slug_parts(route) {
-		// slug doctype
-
-		// if app is part of the route, then first 2 elements are "" and "app"
-		if (route[0] && this.factory_views.includes(route[0].toLowerCase())) {
-			route[0] = route[0].toLowerCase();
-			route[1] = this.slug(route[1]);
-		}
-		return route;
+	push_url(url) {
+		if (this.current_url() === url) return false;
+		history.pushState(null, null, url);
+		return true
 	},
 
-	make_url(params) {
-		let path_string = $.map(params, function(a) {
-			if ($.isPlainObject(a)) {
-				frappe.route_options = a;
-				return null;
-			} else {
-				a = String(a);
-				if (a && a.match(/[%'"#\s\t]/)) {
-					// if special chars, then encode
-					a = encodeURIComponent(a);
-				}
-				return a;
-			}
-		}).join('/');
-		let private_home = frappe.workspaces[`home-${frappe.user.name.toLowerCase()}`];
-		let default_page = private_home ? 'private/home' : frappe.workspaces['home'] ? 'home' : Object.keys(frappe.workspaces)[0];
-		return '/app/' + (path_string || default_page);
+	replace_url(url) {
+		if (this.current_url() === url) return false;
+		history.replaceState(null, null, url);
+		return true
 	},
 
-	push_state(url) {
-		// change the URL and call the router
-		if (window.location.pathname !== url) {
-
-			// push/replace state so the browser looks fine
-			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, url);
-
-			// now process the route
-			this.route();
-		}
+	current_path: function() {
+		return window.location.pathname
 	},
 
-	get_sub_path_string(route) {
-		// return clean sub_path from hash or url
-		// supports both v1 and v2 routing
-		if (!route) {
-			route = window.location.pathname;
-			if (route.includes('app#')) {
-				// to support v1
-				route = window.location.hash;
-			}
+	current_url: function() {
+		return window.location.pathname + window.location.search
+	},
+
+	get_sub_path(path) {
+		if (!path) {
+			path = this.current_path()
 		}
 
-		return this.strip_prefix(route);
-	},
-
-	strip_prefix(route) {
-		if (route.substr(0, 1)=='/') route = route.substr(1); // for /app/sub
-		if (route.startsWith('app/')) route = route.substr(4); // for desk/sub
-		if (route == 'app') route = route.substr(4); // for /app
-		if (route.substr(0, 1)=='/') route = route.substr(1);
-		if (route.substr(0, 1)=='#') route = route.substr(1);
-		if (route.substr(0, 1)=='!') route = route.substr(1);
-		return route;
-	},
-
-	get_sub_path(route) {
-		var sub_path = this.get_sub_path_string(route);
-		route = $.map(sub_path.split('/'), this.decode_component).join('/');
-
-		return route;
-	},
-
-	set_route_options_from_url(route) {
-		// set query parameters as frappe.route_options
-		var last_part = route[route.length - 1];
-		if (last_part.indexOf("?") < last_part.indexOf("=")) {
-			// has ? followed by =
-			let parts = last_part.split("?");
-
-			// route should not contain string after ?
-			route[route.length - 1] = parts[0];
-
-			let query_params = frappe.utils.get_query_params(parts[1]);
-			frappe.route_options = $.extend(frappe.route_options || {}, query_params);
-		}
-	},
-
-	decode_component(r) {
-		try {
-			return decodeURIComponent(r);
-		} catch (e) {
-			if (e instanceof URIError) {
-				// legacy: not sure why URIError is ignored.
-				return r;
-			} else {
-				throw e;
-			}
-		}
+		if (path.substr(0, 1)=='/') path = path.substr(1); // for /app/sub
+		if (path.startsWith('app/')) path = path.substr(4); // for desk/sub
+		if (path == 'app') path = path.substr(4); // for /app
+		if (path.substr(0, 1)=='/') path = path.substr(1);
+		if (path.substr(0, 1)=='#') path = path.substr(1);
+		if (path.substr(0, 1)=='!') path = path.substr(1);
+		return path.split('/').map(decodeURIComponent).join('/');
 	},
 
 	slug(name) {
@@ -443,12 +422,12 @@ frappe.router = {
 	}
 };
 
+frappe.router.set_route = frappe.router.push_route.bind(frappe.router);
+
 // global functions for backward compatibility
 frappe.get_route = () => frappe.router.current_route;
 frappe.get_route_str = () => frappe.router.current_route.join('/');
-frappe.set_route = function() {
-	return frappe.router.set_route.apply(frappe.router, arguments);
-};
+frappe.set_route = frappe.router.push_route.bind(frappe.router);
 
 frappe.get_prev_route = function() {
 	if (frappe.route_history && frappe.route_history.length > 1) {
@@ -465,7 +444,11 @@ frappe.set_re_route = function() {
 };
 
 frappe.has_route_options = function() {
-	return Boolean(Object.keys(frappe.route_options || {}).length);
+	return Object.keys(frappe.route_options).length > 0;
 };
+
+frappe.get_route_options = function() {
+	return {...frappe.route_options};
+}
 
 frappe.utils.make_event_emitter(frappe.router);

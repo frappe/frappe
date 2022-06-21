@@ -15,16 +15,10 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		let view_class = frappe.views[view_name + 'View'];
 		if (!view_class) view_class = frappe.views.ListView;
 
-		if (view_class && view_class.load_last_view && view_class.load_last_view()) {
-			// view can have custom routing logic
-			return;
-		}
-
 		frappe.provide('frappe.views.list_view.' + doctype);
-
 		frappe.views.list_view[me.page_name] = new view_class({
 			doctype: doctype,
-			parent: me.make_page(true, me.page_name)
+			parent: me.make_page(true)
 		});
 
 		me.set_cur_list();
@@ -32,6 +26,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 
 	before_show() {
 		if (this.re_route_to_view()) {
+			alert("TODO")
 			return false;
 		}
 

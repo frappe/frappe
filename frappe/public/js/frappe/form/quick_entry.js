@@ -2,11 +2,11 @@ frappe.provide('frappe.ui.form');
 
 frappe.quick_edit = function(doctype, name) {
 	frappe.db.get_doc(doctype, name).then(doc => {
-		frappe.ui.form.make_quick_entry(doctype, null, null, doc);
+		frappe.ui.form.make_quick_entry(doctype, doc);
 	});
 };
 
-frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc, force) => {
+frappe.ui.form.make_quick_entry = (doctype, doc, params = {}) => {
 	var trimmed_doctype = doctype.replace(/ /g, '');
 	var controller_name = "QuickEntryForm";
 
@@ -14,17 +14,18 @@ frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc, fo
 		controller_name = trimmed_doctype + "QuickEntryForm";
 	}
 
-	frappe.quick_entry = new frappe.ui.form[controller_name](doctype, after_insert, init_callback, doc, force);
+	frappe.quick_entry = new frappe.ui.form[controller_name](doctype, doc, params);
 	return frappe.quick_entry.setup();
 };
 
 frappe.ui.form.QuickEntryForm = class QuickEntryForm {
-	constructor(doctype, after_insert, init_callback, doc, force) {
+	constructor(doctype, doc, params = {}) {
 		this.doctype = doctype;
-		this.after_insert = after_insert;
-		this.init_callback = init_callback;
 		this.doc = doc;
-		this.force = force ? force : false;
+		this.after_insert = params.after_insert;
+		this.init_callback = params.init_callback;
+		this.force = !!params.force
+		this.route_options = params.route_options
 	}
 
 	setup() {
@@ -38,8 +39,8 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 				} else {
 					// no quick entry, open full form
 					frappe.quick_entry = null;
-					frappe.set_route('Form', this.doctype, this.doc.name)
-						.then(() => resolve(this));
+					frappe.set_route('Form', this.doctype, this.doc.name, this.route_options)
+						.then(resolve.bind(this));
 					// call init_callback for consistency
 					if (this.init_callback) {
 						this.init_callback(this.doc);
@@ -255,13 +256,13 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	open_doc(set_hooks) {
 		this.dialog.hide();
 		this.update_doc();
+		const route_options = {}
 		if (set_hooks && this.after_insert) {
-			frappe.route_options = frappe.route_options || {};
-			frappe.route_options.after_save = (frm) => {
+			route_options.after_save = (frm) => {
 				this.after_insert(frm);
 			};
 		}
-		frappe.set_route('Form', this.doctype, this.doc.name);
+		frappe.set_route('Form', this.doctype, this.doc.name, route_options);
 	}
 
 	render_edit_in_full_page_link() {
