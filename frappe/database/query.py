@@ -169,7 +169,7 @@ OPERATOR_MAP: Dict[str, Callable] = {
 }
 
 
-class Query:
+class Engine:
 	tables: dict = {}
 
 	@cached_property
