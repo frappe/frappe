@@ -9,7 +9,7 @@ class TestQuery(unittest.TestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
 		self.assertEqual(
-			frappe.db.query.get_sql(
+			frappe.qb.engine.get_sql(
 				"DocType",
 				["*"],
 				[
@@ -22,14 +22,14 @@ class TestQuery(unittest.TestCase):
 
 	def test_string_fields(self):
 		self.assertEqual(
-			frappe.db.query.get_sql("User", fields="name, email", filters={"name": "Administrator"}),
+			frappe.qb.engine.get_sql("User", fields="name, email", filters={"name": "Administrator"}),
 			frappe.qb.from_("User")
 			.select(Field("name"), Field("email"))
 			.where(Field("name") == "Administrator"),
 		)
 
 		self.assertEqual(
-			frappe.db.query.get_sql("User", fields=["name, email"], filters={"name": "Administrator"}),
+			frappe.qb.engine.get_sql("User", fields=["name, email"], filters={"name": "Administrator"}),
 			frappe.qb.from_("User")
 			.select(Field("name"), Field("email"))
 			.where(Field("name") == "Administrator"),
@@ -39,35 +39,35 @@ class TestQuery(unittest.TestCase):
 		from frappe.query_builder.functions import Count
 
 		self.assertEqual(
-			frappe.db.query.get_sql("User", fields="Count(name)", filters={}),
+			frappe.qb.engine.get_sql("User", fields="Count(name)", filters={}),
 			frappe.qb.from_("User").select(Count(Field("name"))),
 		)
 
 		self.assertEqual(
-			frappe.db.query.get_sql("User", fields="Count(name), Max(name)", filters={}),
+			frappe.qb.engine.get_sql("User", fields="Count(name), Max(name)", filters={}),
 			frappe.qb.from_("User").select(Count(Field("name")), Max(Field("name"))),
 		)
 
 		self.assertEqual(
-			frappe.db.query.get_sql("User", fields=["Count(name)", "Max(name)"], filters={}),
+			frappe.qb.engine.get_sql("User", fields=["Count(name)", "Max(name)"], filters={}),
 			frappe.qb.from_("User").select(Count(Field("name")), Max(Field("name"))),
 		)
 
 		self.assertEqual(
-			frappe.db.query.get_sql("User", fields=[Count("*")], filters={}),
+			frappe.qb.engine.get_sql("User", fields=[Count("*")], filters={}),
 			frappe.qb.from_("User").select(Count(Field("name")), Max(Field("name"))),
 		)
 
 	def test_qb_fields(self):
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
-			frappe.db.query.get_sql(
+			frappe.qb.engine.get_sql(
 				user_doctype, fields=[user_doctype.name, user_doctype.email], filters={}
 			),
 			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email),
 		)
 
 		self.assertEqual(
-			frappe.db.query.get_sql(user_doctype, fields=user_doctype.email, filters={}),
+			frappe.qb.engine.get_sql(user_doctype, fields=user_doctype.email, filters={}),
 			frappe.qb.from_(user_doctype).select(user_doctype.email),
 		)
