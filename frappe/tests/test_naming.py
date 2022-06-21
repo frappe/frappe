@@ -127,17 +127,10 @@ class TestNaming(unittest.TestCase):
 		)
 
 	def test_format_autoname_for_datetime_field(self):
-		"""
-		Test if braced params are replaced in format autoname for datetime, date and time field
-		"""
+		"""Test if datetime, date and time objects get converted to strings for naming."""
+		doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
 
-		datetime = now_datetime()
-		date = nowdate()
-		time = nowtime()
-
-		for field in [datetime, date, time]:
-			doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
-
+		for field in [now_datetime(), nowdate(), nowtime()]:
 			doc = frappe.new_doc(doctype.name)
 			doc.field = field
 			doc.insert()
