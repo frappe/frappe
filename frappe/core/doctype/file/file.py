@@ -26,6 +26,7 @@ from .utils import *
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 URL_PREFIXES = ("http://", "https://")
+SITE_URL = frappe.utils.get_url()
 
 
 class File(Document):
@@ -60,6 +61,9 @@ class File(Document):
 		self.set_folder_name()
 		self.set_file_name()
 		self.validate_attachment_limit()
+
+		if self.is_remote_file:
+			self.validate_remote_file()
 
 		if not self.is_folder and not self.is_remote_file:
 			self.save_file(content=self.get_content())
@@ -255,6 +259,11 @@ class File(Document):
 					title=_("Attachment Limit Reached"),
 				)
 
+	def validate_remote_file(self):
+		"""Validates if file uploaded using URL already exist"""
+		if "/files/" in self.file_url and self.file_url.startswith(SITE_URL):
+			self.file_url = self.file_url.split(SITE_URL, 1)[1]
+
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
 		if self.folder:
@@ -445,8 +454,8 @@ class File(Document):
 
 		file_path = self.file_url or self.file_name
 
-		if file_path.startswith(frappe.utils.get_url()) and "/files/" in file_path:
-			file_path = file_path.split(frappe.utils.get_url(), 1)[1]
+		if "/files/" in file_path and file_path.startswith(SITE_URL):
+			file_path = file_path.split(SITE_URL, 1)[1]
 
 		if "/" not in file_path:
 			if self.is_private:
