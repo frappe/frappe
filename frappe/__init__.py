@@ -2231,7 +2231,7 @@ def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
 		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
 
-	return local.website_settings[key]
+	return local.website_settings.get(key)
 
 
 def get_system_settings(key):
