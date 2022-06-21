@@ -25,11 +25,8 @@
 		{%- endfor -%}
 	</head>
 	<body>
-		{% include "public/icons/timeless/symbol-defs.svg" %}
-		<div class="centered splash">
-			<img src="{{ splash_image or "/assets/frappe/images/frappe-framework-logo.png" }}"
-				style="max-width: 100px; max-height: 100px;">
-		</div>
+		{% include "public/icons/timeless/icons.svg" %}
+		{% include "templates/includes/splash_screen.html" %}
 		<div class="main-section">
 			<header></header>
 			<div id="body"></div>
@@ -45,7 +42,7 @@
 
 			if (!window.frappe) window.frappe = {};
 
-			frappe.boot = {{ boot }};
+			frappe.boot = JSON.parse({{ boot }});
 			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
 		</script>
