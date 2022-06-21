@@ -30,7 +30,7 @@ from frappe.utils import (
 	split_emails,
 )
 
-MAX_RETRY_COUNT = 3
+MAX_RETRY_COUNT = cint(frappe.db.get_system_setting("email_retry_count")) or 3
 
 
 class EmailQueue(Document):
