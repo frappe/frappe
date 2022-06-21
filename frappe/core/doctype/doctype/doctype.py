@@ -1298,7 +1298,7 @@ def validate_fields(meta):
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
 	def check_website_search_field(meta):
-		if not meta.website_search_field:
+		if not meta.get("website_search_field"):
 			return
 
 		if meta.website_search_field not in fieldname_list:
