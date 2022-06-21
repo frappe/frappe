@@ -506,8 +506,6 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	initialize_new_doc() {
-		// moved this call to refresh function
-		// this.check_doctype_conflict(docname);
 		var me = this;
 
 		// hide any open grid
@@ -1024,8 +1022,8 @@ frappe.ui.form.Form = class FrappeForm {
 			if(this.doc.__unsaved) {
 				this.dashboard.clear_headline();
 				this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
-					+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
-					+ __("Refresh") + '</a>', "alert-warning");
+					+ '<button class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
+					+ __("Refresh") + '</button>', "alert-warning");
 			} else {
 				this.reload_doc();
 			}
