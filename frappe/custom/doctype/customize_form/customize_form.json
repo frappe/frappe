@@ -329,7 +329,7 @@
   },
   {
    "default": "0",
-   "depends_on": "doc.default_view",
+   "depends_on": "default_view",
    "fieldname": "force_re_route_to_default_view",
    "fieldtype": "Check",
    "label": "Force Re-route to Default View"
@@ -348,7 +348,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-05-14 15:36:16.772277",
+ "modified": "2022-06-21 01:12:45.141124",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
