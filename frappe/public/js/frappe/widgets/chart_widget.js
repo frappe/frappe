@@ -479,7 +479,7 @@ export default class ChartWidget extends Widget {
 				class="btn btn-xs btn-secondary chart-menu"
 			>
 				<svg class="icon icon-sm">
-					<use xlink:href="#icon-dot-horizontal">
+					<use href="#icon-dot-horizontal">
 					</use>
 				</svg>
 			</button>

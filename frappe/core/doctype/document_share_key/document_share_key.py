@@ -1,9 +1,10 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from random import randrange
+
 import frappe
 from frappe.model.document import Document
-from random import randrange
 
 
 class DocumentShareKey(Document):
