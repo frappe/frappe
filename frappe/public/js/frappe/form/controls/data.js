@@ -135,6 +135,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 
 		this.$scan_btn = this.$wrapper.find('.link-btn');
 		this.$scan_btn.toggle(true);
+		this.$scan_btn.css("right", "30px");
 
 		const me = this;
 		this.$scan_btn.on('click', 'a', () => {
@@ -147,6 +148,37 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 					}
 				}
 			});
+		});
+
+		this.$wrapper.find('.control-input').append(
+			`<span class="link-btn scan-settings" style="display: inline;">
+				<a class="btn-open no-decoration" title="${__("Settings")}">
+					${frappe.utils.icon('setting-gear', 'md')}
+				</a>
+			</span>`
+		);
+		this.$scan_settings_btn = this.$wrapper.find('.scan-settings');
+		this.$scan_settings_btn.on('click', 'a', () => {
+			const settings = frappe.get_user_settings(me.frm.doc.doctype, "BarcodeScan");
+
+			new frappe.ui.Dialog({
+				title: __("Update Barcode Scan Settings"),
+				fields: [
+					{
+						fieldtype: "Check",
+						fieldname: "prompt_qty",
+						label: __("Prompt Qty"),
+						default: settings["prompt_qty"]
+					}
+				],
+				primary_action_label: __("Save"),
+				primary_action(values) {
+					frappe.model.user_settings.save(me.frm.doc.doctype, "BarcodeScan", values).then(() => {
+						frappe.msgprint(__("Barcode Scan Settings Saved!"));
+						this.hide();
+					})
+				}
+			}).show();
 		});
 	}
 
