@@ -9,7 +9,6 @@ import frappe
 from frappe.app import make_form_dict
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
-
 from frappe.utils import cast, cint, get_datetime, now_datetime, set_request
 from frappe.website.serve import get_response
 
@@ -466,4 +465,3 @@ class TestDocumentWebView(unittest.TestCase):
 
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
-
