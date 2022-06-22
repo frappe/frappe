@@ -11,7 +11,9 @@
 
 {%- if web_template_type == 'Section' -%}
 {%- if not web_block.hide_block -%}
-<section class="section {{ classes }}" data-section-idx="{{ web_block.idx | e }}"
+<section class="section {{ classes }}"
+	{% if web_block.section_id %} id="{{ web_block.section_id }}" {% endif %}
+	data-section-idx="{{ web_block.idx | e }}"
 	data-section-template="{{ web_block.web_template | e }}"
 	{% if web_block.add_background_image -%}
 		style="background: url({{ web_block.background_image}}) no-repeat center center; background-size: cover;"

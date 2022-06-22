@@ -33,14 +33,16 @@
 {% else %}
 
 {% if parent %}
+{% set url = item.url or '' %}
+{% set url = url if url.startswith('#') else url | abs_url %}
 <li class="nav-item">
-	<a class="nav-link" href="{{ (item.url or '')|abs_url }}"
+	<a class="nav-link" href="{{ url }}"
 		{% if item.open_in_new_tab %} target="_blank" {% endif %}>
 		{{ _(item.label) }}
 	</a>
 </li>
 {% else %}
-<a class="dropdown-item" href="{{ (item.url or '') | abs_url }}"
+<a class="dropdown-item" href="{{ url }}"
 	{% if item.open_in_new_tab %} target="_blank" {% endif %}>
 	{{ _(item.label) }}
 </a>
