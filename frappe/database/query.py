@@ -2,7 +2,7 @@ import operator
 import re
 from ast import literal_eval
 from functools import cached_property
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 
 import frappe
 from frappe import _
@@ -13,8 +13,11 @@ from frappe.query_builder.functions import SqlFunctions
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
-BRACKETS_PATTERN = re.compile(r"\(.*?\)")
+BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
+
+if TYPE_CHECKING:
+	from pypika.functions import Function
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -374,77 +377,84 @@ class Engine:
 
 		return criterion
 
-	def get_function_objects(self, fields):
-		func = fields.split("(")[0].casefold().split()
-		func = [f for f in func if f in SQL_FUNCTIONS][0]
-		args = fields[len(func) + 1 : fields.index(")")].split(",")
-		args = [
-			Field(literal_eval_((arg.strip()))) if "*" not in args else literal_eval_((arg.strip()))
-			for arg in args
-		]
-		return getattr(functions, func.capitalize())(*args)
+	def get_function_object(self, field: str) -> "Function":
+		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
+		func = field.split("(", maxsplit=1)[0].capitalize()
+		args_start, args_end = len(func) + 1, field.index(")")
+		args = field[args_start:args_end].split(",")
 
-	def function_objects_to_fields(self, fields, is_str: bool):
-		if is_str:
-			functions = ""
-			for func in SQL_FUNCTIONS:
-				if f"{func}(" in fields:
-					functions = str(func) + str(BRACKETS_PATTERN.findall(fields)[0])
-					return [self.get_function_objects(functions)]
-			if not functions:
-				return []
-		else:
-			functions = []
-			for field in fields:
-				field = field.casefold() if isinstance(field, str) else field
-				if not issubclass(type(field), Criterion):
-					if any([func in field and f"{func}(" in field for func in SQL_FUNCTIONS]):
-						functions.append(field)
-			return [self.get_function_objects(function) for function in functions]
+		to_cast = "*" not in args
+		_args = []
 
-	def set_fields(self, fields, **kwargs):
-		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
-		if isinstance(fields, list) and None in fields and Field not in fields:
-			return None
+		for arg in args:
+			field = literal_eval_(arg.strip())
+			if to_cast:
+				field = Field(field)
+			_args.append(field)
 
-		is_list = isinstance(fields, (list, tuple, set))
-		if is_list and len(fields) == 1:
-			fields = fields[0]
-			is_list = False
+		return getattr(functions, func)(*_args)
 
-		is_str = isinstance(fields, str)
-		if is_str:
-			fields = fields.casefold()
+	def function_objects_from_string(self, fields):
+		functions = ""
+		for func in SQL_FUNCTIONS:
+			if f"{func}(" in fields:
+				functions = str(func) + str(BRACKETS_PATTERN.search(fields).group())
+				return [self.get_function_object(functions)]
+		if not functions:
+			return []
 
-		function_objects = (
-			self.function_objects_to_fields(fields=fields, is_str=is_str)
-			if not issubclass(type(fields), Criterion)
-			else []
-		)
+	def function_objects_from_list(self, fields):
+		functions = []
+		for field in fields:
+			field = field.casefold() if isinstance(field, str) else field
+			if not issubclass(type(field), Criterion):
+				if any([func in field and f"{func}(" in field for func in SQL_FUNCTIONS]):
+					functions.append(field)
+		return [self.get_function_object(function) for function in functions]
 
+	def remove_string_functions(self, fields, function_objects):
+		"""Remove string functions from fields which have already been converted to function objects"""
 		for function in function_objects:
-			if is_str:
-				fields = BRACKETS_PATTERN.sub(
-					"", fields.replace(str(type(function).__name__).strip().casefold(), "")
-				)
+			if isinstance(fields, str):
+				fields = BRACKETS_PATTERN.sub("", fields.replace(function.name.casefold(), ""))
 			else:
 				updated_fields = []
 				for field in fields:
 					if isinstance(field, str):
 						updated_fields.append(
-							BRACKETS_PATTERN.sub("", field)
-							.strip()
-							.casefold()
-							.replace(str(type(function).__name__).strip().casefold(), "")
+							BRACKETS_PATTERN.sub("", field).strip().casefold().replace(function.name.casefold(), "")
 						)
 					else:
 						updated_fields.append(field)
 
 					fields = [field for field in updated_fields if field]
 
+		return fields
+
+	def set_fields(self, fields, **kwargs):
+		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
+		if isinstance(fields, list) and None in fields and Field not in fields:
+			return None
+
+		function_objects = []
+
+		is_list = isinstance(fields, (list, tuple, set))
+		if is_list and len(fields) == 1:
+			fields = fields[0]
+			is_list = False
+
+		if is_list:
+			function_objects += self.function_objects_from_list(fields=fields)
+
+		is_str = isinstance(fields, str)
+		if is_str:
+			fields = fields.casefold()
+			function_objects += self.function_objects_from_string(fields=fields)
+
+		fields = self.remove_string_functions(fields, function_objects)
+
 		if is_str and "," in fields:
-			fields = fields.split(",")
-			fields = [field.replace(" ", "") if "as" not in field else field for field in fields]
+			fields = [field.replace(" ", "") if "as" not in field else field for field in fields.split(",")]
 			is_list, is_str = True, False
 
 		if is_str:
