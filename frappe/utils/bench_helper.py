@@ -1,7 +1,6 @@
 import importlib
 import json
 import os
-import sys
 import traceback
 import warnings
 
@@ -106,10 +105,5 @@ def get_apps():
 if __name__ == "__main__":
 	if not frappe._dev_server:
 		warnings.simplefilter("ignore")
-
-	# disable pooling for commands executed via bench unless explicitly stated otherwise
-	# - except for commands serve & worker
-	if not {"serve", "worker"} & set(sys.argv) and int(os.environ.get("DATABASE_POOLING", 0)):
-		frappe.DISABLE_DATABASE_CONNECTION_POOLING = True
 
 	main()
