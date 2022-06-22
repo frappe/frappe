@@ -63,6 +63,11 @@ def web_blocks(blocks):
 	out = get_web_blocks_html(web_blocks)
 
 	html = out.html
+
+	if not frappe.flags.web_block_scripts:
+		frappe.flags.web_block_scripts = {}
+		frappe.flags.web_block_styles = {}
+
 	for template, scripts in out.scripts.items():
 		# deduplication of scripts when web_blocks methods are used in web pages
 		# see render_dynamic method web_page.py
