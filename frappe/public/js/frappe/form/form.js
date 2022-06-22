@@ -13,6 +13,7 @@ import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
 import './form_tour';
+import {UndoManager } from './undo_manager';
 
 frappe.ui.form.Controller = class FormController {
 	constructor(opts) {
@@ -38,6 +39,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.fetch_dict = {};
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
+		this.undo_manager = new UndoManager({frm: this});
 		this.setup_meta(doctype);
 
 		this.beforeUnloadListener = (event) => {
@@ -141,6 +143,26 @@ frappe.ui.form.Form = class FrappeForm {
 			description: __('Go to previous record'),
 			ignore_inputs: true,
 			condition: () => !this.is_new()
+		});
+
+		// Undo and redo
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'ctrl+z',
+			action: () => this.undo_manager.undo(),
+			page: this.page,
+			description: __('Undo last action'),
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+ctrl+z',
+			action: () => this.undo_manager.redo(),
+			page: this.page,
+			description: __('Redo last action'),
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'ctrl+y',
+			action: () => this.undo_manager.redo(),
+			page: this.page,
+			description: __('Redo last action'),
 		});
 
 		let grid_shortcut_keys = [
