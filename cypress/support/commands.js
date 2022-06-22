@@ -313,7 +313,12 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 					if (ignore_duplicate) {
 						status_codes.push(409);
 					}
-					expect(res.status).to.be.oneOf(status_codes);
+
+					let message = null;
+					if (ignore_duplicate && !status_codes.includes(res.status)) {
+						message = `Document insert failed, response: ${JSON.stringify(res, null, '\t')}`;
+					}
+					expect(res.status).to.be.oneOf(status_codes, message);
 					return res.body.data;
 				});
 		});
