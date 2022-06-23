@@ -48,12 +48,12 @@ def new_language(context, lang_code, app):
 
 
 @click.command("get-untranslated")
-@click.option('--app', default='all')
+@click.option('--app', default='_ALL_APPS')
 @click.argument("lang")
 @click.argument("untranslated_file")
 @click.option("--all", default=False, is_flag=True, help="Get all message strings")
 @pass_context
-def get_untranslated(context, lang, untranslated_file, app='all', all=None):
+def get_untranslated(context, lang, untranslated_file, app='_ALL_APPS', all=None):
 	"Get untranslated strings for language"
 	import frappe.translate
 
@@ -67,12 +67,12 @@ def get_untranslated(context, lang, untranslated_file, app='all', all=None):
 
 
 @click.command("update-translations")
-@click.option('--app', default='all')
+@click.option('--app', default='_ALL_APPS')
 @click.argument("lang")
 @click.argument("untranslated_file")
 @click.argument("translated-file")
 @pass_context
-def update_translations(context, lang, untranslated_file, translated_file, app='all'):
+def update_translations(context, lang, untranslated_file, translated_file, app='_ALL_APPS'):
 	"Update translated strings"
 	import frappe.translate
 
