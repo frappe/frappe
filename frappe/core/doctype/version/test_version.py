@@ -34,6 +34,19 @@ class TestVersion(unittest.TestCase):
 		self.assertEqual(get_old_values(diff)[1], "01-01-2014 00:00:00")
 		self.assertEqual(get_new_values(diff)[1], "07-20-2017 00:00:00")
 
+	def test_no_version_on_new_doc(self):
+		from frappe.desk.form.load import get_versions
+
+		t = frappe.get_doc(doctype="ToDo", description="something")
+		t.save(ignore_version=False)
+
+		self.assertFalse(get_versions(t))
+
+		t = frappe.get_doc(t.doctype, t.name)
+		t.description = "changed"
+		t.save(ignore_version=False)
+		self.assertTrue(get_versions(t))
+
 
 def get_fieldnames(change_array):
 	return [d[0] for d in change_array]

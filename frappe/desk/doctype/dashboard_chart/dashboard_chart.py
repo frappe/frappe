@@ -16,6 +16,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, get_datetime, getdate, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
+from frappe.utils.data import format_date
 from frappe.utils.dateutils import (
 	get_dates_from_timegrain,
 	get_from_date_from_timespan,
@@ -223,12 +224,15 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
 
-	chart_config = {
-		"labels": [get_period(r[0], timegrain) for r in result],
+	return {
+		"labels": [
+			format_date(get_period(r[0], timegrain))
+			if timegrain in ("Daily", "Weekly")
+			else get_period(r[0], timegrain)
+			for r in result
+		],
 		"datasets": [{"name": chart.name, "values": [r[1] for r in result]}],
 	}
-
-	return chart_config
 
 
 def get_heatmap_chart_config(chart, filters, heatmap_year):

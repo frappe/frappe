@@ -40,7 +40,7 @@ from .utils.lazy_loader import lazy_import
 # Lazy imports
 faker = lazy_import("faker")
 
-__version__ = "13.32.2"
+__version__ = "13.33.1"
 
 __title__ = "Frappe Framework"
 
@@ -898,9 +898,9 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 	)
 	if throw and not out:
 		if doc:
-			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
+			frappe.throw(_("No permission for {0}").format(_(doc.doctype) + " " + doc.name))
 		else:
-			frappe.throw(_("No permission for {0}").format(doctype))
+			frappe.throw(_("No permission for {0}").format(_(doctype)))
 
 	return out
 
