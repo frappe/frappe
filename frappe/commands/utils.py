@@ -874,11 +874,19 @@ def run_ui_tests(
 		and os.path.exists(coverage_plugin_path)
 		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
-		# install cypress
+		# install cypress & dependent plugins
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 cypress-real-events @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+		packages = " ".join(
+			[
+				"cypress@^6",
+				"cypress-file-upload@^5",
+				"@4tw/cypress-drag-drop@^2",
+				"cypress-real-events",
+				"@testing-library/cypress@^8",
+				"@cypress/code-coverage@^3",
+			]
 		)
+		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
 
 	# run for headless mode
 	run_or_open = "run --browser chrome --record" if headless else "open"
