@@ -816,7 +816,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, app='_ALL_APPS'):
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
-	if app != 'all':
+	if app != '_ALL_APPS':
 		if app in apps:
 			apps = [app]
 		else:
@@ -856,7 +856,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, app='_ALL_APPS'):
 			print("all translated!")
 
 
-def update_translations(lang, untranslated_file, translated_file, app='all'):
+def update_translations(lang, untranslated_file, translated_file, app='_ALL_APPS'):
 	"""Update translations from a source and target file for a given language.
 
 	:param lang: Language code (e.g. `en`).
@@ -886,7 +886,7 @@ def update_translations(lang, untranslated_file, translated_file, app='all'):
 
 	full_dict.update(translation_dict)
 	apps = frappe.get_all_apps(True)
-	if app != 'all':
+	if app != '_ALL_APPS':
 		if app in apps:
 			apps = [app]
 		else:
