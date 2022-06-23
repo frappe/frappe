@@ -62,7 +62,7 @@ class File(Document):
 		self.set_file_name()
 		self.validate_attachment_limit()
 
-		if self.is_remote_file:
+		if not self.is_folder and self.is_remote_file:
 			self.validate_remote_file()
 
 		if not self.is_folder and not self.is_remote_file:
