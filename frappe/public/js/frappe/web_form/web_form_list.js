@@ -85,23 +85,17 @@ export default class WebFormList {
 	}
 
 	get_list_view_fields() {
-		if (this.fields_list) return this.fields_list;
-		return frappe
-			.call ({
-				method:
-					"frappe.website.doctype.web_form.web_form.get_in_list_view_fields",
-				args: { doctype: this.doctype }
-			})
-			.then (response => {
-				this.fields_list = response.message;
-				this.columns = this.fields_list.map(df => {
-					return {
-						label: df.label,
-						fieldname: df.fieldname,
-						fieldtype: df.fieldtype
-					};
-				});
+		if (this.columns) return this.columns;
+
+		if (this.list_columns) {
+			this.columns = this.list_columns.map(df => {
+				return {
+					label: df.label,
+					fieldname: df.fieldname,
+					fieldtype: df.fieldtype
+				};
 			});
+		}
 	}
 
 	fetch_data() {

@@ -7,10 +7,10 @@ frappe.ready(function() {
 
 	show_login_prompt();
 
-	web_form_doc.is_list ? show_grid() : show_form();
+	web_form_doc.is_list ? show_list() : show_form();
 
 	function show_login_prompt() {
-		if (frappe.session.user != "Guest") return;
+		if (frappe.session.user != "Guest" || !web_form_doc.login_required) return;
 		const login_required = new frappe.ui.Dialog({
 			title: __("Not Permitted"),
 			primary_action_label: __("Login"),
@@ -22,11 +22,12 @@ frappe.ready(function() {
 		login_required.set_message(__("You are not permitted to access this page without login."));
 	}
 
-	function show_grid() {
+	function show_list() {
 		new WebFormList({
 			parent: $(".web-list-wrapper"),
 			doctype: web_form_doc.doc_type,
 			web_form_name: web_form_doc.name,
+			list_columns: web_form_doc.list_columns,
 			settings: {
 				allow_delete: web_form_doc.allow_delete
 			}

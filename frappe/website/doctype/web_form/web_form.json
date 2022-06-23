@@ -28,6 +28,10 @@
   "allow_comments",
   "show_attachments",
   "max_attachment_size",
+  "list_settings_section",
+  "show_list",
+  "list_title",
+  "list_columns",
   "introduction",
   "introduction_text",
   "fields",
@@ -131,7 +135,7 @@
   },
   {
    "default": "0",
-   "depends_on": "allow_multiple",
+   "depends_on": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
    "label": "Allow Delete"
@@ -372,13 +376,40 @@
   {
    "fieldname": "column_break_17",
    "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "depends_on": "login_required",
+   "fieldname": "list_settings_section",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_list",
+   "fieldtype": "Check",
+   "label": "Show List"
+  },
+  {
+   "depends_on": "show_list",
+   "fieldname": "list_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "depends_on": "show_list",
+   "fieldname": "list_columns",
+   "fieldtype": "Table",
+   "label": "List Columns",
+   "options": "Web Form List Column"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-06-13 18:16:15.880084",
+ "modified": "2022-06-23 16:32:35.587863",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

@@ -155,10 +155,10 @@ def get_context(context):
 			)
 
 		if frappe.local.path == self.route:
-			path = f"/{self.route}/list" if self.allow_multiple else f"/{self.route}/new"
+			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
 			frappe.redirect(path)
 
-		if frappe.form_dict.is_list and not self.allow_multiple:
+		if frappe.form_dict.is_list and not self.show_list:
 			frappe.redirect(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
@@ -180,7 +180,7 @@ def get_context(context):
 		# Show new form when
 		# - User is Guest
 		# - Login not required
-		route_to_new = frappe.session.user == "Guest" or not self.login_required
+		route_to_new = frappe.session.user == "Guest" and not self.login_required
 		if not frappe.form_dict.is_new and route_to_new:
 			frappe.redirect(f"/{self.route}/new")
 
@@ -203,7 +203,9 @@ def get_context(context):
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
 
-		if not frappe.form_dict.is_list:
+		if frappe.form_dict.is_list:
+			self.load_list_data(context)
+		else:
 			self.load_form_data(context)
 
 		context.parents = self.get_parents(context)
@@ -233,10 +235,15 @@ def get_context(context):
 		translated_messages["Sr"] = _("Sr")
 		context.translated_messages = frappe.as_json(translated_messages)
 
+	def load_list_data(self, context):
+		if not self.list_columns:
+			self.list_columns = get_in_list_view_fields(self.doc_type)
+			context.web_form_doc.list_columns = self.list_columns
+
 	def load_form_data(self, context):
 		"""Load document `doc` and `layout` properties for template"""
 		context.parents = []
-		if self.allow_multiple:
+		if self.show_list:
 			context.parents.append(
 				{
 					"label": _(self.title),

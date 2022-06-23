@@ -13,6 +13,15 @@ frappe.ui.form.on("Web Form", {
 		frm.trigger('add_publish_button');
 	},
 
+	validate: function(frm) {
+		!frm.doc.login_required && frm.set_value("allow_multiple", 0);
+		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
+
+		if (frm.doc.allow_multiple && !frm.doc.show_list) {
+			frm.set_value("show_list", 1)
+		}
+	},
+
 	add_publish_button(frm) {
 		frm.add_custom_button(frm.doc.published ? __("Unpublish") : __("Publish"), () => {
 			frm.set_value("published", !frm.doc.published);
@@ -61,7 +70,7 @@ frappe.ui.form.on("Web Form", {
 		let update_options = options => {
 			[
 				frm.fields_dict.web_form_fields.grid,
-				// frm.fields_dict.list_columns.grid
+				frm.fields_dict.list_columns.grid
 			].forEach(obj => {
 				obj.update_docfield_property("fieldname", "options", options);
 			});
@@ -108,14 +117,20 @@ frappe.ui.form.on("Web Form", {
 
 	doc_type: function(frm) {
 		frappe.web_form.set_fieldname_select(frm);
+	},
+
+	allow_multiple: function(frm) {
+		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 	}
 });
+
 
 frappe.ui.form.on("Web Form List Column", {
 	fieldname: function(frm, doctype, name) {
 		let doc = frappe.get_doc(doctype, name);
 		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
 		if (!df) return;
+		doc.fieldtype = df.fieldtype;
 		doc.label = df.label;
 		frm.refresh_field("list_columns");
 	}
@@ -151,6 +166,7 @@ frappe.ui.form.on("Web Form Field", {
 		frm.refresh_field("web_form_fields");
 	}
 });
+
 
 function get_fields_for_doctype(doctype) {
 	return new Promise(resolve =>
