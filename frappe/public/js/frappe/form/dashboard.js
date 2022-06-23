@@ -343,21 +343,21 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		let doctype = $link.attr('data-doctype'),
 			names = $link.attr('data-names') || [];
 
-		let route_options = {}
+		let filters = {}
 		if (this.data.internal_links[doctype]) {
 			if (names.length) {
-				route_options = {'name': ['in', names]};
+				filters = {'name': ['in', names]};
 			} else {
 				return false;
 			}
 		} else if (this.data.fieldname) {
-			route_options = this.get_document_filter(doctype);
+			filters = this.get_document_filter(doctype);
 			if (show_open && frappe.ui.notifications) {
 				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		}
 
-		frappe.set_route("List", doctype, "List", route_options);
+		frappe.set_route("List", doctype, "List", { filters });
 	}
 
 	get_document_filter(doctype) {

@@ -1126,7 +1126,7 @@ frappe.ui.form.Form = class FrappeForm {
 		let filters, sort_field, sort_order;
 		let list_view = frappe.get_list_view(this.doctype);
 		if (list_view) {
-			filters = list_view.get_filters_for_args();
+			filters = list_view.filters;
 			sort_field = list_view.sort_by;
 			sort_order = list_view.sort_order;
 		} else {

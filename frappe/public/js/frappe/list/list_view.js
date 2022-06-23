@@ -50,10 +50,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return "List";
 	}
 
-	get view_user_settings() {
-		return this.user_settings[this.view_name] || {};
-	}
-
 	setup_defaults() {
 		super.setup_defaults();
 
@@ -61,29 +57,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
-		if (this.view_name == 'List') this.toggle_paging = true;
 
-		// initialize with saved order by
-		this.sort_by = this.view_user_settings.sort_by || "modified";
-		this.sort_order = this.view_user_settings.sort_order || "desc";
-
-		let filters = []
-		if (frappe.has_route_options()) {
-			// Priority 1: route_filters
-			filters = this.parse_filters_from_route_options();
-		}
-		else if (this.view_user_settings.filters && this.view_user_settings.filters.length > 0) {
-			// Priority 2: view_user_settings
-			filters = this.view_user_settings.filters;
-		} else {
-			// Priority 3: filters in listview_settings
-			filters = this.parse_filters_from_settings()
+		if (this.view_name == 'List')  {
+			this.toggle_paging = true;
 		}
 
+		/*
 		this.filters = this.validate_filters(filters)
 		if (this.filters.length !== filters.length) {
 			console.warn("One or more configured filters was not valid", filters)
 		}
+		*/
 
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
@@ -97,12 +81,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.then((doc) => {
 				this.list_view_settings = doc.message || {}
 			});
-	}
-
-	on_sort_change(sort_by, sort_order) {
-		this.sort_by = sort_by;
-		this.sort_order = sort_order;
-		super.on_sort_change();
 	}
 
 	validate_filters(filters) {
@@ -257,7 +235,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_header();
 		this.render_skeleton();
 		this.setup_events();
-		if(this.settings.onload) this.settings.onload(this);
+		if(this.settings.onload) {
+			this.settings.onload(this);
+		}
+
 		this.show_restricted_list_indicator_if_applicable();
 	}
 
@@ -516,16 +497,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_render() {
 		this.settings.before_render && this.settings.before_render();
-		frappe.model.user_settings.save(
-			this.doctype,
-			"last_view",
-			this.view_name
-		);
-		this.save_view_user_settings({
-			filters: this.filter_area && this.filter_area.get(),
-			sort_by: this.sort_selector && this.sort_selector.sort_by,
-			sort_order: this.sort_selector && this.sort_selector.sort_order,
-		});
 		this.toggle_paging && this.$paging_area.toggle(false);
 	}
 
@@ -863,7 +834,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let count_without_children = this.data.uniqBy((d) => d.name).length;
 
 		return frappe.db.count(this.doctype, {
-			filters: this.get_filters_for_args()
+			filters: this.filters
 		}).then(total_count => {
 			this.total_count = total_count || current_count;
 			this.count_without_children = count_without_children !== current_count ? count_without_children : undefined;
@@ -1411,18 +1382,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.on_row_checked();
 	}
 
-	save_view_user_settings(obj) {
-		return frappe.model.user_settings.save(
-			this.doctype,
-			this.view_name,
-			obj
-		);
-	}
-
 	on_update() {}
 
 	get_share_url() {
-		const query_params = this.get_filters_for_args()
+		const query_params = this.filters
 			.map((filter) => {
 				filter[3] = encodeURIComponent(filter[3]);
 				if (filter[2] === "=") {
@@ -1869,74 +1832,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		return actions_menu_items;
-	}
-
-	parse_filters_from_route_options() {
-		const filters = [];
-
-		for (let field in frappe.route_options) {
-			let doctype = null;
-			let value = frappe.route_options[field];
-
-			let value_array;
-			if (
-				$.isArray(value) &&
-				value[0].startsWith("[") &&
-				value[0].endsWith("]")
-			) {
-				value_array = [];
-				for (var i = 0; i < value.length; i++) {
-					value_array.push(JSON.parse(value[i]));
-				}
-			} else if (
-				typeof value === "string" &&
-				value.startsWith("[") &&
-				value.endsWith("]")
-			) {
-				value = JSON.parse(value);
-			}
-
-			// if `Child DocType.fieldname`
-			if (field.includes(".")) {
-				doctype = field.split(".")[0];
-				field = field.split(".")[1];
-			}
-
-			// find the table in which the key exists
-			// for example the filter could be {"item_code": "X"}
-			// where item_code is in the child table.
-
-			// we can search all tables for mapping the doctype
-			if (!doctype) {
-				doctype = frappe.meta.get_doctype_for_field(
-					this.doctype,
-					field
-				);
-			}
-
-			if (doctype) {
-				if (value_array) {
-					for (var j = 0; j < value_array.length; j++) {
-						if ($.isArray(value_array[j])) {
-							filters.push([
-								doctype,
-								field,
-								value_array[j][0],
-								value_array[j][1],
-							]);
-						} else {
-							filters.push([doctype, field, "=", value_array[j]]);
-						}
-					}
-				} else if ($.isArray(value)) {
-					filters.push([doctype, field, value[0], value[1]]);
-				} else {
-					filters.push([doctype, field, "=", value]);
-				}
-			}
-		}
-
-		return filters;
 	}
 };
 

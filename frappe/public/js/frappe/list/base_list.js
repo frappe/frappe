@@ -42,8 +42,6 @@ frappe.views.BaseList = class BaseList {
 			this.settings.init()
 		}
 
-		this.user_settings = frappe.get_user_settings(this.doctype);
-
 		this.start = 0;
 		this.page_length = 20;
 		this.data = [];
@@ -53,9 +51,18 @@ frappe.views.BaseList = class BaseList {
 		this.can_write = frappe.model.can_write(this.doctype);
 
 		this.fields = [];
-		this.filters = [];
-		this.sort_by = "modified";
-		this.sort_order = "desc";
+
+		// Setup filters, sort_by and sort_order
+		const [filters, sort_by, sort_order] = this.parse_route_options(frappe.route_options)
+		this.filters = filters.length > 0 ? filters : (this.settings.filters || []).map((f) => {
+			if (f.length === 3) {
+				f = [this.doctype, f[0], f[1], f[2]];
+			}
+			return f;
+		});
+
+		this.sort_by = sort_by || this.settings.sort_by || "modified";
+		this.sort_order = sort_order || this.settings.sort_order || "desc";
 
 		// Setup buttons
 		this.primary_action = null;
@@ -332,10 +339,6 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
-	on_sort_change() {
-		this.refresh();
-	}
-
 	setup_result_area() {
 		this.$result = $(`<div class="result">`);
 		this.$frappe_list.append(this.$result);
@@ -380,6 +383,7 @@ frappe.views.BaseList = class BaseList {
 				</div>
 			</div>`
 		).hide();
+
 		this.$frappe_list.append(this.$paging_area);
 
 		// set default paging btn active
@@ -425,7 +429,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_filter_value(fieldname) {
-		const filter = this.get_filters_for_args().filter(f => f[1] == fieldname)[0];
+		const filter = this.filters.filter(f => f[1] == fieldname)[0];
 		if (!filter) return;
 		return {
 			'like': filter[3]?.replace(/^%?|%$/g, ''),
@@ -433,19 +437,11 @@ frappe.views.BaseList = class BaseList {
 		}[filter[2]] || filter[3];
 	}
 
-	get_filters_for_args() {
-		// filters might have a fifth param called hidden,
-		// we don't want to pass that server side
-		return this.filter_area
-			? this.filter_area.get().map((filter) => filter.slice(0, 4))
-			: [];
-	}
-
 	get_args() {
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
-			filters: this.get_filters_for_args(),
+			filters: this.filters,
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,
@@ -472,7 +468,6 @@ frappe.views.BaseList = class BaseList {
 	refresh() {
 		let args = this.get_call_args();
 		if (this.no_change(args)) {
-			// console.log('throttled');
 			return Promise.resolve();
 		}
 		this.freeze(true);
@@ -533,15 +528,26 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	before_render() {}
-
 	after_render() {}
+	render() {}
 
-	render() {
-		// for child classes
+	update_route_options() {
+		const route_options = this.convert_to_route_options(this.filters, this.sort_by, this.sort_order);
+		frappe.router.replace_url(frappe.router.resolve_url(frappe.router.current_route, route_options));
 	}
 
-	on_filter_change() {
-		// fired when filters are added or removed
+	on_filter_change(filters) {
+		this.filters = filters
+		this.start = 0
+		this.update_route_options()
+		this.refresh()
+	}
+
+	on_sort_change(sort_by, sort_order) {
+		this.sort_by = sort_by;
+		this.sort_order = sort_order;
+		this.update_route_options()
+		this.refresh()
 	}
 
 	toggle_result_area() {
@@ -567,6 +573,56 @@ frappe.views.BaseList = class BaseList {
 			},
 		});
 	}
+
+	parse_route_options(route_options) {
+		const filters = Object.entries(route_options.filters || {}).reduce((acc, [field, value]) => {
+			let doctype = null;
+
+			// if `Child DocType.fieldname`
+			if (field.includes(".")) {
+				doctype = field.split(".")[0];
+				field = field.split(".")[1];
+			}
+
+			// find the table in which the key exists
+			// for example the filter could be {"item_code": "X"}
+			// where item_code is in the child table.
+
+			// we can search all tables for mapping the doctype
+			if (!doctype) {
+				doctype = frappe.meta.get_doctype_for_field(
+					this.doctype,
+					field
+				);
+			}
+
+			if (doctype) {
+				if ($.isArray(value)) {
+					acc.push([doctype, field, value[0], value[1]]);
+				} else {
+					acc.push([doctype, field, "=", value]);
+				}
+			}
+			return acc
+		}, []);
+
+		const sort_by = route_options.sort_by || null;
+		const sort_order = route_options.sort_order || null;
+
+		return [filters, sort_by, sort_order]
+	}
+
+	convert_to_route_options(filters, sort_by, sort_order) {
+		return {
+			filters: filters.reduce((acc, [doctype, field, op, value]) => {
+				field = doctype !== this.doctype ? `${doctype}.${field}` : field
+				acc[field] = op === '=' ? value : [op, value]
+				return acc
+			}, {}),
+			sort_by,
+			sort_order,
+		}
+	}
 };
 
 class FilterArea {
@@ -583,7 +639,7 @@ class FilterArea {
 		);
 
 		this.$filter_list_wrapper = this.list_view.$filter_section;
-		this.trigger_refresh = true;
+		this.prevent_on_change = false;
 		this.setup();
 	}
 
@@ -601,14 +657,15 @@ class FilterArea {
 
 	set(filters) {
 		// use to method to set filters without triggering refresh
-		this.trigger_refresh = false;
+		this.prevent_on_change = true;
 		return this.add(filters, false).then(() => {
-			this.trigger_refresh = true;
+			this.prevent_on_change = false;
 			this.filter_list.update_filter_button();
 		});
 	}
 
-	add(filters, refresh = true) {
+	add(filters, trigger_on_change = true) {
+		this.prevent_on_change = !trigger_on_change
 		if (!filters || (Array.isArray(filters) && filters.length === 0))
 			return Promise.resolve();
 
@@ -632,15 +689,13 @@ class FilterArea {
 				);
 			})
 			.then(() => {
-				refresh && this.list_view.refresh();
+				this.prevent_on_change = false
 			});
 	}
 
-	refresh_list_view() {
-		if (this.trigger_refresh) {
-			this.list_view.start = 0;
-			this.list_view.refresh();
-			this.list_view.on_filter_change();
+	on_change() {
+		if (!this.prevent_on_change) {
+			this.list_view.on_filter_change(this.get().map((filter) => filter.slice(0, 4)));
 		}
 	}
 
@@ -716,11 +771,8 @@ class FilterArea {
 		return Promise.resolve();
 	}
 
-	clear(refresh = true) {
-		if (!refresh) {
-			this.trigger_refresh = false;
-		}
-
+	clear(trigger_on_change = true) {
+		this.prevent_on_change = !trigger_on_change;
 		this.filter_list.clear_filters();
 
 		const promises = [];
@@ -730,7 +782,7 @@ class FilterArea {
 			promises.push(() => field.set_value(""));
 		}
 		return frappe.run_serially(promises).then(() => {
-			this.trigger_refresh = true;
+			this.prevent_on_change = false;
 		});
 	}
 
@@ -742,13 +794,13 @@ class FilterArea {
 				label: "Name",
 				condition: "like",
 				fieldname: "name",
-				onchange: () => this.refresh_list_view(),
+				onchange: this.on_change.bind(this),
 			},
 		];
 
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
-				config.onchange = () => this.refresh_list_view();
+				config.onchange =  this.on_change.bind(this);
 			});
 
 			fields = fields.concat(this.list_view.custom_filter_configs);
@@ -812,7 +864,7 @@ class FilterArea {
 						fieldname: df.fieldname,
 						condition: condition,
 						default: default_value,
-						onchange: () => this.refresh_list_view(),
+						onchange: this.on_change.bind(this),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
 					};
@@ -861,12 +913,11 @@ class FilterArea {
 
 		this.filter_button = this.$filter_list_wrapper.find('.filter-button');
 		this.filter_list = new frappe.ui.FilterGroup({
-			base_list: this.list_view,
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
 			filter_button: this.filter_button,
 			default_filters: [],
-			on_change: () => this.refresh_list_view(),
+			on_change:  this.on_change.bind(this),
 		});
 	}
 

@@ -214,7 +214,6 @@ frappe.ui.FilterGroup = class {
 			filter_items: (doctype, fieldname) => {
 				return !this.filter_exists([doctype, fieldname]);
 			},
-			filter_list: this.base_list || this,
 		};
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
@@ -354,7 +353,7 @@ frappe.ui.FilterGroup = class {
 			.then(() => {
 				return (
 					non_standard_filters.length > 0 &&
-					this.filter_list.add_filters(non_standard_filters)
+					this.add_filters(non_standard_filters)
 				);
 			})
 			.then(() => {

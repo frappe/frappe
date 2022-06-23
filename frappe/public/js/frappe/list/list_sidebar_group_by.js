@@ -171,7 +171,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	get_group_by_count(field) {
-		let current_filters = this.list_view.get_filters_for_args();
+		let current_filters = this.list_view.filters;
 
 		// remove filter of the current field
 		current_filters = current_filters.filter(

@@ -179,7 +179,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				stats: me.stats,
 				doctype: me.doctype,
 				// wait for list filter area to be generated before getting filters, or fallback to default filters
-				filters: (me.list_view.filter_area ? me.list_view.get_filters_for_args() : me.default_filters) || []
+				filters: (me.list_view.filter_area ? me.list_view.filters : me.default_filters) || []
 			},
 			callback: function(r) {
 				let stats = (r.message.stats || {})["_user_tags"] || [];

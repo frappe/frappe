@@ -341,7 +341,9 @@ export default class ChartWidget extends Widget {
 					frappe.set_route(
 						"query-report",
 						this.chart_doc.report_name,
-						this.filters
+						{
+							filters: this.filters
+						}
 					);
 				}
 			});
