@@ -291,7 +291,11 @@ Cypress.Commands.add('clear_datepickers', () => {
 	cy.get('.datepicker').should('not.exist');
 });
 
+
 Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
+	if (!args.doctype) {
+		args.doctype = doctype;
+	}
 	return cy
 		.window()
 		.its('frappe.csrf_token')
@@ -313,11 +317,40 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 					if (ignore_duplicate) {
 						status_codes.push(409);
 					}
-					expect(res.status).to.be.oneOf(status_codes);
+
+					let message = null;
+					if (ignore_duplicate && !status_codes.includes(res.status)) {
+						message = `Document insert failed, response: ${JSON.stringify(res, null, '\t')}`;
+					}
+					expect(res.status).to.be.oneOf(status_codes, message);
 					return res.body.data;
 				});
 		});
 });
+
+Cypress.Commands.add('update_doc', (doctype, docname, args) => {
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'PUT',
+					url: `/api/resource/${doctype}/${docname}`,
+					body: args,
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					},
+				})
+				.then(res => {
+					expect(res.status).to.eq(200);
+					return res.body.data;
+				});
+		});
+});
+
 
 Cypress.Commands.add('open_list_filter', () => {
 	cy.get('.filter-section .filter-button').click();
