@@ -13,16 +13,7 @@ from frappe.model.naming import (
 	getseries,
 	revert_series_if_last,
 )
-<<<<<<< HEAD
-from frappe.utils import now_datetime
-=======
-from frappe.tests.utils import FrappeTestCase
-<<<<<<< HEAD
-from frappe.utils import now_datetime, nowdate
->>>>>>> a9e222a706 (chore: test case added for _auto_name format for date field)
-=======
 from frappe.utils import now_datetime, nowdate, nowtime
->>>>>>> 80de434984 (chore: Test case added for datetime, date and time field)
 
 
 class TestNaming(unittest.TestCase):
