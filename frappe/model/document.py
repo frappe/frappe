@@ -152,6 +152,17 @@ class Document(BaseDocument):
 			super(Document, self).__init__(d)
 
 		for df in self._get_table_fields():
+			# Make sure not to query the DB for a child table, if it is a virtual one.
+			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
+			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
+			if (
+				hasattr(self, "doctype")
+				and not hasattr(self, "module")
+				and frappe.db.get_value("DocType", df.options, "is_virtual", cache=True)
+			):
+				self.set(df.fieldname, [])
+				continue
+
 			children = (
 				frappe.db.get_values(
 					df.options,
@@ -379,7 +390,10 @@ class Document(BaseDocument):
 			d.db_update()
 			rows.append(d.name)
 
-		if df.options in (self.flags.ignore_children_type or []):
+		if (
+			df.options in (self.flags.ignore_children_type or [])
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
 			# do not delete rows for this because of flags
 			# hack for docperm :(
 			return

@@ -926,7 +926,7 @@ def has_permission(
 
 	if throw and not out:
 		# mimics frappe.throw
-		document_label = f"{doc.doctype} {doc.name}" if doc else doctype
+		document_label = f"{_(doc.doctype)} {doc.name}" if doc else _(doctype)
 		msgprint(
 			_("No permission for {0}").format(document_label),
 			raise_exception=ValidationError,
@@ -2239,14 +2239,14 @@ def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
 		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
 
-	return local.website_settings[key]
+	return local.website_settings.get(key)
 
 
 def get_system_settings(key):
 	if not hasattr(local, "system_settings"):
 		local.system_settings = db.get_singles_dict("System Settings", cast=True)
 
-	return local.system_settings[key]
+	return local.system_settings.get(key)
 
 
 def get_active_domains():

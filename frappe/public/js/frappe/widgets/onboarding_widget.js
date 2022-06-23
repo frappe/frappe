@@ -5,6 +5,7 @@ frappe.provide("frappe.utils");
 export default class OnboardingWidget extends Widget {
 
 	async refresh() {
+		frappe.utils.load_video_player();
 		this.new && await this.get_onboarding_data();
 		this.set_title();
 		this.set_actions();
@@ -156,7 +157,6 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		toggle_content();
-		// toggle_video();
 	}
 
 	go_to_page(step) {

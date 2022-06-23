@@ -279,7 +279,7 @@ def get_email_body_for_qr_code(kwargs_dict):
 	"""Get QRCode email body."""
 	body_template = _(
 		"Please click on the following link and follow the instructions on the page. {0}"
-	).format("<br><br> {{qrcode_link}}")
+	).format("<br><br> <a href='{{qrcode_link}}'>{{qrcode_link}}</a>")
 	body = frappe.render_template(body_template, kwargs_dict)
 	return body
 

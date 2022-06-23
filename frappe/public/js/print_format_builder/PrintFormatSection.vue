@@ -25,7 +25,7 @@
 							data-toggle="dropdown"
 						>
 							<svg class="icon icon-sm">
-								<use xlink:href="#icon-dot-horizontal"></use>
+								<use href="#icon-dot-horizontal"></use>
 							</svg>
 						</button>
 						<div
