@@ -16,7 +16,7 @@ from requests.exceptions import HTTPError, SSLError
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method
+from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
 
@@ -26,7 +26,6 @@ from .utils import *
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 URL_PREFIXES = ("http://", "https://")
-SITE_URL = frappe.utils.get_url()
 
 
 class File(Document):
@@ -261,8 +260,9 @@ class File(Document):
 
 	def validate_remote_file(self):
 		"""Validates if file uploaded using URL already exist"""
-		if "/files/" in self.file_url and self.file_url.startswith(SITE_URL):
-			self.file_url = self.file_url.split(SITE_URL, 1)[1]
+		site_url = get_url()
+		if "/files/" in self.file_url and self.file_url.startswith(site_url):
+			self.file_url = self.file_url.split(site_url, 1)[1]
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -454,8 +454,9 @@ class File(Document):
 
 		file_path = self.file_url or self.file_name
 
-		if "/files/" in file_path and file_path.startswith(SITE_URL):
-			file_path = file_path.split(SITE_URL, 1)[1]
+		site_url = get_url()
+		if "/files/" in file_path and file_path.startswith(site_url):
+			file_path = file_path.split(site_url, 1)[1]
 
 		if "/" not in file_path:
 			if self.is_private:
