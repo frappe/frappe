@@ -279,7 +279,9 @@ def connect_replica():
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		host=local.conf.replica_host, user=user, password=password, port=port, read_only=True
+	)
 
 	# swap db connections
 	local.primary_db = local.db

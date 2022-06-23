@@ -133,12 +133,10 @@ class MariaDBConnectionUtil:
 			self.close_connection_pools()
 			return self.create_connection()
 
-		read_only = frappe.conf.read_from_replica and frappe.conf.replica_host
-
 		if frappe.local.site not in _SITE_POOLS:
-			site_pool = self.create_connection_pool(read_only=read_only)
+			site_pool = self.create_connection_pool()
 		else:
-			site_pool = self.get_connection_pool(read_only=read_only)
+			site_pool = self.get_connection_pool()
 
 		try:
 			conn = site_pool.get_connection()
@@ -165,26 +163,26 @@ class MariaDBConnectionUtil:
 					pass
 			_SITE_POOLS.pop(frappe.local.site, None)
 
-	def get_pool_name(self, read_only=False) -> str:
-		pool_type = "read-only" if read_only else "default"
+	def get_pool_name(self) -> str:
+		pool_type = "read-only" if self.read_only else "default"
 		return f"{frappe.local.site}-{pool_type}"
 
-	def get_connection_pool(self, read_only=False) -> "ConnectionPool":
+	def get_connection_pool(self) -> "ConnectionPool":
 		"""Return MariaDB connection pool object.
 
 		If `read_only` is True, return a read only pool.
 		"""
-		return _SITE_POOLS[frappe.local.site]["read_only" if read_only else "default"]
+		return _SITE_POOLS[frappe.local.site]["read_only" if self.read_only else "default"]
 
-	def create_connection_pool(self, read_only=False):
+	def create_connection_pool(self):
 		pool = mariadb.ConnectionPool(
-			pool_name=self.get_pool_name(read_only=read_only),
+			pool_name=self.get_pool_name(),
 			pool_size=_MAX_POOL_SIZE,
 			pool_reset_connection=False,
 		)
 		pool.set_config(**self.get_connection_settings())
 
-		if read_only:
+		if self.read_only:
 			_SITE_POOLS[frappe.local.site].read_only = pool
 		else:
 			_SITE_POOLS[frappe.local.site].default = pool
