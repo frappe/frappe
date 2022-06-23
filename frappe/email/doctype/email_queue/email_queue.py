@@ -30,8 +30,6 @@ from frappe.utils import (
 	split_emails,
 )
 
-MAX_RETRY_COUNT = cint(frappe.db.get_system_setting("email_retry_count")) or 3
-
 
 class EmailQueue(Document):
 	DOCTYPE = "Email Queue"
@@ -210,7 +208,7 @@ class SendMailContext:
 			email_status = (self.sent_to and "Partially Sent") or "Not Sent"
 			self.queue_doc.update_status(status=email_status, commit=True)
 		elif exc_type:
-			if self.queue_doc.retry < MAX_RETRY_COUNT:
+			if self.queue_doc.retry < self.get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
 				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
@@ -345,6 +343,9 @@ class SendMailContext:
 				add_attachment(**print_format_file)
 
 		return safe_encode(message_obj.as_string())
+
+	def get_email_retry_limit():
+		return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
 @frappe.whitelist()
