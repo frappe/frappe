@@ -808,7 +808,7 @@ def write_csv_file(path, app_messages, lang_dict):
 				w.writerow([message, translated_string, context])
 
 
-def get_untranslated(lang, untranslated_file, get_all=False, app='all'):
+def get_untranslated(lang, untranslated_file, get_all=False, app='_ALL_APPS'):
 	"""Returns all untranslated strings for a language and writes in a file
 
 	:param lang: Language code.
