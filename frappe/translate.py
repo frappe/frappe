@@ -808,7 +808,7 @@ def write_csv_file(path, app_messages, lang_dict):
 				w.writerow([message, translated_string, context])
 
 
-def get_untranslated(lang, untranslated_file, get_all=False, app='_ALL_APPS'):
+def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 	"""Returns all untranslated strings for a language and writes in a file
 
 	:param lang: Language code.
@@ -816,12 +816,11 @@ def get_untranslated(lang, untranslated_file, get_all=False, app='_ALL_APPS'):
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
-	if app != '_ALL_APPS':
-		if app in apps:
-			apps = [app]
-		else:
-			print('Application {0} not found!'.format(app))
+	if app != "_ALL_APPS":
+		if app not in apps:
+			print(f"Application {app} not found!")
 			return
+		apps = [app]
 
 	messages = []
 	untranslated = []
@@ -856,7 +855,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, app='_ALL_APPS'):
 			print("all translated!")
 
 
-def update_translations(lang, untranslated_file, translated_file, app='_ALL_APPS'):
+def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS"):
 	"""Update translations from a source and target file for a given language.
 
 	:param lang: Language code (e.g. `en`).
@@ -864,7 +863,7 @@ def update_translations(lang, untranslated_file, translated_file, app='_ALL_APPS
 	:param translated_file: File path with messages in language to be updated."""
 	clear_cache()
 	full_dict = get_full_dict(lang)
-	
+
 	def restore_newlines(s):
 		return (
 			s.replace("|||||", "\\\n")
@@ -886,12 +885,13 @@ def update_translations(lang, untranslated_file, translated_file, app='_ALL_APPS
 
 	full_dict.update(translation_dict)
 	apps = frappe.get_all_apps(True)
-	if app != '_ALL_APPS':
-		if app in apps:
-			apps = [app]
-		else:
-			print('Application {0} not found!'.format(app))
+
+	if app != "_ALL_APPS":
+		if app not in apps:
+			print(f"Application {app} not found!")
 			return
+		apps = [app]
+
 	for app_name in apps:
 		write_translations_file(app_name, lang, full_dict)
 
