@@ -59,7 +59,7 @@
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "2.6.12",
+    "vue": "2.6.14",
     "vue-router": "^2.0.0",
     "vuedraggable": "^2.24.3"
   },
@@ -68,12 +68,13 @@
     "autoprefixer": "10",
     "chalk": "^2.3.2",
     "esbuild": "^0.14.29",
-    "esbuild-vue": "^0.2.0",
+    "esbuild-vue": "^1.2.1",
     "fast-glob": "^3.2.5",
     "launch-editor": "^2.2.1",
     "md5": "^2.3.0",
     "postcss": "8",
     "rtlcss": "^3.2.1",
+    "vue-template-compiler": "2.6.14",
     "yargs": "^17.5.1"
   },
   "snyk": true,
