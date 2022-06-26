@@ -27,6 +27,9 @@ def execute():
 		if key.endswith("_otpsecret")
 	}
 
+	if not secrets:
+		return
+
 	fields = (
 		"name",
 		"creation",
