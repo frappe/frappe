@@ -282,28 +282,31 @@ def get_full_dict(lang):
 	return frappe.local.lang_full_dict
 
 
+def get_lang_data(lang, apps):
+	out = {}
+	for app in (apps or frappe.get_all_apps(True)):
+		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
+		out.update(get_translation_dict_from_file(path, lang, app) or {})
+	return out
+
 def load_lang(lang, apps=None):
 	"""Combine all translations from `.csv` files in all `apps`.
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
 
-	if lang == "en":
+	try:
+		out = frappe.cache().hget("lang_full_dict", lang, shared=True)
+	except Exception:
 		return {}
-
-	out = frappe.cache().hget("lang_full_dict", lang, shared=True)
 	if not out:
-		out = {}
-		for app in apps or frappe.get_all_apps(True):
-			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-			out.update(get_translation_dict_from_file(path, lang, app) or {})
+		out = get_lang_data(lang=lang, apps=apps)
+	if '-' in lang:
+		parent = lang.split('-')[0]
+		parent_out = get_lang_data(lang=parent, apps=apps)
+		parent_out.update(out)
+		out = parent_out
 
-		if "-" in lang:
-			parent = lang.split("-")[0]
-			parent_out = load_lang(parent)
-			parent_out.update(out)
-			out = parent_out
-
-		frappe.cache().hset("lang_full_dict", lang, out, shared=True)
+	frappe.cache().hset("lang_full_dict", lang, out, shared=True)
 
 	return out or {}
 
