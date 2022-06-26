@@ -44,8 +44,7 @@ def get_meta(doctype, cached=True):
 	else:
 		meta = FormMeta(doctype)
 
-	if frappe.local.lang != "en":
-		meta.set_translations(frappe.local.lang)
+	meta.set_translations(frappe.local.lang)
 
 	return meta
 
