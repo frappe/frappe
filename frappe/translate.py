@@ -267,19 +267,23 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, "lang_full_dict", None) is not None:
-		return frappe.local.lang_full_dict
+	if (lang_full_dict := getattr(frappe.local, "lang_full_dict", None)) is not None:
+		return lang_full_dict
 
-	frappe.local.lang_full_dict = load_lang(lang)
+	lang_full_dict = load_lang(lang)
 
 	try:
 		# get user specific translation data
-		user_translations = get_user_translations(lang)
-		frappe.local.lang_full_dict.update(user_translations)
+		if user_translations := get_user_translations(lang):
+			# copy to avoid cache mutation
+			lang_full_dict = lang_full_dict.copy()
+			lang_full_dict.update(user_translations)
+
 	except Exception:
 		pass
 
-	return frappe.local.lang_full_dict
+	frappe.local.lang_full_dict = lang_full_dict
+	return lang_full_dict
 
 
 def load_lang(lang, apps=None):
