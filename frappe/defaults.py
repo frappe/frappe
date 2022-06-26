@@ -222,7 +222,7 @@ def get_defaults_for(parent="__default"):
 			.run(as_dict=True)
 		)
 
-		defaults = frappe._dict({})
+		defaults = frappe._dict()
 		for d in res:
 			if d.defkey in defaults:
 				# listify
