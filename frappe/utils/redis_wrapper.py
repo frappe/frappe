@@ -105,10 +105,7 @@ class RedisWrapper(redis.Redis):
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
-		try:
-			self.delete_value(self.get_keys(key), make_keys=False)
-		except redis.exceptions.ConnectionError:
-			pass
+		self.delete_value(self.get_keys(key), make_keys=False)
 
 	def delete_key(self, *args, **kwargs):
 		self.delete_value(*args, **kwargs)
@@ -202,10 +199,7 @@ class RedisWrapper(redis.Redis):
 			frappe.local.cache[_name][key] = value
 		elif generator:
 			value = generator()
-			try:
-				self.hset(name, key, value)
-			except redis.exceptions.ConnectionError:
-				pass
+			self.hset(name, key, value)
 		return value
 
 	def hdel(self, name, key, shared=False):
