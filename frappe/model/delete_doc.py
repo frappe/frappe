@@ -31,6 +31,7 @@ doctypes_to_skip = (
 	"Notification Log",
 	"Email Queue",
 	"Document Share Key",
+	"Integration Request",
 )
 
 
