@@ -121,6 +121,7 @@ execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
+frappe.patches.v12_0.encrypt_2fa_secrets
 execute:frappe.reload_doc('core', 'doctype', 'doctype')
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
 frappe.patches.v13_0.remove_invalid_options_for_data_fields
