@@ -12,6 +12,7 @@ import unittest
 from contextlib import contextmanager
 from functools import wraps
 from glob import glob
+from pathlib import Path
 from typing import List, Optional
 from unittest.case import skipIf
 from unittest.mock import patch
@@ -27,8 +28,11 @@ import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
+from frappe.utils.jinja_globals import bundled_asset
 
 _result: Optional[Result] = None
 TEST_SITE = "commands-site-O4PN2QKA.test"  # added random string tag to avoid collisions
@@ -518,6 +522,23 @@ class TestBackups(BaseTestCommands):
 		self.assertIsNotNone(after_backup["public"])
 		self.assertIsNotNone(after_backup["private"])
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_clear_log_table(self):
+		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
+		d.db_set("modified", "2010-01-01", update_modified=False)
+		frappe.db.commit()
+
+		tables_before = frappe.db.get_tables(cached=False)
+
+		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
+		self.assertEqual(self.returncode, 0)
+		frappe.db.commit()
+
+		self.assertFalse(frappe.db.exists("Error Log", d.name))
+		tables_after = frappe.db.get_tables(cached=False)
+
+		self.assertEqual(set(tables_before), set(tables_after))
+
 	def test_backup_with_custom_path(self):
 		"""Backup to a custom path (--backup-path)"""
 		backup_path = os.path.join(self.home, "backups")
@@ -673,7 +694,25 @@ class TestSiteMigration(BaseTestCommands):
 
 
 class TestBenchBuild(BaseTestCommands):
-	def test_build_assets(self):
-		with cli(frappe.commands.utils.build) as result:
+	def test_build_assets_size_check(self):
+		with cli(frappe.commands.utils.build, "--force --production") as result:
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
+
+		CURRENT_SIZE = 3.5  # MB
+		JS_ASSET_THRESHOLD = 0.1
+
+		hooks = frappe.get_hooks()
+		default_bundle = hooks["app_include_js"]
+
+		default_bundle_size = 0.0
+
+		for chunk in default_bundle:
+			abs_path = Path.cwd() / frappe.local.sites_path / bundled_asset(chunk)[1:]
+			default_bundle_size += abs_path.stat().st_size
+
+		self.assertLessEqual(
+			default_bundle_size / (1024 * 1024),
+			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
+			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
+		)

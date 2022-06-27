@@ -100,8 +100,8 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
+	if not frappe.has_permission(doctype, parent_doctype=parent):
+		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
 	if isinstance(filters, str):
@@ -143,7 +143,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 @frappe.whitelist()
 def get_single_value(doctype, field):
 	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
+		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
 	value = frappe.db.get_single_value(doctype, field)
 	return value
 
@@ -279,12 +279,6 @@ def set_default(key, value, parent=None):
 	"""set a user default value"""
 	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
-
-
-@frappe.whitelist()
-def get_default(key, parent=None):
-	"""set a user default value"""
-	return frappe.db.get_default(key, parent)
 
 
 @frappe.whitelist(methods=["POST", "PUT"])

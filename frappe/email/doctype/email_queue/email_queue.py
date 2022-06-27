@@ -18,7 +18,8 @@ from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.model.document import Document
-from frappe.query_builder.utils import DocType
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
 from frappe.utils import (
 	add_days,
 	cint,
@@ -143,6 +144,31 @@ class EmailQueue(Document):
 
 			if ctx.email_account_doc.append_emails_to_sent_folder and ctx.sent_to:
 				ctx.email_account_doc.append_email_to_sent_folder(message)
+
+	@staticmethod
+	def clear_old_logs(days=30):
+		"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
+		Note: Used separate query to avoid deadlock
+		"""
+		days = days or 31
+		email_queue = frappe.qb.DocType("Email Queue")
+		email_recipient = frappe.qb.DocType("Email Queue Recipient")
+
+		# Delete queue table
+		(
+			frappe.qb.from_(email_queue)
+			.delete()
+			.where((email_queue.modified < (Now() - Interval(days=days))))
+		).run()
+
+		# delete child tables, note that this has potential to leave some orphan
+		# child table behind if modified time was later than parent doc (rare).
+		# But it's safe since child table doesn't contain links.
+		(
+			frappe.qb.from_(email_recipient)
+			.delete()
+			.where((email_recipient.modified < (Now() - Interval(days=days))))
+		).run()
 
 
 @task(queue="short")

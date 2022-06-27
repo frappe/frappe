@@ -341,9 +341,9 @@ class File(Document):
 
 		size = width, height
 		if crop:
-			image = ImageOps.fit(image, size, Image.ANTIALIAS)
+			image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
 		else:
-			image.thumbnail(size, Image.ANTIALIAS)
+			image.thumbnail(size, Image.Resampling.LANCZOS)
 
 		thumbnail_url = f"{filename}_{suffix}.{extn}"
 		path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))

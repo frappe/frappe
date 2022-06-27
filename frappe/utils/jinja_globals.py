@@ -36,6 +36,7 @@ def web_block(template, values=None, **kwargs):
 
 
 def web_blocks(blocks):
+	import frappe
 	from frappe import _, _dict, throw
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
@@ -62,8 +63,26 @@ def web_blocks(blocks):
 	out = get_web_blocks_html(web_blocks)
 
 	html = out.html
-	for script in out.scripts:
-		html += "<script>{}</script>".format(script)
+
+	if not frappe.flags.web_block_scripts:
+		frappe.flags.web_block_scripts = {}
+		frappe.flags.web_block_styles = {}
+
+	for template, scripts in out.scripts.items():
+		# deduplication of scripts when web_blocks methods are used in web pages
+		# see render_dynamic method web_page.py
+		if template not in frappe.flags.web_block_scripts:
+			for script in scripts:
+				html += f"<script data-web-template='{template}'>{script}</script>"
+			frappe.flags.web_block_scripts[template] = True
+
+	for template, styles in out.styles.items():
+		# deduplication of styles when web_blocks methods are used in web pages
+		# see render_dynamic method web_page.py
+		if template not in frappe.flags.web_block_styles:
+			for style in styles:
+				html += f"<style data-web-template='{template}'>{style}</style>"
+			frappe.flags.web_block_styles[template] = True
 
 	return html
 

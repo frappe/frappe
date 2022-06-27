@@ -28,6 +28,7 @@ context('Awesome Bar', () => {
 
 		cy.findByPlaceholderText('ID')
 			.should('have.value', '%test%');
+		cy.clear_filters();
 	});
 
 	it('navigates to new form', () => {

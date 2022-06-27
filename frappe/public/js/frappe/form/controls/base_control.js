@@ -72,9 +72,12 @@ frappe.ui.form.Control = class BaseControl {
 				status = "Read";
 			}
 
+			let value = this.value || this.get_model_value();
+			value = this.get_parsed_value(value);
+
 			if (
 				status === "Read" &&
-				is_null(this.value) &&
+				is_null(value) &&
 				!in_list(["HTML", "Image", "Button"], this.df.fieldtype)
 			) status = "None";
 
@@ -93,9 +96,12 @@ frappe.ui.form.Control = class BaseControl {
 			}
 		}
 
+		let value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
+		value = this.get_parsed_value(value);
+
 		// hide if no value
 		if (this.doctype && status==="Read" && !this.only_input
-			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
+			&& is_null(value)
 			&& !in_list(["HTML", "Image", "Button"], this.df.fieldtype)) {
 
 			// eslint-disable-next-line
@@ -159,14 +165,18 @@ frappe.ui.form.Control = class BaseControl {
 			return this.doc[this.df.fieldname];
 		}
 	}
+	get_parsed_value(value) {
+		if (this.parse) {
+			value = this.parse(value);
+		}
+		return value;
+	}
 
 	set_value(value, force_set_value=false) {
 		return this.validate_and_set_in_model(value, null, force_set_value);
 	}
 	parse_validate_and_set_in_model(value, e) {
-		if(this.parse) {
-			value = this.parse(value);
-		}
+		value = this.get_parsed_value(value);
 		return this.validate_and_set_in_model(value, e);
 	}
 	validate_and_set_in_model(value, e, force_set_value=false) {

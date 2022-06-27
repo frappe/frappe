@@ -9,6 +9,7 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
+from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 from frappe.exceptions import SiteNotSpecifiedError
 
 
@@ -1088,6 +1089,51 @@ def build_search_index(context):
 		frappe.destroy()
 
 
+@click.command("clear-log-table")
+@click.option("--doctype", default="text", type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--days", type=int, help="Keep records for days")
+@click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
+@pass_context
+def clear_log_table(context, doctype, days, no_backup):
+	"""If any logtype table grows too large then clearing it with DELETE query
+	is not feasible in reasonable time. This command copies recent data to new
+	table and replaces current table with new smaller table.
+
+
+	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
+	"""
+	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
+	from frappe.utils.backups import scheduled_backup
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	if doctype not in LOG_DOCTYPES:
+		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+
+		if not no_backup:
+			scheduled_backup(
+				ignore_conf=False,
+				include_doctypes=doctype,
+				ignore_files=True,
+				force=True,
+			)
+			click.echo(f"Backed up {doctype}")
+
+		try:
+			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
+			clear_logs(doctype, days=days)
+		except Exception as e:
+			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
+			sys.exit(1)
+		else:
+			click.secho(f"Cleared {doctype} records older than {days} days", fg="green")
+
+
 @click.command("trim-database")
 @click.option("--dry-run", is_flag=True, default=False, help="Show what would be deleted")
 @click.option(
@@ -1260,4 +1306,5 @@ commands = [
 	partial_restore,
 	trim_tables,
 	trim_database,
+	clear_log_table,
 ]

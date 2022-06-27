@@ -259,13 +259,13 @@ def upload_system_backup_to_google_drive():
 
 
 def daily_backup():
-	drive_settings = frappe.db.get_singles_dict("Google Drive")
+	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Daily":
 		upload_system_backup_to_google_drive()
 
 
 def weekly_backup():
-	drive_settings = frappe.db.get_singles_dict("Google Drive")
+	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Weekly":
 		upload_system_backup_to_google_drive()
 

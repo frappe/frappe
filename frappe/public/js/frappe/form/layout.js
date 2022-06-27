@@ -122,7 +122,8 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		if (this.is_tabbed_layout()) {
-			let default_tab = {label: __('Details'), fieldname: 'details', fieldtype: "Tab Break"};
+			// add a tab without `fieldname` to avoid conflicts
+			let default_tab = {label: __('Details'), fieldtype: "Tab Break", fieldname: "__details"};
 			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
 			if (!first_tab) {
 				this.fields.splice(1, 0, default_tab);
@@ -292,9 +293,6 @@ frappe.ui.form.Layout = class Layout {
 		// refresh sections
 		this.refresh_sections();
 
-		// refresh tabs
-		this.tabbed_layout && this.refresh_tabs();
-
 		if (this.frm) {
 			// collapse sections
 			this.refresh_section_collapse();
@@ -324,28 +322,31 @@ frappe.ui.form.Layout = class Layout {
 				section.addClass("empty-section");
 			}
 		});
+
+		// refresh tabs
+		this.is_tabbed_layout() && this.refresh_tabs();
 	}
 
 	refresh_tabs() {
-		this.tabs.forEach(tab => {
-			if (!tab.wrapper.hasClass('hide') || !tab.parent.hasClass('hide')) {
-				tab.parent.removeClass('show hide');
-				tab.wrapper.removeClass('show hide');
-				if (
-					tab.wrapper.find(
-						".form-section:not(.hide-control, .empty-section), .form-dashboard-section:not(.hide-control, .empty-section)"
-					).length
-				) {
-					tab.toggle(true);
-				} else {
-					tab.toggle(false);
-				}
-			}
-		});
+		for (let tab of this.tabs) {
+			tab.refresh();
+		}
 
 		const visible_tabs = this.tabs.filter(tab => !tab.hidden);
 		if (visible_tabs && visible_tabs.length == 1) {
 			visible_tabs[0].parent.toggleClass('hide show');
+		}
+		this.set_tab_as_active();
+	}
+
+	set_tab_as_active() {
+		let frm_active_tab = this?.frm.get_active_tab?.();
+		if (frm_active_tab) {
+			frm_active_tab.set_active();
+		} else if (this.tabs.length) {
+			// set first tab as active when opening for first time, or new doc
+			let first_visible_tab = this.tabs.find(tab => !tab.is_hidden());
+			first_visible_tab && first_visible_tab.set_active();
 		}
 	}
 
