@@ -114,4 +114,4 @@ def create_translation(key, val):
 
 
 def clear_translation_cache():
-	frappe.cache.delete_key("lang_full_dict", shared=True)
+	frappe.cache().delete_key("lang_full_dict")

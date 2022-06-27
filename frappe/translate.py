@@ -385,9 +385,12 @@ def clear_cache():
 
 	# clear translations saved in boot cache
 	cache.delete_key("bootinfo")
-	cache.delete_key("lang_full_dict", shared=True)
-	cache.delete_key("translation_assets", shared=True)
+
+	cache.delete_key("lang_full_dict")
 	cache.delete_key("lang_user_translations")
+
+	cache.delete_key("lang_csv_dict", shared=True)
+	cache.delete_key("translation_assets", shared=True)
 
 
 def get_messages_for_app(app, deduplicate=True):
