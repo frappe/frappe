@@ -4,7 +4,6 @@
 """build query for doclistview and return results"""
 
 import json
-import re
 from io import StringIO
 
 import frappe
