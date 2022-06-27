@@ -266,38 +266,48 @@ def get_full_dict(lang):
 	if not lang:
 		return {}
 
-	def _get_full_dict():
-		lang_full_dict = frappe.cache().hget(
-			"lang_csv_dict",
-			lang,
-			lambda: load_lang(lang),
-			shared=True,
-		)
+	return frappe.cache().hget("lang_full_dict", lang, lambda: _get_full_dict(lang))
 
-		try:
-			# get user specific translation data
-			user_translations = get_user_translations(lang)
 
-			if frappe.flags.in_test:
-				# copy to avoid mutation of frappe.local.cache["lang_csv_dict"]
-				# not being done outside tests,
-				# since frappe.local.cache is re-initialised in every request
-				lang_full_dict = lang_full_dict.copy()
+def _get_full_dict(lang):
+	lang_full_dict = load_lang(lang)
 
-			lang_full_dict.update(user_translations)
-		except Exception:
-			pass
+	try:
+		# get user specific translation data
+		user_translations = get_user_translations(lang)
 
-		return lang_full_dict
+		if frappe.flags.in_test:
+			# copy to avoid mutation of frappe.local.cache["lang_csv_dict"]
+			# this is not being done outside tests,
+			# since frappe.local.cache is re-initialised in every request
+			lang_full_dict = lang_full_dict.copy()
 
-	return frappe.cache().hget("lang_full_dict", lang, _get_full_dict)
+		lang_full_dict.update(user_translations)
+	except Exception:
+		pass
+
+	return lang_full_dict
 
 
 def load_lang(lang, apps=None):
-	"""Combine all translations from `.csv` files in all `apps`.
+	"""
+	Combine all translations from `.csv` files in all `apps`.
 	For derivative languages (es-GT), take translations from the
-	base language (es) and then update translations from the child (es-GT)"""
+	base language (es) and then update translations from the child (es-GT)
+	"""
 
+	if apps:
+		return _load_lang(lang, apps)
+
+	return frappe.cache().hget(
+		"lang_csv_dict",
+		lang,
+		lambda: _load_lang(lang),
+		shared=True,
+	)
+
+
+def _load_lang(lang, apps=None):
 	if lang == "en":
 		return {}
 
@@ -305,6 +315,7 @@ def load_lang(lang, apps=None):
 		apps = frappe.get_all_apps(True)
 
 	out = {}
+
 	for app in apps:
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		out.update(get_translation_dict_from_file(path, lang, app) or {})
