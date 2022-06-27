@@ -4,6 +4,7 @@
 import unittest
 
 import frappe
+from frappe.core.doctype.translation.test_translation import clear_translation_cache
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 
 
@@ -132,7 +133,7 @@ class TestSearch(unittest.TestCase):
 	def test_link_search_in_foreign_language(self):
 		try:
 			frappe.local.lang = "fr"
-			frappe.local.lang_full_dict = None  # discard translation cache
+			clear_translation_cache()
 			search_widget(doctype="DocType", txt="pay", page_length=20)
 			output = frappe.response["values"]
 

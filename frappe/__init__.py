@@ -109,7 +109,6 @@ def _(msg, lang=None, context=None):
 	if not translated_string:
 		translated_string = get_full_dict(lang).get(msg)
 
-	# return lang_full_dict according to lang passed parameter
 	return translated_string or non_translated_string
 
 
@@ -218,7 +217,6 @@ def init(site, sites_path=None, new_site=False):
 
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
-	local.lang_full_dict = None
 
 	local.module_app = None
 	local.app_modules = None
