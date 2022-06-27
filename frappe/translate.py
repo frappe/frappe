@@ -274,15 +274,15 @@ def _get_full_dict(lang):
 
 	try:
 		# get user specific translation data
-		user_translations = get_user_translations(lang)
+		if user_translations := get_user_translations(lang):
+			if frappe.flags.in_test:
+				# copy to avoid mutation of frappe.local.cache["lang_csv_dict"]
+				# this is not being done outside tests,
+				# since frappe.local.cache is re-initialised in every request
+				lang_full_dict = lang_full_dict.copy()
 
-		if frappe.flags.in_test:
-			# copy to avoid mutation of frappe.local.cache["lang_csv_dict"]
-			# this is not being done outside tests,
-			# since frappe.local.cache is re-initialised in every request
-			lang_full_dict = lang_full_dict.copy()
+			lang_full_dict.update(user_translations)
 
-		lang_full_dict.update(user_translations)
 	except Exception:
 		pass
 
