@@ -324,7 +324,7 @@ def _load_lang(lang, apps=None):
 		return out
 
 	parent = lang.split("-")[0]
-	parent_out = load_lang(parent, apps)
+	parent_out = _load_lang(parent, apps)
 	parent_out.update(out)
 	return parent_out
 
