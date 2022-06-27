@@ -61,10 +61,12 @@ class File(Document):
 		self.set_file_name()
 		self.validate_attachment_limit()
 
-		if not self.is_folder and self.is_remote_file:
-			self.validate_remote_file()
+		if self.is_folder:
+			return
 
-		if not self.is_folder and not self.is_remote_file:
+		if self.is_remote_file:
+			self.validate_remote_file()
+		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.local.rollback_observers.append(self)
