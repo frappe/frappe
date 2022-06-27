@@ -199,7 +199,7 @@ class RedisWrapper(redis.Redis):
 			frappe.local.cache[_name][key] = value
 		elif generator:
 			value = generator()
-			self.hset(name, key, value)
+			self.hset(name, key, value, shared=shared)
 		return value
 
 	def hdel(self, name, key, shared=False):
