@@ -59,7 +59,7 @@ cd ./apps/frappe || exit
 yarn add node-sass@4.13.1
 cd ../..
 
-bench start &
+bench start &> bench_start.log &
 bench --site test_site reinstall --yes
 if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi
 if [ "$TYPE" == "server" ]; then CI=Yes bench build --app frappe; fi

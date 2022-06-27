@@ -175,3 +175,7 @@ jobs:
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
           flags: server
+
+      - name: Show bench console if tests failed
+        if: ${{ failure() }}
+        run: cat ~/frappe-bench/bench_start.log
