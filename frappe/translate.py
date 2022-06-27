@@ -353,6 +353,10 @@ def get_translation_dict_from_file(path, lang, app, throw=False):
 
 
 def get_user_translations(lang):
+	return frappe.cache().hget("lang_user_translations", lang, lambda: _get_user_translations(lang))
+
+
+def _get_user_translations(lang):
 	if not frappe.db:
 		frappe.connect()
 
@@ -383,6 +387,7 @@ def clear_cache():
 	cache.delete_key("bootinfo")
 	cache.delete_key("lang_full_dict", shared=True)
 	cache.delete_key("translation_assets", shared=True)
+	cache.delete_key("lang_user_translations")
 
 
 def get_messages_for_app(app, deduplicate=True):

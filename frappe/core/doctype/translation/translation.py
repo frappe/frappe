@@ -90,4 +90,5 @@ def create_translations(translation_map, language):
 
 
 def clear_user_translation_cache(lang):
-	frappe.cache().hdel("lang_full_dict", lang)
+	for cache_key in ("lang_full_dict", "lang_user_translations"):
+		frappe.cache().hdel(cache_key, lang)
