@@ -83,7 +83,8 @@ class File(Document):
 		
 		if self.is_remote_file:
 			self.validate_remote_file()
-		else:
+
+		if self.content:
 			self.save_file(content=self.content, decode=self.decode)
 
 	def get_name_based_on_parent_folder(self):
