@@ -19,7 +19,7 @@ class SystemConsole(Document):
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
-		except:  # noqa: E722
+		except Exception:
 			self.output = frappe.get_traceback()
 
 		if self.commit:

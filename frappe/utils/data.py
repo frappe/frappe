@@ -966,7 +966,7 @@ def floor(s):
 	"""
 	try:
 		num = cint(math.floor(flt(s)))
-	except:
+	except Exception:
 		num = 0
 	return num
 
@@ -988,7 +988,7 @@ def ceil(s):
 	"""
 	try:
 		num = cint(math.ceil(flt(s)))
-	except:
+	except Exception:
 		num = 0
 	return num
 
