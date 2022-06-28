@@ -432,9 +432,6 @@ def msgprint(
 
 	def _raise_exception():
 		if raise_exception:
-			if flags.rollback_on_exception:
-				db.rollback()
-
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception(msg)
 			else:
@@ -2231,14 +2228,14 @@ def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
 		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
 
-	return local.website_settings[key]
+	return local.website_settings.get(key)
 
 
 def get_system_settings(key):
 	if not hasattr(local, "system_settings"):
 		local.system_settings = db.get_singles_dict("System Settings", cast=True)
 
-	return local.system_settings[key]
+	return local.system_settings.get(key)
 
 
 def get_active_domains():

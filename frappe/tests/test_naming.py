@@ -12,7 +12,7 @@ from frappe.model.naming import (
 	revert_series_if_last,
 )
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, nowdate, nowtime
 
 
 class TestNaming(FrappeTestCase):
@@ -99,6 +99,20 @@ class TestNaming(FrappeTestCase):
 		series = int(series) - 1
 
 		self.assertEqual(doc.name, f"TODO-{now_datetime().strftime('%m')}-{description}-{series:02}")
+
+	def test_format_autoname_for_datetime_field(self):
+		"""Test if datetime, date and time objects get converted to strings for naming."""
+		doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
+
+		for field in [now_datetime(), nowdate(), nowtime()]:
+			doc = frappe.new_doc(doctype.name)
+			doc.field = field
+			doc.insert()
+
+			series = getseries("", 2)
+			series = int(series) - 1
+
+			self.assertEqual(doc.name, f"TODO-{field}-{series:02}")
 
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""

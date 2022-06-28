@@ -50,6 +50,10 @@ class ScheduledJobType(Document):
 		queued_jobs = get_jobs(site=frappe.local.site, key="job_type")[frappe.local.site]
 		return self.method in queued_jobs
 
+	@property
+	def next_execution(self):
+		return self.get_next_execution()
+
 	def get_next_execution(self):
 		CRON_MAP = {
 			"Yearly": "0 0 1 1 *",

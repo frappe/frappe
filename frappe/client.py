@@ -281,12 +281,6 @@ def set_default(key, value, parent=None):
 	frappe.clear_cache(user=frappe.session.user)
 
 
-@frappe.whitelist()
-def get_default(key, parent=None):
-	"""set a user default value"""
-	return frappe.db.get_default(key, parent)
-
-
 @frappe.whitelist(methods=["POST", "PUT"])
 def make_width_property_setter(doc):
 	"""Set width Property Setter
