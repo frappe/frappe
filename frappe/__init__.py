@@ -78,7 +78,7 @@ class _dict(dict):
 		return _dict(self)
 
 
-def _(msg, lang=None, context=None):
+def _(msg, lang=None, context=None) -> str:
 	"""Returns translated string in current lang, if exists.
 	Usage:
 	        _('Change')
