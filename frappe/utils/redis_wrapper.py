@@ -209,9 +209,10 @@ class RedisWrapper(redis.Redis):
 		elif generator:
 			value = generator()
 			try:
-				self.hset(name, key, value)
+				self.hset(name, key, value, shared=shared)
 			except redis.exceptions.ConnectionError:
 				pass
+
 		return value
 
 	def hdel(self, name, key, shared=False):
