@@ -556,6 +556,7 @@ doctype_properties = {
 	"subject_field": "Data",
 	"sender_field": "Data",
 	"autoname": "Data",
+	"translate_link_fields": "Check",
 }
 
 docfield_properties = {

@@ -29,13 +29,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			setTimeout(function() {
 				if(me.$input.val() && me.get_options()) {
 					let doctype = me.get_options();
-					let name = me.$input.val();
+					let name = me.get_input_value();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
 				if(!me.$input.val()) {
 					me.$input.val("").trigger("input");
+
+					// hide link arrow to doctype if none is set
+					me.$link.toggle(false);
 				}
 			}, 500);
 		});
@@ -59,7 +62,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	get_reference_doctype() {
 		// this is used to get the context in which link field is loaded
-		if (this.doctype) return this.doctype;
+		if(this.doctype) return this.doctype;
 		else {
 			return frappe.get_route && frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
 		}
@@ -68,6 +71,48 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(this.only_input && !this.with_link_btn) {
 			this.$input_area.find(".link-btn").remove();
 		}
+	},
+	set_formatted_input(value) {
+		if(!value) return;
+
+		if(!this.translate_value_map) {
+			this.translate_value_map = {};
+		}
+
+		let translated_link_text = this.get_translated(value)
+		this.translate_value_map[translated_link_text] = value;
+
+		this.set_input_value(translated_link_text);
+	},
+	get_translated(value) {
+		return __(value);
+		return this.is_translatable() ? __(value) : value;
+	},
+	is_translatable() {
+		return true;
+		return in_list(frappe.boot.translatable_doctypes || [], this.get_options());
+	},
+	parse_validate_and_set_in_model(value, e) {
+		if(this.parse) value = this.parse(value);
+		this.label = this.get_translated(value);
+
+		return this.validate_and_set_in_model(value, e, true);
+	},
+	parse(value) {
+		return strip_html(value);
+	},
+	get_input_value() {
+		if(this.$input) {
+			const input_value = this.$input.val();
+			return (this.translate_value_map && this.translate_value_map[input_value]) || input_value;
+		}
+		return null;
+	},
+	get_label_value() {
+		return this.$input ? this.$input.val() : "";
+	},
+	set_input_value(value) {
+		this.$input && this.$input.val(value);
 	},
 	open_advanced_search: function() {
 		var doctype = this.get_options();
@@ -83,22 +128,22 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var doctype = this.get_options();
 		var me = this;
 
-		if (!doctype) return;
+		if(!doctype) return;
 
 		let df = this.df;
-		if (this.frm && this.frm.doctype !== this.df.parent) {
+		if(this.frm && this.frm.doctype !== this.df.parent) {
 			// incase of grid use common df set in grid
 			df = this.frm.get_docfield(this.doc.parentfield, this.df.fieldname);
 		}
 		// set values to fill in the new document
-		if (df && df.get_route_options_for_new_doc) {
+		if(df && df.get_route_options_for_new_doc) {
 			frappe.route_options = df.get_route_options_for_new_doc(this);
 		} else {
 			frappe.route_options = {};
 		}
 
 		// partially entered name field
-		frappe.route_options.name_field = this.get_value();
+		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
 		frappe._from_link = this;
@@ -120,9 +165,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-			data: function (item) {
+			replace: function(item) {
+				// Override Awesomeplete replace function as it is used to set the input value
+				// https://github.com/LeaVerou/awesomplete/issues/17104#issuecomment-359185403
+				this.input.value = me.get_translated(item.label || item.value);
+			},
+			data: function(item) {
 				return {
-					label: item.label || item.value,
+					label: me.get_translated(item.label || item.value),
 					value: item.value
 				};
 			},
@@ -130,11 +180,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				return true;
 			},
 			item: function (item) {
-				var d = this.get_item(item.value);
-				if(!d.label) {	d.label = d.value; }
+				let d = this.get_item(item.value);
+				if(!d.label) { d.label = d.value; }
 
-				var _label = (me.translate_values) ? __(d.label) : d.label;
-				var html = d.html || "<strong>" + _label + "</strong>";
+				let _label = me.get_translated(d.label);
+				let html = d.html || "<strong>" + _label + "</strong>";
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
@@ -236,18 +286,32 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.selected = false;
 				return;
 			}
-			var value = me.get_input_value();
-			if(value!==me.last_value) {
-				me.parse_validate_and_set_in_model(value);
+			let value = me.get_input_value();
+			let label = me.get_label_value();
+			let last_value = me.last_value || "";
+			let last_label = me.label || "";
+
+			if(value !== last_value || label !== last_label) {
+				me.parse_validate_and_set_in_model(value, null);
 			}
 		});
 
 		this.$input.on("awesomplete-open", () => {
 			this.autocomplete_open = true;
+
+			if(!me.get_label_value()) {
+				// hide link arrow to doctype if none is set
+				me.$link.toggle(false);
+			}
 		});
 
 		this.$input.on("awesomplete-close", () => {
 			this.autocomplete_open = false;
+
+			if(!me.get_label_value()) {
+				// hide link arrow to doctype if none is set
+				me.$link.toggle(false);
+			}
 		});
 
 		this.$input.on("awesomplete-select", function(e) {
@@ -286,8 +350,26 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.$input.val("");
 			}
 		});
-	},
 
+		this.$input.on("focus", function() {
+			me.show_untranslated();
+			if(!frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+				me.show_untranslated();
+			}
+		});
+
+		this.$input.keydown((e) => {
+			let BACKSPACE = 8;
+			me.show_untranslated();
+			if(e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+				me.show_untranslated();
+			}
+		});
+	},
+	show_untranslated() {
+		let value = this.get_input_value();
+		this.is_translatable() && this.set_input_value(value);
+	},
 	merge_duplicates(results) {
 		// in case of result like this
 		// [{value: 'Manufacturer 1', 'description': 'mobile part 1'},

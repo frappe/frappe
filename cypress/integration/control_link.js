@@ -169,4 +169,56 @@ context('Control Link', () => {
 			"contain", ""
 		);
 	});
+
+	it('show translated text for link with show_title_field_in_link disabled', () => {
+		cy.insert_doc("Property Setter", {
+			"doctype": "Property Setter",
+			"doc_type": "User",
+			"property": "translate_link_fields",
+			"property_type": "Check",
+			"doctype_or_field": "DocType",
+			"value": "1"
+		}, true);
+
+		cy.window().its('frappe').then(frappe => {
+			cy.insert_doc("Translation", {
+				doctype: "Translation",
+				language: frappe.boot.lang,
+				source_text: "test@erpnext.com",
+				translated_text: "translatedtest@erpnext.com",
+			});
+		});
+
+		cy.clear_cache();
+		cy.wait(500);
+
+		cy.window().its('frappe').then(frappe => {
+			if (!frappe.boot) {
+				frappe.boot = {
+					translatable_doctypes: ['User']
+				};
+			} else {
+				frappe.boot.translatable_doctypes = ['User'];
+			}
+		});
+
+		get_dialog_with_user_link().as('dialog');
+		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
+
+		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
+		cy.wait('@search_link');
+		cy.get('@input').type('test@erpnext.com', { delay: 100 });
+		cy.wait('@search_link');
+		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
+		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
+		cy.get('.frappe-control[data-fieldname=link] input').blur();
+		cy.get('@dialog').then(dialog => {
+			let field = dialog.get_field('link');
+			let value = field.get_value();
+			let label = field.get_label_value();
+
+			expect(value).to.eq('test@erpnext.com');
+			expect(label).to.eq('translatedtest@erpnext.com');
+		});
+	});
 });
