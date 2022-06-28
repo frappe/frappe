@@ -683,7 +683,7 @@ def prepare_message(email, recipient, recipients_list):
 			else:
 				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
 			message = message.replace(
-				"<!--cc message-->", quopri.encodestring(email_sent_message.encode()).decode()
+				"<!--cc_message-->", quopri.encodestring(email_sent_message.encode()).decode()
 			)
 
 		message = message.replace("<!--recipient-->", recipient)
