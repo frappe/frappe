@@ -613,7 +613,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	except Exception as e:
 		frappe.db.rollback()
 
-		if email.retry < 3:
+		if email.retry < get_email_retry_limit():
 			frappe.db.sql(
 				"""update `tabEmail Queue` set status='Not Sent', modified=%s, retry=retry+1 where name=%s""",
 				(now_datetime(), email.name),
@@ -783,3 +783,7 @@ def set_expiry_for_email_queue():
 		AND (`send_after` IS NULL OR `send_after` < %(now)s)""",
 		{"now": now_datetime()},
 	)
+
+
+def get_email_retry_limit():
+	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
