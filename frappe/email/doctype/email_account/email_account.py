@@ -831,7 +831,7 @@ class EmailAccount(Document):
 
 		email_server.connect()
 
-		if email_server.imap:
+		if getattr(email_server, "imap", False):
 			try:
 				message = safe_encode(message)
 				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
