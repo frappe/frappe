@@ -375,29 +375,24 @@ class DatabaseQuery(object):
 
 	def extract_tables(self):
 		"""extract tables from fields"""
-		self.tables = [f"`tab{self.doctype}`"]
-		sql_functions = [
-			"dayofyear(",
-			"extract(",
-			"locate(",
-			"strpos(",
-		]
-		aggregate_functions = [
-			"count(",
-			"sum(",
-			"avg(",
-		]
+		self.tables = ["`tab" + self.doctype + "`"]
+
 		# add tables from fields
 		if self.fields:
-			for field in self.fields:
-				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
+			for f in self.fields:
+				if (
+					(not ("tab" in f and "." in f))
+					or ("locate(" in f)
+					or ("strpos(" in f)
+					or ("count(" in f)
+					or ("avg(" in f)
+					or ("sum(" in f)
+					or ("extract(" in f)
+					or ("dayofyear(" in f)
+				):
 					continue
 
-				if any(x for x in aggregate_functions if x in field):
-					field = field.split("(", 1)[1][:-1]
-
-				table_name = field.split(".")[0]
-
+				table_name = f.split(".")[0]
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
 				if table_name.lower().startswith("ifnull("):
