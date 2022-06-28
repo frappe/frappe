@@ -375,10 +375,6 @@ class DatabaseQuery(object):
 
 	def extract_tables(self):
 		"""extract tables from fields"""
-<<<<<<< HEAD
-		self.tables = ["`tab" + self.doctype + "`"]
-
-=======
 		self.tables = [f"`tab{self.doctype}`"]
 		sql_functions = [
 			"dayofyear(",
@@ -391,31 +387,17 @@ class DatabaseQuery(object):
 			"sum(",
 			"avg(",
 		]
->>>>>>> 971b8160a3 (fix: extra column in excel after exporting report with group by (#17126))
 		# add tables from fields
 		if self.fields:
-			for f in self.fields:
-				if (
-					(not ("tab" in f and "." in f))
-					or ("locate(" in f)
-					or ("strpos(" in f)
-					or ("count(" in f)
-					or ("avg(" in f)
-					or ("sum(" in f)
-					or ("extract(" in f)
-					or ("dayofyear(" in f)
-				):
+			for field in self.fields:
+				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
 					continue
 
-<<<<<<< HEAD
-				table_name = f.split(".")[0]
-=======
 				if any(x for x in aggregate_functions if x in field):
 					field = field.split("(", 1)[1][:-1]
 
 				table_name = field.split(".")[0]
 
->>>>>>> 971b8160a3 (fix: extra column in excel after exporting report with group by (#17126))
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
 				if table_name.lower().startswith("ifnull("):
