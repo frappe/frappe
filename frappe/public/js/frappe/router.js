@@ -17,15 +17,13 @@ frappe.route_hooks = {};
 $(window).on('hashchange', function(e) {
 	// v1 style routing, route is in hash
 	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
-		let sub_path = frappe.router.get_sub_path(window.location.hash);
-		frappe.router.push_url(sub_path);
-		frappe.router.route();
+		frappe.router.intercept(window.location.hash);
 		return false;
 	}
 });
 
 window.addEventListener('popstate', (e) => {
-	// forward-back button, just re-render based on current route
+	// forward-back button, just re-render based on current url
 	frappe.router.route();
 	e.preventDefault();
 	return false;
@@ -33,9 +31,9 @@ window.addEventListener('popstate', (e) => {
 
 // routing v2, capture all clicks so that the target is managed with push-state
 $('body').on('click', 'a', function(e) {
-	let override = (route, route_options) => {
+	let override = (url) => {
 		e.preventDefault();
-		frappe.set_route(route, route_options);
+		frappe.router.intercept(url);
 		return false;
 	};
 
@@ -59,8 +57,7 @@ $('body').on('click', 'a', function(e) {
 
 	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
 		// target has "/app, this is a v2 style route.
-		const [route, route_options] = frappe.router.reverse_url(e.currentTarget.pathname)
-		return override(route, route_options);
+		return override(e.currentTarget.pathname);
 	}
 
 });
@@ -72,6 +69,36 @@ frappe.router = {
 	routes: {},
 	factory_views: ['form', 'list', 'report', 'tree', 'print', 'dashboard'],
 	list_views: ['list', 'kanban', 'report', 'calendar', 'tree', 'gantt', 'dashboard', 'image', 'inbox'],
+	transitions: {
+		list: {
+			__: {
+				form: (prev, next) => ([next[0], {
+					...next[1],
+					[`__${(prev[0][2] || 'list').toLowerCase()}`]: prev[1]
+				}]),
+				list: {
+					__: (prev, next) => {
+						return [next[0], Object.keys(next[1]).length > 0 ? next[1] : prev[1]]
+					}
+				}
+			},
+		},
+		form: {
+			list: {
+				__:  (prev, next) => {
+					if (Object.keys(next[1]).length === 0) {
+						const key = Object.keys(prev[1]).find((k) => k.startsWith('__'));
+						if (key !== undefined) {
+							const list_view = key.split('__')[1]
+							return [[...next[0].slice(0, 2), list_view], prev[1][key]];
+						}
+					}
+
+					return next;
+				}
+			}
+		},
+	},
 
 	is_app_route(path) {
 		// desk paths must begin with /app or doctype route
@@ -94,21 +121,17 @@ frappe.router = {
 		}
 	},
 
-	route() {
-		// resolve the route from the URL or hash
-		// translate it so the objects are well defined
-		// and render the page as required
-
+	route(url) {
 		if (!frappe.app) return;
 
 		let sub_path = this.get_sub_path();
 		if (this.re_route(sub_path)) return;
 
 		this.current_sub_path = sub_path;
-		const reversed = this.reverse_url(this.current_url())
+		const reversed = this.reverse_url(url || this.current_url())
 		this.current_route = reversed[0];
-		frappe.route_options = reversed[1];
-		Object.freeze(frappe.route_options);
+		this.doctype_layout = reversed[2];
+		this._set_route_options(reversed[1]);
 		frappe.route_flags = {};
 		frappe.route_history.push(this.current_route);
 		frappe.ui.hide_open_dialog();
@@ -125,12 +148,25 @@ frappe.router = {
 		})
 	},
 
+	_set_route_options(route_options) {
+		frappe.route_options = {...route_options || {}};
+		Object.freeze(frappe.route_options);
+	},
+
+	async intercept(url) {
+		const [route, route_options, doctype_layout] = this.reverse_url(url);
+		if (this.push_url(this.resolve_url(route, {...route_options}))) {
+			await this.route();
+		}
+	},
+
 	reverse_url(url) {
 		const [path, search] = url.split("?")
 		const sub_path = this.get_sub_path(path).split('/')
+		const doctype_route = sub_path[0] ? this.routes[sub_path[0]] : null
 		const route = this.convert_to_standard_route(sub_path);
 		const route_options = this.decode_route_options(search)
-		return [route, route_options]
+		return [route, route_options, doctype_route && doctype_route.doctype_layout || null];
 	},
 
 	resolve_url(route, route_options) {
@@ -139,13 +175,22 @@ frappe.router = {
 
 		// See if we are routing between same doctype
 		if(this.current_route && this.current_route[1] !== undefined && this.current_route[1] === route[1]) {
-			// See if this url moves from list to form
-			if(this.current_route[0] === "List" && route[0] === "Form") {
-				// Keep list state
-				route_options["__list"] = frappe.route_options
-			} else if(this.current_route[0] === "Form" && route[0] === "List") {
-				// Append list state
-				route_options = Object.keys(route_options).length === 0 ? frappe.route_options.__list || {} : route_options
+			let from = this.transitions[this.current_route[0].toLowerCase()]
+			if (from !== undefined && this.current_route[0].toLowerCase() === 'list') {
+				from = from[this.current_route[2]] || from.__;
+			}
+
+			let to = from !== undefined ? from[route[0].toLowerCase()] : undefined
+			if (to !== undefined && route[0].toLowerCase() === 'list') {
+				to = to[route[2]] || to.__;
+			}
+
+			if (to !== undefined) {
+				// Apply transition logic
+				;[route, route_options] = to(
+					[this.current_route, {...frappe.route_options}],
+					[route, {...route_options}]
+				)
 			}
 		}
 
@@ -158,7 +203,7 @@ frappe.router = {
 	},
 
 	encode_route_options(route_options) {
-		return Object.entries(route_options || {}).map(
+		return Object.entries(route_options || {}).filter(([k, v]) => v !== undefined).map(
 			([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(v))}`
 		).join('&')
 	},
@@ -169,33 +214,6 @@ frappe.router = {
 			acc[k] = JSON.parse(v)
 			return acc
 		}, {})
-	},
-
-	get_doctype_route(route) {
-		let doctype_route = this.routes[route[0]];
-		// doctype route
-		if (route[1]) {
-			if (route[2] && route[1]==='view') {
-				route = this.get_standard_route_for_list(route, doctype_route);
-			} else {
-				let docname = route[1];
-				if (route.length > 2) {
-					docname = route.slice(1).join('/');
-				}
-				route = ['Form', doctype_route.doctype, docname];
-			}
-		} else if (frappe.model.is_single(doctype_route.doctype)) {
-			route = ['Form', doctype_route.doctype, doctype_route.doctype];
-		} else {
-			route = ['List', doctype_route.doctype, 'List'];
-		}
-
-		if (doctype_route.doctype_layout) {
-			// set the layout
-			this.doctype_layout = doctype_route.doctype_layout;
-		}
-
-		return route;
 	},
 
 	is_reserved_path(path) {
@@ -280,18 +298,27 @@ frappe.router = {
 
 	async push_route() {
 		const [route, route_options] = this.parse_route_arguments(Array.from(arguments))
-		if (this.push_url(this.resolve_url(route, {...route_options}))) {
+		if (this.push_url(this.resolve_url(route, route_options))) {
 			await this.route();
 		}
 	},
 
 	async replace_route() {
 		const [route, route_options] = this.parse_route_arguments(Array.from(arguments))
-		if (this.replace_url(this.resolve_url(route, {...route_options}))) {
+		if (this.replace_url(this.resolve_url(route, route_options))) {
 			await this.route();
 		}
 	},
 
+	push_route_options(route_options) {
+		this.push_url(this.resolve_url(this.current_route, route_options));
+		this._set_route_options(route_options);
+	},
+
+	replace_route_options(route_options) {
+		this.replace_url(this.resolve_url(this.current_route, route_options));
+		this._set_route_options(route_options);
+	},
 
 	parse_route_arguments(route) {
 		// example 1: ['a', 'b', 'c', route_options?];
@@ -339,8 +366,7 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
-
-		let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+		const private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
 
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
@@ -349,11 +375,26 @@ frappe.router = {
 			// private workspace
 			route = ['Workspaces', 'private', frappe.workspaces[private_workspace].title];
 		} else if (this.routes[route[0]]) {
-			// route
-			route = this.get_doctype_route(route);
+			// doctype route
+			const doctype_route = this.routes[route[0]];
+			if (route[1]) {
+				if (route[2] && route[1]==='view') {
+					route = this.get_standard_route_for_list(route, doctype_route);
+				} else {
+					let docname = route[1];
+					if (route.length > 2) {
+						docname = route.slice(1).join('/');
+					}
+					route = ['Form', doctype_route.doctype, docname];
+				}
+			} else if (frappe.model.is_single(doctype_route.doctype)) {
+				route = ['Form', doctype_route.doctype, doctype_route.doctype];
+			} else {
+				route = ['List', doctype_route.doctype, 'List'];
+			}
 		}
 
-		return route;
+		return route
 	},
 
 	convert_from_standard_route(route) {

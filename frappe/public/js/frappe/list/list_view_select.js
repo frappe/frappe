@@ -34,21 +34,20 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		}
 	}
 
-	set_route(view, calendar_name) {
+	switch_view(view) {
 		const route = [this.slug(), "view", view];
-		if (calendar_name) route.push(calendar_name);
-		frappe.set_route(route);
+		frappe.router.set_route(route);
 	}
 
 	setup_views() {
 		const views = {
 			List: {
 				condition: true,
-				action: () => this.set_route("list")
+				action: () => this.switch_view("list")
 			},
 			Report: {
 				condition: true,
-				action: () => this.set_route("report"),
+				action: () => this.switch_view("report"),
 				current_view_handler: () => {
 					const reports = this.get_reports();
 					let default_action = {};
@@ -56,7 +55,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					if (frappe.get_route().length > 3) {
 						default_action = {
 							label: __("Report Builder"),
-							action: () => this.set_route("report")
+							action: () => this.switch_view("report")
 						};
 					}
 					this.setup_dropdown_in_sidebar("Report", reports, default_action);
@@ -64,11 +63,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			},
 			Dashboard: {
 				condition: true,
-				action: () => this.set_route("dashboard")
+				action: () => this.switch_view("dashboard")
 			},
 			Calendar: {
 				condition: frappe.views.calendar[this.doctype],
-				action: () => this.set_route("calendar", "default"),
+				action: () => this.switch_view("calendar"),
 				current_view_handler: () => {
 					this.get_calendars().then(calendars => {
 						this.setup_dropdown_in_sidebar("Calendar", calendars);
@@ -77,13 +76,13 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			},
 			Gantt: {
 				condition: frappe.views.calendar[this.doctype],
-				action: () => this.set_route("gantt")
+				action: () => this.switch_view("gantt")
 			},
 			Inbox: {
 				condition:
 					this.doctype === "Communication" &&
 					frappe.boot.email_accounts.length,
-				action: () => this.set_route("inbox"),
+				action: () => this.switch_view("inbox"),
 				current_view_handler: () => {
 					const accounts = this.get_email_accounts();
 					let default_action;
@@ -107,13 +106,13 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			},
 			Image: {
 				condition: this.list_view.meta.image_field,
-				action: () => this.set_route("image")
+				action: () => this.switch_view("image")
 			},
 			Tree: {
 				condition:
 					frappe.treeview_settings[this.doctype] ||
 					frappe.get_meta(this.doctype).is_tree,
-				action: () => this.set_route("tree")
+				action: () => this.switch_view("tree")
 			},
 			Kanban: {
 				condition: true,
@@ -129,7 +128,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
 					this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
 					(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation')),
-				action: () => this.set_route("map")
+				action: () => this.switch_view("map")
 			},
 		};
 
@@ -196,7 +195,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			this.page.add_custom_menu_item(
 				kanban_switcher,
 				k.name,
-				() => this.set_route("kanban", k.name),
+				() => this.switch_view("kanban", k.name),
 				false
 			);
 		});
@@ -273,7 +272,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		}
 		frappe.db.exists("Kanban Board", last_opened_kanban).then(exists => {
 			if (exists) {
-				frappe.set_route(
+				frappe.switch_view(
 					"list",
 					this.doctype,
 					"kanban",

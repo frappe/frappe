@@ -451,15 +451,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	parse_filters_from_settings() {
-		return (this.settings.filters || []).map((f) => {
-			if (f.length === 3) {
-				f = [this.doctype, f[0], f[1], f[2]];
-			}
-			return f;
-		});
-	}
-
 	toggle_result_area() {
 		super.toggle_result_area();
 		this.toggle_actions_menu_button(
@@ -1088,6 +1079,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.filter_area.remove(f[0]);
 				return [this.doctype, f[0], f[1], f.slice(2).join(",")];
 			});
+
 			this.filter_area.add(filters_to_apply);
 		});
 	}

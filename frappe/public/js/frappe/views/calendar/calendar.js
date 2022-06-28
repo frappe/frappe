@@ -17,7 +17,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			.then(() => {
 				this.page_title = __('{0} Calendar', [this.page_title]);
 				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-				this.calendar_name = frappe.get_route()[3];
+				this.calendar_name = frappe.get_route()[3] || "default";
 			});
 	}
 
