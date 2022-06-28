@@ -62,6 +62,7 @@
   "otp_issuer_name",
   "email",
   "email_footer_address",
+  "email_retry_limit",
   "column_break_18",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
@@ -484,6 +485,22 @@
    "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   },
   {
+<<<<<<< HEAD
+=======
+   "default": "30",
+   "description": "Number of days after which the document Web View link shared on email will be expired",
+   "fieldname": "document_share_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Share Key Expiry (in Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_older_web_view_links",
+   "fieldtype": "Check",
+   "label": "Allow Older Web View Links (Insecure)"
+  },
+  {
+>>>>>>> 4dff0d25a3 (feat: add email retry limit in system settings (#17259))
    "fieldname": "column_break_64",
    "fieldtype": "Column Break"
   },
@@ -500,6 +517,7 @@
    "label": "Disable Change Log Notification"
   },
   {
+<<<<<<< HEAD
    "default": "30",
    "description": "Number of days after which the document Web View link shared on email will be expired",
    "fieldname": "document_share_key_expiry",
@@ -511,12 +529,29 @@
    "fieldname": "allow_older_web_view_links",
    "fieldtype": "Check",
    "label": "Allow Older Web View Links (Insecure)"
+=======
+   "default": "1200",
+   "fieldname": "reset_password_link_expiry_duration",
+   "fieldtype": "Duration",
+   "label": "Reset Password Link Expiry Duration",
+   "non_negative": 1
+  },
+  {
+   "default": "3",
+   "fieldname": "email_retry_limit",
+   "fieldtype": "Int",
+   "label": "Email Retry Limit"
+>>>>>>> 4dff0d25a3 (feat: add email retry limit in system settings (#17259))
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-05-31 09:43:57.163643",
+=======
+ "modified": "2022-06-21 13:55:04.796152",
+>>>>>>> 4dff0d25a3 (feat: add email retry limit in system settings (#17259))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
