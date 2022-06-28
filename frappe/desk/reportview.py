@@ -441,12 +441,6 @@ def get_labels(fields, doctype):
 			parenttype = doctype
 			fieldname = fieldname.strip("`")
 
-<<<<<<< HEAD
-		df = frappe.get_meta(parenttype).get_field(fieldname)
-		label = df.label if df else fieldname.title()
-		if label in labels:
-			label = doctype + ": " + label
-=======
 		if parenttype == doctype and fieldname == "name":
 			label = _("ID", context="Label of name column in report")
 		else:
@@ -459,9 +453,6 @@ def get_labels(fields, doctype):
 
 		if aggregate_function:
 			label = _("{0} of {1}").format(aggregate_function.capitalize(), label)
-
->>>>>>> 971b8160a3 (fix: extra column in excel after exporting report with group by (#17126))
-		labels.append(label)
 
 	return labels
 
