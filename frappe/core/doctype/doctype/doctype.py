@@ -171,7 +171,7 @@ class DocType(Document):
 
 			if docfield.fieldname in method_set:
 				conflict_type = "controller method"
-			if docfield.fieldname in property_set:
+			if docfield.fieldname in property_set and not docfield.is_virtual:
 				conflict_type = "class property"
 
 			if conflict_type:
