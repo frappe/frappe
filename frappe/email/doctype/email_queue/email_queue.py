@@ -183,7 +183,7 @@ def send_mail(email_queue_name, is_background_task=False):
 
 class SendMailContext:
 	def __init__(self, queue_doc: Document, is_background_task: bool = False):
-		self.queue_doc = queue_doc
+		self.queue_doc: EmailQueue = queue_doc
 		self.is_background_task = is_background_task
 		self.email_account_doc = queue_doc.get_email_account()
 		self.smtp_server = self.email_account_doc.get_smtp_server()
@@ -287,16 +287,16 @@ class SendMailContext:
 			).decode()
 		return message
 
-	def get_unsubscribe_str(self, recipient_email):
+	def get_unsubscribe_str(self, recipient_email: str) -> str:
 		unsubscribe_url = ""
+
 		if self.queue_doc.add_unsubscribe_link and self.queue_doc.reference_doctype:
-			doctype, doc_name = self.queue_doc.reference_doctype, self.queue_doc.reference_name
 			unsubscribe_url = get_unsubcribed_url(
-				doctype,
-				doc_name,
-				recipient_email,
-				self.queue_doc.unsubscribe_method,
-				self.queue_doc.unsubscribe_param,
+				reference_doctype=self.queue_doc.reference_doctype,
+				reference_name=self.queue_doc.reference_name,
+				email=recipient_email,
+				unsubscribe_method=self.queue_doc.unsubscribe_method,
+				unsubscribe_params=self.queue_doc.unsubscribe_param,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
