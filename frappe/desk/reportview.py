@@ -159,8 +159,6 @@ def setup_group_by(data):
 					**data
 				)
 			)
-			if data.aggregate_on_field:
-				data.fields.append(f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`")
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -422,11 +420,20 @@ def append_totals_row(data):
 def get_labels(fields, doctype):
 	"""get column labels based on column names"""
 	labels = []
+	doctype = doctype.lower()
 	for key in fields:
-		key = key.split(" as ")[0]
+		aggregate_function = ""
+
+		key = key.casefold().split(" as ", maxsplit=1)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
-			continue
+			# Get aggregate function and _aggregate_column
+			# key = 'sum(`tabDocType`.`fieldname`)'
+			if not key.rstrip().endswith(")"):
+				continue
+			_agg_fn, _key = key.split("(", maxsplit=1)
+			aggregate_function = _agg_fn.lower()  # aggregate_function = 'sum'
+			key = _key[:-1]  # key = `tabDocType`.`fieldname`
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -434,18 +441,25 @@ def get_labels(fields, doctype):
 			parenttype = doctype
 			fieldname = fieldname.strip("`")
 
-		df = frappe.get_meta(parenttype).get_field(fieldname)
-		label = df.label if df else fieldname.title()
-		if label in labels:
-			label = doctype + ": " + label
-		labels.append(label)
+		if parenttype == doctype and fieldname == "name":
+			label = _("ID", context="Label of name column in report")
+		else:
+			df = frappe.get_meta(parenttype).get_field(fieldname)
+			label = _(df.label if df else fieldname.title())
+			if parenttype != doctype:
+				# If the column is from a child table, append the child doctype.
+				# For example, "Item Code (Sales Invoice Item)".
+				label += f" ({ _(parenttype.title()) })"
+
+		if aggregate_function:
+			label = _("{0} of {1}").format(aggregate_function.capitalize(), label)
 
 	return labels
 
 
 def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
-		key = field.split(" as ")[0]
+		key = field.casefold().split(" as ", maxsplit=1)[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
 			continue

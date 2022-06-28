@@ -8,6 +8,7 @@
  "field_order": [
   "letter_head_name",
   "source",
+  "footer_source",
   "column_break_3",
   "disabled",
   "is_default",
@@ -16,7 +17,12 @@
   "header_section",
   "content",
   "footer_section",
-  "footer"
+  "footer",
+  "footer_image_section",
+  "footer_image",
+  "footer_image_height",
+  "footer_image_width",
+  "footer_align"
  ],
  "fields": [
   {
@@ -89,7 +95,7 @@
    "oldfieldtype": "Text Editor"
   },
   {
-   "collapsible": 1,
+   "depends_on": "eval:doc.footer_source==='HTML' && doc.letter_head_name",
    "fieldname": "footer_section",
    "fieldtype": "Section Break",
    "label": "Footer"
@@ -100,12 +106,64 @@
    "fieldname": "footer",
    "fieldtype": "HTML Editor",
    "label": "Footer HTML"
+  },
+  {
+   "default": "Left",
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nRight\nCenter"
+  },
+  {
+   "fieldname": "image_height",
+   "fieldtype": "Float",
+   "label": "Image Height"
+  },
+  {
+   "fieldname": "image_width",
+   "fieldtype": "Float",
+   "label": "Image Width"
+  },
+  {
+   "depends_on": "eval:doc.footer_source==='Image' && doc.letter_head_name",
+   "fieldname": "footer_image_section",
+   "fieldtype": "Section Break",
+   "label": "Footer Image"
+  },
+  {
+   "fieldname": "footer_image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "footer_image_height",
+   "fieldtype": "Float",
+   "label": "Image Height"
+  },
+  {
+   "fieldname": "footer_image_width",
+   "fieldtype": "Float",
+   "label": "Image Width"
+  },
+  {
+   "fieldname": "footer_align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nRight\nCenter"
+  },
+  {
+   "default": "HTML",
+   "depends_on": "letter_head_name",
+   "fieldname": "footer_source",
+   "fieldtype": "Select",
+   "label": "Footer Based On",
+   "options": "Image\nHTML"
   }
  ],
  "icon": "fa fa-font",
  "idx": 1,
  "max_attachments": 3,
- "modified": "2019-11-11 18:46:43.375120",
+ "modified": "2022-06-16 23:10:46.852116",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
@@ -129,5 +187,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }
