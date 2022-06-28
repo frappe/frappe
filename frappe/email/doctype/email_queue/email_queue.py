@@ -208,7 +208,7 @@ class SendMailContext:
 			email_status = (self.sent_to and "Partially Sent") or "Not Sent"
 			self.queue_doc.update_status(status=email_status, commit=True)
 		elif exc_type:
-			if self.queue_doc.retry < self.get_email_retry_limit():
+			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
 				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
