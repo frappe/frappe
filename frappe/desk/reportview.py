@@ -156,6 +156,8 @@ def setup_group_by(data):
 					**data
 				)
 			)
+			if data.aggregate_on_field:
+				data.fields.append(f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`")
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -433,20 +435,11 @@ def append_totals_row(data):
 def get_labels(fields, doctype):
 	"""get column labels based on column names"""
 	labels = []
-	doctype = doctype.lower()
 	for key in fields:
-		aggregate_function = ""
-
-		key = key.casefold().split(" as ", maxsplit=1)[0]
+		key = key.split(" as ")[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
-			# Get aggregate function and _aggregate_column
-			# key = 'sum(`tabDocType`.`fieldname`)'
-			if not key.rstrip().endswith(")"):
-				continue
-			_agg_fn, _key = key.split("(", maxsplit=1)
-			aggregate_function = _agg_fn.lower()  # aggregate_function = 'sum'
-			key = _key[:-1]  # key = `tabDocType`.`fieldname`
+			continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -462,10 +455,7 @@ def get_labels(fields, doctype):
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({ _(parenttype.title()) })"
-
-		if aggregate_function:
-			label = _("{0} of {1}").format(aggregate_function.capitalize(), label)
+				label += f" ({ _(parenttype) })"
 
 		labels.append(label)
 
@@ -474,7 +464,7 @@ def get_labels(fields, doctype):
 
 def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
-		key = field.casefold().split(" as ", maxsplit=1)[0]
+		key = field.split(" as ")[0]
 
 		if key.startswith(("count(", "sum(", "avg(")):
 			continue
