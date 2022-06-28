@@ -300,8 +300,8 @@ def load_lang(lang, apps=None):
 		return {}
 	if not out:
 		out = get_lang_data(lang=lang, apps=apps)
-	if '-' in lang:
-		parent = lang.split('-')[0]
+	if "-" in lang:
+		parent = lang.split("-")[0]
 		parent_out = get_lang_data(lang=parent, apps=apps)
 		parent_out.update(out)
 		out = parent_out
