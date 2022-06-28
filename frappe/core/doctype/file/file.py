@@ -30,6 +30,7 @@ from six.moves.urllib.parse import quote, unquote
 import frappe
 from frappe import _, conf, safe_decode
 from frappe.model.document import Document
+<<<<<<< HEAD
 from frappe.utils import (
 	call_hook_method,
 	cint,
@@ -53,6 +54,11 @@ class MaxFileSizeReachedError(frappe.ValidationError):
 
 class FolderNotEmpty(frappe.ValidationError):
 	pass
+=======
+from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
+from frappe.utils.file_manager import is_safe_path
+from frappe.utils.image import optimize_image, strip_exif_data
+>>>>>>> c6fa8ab090 (fix: email not sent if contain file with current site url (#17250))
 
 
 exclude_from_linked_with = True
@@ -85,7 +91,26 @@ class File(Document):
 				# home
 				self.name = self.file_name
 		else:
+<<<<<<< HEAD
 			self.name = frappe.generate_hash("", 10)
+=======
+			self.name = frappe.generate_hash(length=10)
+
+	def before_insert(self):
+		self.set_folder_name()
+		self.set_file_name()
+		self.validate_attachment_limit()
+
+		if self.is_folder:
+			return
+
+		if self.is_remote_file:
+			self.validate_remote_file()
+		else:
+			self.save_file(content=self.get_content())
+			self.flags.new_file = True
+			frappe.local.rollback_observers.append(self)
+>>>>>>> c6fa8ab090 (fix: email not sent if contain file with current site url (#17250))
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -213,6 +238,12 @@ class File(Document):
 					exc=frappe.exceptions.AttachmentLimitReached,
 					title=_("Attachment Limit Reached"),
 				)
+
+	def validate_remote_file(self):
+		"""Validates if file uploaded using URL already exist"""
+		site_url = get_url()
+		if "/files/" in self.file_url and self.file_url.startswith(site_url):
+			self.file_url = self.file_url.split(site_url, 1)[1]
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -406,6 +437,10 @@ class File(Document):
 		"""Returns file path from given file name"""
 
 		file_path = self.file_url or self.file_name
+
+		site_url = get_url()
+		if "/files/" in file_path and file_path.startswith(site_url):
+			file_path = file_path.split(site_url, 1)[1]
 
 		if "/" not in file_path:
 			file_path = "/files/" + file_path
