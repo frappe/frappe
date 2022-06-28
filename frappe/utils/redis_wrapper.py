@@ -208,14 +208,11 @@ class RedisWrapper(redis.Redis):
 			frappe.local.cache[_name][key] = value
 		elif generator:
 			value = generator()
-<<<<<<< HEAD
 			try:
-				self.hset(name, key, value)
+				self.hset(name, key, value, shared=shared)
 			except redis.exceptions.ConnectionError:
 				pass
-=======
-			self.hset(name, key, value, shared=shared)
->>>>>>> b7514a05ca (fix(redis): pass shared param when setting value based on generator)
+
 		return value
 
 	def hdel(self, name, key, shared=False):
