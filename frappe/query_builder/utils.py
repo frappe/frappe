@@ -70,7 +70,6 @@ def patch_query_execute():
 	This excludes the use of `frappe.db.sql` method while
 	executing the query object
 	"""
-	from frappe.utils.safe_exec import check_safe_sql_query
 
 	def execute_query(query, *args, **kwargs):
 		query, params = prepare_query(query)
@@ -78,6 +77,8 @@ def patch_query_execute():
 
 	def prepare_query(query):
 		import inspect
+
+		from frappe.utils.safe_exec import check_safe_sql_query
 
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
@@ -109,6 +110,7 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
+	frappe._qb_patched[frappe.conf.db_type] = True
 
 
 def patch_query_aggregation():
@@ -119,3 +121,4 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
+	frappe._qb_patched[frappe.conf.db_type] = True

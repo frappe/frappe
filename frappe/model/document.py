@@ -152,6 +152,17 @@ class Document(BaseDocument):
 			super(Document, self).__init__(d)
 
 		for df in self._get_table_fields():
+			# Make sure not to query the DB for a child table, if it is a virtual one.
+			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
+			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
+			if (
+				hasattr(self, "doctype")
+				and not hasattr(self, "module")
+				and frappe.db.get_value("DocType", df.options, "is_virtual", cache=True)
+			):
+				self.set(df.fieldname, [])
+				continue
+
 			children = (
 				frappe.db.get_values(
 					df.options,
@@ -379,7 +390,10 @@ class Document(BaseDocument):
 			d.db_update()
 			rows.append(d.name)
 
-		if df.options in (self.flags.ignore_children_type or []):
+		if (
+			df.options in (self.flags.ignore_children_type or [])
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
 			# do not delete rows for this because of flags
 			# hack for docperm :(
 			return
@@ -438,7 +452,7 @@ class Document(BaseDocument):
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
-		return self.get(self.meta.get_title_field())
+		return self.get(self.meta.get_title_field()) or ""
 
 	def set_title_field(self):
 		"""Set title field based on template"""
@@ -1198,11 +1212,10 @@ class Document(BaseDocument):
 			return
 
 		version = frappe.new_doc("Version")
-		if not self._doc_before_save:
-			version.for_insert(self)
+
+		if is_useful_diff := version.update_version_info(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
-		elif version.set_diff(self._doc_before_save, self):
-			version.insert(ignore_permissions=True)
+
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
 				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):

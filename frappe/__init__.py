@@ -15,8 +15,9 @@ import importlib
 import inspect
 import json
 import os
+import re
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 import click
 from werkzeug.local import Local, release_local
@@ -49,6 +50,11 @@ local = Local()
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
+_qb_patched = {}
+re._MAXCACHE = (
+	50  # reduced from default 512 given we are already maintaining this on parent worker
+)
+
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
@@ -77,7 +83,7 @@ class _dict(dict):
 		return _dict(self)
 
 
-def _(msg, lang=None, context=None):
+def _(msg, lang=None, context=None) -> str:
 	"""Returns translated string in current lang, if exists.
 	Usage:
 	        _('Change')
@@ -241,8 +247,10 @@ def init(site, sites_path=None, new_site=False):
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.engine = get_qb_engine()
 	setup_module_map()
-	patch_query_execute()
-	patch_query_aggregation()
+
+	if not _qb_patched.get(local.conf.db_type):
+		patch_query_execute()
+		patch_query_aggregation()
 
 	local.initialised = True
 
@@ -429,9 +437,6 @@ def msgprint(
 
 	def _raise_exception():
 		if raise_exception:
-			if flags.rollback_on_exception:
-				db.rollback()
-
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception(msg)
 			else:
@@ -873,6 +878,10 @@ def clear_cache(user=None, doctype=None):
 	local.role_permissions = {}
 	if hasattr(local, "request_cache"):
 		local.request_cache.clear()
+	if hasattr(local, "system_settings"):
+		del local.system_settings
+	if hasattr(local, "website_settings"):
+		del local.website_settings
 
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
@@ -919,7 +928,7 @@ def has_permission(
 
 	if throw and not out:
 		# mimics frappe.throw
-		document_label = f"{doc.doctype} {doc.name}" if doc else doctype
+		document_label = f"{_(doc.doctype)} {doc.name}" if doc else _(doctype)
 		msgprint(
 			_("No permission for {0}").format(document_label),
 			raise_exception=ValidationError,
@@ -1096,6 +1105,10 @@ def clear_document_cache(doctype, name):
 	if key in local.document_cache:
 		del local.document_cache[key]
 	cache().hdel("document_cache", key)
+	if doctype == "System Settings" and hasattr(local, "system_settings"):
+		delattr(local, "system_settings")
+	if doctype == "Website Settings" and hasattr(local, "website_settings"):
+		delattr(local, "website_settings")
 
 
 def get_cached_value(doctype, name, fieldname="name", as_dict=False):
@@ -1540,7 +1553,15 @@ def call(fn, *args, **kwargs):
 	return fn(*args, **newargs)
 
 
-def get_newargs(fn, kwargs):
+def get_newargs(fn: Callable, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+	"""Remove any kwargs that are not supported by the function.
+
+	Example:
+	        >>> def fn(a=1, b=2): pass
+
+	        >>> get_newargs(fn, {"a": 2, "c": 1})
+	                {"a": 2}
+	"""
 
 	# if function has any **kwargs parameter that capture arbitrary keyword arguments
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
@@ -2208,8 +2229,18 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return eval(code, eval_globals, eval_locals)
 
 
+def get_website_settings(key):
+	if not hasattr(local, "website_settings"):
+		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
+
+	return local.website_settings.get(key)
+
+
 def get_system_settings(key):
-	return db.get_single_value("System Settings", key, cache=True)
+	if not hasattr(local, "system_settings"):
+		local.system_settings = db.get_singles_dict("System Settings", cast=True)
+
+	return local.system_settings.get(key)
 
 
 def get_active_domains():

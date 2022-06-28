@@ -10,5 +10,10 @@ frappe.listview_settings["Error Snapshot"] = {
 		} else {
 			return [__("First Level"), !doc.seen ? "red" : "green", "parent_error_snapshot,=,"];
 		}
-	}
+	},
+	onload: function(listview) {
+		frappe.require("logtypes.bundle.js", () => {
+			frappe.utils.logtypes.show_log_retention_message(cur_list.doctype);
+		})
+	},
 }

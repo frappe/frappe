@@ -8,6 +8,7 @@ import os
 # imports - standard imports
 import re
 import shutil
+from typing import TYPE_CHECKING, Union
 
 # imports - module imports
 import frappe
@@ -34,6 +35,9 @@ from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint
 from frappe.website.utils import clear_cache
+
+if TYPE_CHECKING:
+	from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 
 DEPENDS_ON_PATTERN = re.compile(r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+')
 ILLEGAL_FIELDNAME_PATTERN = re.compile("""['",./%@()<>{}]""")
@@ -167,7 +171,7 @@ class DocType(Document):
 
 			if docfield.fieldname in method_set:
 				conflict_type = "controller method"
-			if docfield.fieldname in property_set:
+			if docfield.fieldname in property_set and not docfield.is_virtual:
 				conflict_type = "class property"
 
 			if conflict_type:
@@ -814,7 +818,7 @@ class DocType(Document):
 		self.nsm_parent_field = parent_field_name
 
 	def validate_child_table(self):
-		if not self.get("istable") or self.is_new():
+		if not self.get("istable") or self.is_new() or self.get("is_virtual"):
 			# if the doctype is not a child table then return
 			# if the doctype is a new doctype and also a child table then
 			# don't move forward as it will be handled via schema
@@ -916,11 +920,11 @@ def validate_series(dt, autoname=None, name=None):
 			frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 
-def validate_autoincrement_autoname(dt: DocType) -> bool:
+def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt: DocType) -> str:
-		if dt.name == "Customize Form":
+	def get_autoname_before_save(dt: Union[DocType, "CustomizeForm"]) -> str:
+		if dt.doctype == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
 			)
@@ -943,10 +947,10 @@ def validate_autoincrement_autoname(dt: DocType) -> bool:
 			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
 		):
 
-			if frappe.get_meta(dt.name).issingle:
-				if dt.name == "Customize Form":
-					frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
+			if dt.doctype == "Customize Form":
+				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
 
+			if frappe.get_meta(dt.name).issingle:
 				return False
 
 			if not frappe.get_all(dt.name, limit=1):

@@ -181,7 +181,7 @@ class TestFormLoad(unittest.TestCase):
 		self.assertEqual(len(docinfo.comments), 1)
 		self.assertIn("test", docinfo.comments[0].content)
 
-		self.assertGreaterEqual(len(docinfo.versions), 2)
+		self.assertGreaterEqual(len(docinfo.versions), 1)
 
 		self.assertEqual(set(docinfo.tags.split(",")), {"more_tag", "test_tag"})
 

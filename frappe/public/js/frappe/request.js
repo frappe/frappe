@@ -280,7 +280,7 @@ frappe.request.call = function(opts) {
 				}
 			} catch(e) {
 				console.log("Unable to handle success response", data); // eslint-disable-line
-				console.trace(e); // eslint-disable-line
+				console.error(e); // eslint-disable-line
 			}
 
 		})
@@ -332,7 +332,7 @@ frappe.request.call = function(opts) {
 				opts.error_callback && opts.error_callback(xhr);
 			} catch(e) {
 				console.log("Unable to handle failed response"); // eslint-disable-line
-				console.trace(e); // eslint-disable-line
+				console.error(e); // eslint-disable-line
 			}
 		});
 }
@@ -433,13 +433,13 @@ frappe.request.cleanup = function(opts, r) {
 		if(r.exc) {
 			r.exc = JSON.parse(r.exc);
 			if(r.exc instanceof Array) {
-				$.each(r.exc, function(i, v) {
-					if(v) {
-						console.log(v);
+				r.exc.forEach(exc => {
+					if(exc) {
+						console.error(exc);
 					}
-				})
+				});
 			} else {
-				console.log(r.exc);
+				console.error(r.exc);
 			}
 		}
 

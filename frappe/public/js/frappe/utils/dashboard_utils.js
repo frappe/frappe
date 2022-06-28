@@ -16,7 +16,7 @@ frappe.dashboard_utils = {
 					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<button class="btn btn-secondary btn-xs">
 			 				${icon_html}
-							<span class="filter-label">${filter.label}</span>
+							<span class="filter-label">${__(filter.label)}</span>
 							${frappe.utils.icon('select', 'xs')}
 						</button>
 				</a>`;
@@ -24,10 +24,12 @@ frappe.dashboard_utils = {
 
 			if (filter.fieldnames) {
 				options_html = filter.options.map((option, i) =>
+					// TODO: Make option translatable - be careful, since the text of the a tag is later used to perform some action
 					`<li>
 						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}">${option}</a>
 					</li>`).join('');
 			} else {
+				// TODO: Make option translatable - be careful, since the text of the a tag is later used to perform some action
 				options_html = filter.options.map( option => `<li><a class="dropdown-item">${option}</a></li>`).join('');
 			}
 
