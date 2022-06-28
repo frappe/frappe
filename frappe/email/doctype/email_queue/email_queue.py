@@ -344,9 +344,6 @@ class SendMailContext:
 
 		return safe_encode(message_obj.as_string())
 
-	def get_email_retry_limit():
-		return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
-
 
 @frappe.whitelist()
 def retry_sending(name):
@@ -371,6 +368,10 @@ def on_doctype_update():
 	frappe.db.add_index(
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
+
+
+def get_email_retry_limit():
+	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
 class QueueBuilder:
