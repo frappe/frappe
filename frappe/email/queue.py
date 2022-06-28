@@ -330,9 +330,7 @@ def get_emails_sent_today():
 	)[0][0]
 
 
-def get_unsubscribe_message(
-	unsubscribe_message: str, expose_recipients: str
-) -> frappe._dict[str, str]:
+def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str):
 	unsubscribe_message = unsubscribe_message or _("Unsubscribe")
 	unsubscribe_link = f'<a href="<!--unsubscribe_url-->" target="_blank">{unsubscribe_message}</a>'
 	unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
