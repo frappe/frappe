@@ -30,7 +30,6 @@ from six.moves.urllib.parse import quote, unquote
 import frappe
 from frappe import _, conf, safe_decode
 from frappe.model.document import Document
-<<<<<<< HEAD
 from frappe.utils import (
 	call_hook_method,
 	cint,
@@ -38,6 +37,7 @@ from frappe.utils import (
 	encode,
 	get_files_path,
 	get_hook_method,
+	get_url,
 	random_string,
 	strip,
 )
@@ -54,19 +54,21 @@ class MaxFileSizeReachedError(frappe.ValidationError):
 
 class FolderNotEmpty(frappe.ValidationError):
 	pass
-=======
-from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
-from frappe.utils.file_manager import is_safe_path
-from frappe.utils.image import optimize_image, strip_exif_data
->>>>>>> c6fa8ab090 (fix: email not sent if contain file with current site url (#17250))
 
 
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+URL_PREFIXES = ("http://", "https://")
 
 
 class File(Document):
 	no_feed_on_delete = True
+
+	@property
+	def is_remote_file(self):
+		if self.file_url:
+			return self.file_url.startswith(URL_PREFIXES)
+		return not self.content
 
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
@@ -75,7 +77,9 @@ class File(Document):
 			self.file_name = re.sub(r"/", "", self.file_name)
 		self.content = self.get("content", None)
 		self.decode = self.get("decode", False)
-		if self.content:
+		if self.is_remote_file:
+			self.validate_remote_file()
+		else:
 			self.save_file(content=self.content, decode=self.decode)
 
 	def get_name_based_on_parent_folder(self):
@@ -91,26 +95,7 @@ class File(Document):
 				# home
 				self.name = self.file_name
 		else:
-<<<<<<< HEAD
 			self.name = frappe.generate_hash("", 10)
-=======
-			self.name = frappe.generate_hash(length=10)
-
-	def before_insert(self):
-		self.set_folder_name()
-		self.set_file_name()
-		self.validate_attachment_limit()
-
-		if self.is_folder:
-			return
-
-		if self.is_remote_file:
-			self.validate_remote_file()
-		else:
-			self.save_file(content=self.get_content())
-			self.flags.new_file = True
-			frappe.local.rollback_observers.append(self)
->>>>>>> c6fa8ab090 (fix: email not sent if contain file with current site url (#17250))
 
 	def after_insert(self):
 		if not self.is_folder:
