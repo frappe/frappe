@@ -56,9 +56,10 @@ Otherwise, check the server logs and ensure that all the required services are r
 	if os.path.exists(touched_tables_file):
 		os.remove(touched_tables_file)
 
+	frappe.flags.touched_tables = set()
+
 	try:
 		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
-		frappe.flags.touched_tables = set()
 		frappe.flags.in_migrate = True
 
 		clear_global_cache()
