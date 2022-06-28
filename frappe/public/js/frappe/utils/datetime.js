@@ -180,9 +180,10 @@ $.extend(frappe.datetime, {
 		}
 
 		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
-		return moment(val, [user_fmt.replace("YYYY", "YY"),
-			user_fmt]).locale("en").format(system_fmt);
-	},
+		// 2nd argument is array of formats to "parse", they are attempted in sequential order.
+		// ref: https://momentjs.com/docs/#/parsing/string-formats/
+		const user_formats = [user_fmt.replace("YYYY", "YY"), user_fmt, system_fmt];
+		return moment(val, user_formats).locale("en").format(system_fmt); },
 
 	user_to_obj: function(d) {
 		return frappe.datetime.str_to_obj(frappe.datetime.user_to_str(d));
