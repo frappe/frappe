@@ -284,7 +284,7 @@ def get_full_dict(lang):
 
 def get_lang_data(lang, apps):
 	out = {}
-	for app in (apps or frappe.get_all_apps(True)):
+	for app in apps or frappe.get_all_apps(True):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		out.update(get_translation_dict_from_file(path, lang, app) or {})
 	return out
