@@ -1,8 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 # import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestEventUpdateLog(unittest.TestCase):
+class TestEventUpdateLog(FrappeTestCase):
 	pass

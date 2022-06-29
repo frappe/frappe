@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import json
 import time
-import unittest
 from unittest.mock import patch
 
 import frappe
@@ -18,13 +17,14 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records("User")
 
 
-class TestUser(unittest.TestCase):
+class TestUser(FrappeTestCase):
 	def tearDown(self):
 		# disable password strength test
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)

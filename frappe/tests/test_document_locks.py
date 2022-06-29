@@ -1,11 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocumentLocks(unittest.TestCase):
+class TestDocumentLocks(FrappeTestCase):
 	def test_locking(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
 		todo_1 = frappe.get_doc("ToDo", todo.name)

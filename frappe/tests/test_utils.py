@@ -4,7 +4,11 @@
 import io
 import json
 import os
+<<<<<<< HEAD
 import unittest
+=======
+import sys
+>>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
@@ -46,7 +50,24 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
 
 
+<<<<<<< HEAD
 class TestFilters(unittest.TestCase):
+=======
+class Capturing(list):
+	# ref: https://stackoverflow.com/a/16571630/10309266
+	def __enter__(self):
+		self._stdout = sys.stdout
+		sys.stdout = self._stringio = StringIO()
+		return self
+
+	def __exit__(self, *args):
+		self.extend(self._stringio.getvalue().splitlines())
+		del self._stringio
+		sys.stdout = self._stdout
+
+
+class TestFilters(FrappeTestCase):
+>>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Open"}))
 		self.assertFalse(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Closed"}))
@@ -104,7 +125,7 @@ class TestFilters(unittest.TestCase):
 		)
 
 
-class TestMoney(unittest.TestCase):
+class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
 		nums_bhd = [
 			(5000, "BHD Five Thousand only."),
@@ -137,7 +158,7 @@ class TestMoney(unittest.TestCase):
 			)
 
 
-class TestDataManipulation(unittest.TestCase):
+class TestDataManipulation(FrappeTestCase):
 	def test_scrub_urls(self):
 		html = """
 			<p>You have a new message from: <b>John</b></p>
@@ -166,7 +187,7 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
 
-class TestFieldCasting(unittest.TestCase):
+class TestFieldCasting(FrappeTestCase):
 	def test_str_types(self):
 		STR_TYPES = (
 			"Data",
@@ -213,7 +234,7 @@ class TestFieldCasting(unittest.TestCase):
 		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
 
-class TestMathUtils(unittest.TestCase):
+class TestMathUtils(FrappeTestCase):
 	def test_floor(self):
 		from decimal import Decimal
 
@@ -235,7 +256,7 @@ class TestMathUtils(unittest.TestCase):
 		self.assertEqual(ceil(Decimal(29.45)), 30)
 
 
-class TestHTMLUtils(unittest.TestCase):
+class TestHTMLUtils(FrappeTestCase):
 	def test_clean_email_html(self):
 		from frappe.utils.html_utils import clean_email_html
 
@@ -262,7 +283,7 @@ class TestHTMLUtils(unittest.TestCase):
 		self.assertNotIn("xyz", clean)
 
 
-class TestValidationUtils(unittest.TestCase):
+class TestValidationUtils(FrappeTestCase):
 	def test_valid_url(self):
 		# Edge cases
 		self.assertFalse(validate_url(""))
@@ -308,7 +329,7 @@ class TestValidationUtils(unittest.TestCase):
 		)
 
 
-class TestImage(unittest.TestCase):
+class TestImage(FrappeTestCase):
 	def test_strip_exif_data(self):
 		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
 		original_image_content = open(
@@ -335,7 +356,7 @@ class TestImage(unittest.TestCase):
 		self.assertLess(len(optimized_content), len(original_content))
 
 
-class TestPythonExpressions(unittest.TestCase):
+class TestPythonExpressions(FrappeTestCase):
 	def test_validation_for_good_python_expression(self):
 		valid_expressions = [
 			"foo == bar",
@@ -362,9 +383,10 @@ class TestPythonExpressions(unittest.TestCase):
 			self.assertRaises(frappe.ValidationError, validate_python_code, expr)
 
 
-class TestDiffUtils(unittest.TestCase):
+class TestDiffUtils(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
 		cls.doc.insert()
 		cls.doc.script = "2;"
@@ -403,7 +425,7 @@ class TestDiffUtils(unittest.TestCase):
 		self.assertIn("+42;", diff)
 
 
-class TestDateUtils(unittest.TestCase):
+class TestDateUtils(FrappeTestCase):
 	def test_first_day_of_week(self):
 		# Monday as start of the week
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
@@ -482,7 +504,7 @@ class TestDateUtils(unittest.TestCase):
 			self.assertEqual(d, add_to_date(start_date, years=idx, days=-1))
 
 
-class TestResponse(unittest.TestCase):
+class TestResponse(FrappeTestCase):
 	def test_json_handler(self):
 		class TEST(Enum):
 			ABC = "!@)@)!"
@@ -523,7 +545,7 @@ class TestResponse(unittest.TestCase):
 			json.dumps(BAD_OBJECT, default=json_handler)
 
 
-class TestTimeDeltaUtils(unittest.TestCase):
+class TestTimeDeltaUtils(FrappeTestCase):
 	def test_format_timedelta(self):
 		self.assertEqual(format_timedelta(timedelta(seconds=0)), "0:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
@@ -542,7 +564,7 @@ class TestTimeDeltaUtils(unittest.TestCase):
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
 
 
-class TestXlsxUtils(unittest.TestCase):
+class TestXlsxUtils(FrappeTestCase):
 	def test_unescape(self):
 		from frappe.utils.xlsxutils import handle_html
 
@@ -551,7 +573,7 @@ class TestXlsxUtils(unittest.TestCase):
 		self.assertEqual("abc", handle_html("abc"))
 
 
-class TestLinkTitle(unittest.TestCase):
+class TestLinkTitle(FrappeTestCase):
 	def test_link_title_doctypes_in_boot_info(self):
 		"""
 		Test that doctypes are added to link_title_map in boot_info
@@ -642,7 +664,7 @@ class TestLinkTitle(unittest.TestCase):
 		prop_setter.delete()
 
 
-class TestAppParser(unittest.TestCase):
+class TestAppParser(FrappeTestCase):
 	def test_app_name_parser(self):
 		bench_path = get_bench_path()
 		frappe_app = os.path.join(bench_path, "apps", "frappe")
@@ -653,7 +675,7 @@ class TestAppParser(unittest.TestCase):
 		self.assertEqual("healthcare", parse_app_name("frappe/healthcare@develop"))
 
 
-class TestIntrospectionMagic(unittest.TestCase):
+class TestIntrospectionMagic(FrappeTestCase):
 	"""Test utils that inspect live objects"""
 
 	def test_get_newargs(self):
@@ -677,3 +699,91 @@ class TestIntrospectionMagic(unittest.TestCase):
 
 		# No args
 		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
+<<<<<<< HEAD
+=======
+
+
+class TestMakeRandom(FrappeTestCase):
+	def test_get_random(self):
+		self.assertIsInstance(get_random("DocType", doc=True), Document)
+		self.assertIsInstance(get_random("DocType"), str)
+
+	def test_can_make(self):
+		self.assertIsInstance(can_make("User"), bool)
+
+	def test_how_many(self):
+		self.assertIsInstance(how_many("User"), int)
+
+
+class TestLazyLoader(FrappeTestCase):
+	def test_lazy_import_module(self):
+		from frappe.utils.lazy_loader import lazy_import
+
+		with Capturing() as output:
+			ls = lazy_import("frappe.tests.data.load_sleep")
+		self.assertEqual(output, [])
+
+		with Capturing() as output:
+			ls.time
+		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
+
+
+class TestIdenticon(FrappeTestCase):
+	def test_get_gravatar(self):
+		# developers@frappe.io has a gravatar linked so str URL will be returned
+		frappe.flags.in_test = False
+		gravatar_url = get_gravatar("developers@frappe.io")
+		frappe.flags.in_test = True
+		self.assertIsInstance(gravatar_url, str)
+		self.assertTrue(gravatar_url.startswith("http"))
+
+		# random email will require Identicon to be generated, which will be a base64 string
+		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
+		self.assertIsInstance(gravatar_url, str)
+		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
+
+	def test_generate_identicon(self):
+		identicon = Identicon(random_string(6))
+		with patch.object(identicon.image, "show") as show:
+			identicon.generate()
+			show.assert_called_once()
+
+		identicon_bs64 = identicon.base64()
+		self.assertIsInstance(identicon_bs64, str)
+		self.assertTrue(identicon_bs64.startswith("data:image/png;base64,"))
+
+
+class TestContainerUtils(FrappeTestCase):
+	def test_dict_to_str(self):
+		self.assertEqual(dict_to_str({"a": "b"}), "a=b")
+
+	def test_remove_blanks(self):
+		a = {"asd": "", "b": None, "c": "d"}
+		remove_blanks(a)
+		self.assertEqual(len(a), 1)
+		self.assertEqual(a["c"], "d")
+
+
+class TestMiscUtils(FrappeTestCase):
+	def test_get_file_timestamp(self):
+		self.assertIsInstance(get_file_timestamp(__file__), str)
+
+	def test_execute_in_shell(self):
+		err, out = execute_in_shell("ls")
+		self.assertIn("apps", cstr(out))
+
+	def test_get_all_sites(self):
+		self.assertIn(frappe.local.site, get_sites())
+
+	def test_get_site_info(self):
+		info = get_site_info()
+
+		installed_apps = [app["app_name"] for app in info["installed_apps"]]
+		self.assertIn("frappe", installed_apps)
+		self.assertGreaterEqual(len(info["users"]), 1)
+
+	def test_safe_json_load(self):
+		self.assertEqual(safe_json_loads("{}"), {})
+		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
+		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
+>>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)

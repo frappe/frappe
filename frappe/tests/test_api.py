@@ -1,5 +1,4 @@
 import sys
-import unittest
 from contextlib import contextmanager
 from random import choice
 from threading import Thread
@@ -10,6 +9,7 @@ from semantic_version import Version
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url, get_test_client
 
 try:
@@ -65,7 +65,7 @@ class ThreadWithReturnValue(Thread):
 		return self._return
 
 
-class FrappeAPITestCase(unittest.TestCase):
+class FrappeAPITestCase(FrappeTestCase):
 	SITE = frappe.local.site
 	SITE_URL = get_site_url(SITE)
 	RESOURCE_URL = f"{SITE_URL}/api/resource"
@@ -104,6 +104,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		for _ in range(10):
 			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)

@@ -1,16 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
-import unittest
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, get_link_to_form, today
 from frappe.utils.data import is_html
 
 # test_records = frappe.get_test_records('Auto Email Report')
 
 
-class TestAutoEmailReport(unittest.TestCase):
+class TestAutoEmailReport(FrappeTestCase):
 	def test_auto_email(self):
 		frappe.delete_doc("Auto Email Report", "Permitted Documents For User")
 
