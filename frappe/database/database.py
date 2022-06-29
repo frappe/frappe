@@ -1050,7 +1050,9 @@ class Database(object):
 			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = frappe.qb.engine.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
+		query = frappe.qb.engine.get_query(
+			table=dt, filters=filters, fields=Count("*"), distinct=distinct
+		)
 		count = self.sql(query, debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
