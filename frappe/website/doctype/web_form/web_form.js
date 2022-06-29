@@ -14,12 +14,13 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	validate: function(frm) {
-		!frm.doc.login_required && frm.set_value("allow_multiple", 0);
-		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
-
-		if (frm.doc.allow_multiple && !frm.doc.show_list) {
-			frm.set_value("show_list", 1)
+		if (!frm.doc.login_required) {
+			frm.set_value("allow_multiple", 0);
+			frm.doc.show_list && frm.set_value("show_list", 0);
 		}
+
+		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
+		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 	},
 
 	add_publish_button(frm) {
