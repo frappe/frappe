@@ -169,6 +169,8 @@ OPERATOR_MAP: Dict[str, Callable] = {
 	"=<": operator.le,
 	">=": operator.ge,
 	"=>": operator.ge,
+	"/": operator.truediv,
+	"*": operator.mul,
 	"in": func_in,
 	"not in": func_not_in,
 	"like": like,
