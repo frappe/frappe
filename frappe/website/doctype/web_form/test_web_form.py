@@ -4,6 +4,7 @@ import json
 import unittest
 
 import frappe
+from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
 
@@ -68,6 +69,7 @@ class TestWebForm(unittest.TestCase):
 		)
 
 	def test_webform_render(self):
+		set_request(method="GET", path="request-data/new")
 		content = get_response_content("request-data/new")
 		self.assertIn("<h1>Request Data</h1>", content)
 		self.assertIn('data-doctype="Web Form"', content)
