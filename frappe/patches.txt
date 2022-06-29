@@ -184,14 +184,12 @@ frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
-execute:frappe.reload_doc('desk', 'doctype', 'workspace_quick_list')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.transform_todo_schema
 frappe.patches.v14_0.remove_post_and_post_comment
 frappe.patches.v14_0.reset_creation_datetime
 frappe.patches.v14_0.remove_is_first_startup
-frappe.patches.v14_0.reload_workspace_child_tables
 frappe.patches.v14_0.clear_long_pending_stale_logs
 frappe.patches.v14_0.log_settings_migration
 
