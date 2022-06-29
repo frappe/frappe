@@ -5,10 +5,10 @@ import shlex
 import subprocess
 import sys
 import urllib.request
-from functools import cache
+from functools import lru_cache
 
 
-@cache
+@lru_cache(maxsize=None)
 def fetch_pr_data(pr_number, repo, endpoint):
 	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
 
