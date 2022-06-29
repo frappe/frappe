@@ -478,7 +478,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.8
 
       - name: Setup Node
         uses: actions/setup-node@v2

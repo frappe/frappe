@@ -707,7 +707,7 @@ def extract_files(site_name, file_path):
 			subprocess.check_output(["tar", "xvf", tar_path, "--strip", "2"], cwd=abs_site_path)
 		elif file_path.endswith(".tgz"):
 			subprocess.check_output(["tar", "zxvf", tar_path, "--strip", "2"], cwd=abs_site_path)
-	except:
+	except Exception:
 		raise
 	finally:
 		frappe.destroy()

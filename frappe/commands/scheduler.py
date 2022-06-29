@@ -5,6 +5,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
+from frappe.utils import cint
 
 
 @click.command("trigger-scheduler-event", help="Trigger a scheduler event")

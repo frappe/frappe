@@ -143,7 +143,7 @@ class TestReportview(unittest.TestCase):
 			)
 
 	def test_none_filter(self):
-		query = frappe.db.query.get_sql("DocType", fields="name", filters={"restrict_to_domain": None})
+		query = frappe.qb.engine.get_query("DocType", fields="name", filters={"restrict_to_domain": None})
 		sql = str(query).replace("`", "").replace('"', "")
 		condition = "restrict_to_domain IS NULL"
 		self.assertIn(condition, sql)
@@ -643,7 +643,9 @@ class TestReportview(unittest.TestCase):
 		)
 
 		response = execute_cmd("frappe.desk.reportview.get")
-		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
+		self.assertListEqual(
+			response["keys"], ["field_label", "field_name", "_aggregate_column", "columns"]
+		)
 
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
