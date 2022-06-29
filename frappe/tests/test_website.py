@@ -1,14 +1,14 @@
-import unittest
 from unittest.mock import patch
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import build_response, clear_website_cache, get_home_page
 
 
-class TestWebsite(unittest.TestCase):
+class TestWebsite(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")
 

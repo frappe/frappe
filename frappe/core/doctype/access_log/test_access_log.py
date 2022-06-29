@@ -4,9 +4,6 @@
 import base64
 import os
 
-# imports - standard imports
-import unittest
-
 # imports - third party imports
 import requests
 
@@ -15,10 +12,13 @@ import frappe
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.data_import.data_import import export_csv
 from frappe.core.doctype.user.user import generate_keys
+
+# imports - standard imports
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cstr, get_site_url
 
 
-class TestAccessLog(unittest.TestCase):
+class TestAccessLog(FrappeTestCase):
 	def setUp(self):
 		# generate keys for current user to send requests for the following tests
 		generate_keys(frappe.session.user)

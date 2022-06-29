@@ -1,13 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import time
-import unittest
 
 import frappe
 from frappe.auth import CookieManager, LoginManager
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestActivityLog(unittest.TestCase):
+class TestActivityLog(FrappeTestCase):
 	def test_activity_log(self):
 
 		# test user login log

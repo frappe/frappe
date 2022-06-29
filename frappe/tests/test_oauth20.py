@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urljoin, urlparse
 
@@ -13,12 +12,13 @@ import frappe
 from frappe.integrations.oauth2 import encode_params
 from frappe.test_runner import make_test_records
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
+from frappe.tests.utils import FrappeTestCase
 
 if TYPE_CHECKING:
 	from frappe.integrations.doctype.social_login_key.social_login_key import SocialLoginKey
 
 
-class FrappeRequestTestCase(unittest.TestCase):
+class FrappeRequestTestCase(FrappeTestCase):
 	@property
 	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
@@ -57,6 +57,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		make_test_records("User")
 
 		cls.form_header = {"content-type": "application/x-www-form-urlencoded"}

@@ -1,6 +1,5 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
 from contextlib import contextmanager
 from datetime import timedelta
 from unittest.mock import Mock, patch
@@ -9,6 +8,7 @@ import frappe
 from frappe.app import make_form_dict
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
 
@@ -21,7 +21,7 @@ class CustomTestNote(Note):
 		return now_datetime() - self.creation
 
 
-class TestDocument(unittest.TestCase):
+class TestDocument(FrappeTestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])
@@ -392,7 +392,7 @@ class TestDocument(unittest.TestCase):
 		self.assertEqual(todo.notify_update.call_count, 1)
 
 
-class TestDocumentWebView(unittest.TestCase):
+class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):
 		frappe.set_user(user)
 		set_request(method="GET", path=path)

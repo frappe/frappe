@@ -1,8 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestNavbarSettings(unittest.TestCase):
+class TestNavbarSettings(FrappeTestCase):
 	pass
