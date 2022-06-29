@@ -175,7 +175,7 @@ def read_options_from_html(html):
 			match = pattern.findall(html)
 			if match:
 				options[attr] = str(match[-1][3]).strip()
-		except:
+		except Exception:
 			pass
 
 	return str(soup), options
