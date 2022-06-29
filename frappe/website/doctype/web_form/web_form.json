@@ -32,9 +32,10 @@
   "web_form_fields",
   "max_attachment_size",
   "actions",
-  "success_message",
-  "column_break_29",
+  "breadcrumbs",
   "button_label",
+  "column_break_29",
+  "success_message",
   "route_to_success_link",
   "success_url",
   "list_settings_section",
@@ -57,10 +58,7 @@
   "amount_based_on_field",
   "amount_field",
   "amount",
-  "currency",
-  "advanced",
-  "web_page_link_text",
-  "breadcrumbs"
+  "currency"
  ],
  "fields": [
   {
@@ -208,7 +206,7 @@
    "collapsible": 1,
    "fieldname": "actions",
    "fieldtype": "Section Break",
-   "label": "Actions"
+   "label": "Customization"
   },
   {
    "default": "Save",
@@ -305,18 +303,6 @@
    "options": "Currency"
   },
   {
-   "collapsible": 1,
-   "fieldname": "advanced",
-   "fieldtype": "Tab Break",
-   "label": "Advanced"
-  },
-  {
-   "description": "Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`",
-   "fieldname": "web_page_link_text",
-   "fieldtype": "Data",
-   "label": "Web Page Link Text"
-  },
-  {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
@@ -411,7 +397,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-06-28 16:11:32.311389",
+ "modified": "2022-06-29 16:42:52.752377",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

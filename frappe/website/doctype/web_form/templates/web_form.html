@@ -45,7 +45,7 @@
 		<!-- attachments -->
 		{% if show_attachments and not frappe.form_dict.is_new and attachments %}
 			<div class="attachments">
-				<h5 class="mb-2">{{ _("Attachments") }}</h5>
+				<h5 class="mb-3">{{ _("Attachments") }}</h5>
 				{% for attachment in attachments %}
 					<a class="attachment attachment-link" href="{{ attachment.file_url }}" target="blank">
 						<div class="file-name ellipsis">
