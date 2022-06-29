@@ -8,7 +8,6 @@ import frappe
 import frappe.cache_manager
 from frappe import _
 from frappe.desk.form import assign_to
-from frappe.model import log_types
 from frappe.model.document import Document
 
 
@@ -203,7 +202,6 @@ def apply(doc, method=None, doctype=None, name=None):
 		frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_setup_wizard
-		or doctype in log_types
 	):
 		return
 
