@@ -132,26 +132,6 @@ class TestAutoAssign(unittest.TestCase):
 			None,
 		)
 
-	def test_clear_assignment(self):
-		note = make_note(dict(public=1))
-
-		# check if auto assigned to first user
-		todo = frappe.get_list(
-			"ToDo", dict(reference_type="Note", reference_name=note.name, status="Open")
-		)[0]
-
-		todo = frappe.get_doc("ToDo", todo["name"])
-		self.assertEqual(todo.owner, "test@example.com")
-
-		# test auto unassign
-		note.public = 0
-		note.save()
-
-		todo.load_from_db()
-
-		# check if todo is cancelled
-		self.assertEqual(todo.status, "Cancelled")
-
 	def test_close_assignment(self):
 		note = make_note(dict(public=1, content="valid"))
 
