@@ -73,6 +73,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_formatted_input(value) {
+		this._super();
 		if(!value) return;
 
 		if(!this.translate_value_map) {
@@ -85,11 +86,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.set_input_value(translated_link_text);
 	},
 	get_translated(value) {
-		return __(value);
 		return this.is_translatable() ? __(value) : value;
 	},
 	is_translatable() {
-		return true;
 		return in_list(frappe.boot.translatable_doctypes || [], this.get_options());
 	},
 	parse_validate_and_set_in_model(value, e) {
@@ -352,16 +351,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("focus", function() {
-			me.show_untranslated();
-			if(!frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+			if (!frappe.boot.translated_search_doctypes.includes(me.df.options)) {
 				me.show_untranslated();
 			}
 		});
 
 		this.$input.keydown((e) => {
 			let BACKSPACE = 8;
-			me.show_untranslated();
-			if(e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+			if (e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options)) {
 				me.show_untranslated();
 			}
 		});

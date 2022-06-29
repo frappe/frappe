@@ -26,6 +26,20 @@ context('Control Link', () => {
 		});
 	}
 
+	function get_dialog_with_user_link() {
+		return cy.dialog({
+			title: 'Link',
+			fields: [
+				{
+					'label': 'Select User',
+					'fieldname': 'link',
+					'fieldtype': 'Link',
+					'options': 'User',
+				}
+			]
+		});
+	}
+
 	it('should set the valid value', () => {
 		get_dialog_with_link().as('dialog');
 

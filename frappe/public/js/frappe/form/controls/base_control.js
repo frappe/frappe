@@ -162,7 +162,7 @@ frappe.ui.form.Control = Class.extend({
 		force_set_value = (this.doc && this.doc.__run_link_triggers) || force_set_value;
 		let is_value_same = (this.get_model_value() === value);
 
-		if (this.inside_change_event || (!force_value_set && is_value_same)) {
+		if (this.inside_change_event || (!force_set_value && is_value_same)) {
 			return Promise.resolve();
 		}
 
@@ -188,6 +188,7 @@ frappe.ui.form.Control = Class.extend({
 		};
 
 		value = this.validate(value);
+		console.log(value)
 		if (value && value.then) {
 			// got a promise
 			return value.then((value) => set(value));
