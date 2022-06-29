@@ -32,9 +32,10 @@
 
 {% else %}
 
-{% if parent %}
 {% set url = item.url or '' %}
 {% set url = url if url.startswith('#') else url | abs_url %}
+
+{% if parent %}
 <li class="nav-item">
 	<a class="nav-link" href="{{ url }}"
 		{% if item.open_in_new_tab %} target="_blank" {% endif %}>

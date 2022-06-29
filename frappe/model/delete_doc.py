@@ -31,6 +31,7 @@ doctypes_to_skip = (
 	"Notification Log",
 	"Email Queue",
 	"Document Share Key",
+	"Integration Request",
 )
 
 
@@ -89,8 +90,6 @@ def delete_doc(
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
-
-				frappe.db.delete("Custom DocPerm", {"parent": name})
 				frappe.db.delete("__global_search", {"doctype": name})
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
@@ -196,7 +195,10 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: List[str], doc):
 	else:
 		frappe.db.delete(doctype, {"name": name})
 	if doc:
-		child_doctypes = [d.options for d in doc.meta.get_table_fields()]
+		child_doctypes = [
+			d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0
+		]
+
 	else:
 		child_doctypes = frappe.get_all(
 			"DocField",

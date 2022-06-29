@@ -16,7 +16,7 @@ from requests.exceptions import HTTPError, SSLError
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method
+from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
 
@@ -61,7 +61,12 @@ class File(Document):
 		self.set_file_name()
 		self.validate_attachment_limit()
 
-		if not self.is_folder and not self.is_remote_file:
+		if self.is_folder:
+			return
+
+		if self.is_remote_file:
+			self.validate_remote_file()
+		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.local.rollback_observers.append(self)
@@ -255,6 +260,12 @@ class File(Document):
 					title=_("Attachment Limit Reached"),
 				)
 
+	def validate_remote_file(self):
+		"""Validates if file uploaded using URL already exist"""
+		site_url = get_url()
+		if "/files/" in self.file_url and self.file_url.startswith(site_url):
+			self.file_url = self.file_url.split(site_url, 1)[1]
+
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
 		if self.folder:
@@ -444,6 +455,10 @@ class File(Document):
 		"""Returns file path from given file name"""
 
 		file_path = self.file_url or self.file_name
+
+		site_url = get_url()
+		if "/files/" in file_path and file_path.startswith(site_url):
+			file_path = file_path.split(site_url, 1)[1]
 
 		if "/" not in file_path:
 			if self.is_private:

@@ -66,7 +66,7 @@ class Newsletter(WebsiteGenerator):
 				response = requests.head(url, verify=False, timeout=5)
 				if response.status_code >= 400:
 					broken_links.append(url)
-			except:
+			except Exception:
 				broken_links.append(url)
 		return broken_links
 

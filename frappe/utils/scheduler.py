@@ -84,7 +84,7 @@ def enqueue_events_for_site(site):
 			frappe.logger("scheduler").debug("Access denied for site {0}".format(site))
 		else:
 			log_and_raise()
-	except:
+	except Exception:
 		log_and_raise()
 
 	finally:
