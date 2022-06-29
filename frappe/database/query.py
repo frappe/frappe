@@ -2,6 +2,7 @@ import operator
 import re
 from ast import literal_eval
 from functools import cached_property
+from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 
 import frappe
@@ -389,17 +390,20 @@ class Engine:
 		_args = []
 
 		for arg in args:
-			has_operator = False
 			initial_fields = literal_eval_(arg.strip())
 			if to_cast:
+				has_primitive_operator = False
 				for _operator in OPERATOR_MAP.keys():
 					if _operator in initial_fields:
-						has_operator = True
-						field = OPERATOR_MAP[_operator](
-							*map(lambda field: Field(field.strip()), arg.split(_operator))
-						)
+						operator_mapping = OPERATOR_MAP[_operator]
+						# Only perform this if operator is of primitive type.
+						if isinstance(operator_mapping, BuiltinFunctionType):
+							has_primitive_operator = True
+							field = operator_mapping(
+								*map(lambda field: Field(field.strip()), arg.split(_operator)),
+							)
 
-				field = Field(initial_fields) if not has_operator else field
+				field = Field(initial_fields) if not has_primitive_operator else field
 			else:
 				field = initial_fields
 
