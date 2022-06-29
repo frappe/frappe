@@ -387,16 +387,20 @@ class Engine:
 		_args = []
 
 		for arg in args:
-			field = literal_eval_(arg.strip())
+			has_operator = False
+			initial_fields = literal_eval_(arg.strip())
 			if to_cast:
-				try:
-					operator_fields = arg.split()
-					field = OPERATOR_MAP[operator_fields[1]](
-						Field(operator_fields[0]),
-						Field(operator_fields[2]),
-					)
-				except IndexError:
-					field = Field(field)
+				for _operator in OPERATOR_MAP.keys():
+					if _operator in initial_fields:
+						has_operator = True
+						field = OPERATOR_MAP[_operator](
+							*map(lambda field: Field(field.strip()), arg.split(_operator))
+						)
+
+				field = Field(initial_fields) if not has_operator else field
+			else:
+				field = initial_fields
+
 			_args.append(field)
 
 		return getattr(functions, func)(*_args)

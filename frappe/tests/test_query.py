@@ -42,7 +42,7 @@ class TestQuery(unittest.TestCase):
 		)
 
 	def test_functions_fields(self):
-		from frappe.query_builder.functions import Count, Max
+		from frappe.query_builder.functions import Abs, Count, Max
 
 		self.assertEqual(
 			frappe.qb.engine.get_query("User", fields="Count(name)", filters={}).get_sql(),
@@ -52,6 +52,15 @@ class TestQuery(unittest.TestCase):
 		self.assertEqual(
 			frappe.qb.engine.get_query("User", fields=["Count(name)", "Max(name)"], filters={}).get_sql(),
 			frappe.qb.from_("User").select(Count(Field("name")), Max(Field("name"))).get_sql(),
+		)
+
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"User", fields=["abs(name-email)", "Count(name)"], filters={}
+			).get_sql(),
+			frappe.qb.from_("User")
+			.select(Abs(Field("name") - Field("email")), Count(Field("name")))
+			.get_sql(),
 		)
 
 		self.assertEqual(
