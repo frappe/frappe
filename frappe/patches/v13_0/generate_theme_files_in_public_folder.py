@@ -16,6 +16,6 @@ def execute():
 		try:
 			doc.generate_bootstrap_theme()
 			doc.save()
-		except:  # noqa: E722
+		except Exception:
 			print("Ignoring....")
 			print(frappe.get_traceback())

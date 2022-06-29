@@ -77,10 +77,10 @@ class File(Document):
 			self.file_name = re.sub(r"/", "", self.file_name)
 		self.content = self.get("content", None)
 		self.decode = self.get("decode", False)
-		
+
 		if self.is_folder:
 			return
-		
+
 		if self.is_remote_file:
 			self.validate_remote_file()
 
