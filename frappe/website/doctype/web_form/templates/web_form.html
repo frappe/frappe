@@ -21,7 +21,7 @@
 
 {% block page_content %}
 
-	{% if has_header and login_required and allow_multiple %}
+	{% if has_header and login_required and show_list %}
 		<!-- breadcrumb -->
 		{% include "templates/includes/breadcrumbs.html" %}
 		{% else %}

@@ -394,7 +394,7 @@ def get_frontmatter(string):
 	}
 
 
-def get_sidebar_items(parent_sidebar, basepath):
+def get_sidebar_items(parent_sidebar, basepath=None):
 	import frappe.www.list
 
 	sidebar_items = []

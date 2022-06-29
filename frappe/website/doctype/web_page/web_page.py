@@ -16,6 +16,7 @@ from frappe.website.utils import (
 	find_first_image,
 	get_comment_list,
 	get_html_content_based_on_type,
+	get_sidebar_items,
 )
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -69,6 +70,9 @@ class WebPage(WebsiteGenerator):
 
 		if not self.show_title:
 			context["no_header"] = 1
+
+		if self.show_sidebar:
+			context.sidebar_items = get_sidebar_items(self.website_sidebar)
 
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)

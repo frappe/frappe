@@ -14,7 +14,7 @@ from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cstr, dict_with_keys, strip_html
-from frappe.website.utils import get_comment_list
+from frappe.website.utils import get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
 
@@ -202,6 +202,9 @@ def get_context(context):
 
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
+
+		if self.show_sidebar and self.website_sidebar:
+			context.sidebar_items = get_sidebar_items(self.website_sidebar)
 
 		if frappe.form_dict.is_list:
 			self.load_list_data(context)
