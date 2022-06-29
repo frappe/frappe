@@ -1,12 +1,9 @@
+import { io } from "socket.io-client";
 frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
 	init: function(port = 3000) {
-		if (!window.io) {
-			return;
-		}
-
 		if (frappe.boot.disable_async) {
 			return;
 		}
