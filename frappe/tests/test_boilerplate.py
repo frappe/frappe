@@ -3,13 +3,13 @@ import copy
 import glob
 import os
 import shutil
-import unittest
 from io import StringIO
 from unittest.mock import patch
 
 import yaml
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.boilerplate import (
 	_create_app_boilerplate,
 	_get_user_inputs,
@@ -17,9 +17,10 @@ from frappe.utils.boilerplate import (
 )
 
 
-class TestBoilerPlate(unittest.TestCase):
+class TestBoilerPlate(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		cls.default_hooks = frappe._dict(
 			{
 				"app_name": "test_app",

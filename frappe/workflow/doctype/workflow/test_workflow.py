@@ -1,7 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.model.workflow import (
 	WorkflowPermissionError,
@@ -11,12 +9,14 @@ from frappe.model.workflow import (
 )
 from frappe.query_builder import DocType
 from frappe.test_runner import make_test_records
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import random_string
 
 
-class TestWorkflow(unittest.TestCase):
+class TestWorkflow(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		make_test_records("User")
 
 	def setUp(self):

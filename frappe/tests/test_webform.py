@@ -1,12 +1,11 @@
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
 from frappe.www.list import get_list_context
 
 
-class TestWebform(unittest.TestCase):
+class TestWebform(FrappeTestCase):
 	def test_webform_publish_functionality(self):
 		request_data = frappe.get_doc("Web Form", "request-data")
 		# publish webform

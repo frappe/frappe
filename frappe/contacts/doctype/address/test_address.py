@@ -1,12 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.contacts.doctype.address.address import get_address_display
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestAddress(unittest.TestCase):
+class TestAddress(FrappeTestCase):
 	def test_template_works(self):
 		if not frappe.db.exists("Address Template", "India"):
 			frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 1}).insert()

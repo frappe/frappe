@@ -1,16 +1,16 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.test_runner import make_test_records
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import random_string
 
 
-class TestAutoAssign(unittest.TestCase):
+class TestAutoAssign(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		frappe.db.delete("Assignment Rule")
 
 	@classmethod

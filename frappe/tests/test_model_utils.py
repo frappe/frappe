@@ -1,10 +1,9 @@
-import unittest
-
 import frappe
 from frappe.model.utils import get_fetch_values
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestModelUtils(unittest.TestCase):
+class TestModelUtils(FrappeTestCase):
 	def test_get_fetch_values(self):
 		doctype = "ToDo"
 

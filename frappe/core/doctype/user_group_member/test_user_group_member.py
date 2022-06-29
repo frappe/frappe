@@ -1,8 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestUserGroupMember(unittest.TestCase):
+class TestUserGroupMember(FrappeTestCase):
 	pass

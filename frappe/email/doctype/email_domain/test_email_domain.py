@@ -1,14 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.test_runner import make_test_objects
+from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Email Domain")
 
 
-class TestDomain(unittest.TestCase):
+class TestDomain(FrappeTestCase):
 	def setUp(self):
 		make_test_objects("Email Domain", reset=True)
 
