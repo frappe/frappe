@@ -21,7 +21,12 @@ import json
 import operator
 import os
 import re
+<<<<<<< HEAD
 from typing import List, Tuple, Union
+=======
+from csv import reader
+from typing import Dict, List, Optional, Tuple, Union
+>>>>>>> 5f0555d982 (fix: Translate strings in public folders too)
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
@@ -161,10 +166,16 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
+<<<<<<< HEAD
 	return dict(frappe.db.sql("select language_name, name from tabLanguage"))
+=======
+	return dict(
+		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
+	)
+>>>>>>> 5f0555d982 (fix: Translate strings in public folders too)
 
 
-def get_dict(fortype, name=None):
+def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 	"""Returns translation dict for a type of object.
 
 	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
@@ -211,7 +222,7 @@ def get_dict(fortype, name=None):
 		translation_assets[asset_key] = message_dict
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
-	translation_map = translation_assets[asset_key]
+	translation_map: Dict = translation_assets[asset_key]
 
 	translation_map.update(get_user_translations(frappe.local.lang))
 
@@ -254,13 +265,13 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 	return out
 
 
-def get_lang_js(fortype, name):
+def get_lang_js(fortype: str, name: str) -> str:
 	"""Returns code snippet to be appended at the end of a JS script.
 
 	:param fortype: Type of object, e.g. `DocType`
 	:param name: Document name
 	"""
-	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
+	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
 def get_full_dict(lang):
@@ -633,10 +644,10 @@ def get_server_messages(app):
 	inside an app"""
 	messages = []
 	file_extensions = (".py", ".html", ".js", ".vue")
-	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
-		for dontwalk in (".git", "public", "locale"):
-			if dontwalk in folders:
-				folders.remove(dontwalk)
+	app_walk = os.walk(frappe.get_pymodule_path(app))
+
+	for basepath, folders, files in app_walk:
+		folders[:] = [folder for folder in folders if folder not in {".git", "__pycache__"}]
 
 		for f in files:
 			f = frappe.as_unicode(f)
