@@ -105,7 +105,7 @@ ensure_newline_before_comments = true
 indent = "\t"
 
 [tool.bench.dev-dependencies]
-coverage = "==5.5"
+coverage = "5.5"
 Faker = "~=13.12.1"
 pyngrok = "~=5.0.5"
 unittest-xml-reporting = "~=3.0.4"
