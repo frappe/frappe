@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from time import time
 from typing import Dict, List, Optional, Tuple, Union
 
-from pypika.terms import Criterion, NullValue, PseudoColumn
+from pypika.terms import Criterion, NullValue
 
 import frappe
 import frappe.defaults
@@ -74,15 +74,6 @@ class Database(object):
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
-
-	@property
-	def query(self):
-		if not hasattr(self, "_query"):
-			from .query import Query
-
-			self._query = Query()
-			del Query
-		return self._query
 
 	def setup_type_map(self):
 		pass
@@ -600,7 +591,7 @@ class Database(object):
 				return [map(values.get, fields)]
 
 		else:
-			r = self.query.get_sql(
+			r = frappe.qb.engine.get_query(
 				"Singles",
 				filters={"field": ("in", tuple(fields)), "doctype": doctype},
 				fields=["field", "value"],
@@ -633,7 +624,7 @@ class Database(object):
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		queried_result = self.query.get_sql(
+		queried_result = frappe.qb.engine.get_query(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
@@ -706,7 +697,7 @@ class Database(object):
 		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.query.get_sql(
+		val = frappe.qb.engine.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
@@ -748,14 +739,7 @@ class Database(object):
 	):
 		field_objects = []
 
-		if not isinstance(fields, Criterion):
-			for field in fields:
-				if "(" in str(field) or " as " in str(field):
-					field_objects.append(PseudoColumn(field))
-				else:
-					field_objects.append(field)
-
-		query = self.query.get_sql(
+		query = frappe.qb.engine.get_query(
 			table=doctype,
 			filters=filters,
 			orderby=order_by,
@@ -865,7 +849,7 @@ class Database(object):
 					frappe.clear_document_cache(dt, docname)
 
 			else:
-				query = self.query.build_conditions(table=dt, filters=dn, update=True)
+				query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
 				# TODO: Fix this; doesn't work rn - gavin@frappe.io
 				# frappe.cache().hdel_keys(dt, "document_cache")
 				# Workaround: clear all document caches
@@ -1066,7 +1050,7 @@ class Database(object):
 			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
 			if cache_count is not None:
 				return cache_count
-		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
+		query = frappe.qb.engine.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
 		count = self.sql(query, debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
@@ -1206,7 +1190,7 @@ class Database(object):
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = self.query.build_conditions(table=doctype, filters=filters).delete()
+		query = frappe.qb.engine.build_conditions(table=doctype, filters=filters).delete()
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 		return query.run(**kwargs)
