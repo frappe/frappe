@@ -95,6 +95,7 @@ class SqlFunctions(Enum):
 	Avg = "avg"
 	Max = "max"
 	Min = "min"
+	Abs = "abs"
 
 
 def _max(dt, fieldname, filters=None, **kwargs):

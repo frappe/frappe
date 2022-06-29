@@ -389,7 +389,14 @@ class Engine:
 		for arg in args:
 			field = literal_eval_(arg.strip())
 			if to_cast:
-				field = Field(field)
+				try:
+					operator_fields = arg.split()
+					field = OPERATOR_MAP[operator_fields[1]](
+						Field(operator_fields[0]),
+						Field(operator_fields[2]),
+					)
+				except IndexError:
+					field = Field(field)
 			_args.append(field)
 
 		return getattr(functions, func)(*_args)
@@ -410,6 +417,7 @@ class Engine:
 			if not issubclass(type(field), Criterion):
 				if any([func in field and f"{func}(" in field for func in SQL_FUNCTIONS]):
 					functions.append(field)
+
 		return [self.get_function_object(function) for function in functions]
 
 	def remove_string_functions(self, fields, function_objects):
