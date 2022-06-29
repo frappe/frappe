@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 import mariadb
 from mariadb.constants import FIELD_TYPE
 from pymysql.constants import ER
-from pymysql.converters import escape_string
+from pymysql.converters import escape_sequence, escape_string
 
 import frappe
 from frappe.database.database import Database
@@ -15,6 +15,7 @@ from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 if TYPE_CHECKING:
 	from mariadb import ConnectionPool
 
+_FIND_ITER_PATTERN = re.compile("%s")
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 _SITE_POOLS = defaultdict(frappe._dict)
 _MAX_POOL_SIZE = 64
@@ -235,6 +236,24 @@ class MariaDBConnectionUtil:
 		ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-205
 		"""
 		pos_values = []
+
+		# Handle sequences in values - PyMySQL & Psycopg allowed them but MariaDB client doesn't
+		# This leads to a DataError. MariaDB connector expects a flat tuple. Build queries with
+		# the ['%s'] * len(values) pattern to avoid this block.
+		if isinstance(values, (tuple, list)) and any(isinstance(v, (tuple, list)) for v in values):
+			values = list(values)
+			find_iter = _FIND_ITER_PATTERN.finditer(query)
+
+			for i, val in enumerate(values):
+				pos = next(find_iter)
+				if isinstance(val, list):
+					query = (
+						query[: pos.start()]
+						+ escape_sequence(val, charset=self._conn.character_set)
+						+ query[pos.end() :]
+					)
+					del values[i]
+
 		named_tokens = _PARAM_COMP.findall(query)
 
 		if not named_tokens or len(set(named_tokens)) == len(values):
