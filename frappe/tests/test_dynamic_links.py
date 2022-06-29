@@ -81,3 +81,4 @@ class TestDynamicLinks(unittest.TestCase):
 		unsub.delete()
 
 		clear_custom_fields("Event")
+		frappe.db.commit()  # undo changes done by DDL

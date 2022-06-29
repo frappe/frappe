@@ -298,7 +298,9 @@ class TestDocument(unittest.TestCase):
 
 		@contextmanager
 		def customize_note(with_options=False):
-			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
+			options = (
+				"frappe.utils.now_datetime() - frappe.utils.get_datetime(doc.creation)" if with_options else ""
+			)
 			custom_field = frappe.get_doc(
 				{
 					"doctype": "Custom Field",
@@ -315,6 +317,9 @@ class TestDocument(unittest.TestCase):
 				yield custom_field.insert(ignore_if_duplicate=True)
 			finally:
 				custom_field.delete()
+				# to truly delete the field
+				# creation is commited due to DDL
+				frappe.db.commit()
 
 		with patch_note():
 			doc = frappe.get_last_doc("Note")

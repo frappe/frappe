@@ -274,6 +274,7 @@ class TestAutoAssign(unittest.TestCase):
 		self.assertNotEqual(frappe.utils.get_date_str(note2_todo.date), note1.expiry_date)
 		self.assertEqual(frappe.utils.get_date_str(note2_todo.date), expiry_date)
 		assignment_rule.delete()
+		frappe.db.commit()  # undo changes commited by DDL
 
 
 def clear_assignments():
