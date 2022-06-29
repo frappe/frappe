@@ -45,20 +45,15 @@
 		<!-- attachments -->
 		{% if show_attachments and not frappe.form_dict.is_new and attachments %}
 			<div class="attachments">
-				<h5>{{ _("Attachments") }}</h5>
+				<h5 class="mb-2">{{ _("Attachments") }}</h5>
 				{% for attachment in attachments %}
-					<div class="attachment">
-						<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
-							<div class="row">
-								<div class="col-9">
-									<span class="file-name">{{ attachment.file_name }}</span>
-								</div>
-								<div class="col-3">
-									<span class="pull-right file-size">{{ attachment.file_size }}</span>
-								</div>
-							</div>
-						</a>
-					</div>
+					<a class="attachment attachment-link" href="{{ attachment.file_url }}" target="blank">
+						<div class="file-name ellipsis">
+							<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
+							<span>{{ attachment.file_name }}</span>
+						</div>
+						<div class="file-size">{{ attachment.file_size }}</div>
+					</a>
 				{% endfor %}
 			</div>
 		{% endif %} {# attachments #}

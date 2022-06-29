@@ -56,6 +56,27 @@
 					}
 				}
 			}
+
+			.attachments {
+				margin: 0 -1rem;
+				padding: 1rem 1rem 0 1rem;
+				margin-top: 1rem;
+				border-top: 1px solid var(--border-color);
+
+				.attachment {
+					display: flex;
+					justify-content: space-between;
+					width: 300px;
+					color: var(--text-light);
+
+					&:hover {
+						text-decoration: none;
+						.file-name span {
+							text-decoration: underline;
+						}
+					}
+				}
+			}
 		}
 
 		.breadcrumb-container.container {
