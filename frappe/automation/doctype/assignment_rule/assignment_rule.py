@@ -10,6 +10,22 @@ from frappe import _
 from frappe.desk.form import assign_to
 from frappe.model.document import Document
 
+log_types = (
+	"Version",
+	"Error Log",
+	"Scheduled Job Log",
+	"Event Sync Log",
+	"Event Update Log",
+	"Access Log",
+	"View Log",
+	"Activity Log",
+	"Energy Point Log",
+	"Notification Log",
+	"Email Queue",
+	"DocShare",
+	"Document Follow",
+	"Console Log",
+)
 
 class AssignmentRule(Document):
 	def validate(self):
@@ -202,6 +218,7 @@ def apply(doc, method=None, doctype=None, name=None):
 		frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_setup_wizard
+		or doctype in log_types
 	):
 		return
 
