@@ -294,7 +294,7 @@ def get_assignment_rule(days, assign=None):
 
 
 def make_note(values=None):
-	note = frappe.get_doc(dict(doctype="Note", title=random_string(10), content=random_string(20)))
+	note = frappe.get_doc(dict(owner=frappe.session.user, doctype="Note", title=random_string(10), content=random_string(20)))
 
 	if values:
 		note.update(values)
