@@ -1,5 +1,3 @@
-from typing import List
-
 import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
@@ -201,7 +199,7 @@ class CommunicationEmailMixin:
 			return _("Leave this conversation")
 		return ""
 
-	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False) -> List:
+	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False) -> list:
 		"""List of mail id's excluded while sending mail."""
 		all_ids = self.get_all_email_addresses(exclude_displayname=True)
 

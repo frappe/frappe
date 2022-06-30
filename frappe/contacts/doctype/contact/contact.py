@@ -290,7 +290,7 @@ def get_contact_with_phone_number(number):
 		return
 
 	contacts = frappe.get_all(
-		"Contact Phone", filters=[["phone", "like", "%{0}".format(number)]], fields=["parent"], limit=1
+		"Contact Phone", filters=[["phone", "like", f"%{number}"]], fields=["parent"], limit=1
 	)
 
 	return contacts[0].parent if contacts else None

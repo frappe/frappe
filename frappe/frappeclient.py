@@ -26,7 +26,7 @@ class FrappeException(Exception):
 	pass
 
 
-class FrappeClient(object):
+class FrappeClient:
 	def __init__(
 		self,
 		url,
@@ -85,11 +85,9 @@ class FrappeClient(object):
 
 	def setup_key_authentication_headers(self):
 		if self.api_key and self.api_secret:
-			token = base64.b64encode(
-				("{}:{}".format(self.api_key, self.api_secret)).encode("utf-8")
-			).decode("utf-8")
+			token = base64.b64encode((f"{self.api_key}:{self.api_secret}").encode()).decode("utf-8")
 			auth_header = {
-				"Authorization": "Basic {}".format(token),
+				"Authorization": f"Basic {token}",
 			}
 			self.headers.update(auth_header)
 
@@ -266,7 +264,7 @@ class FrappeClient(object):
 		# build - attach children to parents
 		if tables:
 			docs = [frappe._dict(doc) for doc in docs]
-			docs_map = dict((doc.name, doc) for doc in docs)
+			docs_map = {doc.name: doc for doc in docs}
 
 			for fieldname in tables:
 				for child in tables[fieldname]:

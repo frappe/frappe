@@ -33,10 +33,10 @@ class WebPage(WebsiteGenerator):
 		return self.title
 
 	def on_update(self):
-		super(WebPage, self).on_update()
+		super().on_update()
 
 	def on_trash(self):
-		super(WebPage, self).on_trash()
+		super().on_trash()
 
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, "main_section", self.content_type)

@@ -42,7 +42,7 @@ def update_link_count():
 			if key[0] not in ignore_doctypes:
 				try:
 					frappe.db.sql(
-						"update `tab{0}` set idx = idx + {1} where name=%s".format(key[0], count),
+						f"update `tab{key[0]}` set idx = idx + {count} where name=%s",
 						key[1],
 						auto_commit=1,
 					)

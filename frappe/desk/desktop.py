@@ -486,9 +486,9 @@ def save_new_widget(doc, page, blocks, new_widgets):
 
 		# Error log body
 		log = """
-		page: {0}
-		config: {1}
-		exception: {2}
+		page: {}
+		config: {}
+		exception: {}
 		""".format(
 			page, json_config, e
 		)

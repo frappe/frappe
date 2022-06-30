@@ -17,7 +17,7 @@ def resize_images(path, maxdim=700):
 					im.thumbnail(size, Image.Resampling.LANCZOS)
 					im.save(os.path.join(basepath, fname))
 
-					print("resized {0}".format(os.path.join(basepath, fname)))
+					print(f"resized {os.path.join(basepath, fname)}")
 
 
 def strip_exif_data(content, content_type):

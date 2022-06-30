@@ -47,7 +47,7 @@ def set_field_property(filters, key, value):
 	for d in docs:
 		d.get("fields", filters)[0].set(key, value)
 		d.save()
-		print("Updated {0}".format(d.name))
+		print(f"Updated {d.name}")
 
 	frappe.db.commit()
 
@@ -70,7 +70,7 @@ def render_include(content):
 
 			for path in paths:
 				app, app_path = path.split("/", 1)
-				with io.open(frappe.get_app_path(app, app_path), "r", encoding="utf-8") as f:
+				with open(frappe.get_app_path(app, app_path), encoding="utf-8") as f:
 					include = f.read()
 					if path.endswith(".html"):
 						include = html_to_js_template(path, include)

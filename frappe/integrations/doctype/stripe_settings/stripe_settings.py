@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -163,7 +162,7 @@ class StripeSettings(Document):
 	def validate_stripe_credentails(self):
 		if self.publishable_key and self.secret_key:
 			header = {
-				"Authorization": "Bearer {0}".format(
+				"Authorization": "Bearer {}".format(
 					self.get_password(fieldname="secret_key", raise_exception=False)
 				)
 			}
@@ -190,7 +189,7 @@ class StripeSettings(Document):
 				)
 
 	def get_payment_url(self, **kwargs):
-		return get_url("./integrations/stripe_checkout?{0}".format(urlencode(kwargs)))
+		return get_url(f"./integrations/stripe_checkout?{urlencode(kwargs)}")
 
 	def create_request(self, data):
 		import stripe

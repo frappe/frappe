@@ -187,7 +187,7 @@ def get_script(report_name):
 
 	script = None
 	if os.path.exists(script_path):
-		with open(script_path, "r") as f:
+		with open(script_path) as f:
 			script = f.read()
 			script += f"\n\n//# sourceURL={scrub(report.name)}.js"
 

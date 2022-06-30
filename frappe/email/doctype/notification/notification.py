@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -368,7 +367,7 @@ def get_context(context):
 			template = ""
 			template_path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name) + extn)
 			if os.path.exists(template_path):
-				with open(template_path, "r") as f:
+				with open(template_path) as f:
 					template = f.read()
 			return template
 
@@ -433,7 +432,7 @@ def evaluate_alert(doc: Document, alert, event):
 		if event == "Value Change" and not doc.is_new():
 			if not frappe.db.has_column(doc.doctype, alert.value_changed):
 				alert.db_set("enabled", 0)
-				alert.log_error("Notification {0} has been disabled due to missing field".format(alert.name))
+				alert.log_error(f"Notification {alert.name} has been disabled due to missing field")
 				return
 
 			doc_before_save = doc.get_doc_before_save()

@@ -246,15 +246,15 @@ def bulk_workflow_approval(docnames, doctype, action):
 		except Exception as e:
 			if not frappe.message_log:
 				# Exception is	raised manually and not from msgprint or throw
-				message = "{0}".format(e.__class__.__name__)
+				message = f"{e.__class__.__name__}"
 				if e.args:
-					message += " : {0}".format(e.args[0])
+					message += f" : {e.args[0]}"
 				message_dict = {"docname": docname, "message": message}
 				failed_transactions[docname].append(message_dict)
 
 			frappe.db.rollback()
 			frappe.log_error(
-				title="Workflow {0} threw an error for {1} {2}".format(action, doctype, docname),
+				title=f"Workflow {action} threw an error for {doctype} {docname}",
 				reference_doctype="Workflow",
 				reference_name=action,
 			)
@@ -286,19 +286,19 @@ def bulk_workflow_approval(docnames, doctype, action):
 
 def print_workflow_log(messages, title, doctype, indicator):
 	if messages.keys():
-		msg = "<h4>{0}</h4>".format(title)
+		msg = f"<h4>{title}</h4>"
 
 		for doc in messages.keys():
 			if len(messages[doc]):
-				html = "<details><summary>{0}</summary>".format(frappe.utils.get_link_to_form(doctype, doc))
+				html = f"<details><summary>{frappe.utils.get_link_to_form(doctype, doc)}</summary>"
 				for log in messages[doc]:
 					if log.get("message"):
-						html += "<div class='small text-muted' style='padding:2.5px'>{0}</div>".format(
+						html += "<div class='small text-muted' style='padding:2.5px'>{}</div>".format(
 							log.get("message")
 						)
 				html += "</details>"
 			else:
-				html = "<div>{0}</div>".format(doc)
+				html = f"<div>{doc}</div>"
 			msg += html
 
 		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator, is_minimizable=True)

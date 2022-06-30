@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -126,7 +125,7 @@ def update_order_for_single_card(
 	if from_colname == to_colname:
 		from_col_order = to_col_order
 
-	to_col_order.insert(new_index, from_col_order.pop((old_index)))
+	to_col_order.insert(new_index, from_col_order.pop(old_index))
 
 	# save updated order
 	board.columns[from_col_idx].order = frappe.as_json(from_col_order)
@@ -173,7 +172,7 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 	doc.field_name = field_name
 
 	if project:
-		doc.filters = '[["Task","project","=","{0}"]]'.format(project)
+		doc.filters = f'[["Task","project","=","{project}"]]'
 
 	options = ""
 	for field in meta.fields:

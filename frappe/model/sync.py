@@ -84,7 +84,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			frappe.db.commit()
 
 			# show progress bar
-			update_progress_bar("Updating DocTypes for {0}".format(app_name), i, l)
+			update_progress_bar(f"Updating DocTypes for {app_name}", i, l)
 
 		# print each progress bar on new line
 		print()

@@ -347,7 +347,7 @@ def _getattr(object, name, default=None):
 	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
-		raise SyntaxError("{name} is an unsafe attribute".format(name=name))
+		raise SyntaxError(f"{name} is an unsafe attribute")
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 

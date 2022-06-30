@@ -349,13 +349,13 @@ def get_js(items):
 			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
 		contentpath = os.path.join(frappe.local.sites_path, *src)
-		with open(contentpath, "r") as srcfile:
+		with open(contentpath) as srcfile:
 			code = frappe.utils.cstr(srcfile.read())
 
 		if frappe.local.lang != "en":
 			messages = frappe.get_lang_dict("jsfile", contentpath)
 			messages = json.dumps(messages)
-			code += "\n\n$.extend(frappe._messages, {})".format(messages)
+			code += f"\n\n$.extend(frappe._messages, {messages})"
 
 		out.append(code)
 
