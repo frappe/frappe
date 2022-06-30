@@ -107,8 +107,49 @@ class TestSearch(unittest.TestCase):
 				"System Manager",
 			)
 
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
-		self.assertNotIn(email, names_for_mention)
+		self.assertNotIn(email, get_ids_for_mention())
+
+	def test_readable_users(self):
+		"""User can only mention users he can read.
+
+		Results are cached. One user's cache should not affect others.
+		"""
+		from frappe.core.doctype.user_permission.user_permission import add_user_permissions
+
+		users = ("restricted@example.org", "unrestricted@exampe.org")
+		restricted, unrestricted = users
+		frappe.db.delete("User", {"name": ["in", users]})
+		frappe.db.delete("User Permission", {"user": restricted})
+
+		# Create User restricted by User Permission
+		frappe.new_doc(
+			{
+				"doctype": "User",
+				"email": restricted,
+				"first_name": restricted.split("@")[0],
+			}
+		).save()
+
+		frappe.new_doc(
+			{
+				"doctype": "User",
+				"email": unrestricted,
+				"first_name": unrestricted.split("@")[0],
+			}
+		).save()
+
+		# restricted user can see only himself
+		add_user_permissions(frappe._dict(user=restricted, allow="User", for_name=restricted))
+		frappe.set_user(restricted)
+		mentionable_ids = get_ids_for_mention()
+		self.assertEqual(restricted, mentionable_ids[0])
+		self.assertEqual(len(mentionable_ids), 1)
+
+		# unrestricted user can see both
+		frappe.set_user(unrestricted)
+		mentionable_ids = get_ids_for_mention()
+		self.assertIn(restricted, mentionable_ids)
+		self.assertIn(unrestricted, mentionable_ids)
 
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
@@ -235,3 +276,7 @@ def teardown_test_link_field_order(TestCase):
 	)
 
 	TestCase.tree_doc.delete()
+
+
+def get_ids_for_mention():
+	return [user.get("id") for user in get_names_for_mentions("")]
