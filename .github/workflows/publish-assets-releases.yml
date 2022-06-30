@@ -26,7 +26,7 @@ jobs:
         run: |
           npm install -g yarn
           pip3 install -U frappe-bench
-          bench init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
+          bench -v init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
           cd frappe-bench && bench build
 
       - name: Package assets
