@@ -157,14 +157,20 @@ class FormTimeline extends BaseTimeline {
 	get_view_timeline_contents() {
 		let view_timeline_contents = [];
 		(this.doc_info.views || []).forEach(view => {
+			let view_message = __("{0} viewed this {1}", [
+				this.get_user_link(view.owner),
+				comment_when(view.creation)
+			]);
+
 			let view_content = `
 				<a href="${frappe.utils.get_form_link('View Log', view.name)}">
-					${__("{0} viewed", [this.get_user_link(view.owner)])}
+					${view_message}
 				</a>
 			`;
 			view_timeline_contents.push({
 				creation: view.creation,
 				content: view_content,
+				hide_timestamp: true,
 			});
 		});
 		return view_timeline_contents;
