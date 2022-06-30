@@ -31,9 +31,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: "gabrielfalcao/pyenv-action@v9"
         with:
-          python-version: '3.8'
+          versions: 3.10:latest, 3.7:latest, 2.7:latest
+          command: pyenv local 3.10
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -120,15 +121,23 @@ jobs:
           for version in $(seq 12 13)
           do
               echo "Updating to v$version"
+              if [ $version == 12 ]; then
+                pyenv local 2.7
+              elif [ $version == 13 ]; then
+                pyenv local 3.7
+              fi
               branch_name="version-$version-hotfix"
               git fetch --depth 1 upstream $branch_name:$branch_name
-
               git checkout -q -f $branch_name
-              bench setup requirements --python
+
+              rm -rf ~/frappe-bench/env
+              bench setup env
               bench --site test_site migrate
           done
 
           echo "Updating to last commit"
           git checkout -q -f "$GITHUB_SHA"
-          bench setup requirements --python
+          pyenv local 3.10
+          rm -rf ~/frappe-bench/env
+          bench setup env
           bench --site test_site migrate
