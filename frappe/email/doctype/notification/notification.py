@@ -146,7 +146,7 @@ def get_context(context):
 			if self.channel == "System Notification" or self.send_system_notification:
 				self.create_system_notification(doc, context)
 
-		except:
+		except Exception:
 			frappe.log_error(title="Failed to send notification", message=frappe.get_traceback())
 
 		if self.set_property_after_alert:

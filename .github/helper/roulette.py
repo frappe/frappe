@@ -60,12 +60,12 @@ if __name__ == "__main__":
 	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
 	only_py_changed = len(list(filter(is_py, files_list))) == len(files_list)
 
-	if ci_files_changed:
-		print("CI related files were updated, running all build processes.")
-
-	elif has_skip_ci_label(pr_number, repo):
+	if has_skip_ci_label(pr_number, repo):
 		print("Found `Skip CI` label on pr, stopping build process.")
 		sys.exit(0)
+
+	elif ci_files_changed:
+		print("CI related files were updated, running all build processes.")
 
 	elif only_docs_changed:
 		print("Only docs were updated, stopping build process.")

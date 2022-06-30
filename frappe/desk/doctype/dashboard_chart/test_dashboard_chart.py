@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 
 import unittest
-
 from datetime import datetime
 from unittest.mock import patch
 

@@ -560,7 +560,9 @@ class TestReportview(unittest.TestCase):
 		)
 
 		response = execute_cmd("frappe.desk.reportview.get")
-		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
+		self.assertListEqual(
+			response["keys"], ["field_label", "field_name", "_aggregate_column", "columns"]
+		)
 
 	def test_fieldname_starting_with_int(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
