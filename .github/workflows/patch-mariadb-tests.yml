@@ -34,7 +34,6 @@ jobs:
         uses: "gabrielfalcao/pyenv-action@v9"
         with:
           versions: 3.10:latest, 3.7:latest, 2.7:latest
-          command: pyenv local 3.10
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -102,7 +101,9 @@ jobs:
 
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: |
+          pyenv local 3.10
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
