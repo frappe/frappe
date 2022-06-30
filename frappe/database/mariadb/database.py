@@ -236,6 +236,18 @@ class MariaDBConnectionUtil:
 		ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-205
 		"""
 		pos_values = []
+		named_tokens = _PARAM_COMP.findall(query)
+
+		for token in named_tokens:
+			key = token[2:-2]
+			val = values[key]
+			if isinstance(val, (tuple, list)):
+				val = escape_sequence(val)
+			pos_values.append(val)
+			query = query.replace(token, "%s", 1)
+
+		if pos_values:
+			values = pos_values
 
 		# Handle sequences in values - PyMySQL & Psycopg allowed them but MariaDB client doesn't
 		# This leads to a DataError. MariaDB connector expects a flat tuple. Build queries with
@@ -246,7 +258,7 @@ class MariaDBConnectionUtil:
 
 			for i, val in enumerate(values):
 				pos = next(find_iter)
-				if isinstance(val, list):
+				if isinstance(val, (list, tuple)):
 					query = (
 						query[: pos.start()]
 						+ escape_sequence(val, charset=self._conn.character_set)
@@ -254,17 +266,7 @@ class MariaDBConnectionUtil:
 					)
 					del values[i]
 
-		named_tokens = _PARAM_COMP.findall(query)
-
-		if not named_tokens or len(set(named_tokens)) == len(values):
-			return query, values
-
-		for token in named_tokens:
-			key = token[2:-2]
-			pos_values.append(values[key])
-			query = query.replace(token, "%s", 1)
-
-		return query, pos_values
+		return query, values
 
 
 class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
