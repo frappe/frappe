@@ -130,6 +130,7 @@ jobs:
               branch_name="version-$version-hotfix"
               git fetch --depth 1 upstream $branch_name:$branch_name
               git checkout -q -f $branch_name
+              pip install -U frappe-bench
 
               rm -rf ~/frappe-bench/env
               bench -v setup env
