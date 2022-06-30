@@ -6,7 +6,7 @@ cd ~ || exit
 
 pip install frappe-bench
 
-bench init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
+bench -v init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
 
 mkdir ~/frappe-bench/sites/test_site
 cp "${GITHUB_WORKSPACE}/.github/helper/consumer_db/$DB.json" ~/frappe-bench/sites/test_site/site_config.json
@@ -49,8 +49,8 @@ sed -i 's/^schedule:/# schedule:/g' Procfile
 if [ "$TYPE" == "server" ]; then sed -i 's/^socketio:/# socketio:/g' Procfile; fi
 if [ "$TYPE" == "server" ]; then sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile; fi
 
-if [ "$TYPE" == "ui" ]; then bench setup requirements --node; fi
-bench setup requirements --dev
+if [ "$TYPE" == "ui" ]; then bench -v setup requirements --node; fi
+bench -v setup requirements --dev
 
 if [ "$TYPE" == "ui" ]; then sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile; fi
 
