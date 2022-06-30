@@ -37,11 +37,6 @@ class Oauth:
 		self._validate()
 
 	def _validate(self) -> None:
-		if self.service != "GMail":
-			raise NotImplementedError(
-				f"Service {self.service} currently doesn't have oauth implementation."
-			)
-
 		if not self._refresh_token:
 			frappe.throw(
 				frappe._("Please Authorize OAuth."),
@@ -51,7 +46,7 @@ class Oauth:
 
 	@property
 	def _auth_string(self) -> str:
-		return "user=%s\1auth=Bearer %s\1\1" % (self.email, self._access_token)
+		return f"user={self.email}\1auth=Bearer {self._access_token}\1\1"
 
 	def connect(self, _retry: int = 0) -> None:
 		"""Connection method with retry on exception for Oauth"""
@@ -106,9 +101,8 @@ class Oauth:
 
 		# set the new access token in db
 		frappe.db.set_value(
-			"Email Account", self.email_account, "access_token", access_token, update_modified=True
+			"Email Account", self.email_account, "access_token", access_token, update_modified=False
 		)
-		frappe.db.commit()
 		return access_token
 
 	def _get_service_object(self):
@@ -120,7 +114,7 @@ class Oauth:
 
 
 @frappe.whitelist(methods=["POST"])
-def oauth_access(email_account: str, service: str = None):
+def oauth_access(email_account: str, service: str):
 	"""Used as a default endpoint/caller for all oauth services.
 	Returns authorization url for redirection"""
 
@@ -135,6 +129,8 @@ def oauth_access(email_account: str, service: str = None):
 
 	if service == "GMail":
 		return authorize_google_access(email_account, doctype)
+
+	raise NotImplementedError(f"Service {service} currently doesn't have oauth implementation.")
 
 
 def authorize_google_access(email_account, doctype: str = "Email Account", code: str = None):
