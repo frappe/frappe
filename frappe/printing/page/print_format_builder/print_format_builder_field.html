@@ -13,11 +13,11 @@
 	{% if !in_list(["Table", "HTML", "Custom HTML"], field.fieldtype) %}
 	<a class="field-settings pull-right">
 		<span>
-			<svg class="icon icon-sm"><use xlink:href="#icon-setting-gear"></use></svg>
+			<svg class="icon icon-sm"><use href="#icon-setting-gear"></use></svg>
 		</span>
 	</a>
 	<span class="drag-handle">
-		<svg class="icon icon-xs"><use xlink:href="#icon-drag"></use></svg>
+		<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
 	</span>
 	{% endif %}
 	{% if(field.fieldtype==="Custom HTML") { %}
@@ -32,7 +32,7 @@
 	{% } else { %}
 		{% if(field.fieldtype==="Table") { %}
 			<span class="drag-handle">
-				<svg class="icon icon-xs"><use xlink:href="#icon-drag"></use></svg>
+				<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
 			</span>
 			<span class="field-label">{{ __(field.label) }}
 				<span> ({%= __("Table") %})</span>

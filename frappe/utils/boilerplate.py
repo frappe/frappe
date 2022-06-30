@@ -478,7 +478,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.8
 
       - name: Setup Node
         uses: actions/setup-node@v2
@@ -490,7 +490,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt') }}}}
+          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
           restore-keys: |
             ${{{{ runner.os }}}}-pip-
             ${{{{ runner.os }}}}-

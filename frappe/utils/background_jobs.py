@@ -3,7 +3,7 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import List
+from typing import TYPE_CHECKING, List
 from uuid import uuid4
 
 import redis
@@ -18,6 +18,9 @@ from frappe import _
 from frappe.utils import cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.redis_queue import RedisQueue
+
+if TYPE_CHECKING:
+	from rq.job import Job
 
 
 @lru_cache()
@@ -52,7 +55,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-):
+) -> "Job":
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -163,7 +166,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.log_error(title=method_name)
 			raise
 
-	except:
+	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=method_name)
 		frappe.db.commit()

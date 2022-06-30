@@ -123,8 +123,23 @@ class BaseDocument(object):
 		return meta
 
 	def __getstate__(self):
-		self._meta = None
-		return self.__dict__
+		"""
+		Called when pickling.
+		Returns a copy of `__dict__` excluding unpicklable values like `_meta`.
+
+		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
+		"""
+
+		# Always use the dict.copy() method to avoid modifying the original state
+		state = self.__dict__.copy()
+		self.remove_unpicklable_values(state)
+
+		return state
+
+	def remove_unpicklable_values(self, state):
+		"""Remove unpicklable values before pickling"""
+
+		state.pop("_meta", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.

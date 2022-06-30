@@ -506,8 +506,6 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	initialize_new_doc() {
-		// moved this call to refresh function
-		// this.check_doctype_conflict(docname);
 		var me = this;
 
 		// hide any open grid
@@ -575,8 +573,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger('render_complete');
 
-		this.cscript.is_onload && this.set_first_tab_as_active();
-
 		if(!this.hidden) {
 			this.layout.show_empty_form_message();
 		}
@@ -590,11 +586,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 	onload_post_render() {
 		this.setup_image_autocompletions_in_markdown();
-	}
-
-	set_first_tab_as_active() {
-		this.layout.tabs[0]
-			&& this.layout.tabs[0].set_active();
 	}
 
 	focus_on_first_input() {
@@ -1031,8 +1022,8 @@ frappe.ui.form.Form = class FrappeForm {
 			if(this.doc.__unsaved) {
 				this.dashboard.clear_headline();
 				this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
-					+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
-					+ __("Refresh") + '</a>', "alert-warning");
+					+ '<button class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
+					+ __("Refresh") + '</button>', "alert-warning");
 			} else {
 				this.reload_doc();
 			}
@@ -1846,6 +1837,15 @@ frappe.ui.form.Form = class FrappeForm {
 				resolve(options);
 			});
 		});
+	}
+	set_active_tab(tab) {
+		if (!this.active_tab_map) {
+			this.active_tab_map = {};
+		}
+		this.active_tab_map[this.docname] = tab;
+	}
+	get_active_tab() {
+		return this.active_tab_map && this.active_tab_map[this.docname];
 	}
 };
 

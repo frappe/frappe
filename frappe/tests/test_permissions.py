@@ -672,3 +672,31 @@ class TestPermissions(FrappeTestCase):
 			doctype="Has Role",
 			parent_doctype="Has Role",
 		)
+
+	def test_select_user(self):
+		"""If test3@example.com is restricted by a User Permission to see only
+		users linked to a certain doctype (in this case: Gender "Female"), he
+		should not be able to query other users (Gender "Male").
+		"""
+		# ensure required genders exist
+		for gender in ("Male", "Female"):
+			if frappe.db.exists("Gender", gender):
+				continue
+
+			frappe.get_doc({"doctype": "Gender", "gender": gender}).insert()
+
+		# asssign gender to test users
+		frappe.db.set_value("User", "test1@example.com", "gender", "Male")
+		frappe.db.set_value("User", "test2@example.com", "gender", "Female")
+		frappe.db.set_value("User", "test3@example.com", "gender", "Female")
+
+		# restrict test3@example.com to see only female users
+		add_user_permission("Gender", "Female", "test3@example.com")
+
+		# become user test3@example.com and see what users he can query
+		frappe.set_user("test3@example.com")
+		users = frappe.get_list("User", pluck="name")
+
+		self.assertNotIn("test1@example.com", users)
+		self.assertIn("test2@example.com", users)
+		self.assertIn("test3@example.com", users)

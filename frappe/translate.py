@@ -15,7 +15,7 @@ import operator
 import os
 import re
 from csv import reader
-from typing import List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import PseudoColumn
 
@@ -149,13 +149,12 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	result = dict(
+	return dict(
 		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
 	)
-	return result
 
 
-def get_dict(fortype, name=None):
+def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 	"""Returns translation dict for a type of object.
 
 	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
@@ -206,7 +205,7 @@ def get_dict(fortype, name=None):
 		translation_assets[asset_key] = message_dict
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
-	translation_map = translation_assets[asset_key]
+	translation_map: Dict = translation_assets[asset_key]
 
 	translation_map.update(get_user_translations(frappe.local.lang))
 
@@ -249,13 +248,13 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 	return out
 
 
-def get_lang_js(fortype, name):
+def get_lang_js(fortype: str, name: str) -> str:
 	"""Returns code snippet to be appended at the end of a JS script.
 
 	:param fortype: Type of object, e.g. `DocType`
 	:param name: Document name
 	"""
-	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
+	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
 def get_full_dict(lang):
@@ -634,10 +633,10 @@ def get_server_messages(app):
 	inside an app"""
 	messages = []
 	file_extensions = (".py", ".html", ".js", ".vue")
-	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
-		for dontwalk in (".git", "public", "locale"):
-			if dontwalk in folders:
-				folders.remove(dontwalk)
+	app_walk = os.walk(frappe.get_pymodule_path(app))
+
+	for basepath, folders, files in app_walk:
+		folders[:] = [folder for folder in folders if folder not in {".git", "__pycache__"}]
 
 		for f in files:
 			f = frappe.as_unicode(f)
@@ -808,7 +807,7 @@ def write_csv_file(path, app_messages, lang_dict):
 				w.writerow([message, translated_string, context])
 
 
-def get_untranslated(lang, untranslated_file, get_all=False):
+def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 	"""Returns all untranslated strings for a language and writes in a file
 
 	:param lang: Language code.
@@ -816,11 +815,16 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
+	if app != "_ALL_APPS":
+		if app not in apps:
+			print(f"Application {app} not found!")
+			return
+		apps = [app]
 
 	messages = []
 	untranslated = []
-	for app in apps:
-		messages.extend(get_messages_for_app(app))
+	for app_name in apps:
+		messages.extend(get_messages_for_app(app_name))
 
 	messages = deduplicate_messages(messages)
 
@@ -850,7 +854,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			print("all translated!")
 
 
-def update_translations(lang, untranslated_file, translated_file):
+def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS"):
 	"""Update translations from a source and target file for a given language.
 
 	:param lang: Language code (e.g. `en`).
@@ -879,9 +883,16 @@ def update_translations(lang, untranslated_file, translated_file):
 		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
 	full_dict.update(translation_dict)
+	apps = frappe.get_all_apps(True)
 
-	for app in frappe.get_all_apps(True):
-		write_translations_file(app, lang, full_dict)
+	if app != "_ALL_APPS":
+		if app not in apps:
+			print(f"Application {app} not found!")
+			return
+		apps = [app]
+
+	for app_name in apps:
+		write_translations_file(app_name, lang, full_dict)
 
 
 def import_translations(lang, path):
