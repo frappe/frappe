@@ -129,7 +129,9 @@ class TestSearch(unittest.TestCase):
 				"first_name": restricted.split("@")[0],
 			}
 		).save()
+		add_user_permissions(frappe._dict(user=restricted, allow="User", for_name=restricted))
 
+		# Create unrestricted user
 		frappe.new_doc(
 			{
 				"doctype": "User",
@@ -138,14 +140,13 @@ class TestSearch(unittest.TestCase):
 			}
 		).save()
 
-		# restricted user can see only himself
-		add_user_permissions(frappe._dict(user=restricted, allow="User", for_name=restricted))
+		# Restricted user can see only himself
 		frappe.set_user(restricted)
 		mentionable_ids = get_ids_for_mention()
 		self.assertEqual(restricted, mentionable_ids[0])
 		self.assertEqual(len(mentionable_ids), 1)
 
-		# unrestricted user can see both
+		# Unrestricted user can see both
 		frappe.set_user(unrestricted)
 		mentionable_ids = get_ids_for_mention()
 		self.assertIn(restricted, mentionable_ids)
