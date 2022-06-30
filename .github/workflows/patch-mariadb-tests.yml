@@ -132,7 +132,7 @@ jobs:
               git checkout -q -f $branch_name
 
               rm -rf ~/frappe-bench/env
-              bench setup env
+              bench -v setup env
               bench --site test_site migrate
           done
 
@@ -140,5 +140,5 @@ jobs:
           git checkout -q -f "$GITHUB_SHA"
           pyenv global $(pyenv versions | grep '3.10')
           rm -rf ~/frappe-bench/env
-          bench setup env
+          bench -v setup env
           bench --site test_site migrate
