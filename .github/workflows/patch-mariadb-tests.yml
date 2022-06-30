@@ -34,7 +34,6 @@ jobs:
         uses: "gabrielfalcao/pyenv-action@v9"
         with:
           versions: 3.10:latest, 3.7:latest, 2.7:latest
-          command: pyenv local 3.10
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -102,7 +101,10 @@ jobs:
 
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: |
+          pip install frappe-bench
+          pyenv global $(pyenv versions | grep '3.10')
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
@@ -122,22 +124,23 @@ jobs:
           do
               echo "Updating to v$version"
               if [ $version == 12 ]; then
-                pyenv local 2.7
+                pyenv global $(pyenv versions | grep '2.7')
               elif [ $version == 13 ]; then
-                pyenv local 3.7
+                pyenv global $(pyenv versions | grep '3.7')
               fi
               branch_name="version-$version-hotfix"
               git fetch --depth 1 upstream $branch_name:$branch_name
               git checkout -q -f $branch_name
+              pip install -U frappe-bench
 
               rm -rf ~/frappe-bench/env
-              bench setup env
+              bench -v setup env
               bench --site test_site migrate
           done
 
           echo "Updating to last commit"
           git checkout -q -f "$GITHUB_SHA"
-          pyenv local 3.10
+          pyenv global $(pyenv versions | grep '3.10')
           rm -rf ~/frappe-bench/env
-          bench setup env
+          bench -v setup env
           bench --site test_site migrate
