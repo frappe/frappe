@@ -9,7 +9,6 @@ from googleapiclient.errors import HttpError
 import frappe
 from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
-from frappe.utils import get_request_site_address
 
 
 @frappe.whitelist(methods=["POST"])
@@ -26,14 +25,13 @@ def authorize_access(reauthorize=False, code=None):
 
 	if not oauth_code or reauthorize:
 		return oauth_obj.get_authentication_url(
-			get_request_site_address(True),
-			state={
+			{
 				"method": "frappe.website.doctype.website_settings.google_indexing.authorize_access",
 				"redirect": "/app/Form/{0}".format(quote("Website Settings")),
 			},
 		)
 
-	res = oauth_obj.authorize(oauth_code, get_request_site_address(True))
+	res = oauth_obj.authorize(oauth_code)
 	frappe.db.set_value(
 		"Website Settings",
 		"Website Settings",

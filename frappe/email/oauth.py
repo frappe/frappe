@@ -7,7 +7,6 @@ from urllib.parse import quote
 
 import frappe
 from frappe.integrations.google_oauth import GoogleOAuth
-from frappe.utils import get_request_site_address
 
 
 class OAuthenticationError(Exception):
@@ -142,15 +141,14 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 
 	if not code:
 		return oauth_obj.get_authentication_url(
-			get_request_site_address(True),
-			state={
+			{
 				"method": "frappe.email.oauth.authorize_google_access",
 				"redirect": "/app/Form/{0}/{1}".format(quote(doctype), quote(email_account)),
 				"email_account": email_account,
 			},
 		)
 
-	res = oauth_obj.authorize(code, get_request_site_address(True))
+	res = oauth_obj.authorize(code)
 	frappe.db.set_value(
 		doctype,
 		email_account,

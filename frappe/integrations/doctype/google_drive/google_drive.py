@@ -16,7 +16,7 @@ from frappe.integrations.offsite_backup_utils import (
 	validate_file_size,
 )
 from frappe.model.document import Document
-from frappe.utils import get_backups_path, get_bench_path, get_request_site_address
+from frappe.utils import get_backups_path, get_bench_path
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.backups import new_backup
 
@@ -56,14 +56,13 @@ def authorize_access(reauthorize=False, code=None):
 		if reauthorize:
 			frappe.db.set_value("Google Drive", None, "backup_folder_id", "")
 		return oauth_obj.get_authentication_url(
-			get_request_site_address(True),
-			state={
+			{
 				"method": "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
 				"redirect": "/app/Form/{0}".format(quote("Google Drive")),
 			},
 		)
 
-	r = oauth_obj.authorize(oauth_code, get_request_site_address(True))
+	r = oauth_obj.authorize(oauth_code)
 	frappe.db.set_value(
 		"Google Drive",
 		"Google Drive",

@@ -8,7 +8,6 @@ import frappe
 from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
-from frappe.utils import get_request_site_address
 
 
 class GoogleContacts(Document):
@@ -43,15 +42,14 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 
 	if not oauth_code or reauthorize:
 		return oauth_obj.get_authentication_url(
-			get_request_site_address(True),
-			state={
+			{
 				"method": "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
 				"g_contact": g_contact,
 				"redirect": "/app/Form/Google%20Contacts/{}".format(g_contact),
 			},
 		)
 
-	r = oauth_obj.authorize(oauth_code, get_request_site_address(True))
+	r = oauth_obj.authorize(oauth_code)
 	frappe.db.set_value(
 		"Google Contacts",
 		g_contact,

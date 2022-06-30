@@ -6,6 +6,7 @@ from googleapiclient.discovery import build
 from requests import get, post
 
 import frappe
+from frappe.utils import get_request_site_address
 
 CALLBACK_METHOD = "/api/method/frappe.integrations.google_oauth.callback"
 _SCOPES = {
@@ -47,7 +48,7 @@ class GoogleOAuth:
 		if not (self.google_settings.client_id and self.google_settings.client_secret):
 			frappe.throw(frappe._("Please update Google Settings before continuing."))
 
-	def authorize(self, oauth_code: str, site_address: str) -> Dict[str, Union[str, int]]:
+	def authorize(self, oauth_code: str) -> Dict[str, Union[str, int]]:
 		"""Returns a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
@@ -62,7 +63,7 @@ class GoogleOAuth:
 			),
 			"grant_type": "authorization_code",
 			"scope": self.scopes,
-			"redirect_uri": site_address + CALLBACK_METHOD,
+			"redirect_uri": get_request_site_address(True) + CALLBACK_METHOD,
 		}
 
 		return handle_response(
@@ -91,9 +92,7 @@ class GoogleOAuth:
 			raise_err=True,
 		)
 
-	def get_authentication_url(
-		self, site_address: str, state: Dict[str, str] = None
-	) -> Dict[str, str]:
+	def get_authentication_url(self, state: Dict[str, str]) -> Dict[str, str]:
 		"""Returns google authentication url.
 
 		:param site_address: side address from which the request is being made (for redirect back to site)
@@ -101,7 +100,7 @@ class GoogleOAuth:
 		"""
 
 		state = json.dumps(state)
-		callback_url = site_address + CALLBACK_METHOD
+		callback_url = get_request_site_address(True) + CALLBACK_METHOD
 
 		return {
 			"url": "https://accounts.google.com/o/oauth2/v2/auth?"
