@@ -101,7 +101,10 @@ jobs:
 
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: |
+          pip install frappe-bench
+          pyenv global $(pyenv versions | grep '3.10')
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
