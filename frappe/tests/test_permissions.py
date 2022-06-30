@@ -703,9 +703,12 @@ class TestPermissions(FrappeTestCase):
 
 	def test_read_docshare(self):
 		"""Test if users can query only docshares on doctypes they can read."""
-		from frappe.share import add, get_users
+		from frappe.share import add, get_users, remove
 
-		add("Blog Post", "-test-blog-post", "test2@example.com")
+		frappe.set_user("Administrator")
+
+		# Create a docshare
+		add("Blog Post", "-test-blog-post", "testperm@example.com")
 
 		# System manager can query shares on Blog Post
 		frappe.set_user("test1@example.com")
@@ -729,3 +732,8 @@ class TestPermissions(FrappeTestCase):
 		frappe.set_user("test3@example.com")
 		shares = get_users("Blog Post", "-test-blog-post")
 		self.assertEqual(len(shares), 2)
+
+		# Cleanup
+		frappe.set_user("Administrator")
+		remove("Blog Post", "-test-blog-post", "testperm@example.com")
+		remove("Blog Post", "-test-blog-post", "test3@example.com")
