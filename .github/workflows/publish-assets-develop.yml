@@ -18,7 +18,7 @@ jobs:
           node-version: 14
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Set up bench and build assets
         run: |
           npm install -g yarn
