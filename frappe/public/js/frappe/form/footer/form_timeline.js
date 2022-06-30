@@ -162,14 +162,9 @@ class FormTimeline extends BaseTimeline {
 				comment_when(view.creation)
 			]);
 
-			let view_content = `
-				<a href="${frappe.utils.get_form_link('View Log', view.name)}">
-					${view_message}
-				</a>
-			`;
 			view_timeline_contents.push({
 				creation: view.creation,
-				content: view_content,
+				content: view_message,
 				hide_timestamp: true,
 			});
 		});
