@@ -118,21 +118,21 @@ class TestSearch(unittest.TestCase):
 
 		users = ("restricted@example.org", "unrestricted@exampe.org")
 		restricted, unrestricted = users
-		frappe.db.delete("User", {"name": ["in", users]})
+		frappe.db.delete("User", {"name": ("in", users)})
 		frappe.db.delete("User Permission", {"user": restricted})
 
 		# Create User restricted by User Permission
-		frappe.new_doc(
+		frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": restricted,
 				"first_name": restricted.split("@")[0],
 			}
 		).save()
-		add_user_permissions(frappe._dict(user=restricted, allow="User", for_name=restricted))
+		add_user_permissions({"user": restricted, "doctype": "User", "docname": restricted})
 
 		# Create unrestricted user
-		frappe.new_doc(
+		frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": unrestricted,
