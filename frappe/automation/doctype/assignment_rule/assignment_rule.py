@@ -66,7 +66,7 @@ class AssignmentRule(Document):
 		if user:
 			assign_to.add(
 				dict(
-					assign_to=[user],
+					assign_to=user,
 					doctype=doc.get("doctype"),
 					name=doc.get("name"),
 					description=frappe.render_template(self.description, doc),
