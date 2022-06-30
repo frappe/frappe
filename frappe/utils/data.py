@@ -801,7 +801,7 @@ def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
 def cast_fieldtype(fieldtype, value, show_warning=True):
 	if show_warning:
 		message = (
-			"Function `frappe.utils.data.cast` has been deprecated in favour"
+			"Function `frappe.utils.data.cast_fieldtype` has been deprecated in favour"
 			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
 		)
 		secho(message, fg="yellow")
