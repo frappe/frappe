@@ -78,7 +78,7 @@ class _dict(dict):
 		return _dict(self)
 
 
-def _(msg, lang=None, context=None):
+def _(msg, lang=None, context=None) -> str:
 	"""Returns translated string in current lang, if exists.
 	Usage:
 	        _('Change')
@@ -432,9 +432,6 @@ def msgprint(
 
 	def _raise_exception():
 		if raise_exception:
-			if flags.rollback_on_exception:
-				db.rollback()
-
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception(msg)
 			else:

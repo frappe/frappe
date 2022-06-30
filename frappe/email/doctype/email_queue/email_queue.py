@@ -30,8 +30,6 @@ from frappe.utils import (
 	split_emails,
 )
 
-MAX_RETRY_COUNT = 3
-
 
 class EmailQueue(Document):
 	DOCTYPE = "Email Queue"
@@ -183,7 +181,7 @@ def send_mail(email_queue_name, is_background_task=False):
 
 class SendMailContext:
 	def __init__(self, queue_doc: Document, is_background_task: bool = False):
-		self.queue_doc = queue_doc
+		self.queue_doc: EmailQueue = queue_doc
 		self.is_background_task = is_background_task
 		self.email_account_doc = queue_doc.get_email_account()
 		self.smtp_server = self.email_account_doc.get_smtp_server()
@@ -210,7 +208,7 @@ class SendMailContext:
 			email_status = (self.sent_to and "Partially Sent") or "Not Sent"
 			self.queue_doc.update_status(status=email_status, commit=True)
 		elif exc_type:
-			if self.queue_doc.retry < MAX_RETRY_COUNT:
+			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
 				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
@@ -287,16 +285,16 @@ class SendMailContext:
 			).decode()
 		return message
 
-	def get_unsubscribe_str(self, recipient_email):
+	def get_unsubscribe_str(self, recipient_email: str) -> str:
 		unsubscribe_url = ""
+
 		if self.queue_doc.add_unsubscribe_link and self.queue_doc.reference_doctype:
-			doctype, doc_name = self.queue_doc.reference_doctype, self.queue_doc.reference_name
 			unsubscribe_url = get_unsubcribed_url(
-				doctype,
-				doc_name,
-				recipient_email,
-				self.queue_doc.unsubscribe_method,
-				self.queue_doc.unsubscribe_param,
+				reference_doctype=self.queue_doc.reference_doctype,
+				reference_name=self.queue_doc.reference_name,
+				email=recipient_email,
+				unsubscribe_method=self.queue_doc.unsubscribe_method,
+				unsubscribe_params=self.queue_doc.unsubscribe_param,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
@@ -370,6 +368,10 @@ def on_doctype_update():
 	frappe.db.add_index(
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
+
+
+def get_email_retry_limit():
+	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
 class QueueBuilder:

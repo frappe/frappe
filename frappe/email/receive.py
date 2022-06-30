@@ -377,7 +377,7 @@ class EmailServer:
 			try:
 				# retrieve headers
 				incoming_mail = Email(b"\n".join(self.pop.top(msg_num, 5)[1]))
-			except:
+			except Exception:
 				pass
 
 		if incoming_mail:
@@ -437,7 +437,7 @@ class Email:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 				utc_dt = datetime.datetime.utcfromtimestamp(utc)
 				self.date = convert_utc_to_user_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
-			except:
+			except Exception:
 				self.date = now()
 		else:
 			self.date = now()
@@ -572,7 +572,7 @@ class Email:
 				try:
 					fname = fname.replace("\n", " ").replace("\r", "")
 					fname = cstr(decode_header(fname)[0][0])
-				except:
+				except Exception:
 					fname = get_random_filename(content_type=content_type)
 			else:
 				fname = get_random_filename(content_type=content_type)

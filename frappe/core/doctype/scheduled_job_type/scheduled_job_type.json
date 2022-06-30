@@ -16,8 +16,11 @@
   "server_script",
   "frequency",
   "cron_format",
+  "create_log",
+  "status_section",
   "last_execution",
-  "create_log"
+  "column_break_9",
+  "next_execution"
  ],
  "fields": [
   {
@@ -72,6 +75,22 @@
    "options": "Server Script",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "next_execution",
+   "fieldtype": "Datetime",
+   "is_virtual": 1,
+   "label": "Next Execution",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
   }
  ],
  "in_create": 1,
@@ -81,7 +100,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2020-10-07 10:39:24.519460",
+ "modified": "2022-06-28 02:55:12.470915",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
@@ -103,5 +122,7 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
+ "title_field": "method",
  "track_changes": 1
 }

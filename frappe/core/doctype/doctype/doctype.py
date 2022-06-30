@@ -171,7 +171,7 @@ class DocType(Document):
 
 			if docfield.fieldname in method_set:
 				conflict_type = "controller method"
-			if docfield.fieldname in property_set:
+			if docfield.fieldname in property_set and not docfield.is_virtual:
 				conflict_type = "class property"
 
 			if conflict_type:
@@ -1298,7 +1298,7 @@ def validate_fields(meta):
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
 	def check_website_search_field(meta):
-		if not meta.website_search_field:
+		if not meta.get("website_search_field"):
 			return
 
 		if meta.website_search_field not in fieldname_list:
