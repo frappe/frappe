@@ -590,7 +590,7 @@
    "label": "Use OAuth"
   },
   {
-   "depends_on": "eval: doc.service === \"GMail\" && doc.use_oauth && !doc.__islocal",
+   "depends_on": "eval: doc.service === \"GMail\" && doc.use_oauth && !doc.__islocal && !doc.__unsaved",
    "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
