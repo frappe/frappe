@@ -13,7 +13,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, is_html, nowdate, parse_val, validate_email_address
+from frappe.utils import add_to_date, cast, is_html, nowdate, validate_email_address
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -417,7 +417,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()
 
 
-def evaluate_alert(doc, alert, event):
+def evaluate_alert(doc: Document, alert, event):
 	from jinja2 import TemplateError
 
 	try:
@@ -439,8 +439,8 @@ def evaluate_alert(doc, alert, event):
 			doc_before_save = doc.get_doc_before_save()
 			field_value_before_save = doc_before_save.get(alert.value_changed) if doc_before_save else None
 
-			field_value_before_save = parse_val(field_value_before_save)
-			if doc.get(alert.value_changed) == field_value_before_save:
+			fieldtype = doc.meta.get_field(alert.value_changed).fieldtype
+			if cast(fieldtype, doc.get(alert.value_changed)) == cast(fieldtype, field_value_before_save):
 				# value not changed
 				return
 
