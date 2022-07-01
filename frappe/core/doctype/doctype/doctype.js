@@ -95,35 +95,7 @@ frappe.ui.form.on("DocType", {
 	},
 
 	setup_default_views: (frm) => {
-		frappe.model.with_doctype(frm.doc.name, () => {
-			let default_views = ["List", "Report", "Dashboard", "Kanban"];
-
-			if (frm.doc.is_calendar_and_gantt) {
-				let views = ["Calendar", "Gantt"];
-				default_views.push(...views);
-			}
-
-			if (frm.doc.is_tree) {
-				default_views.push("Tree");
-			}
-
-			if (frm.doc.image_field) {
-				default_views.push("Image");
-			}
-
-			if (frm.doc.name === "Communication") {
-				default_views.push("Inbox");
-			}
-
-			if ((frm.doc.fields.find(i => i.fieldname === "latitude") &&
-				frm.doc.fields.find(i => i.fieldname === "longitude")) ||
-				(frm.doc.fields.find(i => i.fieldname === "location" &&
-				i.fieldtype == "Geolocation"))) {
-				default_views.push("Map");
-			}
-
-			frm.set_df_property("default_view", "options", default_views);
-		});
+		frappe.model.set_default_views_for_doctype(frm.doc.name, frm);
 	}
 });
 
