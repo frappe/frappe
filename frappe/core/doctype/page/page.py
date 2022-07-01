@@ -79,7 +79,7 @@ class Page(Document):
 					)
 
 	def as_dict(self, no_nulls=False):
-		d = super(Page, self).as_dict(no_nulls=no_nulls)
+		d = super().as_dict(no_nulls=no_nulls)
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 		return d
@@ -120,20 +120,20 @@ class Page(Document):
 		# script
 		fpath = os.path.join(path, page_name + ".js")
 		if os.path.exists(fpath):
-			with open(fpath, "r") as f:
+			with open(fpath) as f:
 				self.script = render_include(f.read())
 				self.script += f"\n\n//# sourceURL={page_name}.js"
 
 		# css
 		fpath = os.path.join(path, page_name + ".css")
 		if os.path.exists(fpath):
-			with open(fpath, "r") as f:
+			with open(fpath) as f:
 				self.style = safe_decode(f.read())
 
 		# html as js template
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with open(os.path.join(path, fname), "r") as f:
+				with open(os.path.join(path, fname)) as f:
 					template = f.read()
 					if "<!-- jinja -->" in template:
 						context = frappe._dict({})

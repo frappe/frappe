@@ -461,7 +461,7 @@ class TestPermissions(FrappeTestCase):
 			self.assertIn(
 				post.blogger,
 				["_Test Blogger", "_Test Blogger 1"],
-				"A post from {} is not expected.".format(post.blogger),
+				f"A post from {post.blogger} is not expected.",
 			)
 
 	def test_if_owner_permission_overrides_properly(self):

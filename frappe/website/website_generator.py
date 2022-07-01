@@ -13,7 +13,7 @@ class WebsiteGenerator(Document):
 
 	def __init__(self, *args, **kwargs):
 		self.route = None
-		super(WebsiteGenerator, self).__init__(*args, **kwargs)
+		super().__init__(*args, **kwargs)
 
 	def get_website_properties(self, key=None, default=None):
 		out = getattr(self, "_website", None) or getattr(self, "website", None) or {}
@@ -70,7 +70,7 @@ class WebsiteGenerator(Document):
 		return title_field
 
 	def clear_cache(self):
-		super(WebsiteGenerator, self).clear_cache()
+		super().clear_cache()
 		clear_cache(self.route)
 
 	def scrub(self, text):

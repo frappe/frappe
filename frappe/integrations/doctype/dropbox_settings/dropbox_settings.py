@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -89,7 +88,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 				"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
 				queue="long",
 				timeout=1500,
-				**args
+				**args,
 			)
 	except Exception:
 		if isinstance(error_log, str):
@@ -212,7 +211,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	mode = dropbox.files.WriteMode.overwrite
 
 	f = open(encode(filename), "rb")
-	path = "{0}/{1}".format(folder, os.path.basename(filename))
+	path = f"{folder}/{os.path.basename(filename)}"
 
 	try:
 		if file_size <= chunk_size:
@@ -234,7 +233,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 					cursor.offset = f.tell()
 	except dropbox.exceptions.ApiError as e:
 		if isinstance(e.error, dropbox.files.UploadError):
-			error = "File Path: {path}\n".format(path=path)
+			error = f"File Path: {path}\n"
 			error += frappe.get_traceback()
 			frappe.log_error(error)
 		else:
@@ -326,7 +325,7 @@ def delete_older_backups(dropbox_client, folder_path, to_keep):
 def get_redirect_url():
 	if not frappe.conf.dropbox_broker_site:
 		frappe.conf.dropbox_broker_site = "https://dropbox.erpnext.com"
-	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(
+	url = "{}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(
 		frappe.conf.dropbox_broker_site
 	)
 

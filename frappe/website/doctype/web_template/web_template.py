@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -97,7 +96,7 @@ class WebTemplate(Document):
 		"""
 		if standard:
 			template = self.get_template_path()
-			with open(template, "r") as template_file:
+			with open(template) as template_file:
 				template = template_file.read()
 		else:
 			template = self.template

@@ -7,7 +7,6 @@ import re
 from email import policy
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
-from typing import Optional
 
 import frappe
 from frappe.email.doctype.email_account.email_account import EmailAccount
@@ -354,7 +353,7 @@ def get_formatted_html(
 	print_html=None,
 	email_account=None,
 	header=None,
-	unsubscribe_link: Optional[frappe._dict] = None,
+	unsubscribe_link: frappe._dict | None = None,
 	sender=None,
 	with_container=False,
 ):
@@ -454,7 +453,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 		attachment_type = "inline" if inline else "attachment"
 		part.add_header("Content-Disposition", attachment_type, filename=str(fname))
 	if content_id:
-		part.add_header("Content-ID", "<{0}>".format(content_id))
+		part.add_header("Content-ID", f"<{content_id}>")
 
 	parent.attach(part)
 

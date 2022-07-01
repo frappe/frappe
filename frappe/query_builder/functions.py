@@ -12,7 +12,7 @@ from .utils import PseudoColumn
 
 class Concat_ws(Function):
 	def __init__(self, *terms, **kwargs):
-		super(Concat_ws, self).__init__("CONCAT_WS", *terms, **kwargs)
+		super().__init__("CONCAT_WS", *terms, **kwargs)
 
 
 class Locate(Function):
@@ -74,7 +74,7 @@ class Cast_(Function):
 				if hasattr(self.as_type, "get_sql")
 				else str(self.as_type).upper()
 			)
-			return "AS {type}".format(type=type_sql)
+			return f"AS {type_sql}"
 
 
 def _aggregate(function, dt, fieldname, filters, **kwargs):

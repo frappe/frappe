@@ -17,7 +17,6 @@ Example:
 import json
 import os
 from datetime import datetime
-from typing import List
 
 import click
 
@@ -68,7 +67,7 @@ def get_table_columns(doctype):
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)
-	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
+	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json")) as f:
 		txt = json.loads(f.read())
 
 	for d in txt.get("fields", []):
@@ -104,19 +103,19 @@ class Meta(Document):
 	def __init__(self, doctype):
 		self._fields = {}
 		if isinstance(doctype, dict):
-			super(Meta, self).__init__(doctype)
+			super().__init__(doctype)
 
 		elif isinstance(doctype, Document):
-			super(Meta, self).__init__(doctype.as_dict())
+			super().__init__(doctype.as_dict())
 			self.process()
 
 		else:
-			super(Meta, self).__init__("DocType", doctype)
+			super().__init__("DocType", doctype)
 			self.process()
 
 	def load_from_db(self):
 		try:
-			super(Meta, self).load_from_db()
+			super().load_from_db()
 		except frappe.DoesNotExistError:
 			if self.doctype == "DocType" and self.name in self.special_doctypes:
 				self.__dict__.update(load_doctype_from_file(self.name))
@@ -347,7 +346,7 @@ class Meta(Document):
 	def get_workflow(self):
 		return get_workflow_name(self.name)
 
-	def get_naming_series_options(self) -> List[str]:
+	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
 
 		field = self.get_field("naming_series")
@@ -434,7 +433,7 @@ class Meta(Document):
 
 			# set the fields in order if specified
 			# order is saved as `links_order`
-			order = json.loads(self.get("{}_order".format(fieldname)) or "[]")
+			order = json.loads(self.get(f"{fieldname}_order") or "[]")
 			if order:
 				name_map = {d.name: d for d in self.get(fieldname)}
 				new_list = []

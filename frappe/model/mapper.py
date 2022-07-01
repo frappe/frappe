@@ -231,7 +231,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 	linked_doc = None
 
 	# options should be like "link_fieldname.fieldname_in_liked_doc"
-	for fetch_df in target_doc.meta.get("fields", {"fetch_from": "^{0}.".format(df.fieldname)}):
+	for fetch_df in target_doc.meta.get("fields", {"fetch_from": f"^{df.fieldname}."}):
 		if not (fetch_df.fieldtype == "Read Only" or fetch_df.read_only):
 			continue
 
