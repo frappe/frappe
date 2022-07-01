@@ -30,7 +30,7 @@ def generate_file(file_name):
 
 		file_doc.file_url = new_doc.file_url
 		file_doc.save()
-	except IOError:
+	except OSError:
 		pass
 	except Exception as e:
 		print(e)

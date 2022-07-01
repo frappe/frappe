@@ -115,7 +115,7 @@ def get_non_standard_warning_message(non_standard_docs_map):
 	message = _("""Please set the following documents in this Dashboard as standard first.""")
 
 	def get_html(docs, doctype):
-		html = "<p>{}</p>".format(frappe.bold(doctype))
+		html = f"<p>{frappe.bold(doctype)}</p>"
 		for doc in docs:
 			html += '<div><a href="/app/Form/{doctype}/{doc}">{doc}</a></div>'.format(
 				doctype=doctype, doc=doc

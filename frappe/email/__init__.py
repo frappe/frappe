@@ -18,7 +18,7 @@ def get_contact_list(txt, page_length=20):
 		return cached_contacts[:page_length]
 
 	match_conditions = build_match_conditions("Contact")
-	match_conditions = "and {0}".format(match_conditions) if match_conditions else ""
+	match_conditions = f"and {match_conditions}" if match_conditions else ""
 
 	out = frappe.db.sql(
 		"""select email_id as value,

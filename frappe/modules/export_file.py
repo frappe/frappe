@@ -113,7 +113,7 @@ def create_folder(module, dt, dn, create_init):
 def get_custom_module_path(module):
 	package = frappe.db.get_value("Module Def", module, "package")
 	if not package:
-		frappe.throw("Package must be set for custom Module <b>{module}</b>".format(module=module))
+		frappe.throw(f"Package must be set for custom Module <b>{module}</b>")
 
 	path = os.path.join(get_package_path(package), scrub(module))
 	if not os.path.exists(path):

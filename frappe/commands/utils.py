@@ -387,7 +387,7 @@ def import_doc(context, path, force=False):
 	if not os.path.exists(path):
 		path = os.path.join("..", path)
 	if not os.path.exists(path):
-		print("Invalid path {0}".format(path))
+		print(f"Invalid path {path}")
 		sys.exit(1)
 
 	for site in context.sites:
@@ -471,7 +471,7 @@ def bulk_rename(context, doctype, path):
 
 	site = get_site(context)
 
-	with open(path, "r") as csvfile:
+	with open(path) as csvfile:
 		rows = read_csv_content(csvfile.read())
 
 	frappe.init(site=site)
@@ -566,7 +566,7 @@ def jupyter(context):
 	try:
 		os.stat(jupyter_notebooks_path)
 	except OSError:
-		print("Creating folder to keep jupyter notebooks at {}".format(jupyter_notebooks_path))
+		print(f"Creating folder to keep jupyter notebooks at {jupyter_notebooks_path}")
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath("../env/bin")
 	print(
@@ -585,9 +585,9 @@ frappe.db.connect()
 		)
 	)
 	os.execv(
-		"{0}/jupyter".format(bin_path),
+		f"{bin_path}/jupyter",
 		[
-			"{0}/jupyter".format(bin_path),
+			f"{bin_path}/jupyter",
 			"notebook",
 			jupyter_notebooks_path,
 		],
@@ -780,7 +780,7 @@ def run_tests(
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)
 			click.secho("You can enable tests by entering following command:")
-			click.secho("bench --site {0} set-config allow_tests true".format(site), fg="green")
+			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
 		frappe.init(site=site)
@@ -955,7 +955,7 @@ def request(context, args=None, path=None):
 				if args.startswith("/api/method"):
 					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
 			elif path:
-				with open(os.path.join("..", path), "r") as f:
+				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
 
 				frappe.local.form_dict = frappe._dict(args)

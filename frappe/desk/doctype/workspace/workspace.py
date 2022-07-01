@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -206,7 +205,7 @@ def update_page(name, title, icon, parent, public):
 			doc.sequence_id = frappe.db.count("Workspace", {"public": public}, cache=True)
 			doc.public = public
 		doc.for_user = "" if public else doc.for_user or frappe.session.user
-		doc.label = new_name = "{0}-{1}".format(title, doc.for_user) if doc.for_user else title
+		doc.label = new_name = f"{title}-{doc.for_user}" if doc.for_user else title
 		doc.save(ignore_permissions=True)
 
 		if name != new_name:
@@ -221,9 +220,7 @@ def update_page(name, title, icon, parent, public):
 					child_doc.public = public
 				child_doc.for_user = "" if public else child_doc.for_user or frappe.session.user
 				child_doc.label = new_child_name = (
-					"{0}-{1}".format(child_doc.title, child_doc.for_user)
-					if child_doc.for_user
-					else child_doc.title
+					f"{child_doc.title}-{child_doc.for_user}" if child_doc.for_user else child_doc.title
 				)
 				child_doc.save(ignore_permissions=True)
 
@@ -253,7 +250,7 @@ def duplicate_page(page_name, new_page):
 	doc.label = doc.title
 	if not doc.public:
 		doc.for_user = doc.for_user or frappe.session.user
-		doc.label = "{0}-{1}".format(doc.title, doc.for_user)
+		doc.label = f"{doc.title}-{doc.for_user}"
 	doc.name = doc.label
 	if old_doc.public == doc.public:
 		doc.sequence_id += 0.1

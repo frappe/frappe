@@ -2,7 +2,7 @@ import frappe
 from frappe.website.utils import build_response
 
 
-class RedirectPage(object):
+class RedirectPage:
 	def __init__(self, path, http_status_code=301):
 		self.path = path
 		self.http_status_code = http_status_code

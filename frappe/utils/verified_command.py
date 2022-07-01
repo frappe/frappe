@@ -62,7 +62,7 @@ def get_url(cmd, params, nonce=None, secret=None):
 
 
 def get_signature(params, nonce, secret=None):
-	params = "".join((frappe.utils.cstr(p) for p in params.values()))
+	params = "".join(frappe.utils.cstr(p) for p in params.values())
 	if not secret:
 		secret = frappe.local.conf.get("secret") or "secret"
 

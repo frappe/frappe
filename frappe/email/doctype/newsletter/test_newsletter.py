@@ -2,7 +2,6 @@
 # MIT License. See LICENSE
 
 from random import choice
-from typing import Union
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import frappe
@@ -79,7 +78,7 @@ class TestNewsletterMixin:
 
 			frappe.db.release_savepoint(savepoint)
 
-	def send_newsletter(self, published=0, schedule_send=None) -> Union[str, None]:
+	def send_newsletter(self, published=0, schedule_send=None) -> str | None:
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 		frappe.db.delete("Newsletter")

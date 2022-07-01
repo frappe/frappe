@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -156,7 +155,7 @@ class EmailQueue(Document):
 		(
 			frappe.qb.from_(email_queue)
 			.delete()
-			.where((email_queue.modified < (Now() - Interval(days=days))))
+			.where(email_queue.modified < (Now() - Interval(days=days)))
 		).run()
 
 		# delete child tables, note that this has potential to leave some orphan
@@ -165,7 +164,7 @@ class EmailQueue(Document):
 		(
 			frappe.qb.from_(email_recipient)
 			.delete()
-			.where((email_recipient.modified < (Now() - Interval(days=days))))
+			.where(email_recipient.modified < (Now() - Interval(days=days)))
 		).run()
 
 
@@ -244,7 +243,7 @@ class SendMailContext:
 		self.sent_to.append(recipient.recipient)
 
 	def is_mail_sent_to_all(self):
-		return sorted(self.sent_to) == sorted([rec.recipient for rec in self.queue_doc.recipients])
+		return sorted(self.sent_to) == sorted(rec.recipient for rec in self.queue_doc.recipients)
 
 	def get_message_object(self, message):
 		return Parser(policy=SMTPUTF8).parsestr(message)
@@ -660,7 +659,7 @@ class QueueBuilder:
 			# bad Email Address - don't add to queue
 			frappe.log_error(
 				title="Invalid email address",
-				message="Invalid email address Sender: {0}, Recipients: {1}, \nTraceback: {2} ".format(
+				message="Invalid email address Sender: {}, Recipients: {}, \nTraceback: {} ".format(
 					self.sender, ", ".join(self.final_recipients()), traceback.format_exc()
 				),
 				reference_doctype=self.reference_doctype,
