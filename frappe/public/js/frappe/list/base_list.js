@@ -196,7 +196,7 @@ frappe.views.BaseList = class BaseList {
 			Map: "map",
 		};
 
-		if (frappe.boot.desk_settings.view_switcher) {
+		if (frappe.boot.desk_settings.view_switcher && !this.meta.force_re_route_to_default_view) {
 			/* @preserve
 			for translation, don't remove
 			__("List View") __("Report View") __("Dashboard View") __("Gantt View"),

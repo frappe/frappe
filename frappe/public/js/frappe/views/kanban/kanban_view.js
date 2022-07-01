@@ -125,21 +125,22 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	render() {
 		const board_name = this.board_name;
-		if (this.kanban && board_name === this.kanban.board_name) {
-			this.kanban.update(this.data);
-			return;
+		if (!this.kanban) {
+			this.kanban = new frappe.views.KanbanBoard({
+				doctype: this.doctype,
+				board: this.board,
+				board_name: board_name,
+				cards: this.data,
+				card_meta: this.card_meta,
+				wrapper: this.$result,
+				cur_list: this,
+				user_settings: this.view_user_settings
+			});
 		}
 
-		this.kanban = new frappe.views.KanbanBoard({
-			doctype: this.doctype,
-			board: this.board,
-			board_name: board_name,
-			cards: this.data,
-			card_meta: this.card_meta,
-			wrapper: this.$result,
-			cur_list: this,
-			user_settings: this.view_user_settings,
-		});
+		if (this.kanban && board_name === this.kanban.board_name) {
+			this.kanban.update(this.data);
+		}
 	}
 
 	get_card_meta() {
