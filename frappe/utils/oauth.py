@@ -47,7 +47,7 @@ def get_oauth_keys(provider):
 	"""get client_id and client_secret from database or conf"""
 
 	# try conf
-	keys = frappe.conf.get("{provider}_login".format(provider=provider))
+	keys = frappe.conf.get(f"{provider}_login")
 
 	if not keys:
 		# try database
@@ -100,7 +100,7 @@ def get_oauth2_flow(provider):
 
 
 def get_redirect_uri(provider):
-	keys = frappe.conf.get("{provider}_login".format(provider=provider))
+	keys = frappe.conf.get(f"{provider}_login")
 
 	if keys and keys.get("redirect_uri"):
 		# this should be a fully qualified redirect uri
@@ -223,7 +223,7 @@ def login_oauth_user(
 	if frappe.utils.cint(generate_login_token):
 		login_token = frappe.generate_hash(length=32)
 		frappe.cache().set_value(
-			"login_token:{0}".format(login_token), frappe.local.session.sid, expires_in_sec=120
+			f"login_token:{login_token}", frappe.local.session.sid, expires_in_sec=120
 		)
 
 		frappe.response["login_token"] = login_token

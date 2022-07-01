@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
@@ -34,7 +33,7 @@ SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
 UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
-class RequestContext(object):
+class RequestContext:
 	def __init__(self, environ):
 		self.request = Request(environ)
 
@@ -331,12 +330,10 @@ def serve(
 
 	if not os.environ.get("NO_STATICS"):
 		application = SharedDataMiddleware(
-			application, {str("/assets"): str(os.path.join(sites_path, "assets"))}
+			application, {"/assets": str(os.path.join(sites_path, "assets"))}
 		)
 
-		application = StaticDataMiddleware(
-			application, {str("/files"): str(os.path.abspath(sites_path))}
-		)
+		application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(sites_path))})
 
 	application.debug = True
 	application.config = {"SERVER_NAME": "localhost:8000"}

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -69,7 +68,7 @@ class SocialLoginKey(Document):
 
 		if self.provider_name in icon_map:
 			icon_file = icon_map[self.provider_name]
-			self.icon = "/assets/frappe/icons/social/{0}".format(icon_file)
+			self.icon = f"/assets/frappe/icons/social/{icon_file}"
 
 	@frappe.whitelist()
 	def get_social_login_provider(self, provider, initialize=False):

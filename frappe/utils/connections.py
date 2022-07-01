@@ -13,7 +13,7 @@ def is_open(ip, port, timeout=10):
 		s.connect((ip, int(port)))
 		s.shutdown(socket.SHUT_RDWR)
 		return True
-	except socket.error:
+	except OSError:
 		return False
 	finally:
 		s.close()

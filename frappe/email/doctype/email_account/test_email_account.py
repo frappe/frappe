@@ -39,7 +39,7 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.db.delete("Unhandled Email")
 
 	def get_test_mail(self, fname):
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname), "r") as f:
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname)) as f:
 			return f.read()
 
 	def test_incoming(self):
@@ -211,7 +211,7 @@ class TestEmailAccount(unittest.TestCase):
 
 		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw")) as f:
 			raw = f.read()
 			raw = raw.replace("<-- in-reply-to -->", sent_mail.get("Message-Id"))
 
@@ -233,10 +233,10 @@ class TestEmailAccount(unittest.TestCase):
 	def test_threading_by_subject(self):
 		cleanup(["in", ["test_sender@example.com", "test@example.com"]])
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-2.raw"), "r") as f:
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-2.raw")) as f:
 			test_mails = [f.read()]
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-3.raw"), "r") as f:
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-3.raw")) as f:
 			test_mails.append(f.read())
 
 		# parse reply
@@ -280,7 +280,7 @@ class TestEmailAccount(unittest.TestCase):
 		last_mail = frappe.get_doc("Email Queue", dict(reference_name=event.name))
 
 		# get test mail with message-id as in-reply-to
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw")) as f:
 			messages = {
 				# append_to = ToDo
 				'"INBOX"': {
@@ -451,7 +451,7 @@ class TestInboundMail(unittest.TestCase):
 		frappe.db.delete("ToDo")
 
 	def get_test_mail(self, fname):
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname), "r") as f:
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname)) as f:
 			return f.read()
 
 	def new_doc(self, doctype, **data):

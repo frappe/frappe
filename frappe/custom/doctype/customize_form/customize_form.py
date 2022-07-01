@@ -330,7 +330,7 @@ class CustomizeForm(Document):
 		We need to maintain the order of the link/actions if the user has shuffled them.
 		So we create a new property (ex `links_order`) to keep a list of items.
 		"""
-		property_name = "{}_order".format(fieldname)
+		property_name = f"{fieldname}_order"
 		if has_custom:
 			# save the order of the actions and links
 			self.make_property_setter(

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import unittest
@@ -200,7 +199,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		# next_schedule_date is set as on or after current date
 		# it should not be a previous month's date
-		self.assertTrue((doc.next_schedule_date >= current_date))
+		self.assertTrue(doc.next_schedule_date >= current_date)
 
 		todo = frappe.get_doc(
 			dict(

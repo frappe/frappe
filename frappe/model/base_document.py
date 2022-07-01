@@ -70,9 +70,7 @@ def get_controller(doctype):
 				module_path, classname = import_path.rsplit(".", 1)
 				module = frappe.get_module(module_path)
 				if not hasattr(module, classname):
-					raise ImportError(
-						"{0}: {1} does not exist in module {2}".format(doctype, classname, module_path)
-					)
+					raise ImportError(f"{doctype}: {classname} does not exist in module {module_path}")
 			else:
 				module = load_doctype_module(doctype, module_name)
 				classname = doctype.replace(" ", "").replace("-", "")
@@ -97,7 +95,7 @@ def get_controller(doctype):
 	return site_controllers[doctype]
 
 
-class BaseDocument(object):
+class BaseDocument:
 	_reserved_keywords = {
 		"doctype",
 		"meta",
@@ -396,7 +394,7 @@ class BaseDocument(object):
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
-	) -> Dict:
+	) -> dict:
 		d = _dict()
 		for fieldname in self.meta.get_valid_columns():
 			# column is valid, we can use getattr
@@ -478,7 +476,7 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-	def get_valid_columns(self) -> List[str]:
+	def get_valid_columns(self) -> list[str]:
 		if self.doctype not in frappe.local.valid_columns:
 			if self.doctype in DOCTYPES_FOR_DOCTYPE:
 				from frappe.model.meta import get_table_columns
@@ -508,7 +506,7 @@ class BaseDocument(object):
 		no_default_fields=False,
 		convert_dates_to_str=False,
 		no_child_table_fields=False,
-	) -> Dict:
+	) -> dict:
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, ignore_nulls=no_nulls)
 		doc["doctype"] = self.doctype
 
@@ -788,7 +786,7 @@ class BaseDocument(object):
 			if self.get("parentfield"):
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
 
-			return "{}: {}".format(_(df.label), docname)
+			return f"{_(df.label)}: {docname}"
 
 		invalid_links = []
 		cancelled_links = []
@@ -1022,7 +1020,7 @@ class BaseDocument(object):
 		if self.get("parentfield"):
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
 		else:
-			reference = "{0} {1}".format(_(self.doctype), self.name)
+			reference = f"{_(self.doctype)} {self.name}"
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(

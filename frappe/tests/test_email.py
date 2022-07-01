@@ -281,7 +281,7 @@ class TestEmail(unittest.TestCase):
 
 		frappe.db.delete("Communication", {"sender": "sukh@yyy.com"})
 
-		with open(frappe.get_app_path("frappe", "tests", "data", "email_with_image.txt"), "r") as raw:
+		with open(frappe.get_app_path("frappe", "tests", "data", "email_with_image.txt")) as raw:
 			messages = {
 				'"INBOX"': {"latest_messages": [raw.read()], "seen_status": {2: "UNSEEN"}, "uid_list": [2]}
 			}

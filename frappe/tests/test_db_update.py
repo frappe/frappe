@@ -18,7 +18,7 @@ class TestDBUpdate(unittest.TestCase):
 		frappe.db.updatedb(doctype)
 
 		field_defs = get_field_defs(doctype)
-		table_columns = frappe.db.get_table_columns_description("tab{}".format(doctype))
+		table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
 
 		self.assertEqual(len(field_defs), len(table_columns))
 
@@ -34,7 +34,7 @@ class TestDBUpdate(unittest.TestCase):
 			default = field_def.default if field_def.default is not None else fallback_default
 
 			self.assertEqual(fieldtype, table_column.type)
-			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), "'{}'".format(default)])
+			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), f"'{default}'"])
 
 	def test_index_and_unique_constraints(self):
 		doctype = "User"
@@ -93,7 +93,7 @@ def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))
 	fieldtype = fieldtuple[0]
 	if fieldtype in ("varchar", "datetime", "int"):
-		fieldtype += "({})".format(field_def.length or fieldtuple[1])
+		fieldtype += f"({field_def.length or fieldtuple[1]})"
 	return fieldtype
 
 
@@ -134,5 +134,5 @@ def get_other_fields_meta(meta):
 
 
 def get_table_column(doctype, fieldname):
-	table_columns = frappe.db.get_table_columns_description("tab{}".format(doctype))
+	table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
 	return find(table_columns, lambda d: d.get("name") == fieldname)
