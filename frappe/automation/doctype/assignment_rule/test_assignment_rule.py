@@ -143,7 +143,7 @@ class TestAutoAssign(unittest.TestCase):
 		todo = frappe.get_doc("ToDo", todo["name"])
 		self.assertEqual(todo.owner, "test@example.com")
 
-		note.content = "Closed"
+		note.status = "Closed"
 		note.save()
 
 		todo.load_from_db()
