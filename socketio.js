@@ -8,7 +8,9 @@ const subscriber = get_redis_subscriber();
 
 const io = require('socket.io')(conf.socketio_port, {
 	cors: {
-		origin: "*", // we are checking for hostnames before registering a socket
+		// Should be fine since we are ensuring whether hostname and origin are same before adding setting listeners for s socket
+		origin: true,
+		credentials: true
 	}
 });
 

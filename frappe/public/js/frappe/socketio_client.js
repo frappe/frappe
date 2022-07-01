@@ -12,15 +12,29 @@ frappe.socketio = {
 			return;
 		}
 
-		//Enable secure option when using HTTPS
+		// Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {secure: true});
-		}
-		else if (window.location.protocol == "http:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port));
-		}
-		else if (window.location.protocol == "file:") {
-			frappe.socketio.socket = io.connect(window.localStorage.server);
+			frappe.socketio.socket = io.connect(
+				frappe.socketio.get_host(port),
+				{
+					secure: true,
+					withCredentials: true,
+				}
+			);
+		} else if (window.location.protocol == "http:") {
+			frappe.socketio.socket = io.connect(
+				frappe.socketio.get_host(port),
+				{
+					withCredentials: true,
+				}
+			);
+		} else if (window.location.protocol == "file:") {
+			frappe.socketio.socket = io.connect(
+				window.localStorage.server,
+				{
+					withCredentials: true,
+				}
+			);
 		}
 
 		if (!frappe.socketio.socket) {
