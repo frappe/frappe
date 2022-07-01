@@ -53,7 +53,7 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False):
+	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
@@ -187,7 +187,7 @@ class SendMailContext:
 		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_main_sent()]
 
 	def __enter__(self):
-		self.queue_doc.update_status(status="Sending", commit=True)
+		self.queue_doc.update_status(status="Sending", commit=self.is_background_task)
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
@@ -205,13 +205,13 @@ class SendMailContext:
 
 		if exc_type in exceptions:
 			email_status = (self.sent_to and "Partially Sent") or "Not Sent"
-			self.queue_doc.update_status(status=email_status, commit=True)
+			self.queue_doc.update_status(status=email_status, commit=self.is_background_task)
 		elif exc_type:
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
 				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
-			self.queue_doc.update_status(**update_fields, commit=True)
+			self.queue_doc.update_status(**update_fields, commit=self.is_background_task)
 		else:
 			email_status = self.is_mail_sent_to_all() and "Sent"
 			email_status = email_status or (self.sent_to and "Partially Sent") or "Not Sent"
@@ -222,7 +222,7 @@ class SendMailContext:
 			else:
 				update_fields["email_account"] = None
 
-			self.queue_doc.update_status(**update_fields, commit=True)
+			self.queue_doc.update_status(**update_fields, commit=self.is_background_task)
 
 	def log_exception(self, exc_type, exc_val, exc_tb):
 		if exc_type:
@@ -239,7 +239,7 @@ class SendMailContext:
 
 	def add_to_sent_list(self, recipient):
 		# Update recipient status
-		recipient.update_db(status="Sent", commit=True)
+		recipient.update_db(status="Sent", commit=self.is_background_task)
 		self.sent_to.append(recipient.recipient)
 
 	def is_mail_sent_to_all(self):
@@ -628,7 +628,7 @@ class QueueBuilder:
 		if not (final_recipients + self.final_cc()):
 			return []
 
-		email_queues = []
+		email_queues: list[EmailQueue] = []
 		queue_data = self.as_dict(include_recipients=False)
 		if not queue_data:
 			return []
