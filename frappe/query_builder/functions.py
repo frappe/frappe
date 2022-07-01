@@ -17,7 +17,7 @@ class Concat_ws(Function):
 
 class Locate(Function):
 	def __init__(self, *terms, **kwargs):
-		super(Locate, self).__init__("LOCATE", *terms, **kwargs)
+		super().__init__("LOCATE", *terms, **kwargs)
 
 
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
