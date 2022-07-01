@@ -3,29 +3,27 @@ import KanbanSettings from "./kanban_settings";
 frappe.provide("frappe.views");
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
-	static load_last_view() {
-		const route = frappe.get_route();
-		if (route.length === 3) {
-			const doctype = route[1];
-			const user_settings = frappe.get_user_settings(doctype)["Kanban"] || {};
-			if (!user_settings.last_kanban_board) {
-				frappe.msgprint({
-					title: __("Error"),
-					indicator: "red",
-					message: __("Missing parameter Kanban Board Name"),
-				});
-				frappe.set_route("List", doctype, "List");
-				return true;
-			}
-			route.push(user_settings.last_kanban_board);
-			frappe.set_route(route);
-			return true;
-		}
-		return false;
-	}
-
 	get view_name() {
 		return "Kanban";
+	}
+
+	show() {
+		frappe.views.KanbanView.get_kanbans(this.doctype).then(kanbans => {
+			if (!kanbans.length) {
+				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			}
+			this.kanbans = kanbans;
+
+			return frappe.run_serially([
+				() => this.show_skeleton(),
+				() => this.fetch_meta(),
+				() => this.hide_skeleton(),
+				() => this.check_permissions(),
+				() => this.init(),
+				() => this.before_refresh(),
+				() => this.refresh(),
+			]);
+		});
 	}
 
 	setup_defaults() {

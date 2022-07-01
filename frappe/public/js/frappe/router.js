@@ -459,6 +459,10 @@ frappe.router = {
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, "-");
 	},
+
+	get_base_route_for_view(doctype, view) {
+		return `/app/${frappe.router.slug(doctype)}/view/${view.toLowerCase()}`;
+	}
 };
 
 // global functions for backward compatibility
