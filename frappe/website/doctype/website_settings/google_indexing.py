@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -52,7 +51,7 @@ def authorize_access(reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/app/Form/{0}".format(quote("Website Settings"))
+			frappe.local.response["location"] = "/app/Form/{}".format(quote("Website Settings"))
 
 			frappe.msgprint(_("Google Indexing has been configured."))
 		except Exception as e:

@@ -3,7 +3,7 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import redis
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 	from rq.job import Job
 
 
-@lru_cache()
+@lru_cache
 def get_queues_timeout():
 	common_site_config = frappe.get_conf()
 	custom_workers_config = common_site_config.get("workers", {})
@@ -166,7 +166,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.log_error(title=method_name)
 			raise
 
-	except:
+	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=method_name)
 		frappe.db.commit()
@@ -333,7 +333,7 @@ def get_redis_conn(username=None, password=None):
 	return redis_connection
 
 
-def get_queues() -> List[Queue]:
+def get_queues() -> list[Queue]:
 	"""Get all the queues linked to the current bench."""
 	queues = Queue.all(connection=get_redis_conn())
 	return [q for q in queues if is_queue_accessible(q)]

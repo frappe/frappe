@@ -1,6 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, bold
@@ -22,8 +22,8 @@ def update_document_title(
 	*,
 	doctype: str,
 	docname: str,
-	title: Optional[str] = None,
-	name: Optional[str] = None,
+	title: str | None = None,
+	name: str | None = None,
 	merge: bool = False,
 	enqueue: bool = False,
 	**kwargs,
@@ -106,8 +106,8 @@ def update_document_title(
 
 
 def rename_doc(
-	doctype: Optional[str] = None,
-	old: Optional[str] = None,
+	doctype: str | None = None,
+	old: str | None = None,
 	new: str = None,
 	force: bool = False,
 	merge: bool = False,
@@ -115,7 +115,7 @@ def rename_doc(
 	ignore_if_exists: bool = False,
 	show_alert: bool = True,
 	rebuild_search: bool = True,
-	doc: Optional[Document] = None,
+	doc: Document | None = None,
 	validate: bool = True,
 ) -> str:
 	"""Rename a doc(dt, old) to doc(dt, new) and update all linked fields of type "Link".
@@ -253,7 +253,7 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 	frappe.db.set_value(doctype, new, "_assign", frappe.as_json(unique_assignments, indent=0))
 
 
-def update_user_settings(old: str, new: str, link_fields: List[Dict]) -> None:
+def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
 	"""
 	Update the user settings of all the linked doctypes while renaming.
 	"""
@@ -412,7 +412,7 @@ def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 		frappe.qb.update(df.options).set("parent", new).where(Field("parent") == old).run()
 
 
-def update_link_field_values(link_fields: List[Dict], old: str, new: str, doctype: str) -> None:
+def update_link_field_values(link_fields: list[dict], old: str, new: str, doctype: str) -> None:
 	for field in link_fields:
 		if field["issingle"]:
 			try:
@@ -448,7 +448,7 @@ def update_link_field_values(link_fields: List[Dict], old: str, new: str, doctyp
 			field["parent"] = new
 
 
-def get_link_fields(doctype: str) -> List[Dict]:
+def get_link_fields(doctype: str) -> list[dict]:
 	# get link fields from tabDocField
 	if not frappe.flags.link_fields:
 		frappe.flags.link_fields = {}
@@ -519,7 +519,7 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 	).run()
 
 
-def get_select_fields(old: str, new: str) -> List[Dict]:
+def get_select_fields(old: str, new: str) -> list[dict]:
 	"""
 	get select type fields where doctype's name is hardcoded as
 	new line separated list
@@ -646,8 +646,8 @@ def rename_dynamic_links(doctype: str, old: str, new: str):
 
 
 def bulk_rename(
-	doctype: str, rows: Optional[List[List]] = None, via_console: bool = False
-) -> Optional[List[str]]:
+	doctype: str, rows: list[list] | None = None, via_console: bool = False
+) -> list[str] | None:
 	"""Bulk rename documents
 
 	:param doctype: DocType to be renamed
@@ -688,7 +688,7 @@ def bulk_rename(
 
 
 def update_linked_doctypes(
-	doctype: str, docname: str, linked_to: str, value: str, ignore_doctypes: Optional[List] = None
+	doctype: str, docname: str, linked_to: str, value: str, ignore_doctypes: list | None = None
 ) -> None:
 	from frappe.model.utils.rename_doc import update_linked_doctypes
 
@@ -704,8 +704,8 @@ def update_linked_doctypes(
 
 
 def get_fetch_fields(
-	doctype: str, linked_to: str, ignore_doctypes: Optional[List] = None
-) -> List[Dict]:
+	doctype: str, linked_to: str, ignore_doctypes: list | None = None
+) -> list[dict]:
 	from frappe.model.utils.rename_doc import get_fetch_fields
 
 	show_deprecation_warning("get_fetch_fields")

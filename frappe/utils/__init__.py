@@ -9,12 +9,10 @@ import os
 import re
 import sys
 import traceback
-import typing
-from collections.abc import MutableMapping, MutableSequence, Sequence
+from collections.abc import Generator, Iterable, MutableMapping, MutableSequence, Sequence
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from gzip import GzipFile
-from typing import Generator, Iterable
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -265,7 +263,7 @@ def has_gravatar(email):
 
 	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8")).hexdigest()
 
-	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
+	gravatar_url = f"https://secure.gravatar.com/avatar/{hexdigest}?d=404&s=200"
 	try:
 		res = requests.get(gravatar_url)
 		if res.status_code == 200:
@@ -489,7 +487,7 @@ def get_request_site_address(full_address=False):
 
 
 def get_site_url(site):
-	return "http://{site}:{port}".format(site=site, port=frappe.get_conf(site).webserver_port)
+	return f"http://{site}:{frappe.get_conf(site).webserver_port}"
 
 
 def encode_dict(d, encoding="utf-8"):
@@ -507,7 +505,7 @@ def decode_dict(d, encoding="utf-8"):
 	return d
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_site_name(hostname):
 	return hostname.split(":")[0]
 
@@ -517,7 +515,7 @@ def get_disk_usage():
 	files_path = get_files_path()
 	if not os.path.exists(files_path):
 		return 0
-	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=files_path))
+	err, out = execute_in_shell(f"du -hsm {files_path}")
 	return cint(out.split("\n")[-2].split("\t")[0])
 
 
@@ -584,21 +582,21 @@ def update_progress_bar(txt, i, l):
 		complete = int(float(i + 1) / l * col)
 		completion_bar = ("=" * complete).ljust(col, " ")
 		percent_complete = str(int(float(i + 1) / l * 100))
-		sys.stdout.write("\r{0}: [{1}] {2}%".format(txt, completion_bar, percent_complete))
+		sys.stdout.write(f"\r{txt}: [{completion_bar}] {percent_complete}%")
 		sys.stdout.flush()
 
 
 def get_html_format(print_path):
 	html_format = None
 	if os.path.exists(print_path):
-		with open(print_path, "r") as f:
+		with open(print_path) as f:
 			html_format = f.read()
 
 		for include_directive, path in INCLUDE_DIRECTIVE_PATTERN.findall(html_format):
 			for app_name in frappe.get_installed_apps():
 				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
 				if os.path.exists(include_path):
-					with open(include_path, "r") as f:
+					with open(include_path) as f:
 						html_format = html_format.replace(include_directive, f.read())
 					break
 
@@ -904,10 +902,10 @@ def get_file_size(path, format=False):
 
 	for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
 		if abs(num) < 1024:
-			return "{0:3.1f}{1}{2}".format(num, unit, suffix)
+			return f"{num:3.1f}{unit}{suffix}"
 		num /= 1024
 
-	return "{0:.1f}{1}{2}".format(num, "Yi", suffix)
+	return "{:.1f}{}{}".format(num, "Yi", suffix)
 
 
 def get_build_version():
@@ -962,13 +960,13 @@ def get_bench_relative_path(file_path):
 	file_path = os.path.join(base_path, file_path)
 
 	if not os.path.exists(file_path):
-		print("Invalid path {0}".format(file_path[3:]))
+		print(f"Invalid path {file_path[3:]}")
 		sys.exit(1)
 
 	return os.path.abspath(file_path)
 
 
-def groupby_metric(iterable: typing.Dict[str, list], key: str):
+def groupby_metric(iterable: dict[str, list], key: str):
 	"""Group records by a metric.
 
 	Usecase: Lets assume we got country wise players list with the ranking given for each player(multiple players in a country can have same ranking aswell).

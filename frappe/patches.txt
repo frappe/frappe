@@ -122,7 +122,7 @@ frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
 frappe.patches.v12_0.encrypt_2fa_secrets
-execute:frappe.reload_doc('core', 'doctype', 'doctype')
+execute:frappe.reload_doc('core', 'doctype', 'doctype') #2022-06-21
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
 frappe.patches.v13_0.remove_invalid_options_for_data_fields
 frappe.patches.v13_0.website_theme_custom_scss
@@ -191,7 +191,6 @@ frappe.patches.v14_0.transform_todo_schema
 frappe.patches.v14_0.remove_post_and_post_comment
 frappe.patches.v14_0.reset_creation_datetime
 frappe.patches.v14_0.remove_is_first_startup
-frappe.patches.v14_0.reload_workspace_child_tables
 frappe.patches.v14_0.clear_long_pending_stale_logs
 frappe.patches.v14_0.log_settings_migration
 

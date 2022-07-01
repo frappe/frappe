@@ -129,7 +129,7 @@ def login_via_office365(code, state):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_token(login_token):
-	sid = frappe.cache().get_value("login_token:{0}".format(login_token), expires=True)
+	sid = frappe.cache().get_value(f"login_token:{login_token}", expires=True)
 	if not sid:
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
 		return

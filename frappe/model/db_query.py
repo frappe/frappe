@@ -6,7 +6,6 @@ import copy
 import json
 import re
 from datetime import datetime
-from typing import List
 
 import frappe
 import frappe.defaults
@@ -52,7 +51,7 @@ STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 
 
-class DatabaseQuery(object):
+class DatabaseQuery:
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
 		self.tables = []
@@ -98,7 +97,7 @@ class DatabaseQuery(object):
 		pluck=None,
 		ignore_ddl=False,
 		parent_doctype=None,
-	) -> List:
+	) -> list:
 
 		if (
 			not ignore_permissions
@@ -926,7 +925,7 @@ class DatabaseQuery(object):
 
 	def add_limit(self):
 		if self.limit_page_length:
-			return "limit %s offset %s" % (self.limit_page_length, self.limit_start)
+			return f"limit {self.limit_page_length} offset {self.limit_start}"
 		else:
 			return ""
 
@@ -1070,12 +1069,12 @@ def get_between_date_filter(value, df=None):
 		to_date = add_to_date(to_date, days=1)
 
 	if df and df.fieldtype == "Datetime":
-		data = "'%s' AND '%s'" % (
+		data = "'{}' AND '{}'".format(
 			frappe.db.format_datetime(from_date),
 			frappe.db.format_datetime(to_date),
 		)
 	else:
-		data = "'%s' AND '%s'" % (frappe.db.format_date(from_date), frappe.db.format_date(to_date))
+		data = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
 	return data
 

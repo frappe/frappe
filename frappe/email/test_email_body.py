@@ -128,7 +128,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 		processed_message = """
 			<div>
-				<img src="cid:{0}" alt="test" />
+				<img src="cid:{}" alt="test" />
 				<img  />
 			</div>
 		""".format(

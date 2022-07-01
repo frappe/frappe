@@ -90,7 +90,7 @@ def add_comment(doctype, name):
 		link = get_link_to_form(
 			doc.reference_doctype,
 			doc.reference_name,
-			"{0} {1}".format(_(doc.reference_doctype), doc.reference_name),
+			f"{_(doc.reference_doctype)} {doc.reference_name}",
 		)
 
 		doc.add_comment(

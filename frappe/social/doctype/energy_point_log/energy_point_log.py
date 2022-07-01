@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -51,7 +50,7 @@ class EnergyPointLog(Document):
 				"document_name": self.reference_name,
 				"subject": get_notification_message(self),
 				"from_user": reference_user,
-				"email_content": "<div>{}</div>".format(self.reason) if self.reason else None,
+				"email_content": f"<div>{self.reason}</div>" if self.reason else None,
 			}
 
 			enqueue_create_notification(self.user, notification_doc)
@@ -360,7 +359,7 @@ def send_summary(timespan):
 	]
 
 	frappe.sendmail(
-		subject="{} energy points summary".format(timespan),
+		subject=f"{timespan} energy points summary",
 		recipients=all_users,
 		template="energy_points_summary",
 		args={

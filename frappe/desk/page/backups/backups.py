@@ -21,9 +21,9 @@ def get_context(context):
 	def get_size(path):
 		size = os.path.getsize(path)
 		if size > 1048576:
-			return "{0:.1f}M".format(float(size) / 1048576)
+			return f"{float(size) / 1048576:.1f}M"
 		else:
-			return "{0:.1f}K".format(float(size) / 1024)
+			return f"{float(size) / 1024:.1f}K"
 
 	path = get_site_path("private", "backups")
 	files = [x for x in os.listdir(path) if os.path.isfile(os.path.join(path, x))]
