@@ -63,16 +63,17 @@ class Oauth:
 				# SMTP
 				self._connect_smtp()
 
-		except Exception:
+		except Exception as e:
 			# maybe the access token expired - refreshing
 			access_token = self._refresh_access_token()
 
 			if not access_token or _retry > 0:
-				frappe.throw(
-					frappe._("Authentication Failed. Please Check and Update the credentials."),
-					OAuthenticationError,
-					frappe._("OAuth Error"),
+				frappe.log_error(
+					"OAuth Error - Authentication Failed", str(e), "Email Account", self.email_account
 				)
+				# raising a bare exception here as we have a lot of exception handling present
+				# where the connect method is called from - hence just logging and raising.
+				raise
 
 			self._access_token = access_token
 			self.connect(_retry + 1)

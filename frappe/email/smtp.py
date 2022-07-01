@@ -147,7 +147,7 @@ class SMTPServer:
 	@classmethod
 	def throw_invalid_credentials_exception(cls):
 		frappe.throw(
-			_("Incorrect email or password. Please check your login credentials."),
+			_("Please check your email login credentials."),
 			title=_("Invalid Credentials"),
 			exc=InvalidEmailCredentials,
 		)
