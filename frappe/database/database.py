@@ -1157,10 +1157,7 @@ class Database:
 		return INDEX_PATTERN.sub(r"", index_name)
 
 	def get_system_setting(self, key):
-		def _load_system_settings():
-			return self.get_singles_dict("System Settings")
-
-		return frappe.cache().get_value("system_settings", _load_system_settings).get(key)
+		return frappe.get_system_settings(key)
 
 	def close(self):
 		"""Close database connection."""
