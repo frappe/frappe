@@ -13,10 +13,6 @@ from frappe.utils import cint, cstr, validate_email_address
 
 
 class EmailDomain(Document):
-	def autoname(self):
-		if self.domain_name:
-			self.name = self.domain_name
-
 	def validate(self):
 		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
 		logger = frappe.logger()
