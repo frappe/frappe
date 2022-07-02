@@ -17,9 +17,6 @@ class EmailDomain(Document):
 		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
 		logger = frappe.logger()
 
-		if self.email_id:
-			validate_email_address(self.email_id, True)
-
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 

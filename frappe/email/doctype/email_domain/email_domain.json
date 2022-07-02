@@ -7,8 +7,6 @@
  "engine": "InnoDB",
  "field_order": [
   "email_settings",
-  "email_id",
-  "column_break_3",
   "domain_name",
   "mailbox_settings",
   "email_server",
@@ -32,18 +30,12 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "For example: for the email address <b>abcd@gmail.com</b>, the domain is <b>gmail.com</b>",
    "fieldname": "domain_name",
    "fieldtype": "Data",
    "label": "Domain Name",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "fieldname": "email_id",
-   "fieldtype": "Data",
-   "label": "Example Email Address",
-   "options": "Email",
-   "reqd": 1
   },
   {
    "fieldname": "mailbox_settings",
@@ -128,10 +120,6 @@
    "label": "Use SSL for Outgoing"
   },
   {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
   },
@@ -142,7 +130,7 @@
  ],
  "icon": "icon-inbox",
  "links": [],
- "modified": "2022-07-02 20:13:33.516564",
+ "modified": "2022-07-02 20:35:36.199633",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
