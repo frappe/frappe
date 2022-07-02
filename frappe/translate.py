@@ -24,14 +24,14 @@ from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
 
 TRANSLATE_PATTERN = re.compile(
-	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
+	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
 	# BEGIN: message search
 	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
 	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
 	r"\1"  # match exact string closing identifier
 	# END: message search
 	# BEGIN: python context search
-	r"([\s\n]*,[\s\n]*context\s*=\s*"  # capture `context=` with ignoring whitespace
+	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
 	r"([\"'])"  # start of context string identifier; 5th capture group
 	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
 	r"\5"  # match context string closure
@@ -45,7 +45,7 @@ TRANSLATE_PATTERN = re.compile(
 	r")*"
 	r")*"  # match one or more context string
 	# END: JS context search
-	r"[\s\n]*\)"  # Closing function call ignore leading whitespace/newlines
+	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
 )
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
