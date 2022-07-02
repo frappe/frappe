@@ -19,7 +19,6 @@ import os
 from datetime import datetime
 from typing import Dict, List
 
-
 import click
 
 import frappe
@@ -100,6 +99,10 @@ class Meta(Document):
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
+	]
+	standard_datetime_fields = [
+		frappe._dict(fieldname="creation", fieldtype="Datetime"),
+		frappe._dict(fieldname="modified", fieldtype="Datetime"),
 	]
 
 	def __init__(self, doctype):
@@ -668,9 +671,12 @@ class Meta(Document):
 
 		return self._time_fields
 
-	def get_datetime_fields(self) -> List[Dict[str, str]]:
+	def get_datetime_fields(self, with_standard_datetime_fields=False) -> List[Dict[str, str]]:
 		if not hasattr(self, "_datetime_fields"):
-			self._datetime_fields = self.get("fields", {"fieldtype": "Datetime"})
+			self._datetime_fields = self.get("fields", {"fieldtype": "Datetime"}, default=[])
+
+			if with_standard_datetime_fields:
+				self._datetime_fields += self.standard_datetime_fields
 
 		return self._datetime_fields
 

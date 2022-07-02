@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import unittest
 from contextlib import contextmanager
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import frappe
@@ -405,6 +405,10 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEquals(todo.date, None)
 		self.assertEquals(todo.time, None)
+
+		# Check for standard datetime fields
+		self.assertIsInstance(todo.creation, datetime)
+		self.assertIsInstance(todo.modified, datetime)
 
 
 def create_time_custom_field():
