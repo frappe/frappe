@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import frappe
 from frappe import _, _dict

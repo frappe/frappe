@@ -1,5 +1,4 @@
 import datetime
-from typing import List, Tuple, Union
 
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
