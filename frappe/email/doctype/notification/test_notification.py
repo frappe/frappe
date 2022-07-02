@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import unittest
+from contextlib import contextmanager
 
 import frappe
 import frappe.utils
@@ -11,6 +12,15 @@ import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 
 test_dependencies = ["User", "Notification"]
+
+
+@contextmanager
+def get_test_notification(config):
+	try:
+		notification = frappe.get_doc(doctype="Notification", **config).insert()
+		yield notification
+	finally:
+		notification.delete()
 
 
 class TestNotification(unittest.TestCase):
@@ -346,6 +356,31 @@ class TestNotification(unittest.TestCase):
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
+
+	def test_notification_value_change_casted_types(self):
+		"""Make sure value change event dont fire because of incorrect type comparisons."""
+		frappe.set_user("Administrator")
+
+		notification = {
+			"document_type": "User",
+			"subject": "User changed birthdate",
+			"event": "Value Change",
+			"channel": "System Notification",
+			"value_changed": "birth_date",
+			"recipients": [{"receiver_by_document_field": "email"}],
+		}
+
+		with get_test_notification(notification) as n:
+			frappe.db.delete("Notification Log", {"subject": n.subject})
+
+			user = frappe.get_doc("User", "test@example.com")
+			user.birth_date = frappe.utils.add_days(user.birth_date, 1)
+			user.save()
+
+			user.reload()
+			user.birth_date = frappe.utils.getdate(user.birth_date)
+			user.save()
+			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
 	@classmethod
 	def tearDownClass(cls):
