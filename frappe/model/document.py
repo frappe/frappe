@@ -421,7 +421,8 @@ class Document(BaseDocument):
 		else:
 			# no rows found, delete all rows
 			frappe.db.delete(
-				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname},
+				df.options,
+				{"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname},
 			)
 
 	def get_doc_before_save(self):
@@ -764,8 +765,9 @@ class Document(BaseDocument):
 					self.doctype,
 				)
 				modified = modified and modified[0][0]
-				if modified and cast(modified, "Datetime") != cast(
-					self._original_modified, "Datetime"
+
+				if modified and cast("Datetime", modified) != cast(
+					"Datetime", self._original_modified
 				):
 					conflict = True
 			else:
@@ -789,8 +791,8 @@ class Document(BaseDocument):
 
 				modified = tmp.modified
 
-				if modified and cast(modified, "Datetime") != cast(
-					self._original_modified, "Datetime"
+				if modified and cast("Datetime", modified) != cast(
+					"Datetime", self._original_modified
 				):
 					conflict = True
 
@@ -1220,7 +1222,10 @@ class Document(BaseDocument):
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
-		from frappe.model.delete_doc import check_if_doc_is_dynamically_linked, check_if_doc_is_linked
+		from frappe.model.delete_doc import (
+			check_if_doc_is_dynamically_linked,
+			check_if_doc_is_linked,
+		)
 
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
