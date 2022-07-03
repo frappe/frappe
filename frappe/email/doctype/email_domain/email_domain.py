@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.email.utils import get_port
 from frappe.model.document import Document
-from frappe.utils import cint, cstr, validate_email_address
+from frappe.utils import cint, cstr
 
 
 class EmailDomain(Document):
