@@ -16,7 +16,7 @@ from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
-from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
+from frappe.utils import cast, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
 
@@ -35,11 +35,11 @@ def get_doc(*args, **kwargs):
 
 	2. create a new object
 	user = get_doc({
-	        "doctype":"User"
-	        "email_id": "test@example.com",
-	        "roles: [
-	                {"role": "System Manager"}
-	        ]
+			"doctype":"User"
+			"email_id": "test@example.com",
+			"roles: [
+					{"role": "System Manager"}
+			]
 	})
 
 	3. create new object with keyword arguments
@@ -145,7 +145,8 @@ class Document(BaseDocument):
 			)
 			if not d:
 				frappe.throw(
-					_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError
+					_("{0} {1} not found").format(_(self.doctype), self.name),
+					frappe.DoesNotExistError,
 				)
 
 			super().__init__(d)
@@ -287,7 +288,9 @@ class Document(BaseDocument):
 			delattr(self, "__unsaved")
 
 		if not (
-			frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard
+			frappe.flags.in_migrate
+			or frappe.local.flags.in_install
+			or frappe.flags.in_setup_wizard
 		):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
 				follow_document(self.doctype, self.name, frappe.session.user)
@@ -314,7 +317,9 @@ class Document(BaseDocument):
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
+		self.flags.ignore_version = (
+			frappe.flags.in_test if ignore_version is None else ignore_version
+		)
 
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
@@ -409,12 +414,14 @@ class Document(BaseDocument):
 			)
 			if len(deleted_rows) > 0:
 				# delete rows that do not match the ones in the document
-				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
+				frappe.db.delete(
+					df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))}
+				)
 
 		else:
 			# no rows found, delete all rows
 			frappe.db.delete(
-				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
+				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname},
 			)
 
 	def get_doc_before_save(self):
@@ -747,17 +754,28 @@ class Document(BaseDocument):
 		if not self.get("__islocal") and not self.meta.get("is_virtual"):
 			if self.meta.issingle:
 				modified = frappe.db.sql(
-					"""select value from tabSingles
-					where doctype=%s and field='modified' for update""",
+					"""
+						select value
+						from tabSingles
+						where doctype=%s
+							and field='modified'
+								for update
+					""",
 					self.doctype,
 				)
 				modified = modified and modified[0][0]
-				if modified and modified != cstr(self._original_modified):
+				if modified and cast(modified, "Datetime") != cast(
+					self._original_modified, "Datetime"
+				):
 					conflict = True
 			else:
 				tmp = frappe.db.sql(
-					"""select modified, docstatus from `tab{}`
-					where name = %s for update""".format(
+					"""
+						select modified, docstatus
+						from `tab{}`
+						where name = %s
+							for update
+					""".format(
 						self.doctype
 					),
 					self.name,
@@ -769,9 +787,11 @@ class Document(BaseDocument):
 				else:
 					tmp = tmp[0]
 
-				modified = cstr(tmp.modified)
+				modified = tmp.modified
 
-				if modified and modified != cstr(self._original_modified):
+				if modified and cast(modified, "Datetime") != cast(
+					self._original_modified, "Datetime"
+				):
 					conflict = True
 
 				self.check_docstatus_transition(tmp.docstatus)
@@ -779,7 +799,7 @@ class Document(BaseDocument):
 			if conflict:
 				frappe.msgprint(
 					_("Error: Document has been modified after you have opened it")
-					+ (f" ({modified}, {self.modified}). ")
+					+ (f" ({cstr(modified)}, {cstr(self.modified)}). ")
 					+ _("Please refresh to get the latest document."),
 					raise_exception=frappe.TimestampMismatchError,
 				)
@@ -895,7 +915,9 @@ class Document(BaseDocument):
 
 		if cancelled_links:
 			msg = ", ".join(each[2] for each in cancelled_links)
-			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
+			frappe.throw(
+				_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError
+			)
 
 	def get_all_children(self, parenttype=None) -> list["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
@@ -1004,7 +1026,9 @@ class Document(BaseDocument):
 		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
 		from frappe.model.rename_doc import rename_doc
 
-		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)
+		self.name = rename_doc(
+			doc=self, new=name, merge=merge, force=force, validate=validate_rename
+		)
 		self.reload()
 
 	@whitelist.__func__
@@ -1113,7 +1137,11 @@ class Document(BaseDocument):
 		"""Clear _seen property and set current user as seen"""
 		if getattr(self.meta, "track_seen", False):
 			frappe.db.set_value(
-				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
+				self.doctype,
+				self.name,
+				"_seen",
+				json.dumps([frappe.session.user]),
+				update_modified=False,
 			)
 
 	def notify_update(self):
@@ -1218,7 +1246,9 @@ class Document(BaseDocument):
 
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
-				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
+				if frappe.get_cached_value(
+					"User", frappe.session.user, "follow_created_documents"
+				):
 					follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
@@ -1255,9 +1285,9 @@ class Document(BaseDocument):
 			hooks = []
 			method = f.__name__
 			doc_events = frappe.get_doc_hooks()
-			for handler in doc_events.get(self.doctype, {}).get(method, []) + doc_events.get("*", {}).get(
-				method, []
-			):
+			for handler in doc_events.get(self.doctype, {}).get(method, []) + doc_events.get(
+				"*", {}
+			).get(method, []):
 				hooks.append(frappe.get_attr(handler))
 
 			composed = compose(f, *hooks)
@@ -1307,7 +1337,8 @@ class Document(BaseDocument):
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
 			label = self.meta.get_label(parentfield)
 			frappe.throw(
-				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
+				_("Table {0} cannot be empty").format(label),
+				raise_exception or frappe.EmptyTableError,
 			)
 
 	def round_floats_in(self, doc, fieldnames=None):
@@ -1318,11 +1349,16 @@ class Document(BaseDocument):
 		if not fieldnames:
 			fieldnames = (
 				df.fieldname
-				for df in doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]})
+				for df in doc.meta.get(
+					"fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}
+				)
 			)
 
 		for fieldname in fieldnames:
-			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
+			doc.set(
+				fieldname,
+				flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))),
+			)
 
 	def get_url(self):
 		"""Returns Desk URL for this document."""
@@ -1367,7 +1403,9 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False)
+				frappe.db.set_value(
+					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
+				)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None):
