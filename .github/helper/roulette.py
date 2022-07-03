@@ -49,7 +49,7 @@ def is_frontend_code(file):
 	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
 
 def is_docs(file):
-	regex = re.compile(r'\.(md|png|jpg|jpeg|csv)$|^.github|LICENSE')
+	regex = re.compile(r'\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE')
 	return bool(regex.search(file))
 
 
