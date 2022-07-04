@@ -17,7 +17,10 @@ if [ "$TYPE" == "server" ]; then
 fi
 
 if [ "$DB" == "mariadb" ];then
-      sudo apt install mariadb-client-10.6
+    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+    sudo bash mariadb_repo_setup --mariadb-server-version=10.6
+    sudo apt install mariadb-client
+
       mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
       mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
