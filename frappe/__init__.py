@@ -517,12 +517,6 @@ def throw(msg, exc=ValidationError, title=None, is_minimizable=None, wide=None, 
 	)
 
 
-def emit_js(js, user=False, **kwargs):
-	if user is False:
-		user = session.user
-	publish_realtime("eval_js", js, user=user, **kwargs)
-
-
 def create_folder(path, with_init=False):
 	"""Create a folder in the given path and add an `__init__.py` file (optional).
 

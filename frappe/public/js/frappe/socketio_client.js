@@ -46,10 +46,6 @@ frappe.socketio = {
 			frappe.msgprint(message);
 		});
 
-		frappe.socketio.socket.on('eval_js', function(message) {
-			eval(message);
-		});
-
 		frappe.socketio.socket.on('progress', function(data) {
 			if(data.progress) {
 				data.percent = flt(data.progress[0]) / data.progress[1] * 100;
