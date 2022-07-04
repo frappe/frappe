@@ -33,7 +33,7 @@ jobs:
       - name: Setup Python
         uses: "gabrielfalcao/pyenv-action@v9"
         with:
-          versions: 3.10:latest, 3.7:latest, 2.7:latest
+          versions: 3.10:latest, 3.7:latest
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -120,14 +120,10 @@ jobs:
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
 
+          pyenv global $(pyenv versions | grep '3.7')
           for version in $(seq 12 13)
           do
               echo "Updating to v$version"
-              if [ $version == 12 ]; then
-                pyenv global $(pyenv versions | grep '2.7')
-              elif [ $version == 13 ]; then
-                pyenv global $(pyenv versions | grep '3.7')
-              fi
               branch_name="version-$version-hotfix"
               git fetch --depth 1 upstream $branch_name:$branch_name
               git checkout -q -f $branch_name
