@@ -17,20 +17,19 @@ if [ "$TYPE" == "server" ]; then
 fi
 
 if [ "$DB" == "mariadb" ];then
-      mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "SET GLOBAL character_set_server = 'utf8mb4'";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE DATABASE test_frappe_consumer";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE DATABASE test_frappe_consumer";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
 
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE DATABASE test_frappe_producer";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost'";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE DATABASE test_frappe_producer";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE USER 'test_frappe_producer'@'localhost' IDENTIFIED BY 'test_frappe_producer'";
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "GRANT ALL PRIVILEGES ON \`test_frappe_producer\`.* TO 'test_frappe_producer'@'localhost'";
 
-      mysql --host 127.0.0.1 --port 3306 -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
-      mysql --host 127.0.0.1 --port 3306 -u root -e "FLUSH PRIVILEGES";
-    fi
+    mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "FLUSH PRIVILEGES";
+  fi
 
 if [ "$DB" == "postgres" ];then
     echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe_consumer" -U postgres;
