@@ -22,3 +22,6 @@ b2fc959307c7c79f5584625569d5aed04133ba13
 
 # Format codebase and sort imports
 c0c5b2ebdddbe8898ce2d5e5365f4931ff73b6bf
+
+# update python code to use 3.10 supported features
+81b37cb7d2160866afa2496873656afe53f0c145

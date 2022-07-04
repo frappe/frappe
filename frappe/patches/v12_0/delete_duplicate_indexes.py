@@ -43,10 +43,10 @@ def execute():
 	# build drop index query
 	for (table_name, index_list) in final_deletion_map.items():
 		query_list = []
-		alter_query = "ALTER TABLE `{}`".format(table_name)
+		alter_query = f"ALTER TABLE `{table_name}`"
 
 		for index in index_list:
-			query_list.append("{} DROP INDEX `{}`".format(alter_query, index))
+			query_list.append(f"{alter_query} DROP INDEX `{index}`")
 
 		for query in query_list:
 			try:

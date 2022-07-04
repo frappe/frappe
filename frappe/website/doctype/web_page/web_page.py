@@ -33,10 +33,10 @@ class WebPage(WebsiteGenerator):
 		return self.title
 
 	def on_update(self):
-		super(WebPage, self).on_update()
+		super().on_update()
 
 	def on_trash(self):
-		super(WebPage, self).on_trash()
+		super().on_trash()
 
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, "main_section", self.content_type)
@@ -79,15 +79,23 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		is_jinja = context.dynamic_template or "<!-- jinja -->" in context.main_section
-		if is_jinja or ("{{" in context.main_section):
+		is_jinja = (
+			context.dynamic_template
+			or "<!-- jinja -->" in context.main_section
+			or ("{{" in context.main_section)
+		)
+		if is_jinja:
+			frappe.flags.web_block_scripts = {}
+			frappe.flags.web_block_styles = {}
 			try:
 				context["main_section"] = render_template(context.main_section, context)
 				if not "<!-- static -->" in context.main_section:
 					context["no_cache"] = 1
 			except TemplateSyntaxError:
-				if is_jinja:
-					raise
+				raise
+			finally:
+				frappe.flags.web_block_scripts = {}
+				frappe.flags.web_block_styles = {}
 
 	def set_breadcrumbs(self, context):
 		"""Build breadcrumbs template"""
@@ -193,9 +201,9 @@ def check_publish_status():
 def get_web_blocks_html(blocks):
 	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
 
-	out = frappe._dict(html="", scripts=[], styles=[])
-	extracted_scripts = []
-	extracted_styles = []
+	out = frappe._dict(html="", scripts={}, styles={})
+	extracted_scripts = {}
+	extracted_styles = {}
 	for block in blocks:
 		web_template = frappe.get_cached_doc("Web Template", block.web_template)
 		rendered_html = frappe.render_template(
@@ -209,11 +217,15 @@ def get_web_blocks_html(blocks):
 		html, scripts, styles = extract_script_and_style_tags(rendered_html)
 		out.html += html
 		if block.web_template not in extracted_scripts:
-			out.scripts += scripts
-			extracted_scripts.append(block.web_template)
+			extracted_scripts.setdefault(block.web_template, [])
+			extracted_scripts[block.web_template] += scripts
+
 		if block.web_template not in extracted_styles:
-			out.styles += styles
-			extracted_styles.append(block.web_template)
+			extracted_styles.setdefault(block.web_template, [])
+			extracted_styles[block.web_template] += styles
+
+	out.scripts = extracted_scripts
+	out.styles = extracted_styles
 
 	return out
 

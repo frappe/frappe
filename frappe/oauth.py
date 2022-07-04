@@ -323,10 +323,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Check whether frappe server URL is set
 		id_token_header = {"typ": "jwt", "alg": "HS256"}
 
-		user = frappe.get_doc(
-			"User",
-			frappe.session.user,
-		)
+		user = frappe.get_doc("User", request.user)
 
 		if request.nonce:
 			id_token["nonce"] = request.nonce

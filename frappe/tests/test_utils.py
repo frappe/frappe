@@ -126,14 +126,14 @@ class TestMoney(unittest.TestCase):
 			self.assertEqual(
 				money_in_words(num[0], "BHD"),
 				num[1],
-				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1]),
+				"{} is not the same as {}".format(money_in_words(num[0], "BHD"), num[1]),
 			)
 
 		for num in nums_ngn:
 			self.assertEqual(
 				money_in_words(num[0], "NGN"),
 				num[1],
-				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1]),
+				"{} is not the same as {}".format(money_in_words(num[0], "NGN"), num[1]),
 			)
 
 
@@ -157,11 +157,11 @@ class TestDataManipulation(unittest.TestCase):
 		url = get_url()
 
 		self.assertTrue('<a href="http://test.com">Test link 1</a>' in html)
-		self.assertTrue('<a href="{0}/about">Test link 2</a>'.format(url) in html)
-		self.assertTrue('<a href="{0}/login">Test link 3</a>'.format(url) in html)
-		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
+		self.assertTrue(f'<a href="{url}/about">Test link 2</a>' in html)
+		self.assertTrue(f'<a href="{url}/login">Test link 3</a>' in html)
+		self.assertTrue(f'<img src="{url}/assets/frappe/test.jpg">' in html)
 		self.assertTrue(
-			"style=\"background-image: url('{0}/assets/frappe/bg.jpg') !important\"".format(url) in html
+			f"style=\"background-image: url('{url}/assets/frappe/bg.jpg') !important\"" in html
 		)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
@@ -304,7 +304,7 @@ class TestValidationUtils(unittest.TestCase):
 class TestImage(unittest.TestCase):
 	def test_strip_exif_data(self):
 		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
-		original_image_content = io.open(
+		original_image_content = open(
 			"../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode="rb"
 		).read()
 
@@ -317,7 +317,7 @@ class TestImage(unittest.TestCase):
 	def test_optimize_image(self):
 		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
 		content_type = guess_type(image_file_path)[0]
-		original_content = io.open(image_file_path, mode="rb").read()
+		original_content = open(image_file_path, mode="rb").read()
 
 		optimized_content = optimize_image(original_content, content_type, max_width=500, max_height=500)
 		optimized_image = Image.open(io.BytesIO(optimized_content))

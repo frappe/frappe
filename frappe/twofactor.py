@@ -90,8 +90,8 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
 	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
-		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
-		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
+		frappe.cache().set(f"{tmp_id}{k}", v)
+		frappe.cache().expire(f"{tmp_id}{k}", expiry_time)
 
 
 def two_factor_is_enabled_for_(user):
@@ -279,7 +279,7 @@ def get_email_body_for_qr_code(kwargs_dict):
 	"""Get QRCode email body."""
 	body_template = _(
 		"Please click on the following link and follow the instructions on the page. {0}"
-	).format("<br><br> {{qrcode_link}}")
+	).format("<br><br> <a href='{{qrcode_link}}'>{{qrcode_link}}</a>")
 	body = frappe.render_template(body_template, kwargs_dict)
 	return body
 
@@ -287,21 +287,21 @@ def get_email_body_for_qr_code(kwargs_dict):
 def get_link_for_qrcode(user, totp_uri):
 	"""Get link to temporary page showing QRCode."""
 	key = frappe.generate_hash(length=20)
-	key_user = "{}_user".format(key)
-	key_uri = "{}_uri".format(key)
+	key_user = f"{key}_user"
+	key_uri = f"{key}_uri"
 	lifespan = (
 		int(frappe.db.get_value("System Settings", "System Settings", "lifespan_qrcode_image")) or 240
 	)
 	frappe.cache().set_value(key_uri, totp_uri, expires_in_sec=lifespan)
 	frappe.cache().set_value(key_user, user, expires_in_sec=lifespan)
-	return get_url("/qrcode?k={}".format(key))
+	return get_url(f"/qrcode?k={key}")
 
 
 def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	"""Send token as sms to user."""
 	try:
 		from frappe.core.doctype.sms_settings.sms_settings import send_request
-	except:
+	except Exception:
 		return False
 
 	if not phone_no:
@@ -312,7 +312,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		return False
 
 	hotp = pyotp.HOTP(otpsecret)
-	args = {ss.message_parameter: "Your verification code is {}".format(hotp.at(int(token)))}
+	args = {ss.message_parameter: f"Your verification code is {hotp.at(int(token))}"}
 
 	for d in ss.get("parameters"):
 		args[d.parameter] = d.value
@@ -328,7 +328,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		is_async=True,
 		job_name=None,
 		now=False,
-		**sms_args
+		**sms_args,
 	)
 	return True
 
@@ -364,7 +364,7 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 		is_async=True,
 		job_name=None,
 		now=False,
-		**email_args
+		**email_args,
 	)
 	return True
 
@@ -386,7 +386,7 @@ def get_qr_svg_code(totp_uri):
 def qrcode_as_png(user, totp_uri):
 	"""Save temporary Qrcode to server."""
 	folder = create_barcode_folder()
-	png_file_name = "{}.png".format(frappe.generate_hash(length=20))
+	png_file_name = f"{frappe.generate_hash(length=20)}.png"
 	_file = frappe.get_doc(
 		{
 			"doctype": "File",
@@ -484,7 +484,7 @@ def reset_otp_secret(user):
 			is_async=True,
 			job_name=None,
 			now=False,
-			**email_args
+			**email_args,
 		)
 		return frappe.msgprint(
 			_("OTP Secret has been reset. Re-registration will be required on next login.")

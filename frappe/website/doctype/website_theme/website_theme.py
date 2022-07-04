@@ -90,7 +90,7 @@ class WebsiteTheme(Document):
 		if stderr:
 			stderr = frappe.safe_decode(stderr)
 			stderr = stderr.replace("\n", "<br>")
-			frappe.throw('<div style="font-family: monospace;">{stderr}</div>'.format(stderr=stderr))
+			frappe.throw(f'<div style="font-family: monospace;">{stderr}</div>')
 		else:
 			self.theme_url = "/files/website_theme/" + file_name
 
