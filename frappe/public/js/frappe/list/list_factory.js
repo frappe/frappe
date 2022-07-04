@@ -19,7 +19,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 					meta.default_view : route[2] || meta.default_view || "List"
 			);
 
-			if (view_name !== route[2]) {
+			if (doctype !== "File" && view_name !== route[2]) {
 				let route = frappe.router.get_base_route_for_view(doctype, view_name);
 				frappe.set_route(route);
 			}
