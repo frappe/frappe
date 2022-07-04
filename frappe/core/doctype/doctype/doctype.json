@@ -711,10 +711,14 @@
   }
  ],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2022-09-02 12:05:59.589751",
 =======
  "modified": "2022-05-09 00:14:05.249749",
 >>>>>>> fcaa0ac76b (feat: configurable default views)
+=======
+ "modified": "2022-07-04 00:14:06.249749",
+>>>>>>> da95e0a3ea (chore: fix folder navigation tests)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
