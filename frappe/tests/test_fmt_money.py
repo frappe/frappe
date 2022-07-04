@@ -95,6 +95,7 @@ class TestFmtMoney(unittest.TestCase):
 
 	def test_custom_fmt_money_format(self):
 		self.assertEqual(fmt_money(100000, format="#,###.##"), "100,000.00")
+		self.assertEqual(fmt_money(None, format="#,###.##"), "0.00")
 
 
 if __name__ == "__main__":

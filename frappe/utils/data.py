@@ -1116,7 +1116,7 @@ def parse_val(v):
 
 
 def fmt_money(
-	amount: str | float | int,
+	amount: str | float | int | None,
 	precision: int | None = None,
 	currency: str | None = None,
 	format: str | None = None,
@@ -1139,6 +1139,9 @@ def fmt_money(
 
 	if isinstance(amount, str):
 		amount = flt(amount, precision)
+
+	if amount is None:
+		amount = 0
 
 	if decimal_str:
 		decimals_after = str(round(amount % 1, precision))
