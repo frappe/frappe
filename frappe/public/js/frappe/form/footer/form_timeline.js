@@ -102,20 +102,34 @@ class FormTimeline extends BaseTimeline {
 
 	set_document_info() {
 		// TODO: handle creation via automation
-		let creation_message = __("{0} created this {1}", [
-			this.get_user_link(this.frm.doc.owner),
-			comment_when(this.frm.doc.creation)
-		]);
+		const creation = comment_when(this.frm.doc.creation);
+		let creation_message =
+			frappe.utils.is_current_user(this.frm.doc.owner)
+				? __("You created this {0}", [creation], "Form timeline")
+				: __("{0} created this {1}",
+					[
+						this.get_user_link(this.frm.doc.owner),
+						creation
+					],
+					"Form timeline"
+				);
 
-		let modified_message = __("{0} edited this {1}", [
-			this.get_user_link(this.frm.doc.modified_by),
-			comment_when(this.frm.doc.modified),
-		]);
+		const modified = comment_when(this.frm.doc.modified);
+		let modified_message =
+			frappe.utils.is_current_user(this.frm.doc.modified_by)
+				? __("You edited this {0}", [modified], "Form timeline")
+				: __("{0} edited this {1}",
+					[
+						this.get_user_link(this.frm.doc.modified_by),
+						modified
+					],
+					"Form timeline"
+				);
 
 		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
 			let route = this.frm.doc.route;
 			frappe.utils.get_page_view_count(route).then((res) => {
-				let page_view_count_message = __('{0} Page views', [res.message]);
+				let page_view_count_message = __('{0} Page views', [res.message], "Form timeline");
 				this.add_timeline_item({
 					content: `${creation_message} • ${modified_message} • 	${page_view_count_message}`,
 					hide_timestamp: true
@@ -149,23 +163,28 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_user_link(user) {
-		const user_display_text = (
-			(frappe.session.user == user ? __("You") : frappe.user_info(user).fullname) || ''
-		).bold();
+		const user_display_text = (frappe.user_info(user).fullname || '').bold();
 		return frappe.utils.get_form_link('User', user, true, user_display_text);
 	}
 
 	get_view_timeline_contents() {
 		let view_timeline_contents = [];
 		(this.doc_info.views || []).forEach(view => {
-			let view_content = `
-				<a href="${frappe.utils.get_form_link('View Log', view.name)}">
-					${__("{0} viewed", [this.get_user_link(view.owner)])}
-				</a>
-			`;
+			const view_time = comment_when(view.creation);
+			let view_message = frappe.utils.is_current_user(view.owner)
+				? __("You viewed this {0}", [view_time], "Form timeline")
+				: __("{0} viewed this {1}",
+					[
+						this.get_user_link(view.owner),
+						view_time
+					],
+					"Form timeline"
+				);
+
 			view_timeline_contents.push({
 				creation: view.creation,
-				content: view_content,
+				content: view_message,
+				hide_timestamp: true,
 			});
 		});
 		return view_timeline_contents;
