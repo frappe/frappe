@@ -377,7 +377,7 @@ def get_formatted_html(
 	html = scrub_urls(rendered_email)
 
 	if unsubscribe_link:
-		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
+		html = html.replace("<!--unsubscribe_link_here-->", unsubscribe_link.html)
 
 	return inline_style_in_html(html)
 

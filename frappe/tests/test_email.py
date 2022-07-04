@@ -47,7 +47,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue("test@example.com" in queue_recipients)
 		self.assertTrue("test1@example.com" in queue_recipients)
 		self.assertEqual(len(queue_recipients), 2)
-		self.assertTrue("<!--unsubscribe url-->" in email_queue[0]["message"])
+		self.assertTrue("<!--unsubscribe_url-->" in email_queue[0]["message"])
 
 	def test_send_after(self):
 		self.test_email_queue(send_after=1)

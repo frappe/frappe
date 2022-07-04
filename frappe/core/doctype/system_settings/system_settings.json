@@ -62,6 +62,7 @@
   "otp_issuer_name",
   "email",
   "email_footer_address",
+  "email_retry_limit",
   "column_break_18",
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
@@ -511,12 +512,18 @@
    "fieldname": "allow_older_web_view_links",
    "fieldtype": "Check",
    "label": "Allow Older Web View Links (Insecure)"
+  },
+  {
+   "default": "3",
+   "fieldname": "email_retry_limit",
+   "fieldtype": "Int",
+   "label": "Email Retry Limit"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-05-31 09:43:57.163643",
+ "modified": "2022-06-21 13:55:04.796152",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
