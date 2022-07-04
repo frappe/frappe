@@ -67,11 +67,7 @@ const show_new_topic_modal = (e) => {
 };
 
 const setup_socket_io = () => {
-	if (window.dev_server) {
-		frappe.boot.socketio_port = "9000";
-	}
-
-	frappe.socketio.init(9000);
+	frappe.socketio.init(window.socketio_port || "9000");
 	frappe.socketio.socket.on("publish_message", (data) => {
 		publish_message(data);
 	});
