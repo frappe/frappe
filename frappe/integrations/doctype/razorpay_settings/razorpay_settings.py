@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -124,9 +123,7 @@ class RazorpaySettings(Document):
 		        "quantity": 1 (The total amount is calculated as item.amount * quantity)
 		}
 		"""
-		url = "https://api.razorpay.com/v1/subscriptions/{0}/addons".format(
-			kwargs.get("subscription_id")
-		)
+		url = "https://api.razorpay.com/v1/subscriptions/{}/addons".format(kwargs.get("subscription_id"))
 
 		try:
 			if not frappe.conf.converted_rupee_to_paisa:
@@ -195,7 +192,7 @@ class RazorpaySettings(Document):
 
 	def get_payment_url(self, **kwargs):
 		integration_request = create_request_log(kwargs, service_name="Razorpay")
-		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
+		return get_url(f"./integrations/razorpay_checkout?token={integration_request.name}")
 
 	def create_order(self, **kwargs):
 		# Creating Orders https://razorpay.com/docs/api/orders/
@@ -257,7 +254,7 @@ class RazorpaySettings(Document):
 
 		try:
 			resp = make_get_request(
-				"https://api.razorpay.com/v1/payments/{0}".format(self.data.razorpay_payment_id),
+				f"https://api.razorpay.com/v1/payments/{self.data.razorpay_payment_id}",
 				auth=(settings.api_key, settings.api_secret),
 			)
 
@@ -303,7 +300,7 @@ class RazorpaySettings(Document):
 				if custom_redirect_to:
 					redirect_to = custom_redirect_to
 
-			redirect_url = "payment-success?doctype={0}&docname={1}".format(
+			redirect_url = "payment-success?doctype={}&docname={}".format(
 				self.data.reference_doctype, self.data.reference_docname
 			)
 		else:
@@ -339,7 +336,7 @@ class RazorpaySettings(Document):
 
 		try:
 			resp = make_post_request(
-				"https://api.razorpay.com/v1/subscriptions/{0}/cancel".format(subscription_id),
+				f"https://api.razorpay.com/v1/subscriptions/{subscription_id}/cancel",
 				auth=(settings.api_key, settings.api_secret),
 			)
 		except Exception:
@@ -383,14 +380,14 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 				settings = controller.get_settings(data)
 
 				resp = make_get_request(
-					"https://api.razorpay.com/v1/payments/{0}".format(data.get("razorpay_payment_id")),
+					"https://api.razorpay.com/v1/payments/{}".format(data.get("razorpay_payment_id")),
 					auth=(settings.api_key, settings.api_secret),
 					data={"amount": data.get("amount")},
 				)
 
 				if resp.get("status") == "authorized":
 					resp = make_post_request(
-						"https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
+						"https://api.razorpay.com/v1/payments/{}/capture".format(data.get("razorpay_payment_id")),
 						auth=(settings.api_key, settings.api_secret),
 						data={"amount": data.get("amount")},
 					)
@@ -403,7 +400,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
 			doc.save()
-			frappe.log_error(doc.error, "{0} Failed".format(doc.name))
+			frappe.log_error(doc.error, f"{doc.name} Failed")
 
 
 @frappe.whitelist(allow_guest=True)
@@ -498,7 +495,7 @@ def razorpay_subscription_callback():
 			queue="long",
 			timeout=600,
 			is_async=True,
-			**{"doctype": "Integration Request", "docname": doc.name}
+			**{"doctype": "Integration Request", "docname": doc.name},
 		)
 
 	except frappe.InvalidStatusError:
@@ -521,7 +518,7 @@ def validate_payment_callback(data):
 	settings = controller.get_settings(data)
 
 	resp = make_get_request(
-		"https://api.razorpay.com/v1/subscriptions/{0}".format(subscription_id),
+		f"https://api.razorpay.com/v1/subscriptions/{subscription_id}",
 		auth=(settings.api_key, settings.api_secret),
 	)
 

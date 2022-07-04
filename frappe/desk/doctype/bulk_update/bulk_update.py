@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -24,7 +23,7 @@ def update(doctype, field, value, condition="", limit=500):
 		frappe.throw(_("; not allowed in condition"))
 
 	docnames = frappe.db.sql_list(
-		"""select name from `tab{0}`{1} limit {2} offset 0""".format(doctype, condition, limit)
+		f"""select name from `tab{doctype}`{condition} limit {limit} offset 0"""
 	)
 	data = {}
 	data[field] = value

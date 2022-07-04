@@ -110,7 +110,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
 			frappe.as_unicode(
-				"## {0}\n\n{1}\n\n#### License\n\n{2}".format(
+				"## {}\n\n{}\n\n#### License\n\n{}".format(
 					hooks.app_title, hooks.app_description, hooks.app_license
 				)
 			)
@@ -478,7 +478,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: '3.10'
 
       - name: Setup Node
         uses: actions/setup-node@v2

@@ -3,7 +3,6 @@
 
 import json
 from datetime import datetime
-from typing import Dict, List
 
 from croniter import croniter
 
@@ -138,14 +137,14 @@ def run_scheduled_job(job_type: str):
 		print(frappe.get_traceback())
 
 
-def sync_jobs(hooks: Dict = None):
+def sync_jobs(hooks: dict = None):
 	frappe.reload_doc("core", "doctype", "scheduled_job_type")
 	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
 	all_events = insert_events(scheduler_events)
 	clear_events(all_events)
 
 
-def insert_events(scheduler_events: Dict) -> List:
+def insert_events(scheduler_events: dict) -> list:
 	cron_jobs, event_jobs = [], []
 	for event_type in scheduler_events:
 		events = scheduler_events.get(event_type)
@@ -157,7 +156,7 @@ def insert_events(scheduler_events: Dict) -> List:
 	return cron_jobs + event_jobs
 
 
-def insert_cron_jobs(events: Dict) -> List:
+def insert_cron_jobs(events: dict) -> list:
 	cron_jobs = []
 	for cron_format in events:
 		for event in events.get(cron_format):
@@ -166,7 +165,7 @@ def insert_cron_jobs(events: Dict) -> List:
 	return cron_jobs
 
 
-def insert_event_jobs(events: List, event_type: str) -> List:
+def insert_event_jobs(events: list, event_type: str) -> list:
 	event_jobs = []
 	for event in events:
 		event_jobs.append(event)
@@ -199,7 +198,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str = None):
 			doc.insert()
 
 
-def clear_events(all_events: List):
+def clear_events(all_events: list):
 	for event in frappe.get_all("Scheduled Job Type", fields=["name", "method", "server_script"]):
 		is_server_script = event.server_script
 		is_defined_in_hooks = event.method in all_events

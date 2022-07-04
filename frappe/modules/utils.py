@@ -105,7 +105,7 @@ def sync_customizations(app=None):
 			if os.path.exists(folder):
 				for fname in os.listdir(folder):
 					if fname.endswith(".json"):
-						with open(os.path.join(folder, fname), "r") as f:
+						with open(os.path.join(folder, fname)) as f:
 							data = json.loads(f.read())
 						if data.get("sync_on_migrate"):
 							sync_customizations_for_doctype(data, folder)
@@ -164,7 +164,7 @@ def sync_customizations_for_doctype(data, folder):
 	if data.get("custom_perms"):
 		sync("custom_perms", "Custom DocPerm", "parent")
 
-	print("Updating customizations for {0}".format(doctype))
+	print(f"Updating customizations for {doctype}")
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value("DocType", doctype, "issingle"):
@@ -317,7 +317,6 @@ def make_boilerplate(template, doc, opts=None):
 		with open(target_file_path, "w") as target:
 			with open(
 				os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype), "boilerplate", template),
-				"r",
 			) as source:
 				target.write(
 					frappe.as_unicode(

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -212,7 +211,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	data = frappe.db.get_list(
 		doctype,
-		fields=["{} as _unit".format(datefield), "SUM({})".format(value_field), "COUNT(*)"],
+		fields=[f"{datefield} as _unit", f"SUM({value_field})", "COUNT(*)"],
 		filters=filters,
 		group_by="_unit",
 		order_by="_unit asc",
@@ -242,13 +241,13 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	year_start_date = datetime.date(year, 1, 1).strftime("%Y-%m-%d")
 	next_year_start_date = datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
 
-	filters.append([doctype, datefield, ">", "{date}".format(date=year_start_date), False])
-	filters.append([doctype, datefield, "<", "{date}".format(date=next_year_start_date), False])
+	filters.append([doctype, datefield, ">", f"{year_start_date}", False])
+	filters.append([doctype, datefield, "<", f"{next_year_start_date}", False])
 
 	if frappe.db.db_type == "mariadb":
-		timestamp_field = "unix_timestamp({datefield})".format(datefield=datefield)
+		timestamp_field = f"unix_timestamp({datefield})"
 	else:
-		timestamp_field = "extract(epoch from timestamp {datefield})".format(datefield=datefield)
+		timestamp_field = f"extract(epoch from timestamp {datefield})"
 
 	data = dict(
 		frappe.db.get_all(
@@ -260,9 +259,9 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 				),
 			],
 			filters=filters,
-			group_by="date({datefield})".format(datefield=datefield),
+			group_by=f"date({datefield})",
 			as_list=1,
-			order_by="{datefield} asc".format(datefield=datefield),
+			order_by=f"{datefield} asc",
 			ignore_ifnull=True,
 		)
 	)
@@ -284,7 +283,7 @@ def get_group_by_chart_config(chart, filters):
 	data = frappe.db.get_list(
 		doctype,
 		fields=[
-			"{} as name".format(group_by_field),
+			f"{group_by_field} as name",
 			"{aggregate_function}({value_field}) as count".format(
 				aggregate_function=aggregate_function, value_field=value_field
 			),
@@ -351,7 +350,7 @@ def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 class DashboardChart(Document):
 	def on_update(self):
-		frappe.cache().delete_key("chart-data:{}".format(self.name))
+		frappe.cache().delete_key(f"chart-data:{self.name}")
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[["Dashboard Chart", self.name]], record_module=self.module)
 
