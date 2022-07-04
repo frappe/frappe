@@ -107,19 +107,25 @@ class FormTimeline extends BaseTimeline {
 		let creation_message =
 			frappe.utils.is_current_user(this.frm.doc.owner)
 				? __("You created this {0}", [creation], "Form timeline")
-				: __("{0} created this {1}", [
+				: __("{0} created this {1}",
+					[
 						this.get_user_link(this.frm.doc.owner),
 						creation
-				  ], "Form timeline");
+					],
+					"Form timeline"
+				);
 
 		const modified = comment_when(this.frm.doc.modified);
 		let modified_message =
 			frappe.utils.is_current_user(this.frm.doc.modified_by)
 				? __("You edited this {0}", [modified], "Form timeline")
-				: __("{0} edited this {1}", [
+				: __("{0} edited this {1}",
+					[
 						this.get_user_link(this.frm.doc.modified_by),
 						modified
-				  ], "Form timeline");
+					],
+					"Form timeline"
+				);
 
 		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
 			let route = this.frm.doc.route;
@@ -168,10 +174,13 @@ class FormTimeline extends BaseTimeline {
 			const view_time = comment_when(view.creation);
 			let view_message = frappe.utils.is_current_user(view.owner)
 				? __("You viewed this {0}", [view_time], "Form timeline")
-				: __("{0} viewed this {1}", [
-					this.get_user_link(view.owner),
-					view_time
-				]);
+				: __("{0} viewed this {1}",
+					[
+						this.get_user_link(view.owner),
+						view_time
+					],
+					"Form timeline"
+				);
 
 			view_timeline_contents.push({
 				creation: view.creation,
