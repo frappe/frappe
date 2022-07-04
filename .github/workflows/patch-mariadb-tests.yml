@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: "gabrielfalcao/pyenv-action@v9"
+        uses: "gabrielfalcao/pyenv-action@v10"
         with:
           versions: 3.10:latest, 3.7:latest
 
