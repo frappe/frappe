@@ -206,13 +206,16 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.frm) {
+		if (this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype);
 		} else {
-			if(this.doc) {
+			if (this.doc) {
 				this.doc[this.df.fieldname] = value;
+			} else {
+				// case where input is rendered on dialog where doc is not maintained
+				this.value = value;
 			}
 			this.set_input(value);
 			return Promise.resolve();
