@@ -65,7 +65,7 @@ def update_controller_context(context, controller):
 					context.update(ret)
 			except (frappe.PermissionError, frappe.PageDoesNotExistError, frappe.Redirect):
 				raise
-			except:
+			except Exception:
 				if not any([frappe.flags.in_migrate, frappe.flags.in_website_search_build]):
 					frappe.errprint(frappe.utils.get_traceback())
 

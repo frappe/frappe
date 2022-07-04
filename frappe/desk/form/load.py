@@ -53,7 +53,6 @@ def getdoc(doctype, name, user=None):
 		get_docinfo(doc)
 
 	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
 		raise
 
 	doc.add_seen()

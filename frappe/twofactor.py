@@ -305,7 +305,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	"""Send token as sms to user."""
 	try:
 		from frappe.core.doctype.sms_settings.sms_settings import send_request
-	except:
+	except Exception:
 		return False
 
 	if not phone_no:
