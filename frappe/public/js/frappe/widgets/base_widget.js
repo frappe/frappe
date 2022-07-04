@@ -93,7 +93,7 @@ export default class Widget {
 		" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
 				<div class="widget-label">
-					<div class="widget-title ellipsis"></div>
+					<div class="widget-title"></div>
 					<div class="widget-subtitle"></div>
 				</div>
 				<div class="widget-control"></div>
