@@ -61,9 +61,7 @@ class CustomizeForm(Document):
 			frappe.throw(_("Single DocTypes cannot be customized."))
 
 		if meta.custom:
-			frappe.throw(
-				_("Only standard DocTypes are allowed to be customized from Customize Form.")
-			)
+			frappe.throw(_("Only standard DocTypes are allowed to be customized from Customize Form."))
 
 	def load_properties(self, meta):
 		"""
@@ -224,9 +222,7 @@ class CustomizeForm(Document):
 			new_value_length = cint(df.get(prop))
 
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append(
-					{"df": df, "old_value": meta_df[0].get(prop)}
-				)
+				self.check_length_for_fieldtypes.append({"df": df, "old_value": meta_df[0].get(prop)})
 				self.validate_fieldtype_length()
 			else:
 				self.flags.update_db = True
@@ -236,17 +232,13 @@ class CustomizeForm(Document):
 				"DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"
 			):
 				frappe.msgprint(
-					_("Row {0}: Not allowed to enable Allow on Submit for standard fields").format(
-						df.idx
-					)
+					_("Row {0}: Not allowed to enable Allow on Submit for standard fields").format(df.idx)
 				)
 				return False
 
 		elif prop == "reqd" and (
 			(
-				frappe.db.get_value(
-					"DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "reqd"
-				)
+				frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "reqd")
 				== 1
 			)
 			and (df.get(prop) == 0)
@@ -263,9 +255,7 @@ class CustomizeForm(Document):
 			and df.fieldtype in no_value_fields
 		):
 			frappe.msgprint(
-				_("'In List View' not allowed for type {0} in row {1}").format(
-					df.fieldtype, df.idx
-				)
+				_("'In List View' not allowed for type {0} in row {1}").format(df.fieldtype, df.idx)
 			)
 			return False
 
@@ -299,9 +289,7 @@ class CustomizeForm(Document):
 			frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 			return False
 
-		elif prop == "in_global_search" and df.in_global_search != meta_df[0].get(
-			"in_global_search"
-		):
+		elif prop == "in_global_search" and df.in_global_search != meta_df[0].get("in_global_search"):
 			self.flags.rebuild_doctype_for_global_search = True
 
 		return True
@@ -324,9 +312,7 @@ class CustomizeForm(Document):
 					original = frappe.get_doc(doctype, d.name)
 					for prop, prop_type in field_map.items():
 						if d.get(prop) != original.get(prop):
-							self.make_property_setter(
-								prop, d.get(prop), prop_type, apply_on=doctype, row_name=d.name
-							)
+							self.make_property_setter(prop, d.get(prop), prop_type, apply_on=doctype, row_name=d.name)
 					items.append(d.name)
 				else:
 					# custom - just insert/update
@@ -351,9 +337,7 @@ class CustomizeForm(Document):
 				property_name, json.dumps([d.name for d in self.get(fieldname)]), "Small Text"
 			)
 		else:
-			frappe.db.delete(
-				"Property Setter", dict(property=property_name, doc_type=self.doc_type)
-			)
+			frappe.db.delete("Property Setter", dict(property=property_name, doc_type=self.doc_type))
 
 	def clear_removed_items(self, doctype, items):
 		"""
@@ -367,9 +351,7 @@ class CustomizeForm(Document):
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
 			if df.get("is_custom_field"):
-				if not frappe.db.exists(
-					"Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}
-				):
+				if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
 					self.add_custom_field(df, i)
 					self.flags.update_db = True
 				else:
