@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Dict, List
-
 import frappe
 from frappe.desk.reportview import build_match_conditions
 
@@ -12,7 +10,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20) -> List[Dict]:
+def get_contact_list(txt, page_length=20) -> list[dict]:
 	"""Returns contacts (from autosuggest)"""
 
 	if cached_contacts := get_cached_contacts(txt):

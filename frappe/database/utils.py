@@ -2,21 +2,16 @@
 # License: MIT. See LICENSE
 
 from functools import cached_property
-
-try:
-	from types import NoneType
-except ImportError:
-	NoneType = type(None)
-from typing import Dict, List, Tuple, Union
+from types import NoneType
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
 
-Query = Union[str, MariaDB, Postgres]
-QueryValues = Union[Tuple, List, Dict, NoneType]
+Query = str | MariaDB | Postgres
+QueryValues = tuple | list | dict | NoneType
 
 
-def is_query_type(query: str, query_type: Union[str, Tuple[str]]) -> bool:
+def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
 

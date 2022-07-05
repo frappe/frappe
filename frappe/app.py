@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
@@ -34,7 +33,7 @@ SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
 UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
-class RequestContext(object):
+class RequestContext:
 	def __init__(self, environ):
 		self.request = Request(environ)
 
@@ -223,10 +222,6 @@ def handle_exception(e):
 		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
 
-	if frappe.conf.get("developer_mode"):
-		# don't fail silently
-		print(frappe.get_traceback())
-
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
@@ -290,6 +285,10 @@ def handle_exception(e):
 	if return_as_message:
 		response = get_response("message", http_status_code=http_status_code)
 
+	if frappe.conf.get("developer_mode") and not respond_as_json:
+		# don't fail silently for non-json response errors
+		print(frappe.get_traceback())
+
 	return response
 
 
@@ -331,12 +330,10 @@ def serve(
 
 	if not os.environ.get("NO_STATICS"):
 		application = SharedDataMiddleware(
-			application, {str("/assets"): str(os.path.join(sites_path, "assets"))}
+			application, {"/assets": str(os.path.join(sites_path, "assets"))}
 		)
 
-		application = StaticDataMiddleware(
-			application, {str("/files"): str(os.path.abspath(sites_path))}
-		)
+		application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(sites_path))})
 
 	application.debug = True
 	application.config = {"SERVER_NAME": "localhost:8000"}

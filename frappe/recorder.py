@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
@@ -40,7 +39,7 @@ def sql(*args, **kwargs):
 		"stack": stack,
 		"explain_result": explain_result,
 		"time": start_time,
-		"duration": float("{:.3f}".format((end_time - start_time) * 1000)),
+		"duration": float(f"{(end_time - start_time) * 1000:.3f}"),
 	}
 
 	frappe.local._recorder.register(data)
@@ -97,9 +96,7 @@ class Recorder:
 			"time": self.time,
 			"queries": len(self.calls),
 			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
-			"duration": float(
-				"{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)
-			),
+			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
 		}
 		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)

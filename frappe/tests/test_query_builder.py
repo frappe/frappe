@@ -1,5 +1,5 @@
 import unittest
-from typing import Callable
+from collections.abc import Callable
 
 import frappe
 from frappe.query_builder import Case
@@ -150,7 +150,7 @@ class TestCustomFunctionsPostgres(unittest.TestCase):
 		)
 
 
-class TestBuilderBase(object):
+class TestBuilderBase:
 	def test_adding_tabs(self):
 		self.assertEqual("tabNotes", frappe.qb.DocType("Notes").get_sql())
 		self.assertEqual("__Auth", frappe.qb.DocType("__Auth").get_sql())
@@ -186,9 +186,7 @@ class TestBuilderBase(object):
 class TestParameterization(unittest.TestCase):
 	def test_where_conditions(self):
 		DocType = frappe.qb.DocType("DocType")
-		query = (
-			frappe.qb.from_(DocType).select(DocType.name).where((DocType.owner == "Administrator' --"))
-		)
+		query = frappe.qb.from_(DocType).select(DocType.name).where(DocType.owner == "Administrator' --")
 		self.assertTrue("walk" in dir(query))
 		query, params = query.walk()
 

@@ -15,7 +15,6 @@ import operator
 import os
 import re
 from csv import reader
-from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import PseudoColumn
 
@@ -52,7 +51,7 @@ REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
 
-def get_language(lang_list: List = None) -> str:
+def get_language(lang_list: list = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -102,7 +101,7 @@ def get_language(lang_list: List = None) -> str:
 	return frappe.local.lang
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_parent_language(lang: str) -> str:
 	"""If the passed language is a variant, return its parent
 
@@ -134,7 +133,7 @@ def get_user_lang(user: str = None) -> str:
 	return lang
 
 
-def get_lang_code(lang: str) -> Union[str, None]:
+def get_lang_code(lang: str) -> str | None:
 	return frappe.db.get_value("Language", {"name": lang}) or frappe.db.get_value(
 		"Language", {"language_name": lang}
 	)
@@ -154,7 +153,7 @@ def get_lang_dict():
 	)
 
 
-def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
+def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	"""Returns translation dict for a type of object.
 
 	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
@@ -205,7 +204,7 @@ def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 		translation_assets[asset_key] = message_dict
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
-	translation_map: Dict = translation_assets[asset_key]
+	translation_map: dict = translation_assets[asset_key]
 
 	translation_map.update(get_user_translations(frappe.local.lang))
 
@@ -257,7 +256,7 @@ def get_lang_js(fortype: str, name: str) -> str:
 	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
-def get_full_dict(lang):
+def get_full_dict(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
 
 	:param lang: Language Code, e.g. `hi`
@@ -307,7 +306,7 @@ def load_lang(lang, apps=None):
 	return out or {}
 
 
-def get_translation_dict_from_file(path, lang, app, throw=False):
+def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
 	"""load translation dict from given path"""
 	translation_map = {}
 	if os.path.exists(path):
@@ -680,7 +679,7 @@ def get_all_messages_from_js_files(app_name=None):
 	return messages
 
 
-def get_messages_from_file(path: str) -> List[Tuple[str, str, str, str]]:
+def get_messages_from_file(path: str) -> list[tuple[str, str, str, str]]:
 	"""Returns a list of transatable strings from a code file
 
 	:param path: path of the code file
@@ -695,11 +694,11 @@ def get_messages_from_file(path: str) -> List[Tuple[str, str, str, str]]:
 
 	bench_path = get_bench_path()
 	if os.path.exists(path):
-		with open(path, "r") as sourcefile:
+		with open(path) as sourcefile:
 			try:
 				file_contents = sourcefile.read()
 			except Exception:
-				print("Could not scan file for translation: {0}".format(path))
+				print(f"Could not scan file for translation: {path}")
 				return []
 
 			return [
@@ -722,7 +721,7 @@ def extract_messages_from_code(code):
 		code = frappe.as_unicode(render_include(code))
 
 	# Exception will occur when it encounters John Resig's microtemplating code
-	except (TemplateError, ImportError, InvalidIncludePath, IOError) as e:
+	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
 		if isinstance(e, InvalidIncludePath):
 			frappe.clear_last_message()
 
@@ -769,7 +768,7 @@ def read_csv_file(path):
 
 	:param path: File path"""
 
-	with io.open(path, mode="r", encoding="utf-8", newline="") as msgfile:
+	with open(path, encoding="utf-8", newline="") as msgfile:
 		data = reader(msgfile)
 		newdata = [[val for val in row] for row in data]
 

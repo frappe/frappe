@@ -59,11 +59,11 @@ class DbManager:
 		pv = find_executable("pv")
 
 		if pv:
-			pipe = "{pv} {source} |".format(pv=pv, source=source)
+			pipe = f"{pv} {source} |"
 			source = ""
 		else:
 			pipe = ""
-			source = "< {source}".format(source=source)
+			source = f"< {source}"
 
 		if pipe:
 			print("Restoring Database file...")

@@ -41,7 +41,7 @@ def get_logger(
 	else:
 		site = False
 
-	logger_name = "{0}-{1}".format(module, site or "all")
+	logger_name = "{}-{}".format(module, site or "all")
 
 	try:
 		return frappe.loggers[logger_name]
@@ -59,7 +59,7 @@ def get_logger(
 	logger.setLevel(frappe.log_level or default_log_level)
 	logger.propagate = False
 
-	formatter = logging.Formatter("%(asctime)s %(levelname)s {0} %(message)s".format(module))
+	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
 	if stream_only:
 		handler = logging.StreamHandler()
 	else:
@@ -91,7 +91,7 @@ class SiteContextFilter(logging.Filter):
 		if "Form Dict" not in str(record.msg):
 			site = getattr(frappe.local, "site", None)
 			form_dict = getattr(frappe.local, "form_dict", None)
-			record.msg = str(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, form_dict)
+			record.msg = str(record.msg) + f"\nSite: {site}\nForm Dict: {form_dict}"
 			return True
 
 

@@ -1,5 +1,4 @@
 import json
-from typing import Dict, List
 
 import frappe
 from frappe.core.doctype.file.file import File, setup_folder_path
@@ -14,7 +13,7 @@ def unzip_file(name: str):
 
 
 @frappe.whitelist()
-def get_attached_images(doctype: str, names: List[str]) -> frappe._dict:
+def get_attached_images(doctype: str, names: list[str]) -> frappe._dict:
 	"""get list of image urls attached in form
 	returns {name: ['image.jpg', 'image.png']}"""
 
@@ -40,7 +39,7 @@ def get_attached_images(doctype: str, names: List[str]) -> frappe._dict:
 
 
 @frappe.whitelist()
-def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> Dict:
+def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
 	start = cint(start)
 	page_length = cint(page_length)
 
@@ -66,7 +65,7 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> D
 
 
 @frappe.whitelist()
-def get_files_by_search_text(text: str) -> List[Dict]:
+def get_files_by_search_text(text: str) -> list[dict]:
 	if not text:
 		return []
 
@@ -102,7 +101,7 @@ def create_new_folder(file_name: str, folder: str) -> File:
 
 
 @frappe.whitelist()
-def move_file(file_list: List[File], new_parent: str, old_parent: str) -> None:
+def move_file(file_list: list[File], new_parent: str, old_parent: str) -> None:
 	if isinstance(file_list, str):
 		file_list = json.loads(file_list)
 

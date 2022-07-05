@@ -167,7 +167,7 @@ def setup_group_by(data):
 
 
 def raise_invalid_field(fieldname):
-	frappe.throw(_("Field not permitted in query") + ": {0}".format(fieldname), frappe.DataError)
+	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
 def is_standard(fieldname):

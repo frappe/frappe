@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -8,7 +7,6 @@ import hashlib
 import hmac
 import json
 from time import sleep
-from typing import Dict, Optional
 from urllib.parse import urlparse
 
 import requests
@@ -114,7 +112,7 @@ def enqueue_webhook(doc, webhook) -> None:
 				webhook.log_error("Webhook failed")
 
 
-def log_request(url: str, headers: Dict, data: Dict, res: Optional[requests.Response] = None):
+def log_request(url: str, headers: dict, data: dict, res: requests.Response | None = None):
 	request_log = frappe.get_doc(
 		{
 			"doctype": "Webhook Request Log",

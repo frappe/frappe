@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import copy
-from typing import List
 
 import frappe
 import frappe.share
@@ -421,7 +420,7 @@ def get_roles(user=None, with_standard=True):
 
 	# filter standard if required
 	if not with_standard:
-		roles = filter(lambda x: x not in ["All", "Guest", "Administrator"], roles)
+		roles = [r for r in roles if r not in ["All", "Guest", "Administrator"]]
 
 	return roles
 
@@ -516,7 +515,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
 		if raise_exception:
-			raise frappe.PermissionError("You are not allowed to import: {doctype}".format(doctype=doctype))
+			raise frappe.PermissionError(f"You are not allowed to import: {doctype}")
 		else:
 			return False
 	return True
@@ -606,7 +605,7 @@ def reset_perms(doctype):
 	frappe.db.delete("Custom DocPerm", {"parent": doctype})
 
 
-def get_linked_doctypes(dt: str) -> List:
+def get_linked_doctypes(dt: str) -> list:
 	meta = frappe.get_meta(dt)
 	linked_doctypes = [dt] + [
 		d.options

@@ -9,7 +9,6 @@ import string
 import traceback
 from contextlib import contextmanager
 from time import time
-from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
 
@@ -31,7 +30,7 @@ SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
 
-class Database(object):
+class Database:
 	"""
 	Open a database connection with the given parmeters, if use_default is True, use the
 	login details from `conf.py`. This is called by the request handler and is accessible using
@@ -684,8 +683,8 @@ class Database(object):
 	def set_single_value(
 		self,
 		doctype: str,
-		fieldname: Union[str, Dict],
-		value: Optional[Union[str, int]] = None,
+		fieldname: str | dict,
+		value: str | int | None = None,
 		*args,
 		**kwargs,
 	):
@@ -1061,13 +1060,13 @@ class Database(object):
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
-			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
+			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
 		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
 		count = self.sql(query, debug=debug)[0][0]
 		if not filters and cache:
-			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
+			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
 
 	@staticmethod
@@ -1102,7 +1101,7 @@ class Database(object):
 			.run()[0][0]
 		)
 
-	def get_db_table_columns(self, table) -> List[str]:
+	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
 		columns = frappe.cache().hget("table_columns", table)
 		if columns is None:
@@ -1162,10 +1161,7 @@ class Database(object):
 		return INDEX_PATTERN.sub(r"", index_name)
 
 	def get_system_setting(self, key):
-		def _load_system_settings():
-			return self.get_singles_dict("System Settings")
-
-		return frappe.cache().get_value("system_settings", _load_system_settings).get(key)
+		return frappe.get_system_settings(key)
 
 	def close(self):
 		"""Close database connection."""
@@ -1202,7 +1198,7 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
+	def delete(self, doctype: str, filters: dict | list = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
 
@@ -1306,7 +1302,7 @@ def enqueue_jobs_after_commit():
 
 
 @contextmanager
-def savepoint(catch: Union[type, Tuple[type, ...]] = Exception):
+def savepoint(catch: type | tuple[type, ...] = Exception):
 	"""Wrapper for wrapping blocks of DB operations in a savepoint.
 
 	as contextmanager:
