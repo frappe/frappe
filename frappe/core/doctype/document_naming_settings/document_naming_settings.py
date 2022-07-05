@@ -8,7 +8,6 @@ from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
 from frappe.model.naming import NamingSeries
 from frappe.permissions import get_doctypes_with_read
-from frappe.utils import cint
 
 
 class NamingSeriesNotSetError(frappe.ValidationError):
