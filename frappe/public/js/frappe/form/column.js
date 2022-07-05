@@ -5,14 +5,13 @@ export default class Column {
 		this.df = df;
 		this.section = section;
 		this.section.columns.push(this);
-		this.fields_list = [];
 		this.make();
 		this.resize_all_columns();
 	}
 
 	make() {
 		this.wrapper = $(`
-			<div class="form-column">
+			<div class="form-column" data-fieldname="${this.df.fieldname}">
 				<form>
 				</form>
 			</div>
@@ -44,9 +43,7 @@ export default class Column {
 			.addClass("col-sm-" + colspan);
 	}
 
-	add_field(fieldobj) {
-		this.fields_list.push(fieldobj);
-	}
+	add_field(fieldobj) { }
 
 	refresh() {
 		this.section.refresh();

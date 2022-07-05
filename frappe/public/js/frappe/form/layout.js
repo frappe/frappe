@@ -8,9 +8,15 @@ frappe.ui.form.Layout = class Layout {
 		this.pages = [];
 		this.tabs = [];
 		this.sections = [];
+<<<<<<< HEAD
 		this.page_breaks = [];
+=======
+		this.sections_dict = {};
+>>>>>>> 69ca4ff5f7 (feat(minor): save new order based on re-arranged fields)
 		this.fields_list = [];
 		this.fields_dict = {};
+		this.section_count = 0;
+		this.column_count = 0;
 
 		$.extend(this, opts);
 	}
@@ -41,10 +47,15 @@ frappe.ui.form.Layout = class Layout {
 				<ul class="nav form-tabs" id="form-tabs" role="tablist"></ul>
 			</div>
 		`).appendTo(this.page);
+<<<<<<< HEAD
 		this.tabs_list = this.page.find(".form-tabs");
 		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(
 			this.page
 		);
+=======
+		this.tab_link_container = this.page.find('.form-tabs');
+		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(this.page);
+>>>>>>> f7a89297c9 (feat(minor): save new order based on re-arranged fields)
 		this.setup_events();
 	}
 
@@ -273,13 +284,18 @@ frappe.ui.form.Layout = class Layout {
 		this.fold_btn.trigger("click");
 	}
 
-	make_section(df) {
+	make_section(df = {}) {
+		this.section_count++;
+		if (!df.fieldname) df.fieldname = `__section_${this.section_count}`;
+
 		this.section = new Section(
 			this.current_tab ? this.current_tab.wrapper : this.page,
 			df,
 			this.card_layout,
 			this
 		);
+		this.sections.push(this.section);
+		this.sections_dict[df.fieldname] = this.section;
 
 		// append to layout fields
 		if (df) {
@@ -290,7 +306,10 @@ frappe.ui.form.Layout = class Layout {
 		this.column = null;
 	}
 
-	make_column(df) {
+	make_column(df = {}) {
+		this.column_count ++;
+		if (!df.fieldname) df.fieldname = `__column_${this.section_count}`;
+
 		this.column = new Column(this.section, df);
 		if (df && df.fieldname) {
 			this.fields_list.push(this.column);
@@ -299,7 +318,7 @@ frappe.ui.form.Layout = class Layout {
 
 	make_tab(df) {
 		this.section = null;
-		let tab = new Tab(this, df, this.frm, this.tabs_list, this.tabs_content);
+		let tab = new Tab(this, df, this.frm, this.tab_link_container, this.tabs_content);
 		this.current_tab = tab;
 		this.make_section({ fieldtype: "Section Break" });
 		this.tabs.push(tab);
@@ -453,7 +472,11 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	setup_events() {
+<<<<<<< HEAD
 		this.tabs_list.off("click").on("click", ".nav-link", (e) => {
+=======
+		this.tab_link_container.off('click').on('click', '.nav-link', (e) => {
+>>>>>>> f7a89297c9 (feat(minor): save new order based on re-arranged fields)
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			$(e.currentTarget).tab("show");

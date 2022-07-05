@@ -1740,3 +1740,33 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
+
+
+@frappe.whitelist()
+def set_field_order(doctype, field_order):
+	"""Update field order in doctype"""
+
+	frappe.only_for("System Manager")
+
+	meta = frappe.get_meta(doctype)
+	field_order = json.loads(field_order)
+
+	json_file_path = get_file_path(meta.module, "DocType", meta.name)
+	with open(json_file_path, "r") as json_file:
+		doc_obj = json.loads(json_file.read())
+
+	doc_obj["field_order"] = field_order
+	with open(json_file_path, "w") as json_file:
+		json_file.write(frappe.as_json(doc_obj))
+
+	idx = 1
+	for fieldname in field_order:
+		docfield = frappe.qb.DocType("DocField")
+		frappe.qb.update(docfield).set(docfield.idx, idx).where(
+			(docfield.fieldname == fieldname) & (docfield.parent == doctype)
+		).run()
+		idx += 1
+
+	frappe.db.commit()
+
+	frappe.clear_cache(doctype=doctype)

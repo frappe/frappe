@@ -29,9 +29,12 @@ export default class Section {
 		let make_card = this.card_layout;
 		this.wrapper = $(`<div class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
+<<<<<<< HEAD
 				${make_card ? "card-section" : ""}">
+=======
+				${ make_card ? "card-section" : "" }" data-fieldname="${this.df.fieldname}">
+>>>>>>> f7a89297c9 (feat(minor): save new order based on re-arranged fields)
 			`).appendTo(this.parent);
-		this.layout && this.layout.sections.push(this);
 
 		if (this.df) {
 			if (this.df.label) {
@@ -155,5 +158,13 @@ export default class Section {
 	on_section_toggle(show) {
 		this.wrapper.toggleClass("hide-control", !show);
 		// this.on_section_toggle && this.on_section_toggle(show);
+	}
+
+	rebuild_fields_list_from_dom() {
+		this.fields_list = [];
+		this.fields_dict = {};
+		for (let ele of $(this.wrapper).find('.frappe-control')) {
+			let f = this.layout.frm.fields_dict[ele.getAttribute('data-fieldname')];
+		}
 	}
 }
