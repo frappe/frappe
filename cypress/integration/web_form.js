@@ -14,7 +14,7 @@ context('Web Form', () => {
 		cy.click_custom_action_button('Get Fields');
 		cy.click_custom_action_button('Publish');
 
-		cy.wait('@save_form')
+		cy.wait('@save_form');
 
 		cy.get_field('route').should('have.value', 'note');
 		cy.get('.title-area .indicator-pill').contains('Published');
