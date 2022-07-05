@@ -1187,7 +1187,12 @@ def fmt_money(
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
-		amount = frappe._(symbol) + " " + amount
+		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
+
+		if symbol_on_right:
+			amount = f"{amount} {frappe._(symbol)}"
+		else:
+			amount = f"{frappe._(symbol)} {amount}"
 
 	return amount
 
