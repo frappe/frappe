@@ -113,7 +113,7 @@ class Database:
 		raise NotImplementedError
 
 	def _transform_query(self, query: Query, values: QueryValues):
-		return query, values or None
+		return query, values or ()
 
 	def sql(
 		self,
@@ -181,10 +181,9 @@ class Database:
 		if debug:
 			time_start = time()
 
-		if values is not None:
-			if not isinstance(values, (tuple, dict, list)):
-				values = (values,)
-			query, values = self._transform_query(query, values)
+		if not isinstance(values, (tuple, dict, list)):
+			values = (values,)
+		query, values = self._transform_query(query, values)
 
 		try:
 			self._cursor.execute(query, values)
