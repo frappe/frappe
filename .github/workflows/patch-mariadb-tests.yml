@@ -7,6 +7,9 @@ concurrency:
   group: patch-mariadb-develop-${{ github.event.number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -15,25 +18,25 @@ jobs:
     name: Patch Test
 
     services:
-      mysql:
-        image: mariadb:10.3
+      mariadb:
+        image: mariadb:10.6
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: YES
+          MARIADB_ROOT_PASSWORD: travis
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: "gabrielfalcao/pyenv-action@v10"
         with:
-          python-version: '3.9'
+          versions: 3.10:latest, 3.7:latest
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14
           check-latest: true
@@ -53,17 +56,17 @@ jobs:
 
       - name: Cache pip
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
 
       - name: Cache node modules
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
@@ -79,7 +82,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
@@ -98,7 +101,10 @@ jobs:
 
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: |
+          pip install frappe-bench
+          pyenv global $(pyenv versions | grep '3.10')
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           DB: mariadb
           TYPE: server
@@ -114,18 +120,23 @@ jobs:
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
 
+          pyenv global $(pyenv versions | grep '3.7')
           for version in $(seq 12 13)
           do
               echo "Updating to v$version"
               branch_name="version-$version-hotfix"
               git fetch --depth 1 upstream $branch_name:$branch_name
-
               git checkout -q -f $branch_name
-              pip install -q -r requirements.txt
+              pip install -U frappe-bench
+
+              rm -rf ~/frappe-bench/env
+              bench -v setup env
               bench --site test_site migrate
           done
 
           echo "Updating to last commit"
           git checkout -q -f "$GITHUB_SHA"
-          bench setup requirements --python
+          pyenv global $(pyenv versions | grep '3.10')
+          rm -rf ~/frappe-bench/env
+          bench -v setup env
           bench --site test_site migrate

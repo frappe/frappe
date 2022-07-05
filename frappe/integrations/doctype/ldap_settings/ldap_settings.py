@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -120,7 +119,7 @@ class LDAPSettings(Document):
 	def get_ldap_client_settings():
 		# return the settings to be used on the client side.
 		result = {"enabled": False}
-		ldap = frappe.get_doc("LDAP Settings")
+		ldap = frappe.get_cached_doc("LDAP Settings")
 		if ldap.enabled:
 			result["enabled"] = True
 			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
@@ -137,7 +136,7 @@ class LDAPSettings(Document):
 
 	def sync_roles(self, user, additional_groups=None):
 
-		current_roles = set(d.role for d in user.get("roles"))
+		current_roles = {d.role for d in user.get("roles")}
 
 		needed_roles = set()
 		needed_roles.add(self.default_role)
@@ -209,14 +208,12 @@ class LDAPSettings(Document):
 
 		if type(user) is not ldap3.abstract.entry.Entry:
 			raise TypeError(
-				"Invalid type, attribute {0} must be of type '{1}'".format(
-					"user", "ldap3.abstract.entry.Entry"
-				)
+				"Invalid type, attribute {} must be of type '{}'".format("user", "ldap3.abstract.entry.Entry")
 			)
 
 		if type(conn) is not ldap3.core.connection.Connection:
 			raise TypeError(
-				"Invalid type, attribute {0} must be of type '{1}'".format("conn", "ldap3.Connection")
+				"Invalid type, attribute {} must be of type '{}'".format("conn", "ldap3.Connection")
 			)
 
 		fetch_ldap_groups = None
@@ -254,7 +251,7 @@ class LDAPSettings(Document):
 		if ldap_object_class is not None:
 			conn.search(
 				search_base=self.ldap_search_path_group,
-				search_filter="(&(objectClass={0})({1}={2}))".format(
+				search_filter="(&(objectClass={})({}={}))".format(
 					ldap_object_class, ldap_group_members_attribute, user_search_str
 				),
 				attributes=["cn"],
@@ -283,7 +280,7 @@ class LDAPSettings(Document):
 
 			conn.search(
 				search_base=self.ldap_search_path_user,
-				search_filter="{0}".format(user_filter),
+				search_filter=f"{user_filter}",
 				attributes=ldap_attributes,
 			)
 
@@ -309,7 +306,7 @@ class LDAPSettings(Document):
 		from ldap3 import HASHED_SALTED_SHA, MODIFY_REPLACE
 		from ldap3.utils.hashed import hashed
 
-		search_filter = "({0}={1})".format(self.ldap_email_field, user)
+		search_filter = f"({self.ldap_email_field}={user})"
 
 		conn = self.connect_to_ldap(
 			self.base_dn, self.get_password(raise_exception=False), read_only=False

@@ -59,10 +59,12 @@ $('body').on('click', 'a', function(e) {
 	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
 		// target has "/app, this is a v2 style route.
 
-		frappe.route_options = {};
-		let params = new URLSearchParams(e.currentTarget.search);
-		for (const [key, value] of params) {
-			frappe.route_options[key] = value;
+		if (e.currentTarget.search) {
+			frappe.route_options = {};
+			let params = new URLSearchParams(e.currentTarget.search);
+			for (const [key, value] of params) {
+				frappe.route_options[key] = value;
+			}
 		}
 		return override(e.currentTarget.pathname + e.currentTarget.hash);
 	}
@@ -119,7 +121,7 @@ frappe.router = {
 		route = this.get_sub_path_string(route).split('/');
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
-		this.set_route_options_from_url(route);
+		this.set_route_options_from_url();
 		return this.convert_to_standard_route(route);
 	},
 
@@ -408,18 +410,17 @@ frappe.router = {
 		return route;
 	},
 
-	set_route_options_from_url(route) {
+	set_route_options_from_url() {
 		// set query parameters as frappe.route_options
-		var last_part = route[route.length - 1];
-		if (last_part.indexOf("?") < last_part.indexOf("=")) {
-			// has ? followed by =
-			let parts = last_part.split("?");
+		let query_string = window.location.search;
 
-			// route should not contain string after ?
-			route[route.length - 1] = parts[0];
+		if (!frappe.route_options) {
+			frappe.route_options = {};
+		}
 
-			let query_params = frappe.utils.get_query_params(parts[1]);
-			frappe.route_options = $.extend(frappe.route_options || {}, query_params);
+		let params = new URLSearchParams(query_string);
+		for (const [key, value] of params) {
+			frappe.route_options[key] = value;
 		}
 	},
 

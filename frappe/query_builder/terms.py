@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Function, ValueWrapper
@@ -27,7 +27,7 @@ class NamedParameterWrapper:
 		self.parameters[param_key[2:-2]] = param_value
 		return param_key
 
-	def get_parameters(self) -> Dict[str, Any]:
+	def get_parameters(self) -> dict[str, Any]:
 		"""get dict with parameters and values
 
 		Returns:
@@ -45,9 +45,9 @@ class ParameterizedValueWrapper(ValueWrapper):
 
 	def get_sql(
 		self,
-		quote_char: Optional[str] = None,
+		quote_char: str | None = None,
 		secondary_quote_char: str = "'",
-		param_wrapper: Optional[NamedParameterWrapper] = None,
+		param_wrapper: NamedParameterWrapper | None = None,
 		**kwargs: Any,
 	) -> str:
 		if param_wrapper and isinstance(self.value, str):
@@ -100,11 +100,11 @@ class ParameterizedFunction(Function):
 		return function_sql
 
 
-class subqry(Criterion):
+class SubQuery(Criterion):
 	def __init__(
 		self,
 		subq: QueryBuilder,
-		alias: Optional[str] = None,
+		alias: str | None = None,
 	) -> None:
 		super().__init__(alias)
 		self.subq = subq
@@ -112,3 +112,6 @@ class subqry(Criterion):
 	def get_sql(self, **kwg: Any) -> str:
 		kwg["subquery"] = True
 		return self.subq.get_sql(**kwg)
+
+
+subqry = SubQuery

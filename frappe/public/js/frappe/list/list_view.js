@@ -291,6 +291,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.refresh().then(() => {
 			this.render_header(refresh_header);
 			this.update_checkbox();
+			this.update_url_with_filters();
 		});
 	}
 
@@ -331,7 +332,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.columns.push({
 				type: "Subject",
 				df: {
-					label: __("Name"),
+					label: __("ID"),
 					fieldname: "name",
 				},
 			});
@@ -398,7 +399,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.columns.push({
 				type: "Field",
 				df: {
-					label: __("Name"),
+					label: __("ID"),
 					fieldname: "name",
 				},
 			});
@@ -870,9 +871,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>`;
 		}
 
-		const comment_count = `<span class="${
-			!doc._comment_count ? "text-extra-muted" : ""
-		} comment-count">
+		const comment_count = `<span class="comment-count">
 				${frappe.utils.icon('small-message')}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count}
 			</span>`;
@@ -1456,12 +1455,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	on_update() {}
 
-	get_share_url() {
+	update_url_with_filters() {
+		window.history.replaceState(null, null, this.get_url_with_filters());
+	}
+
+	get_url_with_filters() {
 		const query_params = this.get_filters_for_args()
 			.map((filter) => {
-				filter[3] = encodeURIComponent(filter[3]);
 				if (filter[2] === "=") {
-					return `${filter[1]}=${filter[3]}`;
+					return `${filter[1]}=${encodeURIComponent(filter[3])}`;
 				}
 				return [
 					filter[1],
@@ -1471,32 +1473,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 			.join("&");
 
-		let full_url = window.location.href;
+		let full_url = window.location.href.replace(window.location.search, "");
 		if (query_params) {
 			full_url += "?" + query_params;
 		}
 		return full_url;
-	}
-
-	share_url() {
-		const d = new frappe.ui.Dialog({
-			title: __("Share URL"),
-			fields: [
-				{
-					fieldtype: "Code",
-					fieldname: "url",
-					label: "URL",
-					default: this.get_share_url(),
-					read_only: 1,
-				},
-			],
-			primary_action_label: __("Copy to clipboard"),
-			primary_action: () => {
-				frappe.utils.copy_to_clipboard(this.get_share_url());
-				d.hide();
-			},
-		});
-		d.show();
 	}
 
 	get_menu_items() {
@@ -1534,7 +1515,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					}),
 				standard: true,
 			});
+		}
 
+		if (frappe.model.can_create("Custom Field")
+			&& frappe.model.can_create("Property Setter")) {
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),
 				action: () => {
@@ -1558,13 +1542,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			condition: () => !this.hide_sidebar,
 			standard: true,
 			shortcut: "Ctrl+K",
-		});
-
-		items.push({
-			label: __("Share URL", null, "Button in list view menu"),
-			action: () => this.share_url(),
-			standard: true,
-			shortcut: "Ctrl+L",
 		});
 
 		if (

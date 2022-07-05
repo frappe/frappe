@@ -24,6 +24,8 @@ from frappe.utils import (
 )
 from frappe.utils.pdf import get_pdf
 
+EMBED_PATTERN = re.compile("""embed=["'](.*?)["']""")
+
 
 def get_email(
 	recipients,
@@ -190,7 +192,7 @@ class EMail:
 	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
 
-		has_inline_images = re.search("""embed=['"].*?['"]""", message)
+		has_inline_images = EMBED_PATTERN.search(message)
 
 		if has_inline_images:
 			# process inline images
@@ -351,7 +353,7 @@ def get_formatted_html(
 	print_html=None,
 	email_account=None,
 	header=None,
-	unsubscribe_link=None,
+	unsubscribe_link: frappe._dict | None = None,
 	sender=None,
 	with_container=False,
 ):
@@ -451,7 +453,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 		attachment_type = "inline" if inline else "attachment"
 		part.add_header("Content-Disposition", attachment_type, filename=str(fname))
 	if content_id:
-		part.add_header("Content-ID", "<{0}>".format(content_id))
+		part.add_header("Content-ID", f"<{content_id}>")
 
 	parent.attach(part)
 
@@ -499,7 +501,7 @@ def replace_filename_with_cid(message):
 	inline_images = []
 
 	while True:
-		matches = re.search("""embed=["'](.*?)["']""", message)
+		matches = EMBED_PATTERN.search(message)
 		if not matches:
 			break
 		groups = matches.groups()
@@ -510,7 +512,7 @@ def replace_filename_with_cid(message):
 
 		filecontent = get_filecontent_from_path(img_path)
 		if not filecontent:
-			message = re.sub("""embed=['"]{0}['"]""".format(img_path), "", message)
+			message = re.sub(f"""embed=['"]{img_path}['"]""", "", message)
 			continue
 
 		content_id = random_string(10)
@@ -519,9 +521,7 @@ def replace_filename_with_cid(message):
 			{"filename": filename, "filecontent": filecontent, "content_id": content_id}
 		)
 
-		message = re.sub(
-			"""embed=['"]{0}['"]""".format(img_path), 'src="cid:{0}"'.format(content_id), message
-		)
+		message = re.sub(f"""embed=['"]{img_path}['"]""", f'src="cid:{content_id}"', message)
 
 	return (message, inline_images)
 

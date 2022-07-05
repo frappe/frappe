@@ -93,7 +93,7 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 
 		if not (share.read or share.write or share.submit or share.share):
 			share.delete()
-			share = {}
+			share = None
 
 	return share
 
@@ -175,7 +175,7 @@ def check_share_permission(doctype, name):
 	"""Check if the user can share with other users"""
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(
-			_("No permission to {0} {1} {2}").format("share", doctype, name), frappe.PermissionError
+			_("No permission to {0} {1} {2}").format("share", _(doctype), name), frappe.PermissionError
 		)
 
 
@@ -190,7 +190,7 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 
 	reference_user = get_fullname(frappe.session.user)
 	notification_message = _("{0} shared a document {1} {2} with you").format(
-		frappe.bold(reference_user), frappe.bold(doctype), get_title_html(title)
+		frappe.bold(reference_user), frappe.bold(_(doctype)), get_title_html(title)
 	)
 
 	notification_doc = {

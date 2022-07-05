@@ -5,7 +5,6 @@ import mimetypes
 import os
 import re
 from functools import lru_cache, wraps
-from typing import Dict, Optional
 
 import yaml
 from werkzeug.wrappers import Response
@@ -14,6 +13,13 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import md_to_html
+
+FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
+H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
+IMAGE_TAG_PATTERN = re.compile(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""")
+CLEANUP_PATTERN_1 = re.compile(r'[~!@#$%^&*+()<>,."\'\?]')
+CLEANUP_PATTERN_2 = re.compile("[:/]")
+CLEANUP_PATTERN_3 = re.compile(r"(-)\1+")
 
 
 def delete_page_cache(path):
@@ -29,7 +35,7 @@ def delete_page_cache(path):
 
 
 def find_first_image(html):
-	m = re.finditer(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
+	m = IMAGE_TAG_PATTERN.finditer(html)
 	try:
 		return next(m).groups()[0]
 	except StopIteration:
@@ -74,9 +80,9 @@ def get_comment_list(doctype, name):
 			reference_name=name,
 		),
 		or_filters=[
-			["recipients", "like", "%{0}%".format(frappe.session.user)],
-			["cc", "like", "%{0}%".format(frappe.session.user)],
-			["bcc", "like", "%{0}%".format(frappe.session.user)],
+			["recipients", "like", f"%{frappe.session.user}%"],
+			["cc", "like", f"%{frappe.session.user}%"],
+			["bcc", "like", f"%{frappe.session.user}%"],
 		],
 	)
 
@@ -156,17 +162,17 @@ def is_signup_disabled():
 	return frappe.db.get_single_value("Website Settings", "disable_signup", True)
 
 
-def cleanup_page_name(title):
+def cleanup_page_name(title: str) -> str:
 	"""make page name from title"""
 	if not title:
 		return ""
 
 	name = title.lower()
-	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', "", name)
-	name = re.sub("[:/]", "-", name)
+	name = CLEANUP_PATTERN_1.sub("", name)
+	name = CLEANUP_PATTERN_2.sub("-", name)
 	name = "-".join(name.split())
 	# replace repeating hyphens
-	name = re.sub(r"(-)\1+", r"\1", name)
+	name = CLEANUP_PATTERN_3.sub(r"\1", name)
 	return name[:140]
 
 
@@ -287,8 +293,8 @@ def extract_title(source, path):
 
 	if not title and "<h1>" in source:
 		# extract title from h1
-		match = re.findall("<h1>([^<]*)", source)
-		title_content = match[0].strip()[:300]
+		match = H1_TAG_PATTERN.search(source).group()
+		title_content = match.strip()[:300]
 		if "{{" not in title_content:
 			title = title_content
 
@@ -308,17 +314,14 @@ def extract_title(source, path):
 	return title
 
 
-def extract_comment_tag(source, tag):
+def extract_comment_tag(source: str, tag: str):
 	"""Extract custom tags in comments from source.
 
 	:param source: raw template source in HTML
 	:param title: tag to search, example "title"
 	"""
-
-	if "<!-- {0}:".format(tag) in source:
-		return re.findall("<!-- {0}:([^>]*) -->".format(tag), source)[0].strip()
-	else:
-		return None
+	matched_pattern = re.search(f"<!-- {tag}:([^>]*) -->", source)
+	return matched_pattern.groups()[0].strip() if matched_pattern else None
 
 
 def get_html_content_based_on_type(doc, fieldname, content_type):
@@ -378,7 +381,8 @@ def get_frontmatter(string):
 	"Reference: https://github.com/jonbeebe/frontmatter"
 	frontmatter = ""
 	body = ""
-	result = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M).search(string)
+	result = FRONTMATTER_PATTERN.search(string)
+
 	if result:
 		frontmatter = result.group(1)
 		body = result.group(2)
@@ -449,7 +453,7 @@ def get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json):
 	if not sidebar_json_path:
 		return sidebar_items
 
-	with open(sidebar_json_path, "r") as sidebarfile:
+	with open(sidebar_json_path) as sidebarfile:
 		try:
 			sidebar_json = sidebarfile.read()
 			sidebar_items = json.loads(sidebar_json)
@@ -501,7 +505,7 @@ def cache_html(func):
 	return cache_html_decorator
 
 
-def build_response(path, data, http_status_code, headers: Optional[Dict] = None):
+def build_response(path, data, http_status_code, headers: dict | None = None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
@@ -554,7 +558,7 @@ def add_preload_headers(response):
 
 		links = []
 		for _type, link in preload:
-			links.append("<{}>; rel=preload; as={}".format(link, _type))
+			links.append(f"<{link}>; rel=preload; as={_type}")
 
 		if links:
 			response.headers["Link"] = ",".join(links)
@@ -564,7 +568,7 @@ def add_preload_headers(response):
 		traceback.print_exc()
 
 
-@lru_cache()
+@lru_cache
 def is_binary_file(path):
 	# ref: https://stackoverflow.com/a/7392391/10309266
 	textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7F})

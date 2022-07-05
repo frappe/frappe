@@ -177,7 +177,7 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=1 if frappe._dev_server else 0,
+		dev_server=frappe.local.dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
@@ -347,7 +347,7 @@ def _getattr(object, name, default=None):
 	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
-		raise SyntaxError("{name} is an unsafe attribute".format(name=name))
+		raise SyntaxError(f"{name} is an unsafe attribute")
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 

@@ -9,19 +9,30 @@ from frappe.model.document import Document
 
 
 class Version(Document):
-	def set_diff(self, old, new):
+	def update_version_info(self, old: Document | None, new: Document) -> bool:
+		"""Update changed info and return true if change contains useful data."""
+		if not old:
+			# Check if doc has some information about creation source like data import
+			return self.for_insert(new)
+		else:
+			return self.set_diff(old, new)
+
+	def set_diff(self, old: Document, new: Document) -> bool:
 		"""Set the data property with the diff of the docs if present"""
 		diff = get_diff(old, new)
 		if diff:
 			self.ref_doctype = new.doctype
 			self.docname = new.name
-			self.data = frappe.as_json(diff)
+			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
 			return True
 		else:
 			return False
 
-	def for_insert(self, doc):
+	def for_insert(self, doc: Document) -> bool:
 		updater_reference = doc.flags.updater_reference
+		if not updater_reference:
+			return False
+
 		data = {
 			"creation": doc.creation,
 			"updater_reference": updater_reference,
@@ -29,7 +40,8 @@ class Version(Document):
 		}
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
-		self.data = frappe.as_json(data)
+		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))
+		return True
 
 	def get_data(self):
 		return json.loads(self.data)

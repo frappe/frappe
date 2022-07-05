@@ -100,7 +100,7 @@ class TemplatePage(BaseTemplatePage):
 	def post_process_context(self):
 		self.set_user_info()
 		self.add_sidebar_and_breadcrumbs()
-		super(TemplatePage, self).post_process_context()
+		super().post_process_context()
 
 	def add_sidebar_and_breadcrumbs(self):
 		if self.basepath:
@@ -212,19 +212,13 @@ class TemplatePage(BaseTemplatePage):
 
 	def run_pymodule_method(self, method_name):
 		if hasattr(self.pymodule, method_name):
-			try:
-				import inspect
+			import inspect
 
-				method = getattr(self.pymodule, method_name)
-				if inspect.getfullargspec(method).args:
-					return method(self.context)
-				else:
-					return method()
-			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
-				raise
-			except Exception:
-				if not frappe.flags.in_migrate:
-					frappe.errprint(frappe.utils.get_traceback())
+			method = getattr(self.pymodule, method_name)
+			if inspect.getfullargspec(method).args:
+				return method(self.context)
+			else:
+				return method()
 
 	def render_template(self):
 		if self.template_path.endswith("min.js"):
@@ -258,7 +252,7 @@ class TemplatePage(BaseTemplatePage):
 			self.context.colocated_css = self.get_colocated_file(css_path)
 
 	def get_colocated_file(self, path):
-		with io.open(path, "r", encoding="utf-8") as f:
+		with open(path, encoding="utf-8") as f:
 			return f.read()
 
 	def extract_frontmatter(self):
@@ -295,7 +289,7 @@ class TemplatePage(BaseTemplatePage):
 		self.app = "frappe"
 		self.app_path = frappe.get_app_path("frappe")
 		self.path = path
-		self.template_path = "www/{path}.html".format(path=path)
+		self.template_path = f"www/{path}.html"
 
 	def set_missing_values(self):
 		super().set_missing_values()

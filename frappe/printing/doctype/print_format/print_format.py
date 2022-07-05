@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -56,7 +55,7 @@ class PrintFormat(Document):
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)
 
 	def extract_images(self):
-		from frappe.core.doctype.file.file import extract_images_from_html
+		from frappe.core.doctype.file.utils import extract_images_from_html
 
 		if self.print_format_builder_beta:
 			return

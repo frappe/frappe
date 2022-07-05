@@ -20,6 +20,8 @@ import frappe
 timestamps = {}
 app_paths = None
 sites_path = os.path.abspath(os.getcwd())
+WHITESPACE_PATTERN = re.compile(r"\s+")
+HTML_COMMENT_PATTERN = re.compile(r"(<!--.*?-->)")
 
 
 class AssetsNotDownloadedError(Exception):
@@ -198,12 +200,12 @@ def symlink(target, link_name, overwrite=False):
 	try:
 		# Pre-empt os.replace on a directory with a nicer message
 		if os.path.isdir(link_name):
-			raise IsADirectoryError("Cannot symlink over existing directory: '{}'".format(link_name))
+			raise IsADirectoryError(f"Cannot symlink over existing directory: '{link_name}'")
 		try:
 			os.replace(temp_link_name, link_name)
 		except AttributeError:
 			os.renames(temp_link_name, link_name)
-	except:
+	except Exception:
 		if os.path.islink(temp_link_name):
 			os.remove(temp_link_name)
 		raise
@@ -237,10 +239,10 @@ def bundle(
 	make_asset_dirs(hard_link=hard_link)
 
 	mode = "production" if mode == "production" else "build"
-	command = "yarn run {mode}".format(mode=mode)
+	command = f"yarn run {mode}"
 
 	if apps:
-		command += " --apps {apps}".format(apps=apps)
+		command += f" --apps {apps}"
 
 	if skip_frappe:
 		command += " --skip_frappe"
@@ -261,7 +263,7 @@ def watch(apps=None):
 
 	command = "yarn run watch"
 	if apps:
-		command += " --apps {apps}".format(apps=apps)
+		command += f" --apps {apps}"
 
 	live_reload = frappe.utils.cint(os.environ.get("LIVE_RELOAD", frappe.conf.live_reload))
 
@@ -406,10 +408,10 @@ def link_assets_dir(source, target, hard_link=False):
 def scrub_html_template(content):
 	"""Returns HTML content with removed whitespace and comments"""
 	# remove whitespace to a single space
-	content = re.sub(r"\s+", " ", content)
+	content = WHITESPACE_PATTERN.sub(" ", content)
 
 	# strip comments
-	content = re.sub(r"(<!--.*?-->)", "", content)
+	content = HTML_COMMENT_PATTERN.sub("", content)
 
 	return content.replace("'", "'")
 

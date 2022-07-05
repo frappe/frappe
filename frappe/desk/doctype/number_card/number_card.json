@@ -51,7 +51,7 @@
    "options": "Count\nSum\nAverage\nMinimum\nMaximum"
   },
   {
-   "depends_on": "eval: doc.function !== 'Count'",
+   "depends_on": "eval: doc.type === 'Document Type' && doc.function !== 'Count'",
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
    "label": "Aggregate Function Based On",
@@ -192,6 +192,7 @@
   },
   {
    "description": "The document type selected is a child table, so the parent document type is required.",
+   "depends_on": "eval: doc.type === 'Document Type'",
    "fieldname": "parent_document_type",
    "fieldtype": "Link",
    "label": "Parent Document Type",
@@ -199,7 +200,7 @@
   }
  ],
  "links": [],
- "modified": "2022-03-10 15:34:38.210910",
+ "modified": "2022-06-12 15:34:38.210910",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

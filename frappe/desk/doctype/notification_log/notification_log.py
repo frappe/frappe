@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -7,7 +6,6 @@ from frappe import _
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 	is_notifications_enabled,
-	set_seen_value,
 )
 from frappe.model.document import Document
 
@@ -30,7 +28,7 @@ def get_permission_query_conditions(for_user):
 	if for_user == "Administrator":
 		return
 
-	return """(`tabNotification Log`.for_user = {user})""".format(user=frappe.db.escape(for_user))
+	return f"""(`tabNotification Log`.for_user = {frappe.db.escape(for_user)})"""
 
 
 def get_title(doctype, docname, title_field=None):
@@ -41,7 +39,7 @@ def get_title(doctype, docname, title_field=None):
 
 
 def get_title_html(title):
-	return '<b class="subject-title">{0}</b>'.format(title)
+	return f'<b class="subject-title">{title}</b>'
 
 
 def enqueue_create_notification(users, doc):
@@ -149,6 +147,6 @@ def trigger_indicator_hide():
 
 def set_notifications_as_unseen(user):
 	try:
-		frappe.db.set_value("Notification Settings", user, "seen", 0)
+		frappe.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
 	except frappe.DoesNotExistError:
 		return

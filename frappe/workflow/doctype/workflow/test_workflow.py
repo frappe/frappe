@@ -96,7 +96,7 @@ class TestWorkflow(unittest.TestCase):
 		todo4 = create_new_todo()
 
 		actions = get_common_transition_actions([todo1, todo2, todo3, todo4], "ToDo")
-		self.assertSetEqual(set(actions), set(["Approve", "Reject"]))
+		self.assertSetEqual(set(actions), {"Approve", "Reject"})
 
 		apply_workflow(todo1, "Reject")
 		apply_workflow(todo2, "Reject")

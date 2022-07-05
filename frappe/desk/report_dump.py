@@ -53,7 +53,7 @@ def get_data(doctypes, last_modified):
 		out[dt]["data"] = [
 			list(t)
 			for t in frappe.db.sql(
-				"""select %s from %s %s %s""" % (",".join(args["columns"]), table, conditions, order_by)
+				"""select {} from {} {} {}""".format(",".join(args["columns"]), table, conditions, order_by)
 			)
 		]
 

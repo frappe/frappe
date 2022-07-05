@@ -11,6 +11,8 @@ import git
 import frappe
 from frappe.utils import touch_file
 
+APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
+
 
 def make_boilerplate(dest, app_name, no_git=False):
 	if not os.path.exists(dest):
@@ -67,7 +69,7 @@ def _get_user_inputs(app_name):
 
 
 def is_valid_title(title) -> bool:
-	if not re.match(r"^(?![\W])[^\d_\s][\w -]+$", title, re.UNICODE):
+	if not APP_TITLE_PATTERN.match(title):
 		print(
 			"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
 		)
@@ -108,7 +110,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
 			frappe.as_unicode(
-				"## {0}\n\n{1}\n\n#### License\n\n{2}".format(
+				"## {}\n\n{}\n\n#### License\n\n{}".format(
 					hooks.app_title, hooks.app_description, hooks.app_license
 				)
 			)
@@ -462,7 +464,7 @@ jobs:
 
     services:
       mariadb:
-        image: mariadb:10.3
+        image: mariadb:10.6
         env:
           MYSQL_ROOT_PASSWORD: root
         ports:
@@ -476,7 +478,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: '3.10'
 
       - name: Setup Node
         uses: actions/setup-node@v2
@@ -488,7 +490,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt') }}}}
+          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
           restore-keys: |
             ${{{{ runner.os }}}}-pip-
             ${{{{ runner.os }}}}-

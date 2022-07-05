@@ -50,6 +50,10 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 		this.$input_area.find('.link-btn').remove();
 	}
 	parse(value, label) {
+		if (typeof value == "object" || !this.rows) {
+			return value;
+		}
+
 		const link_field = this.get_link_field();
 
 		if (value) {
@@ -160,5 +164,15 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 
 			return true;
 		};
+	}
+	get_input_value() {
+		return this.$input ? this.$input.val() : undefined;
+	}
+	update_value() {
+		let value = this.get_input_value();
+
+		if (value !== this.last_value) {
+			this.parse_validate_and_set_in_model(value);
+		}
 	}
 };

@@ -5,6 +5,7 @@ frappe.provide("frappe.utils");
 export default class OnboardingWidget extends Widget {
 
 	async refresh() {
+		frappe.utils.load_video_player();
 		this.new && await this.get_onboarding_data();
 		this.set_title();
 		this.set_actions();
@@ -99,12 +100,7 @@ export default class OnboardingWidget extends Widget {
 		const toggle_content = () => {
 			this.step_body.empty();
 			this.step_footer.empty();
-
-			this.step_body.html(
-				step.description ?
-					frappe.markdown(step.description)
-					: `<h1>${step.title}</h1>`
-			);
+			set_description();
 
 			if (step.intro_video_url) {
 				$(`<button class="btn btn-primary btn-sm">${__('Watch Tutorial')}</button>`)
@@ -115,6 +111,21 @@ export default class OnboardingWidget extends Widget {
 					.appendTo(this.step_footer)
 					.on('click', () => actions[step.action](step));
 			}
+		};
+
+		const set_description = () => {
+			let content = step.description ?
+				frappe.markdown(step.description) : `<h1>${step.title}</h1>`;
+
+			if (step.action === 'Create Entry') {
+				// add a secondary action to view list
+				content += `<p>
+					<a href='/app/${frappe.router.slug(step.reference_document)}'>
+						${ __('Show {0} List', [step.reference_document])}</a>
+				</p>`;
+			}
+
+			this.step_body.html(content);
 		};
 
 		const toggle_video = () => {
@@ -146,7 +157,6 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		toggle_content();
-		// toggle_video();
 	}
 
 	go_to_page(step) {
@@ -222,7 +232,7 @@ export default class OnboardingWidget extends Widget {
 			const on_finish = () => {
 				let msg_dialog = frappe.msgprint({
 					message: __("Let's take you back to onboarding"),
-					title: __("Great Job"),
+					title: __("Onboarding complete"),
 					primary_action: {
 						action: () => {
 							frappe.set_route(current_route).then(() => {
@@ -265,7 +275,7 @@ export default class OnboardingWidget extends Widget {
 
 			if (success) {
 				args.message = __("Let's take you back to onboarding");
-				args.title = __("Looks Great");
+				args.title = __("Action Complete");
 				args.primary_action = {
 					action: () => {
 						frappe.set_route(current_route).then(() => {
@@ -278,7 +288,7 @@ export default class OnboardingWidget extends Widget {
 				custom_onhide = () => args.primary_action.action();
 			} else {
 				args.message = __("Looks like you didn't change the value");
-				args.title = __("Oops");
+				args.title = __("Try Again");
 				args.secondary_action = {
 					action: () => frappe.set_route(current_route),
 					label: __("Go Back"),
@@ -314,7 +324,7 @@ export default class OnboardingWidget extends Widget {
 			const on_finish = () => {
 				frappe.msgprint({
 					message: __("Awesome, now try making an entry yourself"),
-					title: __("Great"),
+					title: __("Document Saved"),
 					primary_action: {
 						action: () => {
 							frappe.set_route(current_route).then(() => {
@@ -337,8 +347,8 @@ export default class OnboardingWidget extends Widget {
 
 		let callback = () => {
 			frappe.msgprint({
-				message: __("You're doing great, let's take you back to the onboarding page."),
-				title: __("Good Work 🎉"),
+				message: __("Let's take you back to onboarding"),
+				title: __("Action Complete"),
 				primary_action: {
 					action: () => {
 						frappe.set_route(current_route).then(() => {
@@ -358,7 +368,7 @@ export default class OnboardingWidget extends Widget {
 			frappe.route_hooks.after_save = () => {
 				frappe.msgprint({
 					message: __("Submit this document to complete this step."),
-					title: __("Great")
+					title: __("Document Saved")
 				});
 			};
 			frappe.route_hooks.after_submit = callback;
@@ -377,7 +387,7 @@ export default class OnboardingWidget extends Widget {
 				if (frappe.get_route_str() != current_route) {
 					let success_dialog = frappe.msgprint({
 						message: __("Let's take you back to onboarding"),
-						title: __("Looks Great"),
+						title: __("Document Saved"),
 						primary_action: {
 							action: () => {
 								success_dialog.hide();
@@ -397,7 +407,7 @@ export default class OnboardingWidget extends Widget {
 				} else {
 					frappe.msgprint({
 						message: __("Let us continue with the onboarding"),
-						title: __("Looks Great")
+						title: __("Document Saved")
 					});
 					this.mark_complete(step);
 				}

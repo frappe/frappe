@@ -6,6 +6,8 @@ pull_request_rules:
           - author!=surajshetty3416
           - author!=gavindsouza
           - author!=deepeshgarg007
+          - author!=ankush
+          - author!=mergify[bot]
         - or:
           - base=version-13
           - base=version-12
@@ -13,19 +15,19 @@ pull_request_rules:
       close:
       comment:
           message: |
-            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch. 
+            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch.
             https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist#which-branch
 
   - name: Automatic merge on CI success and review
     conditions:
       - status-success=Sider
-      - status-success=Semantic Pull Request
       - status-success=Python Unit Tests (MariaDB) (1)
       - status-success=Python Unit Tests (MariaDB) (2)
       - status-success=Python Unit Tests (Postgres) (1)
       - status-success=Python Unit Tests (Postgres) (2)
       - status-success=UI Tests (Cypress) (1)
       - status-success=UI Tests (Cypress) (2)
+      - status-success=UI Tests (Cypress) (3)
       - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label!=squash
@@ -42,6 +44,7 @@ pull_request_rules:
       - status-success=Python Unit Tests (Postgres) (2)
       - status-success=UI Tests (Cypress) (1)
       - status-success=UI Tests (Cypress) (2)
+      - status-success=UI Tests (Cypress) (3)
       - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label=squash
@@ -53,7 +56,7 @@ pull_request_rules:
             {{ title }} (#{{ number }})
 
             {{ body }}
-            
+
   - name: backport to develop
     conditions:
       - label="backport develop"

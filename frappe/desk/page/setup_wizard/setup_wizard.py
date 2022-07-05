@@ -339,11 +339,11 @@ def prettify_args(args):
 		if isinstance(val, str) and "data:image" in val:
 			filename = val.split("data:image", 1)[0].strip(", ")
 			size = round((len(val) * 3 / 4) / 1048576.0, 2)
-			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)
+			args[key] = f"Image Attached: '{filename}' of size {size} MB"
 
 	pretty_args = []
 	for key in sorted(args):
-		pretty_args.append("{} = {}".format(key, args[key]))
+		pretty_args.append(f"{key} = {args[key]}")
 	return pretty_args
 
 
@@ -386,7 +386,7 @@ def email_setup_wizard_exception(traceback, args):
 	frappe.sendmail(
 		recipients=frappe.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
-		subject="Setup failed: {}".format(frappe.local.site),
+		subject=f"Setup failed: {frappe.local.site}",
 		message=message,
 		delayed=False,
 	)
@@ -431,22 +431,13 @@ def make_records(records, debug=False):
 		if doc.meta.get_field(parent_link_field) and not doc.get(parent_link_field):
 			doc.flags.ignore_mandatory = True
 
+		savepoint = "setup_fixtures_creation"
 		try:
-			doc.insert(ignore_permissions=True)
-			frappe.db.commit()
-
-		except frappe.DuplicateEntryError as e:
-			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
-
-			# pass DuplicateEntryError and continue
-			if e.args and e.args[0] == doc.doctype and e.args[1] == doc.name:
-				# make sure DuplicateEntryError is for the exact same doc and not a related doc
-				frappe.clear_messages()
-			else:
-				raise
-
+			frappe.db.savepoint(savepoint)
+			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 		except Exception as e:
-			frappe.db.rollback()
+			frappe.clear_last_message()
+			frappe.db.rollback(save_point=savepoint)
 			exception = record.get("__exception")
 			if exception:
 				config = _dict(exception)
@@ -461,3 +452,4 @@ def make_records(records, debug=False):
 def show_document_insert_error():
 	print("Document Insert Error")
 	print(frappe.get_traceback())
+	frappe.log_error("Exception during Setup")

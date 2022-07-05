@@ -6,6 +6,7 @@ import decimal
 import json
 import mimetypes
 import os
+from typing import TYPE_CHECKING
 from urllib.parse import quote
 
 import werkzeug.utils
@@ -21,6 +22,9 @@ import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cint, format_timedelta
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.file.file import File
 
 
 def report_error(status_code):
@@ -92,7 +96,7 @@ def as_raw():
 	)
 	response.headers["Content-Disposition"] = (
 		f'{frappe.response.get("display_content_as","attachment")}; filename="{frappe.response["filename"].replace(" ", "_")}"'
-	).encode("utf-8")
+	).encode()
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -180,7 +184,7 @@ def json_handler(obj):
 
 	else:
 		raise TypeError(
-			"""Object of type %s with value of %s is not JSON serializable""" % (type(obj), repr(obj))
+			f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
 		)
 
 
@@ -209,28 +213,27 @@ def download_backup(path):
 	return send_private_file(path)
 
 
-def download_private_file(path):
+def download_private_file(path: str) -> Response:
 	"""Checks permissions and sends back private file"""
 
-	files = frappe.db.get_all("File", {"file_url": path})
 	can_access = False
+	files = frappe.get_all("File", filters={"file_url": path}, pluck="name")
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
-	for f in files:
-		_file = frappe.get_doc("File", f)
-		can_access = _file.is_downloadable()
-		if can_access:
-			make_access_log(doctype="File", document=_file.name, file_type=os.path.splitext(path)[-1][1:])
+	for fname in files:
+		file: "File" = frappe.get_doc("File", fname)
+		if can_access := file.is_downloadable():
 			break
 
 	if not can_access:
 		raise Forbidden(_("You don't have permission to access this file"))
 
+	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
 	return send_private_file(path.split("/private", 1)[1])
 
 
-def send_private_file(path):
+def send_private_file(path: str) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
 	filename = os.path.basename(path)
 
@@ -243,7 +246,7 @@ def send_private_file(path):
 		filepath = frappe.utils.get_site_path(path)
 		try:
 			f = open(filepath, "rb")
-		except IOError:
+		except OSError:
 			raise NotFound
 
 		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)

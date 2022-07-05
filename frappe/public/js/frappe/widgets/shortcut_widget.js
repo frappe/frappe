@@ -36,7 +36,7 @@ export default class ShortcutWidget extends Widget {
 				doc_view: this.doc_view
 			});
 
-			let filters = this.get_doctype_filter();
+			let filters = frappe.utils.get_filter_from_json(this.stats_filter);
 			if (this.type == "DocType" && filters) {
 				frappe.route_options = filters;
 			}
@@ -49,7 +49,7 @@ export default class ShortcutWidget extends Widget {
 
 		this.widget.addClass("shortcut-widget-box");
 
-		let filters = this.get_doctype_filter();
+		let filters = frappe.utils.get_filter_from_json(this.stats_filter);
 		if (this.type == "DocType" && filters) {
 			frappe.db
 				.count(this.link_to, {
@@ -57,15 +57,6 @@ export default class ShortcutWidget extends Widget {
 				})
 				.then((count) => this.set_count(count));
 		}
-	}
-
-	get_doctype_filter() {
-		let count_filter = new Function(`return ${this.stats_filter}`)();
-		if (count_filter) {
-			return count_filter;
-		}
-
-		return null;
 	}
 
 	set_count(count) {

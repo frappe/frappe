@@ -8,7 +8,6 @@ import socket
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
-from typing import List
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
@@ -22,10 +21,6 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.error import raise_error_on_no_output
 from frappe.utils.jinja import render_template
 from frappe.utils.user import get_system_managers
-
-OUTGOING_EMAIL_ACCOUNT_MISSING = _(
-	"Please setup default Email Account from Setup > Email > Email Account"
-)
 
 
 class SentEmailInInbox(Exception):
@@ -263,7 +258,7 @@ class EmailAccount(Document):
 			else:
 				frappe.throw(cstr(e))
 
-		except socket.error:
+		except OSError:
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
@@ -319,7 +314,7 @@ class EmailAccount(Document):
 	@classmethod
 	@raise_error_on_no_output(
 		keep_quiet=lambda: not cint(frappe.get_system_settings("setup_complete")),
-		error_message=OUTGOING_EMAIL_ACCOUNT_MISSING,
+		error_message=_("Please setup default Email Account from Setup > Email > Email Account"),
 		error_type=frappe.OutgoingEmailError,
 	)  # noqa
 	@cache_email_account("outgoing_email_account")
@@ -448,10 +443,10 @@ class EmailAccount(Document):
 			frappe.cache().set_value("workers:no-internet", True)
 
 	def set_failed_attempts_count(self, value):
-		frappe.cache().set("{0}:email-account-failed-attempts".format(self.name), value)
+		frappe.cache().set(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
-		return cint(frappe.cache().get("{0}:email-account-failed-attempts".format(self.name)))
+		return cint(frappe.cache().get(f"{self.name}:email-account-failed-attempts"))
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -489,7 +484,7 @@ class EmailAccount(Document):
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
 
-	def get_inbound_mails(self) -> List[InboundMail]:
+	def get_inbound_mails(self) -> list[InboundMail]:
 		"""retrive and return inbound mails."""
 		mails = []
 
@@ -599,7 +594,7 @@ class EmailAccount(Document):
 		if self.email_sync_option == "ALL":
 			max_uid = get_max_email_uid(self.name)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
-			return "UID {}:{}".format(max_uid, last_uid)
+			return f"UID {max_uid}:{last_uid}"
 		else:
 			return self.email_sync_option or "UNSEEN"
 
@@ -790,7 +785,7 @@ def pull(now=False):
 
 		else:
 			# job_name is used to prevent duplicates in queue
-			job_name = "pull_from_email_account|{0}".format(email_account.name)
+			job_name = f"pull_from_email_account|{email_account.name}"
 
 			if job_name not in queued_jobs:
 				enqueue(

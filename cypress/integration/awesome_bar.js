@@ -26,8 +26,9 @@ context('Awesome Bar', () => {
 
 		cy.get('.title-text').should('contain', 'To Do');
 
-		cy.findByPlaceholderText('Name')
+		cy.findByPlaceholderText('ID')
 			.should('have.value', '%test%');
+		cy.clear_filters();
 	});
 
 	it('navigates to new form', () => {

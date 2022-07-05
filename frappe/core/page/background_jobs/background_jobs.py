@@ -1,13 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
-from typing import TYPE_CHECKING, Dict, List
-
-from rq import Worker
+from typing import TYPE_CHECKING
 
 import frappe
-from frappe import _
 from frappe.utils import convert_utc_to_user_timezone
 from frappe.utils.background_jobs import get_queues, get_workers
 from frappe.utils.scheduler import is_scheduler_inactive
@@ -19,7 +15,7 @@ JOB_COLORS = {"queued": "orange", "failed": "red", "started": "blue", "finished"
 
 
 @frappe.whitelist()
-def get_info(view=None, queue_timeout=None, job_status=None) -> List[Dict]:
+def get_info(view=None, queue_timeout=None, job_status=None) -> list[dict]:
 	jobs = []
 
 	def add_job(job: "Job", queue: str) -> None:

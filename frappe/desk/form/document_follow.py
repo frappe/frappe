@@ -192,9 +192,9 @@ def get_comments(doctype, doc_name, frequency, user):
 	)
 	for comment in comments:
 		if comment.comment_type == "Like":
-			by = """ By : <b>{0}<b>""".format(comment.modified_by)
+			by = f""" By : <b>{comment.modified_by}<b>"""
 		elif comment.comment_type == "Comment":
-			by = """Commented by : <b>{0}<b>""".format(comment.modified_by)
+			by = f"""Commented by : <b>{comment.modified_by}<b>"""
 		else:
 			by = ""
 
