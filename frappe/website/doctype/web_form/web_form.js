@@ -117,7 +117,7 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	doc_type: function(frm) {
-		frappe.web_form.set_fieldname_select(frm);
+		frm.trigger('set_fields');
 	},
 
 	allow_multiple: function(frm) {
