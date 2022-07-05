@@ -1,4 +1,4 @@
-const sass = require('node-sass');
+const sass = require('sass');
 const fs = require('fs');
 const sass_options = require('./esbuild/sass_options');
 let output_path = process.argv[2];
