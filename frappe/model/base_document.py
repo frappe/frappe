@@ -192,8 +192,8 @@ class BaseDocument:
 
 		Example:
 		doc.update({
-				"user": "admin",
-				"balance": 42000
+		                "user": "admin",
+		                "balance": 42000
 		})
 		"""
 
@@ -278,9 +278,9 @@ class BaseDocument:
 
 		Example:
 		doc.append("childtable", {
-				"child_table_field": "value",
-				"child_table_int_field": 0,
-				...
+		                "child_table_field": "value",
+		                "child_table_int_field": 0,
+		                ...
 		})
 		"""
 		if value is None:
@@ -1206,8 +1206,8 @@ class BaseDocument:
 		of hidden fields. Example
 
 		class MyDoc(Document):
-				def __setup__(self):
-						self.print_hide = ["field1", "field2"]
+		                def __setup__(self):
+		                                self.print_hide = ["field1", "field2"]
 
 		:param fieldname: Fieldname to be checked if hidden.
 		"""

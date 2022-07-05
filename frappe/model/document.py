@@ -35,11 +35,11 @@ def get_doc(*args, **kwargs):
 
 	2. create a new object
 	user = get_doc({
-			"doctype":"User"
-			"email_id": "test@example.com",
-			"roles: [
-					{"role": "System Manager"}
-			]
+	                "doctype":"User"
+	                "email_id": "test@example.com",
+	                "roles: [
+	                                {"role": "System Manager"}
+	                ]
 	})
 
 	3. create new object with keyword arguments
@@ -288,9 +288,7 @@ class Document(BaseDocument):
 			delattr(self, "__unsaved")
 
 		if not (
-			frappe.flags.in_migrate
-			or frappe.local.flags.in_install
-			or frappe.flags.in_setup_wizard
+			frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard
 		):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
 				follow_document(self.doctype, self.name, frappe.session.user)
@@ -317,9 +315,7 @@ class Document(BaseDocument):
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		self.flags.ignore_version = (
-			frappe.flags.in_test if ignore_version is None else ignore_version
-		)
+		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
@@ -414,9 +410,7 @@ class Document(BaseDocument):
 			)
 			if len(deleted_rows) > 0:
 				# delete rows that do not match the ones in the document
-				frappe.db.delete(
-					df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))}
-				)
+				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
 
 		else:
 			# no rows found, delete all rows
@@ -766,9 +760,7 @@ class Document(BaseDocument):
 				)
 				modified = modified and modified[0][0]
 
-				if modified and cast("Datetime", modified) != cast(
-					"Datetime", self._original_modified
-				):
+				if modified and cast("Datetime", modified) != cast("Datetime", self._original_modified):
 					conflict = True
 			else:
 				tmp = frappe.db.sql(
@@ -791,9 +783,7 @@ class Document(BaseDocument):
 
 				modified = tmp.modified
 
-				if modified and cast("Datetime", modified) != cast(
-					"Datetime", self._original_modified
-				):
+				if modified and cast("Datetime", modified) != cast("Datetime", self._original_modified):
 					conflict = True
 
 				self.check_docstatus_transition(tmp.docstatus)
@@ -917,9 +907,7 @@ class Document(BaseDocument):
 
 		if cancelled_links:
 			msg = ", ".join(each[2] for each in cancelled_links)
-			frappe.throw(
-				_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError
-			)
+			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None) -> list["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
@@ -1028,9 +1016,7 @@ class Document(BaseDocument):
 		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
 		from frappe.model.rename_doc import rename_doc
 
-		self.name = rename_doc(
-			doc=self, new=name, merge=merge, force=force, validate=validate_rename
-		)
+		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)
 		self.reload()
 
 	@whitelist.__func__
@@ -1222,10 +1208,7 @@ class Document(BaseDocument):
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
-		from frappe.model.delete_doc import (
-			check_if_doc_is_dynamically_linked,
-			check_if_doc_is_linked,
-		)
+		from frappe.model.delete_doc import check_if_doc_is_dynamically_linked, check_if_doc_is_linked
 
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
@@ -1251,9 +1234,7 @@ class Document(BaseDocument):
 
 			if not frappe.flags.in_migrate:
 				# follow since you made a change?
-				if frappe.get_cached_value(
-					"User", frappe.session.user, "follow_created_documents"
-				):
+				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
 					follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
@@ -1290,9 +1271,9 @@ class Document(BaseDocument):
 			hooks = []
 			method = f.__name__
 			doc_events = frappe.get_doc_hooks()
-			for handler in doc_events.get(self.doctype, {}).get(method, []) + doc_events.get(
-				"*", {}
-			).get(method, []):
+			for handler in doc_events.get(self.doctype, {}).get(method, []) + doc_events.get("*", {}).get(
+				method, []
+			):
 				hooks.append(frappe.get_attr(handler))
 
 			composed = compose(f, *hooks)
@@ -1354,9 +1335,7 @@ class Document(BaseDocument):
 		if not fieldnames:
 			fieldnames = (
 				df.fieldname
-				for df in doc.meta.get(
-					"fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}
-				)
+				for df in doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]})
 			)
 
 		for fieldname in fieldnames:
@@ -1408,9 +1387,7 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(
-					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
-				)
+				frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None):

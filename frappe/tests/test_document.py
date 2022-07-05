@@ -398,24 +398,24 @@ class TestDocument(unittest.TestCase):
 			}
 		).insert()
 
-		self.assertEquals(todo.date, cast("Date", _datetime_str))
-		self.assertEquals(todo.time, cast("Time", _datetime_str))
+		self.assertEqual(todo.date, cast("Date", _datetime_str))
+		self.assertEqual(todo.time, cast("Time", _datetime_str))
 
 		# Check if the system parses the datetime object for date and time
 		todo.date = _datetime
 		todo.time = _datetime
 		todo.save()
 
-		self.assertEquals(todo.date, cast("Date", _datetime))
-		self.assertEquals(todo.time, cast("Time", _datetime))
+		self.assertEqual(todo.date, cast("Date", _datetime))
+		self.assertEqual(todo.time, cast("Time", _datetime))
 
 		# Check if the system parses the datetime object for date and time
 		todo.date = None
 		todo.time = None
 		todo.save()
 
-		self.assertEquals(todo.date, None)
-		self.assertEquals(todo.time, None)
+		self.assertEqual(todo.date, None)
+		self.assertEqual(todo.time, None)
 
 		# Check for standard datetime fields
 		self.assertIsInstance(todo.creation, datetime)
