@@ -400,17 +400,23 @@ class Document(BaseDocument):
 
 		if rows:
 			# select rows that do not match the ones in the document
-			deleted_rows = frappe.db.sql(
-				"""select name from `tab{}` where parent=%s
-				and parenttype=%s and parentfield=%s
-				and name not in ({})""".format(
-					df.options, ",".join(["%s"] * len(rows))
-				),
-				[self.name, self.doctype, fieldname] + rows,
+			Table = frappe.qb.DocType(df.options)
+
+			deleted_rows = (
+				frappe.qb.from_(Table)
+				.select(Table.name)
+				.where(
+					(Table.parent == self.name)
+					& (Table.parenttype == self.doctype)
+					& (Table.parentfield == fieldname)
+					& (Table.name.notin(rows))
+				)
+				.run(pluck=True)
 			)
-			if len(deleted_rows) > 0:
+
+			if deleted_rows:
 				# delete rows that do not match the ones in the document
-				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
+				frappe.db.delete(df.options, {"name": ("in", deleted_rows)})
 
 		else:
 			# no rows found, delete all rows
@@ -480,11 +486,10 @@ class Document(BaseDocument):
 		frappe.db.delete("Singles", {"doctype": self.doctype})
 		for field, value in d.items():
 			if field != "doctype":
-				frappe.db.sql(
-					"""insert into `tabSingles` (doctype, field, value)
-					values (%s, %s, %s)""",
-					(self.doctype, field, value),
-				)
+				Singles = frappe.qb.DocType("Singles")
+				frappe.qb.into(Singles).columns(Singles.doctype, Singles.field, Singles.value).insert(
+					self.doctype, field, value
+				).run()
 
 		if self.doctype in frappe.db.value_cache:
 			del frappe.db.value_cache[self.doctype]
@@ -748,39 +753,32 @@ class Document(BaseDocument):
 		self._action = "save"
 		if not self.get("__islocal") and not self.meta.get("is_virtual"):
 			if self.meta.issingle:
-				modified = frappe.db.sql(
-					"""
-						select value
-						from tabSingles
-						where doctype=%s
-							and field='modified'
-								for update
-					""",
-					self.doctype,
+				Singles = frappe.qb.DocType("Singles")
+				modified = (
+					frappe.qb.from_(Singles)
+					.select(Singles.value)
+					.where((Singles.doctype == self.doctype) & (Singles.field == "modified"))
+					.for_update()
+					.run(pluck=True)
 				)
-				modified = modified and modified[0][0]
+				modified = modified and modified[0]
 
 				if modified and cast("Datetime", modified) != cast("Datetime", self._original_modified):
 					conflict = True
 			else:
-				tmp = frappe.db.sql(
-					"""
-						select modified, docstatus
-						from `tab{}`
-						where name = %s
-							for update
-					""".format(
-						self.doctype
-					),
-					self.name,
-					as_dict=True,
+				Table = frappe.qb.DocType(self.doctype)
+				tmp = (
+					frappe.qb.from_(Table)
+					.select(Table.modified, Table.docstatus)
+					.where(Table.name == self.name)
+					.for_update()
+					.run(as_dict=True)
 				)
 
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
-				else:
-					tmp = tmp[0]
 
+				tmp = tmp[0]
 				modified = tmp.modified
 
 				if modified and cast("Datetime", modified) != cast("Datetime", self._original_modified):
