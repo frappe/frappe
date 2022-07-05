@@ -171,6 +171,15 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
+	def hexists(self, name: str, key: str, shared: bool = False) -> bool:
+		if key is None:
+			return False
+		_name = self.make_key(name, shared=shared)
+		try:
+			return super(RedisWrapper, self).hexists(_name, key)
+		except redis.exceptions.ConnectionError:
+			return False
+
 	def hgetall(self, name):
 		return {
 			key: pickle.loads(value)
@@ -200,9 +209,10 @@ class RedisWrapper(redis.Redis):
 		elif generator:
 			value = generator()
 			try:
-				self.hset(name, key, value)
+				self.hset(name, key, value, shared=shared)
 			except redis.exceptions.ConnectionError:
 				pass
+
 		return value
 
 	def hdel(self, name, key, shared=False):

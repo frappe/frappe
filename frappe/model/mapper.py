@@ -248,7 +248,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 			if not linked_doc:
 				try:
 					linked_doc = frappe.get_doc(df.options, target_doc.get(df.fieldname))
-				except:
+				except Exception:
 					return
 
 			val = linked_doc.get(source_fieldname)

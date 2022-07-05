@@ -330,37 +330,22 @@ def get_emails_sent_today():
 	)[0][0]
 
 
-def get_unsubscribe_message(unsubscribe_message, expose_recipients):
-	if unsubscribe_message:
-		unsubscribe_html = """<a href="<!--unsubscribe url-->"
-			target="_blank">{0}</a>""".format(
-			unsubscribe_message
-		)
-	else:
-		unsubscribe_link = """<a href="<!--unsubscribe url-->"
-			target="_blank">{0}</a>""".format(
-			_("Unsubscribe")
-		)
-		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
-
-	html = """<div class="email-unsubscribe">
-			<!--cc message-->
+def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str):
+	unsubscribe_message = unsubscribe_message or _("Unsubscribe")
+	unsubscribe_link = f'<a href="<!--unsubscribe_url-->" target="_blank">{unsubscribe_message}</a>'
+	unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
+	html = f"""<div class="email-unsubscribe">
+			<!--cc_message-->
 			<div>
-				{0}
+				{unsubscribe_html}
 			</div>
-		</div>""".format(
-		unsubscribe_html
-	)
+		</div>"""
 
+	text = f"\n\n{unsubscribe_message}: <!--unsubscribe_url-->\n"
 	if expose_recipients == "footer":
-		text = "\n<!--cc message-->"
-	else:
-		text = ""
-	text += "\n\n{unsubscribe_message}: <!--unsubscribe url-->\n".format(
-		unsubscribe_message=unsubscribe_message
-	)
+		text = f"\n<!--cc_message-->{text}"
 
-	return frappe._dict({"html": html, "text": text})
+	return frappe._dict(html=html, text=text)
 
 
 def get_unsubcribed_url(
@@ -613,7 +598,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	except Exception as e:
 		frappe.db.rollback()
 
-		if email.retry < 3:
+		if email.retry < get_email_retry_limit():
 			frappe.db.sql(
 				"""update `tabEmail Queue` set status='Not Sent', modified=%s, retry=retry+1 where name=%s""",
 				(now_datetime(), email.name),
@@ -656,7 +641,7 @@ def prepare_message(email, recipient, recipients_list):
 	if frappe.conf.use_ssl and email_account.track_email_status:
 		# Using SSL => Publically available domain => Email Read Reciept Possible
 		message = message.replace(
-			"<!--email open check-->",
+			"<!--email_open_check-->",
 			quopri.encodestring(
 				'<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(
 					frappe.local.site, email.communication
@@ -665,7 +650,7 @@ def prepare_message(email, recipient, recipients_list):
 		)
 	else:
 		# No SSL => No Email Read Reciept
-		message = message.replace("<!--email open check-->", quopri.encodestring("".encode()).decode())
+		message = message.replace("<!--email_open_check-->", quopri.encodestring("".encode()).decode())
 
 	if (
 		email.add_unsubscribe_link and email.reference_doctype
@@ -678,7 +663,7 @@ def prepare_message(email, recipient, recipients_list):
 			email.unsubscribe_params,
 		)
 		message = message.replace(
-			"<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url.encode()).decode()
+			"<!--unsubscribe_url-->", quopri.encodestring(unsubscribe_url.encode()).decode()
 		)
 
 	if email.expose_recipients == "header":
@@ -698,7 +683,7 @@ def prepare_message(email, recipient, recipients_list):
 			else:
 				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
 			message = message.replace(
-				"<!--cc message-->", quopri.encodestring(email_sent_message.encode()).decode()
+				"<!--cc_message-->", quopri.encodestring(email_sent_message.encode()).decode()
 			)
 
 		message = message.replace("<!--recipient-->", recipient)
@@ -783,3 +768,7 @@ def set_expiry_for_email_queue():
 		AND (`send_after` IS NULL OR `send_after` < %(now)s)""",
 		{"now": now_datetime()},
 	)
+
+
+def get_email_retry_limit():
+	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3

@@ -128,17 +128,21 @@ body {
 	.widget-head {
 		@include flex(flex, space-between, center, null);
 
-		.widget-title {
-			@include flex(flex, null, center, null);
-			font-size: var(--text-lg);
-			font-family: inherit;
-			font-weight: 500;
-			line-height: 1.3em;
-			color: var(--heading-color);
+		.widget-label {
+			min-width: 0px;
 
-			svg {
-				margin-right: 6px;
-				box-shadow: none;
+			.widget-title {
+				@include flex(flex, null, center, null);
+				font-size: var(--text-lg);
+				font-family: inherit;
+				font-weight: 500;
+				line-height: 1.3em;
+				color: var(--heading-color);
+
+				svg {
+					margin-right: 6px;
+					box-shadow: none;
+				}
 			}
 		}
 		.widget-control {

@@ -265,7 +265,7 @@ class TestDocType(unittest.TestCase):
 			self.assertListEqual(
 				test_doctype_json["field_order"], ["field_4", "field_5", "field_1", "field_2"]
 			)
-		except:
+		except Exception:
 			raise
 		finally:
 			frappe.flags.allow_doctype_export = 0

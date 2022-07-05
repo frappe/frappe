@@ -12,42 +12,33 @@ from frappe.desk.form.load import run_onload
 @frappe.whitelist()
 def savedocs(doc, action):
 	"""save / submit / update doclist"""
-	try:
-		doc = frappe.get_doc(json.loads(doc))
-		set_local_name(doc)
+	doc = frappe.get_doc(json.loads(doc))
+	set_local_name(doc)
 
-		# action
-		doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
+	# action
+	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 
-		if doc.docstatus == 1:
-			doc.submit()
-		else:
-			doc.save()
+	if doc.docstatus == 1:
+		doc.submit()
+	else:
+		doc.save()
 
-		# update recent documents
-		run_onload(doc)
-		send_updated_docs(doc)
+	# update recent documents
+	run_onload(doc)
+	send_updated_docs(doc)
 
-		frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 
 
 @frappe.whitelist()
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
-	try:
-		doc = frappe.get_doc(doctype, name)
-		if workflow_state_fieldname and workflow_state:
-			doc.set(workflow_state_fieldname, workflow_state)
-		doc.cancel()
-		send_updated_docs(doc)
-		frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
-
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	doc = frappe.get_doc(doctype, name)
+	if workflow_state_fieldname and workflow_state:
+		doc.set(workflow_state_fieldname, workflow_state)
+	doc.cancel()
+	send_updated_docs(doc)
+	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
 
 
 def send_updated_docs(doc):
