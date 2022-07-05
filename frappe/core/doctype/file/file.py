@@ -37,6 +37,7 @@ from frappe.utils import (
 	encode,
 	get_files_path,
 	get_hook_method,
+	get_url,
 	random_string,
 	strip,
 )
@@ -57,10 +58,17 @@ class FolderNotEmpty(frappe.ValidationError):
 
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+URL_PREFIXES = ("http://", "https://")
 
 
 class File(Document):
 	no_feed_on_delete = True
+
+	@property
+	def is_remote_file(self):
+		if self.file_url:
+			return self.file_url.startswith(URL_PREFIXES)
+		return not self.content
 
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
@@ -69,6 +77,13 @@ class File(Document):
 			self.file_name = re.sub(r"/", "", self.file_name)
 		self.content = self.get("content", None)
 		self.decode = self.get("decode", False)
+
+		if self.is_folder:
+			return
+
+		if self.is_remote_file:
+			self.validate_remote_file()
+
 		if self.content:
 			self.save_file(content=self.content, decode=self.decode)
 
@@ -213,6 +228,12 @@ class File(Document):
 					exc=frappe.exceptions.AttachmentLimitReached,
 					title=_("Attachment Limit Reached"),
 				)
+
+	def validate_remote_file(self):
+		"""Validates if file uploaded using URL already exist"""
+		site_url = get_url()
+		if "/files/" in self.file_url and self.file_url.startswith(site_url):
+			self.file_url = self.file_url.split(site_url, 1)[1]
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -406,6 +427,10 @@ class File(Document):
 		"""Returns file path from given file name"""
 
 		file_path = self.file_url or self.file_name
+
+		site_url = get_url()
+		if "/files/" in file_path and file_path.startswith(site_url):
+			file_path = file_path.split(site_url, 1)[1]
 
 		if "/" not in file_path:
 			file_path = "/files/" + file_path

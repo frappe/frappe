@@ -226,10 +226,6 @@ def handle_exception(e):
 		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
 
-	if frappe.conf.get("developer_mode"):
-		# don't fail silently
-		print(frappe.get_traceback())
-
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
@@ -292,6 +288,10 @@ def handle_exception(e):
 
 	if return_as_message:
 		response = frappe.website.render.render("message", http_status_code=http_status_code)
+
+	if frappe.conf.get("developer_mode") and not respond_as_json:
+		# don't fail silently for non-json response errors
+		print(frappe.get_traceback())
 
 	return response
 

@@ -25,7 +25,7 @@ frappe.ui.SortSelector = Class.extend({
 		this.wrapper.find('.btn-order').on('click', function() {
 			let btn = $(this);
 			const order = $(this).attr('data-value') === 'desc' ? 'asc' : 'desc';
-			const title = $(this).attr('data-value' )=== 'desc' ? 'ascending' : 'descending';
+			const title = $(this).attr('data-value' )=== 'desc' ? __('ascending') : __('descending');
 
 			btn.attr('data-value', order);
 			btn.attr('title', title);

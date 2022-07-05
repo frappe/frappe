@@ -820,6 +820,12 @@ class EmailAccount(Document):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 	def append_email_to_sent_folder(self, message):
+		if not (self.enable_incoming and self.use_imap):
+			# don't try appending if enable incoming and imap is not set
+			# as email domain's updation can cause email account(s) to forcibly
+			# update their settings.
+			return
+
 		email_server = None
 		try:
 			email_server = self.get_incoming_server(in_receive=True)

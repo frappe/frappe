@@ -8,15 +8,21 @@ jobs:
     name: Frappe Linter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install and Run Pre-commit
+        uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
 
-      - uses: returntocorp/semgrep-action@v1
-        env:
-            SEMGREP_TIMEOUT: 120
-        with:
-            config: >-
-              r/python.lang.correctness
-              ./frappe-semgrep-rules/rules
+      - name: Download semgrep
+        run: pip install semgrep==0.97.0
+
+      - name: Run Semgrep rules
+        run: semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
