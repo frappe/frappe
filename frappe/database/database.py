@@ -279,11 +279,13 @@ class Database:
 
 		try:
 			return self._cursor.mogrify(query, values)
-		except BaseException:
+		except AttributeError:
 			if isinstance(values, dict):
-				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
+				return query.format(
+					**{k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
+				)
 			elif isinstance(values, (list, tuple)):
-				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
+				return query.format(*(frappe.db.escape(v) if isinstance(v, str) else v for v in values))
 			return query, values
 
 	def lazy_mogrify(self, query: Query, values: QueryValues) -> LazyMogrify:
