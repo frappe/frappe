@@ -26,6 +26,10 @@ frappe.views.Factory = class Factory {
 	}
 
 	teardown() {
+		if (this.on_teardown) {
+			this.on_teardown();
+		}
+
 		if (this.created_page_name !== undefined) {
 			frappe.container.remove_page(this.created_page_name);
 		}

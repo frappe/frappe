@@ -20,8 +20,13 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			doctype: doctype,
 			parent: me.make_page(true)
 		});
+	}
 
-		me.set_cur_list();
+	teardown() {
+		if (window.cur_list !== null) {
+			window.cur_list.teardown();
+		}
+		window.cur_list = null;
 	}
 
 	before_show() {
@@ -29,10 +34,9 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 
 	on_show() {
-		this.set_cur_list();
-		if (cur_list) cur_list.show();
+		window.cur_list = frappe.views.list_view[this.page_name];
+		window.cur_list.show();
 	}
-
 
 	set_module_breadcrumb() {
 		if (frappe.route_history.length > 1) {
@@ -44,14 +48,6 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 					frappe.breadcrumbs.set_doctype_module(doctype, module);
 				}
 			}
-		}
-	}
-
-	set_cur_list() {
-		cur_list = frappe.views.list_view[this.page_name];
-		if (cur_list && cur_list.doctype !== this.route[1]) {
-			// changing...
-			window.cur_list = null;
 		}
 	}
 }

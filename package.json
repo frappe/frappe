@@ -31,7 +31,7 @@
     "cssnano": "^5.0.0",
     "driver.js": "^0.9.8",
     "editorjs-undo": "0.1.6",
-    "fast-deep-equal": "^2.0.1",
+    "fast-deep-equal": "3.1.3",
     "frappe-charts": "^2.0.0-rc13",
     "frappe-datatable": "^1.16.4",
     "frappe-gantt": "^0.6.0",

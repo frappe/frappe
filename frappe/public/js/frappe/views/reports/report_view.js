@@ -29,15 +29,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return this.get_report_doc()
 				.then(doc => {
 					this.report_doc = doc;
-					this.report_doc.json = JSON.parse(this.report_doc.json);
-					this.filters = this.report_doc.json.filters;
-					this.order_by = this.report_doc.json.order_by;
-					this.set_group_by_options(this.report_doc.json);
-					this.add_totals_row = this.report_doc.json.add_totals_row;
+					this.report_doc_settings = JSON.parse(this.report_doc.json);
+					this.filters = this.report_doc_settings.filters;
+					this.order_by = this.report_doc_settings.order_by;
+					this.set_group_by_options(this.report_doc_settings);
+					this.add_totals_row = this.report_doc_settings.add_totals_row;
 					this.page_title = this.report_name;
-					this.page_length = this.report_doc.json.page_length || 20;
-					this.order_by = this.report_doc.json.order_by || 'modified desc';
-					this.chart_args = this.report_doc.json.chart_args;
+					this.page_length = this.report_doc_settings.page_length || 20;
+					this.chart_args = this.report_doc_settings.chart_args;
 				});
 		} else if (frappe.route_options.report) {
 			const report_options = frappe.route_options.report
@@ -198,8 +197,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	after_render() {
-		if (!this.report_doc) {
-		} else if (!$.isEmptyObject(this.report_doc.json)) {
+		if (this.report_doc_settings && !$.isEmptyObject(this.report_doc_settings)) {
 			this.set_dirty_state_for_custom_report();
 		}
 
@@ -210,8 +208,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	set_dirty_state_for_custom_report() {
 		const current_settings = this.resolve_report_settings();
-		const report_settings = this.report_doc.json
-		if (!frappe.utils.deep_equal(current_settings, report_settings)) {
+		const report_settings = this.report_doc_settings;
+		if (JSON.stringify(current_settings) !== JSON.stringify(report_settings)) {
 			this.page.set_indicator(__('Not Saved'), 'orange');
 		} else {
 			this.page.clear_indicator();
@@ -698,8 +696,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// default fields
 		['name', 'docstatus'].map((f) => this._add_field(f));
 
-		if (this.report_doc && this.report_doc.json.fields) {
-			this.report_doc.json.fields.forEach(f => this._add_field(f[0], f[1]));
+		if (this.report_doc_settings && this.report_doc_settings.fields) {
+			this.report_doc_settings.fields.forEach(f => this._add_field(f[0], f[1]));
 		} else if(frappe.route_options.report && frappe.route_options.report.fields) {
 			frappe.route_options.report.fields.forEach(f => this._add_field(f[0], f[1]));
 		} else {
@@ -1096,9 +1094,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		let width = (docfield ? cint(docfield.width) : null) || null;
-		if (this.report_doc) {
+		if (this.report_doc_settings) {
 			// load the user saved column width
-			let saved_column_widths = this.report_doc.json.column_widths || {};
+			let saved_column_widths = this.report_doc_settings.column_widths || {};
 			width = saved_column_widths[id] || width;
 		}
 
@@ -1242,8 +1240,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	resolve_report_settings() {
 		return {
 			filters: this.filter_area.get(),
-			fields: this.fields,
-			order_by: this.sort_selector.get_sql_string(),
+			fields: Array.from(this.fields),
+			order_by: this.order_by,
 			add_totals_row: this.add_totals_row,
 			page_length: this.page_length,
 			column_widths: this.get_column_widths(),
@@ -1255,12 +1253,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	save_report(save_type) {
 		const _save_report = (name) => {
 			// callback
+			const report_settings = this.resolve_report_settings();
 			return frappe.call({
 				method: 'frappe.desk.reportview.save_report',
 				args: {
 					name: name,
 					doctype: this.doctype,
-					report_settings: JSON.stringify(this.resolve_report_settings())
+					report_settings: JSON.stringify(report_settings)
 				},
 				callback:(r) => {
 					if(r.exc) {
@@ -1280,8 +1279,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						return;
 					}
 
-					// update state
-					this.report_doc.json = report_settings;
+					this.report_doc_settings = report_settings;
 					this.set_dirty_state_for_custom_report();
 				}
 			});

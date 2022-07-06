@@ -5,24 +5,25 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		return 'Gantt';
 	}
 
+	load_settings() {
+		let settings = {
+			...super.load_settings(),
+			...frappe.views.calendar[this.doctype]
+		}
+
+		if (typeof settings.gantt == 'object') {
+			settings = {
+				...settings,
+				...settings.gantt
+			}
+		}
+		return settings;
+	}
+
 	setup_defaults() {
-		return super.setup_defaults()
-			.then(() => {
-				this.page_title = this.page_title + ' ' + __('Gantt');
-				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-
-				if (typeof this.calendar_settings.gantt == 'object') {
-					Object.assign(this.calendar_settings, this.calendar_settings.gantt);
-				}
-
-				if (this.calendar_settings.order_by) {
-					this.sort_by = this.calendar_settings.order_by;
-					this.sort_order = 'asc';
-				} else {
-					this.sort_by = this.view_user_settings.sort_by || this.calendar_settings.field_map.start;
-					this.sort_order = this.view_user_settings.sort_order || 'asc';
-				}
-			})
+		super.setup_defaults();
+		this.page_title = this.page_title + ' ' + __('Gantt');
+		this.gantt_view_mode = 'Day';
 	}
 
 	setup_view() {
@@ -35,11 +36,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	prepare_tasks() {
-		var me = this;
-		var meta = this.meta;
-		var field_map = this.calendar_settings.field_map;
-
-		this.tasks = this.data.map(function (item) {
+		const field_map = this.settings.field_map;
+		this.tasks = this.data.map((item) => {
 			// set progress
 			var progress = 0;
 			if (field_map.progress && $.isFunction(field_map.progress)) {
@@ -50,10 +48,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 			// title
 			var label;
-			if (meta.title_field) {
+			if (this.meta.title_field) {
 				label = item.progress
-					? __("{0} ({1}) - {2}%", [item[meta.title_field], item.name, item.progress])
-					: __("{0} ({1})", [item[meta.title_field], item.name]);
+					? __("{0} ({1}) - {2}%", [item[this.meta.title_field], item.name, item.progress])
+					: __("{0} ({1})", [item[this.meta.title_field], item.name]);
 			} else {
 				label = item[field_map.title];
 			}
@@ -63,7 +61,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				end: item[field_map.end],
 				name: label,
 				id: item[field_map.id || 'name'],
-				doctype: me.doctype,
+				doctype: this.doctype,
 				progress: progress,
 				dependencies: item.depends_on_tasks || ""
 			};
@@ -80,20 +78,12 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		});
 	}
 
-	render() {
-		this.load_lib.then(() => {
-			this.render_gantt();
-		});
-	}
-
 	render_header() {
 
 	}
 
-	render_gantt() {
-		const me = this;
-		const gantt_view_mode = this.view_user_settings.gantt_view_mode || 'Day';
-		const field_map = this.calendar_settings.field_map;
+	render() {
+		const field_map = this.settings.field_map;
 		const date_format = 'YYYY-MM-DD';
 
 		this.$result.empty();
@@ -106,20 +96,20 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			resize_handle_height: 28,
 			resize_handle_corner_radius: 3,
 			resize_handle_offset: 4,
-			view_mode: gantt_view_mode,
+			view_mode: this.gantt_view_mode,
 			date_format: "YYYY-MM-DD",
 			on_click: task => {
 				frappe.set_route('Form', task.doctype, task.id);
 			},
 			on_date_change: (task, start, end) => {
-				if (!me.can_write) return;
+				if (!this.can_write) return;
 				frappe.db.set_value(task.doctype, task.id, {
 					[field_map.start]: moment(start).format(date_format),
 					[field_map.end]: moment(end).format(date_format)
 				});
 			},
 			on_progress_change: (task, progress) => {
-				if (!me.can_write) return;
+				if (!this.can_write) return;
 				var progress_fieldname = 'progress';
 
 				if ($.isFunction(field_map.progress)) {
@@ -135,20 +125,18 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				}
 			},
 			on_view_change: mode => {
-				// save view mode
-				me.save_view_user_settings({
-					gantt_view_mode: mode
-				});
+				this.gantt_view_mode = mode;
+				this.update_route_options();
 			},
 			custom_popup_html: task => {
-				var item = me.get_item(task.id);
+				var item = this.get_item(task.id);
 
 				var html =
 					`<div class="title">${task.name}</div>
 					<div class="subtitle">${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</div>`;
 
 				// custom html in doctype settings
-				var custom = me.settings.gantt_custom_popup_html;
+				var custom = this.settings.gantt_custom_popup_html;
 				if (custom && $.isFunction(custom)) {
 					var ganttobj = task;
 					html = custom(ganttobj, item);

@@ -10,9 +10,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return can_read;
 	}
 
+	teardown() {
+		super.teardown();
+		clearInterval(this.refresh_handle);
+	}
+
 	show() {
 		this.parent.disable_scroll_to_top = true;
 		super.show();
+		// call refresh every 5 minutes
+		this.refresh_handle = setInterval(this.refresh.bind(this), 5 * 60 * 1000);
+
 	}
 
 	check_permissions() {
@@ -50,6 +58,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return "List";
 	}
 
+	async init() {
+		await Promise.all([this.get_list_view_settings(), this.load_required_libs()]);
+		await super.init()
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
 
@@ -57,20 +70,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
-
 		if (this.view_name == 'List')  {
 			this.toggle_paging = true;
 		}
+	}
 
-		/*
-		this.filters = this.validate_filters(filters)
-		if (this.filters.length !== filters.length) {
-			console.warn("One or more configured filters was not valid", filters)
-		}
-		*/
-
-		this.patch_refresh_and_load_lib();
-		return this.get_list_view_settings();
+	load_required_libs() {
+		return new Promise((resolve) => {
+			if (this.required_libs) {
+				frappe.require(this.required_libs, resolve);
+			} else {
+				resolve();
+			}
+		});
 	}
 
 	get_list_view_settings() {
@@ -172,28 +184,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this._add_field(df.options);
 			}
 		});
-	}
-
-	patch_refresh_and_load_lib() {
-		if (this.load_lib === undefined) {
-			this.refresh = this.refresh.bind(this);
-			this.refresh = frappe.utils.throttle(this.refresh, 1000);
-			this.load_lib = new Promise((resolve) => {
-				if (this.required_libs) {
-					frappe.require(this.required_libs, resolve);
-				} else {
-					resolve();
-				}
-			});
-			// call refresh every 5 minutes
-			const interval = 5 * 60 * 1000;
-			setInterval(() => {
-				// don't call if route is different
-				if (frappe.get_route_str() === this.page_name) {
-					this.refresh();
-				}
-			}, interval);
-		}
 	}
 
 	set_primary_action() {

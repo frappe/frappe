@@ -17,6 +17,10 @@ frappe.views.BaseList = class BaseList {
 		]);
 	}
 
+	teardown() {
+
+	}
+
 	init() {
 		let tasks = [
 			this.setup_defaults,
@@ -33,25 +37,28 @@ frappe.views.BaseList = class BaseList {
 		return frappe.run_serially(tasks);
 	}
 
+	load_settings() {
+		return frappe.listview_settings[this.doctype] || {};
+	}
+
 	setup_defaults() {
 		this.page_name = frappe.get_route_str();
 		this.page_title = this.page_title || frappe.router.doctype_layout || __(this.doctype);
 		this.meta = frappe.get_meta(this.doctype);
-		this.settings = frappe.listview_settings[this.doctype] || {};
+		this.settings = this.load_settings();
 		if (this.settings.init) {
-			this.settings.init()
+			this.settings.init();
 		}
 
-		this.start = 0;
-		this.page_length = 20;
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
-
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 
 
 		// Setup args
+		this.start = 0;
+		this.page_length = 20;
 		this.fields = [];
 
 		const [filters, sort_by, sort_order] = this.convert_from_route_options(frappe.route_options)
@@ -62,7 +69,7 @@ frappe.views.BaseList = class BaseList {
 			return f;
 		});
 
-		this.sort_by = sort_by || this.settings.get_fieldssort_by || "modified";
+		this.sort_by = sort_by || this.settings.sort_by || "modified";
 		this.sort_order = sort_order || this.settings.sort_order || "desc";
 
 		// Setup buttons
@@ -779,8 +786,6 @@ class FilterArea {
 			this.prev_filters = next_filters
 			if (changed) {
 				this.list_view.on_filter_change(this.get());
-			} else {
-				console.log("PREVENTED")
 			}
 		}
 	}
