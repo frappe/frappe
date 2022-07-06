@@ -27,9 +27,9 @@ class TestNaming(unittest.TestCase):
 		"""
 		Append number to name based on existing values
 		if Bottle exists
-		        Bottle -> Bottle-1
+				Bottle -> Bottle-1
 		if Bottle-1 exists
-		        Bottle -> Bottle-2
+				Bottle -> Bottle-2
 		"""
 
 		note = frappe.new_doc("Note")
@@ -119,7 +119,7 @@ class TestNaming(unittest.TestCase):
 
 	def test_format_autoname_for_datetime_field(self):
 		"""Test if datetime, date and time objects get converted to strings for naming."""
-		doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
+		doctype = new_doctype("TestAutoname", autoname="format:TestAutoname-{field}-{##}").insert()
 
 		for field in [now_datetime(), nowdate(), nowtime()]:
 			doc = frappe.new_doc(doctype.name)
@@ -129,7 +129,7 @@ class TestNaming(unittest.TestCase):
 			series = getseries("", 2)
 			series = int(series) - 1
 
-			self.assertEqual(doc.name, f"TODO-{field}-{series:02}")
+			self.assertEqual(doc.name, f"TestAutoname-{field}-{series:02}")
 
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""
