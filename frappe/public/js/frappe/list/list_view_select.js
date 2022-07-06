@@ -179,7 +179,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		const kanban_switcher = this.page.add_custom_button_group(
 			__("Select Kanban"),
 			null,
-			this.list_view.$filter_section
+			this.page.custom_actions
 		);
 
 		kanbans.map((k) => {
