@@ -1,5 +1,6 @@
 import re
 from collections import defaultdict
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 import mariadb
@@ -200,11 +201,7 @@ class MariaDBConnectionUtil:
 			"host": self.host,
 			"user": self.user,
 			"password": self.password,
-			"converter": {
-				FIELD_TYPE.NEWDECIMAL: float,
-				FIELD_TYPE.DATETIME: get_datetime,
-				UnicodeWithAttrs: escape_string,
-			},
+			"converter": self.CONVERSION_MAP,
 		}
 
 		if self.user != "root":
@@ -225,6 +222,10 @@ class MariaDBConnectionUtil:
 			}
 			conn_settings.update(ssl_params)
 		return conn_settings
+
+
+class MariaDBCursorPatchUtil:
+	"""Patch mariadb.cursor.Cursor to handle things not supported by pinned version of MariaDB client."""
 
 	def _transform_query(self, query: str, values: dict) -> str:
 		"""Converts a query with named placeholders to a query with %s and values dict to a tuple.
@@ -267,8 +268,24 @@ class MariaDBConnectionUtil:
 
 		return query, values or ()
 
+	def _transform_result(self, result: list[tuple], description=tuple[tuple]) -> list[tuple]:
+		# ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-213
+		_result = []
+		for row in result:
+			_row = []
+			for el in row:
+				if isinstance(el, Decimal):
+					el = float(el)
+				elif isinstance(el, UnicodeWithAttrs):
+					el = escape_string(el)
+				_row.append(el)
+			_result.append(tuple(_row))
+		return _result
 
-class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
+
+class MariaDBDatabase(
+	MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database
+):
 	REGEX_CHARACTER = "regexp"
 
 	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
@@ -279,6 +296,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	# using the system after a restore.
 	# issue link: https://jira.mariadb.org/browse/MDEV-21786
 	SEQUENCE_CACHE = 50
+	CONVERSION_MAP = {
+		FIELD_TYPE.NEWDECIMAL: float,
+		FIELD_TYPE.DATETIME: get_datetime,
+		UnicodeWithAttrs: escape_string,
+	}
 
 	def setup_type_map(self):
 		self.db_type = "mariadb"

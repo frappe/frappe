@@ -112,8 +112,11 @@ class Database:
 	def get_database_size(self):
 		raise NotImplementedError
 
-	def _transform_query(self, query: Query, values: QueryValues):
+	def _transform_query(self, query: Query, values: QueryValues) -> tuple:
 		return query, values or None
+
+	def _transform_result(self, result: list[tuple]) -> list[tuple]:
+		return result
 
 	def sql(
 		self,
@@ -221,7 +224,7 @@ class Database:
 		if not self._cursor.description:
 			return ()
 
-		self.last_result = self._cursor.fetchall()
+		self.last_result = self._transform_result(self._cursor.fetchall())
 
 		if pluck:
 			return [r[0] for r in self.last_result]
