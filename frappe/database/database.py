@@ -113,7 +113,7 @@ class Database:
 		raise NotImplementedError
 
 	def _transform_query(self, query: Query, values: QueryValues):
-		return query, values or ()
+		return query, values or None
 
 	def sql(
 		self,
