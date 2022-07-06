@@ -1377,21 +1377,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	on_update() {}
 
-<<<<<<< HEAD
 	get_share_url() {
 		const query_params = this.filters
-=======
-	update_url_with_filters() {
-		if (frappe.get_route_str() == this.page_name && !this.report_name) {
-			// only update URL if the route still matches current page.
-			// do not update if current list is a "saved report".
-			window.history.replaceState(null, null, this.get_url_with_filters());
-		}
-	}
-
-	get_url_with_filters() {
-		const query_params = this.get_filters_for_args()
->>>>>>> develop
 			.map((filter) => {
 				if (filter[2] === "=") {
 					return `${filter[1]}=${encodeURIComponent(filter[3])}`;
