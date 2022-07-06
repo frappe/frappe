@@ -42,16 +42,32 @@ def create_todo_records():
 		return
 
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), days=7), "description": "this is first todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), days=7),
+			"description": "this is first todo",
+		}
 	).insert()
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), days=-7), "description": "this is second todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), days=-7),
+			"description": "this is second todo",
+		}
 	).insert()
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), months=2), "description": "this is third todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), months=2),
+			"description": "this is third todo",
+		}
 	).insert()
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), months=-2), "description": "this is fourth todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), months=-2),
+			"description": "this is fourth todo",
+		}
 	).insert()
 
 
@@ -333,3 +349,30 @@ def insert_doctype_with_child_table_record(name):
 	insert_child(doc, "Drag", "08189DIHAA2981", 0, 0.7, 342628, "2022-05-04")
 
 	doc.insert()
+
+
+@frappe.whitelist()
+def setup_default_view():
+	frappe.get_doc(
+		{
+			"is_system_generated": 0,
+			"doctype_or_field": "DocType",
+			"doc_type": "ToDo",
+			"property": "default_view",
+			"property_type": "Select",
+			"value": "Report",
+			"doctype": "Property Setter",
+		}
+	).insert()
+
+	frappe.get_doc(
+		{
+			"is_system_generated": 0,
+			"doctype_or_field": "DocType",
+			"doc_type": "ToDo",
+			"property": "force_re_route_to_default_view",
+			"property_type": "Check",
+			"value": "1",
+			"doctype": "Property Setter",
+		}
+	).insert()
