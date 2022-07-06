@@ -8,7 +8,7 @@ context('View', () => {
 	});
 
 	it('Re-route to default view', () => {
-		cy.go_to_list('ToDo');
-         cy.location('pathname').should('eq', `/app/todo/view/report`);
+		cy.go_to_list('Event');
+		cy.location('pathname').should('eq', `/app/event/view/report`);
 	});
 });
