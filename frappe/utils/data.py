@@ -1911,7 +1911,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 def to_markdown(html: str) -> str:
 	from html.parser import HTMLParser
 
-	from html2text import html2text
+	from frappe.core.utils import html2text
 
 	try:
 		return html2text(html or "")
