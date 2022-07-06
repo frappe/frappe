@@ -103,14 +103,12 @@ class BackupGenerator:
 			if self.backup_path:
 				os.makedirs(self.backup_path, exist_ok=True)
 
-			for file_path in set(
-				[
-					self.backup_path_files,
-					self.backup_path_db,
-					self.backup_path_private_files,
-					self.backup_path_conf,
-				]
-			):
+			for file_path in {
+				self.backup_path_files,
+				self.backup_path_db,
+				self.backup_path_private_files,
+				self.backup_path_conf,
+			}:
 				if file_path:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
@@ -337,13 +335,13 @@ class BackupGenerator:
 
 	def print_summary(self):
 		backup_summary = self.get_summary()
-		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
+		print(f"Backup Summary for {frappe.local.site} at {now()}")
 
 		title = max(len(x) for x in backup_summary)
 		path = max(len(x["path"]) for x in backup_summary.values())
 
 		for _type, info in backup_summary.items():
-			template = "{{0:{0}}}: {{1:{1}}} {{2}}".format(title, path)
+			template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
 			print(template.format(_type.title(), info["path"], info["size"]))
 
 	def backup_files(self):
@@ -417,12 +415,10 @@ class BackupGenerator:
 
 		if self.db_type == "postgres":
 			if self.backup_includes:
-				args["include"] = " ".join(
-					["--table='public.\"{0}\"'".format(table) for table in self.backup_includes]
-				)
+				args["include"] = " ".join([f"--table='public.\"{table}\"'" for table in self.backup_includes])
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					["--exclude-table-data='public.\"{0}\"'".format(table) for table in self.backup_excludes]
+					[f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes]
 				)
 
 			cmd_string = (
@@ -432,13 +428,10 @@ class BackupGenerator:
 
 		else:
 			if self.backup_includes:
-				args["include"] = " ".join(["'{0}'".format(x) for x in self.backup_includes])
+				args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					[
-						"--ignore-table='{0}.{1}'".format(frappe.conf.db_name, table)
-						for table in self.backup_excludes
-					]
+					[f"--ignore-table='{frappe.conf.db_name}.{table}'" for table in self.backup_excludes]
 				)
 
 			cmd_string = (
@@ -479,14 +472,14 @@ class BackupGenerator:
 
 Your backups are ready to be downloaded.
 
-1. [Click here to download the database backup](%(db_backup_url)s)
-2. [Click here to download the files backup](%(files_backup_url)s)
+1. [Click here to download the database backup]({db_backup_url})
+2. [Click here to download the files backup]({files_backup_url})
 
 This link will be valid for 24 hours. A new backup will be available for
-download only after 24 hours.""" % {
-			"db_backup_url": db_backup_url,
-			"files_backup_url": files_backup_url,
-		}
+download only after 24 hours.""".format(
+			db_backup_url=db_backup_url,
+			files_backup_url=files_backup_url,
+		)
 
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""

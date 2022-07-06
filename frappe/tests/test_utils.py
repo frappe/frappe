@@ -30,13 +30,17 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.data import (
+	add_to_date,
 	cast,
+	get_first_day_of_week,
 	get_time,
 	get_timedelta,
+	getdate,
 	now_datetime,
 	nowtime,
 	validate_python_code,
 )
+from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
@@ -122,14 +126,14 @@ class TestMoney(unittest.TestCase):
 			self.assertEqual(
 				money_in_words(num[0], "BHD"),
 				num[1],
-				"{0} is not the same as {1}".format(money_in_words(num[0], "BHD"), num[1]),
+				"{} is not the same as {}".format(money_in_words(num[0], "BHD"), num[1]),
 			)
 
 		for num in nums_ngn:
 			self.assertEqual(
 				money_in_words(num[0], "NGN"),
 				num[1],
-				"{0} is not the same as {1}".format(money_in_words(num[0], "NGN"), num[1]),
+				"{} is not the same as {}".format(money_in_words(num[0], "NGN"), num[1]),
 			)
 
 
@@ -153,11 +157,11 @@ class TestDataManipulation(unittest.TestCase):
 		url = get_url()
 
 		self.assertTrue('<a href="http://test.com">Test link 1</a>' in html)
-		self.assertTrue('<a href="{0}/about">Test link 2</a>'.format(url) in html)
-		self.assertTrue('<a href="{0}/login">Test link 3</a>'.format(url) in html)
-		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
+		self.assertTrue(f'<a href="{url}/about">Test link 2</a>' in html)
+		self.assertTrue(f'<a href="{url}/login">Test link 3</a>' in html)
+		self.assertTrue(f'<img src="{url}/assets/frappe/test.jpg">' in html)
 		self.assertTrue(
-			"style=\"background-image: url('{0}/assets/frappe/bg.jpg') !important\"".format(url) in html
+			f"style=\"background-image: url('{url}/assets/frappe/bg.jpg') !important\"" in html
 		)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
@@ -300,7 +304,7 @@ class TestValidationUtils(unittest.TestCase):
 class TestImage(unittest.TestCase):
 	def test_strip_exif_data(self):
 		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
-		original_image_content = io.open(
+		original_image_content = open(
 			"../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode="rb"
 		).read()
 
@@ -313,7 +317,7 @@ class TestImage(unittest.TestCase):
 	def test_optimize_image(self):
 		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
 		content_type = guess_type(image_file_path)[0]
-		original_content = io.open(image_file_path, mode="rb").read()
+		original_content = open(image_file_path, mode="rb").read()
 
 		optimized_content = optimize_image(original_content, content_type, max_width=500, max_height=500)
 		optimized_image = Image.open(io.BytesIO(optimized_content))
@@ -444,6 +448,31 @@ class TestDateUtils(unittest.TestCase):
 		self.assertIsInstance(get_timedelta(str(datetime_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
+
+	def test_date_from_timegrain(self):
+		start_date = getdate("2021-01-01")
+
+		daily = get_dates_from_timegrain(start_date, add_to_date(start_date, days=6), "Daily")
+		self.assertEqual(len(daily), 7)
+		for idx, d in enumerate(daily):
+			self.assertEqual(d, add_to_date(start_date, days=idx))
+
+		start = get_first_day_of_week(start_date)
+		end = add_to_date(add_to_date(start, weeks=52), days=-1)
+		weekly = get_dates_from_timegrain(start, end, "Weekly")
+		self.assertEqual(len(weekly), 52)
+		for idx, d in enumerate(weekly, start=1):
+			self.assertEqual(d, add_to_date(start, days=7 * idx - 1))
+
+		quarterly = get_dates_from_timegrain(start_date, add_to_date(start_date, months=5), "Quarterly")
+		self.assertEqual(len(quarterly), 2)
+		for idx, d in enumerate(quarterly, start=1):
+			self.assertEqual(d, add_to_date(start_date, months=idx * 3, days=-1))
+
+		yearly = get_dates_from_timegrain(start_date, add_to_date(start_date, years=2), "Yearly")
+		self.assertEqual(len(yearly), 3)
+		for idx, d in enumerate(yearly, start=1):
+			self.assertEqual(d, add_to_date(start_date, years=idx, days=-1))
 
 
 class TestResponse(unittest.TestCase):

@@ -75,8 +75,8 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		let set = false;
 		info_fields.forEach((field, index) => {
 			if (item[field] && !set) {
-				if (index == 0) info_html += `<li>${item[field]}</li>`;
-				else info_html += `<li class="text-muted">${item[field]}</li>`;
+				if (index == 0) info_html += `<li>${__(item[field])}</li>`;
+				else info_html += `<li class="text-muted">${__(item[field])}</li>`;
 				set = true;
 			}
 		});
@@ -145,7 +145,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	get_attached_images() {
 		return frappe
 			.call({
-				method: "frappe.core.doctype.file.file.get_attached_images",
+				method: "frappe.core.api.file.get_attached_images",
 				args: {
 					doctype: this.doctype,
 					names: this.items.map(i => i.name)

@@ -59,6 +59,10 @@ frappe.ui.form.on('User', {
 	onload: function(frm) {
 		frm.can_edit_roles = has_access_to_edit_user();
 
+		if (frm.is_new() && frm.roles_editor) {
+			frm.roles_editor.reset();
+		}
+
 		if (frm.can_edit_roles && !frm.is_new() && in_list(['System User', 'Website User'], frm.doc.user_type)) {
 			if (!frm.roles_editor) {
 				const role_area = $('<div class="role-editor">')

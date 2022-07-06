@@ -27,6 +27,7 @@ import "cypress-real-events/support";
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
+
 Cypress.Commands.add('login', (email, password) => {
 	if (!email) {
 		email = 'Administrator';
@@ -265,9 +266,14 @@ Cypress.Commands.add('get_open_dialog', () => {
 	return cy.get('.modal:visible').last();
 });
 
+Cypress.Commands.add('save', () => {
+	cy.intercept('/api').as('api');
+	cy.get(`button[data-label="Save"]:visible`).click({scrollBehavior: false, force: true});
+	cy.wait('@api');
+});
 Cypress.Commands.add('hide_dialog', () => {
 	cy.wait(300);
-	cy.get_open_dialog().find('.btn-modal-close').click();
+	cy.get_open_dialog().focus().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
 
@@ -285,7 +291,11 @@ Cypress.Commands.add('clear_datepickers', () => {
 	cy.get('.datepicker').should('not.exist');
 });
 
+
 Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
+	if (!args.doctype) {
+		args.doctype = doctype;
+	}
 	return cy
 		.window()
 		.its('frappe.csrf_token')
@@ -307,11 +317,40 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 					if (ignore_duplicate) {
 						status_codes.push(409);
 					}
-					expect(res.status).to.be.oneOf(status_codes);
+
+					let message = null;
+					if (ignore_duplicate && !status_codes.includes(res.status)) {
+						message = `Document insert failed, response: ${JSON.stringify(res, null, '\t')}`;
+					}
+					expect(res.status).to.be.oneOf(status_codes, message);
 					return res.body.data;
 				});
 		});
 });
+
+Cypress.Commands.add('update_doc', (doctype, docname, args) => {
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'PUT',
+					url: `/api/resource/${doctype}/${docname}`,
+					body: args,
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					},
+				})
+				.then(res => {
+					expect(res.status).to.eq(200);
+					return res.body.data;
+				});
+		});
+});
+
 
 Cypress.Commands.add('open_list_filter', () => {
 	cy.get('.filter-section .filter-button').click();

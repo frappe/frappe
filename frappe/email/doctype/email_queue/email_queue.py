@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -18,7 +17,8 @@ from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.model.document import Document
-from frappe.query_builder.utils import DocType
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
 from frappe.utils import (
 	add_days,
 	cint,
@@ -28,8 +28,6 @@ from frappe.utils import (
 	nowdate,
 	split_emails,
 )
-
-MAX_RETRY_COUNT = 3
 
 
 class EmailQueue(Document):
@@ -144,6 +142,31 @@ class EmailQueue(Document):
 			if ctx.email_account_doc.append_emails_to_sent_folder and ctx.sent_to:
 				ctx.email_account_doc.append_email_to_sent_folder(message)
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
+		Note: Used separate query to avoid deadlock
+		"""
+		days = days or 31
+		email_queue = frappe.qb.DocType("Email Queue")
+		email_recipient = frappe.qb.DocType("Email Queue Recipient")
+
+		# Delete queue table
+		(
+			frappe.qb.from_(email_queue)
+			.delete()
+			.where(email_queue.modified < (Now() - Interval(days=days)))
+		).run()
+
+		# delete child tables, note that this has potential to leave some orphan
+		# child table behind if modified time was later than parent doc (rare).
+		# But it's safe since child table doesn't contain links.
+		(
+			frappe.qb.from_(email_recipient)
+			.delete()
+			.where(email_recipient.modified < (Now() - Interval(days=days)))
+		).run()
+
 
 @task(queue="short")
 def send_mail(email_queue_name, is_background_task=False):
@@ -157,7 +180,7 @@ def send_mail(email_queue_name, is_background_task=False):
 
 class SendMailContext:
 	def __init__(self, queue_doc: Document, is_background_task: bool = False):
-		self.queue_doc = queue_doc
+		self.queue_doc: EmailQueue = queue_doc
 		self.is_background_task = is_background_task
 		self.email_account_doc = queue_doc.get_email_account()
 		self.smtp_server = self.email_account_doc.get_smtp_server()
@@ -184,7 +207,7 @@ class SendMailContext:
 			email_status = (self.sent_to and "Partially Sent") or "Not Sent"
 			self.queue_doc.update_status(status=email_status, commit=True)
 		elif exc_type:
-			if self.queue_doc.retry < MAX_RETRY_COUNT:
+			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
 				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
@@ -220,7 +243,7 @@ class SendMailContext:
 		self.sent_to.append(recipient.recipient)
 
 	def is_mail_sent_to_all(self):
-		return sorted(self.sent_to) == sorted([rec.recipient for rec in self.queue_doc.recipients])
+		return sorted(self.sent_to) == sorted(rec.recipient for rec in self.queue_doc.recipients)
 
 	def get_message_object(self, message):
 		return Parser(policy=SMTPUTF8).parsestr(message)
@@ -261,16 +284,16 @@ class SendMailContext:
 			).decode()
 		return message
 
-	def get_unsubscribe_str(self, recipient_email):
+	def get_unsubscribe_str(self, recipient_email: str) -> str:
 		unsubscribe_url = ""
+
 		if self.queue_doc.add_unsubscribe_link and self.queue_doc.reference_doctype:
-			doctype, doc_name = self.queue_doc.reference_doctype, self.queue_doc.reference_name
 			unsubscribe_url = get_unsubcribed_url(
-				doctype,
-				doc_name,
-				recipient_email,
-				self.queue_doc.unsubscribe_method,
-				self.queue_doc.unsubscribe_param,
+				reference_doctype=self.queue_doc.reference_doctype,
+				reference_name=self.queue_doc.reference_name,
+				email=recipient_email,
+				unsubscribe_method=self.queue_doc.unsubscribe_method,
+				unsubscribe_params=self.queue_doc.unsubscribe_param,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
@@ -344,6 +367,10 @@ def on_doctype_update():
 	frappe.db.add_index(
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
+
+
+def get_email_retry_limit():
+	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
 class QueueBuilder:
@@ -632,7 +659,7 @@ class QueueBuilder:
 			# bad Email Address - don't add to queue
 			frappe.log_error(
 				title="Invalid email address",
-				message="Invalid email address Sender: {0}, Recipients: {1}, \nTraceback: {2} ".format(
+				message="Invalid email address Sender: {}, Recipients: {}, \nTraceback: {} ".format(
 					self.sender, ", ".join(self.final_recipients()), traceback.format_exc()
 				),
 				reference_doctype=self.reference_doctype,

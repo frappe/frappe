@@ -1,7 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from typing import Dict, Iterable, List
+from collections.abc import Iterable
 
 import frappe
 from frappe import _
@@ -157,7 +157,7 @@ class AssignmentRule(Document):
 		return assignment_days and today not in assignment_days
 
 
-def get_assignments(doc) -> List[Dict]:
+def get_assignments(doc) -> list[dict]:
 	return frappe.get_all(
 		"ToDo",
 		fields=["name", "assignment_rule"],
@@ -228,7 +228,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 	)
 
 	# multiple auto assigns
-	assignment_rule_docs: List[AssignmentRule] = [
+	assignment_rule_docs: list[AssignmentRule] = [
 		frappe.get_cached_doc("Assignment Rule", d.get("name")) for d in assignment_rules
 	]
 
@@ -298,8 +298,6 @@ def apply(doc=None, method=None, doctype=None, name=None):
 					if reopened:
 						break
 
-				# print(f"Rule:{assignment_rule}\nDoc: {doc}\nReOpened: {reopened}")
-
 			assignment_rule.close_assignments(doc)
 
 
@@ -358,11 +356,11 @@ def update_due_date(doc, state=None):
 				todo_doc.save(ignore_permissions=True)
 
 
-def get_assignment_rules() -> List[str]:
+def get_assignment_rules() -> list[str]:
 	return frappe.get_all("Assignment Rule", filters={"disabled": 0}, pluck="document_type")
 
 
-def get_repeated(values: Iterable) -> List:
+def get_repeated(values: Iterable) -> list:
 	unique = set()
 	repeated = set()
 

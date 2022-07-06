@@ -65,7 +65,7 @@
 					</button>
 					<button v-if="google_drive_settings.enabled" class="btn btn-file-upload" @click="show_google_drive_picker">
 						<svg width="30" height="30">
-							<image xlink:href="/assets/frappe/icons/social/google_drive.svg" width="30" height="30"/>
+							<image href="/assets/frappe/icons/social/google_drive.svg" width="30" height="30"/>
 						</svg>
 						<div class="mt-1">{{ __('Google Drive') }}</div>
 					</button>
@@ -222,10 +222,13 @@ export default {
 			});
 		}
 		if (this.restrictions.max_file_size == null) {
-			frappe.call('frappe.core.doctype.file.file.get_max_file_size')
+			frappe.call('frappe.core.api.file.get_max_file_size')
 				.then(res => {
 					this.restrictions.max_file_size = Number(res.message);
 				});
+		}
+		if (this.restrictions.max_number_of_files == null && this.doctype) {
+			this.restrictions.max_number_of_files = frappe.get_meta(self.doctype).max_attachments;
 		}
 	},
 	watch: {
@@ -283,6 +286,21 @@ export default {
 				return file;
 			});
 		},
+		show_max_files_number_warning(file) {
+			console.warn(
+				`File skipped because it exceeds the allowed specified limit of ${max_number_of_files} uploads`,
+				file,
+			);
+			if (this.doctype) {
+				MSG = __('File "{0}" was skipped because only {1} uploads are allowed for DocType "{2}"', [file.name, max_number_of_files, this.doctype])
+			} else {
+				MSG = __('File "{0}" was skipped because only {1} uploads are allowed', [file.name, max_number_of_files])
+			}
+			frappe.show_alert({
+				message: MSG,
+				indicator: "orange",
+			});
+		},
 		add_files(file_array) {
 			let files = Array.from(file_array)
 				.filter(this.check_restrictions)
@@ -303,8 +321,19 @@ export default {
 						error_message: null,
 						uploading: false,
 						private: !is_image
-					}
+					};
 				});
+
+			// pop extra files as per FileUploader.restrictions.max_number_of_files
+			max_number_of_files = this.restrictions.max_number_of_files;
+			if (max_number_of_files && files.length > max_number_of_files) {
+				files.slice(max_number_of_files).forEach(file => {
+					this.show_max_files_number_warning(file, this.doctype);
+				});
+
+				files = files.slice(0, max_number_of_files);
+			}
+
 			this.files = this.files.concat(files);
 			// if only one file is allowed and crop_image_aspect_ratio is set, open cropper immediately
 			if (this.files.length === 1 && !this.allow_multiple && this.restrictions.crop_image_aspect_ratio != null) {
@@ -316,13 +345,10 @@ export default {
 		check_restrictions(file) {
 			let { max_file_size, allowed_file_types = [] } = this.restrictions;
 
-			let mime_type = file.type;
-			let extension = '.' + file.name.split('.').pop();
-
 			let is_correct_type = true;
 			let valid_file_size = true;
 
-			if (allowed_file_types.length) {
+			if (allowed_file_types && allowed_file_types.length) {
 				is_correct_type = allowed_file_types.some((type) => {
 					// is this is a mime-type
 					if (type.includes('/')) {

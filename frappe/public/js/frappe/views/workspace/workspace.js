@@ -118,7 +118,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	build_sidebar_section(title, root_pages) {
-		let sidebar_section = $(`<div class="standard-sidebar-section nested-container"></div>`);
+		let sidebar_section = $(`<div class="standard-sidebar-section nested-container" data-title="${title}"></div>`);
 
 		let $title = $(`<div class="standard-sidebar-label">
 			<span>${frappe.utils.icon("small-down", "xs")}</span>
@@ -691,11 +691,6 @@ frappe.views.Workspace = class Workspace {
 				$('.dropdown-list:not(.hidden)').addClass('hidden');
 			}
 			$button.filter('.dropdown-list').toggleClass('hidden');
-		});
-
-		$(document).click(event => {
-			event.stopPropagation();
-			$('.dropdown-list:not(.hidden)').addClass('hidden');
 		});
 
 		sidebar_control.append($button);

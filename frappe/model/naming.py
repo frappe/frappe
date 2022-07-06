@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
-from typing import TYPE_CHECKING, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Callable, Optional
 
 import frappe
 from frappe import _
@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 autoincremented_site_status_map = {}
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
+BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
 
 
 class InvalidNamingSeriesError(frappe.ValidationError):
@@ -80,13 +81,16 @@ class NamingSeries:
 
 		return prefix
 
-	def get_preview(self, doc=None) -> List[str]:
+	def get_preview(self, doc=None) -> list[str]:
 		"""Generate preview of naming series without using DB counters"""
 		generated_names = []
 		for count in range(1, 4):
 
 			def fake_counter(_prefix, digits):
-				return str(count).zfill(digits)
+				# ignore B023: binding `count` is not necessary because
+				# function is evaluated immediately and it can not be done
+				# because of function signature requirement
+				return str(count).zfill(digits)  # noqa: B023
 
 			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
 		return generated_names
@@ -270,10 +274,10 @@ def make_autoname(key="", doctype="", doc=""):
 
 
 def parse_naming_series(
-	parts: Union[List[str], str],
+	parts: list[str] | str,
 	doctype=None,
 	doc: Optional["Document"] = None,
-	number_generator: Optional[Callable[[str, int], str]] = None,
+	number_generator: Callable[[str, int], str] | None = None,
 ) -> str:
 
 	"""Parse the naming series and get next name.
@@ -316,9 +320,9 @@ def parse_naming_series(
 			part = frappe.defaults.get_user_default("fiscal_year")
 		elif e.startswith("{") and doc:
 			e = e.replace("{", "").replace("}", "")
-			part = doc.get(e)
+			part = (cstr(doc.get(e)) or "").strip()
 		elif doc and doc.get(e):
-			part = doc.get(e)
+			part = (cstr(doc.get(e)) or "").strip()
 		else:
 			part = e
 
@@ -409,7 +413,7 @@ def revert_series_if_last(key, name, doc=None):
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
 
 
-def get_default_naming_series(doctype: str) -> Optional[str]:
+def get_default_naming_series(doctype: str) -> str | None:
 	"""get default value for `naming_series` property"""
 	naming_series_options = frappe.get_meta(doctype).get_naming_series_options()
 
@@ -420,7 +424,7 @@ def get_default_naming_series(doctype: str) -> Optional[str]:
 			return option
 
 
-def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = None):
+def validate_name(doctype: str, name: int | str, case: str | None = None):
 
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
@@ -448,8 +452,8 @@ def validate_name(doctype: str, name: Union[int, str], case: Optional[str] = Non
 		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
 
 	special_characters = "<>"
-	if re.findall("[{0}]+".format(special_characters), name):
-		message = ", ".join("'{0}'".format(c) for c in special_characters)
+	if re.findall(f"[{special_characters}]+", name):
+		message = ", ".join(f"'{c}'" for c in special_characters)
 		frappe.throw(
 			_("Name cannot contain special characters like {0}").format(message), frappe.NameError
 		)
@@ -463,7 +467,7 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = "^{value}{separator}\\d+$".format(value=re.escape(value), separator=separator)
+	regex = f"^{re.escape(value)}{separator}\\d+$"
 
 	if exists:
 		last = frappe.db.sql(
@@ -481,7 +485,7 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 		else:
 			count = "1"
 
-		value = "{0}{1}{2}".format(value, separator, count)
+		value = f"{value}{separator}{count}"
 
 	return value
 
@@ -535,6 +539,6 @@ def _format_autoname(autoname, doc):
 		return parse_naming_series([trimmed_param], doc=doc)
 
 	# Replace braced params with their parsed value
-	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
+	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
 
 	return name

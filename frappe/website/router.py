@@ -8,7 +8,7 @@ import re
 from werkzeug.routing import Map, NotFound, Rule
 
 import frappe
-from frappe.website.utils import extract_title
+from frappe.website.utils import extract_title, get_frontmatter
 
 
 def get_page_info_from_web_page_with_dynamic_routes(path):
@@ -161,26 +161,6 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	return page_info
 
 
-def get_frontmatter(string):
-	"""
-	Reference: https://github.com/jonbeebe/frontmatter
-	"""
-	import yaml
-
-	fmatter = ""
-	body = ""
-	result = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M).search(string)
-
-	if result:
-		fmatter = result.group(1)
-		body = result.group(2)
-
-	return {
-		"attributes": yaml.safe_load(fmatter),
-		"body": body,
-	}
-
-
 def setup_source(page_info):
 	"""Get the HTML source of the template"""
 	jenv = frappe.get_jenv()
@@ -224,13 +204,13 @@ def setup_source(page_info):
 	# load css/js files
 	js_path = os.path.join(page_info.basepath, (page_info.basename or "index") + ".js")
 	if os.path.exists(js_path) and "{% block script %}" not in html:
-		with io.open(js_path, "r", encoding="utf-8") as f:
+		with open(js_path, encoding="utf-8") as f:
 			js = f.read()
 			page_info.colocated_js = js
 
 	css_path = os.path.join(page_info.basepath, (page_info.basename or "index") + ".css")
 	if os.path.exists(css_path) and "{% block style %}" not in html:
-		with io.open(css_path, "r", encoding="utf-8") as f:
+		with open(css_path, encoding="utf-8") as f:
 			css = f.read()
 			page_info.colocated_css = css
 
@@ -269,7 +249,7 @@ def setup_index(page_info):
 		# load index.txt if loading all pages
 		index_txt_path = os.path.join(page_info.basepath, "index.txt")
 		if os.path.exists(index_txt_path):
-			with open(index_txt_path, "r") as f:
+			with open(index_txt_path) as f:
 				page_info.index = f.read().splitlines()
 
 

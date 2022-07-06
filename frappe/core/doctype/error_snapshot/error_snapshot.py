@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder import Interval
+from frappe.query_builder.functions import Now
 
 
 class ErrorSnapshot(Document):
@@ -32,3 +33,8 @@ class ErrorSnapshot(Document):
 			frappe.db.set_value("Error Snapshot", parent["name"], "relapses", parent["relapses"] + 1)
 			if parent["seen"]:
 				frappe.db.set_value("Error Snapshot", parent["name"], "seen", False)
+
+	@staticmethod
+	def clear_old_logs(days=30):
+		table = frappe.qb.DocType("Error Snapshot")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))

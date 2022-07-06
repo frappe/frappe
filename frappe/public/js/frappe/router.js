@@ -139,6 +139,7 @@ frappe.router = {
 		this.set_title(sub_path);
 		this.trigger('change');
 
+<<<<<<< HEAD
 		return new Promise((resolve) => {
 			setTimeout(() => {
 				frappe.after_ajax && frappe.after_ajax(() => {
@@ -146,6 +147,14 @@ frappe.router = {
 				});
 			});
 		})
+=======
+	parse(route) {
+		route = this.get_sub_path_string(route).split('/');
+		if (!route) return [];
+		route = $.map(route, this.decode_component);
+		this.set_route_options_from_url();
+		return this.convert_to_standard_route(route);
+>>>>>>> develop
 	},
 
 	_set_route_options(route_options) {
@@ -444,9 +453,23 @@ frappe.router = {
 		return window.location.pathname + window.location.search
 	},
 
+<<<<<<< HEAD
 	get_sub_path(path) {
 		if (!path) {
 			path = this.current_path()
+=======
+	set_route_options_from_url() {
+		// set query parameters as frappe.route_options
+		let query_string = window.location.search;
+
+		if (!frappe.route_options) {
+			frappe.route_options = {};
+		}
+
+		let params = new URLSearchParams(query_string);
+		for (const [key, value] of params) {
+			frappe.route_options[key] = value;
+>>>>>>> develop
 		}
 
 		if (path.substr(0, 1)=='/') path = path.substr(1); // for /app/sub

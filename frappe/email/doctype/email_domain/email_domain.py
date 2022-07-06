@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
@@ -53,12 +52,10 @@ class EmailDomain(Document):
 						test = poplib.POP3(self.email_server, port=get_port(self))
 
 			except Exception as e:
-				logger.warn(
-					'Incoming email account "{host}" not correct'.format(host=self.email_server), exc_info=e
-				)
+				logger.warn(f'Incoming email account "{self.email_server}" not correct', exc_info=e)
 				frappe.throw(
 					title=_("Incoming email account not correct"),
-					msg='Error connecting IMAP/POP3 "{host}": {e}'.format(host=self.email_server, e=e),
+					msg=f'Error connecting IMAP/POP3 "{self.email_server}": {e}',
 				)
 
 			finally:
@@ -94,12 +91,10 @@ class EmailDomain(Document):
 					sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
 				sess.quit()
 			except Exception as e:
-				logger.warn(
-					'Outgoing email account "{host}" not correct'.format(host=self.smtp_server), exc_info=e
-				)
+				logger.warn(f'Outgoing email account "{self.smtp_server}" not correct', exc_info=e)
 				frappe.throw(
 					title=_("Outgoing email account not correct"),
-					msg='Error connecting SMTP "{host}": {e}'.format(host=self.smtp_server, e=e),
+					msg=f'Error connecting SMTP "{self.smtp_server}": {e}',
 				)
 
 	def on_update(self):

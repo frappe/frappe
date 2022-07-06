@@ -1,5 +1,3 @@
-from typing import List, Tuple, Union
-
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
 from pymysql.converters import conversions, escape_string
@@ -144,18 +142,18 @@ class MariaDBDatabase(Database):
 	def is_type_datetime(code):
 		return code in (pymysql.DATE, pymysql.DATETIME)
 
-	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
 		new_name = get_table_name(new_name)
 		return self.sql(f"RENAME TABLE `{old_name}` TO `{new_name}`")
 
-	def describe(self, doctype: str) -> Union[List, Tuple]:
+	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
 		return self.sql(f"DESC `{table_name}`")
 
 	def change_column_type(
 		self, doctype: str, column: str, type: str, nullable: bool = False
-	) -> Union[List, Tuple]:
+	) -> list | tuple:
 		table_name = get_table_name(doctype)
 		null_constraint = "NOT NULL" if not nullable else ""
 		return self.sql_ddl(f"ALTER TABLE `{table_name}` MODIFY `{column}` {type} {null_constraint}")
@@ -303,7 +301,7 @@ class MariaDBDatabase(Database):
 			)
 		)
 
-	def add_index(self, doctype: str, fields: List, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
@@ -343,7 +341,7 @@ class MariaDBDatabase(Database):
 		"""
 		res = self.sql("select issingle from `tabDocType` where name=%s", (doctype,))
 		if not res:
-			raise Exception("Wrong doctype {0} in updatedb".format(doctype))
+			raise Exception(f"Wrong doctype {doctype} in updatedb")
 
 		if not res[0][0]:
 			db_table = MariaDBTable(doctype, meta)

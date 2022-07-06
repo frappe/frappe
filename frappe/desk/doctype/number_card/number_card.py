@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import frappe
 from frappe import _
+from frappe.boot import get_allowed_reports
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -26,11 +26,10 @@ class NumberCard(Document):
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
 
-			if (
-				self.document_type
-				and frappe.get_meta(self.document_type).istable
-				and not self.parent_document_type
-			):
+			if self.function != "Count" and not self.aggregate_function_based_on:
+				frappe.throw(_("Aggregate Field is required to create a number card"))
+
+			if frappe.get_meta(self.document_type).istable and not self.parent_document_type:
 				frappe.throw(_("Parent Document Type is required to create a number card"))
 
 		elif self.type == "Report":
@@ -91,9 +90,16 @@ def has_permission(doc, ptype, user):
 	if "System Manager" in roles:
 		return True
 
-	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	if doc.document_type in allowed_doctypes:
-		return True
+	if doc.type == "Report":
+		allowed_reports = [
+			key if type(key) == str else key.encode("UTF8") for key in get_allowed_reports()
+		]
+		if doc.report_name in allowed_reports:
+			return True
+	else:
+		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		if doc.document_type in allowed_doctypes:
+			return True
 
 	return False
 
@@ -113,7 +119,7 @@ def get_result(doc, filters, to_date=None):
 	function = sql_function_map[doc.function]
 
 	if function == "count":
-		fields = ["{function}(*) as result".format(function=function)]
+		fields = [f"{function}(*) as result"]
 	else:
 		fields = [
 			"{function}({based_on}) as result".format(
@@ -195,7 +201,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	numberCard = DocType("Number Card")
 
 	if txt:
-		search_conditions = [numberCard[field].like("%{txt}%".format(txt=txt)) for field in searchfields]
+		search_conditions = [numberCard[field].like(f"%{txt}%") for field in searchfields]
 
 	condition_query = frappe.db.query.build_conditions(doctype, filters)
 

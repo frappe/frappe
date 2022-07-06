@@ -331,7 +331,7 @@ class DataExporter:
 		order_by = None
 		table_columns = frappe.db.get_table_columns(self.parent_doctype)
 		if "lft" in table_columns and "rgt" in table_columns:
-			order_by = "`tab{doctype}`.`lft` asc".format(doctype=self.parent_doctype)
+			order_by = f"`tab{self.parent_doctype}`.`lft` asc"
 		# get permitted data only
 		self.data = frappe.get_list(
 			self.doctype, fields=["*"], filters=self.filters, limit_page_length=None, order_by=order_by

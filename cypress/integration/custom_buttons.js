@@ -4,6 +4,7 @@ const test_button_names = [
 	"Porcupine Tree (the GOAT)",
 	"AC / DC",
 	`Electronic Dance "music"`,
+	"l'imperatrice",
 ];
 
 const add_button = (label, group = "TestGroup") => {

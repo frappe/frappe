@@ -1,5 +1,4 @@
 import re
-from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
@@ -19,6 +18,11 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 )
 
 psycopg2.extensions.register_type(DEC2FLOAT)
+
+LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
+LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
+PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
+FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 
 
 class PostgresDatabase(Database):
@@ -113,9 +117,7 @@ class PostgresDatabase(Database):
 
 	# pylint: disable=W0221
 	def sql(self, query, values=(), *args, **kwargs):
-		return super(PostgresDatabase, self).sql(
-			modify_query(query), modify_values(values), *args, **kwargs
-		)
+		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
 
 	def get_tables(self, cached=True):
 		return [
@@ -123,9 +125,9 @@ class PostgresDatabase(Database):
 			for d in self.sql(
 				"""select table_name
 			from information_schema.tables
-			where table_catalog='{0}'
+			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
-				and table_schema='{1}'""".format(
+				and table_schema='{}'""".format(
 					frappe.conf.db_name, frappe.conf.get("db_schema", "public")
 				)
 			)
@@ -203,12 +205,12 @@ class PostgresDatabase(Database):
 	def is_data_too_long(e):
 		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
 
-	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
 		new_name = get_table_name(new_name)
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
-	def describe(self, doctype: str) -> Union[List, Tuple]:
+	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
 		return self.sql(
 			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'"
@@ -216,7 +218,7 @@ class PostgresDatabase(Database):
 
 	def change_column_type(
 		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
-	) -> Union[List, Tuple]:
+	) -> list | tuple:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
 		using_cast = f'using "{column}"::{type}' if use_cast else ""
@@ -285,9 +287,9 @@ class PostgresDatabase(Database):
 		* updates columns
 		* updates indices
 		"""
-		res = self.sql("select issingle from `tabDocType` where name='{}'".format(doctype))
+		res = self.sql(f"select issingle from `tabDocType` where name='{doctype}'")
 		if not res:
-			raise Exception("Wrong doctype {0} in updatedb".format(doctype))
+			raise Exception(f"Wrong doctype {doctype} in updatedb")
 
 		if not res[0][0]:
 			db_table = PostgresTable(doctype, meta)
@@ -301,7 +303,7 @@ class PostgresDatabase(Database):
 	def get_on_duplicate_update(key="name"):
 		if isinstance(key, list):
 			key = '", "'.join(key)
-		return 'ON CONFLICT ("{key}") DO UPDATE SET '.format(key=key)
+		return f'ON CONFLICT ("{key}") DO UPDATE SET '
 
 	def check_implicit_commit(self, query):
 		pass  # postgres can run DDL in transactions without implicit commits
@@ -314,7 +316,7 @@ class PostgresDatabase(Database):
 			)
 		)
 
-	def add_index(self, doctype: str, fields: List, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)
@@ -382,12 +384,10 @@ class PostgresDatabase(Database):
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
-	query = str(query)
-	query = query.replace("`", '"')
+	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
 	# select from requires ""
-	if re.search("from tab", query, flags=re.IGNORECASE):
-		query = re.sub(r"from tab([\w-]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
+	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
 	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
 	# drop .0 from decimals and add quotes around them
@@ -396,18 +396,16 @@ def modify_query(query):
 	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
-	query = re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
-	return query
+	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
 
 
 def modify_values(values):
-	def stringify_value(value):
-		if isinstance(value, int):
+	def modify_value(value):
+		if isinstance(value, (list, tuple)):
+			value = tuple(modify_values(value))
+
+		elif isinstance(value, int):
 			value = str(value)
-		elif isinstance(value, float):
-			truncated_float = int(value)
-			if value == truncated_float:
-				value = str(truncated_float)
 
 		return value
 
@@ -416,22 +414,21 @@ def modify_values(values):
 
 	if isinstance(values, dict):
 		for k, v in values.items():
-			values[k] = stringify_value(v)
+			values[k] = modify_value(v)
 	elif isinstance(values, (tuple, list)):
 		new_values = []
 		for val in values:
-			new_values.append(stringify_value(val))
+			new_values.append(modify_value(val))
+
 		values = new_values
 	else:
-		values = stringify_value(values)
+		values = modify_value(values)
 
 	return values
 
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
-	if re.search(r"locate\(", query, flags=re.IGNORECASE):
-		query = re.sub(
-			r"locate\(([^,]+),([^)]+)(\)?)\)", r"strpos(\2\3, \1)", query, flags=re.IGNORECASE
-		)
+	if LOCATE_QUERY_PATTERN.search(query):
+		query = LOCATE_SUB_PATTERN.sub(r"strpos(\2\3, \1)", query)
 	return query

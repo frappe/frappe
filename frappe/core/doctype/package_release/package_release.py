@@ -87,7 +87,7 @@ class PackageRelease(Document):
 
 	def make_tarfile(self, package):
 		# make tarfile
-		filename = "{}.tar.gz".format(self.name)
+		filename = f"{self.name}.tar.gz"
 		subprocess.check_output(
 			["tar", "czf", filename, package.package_name], cwd=frappe.get_site_path("packages")
 		)

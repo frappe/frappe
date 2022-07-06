@@ -4,6 +4,9 @@ import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
 
+SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
+VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
+
 
 class InvalidColumnName(frappe.ValidationError):
 	pass
@@ -12,7 +15,7 @@ class InvalidColumnName(frappe.ValidationError):
 class DBTable:
 	def __init__(self, doctype, meta=None):
 		self.doctype = doctype
-		self.table_name = "tab{}".format(doctype)
+		self.table_name = f"tab{doctype}"
 		self.meta = meta or frappe.get_meta(doctype, False)
 		self.columns = {}
 		self.current_columns = {}
@@ -130,7 +133,7 @@ class DBTable:
 				if not current_col:
 					continue
 				current_type = self.current_columns[col.fieldname]["type"]
-				current_length = re.findall(r"varchar\(([\d]+)\)", current_type)
+				current_length = VARCHAR_CAST_PATTERN.findall(current_type)
 				if not current_length:
 					# case when the field is no longer a varchar
 					continue
@@ -192,11 +195,11 @@ class DbColumn:
 
 		if self.fieldtype in ("Check", "Int"):
 			default_value = cint(self.default) or 0
-			column_def += " not null default {0}".format(default_value)
+			column_def += f" not null default {default_value}"
 
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
 			default_value = flt(self.default) or 0
-			column_def += " not null default {0}".format(default_value)
+			column_def += f" not null default {default_value}"
 
 		elif (
 			self.default
@@ -204,7 +207,7 @@ class DbColumn:
 			and not cstr(self.default).startswith(":")
 			and column_def not in ("text", "longtext")
 		):
-			column_def += " default {}".format(frappe.db.escape(self.default))
+			column_def += f" default {frappe.db.escape(self.default)}"
 
 		if self.unique and (column_def not in ("text", "longtext")):
 			column_def += " unique"
@@ -304,9 +307,8 @@ class DbColumn:
 
 
 def validate_column_name(n):
-	special_characters = re.findall(r"[\W]", n, re.UNICODE)
-	if special_characters:
-		special_characters = ", ".join('"{0}"'.format(c) for c in special_characters)
+	if special_characters := SPECIAL_CHAR_PATTERN.findall(n):
+		special_characters = ", ".join(f'"{c}"' for c in special_characters)
 		frappe.throw(
 			_("Fieldname {0} cannot have special characters like {1}").format(
 				frappe.bold(cstr(n)), special_characters
@@ -350,7 +352,7 @@ def get_definition(fieldtype, precision=None, length=None):
 				size = length
 
 	if size is not None:
-		coltype = "{coltype}({size})".format(coltype=coltype, size=size)
+		coltype = f"{coltype}({size})"
 
 	return coltype
 
@@ -364,7 +366,7 @@ def add_column(
 
 	frappe.db.commit()
 
-	query = "alter table `tab%s` add column %s %s" % (
+	query = "alter table `tab{}` add column {} {}".format(
 		doctype,
 		column_name,
 		get_definition(fieldtype, precision, length),

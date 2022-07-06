@@ -28,8 +28,8 @@ def execute():
 
 			sort_by = parts[1].split(" ")
 
-			json_data["order_by"] = "`tab{0}`.`{1}`".format(doc.ref_doctype, sort_by[0])
-			json_data["order_by"] += " {0}".format(sort_by[1]) if len(sort_by) > 1 else ""
+			json_data["order_by"] = f"`tab{doc.ref_doctype}`.`{sort_by[0]}`"
+			json_data["order_by"] += f" {sort_by[1]}" if len(sort_by) > 1 else ""
 
 			doc.json = json.dumps(json_data)
 			doc.save()

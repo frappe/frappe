@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder import Interval
+from frappe.query_builder.functions import Now
 
 
 class ErrorLog(Document):
@@ -12,13 +13,10 @@ class ErrorLog(Document):
 			self.db_set("seen", 1, update_modified=0)
 			frappe.db.commit()
 
-
-def set_old_logs_as_seen():
-	# set logs as seen
-	frappe.db.sql(
-		"""UPDATE `tabError Log` SET `seen`=1
-		WHERE `seen`=0 AND `creation` < (NOW() - INTERVAL '7' DAY)"""
-	)
+	@staticmethod
+	def clear_old_logs(days=30):
+		table = frappe.qb.DocType("Error Log")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()

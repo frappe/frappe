@@ -14,6 +14,7 @@ from frappe.model import child_table_fields, default_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.utils import add_user_info, cstr, format_duration
+from frappe.utils.caching import site_cache
 
 
 @frappe.whitelist()
@@ -166,7 +167,7 @@ def setup_group_by(data):
 
 
 def raise_invalid_field(fieldname):
-	frappe.throw(_("Field not permitted in query") + ": {0}".format(fieldname), frappe.DataError)
+	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
 def is_standard(fieldname):
@@ -733,5 +734,6 @@ def get_filters_cond(
 	return cond
 
 
+@site_cache(maxsize=128)
 def is_virtual_doctype(doctype):
 	return frappe.db.get_value("DocType", doctype, "is_virtual")

@@ -63,7 +63,7 @@ def get_context(context):
 		"body": body,
 		"print_style": print_style,
 		"comment": frappe.session.user,
-		"title": frappe.utils.strip_html(doc.get_title()),
+		"title": frappe.utils.strip_html(doc.get_title() or doc.name),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,
@@ -242,9 +242,9 @@ def set_title_values_for_link_and_dynamic_link_fields(meta, doc, parent_doc=None
 
 		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
 		if parent_doc:
-			parent_doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
 		elif doc:
-			doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+			doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
 
 
 def set_title_values_for_table_and_multiselect_fields(meta, doc):
@@ -388,7 +388,7 @@ def get_print_format(doctype, print_format):
 	)
 
 	if os.path.exists(path):
-		with open(path, "r") as pffile:
+		with open(path) as pffile:
 			return pffile.read()
 	else:
 		if print_format.raw_printing:
@@ -557,11 +557,11 @@ def get_font(print_settings, print_format=None, for_legacy=False):
 	font = None
 	if print_format:
 		if print_format.font and print_format.font != "Default":
-			font = "{0}, sans-serif".format(print_format.font)
+			font = f"{print_format.font}, sans-serif"
 
 	if not font:
 		if print_settings.font and print_settings.font != "Default":
-			font = "{0}, sans-serif".format(print_settings.font)
+			font = f"{print_settings.font}, sans-serif"
 
 		else:
 			font = default

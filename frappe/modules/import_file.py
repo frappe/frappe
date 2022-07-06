@@ -109,7 +109,7 @@ def import_file_by_path(
 	"""
 	try:
 		docs = read_doc_from_file(path)
-	except IOError:
+	except OSError:
 		print(f"{path} missing")
 		return
 
@@ -172,14 +172,14 @@ def import_file_by_path(
 def read_doc_from_file(path):
 	doc = None
 	if os.path.exists(path):
-		with open(path, "r") as f:
+		with open(path) as f:
 			try:
 				doc = json.loads(f.read())
 			except ValueError:
-				print("bad json: {0}".format(path))
+				print(f"bad json: {path}")
 				raise
 	else:
-		raise IOError("%s missing" % path)
+		raise OSError("%s missing" % path)
 
 	return doc
 
@@ -254,7 +254,7 @@ def load_code_properties(doc, path):
 			for key, extn in doc.get_code_fields().items():
 				codefile = os.path.join(dirname, filename.split(".")[0] + "." + extn)
 				if os.path.exists(codefile):
-					with open(codefile, "r") as txtfile:
+					with open(codefile) as txtfile:
 						doc.set(key, txtfile.read())
 
 
@@ -285,6 +285,6 @@ def reset_tree_properties(doc):
 	# "rgt". They are automatically set and kept up-to-date. Importing them
 	# would destroy any existing tree structure.
 	if getattr(doc.meta, "is_tree", None) and any([doc.lft, doc.rgt]):
-		print('Ignoring values of `lft` and `rgt` for {} "{}"'.format(doc.doctype, doc.name))
+		print(f'Ignoring values of `lft` and `rgt` for {doc.doctype} "{doc.name}"')
 		doc.lft = None
 		doc.rgt = None

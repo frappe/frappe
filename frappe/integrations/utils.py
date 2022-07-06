@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -50,7 +49,7 @@ def create_request_log(
 	error=None,
 	request_headers=None,
 	output=None,
-	**kwargs
+	**kwargs,
 ):
 	"""
 	DEPRECATED: The parameter integration_type will be removed in the next major release.
@@ -102,7 +101,7 @@ def get_payment_gateway_controller(payment_gateway):
 	gateway = frappe.get_doc("Payment Gateway", payment_gateway)
 	if gateway.gateway_controller is None:
 		try:
-			return frappe.get_doc("{0} Settings".format(payment_gateway))
+			return frappe.get_doc(f"{payment_gateway} Settings")
 		except Exception:
 			frappe.throw(_("{0} Settings not found").format(payment_gateway))
 	else:
@@ -116,7 +115,7 @@ def get_payment_gateway_controller(payment_gateway):
 def get_checkout_url(**kwargs):
 	try:
 		if kwargs.get("payment_gateway"):
-			doc = frappe.get_doc("{0} Settings".format(kwargs.get("payment_gateway")))
+			doc = frappe.get_doc("{} Settings".format(kwargs.get("payment_gateway")))
 			return doc.get_payment_url(**kwargs)
 		else:
 			raise Exception

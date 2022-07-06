@@ -3,13 +3,8 @@
 
 frappe.ui.form.on('User Type', {
 	refresh: function(frm) {
-		frm.toggle_display('is_standard', frappe.boot.developer_mode);
-		frm.set_df_property('is_standard', 'read_only', !frappe.boot.developer_mode);
-
-		const fields = ['role', 'apply_user_permission_on', 'user_id_field',
-			'user_doctypes', 'user_type_modules'];
-
-		frm.toggle_display(fields, !frm.doc.is_standard);
+		if (frm.is_new() && !frappe.boot.developer_mode)
+			frm.set_value('is_standard', 1);
 
 		frm.set_query('document_type', 'user_doctypes', function() {
 			return {

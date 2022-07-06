@@ -100,8 +100,8 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
+	if not frappe.has_permission(doctype, parent_doctype=parent):
+		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
 	if isinstance(filters, str):
@@ -143,7 +143,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 @frappe.whitelist()
 def get_single_value(doctype, field):
 	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
+		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
 	value = frappe.db.get_single_value(doctype, field)
 	return value
 
@@ -281,12 +281,6 @@ def set_default(key, value, parent=None):
 	frappe.clear_cache(user=frappe.session.user)
 
 
-@frappe.whitelist()
-def get_default(key, parent=None):
-	"""set a user default value"""
-	return frappe.db.get_default(key, parent)
-
-
 @frappe.whitelist(methods=["POST", "PUT"])
 def make_width_property_setter(doc):
 	"""Set width Property Setter
@@ -355,13 +349,13 @@ def get_js(items):
 			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
 		contentpath = os.path.join(frappe.local.sites_path, *src)
-		with open(contentpath, "r") as srcfile:
+		with open(contentpath) as srcfile:
 			code = frappe.utils.cstr(srcfile.read())
 
 		if frappe.local.lang != "en":
 			messages = frappe.get_lang_dict("jsfile", contentpath)
 			messages = json.dumps(messages)
-			code += "\n\n$.extend(frappe._messages, {})".format(messages)
+			code += f"\n\n$.extend(frappe._messages, {messages})"
 
 		out.append(code)
 
@@ -385,7 +379,7 @@ def attach_file(
 	is_private=None,
 	docfield=None,
 ):
-	"""Attach a file to Document (POST)
+	"""Attach a file to Document
 
 	:param filename: filename e.g. test-file.txt
 	:param filedata: base64 encode filedata which must be urlencoded
@@ -396,17 +390,10 @@ def attach_file(
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)"""
 
-	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
-
-	if request_method.upper() != "POST":
-		frappe.throw(_("Invalid Request"))
-
 	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission()
 
-	if not doc.has_permission():
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-	_file = frappe.get_doc(
+	file = frappe.get_doc(
 		{
 			"doctype": "File",
 			"file_name": filename,
@@ -418,14 +405,13 @@ def attach_file(
 			"content": filedata,
 			"decode": decode_base64,
 		}
-	)
-	_file.save()
+	).save()
 
 	if docfield and doctype:
-		doc.set(docfield, _file.file_url)
+		doc.set(docfield, file.file_url)
 		doc.save()
 
-	return _file.as_dict()
+	return file
 
 
 @frappe.whitelist()

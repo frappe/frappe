@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.email.queue import clear_outbox
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestEmailQueue(FrappeTestCase):
 	def test_email_queue_deletion_based_on_modified_date(self):
+		from frappe.email.doctype.email_queue.email_queue import EmailQueue
+
 		old_record = frappe.get_doc(
 			{
 				"doctype": "Email Queue",
@@ -32,7 +32,7 @@ class TestEmailQueue(FrappeTestCase):
 		new_record = frappe.copy_doc(old_record)
 		new_record.insert()
 
-		clear_outbox()
+		EmailQueue.clear_old_logs()
 
 		self.assertFalse(frappe.db.exists("Email Queue", old_record.name))
 		self.assertFalse(frappe.db.exists("Email Queue Recipient", {"parent": old_record.name}))

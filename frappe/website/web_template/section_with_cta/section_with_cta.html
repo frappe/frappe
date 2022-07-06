@@ -1,19 +1,19 @@
 <div class="section-cta-container">
 	<div class="section-cta">
-		<h2 class="title mt-0">{{ title }}</h2>
+		<h2 class="title mt-0">{{ _(title) }}</h2>
 		{%- if subtitle -%}
-		<p class="subtitle">{{ subtitle }}</p>
+		<p class="subtitle">{{ _(subtitle) }}</p>
 		{%- endif -%}
 		<div class="mt-3">
 			<h4 class="action">
-				<a href="{{ cta_url }}" class="no-decoration">{{ cta_label }}
-					<svg class="icon icon-md"><use xlink:href="#icon-right"></use></svg>
+				<a href="{{ cta_url }}" class="no-decoration">{{ _(cta_label) }}
+					<svg class="icon icon-md"><use href="#icon-right"></use></svg>
 				</a>
 			</h4>
 		</div>
 		{%- if cta_description -%}
 		<div class="description">
-			{{ cta_description }}
+			{{ _(cta_description) }}
 		</div>
 		{%- endif -%}
 	</div>
