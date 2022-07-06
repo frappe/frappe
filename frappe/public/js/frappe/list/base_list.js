@@ -50,10 +50,11 @@ frappe.views.BaseList = class BaseList {
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 
+
+		// Setup args
 		this.fields = [];
 
-		// Setup filters, sort_by and sort_order
-		const [filters, sort_by, sort_order] = this.parse_route_options(frappe.route_options)
+		const [filters, sort_by, sort_order] = this.convert_from_route_options(frappe.route_options)
 		this.filters = filters !== null ? filters : (this.settings.filters || []).map((f) => {
 			if (f.length === 3) {
 				f = [this.doctype, f[0], f[1], f[2]];
@@ -61,7 +62,7 @@ frappe.views.BaseList = class BaseList {
 			return f;
 		});
 
-		this.sort_by = sort_by || this.settings.sort_by || "modified";
+		this.sort_by = sort_by || this.settings.get_fieldssort_by || "modified";
 		this.sort_order = sort_order || this.settings.sort_order || "desc";
 
 		// Setup buttons
@@ -514,9 +515,15 @@ frappe.views.BaseList = class BaseList {
 	after_render() {}
 	render() {}
 
+	resolve_route_options() {
+		return this.convert_to_route_options(this.filters, this.sort_by, this.sort_order);
+	}
+
 	update_route_options() {
-		const route_options = this.convert_to_route_options(this.filters, this.sort_by, this.sort_order);
-		frappe.router.replace_route_options(route_options);
+		frappe.router.replace_route_options({
+			...frappe.route_options,
+			...this.resolve_route_options()
+		});
 	}
 
 	on_filter_change(filters) {
@@ -556,7 +563,7 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
-	parse_route_options(route_options) {
+	convert_from_route_options(route_options) {
 		const filters = route_options.filters ? Object.entries(route_options.filters).reduce((acc, [field, value]) => {
 			let doctype = null;
 
@@ -765,8 +772,8 @@ class FilterArea {
 		if (!this.prevent_onchange) {
 			const next_filters = this.get();
 			// Should be removed once all edge cases are solved
-			const changed = JSON.stringify(next_filters) != this.prev_filters
-			this.prev_filters = JSON.stringify(next_filters);
+			const changed = !frappe.utils.deep_equal(next_filters, this.prev_filters)
+			this.prev_filters = next_filters
 			if (changed) {
 				this.list_view.on_filter_change(this.get());
 			} else {

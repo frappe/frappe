@@ -46,6 +46,10 @@ frappe.ui.GroupBy = class {
 		});
 	}
 
+	trigger_on_change() {
+		this.report_view.on_group_by_change(this.get());
+	}
+
 	// TODO: make common with filter popover
 	set_popover_events() {
 		$(document.body).on('click', (e) => {
@@ -96,30 +100,33 @@ frappe.ui.GroupBy = class {
 		} else {
 			// set default to count
 			this.aggregate_function_select.val('count');
-			this.aggregate_function = 'count';
 		}
 
 		this.toggle_aggregate_on_field();
+		this.update_group_by_button();
 		this.aggregate_on && this.aggregate_on_select.val(this.aggregate_on_field);
-
 		this.set_group_by_events();
 	}
 
 	set_group_by_events() {
-		// try running on change
+		// try running fon change
 		this.group_by_select.on('change', () => {
 			this.group_by_field = this.group_by_select.val();
 			this.group_by_doctype = this.group_by_select
 				.find(':selected')
 				.attr('data-doctype');
-			this.apply_group_by_and_refresh();
+			if (this.is_valid()) {
+				this.trigger_on_change()
+			}
 		});
 
 		this.aggregate_function_select.on('change', () => {
 			//Set aggregate on options as numeric fields if function is sum or average
 			this.toggle_aggregate_on_field();
 			this.aggregate_function = this.aggregate_function_select.val();
-			this.apply_group_by_and_refresh();
+			if (this.is_valid()) {
+				this.trigger_on_change()
+			}
 		});
 
 		this.aggregate_on_select.on('change', () => {
@@ -127,12 +134,15 @@ frappe.ui.GroupBy = class {
 			this.aggregate_on_doctype = this.aggregate_on_select
 				.find(':selected')
 				.attr('data-doctype');
-			this.apply_group_by_and_refresh();
+			if (this.is_valid()) {
+				this.trigger_on_change()
+			}
 		});
 
 		this.remove_group_by_button.on('click', () => {
-			if (this.group_by) {
-				this.remove_group_by();
+			if (this.group_by_field) {
+				this.set(null);
+				this.trigger_on_change();
 				this.toggle_aggregate_on_field_display(false);
 			}
 		});
@@ -178,59 +188,38 @@ frappe.ui.GroupBy = class {
 		this.aggregate_on_select.parent().toggle(show);
 	}
 
-	get_settings() {
-		if (this.group_by) {
+	get() {
+		if (this.group_by_field) {
 			return {
-				group_by: this.group_by,
+				group_by: [this.group_by_field, this.group_by_doctype],
 				aggregate_function: this.aggregate_function,
-				aggregate_on: this.aggregate_on,
+				aggregate_on: [this.aggregate_on_field, this.aggregate_on_doctype]
 			};
 		} else {
 			return null;
 		}
 	}
 
-	apply_settings(settings) {
-		let get_fieldname = (name) => name.split('.')[1].replace(/`/g, '');
-		let get_doctype = (name) =>
-			name
-				.split('.')[0]
-				.replace(/`/g, '')
-				.replace('tab', '');
-
-		if (!settings.group_by.startsWith('`tab')) {
-			settings.group_by =
-				'`tab' + this.doctype + '`.`' + settings.group_by + '`';
+	set(value) {
+		if (value && value.group_by) {
+			this.group_by_field = value.group_by[0]
+			this.group_by_doctype = value.group_by[1]
+		} else {
+			this.group_by_field = null;
+			this.group_by_doctype = null;
 		}
 
-		if (settings.aggregate_on && !settings.aggregate_on.startsWith('`tab')) {
-			const aggregate_on_doctype = this.get_aggregate_on_doctype(settings);
-			settings.aggregate_on =
-				'`tab' + aggregate_on_doctype + '`.`' + settings.aggregate_on + '`';
+		if (value && value.aggregate_on) {
+			this.aggregate_on_field = value.aggregate_on[0]
+			this.aggregate_on_doctype = value.aggregate_on[1]
+		} else {
+			this.aggregate_on_field = null;
+			this.aggregate_on_doctype = null;
 		}
 
-		// Extract fieldname from `tabdoctype`.`fieldname`
-		this.group_by_field = get_fieldname(settings.group_by);
-		this.group_by_doctype = get_doctype(settings.group_by);
+		this.aggregate_function = value && value.aggregate_function || 'count'
 
-		this.aggregate_function = settings.aggregate_function;
-
-		if (settings.aggregate_on) {
-			this.aggregate_on_field = get_fieldname(settings.aggregate_on);
-			this.aggregate_on_doctype = get_doctype(settings.aggregate_on);
-		}
-
-		this.apply_group_by();
 		this.update_group_by_button();
-	}
-
-	get_aggregate_on_doctype(settings) {
-		for (let doctype of Object.keys(this.all_fields)) {
-			const dt_fields = this.all_fields[doctype];
-			if (dt_fields.find((field) => field.fieldname == settings.aggregate_on)) {
-				return doctype;
-			}
-		}
 	}
 
 	make_group_by_button() {
@@ -250,25 +239,15 @@ frappe.ui.GroupBy = class {
 		this.group_by_button = this.page.wrapper.find('.group-by-button');
 	}
 
-	apply_group_by() {
-		this.group_by =
-			'`tab' + this.group_by_doctype + '`.`' + this.group_by_field + '`';
-
+	is_valid() {
 		if (this.aggregate_function === 'count') {
 			this.aggregate_on_field = null;
 			this.aggregate_on_doctype = null;
-		} else {
-			this.aggregate_on =
-				'`tab' +
-				this.aggregate_on_doctype +
-				'`.`' +
-				this.aggregate_on_field +
-				'`';
 		}
 
 		//All necessary fields must be set before applying group by
 		if (
-			!this.group_by ||
+			!this.group_by_field ||
 			!this.aggregate_function ||
 			(!this.aggregate_on_field && this.aggregate_function !== 'count')
 		) {
@@ -276,105 +255,6 @@ frappe.ui.GroupBy = class {
 		}
 
 		return true;
-	}
-
-	apply_group_by_and_refresh() {
-		if (this.apply_group_by()) {
-			this.report_view.refresh();
-		}
-	}
-
-	set_args(args) {
-		if (this.aggregate_function && this.group_by) {
-			this.report_view.group_by = this.group_by;
-			this.report_view.sort_by = '_aggregate_column';
-			this.report_view.sort_order = 'desc';
-
-			// save original fields
-			if (
-				!this.report_view.fields.map((f) => f[0]).includes('_aggregate_column')
-			) {
-				this.original_fields = this.report_view.fields.map((f) => f);
-			}
-
-			this.report_view.fields = [[this.group_by_field, this.group_by_doctype]];
-
-			// rebuild fields for group by
-			args.fields = this.report_view.get_fields();
-
-			// add aggregate column in both query args and report views
-			this.report_view.fields.push([
-				'_aggregate_column',
-				this.aggregate_on_doctype || this.doctype,
-			]);
-
-			// setup columns in datatable
-			this.report_view.setup_columns();
-
-			Object.assign(args, {
-				with_comment_count: false,
-				aggregate_on_field: this.aggregate_on_field || 'name',
-				aggregate_on_doctype: this.aggregate_on_doctype || this.doctype,
-				aggregate_function: this.aggregate_function || 'count',
-				group_by: this.report_view.group_by || null,
-				order_by: '_aggregate_column desc',
-			});
-		}
-	}
-
-	get_group_by_docfield() {
-		// called from build_column
-		let docfield = {};
-		if (this.aggregate_function === 'count') {
-			docfield = {
-				fieldtype: 'Int',
-				label: __('Count'),
-				parent: this.doctype,
-				width: 200,
-			};
-		} else {
-			// get properties of "aggregate_on", for example Net Total
-			docfield = Object.assign(
-				{},
-				frappe.meta.docfield_map[this.aggregate_on_doctype][
-					this.aggregate_on_field
-				]
-			);
-
-			if (this.aggregate_function === 'sum') {
-				docfield.label = __('Sum of {0}', [docfield.label]);
-			} else {
-				docfield.label = __('Average of {0}', [docfield.label]);
-			}
-		}
-
-		docfield.fieldname = '_aggregate_column';
-		return docfield;
-	}
-
-	remove_group_by() {
-		this.order_by = '';
-		this.group_by = null;
-		this.group_by_field = null;
-		this.report_view.group_by = null;
-		this.aggregate_function = 'count';
-		this.aggregate_on = null;
-		this.aggregate_on_field = null;
-		this.group_by_select.val('');
-		this.aggregate_function_select.val('count');
-		this.aggregate_on_select.empty().val('');
-		this.aggregate_on_select.parent().hide();
-
-		// restore original fields
-		if (this.original_fields) {
-			this.report_view.fields = this.original_fields;
-		} else {
-			this.report_view.set_default_fields();
-		}
-
-		this.report_view.setup_columns();
-		this.original_fields = null;
-		this.report_view.refresh();
 	}
 
 	get_group_by_fields() {
@@ -412,6 +292,12 @@ frappe.ui.GroupBy = class {
 		const button_label = group_by_applied
 			? __("Group By {0}", [this.get_group_by_field_label()])
 			: __('Add Group');
+
+		if (this.wrapper) {
+			this.group_by_select.val(this.group_by_field);
+			this.aggregate_function_select.val(this.aggregate_function);
+			this.aggregate_on_select.val(this.aggregate_on_field);
+		}
 
 		this.group_by_button
 			.toggleClass('btn-default', !group_by_applied)
