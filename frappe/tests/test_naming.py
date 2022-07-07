@@ -27,9 +27,9 @@ class TestNaming(unittest.TestCase):
 		"""
 		Append number to name based on existing values
 		if Bottle exists
-				Bottle -> Bottle-1
+		                Bottle -> Bottle-1
 		if Bottle-1 exists
-				Bottle -> Bottle-2
+		                Bottle -> Bottle-2
 		"""
 
 		note = frappe.new_doc("Note")
