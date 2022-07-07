@@ -15,7 +15,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	load_settings() {
 		return {
 			...super.load_settings(),
-			...frappe.views.calendar[this.doctype]
+			calendar: frappe.views.calendar[this.doctype]
 		}
 	}
 
@@ -57,7 +57,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 		this.calendar_options = await new Promise(resolve => {
 			if (this.calendar_name === 'default') {
-				Object.assign(options, this.settings);
+				Object.assign(options, this.settings.calendar);
 				resolve(options);
 			} else {
 				frappe.model.with_doc('Calendar View', this.calendar_name, () => {

@@ -55,22 +55,13 @@ frappe.views.BaseList = class BaseList {
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 
+		const filter_arg = (k, v) => v !== undefined
 
-		// Setup args
-		this.start = 0;
-		this.page_length = 20;
-		this.fields = [];
-
-		const [filters, sort_by, sort_order] = this.convert_from_route_options(frappe.route_options)
-		this.filters = filters !== null ? filters : (this.settings.filters || []).map((f) => {
-			if (f.length === 3) {
-				f = [this.doctype, f[0], f[1], f[2]];
-			}
-			return f;
+		Object.assign(this, {
+			...frappe.utils.filter_object(this.get_default_args(), filter_arg),
+			...frappe.utils.filter_object(this.get_settings_args(), filter_arg),
+			...frappe.utils.filter_object(this.get_route_options_args(), filter_arg)
 		});
-
-		this.sort_by = sort_by || this.settings.sort_by || "modified";
-		this.sort_order = sort_order || this.settings.sort_order || "desc";
 
 		// Setup buttons
 		this.primary_action = null;
@@ -83,6 +74,72 @@ frappe.views.BaseList = class BaseList {
 				class: "visible-xs",
 			},
 		];
+	}
+
+	get_route_options_args() {
+		const filters = frappe.route_options.filters ? Object.entries(frappe.route_options.filters).reduce((acc, [field, value]) => {
+			let doctype = null;
+
+			// if `Child DocType.fieldname`
+			if (field.includes(".")) {
+				doctype = field.split(".")[0];
+				field = field.split(".")[1];
+			}
+
+			// find the table in which the key exists
+			// for example the filter could be {"item_code": "X"}
+			// where item_code is in the child table.
+
+			// we can search all tables for mapping the doctype
+			if (!doctype) {
+				doctype = frappe.meta.get_doctype_for_field(
+					this.doctype,
+					field
+				);
+			}
+
+			if (doctype) {
+				if ($.isArray(value)) {
+					acc.push([doctype, field, value[0], value[1]]);
+				} else {
+					acc.push([doctype, field, "=", value]);
+				}
+			}
+			return acc
+		}, []) : undefined;
+
+		const sort_by = frappe.route_options.sort_by || undefined;
+		const sort_order = frappe.route_options.sort_order || undefined;
+
+		return {
+			filters,
+			sort_by,
+			sort_order
+		}
+	}
+
+	get_settings_args() {
+		return {
+			filters: this.settings.filters ? this.settings.filters.map((f) => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]];
+				}
+				return f;
+			}) : undefined,
+			sort_by:  this.settings.sort_by || undefined,
+			sort_order: this.settings.sort_order || undefined,
+		}
+	}
+
+	get_default_args() {
+		return {
+			start: 0,
+			page_length: 20,
+			fields: [],
+			filters: [],
+			sort_by:  "modified",
+			sort_order: "desc"
+		}
 	}
 
 	setup_fields() {
@@ -523,7 +580,15 @@ frappe.views.BaseList = class BaseList {
 	render() {}
 
 	resolve_route_options() {
-		return this.convert_to_route_options(this.filters, this.sort_by, this.sort_order);
+		return {
+			filters: this.filters.reduce((acc, [doctype, field, op, value]) => {
+				field = doctype !== this.doctype ? `${doctype}.${field}` : field
+				acc[field] = op === '=' ? value : [op, value]
+				return acc
+			}, {}),
+			sort_by: this.sort_by,
+			sort_order: this.sort_order,
+		}
 	}
 
 	update_route_options() {
@@ -568,56 +633,6 @@ frappe.views.BaseList = class BaseList {
 				}
 			},
 		});
-	}
-
-	convert_from_route_options(route_options) {
-		const filters = route_options.filters ? Object.entries(route_options.filters).reduce((acc, [field, value]) => {
-			let doctype = null;
-
-			// if `Child DocType.fieldname`
-			if (field.includes(".")) {
-				doctype = field.split(".")[0];
-				field = field.split(".")[1];
-			}
-
-			// find the table in which the key exists
-			// for example the filter could be {"item_code": "X"}
-			// where item_code is in the child table.
-
-			// we can search all tables for mapping the doctype
-			if (!doctype) {
-				doctype = frappe.meta.get_doctype_for_field(
-					this.doctype,
-					field
-				);
-			}
-
-			if (doctype) {
-				if ($.isArray(value)) {
-					acc.push([doctype, field, value[0], value[1]]);
-				} else {
-					acc.push([doctype, field, "=", value]);
-				}
-			}
-			return acc
-		}, []) : null;
-
-		const sort_by = route_options.sort_by || null;
-		const sort_order = route_options.sort_order || null;
-
-		return [filters, sort_by, sort_order]
-	}
-
-	convert_to_route_options(filters, sort_by, sort_order) {
-		return {
-			filters: filters.reduce((acc, [doctype, field, op, value]) => {
-				field = doctype !== this.doctype ? `${doctype}.${field}` : field
-				acc[field] = op === '=' ? value : [op, value]
-				return acc
-			}, {}),
-			sort_by,
-			sort_order,
-		}
 	}
 };
 

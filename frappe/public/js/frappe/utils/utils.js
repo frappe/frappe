@@ -570,6 +570,15 @@ Object.assign(frappe.utils, {
 		return arr;
 	},
 
+	filter_object: function(obj, predicate) {
+		return Object.entries(obj)
+			.filter(([k, v]) => predicate(k, v))
+			.reduce((acc, [k, v]) => {
+				acc[k] = v;
+				return acc
+			}, {});
+	},
+
 	remove_nulls: function(list) {
 		var new_list = [];
 		for (var i=0, l=list.length; i < l; i++) {

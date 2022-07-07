@@ -8,16 +8,34 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	load_settings() {
 		let settings = {
 			...super.load_settings(),
-			...frappe.views.calendar[this.doctype]
+			gantt: frappe.views.calendar[this.doctype]
 		}
 
-		if (typeof settings.gantt == 'object') {
+		if (typeof settings.gantt.gantt == 'object') {
 			settings = {
 				...settings,
-				...settings.gantt
+				gantt: {
+					...settings.gantt,
+					...settings.gantt.gantt
+				}
 			}
 		}
+
 		return settings;
+	}
+
+	get_settings_args() {
+		return {
+			...super.get_settings_args(),
+			sort_by: this.settings.gantt.field_map.start
+		}
+	}
+
+	get_default_args() {
+		return {
+			...super.get_default_args(),
+			sort_order:  'asc'
+		}
 	}
 
 	setup_defaults() {
@@ -36,7 +54,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	prepare_tasks() {
-		const field_map = this.settings.field_map;
+		const field_map = this.settings.gantt.field_map;
 		this.tasks = this.data.map((item) => {
 			// set progress
 			var progress = 0;
@@ -83,7 +101,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	render() {
-		const field_map = this.settings.field_map;
+		const field_map = this.settings.gantt.field_map;
 		const date_format = 'YYYY-MM-DD';
 
 		this.$result.empty();

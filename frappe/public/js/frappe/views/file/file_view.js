@@ -56,17 +56,21 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		});
 	}
 
+	get_default_args() {
+		return {
+			...super.get_default_args(),
+			filters: [["File", "folder", "=", this.current_folder, true]],
+			sort_by: "file_name",
+			sort_order: "asc"
+		}
+	}
+
 	setup_defaults() {
-		return super.setup_defaults().then(() => {
-			this.page_title = __("File Manager");
-
-			const route = frappe.get_route();
-			this.current_folder = route.slice(2).join("/");
-			this.filters = [["File", "folder", "=", this.current_folder, true]];
-			this.order_by = this.view_user_settings.order_by || "file_name asc";
-
-			this.menu_items = this.menu_items.concat(this.file_menu_items());
-		});
+		super.setup_defaults();
+		this.page_title = __("File Manager");
+		const route = frappe.get_route();
+		this.current_folder = route.slice(2).join("/");
+		this.menu_items = this.menu_items.concat(this.file_menu_items());
 	}
 
 	file_menu_items() {
@@ -222,18 +226,6 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			${d.is_private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ""}
 		`;
 		return d;
-	}
-
-	before_render() {
-		super.before_render();
-		frappe.model.user_settings.save(
-			"File",
-			"grid_view",
-			frappe.views.FileView.grid_view
-		);
-		this.save_view_user_settings({
-			last_folder: this.current_folder
-		});
 	}
 
 	render() {
