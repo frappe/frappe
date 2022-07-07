@@ -4,6 +4,7 @@
 import json
 from datetime import datetime
 
+import click
 from croniter import croniter
 
 import frappe
@@ -176,6 +177,12 @@ def insert_event_jobs(events: list, event_type: str) -> list:
 
 def insert_single_event(frequency: str, event: str, cron_format: str = None):
 	cron_expr = {"cron_format": cron_format} if cron_format else {}
+
+	try:
+		frappe.get_attr(event)
+	except Exception as e:
+		click.secho(f"{event} is not a valid method: {e}", fg="yellow")
+
 	doc = frappe.get_doc(
 		{
 			"doctype": "Scheduled Job Type",

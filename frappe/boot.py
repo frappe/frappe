@@ -77,6 +77,8 @@ def get_bootinfo():
 
 	# add docs
 	bootinfo.docs = doclist
+	load_country_doc(bootinfo)
+	load_currency_docs(bootinfo)
 
 	for method in hooks.boot_session or []:
 		frappe.get_attr(method)(bootinfo)
@@ -417,3 +419,34 @@ def get_translatable_doctypes():
 		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
 	)
 	return dts + custom_dts
+
+
+def load_country_doc(bootinfo):
+	country = frappe.db.get_default("country")
+	if not country:
+		return
+	try:
+		bootinfo.docs.append(frappe.get_cached_doc("Country", country))
+	except Exception:
+		pass
+
+
+def load_currency_docs(bootinfo):
+	currency = frappe.qb.DocType("Currency")
+
+	currency_docs = (
+		frappe.qb.from_(currency)
+		.select(
+			currency.name,
+			currency.fraction,
+			currency.fraction_units,
+			currency.number_format,
+			currency.smallest_currency_fraction_value,
+			currency.symbol,
+			currency.symbol_on_right,
+		)
+		.where(currency.enabled == 1)
+		.run(as_dict=1, update={"doctype": ":Currency"})
+	)
+
+	bootinfo.docs += currency_docs

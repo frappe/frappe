@@ -52,7 +52,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 
 def handle_html(data):
-	from html2text import HTML2Text
+	from frappe.core.utils import html2text
 
 	# return if no html tags found
 	data = frappe.as_unicode(data)
@@ -62,12 +62,8 @@ def handle_html(data):
 
 	h = unescape_html(data or "")
 
-	obj = HTML2Text()
-	obj.ignore_links = True
-	obj.body_width = 0
-
 	try:
-		value = obj.handle(h)
+		value = html2text(h, strip_links=True, wrap=False)
 	except Exception:
 		# unable to parse html, send it raw
 		return data

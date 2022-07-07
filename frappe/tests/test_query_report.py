@@ -6,6 +6,7 @@ import unittest
 import frappe
 import frappe.utils
 from frappe.desk.query_report import build_xlsx_data
+from frappe.utils.xlsxutils import make_xlsx
 
 
 class TestQueryReport(unittest.TestCase):
@@ -39,3 +40,28 @@ class TestQueryReport(unittest.TestCase):
 
 		for row in xlsx_data:
 			self.assertEqual(type(row), list)
+
+	def test_xlsx_export_with_composite_cell_value(self):
+		"""Test excel export using rows with composite cell value"""
+
+		data = frappe._dict()
+		data.columns = [
+			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
+			{"label": "Column B", "fieldname": "column_b", "width": 150, "fieldtype": "Data"},
+		]
+		data.result = [
+			[1.0, "Dummy 1"],
+			{"column_a": 22.1, "column_b": ["Dummy 1", "Dummy 2"]},  # composite value in column_b
+		]
+
+		# Define the visible rows
+		visible_idx = [0, 1]
+
+		# Build the result
+		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		# Export to excel
+		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
+
+		for row in xlsx_data:
+			# column_b should be 'str' even with composite cell value
+			self.assertEqual(type(row[1]), str)
