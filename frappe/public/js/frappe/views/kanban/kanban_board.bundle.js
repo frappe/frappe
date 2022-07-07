@@ -62,8 +62,8 @@ frappe.provide("frappe.views");
 				});
 			},
 			add_column: function(context, col) {
-				if(frappe.model.can_create('Custom Field')) {
-					store.dispatch('update_column', col, 'add');
+				if (frappe.model.can_create('Custom Field')) {
+					store.dispatch('update_column', {col, action: 'add'});
 				} else {
 					frappe.msgprint({
 						title: __('Not permitted'),
@@ -73,12 +73,12 @@ frappe.provide("frappe.views");
 				}
 			},
 			archive_column: function(context, col) {
-				store.dispatch('update_column', col, 'archive');
+				store.dispatch('update_column', {col, action: 'archive'});
 			},
 			restore_column: function(context, col) {
-				store.dispatch('update_column', col, 'restore');
+				store.dispatch('update_column', {col, action: 'restore'});
 			},
-			update_column: function(context, col, action) {
+			update_column: function(context, {col, action}) {
 				var doctype = context.state.doctype;
 				var board = context.state.board;
 				fetch_customization(doctype)
@@ -97,7 +97,7 @@ frappe.provide("frappe.views");
 						console.error(err); // eslint-disable-line
 					});
 			},
-			add_card: function(context, card_title, column_title) {
+			add_card: function(context, {card_title, column_title}) {
 				var state = context.state;
 				var doc = frappe.model.get_new_doc(state.doctype);
 				var field = state.card_meta.title_field;
@@ -260,7 +260,7 @@ frappe.provide("frappe.views");
 					});
 				});
 			},
-			set_indicator: function(context, column, color) {
+			set_indicator: function(context, {column, color}) {
 				return frappe.call({
 					method: method_prefix + "set_indicator",
 					args: {
@@ -596,10 +596,12 @@ frappe.provide("frappe.views");
 						var card_title = $textarea.val();
 						$new_card_area.hide();
 						$textarea.val('');
-						store.dispatch('add_card', card_title, column.title)
-							.then(() => {
-								$btn_add.show();
-							});
+						store.dispatch('add_card', {
+							card_title,
+							column_title: column.title
+						}).then(() => {
+							$btn_add.show();
+						});
 					}
 				}
 			});
@@ -622,7 +624,7 @@ frappe.provide("frappe.views");
 						store.dispatch('archive_column', column);
 					} else if (action === "indicator") {
 						var color = $btn.data().indicator;
-						store.dispatch('set_indicator', column, color);
+						store.dispatch('set_indicator', {column, color});
 					}
 				});
 			get_column_indicators(function(indicators) {
