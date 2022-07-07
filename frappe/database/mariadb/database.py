@@ -8,7 +8,7 @@ from mariadb.constants import ERR, FIELD_TYPE
 from pymysql.converters import escape_sequence, escape_string
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import Database, QueryValues
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 
@@ -227,48 +227,34 @@ class MariaDBConnectionUtil:
 class MariaDBCursorPatchUtil:
 	"""Patch mariadb.cursor.Cursor to handle things not supported by pinned version of MariaDB client."""
 
-	def _transform_query(self, query: str, values: dict) -> str:
-		"""Converts a query with named placeholders to a query with %s and values dict to a tuple.
+	def _transform_query(self, query: str, values: QueryValues) -> tuple:
+		"""Transform the query to handle things not supported by pinned version of MariaDB client.
 
-		This is a workaround since the MariaDB Python client (1.0.11) responds inconsistently
-		depending on the substitions in the query & type of values passed.
-
-		ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-205
+		Transformations:
+		        - Escape sequences in values
 		"""
-		pos_values = []
-		named_tokens = _PARAM_COMP.findall(query)
+		_values = []
 
-		for token in named_tokens:
-			key = token[2:-2]
-			val = values[key]
-			if isinstance(val, (tuple, list)):
-				val = escape_sequence(val)
-			pos_values.append(val)
-			query = query.replace(token, "%s", 1)
+		if isinstance(values, (tuple, list)):
+			for val in values:
+				if isinstance(val, (tuple, list)):
+					_values.append(escape_sequence(val, charset=self._conn.character_set))
+				else:
+					_values.append(val)
+			values = _values
+		else:
+			for token in _PARAM_COMP.findall(query):
+				key = token[2:-2]
+				try:
+					val = values[key]
+				except KeyError:
+					raise self.ProgrammingError(f"Missing value for key '{key}'")
+				if isinstance(val, (tuple, list)):
+					values[key] = escape_sequence(val, charset=self._conn.character_set)
 
-		if pos_values:
-			values = pos_values
+		return query, values or []
 
-		# Handle sequences in values - PyMySQL & Psycopg allowed them but MariaDB client doesn't
-		# This leads to a DataError. MariaDB connector expects a flat tuple. Build queries with
-		# the ['%s'] * len(values) pattern to avoid this block.
-		if isinstance(values, (tuple, list)) and any(isinstance(v, (tuple, list)) for v in values):
-			values = list(values)
-			find_iter = _FIND_ITER_PATTERN.finditer(query)
-
-			for i, val in enumerate(values):
-				pos = next(find_iter)
-				if isinstance(val, (list, tuple)):
-					query = (
-						query[: pos.start()]
-						+ escape_sequence(val, charset=self._conn.character_set)
-						+ query[pos.end() :]
-					)
-					del values[i]
-
-		return query, values or ()
-
-	def _transform_result(self, result: list[tuple], description=tuple[tuple]) -> list[tuple]:
+	def _transform_result(self, result: list[tuple]) -> list[tuple]:
 		# ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-213
 		_result = []
 		for row in result:

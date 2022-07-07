@@ -9,6 +9,7 @@ import string
 import traceback
 from contextlib import contextmanager
 from time import time
+from types import NoneType
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
 
@@ -184,7 +185,7 @@ class Database:
 		if debug:
 			time_start = time()
 
-		if not isinstance(values, (tuple, dict, list)):
+		if not isinstance(values, (NoneType, tuple, dict, list)):
 			values = (values,)
 		query, values = self._transform_query(query, values)
 
@@ -204,6 +205,11 @@ class Database:
 			elif self.db_type == "postgres":
 				traceback.print_stack()
 				frappe.errprint(f"Error in query:\n{e}")
+				raise
+
+			elif isinstance(e, self.ProgrammingError):
+				traceback.print_stack()
+				frappe.errprint(f"Error in query:\n{query, values}")
 				raise
 
 			if not (
@@ -284,11 +290,9 @@ class Database:
 			return self._cursor.mogrify(query, values)
 		except AttributeError:
 			if isinstance(values, dict):
-				return query.format(
-					**{k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
-				)
+				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
 			elif isinstance(values, (list, tuple)):
-				return query.format(*(frappe.db.escape(v) if isinstance(v, str) else v for v in values))
+				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
 			return query, values
 
 	def lazy_mogrify(self, query: Query, values: QueryValues) -> LazyMogrify:
