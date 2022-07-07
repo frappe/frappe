@@ -4,10 +4,15 @@
 
 from __future__ import unicode_literals
 
+from typing import TYPE_CHECKING
+
 import frappe
 from frappe import _, safe_encode
 from frappe.model.document import Document
 from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.user.user import User
 
 
 class LDAPSettings(Document):
@@ -137,7 +142,7 @@ class LDAPSettings(Document):
 			setattr(user, key, value)
 		user.save(ignore_permissions=True)
 
-	def sync_roles(self, user, additional_groups=None):
+	def sync_roles(self, user: "User", additional_groups=None):
 
 		current_roles = set([d.role for d in user.get("roles")])
 
@@ -161,7 +166,9 @@ class LDAPSettings(Document):
 		user.remove_roles(*roles_to_remove)
 
 	def create_or_update_user(self, user_data, groups=None):
-		user = None
+		user: "User" = None
+		role: str = None
+
 		if frappe.db.exists("User", user_data["email"]):
 			user = frappe.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
@@ -172,16 +179,20 @@ class LDAPSettings(Document):
 					"doctype": "User",
 					"send_welcome_email": 0,
 					"language": "",
-					"user_type": "System User",
-					# "roles": [{
-					# 	"role": self.default_role
-					# }]
+					"user_type": self.default_user_type,
 				}
 			)
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
-		# always add default role.
-		user.add_roles(self.default_role)
+
+		if self.default_user_type == "System User":
+			role = self.default_role
+		else:
+			role = frappe.db.get_value("User Type", user.user_type, "role")
+
+		if role:
+			user.add_roles(role)
+
 		self.sync_roles(user, groups)
 
 		return user
