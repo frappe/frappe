@@ -264,8 +264,20 @@ export default {
 						total: 0,
 						failed: false,
 						uploading: false,
+<<<<<<< HEAD
 						private: !is_image
 					}
+=======
+						private: true
+					};
+				});
+
+			// pop extra files as per FileUploader.restrictions.max_number_of_files
+			max_number_of_files = this.restrictions.max_number_of_files;
+			if (max_number_of_files && files.length > max_number_of_files) {
+				files.slice(max_number_of_files).forEach(file => {
+					this.show_max_files_number_warning(file, this.doctype);
+>>>>>>> 5d01fffac5 (fix: Set files private by default)
 				});
 			this.files = this.files.concat(files);
 		},
