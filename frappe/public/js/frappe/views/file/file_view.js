@@ -6,12 +6,6 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		return "File";
 	}
 
-	show() {
-		if (!redirect_to_home_if_invalid_route()) {
-			super.show();
-		}
-	}
-
 	setup_view() {
 		this.render_header();
 		this.setup_events();
@@ -66,10 +60,9 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
+		this.current_folder = "Home"
 		super.setup_defaults();
 		this.page_title = __("File Manager");
-		const route = frappe.get_route();
-		this.current_folder = route.slice(2).join("/");
 		this.menu_items = this.menu_items.concat(this.file_menu_items());
 	}
 
@@ -476,16 +469,3 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 };
 
-frappe.views.FileView.grid_view =
-	frappe.get_user_settings("File").grid_view || false;
-
-function redirect_to_home_if_invalid_route() {
-	const route = frappe.get_route();
-	if (route[2] === "List") {
-		// if the user somehow redirects to List/File/List
-		// redirect back to Home
-		frappe.set_route("List", "File", "Home");
-		return true;
-	}
-	return false;
-}
