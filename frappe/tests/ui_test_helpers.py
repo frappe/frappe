@@ -454,7 +454,7 @@ def setup_default_view():
 		{
 			"is_system_generated": 0,
 			"doctype_or_field": "DocType",
-			"doc_type": "ToDo",
+			"doc_type": "Event",
 			"property": "default_view",
 			"property_type": "Select",
 			"value": "Report",
@@ -466,7 +466,7 @@ def setup_default_view():
 		{
 			"is_system_generated": 0,
 			"doctype_or_field": "DocType",
-			"doc_type": "ToDo",
+			"doc_type": "Event",
 			"property": "force_re_route_to_default_view",
 			"property_type": "Check",
 			"value": "1",
