@@ -1,8 +1,8 @@
-from html2text import html2text
 from jinja2 import utils
 
 import frappe
 from frappe import _
+from frappe.core.utils import html2text
 from frappe.utils import sanitize_html
 from frappe.utils.global_search import web_search
 

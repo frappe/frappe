@@ -420,7 +420,7 @@ def get_roles(user=None, with_standard=True):
 
 	# filter standard if required
 	if not with_standard:
-		roles = filter(lambda x: x not in ["All", "Guest", "Administrator"], roles)
+		roles = [r for r in roles if r not in ["All", "Guest", "Administrator"]]
 
 	return roles
 

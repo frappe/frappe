@@ -549,7 +549,7 @@ def add_preload_headers(response):
 	try:
 		preload = []
 		strainer = SoupStrainer(re.compile("script|link"))
-		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
+		soup = BeautifulSoup(response.data, "html.parser", parse_only=strainer)
 		for elem in soup.find_all("script", src=re.compile(".*")):
 			preload.append(("script", elem.get("src")))
 

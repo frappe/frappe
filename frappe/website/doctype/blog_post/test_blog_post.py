@@ -57,7 +57,7 @@ class TestBlogPost(FrappeTestCase):
 		blog_page_html = frappe.safe_decode(blog_page_response.get_data())
 
 		# On blog post page find link to the category page
-		soup = BeautifulSoup(blog_page_html, "lxml")
+		soup = BeautifulSoup(blog_page_html, "html.parser")
 		category_page_link = list(soup.find_all("a", href=re.compile(blog.blog_category)))[0]
 		category_page_url = category_page_link["href"]
 
