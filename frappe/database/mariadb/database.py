@@ -48,7 +48,7 @@ class MariaDBExceptionUtil:
 	DataError = mariadb.DataError
 
 	# match ER_SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
-	SequenceGeneratorLimitExceeded = mariadb.ProgrammingError
+	SequenceGeneratorLimitExceeded = mariadb.OperationalError
 	SequenceGeneratorLimitExceeded.errno = 4084
 
 	@staticmethod
