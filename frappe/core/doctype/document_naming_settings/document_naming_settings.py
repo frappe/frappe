@@ -69,11 +69,15 @@ class DocumentNamingSettings(Document):
 		evalauted_prefix.update(prefixes_from_db)
 
 		for series_template in series_templates:
-			prefix = NamingSeries(series_template).get_prefix()
-			if "{" in prefix:
-				# fieldnames can't be evalauted, rely on data in DB instead
-				continue
-			evalauted_prefix.add(prefix)
+			try:
+				prefix = NamingSeries(series_template).get_prefix()
+				if "{" in prefix:
+					# fieldnames can't be evalauted, rely on data in DB instead
+					continue
+				evalauted_prefix.add(prefix)
+			except Exception:
+				frappe.clear_last_message()
+				frappe.log_error(f"Invalid naming series {series_template}")
 
 		return sorted(evalauted_prefix)
 
