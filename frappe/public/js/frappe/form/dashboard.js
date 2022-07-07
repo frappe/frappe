@@ -414,15 +414,23 @@ frappe.ui.form.Dashboard = class FormDashboard {
 					if (typeof link === 'string' || link instanceof String) {
 						// get internal links in parent document
 						let value = me.frm.doc[link];
+						const field_meta = me.frm.fields_dict[link];
 						if (value && !names.includes(value)) {
+							if (field_meta.fieldtype === "Dynamic Link" && me.frm.doc[field_meta.options] !== doctype) {
+								return;
+							}
 							names.push(value);
 						}
 					} else if (Array.isArray(link)) {
 						// get internal links in child documents
 						let [table_fieldname, link_fieldname] = link;
+						const field_meta = me.frm.fields_dict[table_fieldname].grid.fields_map[link_fieldname];
 						(me.frm.doc[table_fieldname] || []).forEach(d => {
 							let value = d[link_fieldname];
 							if (value && !names.includes(value)) {
+								if (field_meta.fieldtype === "Dynamic Link" && d[field_meta.options] !== doctype) {
+									return;
+								}
 								names.push(value);
 							}
 						});
