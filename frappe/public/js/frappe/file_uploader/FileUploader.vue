@@ -264,7 +264,7 @@ export default {
 						total: 0,
 						failed: false,
 						uploading: false,
-						private: !is_image
+						private: true
 					}
 				});
 			this.files = this.files.concat(files);
