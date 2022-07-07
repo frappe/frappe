@@ -9,7 +9,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_reports
+from frappe.boot import get_allowed_report_names
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -43,10 +43,7 @@ def get_permission_query_conditions(user):
 	allowed_doctypes = [
 		frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()
 	]
-	allowed_reports = [
-		frappe.db.escape(key) if type(key) == str else key.encode("UTF8")
-		for key in get_allowed_reports()
-	]
+	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names()]
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
@@ -86,10 +83,7 @@ def has_permission(doc, ptype, user):
 		return True
 
 	if doc.chart_type == "Report":
-		allowed_reports = [
-			key if type(key) == str else key.encode("UTF8") for key in get_allowed_reports()
-		]
-		if doc.report_name in allowed_reports:
+		if doc.report_name in get_allowed_report_names():
 			return True
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
