@@ -44,10 +44,10 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 	async init() {
 		await super.init()
-		await this.load_calendar_options();
+		this.calendar_options = await this.get_calendar_options();
 	}
 
-	async load_calendar_options() {
+	async get_calendar_options() {
 		const options = {
 			doctype: this.doctype,
 			parent: this.$result,
@@ -55,7 +55,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			list_view: this
 		};
 
-		this.calendar_options = await new Promise(resolve => {
+		return await new Promise(resolve => {
 			if (this.calendar_name === 'default') {
 				Object.assign(options, this.settings.calendar);
 				resolve(options);
