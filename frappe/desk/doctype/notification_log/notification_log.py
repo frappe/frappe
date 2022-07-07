@@ -71,14 +71,15 @@ def make_notification_logs(doc, users):
 	)
 
 	for user in users:
-		if frappe.db.exists("User", {"email": user, "enabled": 1}):
+		username = frappe.db.exists("User", {"email": user, "enabled": 1})
+		if username:
 			if is_notifications_enabled(user):
 				if doc.type == "Energy Point" and not is_energy_point_enabled():
 					return
 
 				_doc = frappe.new_doc("Notification Log")
 				_doc.update(doc)
-				_doc.for_user = user
+				_doc.for_user = username
 				if _doc.for_user != _doc.from_user or doc.type == "Energy Point" or doc.type == "Alert":
 					_doc.insert(ignore_permissions=True)
 
