@@ -1,12 +1,25 @@
-
+import localforage from "localforage";
 import PhonePicker from '../../phone_picker/phone_picker';
 
 frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlData {
 
-	make_input() {
+	async make_input() {
+		await this.setup_country_codes();
 		super.make_input();
 		this.setup_country_code_picker();
 		this.input_events();
+	}
+
+	async setup_country_codes() {
+		const key = "country_code_info"
+		let data = await localforage.getItem(key);
+		if (data) {
+			this.country_codes = data;
+		} else {
+			const data = await frappe.xcall("frappe.geo.country_info.get_country_timezone_info");
+			this.country_codes = data?.country_info;
+			localforage.setItem(key, this.country_codes);
+		}
 	}
 
 	input_events() {
@@ -22,10 +35,10 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		// Replaces code when selected and removes previously selected.
 		this.country_code_picker.on_change = (country) => {
 			if (!country) {
-				return this.reset_inputx();
+				return this.reset_input();
 			}
-			const country_code = frappe.boot.country_codes[country].code;
-			const country_isd = frappe.boot.country_codes[country].isd;
+			const country_code = this.country_codes[country].code;
+			const country_isd = this.country_codes[country].isd;
 			this.set_flag(country_code);
 			this.$icon = this.selected_icon.find('svg');
 			this.$flag = this.selected_icon.find('img');
@@ -69,7 +82,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		let picker_wrapper = $('<div>');
 		this.country_code_picker = new PhonePicker({
 			parent: picker_wrapper,
-			countries: frappe.boot.country_codes
+			countries: this.country_codes
 		});
 
 		this.$wrapper.popover({
@@ -119,6 +132,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 
 	reset_input() {
+		if (!this.$input) return;
 		this.$input.val("");
 		this.$wrapper.find('.country').text("");
 		if (this.selected_icon.find('svg').hasClass('hide')) {
@@ -128,7 +142,10 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.$input.css("padding-left", 30);
 	}
 
-	set_formatted_input(value) {
+	async set_formatted_input(value) {
+		if (!this.country_codes) {
+			await this.setup_country_codes();
+		}
 		if (value && value.includes('-') && value.split('-').length == 2)  {
 			let isd = this.value.split("-")[0];
 			this.get_country_code_and_change_flag(isd);
@@ -158,7 +175,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	// country_code for India is 'in'
 	get_country_code_and_change_flag(isd) {
-		let country_data = frappe.boot.country_codes;
+		let country_data = this.country_codes;
 		let flag = this.selected_icon.find('img');
 		for (const country in country_data) {
 			if (Object.values(country_data[country]).includes(isd)) {
@@ -175,12 +192,12 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 
 	get_country(country) {
-		const country_codes = frappe.boot.country_codes;
+		const country_codes = this.country_codes;
 		return country_codes[country].isd;
 	}
 
 	get_country_flag(country) {
-		const country_codes = frappe.boot.country_codes;
+		const country_codes = this.country_codes;
 		let code = country_codes[country].code;
 		return frappe.utils.flag(code);
 	}

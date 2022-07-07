@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_reports
+from frappe.boot import get_allowed_report_names
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -91,10 +91,7 @@ def has_permission(doc, ptype, user):
 		return True
 
 	if doc.type == "Report":
-		allowed_reports = [
-			key if type(key) == str else key.encode("UTF8") for key in get_allowed_reports()
-		]
-		if doc.report_name in allowed_reports:
+		if doc.report_name in get_allowed_report_names():
 			return True
 	else:
 		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())

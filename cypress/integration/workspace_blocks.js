@@ -105,7 +105,7 @@ context('Workspace Blocks', () => {
 		// test filter-list
 		cy.get('@todo-quick-list').realHover().find('.widget-control .filter-list').click();
 
-		cy.get_open_dialog().find('.filter-field .input-with-feedback').clear().type('Approved');
+		cy.get_open_dialog().find('.filter-field .input-with-feedback').type('{selectall}Approved');
 		cy.get_open_dialog().find('.modal-header').click();
 		cy.get_open_dialog().find('.btn-primary').click();
 
