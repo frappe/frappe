@@ -42,7 +42,10 @@
   "column_break_33",
   "ldap_group_member_attribute",
   "ldap_group_mappings_section",
+  "default_user_type",
+  "column_break_38",
   "default_role",
+  "section_break_40",
   "ldap_groups",
   "ldap_group_field"
  ],
@@ -79,9 +82,11 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval: doc.default_user_type == \"System User\"",
    "fieldname": "default_role",
    "fieldtype": "Link",
-   "label": "Default Role on Creation",
+   "label": "Default User Role",
+   "mandatory_depends_on": "eval: doc.default_user_type == \"System User\"",
    "options": "Role",
    "reqd": 1
   },
@@ -249,10 +254,10 @@
    "label": "Group Object Class"
   },
   {
-    "description": "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com",
-    "fieldname": "ldap_custom_group_search",
-    "fieldtype": "Data",
-    "label": "Custom Group Search"
+   "description": "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com",
+   "fieldname": "ldap_custom_group_search",
+   "fieldtype": "Data",
+   "label": "Custom Group Search"
   },
   {
    "description": "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com",
@@ -268,12 +273,28 @@
    "fieldtype": "Data",
    "label": "LDAP search path for Groups",
    "reqd": 1
+  },
+  {
+   "fieldname": "default_user_type",
+   "fieldtype": "Link",
+   "label": "Default User Type",
+   "options": "User Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_40",
+   "fieldtype": "Section Break",
+   "hide_border": 1
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-07-27 11:51:43.328271",
+ "modified": "2022-07-07 16:51:46.230793",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
@@ -294,5 +315,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
