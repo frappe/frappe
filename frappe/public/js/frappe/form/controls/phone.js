@@ -119,7 +119,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 
 	reset_input() {
-		if (this.df.hidden) return;
+		if (!this.$input) return;
 		this.$input.val("");
 		this.$wrapper.find('.country').text("");
 		if (this.selected_icon.find('svg').hasClass('hide')) {
