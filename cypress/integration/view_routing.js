@@ -9,6 +9,7 @@ context('View', () => {
 
 	it('Re-route to default view', () => {
 		cy.go_to_list('Event');
+		cy.wait(500);
 		cy.location('pathname').should('eq', `/app/event/view/report`);
 	});
 });
