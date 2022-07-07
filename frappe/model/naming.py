@@ -77,7 +77,7 @@ class NamingSeries:
 		parse_naming_series(self.series, number_generator=fake_counter_backend)
 
 		if prefix is None:
-			frappe.throw(_("Invalid Naming Series"))
+			frappe.throw(_("Invalid Naming Series: {}").format(self.series))
 
 		return prefix
 

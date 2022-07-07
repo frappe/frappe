@@ -11,7 +11,6 @@ The following 3rd-party software packages may be used by or distributed with <ht
 - Leaflet.Locate - (c) 2016 Dominik Moritz
 - Leaflet.draw - (c) 2012-2017, Jacob Toye, Jon West, Smartrak
 - Leaflet.EasyButton - MIT License, (C) 2014 Daniel Montague
-- Fluxify - GNU GENERAL PUBLIC LICENSE Version 2 (C) 1989 - 1991 Free Software Foundation, Inc., <http://fsf.org/>
 
 ### Icon Fonts
 

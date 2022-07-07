@@ -41,7 +41,7 @@
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.9.0",
     "localforage": "^1.9.0",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.28",
     "plyr": "^3.7.2",
     "popper.js": "^1.16.0",
@@ -60,7 +60,8 @@
     "touch": "^3.1.0",
     "vue": "2.6.14",
     "vue-router": "^2.0.0",
-    "vuedraggable": "^2.24.3"
+    "vuedraggable": "^2.24.3",
+    "vuex": "3"
   },
   "devDependencies": {
     "@frappe/esbuild-plugin-postcss2": "^0.1.3",
