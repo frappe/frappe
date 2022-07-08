@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 class LDAPSettings(Document):
 	def validate(self):
+		self.default_user_type = self.default_user_type or "System User"
+
 		if not self.enabled:
 			return
 
