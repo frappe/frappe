@@ -298,6 +298,7 @@ def set_default(key, value, parent=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
+<<<<<<< HEAD
 def make_width_property_setter(doc):
 	"""Set width Property Setter
 
@@ -309,6 +310,8 @@ def make_width_property_setter(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
+=======
+>>>>>>> 6597dedaed (chore!: remove unused APIs from `frappe.client` (#17446))
 def bulk_update(docs):
 	"""Bulk update documents
 
@@ -436,11 +439,6 @@ def attach_file(
 		doc.save()
 
 	return _file.as_dict()
-
-
-@frappe.whitelist()
-def get_hooks(hook, app_name=None):
-	return frappe.get_hooks(hook, app_name)
 
 
 @frappe.whitelist()
