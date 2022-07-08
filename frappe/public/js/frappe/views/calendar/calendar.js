@@ -25,9 +25,54 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		this.calendar_name = frappe.get_route()[3] || "default";
 	}
 
+	get_default_args() {
+		return {
+			...super.get_default_args(),
+			calendarWeekends: true,
+			calendarView: 'month',
+			calendarOffset: 0
+		}
+	}
+
+	get_route_options_args() {
+		let options = super.get_route_options_args();
+		const calendar = frappe.route_options.calendar
+		if (calendar) {
+			options = {
+				...options,
+				calendarWeekends: Boolean(calendar.weekends),
+				calendarView: calendar.view,
+				calendarOffset: calendar.offset
+			}
+		}
+		return options
+	}
+
+	resolve_route_options() {
+		return {
+			...super.resolve_route_options(),
+			calendar: {
+				weekends: this.calendarWeekends,
+				view: this.calendarView,
+				offset: this.calendarOffset,
+			}
+		}
+	}
+
 	setup_page() {
 		this.hide_page_form = true;
 		super.setup_page();
+	}
+
+	on_change_calendar_weekends(value) {
+		this.calendarWeekends = value;
+		this.update_route_options();
+	}
+
+	on_change_calendar_view(type, offset) {
+		this.calendarView = type;
+		this.calendarOffset = offset;
+		this.update_route_options();
 	}
 
 	setup_view() {
@@ -52,7 +97,12 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			doctype: this.doctype,
 			parent: this.$result,
 			page: this.page,
-			list_view: this
+			list_view: this,
+			on_change_view: this.on_change_calendar_view.bind(this),
+			on_change_weekends: this.on_change_calendar_weekends.bind(this),
+			weekends: this.calendarWeekends,
+			defaultView: this.calendarView,
+			offset: this.calendarOffset
 		};
 
 		return await new Promise(resolve => {
@@ -110,24 +160,11 @@ frappe.views.Calendar = class Calendar {
 			"warning": "orange",
 			"default": "blue"
 		}
-		this.get_default_options();
-	}
-	get_default_options() {
-		return new Promise ((resolve) => {
-			let defaultView = localStorage.getItem('cal_defaultView');
-			let weekends = localStorage.getItem('cal_weekends');
-			let defaults = {
-				'defaultView': defaultView ? defaultView : "month",
-				'weekends': weekends ? weekends : true
-			};
-			resolve(defaults);
-		}).then(defaults => {
-			this.make_page();
-			this.setup_options(defaults);
-			this.make();
-			this.setup_view_mode_button(defaults);
-			this.bind();
-		});
+		this.make_page();
+		this.setup_options();
+		this.make();
+		this.setup_view_mode_button();
+		this.bind();
 	}
 	make_page() {
 		var me = this;
@@ -157,31 +194,23 @@ frappe.views.Calendar = class Calendar {
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
 	}
-	setup_view_mode_button(defaults) {
-		var me = this;
+	setup_view_mode_button() {
+		const me = this;
 		$(me.footnote_area).find('.btn-weekend').detach();
-		let btnTitle = (defaults.weekends) ? __('Hide Weekends') : __('Show Weekends');
+		let btnTitle = (this.weekends) ? __('Hide Weekends') : __('Show Weekends');
 		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
 		me.footnote_area.append(btn);
 	}
-	set_localStorage_option(option, value) {
-		localStorage.removeItem(option);
-		localStorage.setItem(option, value);
-	}
 	bind() {
 		const me = this;
-		let btn_group = me.$wrapper.find(".fc-button-group");
-		btn_group.on("click", ".btn", function() {
-			let value = ($(this).hasClass('fc-agendaWeek-button')) ? 'agendaWeek' : (($(this).hasClass('fc-agendaDay-button')) ? 'agendaDay' : 'month');
-			me.set_localStorage_option("cal_defaultView", value);
-		});
-
 		me.$wrapper.on("click", ".btn-weekend", function() {
-			me.cal_options.weekends = !me.cal_options.weekends;
-			me.$cal.fullCalendar('option', 'weekends', me.cal_options.weekends);
-			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
+			me.weekends = !me.weekends;
+			me.$cal.fullCalendar('option', 'weekends', me.weekends);
 			me.set_css();
-			me.setup_view_mode_button(me.cal_options);
+			me.setup_view_mode_button();
+			if (me.on_change_weekends !== undefined) {
+				me.on_change_weekends(me.weekends);
+			}
 		});
 	}
 	set_css() {
@@ -212,15 +241,26 @@ frappe.views.Calendar = class Calendar {
 			$(this).addClass("active");
 		});
 	}
-
 	get_system_datetime(date) {
 		date._offset = (moment(date).tz(frappe.sys_defaults.time_zone)._offset);
 		return frappe.datetime.convert_to_system_tz(date);
 	}
-	setup_options(defaults) {
+	get_view_span(view) {
+		if(view === 'month') {
+			return 'months'
+		} else if(view === 'agendaWeek') {
+			return 'weeks'
+		} else if(view === 'agendaDay') {
+			return 'days'
+		}
+
+		return null;
+	}
+	setup_options() {
 		var me = this;
-		defaults.meridiem = 'false';
+		const span = this.get_view_span(this.defaultView);
 		this.cal_options = {
+			meridiem: false,
 			locale: frappe.boot.user.language || "en",
 			header: {
 				left: 'prev, title, next',
@@ -231,8 +271,9 @@ frappe.views.Calendar = class Calendar {
 			selectHelper: true,
 			forceEventDuration: true,
 			displayEventTime: true,
-			defaultView: defaults.defaultView,
-			weekends: defaults.weekends,
+			defaultView: this.defaultView,
+			defaultDate: span ? moment().add(this.offset, span) : moment(),
+			weekends: this.weekends,
 			nowIndicator: true,
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
@@ -247,6 +288,12 @@ frappe.views.Calendar = class Calendar {
 				});
 			},
 			displayEventEnd: true,
+			viewRender: function(view) {
+				if (me.on_change_view !== undefined) {
+					const span = me.get_view_span(view.type)
+					me.on_change_view(view.type, span ? view.start.diff(moment(), span) : 0 );
+				}
+			},
 			eventRender: function(event, element) {
 				element.attr('title', event.tooltip);
 			},

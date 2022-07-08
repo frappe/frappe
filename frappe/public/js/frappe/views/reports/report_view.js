@@ -32,16 +32,32 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.report_doc_settings = JSON.parse(this.report_doc.json);
 					this.filters = this.report_doc_settings.filters;
 					this.order_by = this.report_doc_settings.order_by;
-					this.set_group_by_options(this.report_doc_settings);
+					Object.assign(this, this.parse_group_by(this.report_doc_settings));
 					this.add_totals_row = this.report_doc_settings.add_totals_row;
 					this.page_title = this.report_name;
 					this.page_length = this.report_doc_settings.page_length || 20;
 					this.chart_args = this.report_doc_settings.chart_args;
 				});
-		} else if (frappe.route_options.report) {
-			const report_options = frappe.route_options.report
-			this.set_group_by_options(report_options);
-			this.add_totals_row = Boolean(report_options.add_totals_row);
+		}
+	}
+
+	get_route_options_args() {
+		let options = super.get_route_options_args();
+		const report = frappe.route_options.report
+		if (report) {
+			options = {
+				...options,
+				...this.parse_group_by(report),
+				add_totals_row: Boolean(report.add_totals_row)
+			}
+		}
+		return options
+	}
+
+	get_default_args() {
+		return {
+			...super.get_default_args(),
+			add_totals_row: false
 		}
 	}
 
@@ -129,30 +145,32 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		} : null
 	}
 
-	set_group_by_options(value) {
+	parse_group_by(value) {
+		const out = {}
 		if (value && value.group_by) {
-			this.group_by_field = value.group_by[0]
-			this.group_by_doctype = value.group_by[1]
+			out.group_by_field = value.group_by[0]
+			out.group_by_doctype = value.group_by[1]
 		} else {
-			this.group_by_field = null
-			this.group_by_doctype = null
+			out.group_by_field = null
+			out.group_by_doctype = null
 		}
 
 		if (value && value.aggregate_on) {
-			this.aggregate_on_field = value.aggregate_on[0]
-			this.aggregate_on_doctype = value.aggregate_on[1]
+			out.aggregate_on_field = value.aggregate_on[0]
+			out.aggregate_on_doctype = value.aggregate_on[1]
 		} else {
-			this.aggregate_on_field = null
-			this.aggregate_on_doctype = null
+			out.aggregate_on_field = null
+			out.aggregate_on_doctype = null
 		}
 
-		this.aggregate_function = value && value.aggregate_function || null
+		out.aggregate_function = value && value.aggregate_function || null
+		return out
 	}
 
 	on_group_by_change(value) {
-		this.set_group_by_options(value)
-		this.update_route_options()
-		this.refresh()
+		Object.assign(this, this.parse_group_by(value));
+		this.update_route_options();
+		this.refresh();
 	}
 
 	get_fields() {
