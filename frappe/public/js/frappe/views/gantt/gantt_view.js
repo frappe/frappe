@@ -5,9 +5,9 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		return 'Gantt';
 	}
 
-	load_settings() {
+	get_settings() {
 		let settings = {
-			...super.load_settings(),
+			...super.get_settings(),
 			gantt: frappe.views.calendar[this.doctype]
 		}
 

@@ -12,9 +12,9 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		return 'Calendar';
 	}
 
-	load_settings() {
+	get_settings() {
 		return {
-			...super.load_settings(),
+			...super.get_settings(),
 			calendar: frappe.views.calendar[this.doctype]
 		}
 	}

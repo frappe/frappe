@@ -8,40 +8,30 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return 'Kanban';
 	}
 
-	setup_defaults() {
-		return super.setup_defaults()
-			.then(() => {
-				this.board_name = frappe.get_route()[3];
-				this.page_title = __(this.board_name);
-				this.card_meta = this.get_card_meta();
-				this.page_length = 0;
+	async setup_defaults() {
+		super.setup_defaults();
+		this.board_name = frappe.get_route()[3];
+		this.page_title = __(this.board_name);
+		this.card_meta = this.get_card_meta();
+		this.page_length = 0;
 
-				this.menu_items.push({
-					label: __('Save filters'),
-					action: () => {
-						this.save_kanban_board_filters();
-					}
-				});
-				return this.get_board();
-			});
+		this.menu_items.push({
+			label: __('Save filters'),
+			action: () => {
+				this.save_kanban_board_filters();
+			}
+		});
+
+		this.board = await frappe.db.get_doc('Kanban Board', this.board_name);
+		this.board.fields = JSON.parse(this.board.fields || '[]');
 	}
 
 	setup_paging_area() {
-		// pass
+
 	}
 
 	toggle_result_area() {
 		this.$result.toggle(this.data.length > 0);
-	}
-
-	get_board() {
-		return frappe.db.get_doc('Kanban Board', this.board_name)
-			.then(board => {
-				this.board = board;
-				this.board.filters_array = JSON.parse(this.board.filters || '[]');
-				this.board.fields = JSON.parse(this.board.fields || '[]');
-				this.filters = this.board.filters_array;
-			});
 	}
 
 	setup_page() {
@@ -72,8 +62,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	}
 
-	on_filter_change() {
-		if (JSON.stringify(this.board.filters_array) !== JSON.stringify(this.filter_area.get())) {
+	on_filter_change(filters) {
+		super.on_filter_change(filters);
+		if (this.board.filters !== JSON.stringify(filters)) {
 			this.page.set_indicator(__('Not Saved'), 'orange');
 		} else {
 			this.page.clear_indicator();
@@ -81,8 +72,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	save_kanban_board_filters() {
-		const filters = this.filter_area.get();
-
+		const filters = JSON.stringify(this.filter_area.get());
 		frappe.db.set_value("Kanban Board", this.board_name, "filters", filters).then(r => {
 			if (r.exc) {
 				frappe.show_alert({
@@ -96,8 +86,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				message: __('Filters saved')
 			});
 
-			this.board.filters_array = filters;
-			this.on_filter_change();
+			this.board.filters = filters;
 		});
 	}
 
@@ -121,7 +110,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			card_meta: this.card_meta,
 			wrapper: this.$result,
 			cur_list: this,
-
 		});
 	}
 

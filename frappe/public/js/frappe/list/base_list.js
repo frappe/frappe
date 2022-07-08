@@ -37,15 +37,11 @@ frappe.views.BaseList = class BaseList {
 		return frappe.run_serially(tasks);
 	}
 
-	load_settings() {
-		return frappe.listview_settings[this.doctype] || {};
-	}
-
 	setup_defaults() {
 		this.page_name = frappe.get_route_str();
 		this.page_title = this.page_title || frappe.router.doctype_layout || __(this.doctype);
 		this.meta = frappe.get_meta(this.doctype);
-		this.settings = this.load_settings();
+		this.settings = this.get_settings();
 		if (this.settings.init) {
 			this.settings.init();
 		}
@@ -58,8 +54,13 @@ frappe.views.BaseList = class BaseList {
 		const filter_arg = (k, v) => v !== undefined
 
 		Object.assign(this, {
+			// Priority 4: coded defaults
 			...frappe.utils.filter_object(this.get_default_args(), filter_arg),
+			// Priority 3: view settings (configured per doctype)
 			...frappe.utils.filter_object(this.get_settings_args(), filter_arg),
+			// Priority 2: active presets (e.g. a saved report, or kanban board)
+			...frappe.utils.filter_object(this.get_presets_args(), filter_arg),
+			// Priority 1: route options (current window state)
 			...frappe.utils.filter_object(this.get_route_options_args(), filter_arg)
 		});
 
@@ -74,6 +75,10 @@ frappe.views.BaseList = class BaseList {
 				class: "visible-xs",
 			},
 		];
+	}
+
+	get_settings() {
+		return frappe.listview_settings[this.doctype] || {};
 	}
 
 	get_route_options_args() {
@@ -116,6 +121,10 @@ frappe.views.BaseList = class BaseList {
 			sort_by,
 			sort_order
 		}
+	}
+
+	get_presets_args() {
+		return {}
 	}
 
 	get_settings_args() {
