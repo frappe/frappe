@@ -42,7 +42,7 @@ class TestQuery(unittest.TestCase):
 		)
 
 	def test_functions_fields(self):
-		from frappe.query_builder.functions import Abs, Count, Max
+		from frappe.query_builder.functions import Abs, Count, Max, Timestamp
 
 		self.assertEqual(
 			frappe.qb.engine.get_query("User", fields="Count(name)", filters={}).get_sql(),
@@ -66,6 +66,13 @@ class TestQuery(unittest.TestCase):
 		self.assertEqual(
 			frappe.qb.engine.get_query("User", fields=[Count("*")], filters={}).get_sql(),
 			frappe.qb.from_("User").select(Count("*")).get_sql(),
+		)
+
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"User", fields="timestamp(creation, modified)", filters={}
+			).get_sql(),
+			frappe.qb.from_("User").select(Timestamp(Field("creation"), Field("modified"))).get_sql(),
 		)
 
 	def test_qb_fields(self):
