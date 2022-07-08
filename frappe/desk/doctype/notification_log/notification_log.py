@@ -96,12 +96,16 @@ def send_notification_email(doc):
 
 	from frappe.utils import get_url_to_form, strip_html
 
+	email = frappe.db.get_value("User", doc.for_user, "email")
+	if not email:
+		return
+
 	doc_link = get_url_to_form(doc.document_type, doc.document_name)
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
 
 	frappe.sendmail(
-		recipients=doc.for_user,
+		recipients=email,
 		subject=email_subject,
 		template="new_notification",
 		args={
