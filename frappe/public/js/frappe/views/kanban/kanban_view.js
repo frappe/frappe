@@ -51,6 +51,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	toggle_result_area() {
 		this.$result.toggle(this.data.length > 0);
+		this.$no_result.toggle(this.data.length == 0);
 	}
 
 	get_board() {
@@ -88,8 +89,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	render_list() {}
-
 	on_filter_change() {
 		if (JSON.stringify(this.board.filters_array) !== JSON.stringify(this.filter_area.get())) {
 			this.page.set_indicator(__("Not Saved"), "orange");
@@ -126,10 +125,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	render() {
 		const board_name = this.board_name;
-		if (this.kanban && board_name === this.kanban.board_name) {
-			this.kanban.update(this.data);
-			return;
-		}
+		if (this.kanban && board_name === this.kanban.board_name) return;
 
 		this.kanban = new frappe.views.KanbanBoard({
 			doctype: this.doctype,
@@ -141,6 +137,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			cur_list: this,
 			user_settings: this.view_user_settings,
 		});
+	}
+
+	render_list() {
+		this.kanban.update(this.data);
 	}
 
 	get_card_meta() {
