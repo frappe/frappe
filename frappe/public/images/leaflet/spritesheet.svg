@@ -134,14 +134,14 @@
      transform="translate(120,0)"
      style="fill:#bbbbbb">
     <use
-       xlink:href="#edit"
+       href="#edit"
        id="edit-disabled"
        x="0"
        y="0"
        width="100%"
        height="100%" />
     <use
-       xlink:href="#remove"
+       href="#remove"
        id="remove-disabled"
        x="0"
        y="0"

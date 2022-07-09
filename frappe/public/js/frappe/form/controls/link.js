@@ -315,7 +315,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			let last_value = me.last_value || "";
 			let last_label = me.label || "";
 
-			if (value !== last_value || label !== last_label) {
+			if (value !== last_value) {
 				me.parse_validate_and_set_in_model(value, null, label);
 			}
 		});

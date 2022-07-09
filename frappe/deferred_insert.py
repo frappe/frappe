@@ -1,5 +1,5 @@
 import json
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Union
 
 import redis
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 queue_prefix = "insert_queue_for_"
 
 
-def deferred_insert(doctype: str, records: Union[List[Union[Dict, "Document"]], str]):
+def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
 	if isinstance(records, (dict, list)):
 		_records = json.dumps(records)
 	else:
@@ -43,7 +43,7 @@ def save_to_db():
 				insert_record(record, doctype)
 
 
-def insert_record(record: Union[Dict, "Document"], doctype: str):
+def insert_record(record: Union[dict, "Document"], doctype: str):
 	try:
 		record.update({"doctype": doctype})
 		frappe.get_doc(record).insert()

@@ -56,7 +56,7 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
-		frappe.msgprint("Line {}: {}".format(e.lineno, e.message))
+		frappe.msgprint(f"Line {e.lineno}: {e.message}")
 		frappe.throw(frappe._("Syntax error in template"))
 
 
@@ -86,7 +86,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 		except TemplateError:
 			throw(
 				title="Jinja Template Error",
-				msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=get_traceback()),
+				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
 			)
 
 
@@ -117,7 +117,7 @@ def get_jloader():
 
 		frappe.local.jloader = ChoiceLoader(
 			# search for something like app/templates/...
-			[PrefixLoader(dict((app, PackageLoader(app, ".")) for app in apps))]
+			[PrefixLoader({app: PackageLoader(app, ".") for app in apps})]
 			# search for something like templates/...
 			+ [PackageLoader(app, ".") for app in apps]
 		)

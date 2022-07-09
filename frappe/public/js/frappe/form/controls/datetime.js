@@ -40,8 +40,11 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 				value = frappe.datetime.convert_to_system_tz(value, true);
 			}
 
-			return value;
+			if (value == "Invalid date") {
+				value = "";
+			}
 		}
+		return value;
 	}
 	format_for_input(value) {
 		if (!value) return "";

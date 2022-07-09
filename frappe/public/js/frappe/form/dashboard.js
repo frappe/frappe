@@ -19,7 +19,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 
 		this.heatmap_area = this.make_section({
-			label: __("Overview"),
+			label: __("Activity"),
 			css_class: 'form-heatmap',
 			hidden: 1,
 			collapsible: 1,

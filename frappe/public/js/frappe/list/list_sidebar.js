@@ -7,7 +7,6 @@ frappe.provide('frappe.views');
 // stats = list of fields
 // doctype
 // parent
-// set_filter = function called on click
 
 frappe.views.ListSidebar = class ListSidebar {
 	constructor(opts) {

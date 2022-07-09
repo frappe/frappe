@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -37,7 +36,7 @@ class PaytmSettings(Document):
 		integration_request = create_request_log(kwargs, service_name="Paytm")
 		kwargs.update(dict(order_id=integration_request.name))
 
-		return get_url("./integrations/paytm_checkout?{0}".format(urlencode(kwargs)))
+		return get_url(f"./integrations/paytm_checkout?{urlencode(kwargs)}")
 
 
 def get_paytm_config():

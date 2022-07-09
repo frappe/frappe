@@ -25,6 +25,7 @@
    "fieldname": "script_type",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Script Type",
    "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
    "reqd": 1
@@ -41,6 +42,7 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Reference Document Type",
    "options": "DocType"
   },
@@ -109,7 +111,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2022-04-27 11:42:52.032963",
+ "modified": "2022-06-13 06:04:20.937969",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

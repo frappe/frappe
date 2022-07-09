@@ -17,7 +17,7 @@ from email_reply_parser import EmailReplyParser
 
 import frappe
 from frappe import _, safe_decode, safe_encode
-from frappe.core.doctype.file.file import MaxFileSizeReachedError, get_random_filename
+from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
 from frappe.utils import (
 	add_days,
 	cint,
@@ -37,6 +37,9 @@ from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 20480
+
+THREAD_ID_PATTERN = re.compile(r"(?<=\[)[\w/-]+")
+WORDS_PATTERN = re.compile(r"\w+")
 
 
 class EmailSizeExceededError(frappe.ValidationError):
@@ -266,14 +269,14 @@ class EmailServer:
 				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			)
 			# sync last 100 email
-			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
+			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
 
 		elif uid_validity == current_uid_validity:
 			return
 
 	def parse_imap_response(self, cmd, response):
-		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
+		pattern = rf"(?<={cmd} )[0-9]*"
 		match = re.search(pattern, response.decode("utf-8"), re.U | re.I)
 
 		if match:
@@ -332,8 +335,7 @@ class EmailServer:
 
 		flags = []
 		for flag in imaplib.ParseFlags(flag_string) or []:
-			pattern = re.compile(r"\w+")
-			match = re.search(pattern, frappe.as_unicode(flag))
+			match = WORDS_PATTERN.search(frappe.as_unicode(flag))
 			flags.append(match.group(0))
 
 		if "Seen" in flags:
@@ -375,7 +377,7 @@ class EmailServer:
 			try:
 				# retrieve headers
 				incoming_mail = Email(b"\n".join(self.pop.top(msg_num, 5)[1]))
-			except:
+			except Exception:
 				pass
 
 		if incoming_mail:
@@ -435,7 +437,7 @@ class Email:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 				utc_dt = datetime.datetime.utcfromtimestamp(utc)
 				self.date = convert_utc_to_user_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
-			except:
+			except Exception:
 				self.date = now()
 		else:
 			self.date = now()
@@ -532,10 +534,10 @@ class Email:
 		for key in ("From", "To", "Subject", "Date"):
 			value = cstr(message.get(key))
 			if value:
-				headers.append("{label}: {value}".format(label=_(key), value=escape(value)))
+				headers.append(f"{_(key)}: {escape(value)}")
 
 		self.text_content += "\n".join(headers)
-		self.html_content += "<hr>" + "\n".join("<p>{0}</p>".format(h) for h in headers)
+		self.html_content += "<hr>" + "\n".join(f"<p>{h}</p>" for h in headers)
 
 		if not message.is_multipart() and message.get_content_type() == "text/plain":
 			# email.parser didn't parse it!
@@ -570,7 +572,7 @@ class Email:
 				try:
 					fname = fname.replace("\n", " ").replace("\r", "")
 					fname = cstr(decode_header(fname)[0][0])
-				except:
+				except Exception:
 					fname = get_random_filename(content_type=content_type)
 			else:
 				fname = get_random_filename(content_type=content_type)
@@ -622,7 +624,7 @@ class Email:
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
-		l = re.findall(r"(?<=\[)[\w/-]+", self.subject)
+		l = THREAD_ID_PATTERN.findall(self.subject)
 		return l and l[0] or None
 
 	def is_reply(self):
@@ -708,7 +710,7 @@ class InboundMail(Email):
 		content = self.content
 		for file in attachments:
 			if file.name in self.cid_map and self.cid_map[file.name]:
-				content = content.replace("cid:{0}".format(self.cid_map[file.name]), file.file_url)
+				content = content.replace(f"cid:{self.cid_map[file.name]}", file.file_url)
 		return content
 
 	def is_notification(self):
@@ -893,7 +895,7 @@ class InboundMail(Email):
 		users = frappe.get_all(
 			"User Email", filters={"email_account": email_account.name}, fields=["parent"]
 		)
-		return list(set([user.get("parent") for user in users]))
+		return list({user.get("parent") for user in users})
 
 	@staticmethod
 	def clean_subject(subject):
@@ -944,7 +946,7 @@ class InboundMail(Email):
 		}
 
 
-class TimerMixin(object):
+class TimerMixin:
 	def __init__(self, *args, **kwargs):
 		self.timeout = kwargs.pop("timeout", 0.0)
 		self.elapsed_time = 0.0

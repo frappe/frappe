@@ -26,7 +26,7 @@
 					<div class="column-label d-flex align-center">
 						<div class="px-2 icon-drag ml-n2">
 							<svg class="icon icon-xs">
-								<use xlink:href="#icon-drag"></use>
+								<use href="#icon-drag"></use>
 							</svg>
 						</div>
 						<div class="mt-1 ml-1">
@@ -54,7 +54,7 @@
 						@click="remove_column(column)"
 					>
 						<svg class="icon icon-sm">
-							<use xlink:href="#icon-close"></use>
+							<use href="#icon-close"></use>
 						</svg>
 					</button>
 				</div>

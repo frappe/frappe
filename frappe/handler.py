@@ -1,7 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import os
 from mimetypes import guess_type
+from typing import TYPE_CHECKING
 
 from werkzeug.wrappers import Response
 
@@ -14,6 +16,10 @@ from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.file.file import File
+	from frappe.core.doctype.user.user import User
 
 ALLOWED_MIMETYPES = (
 	"image/png",
@@ -166,9 +172,9 @@ def upload_file():
 		if frappe.get_system_settings("allow_guests_to_upload_files"):
 			ignore_permissions = True
 		else:
-			return
+			raise frappe.PermissionError
 	else:
-		user = frappe.get_doc("User", frappe.session.user)
+		user: "User" = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -210,7 +216,7 @@ def upload_file():
 		is_whitelisted(method)
 		return method()
 	else:
-		ret = frappe.get_doc(
+		return frappe.get_doc(
 			{
 				"doctype": "File",
 				"attached_to_doctype": doctype,
@@ -222,9 +228,26 @@ def upload_file():
 				"is_private": cint(is_private),
 				"content": content,
 			}
-		)
-		ret.save(ignore_permissions=ignore_permissions)
-		return ret
+		).save(ignore_permissions=ignore_permissions)
+
+
+@frappe.whitelist(allow_guest=True)
+def download_file(file_url: str):
+	"""
+	Download file using token and REST API. Valid session or
+	token is required to download private files.
+
+	Method : GET
+	Endpoints : download_file, frappe.core.doctype.file.file.download_file
+	URL Params : file_name = /path/to/file relative to site path
+	"""
+	file: "File" = frappe.get_doc("File", {"file_url": file_url})
+	if not file.is_downloadable():
+		raise frappe.PermissionError
+
+	frappe.local.response.filename = os.path.basename(file_url)
+	frappe.local.response.filecontent = file.get_content()
+	frappe.local.response.type = "download"
 
 
 def get_attr(cmd):

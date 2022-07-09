@@ -34,6 +34,12 @@ context('Data Control', () => {
 			});
 		});
 	});
+
+	it('check custom formatters', () => {
+		cy.visit(`/app/doctype/User`);
+		cy.get('[data-fieldname="fields"] .grid-row[data-idx="2"] [data-fieldname="fieldtype"] .static-area').should('have.text', '🔵 Section Break');
+	});
+
 	it('Verifying data control by inputting different patterns for "Name" field', () => {
 		cy.new_form('Test Data Control');
 
@@ -54,7 +60,7 @@ context('Data Control', () => {
 
 		//Checking if the border color of the field changes to red
 		cy.get('.frappe-control[data-fieldname="name1"]').should('have.class', 'has-error');
-		cy.findByRole('button', {name: 'Save'}).click();
+		cy.save();
 
 		//Checking for the error message
 		cy.get('.modal-title').should('have.text', 'Message');
@@ -64,7 +70,7 @@ context('Data Control', () => {
 		cy.get_field('name1', 'Data').clear({force: true});
 		cy.fill_field('name1', 'Komal{}/!', 'Data');
 		cy.get('.frappe-control[data-fieldname="name1"]').should('have.class', 'has-error');
-		cy.findByRole('button', {name: 'Save'}).click();
+		cy.save();
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'Komal{}/! is not a valid Name');
 		cy.hide_dialog();
@@ -76,14 +82,14 @@ context('Data Control', () => {
 		cy.get_field('email', 'Data').clear({force: true});
 		cy.fill_field('email', 'komal', 'Data');
 		cy.get('.frappe-control[data-fieldname="email"]').should('have.class', 'has-error');
-		cy.findByRole('button', {name: 'Save'}).click();
+		cy.save();
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'komal is not a valid Email Address');
 		cy.hide_dialog();
 		cy.get_field('email', 'Data').clear({force: true});
 		cy.fill_field('email', 'komal@test', 'Data');
 		cy.get('.frappe-control[data-fieldname="email"]').should('have.class', 'has-error');
-		cy.findByRole('button', {name: 'Save'}).click();
+		cy.save();
 		cy.get('.modal-title').should('have.text', 'Message');
 		cy.get('.msgprint').should('have.text', 'komal@test is not a valid Email Address');
 		cy.hide_dialog();

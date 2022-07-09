@@ -272,7 +272,7 @@
   },
   {
    "default": "0",
-   "description": "To use Google Indexing, enable <a href=\"#Form/Google Settings\">Google Settings</a>.",
+   "description": "To use Google Indexing, enable <a href=\"/app/google-settings\">Google Settings</a>.",
    "fieldname": "enable_google_indexing",
    "fieldtype": "Check",
    "label": "Enable Google Indexing"

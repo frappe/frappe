@@ -136,7 +136,7 @@ export default class ListSettings {
 				<div class="control-input-wrapper">
 				${fields}
 				</div>
-				<p class="help-box small text-muted hidden-xs">
+				<p class="help-box small text-muted">
 					<a class="add-new-fields text-muted">
 						+ Add / Remove Fields
 					</a>
@@ -310,7 +310,7 @@ export default class ListSettings {
 		let me = this;
 
 		me.subject_field = {
-			label: "Name",
+			label: "ID",
 			fieldname: "name"
 		};
 

@@ -193,7 +193,7 @@ class TestFrappeClient(unittest.TestCase):
 		)
 
 		api_key = frappe.db.get_value("User", "Administrator", "api_key")
-		header = {"Authorization": "token {}:{}".format(api_key, generated_secret)}
+		header = {"Authorization": f"token {api_key}:{generated_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 
 		self.assertEqual(res.status_code, 200)
@@ -202,7 +202,7 @@ class TestFrappeClient(unittest.TestCase):
 
 		header = {
 			"Authorization": "Basic {}".format(
-				base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))).decode()
+				base64.b64encode(frappe.safe_encode(f"{api_key}:{generated_secret}")).decode()
 			)
 		}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
@@ -211,13 +211,13 @@ class TestFrappeClient(unittest.TestCase):
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
-		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
+		header = {"Authorization": f"token {api_key}:{api_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 403)
 
 		# random api key and api secret
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
-		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
+		header = {"Authorization": f"token {api_key}:{api_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)

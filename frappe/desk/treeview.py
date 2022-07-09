@@ -43,7 +43,7 @@ def get_children(doctype, parent="", **filters):
 
 def _get_children(doctype, parent="", ignore_permissions=False):
 	parent_field = "parent_" + doctype.lower().replace(" ", "_")
-	filters = [["ifnull(`{0}`,'')".format(parent_field), "=", parent], ["docstatus", "<", 2]]
+	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
 
 	meta = frappe.get_meta(doctype)
 
@@ -51,7 +51,7 @@ def _get_children(doctype, parent="", ignore_permissions=False):
 		doctype,
 		fields=[
 			"name as value",
-			"{0} as title".format(meta.get("title_field") or "name"),
+			"{} as title".format(meta.get("title_field") or "name"),
 			"is_group as expandable",
 		],
 		filters=filters,

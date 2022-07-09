@@ -6,9 +6,13 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import frappe
+from frappe.app import make_form_dict
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
-from frappe.utils import cint, now_datetime
+from frappe.utils import cint, now_datetime, set_request
+from frappe.website.serve import get_response
+
+from . import update_system_settings
 
 
 class CustomTestNote(Note):
@@ -357,3 +361,60 @@ class TestDocument(unittest.TestCase):
 		# setting None should init a table field to empty list
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
+
+	def test_doc_events(self):
+		"""validate that all present doc events are correct methods"""
+
+		for doctype, doc_hooks in frappe.get_doc_hooks().items():
+			for _, hooks in doc_hooks.items():
+				for hook in hooks:
+					try:
+						frappe.get_attr(hook)
+					except Exception as e:
+						self.fail(f"Invalid doc hook: {doctype}:{hook}\n{e}")
+
+
+class TestDocumentWebView(unittest.TestCase):
+	def get(self, path, user="Guest"):
+		frappe.set_user(user)
+		set_request(method="GET", path=path)
+		make_form_dict(frappe.local.request)
+		response = get_response()
+		frappe.set_user("Administrator")
+		return response
+
+	def test_web_view_link_authentication(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert()
+		document_key = todo.get_document_share_key()
+
+		# with old-style signature key
+		update_system_settings({"allow_older_web_view_links": True}, True)
+		old_document_key = todo.get_signature()
+		url = f"/ToDo/{todo.name}?key={old_document_key}"
+		self.assertEqual(self.get(url).status, "200 OK")
+
+		update_system_settings({"allow_older_web_view_links": False}, True)
+		self.assertEqual(self.get(url).status, "401 UNAUTHORIZED")
+
+		# with valid key
+		url = f"/ToDo/{todo.name}?key={document_key}"
+		self.assertEqual(self.get(url).status, "200 OK")
+
+		# with invalid key
+		invalid_key_url = f"/ToDo/{todo.name}?key=INVALID_KEY"
+		self.assertEqual(self.get(invalid_key_url).status, "401 UNAUTHORIZED")
+
+		# expire the key
+		document_key_doc = frappe.get_doc("Document Share Key", {"key": document_key})
+		document_key_doc.expires_on = "2020-01-01"
+		document_key_doc.save(ignore_permissions=True)
+
+		# with expired key
+		self.assertEqual(self.get(url).status, "410 GONE")
+
+		# without key
+		url_without_key = f"/ToDo/{todo.name}"
+		self.assertEqual(self.get(url_without_key).status, "403 FORBIDDEN")
+
+		# Logged-in user can access the page without key
+		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")

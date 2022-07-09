@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 import json
@@ -51,7 +50,7 @@ class Comment(Document):
 			return
 
 		frappe.publish_realtime(
-			"update_docinfo_for_{}_{}".format(self.reference_doctype, self.reference_name),
+			f"update_docinfo_for_{self.reference_doctype}_{self.reference_name}",
 			{"doc": self.as_dict(), "key": key, "action": action},
 			after_commit=True,
 		)
@@ -183,7 +182,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	try:
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql(
-			"""update `tab{0}` set `_comments`=%s where name=%s""".format(reference_doctype),  # nosec
+			f"""update `tab{reference_doctype}` set `_comments`=%s where name=%s""",  # nosec
 			(json.dumps(_comments[-100:]), reference_name),
 		)
 

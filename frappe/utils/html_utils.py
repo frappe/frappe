@@ -5,6 +5,16 @@ from bleach_allowlist import bleach_allowlist
 
 import frappe
 
+EMOJI_PATTERN = re.compile(
+	"(\ud83d[\ude00-\ude4f])|"
+	"(\ud83c[\udf00-\uffff])|"
+	"(\ud83d[\u0000-\uddff])|"
+	"(\ud83d[\ude80-\udeff])|"
+	"(\ud83c[\udde0-\uddff])"
+	"+",
+	flags=re.UNICODE,
+)
+
 
 def clean_html(html):
 	import bleach
@@ -181,28 +191,17 @@ def is_json(text):
 def get_icon_html(icon, small=False):
 	from frappe.utils import is_image
 
-	emoji_pattern = re.compile(
-		"(\ud83d[\ude00-\ude4f])|"
-		"(\ud83c[\udf00-\uffff])|"
-		"(\ud83d[\u0000-\uddff])|"
-		"(\ud83d[\ude80-\udeff])|"
-		"(\ud83c[\udde0-\uddff])"
-		"+",
-		flags=re.UNICODE,
-	)
-
 	icon = icon or ""
-	if icon and emoji_pattern.match(icon):
-		return '<span class="text-muted">' + icon + "</span>"
+
+	if icon and EMOJI_PATTERN.match(icon):
+		return f'<span class="text-muted">{icon}</span>'
 
 	if is_image(icon):
 		return (
-			'<img style="width: 16px; height: 16px;" src="{icon}">'.format(icon=icon)
-			if small
-			else '<img src="{icon}">'.format(icon=icon)
+			f'<img style="width: 16px; height: 16px;" src="{icon}">' if small else f'<img src="{icon}">'
 		)
 	else:
-		return "<i class='{icon}'></i>".format(icon=icon)
+		return f"<i class='{icon}'></i>"
 
 
 def unescape_html(value):

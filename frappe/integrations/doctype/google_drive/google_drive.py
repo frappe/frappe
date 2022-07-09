@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -101,7 +100,7 @@ def authorize_access(reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/app/Form/{0}".format(quote("Google Drive"))
+			frappe.local.response["location"] = "/app/Form/{}".format(quote("Google Drive"))
 
 			frappe.msgprint(_("Google Drive has been configured."))
 		except Exception as e:
@@ -243,7 +242,7 @@ def upload_system_backup_to_google_drive():
 			media = MediaFileUpload(
 				get_absolute_path(filename=fileurl), mimetype="application/gzip", resumable=True
 			)
-		except IOError as e:
+		except OSError as e:
 			frappe.throw(_("Google Drive - Could not locate - {0}").format(e))
 
 		try:
@@ -259,20 +258,20 @@ def upload_system_backup_to_google_drive():
 
 
 def daily_backup():
-	drive_settings = frappe.db.get_singles_dict("Google Drive")
+	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Daily":
 		upload_system_backup_to_google_drive()
 
 
 def weekly_backup():
-	drive_settings = frappe.db.get_singles_dict("Google Drive")
+	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Weekly":
 		upload_system_backup_to_google_drive()
 
 
 def get_absolute_path(filename):
 	file_path = os.path.join(get_backups_path()[2:], os.path.basename(filename))
-	return "{0}/sites/{1}".format(get_bench_path(), file_path)
+	return f"{get_bench_path()}/sites/{file_path}"
 
 
 def set_progress(progress, message):

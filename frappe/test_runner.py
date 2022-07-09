@@ -41,6 +41,7 @@ def main(
 	app=None,
 	module=None,
 	doctype=None,
+	module_def=None,
 	verbose=False,
 	tests=(),
 	force=False,
@@ -56,7 +57,7 @@ def main(
 
 	if doctype_list_path:
 		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
-		with open(frappe.get_app_path(app, doctype_list_path), "r") as f:
+		with open(frappe.get_app_path(app, doctype_list_path)) as f:
 			doctype = f.read().strip().splitlines()
 
 	if ui_tests:
@@ -96,6 +97,13 @@ def main(
 		if doctype:
 			ret = run_tests_for_doctype(
 				doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
+			)
+		elif module_def:
+			doctypes = frappe.db.get_list(
+				"DocType", filters={"module": module_def, "istable": 0}, pluck="name"
+			)
+			ret = run_tests_for_doctype(
+				doctypes, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
 		elif module:
 			ret = run_tests_for_module(
@@ -143,14 +151,14 @@ def set_test_email_config():
 class TimeLoggingTestResult(unittest.TextTestResult):
 	def startTest(self, test):
 		self._started_at = time.time()
-		super(TimeLoggingTestResult, self).startTest(test)
+		super().startTest(test)
 
 	def addSuccess(self, test):
 		elapsed = time.time() - self._started_at
 		name = self.getDescription(test)
 		if elapsed >= SLOW_TEST_THRESHOLD:
-			self.stream.write("\n{} ({:.03}s)\n".format(name, elapsed))
-		super(TimeLoggingTestResult, self).addSuccess(test)
+			self.stream.write(f"\n{name} ({elapsed:.03}s)\n")
+		super().addSuccess(test)
 
 
 def run_all_tests(
@@ -219,7 +227,7 @@ def run_tests_for_doctype(
 	for doctype in doctypes:
 		module = frappe.db.get_value("DocType", doctype, "module")
 		if not module:
-			print("Invalid doctype {0}".format(doctype))
+			print(f"Invalid doctype {doctype}")
 			sys.exit(1)
 
 		test_module = get_module_name(doctype, module, "test_")
@@ -343,7 +351,7 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	if os.path.basename(os.path.dirname(path)) == "doctype":
 		txt_file = os.path.join(path, filename[5:].replace(".py", ".json"))
 		if os.path.exists(txt_file):
-			with open(txt_file, "r") as f:
+			with open(txt_file) as f:
 				doc = json.loads(f.read())
 			doctype = doc["name"]
 			make_test_records(doctype, verbose, commit=True)
@@ -527,7 +535,7 @@ def get_test_record_log():
 	"""Return the list of doctypes for which test records have been created"""
 	if "test_record_log" not in frappe.flags:
 		if os.path.exists(frappe.get_site_path(".test_log")):
-			with open(frappe.get_site_path(".test_log"), "r") as f:
+			with open(frappe.get_site_path(".test_log")) as f:
 				frappe.flags.test_record_log = f.read().splitlines()
 		else:
 			frappe.flags.test_record_log = []

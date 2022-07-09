@@ -722,7 +722,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2022-03-09 01:47:56.745069",
+ "modified": "2022-05-25 01:00:51.345319",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -747,6 +747,10 @@
    "read": 1,
    "role": "System Manager",
    "write": 1
+  },
+  {
+   "role": "All",
+   "select": 1
   }
  ],
  "quick_entry": 1,

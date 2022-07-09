@@ -83,7 +83,7 @@ class ParallelTestRunner:
 			test_record_filename = re.sub("^test_", "", filename).replace(".py", ".json")
 			test_record_file_path = os.path.join(path, test_record_filename)
 			if os.path.exists(test_record_file_path):
-				with open(test_record_file_path, "r") as f:
+				with open(test_record_file_path) as f:
 					doc = json.loads(f.read())
 					doctype = doc["name"]
 					make_test_records(doctype, commit=True)

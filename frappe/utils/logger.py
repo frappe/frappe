@@ -7,10 +7,7 @@ from logging.handlers import RotatingFileHandler
 import frappe
 from frappe.utils import get_sites
 
-# imports - third party imports
-
-
-default_log_level = logging.DEBUG
+default_log_level = logging.WARNING if frappe._dev_server else logging.ERROR
 
 
 def get_logger(
@@ -21,7 +18,7 @@ def get_logger(
 	max_size=100_000,
 	file_count=20,
 	stream_only=False,
-):
+) -> "logging.Logger":
 	"""Application Logger for your given module
 
 	Args:
@@ -44,7 +41,7 @@ def get_logger(
 	else:
 		site = False
 
-	logger_name = "{0}-{1}".format(module, site or "all")
+	logger_name = "{}-{}".format(module, site or "all")
 
 	try:
 		return frappe.loggers[logger_name]
@@ -62,7 +59,7 @@ def get_logger(
 	logger.setLevel(frappe.log_level or default_log_level)
 	logger.propagate = False
 
-	formatter = logging.Formatter("%(asctime)s %(levelname)s {0} %(message)s".format(module))
+	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
 	if stream_only:
 		handler = logging.StreamHandler()
 	else:
@@ -90,15 +87,15 @@ def get_logger(
 class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 
-	def filter(self, record):
+	def filter(self, record) -> bool:
 		if "Form Dict" not in str(record.msg):
 			site = getattr(frappe.local, "site", None)
 			form_dict = getattr(frappe.local, "form_dict", None)
-			record.msg = str(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, form_dict)
+			record.msg = str(record.msg) + f"\nSite: {site}\nForm Dict: {form_dict}"
 			return True
 
 
-def set_log_level(level):
+def set_log_level(level: int) -> None:
 	"""Use this method to set log level to something other than the default DEBUG"""
 	frappe.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
 	frappe.loggers = {}

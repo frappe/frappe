@@ -1,7 +1,7 @@
-frappe.listview_settings['Error Log'] = {
+frappe.listview_settings["Error Log"] = {
 	add_fields: ["seen"],
 	get_indicator: function(doc) {
-		if(cint(doc.seen)) {
+		if (cint(doc.seen)) {
 			return [__("Seen"), "green", "seen,=,1"];
 		} else {
 			return [__("Not Seen"), "red", "seen,=,0"];
@@ -11,11 +11,15 @@ frappe.listview_settings['Error Log'] = {
 	onload: function(listview) {
 		listview.page.add_menu_item(__("Clear Error Logs"), function() {
 			frappe.call({
-				method:'frappe.core.doctype.error_log.error_log.clear_error_logs',
+				method: "frappe.core.doctype.error_log.error_log.clear_error_logs",
 				callback: function() {
 					listview.refresh();
-				}
+				},
 			});
 		});
-	}
+
+		frappe.require("logtypes.bundle.js", () => {
+			frappe.utils.logtypes.show_log_retention_message(cur_list.doctype);
+		})
+	},
 };

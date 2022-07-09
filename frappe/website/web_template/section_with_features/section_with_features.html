@@ -1,9 +1,9 @@
 <div class="section-with-features">
 	{%- if title -%}
-	<h2 class="section-title">{{ title }}</h2>
+	<h2 class="section-title">{{ _(title) }}</h2>
 	{%- endif -%}
 	{%- if subtitle -%}
-	<p class="section-description">{{ subtitle }}</p>
+	<p class="section-description">{{ _(subtitle) }}</p>
 	{%- endif -%}
 
 	<div class="section-features" data-columns="{{ columns or 3 }}"
@@ -15,10 +15,10 @@
 				<img class="feature-icon" src="{{ feature.icon }}" alt="Icon for {{ feature.title }}">
 				{%- endif -%}
 				{%- if feature.title -%}
-				<h3 class="feature-title mt-0">{{ feature.title }}</h3>
+				<h3 class="feature-title mt-0">{{ _(feature.title) }}</h3>
 				{%- endif -%}
 				{%- if feature.content -%}
-				<p class="feature-content">{{ frappe.utils.md_to_html(feature.content) }}</p>
+				<p class="feature-content">{{ frappe.utils.md_to_html(_(feature.content)) }}</p>
 				{%- endif -%}
 			</div>
 			<div>

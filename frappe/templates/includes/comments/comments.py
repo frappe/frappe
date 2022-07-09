@@ -10,6 +10,11 @@ from frappe.utils.html_utils import clean_html
 from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
 from frappe.website.utils import clear_cache
 
+URLS_COMMENT_PATTERN = re.compile(
+	r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.IGNORECASE
+)
+EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", re.IGNORECASE)
+
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="reference_name", limit=get_comment_limit, seconds=60 * 60)
@@ -23,12 +28,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		frappe.msgprint(_("The comment cannot be empty"))
 		return False
 
-	url_regex = re.compile(
-		r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.IGNORECASE
-	)
-	email_regex = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", re.IGNORECASE)
-
-	if url_regex.search(comment) or email_regex.search(comment):
+	if URLS_COMMENT_PATTERN.search(comment) or EMAIL_PATTERN.search(comment):
 		frappe.msgprint(_("Comments cannot have links or email addresses"))
 		return False
 
@@ -44,7 +44,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 
 	content = (
 		comment.content
-		+ "<p><a href='{0}/app/Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(
+		+ "<p><a href='{}/app/Form/Comment/{}' style='font-size: 80%'>{}</a></p>".format(
 			frappe.utils.get_request_site_address(), comment.name, _("View Comment")
 		)
 	)

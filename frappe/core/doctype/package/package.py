@@ -15,7 +15,5 @@ class Package(Document):
 
 @frappe.whitelist()
 def get_license_text(license_type):
-	with open(
-		os.path.join(os.path.dirname(__file__), "licenses", license_type + ".md"), "r"
-	) as textfile:
+	with open(os.path.join(os.path.dirname(__file__), "licenses", license_type + ".md")) as textfile:
 		return textfile.read()

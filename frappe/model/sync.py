@@ -53,22 +53,6 @@ def sync_for(app_name, force=0, reset_permissions=False):
 				os.path.join(FRAPPE_PATH, "website", "doctype", website_module, f"{website_module}.json")
 			)
 
-		for data_migration_module in [
-			"data_migration_mapping_detail",
-			"data_migration_mapping",
-			"data_migration_plan_mapping",
-			"data_migration_plan",
-		]:
-			files.append(
-				os.path.join(
-					FRAPPE_PATH,
-					"data_migration",
-					"doctype",
-					data_migration_module,
-					f"{data_migration_module}.json",
-				)
-			)
-
 		for desk_module in [
 			"number_card",
 			"dashboard_chart",
@@ -100,7 +84,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			frappe.db.commit()
 
 			# show progress bar
-			update_progress_bar("Updating DocTypes for {0}".format(app_name), i, l)
+			update_progress_bar(f"Updating DocTypes for {app_name}", i, l)
 
 		# print each progress bar on new line
 		print()
@@ -124,8 +108,6 @@ def get_doc_files(files, start_path):
 		"web_template",
 		"notification",
 		"print_style",
-		"data_migration_mapping",
-		"data_migration_plan",
 		"workspace",
 		"onboarding_step",
 		"module_onboarding",

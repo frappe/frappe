@@ -15,7 +15,7 @@ def _is_scheduler_enabled():
 		enable_scheduler = (
 			cint(frappe.db.get_single_value("System Settings", "enable_scheduler")) and True or False
 		)
-	except:
+	except Exception:
 		pass
 	finally:
 		frappe.db.close()
@@ -114,7 +114,7 @@ def scheduler(context, state, site=None):
 			frappe.utils.scheduler.enable_scheduler()
 			frappe.db.commit()
 
-		print("Scheduler {0}d for site {1}".format(state, site))
+		print(f"Scheduler {state}d for site {site}")
 
 	finally:
 		frappe.destroy()
@@ -182,7 +182,7 @@ def purge_jobs(site=None, queue=None, event=None):
 
 	frappe.init(site or "")
 	count = purge_pending_jobs(event=event, site=site, queue=queue)
-	print("Purged {} jobs".format(count))
+	print(f"Purged {count} jobs")
 
 
 @click.command("schedule")
@@ -218,11 +218,11 @@ def ready_for_migration(context, site=None):
 		pending_jobs = get_pending_jobs(site=site)
 
 		if pending_jobs:
-			print("NOT READY for migration: site {0} has pending background jobs".format(site))
+			print(f"NOT READY for migration: site {site} has pending background jobs")
 			sys.exit(1)
 
 		else:
-			print("READY for migration: site {0} does not have any background jobs".format(site))
+			print(f"READY for migration: site {site} does not have any background jobs")
 			return 0
 
 	finally:

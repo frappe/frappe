@@ -21,7 +21,7 @@ function get_conf() {
 				}
 			}
 		}
-	}
+	};
 
 	// get ports from bench/config.json
 	read_config('config.json');
@@ -45,6 +45,6 @@ function get_redis_subscriber(kind="redis_socketio", options={}) {
 }
 
 module.exports = {
-    get_conf,
-    get_redis_subscriber
-}
+	get_conf,
+	get_redis_subscriber
+};

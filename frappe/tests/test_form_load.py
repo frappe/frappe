@@ -31,7 +31,7 @@ class TestFormLoad(unittest.TestCase):
 				"blog_intro": "Test Blog Intro",
 				"blogger": "_Test Blogger 1",
 				"content": "Test Blog Content",
-				"title": "_Test Blog Post {}".format(frappe.utils.now()),
+				"title": f"_Test Blog Post {frappe.utils.now()}",
 				"published": 0,
 			}
 		)
@@ -181,7 +181,7 @@ class TestFormLoad(unittest.TestCase):
 		self.assertEqual(len(docinfo.comments), 1)
 		self.assertIn("test", docinfo.comments[0].content)
 
-		self.assertGreaterEqual(len(docinfo.versions), 2)
+		self.assertGreaterEqual(len(docinfo.versions), 1)
 
 		self.assertEqual(set(docinfo.tags.split(",")), {"more_tag", "test_tag"})
 

@@ -24,7 +24,7 @@ from . import get_system_setting, update_system_settings
 
 class TestTwoFactor(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
-		super(TestTwoFactor, self).__init__(*args, **kwargs)
+		super().__init__(*args, **kwargs)
 		self.default_allowed_login_attempts = get_system_setting("allow_consecutive_login_attempts")
 
 	def setUp(self):
@@ -60,7 +60,7 @@ class TestTwoFactor(unittest.TestCase):
 		self.assertTrue(verification_obj)
 		self.assertTrue(tmp_id)
 		for k in ["_usr", "_pwd", "_otp_secret"]:
-			self.assertTrue(frappe.cache().get("{0}{1}".format(tmp_id, k)), "{} not available".format(k))
+			self.assertTrue(frappe.cache().get(f"{tmp_id}{k}"), f"{k} not available")
 
 	def test_two_factor_is_enabled(self):
 		"""

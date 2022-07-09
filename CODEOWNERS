@@ -12,7 +12,7 @@ data_import*      @netchampfaris
 core/             @surajshetty3416
 database          @gavindsouza
 model             @gavindsouza
-requirements.txt  @gavindsouza
+pyproject.toml    @gavindsouza
 query_builder/    @gavindsouza
 commands/         @gavindsouza
 workspace         @shariquerik

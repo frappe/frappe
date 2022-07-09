@@ -1,16 +1,14 @@
+import os
 import time
 from unittest import TestCase
+from unittest.mock import patch
 
 import frappe
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.utils import add_days, get_datetime
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
-
-
-def test_timeout():
-	time.sleep(100)
 
 
 def test_timeout_10():
@@ -23,6 +21,11 @@ def test_method():
 
 class TestScheduler(TestCase):
 	def setUp(self):
+		frappe.db.rollback()
+
+		if not os.environ.get("CI"):
+			return
+
 		purge_pending_jobs()
 		if not frappe.get_all("Scheduled Job Type", limit=1):
 			sync_jobs()
@@ -44,15 +47,9 @@ class TestScheduler(TestCase):
 	def test_queue_peeking(self):
 		job = get_test_job()
 
-		self.assertTrue(job.enqueue())
-		job.db_set("last_execution", "2010-01-01 00:00:00")
-		frappe.db.commit()
-
-		time.sleep(0.5)
-
-		# 1st job is in the queue (or running), don't enqueue it again
-		self.assertFalse(job.enqueue())
-		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": job.name})
+		with patch.object(job, "is_job_in_queue", return_value=True):
+			# 1st job is in the queue (or running), don't enqueue it again
+			self.assertFalse(job.enqueue())
 
 	def test_is_dormant(self):
 		self.assertTrue(is_dormant(check_time=get_datetime("2100-01-01 00:00:00")))
@@ -88,22 +85,10 @@ class TestScheduler(TestCase):
 			)
 		)
 
-		frappe.db.rollback()
 
-	def test_job_timeout(self):
-		return
-		job = enqueue(test_timeout, timeout=10)
-		count = 5
-		while count > 0:
-			count -= 1
-			time.sleep(5)
-			if job.get_status() == "failed":
-				break
-
-		self.assertTrue(job.is_failed)
-
-
-def get_test_job(method="frappe.tests.test_scheduler.test_timeout_10", frequency="All"):
+def get_test_job(
+	method="frappe.tests.test_scheduler.test_timeout_10", frequency="All"
+) -> ScheduledJobType:
 	if not frappe.db.exists("Scheduled Job Type", dict(method=method)):
 		job = frappe.get_doc(
 			dict(

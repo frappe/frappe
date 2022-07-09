@@ -1,6 +1,6 @@
 import os
 
-from PyPDF2 import PdfFileWriter
+from PyPDF2 import PdfWriter
 
 import frappe
 from frappe import _
@@ -11,6 +11,8 @@ no_cache = 1
 
 base_template_path = "www/printview.html"
 standard_format = "templates/print_formats/standard.html"
+
+from frappe.www.printview import validate_print_permission
 
 
 @frappe.whitelist()
@@ -56,7 +58,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 
 	import json
 
-	output = PdfFileWriter()
+	output = PdfWriter()
 
 	if isinstance(options, str):
 		options = json.loads(options)
@@ -94,11 +96,11 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 				except Exception:
 					frappe.log_error(
 						title="Error in Multi PDF download",
-						message="Permission Error on doc {} of doctype {}".format(doc_name, doctype_name),
+						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
-		frappe.local.response.filename = "{}.pdf".format(name)
+		frappe.local.response.filename = f"{name}.pdf"
 
 	frappe.local.response.filecontent = read_multi_pdf(output)
 	frappe.local.response.type = "download"
@@ -106,7 +108,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 
 def read_multi_pdf(output):
 	# Get the content of the merged pdf files
-	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+	fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
 	output.write(open(fname, "wb"))
 
 	with open(fname, "rb") as fileobj:
@@ -115,8 +117,11 @@ def read_multi_pdf(output):
 	return filedata
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
+	doc = doc or frappe.get_doc(doctype, name)
+	validate_print_permission(doc)
+
 	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
 	frappe.local.response.filename = "{name}.pdf".format(
 		name=name.replace(" ", "-").replace("/", "-")
@@ -147,15 +152,15 @@ def print_by_server(
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
-		output = PdfFileWriter()
+		output = PdfWriter()
 		output = frappe.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
 		)
 		if not file_path:
-			file_path = os.path.join("/", "tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
 		output.write(open(file_path, "wb"))
 		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except IOError as e:
+	except OSError as e:
 		if (
 			"ContentNotFoundError" in e.message
 			or "ContentOperationNotPermittedError" in e.message

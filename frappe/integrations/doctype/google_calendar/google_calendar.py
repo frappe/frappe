@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -140,7 +139,7 @@ def authorize_access(g_calendar, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/app/Form/{0}/{1}".format(
+			frappe.local.response["location"] = "/app/Form/{}/{}".format(
 				quote("Google Calendar"), quote(google_calendar.name)
 			)
 

@@ -37,6 +37,7 @@ frappe.views.Workspace = class Workspace {
 
 		this.prepare_container();
 		this.setup_pages();
+		this.register_awesomebar_shortcut();
 	}
 
 	prepare_container() {
@@ -117,7 +118,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	build_sidebar_section(title, root_pages) {
-		let sidebar_section = $(`<div class="standard-sidebar-section nested-container"></div>`);
+		let sidebar_section = $(`<div class="standard-sidebar-section nested-container" data-title="${title}"></div>`);
 
 		let $title = $(`<div class="standard-sidebar-label">
 			<span>${frappe.utils.icon("small-down", "xs")}</span>
@@ -692,11 +693,6 @@ frappe.views.Workspace = class Workspace {
 			$button.filter('.dropdown-list').toggleClass('hidden');
 		});
 
-		$(document).click(event => {
-			event.stopPropagation();
-			$('.dropdown-list:not(.hidden)').addClass('hidden');
-		});
-
 		sidebar_control.append($button);
 
 		this.dropdown_list.forEach((i) => {
@@ -1227,5 +1223,19 @@ frappe.views.Workspace = class Workspace {
 	remove_sidebar_skeleton() {
 		$('.desk-sidebar').removeClass('hidden');
 		$('.list-sidebar').find('.workspace-sidebar-skeleton').remove();
+	}
+
+	register_awesomebar_shortcut() {
+		'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
+			const default_shortcut = {
+				action: (e) => {
+					$("#navbar-search").focus();
+					return false; // don't prevent default = type the letter in awesomebar
+				},
+				page: this.page,
+			};
+			frappe.ui.keys.add_shortcut({shortcut: letter, ...default_shortcut});
+			frappe.ui.keys.add_shortcut({shortcut: `shift+${letter}`, ...default_shortcut});
+		});
 	}
 };

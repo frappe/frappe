@@ -20,15 +20,15 @@ class DbManager:
 			host = self.get_current_host()
 
 		if password:
-			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user, host, password))
+			self.db.sql(f"CREATE USER '{user}'@'{host}' IDENTIFIED BY '{password}';")
 		else:
-			self.db.sql("CREATE USER '%s'@'%s';" % (user, host))
+			self.db.sql(f"CREATE USER '{user}'@'{host}';")
 
 	def delete_user(self, target, host=None):
 		if not host:
 			host = self.get_current_host()
 		try:
-			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
+			self.db.sql(f"DROP USER '{target}'@'{host}';")
 		except Exception as e:
 			if e.args[0] == 1396:
 				pass
@@ -54,7 +54,7 @@ class DbManager:
 				% (target, user, host)
 			)
 		else:
-			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+			self.db.sql(f"GRANT ALL PRIVILEGES ON `{target}`.* TO '{user}'@'{host}';")
 
 	def flush_privileges(self):
 		self.db.sql("FLUSH PRIVILEGES")
@@ -73,11 +73,11 @@ class DbManager:
 
 		pv = find_executable("pv")
 		if pv:
-			pipe = "{pv} {source} |".format(pv=pv, source=source)
+			pipe = f"{pv} {source} |"
 			source = ""
 		else:
 			pipe = ""
-			source = "< {source}".format(source=source)
+			source = f"< {source}"
 
 		if pipe:
 			print("Restoring Database file...")

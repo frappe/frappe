@@ -86,7 +86,7 @@ def create_contact_phone_nos_records():
 	doc = frappe.new_doc("Contact")
 	doc.first_name = "Test Contact"
 	for index in range(1000):
-		doc.append("phone_nos", {"phone": "123456{}".format(index)})
+		doc.append("phone_nos", {"phone": f"123456{index}"})
 	doc.insert()
 
 
@@ -140,7 +140,7 @@ def create_multiple_todo_records():
 	if frappe.db.get_all("ToDo", {"description": "Multiple ToDo 1"}):
 		return
 
-	values = [("100{}".format(i), "Multiple ToDo {}".format(i)) for i in range(1, 1002)]
+	values = [(f"100{i}", f"Multiple ToDo {i}") for i in range(1, 1002)]
 
 	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=set(values))
 

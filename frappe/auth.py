@@ -109,6 +109,9 @@ class HTTPRequest:
 
 
 class LoginManager:
+
+	__slots__ = ("user", "info", "full_name", "user_type", "resume")
+
 	def __init__(self):
 		self.user = None
 		self.info = None
@@ -471,7 +474,7 @@ def get_login_attempt_tracker(user_name: str, raise_locked_exception: bool = Tru
 	return tracker
 
 
-class LoginAttemptTracker(object):
+class LoginAttemptTracker:
 	"""Track login attemts of a user.
 
 	Lock the account for s number of seconds if there have been n consecutive unsuccessful attempts to log in.

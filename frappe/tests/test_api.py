@@ -3,7 +3,6 @@ import unittest
 from contextlib import contextmanager
 from random import choice
 from threading import Thread
-from typing import Dict, Optional, Tuple
 from unittest.mock import patch
 
 import requests
@@ -33,7 +32,7 @@ def suppress_stdout():
 
 
 def make_request(
-	target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None
+	target: str, args: tuple | None = None, kwargs: dict | None = None
 ) -> TestResponse:
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
 	t.start()
@@ -86,7 +85,7 @@ class FrappeAPITestCase(unittest.TestCase):
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None, **kwargs) -> TestResponse:
+	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
 
 	def post(self, path, data, **kwargs) -> TestResponse:

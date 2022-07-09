@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -32,7 +31,7 @@ class DomainSettings(Document):
 	def restrict_roles_and_modules(self):
 		"""Disable all restricted roles and set `restrict_to_domain` property in Module Def"""
 		active_domains = frappe.get_active_domains()
-		all_domains = list((frappe.get_hooks("domains") or {}))
+		all_domains = list(frappe.get_hooks("domains") or {})
 
 		def remove_role(role):
 			frappe.db.delete("Has Role", {"role": role})

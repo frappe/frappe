@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 from types import FunctionType, MethodType, ModuleType
-from typing import Dict, List
 
 import frappe
 from frappe import _
@@ -31,7 +29,7 @@ class ServerScript(Document):
 		return {"script": "py"}
 
 	@property
-	def scheduled_jobs(self) -> List[Dict[str, str]]:
+	def scheduled_jobs(self) -> list[dict[str, str]]:
 		return frappe.get_all(
 			"Scheduled Job Type",
 			filters={"server_script": self.name},
@@ -69,7 +67,7 @@ class ServerScript(Document):
 		except Exception as e:
 			frappe.msgprint(str(e), title=_("Compilation warning"))
 
-	def execute_method(self) -> Dict:
+	def execute_method(self) -> dict:
 		"""Specific to API endpoint Server Scripts
 
 		Raises:
@@ -110,7 +108,7 @@ class ServerScript(Document):
 
 		safe_exec(self.script)
 
-	def get_permission_query_conditions(self, user: str) -> List[str]:
+	def get_permission_query_conditions(self, user: str) -> list[str]:
 		"""Specific to Permission Query Server Scripts
 
 		Args:

@@ -249,14 +249,21 @@ frappe.ui.Filter = class {
 				const filter_value = this.filter_list.get_filter_value(fieldname);
 				args[field_name] = filter_value;
 			}
-			frappe
-				.xcall(this.filters_config[condition].get_field, args)
-				.then(field => {
-					df.fieldtype = field.fieldtype;
-					df.options = field.options;
-					df.fieldname = fieldname;
-					this.make_field(df, cur.fieldtype);
+			let setup_field = (field) => {
+				df.fieldtype = field.fieldtype;
+				df.options = field.options;
+				df.fieldname = fieldname;
+				this.make_field(df, cur.fieldtype);
+			}
+			if (this.filters_config[condition].data) {
+				let field = this.filters_config[condition].data;
+				setup_field(field);
+			} else {
+				frappe.xcall(this.filters_config[condition].get_field, args).then(field => {
+					this.filters_config[condition].data = field;
+					setup_field(field);
 				});
+			}
 		} else {
 			this.make_field(df, cur.fieldtype);
 		}
@@ -436,15 +443,17 @@ frappe.ui.filter_utils = {
 			val = val == 'Yes' ? 1 : 0;
 		}
 
-		if (condition.indexOf('like', 'not like') !== -1) {
+		if (['like', 'not like'].includes(condition)) {
 			// automatically append wildcards
 			if (val && !(val.startsWith('%') || val.endsWith('%'))) {
 				val = '%' + val + '%';
 			}
-		} else if (in_list(['in', 'not in'], condition)) {
+		} else if (['in', 'not in'].includes(condition)) {
 			if (val) {
 				val = val.split(',').map((v) => strip(v));
 			}
+		} else if (frappe.boot.additional_filters_config[condition]) {
+			val = field.value || val;
 		}
 		if (val === '%') {
 			val = '';

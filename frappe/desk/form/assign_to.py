@@ -217,7 +217,7 @@ def notify_assignment(
 	# Search for email address in description -- i.e. assignee
 	user_name = frappe.get_cached_value("User", frappe.session.user, "full_name")
 	title = get_title(doc_type, doc_name)
-	description_html = "<div>{0}</div>".format(description) if description else None
+	description_html = f"<div>{description}</div>" if description else None
 
 	if action == "CLOSE":
 		subject = _("Your assignment on {0} {1} has been removed by {2}").format(

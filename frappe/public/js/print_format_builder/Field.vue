@@ -35,7 +35,7 @@
 					@click="edit_html"
 				>
 					<svg class="icon icon-sm">
-						<use xlink:href="#icon-edit"></use>
+						<use href="#icon-edit"></use>
 					</svg>
 				</button>
 				<button
@@ -50,7 +50,7 @@
 					@click="$set(df, 'remove', true)"
 				>
 					<svg class="icon icon-sm">
-						<use xlink:href="#icon-close"></use>
+						<use href="#icon-close"></use>
 					</svg>
 				</button>
 			</div>

@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.email.smtp
@@ -20,14 +20,6 @@ from frappe.utils import (
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.communication.communication import Communication
-
-
-OUTGOING_EMAIL_ACCOUNT_MISSING = _(
-	"""
-	Unable to send mail because of a missing email account.
-	Please setup default Email Account from Setup > Email > Email Account
-"""
-)
 
 
 @frappe.whitelist()
@@ -53,7 +45,7 @@ def make(
 	email_template=None,
 	communication_type=None,
 	**kwargs,
-) -> Dict[str, str]:
+) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
 
 	:param doctype: Reference DocType.
@@ -130,7 +122,7 @@ def _make(
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
-) -> Dict[str, str]:
+) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
 	sender = sender or get_formatted_email(frappe.session.user)
@@ -170,7 +162,12 @@ def _make(
 
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():
-			frappe.throw(msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError)
+			frappe.throw(
+				_(
+					"Unable to send mail because of a missing email account. Please setup default Email Account from Setup > Email > Email Account"
+				),
+				exc=frappe.OutgoingEmailError,
+			)
 
 		comm.send_email(
 			print_html=print_html,

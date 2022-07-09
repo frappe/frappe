@@ -20,7 +20,7 @@ frappe.file_manager = function() {
 			new_folder = new_folder_;
 
 			frappe.call({
-				method:"frappe.core.doctype.file.file.move_file",
+				method: "frappe.core.api.file.move_file",
 				args: {
 					file_list: files_to_move,
 					new_parent: new_folder,

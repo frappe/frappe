@@ -38,6 +38,10 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends f
 	}
 
 	parse(value) {
+		if (typeof value == "object" || !this.rows) {
+			return value;
+		}
+
 		if (value) {
 			this.rows.push(value);
 		}

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
@@ -132,8 +131,7 @@ class Exporter:
 						child_doctype = table_df.options
 						rows = self.add_data_row(child_doctype, child_row.parentfield, child_row, rows, i)
 
-			for row in rows:
-				yield row
+			yield from rows
 
 	def add_data_row(self, doctype, parentfield, doc, rows, row_idx):
 		if len(rows) < row_idx + 1:
@@ -156,14 +154,14 @@ class Exporter:
 
 	def get_data_as_docs(self):
 		def format_column_name(df):
-			return "`tab{0}`.`{1}`".format(df.parent, df.fieldname)
+			return f"`tab{df.parent}`.`{df.fieldname}`"
 
 		filters = self.export_filters
 
 		if self.meta.is_nested_set():
-			order_by = "`tab{0}`.`lft` ASC".format(self.doctype)
+			order_by = f"`tab{self.doctype}`.`lft` ASC"
 		else:
-			order_by = "`tab{0}`.`creation` DESC".format(self.doctype)
+			order_by = f"`tab{self.doctype}`.`creation` DESC"
 
 		parent_fields = [format_column_name(df) for df in self.fields if df.parent == self.doctype]
 		parent_data = frappe.db.get_list(
@@ -183,7 +181,7 @@ class Exporter:
 			child_table_df = self.meta.get_field(key)
 			child_table_doctype = child_table_df.options
 			child_fields = ["name", "idx", "parent", "parentfield"] + list(
-				set([format_column_name(df) for df in self.fields if df.parent == child_table_doctype])
+				{format_column_name(df) for df in self.fields if df.parent == child_table_doctype}
 			)
 			data = frappe.db.get_all(
 				child_table_doctype,
@@ -211,16 +209,16 @@ class Exporter:
 			if is_parent:
 				label = _(df.label)
 			else:
-				label = "{0} ({1})".format(_(df.label), _(df.child_table_df.label))
+				label = f"{_(df.label)} ({_(df.child_table_df.label)})"
 
 			if label in header:
 				# this label is already in the header,
 				# which means two fields with the same label
 				# add the fieldname to avoid clash
 				if is_parent:
-					label = "{0}".format(df.fieldname)
+					label = f"{df.fieldname}"
 				else:
-					label = "{0}.{1}".format(df.child_table_df.fieldname, df.fieldname)
+					label = f"{df.child_table_df.fieldname}.{df.fieldname}"
 
 			header.append(label)
 
@@ -253,5 +251,5 @@ class Exporter:
 	def build_xlsx_response(self):
 		build_xlsx_response(self.get_csv_array_for_export(), _(self.doctype))
 
-	def group_children_data_by_parent(self, children_data: typing.Dict[str, list]):
+	def group_children_data_by_parent(self, children_data: dict[str, list]):
 		return groupby_metric(children_data, key="parent")

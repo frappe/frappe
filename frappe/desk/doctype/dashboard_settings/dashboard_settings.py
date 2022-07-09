@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -28,7 +27,7 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
-	return """(`tabDashboard Settings`.name = {user})""".format(user=frappe.db.escape(user))
+	return f"""(`tabDashboard Settings`.name = {frappe.db.escape(user)})"""
 
 
 @frappe.whitelist()

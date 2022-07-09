@@ -23,15 +23,14 @@
   {
    "fieldname": "report_name",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Report Name",
    "read_only": 1
   },
   {
    "fieldname": "ref_report_doctype",
    "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Ref Report DocType",
+   "in_standard_filter": 1,
+   "label": "Report Type",
    "options": "Report",
    "read_only": 1
   },
@@ -41,6 +40,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
    "options": "Error\nQueued\nCompleted",
    "read_only": 1
@@ -103,10 +103,11 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2020-03-05 10:52:56.598365",
+ "modified": "2022-06-13 06:20:34.496412",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -131,9 +132,9 @@
    "share": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "title_field": "report_name",
+ "states": [],
+ "title_field": "ref_report_doctype",
  "track_changes": 1
 }
