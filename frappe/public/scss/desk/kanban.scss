@@ -17,13 +17,6 @@
 	display: flex;
 	overflow-y: hidden;
 
-	-ms-overflow-style: none; /* IE and Edge */
-	scrollbar-width: none; /* Firefox */
-
-	&::-webkit-scrollbar {
-		display: none;
-	}
-
 	.kanban-column {
 		@include transition();
 
@@ -32,7 +25,8 @@
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
 		min-height: calc(100vh - 250px);
-		max-height: calc(100vh - var(--navbar-height) - var(--page-bottom-margin) - 80px);
+		background-color: var(--kanban-column-bg);
+		margin: 0.5em 0.25em 0.5em 0.25em;
 
 		.add-card {
 			@include flex(flex, center, center, null);
@@ -365,3 +359,4 @@ body[data-route*="Kanban"] {
 		width: 100%;
 	}
 }
+

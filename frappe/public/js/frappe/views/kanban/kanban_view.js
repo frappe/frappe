@@ -65,11 +65,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	setup_page() {
 		this.hide_sidebar = true;
 		this.hide_page_form = false;
-		this.hide_card_layout = true;
+		this.hide_card_layout = false;
 		super.setup_page();
 		this.page.disable_sidebar_toggle = true;
 		this.page.setup_sidebar_toggle();
-		this.$page.find(".page-form").addClass("rounded");
 	}
 
 	setup_view() {
