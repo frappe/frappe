@@ -361,8 +361,8 @@ frappe.provide("frappe.views");
 				animation: 150,
 				dataIdAttr: "data-column-value",
 				filter: ".add-new-column",
-				handle: ".kanban-column-title",
-				onEnd: function () {
+				handle: ".kanban-title",
+				onEnd: function() {
 					var order = sortable.toArray();
 					order = order.slice(1);
 					store.dispatch("update_column_order", order);

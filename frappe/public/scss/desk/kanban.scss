@@ -99,10 +99,6 @@
 					margin: 0;
 				}
 			}
-
-			&:hover {
-				cursor: pointer;
-			}
 		}
 
 		.kanban-column-title {
@@ -119,6 +115,7 @@
 				font-size: var(--text-lg);
 				margin-left: var(--margin-sm);
 				font-weight: var(--text-bold, 600);
+				cursor: grab;
 			}
 		}
 
