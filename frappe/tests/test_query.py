@@ -2,6 +2,7 @@ import unittest
 
 import frappe
 from frappe.query_builder import Field
+from frappe.query_builder.functions import Abs, Count, Max, Timestamp
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 
 
@@ -42,8 +43,6 @@ class TestQuery(unittest.TestCase):
 		)
 
 	def test_functions_fields(self):
-		from frappe.query_builder.functions import Abs, Count, Max, Timestamp
-
 		self.assertEqual(
 			frappe.qb.engine.get_query("User", fields="Count(name)", filters={}).get_sql(),
 			frappe.qb.from_("User").select(Count(Field("name"))).get_sql(),
@@ -87,4 +86,33 @@ class TestQuery(unittest.TestCase):
 		self.assertEqual(
 			frappe.qb.engine.get_query(user_doctype, fields=user_doctype.email, filters={}).get_sql(),
 			frappe.qb.from_(user_doctype).select(user_doctype.email).get_sql(),
+		)
+
+	def test_aliasing(self):
+		user_doctype = frappe.qb.DocType("User")
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				user_doctype, fields=["name as owner", "email as id"], filters={}
+			).get_sql(),
+			frappe.qb.from_(user_doctype)
+			.select(user_doctype.name.as_("owner"), user_doctype.email.as_("id"))
+			.get_sql(),
+		)
+
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				user_doctype, fields="name as owner, email as id", filters={}
+			).get_sql(),
+			frappe.qb.from_(user_doctype)
+			.select(user_doctype.name.as_("owner"), user_doctype.email.as_("id"))
+			.get_sql(),
+		)
+
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				user_doctype, fields=["Count(name) as c", "email as id"], filters={}
+			).get_sql(),
+			frappe.qb.from_(user_doctype)
+			.select(user_doctype.email.as_("id"), Count(Field("name")).as_("c"))
+			.get_sql(),
 		)

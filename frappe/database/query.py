@@ -186,7 +186,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 
 
 class Engine:
-	tables: dict = {}
+	tables: dict[str, str] = {}
 
 	@cached_property
 	def OPERATOR_MAP(self):
@@ -384,6 +384,7 @@ class Engine:
 		args_start, args_end = len(func) + 1, field.index(")")
 		args = field[args_start:args_end].split(",")
 
+		_, alias = field.split(" as ") if " as " in field else (None, None)
 		to_cast = "*" not in args
 		_args = []
 
@@ -406,14 +407,15 @@ class Engine:
 				field = initial_fields
 
 			_args.append(field)
-
-		return getattr(functions, func)(*_args)
+		return getattr(functions, func)(*_args, alias=alias or None)
 
 	def function_objects_from_string(self, fields):
 		functions = ""
 		for func in SQL_FUNCTIONS:
 			if f"{func}(" in fields:
+				_, alias = fields.split(" as ") if " as " in fields else ("", "")
 				functions = str(func) + str(BRACKETS_PATTERN.search(fields).group())
+				functions += " as " + alias
 				return [self.get_function_object(functions)]
 		if not functions:
 			return []
@@ -432,14 +434,25 @@ class Engine:
 		"""Remove string functions from fields which have already been converted to function objects"""
 		for function in function_objects:
 			if isinstance(fields, str):
+				has_alias = False
+				if function.alias:
+					has_alias = True
 				fields = BRACKETS_PATTERN.sub("", fields.replace(function.name.casefold(), ""))
+				if has_alias:
+					fields = fields.replace(" as " + function.alias.casefold(), "")
 			else:
 				updated_fields = []
 				for field in fields:
+					has_alias = False
+					if function.alias:
+						has_alias = True
 					if isinstance(field, str):
-						updated_fields.append(
+						_field = (
 							BRACKETS_PATTERN.sub("", field).strip().casefold().replace(function.name.casefold(), "")
 						)
+						if has_alias:
+							_field = _field.replace(" as " + function.alias.casefold(), "")
+						updated_fields.append(_field)
 					else:
 						updated_fields.append(field)
 
