@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -211,7 +210,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 		["DocType", "issingle", "=", 0],
 		["DocType", "module", "not in", modules],
 		["DocType", "read_only", "=", 0],
-		["DocType", "name", "like", "%{0}%".format(txt)],
+		["DocType", "name", "like", f"%{txt}%"],
 	]
 
 	doctypes = frappe.get_all(
@@ -225,7 +224,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 	)
 
 	custom_dt_filters = [
-		["Custom Field", "dt", "like", "%{0}%".format(txt)],
+		["Custom Field", "dt", "like", f"%{txt}%"],
 		["Custom Field", "options", "=", "User"],
 		["Custom Field", "fieldtype", "=", "Link"],
 	]

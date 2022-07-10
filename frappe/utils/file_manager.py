@@ -209,9 +209,9 @@ def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
 	fpath = write_file(content, fname, is_private)
 
 	if is_private:
-		file_url = "/private/files/{0}".format(fname)
+		file_url = f"/private/files/{fname}"
 	else:
-		file_url = "/files/{0}".format(fname)
+		file_url = f"/files/{fname}"
 
 	return {"file_name": os.path.basename(fpath), "file_url": file_url}
 
@@ -342,7 +342,7 @@ def get_file(fname):
 	file_path = get_file_path(fname)
 
 	# read the file
-	with io.open(encode(file_path), mode="rb") as f:
+	with open(encode(file_path), mode="rb") as f:
 		content = f.read()
 		try:
 			# for plain text files
@@ -405,7 +405,7 @@ def get_file_name(fname, optional_suffix):
 			partial, extn = f[0], ""
 		else:
 			partial, extn = f[0], "." + f[1]
-		return "{partial}{suffix}{extn}".format(partial=partial, extn=extn, suffix=optional_suffix)
+		return f"{partial}{optional_suffix}{extn}"
 	return fname
 
 

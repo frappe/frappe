@@ -3,7 +3,6 @@
 import hashlib
 import json
 import time
-from typing import List
 
 from werkzeug.exceptions import NotFound
 
@@ -112,7 +111,7 @@ class Document(BaseDocument):
 
 		if kwargs:
 			# init base document
-			super(Document, self).__init__(kwargs)
+			super().__init__(kwargs)
 			self.init_child_tables()
 			self.init_valid_columns()
 
@@ -136,7 +135,7 @@ class Document(BaseDocument):
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
-			super(Document, self).__init__(single_doc)
+			super().__init__(single_doc)
 			self.init_valid_columns()
 			self._fix_numeric_types()
 
@@ -149,7 +148,7 @@ class Document(BaseDocument):
 					_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError
 				)
 
-			super(Document, self).__init__(d)
+			super().__init__(d)
 
 		for df in self._get_table_fields():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
@@ -401,9 +400,9 @@ class Document(BaseDocument):
 		if rows:
 			# select rows that do not match the ones in the document
 			deleted_rows = frappe.db.sql(
-				"""select name from `tab{0}` where parent=%s
+				"""select name from `tab{}` where parent=%s
 				and parenttype=%s and parentfield=%s
-				and name not in ({1})""".format(
+				and name not in ({})""".format(
 					df.options, ",".join(["%s"] * len(rows))
 				),
 				[self.name, self.doctype, fieldname] + rows,
@@ -756,7 +755,7 @@ class Document(BaseDocument):
 					conflict = True
 			else:
 				tmp = frappe.db.sql(
-					"""select modified, docstatus from `tab{0}`
+					"""select modified, docstatus from `tab{}`
 					where name = %s for update""".format(
 						self.doctype
 					),
@@ -779,7 +778,7 @@ class Document(BaseDocument):
 			if conflict:
 				frappe.msgprint(
 					_("Error: Document has been modified after you have opened it")
-					+ (" (%s, %s). " % (modified, self.modified))
+					+ (f" ({modified}, {self.modified}). ")
 					+ _("Please refresh to get the latest document."),
 					raise_exception=frappe.TimestampMismatchError,
 				)
@@ -874,7 +873,7 @@ class Document(BaseDocument):
 
 		raise frappe.MandatoryError(
 			"[{doctype}, {name}]: {fields}".format(
-				fields=", ".join((each[0] for each in missing)), doctype=self.doctype, name=self.name
+				fields=", ".join(each[0] for each in missing), doctype=self.doctype, name=self.name
 			)
 		)
 
@@ -890,14 +889,14 @@ class Document(BaseDocument):
 			cancelled_links.extend(result[1])
 
 		if invalid_links:
-			msg = ", ".join((each[2] for each in invalid_links))
+			msg = ", ".join(each[2] for each in invalid_links)
 			frappe.throw(_("Could not find {0}").format(msg), frappe.LinkValidationError)
 
 		if cancelled_links:
-			msg = ", ".join((each[2] for each in cancelled_links))
+			msg = ", ".join(each[2] for each in cancelled_links)
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
-	def get_all_children(self, parenttype=None) -> List["Document"]:
+	def get_all_children(self, parenttype=None) -> list["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
 
 		children = []
@@ -1268,7 +1267,7 @@ class Document(BaseDocument):
 	def is_whitelisted(self, method_name):
 		method = getattr(self, method_name, None)
 		if not method:
-			raise NotFound("Method {0} not found".format(method_name))
+			raise NotFound(f"Method {method_name} not found")
 
 		is_whitelisted(getattr(method, "__func__", method))
 

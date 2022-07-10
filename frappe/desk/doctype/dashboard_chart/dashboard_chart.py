@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -7,7 +6,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_reports
+from frappe.boot import get_allowed_report_names
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -41,10 +40,7 @@ def get_permission_query_conditions(user):
 	allowed_doctypes = [
 		frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()
 	]
-	allowed_reports = [
-		frappe.db.escape(key) if type(key) == str else key.encode("UTF8")
-		for key in get_allowed_reports()
-	]
+	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names()]
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
@@ -84,10 +80,7 @@ def has_permission(doc, ptype, user):
 		return True
 
 	if doc.chart_type == "Report":
-		allowed_reports = [
-			key if type(key) == str else key.encode("UTF8") for key in get_allowed_reports()
-		]
-		if doc.report_name in allowed_reports:
+		if doc.report_name in get_allowed_report_names():
 			return True
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
@@ -212,7 +205,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	data = frappe.db.get_list(
 		doctype,
-		fields=["{} as _unit".format(datefield), "SUM({})".format(value_field), "COUNT(*)"],
+		fields=[f"{datefield} as _unit", f"SUM({value_field})", "COUNT(*)"],
 		filters=filters,
 		group_by="_unit",
 		order_by="_unit asc",
@@ -242,13 +235,13 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	year_start_date = datetime.date(year, 1, 1).strftime("%Y-%m-%d")
 	next_year_start_date = datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
 
-	filters.append([doctype, datefield, ">", "{date}".format(date=year_start_date), False])
-	filters.append([doctype, datefield, "<", "{date}".format(date=next_year_start_date), False])
+	filters.append([doctype, datefield, ">", f"{year_start_date}", False])
+	filters.append([doctype, datefield, "<", f"{next_year_start_date}", False])
 
 	if frappe.db.db_type == "mariadb":
-		timestamp_field = "unix_timestamp({datefield})".format(datefield=datefield)
+		timestamp_field = f"unix_timestamp({datefield})"
 	else:
-		timestamp_field = "extract(epoch from timestamp {datefield})".format(datefield=datefield)
+		timestamp_field = f"extract(epoch from timestamp {datefield})"
 
 	data = dict(
 		frappe.db.get_all(
@@ -260,9 +253,9 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 				),
 			],
 			filters=filters,
-			group_by="date({datefield})".format(datefield=datefield),
+			group_by=f"date({datefield})",
 			as_list=1,
-			order_by="{datefield} asc".format(datefield=datefield),
+			order_by=f"{datefield} asc",
 			ignore_ifnull=True,
 		)
 	)
@@ -284,7 +277,7 @@ def get_group_by_chart_config(chart, filters):
 	data = frappe.db.get_list(
 		doctype,
 		fields=[
-			"{} as name".format(group_by_field),
+			f"{group_by_field} as name",
 			"{aggregate_function}({value_field}) as count".format(
 				aggregate_function=aggregate_function, value_field=value_field
 			),
@@ -351,7 +344,7 @@ def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 class DashboardChart(Document):
 	def on_update(self):
-		frappe.cache().delete_key("chart-data:{}".format(self.name))
+		frappe.cache().delete_key(f"chart-data:{self.name}")
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[["Dashboard Chart", self.name]], record_module=self.module)
 

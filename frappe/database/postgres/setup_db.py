@@ -7,12 +7,10 @@ def setup_database(force, source_sql=None, verbose=False):
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("end")
-	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(frappe.conf.db_name))
-	root_conn.sql("DROP USER IF EXISTS {0}".format(frappe.conf.db_name))
-	root_conn.sql("CREATE DATABASE `{0}`".format(frappe.conf.db_name))
-	root_conn.sql(
-		"CREATE user {0} password '{1}'".format(frappe.conf.db_name, frappe.conf.db_password)
-	)
+	root_conn.sql(f"DROP DATABASE IF EXISTS `{frappe.conf.db_name}`")
+	root_conn.sql(f"DROP USER IF EXISTS {frappe.conf.db_name}")
+	root_conn.sql(f"CREATE DATABASE `{frappe.conf.db_name}`")
+	root_conn.sql(f"CREATE user {frappe.conf.db_name} password '{frappe.conf.db_password}'")
 	root_conn.sql("GRANT ALL PRIVILEGES ON DATABASE `{0}` TO {0}".format(frappe.conf.db_name))
 	root_conn.close()
 
@@ -79,10 +77,10 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 def setup_help_database(help_db_name):
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
-	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(help_db_name))
-	root_conn.sql("DROP USER IF EXISTS {0}".format(help_db_name))
-	root_conn.sql("CREATE DATABASE `{0}`".format(help_db_name))
-	root_conn.sql("CREATE user {0} password '{1}'".format(help_db_name, help_db_name))
+	root_conn.sql(f"DROP DATABASE IF EXISTS `{help_db_name}`")
+	root_conn.sql(f"DROP USER IF EXISTS {help_db_name}")
+	root_conn.sql(f"CREATE DATABASE `{help_db_name}`")
+	root_conn.sql(f"CREATE user {help_db_name} password '{help_db_name}'")
 	root_conn.sql("GRANT ALL PRIVILEGES ON DATABASE `{0}` TO {0}".format(help_db_name))
 
 
@@ -118,5 +116,6 @@ def drop_user_and_database(db_name, root_login, root_password):
 		"SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = %s",
 		(db_name,),
 	)
+	root_conn.sql("end")
 	root_conn.sql(f"DROP DATABASE IF EXISTS {db_name}")
 	root_conn.sql(f"DROP USER IF EXISTS {db_name}")

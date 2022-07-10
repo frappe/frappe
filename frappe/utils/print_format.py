@@ -96,11 +96,11 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 				except Exception:
 					frappe.log_error(
 						title="Error in Multi PDF download",
-						message="Permission Error on doc {} of doctype {}".format(doc_name, doctype_name),
+						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
-		frappe.local.response.filename = "{}.pdf".format(name)
+		frappe.local.response.filename = f"{name}.pdf"
 
 	frappe.local.response.filecontent = read_multi_pdf(output)
 	frappe.local.response.type = "download"
@@ -108,7 +108,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 
 def read_multi_pdf(output):
 	# Get the content of the merged pdf files
-	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+	fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
 	output.write(open(fname, "wb"))
 
 	with open(fname, "rb") as fileobj:
@@ -157,10 +157,10 @@ def print_by_server(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
 		)
 		if not file_path:
-			file_path = os.path.join("/", "tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
 		output.write(open(file_path, "wb"))
 		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except IOError as e:
+	except OSError as e:
 		if (
 			"ContentNotFoundError" in e.message
 			or "ContentOperationNotPermittedError" in e.message

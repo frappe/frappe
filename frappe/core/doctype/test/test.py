@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -15,7 +14,7 @@ class test(Document):
 			json.dump(d, read_file)
 
 	def load_from_db(self):
-		with open("data_file.json", "r") as read_file:
+		with open("data_file.json") as read_file:
 			d = json.load(read_file)
 			super(Document, self).__init__(d)
 
@@ -25,20 +24,20 @@ class test(Document):
 			json.dump(d, read_file)
 
 	def get_list(self, args):
-		with open("data_file.json", "r") as read_file:
+		with open("data_file.json") as read_file:
 			return [json.load(read_file)]
 
 	def get_value(self, fields, filters, **kwargs):
 		# return []
-		with open("data_file.json", "r") as read_file:
+		with open("data_file.json") as read_file:
 			return [json.load(read_file)]
 
 	def get_count(self, args):
 		# return []
-		with open("data_file.json", "r") as read_file:
+		with open("data_file.json") as read_file:
 			return [json.load(read_file)]
 
 	def get_stats(self, args):
 		# return []
-		with open("data_file.json", "r") as read_file:
+		with open("data_file.json") as read_file:
 			return [json.load(read_file)]

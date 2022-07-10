@@ -1,6 +1,5 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from typing import Dict, List
 from urllib.parse import quote
 
 import frappe
@@ -180,7 +179,7 @@ def get_website_settings(context=None):
 	if frappe.request:
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 
-	context.encoded_title = quote(encode(context.title or ""), str(""))
+	context.encoded_title = quote(encode(context.title or ""), "")
 
 	context.web_include_js = hooks.web_include_js or []
 
@@ -216,7 +215,7 @@ def get_website_settings(context=None):
 	return context
 
 
-def get_items(parentfield: str) -> List[Dict]:
+def get_items(parentfield: str) -> list[dict]:
 	_items = frappe.get_all(
 		"Top Bar Item",
 		filters={"parent": "Website Settings", "parentfield": parentfield},

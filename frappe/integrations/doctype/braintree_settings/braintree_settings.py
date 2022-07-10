@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -184,7 +183,7 @@ class BraintreeSettings(Document):
 			)
 
 	def get_payment_url(self, **kwargs):
-		return get_url("./integrations/braintree_checkout?{0}".format(urlencode(kwargs)))
+		return get_url(f"./integrations/braintree_checkout?{urlencode(kwargs)}")
 
 	def create_payment_request(self, data):
 		self.data = frappe._dict(data)

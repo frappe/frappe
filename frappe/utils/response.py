@@ -96,7 +96,7 @@ def as_raw():
 	)
 	response.headers["Content-Disposition"] = (
 		f'{frappe.response.get("display_content_as","attachment")}; filename="{frappe.response["filename"].replace(" ", "_")}"'
-	).encode("utf-8")
+	).encode()
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -184,7 +184,7 @@ def json_handler(obj):
 
 	else:
 		raise TypeError(
-			"""Object of type %s with value of %s is not JSON serializable""" % (type(obj), repr(obj))
+			f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
 		)
 
 
@@ -246,7 +246,7 @@ def send_private_file(path: str) -> Response:
 		filepath = frappe.utils.get_site_path(path)
 		try:
 			f = open(filepath, "rb")
-		except IOError:
+		except OSError:
 			raise NotFound
 
 		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)

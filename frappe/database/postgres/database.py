@@ -1,5 +1,4 @@
 import re
-from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
@@ -118,9 +117,7 @@ class PostgresDatabase(Database):
 
 	# pylint: disable=W0221
 	def sql(self, query, values=(), *args, **kwargs):
-		return super(PostgresDatabase, self).sql(
-			modify_query(query), modify_values(values), *args, **kwargs
-		)
+		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
 
 	def get_tables(self, cached=True):
 		return [
@@ -128,9 +125,9 @@ class PostgresDatabase(Database):
 			for d in self.sql(
 				"""select table_name
 			from information_schema.tables
-			where table_catalog='{0}'
+			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
-				and table_schema='{1}'""".format(
+				and table_schema='{}'""".format(
 					frappe.conf.db_name, frappe.conf.get("db_schema", "public")
 				)
 			)
@@ -208,12 +205,12 @@ class PostgresDatabase(Database):
 	def is_data_too_long(e):
 		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
 
-	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
 		new_name = get_table_name(new_name)
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
-	def describe(self, doctype: str) -> Union[List, Tuple]:
+	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
 		return self.sql(
 			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'"
@@ -221,7 +218,7 @@ class PostgresDatabase(Database):
 
 	def change_column_type(
 		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
-	) -> Union[List, Tuple]:
+	) -> list | tuple:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
 		using_cast = f'using "{column}"::{type}' if use_cast else ""
@@ -290,9 +287,9 @@ class PostgresDatabase(Database):
 		* updates columns
 		* updates indices
 		"""
-		res = self.sql("select issingle from `tabDocType` where name='{}'".format(doctype))
+		res = self.sql(f"select issingle from `tabDocType` where name='{doctype}'")
 		if not res:
-			raise Exception("Wrong doctype {0} in updatedb".format(doctype))
+			raise Exception(f"Wrong doctype {doctype} in updatedb")
 
 		if not res[0][0]:
 			db_table = PostgresTable(doctype, meta)
@@ -306,7 +303,7 @@ class PostgresDatabase(Database):
 	def get_on_duplicate_update(key="name"):
 		if isinstance(key, list):
 			key = '", "'.join(key)
-		return 'ON CONFLICT ("{key}") DO UPDATE SET '.format(key=key)
+		return f'ON CONFLICT ("{key}") DO UPDATE SET '
 
 	def check_implicit_commit(self, query):
 		pass  # postgres can run DDL in transactions without implicit commits
@@ -319,7 +316,7 @@ class PostgresDatabase(Database):
 			)
 		)
 
-	def add_index(self, doctype: str, fields: List, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)

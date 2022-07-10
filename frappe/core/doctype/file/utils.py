@@ -4,7 +4,7 @@ import mimetypes
 import os
 import re
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
 
 import requests
@@ -55,8 +55,8 @@ def setup_folder_path(filename: str, new_parent: str) -> None:
 
 def get_extension(
 	filename,
-	extn: Optional[str] = None,
-	content: Optional[bytes] = None,
+	extn: str | None = None,
+	content: bytes | None = None,
 	response: Optional["Response"] = None,
 ) -> str:
 	mimetype = None
@@ -83,7 +83,7 @@ def get_extension(
 	return extn
 
 
-def get_local_image(file_url: str) -> Tuple["ImageFile", str, str]:
+def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 	if file_url.startswith("/private"):
 		file_url_path = (file_url.lstrip("/"),)
 	else:
@@ -93,7 +93,7 @@ def get_local_image(file_url: str) -> Tuple["ImageFile", str, str]:
 
 	try:
 		image = Image.open(file_path)
-	except IOError:
+	except OSError:
 		frappe.throw(_("Unable to read file format for {0}").format(file_url))
 
 	content = None
@@ -102,7 +102,7 @@ def get_local_image(file_url: str) -> Tuple["ImageFile", str, str]:
 		filename, extn = file_url.rsplit(".", 1)
 	except ValueError:
 		# no extn
-		with open(file_path, "r") as f:
+		with open(file_path) as f:
 			content = f.read()
 
 		filename = file_url
@@ -113,7 +113,7 @@ def get_local_image(file_url: str) -> Tuple["ImageFile", str, str]:
 	return image, filename, extn
 
 
-def get_web_image(file_url: str) -> Tuple["ImageFile", str, str]:
+def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	# download
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
@@ -179,13 +179,13 @@ def remove_file_by_url(file_url: str, doctype: str = None, name: str = None) -> 
 		return remove_file(fid=fid)
 
 
-def get_content_hash(content: Union[bytes, str]) -> str:
+def get_content_hash(content: bytes | str) -> str:
 	if isinstance(content, str):
 		content = content.encode()
 	return hashlib.md5(content).hexdigest()  # nosec
 
 
-def generate_file_name(name: str, suffix: Optional[str] = None, is_private: bool = False) -> str:
+def generate_file_name(name: str, suffix: str | None = None, is_private: bool = False) -> str:
 	"""Generate conflict-free file name. Suffix will be ignored if name available. If the
 	provided suffix doesn't result in an available path, a random suffix will be picked.
 	"""
@@ -203,7 +203,7 @@ def generate_file_name(name: str, suffix: Optional[str] = None, is_private: bool
 	return candidate_path
 
 
-def get_file_name(fname: str, optional_suffix: Optional[str] = None) -> str:
+def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 	# convert to unicode
 	fname = cstr(fname)
 	partial, extn = os.path.splitext(fname)

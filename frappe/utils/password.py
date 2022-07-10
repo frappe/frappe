@@ -29,7 +29,7 @@ class LegacyPassword(pbkdf2_sha256):
 			secret[0] == "*" and len(secret) == 41 and all(c in string.hexdigits for c in secret[1:])
 		):
 			secret = mysql41.hash(secret + self.salt.decode("utf-8"))
-		return super(LegacyPassword, self)._calc_checksum(secret)
+		return super()._calc_checksum(secret)
 
 
 register_crypt_handler(LegacyPassword, force=True)

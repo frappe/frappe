@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -80,8 +79,8 @@ def get_context(doc):
 	return {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
 
 
-def enqueue_webhook(doc, webhook):
-	webhook = frappe.get_doc("Webhook", webhook.get("name"))
+def enqueue_webhook(doc, webhook) -> None:
+	webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 	headers = get_webhook_headers(doc, webhook)
 	data = get_webhook_data(doc, webhook)
 
@@ -98,6 +97,11 @@ def enqueue_webhook(doc, webhook):
 			frappe.logger().debug({"webhook_success": r.text})
 			log_request(webhook.request_url, headers, data, r)
 			break
+
+		except requests.exceptions.ReadTimeout as e:
+			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+			log_request(webhook.request_url, headers, data)
+
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.request_url, headers, data, r)
@@ -108,7 +112,7 @@ def enqueue_webhook(doc, webhook):
 				webhook.log_error("Webhook failed")
 
 
-def log_request(url, headers, data, res):
+def log_request(url: str, headers: dict, data: dict, res: requests.Response | None = None):
 	request_log = frappe.get_doc(
 		{
 			"doctype": "Webhook Request Log",

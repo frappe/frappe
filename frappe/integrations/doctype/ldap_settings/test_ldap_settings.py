@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import functools
@@ -204,7 +203,7 @@ class LDAP_TestCase:
 
 				frappe.get_doc(localdoc).save()
 
-				self.fail("Document LDAP Settings field [{0}] is not mandatory".format(mandatory_field))
+				self.fail(f"Document LDAP Settings field [{mandatory_field}] is not mandatory")
 
 			except frappe.exceptions.MandatoryError:
 				pass
@@ -227,9 +226,7 @@ class LDAP_TestCase:
 				frappe.get_doc(localdoc).save()
 
 			except frappe.exceptions.MandatoryError:
-				self.fail(
-					"Document LDAP Settings field [{0}] should not be mandatory".format(non_mandatory_field)
-				)
+				self.fail(f"Document LDAP Settings field [{non_mandatory_field}] should not be mandatory")
 
 	@mock_ldap_connection
 	def test_validation_ldap_search_string(self):
@@ -252,7 +249,7 @@ class LDAP_TestCase:
 			try:
 				frappe.get_doc(localdoc).save()
 
-				self.fail("LDAP search string [{0}] should not validate".format(invalid_search_string))
+				self.fail(f"LDAP search string [{invalid_search_string}] should not validate")
 
 			except frappe.exceptions.ValidationError:
 				pass
@@ -298,7 +295,7 @@ class LDAP_TestCase:
 						):
 
 							self.fail(
-								"ldap3.Connection was called with {0}, failed reason: [{1}]".format(
+								"ldap3.Connection was called with {}, failed reason: [{}]".format(
 									kwargs[connection_arg],
 									prevent_connection_parameters[connection_arg][kwargs[connection_arg]],
 								)
@@ -475,7 +472,7 @@ class LDAP_TestCase:
 
 			self.assertTrue(
 				len(updated_user_roles) == len(test_user_data[test_user]),
-				"syncing of the user roles failed. {0} != {1} for user {2}".format(
+				"syncing of the user roles failed. {} != {} for user {}".format(
 					len(updated_user_roles), len(test_user_data[test_user]), test_user
 				),
 			)
@@ -484,7 +481,7 @@ class LDAP_TestCase:
 
 				self.assertTrue(
 					role_to_group_map[user_role] in test_user_data[test_user],
-					"during sync_roles(), the user was given role {0} which should not have occured".format(
+					"during sync_roles(), the user was given role {} which should not have occured".format(
 						user_role
 					),
 				)
@@ -609,7 +606,7 @@ class LDAP_TestCase:
 
 			self.assertTrue(
 				str(display_massage.exception).lower() == "invalid username or password",
-				"invalid credentials passed authentication [user: {0}, password: {1}]".format(
+				"invalid credentials passed authentication [user: {}, password: {}]".format(
 					username, password
 				),
 			)

@@ -5,11 +5,11 @@ import shlex
 import subprocess
 import sys
 import urllib.request
-from functools import cache
+from functools import lru_cache
 
 
-@cache
-def fetch_pr_data(pr_number, repo, endpoint):
+@lru_cache(maxsize=None)
+def fetch_pr_data(pr_number, repo, endpoint=""):
 	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
 
 	if endpoint:
@@ -37,7 +37,7 @@ def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
 	return has_label(pr_number, "Run UI Tests", repo)
 
 def has_label(pr_number, label, repo="frappe/frappe"):
-	return any([label["name"] for label in fetch_pr_data(pr_number, repo, "")["labels"] if label["name"] == label])
+	return any([fetched_label["name"] for fetched_label in fetch_pr_data(pr_number, repo)["labels"] if fetched_label["name"] == label])
 
 def is_py(file):
 	return file.endswith("py")
@@ -49,7 +49,7 @@ def is_frontend_code(file):
 	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
 
 def is_docs(file):
-	regex = re.compile(r'\.(md|png|jpg|jpeg|csv)$|^.github|LICENSE')
+	regex = re.compile(r'\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE')
 	return bool(regex.search(file))
 
 
@@ -77,12 +77,12 @@ if __name__ == "__main__":
 	updated_py_file_count = len(list(filter(is_py, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 
-	if ci_files_changed:
-		print("CI related files were updated, running all build processes.")
-
-	elif has_skip_ci_label(pr_number, repo):
+	if has_skip_ci_label(pr_number, repo):
 		print("Found `Skip CI` label on pr, stopping build process.")
 		sys.exit(0)
+
+	elif ci_files_changed:
+		print("CI related files were updated, running all build processes.")
 
 	elif only_docs_changed:
 		print("Only docs were updated, stopping build process.")

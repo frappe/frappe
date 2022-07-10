@@ -31,7 +31,7 @@ class TestFormLoad(unittest.TestCase):
 				"blog_intro": "Test Blog Intro",
 				"blogger": "_Test Blogger 1",
 				"content": "Test Blog Content",
-				"title": "_Test Blog Post {}".format(frappe.utils.now()),
+				"title": f"_Test Blog Post {frappe.utils.now()}",
 				"published": 0,
 			}
 		)

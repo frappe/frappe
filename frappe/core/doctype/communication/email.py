@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.email.smtp
@@ -45,7 +45,7 @@ def make(
 	email_template=None,
 	communication_type=None,
 	**kwargs,
-) -> Dict[str, str]:
+) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
 
 	:param doctype: Reference DocType.
@@ -122,7 +122,7 @@ def _make(
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
-) -> Dict[str, str]:
+) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
 	sender = sender or get_formatted_email(frappe.session.user)

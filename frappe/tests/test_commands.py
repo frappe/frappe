@@ -13,7 +13,6 @@ from contextlib import contextmanager
 from functools import wraps
 from glob import glob
 from pathlib import Path
-from typing import List, Optional
 from unittest.case import skipIf
 from unittest.mock import patch
 
@@ -34,7 +33,7 @@ from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, n
 from frappe.utils.backups import fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
 
-_result: Optional[Result] = None
+_result: Result | None = None
 TEST_SITE = "commands-site-O4PN2QKA.test"  # added random string tag to avoid collisions
 CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
@@ -55,7 +54,7 @@ def clean(value) -> str:
 	return value
 
 
-def missing_in_backup(doctypes: List, file: os.PathLike) -> List:
+def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 	"""Returns list of missing doctypes in the backup.
 
 	Args:
@@ -72,7 +71,7 @@ def missing_in_backup(doctypes: List, file: os.PathLike) -> List:
 	return [doctype for doctype in doctypes if predicate.format(doctype).lower() not in content]
 
 
-def exists_in_backup(doctypes: List, file: os.PathLike) -> bool:
+def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
 	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
 
 	Args:
@@ -111,7 +110,7 @@ def pass_test_context(f):
 
 
 @contextmanager
-def cli(cmd: Command, args: Optional[List] = None):
+def cli(cmd: Command, args: list | None = None):
 	with maintain_locals():
 		global _result
 
@@ -160,9 +159,7 @@ class BaseTestCommands(unittest.TestCase):
 		click.secho(self.command, fg="bright_black")
 
 		command = shlex.split(self.command)
-		self._proc = subprocess.run(
-			command, input=cmd_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-		)
+		self._proc = subprocess.run(command, input=cmd_input, capture_output=True)
 		self.stdout = clean(self._proc.stdout)
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
@@ -184,7 +181,7 @@ class BaseTestCommands(unittest.TestCase):
 			)
 
 	def _formatMessage(self, msg, standardMsg):
-		output = super(BaseTestCommands, self)._formatMessage(msg, standardMsg)
+		output = super()._formatMessage(msg, standardMsg)
 
 		if not hasattr(self, "command") and _result:
 			command = _result.command
@@ -201,14 +198,14 @@ class BaseTestCommands(unittest.TestCase):
 			[
 				"-" * 70,
 				"Last Command Execution Summary:",
-				"Command: {}".format(command) if command else "",
-				"Standard Output: {}".format(stdout) if stdout else "",
-				"Standard Error: {}".format(stderr) if stderr else "",
-				"Return Code: {}".format(returncode) if returncode else "",
+				f"Command: {command}" if command else "",
+				f"Standard Output: {stdout}" if stdout else "",
+				f"Standard Error: {stderr}" if stderr else "",
+				f"Return Code: {returncode}" if returncode else "",
 			]
 		).strip()
 
-		return "{}\n\n{}".format(output, cmd_execution_summary)
+		return f"{output}\n\n{cmd_execution_summary}"
 
 
 class TestCommands(BaseTestCommands):
@@ -325,10 +322,10 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
-		list_apps = set(_x.split()[0] for _x in self.stdout.split("\n"))
+		list_apps = {_x.split()[0] for _x in self.stdout.split("\n")}
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
-			installed_apps = set(x.app_name for x in doctype)
+			installed_apps = {x.app_name for x in doctype}
 		else:
 			installed_apps = set(frappe.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)

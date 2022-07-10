@@ -188,7 +188,7 @@ def get_csv_content_from_google_sheets(url):
 	# remove /edit path
 	url = url.rsplit("/edit", 1)[0]
 	# add /export path,
-	url = url + "/export?format=csv&gid={0}".format(gid)
+	url = url + f"/export?format=csv&gid={gid}"
 
 	headers = {"Accept": "text/csv"}
 	response = requests.get(url, headers=headers)

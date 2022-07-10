@@ -223,12 +223,12 @@ def insert_values_for_multiple_docs(all_contents):
 			{
 				"mariadb": """INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {0} """.format(
+				VALUES {} """.format(
 					", ".join(batch_values)
 				),
 				"postgres": """INSERT INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {0}
+				VALUES {}
 				ON CONFLICT("name", "doctype") DO NOTHING""".format(
 					", ".join(batch_values)
 				),

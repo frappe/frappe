@@ -10,7 +10,6 @@ import re
 import string
 from contextlib import contextmanager
 from time import time
-from typing import Dict, List, Optional, Tuple, Union
 
 from pypika.terms import Criterion, NullValue, PseudoColumn
 
@@ -31,11 +30,11 @@ SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
 
-def is_query_type(query: str, query_type: Union[str, Tuple[str]]) -> bool:
+def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
 
-class Database(object):
+class Database:
 	"""
 	Open a database connection with the given parmeters, if use_default is True, use the
 	login details from `conf.py`. This is called by the request handler and is accessible using
@@ -195,7 +194,7 @@ class Database(object):
 
 			if debug:
 				time_end = time()
-				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
+				frappe.errprint(("Execution time: {} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
 			if self.is_syntax_error(e):
@@ -271,7 +270,7 @@ class Database(object):
 		else:
 			try:
 				return self._cursor.mogrify(query, values)
-			except:  # noqa: E722
+			except Exception:
 				return (query, values)
 
 	def explain_query(self, query, values=None):
@@ -670,8 +669,8 @@ class Database(object):
 	def set_single_value(
 		self,
 		doctype: str,
-		fieldname: Union[str, Dict],
-		value: Optional[Union[str, int]] = None,
+		fieldname: str | dict,
+		value: str | int | None = None,
 		*args,
 		**kwargs,
 	):
@@ -934,14 +933,11 @@ class Database(object):
 	@staticmethod
 	def get_defaults(key=None, parent="__default"):
 		"""Get all defaults"""
-		if key:
-			defaults = frappe.defaults.get_defaults(parent)
-			d = defaults.get(key, None)
-			if not d and key != frappe.scrub(key):
-				d = defaults.get(frappe.scrub(key), None)
-			return d
-		else:
-			return frappe.defaults.get_defaults(parent)
+		defaults = frappe.defaults.get_defaults_for(parent)
+		if not key:
+			return defaults
+
+		return defaults.get(key) or defaults.get(frappe.scrub(key))
 
 	def begin(self):
 		self.sql("START TRANSACTION")
@@ -1023,7 +1019,7 @@ class Database(object):
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
-		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
+		return self.sql(f"select name from `tab{doctype}` limit 1")
 
 	def exists(self, dt, dn=None, cache=False):
 		"""Return the document name of a matching document, or None.
@@ -1063,13 +1059,13 @@ class Database(object):
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
-			cache_count = frappe.cache().get_value("doctype:count:{}".format(dt))
+			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
 		query = self.query.get_sql(table=dt, filters=filters, fields=Count("*"), distinct=distinct)
 		count = self.sql(query, debug=debug)[0][0]
 		if not filters and cache:
-			frappe.cache().set_value("doctype:count:{}".format(dt), count, expires_in_sec=86400)
+			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
 
 	@staticmethod
@@ -1103,7 +1099,7 @@ class Database(object):
 			now_datetime() - relativedelta(minutes=minutes),
 		)[0][0]
 
-	def get_db_table_columns(self, table) -> List[str]:
+	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
 		columns = frappe.cache().hget("table_columns", table)
 		if columns is None:
@@ -1137,7 +1133,7 @@ class Database(object):
 	def get_column_type(self, doctype, column):
 		return self.sql(
 			"""SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
-			WHERE table_name = 'tab{0}' AND column_name = '{1}' """.format(
+			WHERE table_name = 'tab{}' AND column_name = '{}' """.format(
 				doctype, column
 			)
 		)[0][0]
@@ -1158,10 +1154,7 @@ class Database(object):
 		return INDEX_PATTERN.sub(r"", index_name)
 
 	def get_system_setting(self, key):
-		def _load_system_settings():
-			return self.get_singles_dict("System Settings")
-
-		return frappe.cache().get_value("system_settings", _load_system_settings).get(key)
+		return frappe.get_system_settings(key)
 
 	def close(self):
 		"""Close database connection."""
@@ -1199,7 +1192,7 @@ class Database(object):
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype: str, filters: Union[Dict, List] = None, debug=False, **kwargs):
+	def delete(self, doctype: str, filters: dict | list = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
 
@@ -1305,7 +1298,7 @@ def enqueue_jobs_after_commit():
 
 
 @contextmanager
-def savepoint(catch: Union[type, Tuple[type, ...]] = Exception):
+def savepoint(catch: type | tuple[type, ...] = Exception):
 	"""Wrapper for wrapping blocks of DB operations in a savepoint.
 
 	as contextmanager:

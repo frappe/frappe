@@ -119,7 +119,7 @@ class TestDB(unittest.TestCase):
 			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
-		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
+		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
 
 	def test_get_single_value(self):
 		# setup
@@ -491,15 +491,15 @@ class TestDB(unittest.TestCase):
 		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
 
 		# Count with no filtes
-		self.assertEquals((frappe.db.count("Note")), 2)
+		self.assertEqual((frappe.db.count("Note")), 2)
 
 		# simple filters
-		self.assertEquals((frappe.db.count("Note", ["title", "=", "note1"])), 1)
+		self.assertEqual((frappe.db.count("Note", ["title", "=", "note1"])), 1)
 
 		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
 
 		# List of list filters with tables
-		self.assertEquals(
+		self.assertEqual(
 			(
 				frappe.db.count(
 					"Note",

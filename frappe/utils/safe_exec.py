@@ -4,7 +4,6 @@ import json
 import mimetypes
 
 import RestrictedPython.Guards
-from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
 
 import frappe
@@ -13,6 +12,7 @@ import frappe.integrations.utils
 import frappe.utils
 import frappe.utils.data
 from frappe import _
+from frappe.core.utils import html2text
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
 from frappe.model.delete_doc import delete_doc
@@ -347,7 +347,7 @@ def _getattr(object, name, default=None):
 	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
-		raise SyntaxError("{name} is an unsafe attribute".format(name=name))
+		raise SyntaxError(f"{name} is an unsafe attribute")
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 

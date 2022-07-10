@@ -2,7 +2,7 @@
 	<div class="btn-group">
 		<button class="btn btn-default btn-sm btn-order"
 			data-value="{{ sort_order }}"
-			title="{{ sort_order==="desc" ? "descending" : "ascending" }}">
+			title="{{ sort_order==="desc" ? __("descending") : __("ascending") }}">
 			<span class="sort-order">
 				<svg class="icon icon-sm">
 					<use href="#icon-{{ sort_order==="desc" ? "sort-descending" : "sort-ascending" }}"></use>

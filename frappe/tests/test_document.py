@@ -362,6 +362,17 @@ class TestDocument(unittest.TestCase):
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
 
+	def test_doc_events(self):
+		"""validate that all present doc events are correct methods"""
+
+		for doctype, doc_hooks in frappe.get_doc_hooks().items():
+			for _, hooks in doc_hooks.items():
+				for hook in hooks:
+					try:
+						frappe.get_attr(hook)
+					except Exception as e:
+						self.fail(f"Invalid doc hook: {doctype}:{hook}\n{e}")
+
 
 class TestDocumentWebView(unittest.TestCase):
 	def get(self, path, user="Guest"):

@@ -5,7 +5,6 @@ import os
 import re
 import subprocess
 from distutils.version import LooseVersion
-from typing import Optional
 
 import pdfkit
 from bs4 import BeautifulSoup
@@ -24,7 +23,7 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def get_pdf(html, options=None, output: Optional[PdfWriter] = None):
+def get_pdf(html, options=None, output: PdfWriter | None = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
@@ -135,13 +134,13 @@ def get_cookie_options():
 	options = {}
 	if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
 		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
-		cookiejar = "/tmp/{}.jar".format(frappe.generate_hash())
+		cookiejar = f"/tmp/{frappe.generate_hash()}.jar"
 
 		# Remove port from request.host
 		# https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
 		domain = frappe.utils.get_host_name().split(":", 1)[0]
 		with open(cookiejar, "w") as f:
-			f.write("sid={}; Domain={};\n".format(frappe.session.sid, domain))
+			f.write(f"sid={frappe.session.sid}; Domain={domain};\n")
 
 		options["cookie-jar"] = cookiejar
 
@@ -173,7 +172,7 @@ def read_options_from_html(html):
 			match = pattern.findall(html)
 			if match:
 				options[attr] = str(match[-1][3]).strip()
-		except:
+		except Exception:
 			pass
 
 	return str(soup), options
@@ -211,7 +210,7 @@ def prepare_header_footer(soup):
 			)
 
 			# create temp file
-			fname = os.path.join("/tmp", "frappe-pdf-{0}.html".format(frappe.generate_hash()))
+			fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.html")
 			with open(fname, "wb") as f:
 				f.write(html.encode("utf-8"))
 

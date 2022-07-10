@@ -5,7 +5,6 @@ import mimetypes
 import os
 import re
 from functools import lru_cache, wraps
-from typing import Dict, Optional
 
 import yaml
 from werkzeug.wrappers import Response
@@ -81,9 +80,9 @@ def get_comment_list(doctype, name):
 			reference_name=name,
 		),
 		or_filters=[
-			["recipients", "like", "%{0}%".format(frappe.session.user)],
-			["cc", "like", "%{0}%".format(frappe.session.user)],
-			["bcc", "like", "%{0}%".format(frappe.session.user)],
+			["recipients", "like", f"%{frappe.session.user}%"],
+			["cc", "like", f"%{frappe.session.user}%"],
+			["bcc", "like", f"%{frappe.session.user}%"],
 		],
 	)
 
@@ -454,7 +453,7 @@ def get_sidebar_items_from_sidebar_file(basepath, look_for_sidebar_json):
 	if not sidebar_json_path:
 		return sidebar_items
 
-	with open(sidebar_json_path, "r") as sidebarfile:
+	with open(sidebar_json_path) as sidebarfile:
 		try:
 			sidebar_json = sidebarfile.read()
 			sidebar_items = json.loads(sidebar_json)
@@ -506,7 +505,7 @@ def cache_html(func):
 	return cache_html_decorator
 
 
-def build_response(path, data, http_status_code, headers: Optional[Dict] = None):
+def build_response(path, data, http_status_code, headers: dict | None = None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
@@ -550,7 +549,7 @@ def add_preload_headers(response):
 	try:
 		preload = []
 		strainer = SoupStrainer(re.compile("script|link"))
-		soup = BeautifulSoup(response.data, "lxml", parse_only=strainer)
+		soup = BeautifulSoup(response.data, "html.parser", parse_only=strainer)
 		for elem in soup.find_all("script", src=re.compile(".*")):
 			preload.append(("script", elem.get("src")))
 
@@ -559,7 +558,7 @@ def add_preload_headers(response):
 
 		links = []
 		for _type, link in preload:
-			links.append("<{}>; rel=preload; as={}".format(link, _type))
+			links.append(f"<{link}>; rel=preload; as={_type}")
 
 		if links:
 			response.headers["Link"] = ",".join(links)
@@ -569,7 +568,7 @@ def add_preload_headers(response):
 		traceback.print_exc()
 
 
-@lru_cache()
+@lru_cache
 def is_binary_file(path):
 	# ref: https://stackoverflow.com/a/7392391/10309266
 	textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7F})

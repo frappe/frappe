@@ -489,7 +489,7 @@ class User(Document):
 		self.save()
 
 	def remove_roles(self, *roles):
-		existing_roles = dict((d.role, d) for d in self.get("roles"))
+		existing_roles = {d.role: d for d in self.get("roles")}
 		for role in roles:
 			if role in existing_roles:
 				self.get("roles").remove(existing_roles[role])
@@ -498,7 +498,7 @@ class User(Document):
 
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
-			self.set("roles", list(set(d for d in self.get("roles") if d.role == "Guest")))
+			self.set("roles", list({d for d in self.get("roles") if d.role == "Guest"}))
 
 	def remove_disabled_roles(self):
 		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled": 1})]
@@ -557,7 +557,7 @@ class User(Document):
 		if not username:
 			# @firstname_last_name
 			username = _check_suggestion(
-				frappe.scrub("{0} {1}".format(self.first_name, self.last_name or ""))
+				frappe.scrub("{} {}".format(self.first_name, self.last_name or ""))
 			)
 
 		if username:
@@ -586,7 +586,7 @@ class User(Document):
 			for p in self.social_logins:
 				if p.provider == provider:
 					return p.userid
-		except:
+		except Exception:
 			return None
 
 	def set_social_login_userid(self, provider, userid, username=None):
@@ -918,7 +918,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		user_type_condition = ""
 		filters.pop("ignore_user_type")
 
-	txt = "%{}%".format(txt)
+	txt = f"%{txt}%"
 	return frappe.db.sql(
 		"""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
 		FROM `tabUser`
@@ -970,7 +970,7 @@ def get_system_users(exclude_users=None, limit=None):
 
 	limit_cond = ""
 	if limit:
-		limit_cond = "limit {0}".format(limit)
+		limit_cond = f"limit {limit}"
 
 	exclude_users += list(STANDARD_USERS)
 
@@ -1036,7 +1036,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 	):
 
 		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
-		date_and_time = "<b>{0}</b>".format(format_datetime(now_datetime(), format_string="medium"))
+		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
 		ip_address = frappe.local.request_ip
 
 		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(

@@ -1,6 +1,5 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from typing import Dict, List
 
 import frappe
 from frappe.query_builder import Order
@@ -30,7 +29,7 @@ def set_list_settings(doctype, values):
 
 
 @frappe.whitelist()
-def get_group_by_count(doctype: str, current_filters: str, field: str) -> List[Dict]:
+def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[dict]:
 	current_filters = frappe.parse_json(current_filters)
 
 	if field == "assigned_to":

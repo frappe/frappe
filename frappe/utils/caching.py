@@ -5,14 +5,14 @@ import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable
 
 import frappe
 
 _SITE_CACHE = defaultdict(lambda: defaultdict(dict))
 
 
-def __generate_request_cache_key(args: Tuple, kwargs: Dict):
+def __generate_request_cache_key(args: tuple, kwargs: dict):
 	"""Generate a key for the cache."""
 	if not kwargs:
 		return hash(args)
@@ -61,7 +61,7 @@ def request_cache(func: Callable) -> Callable:
 	return wrapper
 
 
-def site_cache(ttl: Optional[int] = None, maxsize: Optional[int] = None) -> Callable:
+def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	"""Decorator to cache method calls across requests. The cache is stored in
 	frappe.utils.caching._SITE_CACHE. The cache persists on the parent process.
 	It offers a light-weight cache for the current process without the additional

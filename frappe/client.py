@@ -281,23 +281,6 @@ def set_default(key, value, parent=None):
 	frappe.clear_cache(user=frappe.session.user)
 
 
-@frappe.whitelist()
-def get_default(key, parent=None):
-	"""set a user default value"""
-	return frappe.db.get_default(key, parent)
-
-
-@frappe.whitelist(methods=["POST", "PUT"])
-def make_width_property_setter(doc):
-	"""Set width Property Setter
-
-	:param doc: Property Setter document with `width` property"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
-	if doc["doctype"] == "Property Setter" and doc["property"] == "width":
-		frappe.get_doc(doc).insert(ignore_permissions=True)
-
-
 @frappe.whitelist(methods=["POST", "PUT"])
 def bulk_update(docs):
 	"""Bulk update documents
@@ -355,13 +338,13 @@ def get_js(items):
 			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
 		contentpath = os.path.join(frappe.local.sites_path, *src)
-		with open(contentpath, "r") as srcfile:
+		with open(contentpath) as srcfile:
 			code = frappe.utils.cstr(srcfile.read())
 
 		if frappe.local.lang != "en":
 			messages = frappe.get_lang_dict("jsfile", contentpath)
 			messages = json.dumps(messages)
-			code += "\n\n$.extend(frappe._messages, {})".format(messages)
+			code += f"\n\n$.extend(frappe._messages, {messages})"
 
 		out.append(code)
 
@@ -418,11 +401,6 @@ def attach_file(
 		doc.save()
 
 	return file
-
-
-@frappe.whitelist()
-def get_hooks(hook, app_name=None):
-	return frappe.get_hooks(hook, app_name)
 
 
 @frappe.whitelist()

@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from __future__ import unicode_literals
 
 import frappe
 from frappe import _
@@ -40,7 +39,7 @@ def give_feedback(reference_doctype, reference_name, like):
 def send_mail(feedback, subject):
 	doc = frappe.get_doc(feedback.reference_doctype, feedback.reference_name)
 	if feedback.like:
-		message = "<p>Hey, </p><p>You have received a ❤️ heart on your blog post <b>{0}</b></p>".format(
+		message = "<p>Hey, </p><p>You have received a ❤️ heart on your blog post <b>{}</b></p>".format(
 			feedback.reference_name
 		)
 	else:

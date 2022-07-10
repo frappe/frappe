@@ -187,7 +187,7 @@ def get_script(report_name):
 
 	script = None
 	if os.path.exists(script_path):
-		with open(script_path, "r") as f:
+		with open(script_path) as f:
 			script = f.read()
 			script += f"\n\n//# sourceURL={scrub(report.name)}.js"
 
@@ -407,7 +407,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 						continue
 					label = column.get("label")
 					fieldname = column.get("fieldname")
-					cell_value = row.get(fieldname, row.get(label, ""))
+					cell_value = cstr(row.get(fieldname, row.get(label, "")))
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 					row_data.append(cell_value)
