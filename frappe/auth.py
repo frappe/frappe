@@ -194,7 +194,7 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				frappe.local.response["home_page"] = "/app"
+				frappe.local.response["home_page"] = "/" + get_home_page()
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
