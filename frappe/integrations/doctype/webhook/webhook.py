@@ -118,9 +118,9 @@ def log_request(url: str, headers: dict, data: dict, res: requests.Response | No
 			"doctype": "Webhook Request Log",
 			"user": frappe.session.user if frappe.session.user else None,
 			"url": url,
-			"headers": json.dumps(headers, indent=4) if headers else None,
-			"data": json.dumps(data, indent=4) if isinstance(data, dict) else data,
-			"response": json.dumps(res.json(), indent=4) if res else None,
+			"headers": frappe.as_json(headers) if headers else None,
+			"data": frappe.as_json(data) if data else None,
+			"response": frappe.as_json(res.json()) if res else None,
 		}
 	)
 
