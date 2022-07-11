@@ -50,7 +50,7 @@ class Webhook(Document):
 			try:
 				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_(e))
+				frappe.throw(_("Invalid Condition: {}").format(e))
 
 	def validate_request_url(self):
 		try:
