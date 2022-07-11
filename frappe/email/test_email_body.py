@@ -161,20 +161,19 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <h3>Hey John Doe!</h3>
 <p>This is embedded image you asked for</p>
 """
-		email_string = (
-			get_email(
-				recipients=["test@example.com"],
-				sender="me@example.com",
-				subject="Test Subject",
-				content=email_html,
-				header=["Email Title", "green"],
-			)
-			.as_string()
-			.replace("\r\n", "\n")
-		)
+		email_string = get_email(
+			recipients=["test@example.com"],
+			sender="me@example.com",
+			subject="Test Subject\u2028, with line break, \nand Line feed \rand carriage return.",
+			content=email_html,
+			header=["Email Title", "green"],
+		).as_string()
 		# REDESIGN-TODO: Add style for indicators in email
 		self.assertTrue("""<span class=3D"indicator indicator-green"></span>""" in email_string)
 		self.assertTrue("<span>Email Title</span>" in email_string)
+		self.assertIn(
+			"Subject: Test Subject, with line break, and Line feed and carriage return.", email_string
+		)
 
 	def test_get_email_header(self):
 		html = get_header(["This is test", "orange"])

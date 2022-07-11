@@ -189,7 +189,9 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if not file_url and (frappe.session.user == "Guest" or (user and not user.has_desk_access())):
+	if content is not None and (
+		frappe.session.user == "Guest" or (user and not user.has_desk_access())
+	):
 		import mimetypes
 
 		filetype = mimetypes.guess_type(filename)[0]
