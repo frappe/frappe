@@ -184,4 +184,30 @@ frappe.patches.v13_0.remove_twilio_settings
 frappe.patches.v12_0.rename_uploaded_files_with_proper_name
 frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.set_first_day_of_the_week
+<<<<<<< HEAD
 frappe.patches.v13_0.set_document_expiry_default
+=======
+execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
+frappe.patches.v14_0.update_workspace2 # 20.09.2021
+frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
+frappe.patches.v14_0.transform_todo_schema
+frappe.patches.v14_0.remove_post_and_post_comment
+frappe.patches.v14_0.reset_creation_datetime
+frappe.patches.v14_0.remove_is_first_startup
+frappe.patches.v14_0.clear_long_pending_stale_logs
+frappe.patches.v14_0.log_settings_migration
+frappe.patches.v14_0.setup_likes_from_feedback
+
+[post_model_sync]
+frappe.patches.v14_0.drop_data_import_legacy
+frappe.patches.v14_0.copy_mail_data #08.03.21
+frappe.patches.v14_0.update_github_endpoints #08-11-2021
+frappe.patches.v14_0.remove_db_aggregation
+frappe.patches.v14_0.update_color_names_in_kanban_board_column
+frappe.patches.v14_0.update_is_system_generated_flag
+frappe.patches.v14_0.update_auto_account_deletion_duration
+frappe.patches.v14_0.update_integration_request
+frappe.patches.v14_0.set_document_expiry_default
+frappe.patches.v14_0.delete_data_migration_tool
+frappe.patches.v14_0.set_hold_queue_default
+>>>>>>> 9a7f92ca1d (fix!: allow system managers to toggle email queue)

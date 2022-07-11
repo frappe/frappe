@@ -291,6 +291,7 @@ def delete(doctype, name):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
+<<<<<<< HEAD
 def set_default(key, value, parent=None):
 	"""set a user default value"""
 	frappe.db.set_default(key, value, parent or frappe.session.user)
@@ -309,6 +310,8 @@ def make_width_property_setter(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
+=======
+>>>>>>> 9a7f92ca1d (fix!: allow system managers to toggle email queue)
 def bulk_update(docs):
 	"""Bulk update documents
 

@@ -409,7 +409,12 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
+<<<<<<< HEAD
 	smtpserver_dict = frappe._dict()
+=======
+	if cint(frappe.db.get_default("hold_queue")) == 1:
+		return
+>>>>>>> 9a7f92ca1d (fix!: allow system managers to toggle email queue)
 
 	for email in get_queue():
 
