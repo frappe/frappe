@@ -20,6 +20,7 @@ from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_addres
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.error import raise_error_on_no_output
 from frappe.utils.jinja import render_template
+from frappe.utils.password import decrypt, encrypt
 from frappe.utils.user import get_system_managers
 
 
@@ -92,11 +93,7 @@ class EmailAccount(Document):
 			self.refresh_token = self.access_token = None
 
 		if not frappe.local.flags.in_install and (self.use_oauth or not self.awaiting_password):
-			if (
-				self.refresh_token
-				or self.password
-				or self.smtp_server in ("127.0.0.1", "localhost")
-			):
+			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
@@ -214,8 +211,8 @@ class EmailAccount(Document):
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
 				"use_oauth": self.use_oauth or 0,
-				"refresh_token": getattr(self, "refresh_token", None),
-				"access_token": getattr(self, "access_token", None),
+				"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
+				"access_token": decrypt(self.access_token) if self.access_token else None,
 			}
 		)
 
@@ -411,7 +408,12 @@ class EmailAccount(Document):
 		for doc_field_name, d in field_to_conf_name_map.items():
 			conf_names, default = d.get("conf_names") or [], d.get("default")
 			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
-			account_details[doc_field_name] = (value and value[0]) or default
+
+			if doc_field_name in ("refresh_token", "access_token"):
+				account_details[doc_field_name] = value and encrypt(value[0])
+			else:
+				account_details[doc_field_name] = (value and value[0]) or default
+
 		return account_details
 
 	def sendmail_config(self):
@@ -425,8 +427,8 @@ class EmailAccount(Document):
 			"use_tls": cint(self.use_tls),
 			"service": getattr(self, "service", ""),
 			"use_oauth": self.use_oauth or 0,
-			"refresh_token": getattr(self, "refresh_token", None),
-			"access_token": getattr(self, "access_token", None),
+			"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
+			"access_token": decrypt(self.access_token) if self.access_token else None,
 		}
 
 	def get_smtp_server(self):
@@ -844,7 +846,9 @@ def get_max_email_uid(email_account):
 		return max_uid
 
 
-def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing, used_oauth):
+def setup_user_email_inbox(
+	email_account, awaiting_password, email_id, enable_outgoing, used_oauth
+):
 	"""setup email inbox for user"""
 	from frappe.core.doctype.user.user import ask_pass_update
 
@@ -887,13 +891,11 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 
 	if update_user_email_settings:
 		UserEmail = frappe.qb.DocType("User Email")
-		frappe.qb.update(UserEmail).set(
-			UserEmail.awaiting_password, (awaiting_password or 0)
-		).set(
+		frappe.qb.update(UserEmail).set(UserEmail.awaiting_password, (awaiting_password or 0)).set(
 			UserEmail.enable_outgoing, (enable_outgoing or 0)
-		).set(
-			UserEmail.used_oauth, (used_oauth or 0)
-		).where(UserEmail.email_account == email_account).run()
+		).set(UserEmail.used_oauth, (used_oauth or 0)).where(
+			UserEmail.email_account == email_account
+		).run()
 
 	else:
 		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])

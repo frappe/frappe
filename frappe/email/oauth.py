@@ -7,6 +7,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.integrations.google_oauth import GoogleOAuth
+from frappe.utils.password import encrypt
 
 
 class OAuthenticationError(Exception):
@@ -16,7 +17,7 @@ class OAuthenticationError(Exception):
 class Oauth:
 	def __init__(
 		self,
-		conn: Union[IMAP4, POP3, SMTP],
+		conn: IMAP4 | POP3 | SMTP,
 		email_account: str,
 		email: str,
 		access_token: str,
@@ -81,7 +82,7 @@ class Oauth:
 	def _connect_pop(self) -> bytes:
 		# poplib doesn't have AUTH command implementation
 		res = self._conn._shortcmd(
-			"AUTH {0} {1}".format(
+			"AUTH {} {}".format(
 				self._mechanism, base64.b64encode(bytes(self._auth_string, "utf-8")).decode("utf-8")
 			)
 		)
@@ -144,7 +145,7 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 		return oauth_obj.get_authentication_url(
 			{
 				"method": "frappe.email.oauth.authorize_google_access",
-				"redirect": "/app/Form/{0}/{1}".format(quote(doctype), quote(email_account)),
+				"redirect": f"/app/Form/{quote(doctype)}/{quote(email_account)}",
 				"email_account": email_account,
 			},
 		)
@@ -153,6 +154,9 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 	frappe.db.set_value(
 		doctype,
 		email_account,
-		{"refresh_token": res.get("refresh_token"), "access_token": res.get("access_token")},
+		{
+			"refresh_token": encrypt(res.get("refresh_token")),
+			"access_token": encrypt(res.get("access_token")),
+		},
 		update_modified=False,
 	)
