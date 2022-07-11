@@ -649,7 +649,7 @@ class QueueBuilder:
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			send_now and q.send()
 		else:
-			if send_now and len(recipients) >= 1000:
+			if send_now and len(final_recipients) >= 1000:
 				# force queueing if there are too many recipients to avoid timeouts
 				send_now = False
 			for recipients in frappe.utils.create_batch(final_recipients, 1000):
@@ -657,7 +657,7 @@ class QueueBuilder:
 					self.send_emails,
 					queue_data=queue_data,
 					final_recipients=recipients,
-					now=send_now,
+					now=frappe.flags.in_test or send_now,
 				)
 
 	def send_emails(self, queue_data, final_recipients):
