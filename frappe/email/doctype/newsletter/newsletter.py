@@ -35,13 +35,16 @@ class Newsletter(WebsiteGenerator):
 			order_by="status",
 		)
 		sent = 0
+		error = 0
 		total = 0
 		for row in count_by_status:
 			if row.status == "Sent":
 				sent = row.count
+			elif row.status == "Error":
+				error = row.count
 			total += row.count
 
-		return {"sent": sent, "total": total}
+		return {"sent": sent, "error": error, "total": total}
 
 	@frappe.whitelist()
 	def send_test_email(self, email):

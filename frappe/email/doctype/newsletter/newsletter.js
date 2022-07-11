@@ -140,8 +140,8 @@ frappe.ui.form.on('Newsletter', {
 		if (frm.doc.email_sent && frm.$wrapper.is(':visible')) {
 			let res = await frm.call('get_sending_status');
 			let stats = res.message;
-			stats && frm.events.update_sending_progress(frm, stats.sent, stats.total);
-			if (stats.sent >= frm.doc.total_recipients || !stats.total) {
+			stats && frm.events.update_sending_progress(frm, stats);
+			if (stats.sent + stats.error >= frm.doc.total_recipients || !stats.total) {
 				frm.sending_status && clearInterval(frm.sending_status);
 				frm.sending_status = null;
 			}
@@ -151,15 +151,15 @@ frappe.ui.form.on('Newsletter', {
 		frm.sending_status = setInterval(() => frm.events.update_sending_status(frm), 5000);
 	},
 
-	update_sending_progress(frm, sent, total) {
-		if (sent >= frm.doc.total_recipients || !frm.doc.email_sent) {
+	update_sending_progress(frm, stats) {
+		if (stats.sent + stats.error >= frm.doc.total_recipients || !frm.doc.email_sent) {
 			frm.doc.email_sent && frm.page.set_indicator(__("Sent"), "green");
 			frm.dashboard.hide_progress();
 			return;
 		}
-		if (total) {
+		if (stats.total) {
 			frm.page.set_indicator(__("Sending"), "blue");
-			frm.dashboard.show_progress(__('Sending emails'), sent * 100 / frm.doc.total_recipients, __("{0} of {1} sent", [sent, frm.doc.total_recipients]));
+			frm.dashboard.show_progress(__('Sending emails'), stats.sent * 100 / frm.doc.total_recipients, __("{0} of {1} sent", [stats.sent, frm.doc.total_recipients]));
 		}
 	},
 
