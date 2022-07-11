@@ -75,7 +75,6 @@ class Newsletter(WebsiteGenerator):
 		self.schedule_sending = False
 		self.schedule_send = None
 		self.queue_all()
-		frappe.msgprint(_("Email queued to {0} recipients").format(self.total_recipients))
 
 	def validate_send(self):
 		"""Validate if Newsletter can be sent."""
