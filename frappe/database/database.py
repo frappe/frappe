@@ -937,7 +937,10 @@ class Database:
 		if not key:
 			return defaults
 
-		return defaults.get(key) or defaults.get(frappe.scrub(key))
+		if key in defaults:
+			return defaults.get(key)
+
+		return defaults.get(frappe.scrub(key))
 
 	def begin(self):
 		self.sql("START TRANSACTION")
