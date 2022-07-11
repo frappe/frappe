@@ -1,14 +1,17 @@
 // TODO: Refactor for better UX
 
+import Vuex from 'vuex';
+
 frappe.provide("frappe.views");
 
 (function() {
 
 	var method_prefix = 'frappe.desk.doctype.kanban_board.kanban_board.';
 
-	var store = fluxify.createStore({
-		id: 'store',
-		initialState: {
+	let columns_unwatcher = null;
+
+	var store = new Vuex.Store({
+		state: {
 			doctype: '',
 			board: {},
 			card_meta: {},
@@ -18,12 +21,16 @@ frappe.provide("frappe.views");
 			cur_list: {},
 			empty_state: true
 		},
-		actionCallbacks: {
-			init: function(updater, opts) {
-				updater.set({
+		mutations: {
+			update_state(state, obj) {
+				Object.assign(state, obj);
+			}
+		},
+		actions: {
+			init: function(context, opts) {
+				context.commit("update_state", {
 					empty_state: true
 				});
-
 				var board = opts.board;
 				var card_meta = opts.card_meta;
 				opts.card_meta = card_meta;
@@ -32,8 +39,7 @@ frappe.provide("frappe.views");
 					return prepare_card(card, opts);
 				});
 				var columns = prepare_columns(board.columns);
-
-				updater.set({
+				context.commit("update_state", {
 					doctype: opts.doctype,
 					board: board,
 					card_meta: card_meta,
@@ -44,20 +50,20 @@ frappe.provide("frappe.views");
 					wrapper: opts.wrapper
 				});
 			},
-			update_cards: function(updater, cards) {
-				var state = this;
+			update_cards: function(context, cards) {
+				var state = context.state;
 				var _cards = cards
 					.map(card => prepare_card(card, state))
-					.concat(this.cards)
+					.concat(state.cards)
 					.uniqBy(card => card.name);
 
-				updater.set({
+				context.commit("update_state", {
 					cards: _cards
 				});
 			},
-			add_column: function(updater, col) {
-				if(frappe.model.can_create('Custom Field')) {
-					fluxify.doAction('update_column', col, 'add');
+			add_column: function(context, col) {
+				if (frappe.model.can_create('Custom Field')) {
+					store.dispatch('update_column', {col, action: 'add'});
 				} else {
 					frappe.msgprint({
 						title: __('Not permitted'),
@@ -66,15 +72,15 @@ frappe.provide("frappe.views");
 					});
 				}
 			},
-			archive_column: function(updater, col) {
-				fluxify.doAction('update_column', col, 'archive');
+			archive_column: function(context, col) {
+				store.dispatch('update_column', {col, action: 'archive'});
 			},
-			restore_column: function(updater, col) {
-				fluxify.doAction('update_column', col, 'restore');
+			restore_column: function(context, col) {
+				store.dispatch('update_column', {col, action: 'restore'});
 			},
-			update_column: function(updater, col, action) {
-				var doctype = this.doctype;
-				var board = this.board;
+			update_column: function(context, {col, action}) {
+				var doctype = context.state.doctype;
+				var board = context.state.board;
 				fetch_customization(doctype)
 					.then(function(doc) {
 						return modify_column_field_in_c11n(doc, board, col.title, action);
@@ -84,23 +90,23 @@ frappe.provide("frappe.views");
 						return update_kanban_board(board.name, col.title, action);
 					}).then(function(r) {
 						var cols = r.message;
-						updater.set({
+						context.commit("update_state", {
 							columns: prepare_columns(cols)
 						});
 					}, function(err) {
 						console.error(err); // eslint-disable-line
 					});
 			},
-			add_card: function(updater, card_title, column_title) {
-				var doc = frappe.model.get_new_doc(this.doctype);
-				var field = this.card_meta.title_field;
-				var quick_entry = this.card_meta.quick_entry;
-				var state = this;
+			add_card: function(context, {card_title, column_title}) {
+				var state = context.state;
+				var doc = frappe.model.get_new_doc(state.doctype);
+				var field = state.card_meta.title_field;
+				var quick_entry = state.card_meta.quick_entry;
 
 				var doc_fields = {};
 				doc_fields[field.fieldname] = card_title;
-				doc_fields[this.board.field_name] = column_title;
-				this.cur_list.filter_area.get().forEach(function(f) {
+				doc_fields[state.board.field_name] = column_title;
+				state.cur_list.filter_area.get().forEach(function(f) {
 					if (f[2] !== "=") return;
 					doc_fields[f[1]] = f[3];
 				});
@@ -114,7 +120,7 @@ frappe.provide("frappe.views");
 				const cards = [...state.cards, card];
 				// remember the name which we will override later
 				const old_name = doc.name;
-				updater.set({ cards });
+				context.commit("update_state", { cards });
 
 				if (field && !quick_entry) {
 					return insert_doc(doc)
@@ -125,49 +131,49 @@ frappe.provide("frappe.views");
 							const card = prepare_card(updated_doc, state);
 							const new_cards = state.cards.slice();
 							new_cards[index] = card;
-							updater.set({ cards: new_cards });
+							context.commit("update_state", { cards: new_cards });
 							const args = {
 								new: 1,
 								name: card.name,
 								colname: updated_doc[state.board.field_name],
 							};
-							fluxify.doAction('update_order_for_single_card', args);
+							store.dispatch('update_order_for_single_card', args);
 						});
 				} else {
-					frappe.new_doc(this.doctype, doc);
+					frappe.new_doc(state.doctype, doc);
 				}
 			},
-			update_card: function(updater, card) {
+			update_card: function(context, card) {
 				var index = -1;
-				this.cards.forEach(function(c, i) {
+				context.state.cards.forEach(function(c, i) {
 					if (c.name === card.name) {
 						index = i;
 					}
 				});
-				var cards = this.cards.slice();
+				var cards = context.state.cards.slice();
 				if (index !== -1) {
 					cards.splice(index, 1, card);
 				}
-				updater.set({ cards: cards });
+				context.commit("update_state", { cards: cards });
 			},
-			update_order_for_single_card: function(updater, card) {
+			update_order_for_single_card: function(context, card) {
 				// cache original order
-				const _cards = this.cards.slice();
-				const _columns = this.columns.slice();
+				const _cards = context.state.cards.slice();
+				const _columns = context.state.columns.slice();
 				let args = {};
 				let method_name = "";
 
 				if (card.new) {
 					method_name = "add_card";
 					args = {
-						board_name: this.board.name,
+						board_name: context.state.board.name,
 						docname: card.name,
 						colname: card.colname,
 					};
 				} else {
 					method_name = "update_order_for_single_card";
 					args = {
-						board_name: this.board.name,
+						board_name: context.state.board.name,
 						docname: card.name,
 						from_colname: card.from_colname,
 						to_colname: card.to_colname,
@@ -184,7 +190,7 @@ frappe.provide("frappe.views");
 						let updated_cards = [{'name': card.name, 'column': card.to_colname || card.colname}];
 						let cards = update_cards_column(updated_cards);
 						let columns = prepare_columns(board.columns);
-						updater.set({
+						context.commit("update_state", {
 							cards: cards,
 							columns: columns
 						});
@@ -192,20 +198,20 @@ frappe.provide("frappe.views");
 					}
 				}).fail(function() {
 					// revert original order
-					updater.set({
+					context.commit("update_state", {
 						cards: _cards,
 						columns: _columns
 					});
 					frappe.dom.unfreeze();
 				});
 			},
-			update_order: function(updater) {
+			update_order: function(context) {
 				// cache original order
-				const _cards = this.cards.slice();
-				const _columns = this.columns.slice();
+				const _cards = context.state.cards.slice();
+				const _columns = context.state.columns.slice();
 
 				const order = {};
-				this.wrapper.find('.kanban-column[data-column-value]')
+				context.state.wrapper.find('.kanban-column[data-column-value]')
 					.each(function() {
 						var col_name = $(this).data().columnValue;
 						order[col_name] = [];
@@ -218,7 +224,7 @@ frappe.provide("frappe.views");
 				frappe.call({
 					method: method_prefix + "update_order",
 					args: {
-						board_name: this.board.name,
+						board_name: context.state.board.name,
 						order: order
 					},
 					callback: (r) => {
@@ -226,46 +232,46 @@ frappe.provide("frappe.views");
 						var updated_cards = r.message[1];
 						var cards = update_cards_column(updated_cards);
 						var columns = prepare_columns(board.columns);
-						updater.set({
+						context.commit("update_state", {
 							cards: cards,
 							columns: columns
 						});
 					}
 				}).fail(function() {
 					// revert original order
-					updater.set({
+					context.commit("update_state", {
 						cards: _cards,
 						columns: _columns
 					});
 				});
 			},
-			update_column_order: function(updater, order) {
+			update_column_order: function(context, order) {
 				return frappe.call({
 					method: method_prefix + "update_column_order",
 					args: {
-						board_name: this.board.name,
+						board_name: context.state.board.name,
 						order: order
 					}
 				}).then(function(r) {
 					var board = r.message;
 					var columns = prepare_columns(board.columns);
-					updater.set({
+					context.commit("update_state", {
 						columns: columns
 					});
 				});
 			},
-			set_indicator: function(updater, column, color) {
+			set_indicator: function(context, {column, color}) {
 				return frappe.call({
 					method: method_prefix + "set_indicator",
 					args: {
-						board_name: this.board.name,
+						board_name: context.state.board.name,
 						column_name: column.title,
 						indicator: color
 					}
 				}).then(function(r) {
 					var board = r.message;
 					var columns = prepare_columns(board.columns);
-					updater.set({
+					context.commit("update_state", {
 						columns: columns
 					});
 				});
@@ -285,20 +291,29 @@ frappe.provide("frappe.views");
 			opts.cards = cards;
 
 			if(self.wrapper.find('.kanban').length > 0 && self.cur_list.start !== 0) {
-				fluxify.doAction('update_cards', cards);
+				store.dispatch('update_cards', cards);
 			} else {
 				init();
 			}
 		};
 
 		function init() {
-			fluxify.doAction('init', opts);
-			store.off('change:columns').on('change:columns', make_columns);
+			store.dispatch('init', opts);
+			columns_unwatcher && columns_unwatcher();
+			store.watch((state, getters) => {
+				return state.columns;
+			}, make_columns);
 			prepare();
-			store.on('change:cur_list', setup_restore_columns);
-			store.on('change:columns', setup_restore_columns);
-			store.on('change:empty_state', show_empty_state);
-			fluxify.doAction('update_order');
+			store.watch((state, getters) => {
+				return state.cur_list;
+			}, setup_restore_columns);
+			columns_unwatcher = store.watch((state, getters) => {
+				return state.columns;
+			}, setup_restore_columns);
+			store.watch((state, getters) => {
+				return state.empty_state;
+			}, show_empty_state);
+			store.dispatch('update_order');
 		}
 
 		function prepare() {
@@ -316,7 +331,7 @@ frappe.provide("frappe.views");
 
 		function make_columns() {
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
-			var columns = store.getState().columns;
+			var columns = store.state.columns;
 
 			columns.filter(is_active_column).map(function(col) {
 				frappe.views.KanbanBoardColumn(col, self.$kanban_board);
@@ -338,7 +353,7 @@ frappe.provide("frappe.views");
 				onEnd: function() {
 					var order = sortable.toArray();
 					order = order.slice(1);
-					fluxify.doAction('update_column_order', order);
+					store.dispatch('update_column_order', order);
 				}
 			});
 		}
@@ -365,7 +380,7 @@ frappe.provide("frappe.views");
 						var col = {
 							title: title.trim()
 						};
-						fluxify.doAction('add_column', col);
+						store.dispatch('add_column', col);
 						$compose_column_form.find('input').val('');
 						$compose_column.show();
 						$compose_column_form.hide();
@@ -421,8 +436,8 @@ frappe.provide("frappe.views");
 		}
 
 		function setup_restore_columns() {
-			var cur_list = store.getState().cur_list;
-			var columns = store.getState().columns;
+			var cur_list = store.state.cur_list;
+			var columns = store.state.columns;
 			var list_row_right = cur_list.$page
 				.find(`[data-list-renderer='Kanban'] .list-row-right`)
 				.css('margin-right', '15px');
@@ -456,12 +471,12 @@ frappe.provide("frappe.views");
 					title: column_title,
 					status: 'Archived'
 				};
-				fluxify.doAction('restore_column', col);
+				store.dispatch('restore_column', col);
 			});
 		}
 
 		function show_empty_state() {
-			var empty_state = store.getState().empty_state;
+			var empty_state = store.state.empty_state;
 
 			if(empty_state) {
 				self.$kanban_board.find('.kanban-column').hide();
@@ -485,7 +500,9 @@ frappe.provide("frappe.views");
 			make_dom();
 			setup_sortable();
 			make_cards();
-			store.on('change:cards', make_cards);
+			store.watch((state, getters) => {
+				return state.cards;
+			}, make_cards);
 			bind_add_card();
 			bind_options();
 		}
@@ -494,7 +511,7 @@ frappe.provide("frappe.views");
 			self.$kanban_column = $(frappe.render_template(
 				'kanban_column', {
 					title: column.title,
-					doctype: store.getState().doctype,
+					doctype: store.state.doctype,
 					indicator: frappe.scrub(column.indicator, '-')
 				})).appendTo(wrapper);
 			self.$kanban_cards = self.$kanban_column.find('.kanban-cards');
@@ -502,7 +519,7 @@ frappe.provide("frappe.views");
 
 		function make_cards() {
 			self.$kanban_cards.empty();
-			var cards = store.getState().cards;
+			var cards = store.state.cards;
 			filtered_cards = get_cards_for_column(cards, column);
 			var filtered_cards_names = filtered_cards.map(card => card.name);
 
@@ -548,7 +565,7 @@ frappe.provide("frappe.views");
 						old_index: e.oldIndex,
 						new_index: e.newIndex,
 					};
-					fluxify.doAction('update_order_for_single_card', args);
+					store.dispatch('update_order_for_single_card', args);
 				},
 				onAdd: function() {
 				},
@@ -579,10 +596,12 @@ frappe.provide("frappe.views");
 						var card_title = $textarea.val();
 						$new_card_area.hide();
 						$textarea.val('');
-						fluxify.doAction('add_card', card_title, column.title)
-							.then(() => {
-								$btn_add.show();
-							});
+						store.dispatch('add_card', {
+							card_title,
+							column_title: column.title
+						}).then(() => {
+							$btn_add.show();
+						});
 					}
 				}
 			});
@@ -602,10 +621,10 @@ frappe.provide("frappe.views");
 					var action = $btn.data().action;
 
 					if (action === "archive") {
-						fluxify.doAction('archive_column', column);
+						store.dispatch('archive_column', column);
 					} else if (action === "indicator") {
 						var color = $btn.data().indicator;
-						fluxify.doAction('set_indicator', column, color);
+						store.dispatch('set_indicator', {column, color});
 					}
 				});
 			get_column_indicators(function(indicators) {
@@ -728,7 +747,7 @@ frappe.provide("frappe.views");
 				callback: function() {
 					const users = self.assign_to_dialog.get_values().assign_to;
 					card.assigned_list = [...new Set(card.assigned_list.concat(users))];
-					fluxify.doAction('update_card', card);
+					store.dispatch('update_card', card);
 				}
 			});
 			self.assign_to_dialog = self.assign_to.dialog;
@@ -850,21 +869,6 @@ frappe.provide("frappe.views");
 		});
 	}
 
-	function is_filters_modified(board, cur_list) {
-		return new Promise(function(resolve) {
-			setTimeout(function() {
-				try {
-					var list_filters = JSON.stringify(cur_list.filter_area.get());
-					resolve(list_filters !== board.filters);
-				} catch(e) {
-					// sometimes the filter_list is not initiated
-					resolve(false);
-				}
-
-			}, 2000);
-		});
-	}
-
 	function is_active_column(col) {
 		return col.status !== 'Archived';
 	}
@@ -876,13 +880,13 @@ frappe.provide("frappe.views");
 	}
 
 	function get_card(name) {
-		return store.getState().cards.find(function(c) {
+		return store.state.cards.find(function(c) {
 			return c.name === name;
 		});
 	}
 
 	function update_cards_column(updated_cards) {
-		var cards = store.getState().cards;
+		var cards = store.state.cards;
 		cards.forEach(function(c) {
 			updated_cards.forEach(function(uc) {
 				if(uc.name === c.name) {
@@ -908,23 +912,5 @@ frappe.provide("frappe.views");
 			}
 			callback(indicators);
 		});
-	}
-
-	function isBound(el, event, fn) {
-		var events = $._data(el[0], 'events');
-		if(!events) return false;
-		var handlers = events[event];
-		var flag = false;
-		handlers.forEach(function(h) {
-			if(h.handler.name === fn.name)
-				flag = true;
-		});
-		return flag;
-	}
-
-	function remove_img_tags(html) {
-		const $temp = $(`<div>${html}</div>`);
-		$temp.find('img').remove();
-		return $temp.html();
 	}
 })();

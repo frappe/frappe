@@ -1,18 +1,17 @@
-var app = require('express')();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-var cookie = require('cookie');
-var request = require('superagent');
-var { get_conf, get_redis_subscriber } = require('./node_utils');
+const cookie = require('cookie');
+const request = require('superagent');
 
+const { get_conf, get_redis_subscriber } = require('./node_utils');
+const conf = get_conf();
 const log = console.log; // eslint-disable-line
+const subscriber = get_redis_subscriber();
 
-var conf = get_conf();
-var subscriber = get_redis_subscriber();
-
-// serve socketio
-server.listen(conf.socketio_port, function () {
-	log('listening on *:', conf.socketio_port); //eslint-disable-line
+const io = require('socket.io')(conf.socketio_port, {
+	cors: {
+		// Should be fine since we are ensuring whether hostname and origin are same before adding setting listeners for s socket
+		origin: true,
+		credentials: true
+	}
 });
 
 // on socket connection
@@ -32,36 +31,13 @@ io.on('connection', function (socket) {
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 
-	// frappe.chat
-	socket.on("frappe.chat.room:subscribe", function (rooms) {
-		if (!Array.isArray(rooms)) {
-			rooms = [rooms];
-		}
-
-		for (var room of rooms) {
-			log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room);
-			room = get_chat_room(socket, room);
-
-			log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room);
-			socket.join(room);
-		}
+	socket.on('task_subscribe', function (task_id) {
+		var room = get_task_room(socket, task_id);
+		socket.join(room);
 	});
-
-	socket.on("frappe.chat.message:typing", function (data) {
-		const user = data.user;
-		const room = get_chat_room(socket, data.room);
-
-		log('frappe.chat: Dispatching ' + user + ' typing to room ' + room);
-
-		io.to(room).emit('frappe.chat.room:typing', {
-			room: data.room,
-			user: user
-		});
-	});
-	// end frappe.chat
 
 	let retries = 0;
-	let join_chat_room = () => {
+	let join_user_room = () => {
 		request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
 			.type('form')
 			.query({
@@ -76,21 +52,21 @@ io.on('connection', function (socket) {
 				if (e.code === 'ECONNREFUSED' && retries < 5) {
 					// retry after 1s
 					retries += 1;
-					return setTimeout(join_chat_room, 1000);
+					return setTimeout(join_user_room, 1000);
 				}
-				log(`Unable to join chat room. ${e}`);
+				log(`Unable to join user room. ${e}`);
 			});
 	};
 
-	join_chat_room();
-
-	socket.on('task_subscribe', function (task_id) {
-		var room = get_task_room(socket, task_id);
-		socket.join(room);
-	});
+	join_user_room();
 
 	socket.on('task_unsubscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
+		socket.leave(room);
+	});
+
+	socket.on('task_unsubscribe', function (task_id) {
+		var room = 'task:' + task_id;
 		socket.leave(room);
 	});
 
@@ -115,11 +91,6 @@ io.on('connection', function (socket) {
 
 	socket.on('doc_unsubscribe', function (doctype, docname) {
 		var room = get_doc_room(socket, doctype, docname);
-		socket.leave(room);
-	});
-
-	socket.on('task_unsubscribe', function (task_id) {
-		var room = 'task:' + task_id;
 		socket.leave(room);
 	});
 
@@ -255,15 +226,6 @@ function get_task_room(socket, task_id) {
 	return get_site_name(socket) + ':task_progress:' + task_id;
 }
 
-// frappe.chat
-// If you're thinking on multi-site or anything, please
-// update frappe.async as well.
-function get_chat_room(socket, room) {
-	var room = get_site_name(socket) + ":room:" + room;
-
-	return room
-}
-
 function get_site_name(socket) {
 	var hostname_from_host = get_hostname(socket.request.headers.host);
 
@@ -285,7 +247,7 @@ function get_hostname(url) {
 	if (url.indexOf("://") > -1) {
 		url = url.split('/')[2];
 	}
-	return (url.match(/:/g)) ? url.slice(0, url.indexOf(":")) : url
+	return (url.match(/:/g)) ? url.slice(0, url.indexOf(":")) : url;
 }
 
 function get_url(socket, path) {
@@ -308,16 +270,12 @@ function can_subscribe_doc(args) {
 		.end(function (err, res) {
 			if (!res) {
 				log("No response for doc_subscribe");
-
 			} else if (res.status == 403) {
 				return;
-
 			} else if (err) {
 				log(err);
-
 			} else if (res.status == 200) {
 				args.callback(err, res);
-
 			} else {
 				log("Something went wrong", err, res);
 			}

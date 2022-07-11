@@ -1111,7 +1111,7 @@ def parse_val(v):
 
 
 def fmt_money(
-	amount: str | float | int,
+	amount: str | float | int | None,
 	precision: int | None = None,
 	currency: str | None = None,
 	format: str | None = None,
@@ -1134,6 +1134,9 @@ def fmt_money(
 
 	if isinstance(amount, str):
 		amount = flt(amount, precision)
+
+	if amount is None:
+		amount = 0
 
 	if decimal_str:
 		decimals_after = str(round(amount % 1, precision))
@@ -1184,7 +1187,12 @@ def fmt_money(
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
-		amount = frappe._(symbol) + " " + amount
+		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
+
+		if symbol_on_right:
+			amount = f"{amount} {frappe._(symbol)}"
+		else:
+			amount = f"{frappe._(symbol)} {amount}"
 
 	return amount
 
@@ -1903,7 +1911,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 def to_markdown(html: str) -> str:
 	from html.parser import HTMLParser
 
-	from html2text import html2text
+	from frappe.core.utils import html2text
 
 	try:
 		return html2text(html or "")

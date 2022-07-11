@@ -407,7 +407,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 						continue
 					label = column.get("label")
 					fieldname = column.get("fieldname")
-					cell_value = row.get(fieldname, row.get(label, ""))
+					cell_value = cstr(row.get(fieldname, row.get(label, "")))
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 					row_data.append(cell_value)

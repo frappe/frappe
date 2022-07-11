@@ -8,11 +8,11 @@ import traceback
 from email.parser import Parser
 from email.policy import SMTPUTF8
 
-from html2text import html2text
 from rq.timeouts import JobTimeoutException
 
 import frappe
 from frappe import _, safe_encode, task
+from frappe.core.utils import html2text
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message

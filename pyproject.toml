@@ -35,7 +35,6 @@ dependencies = [
     "git-url-parse~=1.2.2",
     "gitdb~=4.0.7",
     "gunicorn~=20.1.0",
-    "html2text==2020.1.16",
     "html5lib~=1.1",
     "ipython~=8.4.0",
     "ldap3~=2.9",
@@ -73,6 +72,7 @@ dependencies = [
     "urllib3~=1.26.4",
     "xlrd~=2.0.1",
     "zxcvbn-python~=4.4.24",
+    "markdownify~=0.11.2",
 
     # integration dependencies
     "boto3~=1.17.53",

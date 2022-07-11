@@ -77,7 +77,7 @@ class NamingSeries:
 		parse_naming_series(self.series, number_generator=fake_counter_backend)
 
 		if prefix is None:
-			frappe.throw(_("Invalid Naming Series"))
+			frappe.throw(_("Invalid Naming Series: {}").format(self.series))
 
 		return prefix
 
@@ -87,7 +87,10 @@ class NamingSeries:
 		for count in range(1, 4):
 
 			def fake_counter(_prefix, digits):
-				return str(count).zfill(digits)
+				# ignore B023: binding `count` is not necessary because
+				# function is evaluated immediately and it can not be done
+				# because of function signature requirement
+				return str(count).zfill(digits)  # noqa: B023
 
 			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
 		return generated_names

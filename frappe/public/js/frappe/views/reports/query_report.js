@@ -58,7 +58,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	update_url_with_filters() {
-		window.history.replaceState(null, null, this.get_url_with_filters());
+		if (frappe.get_route_str() == this.page_name) {
+			window.history.replaceState(null, null, this.get_url_with_filters());
+		}
 	}
 
 	get_url_with_filters() {

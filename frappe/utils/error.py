@@ -85,7 +85,8 @@ def get_snapshot(exception, context=10):
 
 		def reader(lnum=[lnum]):  # noqa
 			try:
-				return linecache.getline(file, lnum[0])
+				# B023: function is evaluated immediately, binding not necessary
+				return linecache.getline(file, lnum[0])  # noqa: B023
 			finally:
 				lnum[0] += 1
 
