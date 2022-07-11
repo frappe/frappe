@@ -36,6 +36,11 @@ class Oauth:
 		self._validate()
 
 	def _validate(self) -> None:
+		if self.service != "GMail":
+			raise NotImplementedError(
+				f"Service {self.service} currently doesn't have oauth implementation."
+			)
+
 		if not self._refresh_token:
 			frappe.throw(
 				frappe._("Please Authorize OAuth."),

@@ -145,6 +145,10 @@ frappe.ui.form.on("Email Account", {
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
 		frm.events.show_oauth_authorization_message(frm);
 
+		if (frm.doc.service !== "Gmail") {
+			frm.doc.auth_method = "Basic";
+		}
+
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals['User'][frappe.route_flags.linked_user];

@@ -48,9 +48,9 @@
   "send_notification_to",
   "outgoing_mail_settings",
   "enable_outgoing",
-  "smtp_server",
   "use_tls",
   "use_ssl_for_outgoing",
+  "smtp_server",
   "smtp_port",
   "column_break_38",
   "default_outgoing",
@@ -92,7 +92,7 @@
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Use different login"
+   "label": "Use different Email ID"
   },
   {
    "depends_on": "login_id_is_different",
@@ -100,7 +100,7 @@
    "fieldtype": "Data",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Email Login ID"
+   "label": "Alternative Email ID"
   },
   {
    "depends_on": "eval: doc.auth_method === \"Basic\"",
@@ -190,7 +190,7 @@
    "fieldtype": "Data",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Email Server"
+   "label": "Incoming Server"
   },
   {
    "default": "0",
@@ -312,7 +312,7 @@
    "fieldtype": "Data",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "SMTP Server"
+   "label": "Outgoing Server"
   },
   {
    "default": "0",
@@ -532,7 +532,7 @@
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Use SSL for Outgoing"
+   "label": "Use SSL"
   },
   {
    "default": "1",
@@ -616,7 +616,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-07-11 17:29:13.651583",
+ "modified": "2022-07-11 18:34:06.945668",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
