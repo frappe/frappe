@@ -49,10 +49,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		// pass
 	}
 
-	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
-		this.$no_result.toggle(this.data.length == 0);
-	}
+	toggle_result_area() {}
 
 	get_board() {
 		return frappe.db.get_doc("Kanban Board", this.board_name).then((board) => {
