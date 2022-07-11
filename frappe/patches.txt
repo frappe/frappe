@@ -121,7 +121,6 @@ execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
-frappe.patches.v12_0.encrypt_2fa_secrets
 execute:frappe.reload_doc('core', 'doctype', 'doctype') #2022-06-21
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
 frappe.patches.v13_0.remove_invalid_options_for_data_fields
@@ -184,6 +183,7 @@ frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
+frappe.patches.v13_0.encrypt_2fa_secrets
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
