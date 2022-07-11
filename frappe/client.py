@@ -275,13 +275,6 @@ def delete(doctype, name):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def set_default(key, value, parent=None):
-	"""set a user default value"""
-	frappe.db.set_default(key, value, parent or frappe.session.user)
-	frappe.clear_cache(user=frappe.session.user)
-
-
-@frappe.whitelist(methods=["POST", "PUT"])
 def bulk_update(docs):
 	"""Bulk update documents
 
