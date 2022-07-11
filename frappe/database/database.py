@@ -938,7 +938,7 @@ class Database:
 			return defaults
 
 		if key in defaults:
-			return defaults.get(key)
+			return defaults[key]
 
 		return defaults.get(frappe.scrub(key))
 
