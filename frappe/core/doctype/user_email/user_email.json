@@ -52,7 +52,6 @@
   },
   {
    "default": "0",
-   "fetch_from": "email_account.use_oauth",
    "fieldname": "used_oauth",
    "fieldtype": "Check",
    "in_list_view": 1,
