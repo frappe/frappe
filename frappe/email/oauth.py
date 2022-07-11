@@ -2,7 +2,6 @@ import base64
 from imaplib import IMAP4
 from poplib import POP3
 from smtplib import SMTP
-from typing import Union
 from urllib.parse import quote
 
 import frappe
@@ -123,10 +122,6 @@ def oauth_access(email_account: str, service: str):
 		frappe.throw(frappe._("No Service is selected. Please select one and try again!"))
 
 	doctype = "Email Account"
-
-	# NOTE: setting this here, since we redirect to the service's auth page,
-	# we lose the use_oauth value in the emal account form
-	frappe.db.set_value(doctype, email_account, "use_oauth", 1, update_modified=False)
 
 	if service == "GMail":
 		return authorize_google_access(email_account, doctype)

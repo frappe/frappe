@@ -81,10 +81,13 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if getattr(self, "service", "") != "GMail" and self.use_oauth:
-			self.use_oauth = 0
+		use_oauth = self.auth_method == "Oauth"
 
-		if self.use_oauth:
+		if getattr(self, "service", "") != "GMail" and use_oauth:
+			self.auth_method = "Basic"
+			use_oauth = False
+
+		if use_oauth:
 			# no need for awaiting password for oauth
 			self.awaiting_password = 0
 
@@ -92,7 +95,7 @@ class EmailAccount(Document):
 			# clear access & refresh token
 			self.refresh_token = self.access_token = None
 
-		if not frappe.local.flags.in_install and (self.use_oauth or not self.awaiting_password):
+		if not frappe.local.flags.in_install and (use_oauth or not self.awaiting_password):
 			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
@@ -102,7 +105,7 @@ class EmailAccount(Document):
 					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
-					if not self.use_oauth:
+					if not use_oauth:
 						frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
@@ -155,7 +158,7 @@ class EmailAccount(Document):
 			awaiting_password=self.awaiting_password,
 			email_id=self.email_id,
 			enable_outgoing=self.enable_outgoing,
-			used_oauth=self.use_oauth,
+			used_oauth=self.auth_method == "Oauth",
 		)
 
 	def there_must_be_only_one_default(self):
@@ -210,7 +213,7 @@ class EmailAccount(Document):
 				"email_sync_rule": email_sync_rule,
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
-				"use_oauth": self.use_oauth or 0,
+				"use_oauth": self.auth_method == "Oauth",
 				"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
 				"access_token": decrypt(self.access_token) if self.access_token else None,
 			}
@@ -279,7 +282,9 @@ class EmailAccount(Document):
 
 	@property
 	def _password(self):
-		raise_exception = not (self.use_oauth or self.no_smtp_authentication or frappe.flags.in_test)
+		raise_exception = not (
+			self.auth_method == "Oauth" or self.no_smtp_authentication or frappe.flags.in_test
+		)
 		return self.get_password(raise_exception=raise_exception)
 
 	@property
@@ -398,7 +403,7 @@ class EmailAccount(Document):
 				"default": 0,
 			},
 			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
-			"use_oauth": {"conf_names": ("use_oauth"), "default": 0},
+			"auth_method": {"conf_names": ("auth_method"), "default": "Basic"},
 			"access_token": {"conf_names": ("mail_access_token")},
 			"refresh_token": {"conf_names": ("mail_refresh_token")},
 			"from_site_config": {"default": True},
@@ -426,7 +431,7 @@ class EmailAccount(Document):
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
 			"service": getattr(self, "service", ""),
-			"use_oauth": self.use_oauth or 0,
+			"use_oauth": self.auth_method == "Oauth",
 			"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
 			"access_token": decrypt(self.access_token) if self.access_token else None,
 		}
@@ -800,7 +805,7 @@ def pull(now=False):
 	for email_account in frappe.get_list(
 		"Email Account",
 		filters={"enable_incoming": 1},
-		or_filters={"awaiting_password": 0, "use_oauth": 1},
+		or_filters={"awaiting_password": 0, "auth_method": "Oauth"},
 	):
 		if now:
 			pull_from_email_account(email_account.name)
@@ -923,7 +928,7 @@ def remove_user_email_inbox(email_account):
 @frappe.whitelist()
 def set_email_password(email_account, password):
 	account = frappe.get_doc("Email Account", email_account)
-	if account.awaiting_password and not account.use_oauth:
+	if account.awaiting_password and not account.auth_method == "Oauth":
 		account.awaiting_password = 0
 		account.password = password
 		try:
