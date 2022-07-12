@@ -16,6 +16,7 @@ TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
+COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
 if TYPE_CHECKING:
 	from pypika.functions import Function
@@ -411,13 +412,8 @@ class Engine:
 		return getattr(functions, func)(*_args, alias=alias or None)
 
 	def function_objects_from_string(self, fields):
-		functions = ""
-		for func in SQL_FUNCTIONS:
-			if f"{func}(" in fields:
-				functions = str(func) + str(BRACKETS_PATTERN.search(fields).group())
-				return [self.get_function_object(functions)]
-		if not functions:
-			return []
+		fields = list(map(lambda str: str.strip(), COMMA_PATTERN.split(fields)))
+		return self.function_objects_from_list(fields=fields)
 
 	def function_objects_from_list(self, fields):
 		functions = []
@@ -436,6 +432,9 @@ class Engine:
 				if function.alias:
 					fields = fields.replace(" as " + function.alias.casefold(), "")
 				fields = BRACKETS_PATTERN.sub("", fields.replace(function.name.casefold(), ""))
+				# Check if only comma is left in fields after stripping functions.
+				if "," in fields and (len(fields.strip()) == 1):
+					fields = ""
 			else:
 				updated_fields = []
 				for field in fields:

@@ -74,6 +74,15 @@ class TestQuery(unittest.TestCase):
 			frappe.qb.from_("User").select(Timestamp(Field("creation"), Field("modified"))).get_sql(),
 		)
 
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"User", fields="Count(name) as count, Max(email) as max_email", filters={}
+			).get_sql(),
+			frappe.qb.from_("User")
+			.select(Count(Field("name")).as_("count"), Max(Field("email")).as_("max_email"))
+			.get_sql(),
+		)
+
 	def test_qb_fields(self):
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
