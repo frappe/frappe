@@ -198,21 +198,22 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		let tag_list = $(frappe.render_template("list_sidebar_stat", args)).on("click", ".stat-link", (e) => {
 			let fieldname = $(e.currentTarget).attr('data-field');
-			let label = $(e.currentTarget).attr('data-label');
-			let condition = "like";
+			let value = $(e.currentTarget).attr('data-label');
+			let condition = "in";
 			let existing = this.list_view.filter_area.filter_list.get_filter(fieldname);
 			if (existing) {
 				existing.remove();
 			}
-			if (label == "No Tags") {
-				label = "%,%";
-				condition = "not like";
+			if (value == "No Tags") {
+				value = "not set";
+				condition = "is";
 			}
+
 			this.list_view.filter_area.add(
 				this.doctype,
 				fieldname,
 				condition,
-				label
+				value
 			);
 		});
 

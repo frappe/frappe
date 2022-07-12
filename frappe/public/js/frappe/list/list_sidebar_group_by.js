@@ -276,8 +276,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			value = 'not set';
 		}
 		if (fieldname === '_assign') {
-			operator = 'like';
-			value = `%${value}%`;
+			operator = 'in';
 		}
 		return this.list_view.filter_area.add(
 			this.doctype,

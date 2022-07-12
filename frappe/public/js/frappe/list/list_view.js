@@ -706,7 +706,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (col.type === "Tag") {
 			const tags_display_class = !this.tags_shown ? 'hide' : '';
-			let tags_html = doc._user_tags ? this.get_tags_html(doc._user_tags, 2) : '<div class="tags-empty">-</div>';
+			let tags_html = doc._user_tags ? this.get_tags_html(JSON.parse(doc._user_tags), 2) : '<div class="tags-empty">-</div>';
 			return `
 				<div class="list-row-col tag-col ${tags_display_class} hidden-xs ellipsis">
 					${tags_html}
@@ -838,7 +838,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return `<div class="tag-pill ellipsis" title="${tag}" style="${style}">${tag}</div>`;
 			}
 		};
-		return user_tags.split(',').slice(1, limit + 1).map(get_tag_html).join('');
+		return user_tags.slice(0, limit).map(get_tag_html).join('');
 	}
 
 	get_meta_html(doc) {

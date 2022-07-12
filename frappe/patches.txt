@@ -192,6 +192,7 @@ frappe.patches.v14_0.reset_creation_datetime
 frappe.patches.v14_0.remove_is_first_startup
 frappe.patches.v14_0.clear_long_pending_stale_logs
 frappe.patches.v14_0.log_settings_migration
+frappe.patches.v14_0.convert_to_json_fields
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy

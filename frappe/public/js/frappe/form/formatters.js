@@ -244,7 +244,11 @@ frappe.form.formatters = {
 	},
 	Tag: function(value) {
 		var html = "";
-		$.each((value || "").split(","), function(i, v) {
+		let tags = typeof value == "string" && value && value.startsWith('[') ? JSON.parse(value) : []
+		if (typeof tags == "string") {
+			tags = [tags]
+		}
+		$.each(tags, function(i, v) {
 			if (v) html += `
 				<span
 					class="data-pill btn-xs align-center ellipsis"

@@ -51,6 +51,20 @@ class Database:
 	CHILD_TABLE_COLUMNS = ("parent", "parenttype", "parentfield")
 	MAX_WRITES_PER_TRANSACTION = 200_000
 
+	STANDARD_FIELD_CONVERSION_MAP = {
+		"name": "Link",
+		"owner": "Data",
+		"idx": "Int",
+		"creation": "Data",
+		"modified": "Data",
+		"modified_by": "Data",
+		"_user_tags": "JSON",
+		"_liked_by": "Data",
+		"_comments": "Text",
+		"_assign": "JSON",
+		"docstatus": "Int",
+	}
+
 	class InvalidColumnName(frappe.ValidationError):
 		pass
 

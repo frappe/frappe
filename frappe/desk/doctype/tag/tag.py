@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+import json
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
@@ -74,11 +75,11 @@ class DocTags:
 
 	def get_tags(self, dn):
 		"""returns tag for a particular item"""
-		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
+		return json.loads(frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "[]")
 
 	def add(self, dn, tag):
 		"""add a new user tag"""
-		tl = self.get_tags(dn).split(",")
+		tl = self.get_tags(dn)
 		if not tag in tl:
 			tl.append(tag)
 			if not frappe.db.exists("Tag", tag):
@@ -87,7 +88,7 @@ class DocTags:
 
 	def remove(self, dn, tag):
 		"""remove a user tag"""
-		tl = self.get_tags(dn).split(",")
+		tl = self.get_tags(dn)
 		self.update(dn, filter(lambda x: x.lower() != tag.lower(), tl))
 
 	def remove_all(self, dn):
@@ -98,13 +99,12 @@ class DocTags:
 		"""updates the _user_tag column in the table"""
 
 		if not tl:
-			tags = ""
+			tags = []
 		else:
-			tl = unique(filter(lambda x: x, tl))
-			tags = "," + ",".join(tl)
+			tags = unique(filter(lambda x: x, tl))
 		try:
 			frappe.db.sql(
-				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
+				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (json.dumps(tags), dn)
 			)
 			doc = frappe.get_doc(self.dt, dn)
 			update_tags(doc, tags)
@@ -123,7 +123,7 @@ class DocTags:
 		"""adds the _user_tags column if not exists"""
 		from frappe.database.schema import add_column
 
-		add_column(self.dt, "_user_tags", "Data")
+		add_column(self.dt, "_user_tags", frappe.db.STANDARD_FIELD_CONVERSION_MAP["_user_tags"])
 
 
 def delete_tags_for_document(doc):
@@ -143,14 +143,13 @@ def update_tags(doc, tags):
 
 	:param doc: Document to be added to global tags
 	"""
-	new_tags = {tag.strip() for tag in tags.split(",") if tag}
+	new_tags = set(tags)
 	existing_tags = [
 		tag.tag
 		for tag in frappe.get_list(
 			"Tag Link", filters={"document_type": doc.doctype, "document_name": doc.name}, fields=["tag"]
 		)
 	]
-
 	added_tags = set(new_tags) - set(existing_tags)
 	for tag in added_tags:
 		frappe.get_doc(

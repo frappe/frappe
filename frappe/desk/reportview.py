@@ -562,7 +562,7 @@ def get_stats(stats, doctype, filters=None):
 			tag_count = frappe.get_list(
 				doctype,
 				fields=[tag, "count(*)"],
-				filters=filters + [[tag, "!=", ""]],
+				filters=filters + [[tag, "is", "set"]],
 				group_by=tag,
 				as_list=True,
 				distinct=1,
@@ -573,7 +573,7 @@ def get_stats(stats, doctype, filters=None):
 				no_tag_count = frappe.get_list(
 					doctype,
 					fields=[tag, "count(*)"],
-					filters=filters + [[tag, "in", ("", ",")]],
+					filters=filters + [[tag, "is", "set"]],
 					as_list=True,
 					group_by=tag,
 					order_by=tag,
@@ -597,7 +597,6 @@ def get_stats(stats, doctype, filters=None):
 @frappe.whitelist()
 def get_filter_dashboard_data(stats, doctype, filters=None):
 	"""get tags info"""
-	import json
 
 	tags = json.loads(stats)
 	filters = json.loads(filters or [])
@@ -652,10 +651,7 @@ def scrub_user_tags(tagcount):
 	rdict = {}
 	tagdict = dict(tagcount)
 	for t in tagdict:
-		if not t:
-			continue
-		alltags = t.split(",")
-		for tag in alltags:
+		for tag in json.loads(t):
 			if tag:
 				if tag not in rdict:
 					rdict[tag] = 0

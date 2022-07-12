@@ -565,6 +565,9 @@ class DatabaseQuery:
 		meta = frappe.get_meta(f.doctype)
 		can_be_null = True
 
+		df = meta.get("fields", {"fieldname": f.fieldname})
+		df = df[0] if df else None
+
 		# prepare in condition
 		if f.operator.lower() in (
 			"ancestors of",
@@ -622,9 +625,6 @@ class DatabaseQuery:
 				value = "('')"
 
 		else:
-			df = meta.get("fields", {"fieldname": f.fieldname})
-			df = df[0] if df else None
-
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
@@ -705,7 +705,10 @@ class DatabaseQuery:
 			elif isinstance(value, str) and f.operator.lower() != "between":
 				value = f"{frappe.db.escape(value, percent=False)}"
 
-		if (
+		if (df and df.fieldtype == "JSON" or frappe.db.STANDARD_FIELD_CONVERSION_MAP.get(f.fieldname) == "JSON"):
+			return f"(JSON_VALUE({column_name}, '$[*]') {f.operator} {value} OR {column_name} {f.operator} {value})"
+
+		elif (
 			self.ignore_ifnull
 			or not can_be_null
 			or (f.value and f.operator.lower() in ("=", "like"))

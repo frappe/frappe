@@ -8,19 +8,7 @@ from frappe import _
 from frappe.build import html_to_js_template
 from frappe.utils import cstr
 
-STANDARD_FIELD_CONVERSION_MAP = {
-	"name": "Link",
-	"owner": "Data",
-	"idx": "Int",
-	"creation": "Data",
-	"modified": "Data",
-	"modified_by": "Data",
-	"_user_tags": "Data",
-	"_liked_by": "Data",
-	"_comments": "Text",
-	"_assign": "Text",
-	"docstatus": "Int",
-}
+
 INCLUDE_DIRECTIVE_PATTERN = re.compile(r"""{% include\s['"](.*)['"]\s%}""")
 
 
