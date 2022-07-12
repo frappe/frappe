@@ -82,6 +82,19 @@ function oauth_access(frm) {
 	});
 }
 
+function set_default_max_attachment_size(frm, field) {
+	if (frm.doc.__islocal && !frm.doc[field]) {
+		frappe.call({
+			method: "frappe.core.api.file.get_max_file_size",
+			callback: function(r) {
+				if (!r.exc) {
+					frm.set_value(field, Number(r.message)/(1024*1024));
+				}
+			},
+		});
+	}
+}
+
 frappe.ui.form.on("Email Account", {
 	service: function(frm) {
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
@@ -136,6 +149,7 @@ frappe.ui.form.on("Email Account", {
 			frm.refresh_field("imap_folder");
 		}
 		frm.toggle_display(['auth_method'], frm.doc.service === "GMail");
+		set_default_max_attachment_size(frm, "attachment_limit");
 	},
 
 	refresh: function(frm) {
