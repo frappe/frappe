@@ -579,22 +579,14 @@ details > summary:focus {
 	color: var(--text-color);
 }
 
-
-.diffview .insert {
-	background-color: var(--green-100);
+.diffview .insert,
+.diff-add {
+	background-color: var(--diff-added);
 }
 
-.diffview .delete {
-	background-color: var(--red-100);
-}
-
-[data-theme="dark"] {
-	.diffview .insert {
-		background-color: var(--green-800);
-	}
-	.diffview .delete {
-		background-color: var(--red-800);
-	}
+.diffview .delete,
+.diff-remove {
+	background-color: var(--diff-removed);
 }
 
 // REDESIGN TODO: Handling of broken images?
