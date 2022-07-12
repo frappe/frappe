@@ -379,6 +379,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 		cur_frm = this;
 
+		this.undo_manager.erase_history();
+
 		if(this.docname) { // document to show
 			this.save_disabled = false;
 			// set the doc

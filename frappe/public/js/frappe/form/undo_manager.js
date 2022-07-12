@@ -33,4 +33,9 @@ export class UndoManager {
 		// keyboard interactions shouldn't have long running
 		frappe.show_alert(msg, 3);
 	}
+
+	erase_history() {
+		this.undo_stack = [];
+		this.redo_stack = [];
+	}
 }
