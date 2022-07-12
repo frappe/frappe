@@ -6,11 +6,12 @@ from urllib.parse import quote
 import frappe
 from frappe.core.doctype.communication.communication import get_emails
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
+from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Communication")
 
 
-class TestCommunication(unittest.TestCase):
+class TestCommunication(FrappeTestCase):
 	def test_email(self):
 		valid_email_list = [
 			"Full Name <full@example.com>",
@@ -259,8 +260,25 @@ class TestCommunication(unittest.TestCase):
 		self.assertEqual(emails[1], "first.lastname@email.com")
 		self.assertEqual(emails[2], "test@user.com")
 
+	def test_signature_in_email_content(self):
+		email_account = create_email_account()
+		signature = email_account.signature
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_medium": "Email",
+				"subject": "Document Link in Email",
+				"sender": "comm_sender@example.com",
+				"content": """<div class="ql-editor read-mode">
+				Hi,
+				How are you?
+				</div>""",
+			}
+		).insert(ignore_permissions=True)
+		assert signature in comm.content
 
-class TestCommunicationEmailMixin(unittest.TestCase):
+
+class TestCommunicationEmailMixin(FrappeTestCase):
 	def new_communication(self, recipients=None, cc=None, bcc=None):
 		recipients = ", ".join(recipients or [])
 		cc = ", ".join(cc or [])
@@ -345,6 +363,7 @@ def create_email_account():
 			"append_to": "ToDo",
 			"email_account_name": "_Test Comm Account 1",
 			"enable_outgoing": 1,
+			"default_outgoing": 1,
 			"smtp_server": "test.example.com",
 			"email_id": "test_comm@example.com",
 			"password": "password",
