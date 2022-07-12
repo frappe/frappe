@@ -76,4 +76,3 @@ def delete_like(reference_doctype, reference_name):
 
 	frappe.db.delete("Comment", filters)
 	return False
-
