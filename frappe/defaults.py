@@ -241,8 +241,4 @@ def get_defaults_for(parent="__default"):
 
 
 def _clear_cache(parent):
-	if parent in common_default_keys:
-		frappe.clear_cache()
-	else:
-		clear_notifications(user=parent)
-		frappe.clear_cache(user=parent)
+	frappe.clear_cache(user=parent if parent not in common_default_keys else None)
