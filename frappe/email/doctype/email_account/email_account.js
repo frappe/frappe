@@ -195,7 +195,7 @@ frappe.ui.form.on("Email Account", {
 			let msg = {
 				message: !frm.doc.refresh_token ? "Oauth Enabled but not Authorized. Please use Authorize API Access Button to do the same." : "Oauth Authorized. Re-Authorization can be done using Authorize API Access Button.",
 				indicator: !frm.doc.refresh_token ? "yellow" : "green"
-			}
+			};
 			frm.dashboard.clear_headline();
 			frm.dashboard.set_headline_alert(__(msg.message), msg.indicator);
 		}
