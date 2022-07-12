@@ -137,8 +137,10 @@ frappe.ui.form.on('Newsletter', {
 	},
 
 	async update_sending_status(frm) {
-		if (frm.doc.email_sent && frm.$wrapper.is(':visible')) {
+		if (frm.doc.email_sent && frm.$wrapper.is(':visible') && !frm.waiting_for_request) {
+			frm.waiting_for_request = true;
 			let res = await frm.call('get_sending_status');
+			frm.waiting_for_request = false;
 			let stats = res.message;
 			stats && frm.events.update_sending_progress(frm, stats);
 			if (stats.sent + stats.error >= frm.doc.total_recipients || (!stats.total && !stats.emails_queued)) {
