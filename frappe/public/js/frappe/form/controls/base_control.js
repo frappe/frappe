@@ -188,7 +188,7 @@ frappe.ui.form.Control = class BaseControl {
 		}
 
 		const old_value = this.get_model_value();
-		this.frm?.undo_manager.record_change({
+		this.frm?.undo_manager?.record_change({
 			fieldname: me.df.fieldname,
 			old_value,
 			new_value: value,

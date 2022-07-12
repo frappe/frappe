@@ -13,7 +13,7 @@ import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
 import './form_tour';
-import {UndoManager } from './undo_manager';
+import { UndoManager } from './undo_manager';
 
 frappe.ui.form.Controller = class FormController {
 	constructor(opts) {
@@ -1785,7 +1785,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return sum;
 	}
 
-	scroll_to_field(fieldname) {
+	scroll_to_field(fieldname, focus=true) {
 		let field = this.get_field(fieldname);
 		if (!field) return;
 
@@ -1805,7 +1805,9 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.utils.scroll_to($el, true, 15);
 
 		// focus if text field
-		$el.find('input, select, textarea').focus();
+		if (focus) {
+			$el.find('input, select, textarea').focus();
+		}
 
 		// highlight control inside field
 		let control_element = $el.find('.form-control')

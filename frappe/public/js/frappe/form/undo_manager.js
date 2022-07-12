@@ -20,20 +20,34 @@ export class UndoManager {
 			docname,
 			is_child,
 		});
-		console.log(this.undo_stack[this.undo_stack.length - 1]);
+	}
+
+	erase_history() {
+		this.undo_stack = [];
+		this.redo_stack = [];
 	}
 
 	undo() {
 		const change = this.undo_stack.pop();
 		if (change) {
-			this.apply_change(change);
-			this.push_reverse_entry(change, this.redo_stack);
+			this.#apply_change(change);
+			this.#push_reverse_entry(change, this.redo_stack);
 		} else {
-			this.show_alert(__("Nothing left to undo"));
+			this.#show_alert(__("Nothing left to undo"));
 		}
 	}
 
-	push_reverse_entry(change, stack) {
+	redo() {
+		const change = this.redo_stack.pop();
+		if (change) {
+			this.#apply_change(change);
+			this.#push_reverse_entry(change, this.undo_stack);
+		} else {
+			this.#show_alert(__("Nothing left to redo"));
+		}
+	}
+
+	#push_reverse_entry(change, stack) {
 		stack.push({
 			...change,
 			new_value: change.old_value,
@@ -41,17 +55,7 @@ export class UndoManager {
 		});
 	}
 
-	redo() {
-		const change = this.redo_stack.pop();
-		if (change) {
-			this.apply_change(change);
-			this.push_reverse_entry(change, this.undo_stack);
-		} else {
-			this.show_alert(__("Nothing left to redo"));
-		}
-	}
-
-	apply_change(change) {
+	#apply_change(change) {
 		if (change.is_child) {
 			frappe.model.set_value(
 				change.doctype,
@@ -61,17 +65,13 @@ export class UndoManager {
 			);
 		} else {
 			this.frm.set_value(change.fieldname, change.old_value);
+			this.frm.scroll_to_field(change.fieldname, false);
 		}
 	}
 
-	show_alert(msg) {
+	#show_alert(msg) {
 		// reduce duration
 		// keyboard interactions shouldn't have long running annoying toasts
 		frappe.show_alert(msg, 3);
-	}
-
-	erase_history() {
-		this.undo_stack = [];
-		this.redo_stack = [];
 	}
 }
