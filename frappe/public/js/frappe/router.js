@@ -121,7 +121,7 @@ frappe.router = {
 		route = this.get_sub_path_string(route).split('/');
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
-		this.set_route_options_from_url();
+		this.set_route_options_from_url([route, window.location.serach]);
 		return this.convert_to_standard_route(route);
 	},
 
