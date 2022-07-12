@@ -95,7 +95,7 @@ class EmailAccount(Document):
 			# clear access & refresh token
 			self.refresh_token = self.access_token = None
 
-		if not frappe.local.flags.in_install and (use_oauth or not self.awaiting_password):
+		if not frappe.local.flags.in_install and not self.awaiting_password:
 			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
@@ -114,11 +114,12 @@ class EmailAccount(Document):
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 
-		for folder in self.imap_folder:
-			if self.enable_incoming and folder.append_to:
-				valid_doctypes = [d[0] for d in get_append_to()]
-				if folder.append_to not in valid_doctypes:
-					frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+		if self.enable_incoming:
+			for folder in self.imap_folder:
+				if folder.append_to:
+					valid_doctypes = [d[0] for d in get_append_to()]
+					if folder.append_to not in valid_doctypes:
+						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
