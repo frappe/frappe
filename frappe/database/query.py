@@ -10,16 +10,13 @@ from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
-from frappe.query_builder.functions import SqlFunctions
+from frappe.query_builder.functions import Function, SqlFunctions
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
-
-if TYPE_CHECKING:
-	from pypika.functions import Function
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -409,7 +406,11 @@ class Engine:
 				field = initial_fields
 
 			_args.append(field)
-		return getattr(functions, func)(*_args, alias=alias or None)
+		try:
+			return getattr(functions, func)(*_args, alias=alias or None)
+		except AttributeError:
+			# Fall back for functions not present in `SqlFunctions``
+			return Function(func, *_args, alias=alias or None)
 
 	def function_objects_from_string(self, fields):
 		fields = list(map(lambda str: str.strip(), COMMA_PATTERN.split(fields)))
@@ -420,7 +421,7 @@ class Engine:
 		for field in fields:
 			field = field.casefold() if isinstance(field, str) else field
 			if not issubclass(type(field), Criterion):
-				if any([func in field and f"{func}(" in field for func in SQL_FUNCTIONS]):
+				if any([f"{func}(" in field for func in SQL_FUNCTIONS]) or "(" in field:
 					functions.append(field)
 
 		return [self.get_function_object(function) for function in functions]
