@@ -1,6 +1,8 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import json
 import unittest
+from contextlib import contextmanager
 
 import frappe
 from frappe.integrations.doctype.webhook.webhook import (
@@ -8,6 +10,16 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
+
+
+@contextmanager
+def get_test_webhook(config):
+	wh = frappe.get_doc(config).insert()
+	wh.reload()
+	try:
+		yield wh
+	finally:
+		wh.delete()
 
 
 class TestWebhook(unittest.TestCase):
@@ -165,3 +177,31 @@ class TestWebhook(unittest.TestCase):
 		enqueue_webhook(user, webhook)
 
 		self.assertTrue(frappe.db.get_all("Webhook Request Log", pluck="name"))
+
+	def test_webhook_with_array_body(self):
+		"""Check if array request body are supported."""
+		wh_config = {
+			"doctype": "Webhook",
+			"webhook_doctype": "Note",
+			"webhook_docevent": "after_insert",
+			"enabled": 1,
+			"request_url": "https://httpbin.org/post",
+			"request_method": "POST",
+			"request_structure": "JSON",
+			"webhook_json": '[\r\n{% for n in range(3) %}\r\n    {\r\n        "title": "{{ doc.title }}",\r\n        "n": {{ n }}\r\n    }\r\n    {%- if not loop.last -%}\r\n        , \r\n    {%endif%}\r\n{%endfor%}\r\n]',
+			"meets_condition": "Yes",
+			"webhook_headers": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+				}
+			],
+		}
+
+		with get_test_webhook(wh_config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Test Webhook Note"
+
+			enqueue_webhook(doc, wh)
+			log = frappe.get_last_doc("Webhook Request Log")
+			self.assertEqual(len(json.loads(log.response)["json"]), 3)
