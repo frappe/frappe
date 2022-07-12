@@ -413,12 +413,7 @@ frappe.router = {
 		return route;
 	},
 
-<<<<<<< Updated upstream
 	set_route_options_from_url() {
-=======
-	set_route_options_from_url(route) {
-		debugger;
->>>>>>> Stashed changes
 		// set query parameters as frappe.route_options
 		let query_string = window.location.search;
 
