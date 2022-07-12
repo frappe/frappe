@@ -81,7 +81,7 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		use_oauth = self.auth_method == "Oauth"
+		use_oauth = self.auth_method == "OAuth"
 
 		if getattr(self, "service", "") != "GMail" and use_oauth:
 			self.auth_method = "Basic"
@@ -159,7 +159,7 @@ class EmailAccount(Document):
 			awaiting_password=self.awaiting_password,
 			email_id=self.email_id,
 			enable_outgoing=self.enable_outgoing,
-			used_oauth=self.auth_method == "Oauth",
+			used_oauth=self.auth_method == "OAuth",
 		)
 
 	def there_must_be_only_one_default(self):
@@ -214,7 +214,7 @@ class EmailAccount(Document):
 				"email_sync_rule": email_sync_rule,
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
-				"use_oauth": self.auth_method == "Oauth",
+				"use_oauth": self.auth_method == "OAuth",
 				"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
 				"access_token": decrypt(self.access_token) if self.access_token else None,
 			}
@@ -284,7 +284,7 @@ class EmailAccount(Document):
 	@property
 	def _password(self):
 		raise_exception = not (
-			self.auth_method == "Oauth" or self.no_smtp_authentication or frappe.flags.in_test
+			self.auth_method == "OAuth" or self.no_smtp_authentication or frappe.flags.in_test
 		)
 		return self.get_password(raise_exception=raise_exception)
 
@@ -432,7 +432,7 @@ class EmailAccount(Document):
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
 			"service": getattr(self, "service", ""),
-			"use_oauth": self.auth_method == "Oauth",
+			"use_oauth": self.auth_method == "OAuth",
 			"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
 			"access_token": decrypt(self.access_token) if self.access_token else None,
 		}
@@ -802,12 +802,18 @@ def pull(now=False):
 		else:
 			return
 
-	queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
-	for email_account in frappe.get_list(
-		"Email Account",
-		filters={"enable_incoming": 1},
-		or_filters={"awaiting_password": 0, "auth_method": "Oauth"},
-	):
+	doctype = frappe.qb.DocType("Email Account")
+	email_accounts = (
+		frappe.qb.from_(doctype)
+		.select(doctype.name)
+		.where(doctype.enable_incoming == 1)
+		.where(
+			(doctype.awaiting_password == 0)
+			| ((doctype.auth_method == "OAuth") & (doctype.refresh_token.isnotnull()))
+		)
+		.run(as_dict=1)
+	)
+	for email_account in email_accounts:
 		if now:
 			pull_from_email_account(email_account.name)
 
@@ -815,6 +821,7 @@ def pull(now=False):
 			# job_name is used to prevent duplicates in queue
 			job_name = f"pull_from_email_account|{email_account.name}"
 
+			queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
 			if job_name not in queued_jobs:
 				enqueue(
 					pull_from_email_account,
@@ -929,7 +936,7 @@ def remove_user_email_inbox(email_account):
 @frappe.whitelist()
 def set_email_password(email_account, password):
 	account = frappe.get_doc("Email Account", email_account)
-	if account.awaiting_password and not account.auth_method == "Oauth":
+	if account.awaiting_password and not account.auth_method == "OAuth":
 		account.awaiting_password = 0
 		account.password = password
 		try:
