@@ -6,6 +6,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.email.doctype.email_group.email_group import add_subscribers
+from frappe.utils.safe_exec import is_job_queued
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -43,8 +44,11 @@ class Newsletter(WebsiteGenerator):
 			elif row.status == "Error":
 				error = row.count
 			total += row.count
-
-		return {"sent": sent, "error": error, "total": total}
+		emails_queued = is_job_queued(
+			job_name=frappe.utils.get_job_name("send_bulk_emails_for", self.doctype, self.name),
+			queue="long",
+		)
+		return {"sent": sent, "error": error, "total": total, "emails_queued": emails_queued}
 
 	@frappe.whitelist()
 	def send_test_email(self, email):

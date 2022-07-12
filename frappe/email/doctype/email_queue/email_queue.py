@@ -657,7 +657,11 @@ class QueueBuilder:
 					self.send_emails,
 					queue_data=queue_data,
 					final_recipients=recipients,
+					job_name=frappe.utils.get_job_name(
+						"send_bulk_emails_for", self.reference_doctype, self.reference_name
+					),
 					now=frappe.flags.in_test or send_now,
+					queue="long",
 				)
 
 	def send_emails(self, queue_data, final_recipients):

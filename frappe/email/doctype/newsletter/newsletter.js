@@ -141,7 +141,7 @@ frappe.ui.form.on('Newsletter', {
 			let res = await frm.call('get_sending_status');
 			let stats = res.message;
 			stats && frm.events.update_sending_progress(frm, stats);
-			if (stats.sent + stats.error >= frm.doc.total_recipients || !stats.total) {
+			if (stats.sent + stats.error >= frm.doc.total_recipients || (!stats.total && !stats.emails_queued)) {
 				frm.sending_status && clearInterval(frm.sending_status);
 				frm.sending_status = null;
 			}
@@ -160,6 +160,8 @@ frappe.ui.form.on('Newsletter', {
 		if (stats.total) {
 			frm.page.set_indicator(__("Sending"), "blue");
 			frm.dashboard.show_progress(__('Sending emails'), stats.sent * 100 / frm.doc.total_recipients, __("{0} of {1} sent", [stats.sent, frm.doc.total_recipients]));
+		} else if (stats.emails_queued) {
+			frm.page.set_indicator(__("Queued"), "blue");
 		}
 	},
 

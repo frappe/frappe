@@ -2114,3 +2114,12 @@ def parse_timedelta(s: str) -> datetime.timedelta:
 		m = TIMEDELTA_BASE_PATTERN.match(s)
 
 	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})
+
+
+def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
+	job_name = key
+	if doctype:
+		job_name += f"_{doctype}"
+	if doc_name:
+		job_name += f"_{doc_name}"
+	return job_name
