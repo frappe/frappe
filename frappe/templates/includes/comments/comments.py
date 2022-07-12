@@ -5,7 +5,6 @@ import re
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-from frappe.utils import add_to_date, now
 from frappe.utils.html_utils import clean_html
 from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
 from frappe.website.utils import clear_cache
