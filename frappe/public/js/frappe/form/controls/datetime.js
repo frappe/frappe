@@ -37,15 +37,7 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		}
 	},
 	get_model_value() {
-<<<<<<< HEAD
 		let value = this._super();
-		return frappe.datetime.get_datetime_as_string(value);
-=======
-		let value = super.get_model_value();
-		if (!value && !this.doc) {
-			value = this.last_value;
-		}
 		return !value ? "" : frappe.datetime.get_datetime_as_string(value);
->>>>>>> 2c2368e973 (fix: Datetime field not getting saved if use NOW button. (#17452))
 	}
 });
