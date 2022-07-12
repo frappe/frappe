@@ -177,7 +177,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return [
 			[{ header: [1, 2, 3, false] }],
 			[{ size: font_sizes }],
-			['bold', 'italic', 'underline', 'clean'],
+			['bold', 'italic', 'underline', 'strike', 'clean'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			// Adding Direction tool to give the user the ability to change text direction.
