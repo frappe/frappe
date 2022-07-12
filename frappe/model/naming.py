@@ -179,9 +179,9 @@ def parse_naming_series(parts, doctype="", doc=""):
 			part = frappe.defaults.get_user_default("fiscal_year")
 		elif e.startswith("{") and doc:
 			e = e.replace("{", "").replace("}", "")
-			part = doc.get(e)
+			part = (cstr(doc.get(e)) or "").strip()
 		elif doc and doc.get(e):
-			part = doc.get(e)
+			part = (cstr(doc.get(e)) or "").strip()
 		else:
 			part = e
 

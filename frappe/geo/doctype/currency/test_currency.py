@@ -6,5 +6,11 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
-test_records = frappe.get_test_records("Currency")
+
+class TestUser(FrappeTestCase):
+	def test_default_currency_on_setup(self):
+		usd = frappe.get_doc("Currency", "USD")
+		self.assertTrue(usd.enabled)
+		self.assertEqual(usd.fraction, "Cent")
