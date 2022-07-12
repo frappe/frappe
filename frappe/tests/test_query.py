@@ -110,9 +110,9 @@ class TestQuery(unittest.TestCase):
 
 		self.assertEqual(
 			frappe.qb.engine.get_query(
-				user_doctype, fields=["Count(name) as c", "email as id"], filters={}
+				user_doctype, fields=["Count(name) as count", "email as id"], filters={}
 			).get_sql(),
 			frappe.qb.from_(user_doctype)
-			.select(user_doctype.email.as_("id"), Count(Field("name")).as_("c"))
+			.select(user_doctype.email.as_("id"), Count(Field("name")).as_("count"))
 			.get_sql(),
 		)
