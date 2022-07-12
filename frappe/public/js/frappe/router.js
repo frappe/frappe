@@ -121,7 +121,10 @@ frappe.router = {
 		route = this.get_sub_path_string(route).split('/');
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
-		this.set_route_options_from_url();
+		if (![undefined, null, ""].includes(window.location.search)){
+			route.push( window.location.search);
+		}
+		this.set_route_options_from_url(route);
 		return this.convert_to_standard_route(route);
 	},
 
@@ -410,7 +413,12 @@ frappe.router = {
 		return route;
 	},
 
+<<<<<<< Updated upstream
 	set_route_options_from_url() {
+=======
+	set_route_options_from_url(route) {
+		debugger;
+>>>>>>> Stashed changes
 		// set query parameters as frappe.route_options
 		let query_string = window.location.search;
 
