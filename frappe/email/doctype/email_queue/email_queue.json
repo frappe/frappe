@@ -58,8 +58,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nNot Sent\nSending\nSent\nError\nExpired",
-   "search_index": 1
+   "options": "\nNot Sent\nSending\nSent\nError\nExpired"
   },
   {
    "fieldname": "error",
@@ -78,8 +77,7 @@
    "fieldtype": "Link",
    "label": "Reference Document Type",
    "options": "DocType",
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "reference_name",
@@ -155,7 +153,7 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2022-07-12 12:52:26.290072",
+ "modified": "2022-07-12 15:17:37.934316",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Queue",
