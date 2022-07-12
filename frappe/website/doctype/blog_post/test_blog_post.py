@@ -20,12 +20,6 @@ class TestBlogPost(FrappeTestCase):
 	def setUp(self):
 		reset_customization("Blog Post")
 
-	def tearDown(self):
-		frappe.form_dict.reference_doctype = None
-		frappe.form_dict.reference_name = None
-		frappe.form_dict.like = None
-		frappe.local.request_ip = None
-
 	def test_generator_view(self):
 		pages = frappe.get_all(
 			"Blog Post", fields=["name", "route"], filters={"published": 1, "route": ("!=", "")}, limit=1
