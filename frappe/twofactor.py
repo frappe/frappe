@@ -463,7 +463,7 @@ def disable():
 def reset_otp_secret(user):
 	otp_issuer = frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
 	user_email = frappe.db.get_value("User", user, "email")
-	if frappe.session.user in ["Administrator", user]:
+	if frappe.session.user == user or "System Manager" in frappe.get_roles():
 		frappe.defaults.clear_default(user + "_otplogin")
 		frappe.defaults.clear_default(user + "_otpsecret")
 		email_args = {
@@ -490,4 +490,4 @@ def reset_otp_secret(user):
 			_("OTP Secret has been reset. Re-registration will be required on next login.")
 		)
 	else:
-		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
+		return frappe.throw(_("OTP secret can only be reset by System Managers."))
