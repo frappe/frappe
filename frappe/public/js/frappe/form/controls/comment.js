@@ -71,6 +71,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 		const options = this._super();
 		return Object.assign(options, {
 			theme: 'bubble',
+			bounds: this.quill_container[0],
 			modules: Object.assign(options.modules, {
 				mention: this.get_mention_options()
 			})
