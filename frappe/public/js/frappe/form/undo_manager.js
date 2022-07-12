@@ -12,6 +12,10 @@ export class UndoManager {
 		docname,
 		is_child,
 	}) {
+		if (old_value == new_value) {
+			return;
+		}
+
 		this.undo_stack.push({
 			fieldname,
 			old_value,
@@ -30,24 +34,24 @@ export class UndoManager {
 	undo() {
 		const change = this.undo_stack.pop();
 		if (change) {
-			this.#apply_change(change);
-			this.#push_reverse_entry(change, this.redo_stack);
+			this._apply_change(change);
+			this._push_reverse_entry(change, this.redo_stack);
 		} else {
-			this.#show_alert(__("Nothing left to undo"));
+			this._show_alert(__("Nothing left to undo"));
 		}
 	}
 
 	redo() {
 		const change = this.redo_stack.pop();
 		if (change) {
-			this.#apply_change(change);
-			this.#push_reverse_entry(change, this.undo_stack);
+			this._apply_change(change);
+			this._push_reverse_entry(change, this.undo_stack);
 		} else {
-			this.#show_alert(__("Nothing left to redo"));
+			this._show_alert(__("Nothing left to redo"));
 		}
 	}
 
-	#push_reverse_entry(change, stack) {
+	_push_reverse_entry(change, stack) {
 		stack.push({
 			...change,
 			new_value: change.old_value,
@@ -55,7 +59,7 @@ export class UndoManager {
 		});
 	}
 
-	#apply_change(change) {
+	_apply_change(change) {
 		if (change.is_child) {
 			frappe.model.set_value(
 				change.doctype,
@@ -69,7 +73,7 @@ export class UndoManager {
 		}
 	}
 
-	#show_alert(msg) {
+	_show_alert(msg) {
 		// reduce duration
 		// keyboard interactions shouldn't have long running annoying toasts
 		frappe.show_alert(msg, 3);
