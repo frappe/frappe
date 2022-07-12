@@ -103,7 +103,7 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 
 	get_toolbar_options() {
 		return [
-			['bold', 'italic', 'underline'],
+			['bold', 'italic', 'underline', 'strike'],
 			['blockquote', 'code-block'],
 			[{ 'direction': "rtl" }],
 			['link', 'image'],
