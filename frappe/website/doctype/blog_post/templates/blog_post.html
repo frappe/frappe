@@ -44,8 +44,8 @@
 	{%- endif -%}
 	<div class="blog-footer">
 		<div class="blog-feedback">
-			{% if not disable_feedback %}
-				{% include 'templates/includes/feedback/feedback.html' %}
+			{% if not disable_likes %}
+				{% include 'templates/includes/likes/likes.html' %}
 			{% endif %}
 		</div>
 		{% if social_links %}
