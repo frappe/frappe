@@ -19,7 +19,7 @@ test_dependencies = ["Blog Post"]
 class TestBlogPost(FrappeTestCase):
 	def setUp(self):
 		reset_customization("Blog Post")
-	
+
 	def tearDown(self):
 		frappe.form_dict.reference_doctype = None
 		frappe.form_dict.reference_name = None
@@ -164,7 +164,7 @@ class TestBlogPost(FrappeTestCase):
 		frappe.db.delete("Comment", {"comment_type": "Like", "reference_doctype": "Blog Post"})
 
 		from frappe.templates.includes.likes.likes import like
-		
+
 		frappe.form_dict.reference_doctype = "Blog Post"
 		frappe.form_dict.reference_name = test_blog.name
 		frappe.form_dict.like = True

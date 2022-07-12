@@ -273,15 +273,15 @@ def get_blog_list(
 	doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None
 ):
 	conditions = []
-	if filters and filters.get('blog_category'):
-		category = filters.get('blog_category')
+	if filters and filters.get("blog_category"):
+		category = filters.get("blog_category")
 	else:
 		category = frappe.utils.escape_html(
 			frappe.local.form_dict.blog_category or frappe.local.form_dict.category
 		)
 
-	if filters and filters.get('blogger'):
-		conditions.append('t1.blogger=%s' % frappe.db.escape(filters.get('blogger')))
+	if filters and filters.get("blogger"):
+		conditions.append("t1.blogger=%s" % frappe.db.escape(filters.get("blogger")))
 
 	if category:
 		conditions.append("t1.blog_category=%s" % frappe.db.escape(category))

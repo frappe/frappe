@@ -45,11 +45,12 @@ def like(reference_doctype, reference_name, like, route=""):
 
 	return liked
 
+
 def add_like(reference_doctype, reference_name):
 	user = frappe.session.user
 
 	like = frappe.new_doc("Comment")
-	like.comment_type = 'Like'
+	like.comment_type = "Like"
 	like.comment_email = user
 	like.reference_doctype = reference_doctype
 	like.reference_name = reference_name
@@ -58,6 +59,7 @@ def add_like(reference_doctype, reference_name):
 		like.ip_address = frappe.local.request_ip
 	like.save(ignore_permissions=True)
 	return True
+
 
 def delete_like(reference_doctype, reference_name):
 	user = frappe.session.user
@@ -73,4 +75,5 @@ def delete_like(reference_doctype, reference_name):
 		filters["ip_address"] = frappe.local.request_ip
 
 	frappe.db.delete("Comment", filters)
-	return False 
+	return False
+
