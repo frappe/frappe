@@ -42,13 +42,15 @@ class GoogleOAuth:
 			self.validate_google_settings()
 
 	def validate_google_settings(self):
+		google_settings = "<a href='/app/google-settings'>Google Settings</a>"
+
 		if not self.google_settings.enable:
-			frappe.throw(frappe._("Please enable Google Settings before continuing."))
+			frappe.throw(frappe._("Please enable {} before continuing.").format(google_settings))
 
 		if not (self.google_settings.client_id and self.google_settings.client_secret):
-			frappe.throw(frappe._("Please update Google Settings before continuing."))
+			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
 
-	def authorize(self, oauth_code: str) -> Dict[str, Union[str, int]]:
+	def authorize(self, oauth_code: str) -> dict[str, str | int]:
 		"""Returns a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
@@ -72,7 +74,7 @@ class GoogleOAuth:
 			"Something went wrong during the authorization.",
 		)
 
-	def refresh_access_token(self, refresh_token: str) -> Dict[str, Union[str, int]]:
+	def refresh_access_token(self, refresh_token: str) -> dict[str, str | int]:
 		"""Refreshes google access token using refresh token"""
 
 		data = {
@@ -92,7 +94,7 @@ class GoogleOAuth:
 			raise_err=True,
 		)
 
-	def get_authentication_url(self, state: Dict[str, str]) -> Dict[str, str]:
+	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
 		"""Returns google authentication url.
 
 		:param site_address: side address from which the request is being made (for redirect back to site)
@@ -105,7 +107,7 @@ class GoogleOAuth:
 		return {
 			"url": "https://accounts.google.com/o/oauth2/v2/auth?"
 			+ "access_type=offline&response_type=code&prompt=consent&include_granted_scopes=true&"
-			+ "client_id={0}&scope={1}&redirect_uri={2}&state={3}".format(
+			+ "client_id={}&scope={}&redirect_uri={}&state={}".format(
 				self.google_settings.client_id, self.scopes, callback_url, state
 			)
 		}
@@ -133,7 +135,7 @@ class GoogleOAuth:
 
 
 def handle_response(
-	response: Dict[str, Union[str, int]],
+	response: dict[str, str | int],
 	error_title: str,
 	error_message: str,
 	raise_err: bool = False,
