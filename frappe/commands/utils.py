@@ -872,7 +872,6 @@ def run_ui_tests(
 		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
-		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
 		# install cypress
 		click.secho("Installing Cypress...", fg="yellow")

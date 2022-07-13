@@ -5,6 +5,7 @@ import base64
 import os
 import unittest
 
+import frappe
 from frappe import safe_decode
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
@@ -54,26 +55,27 @@ This is the text version of this email
 		uni_chr1 = chr(40960)
 		uni_chr2 = chr(1972)
 
-		queue_doc = QueueBuilder(
+		QueueBuilder(
 			recipients=["test@example.com"],
 			sender="me@example.com",
 			subject="Test Subject",
-			message="<h1>" + uni_chr1 + "abcd" + uni_chr2 + "</h1>",
+			message=f"<h1>{uni_chr1}abcd{uni_chr2}</h1>",
 			text_content="whatever",
-		).process()[0]
+		).process()
+		queue_doc = frappe.get_last_doc("Email Queue")
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = mail_ctx.build_message(recipient_email="test@test.com")
 		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
 
 	def test_prepare_message_returns_cr_lf(self):
-		queue_doc = QueueBuilder(
+		QueueBuilder(
 			recipients=["test@example.com"],
 			sender="me@example.com",
 			subject="Test Subject",
 			message="<h1>\n this is a test of newlines\n" + "</h1>",
 			text_content="whatever",
-		).process()[0]
-
+		).process()
+		queue_doc = frappe.get_last_doc("Email Queue")
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = safe_decode(mail_ctx.build_message(recipient_email="test@test.com"))
 

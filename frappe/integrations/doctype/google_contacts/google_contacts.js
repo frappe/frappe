@@ -37,16 +37,11 @@ frappe.ui.form.on('Google Contacts', {
 		}
 	},
 	authorize_google_contacts_access: function(frm) {
-		let reauthorize = 0;
-		if(frm.doc.authorization_code) {
-			reauthorize = 1;
-		}
-
 		frappe.call({
 			method: "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
 			args: {
 				"g_contact": frm.doc.name,
-				"reauthorize": reauthorize
+				"reauthorize": frm.doc.authorization_code ? 1 : 0
 			},
 			callback: function(r) {
 				if(!r.exc) {

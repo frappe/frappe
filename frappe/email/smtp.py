@@ -5,6 +5,7 @@ import smtplib
 
 import frappe
 from frappe import _
+from frappe.email.oauth import Oauth
 from frappe.utils import cint, cstr
 
 
@@ -43,13 +44,31 @@ def send(email, append_to=None, retry=1):
 
 
 class SMTPServer:
-	def __init__(self, server, login=None, password=None, port=None, use_tls=None, use_ssl=None):
+	def __init__(
+		self,
+		server,
+		login=None,
+		email_account=None,
+		password=None,
+		port=None,
+		use_tls=None,
+		use_ssl=None,
+		use_oauth=0,
+		refresh_token=None,
+		access_token=None,
+		service=None,
+	):
 		self.login = login
+		self.email_account = email_account
 		self.password = password
 		self._server = server
 		self._port = port
 		self.use_tls = use_tls
 		self.use_ssl = use_ssl
+		self.use_oauth = use_oauth
+		self.refresh_token = refresh_token
+		self.access_token = access_token
+		self.service = service
 		self._session = None
 
 		if not self.server:
@@ -91,7 +110,13 @@ class SMTPServer:
 				)
 
 			self.secure_session(_session)
-			if self.login and self.password:
+
+			if self.use_oauth:
+				Oauth(
+					_session, self.email_account, self.login, self.access_token, self.refresh_token, self.service
+				).connect()
+
+			elif self.password:
 				res = _session.login(str(self.login or ""), str(self.password or ""))
 
 				# check if logged correctly
@@ -122,7 +147,7 @@ class SMTPServer:
 	@classmethod
 	def throw_invalid_credentials_exception(cls):
 		frappe.throw(
-			_("Incorrect email or password. Please check your login credentials."),
+			_("Please check your email login credentials."),
 			title=_("Invalid Credentials"),
 			exc=InvalidEmailCredentials,
 		)

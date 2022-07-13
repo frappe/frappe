@@ -206,7 +206,7 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if (not file_url or content) and (
+	if content is not None and (
 		frappe.session.user == "Guest" or (user and not user.has_desk_access())
 	):
 		filetype = guess_type(filename)[0]

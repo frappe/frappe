@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import json
 import os
 from datetime import timedelta
@@ -384,6 +385,18 @@ def format_duration_fields(data: frappe._dict) -> None:
 
 
 def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
+	EXCEL_TYPES = (
+		str,
+		bool,
+		type(None),
+		int,
+		float,
+		datetime.datetime,
+		datetime.date,
+		datetime.time,
+		datetime.timedelta,
+	)
+
 	result = [[]]
 	column_widths = []
 
@@ -407,7 +420,10 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 						continue
 					label = column.get("label")
 					fieldname = column.get("fieldname")
-					cell_value = cstr(row.get(fieldname, row.get(label, "")))
+					cell_value = row.get(fieldname, row.get(label, ""))
+					if not isinstance(cell_value, EXCEL_TYPES):
+						cell_value = cstr(cell_value)
+
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 					row_data.append(cell_value)
