@@ -27,7 +27,7 @@ def authorize_access(reauthorize=False, code=None):
 		return oauth_obj.get_authentication_url(
 			{
 				"method": "frappe.website.doctype.website_settings.google_indexing.authorize_access",
-				"redirect": "/app/Form/{0}".format(quote("Website Settings")),
+				"redirect": f"/app/Form/{quote('Website Settings')}",
 			},
 		)
 

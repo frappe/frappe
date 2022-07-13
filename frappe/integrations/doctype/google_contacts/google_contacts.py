@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 
+from urllib.parse import quote
+
 from googleapiclient.errors import HttpError
 
 import frappe
@@ -45,7 +47,7 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 			{
 				"method": "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
 				"g_contact": g_contact,
-				"redirect": "/app/Form/Google%20Contacts/{}".format(g_contact),
+				"redirect": f"/app/Form/{quote('Google Contacts')}/{quote(g_contact)}",
 			},
 		)
 

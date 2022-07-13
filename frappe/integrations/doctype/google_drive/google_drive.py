@@ -58,7 +58,7 @@ def authorize_access(reauthorize=False, code=None):
 		return oauth_obj.get_authentication_url(
 			{
 				"method": "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
-				"redirect": "/app/Form/{0}".format(quote("Google Drive")),
+				"redirect": f"/app/Form/{quote('Google Drive')}",
 			},
 		)
 
