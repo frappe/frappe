@@ -145,7 +145,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		return this.get_primary_btn()
 			.removeClass("hide")
 			.html(label)
-			.click(function() {
+			.off('click')
+			.on('click', function() {
 				me.primary_action_fulfilled = true;
 				// get values and send it
 				// as first parameter to click callback
