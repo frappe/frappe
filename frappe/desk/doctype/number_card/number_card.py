@@ -200,7 +200,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	if txt:
 		search_conditions = [numberCard[field].like(f"%{txt}%") for field in searchfields]
 
-	condition_query = frappe.db.query.build_conditions(doctype, filters)
+	condition_query = frappe.qb.engine.build_conditions(doctype, filters)
 
 	return (
 		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
