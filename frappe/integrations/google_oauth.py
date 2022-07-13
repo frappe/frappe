@@ -179,7 +179,7 @@ def callback(state: str, code: str = None, error: str = None) -> None:
 		frappe.get_attr(state.pop("method"))(**state)
 
 		# GET request, hence using commit to persist changes
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	redirect = f"{redirect}?{failure_query_param if error else success_query_param}"
 

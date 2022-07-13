@@ -138,7 +138,7 @@ frappe.ui.form.on("Email Account", {
 
 	onload: function(frm) {
 		if (frappe.utils.get_query_params().successful_authorization === '1') {
-			frappe.show_alert("Successfully Authorized");
+			frappe.show_alert(__("Successfully Authorized"));
 			// FIXME: find better alternative
 			window.history.replaceState(null, "", window.location.pathname);
 		}
