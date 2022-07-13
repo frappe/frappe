@@ -137,6 +137,15 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	onload: function(frm) {
+		let oauth_authorization_state = frappe.utils.get_query_params().successful_authorization
+		if (oauth_authorization_state === '1') {
+			frappe.show_alert("Successfully Authorized");
+			// FIXME: find better alternative
+			window.history.replaceState(null, "", window.location.pathname);
+		} else if (oauth_authorization_state === '0') {
+			window.history.replaceState(null, "", window.location.pathname);
+		}
+
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
 		frm.set_query("append_to", "imap_folder", function() {
@@ -191,13 +200,10 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	show_oauth_authorization_message(frm) {
-		if (frm.doc.auth_method === "OAuth") {
-			let msg = {
-				message: !frm.doc.refresh_token ? "OAuth Enabled but not Authorized. Please use Authorize API Access Button to do the same." : "OAuth Authorized. Re-Authorization can be done using Authorize API Access Button.",
-				indicator: !frm.doc.refresh_token ? "yellow" : "green"
-			};
+		if (frm.doc.auth_method === "OAuth" && !frm.doc.refresh_token) {
+			let msg = __('OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.')
 			frm.dashboard.clear_headline();
-			frm.dashboard.set_headline_alert(__(msg.message), msg.indicator);
+			frm.dashboard.set_headline_alert(msg, "yellow");
 		}
 	},
 

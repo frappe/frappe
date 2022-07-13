@@ -146,6 +146,8 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 			{
 				"method": "frappe.email.oauth.authorize_google_access",
 				"redirect": f"/app/Form/{quote(doctype)}/{quote(email_account)}",
+				"success_query_param": "successful_authorization=1",
+				"failure_query_param": "successful_authorization=0",
 				"email_account": email_account,
 			},
 		)

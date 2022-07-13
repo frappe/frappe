@@ -1,5 +1,4 @@
 import json
-from typing import Dict, Union
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -172,6 +171,8 @@ def callback(state: str, code: str = None, error: str = None) -> None:
 
 	state = json.loads(state)
 	redirect = state.pop("redirect", "/app")
+	success_query_param = state.pop("success_query_param", "")
+	failure_query_param = state.pop("failure_query_param", "")
 
 	if not error:
 		state.update({"code": code})
@@ -179,6 +180,8 @@ def callback(state: str, code: str = None, error: str = None) -> None:
 
 		# GET request, hence using commit to persist changes
 		frappe.db.commit()
+
+	redirect = f"{redirect}?{failure_query_param if error else success_query_param}"
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = redirect
