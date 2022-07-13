@@ -5,7 +5,6 @@ from typing import Any, Callable
 
 import frappe
 from frappe import _
-from frappe.boot import get_additional_filters_from_hooks
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table
 
@@ -173,6 +172,8 @@ class Query:
 
 	@cached_property
 	def OPERATOR_MAP(self):
+		from frappe.boot import get_additional_filters_from_hooks
+
 		# default operators
 		all_operators = OPERATOR_MAP.copy()
 
