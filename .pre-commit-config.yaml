@@ -37,6 +37,7 @@ repos:
     hooks:
       - id: prettier
         types_or: [javascript]
+        # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
                 frappe/public/dist/.*|
