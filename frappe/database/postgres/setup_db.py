@@ -116,5 +116,6 @@ def drop_user_and_database(db_name, root_login, root_password):
 		"SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = %s",
 		(db_name,),
 	)
+	root_conn.sql("end")
 	root_conn.sql(f"DROP DATABASE IF EXISTS {db_name}")
 	root_conn.sql(f"DROP USER IF EXISTS {db_name}")

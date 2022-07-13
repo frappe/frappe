@@ -1187,7 +1187,12 @@ def fmt_money(
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
-		amount = frappe._(symbol) + " " + amount
+		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
+
+		if symbol_on_right:
+			amount = f"{amount} {frappe._(symbol)}"
+		else:
+			amount = f"{frappe._(symbol)} {amount}"
 
 	return amount
 
@@ -1906,7 +1911,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 def to_markdown(html: str) -> str:
 	from html.parser import HTMLParser
 
-	from html2text import html2text
+	from frappe.core.utils import html2text
 
 	try:
 		return html2text(html or "")
@@ -2109,3 +2114,12 @@ def parse_timedelta(s: str) -> datetime.timedelta:
 		m = TIMEDELTA_BASE_PATTERN.match(s)
 
 	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})
+
+
+def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
+	job_name = key
+	if doctype:
+		job_name += f"_{doctype}"
+	if doc_name:
+		job_name += f"_{doc_name}"
+	return job_name

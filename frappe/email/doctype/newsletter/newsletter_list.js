@@ -4,9 +4,9 @@ frappe.listview_settings['Newsletter'] = {
 		if (doc.email_sent) {
 			return [__("Sent"), "green", "email_sent,=,Yes"];
 		} else if (doc.schedule_sending) {
-			return [__("Scheduled"), "orange", "email_sent,=,No|schedule_sending,=,Yes"];
+			return [__("Scheduled"), "purple", "email_sent,=,No|schedule_sending,=,Yes"];
 		} else {
-			return [__("Not Sent"), "orange", "email_sent,=,No"];
+			return [__("Not Sent"), "gray", "email_sent,=,No"];
 		}
 	}
 };

@@ -6,7 +6,7 @@ import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.query_builder import DocType
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 
 rights = (
 	"select",
@@ -360,9 +360,7 @@ def has_controller_permissions(doc, ptype, user=None):
 
 
 def get_doctypes_with_read():
-	return list(
-		{p.parent if type(p.parent) == str else p.parent.encode("UTF8") for p in get_valid_perms()}
-	)
+	return list({cstr(p.parent) for p in get_valid_perms() if p.parent})
 
 
 def get_valid_perms(doctype=None, user=None):

@@ -209,10 +209,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	get required_libs() {
-		return [
-			'assets/frappe/js/lib/fluxify.min.js',
-			'assets/frappe/js/frappe/views/kanban/kanban_board.js'
-		];
+		return 'kanban_board.bundle.js';
 	}
 };
 
