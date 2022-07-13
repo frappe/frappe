@@ -251,7 +251,6 @@ frappe.Application = class Application {
 				method: 'frappe.email.doctype.email_account.email_account.set_email_password',
 				args: {
 					"email_account": email_account[i]["email_account"],
-					"user": user,
 					"password": d.get_value("password")
 				},
 				callback: function(passed) {
