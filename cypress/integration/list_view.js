@@ -9,6 +9,7 @@ context('List View', () => {
 
 	it('Keep checkbox checked after Refresh', () => {
 		cy.go_to_list('ToDo');
+		cy.clear_filters()
 		cy.get('.list-row-container .list-row-checkbox').click({ multiple: true, force: true });
 		cy.get('.actions-btn-group button').contains('Actions').should('be.visible');
 		cy.intercept('/api/method/frappe.desk.reportview.get').as('list-refresh');
@@ -21,6 +22,7 @@ context('List View', () => {
 	it('enables "Actions" button', () => {
 		const actions = ['Approve', 'Reject', 'Edit', 'Export', 'Assign To', 'Apply Assignment Rule', 'Add Tags', 'Print', 'Delete'];
 		cy.go_to_list('ToDo');
+		cy.clear_filters()
 		cy.get('.list-row-container:contains("Pending") .list-row-checkbox').click({ multiple: true, force: true });
 		cy.get('.actions-btn-group button').contains('Actions').should('be.visible').click();
 		cy.get('.dropdown-menu li:visible .dropdown-item').should('have.length', 9).each((el, index) => {
