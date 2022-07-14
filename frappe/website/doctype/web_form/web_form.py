@@ -164,7 +164,7 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
-				frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
+			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
 		if frappe.form_dict.is_edit:
 			self.is_form_editable = True
