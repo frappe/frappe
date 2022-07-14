@@ -251,7 +251,10 @@ export default class WebFormList {
 				serial_number: this.rows.length + 1,
 				events: {
 					on_edit: () => this.open_form(data_item.name),
-					on_select: () => this.toggle_delete()
+					on_select: () => {
+						this.toggle_new();
+						this.toggle_delete();
+					}
 				}
 			});
 
@@ -312,6 +315,12 @@ export default class WebFormList {
 		!this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
 	}
 
+	toggle_new() {
+		if (!this.settings.allow_multiple) return;
+		let btn = $(".button-new");
+		this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
+	}
+
 	delete_rows() {
 		if (!this.settings.allow_delete) return
 		frappe
@@ -325,8 +334,9 @@ export default class WebFormList {
 				}
 			})
 			.then(() => {
-				this.refresh()
-				this.toggle_delete()
+				this.refresh();
+				this.toggle_delete();
+				this.toggle_new();
 			});
 	}
 };
