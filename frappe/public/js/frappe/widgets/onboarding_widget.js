@@ -180,7 +180,7 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	open_report(step) {
-		const [route, route_options] = frappe.utils.generate_route({
+		const route = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
 			is_query_report: step.report_type !== "Report Builder",
@@ -189,13 +189,13 @@ export default class OnboardingWidget extends Widget {
 
 		let current_route = frappe.get_route();
 
-		frappe.set_route(route, route_options).then(() => {
+		frappe.push_route(route).then(() => {
 			let msg_dialog = frappe.msgprint({
 				message: __(step.report_description),
 				title: __(step.reference_report),
 				primary_action: {
 					action: () => {
-						frappe.set_route(current_route).then(() => {
+						frappe.push_route(current_route).then(() => {
 							this.mark_complete(step);
 						});
 						msg_dialog.hide();
@@ -205,7 +205,7 @@ export default class OnboardingWidget extends Widget {
 				secondary_action: {
 					action: () => {
 						msg_dialog.hide();
-						frappe.set_route(current_route).then(() => {
+						frappe.push_route(current_route).then(() => {
 							this.mark_complete(step);
 						});
 					},

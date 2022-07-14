@@ -38,7 +38,7 @@ export default class ShortcutWidget extends Widget {
 				doc_view: this.doc_view
 			});
 
-			frappe.router.set_route(route);
+			frappe.router.push_route(route);
 		});
 	}
 

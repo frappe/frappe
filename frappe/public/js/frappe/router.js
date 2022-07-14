@@ -320,41 +320,40 @@ frappe.router = {
 		this._set_route_options(route_options);
 	},
 
-	parse_route_arguments(route) {
-		// example 1: ['a', 'b', 'c', route_options?];
-		// example 2: [['a', 'b', 'c'], route_options?];
-		// example 3: []'a/b/c', route_options?];
-		// example 4: [['a', b, 'c, route_options]]
-
+	parse_route_arguments(args) {
+		// example 1: (['a', 'b', 'c', route_options?])
+		// example 2: (['a/b/c', route_options?])
+		// example 3: ([['a', 'b', 'c'], route_options?])
 		let route_options = {}
 
-		if (route.length > 1 && typeof route[route.length - 1] !== 'string') {
-			route_options = route.pop()
+		// convert exmaple 3 into example 1
+		if (args.length === 1 && Array.isArray(args[0]) && Array.isArray(args[0][0])) {
+			args = args[0]
 		}
 
-		if (route.length === 1) {
-			if ($.isArray(route[0])) {
-				// called as frappe.set_route(['a', 'b', 'c']);
-				route = route[0];
-			} else if (route[0].includes('/')) {
-				// called as frappe.set_route('a/b/c')
-				route = route[0].split('/').map(decodeURIComponent)
+		if (args.length > 1 && typeof args[args.length - 1] !== 'string') {
+			// example 1
+			route_options = args.pop()
+		}
+
+		if (args.length === 1) {
+			if (Array.isArray(args[0])) {
+				args = args[0];
+			} else if (args[0].includes('/')) {
+				// example 2
+				args = args[0].split('/').map(decodeURIComponent)
 			}
-		}
-
-		if (route.length > 1 && typeof route[route.length - 1] !== 'string') {
-			route_options = route.pop()
 		}
 
 		if (!frappe.utils.is_json_serializable(route_options)) {
 			throw new Error("Invalid route options, must be a compatible json object")
 		}
 
-		while (route.length > 0 && ['', 'desk', 'app'].includes(route[0])) {
-			route.shift();
+		while (args.length > 0 && ['', 'desk', 'app'].includes(args[0])) {
+			args.shift();
 		}
 
-		return [route, route_options]
+		return [args, route_options]
 	},
 
 	convert_to_standard_route(route) {

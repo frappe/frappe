@@ -1252,20 +1252,13 @@ Object.assign(frappe.utils, {
 	},
 
 	generate_route(item) {
-		const type = item.type.toLowerCase();
-		if (type === "doctype") {
-			item.doctype = item.name;
-		}
-		let path = "";
+		let route = [];
 		if (!item.route) {
-			if (item.link) {
-				path = strip(item.link, "#");
-			} else if (type === "doctype") {
-				let doctype_slug = frappe.router.slug(item.doctype);
-
-				if (frappe.model.is_single(item.doctype)) {
-					path = doctype_slug;
-				} else {
+			const type = item.type.toLowerCase();
+			if (type === "doctype") {
+				item.doctype = item.name;
+				route = [frappe.router.slug(item.doctype)];
+				if(!frappe.model.is_single(item.doctype)) {
 					if (!item.doc_view) {
 						if (frappe.model.is_tree(item.doctype)) {
 							item.doc_view = "Tree";
@@ -1276,51 +1269,49 @@ Object.assign(frappe.utils, {
 
 					switch (item.doc_view) {
 						case "List":
-							path = doctype_slug;
 							break;
 						case "Tree":
-							path = `${doctype_slug}/view/tree`;
+							route.push("view", "tree")
 							break;
 						case "Report Builder":
-							path = `${doctype_slug}/view/report`;
+							route.push("view", "report")
 							break;
 						case "Dashboard":
-							path = `${doctype_slug}/view/dashboard`;
+							route.push("view", "dashboard")
 							break;
 						case "New":
-							path = `${doctype_slug}/new`;
+							route.push("new")
 							break;
 						case "Calendar":
-							path = `${doctype_slug}/view/calendar/default`;
+							route.push("view", "calendar")
 							break;
 						default:
 							frappe.throw({ message: __("Not a valid view:") + item.doc_view, title: __("Unknown View") });
-							path = "";
 					}
 				}
 			} else if (type === "report") {
 				if (item.is_query_report) {
-					path = "query-report/" + item.name;
+					route = ["query-report", item.name];
 				} else if (!item.doctype) {
-					path = "/report/" + item.name;
+					route = ["report", item.name];
 				} else {
-					path = frappe.router.slug(item.doctype) + "/view/report/" + item.name;
+					route = [item.doctype, "view", "report", item.name]
 				}
 			} else if (type === "page") {
-				path = item.name;
+				route = [item.name]
 			} else if (type === "dashboard") {
-				path = `dashboard-view/${item.name}`;
+				route = ["dashboard-view", item.name];
 			}
-
 		} else {
-			path = item.route;
+			route = item.route;
 		}
 
-		return [path, item.route_options || item.filters]
+		return [route, item.route_options || item.filters || {}]
 	},
 
 	generate_url(item) {
-		return frappe.router.resolve_url(this.generate_route(item))
+		const [route, route_options] = this.generate_route(item);
+		return frappe.router.resolve_url(route, route_options);
 	},
 
 	shorten_number: function (number, country, min_length=4, max_no_of_decimals=2) {
