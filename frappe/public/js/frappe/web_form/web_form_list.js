@@ -316,7 +316,6 @@ export default class WebFormList {
 	}
 
 	toggle_new() {
-		if (!this.settings.allow_multiple) return;
 		let btn = $(".button-new");
 		this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
 	}

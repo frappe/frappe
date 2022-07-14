@@ -21,6 +21,7 @@ frappe.ui.form.on("Web Form", {
 	validate: function(frm) {
 		if (!frm.doc.login_required) {
 			frm.set_value("allow_multiple", 0);
+			frm.set_value("allow_edit", 0);
 			frm.doc.show_list && frm.set_value("show_list", 0);
 		}
 
@@ -190,7 +191,7 @@ function get_fields_for_doctype(doctype) {
 
 function render_list_settings_message(frm) {
 	// render list setting message
-	if(frm.fields_dict['list_setting_message'] && !frm.doc.login_required) {
+	if (frm.fields_dict['list_setting_message'] && !frm.doc.login_required) {
 		const switch_to_form_settings_tab = `
 			<span class="bold pointer" title="${__("Switch to Form Settings Tab")}">
 				${__("Form Settings Tab")}
