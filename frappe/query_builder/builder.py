@@ -1,3 +1,5 @@
+import typing
+
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.queries import QueryBuilder, Schema, Table
@@ -12,6 +14,13 @@ class Base:
 	desc = Order.desc
 	Schema = Schema
 	Table = Table
+
+	# Added dynamic type hints for engine attribute
+	# which is to be assigned later.
+	if typing.TYPE_CHECKING:
+		from frappe.database.query import Engine
+
+		engine: Engine
 
 	@staticmethod
 	def functions(name: str, *args, **kwargs) -> Function:

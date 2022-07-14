@@ -26,7 +26,7 @@ frappe.form.formatters = {
 		if (df) {
 			const std_df = frappe.meta.docfield_map[df.parent] && frappe.meta.docfield_map[df.parent][df.fieldname];
 			if (std_df && std_df.formatter && typeof std_df.formatter==='function') {
-				value = std_df.formatter(value);
+				value = std_df.formatter(value, df);
 			}
 		}
 		return value;

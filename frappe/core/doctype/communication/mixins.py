@@ -92,7 +92,7 @@ class CommunicationEmailMixin:
 		cc_list = self.mail_cc(
 			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender
 		)
-		return [self.get_email_with_displayname(email) for email in cc_list]
+		return [self.get_email_with_displayname(email) for email in cc_list if email]
 
 	def mail_bcc(self, is_inbound_mail_communcation=False):
 		"""
@@ -120,7 +120,7 @@ class CommunicationEmailMixin:
 
 	def get_mail_bcc_with_displayname(self, is_inbound_mail_communcation=False):
 		bcc_list = self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
-		return [self.get_email_with_displayname(email) for email in bcc_list]
+		return [self.get_email_with_displayname(email) for email in bcc_list if email]
 
 	def mail_sender(self):
 		email_account = self.get_outgoing_email_account()
