@@ -190,7 +190,8 @@
    "fieldname": "web_form_fields",
    "fieldtype": "Table",
    "label": "Web Form Fields",
-   "options": "Web Form Field"
+   "options": "Web Form Field",
+   "reqd": 1
   },
   {
    "fieldname": "max_attachment_size",
@@ -403,7 +404,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-14 16:26:07.636212",
+ "modified": "2022-07-14 19:10:03.909440",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

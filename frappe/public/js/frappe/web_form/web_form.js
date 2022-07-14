@@ -389,7 +389,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		} else {
 			path = path.replace('/edit', '');
 		}
-		window.location.href = path
+		window.location.href = path;
 	}
 
 	handle_success(data) {

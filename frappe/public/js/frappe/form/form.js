@@ -1847,10 +1847,6 @@ frappe.ui.form.Form = class FrappeForm {
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
 	}
-	switch_to_tab(tab_name) {
-		let doctype_name = frappe.router.slug(this.layout.doctype);
-		doctype_name && this.layout.tabs_list.find(`#${doctype_name}-${tab_name}-tab`).trigger("click");
-	}
 };
 
 frappe.validated = 0;
