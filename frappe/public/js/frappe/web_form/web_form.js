@@ -24,12 +24,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.set_field_values();
 		this.setup_listeners();
 		if (this.allow_print && !this.is_new) this.setup_print_button();
-		if (this.is_new) this.setup_cancel_button();
 		if (!this.is_form_editable && !this.is_new && this.allow_edit) {
 			this.setup_edit_button();
 		}
 
 		if (this.is_new || this.is_form_editable) {
+			this.setup_cancel_button();
 			this.setup_primary_action();
 		}
 
@@ -383,7 +383,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	cancel() {
-		window.location.href = window.location.pathname.replace('/new', '');
+		let path = window.location.pathname;
+		if (this.is_new) {
+			path = path.replace('/new', '');
+		} else {
+			path = path.replace('/edit', '');
+		}
+		window.location.href = path
 	}
 
 	handle_success(data) {
@@ -403,10 +409,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			} else if(this.login_required) {
 				let path = window.location.pathname;
 
-				if (path.includes('/new')) {
+				if (this.is_new) {
 					path = path.replace("/new", "");
 					path = path + "/" + data.name;
-				} else if (path.includes('/edit')) {
+				} else if (this.is_form_editable) {
 					path =  path.replace("/edit", "");
 				}
 
