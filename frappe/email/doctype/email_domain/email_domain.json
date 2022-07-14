@@ -128,8 +128,13 @@
   }
  ],
  "icon": "icon-inbox",
- "links": [],
- "modified": "2022-07-14 11:37:55.873948",
+ "links": [
+  {
+   "link_doctype": "Email Account",
+   "link_fieldname": "domain"
+  }
+ ],
+ "modified": "2022-07-14 13:01:48.719727",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
