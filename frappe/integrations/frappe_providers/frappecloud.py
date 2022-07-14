@@ -1,8 +1,8 @@
 import click
 import requests
-from html2text import html2text
 
 import frappe
+from frappe.core.utils import html2text
 
 
 def frappecloud_migrator(local_site):

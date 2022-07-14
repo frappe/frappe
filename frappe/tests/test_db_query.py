@@ -143,7 +143,9 @@ class TestReportview(unittest.TestCase):
 			)
 
 	def test_none_filter(self):
-		query = frappe.db.query.get_sql("DocType", fields="name", filters={"restrict_to_domain": None})
+		query = frappe.qb.engine.get_query(
+			"DocType", fields="name", filters={"restrict_to_domain": None}
+		)
 		sql = str(query).replace("`", "").replace('"', "")
 		condition = "restrict_to_domain IS NULL"
 		self.assertIn(condition, sql)

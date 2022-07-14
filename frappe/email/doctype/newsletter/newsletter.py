@@ -6,6 +6,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.email.doctype.email_group.email_group import add_subscribers
+from frappe.utils.safe_exec import is_job_queued
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -35,13 +36,19 @@ class Newsletter(WebsiteGenerator):
 			order_by="status",
 		)
 		sent = 0
+		error = 0
 		total = 0
 		for row in count_by_status:
 			if row.status == "Sent":
 				sent = row.count
+			elif row.status == "Error":
+				error = row.count
 			total += row.count
-
-		return {"sent": sent, "total": total}
+		emails_queued = is_job_queued(
+			job_name=frappe.utils.get_job_name("send_bulk_emails_for", self.doctype, self.name),
+			queue="long",
+		)
+		return {"sent": sent, "error": error, "total": total, "emails_queued": emails_queued}
 
 	@frappe.whitelist()
 	def send_test_email(self, email):
@@ -75,7 +82,6 @@ class Newsletter(WebsiteGenerator):
 		self.schedule_sending = False
 		self.schedule_send = None
 		self.queue_all()
-		frappe.msgprint(_("Email queued to {0} recipients").format(self.total_recipients))
 
 	def validate_send(self):
 		"""Validate if Newsletter can be sent."""
@@ -140,7 +146,8 @@ class Newsletter(WebsiteGenerator):
 		"""Get list of pending recipients of the newsletter. These
 		recipients may not have receive the newsletter in the previous iteration.
 		"""
-		return [x for x in self.newsletter_recipients if x not in self.get_success_recipients()]
+		success_recipients = set(self.get_success_recipients())
+		return [x for x in self.newsletter_recipients if x not in success_recipients]
 
 	def queue_all(self):
 		"""Queue Newsletter to all the recipients generated from the `Email Group` table"""
