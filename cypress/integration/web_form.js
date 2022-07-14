@@ -170,6 +170,9 @@ context('Web Form', () => {
 		cy.save();
 
 		cy.visit('/note/Note 1');
+		cy.url().should('include', '/note/Note%201');
+
+		cy.get('.web-form-actions button').contains('Edit').click();
 		cy.url().should('include', '/note/Note%201/edit');
 
 		// Editable Field
@@ -178,7 +181,6 @@ context('Web Form', () => {
 		cy.fill_field('title', ' Edited');
 		cy.get('.web-form-actions button').contains('Save').click();
 		cy.get_field('title').should('have.value', 'Note 1 Edited');
-
 	});
 
 	it('Allow Multiple Response', () => {
@@ -225,6 +227,8 @@ context('Web Form', () => {
 	it('Navigate and Submit a WebForm', () => {
 		cy.visit('/update-profile');
 
+		cy.get('.web-form-actions button').contains('Edit').click();
+
 		cy.fill_field('last_name', '_Test User');
 
 		cy.get('.web-form-actions .btn-primary').click();
@@ -234,6 +238,8 @@ context('Web Form', () => {
 	it('Navigate and Submit a MultiStep WebForm', () => {
 		cy.call('frappe.tests.ui_test_helpers.update_webform_to_multistep').then(() => {
 			cy.visit('/update-profile-duplicate');
+
+			cy.get('.web-form-actions button').contains('Edit').click();
 
 			cy.fill_field('last_name', '_Test User');
 
