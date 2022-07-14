@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import re
 from typing import TYPE_CHECKING, Callable, Optional
 
@@ -21,6 +22,17 @@ autoincremented_site_status_map = {}
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
 BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
+
+
+# Types that can be using in naming series fields
+NAMING_SERIES_PART_TYPES = (
+	int,
+	str,
+	datetime.datetime,
+	datetime.date,
+	datetime.time,
+	datetime.timedelta,
+)
 
 
 class InvalidNamingSeriesError(frappe.ValidationError):
@@ -298,6 +310,9 @@ def parse_naming_series(
 	series_set = False
 	today = now_datetime()
 	for e in parts:
+		if not e:
+			continue
+
 		part = ""
 		if e.startswith("#"):
 			if not series_set:
@@ -320,14 +335,16 @@ def parse_naming_series(
 			part = frappe.defaults.get_user_default("fiscal_year")
 		elif e.startswith("{") and doc:
 			e = e.replace("{", "").replace("}", "")
-			part = (cstr(doc.get(e)) or "").strip()
+			part = doc.get(e)
 		elif doc and doc.get(e):
-			part = (cstr(doc.get(e)) or "").strip()
+			part = doc.get(e)
 		else:
 			part = e
 
 		if isinstance(part, str):
 			name += part
+		elif isinstance(part, NAMING_SERIES_PART_TYPES):
+			name += cstr(part).strip()
 
 	return name
 
