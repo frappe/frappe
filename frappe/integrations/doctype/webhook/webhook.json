@@ -28,7 +28,13 @@
   "webhook_headers",
   "sb_webhook_data",
   "webhook_data",
-  "webhook_json"
+  "webhook_json",
+  "preview_tab",
+  "preview_document",
+  "column_break_26",
+  "meets_condition",
+  "section_break_28",
+  "preview_request_body"
  ],
  "fields": [
   {
@@ -163,13 +169,45 @@
    "label": "Request Method",
    "options": "POST\nPUT\nDELETE",
    "reqd": 1
+  },
+  {
+   "fieldname": "preview_tab",
+   "fieldtype": "Tab Break",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "preview_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Select Document",
+   "options": "webhook_doctype"
+  },
+  {
+   "fieldname": "preview_request_body",
+   "fieldtype": "Code",
+   "is_virtual": 1,
+   "label": "Request Body"
+  },
+  {
+   "fieldname": "meets_condition",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "Meets Condition?"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_28",
+   "fieldtype": "Section Break"
   }
  ],
  "links": [],
- "modified": "2021-05-25 11:11:28.555291",
+ "modified": "2022-07-11 08:54:10.740512",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -187,6 +225,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "webhook_doctype",
  "track_changes": 1
 }

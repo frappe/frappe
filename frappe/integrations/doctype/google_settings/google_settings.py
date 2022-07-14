@@ -9,10 +9,6 @@ class GoogleSettings(Document):
 	pass
 
 
-def get_auth_url():
-	return "https://www.googleapis.com/oauth2/v4/token"
-
-
 @frappe.whitelist()
 def get_file_picker_settings():
 	"""Return all the data FileUploader needs to start the Google Drive Picker."""

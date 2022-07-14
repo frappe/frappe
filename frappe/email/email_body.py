@@ -267,6 +267,7 @@ class EMail:
 		validate_email_address(strip(self.sender), True)
 		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 
+		self.set_header("X-Original-From", self.sender)
 		self.replace_sender()
 		self.replace_sender_name()
 
@@ -279,16 +280,14 @@ class EMail:
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
-			self.set_header("X-Original-From", self.sender)
-			sender_name, sender_email = parse_addr(self.sender)
+			sender_name, _ = parse_addr(self.sender)
 			self.sender = email.utils.formataddr(
 				(str(Header(sender_name or self.email_account.name, "utf-8")), self.email_account.email_id)
 			)
 
 	def replace_sender_name(self):
 		if cint(self.email_account.always_use_account_name_as_sender_name):
-			self.set_header("X-Original-From", self.sender)
-			sender_name, sender_email = parse_addr(self.sender)
+			_, sender_email = parse_addr(self.sender)
 			self.sender = email.utils.formataddr(
 				(str(Header(self.email_account.name, "utf-8")), sender_email)
 			)

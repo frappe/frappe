@@ -933,14 +933,14 @@ class Database:
 	@staticmethod
 	def get_defaults(key=None, parent="__default"):
 		"""Get all defaults"""
-		if key:
-			defaults = frappe.defaults.get_defaults(parent)
-			d = defaults.get(key, None)
-			if not d and key != frappe.scrub(key):
-				d = defaults.get(frappe.scrub(key), None)
-			return d
-		else:
-			return frappe.defaults.get_defaults(parent)
+		defaults = frappe.defaults.get_defaults_for(parent)
+		if not key:
+			return defaults
+
+		if key in defaults:
+			return defaults[key]
+
+		return defaults.get(frappe.scrub(key))
 
 	def begin(self):
 		self.sql("START TRANSACTION")

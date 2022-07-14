@@ -12,7 +12,8 @@ context('Timeline', () => {
 		cy.get('[data-fieldname="description"] .ql-editor.ql-blank').type('Test ToDo', {force: true}).wait(200);
 		cy.get('.page-head .page-actions').findByRole('button', {name: 'Save'}).click();
 
-		cy.visit('/app/todo');
+		cy.go_to_list('ToDo');
+		cy.clear_filters()
 		cy.click_listview_row_item(0);
 
 		//To check if the comment box is initially empty and tying some text into it

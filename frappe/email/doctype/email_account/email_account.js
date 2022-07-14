@@ -1,6 +1,7 @@
 frappe.email_defaults = {
 	"GMail": {
 		"email_server": "imap.gmail.com",
+		"incoming_port": 993,
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.gmail.com",
@@ -66,6 +67,34 @@ frappe.email_defaults_pop = {
 
 };
 
+function oauth_access(frm) {
+	return frappe.call({
+		method: "frappe.email.oauth.oauth_access",
+		args: {
+			"email_account": frm.doc.name,
+			"service": frm.doc.service || ""
+		},
+		callback: function(r) {
+			if (!r.exc) {
+				window.open(r.message.url, "_self");
+			}
+		}
+	});
+}
+
+function set_default_max_attachment_size(frm, field) {
+	if (frm.doc.__islocal && !frm.doc[field]) {
+		frappe.call({
+			method: "frappe.core.api.file.get_max_file_size",
+			callback: function(r) {
+				if (!r.exc) {
+					frm.set_value(field, Number(r.message)/(1024*1024));
+				}
+			},
+		});
+	}
+}
+
 frappe.ui.form.on("Email Account", {
 	service: function(frm) {
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
@@ -77,6 +106,7 @@ frappe.ui.form.on("Email Account", {
 			});
 		}
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
+		frm.events.toggle_auth_method(frm);
 	},
 
 	use_imap: function(frm) {
@@ -107,6 +137,12 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	onload: function(frm) {
+		if (frappe.utils.get_query_params().successful_authorization === '1') {
+			frappe.show_alert(__("Successfully Authorized"));
+			// FIXME: find better alternative
+			window.history.replaceState(null, "", window.location.pathname);
+		}
+
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
 		frm.set_query("append_to", "imap_folder", function() {
@@ -118,6 +154,8 @@ frappe.ui.form.on("Email Account", {
 			frm.add_child("imap_folder", {"folder_name": "INBOX"});
 			frm.refresh_field("imap_folder");
 		}
+		frm.toggle_display(['auth_method'], frm.doc.service === "GMail");
+		set_default_max_attachment_size(frm, "attachment_limit");
 	},
 
 	refresh: function(frm) {
@@ -125,6 +163,7 @@ frappe.ui.form.on("Email Account", {
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
+		frm.events.show_oauth_authorization_message(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
@@ -132,14 +171,41 @@ frappe.ui.form.on("Email Account", {
 		}
 	},
 
+	after_save(frm) {
+		if (frm.doc.auth_method === "OAuth" && !frm.doc.refresh_token) {
+			oauth_access(frm);
+		}
+	},
+
+	toggle_auth_method: function(frm) {
+		if (frm.doc.service !== "GMail") {
+			frm.toggle_display(['auth_method'], false);
+			frm.doc.auth_method = "Basic";
+		} else {
+			frm.toggle_display(['auth_method'], true);
+		}
+	},
+
 	show_gmail_message_for_less_secure_apps: function(frm) {
 		frm.dashboard.clear_headline();
-		let msg = __("GMail will only work if you enable 2-step authentication and use app-specific password.");
+		let msg = __("GMail will only work if you enable 2-step authentication and use app-specific password OR use OAuth.");
 		let cta = __("Read the step by step guide here.");
 		msg += ` <a target="_blank" href="https://docs.erpnext.com/docs/v13/user/manual/en/setting-up/email/email_account_setup_with_gmail">${cta}</a>`;
 		if (frm.doc.service==="GMail") {
 			frm.dashboard.set_headline_alert(msg);
 		}
+	},
+
+	show_oauth_authorization_message(frm) {
+		if (frm.doc.auth_method === "OAuth" && !frm.doc.refresh_token) {
+			let msg = __('OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.')
+			frm.dashboard.clear_headline();
+			frm.dashboard.set_headline_alert(msg, "yellow");
+		}
+	},
+
+	authorize_api_access: function(frm) {
+		oauth_access(frm);
 	},
 
 	email_id:function(frm) {
