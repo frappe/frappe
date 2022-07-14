@@ -1145,7 +1145,12 @@ Object.assign(frappe.utils, {
 				{
 					divisor: 1.0e+5,
 					symbol: 'Lakh'
-				}],
+				},
+				{
+					divisor: 1.0e+3,
+					symbol: 'K',
+				}
+				],
 			'':
 				[{
 					divisor: 1.0e+12,
@@ -1205,7 +1210,8 @@ Object.assign(frappe.utils, {
 			axisOptions: {
 				xIsSeries: 1,
 				shortenYAxisNumbers: 1,
-				xAxisMode: 'tick'
+				xAxisMode: 'tick',
+				numberFormatter: frappe.utils.format_chart_axis_number,
 			}
 		};
 
@@ -1218,6 +1224,11 @@ Object.assign(frappe.utils, {
 		}
 
 		return new frappe.Chart(wrapper, chart_args);
+	},
+
+	format_chart_axis_number(label, country) {
+		const default_country = frappe.sys_defaults.country;
+		return frappe.utils.shorten_number(label, country || default_country, 3);
 	},
 
 	generate_route(item) {
