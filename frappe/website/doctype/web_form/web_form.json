@@ -15,7 +15,7 @@
   "is_standard",
   "introduction",
   "introduction_text",
-  "configuration_tab",
+  "form_settings_tab",
   "login_required",
   "is_multi_step_form",
   "allow_multiple",
@@ -38,18 +38,19 @@
   "success_message",
   "route_to_success_link",
   "success_url",
-  "list_settings_section",
+  "list_settings_tab",
+  "list_setting_message",
   "show_list",
   "list_title",
   "list_columns",
-  "sidebar_settings",
+  "sidebar_settings_tab",
   "show_sidebar",
   "website_sidebar",
-  "custom_tab",
+  "scripting_style_tab",
   "client_script",
   "column_break_34",
   "custom_css",
-  "payments",
+  "payments_tab",
   "accept_payment",
   "payment_gateway",
   "payment_button_label",
@@ -228,23 +229,10 @@
    "label": "Success URL"
   },
   {
-   "collapsible": 1,
-   "fieldname": "sidebar_settings",
-   "fieldtype": "Tab Break",
-   "label": "Sidebar Settings"
-  },
-  {
    "default": "0",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
    "label": "Show Sidebar"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "accept_payment",
-   "fieldname": "payments",
-   "fieldtype": "Tab Break",
-   "label": "Payments"
   },
   {
    "default": "0",
@@ -327,46 +315,29 @@
    "label": "Is Multi Step Form"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "show_list",
-   "depends_on": "login_required",
-   "fieldname": "list_settings_section",
-   "fieldtype": "Tab Break",
-   "label": "List Settings"
-  },
-  {
    "default": "0",
+   "depends_on": "login_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
    "label": "Show List"
   },
   {
-   "depends_on": "show_list",
+   "depends_on": "eval: doc.login_required && doc.show_list",
    "fieldname": "list_title",
    "fieldtype": "Data",
    "label": "Title"
   },
   {
-   "depends_on": "show_list",
+   "depends_on": "eval: doc.login_required && doc.show_list",
    "fieldname": "list_columns",
    "fieldtype": "Table",
    "label": "List Columns",
    "options": "Web Form List Column"
   },
   {
-   "fieldname": "configuration_tab",
-   "fieldtype": "Tab Break",
-   "label": "Form Settings"
-  },
-  {
    "fieldname": "title_and_route_tab",
    "fieldtype": "Tab Break",
    "label": "Title & Route"
-  },
-  {
-   "fieldname": "custom_tab",
-   "fieldtype": "Tab Break",
-   "label": "Scripting / Style"
   },
   {
    "fieldname": "column_break_34",
@@ -391,13 +362,48 @@
   {
    "fieldname": "column_break_29",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "list_setting_message",
+   "fieldtype": "HTML",
+   "label": "List Setting Message"
+  },
+  {
+   "fieldname": "form_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form Settings"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "fieldname": "list_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "List Settings"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sidebar_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sidebar Settings"
+  },
+  {
+   "fieldname": "scripting_style_tab",
+   "fieldtype": "Tab Break",
+   "label": "Scripting / Style"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "accept_payment",
+   "fieldname": "payments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Payments"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-06-29 16:42:52.752377",
+ "modified": "2022-07-14 16:26:07.636212",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

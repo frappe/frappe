@@ -7,10 +7,15 @@ frappe.ui.form.on("Web Form", {
 			frm.set_read_only();
 			frm.disable_save();
 		}
+		render_list_settings_message(frm);
 
 		frm.trigger('set_fields');
 		frm.trigger('add_get_fields_button');
 		frm.trigger('add_publish_button');
+	},
+
+	login_required: function(frm) {
+		render_list_settings_message(frm);
 	},
 
 	validate: function(frm) {
@@ -181,4 +186,25 @@ function get_fields_for_doctype(doctype) {
 			);
 		});
 	});
+}
+
+function render_list_settings_message(frm) {
+	// render list setting message
+	if(frm.fields_dict['list_setting_message'] && !frm.doc.login_required) {
+		const switch_to_form_settings_tab = `
+			<span class="bold pointer" title="${__("Switch to Form Settings Tab")}">
+				${__("Form Settings Tab")}
+			</span>
+		`;
+		$(frm.fields_dict['list_setting_message'].wrapper)
+			.html($(
+				`<div class="form-message blue">
+					${__("Login is required to see web form list view. Enable <code>login_required</code> from {0} to see list settings", [switch_to_form_settings_tab])}
+				</div>`
+			))
+			.find('span')
+			.click(() => frm.switch_to_tab('form_settings_tab'));
+	} else {
+		$(frm.fields_dict['list_setting_message'].wrapper).empty();
+	}
 }
