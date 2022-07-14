@@ -1,14 +1,14 @@
 import click
 import requests
-from html2text import html2text
 
 import frappe
+from frappe.core.utils import html2text
 
 
 def frappecloud_migrator(local_site):
 	print("Retrieving Site Migrator...")
 	remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-	request_url = "https://{}/api/method/press.api.script".format(remote_site)
+	request_url = f"https://{remote_site}/api/method/press.api.script"
 	request = requests.get(request_url)
 
 	if request.status_code / 100 != 2:
@@ -32,5 +32,5 @@ def frappecloud_migrator(local_site):
 	py = sys.executable
 	script = tempfile.NamedTemporaryFile(mode="w")
 	script.write(script_contents)
-	print("Site Migrator stored at {}".format(script.name))
+	print(f"Site Migrator stored at {script.name}")
 	os.execv(py, [py, script.name, local_site])

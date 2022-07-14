@@ -1528,5 +1528,13 @@ Object.assign(frappe.utils, {
 				return [doctype, filter, val[0], val[1], false];
 			});
 		}
-	}
+	},
+
+	load_video_player() {
+		return frappe.require("video_player.bundle.js");
+	},
+
+	is_current_user(user) {
+		return user === frappe.session.user;
+	},
 });

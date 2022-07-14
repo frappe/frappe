@@ -11,7 +11,6 @@ from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, ge
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
-from frappe.geo.country_info import get_all
 from frappe.model.base_document import get_controller
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
@@ -21,7 +20,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.translate import get_lang_dict
-from frappe.utils import add_user_info, get_time_zone
+from frappe.utils import add_user_info, cstr, get_time_zone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -68,7 +67,6 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
-	get_country_codes(bootinfo)
 	set_time_zone(bootinfo)
 
 	# ipinfo
@@ -77,6 +75,8 @@ def get_bootinfo():
 
 	# add docs
 	bootinfo.docs = doclist
+	load_country_doc(bootinfo)
+	load_currency_docs(bootinfo)
 
 	for method in hooks.boot_session or []:
 		frappe.get_attr(method)(bootinfo)
@@ -138,6 +138,10 @@ def get_allowed_pages(cache=False):
 
 def get_allowed_reports(cache=False):
 	return get_user_pages_or_reports("Report", cache=cache)
+
+
+def get_allowed_report_names(cache=False) -> set[str]:
+	return {cstr(report) for report in get_allowed_reports(cache).keys() if report}
 
 
 def get_user_pages_or_reports(parent, cache=False):
@@ -387,11 +391,6 @@ def get_notification_settings():
 	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
 
 
-def get_country_codes(bootinfo):
-	country_codes = get_all()
-	bootinfo.country_codes = frappe._dict(country_codes)
-
-
 @frappe.whitelist()
 def get_link_title_doctypes():
 	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
@@ -417,3 +416,34 @@ def get_translatable_doctypes():
 		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
 	)
 	return dts + custom_dts
+
+
+def load_country_doc(bootinfo):
+	country = frappe.db.get_default("country")
+	if not country:
+		return
+	try:
+		bootinfo.docs.append(frappe.get_cached_doc("Country", country))
+	except Exception:
+		pass
+
+
+def load_currency_docs(bootinfo):
+	currency = frappe.qb.DocType("Currency")
+
+	currency_docs = (
+		frappe.qb.from_(currency)
+		.select(
+			currency.name,
+			currency.fraction,
+			currency.fraction_units,
+			currency.number_format,
+			currency.smallest_currency_fraction_value,
+			currency.symbol,
+			currency.symbol_on_right,
+		)
+		.where(currency.enabled == 1)
+		.run(as_dict=1, update={"doctype": ":Currency"})
+	)
+
+	bootinfo.docs += currency_docs

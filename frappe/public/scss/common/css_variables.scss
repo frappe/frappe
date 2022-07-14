@@ -1,3 +1,5 @@
+$input-height: 28px !default;
+
 :root,
 [data-theme="light"] {
 	--brand-color: #0089FF;
@@ -249,6 +251,10 @@
 
 	--primary-color: #2490EF;
 	--btn-height: 30px;
+
+	// input
+	--input-height: #{$input-height};
+	--input-disabled-bg: var(--gray-200);
 
 	// Checkbox
 	--checkbox-right-margin: var(--margin-xs);

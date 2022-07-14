@@ -65,9 +65,7 @@ def get_change_log_for_app(app, from_version, to_version):
 	# remove pre-release part
 	to_version.prerelease = None
 
-	major_version_folders = [
-		"v{0}".format(i) for i in range(from_version.major, to_version.major + 1)
-	]
+	major_version_folders = [f"v{i}" for i in range(from_version.major, to_version.major + 1)]
 	app_change_log = []
 
 	for folder in os.listdir(change_log_folder):
@@ -119,9 +117,9 @@ def get_versions():
 		}
 
 		if versions[app]["branch"] != "master":
-			branch_version = app_hooks.get("{0}_version".format(versions[app]["branch"]))
+			branch_version = app_hooks.get("{}_version".format(versions[app]["branch"]))
 			if branch_version:
-				versions[app]["branch_version"] = branch_version[0] + " ({0})".format(
+				versions[app]["branch_version"] = branch_version[0] + " ({})".format(
 					get_app_last_commit_ref(app)
 				)
 
@@ -238,9 +236,7 @@ def check_release_on_github(app: str):
 
 	try:
 		# Check if repo remote is on github
-		remote_url = subprocess.check_output(
-			"cd ../apps/{} && git ls-remote --get-url".format(app), shell=True
-		)
+		remote_url = subprocess.check_output(f"cd ../apps/{app} && git ls-remote --get-url", shell=True)
 	except subprocess.CalledProcessError:
 		# Passing this since some apps may not have git initialized in them
 		return
@@ -305,7 +301,7 @@ def show_update_popup():
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
 				update_message += (
-					"<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(
+					"<div class='new-version-log'>{}<div class='new-version-links'>{}</div></div>".format(
 						message, release_links
 					)
 				)

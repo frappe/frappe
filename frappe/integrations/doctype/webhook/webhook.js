@@ -72,6 +72,17 @@ frappe.ui.form.on('Webhook', {
 
 	enable_security: (frm) => {
 		frm.toggle_reqd('webhook_secret', frm.doc.enable_security);
+	},
+
+	preview_document: (frm) => {
+		frappe.call({
+			method: "generate_preview",
+			doc: frm.doc,
+			callback: (r) => {
+				frm.refresh_field("meets_condition");
+				frm.refresh_field("preview_request_body");
+			},
+		});
 	}
 });
 

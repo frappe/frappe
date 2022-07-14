@@ -38,7 +38,6 @@ import configparser
 import time
 from enum import Enum
 from textwrap import dedent, indent
-from typing import List, Optional
 
 import frappe
 
@@ -52,7 +51,7 @@ class PatchType(Enum):
 	post_model_sync = "post_model_sync"
 
 
-def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) -> None:
+def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
 	executed = set(frappe.get_all("Patch Log", fields="patch", pluck="patch"))
 
@@ -81,7 +80,7 @@ def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) 
 		run_patch(patch)
 
 
-def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
+def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
 
 	if patch_type and not isinstance(patch_type, PatchType):
 		frappe.throw(f"Unsupported patch type specified: {patch_type}")
@@ -93,7 +92,7 @@ def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
 	return patches
 
 
-def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> List[str]:
+def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[str]:
 	"""Get patches from an app's patches.txt
 
 	patches.txt can be:

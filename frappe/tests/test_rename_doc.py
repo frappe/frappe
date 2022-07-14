@@ -6,7 +6,6 @@ import unittest
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 from random import choice, sample
-from typing import List
 from unittest.mock import patch
 
 import frappe
@@ -23,7 +22,7 @@ from frappe.utils import add_to_date, now
 
 
 @contextmanager
-def patch_db(endpoints: List[str] = None):
+def patch_db(endpoints: list[str] = None):
 	patched_endpoints = []
 
 	for point in endpoints:
@@ -59,7 +58,7 @@ class TestRenameDoc(unittest.TestCase):
 				{
 					"doctype": self.test_doctype,
 					"date": add_to_date(now(), days=num),
-					"description": "this is todo #{}".format(num),
+					"description": f"this is todo #{num}",
 				}
 			).insert()
 			self.available_documents.append(doc.name)

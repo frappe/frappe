@@ -12,6 +12,7 @@ let app_paths = app_list
 
 module.exports = {
 	includePaths: [node_modules_path, ...app_paths],
+	quietDeps: true,
 	importer: function(url) {
 		if (url.startsWith("~")) {
 			// strip ~ so that it can resolve from node_modules

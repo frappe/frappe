@@ -4,7 +4,6 @@
 import itertools
 import json
 from collections import defaultdict
-from typing import Dict, List, Optional
 
 import frappe
 import frappe.desk.form.load
@@ -15,7 +14,7 @@ from frappe.modules import load_doctype_module
 
 
 @frappe.whitelist()
-def get_submitted_linked_docs(doctype: str, name: str) -> List[tuple]:
+def get_submitted_linked_docs(doctype: str, name: str) -> list[tuple]:
 	"""Get all the nested submitted documents those are present in referencing tables (dependent tables).
 
 	:param doctype: Document type
@@ -134,14 +133,14 @@ class SubmittableDocumentTree:
 		"""limit doctype links to these doctypes."""
 		return list(set(self.get_submittable_doctypes()) - set(get_exempted_doctypes() or []))
 
-	def get_submittable_doctypes(self) -> List[str]:
+	def get_submittable_doctypes(self) -> list[str]:
 		"""Returns list of submittable doctypes."""
 		if not self._submittable_doctypes:
 			self._submittable_doctypes = frappe.db.get_all("DocType", {"is_submittable": 1}, pluck="name")
 		return self._submittable_doctypes
 
 
-def get_child_tables_of_doctypes(doctypes: List[str] = None):
+def get_child_tables_of_doctypes(doctypes: list[str] = None):
 	"""Returns child tables by doctype."""
 	filters = [["fieldtype", "=", "Table"]]
 	filters_for_docfield = filters
@@ -174,8 +173,8 @@ def get_child_tables_of_doctypes(doctypes: List[str] = None):
 
 
 def get_references_across_doctypes(
-	to_doctypes: List[str] = None, limit_link_doctypes: List[str] = None
-) -> List:
+	to_doctypes: list[str] = None, limit_link_doctypes: list[str] = None
+) -> list:
 	"""Find doctype wise foreign key references.
 
 	:param to_doctypes: Get links of these doctypes.
@@ -213,7 +212,7 @@ def get_references_across_doctypes(
 
 
 def get_references_across_doctypes_by_link_field(
-	to_doctypes: List[str] = None, limit_link_doctypes: List[str] = None
+	to_doctypes: list[str] = None, limit_link_doctypes: list[str] = None
 ):
 	"""Find doctype wise foreign key references based on link fields.
 
@@ -253,7 +252,7 @@ def get_references_across_doctypes_by_link_field(
 
 
 def get_references_across_doctypes_by_dynamic_link_field(
-	to_doctypes: List[str] = None, limit_link_doctypes: List[str] = None
+	to_doctypes: list[str] = None, limit_link_doctypes: list[str] = None
 ):
 	"""Find doctype wise foreign key references based on dynamic link fields.
 
@@ -304,10 +303,10 @@ def get_references_across_doctypes_by_dynamic_link_field(
 
 def get_referencing_documents(
 	reference_doctype: str,
-	reference_names: List[str],
+	reference_names: list[str],
 	link_info: dict,
 	get_parent_if_child_table_doc: bool = True,
-	parent_filters: List[list] = None,
+	parent_filters: list[list] = None,
 	child_filters=None,
 	allowed_parents=None,
 ):
@@ -340,7 +339,7 @@ def get_referencing_documents(
 	for parent, rows in itertools.groupby(res, key=lambda row: row["parenttype"]):
 		if allowed_parents and parent not in allowed_parents:
 			continue
-		filters = (parent_filters or []) + [["name", "in", tuple([row.parent for row in rows])]]
+		filters = (parent_filters or []) + [["name", "in", tuple(row.parent for row in rows)]]
 		documents[parent].extend(frappe.db.get_all(parent, filters=filters, pluck="name") or [])
 	return documents
 
@@ -407,7 +406,7 @@ def get_exempted_doctypes():
 
 
 @frappe.whitelist()
-def get_linked_docs(doctype: str, name: str, linkinfo: Optional[Dict] = None) -> Dict[str, List]:
+def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
 	if isinstance(linkinfo, str):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
@@ -447,9 +446,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Optional[Dict] = None) ->
 			if link.get("add_fields"):
 				fields += link["add_fields"]
 
-			fields = [
-				"`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf and "`tab" not in sf
-			]
+			fields = [f"`tab{dt}`.`{sf.strip()}`" for sf in fields if sf and "`tab" not in sf]
 
 			try:
 				if link.get("filters"):

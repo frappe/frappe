@@ -152,6 +152,7 @@ frappe.ui.form.Attachments = class Attachments {
 		var me = this;
 		return frappe.call({
 			method: 'frappe.desk.form.utils.remove_attach',
+			type: 'DELETE',
 			args: {
 				fid: fileid,
 				dt: me.frm.doctype,
@@ -182,6 +183,9 @@ frappe.ui.form.Attachments = class Attachments {
 			folder: 'Home/Attachments',
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
+			},
+			restrictions: {
+				max_number_of_files: this.frm.meta.max_attachments - this.frm.attachments.get_attachments().length,
 			}
 		});
 	}

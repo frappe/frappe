@@ -82,6 +82,9 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	parse(value) {
 		if (value) {
+			if (value == "Invalid date") {
+				value = "";
+			}
 			return frappe.datetime.user_to_str(value, true);
 		}
 	}

@@ -10,7 +10,6 @@ import "./frappe/form/templates/set_sharing.html";
 import "./frappe/form/templates/timeline_message_box.html";
 import "./frappe/form/templates/users_in_sidebar.html";
 
-import "./frappe/form/controls/control.js";
 import "./frappe/views/formview.js";
 import "./frappe/form/form.js";
 import "./frappe/meta_tag.js";

@@ -7,7 +7,7 @@ frappe.ui.form.on('Document Type Mapping', {
 			frappe.model.clear_table(frm.doc, 'field_mapping');
 			let fields = frm.events.get_fields(frm);
 			$.each(fields, function(i, data) {
-				let row = frappe.model.add_child(frm.doc, 'Document Type Mapping', 'field_mapping');
+				let row = frappe.model.add_child(frm.doc, 'Document Type Field Mapping', 'field_mapping');
 				row.local_fieldname = data;
 			});
 			refresh_field('field_mapping');

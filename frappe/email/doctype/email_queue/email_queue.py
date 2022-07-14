@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -9,16 +8,18 @@ import traceback
 from email.parser import Parser
 from email.policy import SMTPUTF8
 
-from html2text import html2text
 from rq.timeouts import JobTimeoutException
 
 import frappe
 from frappe import _, safe_encode, task
+from frappe.core.utils import html2text
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
+from frappe.email.smtp import SMTPServer
 from frappe.model.document import Document
-from frappe.query_builder.utils import DocType
+from frappe.query_builder import DocType, Interval
+from frappe.query_builder.functions import Now
 from frappe.utils import (
 	add_days,
 	cint,
@@ -28,8 +29,6 @@ from frappe.utils import (
 	nowdate,
 	split_emails,
 )
-
-MAX_RETRY_COUNT = 3
 
 
 class EmailQueue(Document):
@@ -101,7 +100,7 @@ class EmailQueue(Document):
 
 	def get_email_account(self):
 		if self.email_account:
-			return frappe.get_doc("Email Account", self.email_account)
+			return frappe.get_cached_doc("Email Account", self.email_account)
 
 		return EmailAccount.find_outgoing(
 			match_by_email=self.sender, match_by_doctype=self.reference_doctype
@@ -117,12 +116,12 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, is_background_task=False):
+	def send(self, is_background_task: bool = False, smtp_server_instance: SMTPServer = None):
 		"""Send emails to recipients."""
 		if not self.can_send_now():
 			return
 
-		with SendMailContext(self, is_background_task) as ctx:
+		with SendMailContext(self, is_background_task, smtp_server_instance) as ctx:
 			message = None
 			for recipient in self.recipients:
 				if not recipient.is_mail_to_be_sent():
@@ -144,23 +143,59 @@ class EmailQueue(Document):
 			if ctx.email_account_doc.append_emails_to_sent_folder and ctx.sent_to:
 				ctx.email_account_doc.append_email_to_sent_folder(message)
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
+		Note: Used separate query to avoid deadlock
+		"""
+		days = days or 31
+		email_queue = frappe.qb.DocType("Email Queue")
+		email_recipient = frappe.qb.DocType("Email Queue Recipient")
+
+		# Delete queue table
+		(
+			frappe.qb.from_(email_queue)
+			.delete()
+			.where(email_queue.modified < (Now() - Interval(days=days)))
+		).run()
+
+		# delete child tables, note that this has potential to leave some orphan
+		# child table behind if modified time was later than parent doc (rare).
+		# But it's safe since child table doesn't contain links.
+		(
+			frappe.qb.from_(email_recipient)
+			.delete()
+			.where(email_recipient.modified < (Now() - Interval(days=days)))
+		).run()
+
 
 @task(queue="short")
-def send_mail(email_queue_name, is_background_task=False):
-	"""This is equalent to EmqilQueue.send.
+def send_mail(email_queue_name, is_background_task=False, smtp_server_instance: SMTPServer = None):
+	"""This is equivalent to EmailQueue.send.
 
 	This provides a way to make sending mail as a background job.
 	"""
 	record = EmailQueue.find(email_queue_name)
-	record.send(is_background_task=is_background_task)
+	record.send(is_background_task=is_background_task, smtp_server_instance=smtp_server_instance)
 
 
 class SendMailContext:
-	def __init__(self, queue_doc: Document, is_background_task: bool = False):
-		self.queue_doc = queue_doc
+	def __init__(
+		self,
+		queue_doc: Document,
+		is_background_task: bool = False,
+		smtp_server_instance: SMTPServer = None,
+	):
+		self.queue_doc: EmailQueue = queue_doc
 		self.is_background_task = is_background_task
 		self.email_account_doc = queue_doc.get_email_account()
-		self.smtp_server = self.email_account_doc.get_smtp_server()
+
+		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
+
+		# if smtp_server_instance is passed, then retain smtp session
+		# Note: smtp session will have to be manually closed
+		self.retain_smtp_session = bool(smtp_server_instance)
+
 		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_main_sent()]
 
 	def __enter__(self):
@@ -177,14 +212,16 @@ class SendMailContext:
 			JobTimeoutException,
 		]
 
-		self.smtp_server.quit()
+		if not self.retain_smtp_session:
+			self.smtp_server.quit()
+
 		self.log_exception(exc_type, exc_val, exc_tb)
 
 		if exc_type in exceptions:
-			email_status = (self.sent_to and "Partially Sent") or "Not Sent"
+			email_status = "Partially Sent" if self.sent_to else "Not Sent"
 			self.queue_doc.update_status(status=email_status, commit=True)
 		elif exc_type:
-			if self.queue_doc.retry < MAX_RETRY_COUNT:
+			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
 				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
@@ -193,12 +230,12 @@ class SendMailContext:
 			email_status = self.is_mail_sent_to_all() and "Sent"
 			email_status = email_status or (self.sent_to and "Partially Sent") or "Not Sent"
 
-			update_fields = {"status": email_status}
-			if self.email_account_doc.is_exists_in_db():
-				update_fields["email_account"] = self.email_account_doc.name
-			else:
-				update_fields["email_account"] = None
-
+			update_fields = {
+				"status": email_status,
+				"email_account": self.email_account_doc.name
+				if self.email_account_doc.is_exists_in_db()
+				else None,
+			}
 			self.queue_doc.update_status(**update_fields, commit=True)
 
 	def log_exception(self, exc_type, exc_val, exc_tb):
@@ -220,12 +257,13 @@ class SendMailContext:
 		self.sent_to.append(recipient.recipient)
 
 	def is_mail_sent_to_all(self):
-		return sorted(self.sent_to) == sorted([rec.recipient for rec in self.queue_doc.recipients])
+		return sorted(self.sent_to) == sorted(rec.recipient for rec in self.queue_doc.recipients)
 
 	def get_message_object(self, message):
 		return Parser(policy=SMTPUTF8).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
+		# sourcery skip: avoid-builtin-shadow
 		map = {
 			"tracker": "<!--email_open_check-->",
 			"unsubscribe_url": "<!--unsubscribe_url-->",
@@ -246,7 +284,7 @@ class SendMailContext:
 		)
 		message = message.replace(self.message_placeholder("cc"), self.get_receivers_str())
 		message = message.replace(
-			self.message_placeholder("recipient"), self.get_receipient_str(recipient_email)
+			self.message_placeholder("recipient"), self.get_recipient_str(recipient_email)
 		)
 		message = self.include_attachments(message)
 		return message
@@ -261,16 +299,16 @@ class SendMailContext:
 			).decode()
 		return message
 
-	def get_unsubscribe_str(self, recipient_email):
+	def get_unsubscribe_str(self, recipient_email: str) -> str:
 		unsubscribe_url = ""
+
 		if self.queue_doc.add_unsubscribe_link and self.queue_doc.reference_doctype:
-			doctype, doc_name = self.queue_doc.reference_doctype, self.queue_doc.reference_name
 			unsubscribe_url = get_unsubcribed_url(
-				doctype,
-				doc_name,
-				recipient_email,
-				self.queue_doc.unsubscribe_method,
-				self.queue_doc.unsubscribe_param,
+				reference_doctype=self.queue_doc.reference_doctype,
+				reference_name=self.queue_doc.reference_name,
+				email=recipient_email,
+				unsubscribe_method=self.queue_doc.unsubscribe_method,
+				unsubscribe_params=self.queue_doc.unsubscribe_param,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
@@ -281,14 +319,11 @@ class SendMailContext:
 			to_str = ", ".join(self.queue_doc.to)
 			cc_str = ", ".join(self.queue_doc.cc)
 			message = f"This email was sent to {to_str}"
-			message = message + f" and copied to {cc_str}" if cc_str else message
+			message = f"{message} and copied to {cc_str}" if cc_str else message
 		return message
 
-	def get_receipient_str(self, recipient_email):
-		message = ""
-		if self.queue_doc.expose_recipients != "header":
-			message = recipient_email
-		return message
+	def get_recipient_str(self, recipient_email):
+		return recipient_email if self.queue_doc.expose_recipients != "header" else ""
 
 	def include_attachments(self, message):
 		message_obj = self.get_message_object(message)
@@ -344,6 +379,10 @@ def on_doctype_update():
 	frappe.db.add_index(
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
+
+
+def get_email_retry_limit():
+	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
 class QueueBuilder:
@@ -601,7 +640,6 @@ class QueueBuilder:
 		if not (final_recipients + self.final_cc()):
 			return []
 
-		email_queues = []
 		queue_data = self.as_dict(include_recipients=False)
 		if not queue_data:
 			return []
@@ -609,17 +647,35 @@ class QueueBuilder:
 		if not queue_separately:
 			recipients = list(set(final_recipients + self.final_cc() + self.bcc))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
-			email_queues.append(q)
+			send_now and q.send()
 		else:
-			for r in final_recipients:
-				recipients = [r] if email_queues else list(set([r] + self.final_cc() + self.bcc))
-				q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
-				email_queues.append(q)
+			if send_now and len(final_recipients) >= 1000:
+				# force queueing if there are too many recipients to avoid timeouts
+				send_now = False
+			for recipients in frappe.utils.create_batch(final_recipients, 1000):
+				frappe.enqueue(
+					self.send_emails,
+					queue_data=queue_data,
+					final_recipients=recipients,
+					job_name=frappe.utils.get_job_name(
+						"send_bulk_emails_for", self.reference_doctype, self.reference_name
+					),
+					now=frappe.flags.in_test or send_now,
+					queue="long",
+				)
 
-		if send_now:
-			for doc in email_queues:
-				doc.send()
-		return email_queues
+	def send_emails(self, queue_data, final_recipients):
+		# This is used to bulk send emails from same sender to multiple recipients separately
+		# This re-uses smtp server instance to minimize the cost of new session creation
+		smtp_server_instance = None
+		for r in final_recipients:
+			recipients = list(set([r] + self.final_cc() + self.bcc))
+			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
+			if not smtp_server_instance:
+				email_account = q.get_email_account()
+				smtp_server_instance = email_account.get_smtp_server()
+			q.send(smtp_server_instance=smtp_server_instance)
+		smtp_server_instance.quit()
 
 	def as_dict(self, include_recipients=True):
 		email_account = self.get_outgoing_email_account()
@@ -632,7 +688,7 @@ class QueueBuilder:
 			# bad Email Address - don't add to queue
 			frappe.log_error(
 				title="Invalid email address",
-				message="Invalid email address Sender: {0}, Recipients: {1}, \nTraceback: {2} ".format(
+				message="Invalid email address Sender: {}, Recipients: {}, \nTraceback: {} ".format(
 					self.sender, ", ".join(self.final_recipients()), traceback.format_exc()
 				),
 				reference_doctype=self.reference_doctype,

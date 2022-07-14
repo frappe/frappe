@@ -146,7 +146,7 @@ class TestClient(unittest.TestCase):
 		from frappe.client import insert
 
 		def get_random_title():
-			return "test-{0}".format(frappe.generate_hash())
+			return f"test-{frappe.generate_hash()}"
 
 		# test insert dict
 		doc = {"doctype": "Note", "title": get_random_title(), "content": "test"}
@@ -183,7 +183,7 @@ class TestClient(unittest.TestCase):
 		from frappe.client import insert, insert_many
 
 		def get_random_title():
-			return "test-{0}".format(frappe.generate_hash(length=5))
+			return f"test-{frappe.generate_hash(length=5)}"
 
 		# insert a (parent) doc
 		note1 = {"doctype": "Note", "title": get_random_title(), "content": "test"}

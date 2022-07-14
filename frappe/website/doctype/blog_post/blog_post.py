@@ -37,7 +37,7 @@ class BlogPost(WebsiteGenerator):
 		return self.title
 
 	def validate(self):
-		super(BlogPost, self).validate()
+		super().validate()
 
 		if not self.blog_intro:
 			content = get_html_content_based_on_type(self, "content", self.content_type)
@@ -73,11 +73,11 @@ class BlogPost(WebsiteGenerator):
 			frappe.db.set_value("Blog Post", post.name, "featured", 0)
 
 	def on_update(self):
-		super(BlogPost, self).on_update()
+		super().on_update()
 		clear_cache("writers")
 
 	def on_trash(self):
-		super(BlogPost, self).on_trash()
+		super().on_trash()
 
 	def get_context(self, context):
 		# this is for double precaution. usually it wont reach this code if not published
@@ -317,13 +317,13 @@ def get_blog_list(
 		from `tabBlog Post` t1, `tabBlogger` t2
 		where ifnull(t1.published,0)=1
 		and t1.blogger = t2.name
-		%(condition)s
+		{condition}
 		order by featured desc, published_on desc, name asc
-		limit %(page_len)s OFFSET %(start)s""" % {
-		"start": limit_start,
-		"page_len": limit_page_length,
-		"condition": (" and " + " and ".join(conditions)) if conditions else "",
-	}
+		limit {page_len} OFFSET {start}""".format(
+		start=limit_start,
+		page_len=limit_page_length,
+		condition=(" and " + " and ".join(conditions)) if conditions else "",
+	)
 
 	posts = frappe.db.sql(query, as_dict=1)
 

@@ -67,37 +67,24 @@ def get_emails_sent_today(email_account=None):
 	return frappe.db.sql(q, q_args)[0][0]
 
 
-def get_unsubscribe_message(unsubscribe_message, expose_recipients):
-	if unsubscribe_message:
-		unsubscribe_html = """<a href="<!--unsubscribe_url-->"
-			target="_blank">{0}</a>""".format(
-			unsubscribe_message
-		)
-	else:
-		unsubscribe_link = """<a href="<!--unsubscribe_url-->"
-			target="_blank">{0}</a>""".format(
-			_("Unsubscribe")
-		)
-		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
-
-	html = """<div class="email-unsubscribe">
+def get_unsubscribe_message(
+	unsubscribe_message: str, expose_recipients: str
+) -> "frappe._dict[str, str]":
+	unsubscribe_message = unsubscribe_message or _("Unsubscribe")
+	unsubscribe_link = f'<a href="<!--unsubscribe_url-->" target="_blank">{unsubscribe_message}</a>'
+	unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
+	html = f"""<div class="email-unsubscribe">
 			<!--cc_message-->
 			<div>
-				{0}
+				{unsubscribe_html}
 			</div>
-		</div>""".format(
-		unsubscribe_html
-	)
+		</div>"""
 
+	text = f"\n\n{unsubscribe_message}: <!--unsubscribe_url-->\n"
 	if expose_recipients == "footer":
-		text = "\n<!--cc_message-->"
-	else:
-		text = ""
-	text += "\n\n{unsubscribe_message}: <!--unsubscribe_url-->\n".format(
-		unsubscribe_message=unsubscribe_message
-	)
+		text = f"\n<!--cc_message-->{text}"
 
-	return frappe._dict({"html": html, "text": text})
+	return frappe._dict(html=html, text=text)
 
 
 def get_unsubcribed_url(
@@ -188,31 +175,6 @@ def get_queue():
 		{"now": now_datetime()},
 		as_dict=True,
 	)
-
-
-def clear_outbox(days: int = None) -> None:
-	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
-	Note: Used separate query to avoid deadlock
-	"""
-	days = days or 31
-	email_queue = frappe.qb.DocType("Email Queue")
-	email_recipient = frappe.qb.DocType("Email Queue Recipient")
-
-	# Delete queue table
-	(
-		frappe.qb.from_(email_queue)
-		.delete()
-		.where((email_queue.modified < (Now() - Interval(days=days))))
-	).run()
-
-	# delete child tables, note that this has potential to leave some orphan
-	# child table behind if modified time was later than parent doc (rare).
-	# But it's safe since child table doesn't contain links.
-	(
-		frappe.qb.from_(email_recipient)
-		.delete()
-		.where((email_recipient.modified < (Now() - Interval(days=days))))
-	).run()
 
 
 def set_expiry_for_email_queue():

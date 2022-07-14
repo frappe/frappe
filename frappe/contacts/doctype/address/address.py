@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -236,7 +235,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	meta = frappe.get_meta("Address")
 	for fieldname, value in filters.items():
 		if meta.get_field(fieldname) or fieldname in frappe.db.DEFAULT_COLUMNS:
-			condition += " and {field}={value}".format(field=fieldname, value=frappe.db.escape(value))
+			condition += f" and {fieldname}={frappe.db.escape(value)}"
 
 	searchfields = meta.get_search_fields()
 
@@ -246,9 +245,9 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	search_condition = ""
 	for field in searchfields:
 		if search_condition == "":
-			search_condition += "`tabAddress`.`{field}` like %(txt)s".format(field=field)
+			search_condition += f"`tabAddress`.`{field}` like %(txt)s"
 		else:
-			search_condition += " or `tabAddress`.`{field}` like %(txt)s".format(field=field)
+			search_condition += f" or `tabAddress`.`{field}` like %(txt)s"
 
 	return frappe.db.sql(
 		"""select

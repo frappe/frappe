@@ -119,7 +119,7 @@ class TestDB(unittest.TestCase):
 			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
-		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
+		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
 
 	def test_get_single_value(self):
 		# setup
@@ -491,15 +491,15 @@ class TestDB(unittest.TestCase):
 		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
 
 		# Count with no filtes
-		self.assertEquals((frappe.db.count("Note")), 2)
+		self.assertEqual((frappe.db.count("Note")), 2)
 
 		# simple filters
-		self.assertEquals((frappe.db.count("Note", ["title", "=", "note1"])), 1)
+		self.assertEqual((frappe.db.count("Note", ["title", "=", "note1"])), 1)
 
 		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
 
 		# List of list filters with tables
-		self.assertEquals(
+		self.assertEqual(
 			(
 				frappe.db.count(
 					"Note",
@@ -510,6 +510,37 @@ class TestDB(unittest.TestCase):
 		)
 
 		frappe.db.rollback()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_query(self):
+		from frappe.database.postgres.database import modify_query
+
+		query = "select * from `tabtree b` where lft > 13 and rgt <= 16 and name =1.0 and parent = 4134qrsdc and isgroup = 1.00045"
+		self.assertEqual(
+			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
+			modify_query(query),
+		)
+
+		query = (
+			'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
+		)
+		self.assertEqual(
+			'select strpos( "frappe.io", ".io"), strpos( cast(3 as varchar), "3"), strpos( 3::varchar, "3")',
+			modify_query(query),
+		)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_values(self):
+		from frappe.database.postgres.database import modify_values
+
+		self.assertEqual(
+			{"a": "23", "b": 23.0, "c": 23.0345, "d": "wow", "e": ("1", "2", "3", "abc")},
+			modify_values({"a": 23, "b": 23.0, "c": 23.0345, "d": "wow", "e": [1, 2, 3, "abc"]}),
+		)
+		self.assertEqual(
+			["23", 23.0, 23.00004345, "wow", ("1", "2", "3", "abc")],
+			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
+		)
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -812,32 +843,6 @@ class TestDDLCommandsPost(unittest.TestCase):
 			""",
 		)
 		self.assertEqual(len(indexs_in_table), 1)
-
-	def test_modify_query(self):
-		from frappe.database.postgres.database import modify_query
-
-		query = "select * from `tabtree b` where lft > 13 and rgt <= 16 and name =1.0 and parent = 4134qrsdc and isgroup = 1.00045"
-		self.assertEqual(
-			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
-			modify_query(query),
-		)
-
-		query = (
-			'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
-		)
-		self.assertEqual(
-			'select strpos( "frappe.io", ".io"), strpos( cast(3 as varchar), "3"), strpos( 3::varchar, "3")',
-			modify_query(query),
-		)
-
-	def test_modify_values(self):
-		from frappe.database.postgres.database import modify_values
-
-		self.assertEqual(
-			{"abcd": "23", "efgh": "23", "ijkl": 23.0345, "mnop": "wow"},
-			modify_values({"abcd": 23, "efgh": 23.0, "ijkl": 23.0345, "mnop": "wow"}),
-		)
-		self.assertEqual(["23", "23", 23.00004345, "wow"], modify_values((23, 23.0, 23.00004345, "wow")))
 
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype

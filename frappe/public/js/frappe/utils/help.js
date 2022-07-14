@@ -33,13 +33,16 @@ frappe.help.show_video = function (youtube_id, title) {
 	dialog.show();
 	dialog.$wrapper.addClass("video-modal");
 
-	let plyr = new frappe.Plyr(video[0], {
-		hideControls: true,
-		resetOnEnd: true,
-	});
+	let plyr;
+	frappe.utils.load_video_player().then(() => {
+		plyr = new frappe.Plyr(video[0], {
+			hideControls: true,
+			resetOnEnd: true,
+		});
+	})
 
 	dialog.onhide = () => {
-		plyr.destroy();
+		plyr?.destroy();
 	};
 }
 

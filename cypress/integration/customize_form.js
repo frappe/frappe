@@ -1,5 +1,6 @@
 context('Customize Form', () => {
 	before(() => {
+		cy.login();
 		cy.visit('/app/customize-form');
 	});
 	it('Changing to naming rule should update autoname', () => {

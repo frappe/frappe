@@ -13,7 +13,7 @@ def execute(filters=None):
 	return WebsiteAnalytics(filters).run()
 
 
-class WebsiteAnalytics(object):
+class WebsiteAnalytics:
 	def __init__(self, filters=None):
 		self.filters = frappe._dict(filters or {})
 

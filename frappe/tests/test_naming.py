@@ -12,7 +12,7 @@ from frappe.model.naming import (
 	revert_series_if_last,
 )
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, nowdate, nowtime
 
 
 class TestNaming(FrappeTestCase):
@@ -100,6 +100,20 @@ class TestNaming(FrappeTestCase):
 
 		self.assertEqual(doc.name, f"TODO-{now_datetime().strftime('%m')}-{description}-{series:02}")
 
+	def test_format_autoname_for_datetime_field(self):
+		"""Test if datetime, date and time objects get converted to strings for naming."""
+		doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
+
+		for field in [now_datetime(), nowdate(), nowtime()]:
+			doc = frappe.new_doc(doctype.name)
+			doc.field = field
+			doc.insert()
+
+			series = getseries("", 2)
+			series = int(series) - 1
+
+			self.assertEqual(doc.name, f"TODO-{field}-{series:02}")
+
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""
 		Test if braced params are replaced for consecutive week number in format autoname
@@ -125,16 +139,16 @@ class TestNaming(FrappeTestCase):
 
 		week = determine_consecutive_week_number(now_datetime())
 
-		self.assertEqual(todo.name, "TODO-{week}-{series}".format(week=week, series=series))
+		self.assertEqual(todo.name, f"TODO-{week}-{series}")
 
 	def test_revert_series(self):
 		from datetime import datetime
 
 		year = datetime.now().year
 
-		series = "TEST-{}-".format(year)
+		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-"
-		name = "TEST-{}-00001".format(year)
+		name = f"TEST-{year}-00001"
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
@@ -144,9 +158,9 @@ class TestNaming(FrappeTestCase):
 		self.assertEqual(current_index.get("current"), 0)
 		frappe.db.delete("Series", {"name": series})
 
-		series = "TEST-{}-".format(year)
+		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-.#####"
-		name = "TEST-{}-00002".format(year)
+		name = f"TEST-{year}-00002"
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
@@ -221,11 +235,11 @@ class TestNaming(FrappeTestCase):
 		amended_doc.docstatus = 0
 		amended_doc.amended_from = doc.name
 		amended_doc.save()
-		self.assertEqual(amended_doc.name, "{}-1".format(original_name))
+		self.assertEqual(amended_doc.name, f"{original_name}-1")
 
 		amended_doc.submit()
 		amended_doc.cancel()
-		self.assertEqual(amended_doc.name, "{}-1".format(original_name))
+		self.assertEqual(amended_doc.name, f"{original_name}-1")
 
 		submittable_doctype.delete()
 

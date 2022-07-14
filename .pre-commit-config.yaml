@@ -5,7 +5,7 @@ fail_fast: false
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.3.0
     hooks:
       - id: trailing-whitespace
         files: "frappe.*"
@@ -15,6 +15,16 @@ repos:
         args: ['--branch', 'develop']
       - id: check-merge-conflict
       - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.34.0
+    hooks:
+      - id: pyupgrade
+        args: ['--py310-plus']
 
   - repo: https://github.com/adityahase/black
     rev: 9cb0a69f4d0030cdf687eddf314468b39ed54119
@@ -31,9 +41,7 @@ repos:
     rev: 3.9.2
     hooks:
       - id: flake8
-        additional_dependencies: [
-          'flake8-bugbear',
-        ]
+        additional_dependencies: ['flake8-bugbear',]
         args: ['--config', '.github/helper/flake8.conf']
 
 ci:

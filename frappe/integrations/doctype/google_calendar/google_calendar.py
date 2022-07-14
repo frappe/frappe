@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -14,7 +13,7 @@ from googleapiclient.errors import HttpError
 
 import frappe
 from frappe import _
-from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
@@ -91,7 +90,7 @@ class GoogleCalendar(Document):
 		}
 
 		try:
-			r = requests.post(get_auth_url(), data=data).json()
+			r = requests.post(GoogleOAuth.OAUTH_URL, data=data).json()
 		except requests.exceptions.HTTPError:
 			button_label = frappe.bold(_("Allow Google Calendar Access"))
 			frappe.throw(
@@ -131,7 +130,7 @@ def authorize_access(g_calendar, reauthorize=None):
 				"redirect_uri": redirect_uri,
 				"grant_type": "authorization_code",
 			}
-			r = requests.post(get_auth_url(), data=data).json()
+			r = requests.post(GoogleOAuth.OAUTH_URL, data=data).json()
 
 			if "refresh_token" in r:
 				frappe.db.set_value(
@@ -140,7 +139,7 @@ def authorize_access(g_calendar, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/app/Form/{0}/{1}".format(
+			frappe.local.response["location"] = "/app/Form/{}/{}".format(
 				quote("Google Calendar"), quote(google_calendar.name)
 			)
 
@@ -192,7 +191,7 @@ def get_google_calendar_object(g_calendar):
 	credentials_dict = {
 		"token": account.get_access_token(),
 		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
-		"token_uri": get_auth_url(),
+		"token_uri": GoogleOAuth.OAUTH_URL,
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 		"scopes": "https://www.googleapis.com/auth/calendar/v3",

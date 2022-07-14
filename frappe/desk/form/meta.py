@@ -52,7 +52,7 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super(FormMeta, self).__init__(doctype)
+		super().__init__(doctype)
 		self.load_assets()
 
 	def load_assets(self):
@@ -74,7 +74,7 @@ class FormMeta(Meta):
 		self.set("__assets_loaded", True)
 
 	def as_dict(self, no_nulls=False):
-		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
+		d = super().as_dict(no_nulls=no_nulls)
 
 		for k in ASSET_KEYS:
 			d[k] = self.get(k)
@@ -133,7 +133,7 @@ class FormMeta(Meta):
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with io.open(os.path.join(path, fname), "r", encoding="utf-8") as f:
+				with open(os.path.join(path, fname), encoding="utf-8") as f:
 					templates[fname.split(".")[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)

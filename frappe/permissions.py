@@ -6,7 +6,7 @@ import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.query_builder import DocType
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 
 rights = (
 	"select",
@@ -360,9 +360,7 @@ def has_controller_permissions(doc, ptype, user=None):
 
 
 def get_doctypes_with_read():
-	return list(
-		{p.parent if type(p.parent) == str else p.parent.encode("UTF8") for p in get_valid_perms()}
-	)
+	return list({cstr(p.parent) for p in get_valid_perms() if p.parent})
 
 
 def get_valid_perms(doctype=None, user=None):
@@ -420,7 +418,7 @@ def get_roles(user=None, with_standard=True):
 
 	# filter standard if required
 	if not with_standard:
-		roles = filter(lambda x: x not in ["All", "Guest", "Administrator"], roles)
+		roles = [r for r in roles if r not in ["All", "Guest", "Administrator"]]
 
 	return roles
 
@@ -515,7 +513,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
 		if raise_exception:
-			raise frappe.PermissionError("You are not allowed to import: {doctype}".format(doctype=doctype))
+			raise frappe.PermissionError(f"You are not allowed to import: {doctype}")
 		else:
 			return False
 	return True
@@ -605,19 +603,17 @@ def reset_perms(doctype):
 	frappe.db.delete("Custom DocPerm", {"parent": doctype})
 
 
-def get_linked_doctypes(dt):
-	return list(
-		set(
-			[dt]
-			+ [
-				d.options
-				for d in frappe.get_meta(dt).get(
-					"fields",
-					{"fieldtype": "Link", "ignore_user_permissions": ("!=", 1), "options": ("!=", "[Select]")},
-				)
-			]
+def get_linked_doctypes(dt: str) -> list:
+	meta = frappe.get_meta(dt)
+	linked_doctypes = [dt] + [
+		d.options
+		for d in meta.get(
+			"fields",
+			{"fieldtype": "Link", "ignore_user_permissions": ("!=", 1), "options": ("!=", "[Select]")},
 		)
-	)
+	]
+
+	return list(set(linked_doctypes))
 
 
 def get_doc_name(doc):

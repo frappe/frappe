@@ -134,11 +134,11 @@ class User(Document):
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
-		if self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
-			frappe.cache().delete_key("users_for_mentions")
-
 		if self.has_value_changed("enabled"):
+			frappe.cache().delete_key("users_for_mentions")
 			frappe.cache().delete_key("enabled_users")
+		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
+			frappe.cache().delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -163,6 +163,9 @@ class User(Document):
 		toggle_notifications(self.name, enable=cint(self.enabled))
 
 	def add_system_manager_role(self):
+		if self.is_system_manager_disabled():
+			return
+
 		# if adding system manager, do nothing
 		if not cint(self.enabled) or (
 			"System Manager" in [user_role.role for user_role in self.get("roles")]
@@ -188,6 +191,9 @@ class User(Document):
 					{"doctype": "Has Role", "role": "Administrator"},
 				],
 			)
+
+	def is_system_manager_disabled(self):
+		return frappe.db.get_value("Role", {"name": "System Manager"}, ["disabled"])
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
@@ -372,6 +378,9 @@ class User(Document):
 		)
 
 	def a_system_manager_should_exist(self):
+		if self.is_system_manager_disabled():
+			return
+
 		if not self.get_other_system_managers():
 			throw(_("There should remain at least one System Manager"))
 
@@ -480,7 +489,7 @@ class User(Document):
 		self.save()
 
 	def remove_roles(self, *roles):
-		existing_roles = dict((d.role, d) for d in self.get("roles"))
+		existing_roles = {d.role: d for d in self.get("roles")}
 		for role in roles:
 			if role in existing_roles:
 				self.get("roles").remove(existing_roles[role])
@@ -489,7 +498,7 @@ class User(Document):
 
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
-			self.set("roles", list(set(d for d in self.get("roles") if d.role == "Guest")))
+			self.set("roles", list({d for d in self.get("roles") if d.role == "Guest"}))
 
 	def remove_disabled_roles(self):
 		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled": 1})]
@@ -548,7 +557,7 @@ class User(Document):
 		if not username:
 			# @firstname_last_name
 			username = _check_suggestion(
-				frappe.scrub("{0} {1}".format(self.first_name, self.last_name or ""))
+				frappe.scrub("{} {}".format(self.first_name, self.last_name or ""))
 			)
 
 		if username:
@@ -577,7 +586,7 @@ class User(Document):
 			for p in self.social_logins:
 				if p.provider == provider:
 					return p.userid
-		except:
+		except Exception:
 			return None
 
 	def set_social_login_userid(self, provider, userid, username=None):
@@ -754,19 +763,11 @@ def has_email_account(email):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
-	waiting = frappe.get_all(
+	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
-		filters={"awaiting_password": 1, "parent": user},
+		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
 	)
-	if waiting:
-		return waiting
-	else:
-		user_email_table = DocType("User Email")
-		frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(
-			user_email_table.parent == user
-		).run()
-		return False
 
 
 def ask_pass_update():
@@ -774,7 +775,7 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": True}, pluck="parent", distinct=True
+		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
 	)
 	set_default("email_user_password", ",".join(password_list))
 
@@ -909,7 +910,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		user_type_condition = ""
 		filters.pop("ignore_user_type")
 
-	txt = "%{}%".format(txt)
+	txt = f"%{txt}%"
 	return frappe.db.sql(
 		"""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
 		FROM `tabUser`
@@ -961,7 +962,7 @@ def get_system_users(exclude_users=None, limit=None):
 
 	limit_cond = ""
 	if limit:
-		limit_cond = "limit {0}".format(limit)
+		limit_cond = f"limit {limit}"
 
 	exclude_users += list(STANDARD_USERS)
 
@@ -1027,7 +1028,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 	):
 
 		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
-		date_and_time = "<b>{0}</b>".format(format_datetime(now_datetime(), format_string="medium"))
+		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
 		ip_address = frappe.local.request_ip
 
 		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(

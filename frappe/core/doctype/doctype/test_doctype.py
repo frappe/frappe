@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import random
 import string
 import unittest
-from typing import Dict, List, Optional
 from unittest.mock import patch
 
 import frappe
@@ -187,7 +185,7 @@ class TestDocType(unittest.TestCase):
 					"module": "Core",
 					"custom": 1,
 					"fields": [
-						{"fieldname": "{0}_field".format(field_option), "fieldtype": "Data", "options": field_option}
+						{"fieldname": f"{field_option}_field", "fieldtype": "Data", "options": field_option}
 					],
 				}
 			)
@@ -318,7 +316,7 @@ class TestDocType(unittest.TestCase):
 			self.assertListEqual(
 				test_doctype_json["field_order"], ["field_4", "field_5", "field_1", "field_2"]
 			)
-		except:
+		except Exception:
 			raise
 		finally:
 			frappe.flags.allow_doctype_export = 0
@@ -564,6 +562,46 @@ class TestDocType(unittest.TestCase):
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertFalse(frappe.db.table_exists("Test Virtual Doctype"))
 
+	def test_create_virtual_doctype_as_child_table(self):
+		"""Test virtual DocType as Child Table below a normal DocType."""
+		frappe.delete_doc_if_exists("DocType", "Test Parent Virtual DocType", force=1)
+		frappe.delete_doc_if_exists("DocType", "Test Virtual DocType as Child Table", force=1)
+
+		virtual_doc = new_doctype("Test Virtual DocType as Child Table")
+		virtual_doc.is_virtual = 1
+		virtual_doc.istable = 1
+		virtual_doc.insert(ignore_permissions=True)
+
+		doc = frappe.get_doc("DocType", "Test Virtual DocType as Child Table")
+
+		self.assertEqual(doc.is_virtual, 1)
+		self.assertEqual(doc.istable, 1)
+		self.assertFalse(frappe.db.table_exists("Test Virtual DocType as Child Table"))
+
+		parent_doc = new_doctype("Test Parent Virtual DocType")
+		parent_doc.append(
+			"fields",
+			{
+				"fieldname": "virtual_child_table",
+				"fieldtype": "Table",
+				"options": "Test Virtual DocType as Child Table",
+			},
+		)
+		parent_doc.insert(ignore_permissions=True)
+
+		# create entry for parent doctype
+		parent_doc_entry = frappe.get_doc(
+			{"doctype": "Test Parent Virtual DocType", "some_fieldname": "Test"}
+		)
+		parent_doc_entry.insert(ignore_permissions=True)
+
+		# update the parent doc (should not abort because of any DB query to a virtual child table, as there is none)
+		parent_doc_entry.some_fieldname = "Test update"
+		parent_doc_entry.save(ignore_permissions=True)
+
+		# delete the parent doc (should not abort because of any DB query to a virtual child table, as there is none)
+		parent_doc_entry.delete()
+
 	def test_default_fieldname(self):
 		fields = [
 			{"label": "title", "fieldname": "title", "fieldtype": "Data", "default": "{some_fieldname}"}
@@ -671,10 +709,10 @@ class TestDocType(unittest.TestCase):
 
 
 def new_doctype(
-	name: Optional[str] = None,
+	name: str | None = None,
 	unique: bool = False,
 	depends_on: str = "",
-	fields: Optional[List[Dict]] = None,
+	fields: list[dict] | None = None,
 	**kwargs,
 ):
 	if not name:

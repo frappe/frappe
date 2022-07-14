@@ -236,7 +236,7 @@ class TestCommunication(unittest.TestCase):
 				"communication_medium": "Email",
 				"subject": "Document Link in Email",
 				"sender": "comm_sender@example.com",
-				"recipients": "comm_recipient+{0}+{1}@example.com".format(quote("Note"), quote(note.name)),
+				"recipients": "comm_recipient+{}+{}@example.com".format(quote("Note"), quote(note.name)),
 			}
 		).insert(ignore_permissions=True)
 

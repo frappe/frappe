@@ -76,7 +76,7 @@ class ImproperDBConfigurationError(Exception):
 	def __init__(self, reason, msg=None):
 		if not msg:
 			msg = "MariaDb is not properly configured"
-		super(ImproperDBConfigurationError, self).__init__(msg)
+		super().__init__(msg)
 		self.reason = reason
 
 

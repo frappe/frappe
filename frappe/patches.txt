@@ -121,7 +121,7 @@ execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
 frappe.patches.v12_0.remove_example_email_thread_notify
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v12_0.set_correct_url_in_files
-execute:frappe.reload_doc('core', 'doctype', 'doctype')
+execute:frappe.reload_doc('core', 'doctype', 'doctype') #2022-06-21
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter')
 frappe.patches.v13_0.remove_invalid_options_for_data_fields
 frappe.patches.v13_0.website_theme_custom_scss
@@ -190,7 +190,8 @@ frappe.patches.v14_0.transform_todo_schema
 frappe.patches.v14_0.remove_post_and_post_comment
 frappe.patches.v14_0.reset_creation_datetime
 frappe.patches.v14_0.remove_is_first_startup
-frappe.patches.v14_0.reload_workspace_child_tables
+frappe.patches.v14_0.clear_long_pending_stale_logs
+frappe.patches.v14_0.log_settings_migration
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy
@@ -200,4 +201,6 @@ frappe.patches.v14_0.remove_db_aggregation
 frappe.patches.v14_0.update_color_names_in_kanban_board_column
 frappe.patches.v14_0.update_is_system_generated_flag
 frappe.patches.v14_0.update_auto_account_deletion_duration
+frappe.patches.v14_0.update_integration_request
 frappe.patches.v14_0.set_document_expiry_default
+frappe.patches.v14_0.delete_data_migration_tool

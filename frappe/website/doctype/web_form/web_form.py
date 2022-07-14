@@ -6,7 +6,8 @@ import os
 
 import frappe
 from frappe import _, scrub
-from frappe.core.doctype.file.file import get_max_file_size, remove_file_by_url
+from frappe.core.api.file import get_max_file_size
+from frappe.core.doctype.file import remove_file_by_url
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.integrations.utils import get_payment_gateway_controller
@@ -21,12 +22,12 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def onload(self):
-		super(WebForm, self).onload()
+		super().onload()
 		if self.is_standard and not frappe.conf.developer_mode:
 			self.use_meta_fields()
 
 	def validate(self):
-		super(WebForm, self).validate()
+		super().validate()
 
 		if not self.module:
 			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
@@ -238,7 +239,7 @@ def get_context(context):
 		if self.accept_payment:
 			controller = get_payment_gateway_controller(self.payment_gateway)
 
-			title = "Payment for {0} {1}".format(doc.doctype, doc.name)
+			title = f"Payment for {doc.doctype} {doc.name}"
 			amount = self.amount
 			if self.amount_based_on_field:
 				amount = doc.get(self.amount_field)
@@ -274,10 +275,10 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + ".js")
 			if os.path.exists(js_path):
-				script = frappe.render_template(open(js_path, "r").read(), context)
+				script = frappe.render_template(open(js_path).read(), context)
 
 				for path in get_code_files_via_hooks("webform_include_js", context.doc_type):
-					custom_js = frappe.render_template(open(path, "r").read(), context)
+					custom_js = frappe.render_template(open(path).read(), context)
 					script = "\n\n".join([script, custom_js])
 
 				context.script = script
@@ -286,10 +287,10 @@ def get_context(context):
 				os.path.dirname(self.web_form_module.__file__), scrub(self.name) + ".css"
 			)
 			if os.path.exists(css_path):
-				style = open(css_path, "r").read()
+				style = open(css_path).read()
 
 				for path in get_code_files_via_hooks("webform_include_css", context.doc_type):
-					custom_css = open(path, "r").read()
+					custom_css = open(path).read()
 					style = "\n\n".join([style, custom_css])
 
 				context.style = style
@@ -379,7 +380,7 @@ def get_context(context):
 			frappe.throw(
 				_("Mandatory Information missing:")
 				+ "<br><br>"
-				+ "<br>".join("{0} ({1})".format(d.label, d.fieldtype) for d in missing)
+				+ "<br>".join(f"{d.label} ({d.fieldtype})" for d in missing)
 			)
 
 	def allow_website_search_indexing(self):
@@ -670,4 +671,4 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			return "\n".join([doc.value for doc in link_options])
 
 	else:
-		raise frappe.PermissionError("Not Allowed, {0}".format(doctype))
+		raise frappe.PermissionError(f"Not Allowed, {doctype}")

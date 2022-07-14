@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Maxwell Morais and contributors
 # License: MIT. See LICENSE
 
@@ -32,16 +31,16 @@ def make_error_snapshot(exception):
 		snapshot_folder = get_error_snapshot_path()
 		frappe.create_folder(snapshot_folder)
 
-		snapshot_file_path = os.path.join(snapshot_folder, "{0}.json".format(error_id))
+		snapshot_file_path = os.path.join(snapshot_folder, f"{error_id}.json")
 		snapshot = get_snapshot(exception)
 
 		with open(encode(snapshot_file_path), "wb") as error_file:
 			error_file.write(encode(frappe.as_json(snapshot)))
 
-		logger.error("New Exception collected with id: {}".format(error_id))
+		logger.error(f"New Exception collected with id: {error_id}")
 
 	except Exception as e:
-		logger.error("Could not take error snapshot: {0}".format(e), exc_info=True)
+		logger.error(f"Could not take error snapshot: {e}", exc_info=True)
 
 
 def get_snapshot(exception, context=10):
@@ -78,7 +77,7 @@ def get_snapshot(exception, context=10):
 
 		if func != "?":
 			call = inspect.formatargvalues(
-				args, varargs, varkw, locals, formatvalue=lambda value: "={}".format(pydoc.text.repr(value))
+				args, varargs, varkw, locals, formatvalue=lambda value: f"={pydoc.text.repr(value)}"
 			)
 
 		# basic frame information
@@ -86,7 +85,8 @@ def get_snapshot(exception, context=10):
 
 		def reader(lnum=[lnum]):  # noqa
 			try:
-				return linecache.getline(file, lnum[0])
+				# B023: function is evaluated immediately, binding not necessary
+				return linecache.getline(file, lnum[0])  # noqa: B023
 			finally:
 				lnum[0] += 1
 
@@ -112,7 +112,7 @@ def get_snapshot(exception, context=10):
 				continue
 			if value is not cgitb.__UNDEF__:
 				if where == "global":
-					name = "global {name:s}".format(name=name)
+					name = f"global {name:s}"
 				elif where != "local":
 					name = where + " " + name.split(".")[-1]
 				f["dump"][name] = pydoc.text.repr(value)
@@ -149,7 +149,7 @@ def collect_error_snapshots():
 			fullpath = os.path.join(path, fname)
 
 			try:
-				with open(fullpath, "r") as filedata:
+				with open(fullpath) as filedata:
 					data = json.load(filedata)
 
 			except ValueError:

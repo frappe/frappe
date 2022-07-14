@@ -44,7 +44,7 @@ class PackageImport(Document):
 		package_path = frappe.get_site_path("packages", package_name)
 
 		# import Package
-		with open(os.path.join(package_path, package_name + ".json"), "r") as packagefile:
+		with open(os.path.join(package_path, package_name + ".json")) as packagefile:
 			doc_dict = json.loads(packagefile.read())
 
 		frappe.flags.package = import_doc(doc_dict)
@@ -60,6 +60,6 @@ class PackageImport(Document):
 		# import files
 		for file in files:
 			import_file_by_path(file, force=self.force, ignore_version=True)
-			log.append("Imported {}".format(file))
+			log.append(f"Imported {file}")
 
 		self.log = "\n".join(log)

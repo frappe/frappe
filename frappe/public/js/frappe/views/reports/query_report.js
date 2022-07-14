@@ -57,6 +57,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = [];
 	}
 
+	update_url_with_filters() {
+		if (frappe.get_route_str() == this.page_name) {
+			window.history.replaceState(null, null, this.get_url_with_filters());
+		}
+	}
+
+	get_url_with_filters() {
+		const query_params = Object.entries(this.get_filter_values())
+			.map(([field, value], _idx) => {
+				// multiselects
+				if (Array.isArray(value)) {
+					if (!value.length) return '';
+					value = JSON.stringify(value);
+				}
+				return `${field}=${encodeURIComponent(value)}`;
+			})
+			.filter(Boolean)
+			.join("&");
+
+		let full_url = window.location.href.replace(window.location.search, "");
+		if (query_params) {
+			full_url += "?" + query_params;
+		}
+		return full_url;
+	}
+
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon("refresh", () => {
@@ -538,7 +564,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			const promises = filters_to_set.map(f => {
 				return () => {
-					const value = route_options[f.df.fieldname];
+					let value = route_options[f.df.fieldname];
+					if (typeof value === 'string' && value[0] === '[') {
+						// multiselect array
+						value = JSON.parse(value);
+					}
 					f.set_value(value);
 				};
 			});
@@ -652,6 +682,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			frappe.hide_progress();
 		}).finally(() => {
 			this.hide_loading_screen();
+			this.update_url_with_filters();
 		});
 	}
 

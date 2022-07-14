@@ -187,7 +187,7 @@ def get():
 	bootinfo["translated_search_doctypes"] = frappe.get_hooks("translated_search_doctypes")
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
-	bootinfo["setup_complete"] = cint(frappe.db.get_single_value("System Settings", "setup_complete"))
+	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 
@@ -213,6 +213,8 @@ def generate_csrf_token():
 
 
 class Session:
+	__slots__ = ("user", "device", "user_type", "full_name", "data", "time_diff", "sid")
+
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(
 			frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest"))

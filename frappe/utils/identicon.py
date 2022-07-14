@@ -10,7 +10,7 @@ BORDER_SIZE = 20
 SQUARE_SIZE = 40
 
 
-class Identicon(object):
+class Identicon:
 	def __init__(self, str_, background="#fafbfc"):
 		"""
 		`str_` is the string used to generate the identicon.
@@ -104,4 +104,4 @@ class Identicon(object):
 			save_handler(self.image, fp, "")
 		finally:
 			fp.seek(0)
-			return "data:image/png;base64,{0}".format(base64.b64encode(fp.read()))  # noqa
+			return f"data:image/png;base64,{base64.b64encode(fp.read())}"  # noqa

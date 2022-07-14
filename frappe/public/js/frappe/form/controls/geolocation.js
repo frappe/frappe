@@ -202,14 +202,14 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	get required_libs() {
 		return [
-			"assets/frappe/js/lib/leaflet/easy-button.css",
-			"assets/frappe/js/lib/leaflet/L.Control.Locate.css",
-			"assets/frappe/js/lib/leaflet/leaflet.draw.css",
+			"assets/frappe/js/lib/leaflet_easy_button/easy-button.css",
+			"assets/frappe/js/lib/leaflet_control_locate/L.Control.Locate.css",
+			"assets/frappe/js/lib/leaflet_draw/leaflet.draw.css",
 			"assets/frappe/js/lib/leaflet/leaflet.css",
 			"assets/frappe/js/lib/leaflet/leaflet.js",
-			"assets/frappe/js/lib/leaflet/easy-button.js",
-			"assets/frappe/js/lib/leaflet/leaflet.draw.js",
-			"assets/frappe/js/lib/leaflet/L.Control.Locate.js",
+			"assets/frappe/js/lib/leaflet_easy_button/easy-button.js",
+			"assets/frappe/js/lib/leaflet_draw/leaflet.draw.js",
+			"assets/frappe/js/lib/leaflet_control_locate/L.Control.Locate.js",
 		];
 	}
 };

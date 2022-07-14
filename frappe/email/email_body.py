@@ -24,6 +24,8 @@ from frappe.utils import (
 )
 from frappe.utils.pdf import get_pdf
 
+EMBED_PATTERN = re.compile("""embed=["'](.*?)["']""")
+
 
 def get_email(
 	recipients,
@@ -190,7 +192,7 @@ class EMail:
 	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
 
-		has_inline_images = re.search("""embed=['"].*?['"]""", message)
+		has_inline_images = EMBED_PATTERN.search(message)
 
 		if has_inline_images:
 			# process inline images
@@ -265,6 +267,7 @@ class EMail:
 		validate_email_address(strip(self.sender), True)
 		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 
+		self.set_header("X-Original-From", self.sender)
 		self.replace_sender()
 		self.replace_sender_name()
 
@@ -277,16 +280,14 @@ class EMail:
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
-			self.set_header("X-Original-From", self.sender)
-			sender_name, sender_email = parse_addr(self.sender)
+			sender_name, _ = parse_addr(self.sender)
 			self.sender = email.utils.formataddr(
 				(str(Header(sender_name or self.email_account.name, "utf-8")), self.email_account.email_id)
 			)
 
 	def replace_sender_name(self):
 		if cint(self.email_account.always_use_account_name_as_sender_name):
-			self.set_header("X-Original-From", self.sender)
-			sender_name, sender_email = parse_addr(self.sender)
+			_, sender_email = parse_addr(self.sender)
 			self.sender = email.utils.formataddr(
 				(str(Header(self.email_account.name, "utf-8")), sender_email)
 			)
@@ -330,12 +331,12 @@ class EMail:
 
 	def set_header(self, key, value):
 		if key in self.msg_root:
+			# delete key if found
+			# this is done because adding the same key doesn't override
+			# the existing key, rather appends another header with same key.
 			del self.msg_root[key]
 
-		try:
-			self.msg_root[key] = value
-		except ValueError:
-			self.msg_root[key] = sanitize_email_header(value)
+		self.msg_root[key] = sanitize_email_header(value)
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
@@ -351,7 +352,7 @@ def get_formatted_html(
 	print_html=None,
 	email_account=None,
 	header=None,
-	unsubscribe_link=None,
+	unsubscribe_link: frappe._dict | None = None,
 	sender=None,
 	with_container=False,
 ):
@@ -451,7 +452,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 		attachment_type = "inline" if inline else "attachment"
 		part.add_header("Content-Disposition", attachment_type, filename=str(fname))
 	if content_id:
-		part.add_header("Content-ID", "<{0}>".format(content_id))
+		part.add_header("Content-ID", f"<{content_id}>")
 
 	parent.attach(part)
 
@@ -499,7 +500,7 @@ def replace_filename_with_cid(message):
 	inline_images = []
 
 	while True:
-		matches = re.search("""embed=["'](.*?)["']""", message)
+		matches = EMBED_PATTERN.search(message)
 		if not matches:
 			break
 		groups = matches.groups()
@@ -510,7 +511,7 @@ def replace_filename_with_cid(message):
 
 		filecontent = get_filecontent_from_path(img_path)
 		if not filecontent:
-			message = re.sub("""embed=['"]{0}['"]""".format(img_path), "", message)
+			message = re.sub(f"""embed=['"]{img_path}['"]""", "", message)
 			continue
 
 		content_id = random_string(10)
@@ -519,9 +520,7 @@ def replace_filename_with_cid(message):
 			{"filename": filename, "filecontent": filecontent, "content_id": content_id}
 		)
 
-		message = re.sub(
-			"""embed=['"]{0}['"]""".format(img_path), 'src="cid:{0}"'.format(content_id), message
-		)
+		message = re.sub(f"""embed=['"]{img_path}['"]""", f'src="cid:{content_id}"', message)
 
 	return (message, inline_images)
 
@@ -580,8 +579,17 @@ def get_header(header=None):
 	return email_header
 
 
-def sanitize_email_header(str):
-	return str.replace("\r", "").replace("\n", "")
+def sanitize_email_header(header: str):
+	"""
+	Removes all line boundaries in the headers.
+
+	Email Policy (python's std) has some bugs in it which uses splitlines
+	and raises ValueError (ref: https://github.com/python/cpython/blob/main/Lib/email/policy.py#L143).
+	Hence removing all line boundaries while sanitization of headers to prevent such faliures.
+	The line boundaries which are removed can be found here: https://docs.python.org/3/library/stdtypes.html#str.splitlines
+	"""
+
+	return "".join(header.splitlines())
 
 
 def get_brand_logo(email_account):

@@ -621,6 +621,8 @@ class FilterArea {
 
 		filters = filters.filter(f => !this.exists(f));
 
+		// standard filters = filters visible on list view
+		// non-standard filters = filters set by filter button
 		const { non_standard_filters, promise } = this.set_standard_filter(
 			filters
 		);
@@ -680,9 +682,14 @@ class FilterArea {
 			out.promise = out.promise || Promise.resolve();
 			out.non_standard_filters = out.non_standard_filters || [];
 
+			// set in list view area if filters are present
+			// don't set like filter on link fields (gets reset)
 			if (
 				fields_dict[fieldname] &&
-				(condition === "=" || condition === "like")
+				(
+					condition === "=" ||
+					(condition === "like" && fields_dict[fieldname]?.df?.fieldtype != "Link")
+				)
 			) {
 				// standard filter
 				out.promise = out.promise.then(() =>
@@ -740,7 +747,7 @@ class FilterArea {
 		let fields = [
 			{
 				fieldtype: "Data",
-				label: "Name",
+				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.refresh_list_view(),
