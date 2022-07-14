@@ -42,7 +42,7 @@ def clean_html(html):
 			"td",
 			"tr",
 		],
-		attributes=[],
+		attributes=["data-list"],
 		styles=["color", "border", "border-color"],
 		strip=True,
 		strip_comments=True,
