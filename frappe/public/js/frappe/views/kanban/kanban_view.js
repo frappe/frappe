@@ -115,10 +115,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	get_card_meta() {
 		var meta = frappe.get_meta(this.doctype);
-		// preserve route options erased by new doc
-		let route_options = {...frappe.route_options};
 		var doc = frappe.model.get_new_doc(this.doctype);
-		frappe.route_options = route_options;
 		var title_field = null;
 		var quick_entry = false;
 
