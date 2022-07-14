@@ -41,11 +41,8 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	if route:
 		clear_cache(route)
 
-	content = (
-		comment.content
-		+ "<p><a href='{}/app/Form/Comment/{}' style='font-size: 80%'>{}</a></p>".format(
-			frappe.utils.get_request_site_address(), comment.name, _("View Comment")
-		)
+	content = comment.content + "<p><a href='{}/{}#{}' style='font-size: 80%'>{}</a></p>".format(
+		frappe.utils.get_request_site_address(), doc.route, comment.name, _("View Comment")
 	)
 
 	if doc.doctype == "Blog Post" and not doc.enable_email_notification:
