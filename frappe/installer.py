@@ -277,8 +277,6 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	sync_for(name, force=force, reset_permissions=True)
 
-	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
-
 	if set_as_patched:
 		set_all_patches_as_completed(name)
 
@@ -286,9 +284,12 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		frappe.get_attr(after_install)()
 
 	add_to_installed_apps(name)
+
 	sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)
+
+	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
 
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
