@@ -21,8 +21,8 @@
   "use_tls",
   "use_ssl_for_outgoing",
   "column_break_18",
-  "append_emails_to_sent_folder",
-  "smtp_port"
+  "smtp_port",
+  "append_emails_to_sent_folder"
  ],
  "fields": [
   {
@@ -30,7 +30,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "For example: for the email address <b>abcd@gmail.com</b>, the domain is <b>gmail.com</b>",
    "fieldname": "domain_name",
    "fieldtype": "Data",
    "label": "Domain Name",
@@ -46,7 +45,7 @@
    "description": "e.g. pop.gmail.com / imap.gmail.com",
    "fieldname": "email_server",
    "fieldtype": "Data",
-   "label": "Email Server",
+   "label": "Incoming Server",
    "reqd": 1
   },
   {
@@ -86,7 +85,7 @@
    "description": "e.g. smtp.gmail.com",
    "fieldname": "smtp_server",
    "fieldtype": "Data",
-   "label": "SMTP Server",
+   "label": "Outgoing Server",
    "reqd": 1
   },
   {
@@ -117,7 +116,7 @@
    "default": "0",
    "fieldname": "use_ssl_for_outgoing",
    "fieldtype": "Check",
-   "label": "Use SSL for Outgoing"
+   "label": "Use SSL"
   },
   {
    "fieldname": "column_break_9",
@@ -130,7 +129,7 @@
  ],
  "icon": "icon-inbox",
  "links": [],
- "modified": "2022-07-02 20:35:36.199633",
+ "modified": "2022-07-14 11:37:55.873948",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
