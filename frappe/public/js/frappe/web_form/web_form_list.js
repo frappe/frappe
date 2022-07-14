@@ -302,7 +302,7 @@ export default class WebFormList {
 			path = path.replace('/list', '');
 		}
 
-		window.location.href = path + "/" + name + "/edit";
+		window.location.href = path + "/" + name;
 	}
 
 	get_selected() {

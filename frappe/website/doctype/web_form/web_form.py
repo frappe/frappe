@@ -154,6 +154,8 @@ def get_context(context):
 				_("You don't have the permissions to access this document"), frappe.PermissionError
 			)
 
+		self.is_form_editable = False
+
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
 			frappe.redirect(path)
@@ -162,9 +164,18 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
-			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
+				frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
-		if not frappe.form_dict.is_edit and self.allow_edit and frappe.form_dict.name:
+		if frappe.form_dict.is_edit:
+			self.is_form_editable = True
+
+		if (
+			not frappe.form_dict.is_edit
+			and not frappe.form_dict.is_read
+			and self.allow_edit
+			and frappe.form_dict.name
+		):
+			self.is_form_editable = True
 			frappe.redirect(f"/{frappe.local.path}/edit")
 
 		if (
@@ -203,6 +214,8 @@ def get_context(context):
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
 
+		context.web_form_doc.is_form_editable = self.is_form_editable
+
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)
 
@@ -215,6 +228,9 @@ def get_context(context):
 
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
+
+		if frappe.form_dict.is_new:
+			context.title = _("New") + " " + context.title
 
 		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
 			frappe.session.user != "Guest" or not self.login_required
@@ -271,6 +287,14 @@ def get_context(context):
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
+			if self.is_form_editable:
+				context.parents.append(
+					{
+						"label": _(context.title),
+						"route": f"{self.route}/{context.doc_name}",
+					}
+				)
+				context.title = _("Edit")
 			context.reference_doc.add_seen()
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name

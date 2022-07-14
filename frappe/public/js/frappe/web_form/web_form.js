@@ -25,9 +25,14 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.setup_listeners();
 		if (this.allow_print && !this.is_new) this.setup_print_button();
 		if (this.is_new) this.setup_cancel_button();
-		if (this.is_new || this.allow_edit) {
+		if (!this.is_form_editable && !this.is_new && this.allow_edit) {
+			this.setup_edit_button();
+		}
+
+		if (this.is_new || this.is_form_editable) {
 			this.setup_primary_action();
 		}
+
 		this.setup_previous_next_button();
 		this.toggle_section();
 
@@ -169,6 +174,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			// add button on footer if page is long
 			this.add_button_to_footer(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
 				this.save()
+			);
+		}
+	}
+
+	setup_edit_button() {
+		this.add_button_to_header(__("Edit", null, "Button in web form"), "primary", () =>
+			this.edit()
+		);
+
+		if (!this.is_multi_step_form && $('.frappe-card').height() > 600) {
+			// add button on footer if page is long
+			this.add_button_to_footer(__("Edit", null, "Button in web form"), "primary", () =>
+				this.edit()
 			);
 		}
 	}
@@ -360,6 +378,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			&format=${this.print_format || "Standard"}`, '_blank');
 	}
 
+	edit() {
+		window.location.href = window.location.pathname + "/edit";
+	}
+
 	cancel() {
 		window.location.href = window.location.pathname.replace('/new', '');
 	}
@@ -379,9 +401,17 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			if (this.success_url) {
 				window.location.href = this.success_url;
 			} else if(this.login_required) {
-				window.location.href =
-					window.location.pathname + "?name=" + data.name;
+				let path = window.location.pathname;
+
+				if (path.includes('/new')) {
+					path = path.replace("/new", "");
+					path = path + "/" + data.name;
+				} else if (path.includes('/edit')) {
+					path =  path.replace("/edit", "");
+				}
+
+				window.location.href = path;
 			}
-		}, 2000);
+		}, 1000);
 	}
 }
