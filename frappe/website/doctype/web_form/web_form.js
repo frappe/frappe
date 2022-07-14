@@ -42,7 +42,8 @@ frappe.ui.form.on("Web Form", {
 				for (let df of fields) {
 					if (
 						webform_fieldtypes.includes(df.fieldtype) &&
-						!added_fields.includes(df.fieldname)
+						!added_fields.includes(df.fieldname) &&
+						!df.hidden
 					) {
 						frm.add_child("web_form_fields", {
 							fieldname: df.fieldname,
@@ -56,7 +57,6 @@ frappe.ui.form.on("Web Form", {
 							mandatory_depends_on: df.mandatory_depends_on,
 							read_only_depends_on: df.read_only_depends_on,
 							hidden: df.hidden,
-							description: df.description
 						});
 					}
 				}
