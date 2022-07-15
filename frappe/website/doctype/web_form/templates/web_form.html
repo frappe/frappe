@@ -84,24 +84,17 @@
 			},
 			link_title_doctypes: {{ link_title_doctypes }}
 		};
+
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 		frappe._messages = {{ translated_messages }};
-		$(".file-size").each(function() {
-			$(this).text(frappe.form.formatters.FileSize($(this).text()));
-		});
 
 		frappe.web_form_doc = {{ web_form_doc | json }};
 
 		{% if reference_doc %}
 			frappe.reference_doc = {{ reference_doc.as_json() }};
 		{% endif %}
-
-		frappe.web_form_doc.is_new = {{ frappe.utils.cint(is_new or False) }};
 	</script>
-
-	{{ include_script("controls.bundle.js") }}
-	{{ include_script("dialog.bundle.js") }}
 
 	<script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 	<script>
@@ -109,19 +102,21 @@
 		Vue.prototype.frappe = window.frappe;
 	</script>
 
+	{{ include_script("controls.bundle.js") }}
+	{{ include_script("dialog.bundle.js") }}
 	{{ include_script("web_form.bundle.js") }}
 	{{ include_script("bootstrap-4-web.bundle.js") }}
 
 	<script>
 		{% if client_script %}
-		frappe.init_client_script = () => {
-			try {
-				{{ client_script }}
-			} catch(e) {
-				console.error('Error in web form client script');
-				console.error(e);
+			frappe.init_client_script = () => {
+				try {
+					{{ client_script }}
+				} catch(e) {
+					console.error('Error in web form client script');
+					console.error(e);
+				}
 			}
-		}
 		{% endif %}
 
 		{% if script is defined %}

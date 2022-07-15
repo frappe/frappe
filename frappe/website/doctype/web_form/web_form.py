@@ -215,6 +215,7 @@ def get_context(context):
 		context.web_form_doc = self.as_dict(no_nulls=True)
 
 		context.web_form_doc.is_form_editable = self.is_form_editable
+		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new"]))
 
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)

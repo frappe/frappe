@@ -51,47 +51,51 @@ frappe.ready(function() {
 			web_form.set_default_values();
 		}
 
-		function setup_fields(web_form_doc, doc_data) {
-			web_form_doc.web_form_fields.forEach(df => {
-				df.is_web_form = true;
-				df.read_only = !web_form_doc.is_new && !web_form_doc.is_form_editable;
-				if (df.fieldtype === "Table") {
-					df.get_data = () => {
-						let data = [];
-						if (doc_data && doc_data[df.fieldname]) {
-							return doc_data[df.fieldname];
-						}
-						return data;
-					};
+		$(".file-size").each(function () {
+			$(this).text(frappe.form.formatters.FileSize($(this).text()));
+		});
+	}
 
-					$.each(df.fields || [], function(_i, field) {
-						if (field.fieldtype === "Link") {
-							field.only_select = true;
-						}
-						field.is_web_form = true;
-					});
-
-					if (df.fieldtype === "Attach") {
-						df.is_private = true;
+	function setup_fields(web_form_doc, doc_data) {
+		web_form_doc.web_form_fields.forEach(df => {
+			df.is_web_form = true;
+			df.read_only = !web_form_doc.is_new && !web_form_doc.is_form_editable;
+			if (df.fieldtype === "Table") {
+				df.get_data = () => {
+					let data = [];
+					if (doc_data && doc_data[df.fieldname]) {
+						return doc_data[df.fieldname];
 					}
+					return data;
+				};
 
-					delete df.parent;
-					delete df.parentfield;
-					delete df.parenttype;
-					delete df.doctype;
-
-					return df;
-				}
-				if (df.fieldtype === "Link") {
-					df.only_select = true;
-				}
-				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
-					if (typeof df.options !== "object") {
-						df.options = {};
+				$.each(df.fields || [], function(_i, field) {
+					if (field.fieldtype === "Link") {
+						field.only_select = true;
 					}
-					df.options.disable_file_browser = true;
+					field.is_web_form = true;
+				});
+
+				if (df.fieldtype === "Attach") {
+					df.is_private = true;
 				}
-			});
-		}
+
+				delete df.parent;
+				delete df.parentfield;
+				delete df.parenttype;
+				delete df.doctype;
+
+				return df;
+			}
+			if (df.fieldtype === "Link") {
+				df.only_select = true;
+			}
+			if (["Attach", "Attach Image"].includes(df.fieldtype)) {
+				if (typeof df.options !== "object") {
+					df.options = {};
+				}
+				df.options.disable_file_browser = true;
+			}
+		});
 	}
 });

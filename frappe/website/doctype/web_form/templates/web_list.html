@@ -58,13 +58,7 @@
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 		frappe._messages = JSON.parse(`{{ translated_messages }}`);
-		$(".file-size").each(function () {
-			$(this).text(frappe.form.formatters.FileSize($(this).text()));
-		});
-
 		frappe.web_form_doc = {{ web_form_doc | json }};
-
-		frappe.web_form_doc.is_list = {{ frappe.utils.cint(is_list or False) }};
 	</script>
 
 	{{ include_script("controls.bundle.js") }}
@@ -75,6 +69,9 @@
 
 {% block style %}
 	<style>
+		body {
+			background-color: var(--bg-color);
+		}
 		{% if style is defined %}
 			{{ style }}
 		{% endif %}
