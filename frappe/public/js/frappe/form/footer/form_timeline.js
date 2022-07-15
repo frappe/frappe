@@ -101,38 +101,39 @@ class FormTimeline extends BaseTimeline {
 		frappe.utils.bind_actions_with_object(this.timeline_items_wrapper, this);
 	}
 
+	get_creation_message() {
+		const creation = comment_when(this.frm.doc.creation);
+		const user_link = this.get_user_link(this.frm.doc.owner);
+
+		return this.get_user_message(
+			this.frm.doc.owner,
+			__("You created this {0}", [creation], "Form timeline"),
+			__("{0} created this {1}", [user_link, creation], "Form timeline"),
+		);
+	}
+
+	get_modified_message() {
+		const modified = comment_when(this.frm.doc.modified);
+		const user_link = this.get_user_link(this.frm.doc.modified_by);
+
+		return this.get_user_message(
+			this.frm.doc.modified_by,
+			__("You edited this {0}", [modified], "Form timeline"),
+			__("{0} edited this {1}", [user_link, modified], "Form timeline"),
+		);
+	}
+
 	set_document_info() {
 		// TODO: handle creation via automation
-		const creation = comment_when(this.frm.doc.creation);
-		let creation_message =
-			frappe.utils.is_current_user(this.frm.doc.owner)
-				? __("You created this {0}", [creation], "Form timeline")
-				: __("{0} created this {1}",
-					[
-						this.get_user_link(this.frm.doc.owner),
-						creation
-					],
-					"Form timeline"
-				);
-
-		const modified = comment_when(this.frm.doc.modified);
-		let modified_message =
-			frappe.utils.is_current_user(this.frm.doc.modified_by)
-				? __("You edited this {0}", [modified], "Form timeline")
-				: __("{0} edited this {1}",
-					[
-						this.get_user_link(this.frm.doc.modified_by),
-						modified
-					],
-					"Form timeline"
-				);
+		const creation_message = this.get_creation_message();
+		const modified_message = this.get_modified_message();
 
 		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
 			let route = this.frm.doc.route;
 			frappe.utils.get_page_view_count(route).then((res) => {
 				let page_view_count_message = __('{0} Page views', [res.message], "Form timeline");
 				this.add_timeline_item({
-					content: `${creation_message} • ${modified_message} • 	${page_view_count_message}`,
+					content: `${creation_message} • ${modified_message} • ${page_view_count_message}`,
 					hide_timestamp: true
 				}, true);
 			});
@@ -168,26 +169,28 @@ class FormTimeline extends BaseTimeline {
 		return frappe.utils.get_form_link('User', user, true, user_display_text);
 	}
 
+	get_user_message(user, message_self, message_other) {
+		return frappe.utils.is_current_user(user) ? message_self : message_other;
+	}
+
 	get_view_timeline_contents() {
 		let view_timeline_contents = [];
 		(this.doc_info.views || []).forEach(view => {
 			const view_time = comment_when(view.creation);
-			let view_message = frappe.utils.is_current_user(view.owner)
-				? __("You viewed this {0}", [view_time], "Form timeline")
-				: __("{0} viewed this {1}",
-					[
-						this.get_user_link(view.owner),
-						view_time
-					],
-					"Form timeline"
-				);
+			const user_link = this.get_user_link(view.owner);
+			const timeline_content = this.get_user_message(
+				view.owner,
+				__("You viewed this {0}", [view_time], "Form timeline"),
+				__("{0} viewed this {1}", [user_link, view_time], "Form timeline"),
+			);
 
 			view_timeline_contents.push({
 				creation: view.creation,
-				content: view_message,
+				content: timeline_content,
 				hide_timestamp: true,
 			});
 		});
+
 		return view_timeline_contents;
 	}
 
@@ -334,43 +337,75 @@ class FormTimeline extends BaseTimeline {
 	get_attachment_timeline_contents() {
 		let attachment_timeline_contents = [];
 		(this.doc_info.attachment_logs || []).forEach(attachment_log => {
-			let is_file_upload = attachment_log.comment_type == 'Attachment';
+			const is_file_upload = attachment_log.comment_type == "Attachment";
+			const user_link = this.get_user_link(attachment_log.owner);
+			const filename = attachment_log.content;
+			const timeline_content = is_file_upload
+				? this.get_user_message(
+					attachment_log.owner,
+					__("You attached {0}", [filename], "Form timeline"),
+					__("{0} attached {1}", [user_link, filename], "Form timeline"),
+				)
+				: this.get_user_message(
+					attachment_log.owner,
+					__("You removed attachment {0}", [filename], "Form timeline"),
+					__("{0} removed attachment {1}", [user_link, filename], "Form timeline"),
+				);
+
 			attachment_timeline_contents.push({
-				icon: is_file_upload ? 'upload' : 'delete',
-				icon_size: 'sm',
+				icon: is_file_upload ? "upload" : "delete",
+				icon_size: "sm",
 				creation: attachment_log.creation,
-				content: `${this.get_user_link(attachment_log.owner)} ${attachment_log.content}`,
+				content: timeline_content,
 			});
 		});
+
 		return attachment_timeline_contents;
 	}
 
 	get_milestone_timeline_contents() {
 		let milestone_timeline_contents = [];
 		(this.doc_info.milestones || []).forEach(milestone_log => {
+			const field = frappe.meta.get_label(
+				this.frm.doctype,
+				milestone_log.track_field
+			);
+			const value = milestone_log.value.bold();
+			const user_link = this.get_user_link(milestone_log.owner);
+			const timeline_content = this.get_user_message(
+				milestone_log.owner,
+				__("You changed {0} to {1}", [field, value], "Form timeline"),
+				__("{0} changed {1} to {2}", [user_link, field, value], "Form timeline"),
+			);
+
 			milestone_timeline_contents.push({
-				icon: 'milestone',
+				icon: "milestone",
 				creation: milestone_log.creation,
-				content: __('{0} changed {1} to {2}', [
-					this.get_user_link(milestone_log.owner),
-					frappe.meta.get_label(this.frm.doctype, milestone_log.track_field),
-					milestone_log.value.bold()]),
+				content: timeline_content,
 			});
 		});
+
 		return milestone_timeline_contents;
 	}
 
 	get_like_timeline_contents() {
 		let like_timeline_contents = [];
 		(this.doc_info.like_logs || []).forEach(like_log => {
+			const timeline_content = this.get_user_message(
+				like_log.owner,
+				__("You Liked", null, "Form timeline"),
+				__("{0} Liked", [this.get_user_link(like_log.owner)], "Form timeline"),
+			);
+
 			like_timeline_contents.push({
 				icon: 'heart',
 				icon_size: 'sm',
 				creation: like_log.creation,
-				content: __('{0} Liked', [this.get_user_link(like_log.owner)]),
+				content: timeline_content,
 				title: "Like",
 			});
 		});
+
 		return like_timeline_contents;
 	}
 
