@@ -404,20 +404,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// redirect
 		setTimeout(() => {
-			if (this.success_url) {
-				window.location.href = this.success_url;
-			} else {
-				let path = window.location.pathname;
+			let path = window.location.pathname;
 
-				if (this.is_new) {
+			if (this.success_url) {
+				path = this.success_url;
+			} else if (this.login_required) {
+				if (this.is_new && data.name) {
 					path = path.replace("/new", "");
 					path = path + "/" + data.name;
 				} else if (this.is_form_editable) {
 					path =  path.replace("/edit", "");
 				}
-
-				window.location.href = path;
 			}
+			window.location.href = path;
 		}, 1000);
 	}
 }
