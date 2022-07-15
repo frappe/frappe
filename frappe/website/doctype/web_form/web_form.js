@@ -27,6 +27,11 @@ frappe.ui.form.on("Web Form", {
 
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
+
+		if (!frm.doc.web_form_fields) {
+			frm.scroll_to_field('web_form_fields');
+			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
+		}
 	},
 
 	add_publish_button(frm) {
@@ -62,7 +67,6 @@ frappe.ui.form.on("Web Form", {
 							depends_on: df.depends_on,
 							mandatory_depends_on: df.mandatory_depends_on,
 							read_only_depends_on: df.read_only_depends_on,
-							hidden: df.hidden,
 						});
 					}
 				}

@@ -406,7 +406,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		setTimeout(() => {
 			if (this.success_url) {
 				window.location.href = this.success_url;
-			} else if(this.login_required) {
+			} else {
 				let path = window.location.pathname;
 
 				if (this.is_new) {
