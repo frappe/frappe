@@ -11,18 +11,21 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		frappe.views.KanbanView.get_kanbans(this.doctype).then(kanbans => {
 			if (!kanbans.length) {
 				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
-			}
-			this.kanbans = kanbans;
+			} else if (kanbans.length && frappe.get_route().length !== 4) {
+				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			} else {
+				this.kanbans = kanbans;
 
-			return frappe.run_serially([
-				() => this.show_skeleton(),
-				() => this.fetch_meta(),
-				() => this.hide_skeleton(),
-				() => this.check_permissions(),
-				() => this.init(),
-				() => this.before_refresh(),
-				() => this.refresh(),
-			]);
+				return frappe.run_serially([
+					() => this.show_skeleton(),
+					() => this.fetch_meta(),
+					() => this.hide_skeleton(),
+					() => this.check_permissions(),
+					() => this.init(),
+					() => this.before_refresh(),
+					() => this.refresh(),
+				]);
+			}
 		});
 	}
 

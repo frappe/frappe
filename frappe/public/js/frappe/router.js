@@ -145,6 +145,7 @@ frappe.router = {
 		// /app/settings = ["Workspaces", "Settings"]
 		// /app/private/settings = ["Workspaces", "private", "Settings"]
 		// /app/user = ["List", "User"]
+		// /app/user/view = ["List", "User", ""]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
@@ -176,7 +177,7 @@ frappe.router = {
 		let doctype_route = this.routes[route[0]];
 		// doctype route
 		if (route[1]) {
-			if (route[2] && route[1] === "view") {
+			if (route[1]==="view") {
 				route = this.get_standard_route_for_list(route, doctype_route);
 			} else {
 				let docname = route[1];
@@ -201,10 +202,14 @@ frappe.router = {
 
 	get_standard_route_for_list(route, doctype_route) {
 		let standard_route;
-		if (route[2].toLowerCase() === "tree") {
+		if (route[2] && route[2].toLowerCase()==="tree") {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
-			standard_route = ["List", doctype_route.doctype, frappe.utils.to_title_case(route[2])];
+			standard_route = [
+				"List",
+				doctype_route.doctype,
+				frappe.utils.to_title_case(route[2] ? route[2] : "")
+			];
 			// calendar / kanban / dashboard / folder
 			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}

@@ -12,4 +12,10 @@ context('View', () => {
 		cy.wait(500);
 		cy.location('pathname').should('eq', `/app/event/view/report`);
 	});
+
+	it('Route to default view from app/{doctype}', () => {
+		cy.visit('/app/event/view')
+		cy.wait(500);
+		cy.location('pathname').should('eq', `/app/event/view/report`);
+	});
 });
