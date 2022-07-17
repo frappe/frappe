@@ -102,12 +102,18 @@ class Oauth:
 	def _refresh_access_token(self) -> str:
 		"""Refreshes access token via calling `refresh_access_token` method of oauth service object"""
 		service_obj = self._get_service_object()
-		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token", None)
+		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token")
 
-		# set the new access token in db
-		frappe.db.set_value(
-			"Email Account", self.email_account, "access_token", access_token, update_modified=False
-		)
+		if access_token:
+			# set the new access token in db
+			frappe.db.set_value(
+				"Email Account",
+				self.email_account,
+				"access_token",
+				encrypt(access_token),
+				update_modified=False,
+			)
+
 		return access_token
 
 	def _get_service_object(self):
