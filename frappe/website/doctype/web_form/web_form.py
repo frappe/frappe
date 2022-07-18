@@ -14,7 +14,7 @@ from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cstr, dict_with_keys, strip_html
-from frappe.website.utils import get_comment_list, get_sidebar_items
+from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
 
@@ -247,7 +247,9 @@ def get_context(context):
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
 		self.load_translations(context)
-		context.link_title_doctypes = frappe.boot.get_link_title_doctypes()
+
+		context.boot = get_boot_data()
+		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
 
 	def load_translations(self, context):
 		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)
@@ -315,6 +317,8 @@ def get_context(context):
 				context.comment_list = get_comment_list(
 					context.reference_doc.doctype, context.reference_doc.name
 				)
+
+			context.reference_doc = json.loads(context.reference_doc.as_json())
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:

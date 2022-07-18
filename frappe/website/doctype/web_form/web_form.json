@@ -48,7 +48,6 @@
   "website_sidebar",
   "scripting_style_tab",
   "client_script",
-  "column_break_34",
   "custom_css",
   "payments_tab",
   "accept_payment",
@@ -340,10 +339,6 @@
    "label": "Title & Route"
   },
   {
-   "fieldname": "column_break_34",
-   "fieldtype": "Column Break"
-  },
-  {
    "collapsible": 1,
    "fieldname": "form_fields",
    "fieldtype": "Section Break",
@@ -403,7 +398,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-15 12:00:59.630392",
+ "modified": "2022-07-15 18:53:04.383131",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

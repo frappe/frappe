@@ -5,20 +5,32 @@
 		max-width: 800px;
 		margin: auto;
 
-		.frappe-card {
+		h1 {
+			font-size: 1.9rem;
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+
+		.web-form-container {
 			padding: 1rem;
 
-			h1 {
-				font-size: 1.9rem;
-				margin-top: 0;
-				margin-bottom: 0;
-			}
-
-			.web-form-head {
+			.web-form-header {
 				margin: 0 -1rem;
 				padding: 0 1rem 1rem 1rem;
 				margin-bottom: 1rem;
 				border-bottom: 1px solid var(--border-color);
+
+				.web-form-actions {
+					align-self: center;
+				}
+			}
+
+			.web-form-introduction {
+				margin-bottom: 2rem;
+
+				p {
+					color: var(--text-muted);
+				}
 			}
 
 			.web-form-wrapper {
@@ -52,18 +64,6 @@
 				}
 			}
 
-			.web-form-introduction {
-				margin-bottom: 2rem;
-
-				p {
-					color: var(--text-muted);
-				}
-			}
-
-			.web-form-actions button {
-				margin-top: 0.1rem;
-			}
-
 			.attachments {
 				margin: 0 -1rem;
 				padding: 1rem 1rem 0 1rem;
@@ -75,7 +75,8 @@
 					justify-content: space-between;
 					gap: 6px;
 					max-width: 300px;
-					color: var(--text-light);
+					color: var(--text-muted);
+					font-size: var(--text-md);
 
 					&:hover {
 						text-decoration: none;
@@ -87,11 +88,17 @@
 			}
 		}
 
-		.list-card {
-			min-height: 400px;
+		.web-list-container {
+			min-height: 470px;
+			padding: 1rem;
+
+			.list-view-actions {
+				align-self: center;
+			}
 
 			.list-filters {
 				display: flex;
+				flex-wrap: wrap;
 				margin: 0 -1rem;
 				padding: 1rem 1rem 0 1rem;
 				margin-top: 1rem;
@@ -99,9 +106,20 @@
 				gap: 10px;
 
 				.form-group.frappe-control {
-					min-width: 150px;
+					min-width: 145px;
 					padding: 0px;
 					margin: 0px;
+					align-self: center;
+
+					.checkbox {
+						.input-xs {
+							height: var(--checkbox-size);
+						}
+
+						.help-box {
+							display: none;
+						}
+					}
 
 					.input-xs {
 						height: 28px;
@@ -157,6 +175,7 @@
 				}
 
 				.no-result {
+					min-height: 330px;
 					border-top: 1px solid var(--border-color);
 				}
 			}

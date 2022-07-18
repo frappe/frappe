@@ -1,33 +1,14 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ _(title) }}{% endblock %}
-
 {% block breadcrumbs %}
-	{% if has_header and login_required %}
-		{% include "templates/includes/breadcrumbs.html" %}
-	{% endif %}
+	<div style="height: 3rem"></div>
 {% endblock %}
-
-{% macro container_attributes() %}
-	{% set attributes = {
-		'data-web-form': name,
-		'data-web-form-doctype': doc_type,
-		'data-web-form-docname': doc_name or '',
-		'data-login-required': frappe.utils.cint(login_required and frappe.session.user=='Guest'),
-		'data-is-list': frappe.utils.cint(is_list),
-		'data-allow-delete': allow_delete
-	} %}
-
-	{%- for attr in attributes -%}
-		{{ attr }}="{{ attributes[attr] }}"
-	{% endfor -%}
-{% endmacro %}
 
 {% block page_content %}
 	<!-- main card -->
-	<div class="frappe-card list-card">
+	<div class="web-list-container frappe-card">
 		<!-- list -->
-		<div class="d-flex justify-content-between web-list-head">
+		<div class="d-flex justify-content-between web-list-header">
 			<h1>{{ _(list_title or title) }}</h1>
 			<div class="list-view-actions">
 				{%- if allow_multiple -%}
@@ -35,8 +16,6 @@
 				{%- endif -%}
 			</div>
 		</div>
-
-		<div class="web-list-wrapper" {{ container_attributes() }}></div>
 		<div class="list-filters hide"></div>
 		<div class="list-table overflow-auto"></div>
 		<div class="text-right list-view-footer"></div>
@@ -45,20 +24,9 @@
 
 {% block script %}
 	<script>
-		frappe.boot = {
-			sysdefaults: {
-				float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
-				date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
-			},
-			time_zone: {
-				system: "{{ frappe.utils.get_time_zone() }}",
-				user: "{{ frappe.db.get_value('User', frappe.session.user, 'time_zone') or frappe.utils.get_time_zone() }}"
-			},
-		};
-		// for backward compatibility of some libs
-		frappe.sys_defaults = frappe.boot.sysdefaults;
-		frappe._messages = JSON.parse(`{{ translated_messages }}`);
-		frappe.web_form_doc = {{ web_form_doc | json }};
+		frappe.boot = {{ boot }}
+		frappe._messages = {{ translated_messages }}
+		frappe.web_form_doc = {{ web_form_doc | json }}
 	</script>
 
 	{{ include_script("controls.bundle.js") }}
