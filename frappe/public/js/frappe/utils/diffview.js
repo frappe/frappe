@@ -89,7 +89,7 @@ frappe.ui.DiffView = class DiffView {
 			} else if (line.startsWith("-")) {
 				line_class = "delete";
 			}
-			html += `<div class=${line_class}>${line}</div>`;
+			html += `<div class="${line_class} text-wrap">${line}</div>`;
 		});
 		return `<div class='diffview'>${html}</div>`;
 	}

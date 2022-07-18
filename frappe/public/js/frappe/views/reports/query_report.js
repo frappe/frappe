@@ -944,10 +944,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			};
 		}
 		options.axisOptions = {
-			shortenYAxisNumbers: 1
+			shortenYAxisNumbers: 1,
+			numberFormatter: frappe.utils.format_chart_axis_number,
 		};
 		options.height = 280;
-
 		return options;
 	}
 
