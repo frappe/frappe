@@ -22,6 +22,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 )
 from frappe.social.doctype.post.post import frequently_visited_links
 from frappe.translate import get_lang_dict
+from frappe.utils import cstr
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -134,6 +135,10 @@ def get_allowed_pages(cache=False):
 
 def get_allowed_reports(cache=False):
 	return get_user_pages_or_reports("Report", cache=cache)
+
+
+def get_allowed_report_names(cache=False):
+	return {cstr(report) for report in get_allowed_reports(cache).keys() if report}
 
 
 def get_user_pages_or_reports(parent, cache=False):

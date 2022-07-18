@@ -11,9 +11,10 @@ from frappe.model.naming import (
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
 	getseries,
+	parse_naming_series,
 	revert_series_if_last,
 )
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, nowdate, nowtime
 
 
 class TestNaming(unittest.TestCase):
@@ -27,9 +28,9 @@ class TestNaming(unittest.TestCase):
 		"""
 		Append number to name based on existing values
 		if Bottle exists
-		        Bottle -> Bottle-1
+		                Bottle -> Bottle-1
 		if Bottle-1 exists
-		        Bottle -> Bottle-2
+		                Bottle -> Bottle-2
 		"""
 
 		note = frappe.new_doc("Note")
@@ -116,6 +117,20 @@ class TestNaming(unittest.TestCase):
 				month=now_datetime().strftime("%m"), status=todo.status, series=series
 			),
 		)
+
+	def test_format_autoname_for_datetime_field(self):
+		"""Test if datetime, date and time objects get converted to strings for naming."""
+		doctype = new_doctype("TestAutoname", autoname="format:TestAutoname-{field}-{##}").insert()
+
+		for field in [now_datetime(), nowdate(), nowtime()]:
+			doc = frappe.new_doc(doctype.name)
+			doc.field = field
+			doc.insert()
+
+			series = getseries("", 2)
+			series = int(series) - 1
+
+			self.assertEqual(doc.name, f"TestAutoname-{field}-{series:02}")
 
 	def test_format_autoname_for_consecutive_week_number(self):
 		"""
@@ -266,6 +281,32 @@ class TestNaming(unittest.TestCase):
 		# case 4: no name specified
 		tag = frappe.get_doc({"doctype": "Tag", "__newname": ""})
 		self.assertRaises(frappe.ValidationError, tag.insert)
+
+	def test_naming_with_empty_part(self):
+		# check naming with empty part (duplicate dots)
+
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = "on_update"
+
+		series = "KOOH-..{webhook_docevent}.-.####"
+
+		name = parse_naming_series(series, doc=webhook)
+		self.assertTrue(
+			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
+		)
+
+	def test_naming_with_unsupported_part(self):
+		# check naming with empty part (duplicate dots)
+
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = {"dict": "<not supported>"}
+
+		series = "KOOH-..{webhook_docevent}.-.####"
+
+		name = parse_naming_series(series, doc=webhook)
+		self.assertTrue(
+			name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value"
+		)
 
 
 def make_invalid_todo():

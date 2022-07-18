@@ -389,7 +389,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 				# is it a filename?
 				try:
 					# check for both filename and file id
-					file_id = frappe.db.get_list("File", or_filters={"file_name": a, "name": a}, limit=1)
+					file_id = frappe.db.get_all("File", or_filters={"file_name": a, "name": a}, limit=1)
 					if not file_id:
 						frappe.throw(_("Unable to find attachment {0}").format(a))
 					file_id = file_id[0]["name"]
@@ -666,7 +666,7 @@ def sendmail(
 			else:
 				break
 
-	except:
+	except Exception:
 		traceback = frappe.log_error("frappe.core.doctype.communication.email.sendmail")
 		raise
 

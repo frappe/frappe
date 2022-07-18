@@ -21,6 +21,19 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 			frappe.views.trees[options.doctype] = new frappe.views.TreeView(options);
 		});
 	}
+
+	on_show() {
+		/**
+		 * When the the treeview is visited using the previous button,
+		 * the framework just show the treeview element that is hidden.
+		 * Due to this, the data of the tree can be old.
+		 * To deal with this, the tree will be refreshed whenever the
+		 * treeview is visible.
+		 */
+		let route = frappe.get_route();
+		let treeview = frappe.views.trees[route[1]];
+		treeview && treeview.make_tree();
+	}
 }
 
 frappe.views.TreeView = Class.extend({

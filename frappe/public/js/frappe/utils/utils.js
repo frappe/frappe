@@ -1355,5 +1355,9 @@ Object.assign(frappe.utils, {
 			return array;
 		}
 		return undefined;
+	},
+
+	is_current_user(user) {
+		return user === frappe.session.user;
 	}
 });

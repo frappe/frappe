@@ -50,7 +50,7 @@ class Webhook(Document):
 			try:
 				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_(e))
+				frappe.throw(_("Invalid Condition: {}").format(e))
 
 	def validate_request_url(self):
 		try:
@@ -116,9 +116,9 @@ def log_request(url, headers, data, res):
 			"doctype": "Webhook Request Log",
 			"user": frappe.session.user if frappe.session.user else None,
 			"url": url,
-			"headers": json.dumps(headers, indent=4) if headers else None,
-			"data": json.dumps(data, indent=4) if isinstance(data, dict) else data,
-			"response": json.dumps(res.json(), indent=4) if res else None,
+			"headers": frappe.as_json(headers) if headers else None,
+			"data": frappe.as_json(data) if data else None,
+			"response": frappe.as_json(res.json()) if res else None,
 		}
 	)
 

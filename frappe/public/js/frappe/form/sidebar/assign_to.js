@@ -165,15 +165,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				}
 			},
 			{
-				label: __("Comment"),
-				fieldtype: 'Small Text',
-				fieldname: 'description'
-			},
-			{
 				fieldtype: 'Section Break'
-			},
-			{
-				fieldtype: 'Column Break'
 			},
 			{
 				label: __("Complete By"),
@@ -203,6 +195,14 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				],
 				// Pick up priority from the source document, if it exists and is available in ToDo
 				default: ["Low", "Medium", "High"].includes(me.frm && me.frm.doc.priority ? me.frm.doc.priority : 'Medium')
+			},
+			{
+				fieldtype: 'Section Break'
+			},
+			{
+				label: __("Comment"),
+				fieldtype: 'Small Text',
+				fieldname: 'description'
 			}
 		];
 	}

@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import is_image
+from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
@@ -28,13 +28,53 @@ class LetterHead(Document):
 
 	def set_image(self):
 		if self.source == "Image":
-			if self.image and is_image(self.image):
-				self.content = '<img src="{}">'.format(self.image)
-				frappe.msgprint(frappe._("Header HTML set from attachment {0}").format(self.image), alert=True)
-			else:
-				frappe.msgprint(
-					frappe._("Please attach an image file to set HTML"), alert=True, indicator="orange"
-				)
+			self.set_image_as_html(
+				field="image",
+				width="image_width",
+				height="image_height",
+				align="align",
+				html_field="content",
+				dimension_prefix="image_",
+				success_msg=_("Header HTML set from attachment {0}").format(self.image),
+				failure_msg=_("Please attach an image file to set HTML for Letter Head."),
+			)
+
+		if self.footer_source == "Image":
+			self.set_image_as_html(
+				field="footer_image",
+				width="footer_image_width",
+				height="footer_image_height",
+				align="footer_align",
+				html_field="footer",
+				dimension_prefix="footer_image_",
+				success_msg=_("Footer HTML set from attachment {0}").format(self.footer_image),
+				failure_msg=_("Please attach an image file to set HTML for Footer."),
+			)
+
+	def set_image_as_html(
+		self, field, width, height, dimension_prefix, align, html_field, success_msg, failure_msg
+	):
+		if not self.get(field) or not is_image(self.get(field)):
+			frappe.msgprint(failure_msg, alert=True, indicator="orange")
+			return
+
+		self.set(width, flt(self.get(width)))
+		self.set(height, flt(self.get(height)))
+
+		# To preserve the aspect ratio of the image, apply constraints only on
+		# the greater dimension and allow the other to scale accordingly
+		dimension = "width" if width > height else "height"
+		dimension_value = self.get(f"{dimension_prefix}{dimension}")
+
+		self.set(
+			html_field,
+			f"""<div style="text-align: {self.get(align, "").lower()};">
+<img src="{self.get(field)}" alt="{self.get("name")}"
+{dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
+</div>""",
+		)
+
+		frappe.msgprint(success_msg, alert=True)
 
 	def on_update(self):
 		self.set_as_default()

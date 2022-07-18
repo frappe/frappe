@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import datetime
 import re
 
 from six import string_types
@@ -11,6 +12,16 @@ import frappe
 from frappe import _
 from frappe.model import log_types
 from frappe.utils import cint, cstr, now_datetime
+
+# Types that can be using in naming series fields
+NAMING_SERIES_PART_TYPES = (
+	int,
+	str,
+	datetime.datetime,
+	datetime.date,
+	datetime.time,
+	datetime.timedelta,
+)
 
 
 def set_new_name(doc):
@@ -152,11 +163,14 @@ def make_autoname(key="", doctype="", doc=""):
 
 def parse_naming_series(parts, doctype="", doc=""):
 	n = ""
-	if isinstance(parts, string_types):
+	if isinstance(parts, str):
 		parts = parts.split(".")
 	series_set = False
 	today = now_datetime()
 	for e in parts:
+		if not e:
+			continue
+
 		part = ""
 		if e.startswith("#"):
 			if not series_set:
@@ -185,8 +199,10 @@ def parse_naming_series(parts, doctype="", doc=""):
 		else:
 			part = e
 
-		if isinstance(part, string_types):
+		if isinstance(part, str):
 			n += part
+		elif isinstance(part, NAMING_SERIES_PART_TYPES):
+			n += cstr(part).strip()
 
 	return n
 

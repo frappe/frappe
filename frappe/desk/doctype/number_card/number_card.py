@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
+from frappe.boot import get_allowed_report_names
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -92,9 +93,13 @@ def has_permission(doc, ptype, user):
 	if "System Manager" in roles:
 		return True
 
-	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	if doc.document_type in allowed_doctypes:
-		return True
+	if doc.type == "Report":
+		if doc.report_name in get_allowed_report_names():
+			return True
+	else:
+		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		if doc.document_type in allowed_doctypes:
+			return True
 
 	return False
 

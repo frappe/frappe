@@ -42,7 +42,7 @@ def reset_doc(doctype):
 			["https://raw.githubusercontent.com/frappe", app, branch, doc_path.split("apps/" + app)[1]]
 		)
 		original_file = urlopen(git_link).read()
-	except:
+	except Exception:
 		print("Did not find {0} in {1}".format(doctype, app))
 		return
 

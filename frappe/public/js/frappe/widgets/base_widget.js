@@ -92,8 +92,8 @@ export default class Widget {
 			${ this.shadow ? "widget-shadow" : " " }
 		" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
-				<div>
-					<div class="widget-title ellipsis"></div>
+				<div class="widget-label">
+					<div class="widget-title"></div>
 					<div class="widget-subtitle"></div>
 				</div>
 				<div class="widget-control"></div>
@@ -119,9 +119,9 @@ export default class Widget {
 
 		if (this.icon) {
 			let icon = frappe.utils.icon(this.icon);
-			this.title_field[0].innerHTML = `${icon} <span>${title}</span>`;
+			this.title_field[0].innerHTML = `${icon} <span class="ellipsis" title="${title}">${title}</span>`;
 		} else {
-			this.title_field[0].innerHTML = title;
+			this.title_field[0].innerHTML = `<span class="ellipsis" title="${title}">${title}</span>`;
 			if (max_chars) {
 				this.title_field[0].setAttribute('title', this.label);
 			}

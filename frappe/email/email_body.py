@@ -332,12 +332,12 @@ class EMail:
 
 	def set_header(self, key, value):
 		if key in self.msg_root:
+			# delete key if found
+			# this is done because adding the same key doesn't override
+			# the existing key, rather appends another header with same key.
 			del self.msg_root[key]
 
-		try:
-			self.msg_root[key] = value
-		except ValueError:
-			self.msg_root[key] = sanitize_email_header(value)
+		self.msg_root[key] = sanitize_email_header(value)
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
@@ -377,7 +377,7 @@ def get_formatted_html(
 	html = scrub_urls(rendered_email)
 
 	if unsubscribe_link:
-		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
+		html = html.replace("<!--unsubscribe_link_here-->", unsubscribe_link.html)
 
 	return inline_style_in_html(html)
 
@@ -590,8 +590,17 @@ def get_header(header=None):
 	return email_header
 
 
-def sanitize_email_header(str):
-	return str.replace("\r", "").replace("\n", "")
+def sanitize_email_header(header: str):
+	"""
+	Removes all line boundaries in the headers.
+
+	Email Policy (python's std) has some bugs in it which uses splitlines
+	and raises ValueError (ref: https://github.com/python/cpython/blob/main/Lib/email/policy.py#L143).
+	Hence removing all line boundaries while sanitization of headers to prevent such faliures.
+	The line boundaries which are removed can be found here: https://docs.python.org/3/library/stdtypes.html#str.splitlines
+	"""
+
+	return "".join(header.splitlines())
 
 
 def get_brand_logo(email_account):

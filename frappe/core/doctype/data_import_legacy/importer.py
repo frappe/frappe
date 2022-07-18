@@ -333,7 +333,7 @@ def upload(
 	try:
 		doctype = get_header_row(get_data_keys_definition().main_table)[1]
 		columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
-	except:
+	except Exception:
 		frappe.throw(_("Cannot change header content"))
 	doctypes = []
 	column_idx_to_fieldname = {}
