@@ -23,16 +23,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.set_sections();
 		this.set_field_values();
 		this.setup_listeners();
-		if (this.allow_print && !this.is_new) this.setup_print_button();
-		if (!this.is_form_editable && !this.is_new && this.allow_edit) {
-			this.setup_edit_button();
-		}
 
 		if (this.is_new || this.is_form_editable) {
-			this.setup_cancel_button();
 			this.setup_primary_action();
 		}
 
+		this.setup_footer_actions();
 		this.setup_previous_next_button();
 		this.toggle_section();
 
@@ -75,6 +71,14 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.sections = $(`.form-section`);
 	}
 
+	setup_footer_actions() {
+		if (this.is_multi_step_form) return;
+
+		if ($('.frappe-card').height() > 600) {
+			$(".web-form-footer").removeClass("hide");
+		}
+	}
+
 	setup_previous_next_button() {
 		let me = this;
 
@@ -92,7 +96,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$('.btn-previous').on('click', function () {
 			let is_validated = me.validate_section();
 
-			if (!is_validated) return;
+			if (!is_validated) return false;
 
 			/**
 				The eslint utility cannot figure out if this is an infinite loop in backwards and
@@ -112,12 +116,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			}
 			/* eslint-enable for-direction */
 			me.toggle_section();
+			return false;
 		});
 
 		$('.btn-next').on('click', function () {
 			let is_validated = me.validate_section();
 
-			if (!is_validated) return;
+			if (!is_validated) return false;
 
 			for (let idx = me.current_section; idx < me.sections.length; idx++) {
 				let is_empty = me.is_next_section_empty(idx);
@@ -128,6 +133,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				}
 			}
 			me.toggle_section();
+			return false;
 		});
 	}
 
@@ -149,58 +155,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.set_values(values);
 	}
 
-	add_button(name, type, action, wrapper_class=".web-form-actions") {
-		const button = document.createElement("button");
-		button.classList.add("btn", "btn-" + type, "btn-sm", "ml-2");
-		button.innerHTML = name;
-		button.onclick = action;
-		document.querySelector(wrapper_class).appendChild(button);
-	}
-
-	add_button_to_footer(name, type, action) {
-		this.add_button(name, type, action, '.web-form-footer');
-	}
-
-	add_button_to_header(name, type, action) {
-		this.add_button(name, type, action, '.web-form-actions');
-	}
-
 	setup_primary_action() {
-		this.add_button_to_header(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
-			this.save()
-		);
-
-		if (!this.is_multi_step_form && $('.frappe-card').height() > 600) {
-			// add button on footer if page is long
-			this.add_button_to_footer(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
-				this.save()
-			);
-		}
-	}
-
-	setup_edit_button() {
-		this.add_button_to_header(__("Edit", null, "Button in web form"), "primary", () =>
-			this.edit()
-		);
-
-		if (!this.is_multi_step_form && $('.frappe-card').height() > 600) {
-			// add button on footer if page is long
-			this.add_button_to_footer(__("Edit", null, "Button in web form"), "primary", () =>
-				this.edit()
-			);
-		}
-	}
-
-	setup_cancel_button() {
-		this.add_button_to_header(__("Cancel", null, "Button in web form"), "light", () => this.cancel());
-	}
-
-	setup_print_button() {
-		this.add_button_to_header(
-			frappe.utils.icon('printer'),
-			"light",
-			() => this.print()
-		);
+		$(".web-form-container").on("submit", () => this.save());
 	}
 
 	validate_section() {
@@ -368,14 +324,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				window.saving = false;
 			}
 		});
-		return true;
-	}
-
-	print() {
-		window.open(`/printview?
-			doctype=${this.doc_type}
-			&name=${this.doc.name}
-			&format=${this.print_format || "Standard"}`, '_blank');
+		return false;;
 	}
 
 	edit() {

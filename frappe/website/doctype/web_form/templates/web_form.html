@@ -2,6 +2,27 @@
 
 {% block breadcrumbs %}{% endblock %}
 
+{% macro action_buttons() %}
+	<!-- print button -->
+	{% if allow_print and not is_new %}
+		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
+		<a href="{{ print_format_url }}" target="_blank" class="btn btn-light btn-sm ml-2">
+			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
+		</a>
+	{% endif %}
+
+	<!-- edit button -->
+	{% if doc_name and not is_form_editable %}
+		<a href="/{{ route }}/{{ doc_name }}/edit" class="btn btn-primary btn-sm ml-2">{{ _("Edit", null, "Button in web form") }}</a>
+	{% endif %}
+
+	<!-- cancel & submit button -->
+	{% if is_new or is_form_editable %}
+		<a href="/{{ route }}/{% if doc_name %}{{ doc_name }}{% endif %}" class="btn btn-light btn-sm ml-2">{{ _("Cancel", null, "Button in web form") }}</a>
+		<button type="submit" class="btn btn-primary btn-sm ml-2">{{ button_label or _("Save", null, "Button in web form") }}</button>
+	{% endif %}
+{% endmacro %}
+
 {% block page_content %}
 
 	<!-- breadcrumb -->
@@ -12,17 +33,21 @@
 	{% endif %}
 
 	<!-- main card -->
-	<div class="web-form-container frappe-card">
+	<form role="form" class="web-form-container frappe-card">
 		<div class="d-flex justify-content-between web-form-header">
 			<h1>{{ _(title) }}</h1>
-			<div class="web-form-actions"></div>
+			<div class="web-form-actions">
+				{{ action_buttons() }}
+			</div>
 		</div>
-		<div role="form">
+		<div class="web-form-body">
 			{% if introduction_text %}
 				<div class="web-form-introduction text-muted">{{ introduction_text }}</div>
 			{% endif %}
 			<div class="web-form-wrapper"></div>
-			<div class="text-right web-form-footer"></div>
+			<div class="text-right web-form-footer hide">
+				{{ action_buttons() }}
+			</div>
 		</div>
 
 		<!-- attachments -->
@@ -40,7 +65,7 @@
 				{% endfor %}
 			</div>
 		{% endif %} {# attachments #}
-	</div>
+	</form>
 
 	<!-- comments -->
 	{% if allow_comments and not is_new and not is_list -%}

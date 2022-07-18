@@ -154,7 +154,7 @@ def get_context(context):
 				_("You don't have the permissions to access this document"), frappe.PermissionError
 			)
 
-		self.is_form_editable = False
+		context.is_form_editable = False
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
@@ -167,7 +167,7 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
 		if frappe.form_dict.is_edit:
-			self.is_form_editable = True
+			context.is_form_editable = True
 
 		if (
 			not frappe.form_dict.is_edit
@@ -175,7 +175,7 @@ def get_context(context):
 			and self.allow_edit
 			and frappe.form_dict.name
 		):
-			self.is_form_editable = True
+			context.is_form_editable = True
 			frappe.redirect(f"/{frappe.local.path}/edit")
 
 		if (
@@ -214,7 +214,7 @@ def get_context(context):
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
 
-		context.web_form_doc.is_form_editable = self.is_form_editable
+		context.web_form_doc.is_form_editable = context.is_form_editable
 		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new"]))
 
 		if self.show_sidebar and self.website_sidebar:
@@ -290,7 +290,7 @@ def get_context(context):
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
-			if self.is_form_editable:
+			if context.is_form_editable:
 				context.parents.append(
 					{
 						"label": _(context.title),
