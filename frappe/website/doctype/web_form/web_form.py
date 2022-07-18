@@ -134,6 +134,7 @@ def get_context(context):
 
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
+		context.is_form_editable = False
 		self.set_web_form_module()
 
 		if frappe.form_dict.is_list:
@@ -142,19 +143,20 @@ def get_context(context):
 			context.template = "website/doctype/web_form/templates/web_form.html"
 
 		# check permissions
-		if frappe.session.user == "Guest" and frappe.form_dict.name:
-			frappe.throw(
-				_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError
-			)
+		if frappe.form_dict.name:
+			if frappe.session.user == "Guest":
+				frappe.throw(
+					_("You need to be logged in to access this {0}.").format(self.doc_type),
+					frappe.PermissionError,
+				)
 
-		if frappe.form_dict.name and not self.has_web_form_permission(
-			self.doc_type, frappe.form_dict.name
-		):
-			frappe.throw(
-				_("You don't have the permissions to access this document"), frappe.PermissionError
-			)
+			if not frappe.db.exists(self.doc_type, frappe.form_dict.name):
+				raise frappe.PageDoesNotExistError()
 
-		context.is_form_editable = False
+			if not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
+				frappe.throw(
+					_("You don't have the permissions to access this document"), frappe.PermissionError
+				)
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
@@ -208,14 +210,9 @@ def get_context(context):
 				context.has_column_break = True
 				break
 
-		if frappe.form_dict.name:
-			context.doc_name = frappe.form_dict.name
-
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
-
-		context.web_form_doc.is_form_editable = context.is_form_editable
-		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new"]))
+		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new", "is_form_editable"]))
 
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)
@@ -225,27 +222,7 @@ def get_context(context):
 		else:
 			self.load_form_data(context)
 
-		context.parents = self.get_parents(context)
-
-		if self.breadcrumbs:
-			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
-
-		if frappe.form_dict.is_new:
-			context.title = _("New") + " " + context.title
-
-		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
-			frappe.session.user != "Guest" or not self.login_required
-		)
-
-		if context.success_message:
-			context.success_message = frappe.db.escape(context.success_message.replace("\n", "<br>")).strip(
-				"'"
-			)
-
 		self.add_custom_context_and_script(context)
-		if not context.max_attachment_size:
-			context.max_attachment_size = get_max_file_size() / 1024 / 1024
-
 		self.load_translations(context)
 
 		context.boot = get_boot_data()
@@ -273,6 +250,26 @@ def get_context(context):
 				}
 			)
 
+		context.parents = self.get_parents(context)
+
+		if self.breadcrumbs:
+			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
+
+		if frappe.form_dict.is_new:
+			context.title = _("New") + " " + context.title
+
+		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
+			frappe.session.user != "Guest" or not self.login_required
+		)
+
+		if context.success_message:
+			context.success_message = frappe.db.escape(context.success_message.replace("\n", "<br>")).strip(
+				"'"
+			)
+
+		if not context.max_attachment_size:
+			context.max_attachment_size = get_max_file_size() / 1024 / 1024
+
 		# For Table fields, server-side processing for meta
 		for field in context.web_form_doc.web_form_fields:
 			if field.fieldtype == "Table":
@@ -288,7 +285,8 @@ def get_context(context):
 
 		# load reference doc
 		if frappe.form_dict.name:
-			context.reference_doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
+			context.doc_name = frappe.form_dict.name
+			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
