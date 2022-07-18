@@ -85,7 +85,7 @@ export default class WebFormList {
 			delete this.filters[field];
 		} else {
 			if (["Data", "Currency", "Float", "Int"].includes(fieldtype)) {
-				value = ['like','%' + value + '%'];
+				value = ['like', '%' + value + '%'];
 			}
 			Object.assign(this.filters, Object.fromEntries([[field, value]]));
 		}

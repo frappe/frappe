@@ -284,6 +284,8 @@ def get_context(context):
 					self.name, field.options, field.allow_read_on_all_link_options
 				)
 
+		context.reference_doc = {}
+
 		# load reference doc
 		if frappe.form_dict.name:
 			context.reference_doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
