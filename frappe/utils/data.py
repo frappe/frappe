@@ -1545,7 +1545,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 			host_name = protocol + frappe.local.site
 
 		else:
-			host_name = frappe.db.get_value("Website Settings", "Website Settings", "subdomain")
+			host_name = frappe.db.get_single_value("Website Settings", "subdomain")
 
 			if not host_name:
 				host_name = "http://localhost"

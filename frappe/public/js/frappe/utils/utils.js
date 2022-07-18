@@ -1537,4 +1537,29 @@ Object.assign(frappe.utils, {
 	is_current_user(user) {
 		return user === frappe.session.user;
 	},
+
+	debug: {
+		watch_property(obj, prop, callback=console.trace) {
+			if (!frappe.boot.developer_mode) {
+				return;
+			}
+			console.warn("Adding property watcher, make sure to remove it after debugging.");
+
+			// Adapted from https://stackoverflow.com/a/11658693
+			// Reused under CC-BY-SA 4.0
+			// changes: variable names are changed for consistency with our codebase
+			const private_prop = "$_" + prop + "_$";
+			obj[private_prop] = obj[prop];
+
+			Object.defineProperty(obj, prop, {
+				get: function() {
+					return obj[private_prop];
+				},
+				set: function(value) {
+					callback();
+					obj[private_prop] = value;
+				},
+			});
+		},
+	}
 });
