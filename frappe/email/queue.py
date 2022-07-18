@@ -410,9 +410,13 @@ def flush(from_test=False):
 		from_test = True
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	smtpserver_dict = frappe._dict()
 =======
 	if cint(frappe.db.get_default("hold_queue")) == 1:
+=======
+	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
+>>>>>>> 4b0a9da400 (refactor: rename `hold_queue` to `suspend_email_queue`)
 		return
 >>>>>>> 9a7f92ca1d (fix!: allow system managers to toggle email queue)
 

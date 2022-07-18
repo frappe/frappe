@@ -108,7 +108,7 @@ class EmailQueue(Document):
 		if (
 			frappe.are_emails_muted()
 			or not self.is_to_be_sent()
-			or cint(frappe.db.get_default("hold_queue")) == 1
+			or cint(frappe.db.get_default("suspend_email_queue")) == 1
 		):
 			return False
 
@@ -383,7 +383,7 @@ def send_now(name):
 @frappe.whitelist()
 def toggle_sending(enable):
 	frappe.only_for("System Manager")
-	frappe.db.set_default("hold_queue", 0 if sbool(enable) else 1)
+	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
 
 def on_doctype_update():

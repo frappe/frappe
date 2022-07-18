@@ -209,5 +209,9 @@ frappe.patches.v14_0.update_auto_account_deletion_duration
 frappe.patches.v14_0.update_integration_request
 frappe.patches.v14_0.set_document_expiry_default
 frappe.patches.v14_0.delete_data_migration_tool
+<<<<<<< HEAD
 frappe.patches.v14_0.set_hold_queue_default
 >>>>>>> 9a7f92ca1d (fix!: allow system managers to toggle email queue)
+=======
+frappe.patches.v14_0.set_suspend_email_queue_default
+>>>>>>> 4b0a9da400 (refactor: rename `hold_queue` to `suspend_email_queue`)
