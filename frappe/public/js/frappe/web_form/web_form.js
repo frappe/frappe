@@ -324,7 +324,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				window.saving = false;
 			}
 		});
-		return false;;
+		return false;
 	}
 
 	edit() {

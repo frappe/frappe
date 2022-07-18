@@ -91,7 +91,7 @@ context('Web Form', () => {
 
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
-		cy.get('.web-list-head h1').should('contain.text', 'Note List');
+		cy.get('.web-list-header h1').should('contain.text', 'Note List');
 	});
 
 	it('Show Custom List Columns', () => {
@@ -172,7 +172,7 @@ context('Web Form', () => {
 		cy.visit('/note/Note 1');
 		cy.url().should('include', '/note/Note%201');
 
-		cy.get('.web-form-actions button').contains('Edit').click();
+		cy.get('.web-form-actions a').contains('Edit').click();
 		cy.url().should('include', '/note/Note%201/edit');
 
 		// Editable Field
@@ -227,7 +227,7 @@ context('Web Form', () => {
 	it('Navigate and Submit a WebForm', () => {
 		cy.visit('/update-profile');
 
-		cy.get('.web-form-actions button').contains('Edit').click();
+		cy.get('.web-form-actions a').contains('Edit').click();
 
 		cy.fill_field('last_name', '_Test User');
 
@@ -239,7 +239,7 @@ context('Web Form', () => {
 		cy.call('frappe.tests.ui_test_helpers.update_webform_to_multistep').then(() => {
 			cy.visit('/update-profile-duplicate');
 
-			cy.get('.web-form-actions button').contains('Edit').click();
+			cy.get('.web-form-actions a').contains('Edit').click();
 
 			cy.fill_field('last_name', '_Test User');
 
