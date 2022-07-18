@@ -40,7 +40,13 @@ export default class WebFormList {
 			let fields = response.message;
 			fields.length && filter_area.removeClass('hide');
 			fields.forEach(field => {
-				if (field.default) this.add_filter(field.fieldname, field.default, field.fieldtype);
+				if (["Text Editor", "Text", "Small Text"].includes(field.fieldtype)) {
+					field.fieldtype = "Data";
+				}
+
+				if (["Table", "Signature"].includes(field.fieldtype)) {
+					return;
+				}
 
 				let input = frappe.ui.form.make_control({
 					df: {
@@ -56,7 +62,6 @@ export default class WebFormList {
 						}
 					},
 					parent: filter_area,
-					value: field.default,
 					render_input: 1,
 					only_input: field.fieldtype == "Check" ? false : true,
 				});
@@ -79,7 +84,9 @@ export default class WebFormList {
 		if (!value) {
 			delete this.filters[field];
 		} else {
-			if (fieldtype === 'Data') value = ['like', value + '%'];
+			if (["Data", "Currency", "Float", "Int"].includes(fieldtype)) {
+				value = ['like','%' + value + '%'];
+			}
 			Object.assign(this.filters, Object.fromEntries([[field, value]]));
 		}
 	}
