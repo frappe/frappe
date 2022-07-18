@@ -465,6 +465,7 @@ class Engine:
 			is_list = False
 
 		if is_list:
+			fields = [field.replace("""`""", "") for field in fields]
 			function_objects += self.function_objects_from_list(fields=fields)
 
 		is_str = isinstance(fields, str)
