@@ -593,6 +593,10 @@ details > summary:focus {
 	background-color: var(--diff-removed);
 }
 
+.chart-wrapper {
+	padding: 1em;
+}
+
 // REDESIGN TODO: Handling of broken images?
 // img.no-image:before {
 // 	.img-background();
