@@ -67,26 +67,15 @@ const show_new_topic_modal = (e) => {
 };
 
 const setup_socket_io = () => {
-	const assets = [
-		"/assets/frappe/js/lib/socket.io.min.js",
-		"/assets/frappe/js/frappe/socketio_client.js"
-	];
-
-	frappe.require(assets, () => {
-		if (window.dev_server) {
-			frappe.boot.socketio_port = "9000";
-		}
-
-		frappe.socketio.init(9000);
-		frappe.socketio.socket.on("publish_message", (data) => {
-			publish_message(data);
-		});
-		frappe.socketio.socket.on("update_message", (data) => {
-			update_message(data);
-		});
-		frappe.socketio.socket.on("delete_message", (data) => {
-			delete_message(data);
-		});
+	frappe.socketio.init(window.socketio_port || "9000");
+	frappe.socketio.socket.on("publish_message", (data) => {
+		publish_message(data);
+	});
+	frappe.socketio.socket.on("update_message", (data) => {
+		update_message(data);
+	});
+	frappe.socketio.socket.on("delete_message", (data) => {
+		delete_message(data);
 	});
 };
 

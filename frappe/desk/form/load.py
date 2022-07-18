@@ -33,25 +33,20 @@ def getdoc(doctype, name, user=None):
 	if not frappe.db.exists(doctype, name):
 		return []
 
-	try:
-		doc = frappe.get_doc(doctype, name)
-		run_onload(doc)
+	doc = frappe.get_doc(doctype, name)
+	run_onload(doc)
 
-		if not doc.has_permission("read"):
-			frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-				frappe.bold(doctype + " " + name)
-			)
-			raise frappe.PermissionError(("read", doctype, name))
+	if not doc.has_permission("read"):
+		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
+			frappe.bold(doctype + " " + name)
+		)
+		raise frappe.PermissionError(("read", doctype, name))
 
-		doc.apply_fieldlevel_read_permissions()
+	doc.apply_fieldlevel_read_permissions()
 
-		# add file list
-		doc.add_viewed()
-		get_docinfo(doc)
-
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	# add file list
+	doc.add_viewed()
+	get_docinfo(doc)
 
 	doc.add_seen()
 	set_link_titles(doc)

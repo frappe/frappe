@@ -18,8 +18,8 @@
 		{% for item in data.changed %}
 		<tr>
 			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
-			<td class="danger">{{ item[1] }}</td>
-			<td class="success">{{ item[2] }}</td>
+			<td class="diff-remove">{{ item[1] }}</td>
+			<td class="diff-add">{{ item[2] }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>
@@ -43,8 +43,7 @@
 			{% for item in values %}
 			<tr>
 				<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
-				<td class="{{
-					key==="added" ? __("success") : __("danger") }}">
+				<td class="{{ key==="added" ? "diff-add" : "diff-remove" }}">
 					{% var item_keys = Object.keys(item[1]).sort(); %}
 					<table class="table table-bordered">
 						<tbody>
@@ -86,8 +85,8 @@
 				<td>{{ frappe.meta.get_label(doc.ref_doctype, table_info[0]) }}</td>
 				<td>{{ table_info[1] }}</td>
 				<td>{{ item[0] }}</td>
-				<td class="danger">{{ item[1] }}</td>
-				<td class="success">{{ item[2] }}</td>
+				<td class="diff-remove">{{ item[1] }}</td>
+				<td class="diff-add">{{ item[2] }}</td>
 			</tr>
 			{% endfor %}
 		{% endfor %}

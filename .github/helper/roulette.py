@@ -9,7 +9,7 @@ from functools import lru_cache
 
 
 @lru_cache(maxsize=None)
-def fetch_pr_data(pr_number, repo, endpoint):
+def fetch_pr_data(pr_number, repo, endpoint=""):
 	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
 
 	if endpoint:
@@ -37,7 +37,7 @@ def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
 	return has_label(pr_number, "Run UI Tests", repo)
 
 def has_label(pr_number, label, repo="frappe/frappe"):
-	return any([label["name"] for label in fetch_pr_data(pr_number, repo, "")["labels"] if label["name"] == label])
+	return any([fetched_label["name"] for fetched_label in fetch_pr_data(pr_number, repo)["labels"] if fetched_label["name"] == label])
 
 def is_py(file):
 	return file.endswith("py")
@@ -46,10 +46,10 @@ def is_ci(file):
 	return ".github" in file
 
 def is_frontend_code(file):
-	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue"))
+	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
 
 def is_docs(file):
-	regex = re.compile(r'\.(md|png|jpg|jpeg|csv)$|^.github|LICENSE')
+	regex = re.compile(r'\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE')
 	return bool(regex.search(file))
 
 
