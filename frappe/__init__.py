@@ -22,7 +22,12 @@ from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, overload
 import click
 from werkzeug.local import Local, release_local
 
-from frappe.query_builder import get_query_builder, patch_query_aggregation, patch_query_execute
+from frappe.query_builder import (
+	get_qb_engine,
+	get_query_builder,
+	patch_query_aggregation,
+	patch_query_execute,
+)
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cstr, sbool
 
@@ -238,7 +243,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
-
+	local.qb.engine = get_qb_engine()
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):

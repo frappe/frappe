@@ -30,17 +30,6 @@ jobs:
       - name: Clone
         uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: "gabrielfalcao/pyenv-action@v10"
-        with:
-          versions: 3.10:latest, 3.7:latest
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14
-          check-latest: true
-
       - name: Check if build should be run
         id: check-build
         run: |
@@ -49,6 +38,19 @@ jobs:
           TYPE: "server"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
+
+      - name: Setup Python
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: "gabrielfalcao/pyenv-action@v10"
+        with:
+          versions: 3.10:latest, 3.7:latest
+
+      - name: Setup Node
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          check-latest: true
 
       - name: Add to Hosts
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}

@@ -41,15 +41,10 @@ frappe.ui.form.on('Google Drive', {
 		}
 	},
 	authorize_google_drive_access: function(frm) {
-		let reauthorize = 0;
-		if (frm.doc.authorization_code) {
-			reauthorize = 1;
-		}
-
 		frappe.call({
 			method: "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
 			args: {
-				"reauthorize": reauthorize
+				"reauthorize": frm.doc.authorization_code ? 1 : 0
 			},
 			callback: function(r) {
 				if (!r.exc) {

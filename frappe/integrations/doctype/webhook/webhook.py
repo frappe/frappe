@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import base64
-import datetime
 import hashlib
 import hmac
 import json
@@ -27,6 +26,7 @@ class Webhook(Document):
 		self.validate_request_url()
 		self.validate_request_body()
 		self.validate_repeating_fields()
+		self.preview_document = None
 
 	def on_update(self):
 		frappe.cache().delete_value("webhooks")
@@ -47,7 +47,7 @@ class Webhook(Document):
 			try:
 				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_(e))
+				frappe.throw(_("Invalid Condition: {}").format(e))
 
 	def validate_request_url(self):
 		try:
@@ -73,6 +73,38 @@ class Webhook(Document):
 
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
+
+	@frappe.whitelist()
+	def generate_preview(self):
+		# This function doesn't need to do anything specific as virtual fields
+		# get evaluated automatically.
+		pass
+
+	@property
+	def meets_condition(self):
+		if not self.condition:
+			return _("Yes")
+
+		if not (self.preview_document and self.webhook_doctype):
+			return _("Select a document to check if it meets conditions.")
+
+		try:
+			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
+			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
+		except Exception as e:
+			return _("Failed to evaluate conditions: {}").format(e)
+		return _("Yes") if met_condition else _("No")
+
+	@property
+	def preview_request_body(self):
+		if not (self.preview_document and self.webhook_doctype):
+			return _("Select a document to preview request data")
+
+		try:
+			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
+			return frappe.as_json(get_webhook_data(doc, self))
+		except Exception as e:
+			return _("Failed to compute request body: {}").format(e)
 
 
 def get_context(doc):
@@ -118,9 +150,9 @@ def log_request(url: str, headers: dict, data: dict, res: requests.Response | No
 			"doctype": "Webhook Request Log",
 			"user": frappe.session.user if frappe.session.user else None,
 			"url": url,
-			"headers": json.dumps(headers, indent=4) if headers else None,
-			"data": json.dumps(data, indent=4) if isinstance(data, dict) else data,
-			"response": json.dumps(res.json(), indent=4) if res else None,
+			"headers": frappe.as_json(headers) if headers else None,
+			"data": frappe.as_json(data) if data else None,
+			"response": frappe.as_json(res.json()) if res else None,
 		}
 	)
 
