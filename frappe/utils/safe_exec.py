@@ -152,6 +152,7 @@ def get_safe_globals():
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+			log=frappe.log,
 			db=NamespaceDict(
 				get_list=frappe.get_list,
 				get_all=frappe.get_all,
