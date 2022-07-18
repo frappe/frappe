@@ -22,7 +22,7 @@ frappe.ui.form.on("Web Form", {
 		if (!frm.doc.login_required) {
 			frm.set_value("allow_multiple", 0);
 			frm.set_value("allow_edit", 0);
-			frm.doc.show_list && frm.set_value("show_list", 0);
+			frm.set_value("show_list", 0);
 		}
 
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
@@ -171,8 +171,6 @@ frappe.ui.form.on("Web Form Field", {
 		doc.depends_on = df.depends_on;
 		doc.mandatory_depends_on = df.mandatory_depends_on;
 		doc.read_only_depends_on = df.read_only_depends_on;
-		doc.hidden = df.hidden;
-		doc.description = df.description;
 
 		frm.refresh_field("web_form_fields");
 	}

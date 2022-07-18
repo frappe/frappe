@@ -212,7 +212,7 @@
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
-   "label": "Button Label"
+   "label": "Submit Button Label"
   },
   {
    "description": "Message to be displayed on successful completion (only for Guest users)",
@@ -398,7 +398,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-15 18:53:04.383131",
+ "modified": "2022-07-18 15:51:15.288860",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
