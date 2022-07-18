@@ -121,7 +121,7 @@ class DatabaseQuery:
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
 
-		self.fields, self.filters = fields, filters
+		self.qb_fields, self.qb_filters = fields, filters
 		self.ignore_permissions = ignore_permissions
 
 		if fields:
@@ -212,7 +212,7 @@ class DatabaseQuery:
 
 		if self.ignore_permissions:
 			return frappe.qb.engine.get_query(
-				table=self.doctype, fields=self.fields, filters=self.filters
+				table=self.doctype, fields=self.qb_fields, filters=self.qb_filters
 			).run(
 				as_dict=not self.as_list,
 				debug=self.debug,
