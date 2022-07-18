@@ -39,7 +39,6 @@ def execute():
 		.set(table.parent, PARENT_FOR_DEFAULTS)
 		.set(table.defvalue, defvalue_cases)
 		.where(table.parent == OLD_PARENT)
-		.where(table.defkey.like("%_otpsecret"))
 	).run()
 
 	clear_defaults_cache()
