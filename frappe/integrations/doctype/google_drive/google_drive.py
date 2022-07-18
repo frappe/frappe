@@ -48,7 +48,7 @@ def authorize_access(reauthorize=False, code=None):
 	"""
 
 	oauth_code = (
-		frappe.db.get_value("Google Drive", "Google Drive", "authorization_code") if not code else code
+		frappe.db.get_single_value("Google Drive", "authorization_code") if not code else code
 	)
 	oauth_obj = GoogleOAuth("drive")
 

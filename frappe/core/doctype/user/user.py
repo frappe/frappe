@@ -611,10 +611,10 @@ class User(Document):
 		"""
 
 		login_with_mobile = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")
+			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
 		)
 		login_with_username = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")
+			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
 		)
 
 		or_filters = [{"name": user_name}]
@@ -861,7 +861,7 @@ def sign_up(email, full_name, redirect_to):
 		user.insert()
 
 		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_value("Portal Settings", None, "default_role")
+		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
 		if default_role:
 			user.add_roles(default_role)
 
