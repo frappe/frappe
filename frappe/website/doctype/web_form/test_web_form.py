@@ -69,9 +69,9 @@ class TestWebForm(unittest.TestCase):
 		)
 
 	def test_webform_render(self):
-		set_request(method="GET", path="issues/new")
-		content = get_response_content("issues/new")
-		self.assertIn("<h1>New Issue</h1>", content)
+		set_request(method="GET", path="manage-events/new")
+		content = get_response_content("manage-events/new")
+		self.assertIn("<h1>New Manage Events</h1>", content)
 		self.assertIn('data-doctype="Web Form"', content)
-		self.assertIn('data-path="issues/new"', content)
+		self.assertIn('data-path="manage-events/new"', content)
 		self.assertIn('source-type="Generator"', content)
