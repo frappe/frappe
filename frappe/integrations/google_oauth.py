@@ -59,7 +59,6 @@ class GoogleOAuth:
 		"""Returns a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
-		:param site_address: side address from which the request is being made
 		"""
 
 		data = {
@@ -102,8 +101,7 @@ class GoogleOAuth:
 	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
 		"""Returns google authentication url.
 
-		:param site_address: side address from which the request is being made (for redirect back to site)
-		:param state: [optional] dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
+		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
 
 		state.update({"domain": self.domain})
