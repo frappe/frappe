@@ -121,6 +121,7 @@ class LDAP_TestCase:
 			"default_role": "Newsletter Manager",
 			"ldap_groups": cls.DOCUMENT_GROUP_MAPPINGS,
 			"ldap_group_field": "",
+			"default_user_type": "System User",
 		}
 
 		cls.server = Server(host=cls.ldap_server, port=389, get_info=cls.LDAP_SCHEMA)
@@ -337,6 +338,9 @@ class LDAP_TestCase:
 		self.assertTrue(updated_user.last_name == test_user_data["last_name"])
 		self.assertTrue(updated_user.phone == test_user_data["phone"])
 		self.assertTrue(updated_user.mobile_no == test_user_data["mobile_no"])
+
+		self.assertEqual(updated_user.user_type, self.test_class.default_user_type)
+		self.assertIn(self.test_class.default_role, frappe.get_roles(updated_user.name))
 
 	@mock_ldap_connection
 	def test_sync_roles(self: TestCase):
