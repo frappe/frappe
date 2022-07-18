@@ -9,6 +9,7 @@ from frappe.model.naming import (
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
 	getseries,
+	parse_naming_series,
 	revert_series_if_last,
 )
 from frappe.tests.utils import FrappeTestCase
@@ -340,6 +341,32 @@ class TestNaming(FrappeTestCase):
 		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
 		self.assertTrue(
 			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
+		)
+
+	def test_naming_with_empty_part(self):
+		# check naming with empty part (duplicate dots)
+
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = "on_update"
+
+		series = "KOOH-..{webhook_docevent}.-.####"
+
+		name = parse_naming_series(series, doc=webhook)
+		self.assertTrue(
+			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
+		)
+
+	def test_naming_with_unsupported_part(self):
+		# check naming with empty part (duplicate dots)
+
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = {"dict": "not supported"}
+
+		series = "KOOH-..{webhook_docevent}.-.####"
+
+		name = parse_naming_series(series, doc=webhook)
+		self.assertTrue(
+			name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value"
 		)
 
 
