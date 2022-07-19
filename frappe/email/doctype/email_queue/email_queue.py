@@ -27,6 +27,7 @@ from frappe.utils import (
 	get_hook_method,
 	get_string_between,
 	nowdate,
+	sbool,
 	split_emails,
 )
 
@@ -110,8 +111,11 @@ class EmailQueue(Document):
 		return self.status in ["Not Sent", "Partially Sent"]
 
 	def can_send_now(self):
-		hold_queue = cint(frappe.defaults.get_defaults().get("hold_queue")) == 1
-		if frappe.are_emails_muted() or not self.is_to_be_sent() or hold_queue:
+		if (
+			frappe.are_emails_muted()
+			or not self.is_to_be_sent()
+			or cint(frappe.db.get_default("suspend_email_queue")) == 1
+		):
 			return False
 
 		return True
@@ -359,6 +363,8 @@ class SendMailContext:
 @frappe.whitelist()
 def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
+	doc.check_permission()
+
 	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
 		doc.status = "Not Sent"
 		for d in doc.recipients:
@@ -371,7 +377,14 @@ def retry_sending(name):
 def send_now(name):
 	record = EmailQueue.find(name)
 	if record:
+		record.check_permission()
 		record.send()
+
+
+@frappe.whitelist()
+def toggle_sending(enable):
+	frappe.only_for("System Manager")
+	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
 
 def on_doctype_update():
