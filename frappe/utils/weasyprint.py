@@ -4,11 +4,15 @@
 import click
 
 import frappe
+from frappe.translate import set_default_language
 
 
 @frappe.whitelist()
-def download_pdf(doctype, name, print_format, letterhead=None):
+def download_pdf(doctype, name, print_format, letterhead=None):	
 	doc = frappe.get_doc(doctype, name)
+	if(doctype == "Engagement Letter Final Version"):
+		if(doc.language):
+			set_default_language(doc.language)
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -34,6 +38,7 @@ class PrintFormatGenerator:
 	"""
 
 	def __init__(self, print_format, doc, letterhead=None):
+		frappe.lang = "de"
 		"""
 		Parameters
 		----------
@@ -53,6 +58,7 @@ class PrintFormatGenerator:
 		self.context.layout = self.layout
 
 	def build_context(self):
+		frappe.lang = "de"
 		self.print_settings = frappe.get_doc("Print Settings")
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
