@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019, Frappe Technologies and Contributors
-# See license.txt
-=======
 # Copyright (c) 2022, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import contextlib
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 import functools
 import os
 import ssl
@@ -188,12 +182,7 @@ class LDAP_TestCase:
 
 			with contextlib.suppress(MandatoryError, ValidationError):
 				frappe.get_doc(localdoc).save()
-<<<<<<< HEAD
-
-				self.fail("Document LDAP Settings field [{0}] is not mandatory".format(mandatory_field))
-=======
 				self.fail(f"Document LDAP Settings field [{mandatory_field}] is not mandatory")
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 
 		for non_mandatory_field in self.doc:  # Ensure remaining fields have not been made mandatory
 			if non_mandatory_field == "doctype" or non_mandatory_field in mandatory_fields:
@@ -204,16 +193,8 @@ class LDAP_TestCase:
 
 			try:
 				frappe.get_doc(localdoc).save()
-<<<<<<< HEAD
-
-			except frappe.exceptions.MandatoryError:
-				self.fail(
-					"Document LDAP Settings field [{0}] should not be mandatory".format(non_mandatory_field)
-				)
-=======
 			except MandatoryError:
 				self.fail(f"Document LDAP Settings field [{non_mandatory_field}] should not be mandatory")
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 
 	@mock_ldap_connection
 	def test_validation_ldap_search_string(self):
@@ -233,12 +214,7 @@ class LDAP_TestCase:
 
 			with contextlib.suppress(ValidationError):
 				frappe.get_doc(localdoc).save()
-<<<<<<< HEAD
-
-				self.fail("LDAP search string [{0}] should not validate".format(invalid_search_string))
-=======
 				self.fail(f"LDAP search string [{invalid_search_string}] should not validate")
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 
 	def test_connect_to_ldap(self):
 		# prevent these parameters for security or lack of the und user from being able to configure
@@ -273,14 +249,7 @@ class LDAP_TestCase:
 							and kwargs[connection_arg] in prevent_connection_parameters[connection_arg]
 						):
 							self.fail(
-<<<<<<< HEAD
-								"ldap3.Connection was called with {0}, failed reason: [{1}]".format(
-									kwargs[connection_arg],
-									prevent_connection_parameters[connection_arg][kwargs[connection_arg]],
-								)
-=======
 								f"ldap3.Connection was called with {kwargs[connection_arg]}, failed reason: [{prevent_connection_parameters[connection_arg][kwargs[connection_arg]]}]"
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 							)
 
 					tls_version = ssl.PROTOCOL_TLS_CLIENT
@@ -459,25 +428,13 @@ class LDAP_TestCase:
 
 			self.assertTrue(
 				len(updated_user_roles) == len(test_user_data[test_user]),
-<<<<<<< HEAD
-				"syncing of the user roles failed. {0} != {1} for user {2}".format(
-					len(updated_user_roles), len(test_user_data[test_user]), test_user
-				),
-=======
 				f"syncing of the user roles failed. {len(updated_user_roles)} != {len(test_user_data[test_user])} for user {test_user}",
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 			)
 
 			for user_role in updated_user_roles:  # match each users role mapped to ldap groups
 				self.assertTrue(
 					role_to_group_map[user_role] in test_user_data[test_user],
-<<<<<<< HEAD
-					"during sync_roles(), the user was given role {0} which should not have occured".format(
-						user_role
-					),
-=======
 					f"during sync_roles(), the user was given role {user_role} which should not have occured",
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 				)
 
 	@mock_ldap_connection
@@ -581,13 +538,7 @@ class LDAP_TestCase:
 
 			self.assertTrue(
 				str(display_massage.exception).lower() == "invalid username or password",
-<<<<<<< HEAD
-				"invalid credentials passed authentication [user: {0}, password: {1}]".format(
-					username, password
-				),
-=======
 				f"invalid credentials passed authentication [user: {username}, password: {password}]",
->>>>>>> a588879094 (refactor(minor): LDAP Settings Test Suite)
 			)
 
 	@mock_ldap_connection

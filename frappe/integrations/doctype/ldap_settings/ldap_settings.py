@@ -1,13 +1,6 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies and contributors
-# For license information, please see license.txt
-
-from __future__ import unicode_literals
-=======
 # Copyright (c) 2022, Frappe Technologies and contributors
 # License: MIT. See LICENSE
->>>>>>> ee97038c71 (chore: Add typing + reduce import paths)
 
 import ssl
 from typing import TYPE_CHECKING
@@ -151,26 +144,14 @@ class LDAPSettings(Document):
 			setattr(user, key, value)
 		user.save(ignore_permissions=True)
 
-<<<<<<< HEAD
-	def sync_roles(self, user: "User", additional_groups=None):
-
-		current_roles = set([d.role for d in user.get("roles")])
-
-		needed_roles = set()
-		needed_roles.add(self.default_role)
-
-=======
 	def sync_roles(self, user: "User", additional_groups: list = None):
 		current_roles = {d.role for d in user.get("roles")}
-<<<<<<< HEAD
-		needed_roles = {self.default_role}
->>>>>>> ee97038c71 (chore: Add typing + reduce import paths)
-=======
+
 		if self.default_user_type == "System User":
 			needed_roles = {self.default_role}
 		else:
 			needed_roles = set()
->>>>>>> c7726d6394 (fix: Pick default_role for Sytem User type only)
+
 		lower_groups = [g.lower() for g in additional_groups or []]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
@@ -240,22 +221,8 @@ class LDAPSettings(Document):
 		if not isinstance(user, Entry):
 			raise TypeError("Invalid type, attribute 'user' must be of type 'ldap3.abstract.entry.Entry'")
 
-<<<<<<< HEAD
-		if type(user) is not ldap3.abstract.entry.Entry:
-			raise TypeError(
-				"Invalid type, attribute {0} must be of type '{1}'".format(
-					"user", "ldap3.abstract.entry.Entry"
-				)
-			)
-
-		if type(conn) is not ldap3.core.connection.Connection:
-			raise TypeError(
-				"Invalid type, attribute {0} must be of type '{1}'".format("conn", "ldap3.Connection")
-			)
-=======
 		if not isinstance(conn, ldap3.Connection):
 			raise TypeError("Invalid type, attribute 'conn' must be of type 'ldap3.Connection'")
->>>>>>> ee97038c71 (chore: Add typing + reduce import paths)
 
 		fetch_ldap_groups = None
 		ldap_object_class = None
@@ -287,13 +254,7 @@ class LDAPSettings(Document):
 		if ldap_object_class is not None:
 			conn.search(
 				search_base=self.ldap_search_path_group,
-<<<<<<< HEAD
-				search_filter="(&(objectClass={0})({1}={2}))".format(
-					ldap_object_class, ldap_group_members_attribute, user_search_str
-				),
-=======
 				search_filter=f"(&(objectClass={ldap_object_class})({ldap_group_members_attribute}={user_search_str}))",
->>>>>>> ee97038c71 (chore: Add typing + reduce import paths)
 				attributes=["cn"],
 			)  # Build search query
 
@@ -336,14 +297,7 @@ class LDAPSettings(Document):
 			frappe.throw(_("Invalid username or password"))
 
 	def reset_password(self, user, password, logout_sessions=False):
-<<<<<<< HEAD
-		from ldap3 import HASHED_SALTED_SHA, MODIFY_REPLACE
-		from ldap3.utils.hashed import hashed
-
-		search_filter = "({0}={1})".format(self.ldap_email_field, user)
-=======
 		search_filter = f"({self.ldap_email_field}={user})"
->>>>>>> ee97038c71 (chore: Add typing + reduce import paths)
 
 		conn = self.connect_to_ldap(
 			self.base_dn, self.get_password(raise_exception=False), read_only=False
