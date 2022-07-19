@@ -529,7 +529,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			truncateLegends: 1,
 			colors: ['#70E078', 'light-blue', 'orange', 'red'],
 			axisOptions: {
-				shortenYAxisNumbers: 1
+				shortenYAxisNumbers: 1,
+				numberFormatter: frappe.utils.format_chart_axis_number,
 			},
 			tooltipOptions: {
 				formatTooltipY: value => frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, get_doc(value.doc))

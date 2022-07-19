@@ -148,7 +148,7 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	if cint(frappe.defaults.get_defaults().get("hold_queue")) == 1:
+	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
 	for row in get_queue():
