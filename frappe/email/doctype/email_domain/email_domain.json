@@ -61,7 +61,6 @@
    "label": "Use SSL"
   },
   {
-   "default": "1",
    "description": "Ignore attachments over this size",
    "fieldname": "attachment_limit",
    "fieldtype": "Int",
