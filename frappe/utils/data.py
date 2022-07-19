@@ -1951,6 +1951,15 @@ def generate_hash(*args, **kwargs) -> str:
 	return frappe.generate_hash(*args, **kwargs)
 
 
+def dict_with_keys(dict, keys):
+	"""Returns a new dict with a subset of keys"""
+	out = {}
+	for key in dict:
+		if key in keys:
+			out[key] = dict[key]
+	return out
+
+
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
