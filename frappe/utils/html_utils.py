@@ -18,6 +18,11 @@ EMOJI_PATTERN = re.compile(
 
 def clean_html(html):
 	import bleach
+	from bleach.sanitizer import ALLOWED_ATTRIBUTES
+
+	allowed_attributes = ALLOWED_ATTRIBUTES.copy()
+	# quill keeps ordered/bullet as this attribute for lists
+	allowed_attributes.update({"li": ["data-list"]})
 
 	if not isinstance(html, str):
 		return html
@@ -42,7 +47,7 @@ def clean_html(html):
 			"td",
 			"tr",
 		],
-		attributes=["data-list"],
+		attributes=allowed_attributes,
 		styles=["color", "border", "border-color"],
 		strip=True,
 		strip_comments=True,
