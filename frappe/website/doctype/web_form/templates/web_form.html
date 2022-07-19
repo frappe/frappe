@@ -3,22 +3,23 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% macro action_buttons() %}
-	<!-- print button -->
 	{% if allow_print and not is_new %}
 		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
+		<!-- print button -->
 		<a href="{{ print_format_url }}" target="_blank" class="btn btn-light btn-sm ml-2">
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
 		</a>
 	{% endif %}
 
-	<!-- edit button -->
-	{% if doc_name and not is_form_editable %}
+	{% if allow_edit and doc_name and not is_form_editable %}
+		<!-- edit button -->
 		<a href="/{{ route }}/{{ doc_name }}/edit" class="btn btn-primary btn-sm ml-2">{{ _("Edit", null, "Button in web form") }}</a>
 	{% endif %}
 
-	<!-- cancel & submit button -->
 	{% if is_new or is_form_editable %}
+		<!-- cancel button -->
 		<a href="/{{ route }}/{% if doc_name %}{{ doc_name }}{% endif %}" class="btn btn-light btn-sm ml-2">{{ _("Cancel", null, "Button in web form") }}</a>
+		<!-- submit button -->
 		<button type="submit" class="btn btn-primary btn-sm ml-2">{{ button_label or _("Save", null, "Button in web form") }}</button>
 	{% endif %}
 {% endmacro %}
