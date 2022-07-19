@@ -82,5 +82,10 @@
   "snyk": true,
   "nyc": {
     "report-dir": ".cypress-coverage"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   }
 }
