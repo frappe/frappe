@@ -3,7 +3,7 @@
 
 import json
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
@@ -25,7 +25,7 @@ class test(Document):
 
 	def get_list(self, args):
 		with open("data_file.json") as read_file:
-			return [json.load(read_file)]
+			return [frappe._dict(json.load(read_file))]
 
 	def get_value(self, fields, filters, **kwargs):
 		# return []
