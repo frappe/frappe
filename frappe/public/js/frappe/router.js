@@ -293,7 +293,7 @@ frappe.router = {
 		return new Promise((resolve) => {
 			route = this.get_route_from_arguments(route);
 			route = this.convert_from_standard_route(route);
-			let sub_path = this.make_url(route);
+			let sub_path = route[route.length -1] === "literally" ? route[0] : this.make_url(route);
 			// replace each # occurrences in the URL with encoded character except for last
 			// sub_path = sub_path.replace(/[#](?=.*[#])/g, "%23");
 			this.push_state(sub_path);
