@@ -554,7 +554,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			colors: ['green'],
 			truncateLegends: 1,
 			axisOptions: {
-				shortenYAxisNumbers: 1
+				shortenYAxisNumbers: 1,
+				numberFormatter: frappe.utils.format_chart_axis_number,
 			}
 		});
 		this.show();

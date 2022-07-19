@@ -44,8 +44,8 @@
 	{%- endif -%}
 	<div class="blog-footer">
 		<div class="blog-feedback">
-			{% if not disable_feedback %}
-				{% include 'templates/includes/feedback/feedback.html' %}
+			{% if not disable_likes %}
+				{% include 'templates/includes/likes/likes.html' %}
 			{% endif %}
 		</div>
 		{% if social_links %}
@@ -73,6 +73,19 @@
 
 </div>
 <script>
-	frappe.ready(() => frappe.set_search_path("/blog"))
+	frappe.ready(() => {
+		frappe.set_search_path("/blog");
+
+		// scroll to comment or like section if url contain hash
+		if (window.location.hash) {
+			var hash = window.location.hash;
+
+			if ($(hash).length) {
+				$('html, body').animate({
+					scrollTop: $(hash).offset().top - 100
+				}, 900, 'swing');
+			}
+		}
+	})
 </script>
 {% endblock %}
