@@ -176,12 +176,15 @@ class LDAPSettings(Document):
 			user = frappe.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		else:
-			doc = user_data | {
-				"doctype": "User",
-				"send_welcome_email": 0,
-				"language": "",
-				"user_type": self.default_user_type,
-			}
+			doc = user_data
+			doc.update(
+				{
+					"doctype": "User",
+					"send_welcome_email": 0,
+					"language": "",
+					"user_type": self.default_user_type,
+				}
+			)
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
 
