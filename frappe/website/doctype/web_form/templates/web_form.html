@@ -34,8 +34,8 @@
 	{% endif %}
 
 	<!-- main card -->
-	<form role="form" class="web-form-container frappe-card">
-		<div class="d-flex justify-content-between web-form-header">
+	<form role="form" class="web-form-container">
+		<div class="web-form-header">
 			<h1>{{ _(title) }}</h1>
 			<div class="web-form-actions">
 				{{ action_buttons() }}
@@ -43,10 +43,10 @@
 		</div>
 		<div class="web-form-body">
 			{% if introduction_text %}
-				<div class="web-form-introduction text-muted">{{ introduction_text }}</div>
+				<div class="web-form-introduction">{{ introduction_text }}</div>
 			{% endif %}
 			<div class="web-form-wrapper"></div>
-			<div class="text-right web-form-footer hide">
+			<div class="web-form-footer hide">
 				{{ action_buttons() }}
 			</div>
 		</div>
@@ -70,7 +70,7 @@
 
 	<!-- comments -->
 	{% if allow_comments and not is_new and not is_list -%}
-		<div class="mt-6 comments">
+		<div class="comments">
 			<h3>{{ _("Comments") }}</h3>
 			{% include 'templates/includes/comments/comments.html' %}
 		</div>
@@ -82,7 +82,7 @@
 
 {% block script %}
 	<script>
-		frappe.boot = {{ boot }}
+		frappe.boot = {{ boot }};
 		frappe._messages = {{ translated_messages }};
 		frappe.web_form_doc = {{ web_form_doc | json }};
 		frappe.reference_doc = {{ reference_doc | json }};
@@ -119,9 +119,6 @@
 
 {% block style %}
 	<style>
-		body {
-			background-color: var(--bg-color);
-		}
 		{% if style is defined %}
 			{{ style }}
 		{% endif %}

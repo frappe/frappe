@@ -6,7 +6,7 @@ export default class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
-		this.wrapper = $(".list-table");
+		this.wrapper = $(".web-list-table");
 		this.make_actions();
 		this.make_filters();
 	}
@@ -32,7 +32,7 @@ export default class WebFormList {
 	make_filters() {
 		this.filters = {};
 		this.filter_input = [];
-		let filter_area = $('.list-filters');
+		let filter_area = $('.web-list-filters');
 
 		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
 			web_form_name: this.web_form_name
@@ -271,7 +271,7 @@ export default class WebFormList {
 	}
 
 	make_actions() {
-		const actions = $(".list-view-actions");
+		const actions = $(".web-list-actions");
 
 		frappe.has_permission(this.doctype, "", "delete", () => {
 			this.add_button(actions, "delete-rows", "danger", true, "Delete", () => this.delete_rows());
@@ -294,7 +294,7 @@ export default class WebFormList {
 
 	create_more() {
 		if (this.rows.length >= this.page_length) {
-			const footer = $(".list-view-footer");
+			const footer = $(".web-list-footer");
 			this.add_button(footer, "more", "secondary", false, "Load More", () => this.more());
 		}
 	}
@@ -323,6 +323,7 @@ export default class WebFormList {
 	}
 
 	toggle_new() {
+		if (!this.settings.allow_delete) return;
 		let btn = $(".button-new");
 		this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
 	}

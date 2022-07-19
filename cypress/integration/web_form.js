@@ -78,7 +78,7 @@ context('Web Form', () => {
 
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
-		cy.get('.list-table').should('be.visible');
+		cy.get('.web-list-table').should('be.visible');
 	});
 
 	it('Show Custom List Title', () => {
@@ -98,8 +98,8 @@ context('Web Form', () => {
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
 
-		cy.get('.list-table thead th').contains('Name');
-		cy.get('.list-table thead th').contains('Title');
+		cy.get('.web-list-table thead th').contains('Name');
+		cy.get('.web-list-table thead th').contains('Title');
 
 		cy.visit('/app/web-form/note');
 
@@ -124,9 +124,9 @@ context('Web Form', () => {
 
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
-		cy.get('.list-table thead th').contains('Title');
-		cy.get('.list-table thead th').contains('Public');
-		cy.get('.list-table thead th').contains('Content');
+		cy.get('.web-list-table thead th').contains('Title');
+		cy.get('.web-list-table thead th').contains('Public');
+		cy.get('.web-list-table thead th').contains('Content');
 	});
 
 	it('Breadcrumbs', () => {
@@ -156,7 +156,7 @@ context('Web Form', () => {
 		cy.url().should('include', '/note/list');
 
 		// Read Only Field
-		cy.get('.list-table tbody tr[id="Note 1"]').click();
+		cy.get('.web-list-table tbody tr[id="Note 1"]').click();
 		cy.get('.frappe-control[data-fieldname="title"] .control-input')
 			.should('have.css', 'display', 'none');
 	});
@@ -194,7 +194,7 @@ context('Web Form', () => {
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
 
-		cy.get('.list-view-actions a:visible').contains('New').click();
+		cy.get('.web-list-actions a:visible').contains('New').click();
 		cy.url().should('include', '/note/new');
 
 		cy.fill_field('title', 'Note 2');
@@ -212,16 +212,16 @@ context('Web Form', () => {
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
 
-		cy.get('.list-table tbody tr[id="Note 1"] .list-col-checkbox').click();
-		cy.get('.list-table tbody tr[id="Note 2"] .list-col-checkbox').click();
-		cy.get('.list-view-actions button:visible').contains('Delete').click({force: true});
+		cy.get('.web-list-table tbody tr[id="Note 1"] .list-col-checkbox').click();
+		cy.get('.web-list-table tbody tr[id="Note 2"] .list-col-checkbox').click();
+		cy.get('.web-list-actions button:visible').contains('Delete').click({force: true});
 
-		cy.get('.list-view-actions button').contains('Delete').should('not.be.visible');
+		cy.get('.web-list-actions button').contains('Delete').should('not.be.visible');
 
 		cy.visit('/note');
-		cy.get('.list-table tbody tr[id="Note 1"]').should('not.exist');
-		cy.get('.list-table tbody tr[id="Note 2"]').should('not.exist');
-		cy.get('.list-table tbody tr[id="Guest Note 1"]').should('exist');
+		cy.get('.web-list-table tbody tr[id="Note 1"]').should('not.exist');
+		cy.get('.web-list-table tbody tr[id="Note 2"]').should('not.exist');
+		cy.get('.web-list-table tbody tr[id="Guest Note 1"]').should('exist');
 	});
 
 	it('Navigate and Submit a WebForm', () => {

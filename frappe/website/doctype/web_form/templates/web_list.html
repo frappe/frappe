@@ -4,27 +4,27 @@
 
 {% block page_content %}
 	<!-- main card -->
-	<div class="web-list-container frappe-card">
+	<div class="web-list-container">
 		<!-- list -->
-		<div class="d-flex justify-content-between web-list-header">
+		<div class="web-list-header">
 			<h1>{{ _(list_title or title) }}</h1>
-			<div class="list-view-actions">
+			<div class="web-list-actions">
 				{%- if allow_multiple -%}
 					<a class="btn btn-primary btn-sm button-new" href="/{{ route }}/new">New</a>
 				{%- endif -%}
 			</div>
 		</div>
-		<div class="list-filters hide"></div>
-		<div class="list-table overflow-auto"></div>
-		<div class="text-right list-view-footer"></div>
+		<div class="web-list-filters hide"></div>
+		<div class="web-list-table"></div>
+		<div class="web-list-footer"></div>
 	</div>
 {% endblock page_content %}
 
 {% block script %}
 	<script>
-		frappe.boot = {{ boot }}
-		frappe._messages = {{ translated_messages }}
-		frappe.web_form_doc = {{ web_form_doc | json }}
+		frappe.boot = {{ boot }};
+		frappe._messages = {{ translated_messages }};
+		frappe.web_form_doc = {{ web_form_doc | json }};
 	</script>
 
 	{{ include_script("controls.bundle.js") }}
@@ -35,9 +35,6 @@
 
 {% block style %}
 	<style>
-		body {
-			background-color: var(--bg-color);
-		}
 		{% if style is defined %}
 			{{ style }}
 		{% endif %}

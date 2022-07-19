@@ -74,7 +74,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	setup_footer_actions() {
 		if (this.is_multi_step_form) return;
 
-		if ($('.frappe-card').height() > 600) {
+		if ($('.web-form-container').height() > 600) {
 			$(".web-form-footer").removeClass("hide");
 		}
 	}

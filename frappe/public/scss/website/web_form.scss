@@ -12,12 +12,15 @@
 		}
 
 		.web-form-container {
-			padding: 1rem;
+			border: 1px solid var(--dark-border-color);
+			border-radius: var(--border-radius-md);
+			padding: 2rem;
 
 			.web-form-header {
-				margin: 0 -1rem;
-				padding: 0 1rem 1rem 1rem;
-				margin-bottom: 1rem;
+				display: flex;
+				justify-content: space-between;
+				margin: 0 -2rem 1rem;
+				padding: 0 2rem 1rem;
 				border-bottom: 1px solid var(--border-color);
 
 				.web-form-actions {
@@ -26,6 +29,7 @@
 			}
 
 			.web-form-introduction {
+				color: var(--text-muted);
 				margin-bottom: 2rem;
 
 				p {
@@ -64,10 +68,13 @@
 				}
 			}
 
+			.web-form-footer {
+				text-align: right;
+			}
+
 			.attachments {
-				margin: 0 -1rem;
-				padding: 1rem 1rem 0 1rem;
-				margin-top: 1rem;
+				margin: 1rem -2rem 0;
+				padding: 1rem 2rem 0;
 				border-top: 1px solid var(--border-color);
 
 				.attachment {
@@ -90,18 +97,24 @@
 
 		.web-list-container {
 			min-height: 470px;
-			padding: 1rem;
+			border: 1px solid var(--dark-border-color);
+			border-radius: var(--border-radius-md);
+			padding: 2rem;
 
-			.list-view-actions {
-				align-self: center;
+			.web-list-header {
+				display: flex;
+				justify-content: space-between;
+
+				.web-list-actions {
+					align-self: center;
+				}
 			}
 
-			.list-filters {
+			.web-list-filters {
 				display: flex;
 				flex-wrap: wrap;
-				margin: 0 -1rem;
-				padding: 1rem 1rem 0 1rem;
-				margin-top: 1rem;
+				margin: 1rem -2rem 0;
+				padding: 1rem 2rem 0;
 				border-top: 1px solid var(--border-color);
 				gap: 10px;
 
@@ -128,21 +141,28 @@
 				}
 			}
 
-			.list-table {
-				margin-left: -1rem;
-				margin-right: -1rem;
-				margin-top: 1rem;
+			.web-list-table {
+				overflow: auto;
+				margin: 1rem -2rem 0;
 
 				.table {
 					border-bottom: 1px solid var(--border-color);
 					border-top: 1px solid var(--border-color);
 
-					thead {
+					thead tr {
 						th {
 							border: 0;
 							font-size: 13px;
 							font-weight: normal;
 							color: var(--text-muted);
+
+							&:first-child {
+								padding-left: 1.5rem;
+							}
+
+							&:last-child {
+								padding-right: 1.5rem;
+							}
 
 							input[type="checkbox"] {
 								margin-bottom: -2px;
@@ -150,13 +170,21 @@
 						}
 					}
 
-					tr {
+					tbody tr {
 						color: var(--text-color);
 						cursor: pointer;
 
 						td {
 							font-size: 13px;
 							border-top: 1px solid var(--border-color);
+
+							&:first-child {
+								padding-left: 1.5rem;
+							}
+
+							&:last-child {
+								padding-right: 1.5rem;
+							}
 						}
 					}
 
@@ -178,6 +206,10 @@
 					min-height: 330px;
 					border-top: 1px solid var(--border-color);
 				}
+			}
+
+			.web-list-footer {
+				text-align: right;
 			}
 		}
 

@@ -256,7 +256,7 @@ def get_context(context):
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 
 		if frappe.form_dict.is_new:
-			context.title = _("New") + " " + context.title
+			context.title = _("New {0}").format(context.title)
 
 		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
 			frappe.session.user != "Guest" or not self.login_required
