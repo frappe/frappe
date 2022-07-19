@@ -146,6 +146,7 @@ frappe.ui.form.on('Newsletter', {
 			if (stats.sent + stats.error >= frm.doc.total_recipients || (!stats.total && !stats.emails_queued)) {
 				frm.sending_status && clearInterval(frm.sending_status);
 				frm.sending_status = null;
+				return;
 			}
 		}
 

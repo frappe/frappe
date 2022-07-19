@@ -14,10 +14,14 @@
   "domain",
   "service",
   "authentication_column",
+  "auth_method",
+  "authorize_api_access",
   "password",
   "awaiting_password",
   "ascii_encode_password",
   "column_break_10",
+  "refresh_token",
+  "access_token",
   "login_id_is_different",
   "login_id",
   "mailbox_settings",
@@ -44,9 +48,9 @@
   "send_notification_to",
   "outgoing_mail_settings",
   "enable_outgoing",
-  "smtp_server",
   "use_tls",
   "use_ssl_for_outgoing",
+  "smtp_server",
   "smtp_port",
   "column_break_38",
   "default_outgoing",
@@ -79,7 +83,8 @@
    "in_list_view": 1,
    "label": "Email Address",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "default": "0",
@@ -87,7 +92,7 @@
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Use different login"
+   "label": "Use different Email ID"
   },
   {
    "depends_on": "login_id_is_different",
@@ -95,9 +100,10 @@
    "fieldtype": "Data",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Email Login ID"
+   "label": "Alternative Email ID"
   },
   {
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
    "fieldname": "password",
    "fieldtype": "Password",
    "hide_days": 1,
@@ -106,6 +112,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -114,6 +121,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
    "fieldname": "ascii_encode_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -182,7 +190,7 @@
    "fieldtype": "Data",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Email Server"
+   "label": "Incoming Server"
   },
   {
    "default": "0",
@@ -304,7 +312,7 @@
    "fieldtype": "Data",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "SMTP Server"
+   "label": "Outgoing Server"
   },
   {
    "default": "0",
@@ -524,7 +532,7 @@
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Use SSL for Outgoing"
+   "label": "Use SSL"
   },
   {
    "default": "1",
@@ -576,12 +584,39 @@
    "fieldname": "section_break_25",
    "fieldtype": "Section Break",
    "label": "IMAP Details"
+  },
+  {
+   "depends_on": "eval: doc.service === \"GMail\" && doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
+   "fieldname": "authorize_api_access",
+   "fieldtype": "Button",
+   "label": "Authorize API Access"
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Refresh Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Access Token",
+   "read_only": 1
+  },
+  {
+   "default": "Basic",
+   "fieldname": "auth_method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "options": "Basic\nOAuth"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-30 09:03:25.728637",
+ "modified": "2022-07-11 18:34:06.945668",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
@@ -603,5 +638,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

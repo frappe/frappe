@@ -623,6 +623,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			if (data.prepared_report) {
 				this.prepared_report = true;
+				this.prepared_report_document = data.doc
 				// If query_string contains prepared_report_name then set filters
 				// to match the mentioned prepared report doc and disable editing
 				if (query_params.prepared_report_name) {
@@ -943,10 +944,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			};
 		}
 		options.axisOptions = {
-			shortenYAxisNumbers: 1
+			shortenYAxisNumbers: 1,
+			numberFormatter: frappe.utils.format_chart_axis_number,
 		};
 		options.height = 280;
-
 		return options;
 	}
 
@@ -1800,7 +1801,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	toggle_nothing_to_show(flag) {
-		let message = this.prepared_report
+		let message = (this.prepared_report && !this.prepared_report_document)
 			? __('This is a background report. Please set the appropriate filters and then generate a new one.')
 			: this.get_no_result_message();
 

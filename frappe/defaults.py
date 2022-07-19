@@ -85,18 +85,19 @@ def get_user_permissions(user=None):
 
 
 def get_defaults(user=None):
-	globald = get_defaults_for()
+	global_defaults = get_defaults_for()
 
 	if not user:
 		user = frappe.session.user if frappe.session else "Guest"
 
-	if user:
-		userd = {}
-		userd.update(get_defaults_for(user))
-		userd.update({"user": user, "owner": user})
-		globald.update(userd)
+	if not user:
+		return global_defaults
 
-	return globald
+	defaults = global_defaults.copy()
+	defaults.update(get_defaults_for(user))
+	defaults.update(user=user, owner=user)
+
+	return defaults
 
 
 def clear_user_default(key, user=None):
