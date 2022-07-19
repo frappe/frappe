@@ -188,7 +188,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_fields() {
-		return super.get_fields().concat(Object.entries(this.link_field_title_fields).map((entry) => entry.join(".")))
+		return super.get_fields().concat(Object.entries(this.link_field_title_fields || {}).map((entry) => entry.join(".")))
 	}
 
 	async set_fields() {
