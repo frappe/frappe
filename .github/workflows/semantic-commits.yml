@@ -26,5 +26,5 @@ jobs:
 
       - name: Check commit titles
         run: |
-          npm install @commitlint/cli @commitlint/config-conventional
+          npm install @commitlint/cli
           npx commitlint --verbose --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
