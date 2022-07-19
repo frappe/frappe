@@ -1092,7 +1092,9 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		self.clear_cache()
-		self.notify_update()
+
+		if not hasattr(self.flags, "notify_update") or self.flags.notify_update == True:
+			self.notify_update()
 
 		update_global_search(self)
 
