@@ -1093,7 +1093,7 @@ class Document(BaseDocument):
 
 		self.clear_cache()
 
-		if not hasattr(self.flags, "notify_update") or self.flags.notify_update == True:
+		if not hasattr(self.flags, "notify_update") or self.flags.notify_update:
 			self.notify_update()
 
 		update_global_search(self)
