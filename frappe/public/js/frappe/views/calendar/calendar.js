@@ -79,6 +79,12 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 	}
 
+	toggle_side_bar() {
+		super.toggle_side_bar();
+		// refresh calendar when sidebar is toggled to accomodate extra space
+		this.render(true);
+	}
+
 	render() {
 		if (this.calendar === undefined) {
 			this.calendar = new frappe.views.Calendar(this.calendar_options);
