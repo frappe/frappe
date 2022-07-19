@@ -4,11 +4,10 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import encode, get_request_site_address
-
-INDEXING_SCOPES = "https://www.googleapis.com/auth/indexing"
+from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
@@ -89,34 +88,14 @@ class WebsiteSettings(Document):
 		frappe.clear_cache()
 
 	def get_access_token(self):
-		import requests
-
-		google_settings = frappe.get_doc("Google Settings")
-
-		if not google_settings.enable:
-			frappe.throw(_("Google Integration is disabled."))
-
 		if not self.indexing_refresh_token:
 			button_label = frappe.bold(_("Allow API Indexing Access"))
 			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
-		data = {
-			"client_id": google_settings.client_id,
-			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-			"refresh_token": self.get_password(fieldname="indexing_refresh_token", raise_exception=False),
-			"grant_type": "refresh_token",
-			"scope": INDEXING_SCOPES,
-		}
-
-		try:
-			res = requests.post(get_auth_url(), data=data).json()
-		except requests.exceptions.HTTPError:
-			button_label = frappe.bold(_("Allow Google Indexing Access"))
-			frappe.throw(
-				_(
-					"Something went wrong during the token generation. Click on {0} to generate a new one."
-				).format(button_label)
-			)
+		oauth_obj = GoogleOAuth("indexing")
+		res = oauth_obj.refresh_access_token(
+			self.get_password(fieldname="indexing_refresh_token", raise_exception=False)
+		)
 
 		return res.get("access_token")
 
@@ -211,6 +190,8 @@ def get_website_settings(context=None):
 
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
+
+	context.boot = get_boot_data()
 
 	return context
 

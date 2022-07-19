@@ -539,7 +539,9 @@ class BaseDocument:
 			return
 
 		d = self.get_valid_dict(
-			convert_dates_to_str=True, ignore_nulls=self.doctype in DOCTYPES_FOR_DOCTYPE
+			convert_dates_to_str=True,
+			ignore_nulls=self.doctype in DOCTYPES_FOR_DOCTYPE,
+			ignore_virtual=True,
 		)
 
 		# don't update name, as case might've been changed

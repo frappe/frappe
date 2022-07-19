@@ -162,7 +162,12 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 	if (fieldtype === 'Select') {
 		cy.get('@input').select(value);
 	} else {
-		cy.get('@input').type(value, {waitForAnimations: false, force: true, delay: 100});
+		cy.get('@input').type(value, {
+			waitForAnimations: false,
+			parseSpecialCharSequences: false,
+			force: true,
+			delay: 100
+		});
 	}
 	return cy.get('@input');
 });
@@ -356,6 +361,10 @@ Cypress.Commands.add('open_list_filter', () => {
 	cy.get('.filter-section .filter-button').click();
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
+});
+
+Cypress.Commands.add('click_custom_action_button', (name) => {
+	cy.get(`.custom-actions [data-label="${encodeURIComponent(name)}"]`).click();
 });
 
 Cypress.Commands.add('click_action_button', (name) => {

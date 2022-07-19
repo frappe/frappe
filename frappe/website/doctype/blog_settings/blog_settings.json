@@ -19,7 +19,7 @@
   "cta_label",
   "cta_url",
   "section_break_12",
-  "feedback_limit",
+  "like_limit",
   "column_break_14",
   "comment_limit"
  ],
@@ -91,13 +91,6 @@
   },
   {
    "default": "5",
-   "description": "Feedback limit per hour",
-   "fieldname": "feedback_limit",
-   "fieldtype": "Int",
-   "label": "Feedback limit"
-  },
-  {
-   "default": "5",
    "description": "Comment limit per hour",
    "fieldname": "comment_limit",
    "fieldtype": "Int",
@@ -118,13 +111,20 @@
    "fieldname": "browse_by_category",
    "fieldtype": "Check",
    "label": "Browse by category"
+  },
+  {
+   "default": "5",
+   "description": "Like limit per hour",
+   "fieldname": "like_limit",
+   "fieldtype": "Int",
+   "label": "Like limit"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-12-20 13:40:32.312459",
+ "modified": "2022-07-12 17:45:49.108398",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

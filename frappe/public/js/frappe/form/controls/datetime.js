@@ -14,6 +14,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 
 	get_start_date() {
+		this.value = this.value == null ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);
 		return frappe.datetime.str_to_obj(value);
 	}
@@ -85,6 +86,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!value && !this.doc) {
 			value = this.last_value;
 		}
-		return frappe.datetime.get_datetime_as_string(value);
+		return !value ? "" : frappe.datetime.get_datetime_as_string(value);
 	}
 };

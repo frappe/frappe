@@ -181,10 +181,6 @@ class DocType(Document):
 					)
 				)
 
-	def after_insert(self):
-		# clear user cache so that on the next reload this doctype is included in boot
-		clear_user_cache(frappe.session.user)
-
 	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
@@ -411,6 +407,9 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
+
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
 
 		if not frappe.flags.in_install and hasattr(self, "before_update"):
 			self.sync_global_search()

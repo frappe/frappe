@@ -28,7 +28,7 @@ class SystemSettings(Document):
 
 		if self.enable_two_factor_auth:
 			if self.two_factor_method == "SMS":
-				if not frappe.db.get_value("SMS Settings", None, "sms_gateway_url"):
+				if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
 					frappe.throw(
 						_("Please setup SMS before setting it as an authentication method, via SMS Settings")
 					)
