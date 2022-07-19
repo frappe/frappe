@@ -162,8 +162,15 @@ class LDAPSettings(Document):
 =======
 	def sync_roles(self, user: "User", additional_groups: list = None):
 		current_roles = {d.role for d in user.get("roles")}
+<<<<<<< HEAD
 		needed_roles = {self.default_role}
 >>>>>>> ee97038c71 (chore: Add typing + reduce import paths)
+=======
+		if self.default_user_type == "System User":
+			needed_roles = {self.default_role}
+		else:
+			needed_roles = set()
+>>>>>>> c7726d6394 (fix: Pick default_role for Sytem User type only)
 		lower_groups = [g.lower() for g in additional_groups or []]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
@@ -188,15 +195,12 @@ class LDAPSettings(Document):
 			user = frappe.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		else:
-			doc = user_data
-			doc.update(
-				{
-					"doctype": "User",
-					"send_welcome_email": 0,
-					"language": "",
-					"user_type": self.default_user_type,
-				}
-			)
+			doc = user_data | {
+				"doctype": "User",
+				"send_welcome_email": 0,
+				"language": "",
+				"user_type": self.default_user_type,
+			}
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
 
