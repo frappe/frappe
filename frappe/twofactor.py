@@ -11,9 +11,25 @@ from pyqrcode import create as qrcreate
 from six import BytesIO, iteritems, string_types
 
 import frappe
+import frappe.defaults
 from frappe import _
 from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
+from frappe.utils.password import decrypt, encrypt
+
+PARENT_FOR_DEFAULTS = "__2fa"
+
+
+def get_default(key):
+	return frappe.db.get_default(key, parent=PARENT_FOR_DEFAULTS)
+
+
+def set_default(key, value):
+	frappe.db.set_default(key, value, parent=PARENT_FOR_DEFAULTS)
+
+
+def clear_default(key):
+	frappe.defaults.clear_default(key, parent=PARENT_FOR_DEFAULTS)
 
 
 class ExpiredLoginException(Exception):
@@ -124,11 +140,13 @@ def two_factor_is_enabled_for_(user):
 
 def get_otpsecret_for_(user):
 	"""Set OTP Secret for user even if not set."""
-	otp_secret = frappe.db.get_default(user + "_otpsecret")
-	if not otp_secret:
-		otp_secret = b32encode(os.urandom(10)).decode("utf-8")
-		frappe.db.set_default(user + "_otpsecret", otp_secret)
-		frappe.db.commit()
+	otp_secret = get_default(user + "_otpsecret")
+	if otp_secret:
+		return decrypt(otp_secret)
+
+	otp_secret = b32encode(os.urandom(10)).decode("utf-8")
+	set_default(user + "_otpsecret", encrypt(otp_secret))
+	frappe.db.commit()
 	return otp_secret
 
 
@@ -168,8 +186,8 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	totp = pyotp.TOTP(otp_secret)
 	if totp.verify(otp):
 		# show qr code only once
-		if not frappe.db.get_default(login_manager.user + "_otplogin"):
-			frappe.db.set_default(login_manager.user + "_otplogin", 1)
+		if not get_default(login_manager.user + "_otplogin"):
+			set_default(login_manager.user + "_otplogin", 1)
 			delete_qrimage(login_manager.user)
 		tracker.add_success_attempt()
 		return True
@@ -186,7 +204,7 @@ def get_verification_obj(user, token, otp_secret):
 		verification_obj = process_2fa_for_sms(user, token, otp_secret)
 	elif verification_method == "OTP App":
 		# check if this if the first time that the user is trying to login. If so, send an email
-		if not frappe.db.get_default(user + "_otplogin"):
+		if not get_default(user + "_otplogin"):
 			verification_obj = process_2fa_for_email(user, token, otp_secret, otp_issuer, method="OTP App")
 		else:
 			verification_obj = process_2fa_for_otp_app(user, otp_secret, otp_issuer)
@@ -213,7 +231,7 @@ def process_2fa_for_sms(user, token, otp_secret):
 def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	"""Process OTP App method for 2fa."""
 	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
-	if frappe.db.get_default(user + "_otplogin"):
+	if get_default(user + "_otplogin"):
 		otp_setup_completed = True
 	else:
 		otp_setup_completed = False
@@ -228,7 +246,7 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 	message = None
 	status = True
 	prompt = ""
-	if method == "OTP App" and not frappe.db.get_default(user + "_otplogin"):
+	if method == "OTP App" and not get_default(user + "_otplogin"):
 		"""Sending one-time email for OTP App"""
 		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
 		qrcode_link = get_link_for_qrcode(user, totp_uri)
@@ -468,8 +486,8 @@ def reset_otp_secret(user):
 	otp_issuer = frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
 	user_email = frappe.db.get_value("User", user, "email")
 	if frappe.session.user in ["Administrator", user]:
-		frappe.defaults.clear_default(user + "_otplogin")
-		frappe.defaults.clear_default(user + "_otpsecret")
+		clear_default(user + "_otplogin")
+		clear_default(user + "_otpsecret")
 		email_args = {
 			"recipients": user_email,
 			"sender": None,
