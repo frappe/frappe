@@ -47,20 +47,6 @@ frappe.defaults = {
 		if(!$.isArray(d)) d = [d];
 		return d;
 	},
-	set_default: function(key, value, callback) {
-		if(typeof value!=="string")
-			value = JSON.stringify(value);
-
-		frappe.boot.user.defaults[key] = value;
-		return frappe.call({
-			method: "frappe.client.set_default",
-			args: {
-				key: key,
-				value: value
-			},
-			callback: callback || function(r) {}
-		});
-	},
 	set_user_default_local: function(key, value) {
 		frappe.boot.user.defaults[key] = value;
 	},
