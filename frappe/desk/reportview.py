@@ -225,9 +225,15 @@ def parse_json(data):
 		data["filters"] = json.loads(data["filters"])
 	if isinstance(data.get("or_filters"), string_types):
 		data["or_filters"] = json.loads(data["or_filters"])
+<<<<<<< HEAD
 	if isinstance(data.get("fields"), string_types):
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), string_types):
+=======
+	if isinstance(data.get("fields"), str):
+		data["fields"] = ["*"] if data["fields"] == "*" else json.loads(data["fields"])
+	if isinstance(data.get("docstatus"), str):
+>>>>>>> 99c6990761 (fix: Allow `fields` to have "*" without array)
 		data["docstatus"] = json.loads(data["docstatus"])
 	if isinstance(data.get("save_user_settings"), string_types):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
