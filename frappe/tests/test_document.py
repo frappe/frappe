@@ -1,9 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
-from __future__ import unicode_literals
 
-import os
 import unittest
+from unittest.mock import Mock
 
 import frappe
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
@@ -282,6 +281,19 @@ class TestDocument(unittest.TestCase):
 
 		# run_method should get overridden
 		self.assertEqual(doc.run_method("as_dict"), "success")
+
+	def test_realtime_notify(self):
+		todo = frappe.new_doc("ToDo")
+		todo.description = "this will trigger realtime update"
+		todo.notify_update = Mock()
+		todo.insert()
+		self.assertEqual(todo.notify_update.call_count, 1)
+
+		todo.reload()
+		todo.flags.notify_update = False
+		todo.description = "this won't trigger realtime update"
+		todo.save()
+		self.assertEqual(todo.notify_update.call_count, 1)
 
 
 class TestDocumentWebView(unittest.TestCase):
