@@ -22,7 +22,7 @@ from frappe.cache_manager import clear_controller_cache, clear_user_cache
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database.schema import validate_column_length, validate_column_name
-from frappe.desk.notifications import delete_notification_count_for
+from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
 from frappe.model import (
 	data_field_options,
@@ -853,11 +853,7 @@ def validate_links_table_fieldnames(meta):
 
 	fieldnames = tuple(field.fieldname for field in meta.fields)
 	for index, link in enumerate(meta.links, 1):
-		if not frappe.get_meta(link.link_doctype).has_field(link.link_fieldname):
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(
-				index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype)
-			)
-			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
+		_test_connection_query(doctype=link.link_doctype, field=link.link_fieldname, idx=index)
 
 		if not link.is_child_table:
 			continue
@@ -884,6 +880,25 @@ def validate_links_table_fieldnames(meta):
 				index, frappe.bold(link.table_fieldname), frappe.bold(meta.name)
 			)
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
+
+
+def _test_connection_query(doctype, field, idx):
+	"""Make sure that connection can be queried.
+
+	This function executes query similar to one that would be executed for
+	finding count on dashboard and hence validates if fieldname/doctype are
+	correct.
+	"""
+	filters = get_filters_for(doctype) or {}
+	filters[field] = ""
+
+	try:
+		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True)
+	except Exception as e:
+		frappe.clear_last_message()
+		msg = _("Document Links Row #{0}: Invalid doctype or fieldname.").format(idx)
+		msg += "<br>" + str(e)
+		frappe.throw(msg, InvalidFieldNameError)
 
 
 def validate_fields_for_doctype(doctype):
