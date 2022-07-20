@@ -328,7 +328,7 @@ def get_unseen_notes():
 		frappe.qb.from_(note)
 		.select(note.name, note.title, note.content, note.notify_on_every_login)
 		.where(
-			(note.notify_on_every_login == 1)
+			(note.notify_on_login == 1)
 			& (note.expire_notification_on > frappe.utils.now())
 			& (
 				ParameterizedValueWrapper(frappe.session.user).notin(
