@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.email.queue import send_one
 from frappe.model.document import Document
-from frappe.utils import now_datetime, sbool
+from frappe.utils import sbool
 
 
 class EmailQueue(Document):
