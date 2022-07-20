@@ -108,7 +108,7 @@ frappe.ui.form.add_options = function(input, options_list) {
 		return $select;
 	}
 	// create options
-        var parent = $select.get(0);
+    var parent = $select.get(0);
 	for(var i=0, j=options_list.length; i<j; i++) {
 		var v = options_list[i];
 		var value = null;
@@ -121,10 +121,10 @@ frappe.ui.form.add_options = function(input, options_list) {
 			var is_group = false;
 
 			if (is_value_null && is_label_null) {
-			        if (v.startsWith('#')) {
-			                is_group = true;
-			                v = v.substring(1);
-			        }
+			    if (v.startsWith('#')) {
+			            is_group = true;
+			            v = v.substring(1);
+			    }
 				value = v;
 				label = __(v);
 			} else {
@@ -134,23 +134,17 @@ frappe.ui.form.add_options = function(input, options_list) {
 		}
 
 		if (is_group) {
-		        parent = $('<optgroup>');
-                        parent.attr('label', label)
-    			        .prop('disabled', is_disabled)
-			        .appendTo($select.get(0));
+		    parent = $('<optgroup>')
+    		    .attr('label', label)
+    			.prop('disabled', is_disabled);
+			parent.appendTo($select.get(0));
 		} else {
-    		        $('<option>').html(cstr(label))
-    			        .attr('value', value)
-    			        .prop('disabled', is_disabled)
-    			        .prop('selected', is_selected)
-    			        .appendTo(parent.get(0));
+    		$('<option>').html(cstr(label))
+    			.attr('value', value)
+    			.prop('disabled', is_disabled)
+    			.prop('selected', is_selected)
+    			.appendTo(parent.get(0));
 		}
-
-		$('<option>').html(cstr(label))
-			.attr('value', value)
-			.prop('disabled', is_disabled)
-			.prop('selected', is_selected)
-			.appendTo($select.get(0));
 	}
 	// select the first option
 	$select.get(0).selectedIndex = 0;
