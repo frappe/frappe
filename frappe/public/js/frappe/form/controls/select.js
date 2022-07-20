@@ -108,6 +108,7 @@ frappe.ui.form.add_options = function(input, options_list) {
 		return $select;
 	}
 	// create options
+        var parent = $select.get(0);
 	for(var i=0, j=options_list.length; i<j; i++) {
 		var v = options_list[i];
 		var value = null;
@@ -117,14 +118,32 @@ frappe.ui.form.add_options = function(input, options_list) {
 			var is_label_null = is_null(v.label);
 			var is_disabled = Boolean(v.disabled);
 			var is_selected = Boolean(v.selected);
+			var is_group = false;
 
 			if (is_value_null && is_label_null) {
+			        if (v.startsWith('#')) {
+			                is_group = true;
+			                v = v.substring(1);
+			        }
 				value = v;
 				label = __(v);
 			} else {
 				value = is_value_null ? "" : v.value;
 				label = is_label_null ? __(value) : __(v.label);
 			}
+		}
+
+		if (is_group) {
+		        parent = $('<optgroup>');
+                        parent.attr('label', label)
+    			        .prop('disabled', is_disabled)
+			        .appendTo($select.get(0));
+		} else {
+    		        $('<option>').html(cstr(label))
+    			        .attr('value', value)
+    			        .prop('disabled', is_disabled)
+    			        .prop('selected', is_selected)
+    			        .appendTo(parent.get(0));
 		}
 
 		$('<option>').html(cstr(label))
