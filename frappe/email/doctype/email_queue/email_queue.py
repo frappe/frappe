@@ -47,6 +47,7 @@ def retry_sending(name):
 
 @frappe.whitelist()
 def send_now(name):
+	frappe.has_permission("Email Queue", doc=name, throw=True)
 	send_one(name, now=True)
 
 
