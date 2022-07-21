@@ -43,7 +43,7 @@ def execute():
 		"Healthcare Settings",
 		"Education Settings",
 	):
-		if not frappe.db.exists(doctype):
+		if not frappe.db.exists("DocType", doctype):
 			continue
 
 		try:
