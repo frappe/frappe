@@ -53,8 +53,8 @@ def execute():
 
 	# pos profile
 	if frappe.db.exists("DocType", "POS Profile"):
-		pos_profile = frappe.get_last_doc("POS Profile")
 		try:
+			pos_profile = frappe.get_last_doc("POS Profile")
 			pos_profile.set_defaults()
 		except Exception:
 			pass
