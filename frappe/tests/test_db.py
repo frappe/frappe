@@ -574,7 +574,7 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		self.test_table_name = new_table_name
 
 	def test_describe(self) -> None:
-		self.assertEqual(
+		self.assertSequenceEqual(
 			[
 				("id", "int(11)", "NO", "PRI", None, ""),
 				("content", "text", "YES", "", None, ""),
@@ -798,7 +798,7 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.test_table_name = new_table_name
 
 	def test_describe(self) -> None:
-		self.assertEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
+		self.assertSequenceEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
 
 	def test_change_type(self) -> None:
 		from psycopg2.errors import DatatypeMismatch
