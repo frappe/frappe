@@ -39,7 +39,12 @@ class TestQueryReport(unittest.TestCase):
 		self.assertListEqual(column_widths, [0, 10, 15])
 
 		for row in xlsx_data:
-			self.assertEqual(type(row), list)
+			self.assertIsInstance(row, list)
+
+		# ensure all types are preserved
+		for row in xlsx_data[1:]:
+			for cell in row:
+				self.assertIsInstance(cell, (int, float))
 
 	def test_xlsx_export_with_composite_cell_value(self):
 		"""Test excel export using rows with composite cell value"""

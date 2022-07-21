@@ -30,12 +30,12 @@ frappe.ui.form.on('Newsletter', {
 			frm.add_custom_button(__('Send now'), () => {
 				if (frm.doc.schedule_send) {
 					frappe.confirm(__("This newsletter was scheduled to send on a later date. Are you sure you want to send it now?"), function () {
-						frm.call('send_emails').then(() => frm.refresh());
+						frm.events.send_emails(frm);
 					});
 					return;
 				}
-				frappe.confirm(__("Are you sure you want to send this newsletter now?"), function () {
-					frm.call('send_emails').then(() => frm.refresh());
+				frappe.confirm(__("Are you sure you want to send this newsletter now?"), () => {
+					frm.events.send_emails(frm);
 				});
 			}, __('Send'));
 
@@ -44,8 +44,7 @@ frappe.ui.form.on('Newsletter', {
 			}, __('Send'));
 		}
 
-		frm.events.setup_dashboard(frm);
-		frm.events.setup_sending_status(frm);
+		frm.events.update_sending_status(frm);
 
 		if (frm.is_new() && !doc.sender_email) {
 			let { fullname, email } = frappe.user_info(doc.owner);
@@ -54,6 +53,15 @@ frappe.ui.form.on('Newsletter', {
 		}
 
 		frm.trigger('update_schedule_message');
+	},
+
+	send_emails(frm) {
+		frappe.dom.freeze(__("Queuing emails..."));
+		frm.call('send_emails').then(() => {
+			frm.refresh();
+			frappe.dom.unfreeze();
+			frappe.show_alert(__("Queued {0} emails", [frappe.utils.shorten_number(frm.doc.total_recipients)]));
+		});
 	},
 
 	schedule_send_dialog(frm) {
@@ -128,77 +136,36 @@ frappe.ui.form.on('Newsletter', {
 		d.show();
 	},
 
-	setup_dashboard(frm) {
-		if (!frm.doc.__islocal && cint(frm.doc.email_sent)
-			&& frm.doc.__onload && frm.doc.__onload.status_count) {
-			var stat = frm.doc.__onload.status_count;
-			var total = frm.doc.scheduled_to_send;
-			if (total) {
-				$.each(stat, function (k, v) {
-					stat[k] = flt(v * 100 / total, 2) + '%';
-				});
-
-				frm.dashboard.add_progress("Status", [
-					{
-						title: stat["Not Sent"] + " Queued",
-						width: stat["Not Sent"],
-						progress_class: "progress-bar-info"
-					},
-					{
-						title: stat["Sent"] + " Sent",
-						width: stat["Sent"],
-						progress_class: "progress-bar-success"
-					},
-					{
-						title: stat["Sending"] + " Sending",
-						width: stat["Sending"],
-						progress_class: "progress-bar-warning"
-					},
-					{
-						title: stat["Error"] + "% Error",
-						width: stat["Error"],
-						progress_class: "progress-bar-danger"
-					}
-				]);
-			}
-		}
-	},
-
-	setup_sending_status(frm) {
-		frm.call('get_sending_status').then(r => {
-			if (r.message) {
-				frm.events.update_sending_progress(frm, r.message.sent, r.message.total);
-			}
-			if (r.message.sent >= r.message.total) {
+	async update_sending_status(frm) {
+		if (frm.doc.email_sent && frm.$wrapper.is(':visible') && !frm.waiting_for_request) {
+			frm.waiting_for_request = true;
+			let res = await frm.call('get_sending_status');
+			frm.waiting_for_request = false;
+			let stats = res.message;
+			stats && frm.events.update_sending_progress(frm, stats);
+			if (stats.sent + stats.error >= frm.doc.total_recipients || (!stats.total && !stats.emails_queued)) {
+				frm.sending_status && clearInterval(frm.sending_status);
+				frm.sending_status = null;
 				return;
 			}
-			if (frm.sending_status) return;
+		}
 
-			frm.sending_status = setInterval(() => {
-				if (frm.doc.email_sent && frm.$wrapper.is(':visible')) {
-					frm.call('get_sending_status').then(r => {
-						if (r.message) {
-							let { sent, total } = r.message;
-							frm.events.update_sending_progress(frm, sent, total);
-
-							if (sent >= total) {
-								clearInterval(frm.sending_status);
-								frm.sending_status = null;
-								return;
-							}
-						}
-					});
-				}
-			}, 5000);
-		});
+		if (frm.sending_status) return;
+		frm.sending_status = setInterval(() => frm.events.update_sending_status(frm), 5000);
 	},
 
-	update_sending_progress(frm, sent, total) {
-		if (sent >= total) {
+	update_sending_progress(frm, stats) {
+		if (stats.sent + stats.error >= frm.doc.total_recipients || !frm.doc.email_sent) {
+			frm.doc.email_sent && frm.page.set_indicator(__("Sent"), "green");
 			frm.dashboard.hide_progress();
 			return;
 		}
-		frm.dashboard.show_progress(__('Sending emails'), sent * 100 / total, __("{0} of {1} sent", [sent, total]));
+		if (stats.total) {
+			frm.page.set_indicator(__("Sending"), "blue");
+			frm.dashboard.show_progress(__('Sending emails'), stats.sent * 100 / frm.doc.total_recipients, __("{0} of {1} sent", [stats.sent, frm.doc.total_recipients]));
+		} else if (stats.emails_queued) {
+			frm.page.set_indicator(__("Queued"), "blue");
+		}
 	},
 
 	on_hide(frm) {

@@ -42,16 +42,10 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	authorize_api_indexing_access: function(frm) {
-		let reauthorize = 0;
-		if (frm.doc.authorization_code) {
-			reauthorize = 1;
-		}
-
 		frappe.call({
 			method: "frappe.website.doctype.website_settings.google_indexing.authorize_access",
 			args: {
-				"g_indexing": frm.doc.name,
-				"reauthorize": reauthorize
+				"reauthorize": frm.doc.indexing_authorization_code ? 1 : 0
 			},
 			callback: function(r) {
 				if (!r.exc) {

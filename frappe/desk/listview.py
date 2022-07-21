@@ -36,7 +36,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 		ToDo = DocType("ToDo")
 		User = DocType("User")
 		count = Count("*").as_("count")
-		filtered_records = frappe.db.query.build_conditions(doctype, current_filters).select("name")
+		filtered_records = frappe.qb.engine.build_conditions(doctype, current_filters).select("name")
 
 		return (
 			frappe.qb.from_(ToDo)

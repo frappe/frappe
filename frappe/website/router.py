@@ -30,6 +30,32 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 		return page_info[end_point]
 
 
+def get_page_info_from_web_form(path):
+	"""Query published web forms and evaluate if the route matches"""
+	rules, page_info = [], {}
+	web_forms = frappe.db.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+	for d in web_forms:
+		rules.append(Rule(f"/{d.route}", endpoint=d.name))
+		rules.append(Rule(f"/{d.route}/list", endpoint=d.name))
+		rules.append(Rule(f"/{d.route}/new", endpoint=d.name))
+		rules.append(Rule(f"/{d.route}/<name>", endpoint=d.name))
+		rules.append(Rule(f"/{d.route}/<name>/edit", endpoint=d.name))
+		d.doctype = "Web Form"
+		page_info[d.name] = d
+
+	end_point = evaluate_dynamic_routes(rules, path)
+	if end_point:
+		if path.endswith("/list"):
+			frappe.form_dict.is_list = True
+		elif path.endswith("/new"):
+			frappe.form_dict.is_new = True
+		elif path.endswith("/edit"):
+			frappe.form_dict.is_edit = True
+		else:
+			frappe.form_dict.is_read = True
+		return page_info[end_point]
+
+
 def evaluate_dynamic_routes(rules, path):
 	"""
 	Use Werkzeug routing to evaluate dynamic routes like /project/<name>

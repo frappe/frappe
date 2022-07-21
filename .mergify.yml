@@ -21,6 +21,7 @@ pull_request_rules:
   - name: Automatic merge on CI success and review
     conditions:
       - status-success=Sider
+      - status-success=Check Commit Titles
       - status-success=Python Unit Tests (MariaDB) (1)
       - status-success=Python Unit Tests (MariaDB) (2)
       - status-success=Python Unit Tests (Postgres) (1)

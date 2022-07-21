@@ -4,26 +4,21 @@
 import os
 from urllib.parse import quote
 
-import google.oauth2.credentials
-import requests
 from apiclient.http import MediaFileUpload
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 import frappe
 from frappe import _
-from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.integrations.offsite_backup_utils import (
 	get_latest_backup_file,
 	send_email,
 	validate_file_size,
 )
 from frappe.model.document import Document
-from frappe.utils import get_backups_path, get_bench_path, get_request_site_address
+from frappe.utils import get_backups_path, get_bench_path
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.backups import new_backup
-
-SCOPES = "https://www.googleapis.com/auth/drive"
 
 
 class GoogleDrive(Document):
@@ -33,118 +28,57 @@ class GoogleDrive(Document):
 			self.backup_folder_id = ""
 
 	def get_access_token(self):
-		google_settings = frappe.get_doc("Google Settings")
-
-		if not google_settings.enable:
-			frappe.throw(_("Google Integration is disabled."))
-
 		if not self.refresh_token:
 			button_label = frappe.bold(_("Allow Google Drive Access"))
 			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
-		data = {
-			"client_id": google_settings.client_id,
-			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-			"refresh_token": self.get_password(fieldname="refresh_token", raise_exception=False),
-			"grant_type": "refresh_token",
-			"scope": SCOPES,
-		}
-
-		try:
-			r = requests.post(get_auth_url(), data=data).json()
-		except requests.exceptions.HTTPError:
-			button_label = frappe.bold(_("Allow Google Drive Access"))
-			frappe.throw(
-				_(
-					"Something went wrong during the token generation. Click on {0} to generate a new one."
-				).format(button_label)
-			)
+		oauth_obj = GoogleOAuth("drive")
+		r = oauth_obj.refresh_access_token(
+			self.get_password(fieldname="refresh_token", raise_exception=False)
+		)
 
 		return r.get("access_token")
 
 
-@frappe.whitelist()
-def authorize_access(reauthorize=None):
+@frappe.whitelist(methods=["POST"])
+def authorize_access(reauthorize=False, code=None):
 	"""
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
 	"""
 
-	google_settings = frappe.get_doc("Google Settings")
-	google_drive = frappe.get_doc("Google Drive")
-
-	redirect_uri = (
-		get_request_site_address(True)
-		+ "?cmd=frappe.integrations.doctype.google_drive.google_drive.google_callback"
+	oauth_code = (
+		frappe.db.get_single_value("Google Drive", "authorization_code") if not code else code
 	)
+	oauth_obj = GoogleOAuth("drive")
 
-	if not google_drive.authorization_code or reauthorize:
+	if not oauth_code or reauthorize:
 		if reauthorize:
 			frappe.db.set_value("Google Drive", None, "backup_folder_id", "")
-		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
-	else:
-		try:
-			data = {
-				"code": google_drive.authorization_code,
-				"client_id": google_settings.client_id,
-				"client_secret": google_settings.get_password(
-					fieldname="client_secret", raise_exception=False
-				),
-				"redirect_uri": redirect_uri,
-				"grant_type": "authorization_code",
-			}
-			r = requests.post(get_auth_url(), data=data).json()
-
-			if "refresh_token" in r:
-				frappe.db.set_value("Google Drive", google_drive.name, "refresh_token", r.get("refresh_token"))
-				frappe.db.commit()
-
-			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/app/Form/{}".format(quote("Google Drive"))
-
-			frappe.msgprint(_("Google Drive has been configured."))
-		except Exception as e:
-			frappe.throw(e)
-
-
-def get_authentication_url(client_id, redirect_uri):
-	return {
-		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(
-			client_id, SCOPES, redirect_uri
+		return oauth_obj.get_authentication_url(
+			{
+				"redirect": f"/app/Form/{quote('Google Drive')}",
+			},
 		)
-	}
 
-
-@frappe.whitelist()
-def google_callback(code=None):
-	"""
-	Authorization code is sent to callback as per the API configuration
-	"""
-	frappe.db.set_value("Google Drive", None, "authorization_code", code)
-	frappe.db.commit()
-
-	authorize_access()
+	r = oauth_obj.authorize(oauth_code)
+	frappe.db.set_value(
+		"Google Drive",
+		"Google Drive",
+		{"authorization_code": oauth_code, "refresh_token": r.get("refresh_token")},
+	)
 
 
 def get_google_drive_object():
 	"""
 	Returns an object of Google Drive.
 	"""
-	google_settings = frappe.get_doc("Google Settings")
 	account = frappe.get_doc("Google Drive")
+	oauth_obj = GoogleOAuth("drive")
 
-	credentials_dict = {
-		"token": account.get_access_token(),
-		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
-		"token_uri": get_auth_url(),
-		"client_id": google_settings.client_id,
-		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": "https://www.googleapis.com/auth/drive/v3",
-	}
-
-	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
-	google_drive = build(
-		serviceName="drive", version="v3", credentials=credentials, static_discovery=False
+	google_drive = oauth_obj.get_google_service_object(
+		account.get_access_token(),
+		account.get_password(fieldname="indexing_refresh_token", raise_exception=False),
 	)
 
 	return google_drive, account
