@@ -9,7 +9,6 @@ import string
 import traceback
 from contextlib import contextmanager
 from time import time
-from types import NoneType
 
 from pypika.terms import Criterion, NullValue
 
@@ -105,7 +104,7 @@ class Database:
 		raise NotImplementedError
 
 	def _transform_query(self, query: Query, values: QueryValues) -> tuple:
-		return query, values or None
+		return query, values
 
 	def _transform_result(self, result: list[tuple]) -> list[tuple]:
 		return result
@@ -113,7 +112,7 @@ class Database:
 	def sql(
 		self,
 		query: Query,
-		values: QueryValues = None,
+		values: QueryValues = (),
 		as_dict=0,
 		as_list=0,
 		formatted=0,
@@ -176,7 +175,7 @@ class Database:
 		if debug:
 			time_start = time()
 
-		if not isinstance(values, (NoneType, tuple, dict, list)):
+		if not isinstance(values, (tuple, dict, list)):
 			values = (values,)
 		query, values = self._transform_query(query, values)
 
