@@ -38,7 +38,6 @@ dependencies = [
     "html5lib~=1.1",
     "ipython~=8.4.0",
     "ldap3~=2.9",
-    "mariadb~=1.1.2",
     "markdown2~=2.4.0",
     "maxminddb-geolite2==2018.703",
     "num2words~=0.5.10",
