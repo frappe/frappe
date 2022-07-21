@@ -31,3 +31,22 @@ def execute():
 
 	except frappe.DoesNotExistError:
 		pass
+
+	# Other app defaults
+	for doctype in (
+		"Accounts Settings",
+		"Stock Settings",
+		"Selling Settings",
+		"Buying Settings",
+		"CRM Settings",
+		"Global Defaults",
+		"Healthcare Settings",
+		"Education Settings",
+	):
+		if not frappe.db.exists(doctype):
+			continue
+
+		try:
+			frappe.get_single(doctype).save()
+		except Exception:
+			pass
