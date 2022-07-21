@@ -16,7 +16,7 @@ import frappe
 import frappe.defaults
 import frappe.model.meta
 from frappe import _
-from frappe.database.utils import LazyMogrify, Query, QueryValues, is_query_type
+from frappe.database.utils import EmptyQueryValues, LazyMogrify, Query, QueryValues, is_query_type
 from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
@@ -112,7 +112,7 @@ class Database:
 	def sql(
 		self,
 		query: Query,
-		values: QueryValues = (),
+		values: QueryValues = EmptyQueryValues,
 		as_dict=0,
 		as_list=0,
 		formatted=0,
@@ -175,7 +175,9 @@ class Database:
 		if debug:
 			time_start = time()
 
-		if not isinstance(values, (tuple, dict, list)):
+		if values == EmptyQueryValues:
+			values = None
+		elif not isinstance(values, (tuple, dict, list)):
 			values = (values,)
 		query, values = self._transform_query(query, values)
 

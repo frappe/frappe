@@ -10,6 +10,8 @@ from frappe.query_builder.builder import MariaDB, Postgres
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | NoneType
 
+EmptyQueryValues = object()
+
 
 def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)

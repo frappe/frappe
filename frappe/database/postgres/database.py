@@ -18,7 +18,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
-from frappe.database.utils import LazyDecode
+from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
@@ -188,7 +188,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return db_size[0].get("database_size")
 
 	# pylint: disable=W0221
-	def sql(self, query, values=(), *args, **kwargs):
+	def sql(self, query, values=EmptyQueryValues, *args, **kwargs):
 		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
 
 	def lazy_mogrify(self, *args, **kwargs) -> str:
@@ -419,7 +419,7 @@ def modify_values(values):
 
 		return value
 
-	if not values:
+	if not values or values == EmptyQueryValues:
 		return values
 
 	if isinstance(values, dict):
