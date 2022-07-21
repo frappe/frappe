@@ -184,7 +184,7 @@ frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
 frappe.patches.v13_0.encrypt_2fa_secrets
-frappe.patches.v13_0.fix_defaults_parent
+frappe.patches.v13_0.reset_corrupt_defaults
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
