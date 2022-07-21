@@ -187,6 +187,15 @@ frappe.ui.form.Control = class BaseControl {
 			return Promise.resolve();
 		}
 
+		const old_value = this.get_model_value();
+		this.frm?.undo_manager?.record_change({
+			fieldname: me.df.fieldname,
+			old_value,
+			new_value: value,
+			doctype: this.doctype,
+			docname: this.docname,
+			is_child: Boolean(this.doc?.parenttype)
+		});
 		this.inside_change_event = true;
 		function set(value) {
 			me.inside_change_event = false;
