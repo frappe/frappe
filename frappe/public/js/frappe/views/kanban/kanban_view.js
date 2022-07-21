@@ -29,20 +29,22 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
-		return super.setup_defaults().then(() => {
-			this.board_name = frappe.get_route()[3];
-			this.page_title = __(this.board_name);
-			this.card_meta = this.get_card_meta();
-			this.page_length = 0;
+		return super.setup_defaults()
+			.then(() => {
+				this.board_name = frappe.get_route()[3];
+				this.page_title = __(this.board_name);
+				this.card_meta = this.get_card_meta();
+				this.page_length = 0;
 
-			this.menu_items.push({
-				label: __("Save filters"),
-				action: () => {
-					this.save_kanban_board_filters();
-				},
+				frappe.perm.has_perm("Kanban Board", 0, "write") && this.menu_items.push({
+					label: __('Save filters'),
+					action: () => {
+						this.save_kanban_board_filters();
+					}
+				});
+
+				return this.get_board();
 			});
-			return this.get_board();
-		});
 	}
 
 	setup_paging_area() {
@@ -95,6 +97,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	save_kanban_board_filters() {
+		if (!frappe.perm.has_perm("Kanban Board", 0, "write")) return;
+
 		const filters = this.filter_area.get();
 
 		frappe.db.set_value("Kanban Board", this.board_name, "filters", filters).then((r) => {
@@ -122,22 +126,33 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	render() {
 		const board_name = this.board_name;
-		if (this.kanban && board_name === this.kanban.board_name) return;
 
-		this.kanban = new frappe.views.KanbanBoard({
-			doctype: this.doctype,
-			board: this.board,
-			board_name: board_name,
-			cards: this.data,
-			card_meta: this.card_meta,
-			wrapper: this.$result,
-			cur_list: this,
-			user_settings: this.view_user_settings,
-		});
+		if (!this.kanban || board_name !== this.kanban.board_name) {
+			this.kanban = new frappe.views.KanbanBoard({
+				doctype: this.doctype,
+				board: this.board,
+				board_name: board_name,
+				cards: this.data,
+				card_meta: this.card_meta,
+				wrapper: this.$result,
+				cur_list: this,
+				user_settings: this.view_user_settings,
+				has_write_perm: frappe.perm.has_perm("Kanban Board", 0, "write")
+			});
+		}
+
+		this.show_or_hide_add_column();
+		this.render_list();
 	}
 
 	render_list() {
 		this.kanban.update(this.data);
+	}
+
+	show_or_hide_add_column() {
+		if (frappe.perm.has_perm("Kanban Board", 0, "write")) return;
+
+		this.$result.find(".add-new-column").hide();
 	}
 
 	get_card_meta() {
