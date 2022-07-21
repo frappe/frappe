@@ -32,7 +32,7 @@ def execute():
 	except frappe.DoesNotExistError:
 		pass
 
-	# Other app defaults
+	# other app defaults
 	for doctype in (
 		"Accounts Settings",
 		"Stock Settings",
@@ -48,5 +48,13 @@ def execute():
 
 		try:
 			frappe.get_single(doctype).save()
+		except Exception:
+			pass
+
+	# pos profile
+	if frappe.db.exists("DocType", "POS Profile"):
+		pos_profile = frappe.get_last_doc("POS Profile")
+		try:
+			pos_profile.set_defaults()
 		except Exception:
 			pass
