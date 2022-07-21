@@ -76,6 +76,10 @@ a.badge-hover {
 	text-decoration: underline;
 }
 
+.pointer {
+	cursor: pointer;
+}
+
 .inline-block {
 	display: inline-block;
 }
@@ -587,6 +591,10 @@ details > summary:focus {
 .diffview .delete,
 .diff-remove {
 	background-color: var(--diff-removed);
+}
+
+.chart-wrapper {
+	padding: 1em;
 }
 
 // REDESIGN TODO: Handling of broken images?

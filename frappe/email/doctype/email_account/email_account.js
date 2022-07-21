@@ -123,8 +123,6 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	enable_incoming: function(frm) {
-		frm.doc.no_remaining = null; //perform full sync
-		//frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 		frm.trigger("warn_autoreply_on_incoming");
 	},
 

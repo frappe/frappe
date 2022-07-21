@@ -16,7 +16,7 @@ def authorize_access(reauthorize=False, code=None):
 	"""If no Authorization code get it from Google and then request for Refresh Token."""
 
 	oauth_code = (
-		frappe.db.get_value("Website Settings", "Website Settings", "indexing_authorization_code")
+		frappe.db.get_single_value("Website Settings", "indexing_authorization_code")
 		if not code
 		else code
 	)
@@ -26,7 +26,6 @@ def authorize_access(reauthorize=False, code=None):
 	if not oauth_code or reauthorize:
 		return oauth_obj.get_authentication_url(
 			{
-				"method": "frappe.website.doctype.website_settings.google_indexing.authorize_access",
 				"redirect": f"/app/Form/{quote('Website Settings')}",
 			},
 		)

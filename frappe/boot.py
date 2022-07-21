@@ -14,7 +14,7 @@ from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import SubQuery
+from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
@@ -328,11 +328,11 @@ def get_unseen_notes():
 		frappe.qb.from_(note)
 		.select(note.name, note.title, note.content, note.notify_on_every_login)
 		.where(
-			(note.notify_on_every_login == 1)
+			(note.notify_on_login == 1)
 			& (note.expire_notification_on > frappe.utils.now())
 			& (
-				SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name)).notin(
-					[frappe.session.user]
+				ParameterizedValueWrapper(frappe.session.user).notin(
+					SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name))
 				)
 			)
 		)

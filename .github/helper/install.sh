@@ -56,11 +56,6 @@ bench -v setup requirements --dev
 
 if [ "$TYPE" == "ui" ]; then sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile; fi
 
-# install node-sass which is required for website theme test
-cd ./apps/frappe || exit
-yarn add node-sass@4.13.1
-cd ../..
-
 bench start &
 bench --site test_site reinstall --yes
 if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi

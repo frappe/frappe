@@ -3,7 +3,7 @@
 import re
 
 import frappe
-from frappe import _
+from frappe import _, scrub
 from frappe.rate_limiter import rate_limit
 from frappe.utils.html_utils import clean_html
 from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
@@ -41,8 +41,13 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	if route:
 		clear_cache(route)
 
-	content = comment.content + "<p><a href='{}/{}#{}' style='font-size: 80%'>{}</a></p>".format(
-		frappe.utils.get_request_site_address(), doc.route, comment.name, _("View Comment")
+	if doc.get("route"):
+		url = f"{frappe.utils.get_request_site_address()}/{doc.route}#{comment.name}"
+	else:
+		url = f"{frappe.utils.get_request_site_address()}/app/{scrub(doc.doctype)}/{doc.name}#comment-{comment.name}"
+
+	content = comment.content + "<p><a href='{}' style='font-size: 80%'>{}</a></p>".format(
+		url, _("View Comment")
 	)
 
 	if doc.doctype == "Blog Post" and not doc.enable_email_notification:

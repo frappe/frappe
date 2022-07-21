@@ -1796,6 +1796,14 @@ def respond_as_web_page(
 	local.response["context"] = context
 
 
+def redirect(url):
+	"""Raise a 301 redirect to url"""
+	from frappe.exceptions import Redirect
+
+	flags.redirect_location = url
+	raise Redirect
+
+
 def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
 	"""Redirects to /message?id=random
 	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message

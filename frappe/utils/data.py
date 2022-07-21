@@ -1545,7 +1545,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 			host_name = protocol + frappe.local.site
 
 		else:
-			host_name = frappe.db.get_value("Website Settings", "Website Settings", "subdomain")
+			host_name = frappe.db.get_single_value("Website Settings", "subdomain")
 
 			if not host_name:
 				host_name = "http://localhost"
@@ -1949,6 +1949,15 @@ def is_subset(list_a: list, list_b: list) -> bool:
 
 def generate_hash(*args, **kwargs) -> str:
 	return frappe.generate_hash(*args, **kwargs)
+
+
+def dict_with_keys(dict, keys):
+	"""Returns a new dict with a subset of keys"""
+	out = {}
+	for key in dict:
+		if key in keys:
+			out[key] = dict[key]
+	return out
 
 
 def guess_date_format(date_string: str) -> str:
