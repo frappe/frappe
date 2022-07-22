@@ -146,8 +146,8 @@ frappe.views.BaseList = class BaseList {
 			page_length: 20,
 			fields: [],
 			filters: [],
-			sort_by:  "modified",
-			sort_order: "desc"
+			sort_by:  this.meta.sort_field || "modified",
+			sort_order:  (this.meta.sort_order || "desc").toLowerCase()
 		}
 	}
 
