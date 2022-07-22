@@ -84,30 +84,6 @@ def archive_restore_column(board_name, column_title, status):
 
 
 @frappe.whitelist()
-def update_order(board_name, order):
-	"""Save the order of cards in columns"""
-	board = frappe.get_doc("Kanban Board", board_name)
-	doctype = board.reference_doctype
-	fieldname = board.field_name
-	order_dict = json.loads(order)
-
-	updated_cards = []
-	for col_name, cards in order_dict.items():
-		for card in cards:
-			column = frappe.get_value(doctype, {"name": card}, fieldname)
-			if column != col_name:
-				frappe.set_value(doctype, card, fieldname, col_name)
-				updated_cards.append(dict(name=card, column=col_name))
-
-		for column in board.columns:
-			if column.column_name == col_name:
-				column.order = json.dumps(cards)
-
-	board.save()
-	return board, updated_cards
-
-
-@frappe.whitelist()
 def update_order_for_single_card(
 	board_name, docname, from_colname, to_colname, old_index, new_index
 ):

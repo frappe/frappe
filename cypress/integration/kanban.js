@@ -35,14 +35,7 @@ context("Kanban Board", () => {
 	it("Add and Remove fields", () => {
 		cy.visit("/app/todo/view/kanban/ToDo Kanban");
 
-		cy.intercept(
-			"POST",
-			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.save_settings"
-		).as("save-kanban");
-		cy.intercept(
-			"POST",
-			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order"
-		).as("update-order");
+		cy.intercept('POST', '/api/method/frappe.desk.doctype.kanban_board.kanban_board.save_settings').as('save-kanban');
 
 		cy.get(".page-actions .menu-btn-group > .btn").click();
 		cy.get(".page-actions .menu-btn-group .dropdown-menu li")
