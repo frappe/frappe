@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.build import html_to_js_template
 from frappe.utils import cstr
+from frappe.utils.caching import site_cache
 
 STANDARD_FIELD_CONVERSION_MAP = {
 	"name": "Link",
@@ -99,3 +100,8 @@ def get_fetch_values(doctype, fieldname, value):
 		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
 
 	return out
+
+
+@site_cache(maxsize=128)
+def is_virtual_doctype(doctype):
+	return frappe.db.get_value("DocType", doctype, "is_virtual")

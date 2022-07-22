@@ -296,22 +296,25 @@ def make_boilerplate(template, doc, opts=None):
 		custom_controller = "pass"
 		if doc.get("is_virtual"):
 			custom_controller = """
-	def db_insert(self):
+	def db_insert(self, *args, **kwargs):
 		pass
 
 	def load_from_db(self):
 		pass
 
-	def db_update(self):
+	def db_update(self, *args, **kwargs):
 		pass
 
-	def get_list(self, args):
+	@staticmethod
+	def get_list(args):
 		pass
 
-	def get_count(self, args):
+	@staticmethod
+	def get_count(args):
 		pass
 
-	def get_stats(self, args):
+	@staticmethod
+	def get_stats(args):
 		pass"""
 
 		with open(target_file_path, "w") as target:
