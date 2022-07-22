@@ -8,7 +8,7 @@ from frappe.model.document import Document
 
 
 class test(Document):
-	def db_insert(self):
+	def db_insert(self, *args, **kwargs):
 		d = self.get_valid_dict(convert_dates_to_str=True)
 		with open("data_file.json", "w+") as read_file:
 			json.dump(d, read_file)
@@ -18,26 +18,22 @@ class test(Document):
 			d = json.load(read_file)
 			super(Document, self).__init__(d)
 
-	def db_update(self):
+	def db_update(self, *args, **kwargs):
 		d = self.get_valid_dict(convert_dates_to_str=True)
 		with open("data_file.json", "w+") as read_file:
 			json.dump(d, read_file)
 
-	def get_list(self, args):
+	@staticmethod
+	def get_list(args):
 		with open("data_file.json") as read_file:
 			return [frappe._dict(json.load(read_file))]
 
-	def get_value(self, fields, filters, **kwargs):
-		# return []
-		with open("data_file.json") as read_file:
-			return [json.load(read_file)]
+	@staticmethod
+	def get_count(args):
+		return 5
 
-	def get_count(self, args):
-		# return []
-		with open("data_file.json") as read_file:
-			return [json.load(read_file)]
-
-	def get_stats(self, args):
+	@staticmethod
+	def get_stats(args):
 		# return []
 		with open("data_file.json") as read_file:
 			return [json.load(read_file)]

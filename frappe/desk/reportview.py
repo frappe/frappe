@@ -24,7 +24,7 @@ def get():
 	# If virtual doctype get data from controller het_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = compress(controller(args.doctype).get_list(args))
+		data = compress(controller.get_list(args))
 	else:
 		data = compress(execute(**args), args=args)
 	return data
@@ -37,7 +37,7 @@ def get_list():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller(args.doctype).get_list(args)
+		data = controller.get_list(args)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
@@ -52,7 +52,7 @@ def get_count():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller(args.doctype).get_count(args)
+		data = controller.get_count(args)
 	else:
 		distinct = "distinct " if args.distinct == "true" else ""
 		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
@@ -528,7 +528,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
-		data = controller(doctype).get_stats(args)
+		data = controller.get_stats(args)
 	else:
 		data = get_stats(stats, doctype, filters)
 
