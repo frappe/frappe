@@ -492,7 +492,7 @@ class TestDocType(unittest.TestCase):
 
 		# check invalid doctype
 		doc.append("links", {"link_doctype": "User2", "link_fieldname": "first_name"})
-		self.assertRaises(frappe.DoesNotExistError, validate_links_table_fieldnames, doc)
+		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 		doc.links = []  # reset links table
 
 		# check invalid fieldname

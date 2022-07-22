@@ -1094,7 +1094,7 @@ class Document(BaseDocument):
 
 		self.clear_cache()
 
-		if not hasattr(self.flags, "notify_update") or self.flags.notify_update:
+		if self.flags.get("notify_update", True):
 			self.notify_update()
 
 		update_global_search(self)
@@ -1148,7 +1148,7 @@ class Document(BaseDocument):
 		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
 		:param value: value of the property to be updated
 		:param update_modified: default True. updates the `modified` and `modified_by` properties
-		:param notify: default False. run doc.notify_updated() to send updates via socketio
+		:param notify: default False. run doc.notify_update() to send updates via socketio
 		:param commit: default False. run frappe.db.commit()
 		"""
 		if isinstance(fieldname, dict):
