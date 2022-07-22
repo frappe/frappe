@@ -31,11 +31,10 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	try:
-		doc = frappe.get_doc(doctype, name)
-	except frappe.DoesNotExistError:
+	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
 		return []
 
+	doc = frappe.get_doc(doctype, name)
 	run_onload(doc)
 
 	if not doc.has_permission("read"):
