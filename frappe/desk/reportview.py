@@ -272,7 +272,7 @@ def compress(data, args=None):
 		values.append(new_row)
 
 		# add user info for assignments (avatar)
-		if row._assign:
+		if row.get("_assign", ""):
 			for user in json.loads(row._assign):
 				add_user_info(user, user_info)
 

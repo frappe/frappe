@@ -11,6 +11,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title,
 	get_title_html,
 )
+from frappe.desk.reportview import is_virtual_doctype
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
 from frappe.utils import get_fullname
@@ -152,7 +153,10 @@ def get_comments_from_parent(doc):
 	`_comments`
 	"""
 	try:
-		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
+		if is_virtual_doctype(doc.reference_doctype):
+			_comments = "[]"
+		else:
+			_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
 	except Exception as e:
 		if frappe.db.is_missing_table_or_column(e):
