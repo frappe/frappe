@@ -14,6 +14,7 @@ from frappe.twofactor import (
 	authenticate_for_2factor,
 	confirm_otp_token,
 	get_cached_user_pass,
+	get_default,
 	get_otpsecret_for_,
 	get_verification_obj,
 	should_run_2fa,
@@ -113,7 +114,7 @@ class TestTwoFactor(unittest.TestCase):
 	def test_get_otpsecret_for_user(self):
 		"""OTP secret should be set for user."""
 		self.assertTrue(get_otpsecret_for_(self.user))
-		self.assertTrue(frappe.db.get_default(self.user + "_otpsecret"))
+		self.assertTrue(get_default(self.user + "_otpsecret"))
 
 	def test_confirm_otp_token(self):
 		"""Ensure otp is confirmed"""

@@ -298,17 +298,6 @@ def set_default(key, value, parent=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def make_width_property_setter(doc):
-	"""Set width Property Setter
-
-	:param doc: Property Setter document with `width` property"""
-	if isinstance(doc, string_types):
-		doc = json.loads(doc)
-	if doc["doctype"] == "Property Setter" and doc["property"] == "width":
-		frappe.get_doc(doc).insert(ignore_permissions=True)
-
-
-@frappe.whitelist(methods=["POST", "PUT"])
 def bulk_update(docs):
 	"""Bulk update documents
 
@@ -436,11 +425,6 @@ def attach_file(
 		doc.save()
 
 	return _file.as_dict()
-
-
-@frappe.whitelist()
-def get_hooks(hook, app_name=None):
-	return frappe.get_hooks(hook, app_name)
 
 
 @frappe.whitelist()
