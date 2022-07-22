@@ -4,7 +4,7 @@ import unittest
 from urllib.parse import quote
 
 import frappe
-from frappe.core.doctype.communication.communication import get_emails
+from frappe.core.doctype.communication.communication import Communication, get_emails
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
 
@@ -263,28 +263,43 @@ class TestCommunication(FrappeTestCase):
 	def test_signature_in_email_content(self):
 		email_account = create_email_account()
 		signature = email_account.signature
-		comm = frappe.get_doc(
-			{
-				"doctype": "Communication",
-				"communication_medium": "Email",
-				"subject": "Document Link in Email",
-				"sender": "comm_sender@example.com",
+		base_communication = {
+			"doctype": "Communication",
+			"communication_medium": "Email",
+			"subject": "Document Link in Email",
+			"sender": "comm_sender@example.com",
+		}
+		comm_with_signature = frappe.get_doc(
+			base_communication
+			| {
+				"content": f"""<div class="ql-editor read-mode">
+				Hi,
+				How are you?
+				</div><p></p><br><p class="signature">{signature}</p>""",
+			}
+		).insert(ignore_permissions=True)
+		comm_without_signature = frappe.get_doc(
+			base_communication
+			| {
 				"content": """<div class="ql-editor read-mode">
 				Hi,
 				How are you?
-				</div>""",
+				</div>"""
 			}
 		).insert(ignore_permissions=True)
-		assert signature in comm.content
+
+		self.assertEqual(comm_with_signature.content, comm_without_signature.content)
+		self.assertEqual(comm_with_signature.content.count(signature), 1)
+		self.assertEqual(comm_without_signature.content.count(signature), 1)
 
 
 class TestCommunicationEmailMixin(FrappeTestCase):
-	def new_communication(self, recipients=None, cc=None, bcc=None):
+	def new_communication(self, recipients=None, cc=None, bcc=None) -> Communication:
 		recipients = ", ".join(recipients or [])
 		cc = ", ".join(cc or [])
 		bcc = ", ".join(bcc or [])
 
-		comm = frappe.get_doc(
+		return frappe.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -295,7 +310,6 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 				"bcc": bcc,
 			}
 		).insert(ignore_permissions=True)
-		return comm
 
 	def new_user(self, email, **user_data):
 		user_data.setdefault("first_name", "first_name")
