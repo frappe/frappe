@@ -225,7 +225,7 @@ def parse_json(data):
 	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
 	if isinstance(data.get("fields"), str):
-		data["fields"] = json.loads(data["fields"])
+		data["fields"] = ["*"] if data["fields"] == "*" else json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
 	if isinstance(data.get("save_user_settings"), str):
@@ -684,8 +684,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 	)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
-	else:
-		return match_conditions
+	return match_conditions
 
 
 def get_filters_cond(

@@ -46,9 +46,7 @@ frappe.ui.form.on('DocType', {
 		}
 
 		if(frm.is_new()) {
-			if (!(frm.doc.permissions && frm.doc.permissions.length)) {
-				frm.add_child('permissions', {role: 'System Manager'});
-			}
+			frm.events.set_default_permission(frm);
 		} else {
 			frm.toggle_enable("engine", 0);
 		}
@@ -65,6 +63,14 @@ frappe.ui.form.on('DocType', {
 		if (frm.doc.istable && frm.is_new()) {
 			frm.set_value('autoname', 'autoincrement');
 			frm.set_value('allow_rename', 0);
+		} else if (!frm.doc.istable && !frm.is_new()) {
+			frm.events.set_default_permission(frm);
+		}
+	},
+
+	set_default_permission: (frm) => {
+		if (!(frm.doc.permissions && frm.doc.permissions.length)) {
+			frm.add_child('permissions', {role: 'System Manager'});
 		}
 	},
 });

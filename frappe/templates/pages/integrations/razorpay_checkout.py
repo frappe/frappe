@@ -51,7 +51,7 @@ def get_context(context):
 
 
 def get_api_key():
-	api_key = frappe.db.get_value("Razorpay Settings", None, "api_key")
+	api_key = frappe.db.get_single_value("Razorpay Settings", "api_key")
 	if cint(frappe.form_dict.get("use_sandbox")):
 		api_key = frappe.conf.sandbox_api_key
 

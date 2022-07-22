@@ -134,11 +134,11 @@ class User(Document):
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
-		if self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
-			frappe.cache().delete_key("users_for_mentions")
-
 		if self.has_value_changed("enabled"):
+			frappe.cache().delete_key("users_for_mentions")
 			frappe.cache().delete_key("enabled_users")
+		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
+			frappe.cache().delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -611,10 +611,10 @@ class User(Document):
 		"""
 
 		login_with_mobile = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")
+			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
 		)
 		login_with_username = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")
+			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
 		)
 
 		or_filters = [{"name": user_name}]
@@ -763,19 +763,11 @@ def has_email_account(email):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
-	waiting = frappe.get_all(
+	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
-		filters={"awaiting_password": 1, "parent": user},
+		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
 	)
-	if waiting:
-		return waiting
-	else:
-		user_email_table = DocType("User Email")
-		frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(
-			user_email_table.parent == user
-		).run()
-		return False
 
 
 def ask_pass_update():
@@ -783,7 +775,7 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": True}, pluck="parent", distinct=True
+		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
 	)
 	set_default("email_user_password", ",".join(password_list))
 
@@ -869,7 +861,7 @@ def sign_up(email, full_name, redirect_to):
 		user.insert()
 
 		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_value("Portal Settings", None, "default_role")
+		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
 		if default_role:
 			user.add_roles(default_role)
 
