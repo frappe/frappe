@@ -40,7 +40,6 @@ class Workspace:
 		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
 		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
-
 		if (
 			self.doc
 			and self.doc.module

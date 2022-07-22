@@ -3,10 +3,19 @@
 
 import json
 
+from bs4 import BeautifulSoup
+
 import frappe
+from frappe import _
+from frappe.desk.doctype.notification_log.notification_log import (
+	enqueue_create_notification,
+	get_title,
+	get_title_html,
+)
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	get_subscribed_documents,
 )
+from frappe.utils import get_fullname
 
 
 @frappe.whitelist()
@@ -298,3 +307,56 @@ def get_open_count(doctype, name, items=None):
 			out["timeline_data"] = module.get_timeline_data(doctype, name)
 
 	return out
+
+
+def notify_mentions(ref_doctype, ref_name, content):
+	if ref_doctype and ref_name and content:
+		mentions = extract_mentions(content)
+
+		if not mentions:
+			return
+
+		sender_fullname = get_fullname(frappe.session.user)
+		title = get_title(ref_doctype, ref_name)
+
+		recipients = [
+			frappe.db.get_value(
+				"User",
+				{"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1},
+				"email",
+			)
+			for name in mentions
+		]
+
+		notification_message = _("""{0} mentioned you in a comment in {1} {2}""").format(
+			frappe.bold(sender_fullname), frappe.bold(ref_doctype), get_title_html(title)
+		)
+
+		notification_doc = {
+			"type": "Mention",
+			"document_type": ref_doctype,
+			"document_name": ref_name,
+			"subject": notification_message,
+			"from_user": frappe.session.user,
+			"email_content": content,
+		}
+
+		enqueue_create_notification(recipients, notification_doc)
+
+
+def extract_mentions(txt):
+	"""Find all instances of @mentions in the html."""
+	soup = BeautifulSoup(txt, "html.parser")
+	emails = []
+	for mention in soup.find_all(class_="mention"):
+		if mention.get("data-is-group") == "true":
+			try:
+				user_group = frappe.get_cached_doc("User Group", mention["data-id"])
+				emails += [d.user for d in user_group.user_group_members]
+			except frappe.DoesNotExistError:
+				pass
+			continue
+		email = mention["data-id"]
+		emails.append(email)
+
+	return emails
