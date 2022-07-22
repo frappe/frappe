@@ -26,6 +26,13 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.board.fields = JSON.parse(this.board.fields || '[]');
 	}
 
+	resolve_route_options() {
+		return {
+			...super.resolve_route_options(),
+			board: this.board_name
+		}
+	}
+
 	setup_paging_area() {
 
 	}
@@ -47,6 +54,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 		this.setup_realtime_updates();
 		this.setup_like();
+		this.update_route_options();
 	}
 
 	set_fields() {
@@ -183,8 +191,8 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 		.then((kanban_boards) => {
 			if (kanban_boards) {
 				kanban_boards.forEach(board => {
-					let route = `/app/${frappe.router.slug(board.reference_doctype)}/view/kanban/${board.name}`;
-					kanbans.push({ name: board.name, route: route });
+					const route = frappe.utils.generate_route({ type: 'doctype', name: doctype, doc_view: ['Kanban', board.name]});
+					kanbans.push({ name: board.name, route });
 				});
 			}
 
@@ -221,7 +229,8 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
 					frappe.provide('frappe.kanban_filters');
 					frappe.kanban_filters[kb.kanban_board_name] = kb.filters;
 				}
-				frappe.set_route('List', doctype, 'Kanban', kb.kanban_board_name);
+				const route = frappe.utils.generate_route({ type: 'doctype', name: doctype, doc_view: ['Kanban', kb.kanban_board_name] });
+				frappe.set_route(route);
 			}
 		});
 	}

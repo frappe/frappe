@@ -1261,33 +1261,33 @@ Object.assign(frappe.utils, {
 				if(!frappe.model.is_single(item.doctype)) {
 					if (!item.doc_view) {
 						if (frappe.model.is_tree(item.doctype)) {
-							item.doc_view = "Tree";
+							item.doc_view = "tree";
 						} else {
-							item.doc_view = "List";
+							item.doc_view = "list";
 						}
 					}
 
-					switch (item.doc_view) {
-						case "List":
+					if (!Array.isArray(item.doc_view)) {
+						item.doc_view = [item.doc_view];
+					}
+
+					const doc_view = item.doc_view[0].toLowerCase();
+
+					switch (doc_view) {
+						case "list":
 							break;
-						case "Tree":
-							route.push("view", "tree")
+						case "report builder":
+							route.push("view", "report");
 							break;
-						case "Report Builder":
-							route.push("view", "report")
-							break;
-						case "Dashboard":
-							route.push("view", "dashboard")
-							break;
-						case "New":
-							route.push("new")
-							break;
-						case "Calendar":
-							route.push("view", "calendar")
+						case "new":
+							route.push("new");
 							break;
 						default:
-							frappe.throw({ message: __("Not a valid view:") + item.doc_view, title: __("Unknown View") });
+							route.push("view", doc_view);
+							break;
 					}
+
+					route = [...route, ...item.doc_view.slice(1)];
 				}
 			} else if (type === "report") {
 				if (item.is_query_report) {
